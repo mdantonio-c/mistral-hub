@@ -1,0 +1,30 @@
+---
+project:
+  title: My Celery project
+  description: Title of my celery project
+  version: "1.0"
+  rapydo: 0.6.6
+
+variables:
+  env:
+    ALCHEMY_USER: sqluser
+    ALCHEMY_PASSWORD: chooseapasswordwisely
+    ALCHEMY_API_DB: SQL_API
+    ALCHEMY_ENGINE: postgresql
+    ALCHEMY_DBS: SQL_API
+
+    CELERY_BACKEND: MONGODB
+    CELERY_BACKEND_HOST: mongo.dockerized.io
+    CELERY_BACKEND_PORT: 27017
+
+  backend:
+    credentials:
+      username: "user@nomail.org"
+      password: "test"
+      roles:
+        user: normal_user
+        internal: staff_user
+        admin: admin_root
+        default: normal_user
+  frontend:
+    framework: angular
