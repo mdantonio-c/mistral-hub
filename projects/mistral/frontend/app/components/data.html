@@ -1,0 +1,43 @@
+<div class='container-fluid'>
+<div class="row justify-content-md-center">
+<div class='col-12'>
+
+<loading *ngIf='loading'></loading>
+
+<div class='card'>
+
+<div class='card-header'>
+
+    <h4>
+    	Data
+    </h4>
+</div>
+
+<div class='row'>
+<div class='card-block col-12'>
+
+	<button 
+		class='btn btn-secondary'
+		*ngIf='!data_id'
+		(click)='get_data()'>
+
+		Click here to execute a data request
+	</button>
+
+	<div *ngIf='data_id'>
+		<h6>
+			Request has been submitted with id {{ data_id }}
+		</h6>
+		<br><br>
+		<h5>That's all folk!</h5>
+	</div>
+
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+</div>
+
