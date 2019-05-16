@@ -1,0 +1,10 @@
+common:
+  custom:
+    authentication: true 
+
+data:
+  summary: Start data extraction 
+  responses:
+    '202':
+      description: data extraction request queued 
+
