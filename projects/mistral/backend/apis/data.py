@@ -34,7 +34,7 @@ class Data(EndpointResource):
 
         task = CeleryExt.data_extract.apply_async(
             args=[],
-            countdown=10
+            countdown=1
         )
         return self.force_response(
             task.id, code=hcodes.HTTP_OK_ACCEPTED)
