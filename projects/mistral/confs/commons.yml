@@ -53,6 +53,10 @@ services:
     environment:
       ACTIVATE: 1
 
+  rabbit:
+    ports:
+      - 5672:5672
+
   celery:
     volumes:
       - ${VANILLA_DIR}/data/test:/data
