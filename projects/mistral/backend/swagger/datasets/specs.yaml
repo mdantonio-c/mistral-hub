@@ -1,0 +1,9 @@
+file: datasets
+class: Datasets
+schema:
+  expose: true
+mapping:
+  datasets: "/datasets"
+  dataset:  "/datasets/<dataset_name>"
+labels:
+  - dataset

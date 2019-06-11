@@ -1,5 +1,76 @@
 definitions:
-  ExampleSchema:
+  DataExtraction:
     properties:
-      example:
+      datasets:
+        description: Data belong to the datasets of the list.
+        type: array
+        uniqueItems: true
+        items:
+          description: Dataset name
+          type: string
+      filters:
+        description: Apply different filtering criteria.
+        type: array
+        items:
+          $ref: "#/definitions/DataFilter"
+      post-process:
+        description: Apply post-processing to the filtered data.
         type: string
+      format:
+        description: Output format
+        type: string
+        enum:
+          - json
+          - bufr
+          - grib
+  DataFilter:
+    properties:
+      product:
+        type: string
+      origin:
+        type: string
+      level:
+        type: string
+      proddef:
+        type: string
+      timerange:
+        type: string
+
+  Datasets:
+    type: array
+    items:
+      $ref: "#/definitions/Dataset"
+  Dataset:
+    required:
+      - name
+      - fields
+    properties:
+      name:
+        type: string
+      fields:
+        type: array
+        items:
+          type: string
+
+#  Observation:
+#    properties:
+#      phenomenonTime:
+#        type: string
+#  Location:
+#    properties:
+#
+#  Procedure:
+#    name:
+#      type: string
+#    description:
+#      type: string
+#    type:
+#      type: string
+#
+#  TimeRange:
+#    pindicator:
+#      type: string
+#    period1:
+#      type: string
+#    period2:
+#      type: string

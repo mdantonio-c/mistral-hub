@@ -3,8 +3,14 @@ common:
     authentication: true 
 
 data:
-  summary: Start data extraction 
+  summary: Request for data extraction.
+  parameters:
+    - name: criteria
+      in: body
+      description: Criteria for data extraction.
+      schema:
+        $ref: "#/definitions/DataExtraction"
   responses:
     '202':
-      description: data extraction request queued 
+      description: Data extraction request queued
 
