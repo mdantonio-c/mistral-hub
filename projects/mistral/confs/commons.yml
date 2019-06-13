@@ -3,6 +3,8 @@ version: '3'
 
 services:
   backend:
+    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
     environment:
       # base the user/role mechanism on some database
       AUTH_ENABLE: 1
@@ -57,7 +59,13 @@ services:
     ports:
       - 5672:5672
 
+  celeryui:
+    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+
   celery:
+    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
     volumes:
       - ${VANILLA_DIR}/data/test:/data
     depends_on:

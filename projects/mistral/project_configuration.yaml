@@ -7,6 +7,10 @@ project:
 
 variables:
   env:
+
+    BACKEND_BUILD_MODE: backendcentos
+    PYTHON_PATH: /usr/local/lib/python3.6/site-packages
+
     ALCHEMY_USER: sqluser
     ALCHEMY_PASSWORD: chooseapasswordwisely
     ALCHEMY_API_DB: SQL_API
