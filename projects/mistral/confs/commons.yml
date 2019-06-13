@@ -38,6 +38,7 @@ services:
 
     volumes:
       - ${VANILLA_DIR}/data/test:/data
+      - ${VANILLA_DIR}/data/arkimet:/datasets
 
     networks:
       worker_net:
@@ -95,26 +96,26 @@ services:
       CELERY_BROKER_HOST: ${CELERY_BROKER_HOST}
       CELERY_BROKER_PORT: ${CELERY_BROKER_PORT}
 
-  arkimet:
-    restart: always
-    build:
-      context: ${PROJECT_DIR}/builds/arkimet
-      # args:
-      #   RAPYDO_VERSION: ${RAPYDO_VERSION}
-      #   CURRENT_UID: ${CURRENT_UID}
-    image: rapydo/arkimet:${RAPYDO_VERSION}
-    # expose:
-    #   - 8090
-    ports:
-      - 8090:8090
-    networks:
-      app_net:
-        aliases:
-          - arkimet
-    volumes:
-      - ${VANILLA_DIR}/data/arkimet:/datasets
-    environment:
-      ACTIVATE: 1
+  # arkimet:
+  #   restart: always
+  #   build:
+  #     context: ${PROJECT_DIR}/builds/arkimet
+  #     # args:
+  #     #   RAPYDO_VERSION: ${RAPYDO_VERSION}
+  #     #   CURRENT_UID: ${CURRENT_UID}
+  #   image: rapydo/arkimet:${RAPYDO_VERSION}
+  #   # expose:
+  #   #   - 8090
+  #   ports:
+  #     - 8090:8090
+  #   networks:
+  #     app_net:
+  #       aliases:
+  #         - arkimet
+  #   volumes:
+  #     - ${VANILLA_DIR}/data/arkimet:/datasets
+  #   environment:
+  #     ACTIVATE: 1
 
 # volumes:
 #   -
