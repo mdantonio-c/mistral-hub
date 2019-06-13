@@ -58,6 +58,7 @@ services:
   rabbit:
     ports:
       - 5672:5672
+      - 15672:15672
 
   celeryui:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
