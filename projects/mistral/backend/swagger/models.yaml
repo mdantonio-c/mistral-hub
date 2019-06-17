@@ -10,9 +10,7 @@ definitions:
           type: string
       filters:
         description: Apply different filtering criteria.
-        type: array
-        items:
-          $ref: "#/definitions/DataFilter"
+        $ref: "#/definitions/DataFilter"
       post-process:
         description: Apply post-processing to the filtered data.
         type: string

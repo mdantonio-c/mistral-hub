@@ -64,12 +64,16 @@ services:
   celeryui:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    environment:
+      CELERYUI_USER: ${CELERYUI_USER}
+      CELERYUI_PASSWORD: ${CELERYUI_PASSWORD}
 
   celery:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
     volumes:
       - ${VANILLA_DIR}/data/test:/data
+      - ${VANILLA_DIR}/data/arkimet:/datasets
     depends_on:
       - rabbit
       - postgres 
