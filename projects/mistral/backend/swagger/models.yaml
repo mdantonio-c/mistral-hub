@@ -1,10 +1,13 @@
 definitions:
   DataExtraction:
+    required:
+      - datasets
     properties:
       datasets:
         description: Data belong to the datasets of the list.
         type: array
         uniqueItems: true
+        minItems: 1
         items:
           description: Dataset name
           type: string

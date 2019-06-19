@@ -38,38 +38,19 @@ class Data(EndpointResource):
 
         user = self.get_current_user()
         logger.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
-        # criteria = self.get_input()
-        criteria = request.json
-        logger.debug(criteria)
+        criteria = self.get_input()
 
-        # validate filtering criteria
-        try:
-            # validator.validate_data_extraction(criteria)
-            DataExtraction = mem.customizer._definitions['definitions']['DataExtraction']
-            logger.debug(mem.customizer._validated_spec)
-            validate_object(mem.customizer._validated_spec, DataExtraction, criteria)
-            logger.info("input valid")
-
-        except ValidationError as e:
-            # message = "Invalid criteria:\n Field: {}\n Error: {}".format(_format_field_path(e.absolute_path), e.message)
-            raise RestApiException(
-                  'Invalid Data',
-                  status_code=hcodes.HTTP_BAD_REQUEST)
-
+        self.validate_input(criteria, 'DataExtraction')
         datasets = criteria.get('datasets', [])
-        if not datasets:
-            raise RestApiException(
-                "Please specify at least one dataset",
-                status_code=hcodes.HTTP_BAD_REQUEST)
+
         # TODO check for existing dataset(s)
 
         filters = criteria.get('filters')
         # TODO check for valid and allowed filters
 
-        # task = CeleryExt.data_extract.apply_async(
-        #     args=[user.uuid, datasets, filters],
-        #     countdown=1
-        # )
-        # return self.force_response(
-        #     task.id, code=hcodes.HTTP_OK_ACCEPTED)
-        return self.empty_response()
+        task = CeleryExt.data_extract.apply_async(
+            args=[user.uuid, datasets, filters],
+            countdown=1
+        )
+        return self.force_response(
+            task.id, code=hcodes.HTTP_OK_ACCEPTED)
