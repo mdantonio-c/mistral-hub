@@ -28,3 +28,7 @@ class Datasets(EndpointResource):
             # TODO retrieve all the datasets
             data = []
         return self.force_response(data)
+
+    def _load_datasets(self):
+        # TODO load dataset using arki-mergeconf
+        pass

@@ -41,8 +41,7 @@ class Data(EndpointResource):
         criteria = self.get_input()
 
         self.validate_input(criteria, 'DataExtraction')
-        datasets = criteria.get('datasets', [])
-
+        datasets = criteria.get('datasets')
         # TODO check for existing dataset(s)
 
         filters = criteria.get('filters')
