@@ -38,7 +38,8 @@ services:
 
     volumes:
       - ${VANILLA_DIR}/data/test:/data
-      - ${VANILLA_DIR}/data/arkimet:/datasets
+      - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
+      - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
 
     networks:
       worker_net:
@@ -64,6 +65,10 @@ services:
   celeryui:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    volumes:
+      - ${VANILLA_DIR}/data/test:/data
+      - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
+      - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
     environment:
       CELERYUI_USER: ${CELERYUI_USER}
       CELERYUI_PASSWORD: ${CELERYUI_PASSWORD}
@@ -73,7 +78,8 @@ services:
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
     volumes:
       - ${VANILLA_DIR}/data/test:/data
-      - ${VANILLA_DIR}/data/arkimet:/datasets
+      - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
+      - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
     depends_on:
       - rabbit
       - postgres 
