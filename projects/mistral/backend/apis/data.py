@@ -7,6 +7,12 @@ from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
+from flask import request
+
+from jsonschema.exceptions import ValidationError
+# from mistral.apis import validator
+from utilities.globals import mem
+from bravado_core.validate import validate_object
 
 logger = get_logger(__name__)
 
@@ -30,10 +36,20 @@ class Data(EndpointResource):
     @catch_error()
     def post(self):
 
-        # ########## INIT ##########
+        user = self.get_current_user()
+        logger.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
+        criteria = self.get_input()
+
+        self.validate_input(criteria, 'DataExtraction')
+        datasets = criteria.get('datasets', [])
+
+        # TODO check for existing dataset(s)
+
+        filters = criteria.get('filters')
+        # TODO check for valid and allowed filters
 
         task = CeleryExt.data_extract.apply_async(
-            args=[],
+            args=[user.uuid, datasets, filters],
             countdown=1
         )
         return self.force_response(
