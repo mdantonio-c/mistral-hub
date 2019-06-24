@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from restapi.flask_ext.flask_celery import CeleryExt
+
 import shlex, subprocess
 import os
 import datetime
+from restapi.flask_ext.flask_celery import CeleryExt
+from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 # from restapi.flask_ext.flask_celery import send_errors_by_email
 
 from utilities.logs import get_logger
@@ -10,7 +12,6 @@ from utilities.logs import get_logger
 celery_app = CeleryExt.celery_app
 
 log = get_logger(__name__)
-DATASET_ROOT = '/datasets/'
 DOWNLOAD_DIR = '/data'
 MAX_USER_QUOTA = 1073741824 # 1 GB
 

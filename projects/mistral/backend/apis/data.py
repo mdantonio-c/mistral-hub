@@ -7,6 +7,7 @@ from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
+from mistral.services.arkimet import BeArkimet as arki
 
 logger = get_logger(__name__)
 
@@ -35,14 +36,21 @@ class Data(EndpointResource):
         criteria = self.get_input()
 
         self.validate_input(criteria, 'DataExtraction')
-        datasets = criteria.get('datasets')
+        dataset_names = criteria.get('datasets')
         # TODO check for existing dataset(s)
+        datasets = arki.load_datasets()
+        for ds_name in dataset_names:
+            found = next((ds for ds in datasets if ds.get('id', '') == ds_name), None)
+            if not found:
+                raise RestApiException(
+                    "Dataset not found for name: {}".format(ds_name),
+                    status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         filters = criteria.get('filters')
         # TODO check for valid and allowed filters
 
         task = CeleryExt.data_extract.apply_async(
-            args=[user.uuid, datasets, filters],
+            args=[user.uuid, dataset_names, filters],
             countdown=1
         )
         return self.force_response(
