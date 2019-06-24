@@ -22,19 +22,13 @@ def data_extract(self, user_uuid, datasets, filters=None):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]".format(self.request.id, self.name))
 
-        matcher = ''    # ignore any matchers at the moment
+        query = ''    # default to no matchers
         if filters is not None:
-            # TODO add matcher to the query
-            pass
+            query = arki.parse_matchers(filters)
 
         # I should check the user quota before...
         # check the output size
-        ds = ' '.join([DATASET_ROOT+'{}'.format(i) for i in datasets])
-        arki_size_cmd = "arki-query --dump --summary-short '{}' {}".format(matcher, ds)
-        log.debug(arki_size_cmd)
-        args = shlex.split(arki_size_cmd)
-        p = subprocess.Popen(args, stdout=subprocess.PIPE)
-        data_size = int(subprocess.check_output(('awk', '/Size/ {print $2}'), stdin=p.stdout))
+        data_size = arki.estimate_data_size(query, datasets)
         log.debug('Resulting output size: {} ({})'.format(data_size, human_size(data_size)))
 
         # create download user dir if it doesn't exist
@@ -55,7 +49,8 @@ def data_extract(self, user_uuid, datasets, filters=None):
         '''
          $ arki-query [OPZIONI] QUERY DATASET...
         '''
-        arki_query_cmd = "arki-query --data '{}' {}".format(matcher, ds)
+        ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
+        arki_query_cmd = "arki-query --data '{}' {}".format(query, ds)
         log.debug(arki_query_cmd)
 
         # save results into user space

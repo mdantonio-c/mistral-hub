@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os
 import shlex, subprocess
 import glob
+import re
 from utilities.logs import get_logger
 
 DATASET_ROOT = '/arkimet/datasets/'
@@ -58,3 +58,45 @@ class BeArkimet():
             # add the latest ds
             datasets.append(ds)
         return datasets
+
+    @staticmethod
+    def estimate_data_size(query, datasets):
+        """
+        Estimate arki-query output size.
+        """
+        ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
+        arki_size_cmd = "arki-query --dump --summary-short '{}' {}".format(query, ds)
+        logger.debug(arki_size_cmd)
+        args = shlex.split(arki_size_cmd)
+        p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        return int(subprocess.check_output(('awk', '/Size/ {print $2}'), stdin=p.stdout))
+
+    @staticmethod
+    def parse_matchers(filters):
+        matchers = []
+        for k in filters:
+            val = filters[k].strip()
+            if k == 'origin':
+                # -- GRIB1
+                # -- Syntax: origin:GRIB1,centre,subcentre,process
+                # -- Any of centre, subcentre, process can be omitted; if omitted, any value
+                # -- will match
+                if val.startswith('GRIB1') and re.match('GRIB1,?[0-9]*', val):
+                    logger.debug('add <origin> matcher: {}'.format(val))
+                    matchers.append('origin:'+val)
+                else:
+                    logger.warn('Invalid value for filter <origin>: %s' % val)
+                    continue
+            elif k == 'level':
+                # -- GRIB1
+                # -- Syntax: level:GRIB1, leveltype, l1, l2
+                # -- Any of leveltype, l1 or l2 can be omitted; if omitted, any value
+                # -- will match
+                if val.startswith('GRIB1') and re.match('GRIB1,?[0-9]*', val):
+                    matchers.append('level:'+val)
+                else:
+                    logger.warn('Invalid value for filter <level>: %s' % val)
+                    continue
+            # TODO manage the remaining filters
+
+        return '' if not matchers else '; '.join(matchers)
