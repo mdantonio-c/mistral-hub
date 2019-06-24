@@ -7,12 +7,6 @@ from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
-from flask import request
-
-from jsonschema.exceptions import ValidationError
-# from mistral.apis import validator
-from utilities.globals import mem
-from bravado_core.validate import validate_object
 
 logger = get_logger(__name__)
 
