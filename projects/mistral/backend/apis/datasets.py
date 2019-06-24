@@ -41,7 +41,6 @@ class Datasets(EndpointResource):
         args = shlex.split("arki-mergeconf " + ' '.join(folders))
         with subprocess.Popen(args, stdout=subprocess.PIPE) as proc:
             ds = None
-            new_ds = False
             while True:
                 line = proc.stdout.readline()
                 if not line:
@@ -51,7 +50,7 @@ class Datasets(EndpointResource):
                     continue;
                 if line.startswith('['):
                     # new dataset config
-                    if ds is not None and 'type' in ds:
+                    if ds is not None and ds['id'] not in ('error', 'duplicates'):
                         datasets.append(ds)
                     ds = {
                         'id': line.split('[', 1)[1].split(']')[0]
