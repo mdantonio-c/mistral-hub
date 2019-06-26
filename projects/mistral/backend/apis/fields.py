@@ -6,6 +6,8 @@ from restapi.decorators import catch_error
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
+from flask import Response
+from flask import json
 
 logger = get_logger(__name__)
 
@@ -18,7 +20,6 @@ class Fields(EndpointResource):
         params = self.get_input()
         ds = params.get('datasets')
         datasets = ds.split(',') if ds is not None else []
-        logger.debug(datasets)
 
         # check for existing dataset(s)
         for ds_name in datasets:
@@ -28,4 +29,7 @@ class Fields(EndpointResource):
                     "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
 
-        return self.force_response(arki.load_summary(datasets))
+        summary = arki.load_summary(datasets)
+        # return self.force_response(summary)
+        js = json.dumps(summary)
+        return Response(js, status=200, mimetype='application/json')

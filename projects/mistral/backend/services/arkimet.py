@@ -3,6 +3,7 @@
 import shlex, subprocess
 import glob
 import re
+import json
 from utilities.logs import get_logger
 
 DATASET_ROOT = '/arkimet/datasets/'
@@ -68,9 +69,11 @@ class BeArkimet():
         :return:
         """
         if not datasets:
-            pass
-        # TODO
-        return {}
+            datasets = [d['id'] for d in BeArkimet.load_datasets()]
+        ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
+        args = shlex.split("arki-query --json --summary-short '{}' {}".format(query, ds))
+        with subprocess.Popen(args, stdout=subprocess.PIPE) as proc:
+            return json.loads(proc.stdout.read())
 
     @staticmethod
     def estimate_data_size(datasets, query):
@@ -78,10 +81,10 @@ class BeArkimet():
         Estimate arki-query output size.
         """
         ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
-        arki_size_cmd = "arki-query --dump --summary-short '{}' {}".format(query, ds)
-        logger.debug(arki_size_cmd)
-        args = shlex.split(arki_size_cmd)
+        arki_summary_cmd = "arki-query --dump --summary-short '{}' {}".format(query, ds)
+        args = shlex.split(arki_summary_cmd)
         p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        # extract the size
         return int(subprocess.check_output(('awk', '/Size/ {print $2}'), stdin=p.stdout))
 
     @staticmethod
