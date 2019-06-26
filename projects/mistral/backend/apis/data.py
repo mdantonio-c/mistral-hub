@@ -43,7 +43,7 @@ class Data(EndpointResource):
             found = next((ds for ds in datasets if ds.get('id', '') == ds_name), None)
             if not found:
                 raise RestApiException(
-                    "Dataset not found for name: {}".format(ds_name),
+                    "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         filters = criteria.get('filters')

@@ -28,7 +28,7 @@ def data_extract(self, user_uuid, datasets, filters=None):
 
         # I should check the user quota before...
         # check the output size
-        data_size = arki.estimate_data_size(query, datasets)
+        data_size = arki.estimate_data_size(datasets, query)
         log.debug('Resulting output size: {} ({})'.format(data_size, human_size(data_size)))
 
         # create download user dir if it doesn't exist

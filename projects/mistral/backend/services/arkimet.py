@@ -13,14 +13,14 @@ class BeArkimet():
 
     @staticmethod
     def load_datasets():
-        '''
+        """
         Load dataset using arki-mergeconf
         $ arki-mergeconf $HOME/datasets/*
 
         :return: list of datasets
-        '''
+        """
         datasets = []
-        folders = glob.glob("/arkimet/datasets/*")
+        folders = glob.glob(DATASET_ROOT+"*")
         args = shlex.split("arki-mergeconf " + ' '.join(folders))
         with subprocess.Popen(args, stdout=subprocess.PIPE) as proc:
             ds = None
@@ -60,7 +60,20 @@ class BeArkimet():
         return datasets
 
     @staticmethod
-    def estimate_data_size(query, datasets):
+    def load_summary(datasets=[], query=''):
+        """
+        Get summary for one or more datasets. If no dataset is provided consider all available ones.
+        :param datasets: List of datasets
+        :param query: Optional arkimet query filter
+        :return:
+        """
+        if not datasets:
+            pass
+        # TODO
+        return {}
+
+    @staticmethod
+    def estimate_data_size(datasets, query):
         """
         Estimate arki-query output size.
         """

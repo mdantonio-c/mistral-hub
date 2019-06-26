@@ -53,6 +53,46 @@ definitions:
         items:
           type: string
 
+  Summary:
+    required:
+      - fields
+      - stats
+    properties:
+      fields:
+        type: array
+        items:
+          $ref: "#/definitions/Field"
+      stats:
+        $ref: "#/definitions/SummaryStats"
+  Field:
+    required:
+      - type
+      - values
+    properties:
+      type:
+        type: string
+      values:
+        type: array
+        items: {}
+  SummaryStats:
+    required:
+      - size
+      - count
+      - from
+      - to
+    properties:
+      size:
+        type: integer
+        minimum: 0
+      count:
+        type: integer
+        minimum: 0
+      from:
+        type: string
+        format: date-time
+      to:
+        type: string
+        format: date-time
 #  Observation:
 #    properties:
 #      phenomenonTime:
