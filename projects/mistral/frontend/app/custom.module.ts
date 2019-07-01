@@ -28,7 +28,7 @@ const routes: Routes = [
 @NgModule({
 	imports: [
 		RapydoModule,
-	    RouterModule.forChild(routes),
+    RouterModule.forChild(routes),
 	],
 	declarations: [
 		DataComponent
@@ -39,7 +39,7 @@ const routes: Routes = [
 
 	exports: [
 		RouterModule
-  	]
+	]
 
 })
 export class CustomModule {
