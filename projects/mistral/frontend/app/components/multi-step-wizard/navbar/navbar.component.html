@@ -1,0 +1,52 @@
+<div class="board-inner" id="status-buttons">
+    <ul class="nav nav-tabs" id="myTab">
+        <div class="liner"></div>
+
+        <!-- circular datasets icon -->
+        <li class="nav-item">
+            <a [routerLink]="['/', { outlets: { step: ['datasets'] } }]"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{ exact: true }"
+               data-toggle="tab" title="datasets"
+               class="nav-link">
+                <span class="round-tabs one">
+                    <i class="material-icons">dashboard</i>
+                </span>
+            </a>
+        </li>
+
+        <!-- circular filter icon -->
+        <li class="nav-item">
+            <a [routerLink]="['/', { outlets: { step: ['filters'] } }]"
+                data-toggle="tab" title="filters"
+               class="nav-link">
+                <span class="round-tabs two">
+                    <i class="material-icons">filter_list</i>
+                </span>
+            </a>
+        </li>
+
+        <!-- circular postprocess icon -->
+        <li class="nav-item">
+            <a [routerLink]="['/', { outlets: { step: ['postprocess'] } }]"
+                data-toggle="tab" title="postprocess" class="nav-link">
+                <span class="round-tabs three">
+                     <i class="material-icons">settings</i>
+                </span>
+            </a>
+        </li>
+
+        <!-- circular done icon -->
+        <li class="nav-item">
+            <a [routerLink]="['/', { outlets: { stepper: ['submit'] } }]"
+               data-toggle="tab" title="completed" class="nav-link">
+                <span class="round-tabs four">
+                    <i class="material-icons">done</i>
+                </span>
+            </a>
+        </li>
+
+    </ul>
+    <div class="clearfix"></div>
+</div>
+<router-outlet name="stepper"></router-outlet>
