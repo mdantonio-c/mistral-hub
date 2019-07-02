@@ -2,8 +2,8 @@
 project:
   title: Mistral Meteo-Hub 
   description: 
-  version: "1.0"
-  rapydo: 0.6.6
+  version: "0.6.7"
+  rapydo: 0.6.7
 
 variables:
   env:

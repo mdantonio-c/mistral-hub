@@ -1,5 +1,4 @@
-#FROM centos:7
-FROM rapydo/backendcentos:0.6.6
+FROM rapydo/backendcentos:0.6.7
 
 COPY build.sh /
 COPY build.conf /
