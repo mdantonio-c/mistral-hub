@@ -16,14 +16,32 @@ export class FormDataService {
   constructor(private workflowService: WorkflowService, private dataService: DataService) {
   }
 
-  // TODO
   getDatasets() {
     return this.dataService.getDatsets();
+  }
+
+  setDatasets(data: string[]) {
+    // Update the Datasets only when the Dataset Form had been validated successfully
+    this.isDatasetFormValid = true;
+    this.formData.datasets = data;
+    // Validate Dataset Step in Workflow
+    this.workflowService.validateStep(STEPS.dataset);
+  }
+
+  isDatasetSelected(datasetId: string): boolean {
+    return this.formData.datasets.some(x => x === datasetId);
   }
 
   getFormData(): FormData {
     // Return the entire Form Data
     return this.formData;
+  }
+
+  isFormValid() {
+    // Return true if all forms had been validated successfully; otherwise, return false
+    return this.isDatasetFormValid &&
+      this.isFilterFormValid &&
+      this.isPostprocessFormValid;
   }
 
 }

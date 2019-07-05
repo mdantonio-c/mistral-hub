@@ -1,3 +1,58 @@
+ul {
+  list-style-type: none;
+}
+
+.mst--input-checkbox {
+  opacity: 0;
+  position: absolute;
+}
+
+.mst--input-checkbox + label {
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  margin: 6px 0 0 12px;
+}
+
+.mst--input-checkbox + label:before {
+  content: '';
+  margin-right: 10px;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: 2px solid #707070;
+  vertical-align: sub;
+}
+
+.mst--input-checkbox:hover + label:before {
+  background: #fff;
+}
+
+.mst--input-checkbox:disabled + label:before {
+  box-shadow: none;
+  background: #f7f7f7;
+}
+
+.mst--input-checkbox:checked + label:after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 11px;
+  background: white;
+  width: 2px;
+  height: 2px;
+  box-shadow: 2px 0 0 white, 4px 0 0 white, 4px -2px 0 white, 4px -4px 0 white, 4px -6px 0 white, 4px -8px 0 white;
+  transform: rotate(45deg);
+}
+
+.mst--input-checkbox:checked + label:before {
+  background: #53b8e2;
+  border: 2px solid #53b8e2;
+}
+
+/* END */
+
 .btn-default {
     border-color: #ccc;
 }

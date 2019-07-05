@@ -6,7 +6,6 @@ import {FormDataService} from "../../services/formData.service";
     templateUrl: './multi-step-wizard.component.html'
 })
 export class MultiStepWizardComponent implements OnInit {
-    title = 'Multi-Step Wizard';
     @Input() formData;
 
     constructor(private formDataService: FormDataService) {
@@ -14,7 +13,5 @@ export class MultiStepWizardComponent implements OnInit {
 
     ngOnInit(): void {
         this.formData = this.formDataService.getFormData();
-        console.log(this.title + ' loaded!');
     }
-
 }

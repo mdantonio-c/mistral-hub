@@ -5,5 +5,8 @@ import {Component} from '@angular/core';
     templateUrl: './step-filters.component.html'
 })
 export class StepFiltersComponent {
+    title = 'Filter your data';
 
+    constructor() {
+    }
 }

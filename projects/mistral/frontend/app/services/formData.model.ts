@@ -1,5 +1,5 @@
 export class FormData {
-    datasets: Dataset[] = [];
+    datasets: string[] = [];
     filters: Filter = {};
 }
 
