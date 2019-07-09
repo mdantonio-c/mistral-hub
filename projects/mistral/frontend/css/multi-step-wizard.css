@@ -169,7 +169,7 @@ li.active span.round-tabs.five {
     font-family: 'Roboto Condensed', sans-serif;
     font-size: 25px;
     text-transform: uppercase;
-    padding-bottom: 10px;
+    /*padding-bottom: 10px;*/
 }
 
 .btn-outline-rounded {

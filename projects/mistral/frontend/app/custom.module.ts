@@ -1,5 +1,6 @@
 import {NgModule, ModuleWithProviders} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
+import {DatePipe} from '@angular/common';
 
 import {RapydoModule} from '/rapydo/src/app/rapydo.module';
 import {AuthGuard} from '/rapydo/src/app/app.auth.guard';
@@ -19,6 +20,7 @@ import {StepSubmitComponent} from "./components/multi-step-wizard/step-submit/st
 import {FormDataService} from './services/formData.service';
 import {WorkflowService} from './services/workflow.service';
 import {DataService} from "./services/data.service";
+import {FormatDatePipe} from "./components/pipes/format-date.pipe";
 
 
 const routes: Routes = [
@@ -52,9 +54,10 @@ const routes: Routes = [
         StepFiltersComponent,
         StepPostprocessComponent,
         StepSubmitComponent,
-        RequestsComponent
+        RequestsComponent,
+        FormatDatePipe
     ],
-    providers: [FormDataService, WorkflowService, DataService],
+    providers: [FormDataService, WorkflowService, DataService, DatePipe],
     exports: [
         RouterModule
     ]
