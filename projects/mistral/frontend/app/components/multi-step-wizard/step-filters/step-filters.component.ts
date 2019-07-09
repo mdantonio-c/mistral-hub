@@ -4,6 +4,7 @@ import {FormBuilder, FormGroup, FormArray, FormControl, Validators} from '@angul
 import {FormDataService} from "../../../services/formData.service";
 import {Filters} from "../../../services/formData.model";
 import {NotificationService} from '/rapydo/src/app/services/notification';
+import {ArkimetService} from "../../../services/arkimet.service";
 
 @Component({
     selector: 'step-filters',
@@ -19,6 +20,7 @@ export class StepFiltersComponent implements OnInit {
                 private router: Router,
                 private route: ActivatedRoute,
                 private formDataService: FormDataService,
+                private arkimetService: ArkimetService,
                 private notify: NotificationService) {
         this.filterForm = this.formBuilder.group({
             filters: this.formBuilder.array([])
@@ -64,9 +66,11 @@ export class StepFiltersComponent implements OnInit {
                 name: f.name,
                 values: f.values
                     .map((v, j) => v ? this.filters[f.name][j] : null)
-                    .filter(v => v !== null)
+                    .filter(v => v !== null),
+                query: ''
             };
             if (res.values.length) {
+                res.query = this.arkimetService.getQuery(res);
                 selectedFilters.push(res);
             }
         });

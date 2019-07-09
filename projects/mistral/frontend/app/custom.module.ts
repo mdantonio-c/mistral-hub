@@ -20,7 +20,8 @@ import {StepSubmitComponent} from "./components/multi-step-wizard/step-submit/st
 import {FormDataService} from './services/formData.service';
 import {WorkflowService} from './services/workflow.service';
 import {DataService} from "./services/data.service";
-import {FormatDatePipe} from "./components/pipes/format-date.pipe";
+import {FormatDatePipe} from './pipes/format-date.pipe';
+import {ArkimetService} from './services/arkimet.service';
 
 
 const routes: Routes = [
@@ -57,7 +58,12 @@ const routes: Routes = [
         RequestsComponent,
         FormatDatePipe
     ],
-    providers: [FormDataService, WorkflowService, DataService, DatePipe],
+    providers: [
+        FormDataService,
+        WorkflowService,
+        DataService,
+        ArkimetService,
+        DatePipe],
     exports: [
         RouterModule
     ]
