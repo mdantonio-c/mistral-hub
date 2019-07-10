@@ -1,2 +1,52 @@
-
-<h1>step filter</h1>
+<form [formGroup]="filterForm" (ngSubmit)="goToNext()">
+    <div class="tab-pane fade show active mt-4">
+        <h4 class="head text-center">{{title}}</h4>
+        <br/>
+        <div *ngIf="filters">
+            <!-- Summary Stats-->
+            <div class="card mst--expansion-panel mst--info-panel " *ngIf="summaryStats">
+                <div class="card-header">
+                    <h5>Summary Stats</h5>
+                </div>
+                <div class="body">
+                    <ul>
+                        <li><strong>From:</strong> {{summaryStats.b | fmtDate}}</li>
+                        <li><strong>To:</strong> {{summaryStats.e | fmtDate}}</li>
+                        <li><strong>Count:</strong> {{summaryStats.c}}</li>
+                        <li><strong>Size:</strong> {{summaryStats.s | bytes:2}}</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Filters -->
+            <div formArrayName="filters"
+                 *ngFor="let f of filterForm.get('filters').controls; let i = index;">
+                <div class="card mst--expansion-panel" [formGroupName]="i">
+                    <div class="card-header">
+                        <h5>{{f.value.name}}</h5>
+                        <span class="info-help">&nbsp;<i placement="right"
+                                                         ngbTooltip="Add helpful info about this filter"
+                                                         class="fa fa-question-circle"
+                                                         aria-hidden="true"></i></span>
+                    </div>
+                    <div class="body">
+                        <ul class="mst--list-filter">
+                            <li formArrayName="values" *ngFor="let v of f.controls.values.controls; let j = index">
+                                <input class="mst--input-checkbox" type="checkbox" [formControlName]="j"
+                                       id="{{f.value.name+'-'+j}}">
+                                <label for="{{f.value.name+'-'+j}}">{{filters[f.value.name][j].desc}}</label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group text-center space-20">
+                <button class="btn btn-outline-secondary mr-2" type="button"
+                        (click)="goToPrevious()"><i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
+                </button>
+                <button class="btn btn-info" type="submit"
+                        [disabled]="!filterForm.valid"> Next <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

@@ -3,7 +3,6 @@ import {ApiService} from '/rapydo/src/app/services/api';
 
 @Injectable()
 export class DataService {
-    // private _datasets: any[] = [];
 
     constructor(private api: ApiService) { }
 
@@ -12,6 +11,14 @@ export class DataService {
      */
     getDatsets() {
         return this.api.get('datasets');
+    }
+
+    /**
+     * Get summary fields for a give list of datasets.
+     * @param datasets
+     */
+    getSummary(datasets: string[]) {
+        return this.api.get('fields', '', {datasets: datasets.join()});
     }
 
     /**

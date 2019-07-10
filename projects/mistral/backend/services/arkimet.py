@@ -71,7 +71,7 @@ class BeArkimet():
         if not datasets:
             datasets = [d['id'] for d in BeArkimet.load_datasets()]
         ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
-        args = shlex.split("arki-query --json --summary-short '{}' {}".format(query, ds))
+        args = shlex.split("arki-query --json --summary-short --annotate '{}' {}".format(query, ds))
         with subprocess.Popen(args, stdout=subprocess.PIPE) as proc:
             return json.loads(proc.stdout.read())
 
