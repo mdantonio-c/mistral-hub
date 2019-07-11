@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
 from restapi.rest.definition import EndpointResource
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
@@ -47,10 +46,15 @@ class Data(EndpointResource):
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         filters = criteria.get('filters')
+        # open transaction
+        # create request in db
 
         task = CeleryExt.data_extract.apply_async(
             args=[user.uuid, dataset_names, filters],
             countdown=1
         )
+        # update task field in request by id
+        # close transaction
+
         return self.force_response(
             task.id, code=hcodes.HTTP_OK_ACCEPTED)

@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import shlex, subprocess
+import shlex
+import subprocess
+import os
 import glob
 import re
 import json
 from utilities.logs import get_logger
 
-DATASET_ROOT = '/arkimet/datasets/'
-
+DATASET_ROOT = os.environ['DATASET_ROOT']
 logger = get_logger(__name__)
+
 
 class BeArkimet():
 
@@ -70,6 +72,9 @@ class BeArkimet():
         """
         if not datasets:
             datasets = [d['id'] for d in BeArkimet.load_datasets()]
+        if query is None:
+            query = ''
+
         ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
         args = shlex.split("arki-query --json --summary-short --annotate '{}' {}".format(query, ds))
         with subprocess.Popen(args, stdout=subprocess.PIPE) as proc:

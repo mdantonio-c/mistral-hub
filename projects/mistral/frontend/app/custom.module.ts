@@ -22,6 +22,7 @@ import {WorkflowService} from './services/workflow.service';
 import {DataService} from "./services/data.service";
 import {FormatDatePipe} from './pipes/format-date.pipe';
 import {ArkimetService} from './services/arkimet.service';
+import {WorkflowGuard} from "./services/workflow-guard.service";
 
 
 const routes: Routes = [
@@ -31,15 +32,14 @@ const routes: Routes = [
         children: [
             {path: '', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
             {path: 'datasets', component: StepDatasetsComponent, outlet: 'step'},
-            {path: 'filters', component: StepFiltersComponent, outlet: 'step'},
-            {path: 'postprocess', component: StepPostprocessComponent, outlet: 'step'},
-            {path: 'submit', component: StepSubmitComponent, outlet: 'step'}
+            {path: 'filters', component: StepFiltersComponent, outlet: 'step', canActivate: [WorkflowGuard]},
+            {path: 'postprocess', component: StepPostprocessComponent, outlet: 'step', canActivate: [WorkflowGuard]},
+            {path: 'submit', component: StepSubmitComponent, outlet: 'step', canActivate: [WorkflowGuard]}
         ]
     },
-
     {path: 'app/requests', component: RequestsComponent},
-    {path: 'app', redirectTo: '/app/data', pathMatch: 'full'},
-    {path: '', redirectTo: '/app/data', pathMatch: 'full'},
+    {path: 'app', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
+    {path: '', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
 ];
 
 @NgModule({
@@ -61,6 +61,7 @@ const routes: Routes = [
     providers: [
         FormDataService,
         WorkflowService,
+        WorkflowGuard,
         DataService,
         ArkimetService,
         DatePipe],

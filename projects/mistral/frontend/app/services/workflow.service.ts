@@ -31,6 +31,7 @@ export class WorkflowService {
     getFirstInvalidStep(step: string): string {
         // If all the previous steps are validated, return blank
         // Otherwise, return the first invalid step
+        console.log(this.workflow);
         let found = false;
         let valid = true;
         let redirectToStep = '';
