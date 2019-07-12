@@ -37,7 +37,7 @@ class Data(EndpointResource):
         res = CeleryExt.delete_periodic_task(name='add every 10')
         log.debug("Previous task deleted = %s", res)
 
-        CeleryExt.save_periodic_task(
+        CeleryExt.create_periodic_task(
             name='add every 10',
             task="mistral.tasks.data_extraction.add",
             every=10,
