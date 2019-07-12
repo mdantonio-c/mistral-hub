@@ -17,7 +17,7 @@ export class FormatDatePipe implements PipeTransform {
             console.warn(`Unexpected value for ${dateArr}`);
             return dateArr.join();
         }
-        let date = new Date(dateArr[0], dateArr[1]-1, dateArr[2], dateArr[3], dateArr[4], dateArr[5]);
+        const date = new Date(dateArr[0], dateArr[1] - 1, dateArr[2], dateArr[3], dateArr[4], dateArr[5]);
         return `${this.datePipe.transform(date, 'dd LLL y HH:mm:ss')}`;
     }
 

@@ -28,7 +28,8 @@ import {WorkflowGuard} from "./services/workflow-guard.service";
 const routes: Routes = [
     {
         path: 'app/data',
-        component: DataComponent, canActivate: [AuthGuard], runGuardsAndResolvers: 'always',
+        //component: DataComponent, canActivate: [AuthGuard], runGuardsAndResolvers: 'always',
+        component: DataComponent,
         children: [
             {path: '', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
             {path: 'datasets', component: StepDatasetsComponent, outlet: 'step'},
