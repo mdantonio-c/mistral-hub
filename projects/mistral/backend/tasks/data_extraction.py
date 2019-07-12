@@ -18,27 +18,10 @@ DOWNLOAD_DIR = '/data'
 MAX_USER_QUOTA = 1073741824  # 1 GB
 
 
-@celery_app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-
-    # Calls test('hello') every 10 seconds.
-    sender.add_periodic_task(25.0, add.s(7, 7), name='add every 15')
-
-    # Calls test('world') every 30 seconds
-    # sender.add_periodic_task(30.0, add.s(5, 5), expires=10)
-
-    # Executes every Monday morning at 7:30 a.m.
-    # sender.add_periodic_task(
-    #     crontab(hour=7, minute=30, day_of_week=1),
-    #     add.s(1, 1),
-    # )
-
-
 @celery_app.task(bind=True)
 def add(self, a, b):
-    print("adding...")
     c = a + b
-    log.critical(c)
+    log.critical("%s + %s = %s", a, b, c)
     return c
 
 

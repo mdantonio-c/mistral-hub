@@ -8,7 +8,7 @@ import re
 import json
 from utilities.logs import get_logger
 
-DATASET_ROOT = os.environ['DATASET_ROOT']
+DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
 logger = get_logger(__name__)
 
 
@@ -23,7 +23,7 @@ class BeArkimet():
         :return: list of datasets
         """
         datasets = []
-        folders = glob.glob(DATASET_ROOT+"*")
+        folders = glob.glob(DATASET_ROOT + "*")
         args = shlex.split("arki-mergeconf " + ' '.join(folders))
         with subprocess.Popen(args, stdout=subprocess.PIPE) as proc:
             ds = None

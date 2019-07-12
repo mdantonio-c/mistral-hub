@@ -30,14 +30,22 @@ class Data(EndpointResource):
     @catch_error()
     def put(self):
 
-        # Calls test('hello') every 10 seconds.
-        task = CeleryExt.celery_app.add_periodic_task(
-            10.0,
-            CeleryExt.add.s(7, 7),
-            name='add every 10'
+        # obj = CeleryExt.get_periodic_task(name='add every 10')
+        # log.critical(obj)
+
+        # remove previous task
+        res = CeleryExt.delete_periodic_task(name='add every 10')
+        log.debug("Previous task deleted = %s", res)
+
+        CeleryExt.save_periodic_task(
+            name='add every 10',
+            task="mistral.tasks.data_extraction.add",
+            every=10,
+            period='seconds',
+            args=[7, 7],
         )
 
-        log.info("Scheduling periodic task: %s", task)
+        log.info("Scheduling periodic task")
 
         # Calls test('world') every 30 seconds
         # sender.add_periodic_task(30.0, add.s(5, 5), expires=10)
@@ -48,7 +56,7 @@ class Data(EndpointResource):
         #     add.s(1, 1),
         # )
 
-        return self.empty_response()
+        return self.force_response("Scheduled")
 
     @catch_error()
     def post(self):
