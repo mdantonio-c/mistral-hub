@@ -1,10 +1,10 @@
 export class FormData {
     datasets: string[] = [];
-    filters: Filters<string, any> = null;
+    filters: Filters<string, any>[] = [];
 
     clear() {
         this.datasets = [];
-        this.filters = null;
+        this.filters = [];
     }
 }
 
@@ -17,8 +17,9 @@ export class FormData {
  * level?: any;
  */
 export interface Filters<T, U> {
-    key: T;
-    value: U;
+    name: T;
+    values: Array<U>;
+    query: string;
 }
 
 export class Dataset {

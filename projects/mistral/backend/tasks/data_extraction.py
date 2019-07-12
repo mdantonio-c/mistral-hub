@@ -81,7 +81,7 @@ def data_extract(self, user_uuid, datasets, filters=None):
 
         # save results into user space
         args = shlex.split(arki_query_cmd)
-        with open(os.path.join(user_dir, 'output-'+datetime.datetime.now().strftime("%Y%m%d-%H%M%S")), mode='w') as outfile:
+        with open(os.path.join(user_dir, 'output-'+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'-'+self.request.id), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
 
         log.info("Task [{}] completed successfully".format(self.request.id))

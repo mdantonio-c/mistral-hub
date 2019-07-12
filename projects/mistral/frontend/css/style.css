@@ -57,13 +57,17 @@ ul {
     margin: 20px 30px;
 }
 
-.mst--expansion-panel:first-child {
+.mst--expansion-panel.mst--info-panel {
     margin-top: 0;
 }
 
-.mst--expansion-panel:last-child {
-    margin-bottom: 0;
-}
+/*.mst--expansion-panel:first-child {*/
+/*    margin-top: 0;*/
+/*}*/
+
+/*.mst--expansion-panel:last-child {*/
+/*    margin-bottom: 0;*/
+/*}*/
 
 .mst--expansion-panel .card-header {
     background: #fff;

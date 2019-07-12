@@ -29,7 +29,8 @@ class Fields(EndpointResource):
                     "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
 
-        summary = arki.load_summary(datasets)
+        query = params.get('q')
+        summary = arki.load_summary(datasets, query)
         return self.force_response(summary)
         # js = json.dumps(summary)
         # return Response(js, status=200, mimetype='application/json')
