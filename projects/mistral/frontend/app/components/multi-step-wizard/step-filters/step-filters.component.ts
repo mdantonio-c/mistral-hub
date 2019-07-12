@@ -33,7 +33,7 @@ export class StepFiltersComponent implements OnInit {
             values: new FormArray([])
         });
         // init values
-        values.map((o, i) => {
+        values.map(o => {
             // pre-set actual values from formData
             const control = new FormControl(this.formDataService.isFilterSelected(o));
             (filter.controls.values as FormArray).push(control);
@@ -61,7 +61,7 @@ export class StepFiltersComponent implements OnInit {
             return false;
         }
         const selectedFilters = [];
-        this.filterForm.value.filters.forEach((f, i) => {
+        this.filterForm.value.filters.forEach(f => {
             let res = {
                 name: f.name,
                 values: f.values
