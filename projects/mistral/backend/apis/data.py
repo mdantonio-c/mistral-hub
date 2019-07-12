@@ -9,7 +9,7 @@ from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
 
-logger = get_logger(__name__)
+log = get_logger(__name__)
 
 
 class Data(EndpointResource):
@@ -29,10 +29,33 @@ class Data(EndpointResource):
     #     }
 
     @catch_error()
+    def put(self):
+
+        # Calls test('hello') every 10 seconds.
+        task = CeleryExt.celery_app.add_periodic_task(
+            10.0,
+            CeleryExt.add.s(7, 7),
+            name='add every 10'
+        )
+
+        log.info("Scheduling periodic task: %s", task)
+
+        # Calls test('world') every 30 seconds
+        # sender.add_periodic_task(30.0, add.s(5, 5), expires=10)
+
+        # Executes every Monday morning at 7:30 a.m.
+        # sender.add_periodic_task(
+        #     crontab(hour=7, minute=30, day_of_week=1),
+        #     add.s(1, 1),
+        # )
+
+        return self.empty_response()
+
+    @catch_error()
     def post(self):
 
         user = self.get_current_user()
-        logger.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
+        log.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
         criteria = self.get_input()
 
         self.validate_input(criteria, 'DataExtraction')
@@ -52,5 +75,6 @@ class Data(EndpointResource):
             args=[user.uuid, dataset_names, filters],
             countdown=1
         )
+
         return self.force_response(
             task.id, code=hcodes.HTTP_OK_ACCEPTED)
