@@ -5,6 +5,7 @@ import {DatePipe} from '@angular/common';
 import {RapydoModule} from '/rapydo/src/app/rapydo.module';
 import {AuthGuard} from '/rapydo/src/app/app.auth.guard';
 
+import {HomeComponent} from './custom.home'
 import {DataComponent} from './components/data/data.component';
 import {RequestsComponent} from "./components/requests/requests.component";
 
@@ -49,6 +50,7 @@ const routes: Routes = [
         RouterModule.forChild(routes)
     ],
     declarations: [
+        HomeComponent,
         DataComponent,
         MultiStepWizardComponent,
         NavbarComponent,
