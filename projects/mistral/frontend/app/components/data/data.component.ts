@@ -10,6 +10,7 @@ import {NotificationService} from '/rapydo/src/app/services/notification';
 export class DataComponent {
 
     public data_id: string;
+    public loading: boolean = false;
 
     constructor(
         protected api: ApiService,
@@ -18,7 +19,7 @@ export class DataComponent {
     ) { }
 
 
-    private schedule() {
+    public schedule() {
         this.api.put("data").subscribe(
             response => {
 
