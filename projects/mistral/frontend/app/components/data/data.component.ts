@@ -9,7 +9,7 @@ import {NotificationService} from '/rapydo/src/app/services/notification';
 })
 export class DataComponent {
 
-    private data_id: string;
+    public data_id: string;
 
     constructor(
         protected api: ApiService,
