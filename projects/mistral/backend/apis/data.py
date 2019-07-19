@@ -8,6 +8,7 @@ from restapi.decorators import catch_error
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.requests_manager import RequestManager
 
 logger = get_logger(__name__)
 
@@ -47,6 +48,11 @@ class Data(EndpointResource):
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         filters = criteria.get('filters')
+
+        db= self.get_service_instance('sqlalchemy')
+
+        request_id = RequestManager.create_request_table(db,user,filters)
+        logger.info('current request id: {}'.format(request_id))
 
         task = CeleryExt.data_extract.apply_async(
             args=[user.uuid, dataset_names, filters],
