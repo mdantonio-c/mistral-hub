@@ -1,6 +1,6 @@
 export const STEPS = {
-    dataset: 'dataset',
-    filter: 'filter',
+    dataset: 'datasets',
+    filter: 'filters',
     postprocess: 'postprocess',
     submit: 'submit'
 }

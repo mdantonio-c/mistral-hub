@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import shlex, subprocess
+import shlex
+import subprocess
 import os
 import datetime
+from celery.schedules import crontab
 from restapi.flask_ext.flask_celery import CeleryExt
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 # from restapi.flask_ext.flask_celery import send_errors_by_email
@@ -13,7 +15,14 @@ celery_app = CeleryExt.celery_app
 
 log = get_logger(__name__)
 DOWNLOAD_DIR = '/data'
-MAX_USER_QUOTA = 1073741824 # 1 GB
+MAX_USER_QUOTA = 1073741824  # 1 GB
+
+
+@celery_app.task(bind=True)
+def add(self, a, b):
+    c = a + b
+    log.critical("%s + %s = %s", a, b, c)
+    return c
 
 
 @celery_app.task(bind=True)
@@ -55,7 +64,7 @@ def data_extract(self, user_uuid, datasets, filters=None):
 
         # save results into user space
         args = shlex.split(arki_query_cmd)
-        with open(os.path.join(user_dir, 'output-'+datetime.datetime.now().strftime("%Y%m%d-%H%M%S")), mode='w') as outfile:
+        with open(os.path.join(user_dir, 'output-'+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'-'+self.request.id), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
 
         log.info("Task [{}] completed successfully".format(self.request.id))

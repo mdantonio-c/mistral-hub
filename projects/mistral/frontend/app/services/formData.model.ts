@@ -1,13 +1,25 @@
 export class FormData {
-    datasets: Dataset[] = [];
-    filters: Filter = {};
+    datasets: string[] = [];
+    filters: Filters<string, any>[] = [];
+
+    clear() {
+        this.datasets = [];
+        this.filters = [];
+    }
 }
 
-export class Filter {
-    origin?: string = '';
-    product?: string = '';
-    reftime?: string = '';
-    level?: string = '';
+/**
+ * Expected generic key-value pair
+ *
+ * origin?: any;
+ * product?: any;
+ * reftime?: any;
+ * level?: any;
+ */
+export interface Filters<T, U> {
+    name: T;
+    values: Array<U>;
+    query: string;
 }
 
 export class Dataset {
