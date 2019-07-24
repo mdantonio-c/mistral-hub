@@ -23,7 +23,7 @@ setattr(User, 'scheduledrequest', db.relationship('ScheduledRequest', backref='a
 
 class Request (db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     args = db.Column(db.String)
     status = db.Column(db.String(64))
@@ -41,7 +41,7 @@ class FileOutput (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(64), index=True, unique=True)
     size = db.Column(db.Float)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
 
     def __str__(self):
@@ -61,7 +61,7 @@ class PeriodEnum(enum.Enum):
 
 class ScheduledRequest (db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
     args = db.Column(db.String)
     periodic_task = db.Column(db.Boolean)
     periode = db.Column(db.Enum(PeriodEnum))

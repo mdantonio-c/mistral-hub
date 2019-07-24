@@ -83,8 +83,8 @@ class Data(EndpointResource):
 
         db= self.get_service_instance('sqlalchemy')
 
-        request_id = RequestManager.create_request_table(db,user,filters)
-        logger.info('current request id: {}'.format(request_id))
+        request_id = RequestManager.create_request_table(db,user.uuid,filters)
+        log.info('current request id: {}'.format(request_id))
 
         task = CeleryExt.data_extract.apply_async(
             args=[user.uuid, dataset_names, filters],

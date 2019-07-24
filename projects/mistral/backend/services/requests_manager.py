@@ -1,18 +1,17 @@
 from utilities.logs import get_logger
+import json
 
-logger = get_logger(__name__)
+log = get_logger(__name__)
 
 class RequestManager ():
 
     @staticmethod
     def create_request_table(db,user,filters):
         request = db.Request
-        r = request(user_id=user, args=filters)
+        args = json.dumps(filters)
+        r = request(user_uuid=user, args=args)
         db.session.add(r)
-        #request_id = db.sess.query(request.id).
-
-        for row in db.session.query(request).filter_by(user_id=user):
-            request_id = (row.id)
-
         db.session.commit()
+        request_id = r.id
+
         return request_id
