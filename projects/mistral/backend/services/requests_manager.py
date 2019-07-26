@@ -10,7 +10,7 @@ log = get_logger(__name__)
 class RequestManager ():
 
     @staticmethod
-    def create_request_table(db,user,filters,task_id):
+    def create_request_record(db,user,filters,task_id):
         request = db.Request
         args = json.dumps(filters)
         r = request(user_uuid=user, args=args, task_id=task_id)
