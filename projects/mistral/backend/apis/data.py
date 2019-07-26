@@ -89,6 +89,7 @@ class Data(EndpointResource):
         db= self.get_service_instance('sqlalchemy')
 
         request_id = RequestManager.create_request_table(db,user.uuid,filters,task.id)
+        RequestManager.update_task_status(db, task.id)
         log.info('current request id: {}'.format(request_id))
 
         # update task field in request by id
