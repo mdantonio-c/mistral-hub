@@ -29,6 +29,8 @@ class RequestManager ():
         current_user = user.query.filter(user.uuid == uuid).first()
         user_name = current_user.name
 
+        fileoutput = db.FileOutput
+
         for row in query_list:
             RequestManager.update_task_status(db,row.task_id)
 
@@ -39,7 +41,14 @@ class RequestManager ():
             user_request['args'] = json.loads(row.args)
             user_request['user_name'] = user_name
             user_request['status'] = row.status
-            user_request['fileoutput'] = "file.file"
+
+            current_fileoutput = fileoutput.query.filter(fileoutput.request_id == row.id).first()
+            if current_fileoutput is not None:
+                fileoutput_name = current_fileoutput.filename
+            else:
+                fileoutput_name = 'no file available'
+            user_request['fileoutput'] =fileoutput_name
+
             request_list.append(user_request)
 
         return request_list
