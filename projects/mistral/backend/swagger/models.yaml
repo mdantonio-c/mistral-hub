@@ -53,6 +53,35 @@ definitions:
         items:
           type: string
 
+#  Requests:
+#    required:
+#      - submission_date
+#      - args
+#      - user_name
+#      - status
+#      - fileoutput
+#    properties:
+#      submission_date:
+#        type: string
+#        format: dateTime
+#      args:
+#        type: object
+#      user_name:
+#        type: string
+#      status:
+#        type: string
+#      fileoutput:
+#        type: string
+
+  Requests:
+    required:
+      - user_requests
+    properties:
+      user_requests:
+        type: array
+        items:
+          type: object
+
   Summary:
     required:
       - items

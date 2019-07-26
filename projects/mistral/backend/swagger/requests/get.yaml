@@ -1,0 +1,18 @@
+requests:
+  summary: Get requests filtered by uuid.
+  custom:
+    authentication: true
+  parameters:
+    - name: uuid
+      in: query
+      description: uuid of the requests
+      type: string
+      required: true
+  responses:
+    '200':
+      description: List of requests of an user
+      schema:
+        $ref: "#/definitions/Requests"
+    '404':
+      description: User has no requests
+
