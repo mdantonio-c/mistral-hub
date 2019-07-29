@@ -80,15 +80,16 @@ class Data(EndpointResource):
         filters = criteria.get('filters')
         # open transaction
         # create request in db
+        db= self.get_service_instance('sqlalchemy')
+        #request_id = RequestManager.create_request_record(db,user.uuid,filters,task.id)
+        request_id = RequestManager.create_request_record(db, user.uuid, filters)
 
         task = CeleryExt.data_extract.apply_async(
-            args=[user.uuid, dataset_names,filters],
+            args=[user.uuid, request_id, dataset_names, filters],
             countdown=1
         )
 
-        db= self.get_service_instance('sqlalchemy')
-
-        request_id = RequestManager.create_request_record(db,user.uuid,filters,task.id)
+        RequestManager.update_task_id(db,request_id, task.id)
         RequestManager.update_task_status(db, task.id)
         log.info('current request id: {}'.format(request_id))
 
