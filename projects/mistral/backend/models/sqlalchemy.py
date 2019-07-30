@@ -64,10 +64,10 @@ class ScheduledRequest (db.Model):
     user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
     args = db.Column(db.String)
     periodic_task = db.Column(db.Boolean)
-    periode = db.Column(db.Enum(PeriodEnum))
+    period = db.Column(db.Enum(PeriodEnum))
     every = db.Column(db.Integer)
-    cronjob_task = db.Column(db.Boolean)
-    cronjob_settings = db.Column(db.String(64))
+    crontab_task = db.Column(db.Boolean)
+    crontab_settings = db.Column(db.String(64))
 
     def __str__(self):
         return "db.%s(%s){%s}" \

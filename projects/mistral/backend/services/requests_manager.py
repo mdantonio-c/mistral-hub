@@ -22,6 +22,24 @@ class RequestManager ():
         return request_id
 
     @staticmethod
+    def create_scheduled_request_record(db, user, filters, every=None, period=None, crontab_settings=None):
+        scheduled_request = db.ScheduledRequest
+        args = json.dumps(filters)
+        crontab_args = json.dumps(crontab_settings)
+        # r = request(user_uuid=user, args=args, task_id=task_id)
+        if (every or period) is not None:
+            r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=True, crontab_task=False, every=every, period=period )
+            #log.info('task args {} {} {} {}'.format(user.uuid,args,every,period))
+        if crontab_settings is not None:
+            r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=False, crontab_task=True,crontab_settings= crontab_args)
+        db.session.add(r)
+        db.session.commit()
+        request_id = r.id
+        log.info('task record {}'.format(r.id))
+
+        return request_id
+
+    @staticmethod
     def create_fileoutput_record(db, user, request_id, filename, data_size):
         fileoutput = db.FileOutput
         f = fileoutput(user_uuid=user, request_id=request_id, filename=filename, size=data_size)
