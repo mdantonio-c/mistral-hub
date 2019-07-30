@@ -85,7 +85,7 @@ class Data(EndpointResource):
         request_id = RequestManager.create_request_record(db, user.uuid, filters)
 
         task = CeleryExt.data_extract.apply_async(
-            args=[user.uuid, request_id, dataset_names, filters],
+            args=[user.uuid, dataset_names, filters,request_id],
             countdown=1
         )
 

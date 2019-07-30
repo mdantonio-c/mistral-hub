@@ -38,33 +38,28 @@ class ScheduledData(EndpointResource):
             every = period_settings.get('every')
             period = period_settings.get('period')
             log.info("Period settings [{} {}]".format(every, period))
-            RequestManager.create_scheduled_request_record(db, user, filters, every=every, period=period)
+            name_int = RequestManager.create_scheduled_request_record(db, user, filters, every=every, period=period)
+            name = str(name_int)
+
+            res = CeleryExt.delete_periodic_task(name=name)
+            log.debug("Previous task deleted = %s", res)
+
+            CeleryExt.create_periodic_task(
+                name=name,
+                task="mistral.tasks.data_extraction.data_extract",
+                every=every,
+                period=period,
+                args=[user.uuid, dataset_names, filters],
+            )
+
+            log.info("Scheduling periodic task")
 
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
             #minute =
-            log.info("crontab task")
-            RequestManager.create_scheduled_request_record(db, user, filters, crontab_settings=crontab_settings)
-
-        # obj = CeleryExt.get_periodic_task(name='add every 10')
-        # log.critical(obj)
-
-        # remove previous task
-        # res = CeleryExt.delete_periodic_task(name='add every 10')
-        # log.debug("Previous task deleted = %s", res)
-        #
-        # CeleryExt.create_periodic_task(
-        #     name='add every 10',
-        #     task="mistral.tasks.data_extraction.add",
-        #     every=10,
-        #     period='seconds',
-        #     args=[7, 7],
-        # )
-
-        log.info("Scheduling periodic task")
-
-        # Calls test('world') every 30 seconds
-        # sender.add_periodic_task(30.0, add.s(5, 5), expires=10)
+            log.info("scheduling crontab task")
+            name_int =RequestManager.create_scheduled_request_record(db, user, filters, crontab_settings=crontab_settings)
+            name = str(name_int)
 
         # Executes every Monday morning at 7:30 a.m.
         # sender.add_periodic_task(
@@ -72,8 +67,15 @@ class ScheduledData(EndpointResource):
         #     add.s(1, 1),
         # )
 
-        return self.force_response("Scheduled")
+        return self.force_response('Scheduled task {}'.format(name))
 
     @catch_error()
     def delete(self):
-        return self.force_response("Removed")
+        param = self.get_input()
+        task_name = param.get('task')
+        db = self.get_service_instance('sqlalchemy')
+        RequestManager.delete_scheduled_request_record(db, task_name)
+
+        CeleryExt.delete_periodic_task(name=task_name)
+
+        return self.force_response('Removed task {}'.format(task_name))

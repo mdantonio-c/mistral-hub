@@ -29,7 +29,7 @@ def add(self, a, b):
 
 @celery_app.task(bind=True)
 # @send_errors_by_email
-def data_extract(self, user_uuid, request_id, datasets, filters=None):
+def data_extract(self, user_uuid, datasets, filters=None, request_id=None):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]".format(self.request.id, self.name))
 
@@ -69,9 +69,9 @@ def data_extract(self, user_uuid, request_id, datasets, filters=None):
         filename = 'output-'+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'-'+self.request.id
         with open(os.path.join(user_dir, filename), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
-
-        #create fileoutput record in db
-        RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size )
+        if request_id is not None:
+            #create fileoutput record in db
+            RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size )
 
         log.info("Task [{}] completed successfully".format(self.request.id))
         return 1

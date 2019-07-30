@@ -48,6 +48,13 @@ class RequestManager ():
         log.info('fileoutput for: {}'.format(request_id))
 
     @staticmethod
+    def delete_scheduled_request_record(db, request_id):
+        scheduled_request = db.ScheduledRequest
+        r_to_delete = scheduled_request.query.filter(scheduled_request.id == request_id).first()
+        db.session.delete(r_to_delete)
+        db.session.commit()
+
+    @staticmethod
     def get_user_requests (db,uuid):
 
         user = db.User
