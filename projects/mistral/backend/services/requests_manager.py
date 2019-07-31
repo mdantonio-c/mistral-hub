@@ -60,13 +60,14 @@ class RequestManager ():
         user = db.User
         current_user = user.query.filter(user.uuid == uuid).first()
         user_name = current_user.name
-        query_list = current_user.requests
+        requests_list = current_user.requests
+        scheduled_list = current_user.scheduledrequests
 
-        for row in query_list:
+        for row in requests_list:
             RequestManager.update_task_status(db,row.task_id)
 
-        request_list = []
-        for row in query_list:
+        user_list = []
+        for row in requests_list:
             user_request = {}
             user_request['submission_date'] = row.submission_date
             user_request['args'] = json.loads(row.args)
@@ -80,9 +81,22 @@ class RequestManager ():
                 fileoutput_name = 'no file available'
             user_request['fileoutput'] =fileoutput_name
 
-            request_list.append(user_request)
+            user_list.append(user_request)
 
-        return request_list
+        for row in scheduled_list:
+            user_request = {}
+            user_request['args'] = json.loads(row.args)
+            user_request['user_name'] = user_name
+            if row.periodic_task==True:
+                user_request['periodic'] = row.periodic_task
+                periodic_settings= ('every',str(row.every),row.period.name)
+                user_request['periodic_settings'] = ' '.join(periodic_settings)
+            else:
+                user_request['crontab'] = row.crontab_task
+                user_request['crontab_settings'] = json.loads(row.crontab_settings)
+            user_list.append(user_request)
+
+        return user_list
 
     @staticmethod
     def update_task_id (db,request_id,task_id):

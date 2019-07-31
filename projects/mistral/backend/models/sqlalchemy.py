@@ -17,7 +17,7 @@ setattr(User, 'my_custom_field', db.Column(db.String(255)))
 
 setattr(User, 'requests', db.relationship('Request', backref='author', lazy='dynamic'))
 setattr(User, 'fileoutput', db.relationship('FileOutput', backref='owner', lazy='dynamic'))
-setattr(User, 'scheduledrequest', db.relationship('ScheduledRequest', backref='author', lazy='dynamic'))
+setattr(User, 'scheduledrequests', db.relationship('ScheduledRequest', backref='author', lazy='dynamic'))
 
 
 
