@@ -56,16 +56,22 @@ class ScheduledData(EndpointResource):
 
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
-            #minute =
-            log.info("scheduling crontab task")
             name_int =RequestManager.create_scheduled_request_record(db, user, filters, crontab_settings=crontab_settings)
             name = str(name_int)
 
-        # Executes every Monday morning at 7:30 a.m.
-        # sender.add_periodic_task(
-        #     crontab(hour=7, minute=30, day_of_week=1),
-        #     add.s(1, 1),
-        # )
+            for i in crontab_settings.keys():
+                val = crontab_settings.get(i)
+                str_val = str(val)
+                crontab_settings[i] = str_val
+
+            CeleryExt.create_crontab_task(
+                name=name,
+                task="mistral.tasks.data_extraction.data_extract",
+                **crontab_settings,
+                args=[user.uuid, dataset_names, filters],
+            )
+
+            log.info("Scheduling crontab task")
 
         return self.force_response('Scheduled task {}'.format(name))
 
