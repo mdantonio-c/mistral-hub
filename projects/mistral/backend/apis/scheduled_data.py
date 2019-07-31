@@ -35,7 +35,7 @@ class ScheduledData(EndpointResource):
 
         period_settings = criteria.get('period-settings')
         if period_settings is not None:
-            every = period_settings.get('every')
+            every = str(period_settings.get('every'))
             period = period_settings.get('period')
             log.info("Period settings [{} {}]".format(every, period))
             name_int = RequestManager.create_scheduled_request_record(db, user, filters, every=every, period=period)
