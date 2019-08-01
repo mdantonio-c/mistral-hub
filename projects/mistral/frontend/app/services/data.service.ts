@@ -24,16 +24,8 @@ export class DataService {
     /**
      * Request for data extraction.
      */
-    extractData() {
-        let body = {
-            datasets: ["vlm5"],
-            filters: {
-                reftime: "2019-06-03",
-                origin: "GRIB1,080",
-                level: "GRIB1,1"
-            }
-        }
-        return this.api.post('data', body, { "rawResponse": true });
+    extractData(data: any) {
+        return this.api.post('data', data, { "rawResponse": true });
     }
 
 }

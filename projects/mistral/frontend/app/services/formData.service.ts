@@ -54,6 +54,14 @@ export class FormDataService {
         return false;
     }
 
+    setPostProcessor(data: any) {
+        // Update Postprocess only when the Postprocess Form had been validated successfully
+        this.isPostprocessFormValid = true;
+        this.formData.postpocessors = data;
+        // Validate Filter Step in Workflow
+        this.workflowService.validateStep(STEPS.postprocess);
+    }
+
     getFormData(): FormData {
         // Return the entire Form Data
         return this.formData;

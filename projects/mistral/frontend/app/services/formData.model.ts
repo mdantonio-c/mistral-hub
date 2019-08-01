@@ -1,10 +1,12 @@
 export class FormData {
     datasets: string[] = [];
     filters: Filters<string, any>[] = [];
+    postpocessors: string[] = [];
 
     clear() {
         this.datasets = [];
         this.filters = [];
+        this.postpocessors = [];
     }
 }
 

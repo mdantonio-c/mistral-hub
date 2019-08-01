@@ -3,6 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 // import {FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn} from '@angular/forms';
 import {FormDataService} from "../../../services/formData.service";
 import {FormData} from "../../../services/formData.model";
+import {DataService} from "../../../services/data.service";
 
 @Component({
     selector: 'step-submit',
@@ -15,6 +16,7 @@ export class StepSubmitComponent implements OnInit {
 
     constructor(private router: Router,
                 private route: ActivatedRoute,
+                private dataService: DataService,
                 private formDataService: FormDataService) {
     }
 
@@ -32,10 +34,17 @@ export class StepSubmitComponent implements OnInit {
 
     submit(form: any) {
         console.log('submit request for data extraction');
-        this.formData = this.formDataService.resetFormData();
-        this.isFormValid = false;
-        // Navigate to the 'My Requests' page
-        this.router.navigate(['app/requests']);
+        this.dataService.extractData(this.formData).subscribe(
+            resp => {
+                this.formData = this.formDataService.resetFormData();
+                this.isFormValid = false;
+                // Navigate to the 'My Requests' page
+                this.router.navigate(['app/requests']);
+            },
+            error => {
+                // TODO
+            }
+        )
     }
 
 }

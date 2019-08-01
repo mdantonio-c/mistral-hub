@@ -25,7 +25,11 @@ export class StepPostprocessComponent implements OnInit {
     }
 
     private save() {
+        if (!this.form.valid) {
+            return false;
+        }
         // TODO
+        this.formDataService.setPostProcessor([]);
         return true;
     }
 
