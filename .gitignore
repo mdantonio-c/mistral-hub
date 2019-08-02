@@ -5,6 +5,7 @@
 # data
 uploads
 /data
+/node_modules
 
 ########################
 ##  Host configuration  ##

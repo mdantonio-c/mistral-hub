@@ -23,7 +23,6 @@ export class StepSubmitComponent implements OnInit {
     ngOnInit() {
         this.formData = this.formDataService.getFormData();
         this.isFormValid = this.formDataService.isFormValid();
-        console.log('Result feature loaded!');
     }
 
     goToPrevious() {
