@@ -5,36 +5,6 @@ services:
   backend:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
-    environment:
-      # base the user/role mechanism on some database
-      AUTH_ENABLE: 1
-      # putting this here because it should not be configurable in .env
-      AUTH_SERVICE: sqlalchemy
-
-      AUTH_REGISTER_FAILED_LOGIN: ${AUTH_REGISTER_FAILED_LOGIN}
-      AUTH_FORCE_FIRST_PASSWORD_CHANGE: ${AUTH_FORCE_FIRST_PASSWORD_CHANGE}
-      AUTH_VERIFY_PASSWORD_STRENGTH: ${AUTH_VERIFY_PASSWORD_STRENGTH}
-      AUTH_MAX_PASSWORD_VALIDITY: ${AUTH_MAX_PASSWORD_VALIDITY}
-      AUTH_DISABLE_UNUSED_CREDENTIALS_AFTER: ${AUTH_DISABLE_UNUSED_CREDENTIALS_AFTER}
-      AUTH_MAX_LOGIN_ATTEMPTS: ${AUTH_MAX_LOGIN_ATTEMPTS}
-      AUTH_SECOND_FACTOR_AUTHENTICATION: ${AUTH_SECOND_FACTOR_AUTHENTICATION}
-
-      # db access
-      ALCHEMY_ENABLE: 1
-      ALCHEMY_HOST: ${ALCHEMY_HOST}
-      ALCHEMY_PORT: ${ALCHEMY_PORT}
-      ALCHEMY_USER: ${ALCHEMY_USER}
-      ALCHEMY_PASSWORD: ${ALCHEMY_PASSWORD}
-      ALCHEMY_DB: ${ALCHEMY_API_DB}
-
-      CELERY_ENABLE: 1
-      CELERY_EXTERNAL: ${CELERY_EXTERNAL}
-      CELERY_BROKER: ${CELERY_BROKER}
-      CELERY_BROKER_HOST: ${CELERY_BROKER_HOST}
-      CELERY_BROKER_PORT: ${CELERY_BROKER_PORT}
-      CELERY_BACKEND: ${CELERY_BACKEND}
-      CELERY_BACKEND_HOST: ${CELERY_BACKEND_HOST}
-      CELERY_BACKEND_PORT: ${CELERY_BACKEND_PORT}
 
     volumes:
       - ${VANILLA_DIR}/data/test:/data
@@ -46,12 +16,6 @@ services:
 
     depends_on:
       - postgres
-
-  postgres:
-    environment:
-      POSTGRES_USER: "${ALCHEMY_USER}"
-      POSTGRES_PASSWORD: "${ALCHEMY_PASSWORD}"
-      POSTGRES_DBS: ${ALCHEMY_DBS}
 
   rabbit:
     ports:
@@ -65,9 +29,6 @@ services:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
-    environment:
-      CELERYUI_USER: ${CELERYUI_USER}
-      CELERYUI_PASSWORD: ${CELERYUI_PASSWORD}
 
   celery:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
@@ -76,26 +37,6 @@ services:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
-
-    environment:
-      # base the user/role mechanism on some database
-      AUTH_ENABLE: 1
-      # putting this here because it should not be configurable in .env
-      AUTH_SERVICE: sqlalchemy
-
-       # db access
-      ALCHEMY_ENABLE: 1
-      ALCHEMY_HOST: ${ALCHEMY_HOST}
-      ALCHEMY_PORT: ${ALCHEMY_PORT}
-      ALCHEMY_USER: ${ALCHEMY_USER}
-      ALCHEMY_PASSWORD: ${ALCHEMY_PASSWORD}
-      ALCHEMY_DB: ${ALCHEMY_API_DB}
-
-      CELERY_ENABLE: 1
-      CELERY_EXTERNAL: ${CELERY_EXTERNAL}
-      CELERY_BROKER: ${CELERY_BROKER}
-      CELERY_BROKER_HOST: ${CELERY_BROKER_HOST}
-      CELERY_BROKER_PORT: ${CELERY_BROKER_PORT}
 
   # arkimet:
   #   restart: always
