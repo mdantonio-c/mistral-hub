@@ -1,0 +1,8 @@
+file: requests
+class: UserRequests
+schema:
+  expose: true
+mapping:
+  requests: "/requests"
+labels:
+  - requests

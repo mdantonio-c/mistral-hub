@@ -17,13 +17,13 @@ setattr(User, 'my_custom_field', db.Column(db.String(255)))
 
 setattr(User, 'requests', db.relationship('Request', backref='author', lazy='dynamic'))
 setattr(User, 'fileoutput', db.relationship('FileOutput', backref='owner', lazy='dynamic'))
-setattr(User, 'scheduledrequest', db.relationship('ScheduledRequest', backref='author', lazy='dynamic'))
+setattr(User, 'scheduledrequests', db.relationship('ScheduledRequest', backref='author', lazy='dynamic'))
 
 
 
 class Request (db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     args = db.Column(db.String)
     status = db.Column(db.String(64))
@@ -41,7 +41,7 @@ class FileOutput (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(64), index=True, unique=True)
     size = db.Column(db.Float)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
 
     def __str__(self):
@@ -61,13 +61,13 @@ class PeriodEnum(enum.Enum):
 
 class ScheduledRequest (db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
     args = db.Column(db.String)
     periodic_task = db.Column(db.Boolean)
-    periode = db.Column(db.Enum(PeriodEnum))
+    period = db.Column(db.Enum(PeriodEnum))
     every = db.Column(db.Integer)
-    cronjob_task = db.Column(db.Boolean)
-    cronjob_settings = db.Column(db.String(64))
+    crontab_task = db.Column(db.Boolean)
+    crontab_settings = db.Column(db.String(64))
 
     def __str__(self):
         return "db.%s(%s){%s}" \

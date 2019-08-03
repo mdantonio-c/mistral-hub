@@ -65,6 +65,7 @@ class Data(EndpointResource):
         user = self.get_current_user()
         log.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
         criteria = self.get_input()
+        log.info('criteria: {}'.format(criteria))
 
         self.validate_input(criteria, 'DataExtraction')
         dataset_names = criteria.get('datasets')
@@ -80,16 +81,17 @@ class Data(EndpointResource):
         filters = criteria.get('filters')
         # open transaction
         # create request in db
-
         db= self.get_service_instance('sqlalchemy')
-
-        request_id = RequestManager.create_request_table(db,user,filters)
-        logger.info('current request id: {}'.format(request_id))
+        request_id = RequestManager.create_request_record(db, user.uuid, filters)
 
         task = CeleryExt.data_extract.apply_async(
-            args=[user.uuid, dataset_names, filters],
+            args=[user.uuid, dataset_names, filters,request_id],
             countdown=1
         )
+
+        RequestManager.update_task_id(db,request_id, task.id)
+        RequestManager.update_task_status(db, task.id)
+        log.info('current request id: {}'.format(request_id))
 
         # update task field in request by id
         # close transaction
