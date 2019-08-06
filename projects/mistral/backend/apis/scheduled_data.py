@@ -33,14 +33,17 @@ class ScheduledData(EndpointResource):
 
         db= self.get_service_instance('sqlalchemy')
 
+        # parsing period settings
         period_settings = criteria.get('period-settings')
         if period_settings is not None:
             every = str(period_settings.get('every'))
             period = period_settings.get('period')
             log.info("Period settings [{} {}]".format(every, period))
+            # get scheduled request id in postgres database as scheduled request name for mongodb
             name_int = RequestManager.create_scheduled_request_record(db, user, filters, every=every, period=period)
             name = str(name_int)
 
+            # remove previous task
             res = CeleryExt.delete_periodic_task(name=name)
             log.debug("Previous task deleted = %s", res)
 
@@ -54,11 +57,14 @@ class ScheduledData(EndpointResource):
 
             log.info("Scheduling periodic task")
 
+
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
+            # get scheduled request id in postgres database as scheduled request name for mongodb
             name_int =RequestManager.create_scheduled_request_record(db, user, filters, crontab_settings=crontab_settings)
             name = str(name_int)
 
+            # parsing crontab settings
             for i in crontab_settings.keys():
                 val = crontab_settings.get(i)
                 str_val = str(val)
@@ -79,6 +85,8 @@ class ScheduledData(EndpointResource):
     def delete(self):
         param = self.get_input()
         task_name = param.get('task')
+
+        # delete request entry from database
         db = self.get_service_instance('sqlalchemy')
         RequestManager.delete_scheduled_request_record(db, task_name)
 

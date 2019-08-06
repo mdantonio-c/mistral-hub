@@ -140,6 +140,11 @@ definitions:
         description: Settings for the crontab request
         type: object
 
+  Fileoutput:
+    properties:
+      fileoutput:
+        type: string
+        format: binary
 
   Requests:
     required:

@@ -19,6 +19,7 @@ class UserRequests(EndpointResource):
 
         db = self.get_service_instance('sqlalchemy')
 
+        # get user requests list
         request_list = RequestManager.get_user_requests(db,uuid)
 
         return self.force_response(

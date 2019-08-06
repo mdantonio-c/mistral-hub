@@ -1,5 +1,6 @@
 from utilities.logs import get_logger
 import json
+import os
 
 from restapi.flask_ext.flask_celery import CeleryExt
 
@@ -8,6 +9,22 @@ celery_app = CeleryExt.celery_app
 log = get_logger(__name__)
 
 class RequestManager ():
+
+    @staticmethod
+    def check_fileoutput(db, uuid, filename,download_dir):
+        fileoutput = db.FileOutput
+        # query for the requested file in database
+        f_to_download = fileoutput.query.filter(fileoutput.filename == filename).first()
+        # check if the requested file is in the database
+        if f_to_download is not None:
+            # check if the requested file is in the user folder
+            path = os.path.join(download_dir, uuid, f_to_download.filename)
+            if os.path.exists(path):
+                return True
+            else:
+                log.info('file path: {} does not exists'.format(path))
+        else:
+            log.info('file: {} is not in database'.format(filename))
 
     @staticmethod
     def create_request_record(db,user,filters):
@@ -26,10 +43,10 @@ class RequestManager ():
         scheduled_request = db.ScheduledRequest
         args = json.dumps(filters)
         crontab_args = json.dumps(crontab_settings)
-        # r = request(user_uuid=user, args=args, task_id=task_id)
+        # check if the request is periodic
         if (every or period) is not None:
             r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=True, crontab_task=False, every=every, period=period )
-            #log.info('task args {} {} {} {}'.format(user.uuid,args,every,period))
+        # check if the request is a crontab type
         if crontab_settings is not None:
             r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=False, crontab_task=True,crontab_settings= crontab_args)
         db.session.add(r)
@@ -63,9 +80,11 @@ class RequestManager ():
         requests_list = current_user.requests
         scheduled_list = current_user.scheduledrequests
 
+        # update celery status for the requests coming from the database query
         for row in requests_list:
             RequestManager.update_task_status(db,row.task_id)
 
+        # create the response schema for not scheduled requests
         user_list = []
         for row in requests_list:
             user_request = {}
@@ -83,6 +102,7 @@ class RequestManager ():
 
             user_list.append(user_request)
 
+        # create the response schema for scheduled requests
         for row in scheduled_list:
             user_request = {}
             user_request['args'] = json.loads(row.args)
@@ -100,7 +120,6 @@ class RequestManager ():
 
     @staticmethod
     def update_task_id (db,request_id,task_id):
-        #log.info('updating status for: {}'.format(request_id))
         request = db.Request
         r_to_update = request.query.filter(request.id == request_id).first()
 
@@ -113,6 +132,7 @@ class RequestManager ():
         request = db.Request
         r_to_update = request.query.filter(request.task_id == task_id).first()
 
+        # ask celery the status of the given request
         result = CeleryExt.data_extract.AsyncResult(task_id)
         # log.info('status:{}'.format(result.status))
 
