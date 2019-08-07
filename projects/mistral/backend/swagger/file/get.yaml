@@ -14,5 +14,5 @@ file:
       schema:
        $ref: "#/definitions/Fileoutput"
     '404':
-      description: User has no requests
+      description: file not found
 

@@ -17,14 +17,41 @@ class RequestManager ():
         f_to_download = fileoutput.query.filter(fileoutput.filename == filename).first()
         # check if the requested file is in the database
         if f_to_download is not None:
-            # check if the requested file is in the user folder
-            path = os.path.join(download_dir, uuid, f_to_download.filename)
-            if os.path.exists(path):
-                return True
+            # check if the user owns the file
+            if RequestManager.check_owner(db,uuid,file_id=f_to_download):
+                # check if the requested file is in the user folder
+                path = os.path.join(download_dir, uuid, f_to_download.filename)
+                if os.path.exists(path):
+                    return True
+                else:
+                    log.info('file path: {} does not exists'.format(path))
             else:
-                log.info('file path: {} does not exists'.format(path))
+                log.info('user is not the file owner')
         else:
             log.info('file: {} is not in database'.format(filename))
+
+    @staticmethod
+    def check_owner(db, uuid, scheduled_request_id=None, single_request_id=None, file_id=None):
+
+        # check a single request
+        if single_request_id is not None:
+            item = db.Request
+            item_id = single_request_id
+        # check a scheduled request
+        if scheduled_request_id is not None:
+            item = db.ScheduledRequest
+            item_id = scheduled_request_id
+        # check a file
+        if file_id is not None:
+            item = db.FileOutput
+            item_id = file_id
+
+        item_to_check = item.query.filter(item.id == item_id).first()
+        if item_to_check.user_uuid == uuid:
+            return True
+
+
+
 
     @staticmethod
     def create_request_record(db,user,filters):

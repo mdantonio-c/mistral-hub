@@ -86,10 +86,18 @@ class ScheduledData(EndpointResource):
         param = self.get_input()
         task_name = param.get('task')
 
-        # delete request entry from database
+        user = self.get_current_user()
+
         db = self.get_service_instance('sqlalchemy')
-        RequestManager.delete_scheduled_request_record(db, task_name)
+        # check if the current user is the owner of the request
+        if RequestManager.check_owner(db,user.uuid,scheduled_request_id=task_name):
+            # delete request entry from database
+            RequestManager.delete_scheduled_request_record(db, task_name)
 
-        CeleryExt.delete_periodic_task(name=task_name)
+            CeleryExt.delete_periodic_task(name=task_name)
 
-        return self.force_response('Removed task {}'.format(task_name))
+            return self.force_response('Removed task {}'.format(task_name))
+        else :
+            raise RestApiException(
+                "This request doesn't come from the request's owner",
+                status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
