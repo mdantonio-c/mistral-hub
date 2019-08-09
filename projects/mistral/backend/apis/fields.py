@@ -31,6 +31,20 @@ class Fields(EndpointResource):
 
         query = params.get('q')
         summary = arki.load_summary(datasets, query)
+        onlySummaryStats = params.get('onlySummaryStats')
+        if isinstance(onlySummaryStats, str) and (
+                onlySummaryStats == '' or onlySummaryStats.lower() == 'true'
+        ):
+            onlySummaryStats = True
+        elif type(onlySummaryStats) == bool:
+            # do nothing
+            pass
+        else:
+            onlySummaryStats = False
+        if onlySummaryStats:
+            # we want to return ONLY summary Stats with no fields
+            logger.debug('ONLY Summary Stats')
+            summary = summary['items']['summarystats']
         return self.force_response(summary)
         # js = json.dumps(summary)
         # return Response(js, status=200, mimetype='application/json')

@@ -2,7 +2,9 @@ import {Injectable} from '@angular/core';
 
 import {STEPS} from './workflow.model';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class WorkflowService {
     private workflow = [
         {step: STEPS.dataset, valid: false},

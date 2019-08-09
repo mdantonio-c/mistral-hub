@@ -61,11 +61,6 @@ const routes: Routes = [
         FormatDatePipe
     ],
     providers: [
-        FormDataService,
-        WorkflowService,
-        WorkflowGuard,
-        DataService,
-        ArkimetService,
         DatePipe],
     exports: [
         RouterModule

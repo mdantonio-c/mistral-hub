@@ -12,6 +12,7 @@ import {ArkimetService} from "../../../services/arkimet.service";
 })
 export class StepFiltersComponent implements OnInit {
     title = 'Filter your data';
+    loading: boolean = false;
     summaryStats = {};
     filterForm: FormGroup;
     filters: Filters<string, any>;
@@ -42,17 +43,25 @@ export class StepFiltersComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.formDataService.getFilters().subscribe(response => {
-            this.filters = response.data.items;
-            this.summaryStats = response.data.items.summarystats;
-            Object.entries(response.data.items).forEach(entry => {
-                if (entry[0] !== 'summarystats') {
-                    (this.filterForm.controls.filters as FormArray).push(this.createFilter(entry[0], entry[1]));
-                }
+        this.loading = true;
+        this.formDataService.getFilters().subscribe(
+            response => {
+                this.filters = response.data.items;
+                this.summaryStats = response.data.items.summarystats;
+                Object.entries(response.data.items).forEach(entry => {
+                    if (entry[0] !== 'summarystats') {
+                        (this.filterForm.controls.filters as FormArray).push(this.createFilter(entry[0], entry[1]));
+                    }
+                });
+                //console.log(this.filterForm.get('filters'));
+                //console.log(this.filters);
+                this.loading = false;
+            },
+            error => {
+                this.notify.extractErrors(error.error.Response, this.notify.ERROR);
+                this.loading = false;
             });
-            //console.log(this.filterForm.get('filters'));
-            //console.log(this.filters);
-        });
+        window.scroll(0, 0);
     }
 
 

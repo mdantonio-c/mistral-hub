@@ -3,9 +3,11 @@ import {Injectable} from '@angular/core';
 import {FormData, Dataset, Filters} from './formData.model';
 import {WorkflowService} from './workflow.service';
 import {STEPS} from './workflow.model';
-import {DataService} from "./data.service";
+import {DataService, SummaryStats} from "./data.service";
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class FormDataService {
 
     private formData: FormData = new FormData();
@@ -34,6 +36,12 @@ export class FormDataService {
 
     getFilters() {
         return this.dataService.getSummary(this.formData.datasets);
+    }
+
+    getSummaryStats() {
+        let q = this.formData.filters.map(filter => filter.query).join(';');
+        return this.dataService.getSummary(
+            this.formData.datasets, q, true);
     }
 
     setFilters(data: any) {

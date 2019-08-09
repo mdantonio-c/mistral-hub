@@ -21,7 +21,7 @@ export class StepPostprocessComponent implements OnInit {
     }
 
     ngOnInit() {
-
+        window.scroll(0,0);
     }
 
     private save() {

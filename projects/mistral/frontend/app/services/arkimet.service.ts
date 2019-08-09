@@ -12,7 +12,9 @@ enum MetaType {
     TIMERANGE = "timerange"
 }
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class ArkimetService {
 
     getQuery(filter: any): string {

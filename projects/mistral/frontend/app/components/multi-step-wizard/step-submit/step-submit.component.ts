@@ -1,9 +1,9 @@
 import {Component, OnInit, Input} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-// import {FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn} from '@angular/forms';
 import {FormDataService} from "../../../services/formData.service";
 import {FormData} from "../../../services/formData.model";
-import {DataService} from "../../../services/data.service";
+import {DataService, SummaryStats} from "../../../services/data.service";
+import {NotificationService} from '/rapydo/src/app/services/notification';
 
 @Component({
     selector: 'step-submit',
@@ -11,18 +11,30 @@ import {DataService} from "../../../services/data.service";
 })
 export class StepSubmitComponent implements OnInit {
     title = 'Submit your request';
+    summaryStats: SummaryStats = {c:0, s: 0};
     @Input() formData: FormData;
     isFormValid: boolean = false;
 
-    constructor(private router: Router,
-                private route: ActivatedRoute,
-                private dataService: DataService,
-                private formDataService: FormDataService) {
+    constructor(
+        private router: Router,
+        private route: ActivatedRoute,
+        private dataService: DataService,
+        private formDataService: FormDataService,
+        private notify: NotificationService
+    ) {
     }
 
     ngOnInit() {
         this.formData = this.formDataService.getFormData();
         this.isFormValid = this.formDataService.isFormValid();
+        this.formDataService.getSummaryStats().subscribe(r => {
+            this.summaryStats = r.data;
+            if (this.summaryStats.s === 0) {
+                this.notify.showWarning('The applied filter do not produce any result. ' +
+                        'Please choose different filters.');
+            }
+        });
+        window.scroll(0,0);
     }
 
     goToPrevious() {
