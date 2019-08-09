@@ -19,7 +19,7 @@ class RequestManager ():
         # check if the requested file is in the database
         if f_to_download is not None:
             # check if the user owns the file
-            if RequestManager.check_owner(db,uuid,file_id=f_to_download):
+            if RequestManager.check_owner(db,uuid,file_id=f_to_download.id):
                 # check if the requested file is in the user folder
                 path = os.path.join(download_dir, uuid, f_to_download.filename)
                 if os.path.exists(path):
@@ -91,6 +91,13 @@ class RequestManager ():
         db.session.add(f)
         db.session.commit()
         log.info('fileoutput for: {}'.format(request_id))
+
+    @staticmethod
+    def delete_fileoutput(db, filename):
+        fileoutput = db.FileOutput
+        f_to_delete = fileoutput.query.filter(fileoutput.filename == filename).first()
+        db.session.delete(f_to_delete)
+        db.session.commit()
 
     @staticmethod
     def delete_scheduled_request_record(db, request_id):
