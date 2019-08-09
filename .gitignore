@@ -5,6 +5,8 @@
 # data
 uploads
 /data
+/projects/mistral/backend/arkimet/
+/projects/mistral/backend/migrations/
 
 ########################
 ##  Host configuration  ##

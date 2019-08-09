@@ -3,6 +3,7 @@ import json
 import os
 
 from restapi.flask_ext.flask_celery import CeleryExt
+from datetime import datetime
 
 celery_app = CeleryExt.celery_app
 
@@ -99,7 +100,7 @@ class RequestManager ():
         db.session.commit()
 
     @staticmethod
-    def get_user_requests (db,uuid):
+    def get_user_requests (db,uuid, sort_by=None, sort_order=None, filter=None):
 
         user = db.User
         current_user = user.query.filter(user.uuid == uuid).first()
@@ -113,37 +114,48 @@ class RequestManager ():
 
         # create the response schema for not scheduled requests
         user_list = []
-        for row in requests_list:
-            user_request = {}
-            user_request['submission_date'] = row.submission_date
-            user_request['args'] = json.loads(row.args)
-            user_request['user_name'] = user_name
-            user_request['status'] = row.status
+        if filter != "scheduled": # check if the user doesn't have filtered the request to ask for scheduled requests only
+            for row in requests_list:
+                user_request = {}
+                user_request['creation_date'] = row.creation_date
+                user_request['args'] = json.loads(row.args)
+                user_request['user_name'] = user_name
+                user_request['status'] = row.status
 
-            current_fileoutput = row.fileoutput
-            if current_fileoutput is not None:
-                fileoutput_name = current_fileoutput.filename
-            else:
-                fileoutput_name = 'no file available'
-            user_request['fileoutput'] =fileoutput_name
+                current_fileoutput = row.fileoutput
+                if current_fileoutput is not None:
+                    fileoutput_name = current_fileoutput.filename
+                else:
+                    fileoutput_name = 'no file available'
+                user_request['fileoutput'] =fileoutput_name
 
-            user_list.append(user_request)
+                user_list.append(user_request)
 
         # create the response schema for scheduled requests
-        for row in scheduled_list:
-            user_request = {}
-            user_request['args'] = json.loads(row.args)
-            user_request['user_name'] = user_name
-            if row.periodic_task==True:
-                user_request['periodic'] = row.periodic_task
-                periodic_settings= ('every',str(row.every),row.period.name)
-                user_request['periodic_settings'] = ' '.join(periodic_settings)
-            else:
-                user_request['crontab'] = row.crontab_task
-                user_request['crontab_settings'] = json.loads(row.crontab_settings)
-            user_list.append(user_request)
+        if filter != "no-scheduled": # check if the user doesn't have filtered the request to ask for single requests only
+            for row in scheduled_list:
+                user_request = {}
+                user_request['creation_date'] = row.creation_date
+                user_request['args'] = json.loads(row.args)
+                user_request['user_name'] = user_name
+                if row.periodic_task==True:
+                    user_request['periodic'] = row.periodic_task
+                    periodic_settings= ('every',str(row.every),row.period.name)
+                    user_request['periodic_settings'] = ' '.join(periodic_settings)
+                else:
+                    user_request['crontab'] = row.crontab_task
+                    user_request['crontab_settings'] = json.loads(row.crontab_settings)
+                user_list.append(user_request)
 
-        return user_list
+        if sort_by == "date":
+            if sort_order == "asc":
+                sorted_list = sorted(user_list, key=lambda date: date['creation_date'])
+                return sorted_list
+            if sort_order == "desc":
+                sorted_list = sorted(user_list, key=lambda date: date['creation_date'], reverse=True)
+                return sorted_list
+        else:
+            return user_list
 
     @staticmethod
     def update_task_id (db,request_id,task_id):
