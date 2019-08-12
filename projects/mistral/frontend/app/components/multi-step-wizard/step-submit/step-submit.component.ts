@@ -11,9 +11,9 @@ import {NotificationService} from '/rapydo/src/app/services/notification';
 })
 export class StepSubmitComponent implements OnInit {
     title = 'Submit your request';
-    summaryStats: SummaryStats = {c:0, s: 0};
+    summaryStats: SummaryStats = {c: 0, s: 0};
     @Input() formData: FormData;
-    isFormValid: boolean = false;
+    isFormValid = false;
 
     constructor(
         private router: Router,
@@ -34,7 +34,7 @@ export class StepSubmitComponent implements OnInit {
                         'Please choose different filters.');
             }
         });
-        window.scroll(0,0);
+        window.scroll(0, 0);
     }
 
     goToPrevious() {
@@ -55,7 +55,7 @@ export class StepSubmitComponent implements OnInit {
             error => {
                 // TODO
             }
-        )
+        );
     }
 
 }

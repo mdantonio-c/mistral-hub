@@ -2,10 +2,10 @@ import {Injectable} from '@angular/core';
 import {ApiService} from '/rapydo/src/app/services/api';
 
 export interface SummaryStats {
-    b?: string[],
-    e?: string[],
-    c: number,
-    s: number
+    b?: string[];
+    e?: string[];
+    c: number;
+    s: number;
 }
 
 @Injectable({

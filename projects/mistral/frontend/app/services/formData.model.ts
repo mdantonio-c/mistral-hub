@@ -26,5 +26,5 @@ export interface Filters<T, U> {
 
 export class Dataset {
     id: string = '';
-    description?: string = '';
+    description ?: string = '';
 }
