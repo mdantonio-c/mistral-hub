@@ -1,0 +1,9 @@
+file: file
+class: FileDownload
+schema:
+  expose: true
+mapping:
+  file: "/data/<filename>"
+  delete-file: "/data/delete/<filename>"
+labels:
+  - file

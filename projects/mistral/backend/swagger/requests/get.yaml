@@ -8,6 +8,20 @@ requests:
       description: uuid of the requests
       type: string
       required: true
+    - name: sort-order
+      in: query
+      description: sort order
+      type: string
+      enum: [asc, desc]
+    - name: sort-by
+      in: query
+      description: params to sort requests
+      type: string
+    - name: filter
+      in: query
+      description: what kind of requests
+      type: string
+
   responses:
     '200':
       description: List of requests of an user
@@ -15,4 +29,6 @@ requests:
         $ref: "#/definitions/Requests"
     '404':
       description: User has no requests
+    '401':
+      description: Current user is not allowed to see requests of the user in query
 

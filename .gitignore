@@ -6,6 +6,8 @@
 uploads
 /data
 /node_modules
+/projects/mistral/backend/migrations/
+
 
 ########################
 ##  Host configuration  ##
