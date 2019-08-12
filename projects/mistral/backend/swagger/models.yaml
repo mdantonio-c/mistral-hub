@@ -1,4 +1,5 @@
 definitions:
+
   DataExtraction:
     required:
       - datasets
@@ -52,6 +53,102 @@ definitions:
         type: array
         items:
           type: string
+
+#  Requests:
+#    required:
+#      - submission_date
+#      - args
+#      - user_name
+#      - status
+#      - fileoutput
+#    properties:
+#      submission_date:
+#        type: string
+#        format: dateTime
+#      args:
+#        type: object
+#      user_name:
+#        type: string
+#      status:
+#        type: string
+#      fileoutput:
+#        type: string
+
+#  DataScheduling:
+#    properties:
+#      periode-settings:
+#        description: Settings for the periodic request
+#        type: object
+#        properties:
+#          every:
+#            type: integer
+#          period:
+#            type: string
+#            enum:
+#              - days
+#              - hours
+#              - minutes
+#              - seconds
+#              - microseconds
+#      crontab_settings:
+#        description: Settings for the crontab request
+#        type: object
+#      minProperties: 1
+#      maxProperties: 1
+#      additionalProperties: none
+
+  DataScheduling:
+    required:
+      - datasets
+    properties:
+      datasets:
+        description: Data belong to the datasets of the list.
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          description: Dataset name
+          type: string
+      filters:
+        description: Apply different filtering criteria.
+        $ref: "#/definitions/DataFilter"
+      post-process:
+        description: Apply post-processing to the filtered data.
+        type: string
+      format:
+        description: Output format
+        type: string
+        enum:
+          - json
+          - bufr
+          - grib
+      period-settings:
+        description: Settings for the periodic request
+        type: object
+        properties:
+          every:
+            type: integer
+          period:
+            type: string
+            enum:
+              - days
+              - hours
+              - minutes
+              - seconds
+              - microseconds
+      crontab-settings:
+        description: Settings for the crontab request
+        type: object
+
+
+  Requests:
+    required:
+      - user_requests
+    properties:
+      user_requests:
+        type: array
+        items:
+          type: object
 
   Summary:
     required:

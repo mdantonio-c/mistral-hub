@@ -53,10 +53,6 @@ services:
       POSTGRES_PASSWORD: "${ALCHEMY_PASSWORD}"
       POSTGRES_DBS: ${ALCHEMY_DBS}
 
-  mongodb:
-    environment:
-      ACTIVATE: 1
-
   rabbit:
     ports:
       - 5672:5672
@@ -80,13 +76,8 @@ services:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
-    depends_on:
-      - rabbit
-      - postgres 
-      - mongodb
 
     environment:
-      ACTIVATE: 1
       # base the user/role mechanism on some database
       AUTH_ENABLE: 1
       # putting this here because it should not be configurable in .env

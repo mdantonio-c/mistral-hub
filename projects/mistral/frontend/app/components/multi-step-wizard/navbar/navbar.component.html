@@ -1,0 +1,52 @@
+<div class="board-inner" id="status-buttons">
+    <ul class="nav nav-tabs" id="myTab">
+        <div class="liner"></div>
+
+        <!-- circular datasets icon -->
+        <li class="nav-item">
+            <a [routerLink]="[{ outlets: {step: ['datasets'] } }]"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{ exact: true }"
+               title="datasets" class="nav-link">
+                <span class="round-tabs one">
+                    <i class="fa fa-database" aria-hidden="true"></i>
+                </span>
+            </a>
+        </li>
+
+        <!-- circular filter icon -->
+        <li class="nav-item">
+            <a [routerLink]="[{ outlets: {step: ['filters'] } }]"
+               routerLinkActive="active"
+               title="filters" class="nav-link">
+                <span class="round-tabs two">
+                  <i class="fa fa-filter" aria-hidden="true"></i>
+                </span>
+            </a>
+        </li>
+
+        <!-- circular postprocess icon -->
+        <li class="nav-item">
+            <a [routerLink]="[{ outlets: { step: ['postprocess'] } }]"
+               routerLinkActive="active"
+               title="postprocess" class="nav-link">
+                <span class="round-tabs three">
+                     <i class="fa fa-cogs" aria-hidden="true"></i>
+                </span>
+            </a>
+        </li>
+
+        <!-- circular done icon -->
+        <li class="nav-item">
+            <a [routerLink]="[{ outlets: { step: ['submit'] } }]"
+               routerLinkActive="active"
+               title="completed" class="nav-link">
+                <span class="round-tabs four">
+                    <i class="fa fa-check" aria-hidden="true"></i>
+                </span>
+            </a>
+        </li>
+
+    </ul>
+    <div class="clearfix"></div>
+</div>

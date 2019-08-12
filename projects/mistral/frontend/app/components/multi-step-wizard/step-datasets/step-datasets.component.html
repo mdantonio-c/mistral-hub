@@ -1,0 +1,18 @@
+<form [formGroup]="form" (ngSubmit)="goToNext()">
+  <div class="tab-pane fade show active mt-4">
+    <h4 class="head text-center">{{title}}</h4>
+    <br/>
+    <div class="loader col" *ngIf="loading"></div>
+    <ul>
+      <li formArrayName="datasets" *ngFor="let ds of form.controls.datasets.controls; let i = index">
+          <input class="mst--input-checkbox" type="checkbox" [formControlName]="i" id="{{datasets[i].id}}">
+          <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
+      </li>
+    </ul>
+    <div class="form-group text-center">
+      <button class="btn btn-success btn-info" type="submit"
+              [disabled]="!form.valid"> Next <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+</form>
+

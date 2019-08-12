@@ -1,0 +1,57 @@
+<div class="tab-pane fade show active mt-4">
+    <h4 class="head text-center">{{title}}</h4>
+    <br/>
+    <!-- Summary Stats-->
+    <div class="card mst--expansion-panel mst--info-panel" *ngIf="summaryStats">
+        <div class="card-header">
+            <h5>Summary Stats</h5>
+        </div>
+        <div class="body">
+            <ul>
+                <li><strong>From:</strong> {{summaryStats.b | fmtDate}}</li>
+                <li><strong>To:</strong> {{summaryStats.e | fmtDate}}</li>
+                <li><strong>Count:</strong> {{summaryStats.c}}</li>
+                <li><strong>Size:</strong> {{summaryStats.s | bytes:2}}</li>
+            </ul>
+        </div>
+    </div>
+    <div class="card mst--expansion-panel mst--info-panel">
+        <div class="card-header">
+            <h5>Your Request</h5>
+        </div>
+        <div class="body">
+            <dl class="request-summary">
+                <hr>
+                <dt>Dataset(s)</dt>
+                <dd>
+                    <ul class="comma-list">
+                        <li *ngFor="let ds of formData.datasets">{{ds}}</li>
+                    </ul>
+                </dd>
+                <hr>
+                <dt>Filter(s)</dt>
+                <dd *ngIf="formData.filters.length">
+                    <dl  class="row">
+                        <ng-container *ngFor="let f of formData.filters">
+                            <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
+                            <dd class="col-sm-9"><p *ngFor="let v of f.values">{{v.desc}}</p></dd>
+                        </ng-container>
+                    </dl>
+                </dd>
+                <dd *ngIf="!formData.filters || !formData.filters.length">None</dd>
+                <hr>
+                <dt>Post-Processing</dt>
+                <dd>None</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+<div class="form-group text-center space-20">
+    <button class="btn btn-outline-secondary mr-2" type="button"
+            (click)="goToPrevious()"><i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
+    </button>
+    <button class="btn btn-info" [disabled]="!isFormValid || summaryStats.c === 0"
+            (click)="submit()"> Submit <i class="fa fa-arrow-right" aria-hidden="true"></i>
+    </button>
+</div>
+

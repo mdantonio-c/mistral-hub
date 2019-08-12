@@ -7,7 +7,7 @@ from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
 from flask import Response
-from flask import json
+# from flask import json
 
 logger = get_logger(__name__)
 
@@ -29,7 +29,22 @@ class Fields(EndpointResource):
                     "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
 
-        summary = arki.load_summary(datasets)
-        # return self.force_response(summary)
-        js = json.dumps(summary)
-        return Response(js, status=200, mimetype='application/json')
+        query = params.get('q')
+        summary = arki.load_summary(datasets, query)
+        onlySummaryStats = params.get('onlySummaryStats')
+        if isinstance(onlySummaryStats, str) and (
+                onlySummaryStats == '' or onlySummaryStats.lower() == 'true'
+        ):
+            onlySummaryStats = True
+        elif type(onlySummaryStats) == bool:
+            # do nothing
+            pass
+        else:
+            onlySummaryStats = False
+        if onlySummaryStats:
+            # we want to return ONLY summary Stats with no fields
+            logger.debug('ONLY Summary Stats')
+            summary = summary['items']['summarystats']
+        return self.force_response(summary)
+        # js = json.dumps(summary)
+        # return Response(js, status=200, mimetype='application/json')

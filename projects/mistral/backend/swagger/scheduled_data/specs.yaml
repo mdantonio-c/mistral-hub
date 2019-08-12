@@ -1,0 +1,8 @@
+file: scheduled_data
+class: ScheduledData
+schema:
+  expose: true
+mapping:
+  scheduled: "/data/scheduled"
+labels:
+  - scheduled

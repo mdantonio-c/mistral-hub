@@ -1,9 +1,9 @@
 ---
 project:
-  title: Mistral Meteo-Hub 
-  description: 
-  version: "1.0"
-  rapydo: 0.6.6
+  title: Mistral Meteo-Hub
+  description: "."
+  version: "0.6.7"
+  rapydo: 0.6.7
 
 variables:
   env:
@@ -11,11 +11,18 @@ variables:
     BACKEND_BUILD_MODE: backendcentos
     PYTHON_PATH: /usr/local/lib/python3.6/site-packages
 
+    LOG_LEVEL: DEBUG
+
     ALCHEMY_USER: sqluser
     ALCHEMY_PASSWORD: chooseapasswordwisely
     ALCHEMY_API_DB: SQL_API
     ALCHEMY_ENGINE: postgresql
     ALCHEMY_DBS: SQL_API
+
+    ACTIVATE_MONGODB: 1
+    ACTIVATE_CELERY: 1
+    ACTIVATE_CELERYUI: 1
+    ACTIVATE_CELERY_BEAT: 1
 
     CELERY_BACKEND: MONGODB
     CELERY_BACKEND_HOST: mongo.dockerized.io

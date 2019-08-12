@@ -10,6 +10,15 @@ fields:
       collectionFormat: csv
       items:
         type: string
+    - name: q
+      in: query
+      type: string
+      default: ''
+    - name: onlySummaryStats
+      in: query
+      type: boolean
+      default: false
+      allowEmptyValue: true
   responses:
     '200':
       description: List of fields successfully retrieved
