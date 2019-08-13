@@ -3,8 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn} from '@angular/forms';
 import {FormDataService} from "../../../services/formData.service";
 import {NotificationService} from '/rapydo/src/app/services/notification';
-import {Dataset} from "../../../services/formData.model";
-import {of} from 'rxjs';
+import {Dataset} from "../../../services/data.service";
 
 @Component({
     selector: 'step-datasets',
@@ -12,7 +11,7 @@ import {of} from 'rxjs';
 })
 export class StepDatasetsComponent implements OnInit {
     title = 'Please select one or more datasets';
-    loading: boolean = false;
+    loading = false;
     datasets: Dataset[];
     form: FormGroup;
 

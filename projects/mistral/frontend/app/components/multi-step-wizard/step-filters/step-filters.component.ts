@@ -2,9 +2,9 @@ import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, FormArray, FormControl, Validators} from '@angular/forms';
 import {FormDataService} from "../../../services/formData.service";
-import {Filters} from "../../../services/formData.model";
 import {NotificationService} from '/rapydo/src/app/services/notification';
 import {ArkimetService} from "../../../services/arkimet.service";
+import {Filters} from "../../../services/data.service";
 
 @Component({
     selector: 'step-filters',
@@ -15,7 +15,7 @@ export class StepFiltersComponent implements OnInit {
     loading: boolean = false;
     summaryStats = {};
     filterForm: FormGroup;
-    filters: Filters<string, any>;
+    filters: Filters;
 
     constructor(private formBuilder: FormBuilder,
                 private router: Router,

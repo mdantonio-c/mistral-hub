@@ -1,9 +1,21 @@
 import {Injectable} from '@angular/core';
+import {Observable} from 'rxjs';
 
-import {FormData, Dataset, Filters} from './formData.model';
 import {WorkflowService} from './workflow.service';
 import {STEPS} from './workflow.model';
-import {DataService, SummaryStats} from "./data.service";
+import {DataService, Filters, RapydoResponse, SummaryStats} from "./data.service";
+
+export class FormData {
+    datasets: string[] = [];
+    filters: Filters[] = [];
+    postprocessors: string[] = [];
+
+    clear() {
+        this.datasets = [];
+        this.filters = [];
+        this.postprocessors = [];
+    }
+}
 
 @Injectable({
   providedIn: 'root'
@@ -38,7 +50,7 @@ export class FormDataService {
         return this.dataService.getSummary(this.formData.datasets);
     }
 
-    getSummaryStats() {
+    getSummaryStats(): Observable<RapydoResponse<SummaryStats>> {
         let q = this.formData.filters.map(filter => filter.query).join(';');
         return this.dataService.getSummary(
             this.formData.datasets, q, true);
