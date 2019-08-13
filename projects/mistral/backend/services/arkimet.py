@@ -106,7 +106,7 @@ class BeArkimet():
         matchers = []
         for k in filters:
             val = filters[k].strip()
-            matchers.push(k+':'+val)
+            matchers.append(k+':'+val)
         return '' if not matchers else '; '.join(matchers)
 
     @staticmethod
