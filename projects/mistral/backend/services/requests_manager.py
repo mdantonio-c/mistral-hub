@@ -55,11 +55,14 @@ class RequestManager ():
 
 
     @staticmethod
-    def create_request_record(db,user,filters):
+    def create_request_record(db,user,filters, scheduled_id=None):
         request = db.Request
         args = json.dumps(filters)
         #r = request(user_uuid=user, args=args, task_id=task_id)
         r = request(user_uuid=user, args=args)
+        if scheduled_id is not None:
+            #scheduled_request = db.ScheduledRequest
+            r.scheduled_request_id = scheduled_id
         db.session.add(r)
         db.session.commit()
         request_id = r.id
@@ -124,6 +127,8 @@ class RequestManager ():
         if filter != "scheduled": # check if the user doesn't have filtered the request to ask for scheduled requests only
             for row in requests_list:
                 user_request = {}
+                if row.scheduled_request_id is not None:
+                    continue
                 user_request['creation_date'] = row.creation_date
                 user_request['args'] = json.loads(row.args)
                 user_request['user_name'] = user_name

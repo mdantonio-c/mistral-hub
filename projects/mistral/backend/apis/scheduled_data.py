@@ -47,12 +47,14 @@ class ScheduledData(EndpointResource):
             res = CeleryExt.delete_periodic_task(name=name)
             log.debug("Previous task deleted = %s", res)
 
+            request_id = None
+
             CeleryExt.create_periodic_task(
                 name=name,
                 task="mistral.tasks.data_extraction.data_extract",
                 every=every,
                 period=period,
-                args=[user.uuid, dataset_names, filters],
+                args=[user.uuid, dataset_names, filters, request_id, name_int],
             )
 
             log.info("Scheduling periodic task")
