@@ -49,18 +49,6 @@ export class Dataset {
     description ? = '';
 }
 
-// export interface Filters {
-//     area?: string
-//     level?: string,
-//     origin?: string,
-//     proddef?: string,
-//     product?: string,
-//     quantity?: string,
-//     run?: string,
-//     task?: string,
-//     timerange?: string
-// }
-
 @Injectable({
   providedIn: 'root'
 })
@@ -105,7 +93,6 @@ export class DataService {
                 data['filters'][f_name] = f_query;
             });
         }
-        console.log(data);
         return this.api.post('data', data, {"rawResponse": true});
     }
 

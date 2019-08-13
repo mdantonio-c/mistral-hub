@@ -52,8 +52,7 @@ export class StepSubmitComponent implements OnInit {
                 this.router.navigate(['app/requests']);
             },
             error => {
-                console.error(error);
-                // TODO
+                this.notify.extractErrors(error.error.Response, this.notify.ERROR);
             }
         );
     }

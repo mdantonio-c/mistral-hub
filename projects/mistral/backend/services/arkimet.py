@@ -14,6 +14,10 @@ logger = get_logger(__name__)
 
 class BeArkimet():
 
+    allowed_filters = (
+        'area', 'level', 'origin', 'proddef', 'product', 'quantity', 'run', 'task', 'timerange'
+    )
+
     @staticmethod
     def load_datasets():
         """
@@ -94,30 +98,17 @@ class BeArkimet():
 
     @staticmethod
     def parse_matchers(filters):
+        """
+        Parse incoming filters and return an arkimet query.
+        :param filters:
+        :return:
+        """
         matchers = []
         for k in filters:
             val = filters[k].strip()
-            if k == 'origin':
-                # -- GRIB1
-                # -- Syntax: origin:GRIB1,centre,subcentre,process
-                # -- Any of centre, subcentre, process can be omitted; if omitted, any value
-                # -- will match
-                if val.startswith('GRIB1') and re.match('GRIB1,?[0-9]*', val):
-                    logger.debug('add <origin> matcher: {}'.format(val))
-                    matchers.append('origin:'+val)
-                else:
-                    logger.warn('Invalid value for filter <origin>: %s' % val)
-                    continue
-            elif k == 'level':
-                # -- GRIB1
-                # -- Syntax: level:GRIB1, leveltype, l1, l2
-                # -- Any of leveltype, l1 or l2 can be omitted; if omitted, any value
-                # -- will match
-                if val.startswith('GRIB1') and re.match('GRIB1,?[0-9]*', val):
-                    matchers.append('level:'+val)
-                else:
-                    logger.warn('Invalid value for filter <level>: %s' % val)
-                    continue
-            # TODO manage the remaining filters
-
+            matchers.push(k+':'+val)
         return '' if not matchers else '; '.join(matchers)
+
+    @staticmethod
+    def is_filter_allowed(filter_name):
+        return True if filter_name in BeArkimet.allowed_filters else False

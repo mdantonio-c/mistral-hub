@@ -30,6 +30,16 @@ def add(self, a, b):
 @celery_app.task(bind=True)
 # @send_errors_by_email
 def data_extract(self, user_uuid, datasets, filters=None, request_id=None):
+    """
+
+    :param self:
+    :param user_uuid:
+    :param datasets:
+    :param filters: dictionary in form of filter_name: filter_query
+                    e.g. 'level': 'GRIB1,1 or GRIB1,4
+    :param request_id:
+    :return:
+    """
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]".format(self.request.id, self.name))
 
@@ -70,7 +80,7 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None):
         with open(os.path.join(user_dir, filename), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
         if request_id is not None:
-            #create fileoutput record in db
+            # create fileoutput record in db
             RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size )
 
         log.info("Task [{}] completed successfully".format(self.request.id))
