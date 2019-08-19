@@ -9,17 +9,18 @@ celery_app = CeleryExt.celery_app
 
 log = get_logger(__name__)
 
-class RequestManager ():
+
+class RequestManager():
 
     @staticmethod
-    def check_fileoutput(db, uuid, filename,download_dir):
+    def check_fileoutput(db, uuid, filename, download_dir):
         fileoutput = db.FileOutput
         # query for the requested file in database
         f_to_download = fileoutput.query.filter(fileoutput.filename == filename).first()
         # check if the requested file is in the database
         if f_to_download is not None:
             # check if the user owns the file
-            if RequestManager.check_owner(db,uuid,file_id=f_to_download.id):
+            if RequestManager.check_owner(db, uuid, file_id=f_to_download.id):
                 # check if the requested file is in the user folder
                 path = os.path.join(download_dir, uuid, f_to_download.filename)
                 if os.path.exists(path):
@@ -51,17 +52,14 @@ class RequestManager ():
         if item_to_check.user_uuid == uuid:
             return True
 
-
-
-
     @staticmethod
-    def create_request_record(db,user,filters, scheduled_id=None):
+    def create_request_record(db, user, filters, scheduled_id=None):
         request = db.Request
         args = json.dumps(filters)
-        #r = request(user_uuid=user, args=args, task_id=task_id)
+        # r = request(user_uuid=user, args=args, task_id=task_id)
         r = request(user_uuid=user, args=args)
         if scheduled_id is not None:
-            #scheduled_request = db.ScheduledRequest
+            # scheduled_request = db.ScheduledRequest
             r.scheduled_request_id = scheduled_id
         db.session.add(r)
         db.session.commit()
@@ -76,10 +74,12 @@ class RequestManager ():
         crontab_args = json.dumps(crontab_settings)
         # check if the request is periodic
         if (every or period) is not None:
-            r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=True, crontab_task=False, every=every, period=period )
+            r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=True, crontab_task=False, every=every,
+                                  period=period)
         # check if the request is a crontab type
         if crontab_settings is not None:
-            r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=False, crontab_task=True,crontab_settings= crontab_args)
+            r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=False, crontab_task=True,
+                                  crontab_settings=crontab_args)
         db.session.add(r)
         db.session.commit()
         request_id = r.id
@@ -152,7 +152,7 @@ class RequestManager ():
             return submitted_request_list
 
     @staticmethod
-    def get_user_requests (db, uuid, sort_by=None, sort_order=None, filter=None):
+    def get_user_requests(db, uuid, sort_by=None, sort_order=None, filter=None):
 
         user = db.User
         current_user = user.query.filter(user.uuid == uuid).first()
@@ -166,7 +166,7 @@ class RequestManager ():
 
         # create the response schema for not scheduled requests
         user_list = []
-        if filter != "scheduled": # check if the user doesn't have filtered the request to ask for scheduled requests only
+        if filter != "scheduled":  # check if the user doesn't have filtered the request to ask for scheduled requests only
             for row in requests_list:
                 user_request = {}
                 if row.scheduled_request_id is not None:
@@ -176,18 +176,20 @@ class RequestManager ():
                 user_request['args'] = json.loads(row.args)
                 user_request['user_name'] = user_name
                 user_request['status'] = row.status
+                user_request['task_id'] = row.task_id
 
                 current_fileoutput = row.fileoutput
                 if current_fileoutput is not None:
                     fileoutput_name = current_fileoutput.filename
                 else:
                     fileoutput_name = 'no file available'
-                user_request['fileoutput'] =fileoutput_name
+                user_request['fileoutput'] = fileoutput_name
+                user_request['filesize'] = current_fileoutput.size if current_fileoutput is not None else None
 
                 user_list.append(user_request)
 
         # create the response schema for scheduled requests
-        if filter != "no-scheduled": # check if the user doesn't have filtered the request to ask for single requests only
+        if filter != "no-scheduled":  # check if the user doesn't have filtered the request to ask for single requests only
             for row in scheduled_list:
                 user_request = {}
                 user_request['request_id'] = row.id
@@ -195,9 +197,9 @@ class RequestManager ():
                 user_request['args'] = json.loads(row.args)
                 user_request['user_name'] = user_name
                 user_request['submitted_requests_number'] = row.submitted_request.count()
-                if row.periodic_task==True:
+                if row.periodic_task == True:
                     user_request['periodic'] = row.periodic_task
-                    periodic_settings= ('every',str(row.every),row.period.name)
+                    periodic_settings = ('every', str(row.every), row.period.name)
                     user_request['periodic_settings'] = ' '.join(periodic_settings)
                 else:
                     user_request['crontab'] = row.crontab_task
@@ -220,7 +222,7 @@ class RequestManager ():
         return db.Request.query.filter_by(user_uuid=user_uuid).count()
 
     @staticmethod
-    def update_task_id (db,request_id,task_id):
+    def update_task_id(db, request_id, task_id):
         request = db.Request
         r_to_update = request.query.filter(request.id == request_id).first()
 
@@ -239,5 +241,3 @@ class RequestManager ():
 
         r_to_update.status = result.status
         db.session.commit()
-
-
