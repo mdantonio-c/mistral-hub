@@ -110,7 +110,7 @@ class RequestManager ():
         db.session.commit()
 
     @staticmethod
-    def get_user_requests (db,uuid, sort_by=None, sort_order=None, filter=None):
+    def get_user_requests (db, uuid, sort_by=None, sort_order=None, filter=None):
 
         user = db.User
         current_user = user.query.filter(user.uuid == uuid).first()
@@ -120,7 +120,7 @@ class RequestManager ():
 
         # update celery status for the requests coming from the database query
         for row in requests_list:
-            RequestManager.update_task_status(db,row.task_id)
+            RequestManager.update_task_status(db, row.task_id)
 
         # create the response schema for not scheduled requests
         user_list = []
@@ -129,7 +129,8 @@ class RequestManager ():
                 user_request = {}
                 if row.scheduled_request_id is not None:
                     continue
-                user_request['creation_date'] = row.creation_date
+                user_request['request_id'] = row.id
+                user_request['submission_date'] = row.creation_date.isoformat()
                 user_request['args'] = json.loads(row.args)
                 user_request['user_name'] = user_name
                 user_request['status'] = row.status
@@ -147,7 +148,8 @@ class RequestManager ():
         if filter != "no-scheduled": # check if the user doesn't have filtered the request to ask for single requests only
             for row in scheduled_list:
                 user_request = {}
-                user_request['creation_date'] = row.creation_date
+                user_request['request_id'] = row.id
+                user_request['submission_date'] = row.creation_date.isoformat()
                 user_request['args'] = json.loads(row.args)
                 user_request['user_name'] = user_name
                 if row.periodic_task==True:
@@ -168,6 +170,11 @@ class RequestManager ():
                 return sorted_list
         else:
             return user_list
+
+    @staticmethod
+    def count_user_requests(db, user_uuid):
+        log.debug('get total requests for user UUID {}'.format(user_uuid))
+        return db.Request.query.filter_by(user_uuid=user_uuid).count()
 
     @staticmethod
     def update_task_id (db,request_id,task_id):

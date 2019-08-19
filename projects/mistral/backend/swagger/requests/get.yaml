@@ -3,11 +3,11 @@ requests:
   custom:
     authentication: true
   parameters:
-    - name: uuid
-      in: query
-      description: uuid of the requests
-      type: string
-      required: true
+#    - name: uuid
+#      in: query
+#      description: uuid of the requests
+#      type: string
+#      required: true
     - name: sort-order
       in: query
       description: sort order
@@ -21,6 +21,11 @@ requests:
       in: query
       description: what kind of requests
       type: string
+    - name: get_total
+      in: query
+      description: Retrieve total number of requests
+      type: boolean
+      default: false
 
   responses:
     '200':
