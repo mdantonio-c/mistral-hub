@@ -12,12 +12,8 @@ import {FormlyService} from '/rapydo/src/app/services/formly'
     templateUrl: './requests.component.html'
 })
 export class RequestsComponent extends BasePaginationComponent {
-
-    @ViewChild('dataSize', { static: false }) public dataSize: TemplateRef<any>;
-	@ViewChild('submissionDate', { static: false }) public submissionDate: TemplateRef<any>;
-	@ViewChild('dataStatus', { static: false }) public dataStatus: TemplateRef<any>;
-	@ViewChild('controlsCell', { static: false }) public controlsCell: TemplateRef<any>;
-	@ViewChild('emptyHeader', { static: false }) public emptyHeader: TemplateRef<any>;
+    @ViewChild('myTable', { static: false }) table: any;
+    expanded: any = {};
 
     constructor(
         protected api: ApiService,
@@ -47,14 +43,12 @@ export class RequestsComponent extends BasePaginationComponent {
       console.log(`download ${filename}`);
     }
 
-    ngAfterViewInit(): void {
-		this.columns = [
-	        {name: 'Product', prop: "name", flexGrow: 2},
-	        {name: 'Submission date', prop: "submission_date", flexGrow: 1, cellTemplate: this.submissionDate},
-	        {name: 'Size', prop: "size", flexGrow: 0.5, cellTemplate: this.dataSize},
-	        {name: 'Status', prop: "status", flexGrow: 0.5, cellTemplate: this.dataStatus},
-			{name: 'controls', prop: 'controls', cellTemplate: this.controlsCell, headerTemplate: this.emptyHeader, flexGrow: 0.2},
-		];
-	}
+    toggleExpandRow(row) {
+        this.table.rowDetail.toggleExpandRow(row);
+    }
+
+    onDetailToggle(event) {
+        console.log('Detail Toggled', event);
+    }
 
 }
