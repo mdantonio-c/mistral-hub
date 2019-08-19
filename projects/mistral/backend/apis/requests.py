@@ -8,6 +8,7 @@ from mistral.services.requests_manager import RequestManager as repo
 import datetime
 
 log = get_logger(__name__)
+DOWNLOAD_DIR = '/data'
 
 
 class UserRequests(EndpointResource):
@@ -51,8 +52,8 @@ class UserRequests(EndpointResource):
         # check if the current user is the owner of the request
         if repo.check_owner(db, user.uuid, single_request_id=request_id):
 
-            # delete request entry from database
-            repo.delete_request_record(db, request_id)
+            # delete request and fileoutput entry from database. Delete fileoutput from user folder
+            repo.delete_request_record(db,user.uuid, request_id,DOWNLOAD_DIR)
 
 
             return self.force_response('Removed request {}'.format(request_id))

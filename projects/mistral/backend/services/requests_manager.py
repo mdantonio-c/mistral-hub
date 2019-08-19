@@ -96,16 +96,17 @@ class RequestManager():
         log.info('fileoutput for: {}'.format(request_id))
 
     @staticmethod
-    def delete_fileoutput(db, filename):
-        fileoutput = db.FileOutput
-        f_to_delete = fileoutput.query.filter(fileoutput.filename == filename).first()
-        db.session.delete(f_to_delete)
-        db.session.commit()
+    def delete_fileoutput(uuid,download_dir, filename):
+        filepath = os.path.join(download_dir, uuid, filename)
+        os.remove(filepath)
 
     @staticmethod
-    def delete_request_record(db, request_id):
+    def delete_request_record(db,uuid, request_id, download_dir):
         request = db.Request
         r_to_delete = request.query.filter(request.id == request_id).first()
+        fileoutput = r_to_delete.fileoutput
+        if fileoutput is not None:
+            RequestManager.delete_fileoutput(uuid,download_dir,fileoutput.filename)
         db.session.delete(r_to_delete)
         db.session.commit()
 
