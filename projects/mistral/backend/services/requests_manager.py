@@ -194,6 +194,7 @@ class RequestManager ():
                 user_request['submission_date'] = row.creation_date.isoformat()
                 user_request['args'] = json.loads(row.args)
                 user_request['user_name'] = user_name
+                user_request['submitted_requests_number'] = row.submitted_request.count()
                 if row.periodic_task==True:
                     user_request['periodic'] = row.periodic_task
                     periodic_settings= ('every',str(row.every),row.period.name)
