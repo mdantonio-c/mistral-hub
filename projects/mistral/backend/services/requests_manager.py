@@ -55,11 +55,14 @@ class RequestManager ():
 
 
     @staticmethod
-    def create_request_record(db,user,filters):
+    def create_request_record(db,user,filters, scheduled_id=None):
         request = db.Request
         args = json.dumps(filters)
         #r = request(user_uuid=user, args=args, task_id=task_id)
         r = request(user_uuid=user, args=args)
+        if scheduled_id is not None:
+            #scheduled_request = db.ScheduledRequest
+            r.scheduled_request_id = scheduled_id
         db.session.add(r)
         db.session.commit()
         request_id = r.id
@@ -107,6 +110,48 @@ class RequestManager ():
         db.session.commit()
 
     @staticmethod
+    # retrieve requests related to a scheduled task
+    def get_scheduled_requests(db, scheduled_request_id, sort_by=None, sort_order=None):
+
+        scheduled_request = db.ScheduledRequest
+        r = scheduled_request.query.filter(scheduled_request.id == scheduled_request_id).first()
+        requests_list = r.submitted_request
+
+        # update celery status for the requests coming from the database query
+        for row in requests_list:
+            RequestManager.update_task_status(db, row.task_id)
+
+        # create the response schema
+        submitted_request_list = []
+        for row in requests_list:
+            submitted_request = {}
+            submitted_request['request_id'] = row.id
+            submitted_request['submission_date'] = row.creation_date.isoformat()
+            submitted_request['args'] = json.loads(row.args)
+            # submitted_request['user_name'] = user_name
+            submitted_request['status'] = row.status
+
+            current_fileoutput = row.fileoutput
+            if current_fileoutput is not None:
+                fileoutput_name = current_fileoutput.filename
+            else:
+                fileoutput_name = 'no file available'
+            submitted_request['fileoutput'] = fileoutput_name
+
+            submitted_request_list.append(submitted_request)
+
+        # sorting the list if there are sorting parameters
+        if sort_by == "date":
+            if sort_order == "asc":
+                sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'])
+                return sorted_list
+            if sort_order == "desc":
+                sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'], reverse=True)
+                return sorted_list
+        else:
+            return submitted_request_list
+
+    @staticmethod
     def get_user_requests (db, uuid, sort_by=None, sort_order=None, filter=None):
 
         user = db.User
@@ -124,6 +169,8 @@ class RequestManager ():
         if filter != "scheduled": # check if the user doesn't have filtered the request to ask for scheduled requests only
             for row in requests_list:
                 user_request = {}
+                if row.scheduled_request_id is not None:
+                    continue
                 user_request['request_id'] = row.id
                 user_request['submission_date'] = row.creation_date.isoformat()
                 user_request['args'] = json.loads(row.args)
@@ -147,6 +194,7 @@ class RequestManager ():
                 user_request['submission_date'] = row.creation_date.isoformat()
                 user_request['args'] = json.loads(row.args)
                 user_request['user_name'] = user_name
+                user_request['submitted_requests_number'] = row.submitted_request.count()
                 if row.periodic_task==True:
                     user_request['periodic'] = row.periodic_task
                     periodic_settings= ('every',str(row.every),row.period.name)
@@ -158,10 +206,10 @@ class RequestManager ():
 
         if sort_by == "date":
             if sort_order == "asc":
-                sorted_list = sorted(user_list, key=lambda date: date['creation_date'])
+                sorted_list = sorted(user_list, key=lambda date: date['submission_date'])
                 return sorted_list
             if sort_order == "desc":
-                sorted_list = sorted(user_list, key=lambda date: date['creation_date'], reverse=True)
+                sorted_list = sorted(user_list, key=lambda date: date['submission_date'], reverse=True)
                 return sorted_list
         else:
             return user_list

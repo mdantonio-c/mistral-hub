@@ -9,7 +9,6 @@ from restapi.flask_ext.flask_celery import CeleryExt
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 # from restapi.flask_ext.flask_celery import send_errors_by_email
 from mistral.services.requests_manager import RequestManager
-from restapi.models.sqlalchemy import db
 
 from utilities.logs import get_logger
 
@@ -29,23 +28,22 @@ def add(self, a, b):
 
 @celery_app.task(bind=True)
 # @send_errors_by_email
-def data_extract(self, user_uuid, datasets, filters=None, request_id=None):
-    """
-
-    :param self:
-    :param user_uuid:
-    :param datasets:
-    :param filters: dictionary in form of filter_name: filter_query
-                    e.g. 'level': 'GRIB1,1 or GRIB1,4
-    :param request_id:
-    :return:
-    """
+def data_extract(self, user_uuid, datasets, filters=None, request_id=None, scheduled_id=None):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]".format(self.request.id, self.name))
+
+        db = celery_app.get_service('sqlalchemy')
 
         query = ''    # default to no matchers
         if filters is not None:
             query = arki.parse_matchers(filters)
+
+        if scheduled_id is not None:
+            # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
+            request_id = RequestManager.create_request_record(db, user_uuid, filters,scheduled_id=scheduled_id)
+            # update the entry with celery task id
+            RequestManager.update_task_id(db, request_id, self.request.id)
+            log.debug('request is scheduled at: {}, Request id: {}'.format(scheduled_id,request_id))
 
         # I should check the user quota before...
         # check the output size
@@ -80,7 +78,7 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None):
         with open(os.path.join(user_dir, filename), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
         if request_id is not None:
-            # create fileoutput record in db
+            #create fileoutput record in db
             RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size )
 
         log.info("Task [{}] completed successfully".format(self.request.id))

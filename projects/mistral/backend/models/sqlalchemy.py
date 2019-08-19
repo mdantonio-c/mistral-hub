@@ -29,6 +29,7 @@ class Request (db.Model):
     status = db.Column(db.String(64))
     task_id = db.Column(db.String(64), index=True, unique=True)
     fileoutput = db.relationship("FileOutput", backref='request', uselist=False)
+    scheduled_request_id = db.Column(db.Integer, db.ForeignKey('scheduled_request.id'))
 
     def __str__(self):
         return "db.%s(%s){%s}" \
@@ -69,6 +70,7 @@ class ScheduledRequest (db.Model):
     every = db.Column(db.Integer)
     crontab_task = db.Column(db.Boolean)
     crontab_settings = db.Column(db.String(64))
+    submitted_request = db.relationship('Request', backref='scheduled_request', lazy='dynamic')
 
     def __str__(self):
         return "db.%s(%s){%s}" \

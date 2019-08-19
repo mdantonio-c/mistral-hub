@@ -1,0 +1,8 @@
+file: scheduled_requests
+class: ScheduledRequests
+schema:
+  expose: true
+mapping:
+  scheduled_requests: "/requests/scheduled"
+labels:
+  - scheduled_requests
