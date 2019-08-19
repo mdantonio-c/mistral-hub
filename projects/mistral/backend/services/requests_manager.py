@@ -80,6 +80,7 @@ class RequestManager():
         if crontab_settings is not None:
             r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=False, crontab_task=True,
                                   crontab_settings=crontab_args)
+        r.enabled = True
         db.session.add(r)
         db.session.commit()
         request_id = r.id
@@ -111,10 +112,11 @@ class RequestManager():
         db.session.commit()
 
     @staticmethod
-    def delete_scheduled_request_record(db, request_id):
+    def disable_scheduled_request_record(db, request_id):
         scheduled_request = db.ScheduledRequest
-        r_to_delete = scheduled_request.query.filter(scheduled_request.id == request_id).first()
-        db.session.delete(r_to_delete)
+        r_to_disable = scheduled_request.query.filter(scheduled_request.id == request_id).first()
+        # db.session.delete(r_to_delete)
+        r_to_disable.enabled=False
         db.session.commit()
 
     @staticmethod
@@ -134,7 +136,7 @@ class RequestManager():
         for row in requests_list:
             submitted_request = {}
             submitted_request['request_id'] = row.id
-            submitted_request['submission_date'] = row.creation_date.isoformat()
+            submitted_request['submission_date'] = row.submission_date.isoformat()
             submitted_request['args'] = json.loads(row.args)
             # submitted_request['user_name'] = user_name
             submitted_request['status'] = row.status
@@ -180,7 +182,7 @@ class RequestManager():
                 if row.scheduled_request_id is not None:
                     continue
                 user_request['request_id'] = row.id
-                user_request['submission_date'] = row.creation_date.isoformat()
+                user_request['submission_date'] = row.submission_date.isoformat()
                 user_request['args'] = json.loads(row.args)
                 user_request['user_name'] = user_name
                 user_request['status'] = row.status
@@ -201,10 +203,11 @@ class RequestManager():
             for row in scheduled_list:
                 user_request = {}
                 user_request['request_id'] = row.id
-                user_request['submission_date'] = row.creation_date.isoformat()
+                user_request['submission_date'] = row.submission_date.isoformat()
                 user_request['args'] = json.loads(row.args)
                 user_request['user_name'] = user_name
                 user_request['submitted_requests_number'] = row.submitted_request.count()
+                user_request['enabled'] = row.enabled
                 if row.periodic_task == True:
                     user_request['periodic'] = row.periodic_task
                     periodic_settings = ('every', str(row.every), row.period.name)

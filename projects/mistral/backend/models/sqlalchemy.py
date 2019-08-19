@@ -24,7 +24,7 @@ setattr(User, 'scheduledrequests', db.relationship('ScheduledRequest', backref='
 class Request (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
-    creation_date = db.Column(db.DateTime, default=datetime.utcnow)
+    submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     args = db.Column(db.String)
     status = db.Column(db.String(64))
     task_id = db.Column(db.String(64), index=True, unique=True)
@@ -63,13 +63,14 @@ class PeriodEnum(enum.Enum):
 class ScheduledRequest (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
-    creation_date = db.Column(db.DateTime, default=datetime.utcnow)
+    submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     args = db.Column(db.String)
     periodic_task = db.Column(db.Boolean)
     period = db.Column(db.Enum(PeriodEnum))
     every = db.Column(db.Integer)
     crontab_task = db.Column(db.Boolean)
     crontab_settings = db.Column(db.String(64))
+    enabled = db.Column(db.Boolean)
     submitted_request = db.relationship('Request', backref='scheduled_request', lazy='dynamic')
 
     def __str__(self):

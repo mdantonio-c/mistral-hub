@@ -94,7 +94,7 @@ class ScheduledData(EndpointResource):
         # check if the current user is the owner of the request
         if RequestManager.check_owner(db,user.uuid,scheduled_request_id=task_name):
             # delete request entry from database
-            RequestManager.delete_scheduled_request_record(db, task_name)
+            RequestManager.disable_scheduled_request_record(db, task_name)
 
             CeleryExt.delete_periodic_task(name=task_name)
 
