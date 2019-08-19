@@ -30,23 +30,3 @@ class FileDownload(EndpointResource):
             raise RestApiException(
                 "File not found",
                 status_code=hcodes.HTTP_BAD_NOTFOUND)
-
-    @catch_error()
-    def delete(self, filename):
-        user = self.get_current_user()
-        db = self.get_service_instance('sqlalchemy')
-        # check if the file exists, the current user is the owner and if it is in its folder
-        if RequestManager.check_fileoutput(db, user.uuid, filename, DOWNLOAD_DIR):
-
-            #delete database entry
-            RequestManager.delete_fileoutput(db, filename)
-
-            #delete file
-            filepath= os.path.join(DOWNLOAD_DIR, user.uuid,filename)
-            os.remove(filepath)
-
-            return self.force_response('Removed file {}'.format(filepath))
-        else:
-            raise RestApiException(
-                "File not found",
-                status_code=hcodes.HTTP_BAD_NOTFOUND)

@@ -28,7 +28,7 @@ class Request (db.Model):
     args = db.Column(db.String)
     status = db.Column(db.String(64))
     task_id = db.Column(db.String(64), index=True, unique=True)
-    fileoutput = db.relationship("FileOutput", backref='request', uselist=False)
+    fileoutput = db.relationship("FileOutput", backref='request',cascade="delete", uselist=False)
     scheduled_request_id = db.Column(db.Integer, db.ForeignKey('scheduled_request.id'))
 
     def __str__(self):

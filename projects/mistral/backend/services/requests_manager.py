@@ -103,6 +103,13 @@ class RequestManager():
         db.session.commit()
 
     @staticmethod
+    def delete_request_record(db, request_id):
+        request = db.Request
+        r_to_delete = request.query.filter(request.id == request_id).first()
+        db.session.delete(r_to_delete)
+        db.session.commit()
+
+    @staticmethod
     def delete_scheduled_request_record(db, request_id):
         scheduled_request = db.ScheduledRequest
         r_to_delete = scheduled_request.query.filter(scheduled_request.id == request_id).first()

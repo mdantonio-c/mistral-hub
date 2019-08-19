@@ -40,3 +40,24 @@ class UserRequests(EndpointResource):
         return self.force_response(
             res, code=hcodes.HTTP_OK_BASIC)
 
+    @catch_error()
+    def delete(self):
+        param = self.get_input()
+        request_id = param.get('id')
+
+        user = self.get_current_user()
+
+        db = self.get_service_instance('sqlalchemy')
+        # check if the current user is the owner of the request
+        if repo.check_owner(db, user.uuid, single_request_id=request_id):
+
+            # delete request entry from database
+            repo.delete_request_record(db, request_id)
+
+
+            return self.force_response('Removed request {}'.format(request_id))
+        else:
+            raise RestApiException(
+                "This request doesn't come from the request's owner",
+                status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
+
