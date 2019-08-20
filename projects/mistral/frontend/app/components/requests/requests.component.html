@@ -60,10 +60,10 @@
                                         let-expanded="expanded"
                                         ngx-datatable-cell-template
                                 >
-                                    <button class="btn px-0" *ngIf="!expanded"
+                                    <button class="btn p-0" *ngIf="!expanded"
                                             title="Show/Hide Details"
                                             (click)='toggleExpandRow(row)'><i class="fa fa-angle-right"></i></button>
-                                    <button class="btn px-0" *ngIf="expanded"
+                                    <button class="btn p-0" *ngIf="expanded"
                                             title="Show/Hide Details"
                                             (click)='toggleExpandRow(row)'><i class="fa fa-angle-down"></i></button>
                                 </ng-template>
@@ -154,15 +154,19 @@
                                         let-row="row"
                                         ngx-datatable-cell-template
                                 >
-                                    <button class="btn px-0" *ngIf="row.status == 'SUCCESS'"
-                                            (click)='download(row.fileoutput)'><i class="fa fa-download"></i></button>
-                                    <button class="btn px-0 float-right"
-                                            mwlConfirmationPopover
-                                            [popoverTitle]="deleteConfirmation.title"
-                                            [popoverMessage]="deleteConfirmation.message"
-                                            placement="left"
-                                            (confirm)="remove(row.request_id)"
-                                            (cancel)="cancelRequest()"><i class="fa fa-trash" style='color:red;'></i></button>
+                                    <div class="btn-toolbar" role="toolbar">
+                                        <div class="btn-group mr-1" role="group">
+                                            <button class="btn p-0 mr-1" *ngIf="row.status == 'SUCCESS'"
+                                                    (click)='download(row.fileoutput)'><i class="fa fa-download"></i></button>
+                                            <button class="btn p-0"
+                                                    mwlConfirmationPopover
+                                                    [popoverTitle]="deleteConfirmation.title"
+                                                    [popoverMessage]="deleteConfirmation.message"
+                                                    placement="left"
+                                                    (confirm)="remove(row.request_id)"
+                                                    (cancel)="cancelRequest()"><i class="fa fa-trash" style='color:red;'></i></button>
+                                        </div>
+                                    </div>
                                 </ng-template>
                             </ngx-datatable-column>
 
