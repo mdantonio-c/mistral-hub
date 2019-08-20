@@ -159,7 +159,7 @@
                                             <button class="btn p-0"
                                                     mwlConfirmationPopover
                                                     [popoverTitle]="deleteConfirmation.title"
-                                                    [popoverMessage]="deleteConfirmation.message"
+                                                    [popoverMessage]="getDeleteConfirmation('request').message"
                                                     placement="left"
                                                     (confirm)="remove(row.request_id)"
                                                     (cancel)="cancelRequest()"><i class="fa fa-trash" style='color:red;'></i></button>
