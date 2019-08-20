@@ -72,7 +72,7 @@ class Data(EndpointResource):
         # open transaction
         # create request in db
         db = self.get_service_instance('sqlalchemy')
-        request_id = RequestManager.create_request_record(db, user.uuid, filters)
+        request_id = RequestManager.create_request_record(db, user.uuid, criteria)
 
         task = CeleryExt.data_extract.apply_async(
             args=[user.uuid, dataset_names, filters, request_id],

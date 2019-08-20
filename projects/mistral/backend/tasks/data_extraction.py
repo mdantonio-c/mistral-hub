@@ -61,9 +61,15 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None, sched
         # check for exceeding quota
         if used_quota + data_size > MAX_USER_QUOTA:
             free_space = MAX_USER_QUOTA - used_quota
-            raise IOError('User quota exceeds: required size {} ({}); '
-                          'remaining space {} ({})'.format(
-                data_size, human_size(data_size), free_space, human_size(free_space)))
+            # save error message in db
+            message = 'User quota exceeds: required size {} ({}); ' 'remaining space {} ({})'.format(data_size, human_size(data_size), free_space, human_size(free_space))
+            RequestManager.save_message_error(db, request_id, message)
+
+            # raise IOError('User quota exceeds: required size {} ({}); '
+            #               'remaining space {} ({})'.format(
+            #     data_size, human_size(data_size), free_space, human_size(free_space)))
+
+            raise IOError(message)
 
         '''
          $ arki-query [OPZIONI] QUERY DATASET...
