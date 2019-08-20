@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ApiService} from '/rapydo/src/app/services/api';
+import {Observable} from 'rxjs';
 
 export interface RapydoBundle<T> {
     Meta: RapydoMeta;
@@ -94,6 +95,21 @@ export class DataService {
             });
         }
         return this.api.post('data', data, {"rawResponse": true});
+    }
+
+    /**
+     * Download data for a completed extraction request
+     * @param filename
+     */
+    downloadData(filename): Observable<any> {
+        let options = {
+			"rawResponse": true,
+			"conf": {
+				'responseType': 'blob',
+				"observe": "response",
+			}
+		};
+        return this.api.get('data', filename, {}, options);
     }
 
 }
