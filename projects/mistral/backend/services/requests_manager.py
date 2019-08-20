@@ -53,6 +53,11 @@ class RequestManager():
             return True
 
     @staticmethod
+    def count_user_requests(db, user_uuid):
+        log.debug('get total requests for user UUID {}'.format(user_uuid))
+        return db.Request.query.filter_by(user_uuid=user_uuid).count()
+
+    @staticmethod
     def create_request_record(db, user, filters, scheduled_id=None):
         request = db.Request
         args = json.dumps(filters)
@@ -188,6 +193,9 @@ class RequestManager():
                 user_request['status'] = row.status
                 user_request['task_id'] = row.task_id
 
+                if row.error_message is not None:
+                    user_request['error message'] = row.error_message
+
                 current_fileoutput = row.fileoutput
                 if current_fileoutput is not None:
                     fileoutput_name = current_fileoutput.filename
@@ -228,9 +236,13 @@ class RequestManager():
             return user_list
 
     @staticmethod
-    def count_user_requests(db, user_uuid):
-        log.debug('get total requests for user UUID {}'.format(user_uuid))
-        return db.Request.query.filter_by(user_uuid=user_uuid).count()
+    def save_message_error(db, request_id, message):
+        request = db.Request
+        r_to_update = request.query.filter(request.id == request_id).first()
+
+        r_to_update.error_message = message
+        db.session.commit()
+
 
     @staticmethod
     def update_task_id(db, request_id, task_id):
