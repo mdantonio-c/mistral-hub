@@ -7,6 +7,15 @@
                 </div>
                 <div class='card-block'>
                     <loading *ngIf="loading"></loading>
+                    <!-- no data -->
+                    <div class="row" *ngIf="!loading && !rows?.length">
+                        <div class="col">
+                            <div class="no-results">
+                                <h2>No Data</h2>
+                                <p>You have not submitted any requests yet</p>
+                            </div>
+                        </div>
+                    </div>
                     <div class="table-responsive" *ngIf="rows?.length">
 
                         <ngx-datatable

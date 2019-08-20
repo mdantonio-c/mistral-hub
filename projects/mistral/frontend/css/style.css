@@ -2,6 +2,20 @@
    outline: none !important;
    box-shadow: none;
 }
+/* no results */
+.no-results {
+  background-color: #f8f8f8;
+  border: 1px dashed #ccc;
+  margin-bottom: 2rem;
+  padding: 1.6rem;
+
+  margin-left: 5.5%;
+  float: none;
+  width: 80%;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+}
+
 
 ul {
     list-style-type: none;
