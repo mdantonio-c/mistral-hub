@@ -33,6 +33,13 @@ class ScheduledData(EndpointResource):
 
         db= self.get_service_instance('sqlalchemy')
 
+        # check if scheduling parameters are correct
+        if not self.settings_validation(criteria):
+            raise RestApiException(
+                "scheduling criteria are not valid",
+                status_code=hcodes.HTTP_BAD_REQUEST)
+
+
         # parsing period settings
         period_settings = criteria.get('period-settings')
         if period_settings is not None:
@@ -103,3 +110,13 @@ class ScheduledData(EndpointResource):
             raise RestApiException(
                 "This request doesn't come from the request's owner",
                 status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
+
+    @staticmethod
+    def settings_validation(criteria):
+        # check if at least one scheduling parameter is in the request
+        period_settings = criteria.get('period-settings')
+        crontab_settings = criteria.get('crontab-settings')
+        if period_settings or crontab_settings is not None:
+            return True
+        else:
+            return False
