@@ -229,7 +229,7 @@ export class ArkimetService {
                 // If stat unit is 255, then
                 // proclen = "-" (see
                 // arki/types/timerange.cc:1408).
-                if (i.pu != undefined) {
+                if (i.pu !== undefined) {
                     s += "," + i.pl + un[i.pu]
                 } else {
                     s += ",-"
