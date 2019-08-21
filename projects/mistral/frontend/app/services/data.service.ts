@@ -88,10 +88,10 @@ export class DataService {
         if (filters && filters.length) {
             data['filters'] = {};
             filters.forEach(f => {
-                let i = f.query.indexOf(':');
-                let f_name = f.query.slice(0, i).trim();
-                let f_query = f.query.slice(i + 1, f.query.length).trim();
-                data['filters'][f_name] = f_query;
+                data['filters'][f.name] = f.values.map(x => {
+                    delete x['t'];
+                    return x;
+                });
             });
         }
         return this.api.post('data', data, {"rawResponse": true});
