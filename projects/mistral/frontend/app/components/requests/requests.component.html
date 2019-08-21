@@ -37,18 +37,29 @@
                                     <div>
                                         <div><strong>Request Details</strong></div>
                                         <div>Task ID: {{ row.task_id }}</div>
-                                        <div class="my-2"></div>
-                                        <dl class="mb-0">
-                                            <dt>Filter(s)</dt>
-                                            <dd *ngIf="row.args.length">
-                                                <dl class="row no-gutters mb-0 px-0 request-summary">
-                                                    <ng-container *ngFor="let f of row.args">
-                                                        <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
-                                                        <dd class="col-sm-9"><p *ngFor="let v of f.values" class="mb-0">{{v.desc}}</p></dd>
-                                                    </ng-container>
-                                                </dl>
-                                            </dd>
-                                        </dl>
+                                        <ng-container *ngIf="row.args">
+                                            <div class="my-2"></div>
+                                            <dl class="mb-0">
+                                                <dt>Dataset(s)</dt>
+                                                <dd>
+                                                    <ul class="comma-list">
+                                                        <li *ngFor="let ds of row.args.datasets">{{ds}}</li>
+                                                    </ul>
+                                                </dd>
+                                            </dl>
+                                            <div class="my-2"></div>
+                                            <dl class="mb-0" *ngIf="row.args.filters">
+                                                <dt>Filter(s)</dt>
+                                                <dd>
+                                                    <dl class="row no-gutters mb-0 px-0 request-summary">
+                                                        <ng-container *ngFor="let f of row.args.filters | keyvalue">
+                                                            <dt class="col-sm-3" style="font-weight: normal;">{{f.key}}</dt>
+                                                            <dd class="col-sm-9"><p *ngFor="let v of f.value" class="mb-0">{{v.desc}}</p></dd>
+                                                        </ng-container>
+                                                    </dl>
+                                                </dd>
+                                            </dl>
+                                        </ng-container>
                                     </div>
                                 </ng-template>
                             </ngx-datatable-row-detail>
