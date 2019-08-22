@@ -151,20 +151,61 @@ definitions:
       period-settings:
         description: Settings for the periodic request
         type: object
-        properties:
-          every:
-            type: integer
-          period:
-            type: string
-            enum:
-              - days
-              - hours
-              - minutes
-              - seconds
-              - microseconds
+        $ref: "#/definitions/PeriodSettings"
       crontab-settings:
         description: Settings for the crontab request
         type: object
+        $ref: "#/definitions/CrontabSettings"
+
+  CrontabSettings:
+    properties:
+      minute:
+        type: integer
+        minimum: 0
+        exclusiveMinimum: false
+        maximum: 59
+        exclusiveMaximum: false
+      hour:
+        type: integer
+        minimum: 0
+        exclusiveMinimum: false
+        maximum: 23
+        exclusiveMaximum: false
+      day_of_week:
+        type: integer
+        minimum: 0
+        exclusiveMinimum: false
+        maximum: 7
+        exclusiveMaximum: false
+      day_of_month:
+        type: integer
+        minimum: 1
+        exclusiveMinimum: false
+        maximum: 31
+        exclusiveMaximum: false
+      month_of_year:
+        type: integer
+        minimum: 1
+        exclusiveMinimum: false
+        maximum: 12
+        exclusiveMaximum: false
+    minProperties: 1
+
+  PeriodSettings:
+      required:
+        - every
+        - period
+      properties:
+        every:
+          type: integer
+        period:
+          type: string
+          enum:
+            - days
+            - hours
+            - minutes
+            - seconds
+            - microseconds
 
   Fileoutput:
     properties:
