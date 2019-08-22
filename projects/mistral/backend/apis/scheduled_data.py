@@ -98,6 +98,12 @@ class ScheduledData(EndpointResource):
         user = self.get_current_user()
 
         db = self.get_service_instance('sqlalchemy')
+        # check if the request exists
+        if not RequestManager.check_request(db,scheduled_request_id=task_name):
+            raise RestApiException(
+                "The request doesn't exist",
+                status_code=hcodes.HTTP_BAD_NOTFOUND)
+
         # check if the current user is the owner of the request
         if RequestManager.check_owner(db,user.uuid,scheduled_request_id=task_name):
             # delete request entry from database

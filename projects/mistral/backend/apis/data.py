@@ -78,7 +78,6 @@ class Data(EndpointResource):
             args=[user.uuid, dataset_names, filters, request_id],
             countdown=1
         )
-
         RequestManager.update_task_id(db,request_id, task.id)
         RequestManager.update_task_status(db, task.id)
         log.info('current request id: {}'.format(request_id))

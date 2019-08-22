@@ -49,6 +49,12 @@ class UserRequests(EndpointResource):
         user = self.get_current_user()
 
         db = self.get_service_instance('sqlalchemy')
+        # check if the request exists
+        if not repo.check_request(db, single_request_id=request_id):
+            raise RestApiException(
+                "The request doesn't exist",
+                status_code=hcodes.HTTP_BAD_NOTFOUND)
+
         # check if the current user is the owner of the request
         if repo.check_owner(db, user.uuid, single_request_id=request_id):
 

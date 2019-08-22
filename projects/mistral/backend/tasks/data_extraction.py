@@ -83,9 +83,8 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None, sched
         filename = 'output-'+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'-'+self.request.id
         with open(os.path.join(user_dir, filename), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
-        if request_id is not None:
-            #create fileoutput record in db
-            RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size )
+        #create fileoutput record in db
+        RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size )
 
         log.info("Task [{}] completed successfully".format(self.request.id))
         return 1

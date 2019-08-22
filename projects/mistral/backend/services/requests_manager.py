@@ -53,6 +53,20 @@ class RequestManager():
             return True
 
     @staticmethod
+    def check_request(db, scheduled_request_id=None, single_request_id=None):
+        # check a single request
+        if single_request_id is not None:
+            item = db.Request
+            item_id = single_request_id
+        # check a scheduled request
+        if scheduled_request_id is not None:
+            item = db.ScheduledRequest
+            item_id = scheduled_request_id
+        item_to_check = item.query.filter(item.id == item_id).first()
+        if item_to_check is not None:
+            return True
+
+    @staticmethod
     def count_user_requests(db, user_uuid):
         log.debug('get total requests for user UUID {}'.format(user_uuid))
         return db.Request.query.filter_by(user_uuid=user_uuid).count()
@@ -134,7 +148,12 @@ class RequestManager():
 
         # update celery status for the requests coming from the database query
         for row in requests_list:
-            RequestManager.update_task_status(db, row.task_id)
+            if row.task_id is not None:
+                RequestManager.update_task_status(db, row.task_id)
+            # handle the case rabbit was down when the request was posted and the request has not a task id
+            else:
+                message="service was temporarily unavailable when data extraction request was posted"
+                RequestManager.save_message_error(db, row.id, message)
 
         # create the response schema
         submitted_request_list = []
@@ -177,7 +196,12 @@ class RequestManager():
 
         # update celery status for the requests coming from the database query
         for row in requests_list:
-            RequestManager.update_task_status(db, row.task_id)
+            if row.task_id is not None:
+                RequestManager.update_task_status(db, row.task_id)
+            # handle the case rabbit was down when the request was posted and the request has not a task id
+            else:
+                message = "Service was temporarily unavailable when data extraction request was posted"
+                RequestManager.save_message_error(db, row.id, message)
 
         # create the response schema for not scheduled requests
         user_list = []
