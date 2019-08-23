@@ -37,6 +37,7 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None, sched
         query = ''    # default to no matchers
         if filters is not None:
             query = arki.parse_matchers(filters)
+            log.debug('Arkimet query: {}'.format(query))
 
         if scheduled_id is not None:
             # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry

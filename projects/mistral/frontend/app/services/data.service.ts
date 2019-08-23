@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ApiService} from '/rapydo/src/app/services/api';
+import {Observable} from 'rxjs';
 
 export interface RapydoBundle<T> {
     Meta: RapydoMeta;
@@ -87,13 +88,28 @@ export class DataService {
         if (filters && filters.length) {
             data['filters'] = {};
             filters.forEach(f => {
-                let i = f.query.indexOf(':');
-                let f_name = f.query.slice(0, i).trim();
-                let f_query = f.query.slice(i + 1, f.query.length).trim();
-                data['filters'][f_name] = f_query;
+                data['filters'][f.name] = f.values.map(x => {
+                    delete x['t'];
+                    return x;
+                });
             });
         }
         return this.api.post('data', data, {"rawResponse": true});
+    }
+
+    /**
+     * Download data for a completed extraction request
+     * @param filename
+     */
+    downloadData(filename): Observable<any> {
+        let options = {
+			"rawResponse": true,
+			"conf": {
+				'responseType': 'blob',
+				"observe": "response",
+			}
+		};
+        return this.api.get('data', filename, {}, options);
     }
 
 }

@@ -27,16 +27,42 @@ definitions:
           - grib
   DataFilter:
     properties:
-      product:
-        type: string
-      origin:
-        type: string
+      area:
+        type: array
+        items:
+          type: object
       level:
-        type: string
+        type: array
+        items:
+          type: object
+      origin:
+        type: array
+        items:
+          type: object
       proddef:
-        type: string
+        type: array
+        items:
+          type: object
+      product:
+        type: array
+        items:
+          type: object
+      quantity:
+        type: array
+        items:
+          type: object
+      run:
+        type: array
+        items:
+          type: object
+      task:
+        type: array
+        items:
+          type: object
       timerange:
-        type: string
+        type: array
+        items:
+          type: object
 
   Datasets:
     type: array
