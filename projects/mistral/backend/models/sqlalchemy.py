@@ -17,7 +17,7 @@ setattr(User, 'my_custom_field', db.Column(db.String(255)))
 
 setattr(User, 'requests', db.relationship('Request', backref='author', lazy='dynamic'))
 setattr(User, 'fileoutput', db.relationship('FileOutput', backref='owner', lazy='dynamic'))
-setattr(User, 'scheduledrequests', db.relationship('ScheduledRequest', backref='author', lazy='dynamic'))
+setattr(User, 'schedules', db.relationship('Schedule', backref='author', lazy='dynamic'))
 
 
 
@@ -30,7 +30,7 @@ class Request (db.Model):
     task_id = db.Column(db.String(64), index=True, unique=True)
     fileoutput = db.relationship("FileOutput", backref='request',cascade="delete", uselist=False)
     error_message = db.Column(db.String(128))
-    scheduled_request_id = db.Column(db.Integer, db.ForeignKey('scheduled_request.id'))
+    schedule_id = db.Column(db.Integer, db.ForeignKey('schedule.id'))
 
     def __str__(self):
         return "db.%s(%s){%s}" \
@@ -61,18 +61,17 @@ class PeriodEnum(enum.Enum):
     microseconds = 5
 
 
-class ScheduledRequest (db.Model):
+class Schedule (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     args = db.Column(db.String)
-    periodic_task = db.Column(db.Boolean)
+    is_crontab = db.Column(db.Boolean)
     period = db.Column(db.Enum(PeriodEnum))
     every = db.Column(db.Integer)
-    crontab_task = db.Column(db.Boolean)
     crontab_settings = db.Column(db.String(64))
-    enabled = db.Column(db.Boolean)
-    submitted_request = db.relationship('Request', backref='scheduled_request', lazy='dynamic')
+    is_enabled = db.Column(db.Boolean)
+    submitted_request = db.relationship('Request', backref='schedule', lazy='dynamic')
 
     def __str__(self):
         return "db.%s(%s){%s}" \
