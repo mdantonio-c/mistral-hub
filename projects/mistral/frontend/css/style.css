@@ -1,4 +1,5 @@
-.btn:focus,.btn:active {
+.btn:focus,.btn:active,
+.btn-reset:focus, .btn-reset:active {
    outline: none !important;
    box-shadow: none;
 }
@@ -59,6 +60,42 @@ dl.request-summary p:not(:last-child) {
 
 .comma-list li:last-child::after {
     content: "";
+}
+
+.btn-reset {
+  background: transparent;
+  padding: 0;
+  border: 0;
+  width: 100%;
+}
+
+.mst--input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    min-width: 90px;
+    position: relative;
+    text-align: left;
+}
+.mst--input-error {
+    border-bottom-color: #ff4600 !important;
+}
+.mst--input-error-msg {
+    color: #ff4600;
+    font-size: small;
+    clear: both;
+    display: inline-block;
+    width: 100%;
+}
+
+.mst--input:focus {
+    outline: none;
+}
+
+.input-group-append {
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  justify-content: flex-end;
 }
 
 .mst--input-checkbox {

@@ -6,14 +6,20 @@ import {STEPS} from './workflow.model';
 import {DataService, Filters, RapydoResponse, SummaryStats} from "./data.service";
 
 export class FormData {
+    name: string = '';
     datasets: string[] = [];
     filters: Filters[] = [];
     postprocessors: string[] = [];
 
     clear() {
+        this.name = '';
         this.datasets = [];
         this.filters = [];
         this.postprocessors = [];
+    }
+
+    defaultName() {
+        this.name = this.datasets.join(' ').trim();
     }
 }
 

@@ -21,7 +21,24 @@
         </div>
         <div class="body">
             <dl class="request-summary">
-                <hr>
+                <div class="input-group mb-3">
+                    <input type="text" class="mst--input pl-0 col"
+                           [(ngModel)]="formData.name"
+                           [ngClass]="{'mst--input-error': emptyName()}"
+                           placeholder="Product name"
+                           required>
+                    <div class="input-group-append" [ngClass]="{'mst--input-error': emptyName()}">
+                        <ng-template #tipContent>
+                            Please give a name or a short description to your product
+                        </ng-template>
+                        <button class="btn-reset" type="button"
+                                [ngbTooltip]="tipContent"
+                                placement="left">
+                            <i class="material-icons">info</i>
+                        </button>
+                    </div>
+                    <span class="mst--input-error-msg" *ngIf="emptyName()">Product name is required</span>
+                </div>
                 <dt>Dataset(s)</dt>
                 <dd>
                     <ul class="comma-list">
@@ -31,7 +48,7 @@
                 <hr>
                 <dt>Filter(s)</dt>
                 <dd *ngIf="formData.filters.length">
-                    <dl  class="row">
+                    <dl class="row">
                         <ng-container *ngFor="let f of formData.filters">
                             <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
                             <dd class="col-sm-9"><p *ngFor="let v of f.values">{{v.desc}}</p></dd>
@@ -50,7 +67,7 @@
     <button class="btn btn-outline-secondary mr-2" type="button"
             (click)="goToPrevious()"><i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
     </button>
-    <button class="btn btn-info" [disabled]="!isFormValid || summaryStats.c === 0"
+    <button class="btn btn-info" [disabled]="!isFormValid || emptyName() || summaryStats.c === 0"
             (click)="submit()"> Submit <i class="fa fa-arrow-right" aria-hidden="true"></i>
     </button>
 </div>

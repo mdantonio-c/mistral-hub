@@ -33,7 +33,13 @@ export class StepSubmitComponent implements OnInit {
                         'Please choose different filters.');
             }
         });
+        // default product name
+        this.formData.defaultName();
         window.scroll(0, 0);
+    }
+
+    emptyName() {
+        return !this.formData.name || this.formData.name.trim().length === 0;
     }
 
     goToPrevious() {
@@ -56,6 +62,5 @@ export class StepSubmitComponent implements OnInit {
             }
         );
     }
-
 }
 
