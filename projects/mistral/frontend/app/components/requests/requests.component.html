@@ -110,7 +110,7 @@
                                     [resizeable]="false"
                                     [sortable]="false"
                                     [draggable]="false"
-                                    [flexGrow]="2"
+                                    [flexGrow]="1.6"
                                     [minWidth]="160">
                                 <ng-template
                                         let-value="value"
@@ -118,6 +118,23 @@
                                         ngx-datatable-cell-template
                                 >
                                     <span>{{value | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
+                                </ng-template>
+                            </ngx-datatable-column>
+                            <!-- End date -->
+                            <ngx-datatable-column
+                                    name="End date"
+                                    prop="end_date"
+                                    [resizeable]="false"
+                                    [sortable]="false"
+                                    [draggable]="false"
+                                    [flexGrow]="1.6"
+                                    [minWidth]="160">
+                                <ng-template
+                                        let-value="value"
+                                        let-row="row"
+                                        ngx-datatable-cell-template
+                                >
+                                    <span *ngIf="value else noValue">{{value | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
                                 </ng-template>
                             </ngx-datatable-column>
                             <!-- Size -->
@@ -134,8 +151,7 @@
                                         let-row="row"
                                         ngx-datatable-cell-template
                                 >
-                                    <span *ngIf="value else noSize">{{value | bytes}}</span>
-                                    <ng-template #noSize>-</ng-template>
+                                    <span *ngIf="value else noValue">{{value | bytes}}</span>
                                 </ng-template>
                             </ngx-datatable-column>
                             <!-- Status -->
@@ -218,7 +234,7 @@
                                 </ng-template>
                             </ngx-datatable-footer>
                         </ngx-datatable>
-
+                        <ng-template #noValue>-</ng-template>
                     </div>
 
                 </div>

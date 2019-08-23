@@ -286,10 +286,11 @@ dl.request-summary p:not(:last-child) {
    browser v-scrollbar appears but prevents the header from
    being partially hidden.
 */
+/*
 .ngx-datatable .datatable-body-row,
 .ngx-datatable .datatable-body-row .datatable-row-group {
     width: 100% !important;
-}
+}*/
 
 .ngx-datatable .datatable-body-row:hover {
     background-color: #eee;
