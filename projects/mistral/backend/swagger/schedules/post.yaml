@@ -1,0 +1,20 @@
+common:
+  custom:
+    authentication: true
+
+schedules:
+  summary: Request for scheduling a data extraction.
+  parameters:
+    - name: scheduled_criteria
+      in: body
+      description: Criteria for scheduled data extraction.
+      schema:
+        $ref: "#/definitions/DataScheduling"
+
+  responses:
+    '201':
+      description: succesfully created a scheduled request
+    '400':
+      description: scheduling criteria are not valid
+    '404':
+      description: dataset not found

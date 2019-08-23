@@ -41,7 +41,7 @@ class RequestManager():
             item_id = single_request_id
         # check a scheduled request
         if scheduled_request_id is not None:
-            item = db.ScheduledRequest
+            item = db.Schedule
             item_id = scheduled_request_id
         # check a file
         if file_id is not None:
@@ -60,7 +60,7 @@ class RequestManager():
             item_id = single_request_id
         # check a scheduled request
         if scheduled_request_id is not None:
-            item = db.ScheduledRequest
+            item = db.Schedule
             item_id = scheduled_request_id
         item_to_check = item.query.filter(item.id == item_id).first()
         if item_to_check is not None:
@@ -72,14 +72,14 @@ class RequestManager():
         return db.Request.query.filter_by(user_uuid=user_uuid).count()
 
     @staticmethod
-    def create_request_record(db, user, filters, scheduled_id=None):
+    def create_request_record(db, user, filters, schedule_id=None):
         request = db.Request
         args = json.dumps(filters)
         # r = request(user_uuid=user, args=args, task_id=task_id)
         r = request(user_uuid=user, args=args)
-        if scheduled_id is not None:
-            # scheduled_request = db.ScheduledRequest
-            r.scheduled_request_id = scheduled_id
+        if schedule_id is not None:
+            # scheduled_request = db.Schedule
+            r.schedule_id = schedule_id
         db.session.add(r)
         db.session.commit()
         request_id = r.id
@@ -87,25 +87,25 @@ class RequestManager():
         return request_id
 
     @staticmethod
-    def create_scheduled_request_record(db, user, filters, every=None, period=None, crontab_settings=None):
-        scheduled_request = db.ScheduledRequest
+    def create_schedule_record(db, user, filters, every=None, period=None, crontab_settings=None):
+        schedule = db.Schedule
         args = json.dumps(filters)
-        crontab_args = json.dumps(crontab_settings)
         # check if the request is periodic
         if (every or period) is not None:
-            r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=True, crontab_task=False, every=every,
+            s = schedule(user_uuid=user.uuid, args=args, is_crontab=False, every=every,
                                   period=period)
         # check if the request is a crontab type
         if crontab_settings is not None:
-            r = scheduled_request(user_uuid=user.uuid, args=args, periodic_task=False, crontab_task=True,
+            crontab_args = json.dumps(crontab_settings)
+            s = schedule(user_uuid=user.uuid, args=args, is_crontab=True,
                                   crontab_settings=crontab_args)
-        r.enabled = True
-        db.session.add(r)
+        s.is_enabled = True
+        db.session.add(s)
         db.session.commit()
-        request_id = r.id
-        log.info('task record {}'.format(r.id))
+        schedule_id = s.id
+        log.info('task record {}'.format(s.id))
 
-        return request_id
+        return schedule_id
 
     @staticmethod
     def create_fileoutput_record(db, user, request_id, filename, data_size):
@@ -132,7 +132,7 @@ class RequestManager():
 
     @staticmethod
     def disable_scheduled_request_record(db, request_id):
-        scheduled_request = db.ScheduledRequest
+        scheduled_request = db.Schedule
         r_to_disable = scheduled_request.query.filter(scheduled_request.id == request_id).first()
         # db.session.delete(r_to_delete)
         r_to_disable.enabled=False
@@ -142,7 +142,7 @@ class RequestManager():
     # retrieve requests related to a scheduled task
     def get_scheduled_requests(db, scheduled_request_id, sort_by=None, sort_order=None):
 
-        scheduled_request = db.ScheduledRequest
+        scheduled_request = db.Schedule
         r = scheduled_request.query.filter(scheduled_request.id == scheduled_request_id).first()
         requests_list = r.submitted_request
 
@@ -188,11 +188,17 @@ class RequestManager():
     @staticmethod
     def get_user_requests(db, uuid, sort_by=None, sort_order=None, filter=None):
 
+        #default value if sort_by and sort_order are None
+        if sort_by is None:
+            sort_by = "date"
+        if sort_order is None:
+            sort_order = "desc"
+
         user = db.User
         current_user = user.query.filter(user.uuid == uuid).first()
         user_name = current_user.name
         requests_list = current_user.requests
-        scheduled_list = current_user.scheduledrequests
+        scheduled_list = current_user.schedules
 
         # update celery status for the requests coming from the database query
         for row in requests_list:
@@ -208,7 +214,7 @@ class RequestManager():
         if filter != "scheduled":  # check if the user doesn't have filtered the request to ask for scheduled requests only
             for row in requests_list:
                 user_request = {}
-                if row.scheduled_request_id is not None:
+                if row.schedule_id is not None:
                     continue
                 user_request['request_id'] = row.id
                 user_request['submission_date'] = row.submission_date.isoformat()
