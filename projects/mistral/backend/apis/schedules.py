@@ -102,3 +102,40 @@ class Schedules(EndpointResource):
             return True
         else:
             return False
+
+    @catch_error()
+    def get(self, id=None):
+        param = self.get_input()
+        sort = param.get('sort-by')
+        sort_order = param.get('sort-order')
+        get_total = param.get('get_total', False)
+
+        user = self.get_current_user()
+
+        db = self.get_service_instance('sqlalchemy')
+        if id is not None:
+            # get total count for user schedules
+            if get_total:
+                counter = RequestManager.count_schedule_requests(db, id)
+                return {"total": counter}
+
+            # check if the current user is the owner of the scheduled request
+            if not RequestManager.check_owner(db, user.uuid, schedule_id=id):
+                raise RestApiException(
+                    "Operation not allowed",
+                    status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
+
+            # get submitted requests related to a schedule list
+            res = RequestManager.get_schedule_requests(db, id, sort_by=sort, sort_order=sort_order)
+
+        else:
+            # get total count for user schedules
+            if get_total:
+                counter = RequestManager.count_user_schedules(db, user.uuid)
+                return {"total": counter}
+            # get user requests list
+            res = RequestManager.get_user_schedules(db, user.uuid, sort_by=sort, sort_order=sort_order)
+
+
+        return self.force_response(
+            res, code=hcodes.HTTP_OK_BASIC)

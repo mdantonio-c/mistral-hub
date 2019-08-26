@@ -1,0 +1,57 @@
+schedules:
+  summary: Get schedules filtered by uuid.
+  custom:
+    authentication: true
+  parameters:
+    - name: sort-order
+      in: query
+      description: sort order
+      type: string
+      enum: [asc, desc]
+    - name: sort-by
+      in: query
+      description: params to sort schedules
+      type: string
+    - name: get_total
+      in: query
+      description: Retrieve total number of schedules
+      type: boolean
+      default: false
+
+  responses:
+    '200':
+      description: List of schedules of an user
+      schema:
+        $ref: "#/definitions/Requests"
+    '404':
+      description: User has no schedules
+
+schedule-requests:
+  summary: Get submitted requests related to a specific schedule.
+  custom:
+    authentication: true
+  parameters:
+    - name: sort-order
+      in: query
+      description: sort order
+      type: string
+      enum: [asc, desc]
+    - name: sort-by
+      in: query
+      description: params to sort requests
+      type: string
+    - name: get_total
+      in: query
+      description: Retrieve total number of requests related to a single schedule
+      type: boolean
+      default: false
+
+  responses:
+    '200':
+      description: List of requests related to a single schedule
+      schema:
+        $ref: "#/definitions/Requests"
+    '404':
+      description: Schedule has no submitted requests
+    '401':
+      description: Current user is not allowed to see requests of the schedule in query
