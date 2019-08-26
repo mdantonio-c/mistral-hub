@@ -99,15 +99,15 @@ class ScheduledData(EndpointResource):
 
         db = self.get_service_instance('sqlalchemy')
         # check if the request exists
-        if not RequestManager.check_request(db,scheduled_request_id=task_name):
+        if not RequestManager.check_request(db,schedule_id=task_name):
             raise RestApiException(
                 "The request doesn't exist",
                 status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         # check if the current user is the owner of the request
-        if RequestManager.check_owner(db,user.uuid,scheduled_request_id=task_name):
+        if RequestManager.check_owner(db,user.uuid,schedule_id=task_name):
             # delete request entry from database
-            RequestManager.disable_scheduled_request_record(db, task_name)
+            RequestManager.disable_schedule_record(db, task_name)
 
             CeleryExt.delete_periodic_task(name=task_name)
 

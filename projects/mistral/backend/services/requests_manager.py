@@ -53,15 +53,15 @@ class RequestManager():
             return True
 
     @staticmethod
-    def check_request(db, scheduled_request_id=None, single_request_id=None):
+    def check_request(db, schedule_id=None, single_request_id=None):
         # check a single request
         if single_request_id is not None:
             item = db.Request
             item_id = single_request_id
         # check a scheduled request
-        if scheduled_request_id is not None:
+        if schedule_id is not None:
             item = db.Schedule
-            item_id = scheduled_request_id
+            item_id = schedule_id
         item_to_check = item.query.filter(item.id == item_id).first()
         if item_to_check is not None:
             return True
@@ -141,11 +141,11 @@ class RequestManager():
         db.session.commit()
 
     @staticmethod
-    def disable_scheduled_request_record(db, request_id):
-        scheduled_request = db.Schedule
-        r_to_disable = scheduled_request.query.filter(scheduled_request.id == request_id).first()
+    def disable_schedule_record(db, request_id):
+        schedule = db.Schedule
+        r_to_disable = schedule.query.filter(schedule.id == request_id).first()
         # db.session.delete(r_to_delete)
-        r_to_disable.enabled=False
+        r_to_disable.is_enabled=False
         db.session.commit()
 
     @staticmethod

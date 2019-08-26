@@ -31,6 +31,11 @@ schedule-requests:
   custom:
     authentication: true
   parameters:
+    - name: id
+      in: path
+      type: integer
+      required: true
+      description: schedule id
     - name: sort-order
       in: query
       description: sort order

@@ -4,7 +4,7 @@ schema:
   expose: true
 mapping:
   schedules: "/schedules"
-#  schedule:  "/schedules/<id>"
-  schedule-requests: "/schedules/<id>/requests"
+  schedule:  "/schedules/<schedule_id>"
+  schedule-requests: "/schedules/<schedule_id>/requests"
 labels:
   - schedule
