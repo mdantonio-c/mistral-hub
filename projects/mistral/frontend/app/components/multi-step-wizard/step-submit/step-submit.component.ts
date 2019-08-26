@@ -50,7 +50,10 @@ export class StepSubmitComponent implements OnInit {
 
     submit(form: any) {
         console.log('submit request for data extraction');
-        this.dataService.extractData(this.formData.datasets, this.formData.filters).subscribe(
+        this.dataService.extractData(
+            this.formData.name,
+            this.formData.datasets,
+            this.formData.filters).subscribe(
             resp => {
                 this.formData = this.formDataService.resetFormData();
                 this.isFormValid = false;

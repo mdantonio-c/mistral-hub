@@ -18,17 +18,6 @@ export class DataComponent {
         protected notify: NotificationService,
     ) { }
 
-
-    public schedule() {
-        this.api.put("data").subscribe(
-            response => {
-
-                this.notify.extractErrors(response, this.notify.ERROR);
-            }, error => {
-                this.notify.extractErrors(error, this.notify.ERROR);
-            }
-        );
-    }
     private get_data() {
         let data = {};
         this.api.post("data", data).subscribe(

@@ -36,9 +36,7 @@ export class RequestsComponent extends BasePaginationComponent {
     }
 
     list() {
-        let user = this.auth.getUser();
-        let params = {'uuid': user.uuid};
-        return this.get(this.endpoint, params);
+        return this.get(this.endpoint);
     }
 
     download(filename) {

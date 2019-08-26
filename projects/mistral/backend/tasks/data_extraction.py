@@ -28,7 +28,7 @@ def add(self, a, b):
 
 @celery_app.task(bind=True)
 # @send_errors_by_email
-def data_extract(self, user_uuid, datasets, filters=None, request_id=None, scheduled_id=None):
+def data_extract(self, user_uuid, product_name, datasets, filters=None, request_id=None, scheduled_id=None):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]".format(self.request.id, self.name))
 
@@ -41,10 +41,17 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None, sched
 
         if scheduled_id is not None:
             # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
-            request_id = RequestManager.create_request_record(db, user_uuid, filters,scheduled_id=scheduled_id)
+            request = RequestManager.create_request_record(db, user_uuid, filters, scheduled_id=scheduled_id)
             # update the entry with celery task id
-            RequestManager.update_task_id(db, request_id, self.request.id)
-            log.debug('request is scheduled at: {}, Request id: {}'.format(scheduled_id,request_id))
+            # RequestManager.update_task_id(db, request_id, self.request.id)
+            request.task_id = self.request.id
+            db.session.commit()
+            log.debug('Schedule at: {}, Request <ID:{}>'.format(scheduled_id, request.id))
+        else:
+            # load request by id
+            request = db.Request.query.get(request_id)
+            if request is None:
+                raise ReferenceError("Cannot find request reference for task %s" % self.request.id)
 
         # I should check the user quota before...
         # check the output size
@@ -63,13 +70,12 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None, sched
         if used_quota + data_size > MAX_USER_QUOTA:
             free_space = MAX_USER_QUOTA - used_quota
             # save error message in db
-            message = 'User quota exceeds: required size {} ({}); ' 'remaining space {} ({})'.format(data_size, human_size(data_size), free_space, human_size(free_space))
-            RequestManager.save_message_error(db, request_id, message)
-
-            # raise IOError('User quota exceeds: required size {} ({}); '
-            #               'remaining space {} ({})'.format(
-            #     data_size, human_size(data_size), free_space, human_size(free_space)))
-
+            message = 'User quota exceeds: required size {} ({}); remaining space {} ({})'.format(
+                data_size, human_size(data_size), free_space, human_size(free_space))
+            # RequestManager.save_message_error(db, request_id, message)
+            request.status = 'ERROR'
+            request.error_message = message
+            db.session.commit()
             raise IOError(message)
 
         '''
@@ -84,9 +90,12 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None, sched
         filename = 'output-'+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'-'+self.request.id
         with open(os.path.join(user_dir, filename), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
-        if request_id is not None:
-            #create fileoutput record in db
-            RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size )
+
+        # create fileoutput record in db
+        RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size)
+        # update request status
+        request.status = 'SUCCESS'
+        db.session.commit()
 
         log.info("Task [{}] completed successfully".format(self.request.id))
         return 1

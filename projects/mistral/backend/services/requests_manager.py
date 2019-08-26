@@ -53,24 +53,17 @@ class RequestManager():
             return True
 
     @staticmethod
-    def count_user_requests(db, user_uuid):
-        log.debug('get total requests for user UUID {}'.format(user_uuid))
-        return db.Request.query.filter_by(user_uuid=user_uuid).count()
-
-    @staticmethod
-    def create_request_record(db, user, filters, scheduled_id=None):
-        request = db.Request
+    def create_request_record(db, user, name, filters, scheduled_id=None):
         args = json.dumps(filters)
         # r = request(user_uuid=user, args=args, task_id=task_id)
-        r = request(user_uuid=user, args=args)
+        r = db.Request(user_uuid=user, name=name, args=args)
         if scheduled_id is not None:
             # scheduled_request = db.ScheduledRequest
             r.scheduled_request_id = scheduled_id
         db.session.add(r)
         db.session.commit()
-        request_id = r.id
 
-        return request_id
+        return r
 
     @staticmethod
     def create_scheduled_request_record(db, user, filters, every=None, period=None, crontab_settings=None):
@@ -102,17 +95,17 @@ class RequestManager():
         log.info('fileoutput for: {}'.format(request_id))
 
     @staticmethod
-    def delete_fileoutput(uuid,download_dir, filename):
+    def delete_fileoutput(uuid, download_dir, filename):
         filepath = os.path.join(download_dir, uuid, filename)
         os.remove(filepath)
 
     @staticmethod
-    def delete_request_record(db,uuid, request_id, download_dir):
+    def delete_request_record(db, uuid, request_id, download_dir):
         request = db.Request
         r_to_delete = request.query.filter(request.id == request_id).first()
         fileoutput = r_to_delete.fileoutput
         if fileoutput is not None:
-            RequestManager.delete_fileoutput(uuid,download_dir,fileoutput.filename)
+            RequestManager.delete_fileoutput(uuid, download_dir, fileoutput.filename)
         db.session.delete(r_to_delete)
         db.session.commit()
 
@@ -121,7 +114,7 @@ class RequestManager():
         scheduled_request = db.ScheduledRequest
         r_to_disable = scheduled_request.query.filter(scheduled_request.id == request_id).first()
         # db.session.delete(r_to_delete)
-        r_to_disable.enabled=False
+        r_to_disable.enabled = False
         db.session.commit()
 
     @staticmethod
@@ -133,8 +126,8 @@ class RequestManager():
         requests_list = r.submitted_request
 
         # update celery status for the requests coming from the database query
-        for row in requests_list:
-            RequestManager.update_task_status(db, row.task_id)
+        # for row in requests_list:
+        #     RequestManager.update_task_status(db, row.task_id)
 
         # create the response schema
         submitted_request_list = []
@@ -167,17 +160,16 @@ class RequestManager():
             return submitted_request_list
 
     @staticmethod
-    def get_user_requests(db, uuid, sort_by=None, sort_order=None, filter=None):
+    def get_user_requests(db, user_uuid, sort_by=None, sort_order=None, filter=None):
 
-        user = db.User
-        current_user = user.query.filter(user.uuid == uuid).first()
-        user_name = current_user.name
-        requests_list = current_user.requests
-        scheduled_list = current_user.scheduledrequests
+        # db.Request.query.filter_by(user_uuid=user_uuid).all()
+        user = db.User.query.filter_by(uuid=user_uuid).one()
+        requests_list = user.requests
+        scheduled_list = user.scheduledrequests
 
         # update celery status for the requests coming from the database query
-        for row in requests_list:
-            RequestManager.update_task_status(db, row.task_id)
+        # for row in requests_list:
+        #     RequestManager.update_task_status(db, row.task_id)
 
         # create the response schema for not scheduled requests
         user_list = []
@@ -186,10 +178,12 @@ class RequestManager():
                 user_request = {}
                 if row.scheduled_request_id is not None:
                     continue
-                user_request['request_id'] = row.id
+                user_request['id'] = row.id
+                user_request['name'] = row.name
                 user_request['submission_date'] = row.submission_date.isoformat()
+                user_request['end_date'] = row.end_date.isoformat()
                 user_request['args'] = json.loads(row.args)
-                user_request['user_name'] = user_name
+                user_request['user_name'] = user.name
                 user_request['status'] = row.status
                 user_request['task_id'] = row.task_id
 
@@ -210,10 +204,12 @@ class RequestManager():
         if filter != "no-scheduled":  # check if the user doesn't have filtered the request to ask for single requests only
             for row in scheduled_list:
                 user_request = {}
-                user_request['request_id'] = row.id
+                user_request['id'] = row.id
+                user_request['name'] = row.name
                 user_request['submission_date'] = row.submission_date.isoformat()
+                user_request['end_date'] = row.end_date.isoformat()
                 user_request['args'] = json.loads(row.args)
-                user_request['user_name'] = user_name
+                user_request['user_name'] = user.name
                 user_request['submitted_requests_number'] = row.submitted_request.count()
                 user_request['enabled'] = row.enabled
                 if row.periodic_task == True:
@@ -236,13 +232,17 @@ class RequestManager():
             return user_list
 
     @staticmethod
+    def count_user_requests(db, user_uuid):
+        log.debug('get total requests for user UUID {}'.format(user_uuid))
+        return db.Request.query.filter_by(user_uuid=user_uuid).count()
+
+    @staticmethod
     def save_message_error(db, request_id, message):
         request = db.Request
         r_to_update = request.query.filter(request.id == request_id).first()
 
         r_to_update.error_message = message
         db.session.commit()
-
 
     @staticmethod
     def update_task_id(db, request_id, task_id):
