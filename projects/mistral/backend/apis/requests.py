@@ -47,10 +47,11 @@ class UserRequests(EndpointResource):
                 'name': r.name,
                 'args': json.loads(r.args),
                 'submission_date': r.submission_date.isoformat(),
-                'end_date': r.end_date.isoformat(),
                 'status': r.status,
                 'task_id': r.task_id
             }
+            if r.end_date is not None:
+                item['end_date'] = r.end_date.isoformat()
             if r.error_message is not None:
                 item['error message'] = r.error_message
             if r.fileoutput is not None:

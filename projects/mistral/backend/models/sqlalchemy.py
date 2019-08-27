@@ -25,7 +25,7 @@ class Request(db.Model):
     name = db.Column(db.String, index=True, nullable=False)
     args = db.Column(db.String, nullable=False)
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
-    end_date = db.Column(db.DateTime, default=datetime.utcnow)
+    end_date = db.Column(db.DateTime)
     status = db.Column(db.String(64))
     task_id = db.Column(db.String(64), index=True, unique=True)
     error_message = db.Column(db.String(128))

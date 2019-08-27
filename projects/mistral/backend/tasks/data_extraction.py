@@ -87,7 +87,7 @@ def data_extract(self, user_uuid, product_name, datasets, filters=None, request_
 
         # save results into user space
         args = shlex.split(arki_query_cmd)
-        filename = 'output-'+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'-'+self.request.id
+        filename = 'output-'+datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")+'-'+self.request.id
         with open(os.path.join(user_dir, filename), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
 
@@ -95,6 +95,7 @@ def data_extract(self, user_uuid, product_name, datasets, filters=None, request_
         RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size)
         # update request status
         request.status = 'SUCCESS'
+        request.end_date = datetime.datetime.utcnow()
         db.session.commit()
 
         log.info("Task [{}] completed successfully".format(self.request.id))

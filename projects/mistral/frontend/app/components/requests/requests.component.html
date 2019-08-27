@@ -117,7 +117,7 @@
                                         let-row="row"
                                         ngx-datatable-cell-template
                                 >
-                                    <span>{{value | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
+                                    <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
                                 </ng-template>
                             </ngx-datatable-column>
                             <!-- End date -->
@@ -134,7 +134,7 @@
                                         let-row="row"
                                         ngx-datatable-cell-template
                                 >
-                                    <span *ngIf="value else noValue">{{value | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
+                                    <span *ngIf="value else noValue">{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
                                 </ng-template>
                             </ngx-datatable-column>
                             <!-- Size -->
