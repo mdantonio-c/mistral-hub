@@ -3,7 +3,14 @@
         <div class='col-12'>
             <div class='card'>
                 <div class='card-header'>
-                    <h4 class='panel-title'>My Requests</h4>
+                    <div class="d-flex align-items-center">
+                        <h4 class="panel-title mr-auto">My Requests</h4>
+                        <div class="btn-group" role="group">
+                            <button class="btn" (click)="list()">
+                                <i class="fa fa-sync" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class='card-block'>
                     <loading *ngIf="loading"></loading>
@@ -54,8 +61,13 @@
                                                 <dd>
                                                     <dl class="row no-gutters mb-0 px-0 request-summary">
                                                         <ng-container *ngFor="let f of row.args.filters | keyvalue">
-                                                            <dt class="col-sm-3" style="font-weight: normal;">{{f.key}}</dt>
-                                                            <dd class="col-sm-9"><p *ngFor="let v of f.value" class="mb-0" style="white-space: normal">{{v.desc}}</p></dd>
+                                                            <dt class="col-sm-3" style="font-weight: normal;">
+                                                                {{f.key}}
+                                                            </dt>
+                                                            <dd class="col-sm-9"><p *ngFor="let v of f.value"
+                                                                                    class="mb-0"
+                                                                                    style="white-space: normal">
+                                                                {{v.desc}}</p></dd>
                                                         </ng-container>
                                                     </dl>
                                                 </dd>
@@ -192,14 +204,16 @@
                                     <div class="btn-toolbar" role="toolbar">
                                         <div class="btn-group mr-1" role="group">
                                             <button class="btn p-0 mr-1" *ngIf="row.status == 'SUCCESS'"
-                                                    (click)='download(row.fileoutput)'><i class="fa fa-download"></i></button>
+                                                    (click)='download(row.fileoutput)'><i class="fa fa-download"></i>
+                                            </button>
                                             <button class="btn p-0"
                                                     mwlConfirmationPopover
                                                     [popoverTitle]="deleteConfirmation.title"
                                                     [popoverMessage]="getDeleteConfirmation('request').message"
                                                     placement="left"
                                                     (confirm)="remove(row.request_id)"
-                                                    (cancel)="cancelRequest()"><i class="fa fa-trash" style='color:red;'></i></button>
+                                                    (cancel)="cancelRequest()"><i class="fa fa-trash"
+                                                                                  style='color:red;'></i></button>
                                         </div>
                                     </div>
                                 </ng-template>
