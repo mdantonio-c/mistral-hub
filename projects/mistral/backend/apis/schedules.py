@@ -148,6 +148,40 @@ class Schedules(EndpointResource):
 
         db = self.get_service_instance('sqlalchemy')
 
+        #check if the schedule exist and is owned by the current user
+        self.request_and_owner_check(db,user.uuid,schedule_id)
+
+        # disable/enable the schedule
+        periodic = CeleryExt.get_periodic_task(name=schedule_id)
+        periodic.update(enabled=is_active)
+
+        # update schedule status in database
+        RequestManager.update_schedule_status(db, schedule_id, is_active)
+
+        return self.force_response(
+            "Schedule {}: enabled = {}".format(schedule_id,is_active), code=hcodes.HTTP_OK_BASIC)
+
+    @catch_error()
+    def delete(self, schedule_id):
+        user = self.get_current_user()
+
+        db = self.get_service_instance('sqlalchemy')
+
+        # check if the schedule exist and is owned by the current user
+        self.request_and_owner_check(db, user.uuid, schedule_id)
+
+        # delete schedule in mongodb
+        CeleryExt.delete_periodic_task(name=schedule_id)
+
+        # delete schedule status in database
+        RequestManager.delete_schedule(db, schedule_id)
+
+        return self.force_response(
+            "Schedule {} succesfully deleted".format(schedule_id), code=hcodes.HTTP_OK_BASIC)
+
+
+    @staticmethod
+    def request_and_owner_check(db,uuid,schedule_id):
         # check if the schedule exists
         if not RequestManager.check_request(db, schedule_id=schedule_id):
             raise RestApiException(
@@ -155,22 +189,7 @@ class Schedules(EndpointResource):
                 status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         # check if the current user is the owner of the request
-        if not RequestManager.check_owner(db, user.uuid, schedule_id=schedule_id):
+        if not RequestManager.check_owner(db, uuid, schedule_id=schedule_id):
             raise RestApiException(
                 "This request doesn't come from the request's owner",
                 status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
-
-        # disable the schedule
-        if not is_active:
-
-            # disable schedule entry in database
-            RequestManager.disable_schedule_record(db, schedule_id)
-
-            # delete periodic request from mongodb
-            CeleryExt.delete_periodic_task(name=schedule_id)
-        else:
-            # TO DO: enable the celery periodic task or recreate a new periodic task with same parameters
-            log.info('enable')
-
-        return self.force_response(
-            param, code=hcodes.HTTP_OK_BASIC)

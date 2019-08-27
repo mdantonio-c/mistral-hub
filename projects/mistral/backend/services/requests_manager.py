@@ -141,10 +141,17 @@ class RequestManager():
         db.session.commit()
 
     @staticmethod
+    def delete_schedule(db, schedule_id):
+        schedule = db.Schedule
+        r_to_delete = schedule.query.filter(schedule.id == schedule_id).first()
+        db.session.delete(r_to_delete)
+        db.session.commit()
+
+    @staticmethod
+    # used in a deprecated endpoint
     def disable_schedule_record(db, request_id):
         schedule = db.Schedule
         r_to_disable = schedule.query.filter(schedule.id == request_id).first()
-        # db.session.delete(r_to_delete)
         r_to_disable.is_enabled=False
         db.session.commit()
 
@@ -335,6 +342,13 @@ class RequestManager():
         r_to_update.error_message = message
         db.session.commit()
 
+    @staticmethod
+    def update_schedule_status(db, schedule_id, is_active):
+        schedule = db.Schedule
+        r_to_disable = schedule.query.filter(schedule.id == schedule_id).first()
+        # update is_enabled field
+        r_to_disable.is_enabled = is_active
+        db.session.commit()
 
     @staticmethod
     def update_task_id(db, request_id, task_id):
