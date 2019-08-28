@@ -184,7 +184,9 @@
                                             'badge-success': row.status == 'SUCCESS',
                                             'badge-danger': row.status == 'FAILURE',
                                             'badge-info': row.status == 'PENDING'
-                                          }">
+                                          }"
+                                          ngbTooltip="{{row.error_message || 'no error message'}}"
+                                          placement="left">
                                         {{value}}
                                     </span>
                                 </ng-template>

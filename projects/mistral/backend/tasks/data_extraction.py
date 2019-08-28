@@ -6,6 +6,8 @@ import os
 import datetime
 from celery.schedules import crontab
 from restapi.flask_ext.flask_celery import CeleryExt
+from celery import states
+from celery.exceptions import Ignore
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 # from restapi.flask_ext.flask_celery import send_errors_by_email
 from mistral.services.requests_manager import RequestManager
@@ -72,11 +74,19 @@ def data_extract(self, user_uuid, product_name, datasets, filters=None, request_
             # save error message in db
             message = 'User quota exceeds: required size {} ({}); remaining space {} ({})'.format(
                 data_size, human_size(data_size), free_space, human_size(free_space))
+            log.warn(message)
             # RequestManager.save_message_error(db, request_id, message)
-            request.status = 'ERROR'
+            request.status = states.FAILURE
             request.error_message = message
+            request.end_date = datetime.datetime.utcnow()
             db.session.commit()
-            raise IOError(message)
+            # manually update the task state too
+            self.update_state(
+                state=states.FAILURE,
+                meta=message
+            )
+            log.info('Terminate task {} with state {}'.format(self.request.id, states.FAILURE))
+            raise Ignore()
 
         '''
          $ arki-query [OPZIONI] QUERY DATASET...
@@ -94,7 +104,7 @@ def data_extract(self, user_uuid, product_name, datasets, filters=None, request_
         # create fileoutput record in db
         RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size)
         # update request status
-        request.status = 'SUCCESS'
+        request.status = states.SUCCESS
         request.end_date = datetime.datetime.utcnow()
         db.session.commit()
 

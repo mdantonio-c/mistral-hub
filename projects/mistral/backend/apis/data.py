@@ -34,7 +34,7 @@ class Data(EndpointResource):
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
-        filters = criteria.get('filters')
+        filters = criteria.get('filters', {})
         # clean up filters from unknown values
         filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
 

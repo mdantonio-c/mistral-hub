@@ -53,7 +53,7 @@ class UserRequests(EndpointResource):
             if r.end_date is not None:
                 item['end_date'] = r.end_date.isoformat()
             if r.error_message is not None:
-                item['error message'] = r.error_message
+                item['error_message'] = r.error_message
             if r.fileoutput is not None:
                 log.debug(r.fileoutput.filename)
                 item['fileoutput'] = r.fileoutput.filename
