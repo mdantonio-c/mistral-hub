@@ -22,13 +22,13 @@ class ScheduledRequests(EndpointResource):
         db = self.get_service_instance('sqlalchemy')
 
         # check if the current user is the owner of the scheduled request
-        if not RequestManager.check_owner(db, user.uuid, scheduled_request_id=scheduled_request_id):
+        if not RequestManager.check_owner(db, user.uuid, schedule_id=scheduled_request_id):
             raise RestApiException(
                     "Operation not allowed",
                     status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
 
         #get requests list of a scheduled task
-        submitted_request_list = RequestManager.get_scheduled_requests(db,scheduled_request_id,sort_by=sort,sort_order= sort_order)
+        submitted_request_list = RequestManager.get_schedule_requests(db,scheduled_request_id,sort_by=sort,sort_order= sort_order)
 
         return self.force_response(
                 submitted_request_list, code=hcodes.HTTP_OK_BASIC)

@@ -41,7 +41,7 @@ def data_extract(self, user_uuid, product_name, datasets, filters=None, request_
             query = arki.parse_matchers(filters)
             log.debug('Arkimet query: {}'.format(query))
 
-        if scheduled_id is not None:
+        if schedule_id is not None:
             # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
             request = RequestManager.create_request_record(db, user_uuid, filters, scheduled_id=scheduled_id)
             # update the entry with celery task id
