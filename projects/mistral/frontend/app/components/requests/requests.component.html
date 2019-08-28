@@ -185,10 +185,13 @@
                                             'badge-danger': row.status == 'FAILURE',
                                             'badge-info': row.status == 'PENDING'
                                           }"
-                                          ngbTooltip="{{row.error_message || 'no error message'}}"
+                                          [ngbTooltip]="(row.status == 'FAILURE') ? tipContent : ''"
                                           placement="left">
                                         {{value}}
                                     </span>
+                                    <ng-template #tipContent>
+                                        {{row.error_message || 'no error message'}}
+                                    </ng-template>
                                 </ng-template>
                             </ngx-datatable-column>
                             <!-- Controls -->
