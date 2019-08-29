@@ -61,7 +61,7 @@ class ScheduledData(EndpointResource):
                 task="mistral.tasks.data_extraction.data_extract",
                 every=every,
                 period=period,
-                args=[user.uuid, dataset_names, filters, request_id, name_int],
+                args=[user.id, dataset_names, filters, request_id, name_int],
             )
 
             log.info("Scheduling periodic task")
@@ -70,7 +70,7 @@ class ScheduledData(EndpointResource):
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
             # get scheduled request id in postgres database as scheduled request name for mongodb
-            name_int =RequestManager.create_scheduled_request_record(db, user, filters, crontab_settings=crontab_settings)
+            name_int =RequestManager.create_schedule_record(db, user, filters, crontab_settings=crontab_settings)
             name = str(name_int)
 
             # parsing crontab settings
@@ -83,7 +83,7 @@ class ScheduledData(EndpointResource):
                 name=name,
                 task="mistral.tasks.data_extraction.data_extract",
                 **crontab_settings,
-                args=[user.uuid, dataset_names, filters],
+                args=[user.id, dataset_names, filters],
             )
 
             log.info("Scheduling crontab task")
@@ -105,7 +105,7 @@ class ScheduledData(EndpointResource):
                 status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         # check if the current user is the owner of the request
-        if RequestManager.check_owner(db,user.uuid,schedule_id=task_name):
+        if RequestManager.check_owner(db,user.id,schedule_id=task_name):
             # delete request entry from database
             RequestManager.disable_schedule_record(db, task_name)
 

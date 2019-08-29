@@ -13,16 +13,16 @@ log = get_logger(__name__)
 class RequestManager():
 
     @staticmethod
-    def check_fileoutput(db, uuid, filename, download_dir):
+    def check_fileoutput(db, user, filename, download_dir):
         fileoutput = db.FileOutput
         # query for the requested file in database
         f_to_download = fileoutput.query.filter(fileoutput.filename == filename).first()
         # check if the requested file is in the database
         if f_to_download is not None:
             # check if the user owns the file
-            if RequestManager.check_owner(db, uuid, file_id=f_to_download.id):
+            if RequestManager.check_owner(db, user.id, file_id=f_to_download.id):
                 # check if the requested file is in the user folder
-                path = os.path.join(download_dir, uuid, f_to_download.filename)
+                path = os.path.join(download_dir, user.uuid, f_to_download.filename)
                 if os.path.exists(path):
                     return True
                 else:
@@ -33,7 +33,7 @@ class RequestManager():
             log.info('file: {} is not in database'.format(filename))
 
     @staticmethod
-    def check_owner(db, uuid, schedule_id=None, single_request_id=None, file_id=None):
+    def check_owner(db, user_id, schedule_id=None, single_request_id=None, file_id=None):
 
         # check a single request
         if single_request_id is not None:
@@ -49,7 +49,7 @@ class RequestManager():
             item_id = file_id
 
         item_to_check = item.query.filter(item.id == item_id).first()
-        if item_to_check.user_uuid == uuid:
+        if item_to_check.user_id == user_id:
             return True
 
     @staticmethod
@@ -67,14 +67,14 @@ class RequestManager():
             return True
 
     @staticmethod
-    def count_user_requests(db, user_uuid):
+    def count_user_requests(db, user_id):
         log.debug('get total requests for user UUID {}'.format(user_uuid))
-        return db.Request.query.filter_by(user_uuid=user_uuid).count()
+        return db.Request.query.filter_by(user_id=user_id).count()
 
     @staticmethod
-    def count_user_schedules(db, user_uuid):
-        log.debug('get total schedules for user UUID {}'.format(user_uuid))
-        return db.Schedule.query.filter_by(user_uuid=user_uuid).count()
+    def count_user_schedules(db, user_id):
+        log.debug('get total schedules for user UUID {}'.format(user_id))
+        return db.Schedule.query.filter_by(user_id=user_id).count()
 
     @staticmethod
     def count_schedule_requests(db, schedule_id):
@@ -82,11 +82,11 @@ class RequestManager():
         return db.Request.query.filter_by(schedule_id=schedule_id).count()
 
     @staticmethod
-    def create_request_record(db, user, filters, schedule_id=None):
+    def create_request_record(db, user_id, filters, schedule_id=None):
         request = db.Request
         args = json.dumps(filters)
         # r = request(user_uuid=user, args=args, task_id=task_id)
-        r = request(user_uuid=user, args=args)
+        r = request(user_id=user_id, args=args)
         if schedule_id is not None:
             # scheduled_request = db.Schedule
             r.schedule_id = schedule_id
@@ -102,12 +102,12 @@ class RequestManager():
         args = json.dumps(filters)
         # check if the request is periodic
         if (every or period) is not None:
-            s = schedule(user_uuid=user.uuid, args=args, is_crontab=False, every=every,
+            s = schedule(user_id=user.id, args=args, is_crontab=False, every=every,
                                   period=period)
         # check if the request is a crontab type
         if crontab_settings is not None:
             crontab_args = json.dumps(crontab_settings)
-            s = schedule(user_uuid=user.uuid, args=args, is_crontab=True,
+            s = schedule(user_id=user.id, args=args, is_crontab=True,
                                   crontab_settings=crontab_args)
         s.is_enabled = True
         db.session.add(s)
@@ -118,9 +118,9 @@ class RequestManager():
         return schedule_id
 
     @staticmethod
-    def create_fileoutput_record(db, user, request_id, filename, data_size):
+    def create_fileoutput_record(db, user_id, request_id, filename, data_size):
         fileoutput = db.FileOutput
-        f = fileoutput(user_uuid=user, request_id=request_id, filename=filename, size=data_size)
+        f = fileoutput(user_id=user_id, request_id=request_id, filename=filename, size=data_size)
         db.session.add(f)
         db.session.commit()
         log.info('fileoutput for: {}'.format(request_id))
@@ -131,12 +131,12 @@ class RequestManager():
         os.remove(filepath)
 
     @staticmethod
-    def delete_request_record(db,uuid, request_id, download_dir):
+    def delete_request_record(db,user, request_id, download_dir):
         request = db.Request
         r_to_delete = request.query.filter(request.id == request_id).first()
         fileoutput = r_to_delete.fileoutput
         if fileoutput is not None:
-            RequestManager.delete_fileoutput(uuid,download_dir,fileoutput.filename)
+            RequestManager.delete_fileoutput(user.uuid,download_dir,fileoutput.filename)
         db.session.delete(r_to_delete)
         db.session.commit()
 
@@ -211,7 +211,7 @@ class RequestManager():
             return submitted_request_list
 
     @staticmethod
-    def get_user_requests(db, uuid, sort_by=None, sort_order=None, filter=None):
+    def get_user_requests(db, user_id, sort_by=None, sort_order=None, filter=None):
 
         #default value if sort_by and sort_order are None
         if sort_by is None:
@@ -220,7 +220,7 @@ class RequestManager():
             sort_order = "desc"
 
         user = db.User
-        current_user = user.query.filter(user.uuid == uuid).first()
+        current_user = user.query.filter(user.id == user_id).first()
         user_name = current_user.name
         requests_list = current_user.requests
         scheduled_list = current_user.schedules
@@ -291,7 +291,7 @@ class RequestManager():
             return user_list
 
     @staticmethod
-    def get_user_schedules(db, uuid, sort_by=None, sort_order=None):
+    def get_user_schedules(db, user_id, sort_by=None, sort_order=None):
 
         # default value if sort_by and sort_order are None
         if sort_by is None:
@@ -300,7 +300,7 @@ class RequestManager():
             sort_order = "desc"
 
         user = db.User
-        current_user = user.query.filter(user.uuid == uuid).first()
+        current_user = user.query.filter(user.id == user_id).first()
         user_name = current_user.name
         schedules_list = current_user.schedules
 
@@ -333,6 +333,12 @@ class RequestManager():
                 return sorted_list
         else:
             return user_list
+
+    @staticmethod
+    def get_uuid(db, user_id):
+        user = db.User
+        u = user.query.filter(user.id == user_id).first()
+        return u.uuid
 
     @staticmethod
     def save_message_error(db, request_id, message):

@@ -23,7 +23,7 @@ setattr(User, 'schedules', db.relationship('Schedule', backref='author', lazy='d
 
 class Request (db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     args = db.Column(db.String)
     status = db.Column(db.String(64))
@@ -43,7 +43,7 @@ class FileOutput (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(64), index=True, unique=True)
     size = db.Column(db.Float)
-    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
 
     def __str__(self):
@@ -63,7 +63,7 @@ class PeriodEnum(enum.Enum):
 
 class Schedule (db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     args = db.Column(db.String)
     is_crontab = db.Column(db.Boolean)
