@@ -21,11 +21,15 @@ export class StepPostprocessComponent implements OnInit {
     }
 
     ngOnInit() {
-
+        window.scroll(0,0);
     }
 
     private save() {
+        if (!this.form.valid) {
+            return false;
+        }
         // TODO
+        this.formDataService.setPostProcessor([]);
         return true;
     }
 

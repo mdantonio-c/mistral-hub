@@ -17,20 +17,13 @@ import {StepFiltersComponent} from './components/multi-step-wizard/step-filters/
 import {StepPostprocessComponent} from "./components/multi-step-wizard/step-postprocess/step-postprocess.component";
 import {StepSubmitComponent} from "./components/multi-step-wizard/step-submit/step-submit.component";
 
-/* Shared Service */
-import {FormDataService} from './services/formData.service';
-import {WorkflowService} from './services/workflow.service';
-import {DataService} from "./services/data.service";
 import {FormatDatePipe} from './pipes/format-date.pipe';
-import {ArkimetService} from './services/arkimet.service';
 import {WorkflowGuard} from "./services/workflow-guard.service";
 
-
-const routes: Routes = [
+const appRoutes: Routes = [
     {
         path: 'app/data',
-        //component: DataComponent, canActivate: [AuthGuard], runGuardsAndResolvers: 'always',
-        component: DataComponent,
+        component: DataComponent, canActivate: [AuthGuard], runGuardsAndResolvers: 'always',
         children: [
             {path: '', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
             {path: 'datasets', component: StepDatasetsComponent, outlet: 'step'},
@@ -47,7 +40,7 @@ const routes: Routes = [
 @NgModule({
     imports: [
         RapydoModule,
-        RouterModule.forChild(routes)
+        RouterModule.forChild(appRoutes)
     ],
     declarations: [
         HomeComponent,
@@ -62,11 +55,6 @@ const routes: Routes = [
         FormatDatePipe
     ],
     providers: [
-        FormDataService,
-        WorkflowService,
-        WorkflowGuard,
-        DataService,
-        ArkimetService,
         DatePipe],
     exports: [
         RouterModule

@@ -7,25 +7,12 @@ from restapi.decorators import catch_error
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.requests_manager import RequestManager
 
 log = get_logger(__name__)
 
 
 class Data(EndpointResource):
-
-    # @catch_error()
-    # def get(self, task_id):
-
-    #     celery = self.get_service_instance('celery')
-
-    #     task_result = celery.AsyncResult(task_id)
-    #     res = task_result.result
-    #     if not isinstance(res, dict):
-    #         res = str(res)
-    #     return {
-    #         'status': task_result.status,
-    #         'output': res,
-    #     }
 
     @catch_error()
     def put(self):
@@ -64,6 +51,7 @@ class Data(EndpointResource):
         user = self.get_current_user()
         log.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
         criteria = self.get_input()
+        # log.info('criteria: {}'.format(criteria))
 
         self.validate_input(criteria, 'DataExtraction')
         dataset_names = criteria.get('datasets')
@@ -75,15 +63,24 @@ class Data(EndpointResource):
                 raise RestApiException(
                     "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
-
+        # incoming filters: <dict> in form of filter_name: list_of_values
+        # e.g. 'level': [{...}, {...}] or 'level: {...}'
         filters = criteria.get('filters')
+        # clean up filters from unknown values
+        filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
+
         # open transaction
         # create request in db
+        db = self.get_service_instance('sqlalchemy')
+        request_id = RequestManager.create_request_record(db, user.uuid, criteria)
 
         task = CeleryExt.data_extract.apply_async(
-            args=[user.uuid, dataset_names, filters],
+            args=[user.uuid, dataset_names, filters, request_id],
             countdown=1
         )
+        RequestManager.update_task_id(db,request_id, task.id)
+        RequestManager.update_task_status(db, task.id)
+        log.info('current request id: {}'.format(request_id))
 
         # update task field in request by id
         # close transaction

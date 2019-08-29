@@ -6,7 +6,9 @@ import {
 
 import {WorkflowService} from './workflow.service';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class WorkflowGuard implements CanActivate {
     constructor(private router: Router, private workflowService: WorkflowService) {
     }

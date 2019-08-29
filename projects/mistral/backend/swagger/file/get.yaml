@@ -1,0 +1,18 @@
+file:
+  summary: Download output file
+  custom:
+    authentication: true
+  parameters:
+    - in: path
+      name: file
+      type: string
+      required: true
+      description: file to download
+  responses:
+    '200':
+      description: found the file to download
+      schema:
+       $ref: "#/definitions/Fileoutput"
+    '404':
+      description: file not found
+

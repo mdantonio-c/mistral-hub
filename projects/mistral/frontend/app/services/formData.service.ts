@@ -1,11 +1,25 @@
 import {Injectable} from '@angular/core';
+import {Observable} from 'rxjs';
 
-import {FormData, Dataset, Filters} from './formData.model';
 import {WorkflowService} from './workflow.service';
 import {STEPS} from './workflow.model';
-import {DataService} from "./data.service";
+import {DataService, Filters, RapydoResponse, SummaryStats} from "./data.service";
 
-@Injectable()
+export class FormData {
+    datasets: string[] = [];
+    filters: Filters[] = [];
+    postprocessors: string[] = [];
+
+    clear() {
+        this.datasets = [];
+        this.filters = [];
+        this.postprocessors = [];
+    }
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class FormDataService {
 
     private formData: FormData = new FormData();
@@ -36,6 +50,12 @@ export class FormDataService {
         return this.dataService.getSummary(this.formData.datasets);
     }
 
+    getSummaryStats(): Observable<RapydoResponse<SummaryStats>> {
+        let q = this.formData.filters.map(filter => filter.query).join(';');
+        return this.dataService.getSummary(
+            this.formData.datasets, q, true);
+    }
+
     setFilters(data: any) {
         // Update Filters only when the Filter Form had been validated successfully
         this.isFilterFormValid = true;
@@ -52,6 +72,14 @@ export class FormDataService {
             }
         }
         return false;
+    }
+
+    setPostProcessor(data: any) {
+        // Update Postprocess only when the Postprocess Form had been validated successfully
+        this.isPostprocessFormValid = true;
+        this.formData.postprocessors = data;
+        // Validate Filter Step in Workflow
+        this.workflowService.validateStep(STEPS.postprocess);
     }
 
     getFormData(): FormData {

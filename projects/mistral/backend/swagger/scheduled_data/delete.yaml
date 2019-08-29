@@ -1,0 +1,20 @@
+common:
+  custom:
+    authentication: true
+
+scheduled:
+  summary: Request for task deletion.
+  parameters:
+    - name: task
+      in: query
+      description: Task to remove.
+      type: string
+      required: true
+
+  responses:
+    '200':
+      description: Task deleted
+    '404':
+      description: Task not found
+    '401' :
+      description: The user is not the owner of the request to delete

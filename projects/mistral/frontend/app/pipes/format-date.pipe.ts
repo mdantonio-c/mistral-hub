@@ -13,6 +13,7 @@ export class FormatDatePipe implements PipeTransform {
      * @param dateArr
      */
     transform(dateArr: number[]): string {
+        if (!dateArr) return;
         if (dateArr.length !== 6) {
             console.warn(`Unexpected value for ${dateArr}`);
             return dateArr.join();
