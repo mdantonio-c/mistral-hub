@@ -20,7 +20,7 @@ class FileDownload(EndpointResource):
         user = self.get_current_user()
         db = self.get_service_instance('sqlalchemy')
         # check if the file exists, the current user is the owner and if it is in its folder
-        if RequestManager.check_fileoutput(db,  user.uuid, filename, DOWNLOAD_DIR):
+        if RequestManager.check_fileoutput(db,  user, filename, DOWNLOAD_DIR):
             user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
             log.info('directory: {}'.format(user_dir))
             # download the file as a response attachment

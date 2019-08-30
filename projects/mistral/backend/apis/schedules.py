@@ -51,6 +51,7 @@ class Schedules(EndpointResource):
             name_int = RequestManager.create_schedule_record(db, user, filters, every=every, period=period)
             name = str(name_int)
 
+
             # remove previous task
             res = CeleryExt.delete_periodic_task(name=name)
             log.debug("Previous task deleted = %s", res)
@@ -62,7 +63,7 @@ class Schedules(EndpointResource):
                 task="mistral.tasks.data_extraction.data_extract",
                 every=every,
                 period=period,
-                args=[user.uuid, dataset_names, filters, request_id, name_int],
+                args=[user.id, dataset_names, filters, request_id, name_int],
             )
 
             log.info("Scheduling periodic task")
@@ -86,7 +87,7 @@ class Schedules(EndpointResource):
                 name=name,
                 task="mistral.tasks.data_extraction.data_extract",
                 **crontab_settings,
-                args=[user.uuid, dataset_names, filters,request_id, name_int],
+                args=[user.id, dataset_names, filters,request_id, name_int],
             )
 
             log.info("Scheduling crontab task")
@@ -120,7 +121,7 @@ class Schedules(EndpointResource):
                 return {"total": counter}
 
             # check if the current user is the owner of the scheduled request
-            if not RequestManager.check_owner(db, user.uuid, schedule_id=schedule_id):
+            if not RequestManager.check_owner(db, user.id, schedule_id=schedule_id):
                 raise RestApiException(
                     "Operation not allowed",
                     status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
@@ -131,10 +132,10 @@ class Schedules(EndpointResource):
         else:
             # get total count for user schedules
             if get_total:
-                counter = RequestManager.count_user_schedules(db, user.uuid)
+                counter = RequestManager.count_user_schedules(db, user.id)
                 return {"total": counter}
             # get user requests list
-            res = RequestManager.get_user_schedules(db, user.uuid, sort_by=sort, sort_order=sort_order)
+            res = RequestManager.get_user_schedules(db, user.id, sort_by=sort, sort_order=sort_order)
 
 
         return self.force_response(
@@ -149,7 +150,7 @@ class Schedules(EndpointResource):
         db = self.get_service_instance('sqlalchemy')
 
         #check if the schedule exist and is owned by the current user
-        self.request_and_owner_check(db,user.uuid,schedule_id)
+        self.request_and_owner_check(db,user.id,schedule_id)
 
         # disable/enable the schedule
         periodic = CeleryExt.get_periodic_task(name=schedule_id)
@@ -168,7 +169,7 @@ class Schedules(EndpointResource):
         db = self.get_service_instance('sqlalchemy')
 
         # check if the schedule exist and is owned by the current user
-        self.request_and_owner_check(db, user.uuid, schedule_id)
+        self.request_and_owner_check(db, user.id, schedule_id)
 
         # delete schedule in mongodb
         CeleryExt.delete_periodic_task(name=schedule_id)
@@ -181,7 +182,7 @@ class Schedules(EndpointResource):
 
 
     @staticmethod
-    def request_and_owner_check(db,uuid,schedule_id):
+    def request_and_owner_check(db,user_id,schedule_id):
         # check if the schedule exists
         if not RequestManager.check_request(db, schedule_id=schedule_id):
             raise RestApiException(
@@ -189,7 +190,7 @@ class Schedules(EndpointResource):
                 status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         # check if the current user is the owner of the request
-        if not RequestManager.check_owner(db, uuid, schedule_id=schedule_id):
+        if not RequestManager.check_owner(db, user_id, schedule_id=schedule_id):
             raise RestApiException(
                 "This request doesn't come from the request's owner",
                 status_code=hcodes.HTTP_BAD_UNAUTHORIZED)

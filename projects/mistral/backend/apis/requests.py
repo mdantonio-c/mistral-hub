@@ -32,11 +32,11 @@ class UserRequests(EndpointResource):
         db = self.get_service_instance('sqlalchemy')
 
         if get_total:
-            counter = repo.count_user_requests(db, user.uuid)
+            counter = repo.count_user_requests(db, user.id)
             return {"total": counter}
 
         # get user requests list
-        res = repo.get_user_requests(db, user.uuid, sort_by=sort, sort_order=sort_order,
+        res = repo.get_user_requests(db, user.id, sort_by=sort, sort_order=sort_order,
                                                     filter=filter)
         return self.force_response(
             res, code=hcodes.HTTP_OK_BASIC)
@@ -56,10 +56,10 @@ class UserRequests(EndpointResource):
                 status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         # check if the current user is the owner of the request
-        if repo.check_owner(db, user.uuid, single_request_id=request_id):
+        if repo.check_owner(db, user.id, single_request_id=request_id):
 
             # delete request and fileoutput entry from database. Delete fileoutput from user folder
-            repo.delete_request_record(db,user.uuid, request_id,DOWNLOAD_DIR)
+            repo.delete_request_record(db,user, request_id,DOWNLOAD_DIR)
 
 
             return self.force_response('Removed request {}'.format(request_id))

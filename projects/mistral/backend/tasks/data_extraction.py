@@ -28,7 +28,7 @@ def add(self, a, b):
 
 @celery_app.task(bind=True)
 # @send_errors_by_email
-def data_extract(self, user_uuid, datasets, filters=None, request_id=None, schedule_id=None):
+def data_extract(self, user_id, datasets, filters=None, request_id=None, schedule_id=None):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]".format(self.request.id, self.name))
 
@@ -41,7 +41,7 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None, sched
 
         if schedule_id is not None:
             # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
-            request_id = RequestManager.create_request_record(db, user_uuid, filters,schedule_id=schedule_id)
+            request_id = RequestManager.create_request_record(db, user_id, filters,schedule_id=schedule_id)
             # update the entry with celery task id
             RequestManager.update_task_id(db, request_id, self.request.id)
             log.debug('request is scheduled at: {}, Request id: {}'.format(schedule_id,request_id))
@@ -52,7 +52,8 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None, sched
         log.debug('Resulting output size: {} ({})'.format(data_size, human_size(data_size)))
 
         # create download user dir if it doesn't exist
-        user_dir = os.path.join(DOWNLOAD_DIR, user_uuid)
+        uuid = RequestManager.get_uuid(db,user_id)
+        user_dir = os.path.join(DOWNLOAD_DIR, uuid)
         os.makedirs(user_dir, exist_ok=True)
 
         # check for current used space
@@ -85,7 +86,7 @@ def data_extract(self, user_uuid, datasets, filters=None, request_id=None, sched
         with open(os.path.join(user_dir, filename), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
         #create fileoutput record in db
-        RequestManager.create_fileoutput_record(db, user_uuid, request_id, filename, data_size )
+        RequestManager.create_fileoutput_record(db, user_id, request_id, filename, data_size )
 
         log.info("Task [{}] completed successfully".format(self.request.id))
         return 1
