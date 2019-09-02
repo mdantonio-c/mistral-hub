@@ -82,10 +82,9 @@ class RequestManager():
         return db.Request.query.filter_by(schedule_id=schedule_id).count()
 
     @staticmethod
-    def create_request_record(db, user, filters, schedule_id=None):
+    def create_request_record(db, user, product_name, filters, schedule_id=None):
         args = json.dumps(filters)
-        # r = request(user_uuid=user, args=args, task_id=task_id)
-        r = db.Request(user_uuid=user, args=args)
+        r = db.Request(user_uuid=user, name=product_name, args=args)
         if schedule_id is not None:
             # scheduled_request = db.Schedule
             r.schedule_id = schedule_id

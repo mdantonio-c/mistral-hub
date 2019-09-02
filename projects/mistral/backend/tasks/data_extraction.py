@@ -30,7 +30,7 @@ def add(self, a, b):
 
 @celery_app.task(bind=True)
 # @send_errors_by_email
-def data_extract(self, user_uuid, product_name, datasets, filters=None, request_id=None, scheduled_id=None):
+def data_extract(self, user_uuid, product_name, datasets, filters=None, request_id=None, schedule_id=None):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]".format(self.request.id, self.name))
 
@@ -43,12 +43,12 @@ def data_extract(self, user_uuid, product_name, datasets, filters=None, request_
 
         if schedule_id is not None:
             # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
-            request = RequestManager.create_request_record(db, user_uuid, filters, scheduled_id=scheduled_id)
+            request = RequestManager.create_request_record(db, user_uuid, filters, scheduled_id=schedule_id)
             # update the entry with celery task id
             # RequestManager.update_task_id(db, request_id, self.request.id)
             request.task_id = self.request.id
             db.session.commit()
-            log.debug('Schedule at: {}, Request <ID:{}>'.format(scheduled_id, request.id))
+            log.debug('Schedule at: {}, Request <ID:{}>'.format(schedule_id, request.id))
         else:
             # load request by id
             request = db.Request.query.get(request_id)
