@@ -26,7 +26,7 @@ export class RequestsComponent extends BasePaginationComponent {
         private dataService: DataService
     ) {
         super(api, auth, notify, modalService, formly);
-        this.init("group");
+        this.init("request");
 
         this.server_side_pagination = true;
         this.endpoint = 'requests';
@@ -37,6 +37,11 @@ export class RequestsComponent extends BasePaginationComponent {
 
     list() {
         return this.get(this.endpoint);
+    }
+
+    remove(requestID) {
+        console.log(`remove this request ${requestID}`);
+        return this.delete("requests", requestID);
     }
 
     download(filename) {

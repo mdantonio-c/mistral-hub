@@ -15,7 +15,7 @@ DOWNLOAD_DIR = '/data'
 class UserRequests(EndpointResource):
 
     @catch_error()
-    def get(self):
+    def get(self, request_id=None):
         param = self.get_input()
         sort = param.get('sort-by')
         sort_order = param.get('sort-order')
@@ -64,9 +64,8 @@ class UserRequests(EndpointResource):
             data, code=hcodes.HTTP_OK_BASIC)
 
     @catch_error()
-    def delete(self):
-        param = self.get_input()
-        request_id = param.get('id')
+    def delete(self, request_id):
+        log.debug("delete request %s" % request_id)
 
         user = self.get_current_user()
 

@@ -216,9 +216,8 @@
                                                     [popoverTitle]="deleteConfirmation.title"
                                                     [popoverMessage]="getDeleteConfirmation('request').message"
                                                     placement="left"
-                                                    (confirm)="remove(row.request_id)"
-                                                    (cancel)="cancelRequest()"><i class="fa fa-trash"
-                                                                                  style='color:red;'></i></button>
+                                                    (confirm)="remove(row.id)">
+                                                <i class="fa fa-trash" style='color:red;'></i></button>
                                         </div>
                                     </div>
                                 </ng-template>
