@@ -15,7 +15,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint)
         assert r.status_code == HTTP_BAD_UNAUTHORIZED
 
-        endpoint = API_URI + '/datasets/test'
+        endpoint = API_URI + '/datasets/vlm5'
         r = client.get(endpoint)
         assert r.status_code == HTTP_BAD_UNAUTHORIZED
 
@@ -34,7 +34,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=self.get("auth_header"))
         assert r.status_code == HTTP_OK_BASIC
 
-        endpoint = API_URI + '/datasets/test'
+        endpoint = API_URI + '/datasets/vlm5'
         r = client.get(endpoint, headers=self.get("auth_header"))
         assert r.status_code == HTTP_OK_BASIC
 
@@ -51,7 +51,7 @@ class TestApp(BaseTests):
         #print("________all dataset response______ "+str(data))
         assert type(response_data) == list
 
-        endpoint = API_URI + '/datasets/test'
+        endpoint = API_URI + '/datasets/vlm5'
         r = client.get(endpoint, headers=self.get("auth_header"))
         response_data = self.get_content(r)
         #print("________single dataset response______ " + str(data))
