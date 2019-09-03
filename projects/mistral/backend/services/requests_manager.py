@@ -294,11 +294,6 @@ class RequestManager():
             return user_list
 
     @staticmethod
-    def count_user_requests(db, user_id):
-        log.debug('get total requests for user UUID {}'.format(user_id))
-        return db.Request.query.filter_by(user_id=user_id).count()
-
-    @staticmethod
     def get_user_schedules(db,  user_id, sort_by=None, sort_order=None):
 
         # default value if sort_by and sort_order are None
