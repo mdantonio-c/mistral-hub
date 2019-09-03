@@ -295,7 +295,7 @@ class RequestManager():
 
     @staticmethod
     def count_user_requests(db, user_id):
-        log.debug('get total requests for user UUID {}'.format(user_uuid))
+        log.debug('get total requests for user UUID {}'.format(user_id))
         return db.Request.query.filter_by(user_id=user_id).count()
 
     @staticmethod
