@@ -20,38 +20,35 @@ setattr(User, 'fileoutput', db.relationship('FileOutput', backref='owner', lazy=
 setattr(User, 'schedules', db.relationship('Schedule', backref='author', lazy='dynamic'))
 
 
-
-class Request (db.Model):
+class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    name = db.Column(db.String, index=True, nullable=False)
+    args = db.Column(db.String, nullable=False)
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
-    args = db.Column(db.String)
+    end_date = db.Column(db.DateTime)
     status = db.Column(db.String(64))
     task_id = db.Column(db.String(64), index=True, unique=True)
-    fileoutput = db.relationship("FileOutput", backref='request',cascade="delete", uselist=False)
     error_message = db.Column(db.String(128))
     schedule_id = db.Column(db.Integer, db.ForeignKey('schedule.id'))
-
-    def __str__(self):
-        return "db.%s(%s){%s}" \
-            % (self.__class__.__name__, self.token, self.emitted_for)
+    fileoutput = db.relationship("FileOutput", backref='request', cascade="delete", uselist=False)
 
     def __repr__(self):
-        return self.__str__()
+        return "<Request(name='%s', submission date='%s', status='%s')" \
+               % (self.name, self.submission_date, self.status)
 
-class FileOutput (db.Model):
+
+class FileOutput(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(64), index=True, unique=True)
-    size = db.Column(db.Float)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    size = db.Column(db.BigInteger)
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
 
-    def __str__(self):
-        return "db.%s(%s){%s}" \
-            % (self.__class__.__name__, self.token, self.emitted_for)
-
     def __repr__(self):
-        return self.__str__()
+        return "<FileOutput(filename='%s', size='%s')" \
+               % (self.filename, self.size)
+
 
 class PeriodEnum(enum.Enum):
     days = 1
@@ -75,7 +72,7 @@ class Schedule (db.Model):
 
     def __str__(self):
         return "db.%s(%s){%s}" \
-            % (self.__class__.__name__, self.token, self.emitted_for)
+               % (self.__class__.__name__, self.token, self.emitted_for)
 
     def __repr__(self):
         return self.__str__()

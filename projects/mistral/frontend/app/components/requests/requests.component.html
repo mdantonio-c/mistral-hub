@@ -3,7 +3,14 @@
         <div class='col-12'>
             <div class='card'>
                 <div class='card-header'>
-                    <h4 class='panel-title'>My Requests</h4>
+                    <div class="d-flex align-items-center">
+                        <h4 class="panel-title mr-auto">My Requests</h4>
+                        <div class="btn-group" role="group">
+                            <button class="btn" (click)="list()">
+                                <i class="fa fa-sync" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class='card-block'>
                     <loading *ngIf="loading"></loading>
@@ -20,6 +27,7 @@
 
                         <ngx-datatable
                                 #myTable
+                                class="expandable"
                                 [rows]="rows"
                                 [columnMode]="'flex'"
                                 [loadingIndicator]='true'
@@ -51,12 +59,19 @@
                                             <dl class="mb-0" *ngIf="row.args.filters">
                                                 <dt>Filter(s)</dt>
                                                 <dd>
-                                                    <dl class="row no-gutters mb-0 px-0 request-summary">
+                                                    <dl class="row no-gutters mb-0 px-0 request-summary"
+                                                        *ngIf="(row.args.filters | keyvalue).length else noFilters">
                                                         <ng-container *ngFor="let f of row.args.filters | keyvalue">
-                                                            <dt class="col-sm-3" style="font-weight: normal;">{{f.key}}</dt>
-                                                            <dd class="col-sm-9"><p *ngFor="let v of f.value" class="mb-0">{{v.desc}}</p></dd>
+                                                            <dt class="col-sm-3" style="font-weight: normal;">
+                                                                {{f.key}}
+                                                            </dt>
+                                                            <dd class="col-sm-9"><p *ngFor="let v of f.value"
+                                                                                    class="mb-0"
+                                                                                    style="white-space: normal">
+                                                                {{v.desc}}</p></dd>
                                                         </ng-container>
                                                     </dl>
+                                                    <ng-template #noFilters>no filter selected</ng-template>
                                                 </dd>
                                             </dl>
                                         </ng-container>
@@ -67,7 +82,7 @@
                             <!-- Column Templates -->
                             <!-- show details -->
                             <ngx-datatable-column
-                                    [width]="20"
+                                    width="20"
                                     [resizeable]="false"
                                     [sortable]="false"
                                     [draggable]="false"
@@ -109,14 +124,31 @@
                                     [resizeable]="false"
                                     [sortable]="false"
                                     [draggable]="false"
-                                    [flexGrow]="2"
+                                    [flexGrow]="1.6"
                                     [minWidth]="160">
                                 <ng-template
                                         let-value="value"
                                         let-row="row"
                                         ngx-datatable-cell-template
                                 >
-                                    <span>{{value | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
+                                    <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
+                                </ng-template>
+                            </ngx-datatable-column>
+                            <!-- End date -->
+                            <ngx-datatable-column
+                                    name="End date"
+                                    prop="end_date"
+                                    [resizeable]="false"
+                                    [sortable]="false"
+                                    [draggable]="false"
+                                    [flexGrow]="1.6"
+                                    [minWidth]="160">
+                                <ng-template
+                                        let-value="value"
+                                        let-row="row"
+                                        ngx-datatable-cell-template
+                                >
+                                    <span *ngIf="value else noValue">{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
                                 </ng-template>
                             </ngx-datatable-column>
                             <!-- Size -->
@@ -133,8 +165,7 @@
                                         let-row="row"
                                         ngx-datatable-cell-template
                                 >
-                                    <span *ngIf="value else noSize">{{value | bytes}}</span>
-                                    <ng-template #noSize>-</ng-template>
+                                    <span *ngIf="value else noValue">{{value | bytes}}</span>
                                 </ng-template>
                             </ngx-datatable-column>
                             <!-- Status -->
@@ -155,9 +186,14 @@
                                             'badge-success': row.status == 'SUCCESS',
                                             'badge-danger': row.status == 'FAILURE',
                                             'badge-info': row.status == 'PENDING'
-                                          }">
+                                          }"
+                                          [ngbTooltip]="(row.status == 'FAILURE') ? tipContent : ''"
+                                          placement="left">
                                         {{value}}
                                     </span>
+                                    <ng-template #tipContent>
+                                        {{row.error_message || 'no error message'}}
+                                    </ng-template>
                                 </ng-template>
                             </ngx-datatable-column>
                             <!-- Controls -->
@@ -172,17 +208,18 @@
                                         let-row="row"
                                         ngx-datatable-cell-template
                                 >
-                                    <div class="btn-toolbar" role="toolbar">
+                                    <div class="btn-toolbar justify-content-end" role="toolbar">
                                         <div class="btn-group mr-1" role="group">
                                             <button class="btn p-0 mr-1" *ngIf="row.status == 'SUCCESS'"
-                                                    (click)='download(row.fileoutput)'><i class="fa fa-download"></i></button>
+                                                    (click)='download(row.fileoutput)'><i class="fa fa-download"></i>
+                                            </button>
                                             <button class="btn p-0"
                                                     mwlConfirmationPopover
                                                     [popoverTitle]="deleteConfirmation.title"
                                                     [popoverMessage]="getDeleteConfirmation('request').message"
                                                     placement="left"
-                                                    (confirm)="remove(row.request_id)"
-                                                    (cancel)="cancelRequest()"><i class="fa fa-trash" style='color:red;'></i></button>
+                                                    (confirm)="remove(row.id)">
+                                                <i class="fa fa-trash" style='color:red;'></i></button>
                                         </div>
                                     </div>
                                 </ng-template>
@@ -217,7 +254,7 @@
                                 </ng-template>
                             </ngx-datatable-footer>
                         </ngx-datatable>
-
+                        <ng-template #noValue>-</ng-template>
                     </div>
 
                 </div>

@@ -3,11 +3,14 @@ requests:
   custom:
     authentication: true
   parameters:
-#    - name: uuid
-#      in: query
-#      description: uuid of the requests
-#      type: string
-#      required: true
+    - name: perpage
+      in: query
+      description: Number of videos returned
+      type: integer
+    - name: currentpage
+      in: query
+      description: Page number
+      type: integer
     - name: sort-order
       in: query
       description: sort order

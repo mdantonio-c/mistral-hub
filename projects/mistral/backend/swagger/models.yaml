@@ -2,8 +2,11 @@ definitions:
 
   DataExtraction:
     required:
+      - name
       - datasets
     properties:
+      name:
+        type: string
       datasets:
         description: Data belong to the datasets of the list.
         type: array
@@ -212,15 +215,46 @@ definitions:
       fileoutput:
         type: string
         format: binary
-
   Requests:
+    type: array
+    items:
+      $ref: "#/definitions/Request"
+  Request:
     required:
-      - user_requests
+      - id
+      - name
+      - args
+      - status
+      - submission_date
+      - user_name
     properties:
-      user_requests:
-        type: array
-        items:
-          type: object
+      id:
+        type: string
+      name:
+        type: string
+      args:
+        type: object
+      status:
+        type: string
+        enum:
+          - SUCCESS
+          - ERROR
+          - PENDING
+      submission_date:
+        type: string
+        format: date
+      end_date:
+        type: string
+        format: date
+      task_id:
+        type: string
+      user_name:
+        type: string
+      fileoutput:
+        type: string
+      filesize:
+        type: integer
+        format: int64
 
   Summary:
     required:

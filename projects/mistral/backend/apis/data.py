@@ -7,7 +7,7 @@ from restapi.decorators import catch_error
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
-from mistral.services.requests_manager import RequestManager
+from mistral.services.requests_manager import RequestManager as repo
 
 log = get_logger(__name__)
 
@@ -15,45 +15,14 @@ log = get_logger(__name__)
 class Data(EndpointResource):
 
     @catch_error()
-    def put(self):
-
-        # obj = CeleryExt.get_periodic_task(name='add every 10')
-        # log.critical(obj)
-
-        # remove previous task
-        res = CeleryExt.delete_periodic_task(name='add every 10')
-        log.debug("Previous task deleted = %s", res)
-
-        CeleryExt.create_periodic_task(
-            name='add every 10',
-            task="mistral.tasks.data_extraction.add",
-            every=10,
-            period='seconds',
-            args=[7, 7],
-        )
-
-        log.info("Scheduling periodic task")
-
-        # Calls test('world') every 30 seconds
-        # sender.add_periodic_task(30.0, add.s(5, 5), expires=10)
-
-        # Executes every Monday morning at 7:30 a.m.
-        # sender.add_periodic_task(
-        #     crontab(hour=7, minute=30, day_of_week=1),
-        #     add.s(1, 1),
-        # )
-
-        return self.force_response("Scheduled")
-
-    @catch_error()
     def post(self):
 
         user = self.get_current_user()
         log.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
         criteria = self.get_input()
-        # log.info('criteria: {}'.format(criteria))
 
         self.validate_input(criteria, 'DataExtraction')
+        product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         # check for existing dataset(s)
         datasets = arki.load_datasets()
@@ -65,25 +34,30 @@ class Data(EndpointResource):
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
-        filters = criteria.get('filters')
+        filters = criteria.get('filters', {})
         # clean up filters from unknown values
         filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
 
-        # open transaction
-        # create request in db
+        # run the following steps in a transaction
         db = self.get_service_instance('sqlalchemy')
-        request_id = RequestManager.create_request_record(db, user.id, criteria)
+        try:
+            request = repo.create_request_record(db, user.id, product_name, {
+                'datasets': dataset_names,
+                'filters': filters,
+            })
 
-        task = CeleryExt.data_extract.apply_async(
-            args=[user.id, dataset_names, filters, request_id],
-            countdown=1
-        )
-        RequestManager.update_task_id(db,request_id, task.id)
-        RequestManager.update_task_status(db, task.id)
-        log.info('current request id: {}'.format(request_id))
+            task = CeleryExt.data_extract.apply_async(
+                args=[user.id, product_name, dataset_names, filters, request.id],
+                countdown=1
+            )
 
-        # update task field in request by id
-        # close transaction
+            request.task_id = task.id
+            request.status = task.status  # 'PENDING'
+            db.session.commit()
+            log.info('Request successfully saved: <ID:{}>'.format(request.id))
+        except Exception as error:
+            db.session.rollback()
+            raise SystemError("Unable to submit the request")
 
         return self.force_response(
-            task.id, code=hcodes.HTTP_OK_ACCEPTED)
+            {'task_id': task.id, 'task_status': task.status}, code=hcodes.HTTP_OK_ACCEPTED)

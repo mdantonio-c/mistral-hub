@@ -83,8 +83,11 @@ export class DataService {
     /**
      * Request for data extraction.
      */
-    extractData(datasets: string[], filters?: Filters[]) {
-        let data = {datasets: datasets};
+    extractData(name: string, datasets: string[], filters?: Filters[]) {
+        let data = {
+            name: name,
+            datasets: datasets
+        };
         if (filters && filters.length) {
             data['filters'] = {};
             filters.forEach(f => {

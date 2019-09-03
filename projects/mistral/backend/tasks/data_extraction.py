@@ -6,6 +6,8 @@ import os
 import datetime
 from celery.schedules import crontab
 from restapi.flask_ext.flask_celery import CeleryExt
+from celery import states
+from celery.exceptions import Ignore
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 # from restapi.flask_ext.flask_celery import send_errors_by_email
 from mistral.services.requests_manager import RequestManager
@@ -41,10 +43,17 @@ def data_extract(self, user_id, datasets, filters=None, request_id=None, schedul
 
         if schedule_id is not None:
             # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
-            request_id = RequestManager.create_request_record(db, user_id, filters,schedule_id=schedule_id)
+            request = RequestManager.create_request_record(db, user_id, filters, scheduled_id=schedule_id)
             # update the entry with celery task id
-            RequestManager.update_task_id(db, request_id, self.request.id)
-            log.debug('request is scheduled at: {}, Request id: {}'.format(schedule_id,request_id))
+            # RequestManager.update_task_id(db, request_id, self.request.id)
+            request.task_id = self.request.id
+            db.session.commit()
+            log.debug('Schedule at: {}, Request <ID:{}>'.format(schedule_id, request.id))
+        else:
+            # load request by id
+            request = db.Request.query.get(request_id)
+            if request is None:
+                raise ReferenceError("Cannot find request reference for task %s" % self.request.id)
 
         # I should check the user quota before...
         # check the output size
@@ -64,14 +73,21 @@ def data_extract(self, user_id, datasets, filters=None, request_id=None, schedul
         if used_quota + data_size > MAX_USER_QUOTA:
             free_space = MAX_USER_QUOTA - used_quota
             # save error message in db
-            message = 'User quota exceeds: required size {} ({}); ' 'remaining space {} ({})'.format(data_size, human_size(data_size), free_space, human_size(free_space))
-            RequestManager.save_message_error(db, request_id, message)
-
-            # raise IOError('User quota exceeds: required size {} ({}); '
-            #               'remaining space {} ({})'.format(
-            #     data_size, human_size(data_size), free_space, human_size(free_space)))
-
-            raise IOError(message)
+            message = 'User quota exceeds: required size {} ({}); remaining space {} ({})'.format(
+                data_size, human_size(data_size), free_space, human_size(free_space))
+            log.warn(message)
+            # RequestManager.save_message_error(db, request_id, message)
+            request.status = states.FAILURE
+            request.error_message = message
+            request.end_date = datetime.datetime.utcnow()
+            db.session.commit()
+            # manually update the task state too
+            self.update_state(
+                state=states.FAILURE,
+                meta=message
+            )
+            log.info('Terminate task {} with state {}'.format(self.request.id, states.FAILURE))
+            raise Ignore()
 
         '''
          $ arki-query [OPZIONI] QUERY DATASET...
@@ -82,11 +98,16 @@ def data_extract(self, user_id, datasets, filters=None, request_id=None, schedul
 
         # save results into user space
         args = shlex.split(arki_query_cmd)
-        filename = 'output-'+datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'-'+self.request.id
+        filename = 'output-'+datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")+'-'+self.request.id
         with open(os.path.join(user_dir, filename), mode='w') as outfile:
             subprocess.Popen(args, stdout=outfile)
-        #create fileoutput record in db
-        RequestManager.create_fileoutput_record(db, user_id, request_id, filename, data_size )
+
+        # create fileoutput record in db
+        RequestManager.create_fileoutput_record(db, user_id, request_id, filename, data_size)
+        # update request status
+        request.status = states.SUCCESS
+        request.end_date = datetime.datetime.utcnow()
+        db.session.commit()
 
         log.info("Task [{}] completed successfully".format(self.request.id))
         return 1

@@ -1,20 +1,11 @@
-common:
+request:
+  summary: Delete a request
   custom:
     authentication: true
-
-requests:
-  summary: Request for a request deletion.
-  parameters:
-    - name: id
-      in: query
-      description: request to remove.
-      type: integer
-      required: true
-
   responses:
     '200':
-      description: Request deleted
+      description: Request deleted successfully.
     '404':
-      description: Request not found
+      description: Request does not exist.
     '401' :
-      description: The user is not the owner of the request to delete
+      description: The user is not authorized to delete this request.

@@ -52,7 +52,7 @@ class RequestManager():
         if item_to_check.user_id == user_id:
             return True
 
-    @staticmethod
+
     def check_request(db, schedule_id=None, single_request_id=None):
         # check a single request
         if single_request_id is not None:
@@ -82,19 +82,17 @@ class RequestManager():
         return db.Request.query.filter_by(schedule_id=schedule_id).count()
 
     @staticmethod
-    def create_request_record(db, user_id, filters, schedule_id=None):
-        request = db.Request
+    def create_request_record(db, user_id, product_name, filters, schedule_id=None):
         args = json.dumps(filters)
-        # r = request(user_uuid=user, args=args, task_id=task_id)
-        r = request(user_id=user_id, args=args)
+        r = db.Request(user_id=user_id, name=product_name, args=args)
         if schedule_id is not None:
             # scheduled_request = db.Schedule
             r.schedule_id = schedule_id
         db.session.add(r)
         db.session.commit()
-        request_id = r.id
 
-        return request_id
+        return r
+
 
     @staticmethod
     def create_schedule_record(db, user, filters, every=None, period=None, crontab_settings=None):
@@ -126,12 +124,12 @@ class RequestManager():
         log.info('fileoutput for: {}'.format(request_id))
 
     @staticmethod
-    def delete_fileoutput(uuid,download_dir, filename):
+    def delete_fileoutput(uuid, download_dir, filename):
         filepath = os.path.join(download_dir, uuid, filename)
         os.remove(filepath)
 
     @staticmethod
-    def delete_request_record(db,user, request_id, download_dir):
+    def delete_request_record(db, user, request_id, download_dir):
         request = db.Request
         r_to_delete = request.query.filter(request.id == request_id).first()
         fileoutput = r_to_delete.fileoutput
@@ -140,7 +138,7 @@ class RequestManager():
         db.session.delete(r_to_delete)
         db.session.commit()
 
-    @staticmethod
+
     def delete_schedule(db, schedule_id):
         schedule = db.Schedule
         r_to_delete = schedule.query.filter(schedule.id == schedule_id).first()
@@ -154,6 +152,7 @@ class RequestManager():
         r_to_disable = schedule.query.filter(schedule.id == request_id).first()
         r_to_disable.is_enabled=False
         db.session.commit()
+
 
     @staticmethod
     # retrieve requests related to a scheduled task
@@ -170,13 +169,13 @@ class RequestManager():
         requests_list = r.submitted_request
 
         # update celery status for the requests coming from the database query
-        for row in requests_list:
-            if row.task_id is not None:
-                RequestManager.update_task_status(db, row.task_id)
-            # handle the case rabbit was down when the request was posted and the request has not a task id
-            else:
-                message="service was temporarily unavailable when data extraction request was posted"
-                RequestManager.save_message_error(db, row.id, message)
+        #for row in requests_list:
+        #    if row.task_id is not None:
+        #        RequestManager.update_task_status(db, row.task_id)
+        #    # handle the case rabbit was down when the request was posted and the request has not a task id
+        #    else:
+        #        message="service was temporarily unavailable when data extraction request was posted"
+        #        RequestManager.save_message_error(db, row.id, message)
 
         # create the response schema
         submitted_request_list = []
@@ -226,13 +225,13 @@ class RequestManager():
         scheduled_list = current_user.schedules
 
         # update celery status for the requests coming from the database query
-        for row in requests_list:
-            if row.task_id is not None:
-                RequestManager.update_task_status(db, row.task_id)
-            # handle the case rabbit was down when the request was posted and the request has not a task id
-            else:
-                message = "Service was temporarily unavailable when data extraction request was posted"
-                RequestManager.save_message_error(db, row.id, message)
+        # for row in requests_list:
+        #    if row.task_id is not None:
+        #        RequestManager.update_task_status(db, row.task_id)
+        #    # handle the case rabbit was down when the request was posted and the request has not a task id
+        #    else:
+        #        message = "Service was temporarily unavailable when data extraction request was posted"
+        #        RequestManager.save_message_error(db, row.id, message)
 
         # create the response schema for not scheduled requests
         user_list = []
@@ -241,10 +240,12 @@ class RequestManager():
                 user_request = {}
                 if row.schedule_id is not None:
                     continue
-                user_request['request_id'] = row.id
+                user_request['id'] = row.id
+                user_request['name'] = row.name
                 user_request['submission_date'] = row.submission_date.isoformat()
+                user_request['end_date'] = row.end_date.isoformat()
                 user_request['args'] = json.loads(row.args)
-                user_request['user_name'] = user_name
+                user_request['user_name'] = user.name
                 user_request['status'] = row.status
                 user_request['task_id'] = row.task_id
 
@@ -265,10 +266,12 @@ class RequestManager():
         if filter != "no-scheduled":  # check if the user doesn't have filtered the request to ask for single requests only
             for row in scheduled_list:
                 user_request = {}
-                user_request['request_id'] = row.id
+                user_request['id'] = row.id
+                user_request['name'] = row.name
                 user_request['submission_date'] = row.submission_date.isoformat()
+                user_request['end_date'] = row.end_date.isoformat()
                 user_request['args'] = json.loads(row.args)
-                user_request['user_name'] = user_name
+                user_request['user_name'] = user.name
                 user_request['submitted_requests_number'] = row.submitted_request.count()
                 user_request['enabled'] = row.is_enabled
                 if row.is_crontab == False:
@@ -291,7 +294,12 @@ class RequestManager():
             return user_list
 
     @staticmethod
-    def get_user_schedules(db, user_id, sort_by=None, sort_order=None):
+    def count_user_requests(db, user_id):
+        log.debug('get total requests for user UUID {}'.format(user_uuid))
+        return db.Request.query.filter_by(user_id=user_id).count()
+
+    @staticmethod
+    def get_user_schedules(db,  user_id, sort_by=None, sort_order=None):
 
         # default value if sort_by and sort_order are None
         if sort_by is None:
@@ -334,6 +342,7 @@ class RequestManager():
         else:
             return user_list
 
+
     @staticmethod
     def get_uuid(db, user_id):
         user = db.User
@@ -348,6 +357,7 @@ class RequestManager():
         r_to_update.error_message = message
         db.session.commit()
 
+
     @staticmethod
     def update_schedule_status(db, schedule_id, is_active):
         schedule = db.Schedule
@@ -355,6 +365,7 @@ class RequestManager():
         # update is_enabled field
         r_to_disable.is_enabled = is_active
         db.session.commit()
+
 
     @staticmethod
     def update_task_id(db, request_id, task_id):
