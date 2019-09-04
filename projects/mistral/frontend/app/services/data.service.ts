@@ -50,6 +50,12 @@ export class Dataset {
     description ? = '';
 }
 
+export interface TaskSchedule {
+    date: string;
+    time: string;
+    repeat: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })

@@ -1,7 +1,7 @@
 import {Component, OnInit, Input} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormDataService, FormData} from "../../../services/formData.service";
-import {DataService, SummaryStats} from "../../../services/data.service";
+import {DataService, SummaryStats, TaskSchedule} from "../../../services/data.service";
 import {NotificationService} from '/rapydo/src/app/services/notification';
 import {NgbModal, ModalDismissReasons} from '@ng-bootstrap/ng-bootstrap';
 
@@ -14,9 +14,9 @@ export class StepSubmitComponent implements OnInit {
     summaryStats: SummaryStats = {c: 0, s: 0};
     @Input() formData: FormData;
     isFormValid = false;
-    scheduleDate;
-    scheduleTime;
-    // modalRef;
+    // scheduleDate;
+    // scheduleTime;
+    scheduling: TaskSchedule;
 
     constructor(
         private router: Router,
