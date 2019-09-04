@@ -1,4 +1,8 @@
-.btn:focus,.btn:active,
+.click-event {
+  cursor: pointer;
+}
+.btn:focus, .btn:active,
+.form-control:focus,
 .btn-reset:focus, .btn-reset:active {
    outline: none !important;
    box-shadow: none;

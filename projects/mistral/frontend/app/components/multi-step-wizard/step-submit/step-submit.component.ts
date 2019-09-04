@@ -3,6 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {FormDataService, FormData} from "../../../services/formData.service";
 import {DataService, SummaryStats} from "../../../services/data.service";
 import {NotificationService} from '/rapydo/src/app/services/notification';
+import {NgbModal, ModalDismissReasons} from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
     selector: 'step-submit',
@@ -13,12 +14,16 @@ export class StepSubmitComponent implements OnInit {
     summaryStats: SummaryStats = {c: 0, s: 0};
     @Input() formData: FormData;
     isFormValid = false;
+    scheduleDate;
+    scheduleTime;
+    // modalRef;
 
     constructor(
         private router: Router,
         private route: ActivatedRoute,
         private dataService: DataService,
         private formDataService: FormDataService,
+        private modalService: NgbModal,
         private notify: NotificationService
     ) {
     }
@@ -40,6 +45,18 @@ export class StepSubmitComponent implements OnInit {
 
     emptyName() {
         return !this.formData.name || this.formData.name.trim().length === 0;
+    }
+
+    show_schedule(content) {
+        this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'}).result.then((result) => {
+          console.log(`Closed with: ${result}`);
+        });
+    }
+
+    add_schedule() {
+        // TODO
+        console.log('add schedule');
+        // this.modalRef.close();
     }
 
     goToPrevious() {

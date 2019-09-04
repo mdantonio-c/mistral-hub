@@ -17,7 +17,15 @@
     </div>
     <div class="card mst--expansion-panel mst--info-panel">
         <div class="card-header">
-            <h5>Your Request</h5>
+            <h5>Your Request
+                <span class="ml-2 click-event" (click)="show_schedule(content)">
+                    <i class="fas fa-calendar-plus"></i>
+                </span>
+                <!--
+                <button class="btn ml-2"
+                        (click)='show_schedule(content)'><i class="fas fa-calendar-plus"></i></button>
+                -->
+            </h5>
         </div>
         <div class="body">
             <dl class="request-summary">
@@ -71,4 +79,45 @@
             (click)="submit()"> Submit <i class="fa fa-arrow-right" aria-hidden="true"></i>
     </button>
 </div>
+
+<!-- Schedule Modal -->
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title">Schedule this request</h4>
+        <button type="button" class="btn close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form class="form-horizontal" role="form">
+            <div class="form-group row" style="align-items: center;">
+                <label for="scheduleDate" class="col-sm-1 col-form-label"><i class="fa fa-clock"></i></label>
+                <div class="input-group col-sm-6">
+                    <input id="scheduleDate" class="form-control" placeholder="yyyy-mm-dd"
+                           name="dp" [(ngModel)]="scheduleDate" ngbDatepicker #d="ngbDatepicker">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" (click)="d.toggle()" type="button">
+                            <i class="fa fa-calendar"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-group col-sm-5">
+                    <ngb-timepicker [(ngModel)]="scheduleTime"></ngb-timepicker>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="scheduleRepeat" class="col-sm-1 col-form-label"><i class="fa fa-history"></i></label>
+                <div class="col-sm-6">
+                    <select id="scheduleRepeat" class="form-control">
+                        <option selected>Does not repeat</option>
+                        <option>Every day</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-info" type="button">Add</button>
+    </div>
+</ng-template>
 
