@@ -47,7 +47,7 @@ class Data(EndpointResource):
             })
 
             task = CeleryExt.data_extract.apply_async(
-                args=[user.id, product_name, dataset_names, filters, request.id],
+                args=[user.id, dataset_names, filters, request.id],
                 countdown=1
             )
 
