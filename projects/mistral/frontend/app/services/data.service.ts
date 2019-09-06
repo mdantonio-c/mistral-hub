@@ -50,8 +50,47 @@ export class Dataset {
     description ? = '';
 }
 
+export interface TaskSchedule {
+    date?: DateSchedule;
+    time?: TimeSchedule;
+    repeat?: RepeatSchedule;
+}
+
+export enum RepeatSchedule {
+  NO = 'NO',
+  DAILY = 'DAILY',
+  WEEKLY = 'WEEKLY',
+}
+
+export const RepeatScheduleOptions = [{
+  code: RepeatSchedule.NO,
+  desc: 'Doesn\'t repeat'
+}, {
+  code: RepeatSchedule.DAILY,
+  desc: 'Daily'
+}, {
+  code: RepeatSchedule.WEEKLY,
+  desc: 'Weekly on Monday'
+}];
+
+export interface DateSchedule {
+    /** The year, for example 2019 */
+    year: number;
+    /** The month, for example 1=Jan ... 12=Dec */
+    month: number;
+    /** The day of month, starting at 1 */
+    day: number;
+}
+
+interface TimeSchedule {
+    /** The hour in the `[0, 23]` range. */
+    hour: number;
+    /** The minute in the `[0, 59]` range. */
+    minute: number;
+}
+
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class DataService {
 
@@ -106,12 +145,12 @@ export class DataService {
      */
     downloadData(filename): Observable<any> {
         let options = {
-			"rawResponse": true,
-			"conf": {
-				'responseType': 'blob',
-				"observe": "response",
-			}
-		};
+            "rawResponse": true,
+            "conf": {
+                'responseType': 'blob',
+                "observe": "response",
+            }
+        };
         return this.api.get('data', filename, {}, options);
     }
 

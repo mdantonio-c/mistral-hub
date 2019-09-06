@@ -3,19 +3,25 @@ import {Observable} from 'rxjs';
 
 import {WorkflowService} from './workflow.service';
 import {STEPS} from './workflow.model';
-import {DataService, Filters, RapydoResponse, SummaryStats} from "./data.service";
+import {DataService, Filters, RapydoResponse, SummaryStats, TaskSchedule} from "./data.service";
 
 export class FormData {
     name: string = '';
     datasets: string[] = [];
     filters: Filters[] = [];
     postprocessors: string[] = [];
+    schedule: TaskSchedule;
 
     clear() {
         this.name = '';
         this.datasets = [];
         this.filters = [];
         this.postprocessors = [];
+        this.schedule = null;
+    }
+
+    setSchedule(schedule: TaskSchedule) {
+        this.schedule = schedule;
     }
 
     defaultName() {

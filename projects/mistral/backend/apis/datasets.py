@@ -18,7 +18,7 @@ class Datasets(EndpointResource):
         datasets = arki.load_datasets()
         if dataset_name is not None:
             # retrieve dataset by name
-            logger.debug("retrive datset by name '{}'".format(dataset_name))
+            logger.debug("retrieve dataset by name '{}'".format(dataset_name))
             matched_ds = next((ds for ds in datasets if ds.get('id', '') == dataset_name), None)
             if not matched_ds:
                 raise RestApiException(
