@@ -95,17 +95,17 @@ class RequestManager():
 
 
     @staticmethod
-    def create_schedule_record(db, user, filters, every=None, period=None, crontab_settings=None):
+    def create_schedule_record(db, user,product_name, filters, every=None, period=None, crontab_settings=None):
         schedule = db.Schedule
         args = json.dumps(filters)
         # check if the request is periodic
         if (every or period) is not None:
-            s = schedule(user_id=user.id, args=args, is_crontab=False, every=every,
+            s = schedule(user_id=user.id, name=product_name, args=args, is_crontab=False, every=every,
                                   period=period)
         # check if the request is a crontab type
         if crontab_settings is not None:
             crontab_args = json.dumps(crontab_settings)
-            s = schedule(user_id=user.id, args=args, is_crontab=True,
+            s = schedule(user_id=user.id, name=product_name, args=args, is_crontab=True,
                                   crontab_settings=crontab_args)
         s.is_enabled = True
         db.session.add(s)
@@ -155,8 +155,24 @@ class RequestManager():
 
 
     @staticmethod
+    def get_last_schedule_request(db, schedule_id):
+        schedule = db.Schedule
+        r = schedule.query.filter(schedule.id == schedule_id).first()
+        requests_list = r.submitted_request
+
+        sorted_list = sorted(requests_list, key=lambda date: r.submission_date)
+        log.info('______: {}'.format(sorted_list))
+
+        return sorted_list[0]
+
+    @staticmethod
+    def get_schedule_name (db,schedule_id):
+        schedule = db.Schedule.query.filter(db.Schedule.id == schedule_id).first()
+        return schedule.name
+
+    @staticmethod
     # retrieve requests related to a scheduled task
-    def get_schedule_requests(db, schedule_id, sort_by=None, sort_order=None):
+    def get_schedule_requests(db, schedule_id, sort_by=None, sort_order=None, last=None):
 
         # default value if sort_by and sort_order are None
         if sort_by is None:
@@ -206,6 +222,9 @@ class RequestManager():
             if sort_order == "desc":
                 sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'], reverse=True)
                 return sorted_list
+        if last== True:
+            sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'], reverse=True)
+            return sorted_list[0]
         else:
             return submitted_request_list
 

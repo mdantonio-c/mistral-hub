@@ -62,6 +62,7 @@ class Schedule (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
+    name = db.Column(db.String, index=True, nullable=False)
     args = db.Column(db.String)
     is_crontab = db.Column(db.Boolean)
     period = db.Column(db.Enum(PeriodEnum))
