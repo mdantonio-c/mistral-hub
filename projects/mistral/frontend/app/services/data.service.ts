@@ -51,27 +51,24 @@ export class Dataset {
 }
 
 export interface TaskSchedule {
-    date?: DateSchedule;
-    time?: TimeSchedule;
-    repeat?: RepeatSchedule;
+  type: ScheduleType;
+  time?: TimeSchedule;
+  every?: number;
+  repeat?: RepeatEvery;
 }
 
-export enum RepeatSchedule {
-  NO = 'NO',
-  DAILY = 'DAILY',
-  WEEKLY = 'WEEKLY',
+export enum RepeatEvery {
+  HOUR = 'hour',
+  DAY = 'day',
+  WEEK = 'week',
+  MONTH = 'month'
 }
 
-export const RepeatScheduleOptions = [{
-  code: RepeatSchedule.NO,
-  desc: 'Doesn\'t repeat'
-}, {
-  code: RepeatSchedule.DAILY,
-  desc: 'Daily'
-}, {
-  code: RepeatSchedule.WEEKLY,
-  desc: 'Weekly on Monday'
-}];
+export enum ScheduleType {
+  CRONTAB = 'crontab',
+  PERIOD = 'period',
+  DATA_READY = 'data-ready'
+}
 
 export interface DateSchedule {
     /** The year, for example 2019 */

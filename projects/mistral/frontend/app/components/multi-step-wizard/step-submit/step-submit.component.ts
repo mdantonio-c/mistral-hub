@@ -4,8 +4,8 @@ import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {FormData, FormDataService} from "../../../services/formData.service";
 import {
     DataService,
-    RepeatSchedule,
-    RepeatScheduleOptions,
+    ScheduleType,
+    RepeatEvery,
     SummaryStats,
     TaskSchedule
 } from "../../../services/data.service";
@@ -22,9 +22,7 @@ export class StepSubmitComponent implements OnInit {
     @Input() formData: FormData;
     isFormValid = false;
     scheduleForm: FormGroup;
-    curDate = new Date();
-    schedule: TaskSchedule;
-    scheduleRepeatOptions = RepeatScheduleOptions;
+    schedule: TaskSchedule = null;
 
     constructor(
         private router: Router,
@@ -36,14 +34,15 @@ export class StepSubmitComponent implements OnInit {
         private notify: NotificationService
     ) {
         this.scheduleForm = this.formBuilder.group({
-            date: [''],
-            time: [''],
-            repeat: [RepeatSchedule.NO, Validators.required]
+            repeatType: [ScheduleType.CRONTAB, Validators.required],
+            cPeriod: [RepeatEvery.DAY],
+            time: ['00:00'],
+            every: [1],
+            period: [RepeatEvery.HOUR]
         });
     }
 
     ngOnInit() {
-        // this.cleanUpSchedule();
         this.formData = this.formDataService.getFormData();
         this.isFormValid = this.formDataService.isFormValid();
         this.formDataService.getSummaryStats().subscribe(response => {
@@ -63,31 +62,67 @@ export class StepSubmitComponent implements OnInit {
     }
 
     showSchedule(content) {
-        const modalRef = this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
+        const modalRef = this.modalService.open(content);
+        if (this.schedule) {
+            this.loadSchedule();
+        }
         modalRef.result.then((result) => {
             switch (result) {
                 case "save":
                     // add schedule
+                    switch (this.scheduleForm.get('repeatType').value) {
+                        case ScheduleType.CRONTAB:
+                            this.schedule = {
+                                type: ScheduleType.CRONTAB,
+                                time: this.scheduleForm.get('time').value,
+                                repeat: this.scheduleForm.get('cPeriod').value
+                            };
+                            break;
+                        case ScheduleType.PERIOD:
+                            this.schedule = {
+                                type: ScheduleType.PERIOD,
+                                every: this.scheduleForm.get('every').value,
+                                repeat: this.scheduleForm.get('period').value
+                            };
+                            break;
+                        case ScheduleType.DATA_READY:
+                            this.schedule = {
+                                type: ScheduleType.DATA_READY
+                            };
+                            break;
+                    }
                     this.formData.setSchedule(this.schedule);
-                    console.log('added schedule', this.schedule);
+                    console.log('added schedule:', this.schedule);
                     break;
                 case "remove":
                     this.formData.schedule = null;
-                    this.cleanUpSchedule();
+                    this.schedule = null;
+                    this.reset();
                     break;
             }
         }, (reason) => {
-            // clean up schedule
-            this.cleanUpSchedule();
+            // do nothing
         });
     }
 
-    private cleanUpSchedule() {
-        this.schedule = {
-            date: null,
-            time: {hour: 0, minute: 0},
-            repeat: RepeatSchedule.NO
-        };
+    private loadSchedule() {
+        this.scheduleForm.setValue({
+            repeatType: this.schedule.type,
+            cPeriod: (this.schedule.type === ScheduleType.CRONTAB) ? this.schedule.repeat : RepeatEvery.DAY,
+            time: (this.schedule.type === ScheduleType.CRONTAB) ? this.schedule.time : '00:00',
+            every: (this.schedule.type === ScheduleType.PERIOD) ? this.schedule.every : 1,
+            period: (this.schedule.type === ScheduleType.PERIOD) ? this.schedule.repeat : RepeatEvery.HOUR
+        });
+    }
+
+    private reset() {
+        this.scheduleForm.reset({
+            repeatType: ScheduleType.CRONTAB,
+            cPeriod: RepeatEvery.DAY,
+            time: '00:00',
+            every: 1,
+            period: RepeatEvery.HOUR
+        });
     }
 
     goToPrevious() {

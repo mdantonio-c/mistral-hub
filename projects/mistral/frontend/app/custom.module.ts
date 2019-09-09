@@ -1,4 +1,5 @@
 import {NgModule, ModuleWithProviders} from '@angular/core';
+import {NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
 import {RouterModule, Routes} from '@angular/router';
 import {DatePipe} from '@angular/common';
 
@@ -8,6 +9,7 @@ import {AuthGuard} from '/rapydo/src/app/app.auth.guard';
 import {HomeComponent} from './custom.home'
 import {DataComponent} from './components/data/data.component';
 import {RequestsComponent} from "./components/requests/requests.component";
+import {NgbTimeStringAdapter} from './adapters/timepicker-adapter';
 
 /* Multi-Step Wizard Components */
 import {MultiStepWizardComponent} from './components/multi-step-wizard/multi-step-wizard.component';
@@ -55,7 +57,7 @@ const appRoutes: Routes = [
         FormatDatePipe
     ],
     providers: [
-        DatePipe],
+        DatePipe, {provide: NgbTimeAdapter, useClass: NgbTimeStringAdapter}],
     exports: [
         RouterModule
     ]
