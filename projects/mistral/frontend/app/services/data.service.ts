@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ApiService} from '/rapydo/src/app/services/api';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 
 export interface RapydoBundle<T> {
     Meta: RapydoMeta;
@@ -51,23 +51,24 @@ export class Dataset {
 }
 
 export interface TaskSchedule {
-  type: ScheduleType;
-  time?: TimeSchedule;
-  every?: number;
-  repeat?: RepeatEvery;
+    type: ScheduleType;
+    time?: string;    // hh:mm
+    every?: number;
+    repeat?: RepeatEvery;
 }
 
 export enum RepeatEvery {
-  HOUR = 'hour',
-  DAY = 'day',
-  WEEK = 'week',
-  MONTH = 'month'
+    MINUTE = 'minute',
+    HOUR = 'hour',
+    DAY = 'day',
+    WEEK = 'week',
+    MONTH = 'month'
 }
 
 export enum ScheduleType {
-  CRONTAB = 'crontab',
-  PERIOD = 'period',
-  DATA_READY = 'data-ready'
+    CRONTAB = 'crontab',
+    PERIOD = 'period',
+    DATA_READY = 'data-ready'
 }
 
 export interface DateSchedule {
@@ -119,7 +120,7 @@ export class DataService {
     /**
      * Request for data extraction.
      */
-    extractData(name: string, datasets: string[], filters?: Filters[]) {
+    extractData(name: string, datasets: string[], filters?: Filters[], schedule?: TaskSchedule) {
         let data = {
             name: name,
             datasets: datasets
@@ -133,7 +134,32 @@ export class DataService {
                 });
             });
         }
-        return this.api.post('data', data, {"rawResponse": true});
+        if (schedule) {
+            switch (schedule.type) {
+                case ScheduleType.CRONTAB:
+                    // expected hh:mm
+                    const split = schedule.time.split(':');
+                    data['crontab-settings'] = {
+                        hour: parseInt(split[0].replace(/^0/, '')),
+                        minute: parseInt(split[1].replace(/^0/, ''))
+                    };
+                    if (schedule.repeat === RepeatEvery.WEEK) {
+                        data['crontab-settings']['day_of_week'] = 1;     // every Monday
+                    } else if (schedule.repeat === RepeatEvery.MONTH) {
+                        data['crontab-settings']['day_of_month'] = 1;   // every first of the month
+                    }
+                    break;
+                case ScheduleType.PERIOD:
+                    // managed values: days, hours, minutes
+                    data['period-settings'] = {
+                        every: schedule.every,
+                        period: `${schedule.repeat}s`
+                    };
+                    break;
+            }
+        }
+        const endpoint = schedule ? 'schedules' : 'data';
+        return this.api.post(endpoint, data, {"rawResponse": true});
     }
 
     /**

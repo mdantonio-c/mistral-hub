@@ -136,8 +136,10 @@ export class StepSubmitComponent implements OnInit {
         this.dataService.extractData(
             this.formData.name,
             this.formData.datasets,
-            this.formData.filters).subscribe(
+            this.formData.filters,
+            this.formData.schedule).subscribe(
             resp => {
+                this.schedule = null;
                 this.formData = this.formDataService.resetFormData();
                 this.isFormValid = false;
                 // Navigate to the 'My Requests' page
