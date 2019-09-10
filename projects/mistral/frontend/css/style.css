@@ -92,6 +92,7 @@ dl.request-summary p:not(:last-child) {
     width: 100%;
 }
 
+input[type="radio"]:focus,
 .mst--input:focus {
     outline: none;
 }
@@ -100,6 +101,35 @@ dl.request-summary p:not(:last-child) {
   align-items: center;
   border-bottom: 1px solid #ddd;
   justify-content: flex-end;
+}
+
+.mst--radio-label {
+  font-weight: 400;
+  margin-left: 15px;
+}
+
+.mst--radio-label:before {
+  background: #fff;
+  border: 2px solid #707070;
+  width: 20px;
+  height: 20px;
+}
+
+.mst--radio-label:after {
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  margin: 4px;
+  background: transparent;
+}
+
+input[type="radio"]:checked + .mst--radio-label:before {
+  border: 2px solid #53b8e2 !important;
+  background: #fff;
+}
+
+input[type="radio"]:checked + .mst--radio-label:after {
+  background: #53b8e2 !important;;
 }
 
 .mst--input-checkbox {
