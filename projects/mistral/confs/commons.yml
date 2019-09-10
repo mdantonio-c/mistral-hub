@@ -24,7 +24,6 @@ services:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
-      - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
 
   celery:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
@@ -33,6 +32,7 @@ services:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
+      - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
 
   # arkimet:
   #   restart: always
