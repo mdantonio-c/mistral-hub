@@ -19,6 +19,7 @@ class Schedules(EndpointResource):
         criteria = self.get_input()
         self.validate_input(criteria, 'DataScheduling')
 
+        product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         # check for existing dataset(s)
         datasets = arki.load_datasets()
@@ -48,7 +49,7 @@ class Schedules(EndpointResource):
             log.info("Period settings [{} {}]".format(every, period))
 
             # get schedule id in postgres database as scheduled request name for mongodb
-            name_int = RequestManager.create_schedule_record(db, user, filters, every=every, period=period)
+            name_int = RequestManager.create_schedule_record(db, user,product_name, filters, every=every, period=period)
             name = str(name_int)
 
 
@@ -72,7 +73,7 @@ class Schedules(EndpointResource):
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
             # get scheduled request id in postgres database as scheduled request name for mongodb
-            name_int =RequestManager.create_schedule_record(db, user, filters, crontab_settings=crontab_settings)
+            name_int =RequestManager.create_schedule_record(db, user,product_name, filters, crontab_settings=crontab_settings)
             name = str(name_int)
 
             # parsing crontab settings
@@ -110,6 +111,7 @@ class Schedules(EndpointResource):
         sort = param.get('sort-by')
         sort_order = param.get('sort-order')
         get_total = param.get('get_total', False)
+        last = param.get('last', False)
 
         user = self.get_current_user()
 
@@ -120,14 +122,15 @@ class Schedules(EndpointResource):
                 counter = RequestManager.count_schedule_requests(db, schedule_id)
                 return {"total": counter}
 
-            # check if the current user is the owner of the scheduled request
-            if not RequestManager.check_owner(db, user.id, schedule_id=schedule_id):
-                raise RestApiException(
-                    "Operation not allowed",
-                    status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
+            self.request_and_owner_check(db, user.id, schedule_id)
+
+            # if last:
+            #     res = RequestManager.get_last_schedule_request(db, schedule_id)
+            #     return self.force_response(
+            #         res, code=hcodes.HTTP_OK_BASIC)
 
             # get submitted requests related to a schedule list
-            res = RequestManager.get_schedule_requests(db, schedule_id, sort_by=sort, sort_order=sort_order)
+            res = RequestManager.get_schedule_requests(db, schedule_id, sort_by=sort, sort_order=sort_order,last=last)
 
         else:
             # get total count for user schedules

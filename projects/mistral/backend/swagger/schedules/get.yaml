@@ -50,6 +50,11 @@ schedule-requests:
       description: Retrieve total number of requests related to a single schedule
       type: boolean
       default: false
+    - name: last
+      in: query
+      description: retrieve the last submitted request
+      type: boolean
+      allowEmptyValue: true
 
   responses:
     '200':
