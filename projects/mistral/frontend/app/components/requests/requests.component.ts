@@ -11,11 +11,13 @@ import {DataService} from "../../services/data.service";
 
 @Component({
     selector: 'app-requests',
-    templateUrl: './requests.component.html'
+    templateUrl: './requests.component.html',
+    styleUrls: ['./requests.component.css']
 })
 export class RequestsComponent extends BasePaginationComponent {
     @ViewChild('myTable', {static: false}) table: any;
     expanded: any = {};
+    selectedTabId = 'requests';
 
     constructor(
         protected api: ApiService,
@@ -41,13 +43,13 @@ export class RequestsComponent extends BasePaginationComponent {
 
     remove(requestID) {
         console.log(`remove this request ${requestID}`);
-        return this.delete("requests", requestID);
+        return this.delete('requests', requestID);
     }
 
     download(filename) {
         this.dataService.downloadData(filename).subscribe(
             resp => {
-                let contentType = resp.headers['content-type'] || 'application/octet-stream';
+                const contentType = resp.headers['content-type'] || 'application/octet-stream';
                 const blob = new Blob([resp.body], {type: contentType});
                 importedSaveAs(blob, filename);
             },
