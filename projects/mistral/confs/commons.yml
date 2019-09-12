@@ -9,7 +9,6 @@ services:
     volumes:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
-      - ${VANILLA_DIR}/data/arkimet_2:/arkimet_2/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
       - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
 
@@ -24,7 +23,6 @@ services:
     volumes:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
-      - ${VANILLA_DIR}/data/arkimet_2:/arkimet_2/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
 
   celery:
@@ -33,7 +31,6 @@ services:
     volumes:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
-      - ${VANILLA_DIR}/data/arkimet_2:/arkimet_2/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
       - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
 
