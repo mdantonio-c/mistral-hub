@@ -1,6 +1,5 @@
-/* top navbar */
+/* top navbar: force bg-dark */
 .navbar {
-    /* bg-dark */
     background-color: #343a40 !important;
 }
 
@@ -16,6 +15,7 @@
 .navbar .navbar-nav .nav-link:hover {
     color: rgba(255, 255, 255, 0.75);
 }
+
 .navbar .navbar-nav .nav-link.active {
     color: #fff;
 }
@@ -44,7 +44,6 @@
     padding-left: 1.5%;
     padding-right: 1.5%;
 }
-
 
 ul {
     list-style-type: none;
@@ -321,25 +320,22 @@ input[type="radio"]:checked + .mst--radio-label:after {
     margin-top: 20px;
 }
 
-/* active buttons */
-#status-buttons a.active span.round-tabs.one {
-    background: rgb(34, 194, 34);
-    color: #fff
+.board {
+    /*width: 75%;*/
+    margin: 30px auto;
+    /*height: 500px;*/
+    background: #fff;
+    /*box-shadow: 10px 10px #ccc,-10px 20px #ddd;*/
+}
+.board .nav-tabs {
+    position: relative;
+    margin: 40px auto;
+    margin-bottom: 0;
+    box-sizing: border-box;
 }
 
-#status-buttons a.active span.round-tabs.two {
-    background: #febe29;
-    color: #fff
-}
-
-#status-buttons a.active span.round-tabs.three {
-    background: #3e5e9a;
-    color: #fff
-}
-
-#status-buttons a.active span.round-tabs.four {
-    background: #f1685e;
-    color: #fff
+div.board + pre {
+  background: #ddd;
 }
 
 /* Custom ngx-datatable styles */

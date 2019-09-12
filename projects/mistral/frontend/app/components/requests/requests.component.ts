@@ -11,11 +11,13 @@ import {DataService} from "../../services/data.service";
 
 @Component({
     selector: 'app-requests',
-    templateUrl: './requests.component.html'
+    templateUrl: './requests.component.html',
+    styleUrls: ['./requests.component.css']
 })
 export class RequestsComponent extends BasePaginationComponent {
     @ViewChild('myTable', {static: false}) table: any;
     expanded: any = {};
+    selectedTabId = 'requests';
 
     constructor(
         protected api: ApiService,
