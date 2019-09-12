@@ -37,6 +37,10 @@ export class RequestsComponent extends BasePaginationComponent {
         this.list();
     }
 
+    onTabChange($event) {
+        this.selectedTabId = $event.nextId;
+    }
+
     list() {
         return this.get(this.endpoint);
     }

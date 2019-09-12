@@ -12,7 +12,7 @@
         </div>
     </div>
 
-    <ngb-tabset justify='start' orientation='vertical' (tabChange)="selectedTabId = $event.nextId" class="sidenav">
+    <ngb-tabset justify='start' orientation='vertical' (tabChange)="onTabChange($event)" class="sidenav">
         <ngb-tab id="requests" title="Requests"></ngb-tab>
         <ngb-tab id="schedules" title="Schedules"></ngb-tab>
     </ngb-tabset>
