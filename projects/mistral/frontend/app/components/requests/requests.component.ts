@@ -41,13 +41,13 @@ export class RequestsComponent extends BasePaginationComponent {
 
     remove(requestID) {
         console.log(`remove this request ${requestID}`);
-        return this.delete("requests", requestID);
+        return this.delete('requests', requestID);
     }
 
     download(filename) {
         this.dataService.downloadData(filename).subscribe(
             resp => {
-                let contentType = resp.headers['content-type'] || 'application/octet-stream';
+                const contentType = resp.headers['content-type'] || 'application/octet-stream';
                 const blob = new Blob([resp.body], {type: contentType});
                 importedSaveAs(blob, filename);
             },
