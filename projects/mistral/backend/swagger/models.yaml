@@ -128,8 +128,11 @@ definitions:
 
   DataScheduling:
     required:
+      - name
       - datasets
     properties:
+      name:
+        type: string
       datasets:
         description: Data belong to the datasets of the list.
         type: array
@@ -215,6 +218,7 @@ definitions:
       fileoutput:
         type: string
         format: binary
+
   Requests:
     type: array
     items:

@@ -52,7 +52,7 @@ class RequestManager():
         if item_to_check.user_id == user_id:
             return True
 
-
+    @staticmethod
     def check_request(db, schedule_id=None, single_request_id=None):
         # check a single request
         if single_request_id is not None:
@@ -197,6 +197,8 @@ class RequestManager():
         submitted_request_list = []
         for row in requests_list:
             submitted_request = {}
+            submitted_request['id'] = row.id
+            submitted_request['name'] = row.name
             submitted_request['request_id'] = row.id
             submitted_request['task_id'] = row.task_id
             submitted_request['submission_date'] = row.submission_date.isoformat()
@@ -337,6 +339,7 @@ class RequestManager():
         for row in schedules_list:
             user_schedules = {}
             user_schedules['schedule_id'] = row.id
+            user_schedules['name'] = row.name
             user_schedules['submission_date'] = row.submission_date.isoformat()
             user_schedules['args'] = json.loads(row.args)
             user_schedules['user_name'] = user_name
