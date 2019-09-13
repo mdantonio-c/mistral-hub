@@ -11,6 +11,7 @@ before_script:
   # - curl -fsSL https://get.docker.com/ | sh
   - docker -v
   - docker ps
+  - rapydo install --git
   # - apt-get install python3-pip
   # - pip3 --version
   # - pip3 install rapydo-controller
