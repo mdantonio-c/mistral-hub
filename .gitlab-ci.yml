@@ -28,6 +28,7 @@ stages:
 script:
   stage: tests
   script:
-    # - docker-compose -f containers/docker-compose.yml exec backend ./tests.sh
-    - rapydo --privileged start
-
+    - rapydo init
+    - rapydo update -i main --rebuild 
+    - rapydo start
+    - rapydo shell backend --command "restapi tests"
