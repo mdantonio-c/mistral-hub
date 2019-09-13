@@ -16,9 +16,11 @@ class Schedules(EndpointResource):
     def post(self):
 
         user = self.get_current_user()
+        log.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
         criteria = self.get_input()
-        self.validate_input(criteria, 'DataScheduling')
 
+        self.validate_input(criteria, 'DataExtraction')
+        product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         # check for existing dataset(s)
         datasets = arki.load_datasets()
@@ -28,8 +30,11 @@ class Schedules(EndpointResource):
                 raise RestApiException(
                     "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
-
-        filters = criteria.get('filters')
+        # incoming filters: <dict> in form of filter_name: list_of_values
+        # e.g. 'level': [{...}, {...}] or 'level: {...}'
+        filters = criteria.get('filters', {})
+        # clean up filters from unknown values
+        filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
 
         db= self.get_service_instance('sqlalchemy')
 
@@ -48,49 +53,63 @@ class Schedules(EndpointResource):
             log.info("Period settings [{} {}]".format(every, period))
 
             # get schedule id in postgres database as scheduled request name for mongodb
-            name_int = RequestManager.create_schedule_record(db, user, filters, every=every, period=period)
-            name = str(name_int)
+            try:
+                name_int = RequestManager.create_schedule_record(db, user, product_name, {
+                    'datasets': dataset_names,
+                    'filters': filters,
+                },every=every, period=period)
+                name = str(name_int)
 
 
-            # remove previous task
-            res = CeleryExt.delete_periodic_task(name=name)
-            log.debug("Previous task deleted = %s", res)
+                # remove previous task
+                res = CeleryExt.delete_periodic_task(name=name)
+                log.debug("Previous task deleted = %s", res)
 
-            request_id = None
+                request_id = None
 
-            CeleryExt.create_periodic_task(
-                name=name,
-                task="mistral.tasks.data_extraction.data_extract",
-                every=every,
-                period=period,
-                args=[user.id, dataset_names, filters, request_id, name_int],
-            )
+                CeleryExt.create_periodic_task(
+                    name=name,
+                    task="mistral.tasks.data_extraction.data_extract",
+                    every=every,
+                    period=period,
+                    args=[user.id, dataset_names, filters, request_id, name_int],
+                )
 
-            log.info("Scheduling periodic task")
-
+                log.info("Scheduling periodic task")
+            except Exception as error:
+                db.session.rollback()
+                raise SystemError("Unable to submit the request")
 
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
-            # get scheduled request id in postgres database as scheduled request name for mongodb
-            name_int =RequestManager.create_schedule_record(db, user, filters, crontab_settings=crontab_settings)
-            name = str(name_int)
 
-            # parsing crontab settings
-            for i in crontab_settings.keys():
-                val = crontab_settings.get(i)
-                str_val = str(val)
-                crontab_settings[i] = str_val
+            try:
+                # get scheduled request id in postgres database as scheduled request name for mongodb
+                name_int = RequestManager.create_schedule_record(db, user, product_name, {
+                    'datasets': dataset_names,
+                    'filters': filters,
+                },crontab_settings=crontab_settings)
+                name = str(name_int)
 
-            request_id = None
+                # parsing crontab settings
+                for i in crontab_settings.keys():
+                    val = crontab_settings.get(i)
+                    str_val = str(val)
+                    crontab_settings[i] = str_val
 
-            CeleryExt.create_crontab_task(
-                name=name,
-                task="mistral.tasks.data_extraction.data_extract",
-                **crontab_settings,
-                args=[user.id, dataset_names, filters,request_id, name_int],
-            )
+                request_id = None
 
-            log.info("Scheduling crontab task")
+                CeleryExt.create_crontab_task(
+                    name=name,
+                    task="mistral.tasks.data_extraction.data_extract",
+                    **crontab_settings,
+                    args=[user.id, dataset_names, filters,request_id, name_int],
+                )
+
+                log.info("Scheduling crontab task")
+            except Exception as error:
+                db.session.rollback()
+                raise SystemError("Unable to submit the request")
 
         return self.force_response('Scheduled task {}'.format(name))
 
@@ -110,6 +129,7 @@ class Schedules(EndpointResource):
         sort = param.get('sort-by')
         sort_order = param.get('sort-order')
         get_total = param.get('get_total', False)
+        last = param.get('last', False)
 
         user = self.get_current_user()
 
@@ -120,14 +140,15 @@ class Schedules(EndpointResource):
                 counter = RequestManager.count_schedule_requests(db, schedule_id)
                 return {"total": counter}
 
-            # check if the current user is the owner of the scheduled request
-            if not RequestManager.check_owner(db, user.id, schedule_id=schedule_id):
-                raise RestApiException(
-                    "Operation not allowed",
-                    status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
+            self.request_and_owner_check(db, user.id, schedule_id)
+
+            # if last:
+            #     res = RequestManager.get_last_schedule_request(db, schedule_id)
+            #     return self.force_response(
+            #         res, code=hcodes.HTTP_OK_BASIC)
 
             # get submitted requests related to a schedule list
-            res = RequestManager.get_schedule_requests(db, schedule_id, sort_by=sort, sort_order=sort_order)
+            res = RequestManager.get_schedule_requests(db, schedule_id, sort_by=sort, sort_order=sort_order,last=last)
 
         else:
             # get total count for user schedules
