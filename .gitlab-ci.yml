@@ -16,13 +16,9 @@ before_script:
   # - mv docker-compose /usr/local/bin
   # - pip install coveralls
   # - pip install python-coveralls
-
-stages:
-  - tests
+  - cat /etc/resolv.conf
 
 script:
-  stage: tests
-  script:
-    # - docker-compose -f containers/docker-compose.yml exec backend ./tests.sh
-    - rapydo --privileged start
+  # - docker-compose -f containers/docker-compose.yml exec backend ./tests.sh
+  - rapydo --privileged start
 
