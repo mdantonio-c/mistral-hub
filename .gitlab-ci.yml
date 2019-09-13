@@ -29,8 +29,8 @@ stages:
 script:
   stage: tests
   script:
-    - rapydo init
-    - rapydo update -i main --rebuild 
-    - rapydo start
+    - rapydo --no-frontend init
+    - rapydo --no-frontend update -i main --rebuild 
+    - rapydo --no-frontend start
     - export COMPOSE_INTERACTIVE_NO_CLI=1
-    - rapydo shell backend --command "restapi tests"
+    - rapydo --no-frontend shell backend --command "restapi tests"
