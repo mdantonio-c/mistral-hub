@@ -202,6 +202,7 @@ class RequestManager():
             submitted_request['request_id'] = row.id
             submitted_request['task_id'] = row.task_id
             submitted_request['submission_date'] = row.submission_date.isoformat()
+            submitted_request['end_date'] = row.end_date.isoformat()
             submitted_request['status'] = row.status
 
             if row.error_message is not None:
@@ -213,6 +214,7 @@ class RequestManager():
             else:
                 fileoutput_name = 'no file available'
             submitted_request['fileoutput'] = fileoutput_name
+            submitted_request['filesize'] = current_fileoutput.size if current_fileoutput is not None else None
 
             submitted_request_list.append(submitted_request)
 
@@ -231,7 +233,7 @@ class RequestManager():
             return submitted_request_list
 
     @staticmethod
-    def get_user_requests(db, user_id, sort_by=None, sort_order=None, filter=None):
+    def get_user_requests(db, user_id, sort_by=None, sort_order=None):
 
         #default value if sort_by and sort_order are None
         if sort_by is None:
@@ -243,7 +245,6 @@ class RequestManager():
         current_user = user.query.filter(user.id == user_id).first()
         user_name = current_user.name
         requests_list = current_user.requests
-        scheduled_list = current_user.schedules
 
         # update celery status for the requests coming from the database query
         # for row in requests_list:
@@ -256,53 +257,32 @@ class RequestManager():
 
         # create the response schema for not scheduled requests
         user_list = []
-        if filter != "scheduled":  # check if the user doesn't have filtered the request to ask for scheduled requests only
-            for row in requests_list:
-                user_request = {}
-                if row.schedule_id is not None:
-                    continue
-                user_request['id'] = row.id
-                user_request['name'] = row.name
-                user_request['submission_date'] = row.submission_date.isoformat()
-                user_request['end_date'] = row.end_date.isoformat()
-                user_request['args'] = json.loads(row.args)
-                user_request['user_name'] = user.name
-                user_request['status'] = row.status
-                user_request['task_id'] = row.task_id
 
-                if row.error_message is not None:
-                    user_request['error message'] = row.error_message
+        for row in requests_list:
+            user_request = {}
+            if row.schedule_id is not None:
+                continue
+            user_request['id'] = row.id
+            user_request['name'] = row.name
+            user_request['submission_date'] = row.submission_date.isoformat()
+            user_request['end_date'] = row.end_date.isoformat()
+            user_request['args'] = json.loads(row.args)
+            user_request['user_name'] = user.name
+            user_request['status'] = row.status
+            user_request['task_id'] = row.task_id
 
-                current_fileoutput = row.fileoutput
-                if current_fileoutput is not None:
-                    fileoutput_name = current_fileoutput.filename
-                else:
-                    fileoutput_name = 'no file available'
-                user_request['fileoutput'] = fileoutput_name
-                user_request['filesize'] = current_fileoutput.size if current_fileoutput is not None else None
+            if row.error_message is not None:
+                user_request['error message'] = row.error_message
 
-                user_list.append(user_request)
+            current_fileoutput = row.fileoutput
+            if current_fileoutput is not None:
+                fileoutput_name = current_fileoutput.filename
+            else:
+                fileoutput_name = 'no file available'
+            user_request['fileoutput'] = fileoutput_name
+            user_request['filesize'] = current_fileoutput.size if current_fileoutput is not None else None
 
-        # create the response schema for scheduled requests
-        if filter != "no-scheduled":  # check if the user doesn't have filtered the request to ask for single requests only
-            for row in scheduled_list:
-                user_request = {}
-                user_request['id'] = row.id
-                user_request['name'] = row.name
-                user_request['submission_date'] = row.submission_date.isoformat()
-                user_request['end_date'] = row.end_date.isoformat()
-                user_request['args'] = json.loads(row.args)
-                user_request['user_name'] = user.name
-                user_request['submitted_requests_number'] = row.submitted_request.count()
-                user_request['enabled'] = row.is_enabled
-                if row.is_crontab == False:
-                    user_request['periodic'] = True
-                    periodic_settings = ('every', str(row.every), row.period.name)
-                    user_request['periodic_settings'] = ' '.join(periodic_settings)
-                else:
-                    user_request['crontab'] = True
-                    user_request['crontab_settings'] = json.loads(row.crontab_settings)
-                user_list.append(user_request)
+            user_list.append(user_request)
 
         if sort_by == "date":
             if sort_order == "asc":
