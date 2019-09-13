@@ -16,7 +16,7 @@ before_script:
   # - mv docker-compose /usr/local/bin
   # - pip install coveralls
   # - pip install python-coveralls
-  - cat /etc/resolv.conf
+  - ping www.google.com
 
 stages:
   - tests
