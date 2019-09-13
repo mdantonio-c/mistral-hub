@@ -1,0 +1,30 @@
+<div class='container-fluid'>
+    <div class="row justify-content-md-center">
+        <div class='col-12'>
+            <div class="d-flex align-items-center">
+                <h5 class="mr-auto">My Requests</h5>
+<!--                <div class="btn-group" role="group">-->
+<!--                    <button class="btn" (click)="list()">-->
+<!--                        <i class="fa fa-sync" aria-hidden="true"></i>-->
+<!--                    </button>-->
+<!--                </div>-->
+            </div>
+        </div>
+    </div>
+
+    <ngb-tabset justify='start' orientation='vertical' (tabChange)="onTabChange($event)" class="sidenav">
+        <ngb-tab id="requests" title="Requests"></ngb-tab>
+        <ngb-tab id="schedules" title="Schedules"></ngb-tab>
+    </ngb-tabset>
+
+     <div class="row justify-content-md-center page-with-sidebar">
+        <div class="col-12">
+            <ng-container *ngIf="selectedTabId === 'requests'">
+                <app-requests></app-requests>
+            </ng-container>
+            <ng-container *ngIf="selectedTabId === 'schedules'">
+                <app-schedules></app-schedules>
+            </ng-container>
+        </div>
+     </div>
+</div>

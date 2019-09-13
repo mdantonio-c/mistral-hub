@@ -9,6 +9,8 @@ import {AuthGuard} from '/rapydo/src/app/app.auth.guard';
 import {HomeComponent} from './custom.home'
 import {DataComponent} from './components/data/data.component';
 import {RequestsComponent} from "./components/requests/requests.component";
+import {SchedulesComponent} from "./components/schedules/schedules.component";
+import {DashboardComponent} from "./components/dashboard/dashboard.component";
 import {NgbTimeStringAdapter} from './adapters/timepicker-adapter';
 
 /* Multi-Step Wizard Components */
@@ -34,7 +36,7 @@ const appRoutes: Routes = [
             {path: 'submit', component: StepSubmitComponent, outlet: 'step', canActivate: [WorkflowGuard]}
         ]
     },
-    {path: 'app/requests', component: RequestsComponent},
+    {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
     {path: 'app', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
     {path: '', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
 ];
@@ -53,7 +55,9 @@ const appRoutes: Routes = [
         StepFiltersComponent,
         StepPostprocessComponent,
         StepSubmitComponent,
+        DashboardComponent,
         RequestsComponent,
+        SchedulesComponent,
         FormatDatePipe
     ],
     providers: [

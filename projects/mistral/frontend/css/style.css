@@ -14,10 +14,11 @@
 }
 
 .navbar .navbar-brand .project-title {
-    font-family: 'Manjari Bold';
-    top: 10px;
+    /*font-family: 'Manjari Bold';*/
+    font-family: 'Roboto Condensed';
+    top: 9px;
     position: relative;
-    font-size: x-large;
+    font-size: large;
 }
 
 .navbar .navbar-brand,
