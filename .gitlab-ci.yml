@@ -1,8 +1,10 @@
 image: rapydo/dind:0.6.7
 
 
-# variables:
-#   DOCKER_COMPOSE_VERSION: 1.7.0
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  # DOCKER_COMPOSE_VERSION: 1.7.0
 
 before_script:
   # - curl -fsSL https://get.docker.com/ | sh
@@ -16,7 +18,6 @@ before_script:
   # - mv docker-compose /usr/local/bin
   # - pip install coveralls
   # - pip install python-coveralls
-  - ping www.google.com
 
 stages:
   - tests
