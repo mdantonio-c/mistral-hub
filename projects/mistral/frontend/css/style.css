@@ -1,6 +1,24 @@
 /* top navbar: force bg-dark */
 .navbar {
     background-color: #343a40 !important;
+    padding-bottom: 0px;
+    padding-top: 0px;
+}
+
+.navbar .navbar-brand {
+    margin-right: 40px;
+}
+
+.navbar .navbar-brand img {
+    height: 48px;
+}
+
+.navbar .navbar-brand .project-title {
+    /*font-family: 'Manjari Bold';*/
+    font-family: 'Roboto Condensed';
+    top: 9px;
+    position: relative;
+    font-size: large;
 }
 
 .navbar .navbar-brand,

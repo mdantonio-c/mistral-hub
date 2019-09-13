@@ -10,14 +10,13 @@ import {FormlyService} from '/rapydo/src/app/services/formly'
 import {DataService} from "../../services/data.service";
 
 @Component({
-    selector: 'app-requests',
-    templateUrl: './requests.component.html',
-    styleUrls: ['./requests.component.css']
+    selector: 'app-schedules',
+    templateUrl: './schedules.component.html',
+    styleUrls: ['./schedules.component.css']
 })
-export class RequestsComponent extends BasePaginationComponent {
-    @ViewChild('myRequestsTable', {static: false}) table: any;
+export class SchedulesComponent extends BasePaginationComponent {
+    @ViewChild('mySchedulesTable', {static: false}) table: any;
     expanded: any = {};
-    selectedTabId = 'requests';
 
     constructor(
         protected api: ApiService,
@@ -28,43 +27,20 @@ export class RequestsComponent extends BasePaginationComponent {
         private dataService: DataService
     ) {
         super(api, auth, notify, modalService, formly);
-        this.init("request");
+        this.init("schedule");
 
         this.server_side_pagination = true;
-        this.endpoint = 'requests';
-        this.counter_endpoint = 'requests';
+        this.endpoint = 'schedules';
+        this.counter_endpoint = 'schedules';
         this.initPaging(20);
         this.list();
-    }
-
-    onTabChange($event) {
-        this.selectedTabId = $event.nextId;
     }
 
     list() {
         return this.get(this.endpoint);
     }
 
-    remove(requestID) {
-        console.log(`remove this request ${requestID}`);
-        return this.delete('requests', requestID);
-    }
-
-    download(filename) {
-        this.dataService.downloadData(filename).subscribe(
-            resp => {
-                const contentType = resp.headers['content-type'] || 'application/octet-stream';
-                const blob = new Blob([resp.body], {type: contentType});
-                importedSaveAs(blob, filename);
-            },
-            error => {
-                this.notify.showError(`Unable to download file: ${filename}`);
-            }
-        );
-    }
-
     toggleExpandRow(row) {
         this.table.rowDetail.toggleExpandRow(row);
     }
-
 }
