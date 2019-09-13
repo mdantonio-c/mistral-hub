@@ -164,14 +164,13 @@ export class DataService {
 
     /**
      * Download data for a completed extraction request
-     * @param filename
      */
     downloadData(filename): Observable<any> {
-        let options = {
-            "rawResponse": true,
-            "conf": {
-                'responseType': 'blob',
-                "observe": "response",
+        const options = {
+            rawResponse: true,
+            conf: {
+                responseType: 'blob',
+                observe: 'response',
             }
         };
         return this.api.get('data', filename, {}, options);

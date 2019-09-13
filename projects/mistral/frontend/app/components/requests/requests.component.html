@@ -1,186 +1,193 @@
-<div class='container-fluid'>
-    <div class="row justify-content-md-center">
+<div class="container-fluid">
+    <div class="row no-gutters">
         <div class='col-12'>
-            <div class='card'>
-                <div class='card-header'>
-                    <div class="d-flex align-items-center">
-                        <h4 class="panel-title mr-auto">My Requests</h4>
-                        <div class="btn-group" role="group">
-                            <button class="btn" (click)="list()">
-                                <i class="fa fa-sync" aria-hidden="true"></i>
-                            </button>
+            <div class="d-flex align-items-center">
+                <h5 class="mr-auto">My Requests</h5>
+                <div class="btn-group" role="group">
+                    <button class="btn" (click)="list()">
+                        <i class="fa fa-sync" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ngb-tabset justify='start' orientation='vertical' (tabChange)="selectedTabId = $event.nextId" class="sidenav">
+        <ngb-tab id="requests" title="Requests"></ngb-tab>
+        <ngb-tab id="schedules" title="Schedules"></ngb-tab>
+    </ngb-tabset>
+
+    <div class="row justify-content-md-center page-with-sidebar">
+        <div class="col-12">
+            <ng-container *ngIf="selectedTabId === 'requests'">
+                <loading *ngIf="loading"></loading>
+                <!-- no data -->
+                <div class="row" *ngIf="!loading && !rows?.length">
+                    <div class="col">
+                        <div class="no-results">
+                            <h2>No Data</h2>
+                            <p>You have not submitted any requests yet</p>
                         </div>
                     </div>
                 </div>
-                <div class='card-block'>
-                    <loading *ngIf="loading"></loading>
-                    <!-- no data -->
-                    <div class="row" *ngIf="!loading && !rows?.length">
-                        <div class="col">
-                            <div class="no-results">
-                                <h2>No Data</h2>
-                                <p>You have not submitted any requests yet</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="table-responsive" *ngIf="rows?.length">
+                <div class="table-responsive" *ngIf="rows?.length">
 
-                        <ngx-datatable
-                                #myTable
-                                class="expandable"
-                                [rows]="rows"
-                                [columnMode]="'flex'"
-                                [loadingIndicator]='true'
-                                [footerHeight]="50"
-                                [limit]="itemsPerPage">
-                            <!-- Row Detail Template -->
-                            <ngx-datatable-row-detail
-                                    [rowHeight]="'100%'"
+                    <ngx-datatable
+                            #myTable
+                            class="expandable"
+                            [rows]="rows"
+                            [columnMode]="'flex'"
+                            [loadingIndicator]='true'
+                            [footerHeight]="50"
+                            [limit]="itemsPerPage">
+                        <!-- Row Detail Template -->
+                        <ngx-datatable-row-detail
+                                [rowHeight]="'100%'"
+                        >
+                            <ng-template
+                                    let-row="row"
+                                    let-expanded="expanded"
+                                    ngx-datatable-row-detail-template
                             >
-                                <ng-template
-                                        let-row="row"
-                                        let-expanded="expanded"
-                                        ngx-datatable-row-detail-template
-                                >
-                                    <div>
-                                        <div><strong>Request Details</strong></div>
-                                        <div>Task ID: {{ row.task_id }}</div>
-                                        <ng-container *ngIf="row.args">
-                                            <div class="my-2"></div>
-                                            <dl class="mb-0">
-                                                <dt>Dataset(s)</dt>
-                                                <dd>
-                                                    <ul class="comma-list">
-                                                        <li *ngFor="let ds of row.args.datasets">{{ds}}</li>
-                                                    </ul>
-                                                </dd>
-                                            </dl>
-                                            <div class="my-2"></div>
-                                            <dl class="mb-0" *ngIf="row.args.filters">
-                                                <dt>Filter(s)</dt>
-                                                <dd>
-                                                    <dl class="row no-gutters mb-0 px-0 request-summary"
-                                                        *ngIf="(row.args.filters | keyvalue).length else noFilters">
-                                                        <ng-container *ngFor="let f of row.args.filters | keyvalue">
-                                                            <dt class="col-sm-3" style="font-weight: normal;">
-                                                                {{f.key}}
-                                                            </dt>
-                                                            <dd class="col-sm-9"><p *ngFor="let v of f.value"
-                                                                                    class="mb-0"
-                                                                                    style="white-space: normal">
-                                                                {{v.desc}}</p></dd>
-                                                        </ng-container>
-                                                    </dl>
-                                                    <ng-template #noFilters>no filter selected</ng-template>
-                                                </dd>
-                                            </dl>
-                                        </ng-container>
-                                    </div>
-                                </ng-template>
-                            </ngx-datatable-row-detail>
+                                <div>
+                                    <div><strong>Request Details</strong></div>
+                                    <div>Task ID: {{ row.task_id }}</div>
+                                    <ng-container *ngIf="row.args">
+                                        <div class="my-2"></div>
+                                        <dl class="mb-0">
+                                            <dt>Dataset(s)</dt>
+                                            <dd>
+                                                <ul class="comma-list">
+                                                    <li *ngFor="let ds of row.args.datasets">{{ds}}</li>
+                                                </ul>
+                                            </dd>
+                                        </dl>
+                                        <div class="my-2"></div>
+                                        <dl class="mb-0" *ngIf="row.args.filters">
+                                            <dt>Filter(s)</dt>
+                                            <dd>
+                                                <dl class="row no-gutters mb-0 px-0 request-summary"
+                                                    *ngIf="(row.args.filters | keyvalue).length else noFilters">
+                                                    <ng-container *ngFor="let f of row.args.filters | keyvalue">
+                                                        <dt class="col-sm-3" style="font-weight: normal;">
+                                                            {{f.key}}
+                                                        </dt>
+                                                        <dd class="col-sm-9"><p *ngFor="let v of f.value"
+                                                                                class="mb-0"
+                                                                                style="white-space: normal">
+                                                            {{v.desc}}</p></dd>
+                                                    </ng-container>
+                                                </dl>
+                                                <ng-template #noFilters>no filter selected</ng-template>
+                                            </dd>
+                                        </dl>
+                                    </ng-container>
+                                </div>
+                            </ng-template>
+                        </ngx-datatable-row-detail>
 
-                            <!-- Column Templates -->
-                            <!-- show details -->
-                            <ngx-datatable-column
-                                    width="20"
-                                    [resizeable]="false"
-                                    [sortable]="false"
-                                    [draggable]="false"
-                                    [canAutoResize]="false"
+                        <!-- Column Templates -->
+                        <!-- show details -->
+                        <ngx-datatable-column
+                                width="20"
+                                [resizeable]="false"
+                                [sortable]="false"
+                                [draggable]="false"
+                                [canAutoResize]="false"
+                        >
+                            <ng-template
+                                    let-row="row"
+                                    let-expanded="expanded"
+                                    ngx-datatable-cell-template
                             >
-                                <ng-template
-                                        let-row="row"
-                                        let-expanded="expanded"
-                                        ngx-datatable-cell-template
-                                >
-                                    <button class="btn p-0" *ngIf="!expanded"
-                                            title="Show/Hide Details"
-                                            (click)='toggleExpandRow(row)'><i class="fa fa-angle-right"></i></button>
-                                    <button class="btn p-0" *ngIf="expanded"
-                                            title="Show/Hide Details"
-                                            (click)='toggleExpandRow(row)'><i class="fa fa-angle-down"></i></button>
-                                </ng-template>
-                            </ngx-datatable-column>
-                            <!-- Product -->
-                            <ngx-datatable-column
-                                    name="Product"
-                                    prop="name"
-                                    [resizeable]="false"
-                                    [sortable]="false"
-                                    [draggable]="false"
-                                    [flexGrow]="2">
-                                <ng-template
-                                        let-value="value"
-                                        let-row="row"
-                                        ngx-datatable-cell-template
-                                >
-                                    <strong>{{ value }}</strong>
-                                </ng-template>
-                            </ngx-datatable-column>
-                            <!-- Submission date -->
-                            <ngx-datatable-column
-                                    name="Submission date"
-                                    prop="submission_date"
-                                    [resizeable]="false"
-                                    [sortable]="false"
-                                    [draggable]="false"
-                                    [flexGrow]="1.6"
-                                    [minWidth]="160">
-                                <ng-template
-                                        let-value="value"
-                                        let-row="row"
-                                        ngx-datatable-cell-template
-                                >
-                                    <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
-                                </ng-template>
-                            </ngx-datatable-column>
-                            <!-- End date -->
-                            <ngx-datatable-column
-                                    name="End date"
-                                    prop="end_date"
-                                    [resizeable]="false"
-                                    [sortable]="false"
-                                    [draggable]="false"
-                                    [flexGrow]="1.6"
-                                    [minWidth]="160">
-                                <ng-template
-                                        let-value="value"
-                                        let-row="row"
-                                        ngx-datatable-cell-template
-                                >
-                                    <span *ngIf="value else noValue">{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
-                                </ng-template>
-                            </ngx-datatable-column>
-                            <!-- Size -->
-                            <ngx-datatable-column
-                                    name="Size"
-                                    prop="filesize"
-                                    [resizeable]="false"
-                                    [sortable]="false"
-                                    [draggable]="false"
-                                    [flexGrow]="0.5"
-                                    [minWidth]="66">
-                                <ng-template
-                                        let-value="value"
-                                        let-row="row"
-                                        ngx-datatable-cell-template
-                                >
-                                    <span *ngIf="value else noValue">{{value | bytes}}</span>
-                                </ng-template>
-                            </ngx-datatable-column>
-                            <!-- Status -->
-                            <ngx-datatable-column
-                                    name="Status"
-                                    [resizeable]="false"
-                                    [sortable]="false"
-                                    [draggable]="false"
-                                    [flexGrow]="0.5"
-                                    [minWidth]="66">
-                                <ng-template
-                                        let-value="value"
-                                        let-row="row"
-                                        ngx-datatable-cell-template
-                                >
+                                <button class="btn p-0" *ngIf="!expanded"
+                                        title="Show/Hide Details"
+                                        (click)='toggleExpandRow(row)'><i class="fa fa-angle-right"></i></button>
+                                <button class="btn p-0" *ngIf="expanded"
+                                        title="Show/Hide Details"
+                                        (click)='toggleExpandRow(row)'><i class="fa fa-angle-down"></i></button>
+                            </ng-template>
+                        </ngx-datatable-column>
+                        <!-- Product -->
+                        <ngx-datatable-column
+                                name="Product"
+                                prop="name"
+                                [resizeable]="false"
+                                [sortable]="false"
+                                [draggable]="false"
+                                [flexGrow]="2">
+                            <ng-template
+                                    let-value="value"
+                                    let-row="row"
+                                    ngx-datatable-cell-template
+                            >
+                                <strong>{{ value }}</strong>
+                            </ng-template>
+                        </ngx-datatable-column>
+                        <!-- Submission date -->
+                        <ngx-datatable-column
+                                name="Submission date"
+                                prop="submission_date"
+                                [resizeable]="false"
+                                [sortable]="false"
+                                [draggable]="false"
+                                [flexGrow]="1.6"
+                                [minWidth]="160">
+                            <ng-template
+                                    let-value="value"
+                                    let-row="row"
+                                    ngx-datatable-cell-template
+                            >
+                                <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
+                            </ng-template>
+                        </ngx-datatable-column>
+                        <!-- End date -->
+                        <ngx-datatable-column
+                                name="End date"
+                                prop="end_date"
+                                [resizeable]="false"
+                                [sortable]="false"
+                                [draggable]="false"
+                                [flexGrow]="1.6"
+                                [minWidth]="160">
+                            <ng-template
+                                    let-value="value"
+                                    let-row="row"
+                                    ngx-datatable-cell-template
+                            >
+                                <span *ngIf="value else noValue">{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
+                            </ng-template>
+                        </ngx-datatable-column>
+                        <!-- Size -->
+                        <ngx-datatable-column
+                                name="Size"
+                                prop="filesize"
+                                [resizeable]="false"
+                                [sortable]="false"
+                                [draggable]="false"
+                                [flexGrow]="0.5"
+                                [minWidth]="66">
+                            <ng-template
+                                    let-value="value"
+                                    let-row="row"
+                                    ngx-datatable-cell-template
+                            >
+                                <span *ngIf="value else noValue">{{value | bytes}}</span>
+                            </ng-template>
+                        </ngx-datatable-column>
+                        <!-- Status -->
+                        <ngx-datatable-column
+                                name="Status"
+                                [resizeable]="false"
+                                [sortable]="false"
+                                [draggable]="false"
+                                [flexGrow]="0.5"
+                                [minWidth]="66">
+                            <ng-template
+                                    let-value="value"
+                                    let-row="row"
+                                    ngx-datatable-cell-template
+                            >
                                     <span class='badge badge-secondary'
                                           [ngClass]="{
                                             'badge-success': row.status == 'SUCCESS',
@@ -191,74 +198,77 @@
                                           placement="left">
                                         {{value}}
                                     </span>
-                                    <ng-template #tipContent>
-                                        {{row.error_message || 'no error message'}}
-                                    </ng-template>
+                                <ng-template #tipContent>
+                                    {{row.error_message || 'no error message'}}
                                 </ng-template>
-                            </ngx-datatable-column>
-                            <!-- Controls -->
-                            <ngx-datatable-column
-                                    [resizeable]="false"
-                                    [sortable]="false"
-                                    [draggable]="false"
-                                    [flexGrow]="0.12"
-                                    [minWidth]="42">
-                                <ng-template
-                                        let-value="value"
-                                        let-row="row"
-                                        ngx-datatable-cell-template
-                                >
-                                    <div class="btn-toolbar justify-content-end" role="toolbar">
-                                        <div class="btn-group mr-1" role="group">
-                                            <button class="btn p-0 mr-1" *ngIf="row.status == 'SUCCESS'"
-                                                    (click)='download(row.fileoutput)'><i class="fa fa-download"></i>
-                                            </button>
-                                            <button class="btn p-0"
-                                                    mwlConfirmationPopover
-                                                    [popoverTitle]="deleteConfirmation.title"
-                                                    [popoverMessage]="getDeleteConfirmation('request').message"
-                                                    placement="left"
-                                                    (confirm)="remove(row.id)">
-                                                <i class="fa fa-trash" style='color:red;'></i></button>
-                                        </div>
+                            </ng-template>
+                        </ngx-datatable-column>
+                        <!-- Controls -->
+                        <ngx-datatable-column
+                                [resizeable]="false"
+                                [sortable]="false"
+                                [draggable]="false"
+                                [flexGrow]="0.12"
+                                [minWidth]="42">
+                            <ng-template
+                                    let-value="value"
+                                    let-row="row"
+                                    ngx-datatable-cell-template
+                            >
+                                <div class="btn-toolbar justify-content-end" role="toolbar">
+                                    <div class="btn-group mr-1" role="group">
+                                        <button class="btn p-0 mr-1" *ngIf="row.status == 'SUCCESS'"
+                                                (click)='download(row.fileoutput)'><i class="fa fa-download"></i>
+                                        </button>
+                                        <button class="btn p-0"
+                                                mwlConfirmationPopover
+                                                [popoverTitle]="deleteConfirmation.title"
+                                                [popoverMessage]="getDeleteConfirmation('request').message"
+                                                placement="left"
+                                                (confirm)="remove(row.id)">
+                                            <i class="fa fa-trash" style='color:red;'></i></button>
                                     </div>
-                                </ng-template>
-                            </ngx-datatable-column>
+                                </div>
+                            </ng-template>
+                        </ngx-datatable-column>
 
-                            <ngx-datatable-footer>
-                                <ng-template
-                                        ngx-datatable-footer-template
-                                        let-pageSize="pageSize"
-                                        let-selectedCount="selectedCount"
-                                        let-curPage="curPage"
-                                        let-offset="offset">
-                                    <div class='col-3'>
-                                        {{paging.dataLength}} total
+                        <ngx-datatable-footer>
+                            <ng-template
+                                    ngx-datatable-footer-template
+                                    let-pageSize="pageSize"
+                                    let-selectedCount="selectedCount"
+                                    let-curPage="curPage"
+                                    let-offset="offset">
+                                <div class='col-3'>
+                                    {{paging.dataLength}} total
+                                </div>
+                                <div class='col-9'>
+                                    <div class='float-right'>
+                                        <ngb-pagination
+                                                boundaryLinks="true"
+                                                directionLinks="true"
+                                                [page]="paging.page"
+                                                [pageSize]="paging.itemsPerPage"
+                                                [collectionSize]="paging.dataLength"
+                                                [maxSize]="5"
+                                                [rotate]="true"
+                                                size="sm"
+                                                (pageChange)="setPage($event)"
+                                        >
+                                        </ngb-pagination>
                                     </div>
-                                    <div class='col-9'>
-                                        <div class='float-right'>
-                                            <ngb-pagination
-                                                    boundaryLinks="true"
-                                                    directionLinks="true"
-                                                    [page]="paging.page"
-                                                    [pageSize]="paging.itemsPerPage"
-                                                    [collectionSize]="paging.dataLength"
-                                                    [maxSize]="5"
-                                                    [rotate]="true"
-                                                    size="sm"
-                                                    (pageChange)="setPage($event)"
-                                            >
-                                            </ngb-pagination>
-                                        </div>
-                                    </div>
-                                </ng-template>
-                            </ngx-datatable-footer>
-                        </ngx-datatable>
-                        <ng-template #noValue>-</ng-template>
-                    </div>
-
+                                </div>
+                            </ng-template>
+                        </ngx-datatable-footer>
+                    </ngx-datatable>
+                    <ng-template #noValue>-</ng-template>
                 </div>
-            </div>
+
+            </ng-container>
+
+            <ng-container *ngIf="selectedTabId === 'schedules'">
+                Loading schedules...
+            </ng-container>
         </div>
     </div>
 </div>
