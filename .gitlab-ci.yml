@@ -1,4 +1,4 @@
-# image: python:3.6
+image: rapydo/dind:0.6.7
 
 
 # variables:
@@ -7,9 +7,11 @@
 before_script:
   # - curl -fsSL https://get.docker.com/ | sh
   - docker -v
-  - apt-get install python3-pip
+  # - apt-get install python3-pip
   - pip3 --version
-  - pip3 install rapydo-controller
+  # - pip3 install rapydo-controller
+  - rapydo --version
+  - ls
   # - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   # - chmod +x docker-compose
   # - mv docker-compose /usr/local/bin
