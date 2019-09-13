@@ -20,10 +20,6 @@ requests:
       in: query
       description: params to sort requests
       type: string
-    - name: filter
-      in: query
-      description: what kind of requests
-      type: string
     - name: get_total
       in: query
       description: Retrieve total number of requests
