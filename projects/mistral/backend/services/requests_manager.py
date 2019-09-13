@@ -93,20 +93,19 @@ class RequestManager():
 
         return r
 
-
     @staticmethod
-    def create_schedule_record(db, user,product_name, filters, every=None, period=None, crontab_settings=None):
+    def create_schedule_record(db, user, product_name, filters, every=None, period=None, crontab_settings=None):
         schedule = db.Schedule
         args = json.dumps(filters)
         # check if the request is periodic
         if (every or period) is not None:
             s = schedule(user_id=user.id, name=product_name, args=args, is_crontab=False, every=every,
-                                  period=period)
+                         period=period)
         # check if the request is a crontab type
         if crontab_settings is not None:
             crontab_args = json.dumps(crontab_settings)
             s = schedule(user_id=user.id, name=product_name, args=args, is_crontab=True,
-                                  crontab_settings=crontab_args)
+                         crontab_settings=crontab_args)
         s.is_enabled = True
         db.session.add(s)
         db.session.commit()
@@ -134,10 +133,9 @@ class RequestManager():
         r_to_delete = request.query.filter(request.id == request_id).first()
         fileoutput = r_to_delete.fileoutput
         if fileoutput is not None:
-            RequestManager.delete_fileoutput(user.uuid,download_dir,fileoutput.filename)
+            RequestManager.delete_fileoutput(user.uuid, download_dir, fileoutput.filename)
         db.session.delete(r_to_delete)
         db.session.commit()
-
 
     def delete_schedule(db, schedule_id):
         schedule = db.Schedule
@@ -150,9 +148,8 @@ class RequestManager():
     def disable_schedule_record(db, request_id):
         schedule = db.Schedule
         r_to_disable = schedule.query.filter(schedule.id == request_id).first()
-        r_to_disable.is_enabled=False
+        r_to_disable.is_enabled = False
         db.session.commit()
-
 
     @staticmethod
     def get_last_schedule_request(db, schedule_id):
@@ -166,7 +163,12 @@ class RequestManager():
         return sorted_list[0]
 
     @staticmethod
-    def get_schedule_name (db,schedule_id):
+    def get_schedule_by_id(db, schedule_id):
+        schedule = db.Schedule.query.get(schedule_id)
+        return RequestManager.get_schedule_response(schedule)
+
+    @staticmethod
+    def get_schedule_name(db, schedule_id):
         schedule = db.Schedule.query.filter(db.Schedule.id == schedule_id).first()
         return schedule.name
 
@@ -185,7 +187,7 @@ class RequestManager():
         requests_list = r.submitted_request
 
         # update celery status for the requests coming from the database query
-        #for row in requests_list:
+        # for row in requests_list:
         #    if row.task_id is not None:
         #        RequestManager.update_task_status(db, row.task_id)
         #    # handle the case rabbit was down when the request was posted and the request has not a task id
@@ -226,7 +228,7 @@ class RequestManager():
             if sort_order == "desc":
                 sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'], reverse=True)
                 return sorted_list
-        if last== True:
+        if last == True:
             sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'], reverse=True)
             return sorted_list[0]
         else:
@@ -235,7 +237,7 @@ class RequestManager():
     @staticmethod
     def get_user_requests(db, user_id, sort_by=None, sort_order=None):
 
-        #default value if sort_by and sort_order are None
+        # default value if sort_by and sort_order are None
         if sort_by is None:
             sort_by = "date"
         if sort_order is None:
@@ -295,7 +297,7 @@ class RequestManager():
             return user_list
 
     @staticmethod
-    def get_user_schedules(db,  user_id, sort_by=None, sort_order=None):
+    def get_user_schedules(db, user_id, sort_by=None, sort_order=None):
 
         # default value if sort_by and sort_order are None
         if sort_by is None:
@@ -311,34 +313,19 @@ class RequestManager():
         user_list = []
 
         # create the response schema
-        for row in schedules_list:
-            user_schedules = {}
-            user_schedules['schedule_id'] = row.id
-            user_schedules['name'] = row.name
-            user_schedules['submission_date'] = row.submission_date.isoformat()
-            user_schedules['args'] = json.loads(row.args)
-            user_schedules['user_name'] = user_name
-            user_schedules['submitted_requests_number'] = row.submitted_request.count()
-            user_schedules['enabled'] = row.is_enabled
-            if row.is_crontab == False:
-                user_schedules['periodic'] = True
-                periodic_settings = ('every', str(row.every), row.period.name)
-                user_schedules['periodic_settings'] = ' '.join(periodic_settings)
-            else:
-                user_schedules['crontab'] = True
-                user_schedules['crontab_settings'] = json.loads(row.crontab_settings)
+        for schedule in schedules_list:
+            user_schedules = RequestManager.get_schedule_response(schedule)
             user_list.append(user_schedules)
 
         if sort_by == "date":
             if sort_order == "asc":
-                sorted_list = sorted(user_list, key=lambda date: date['submission_date'])
+                sorted_list = sorted(user_list, key=lambda date: date['creation_date'])
                 return sorted_list
             if sort_order == "desc":
-                sorted_list = sorted(user_list, key=lambda date: date['submission_date'], reverse=True)
+                sorted_list = sorted(user_list, key=lambda date: date['creation_date'], reverse=True)
                 return sorted_list
         else:
             return user_list
-
 
     @staticmethod
     def get_uuid(db, user_id):
@@ -354,7 +341,6 @@ class RequestManager():
         r_to_update.error_message = message
         db.session.commit()
 
-
     @staticmethod
     def update_schedule_status(db, schedule_id, is_active):
         schedule = db.Schedule
@@ -362,7 +348,6 @@ class RequestManager():
         # update is_enabled field
         r_to_disable.is_enabled = is_active
         db.session.commit()
-
 
     @staticmethod
     def update_task_id(db, request_id, task_id):
@@ -384,3 +369,23 @@ class RequestManager():
 
         r_to_update.status = result.status
         db.session.commit()
+
+    @staticmethod
+    def get_schedule_response(schedule):
+        log.debug(schedule)
+        resp = {
+            'id': schedule.id,
+            'name': schedule.name,
+            'creation_date': schedule.submission_date.isoformat(),
+            'args': json.loads(schedule.args),
+            'requests_count': schedule.submitted_request.count(),
+            'enabled': schedule.is_enabled
+        }
+        if not schedule.is_crontab:
+            resp['periodic'] = True
+            periodic_settings = ('every', str(schedule.every), schedule.period.name)
+            resp['periodic_settings'] = ' '.join(periodic_settings)
+        else:
+            resp['crontab'] = True
+            resp['crontab_settings'] = json.loads(schedule.crontab_settings)
+        return resp

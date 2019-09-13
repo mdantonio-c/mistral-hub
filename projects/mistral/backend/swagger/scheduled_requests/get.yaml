@@ -1,30 +1,25 @@
 scheduled_requests:
-  summary: Get requests related to the same scheduled request.
+  summary: Get requests related to a given schedule.
   custom:
     authentication: true
   parameters:
-    - name: id
+    - name: get_total
       in: query
-      description: id of the scheduled request
-      type: integer
-      required: true
-    - name: sort-order
+      description: Retrieve total number of requests
+      type: boolean
+      default: false
+    - name: last
       in: query
-      description: sort order
-      type: string
-      enum: [asc, desc]
-    - name: sort-by
-      in: query
-      description: params to sort requests
-      type: string
-
+      description: retrieve only the last submitted request
+      type: boolean
+      allowEmptyValue: true
   responses:
     '200':
-      description: List of requests related to the same scheduled request.
+      description: List of requests for a given schedule.
       schema:
         $ref: "#/definitions/Requests"
     '404':
-      description: scheduled request has no requests related to it
-    '401':
-      description: Current user is not allowed to see requests of the user in query
+      description: Schedule not found.
+    '403':
+      description: User cannot access a schedule that does not belong to.
 

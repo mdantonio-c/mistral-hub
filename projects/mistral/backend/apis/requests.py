@@ -49,6 +49,8 @@ class UserRequests(EndpointResource):
                 'status': r.status,
                 'task_id': r.task_id
             }
+            if r.schedule_id is not None:
+                item['schedule_id'] = r.schedule_id
             if r.end_date is not None:
                 item['end_date'] = r.end_date.isoformat()
             if r.error_message is not None:

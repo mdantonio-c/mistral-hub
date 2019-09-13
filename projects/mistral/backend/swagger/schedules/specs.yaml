@@ -5,6 +5,5 @@ schema:
 mapping:
   schedules: "/schedules"
   schedule:  "/schedules/<schedule_id>"
-  schedule-requests: "/schedules/<schedule_id>/requests"
 labels:
   - schedule

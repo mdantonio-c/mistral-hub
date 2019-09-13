@@ -21,6 +21,11 @@
     font-size: large;
 }
 
+/*.navbar .navbar-nav .nav-item a.active,
+.navbar .navbar-nav .nav-item a:hover{
+    border: 1px solid #ddd;
+}*/
+
 .navbar .navbar-brand,
 .navbar .navbar-brand:hover {
     color: #fff;

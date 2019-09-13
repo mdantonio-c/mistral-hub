@@ -116,7 +116,7 @@
                     let-row="row"
                     ngx-datatable-cell-template
             >
-                <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
+                <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span><i class="fa fa-calendar ml-1" *ngIf="schedule_id"></i>
             </ng-template>
         </ngx-datatable-column>
         <!-- End date -->
