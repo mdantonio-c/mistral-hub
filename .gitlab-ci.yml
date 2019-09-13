@@ -1,19 +1,20 @@
-image: rapydo/dind:0.6.7
+# image: rapydo/dind:0.6.7
 
 
-variables:
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_HOST: 'tcp://127.0.0.1:2375' 
+# variables:
+#   DOCKER_DRIVER: overlay2
+#   DOCKER_TLS_CERTDIR: ""
+#   DOCKER_HOST: 'tcp://127.0.0.1:2375' 
   # DOCKER_COMPOSE_VERSION: 1.7.0
 
 before_script:
   # - curl -fsSL https://get.docker.com/ | sh
   - docker -v
+  - docker ps
   # - apt-get install python3-pip
-  - pip3 --version
+  # - pip3 --version
   # - pip3 install rapydo-controller
-  - rapydo --version
+  # - rapydo --version
   # - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   # - chmod +x docker-compose
   # - mv docker-compose /usr/local/bin
