@@ -11,12 +11,12 @@ before_script:
   - pip3 --version
   # - pip3 install rapydo-controller
   - rapydo --version
+  - cat /etc/resolv.conf
   # - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   # - chmod +x docker-compose
   # - mv docker-compose /usr/local/bin
   # - pip install coveralls
   # - pip install python-coveralls
-  - cat /etc/resolv.conf
 
 script:
   # - docker-compose -f containers/docker-compose.yml exec backend ./tests.sh
