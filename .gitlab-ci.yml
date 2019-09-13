@@ -21,6 +21,7 @@ before_script:
   # - mv docker-compose /usr/local/bin
   # - pip install coveralls
   # - pip install python-coveralls
+  - sh scripts/create_projectrc.sh
 
 stages:
   - tests
@@ -28,6 +29,8 @@ stages:
 script:
   stage: tests
   script:
-    # - docker-compose -f containers/docker-compose.yml exec backend ./tests.sh
-    - rapydo --privileged start
-
+    - rapydo --no-frontend init
+    - rapydo --no-frontend update -i main --rebuild 
+    - rapydo --no-frontend start
+    - export COMPOSE_INTERACTIVE_NO_CLI=1
+    - rapydo --no-frontend shell backend --command "restapi tests"
