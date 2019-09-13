@@ -21,11 +21,7 @@ before_script:
   # - mv docker-compose /usr/local/bin
   # - pip install coveralls
   # - pip install python-coveralls
-  - echo 'project_configuration:' > .projectrc
-  - echo '  variables:' >> .projectrc
-  - echo '    env:' >> .projectrc
-  - echo '      CELERYUI_PASSWORD: test123' >> .projectrc
-  - echo '      CELERYUI_USER: test456' >> .projectrc
+  - sh scripts/create_projectrc.sh
 
 stages:
   - tests
