@@ -30,6 +30,7 @@ script:
   stage: tests
   script:
     - rapydo init
+    - rapydo remove
     - rapydo update -i main --rebuild 
     - rapydo start
     - export COMPOSE_INTERACTIVE_NO_CLI=1
