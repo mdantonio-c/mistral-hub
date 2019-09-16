@@ -1,7 +1,8 @@
 #!/bin/sh
 
 
-echo "project_configuration:" > .projectrc
+echo "development: True" > .projectrc
+echo "project_configuration:" >> .projectrc
 echo "  variables:" >> .projectrc
 echo "    env:" >> .projectrc
 echo "      CELERYUI_PASSWORD: test${RANDOM}" >> .projectrc
