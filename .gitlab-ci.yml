@@ -35,3 +35,4 @@ script:
     - rapydo start
     - export COMPOSE_INTERACTIVE_NO_CLI=1
     - rapydo shell --no-tty backend --command "restapi tests"
+    - rapydo remove
