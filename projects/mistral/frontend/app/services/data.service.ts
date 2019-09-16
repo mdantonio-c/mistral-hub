@@ -176,4 +176,11 @@ export class DataService {
         return this.api.get('data', filename, {}, options);
     }
 
+    toggleScheduleActiveState(scheduleId, toState: boolean) {
+        const data = {
+            is_active: toState
+        }
+        return this.api.patch('schedules', scheduleId, data);
+    }
+
 }
