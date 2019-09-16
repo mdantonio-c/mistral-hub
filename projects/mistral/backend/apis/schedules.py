@@ -16,9 +16,11 @@ class Schedules(EndpointResource):
     def post(self):
 
         user = self.get_current_user()
+        log.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
         criteria = self.get_input()
-        self.validate_input(criteria, 'DataScheduling')
 
+        self.validate_input(criteria, 'DataExtraction')
+        product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         # check for existing dataset(s)
         datasets = arki.load_datasets()
@@ -28,17 +30,19 @@ class Schedules(EndpointResource):
                 raise RestApiException(
                     "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
+        # incoming filters: <dict> in form of filter_name: list_of_values
+        # e.g. 'level': [{...}, {...}] or 'level: {...}'
+        filters = criteria.get('filters', {})
+        # clean up filters from unknown values
+        filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
 
-        filters = criteria.get('filters')
-
-        db= self.get_service_instance('sqlalchemy')
+        db = self.get_service_instance('sqlalchemy')
 
         # check if scheduling parameters are correct
         if not self.settings_validation(criteria):
             raise RestApiException(
                 "scheduling criteria are not valid",
                 status_code=hcodes.HTTP_BAD_REQUEST)
-
 
         # parsing period settings
         period_settings = criteria.get('period-settings')
@@ -48,49 +52,62 @@ class Schedules(EndpointResource):
             log.info("Period settings [{} {}]".format(every, period))
 
             # get schedule id in postgres database as scheduled request name for mongodb
-            name_int = RequestManager.create_schedule_record(db, user, filters, every=every, period=period)
-            name = str(name_int)
+            try:
+                name_int = RequestManager.create_schedule_record(db, user, product_name, {
+                    'datasets': dataset_names,
+                    'filters': filters,
+                }, every=every, period=period)
+                name = str(name_int)
 
+                # remove previous task
+                res = CeleryExt.delete_periodic_task(name=name)
+                log.debug("Previous task deleted = %s", res)
 
-            # remove previous task
-            res = CeleryExt.delete_periodic_task(name=name)
-            log.debug("Previous task deleted = %s", res)
+                request_id = None
 
-            request_id = None
+                CeleryExt.create_periodic_task(
+                    name=name,
+                    task="mistral.tasks.data_extraction.data_extract",
+                    every=every,
+                    period=period,
+                    args=[user.id, dataset_names, filters, request_id, name_int],
+                )
 
-            CeleryExt.create_periodic_task(
-                name=name,
-                task="mistral.tasks.data_extraction.data_extract",
-                every=every,
-                period=period,
-                args=[user.id, dataset_names, filters, request_id, name_int],
-            )
-
-            log.info("Scheduling periodic task")
-
+                log.info("Scheduling periodic task")
+            except Exception as error:
+                db.session.rollback()
+                raise SystemError("Unable to submit the request")
 
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
-            # get scheduled request id in postgres database as scheduled request name for mongodb
-            name_int =RequestManager.create_schedule_record(db, user, filters, crontab_settings=crontab_settings)
-            name = str(name_int)
 
-            # parsing crontab settings
-            for i in crontab_settings.keys():
-                val = crontab_settings.get(i)
-                str_val = str(val)
-                crontab_settings[i] = str_val
+            try:
+                # get scheduled request id in postgres database as scheduled request name for mongodb
+                name_int = RequestManager.create_schedule_record(db, user, product_name, {
+                    'datasets': dataset_names,
+                    'filters': filters,
+                }, crontab_settings=crontab_settings)
+                name = str(name_int)
 
-            request_id = None
+                # parsing crontab settings
+                for i in crontab_settings.keys():
+                    val = crontab_settings.get(i)
+                    str_val = str(val)
+                    crontab_settings[i] = str_val
 
-            CeleryExt.create_crontab_task(
-                name=name,
-                task="mistral.tasks.data_extraction.data_extract",
-                **crontab_settings,
-                args=[user.id, dataset_names, filters,request_id, name_int],
-            )
+                request_id = None
 
-            log.info("Scheduling crontab task")
+                CeleryExt.create_crontab_task(
+                    name=name,
+                    task="mistral.tasks.data_extraction.data_extract",
+                    **crontab_settings,
+                    args=[user.id, dataset_names, filters, request_id, name_int],
+                )
+
+                log.info("Scheduling crontab task")
+            except Exception as error:
+                db.session.rollback()
+                raise SystemError("Unable to submit the request")
 
         return self.force_response('Scheduled task {}'.format(name))
 
@@ -115,20 +132,10 @@ class Schedules(EndpointResource):
 
         db = self.get_service_instance('sqlalchemy')
         if schedule_id is not None:
-            # get total count for user schedules
-            if get_total:
-                counter = RequestManager.count_schedule_requests(db, schedule_id)
-                return {"total": counter}
-
-            # check if the current user is the owner of the scheduled request
-            if not RequestManager.check_owner(db, user.id, schedule_id=schedule_id):
-                raise RestApiException(
-                    "Operation not allowed",
-                    status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
-
-            # get submitted requests related to a schedule list
-            res = RequestManager.get_schedule_requests(db, schedule_id, sort_by=sort, sort_order=sort_order)
-
+            # check for schedule ownership
+            self.request_and_owner_check(db, user.id, schedule_id)
+            # get schedule by id
+            res = RequestManager.get_schedule_by_id(db, schedule_id)
         else:
             # get total count for user schedules
             if get_total:
@@ -136,7 +143,6 @@ class Schedules(EndpointResource):
                 return {"total": counter}
             # get user requests list
             res = RequestManager.get_user_schedules(db, user.id, sort_by=sort, sort_order=sort_order)
-
 
         return self.force_response(
             res, code=hcodes.HTTP_OK_BASIC)
@@ -149,8 +155,8 @@ class Schedules(EndpointResource):
 
         db = self.get_service_instance('sqlalchemy')
 
-        #check if the schedule exist and is owned by the current user
-        self.request_and_owner_check(db,user.id,schedule_id)
+        # check if the schedule exist and is owned by the current user
+        self.request_and_owner_check(db, user.id, schedule_id)
 
         # disable/enable the schedule
         periodic = CeleryExt.get_periodic_task(name=schedule_id)
@@ -160,7 +166,7 @@ class Schedules(EndpointResource):
         RequestManager.update_schedule_status(db, schedule_id, is_active)
 
         return self.force_response(
-            "Schedule {}: enabled = {}".format(schedule_id,is_active), code=hcodes.HTTP_OK_BASIC)
+            "Schedule {}: enabled = {}".format(schedule_id, is_active), code=hcodes.HTTP_OK_BASIC)
 
     @catch_error()
     def delete(self, schedule_id):
@@ -180,9 +186,8 @@ class Schedules(EndpointResource):
         return self.force_response(
             "Schedule {} succesfully deleted".format(schedule_id), code=hcodes.HTTP_OK_BASIC)
 
-
     @staticmethod
-    def request_and_owner_check(db,user_id,schedule_id):
+    def request_and_owner_check(db, user_id, schedule_id):
         # check if the schedule exists
         if not RequestManager.check_request(db, schedule_id=schedule_id):
             raise RestApiException(
@@ -193,4 +198,44 @@ class Schedules(EndpointResource):
         if not RequestManager.check_owner(db, user_id, schedule_id=schedule_id):
             raise RestApiException(
                 "This request doesn't come from the request's owner",
-                status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
+                status_code=hcodes.HTTP_BAD_FORBIDDEN)
+
+
+class ScheduledRequests(EndpointResource):
+
+    @catch_error()
+    def get(self, schedule_id):
+        '''
+        Get all submitted requests for this schedule
+        :param schedule_id:
+        :return:
+        '''
+        log.debug('get scheduled requests')
+        param = self.get_input()
+        get_total = param.get('get_total', False)
+        last = param.get('last', False)
+
+        db = self.get_service_instance('sqlalchemy')
+
+        # check if the schedule exists
+        if not RequestManager.check_request(db, schedule_id=schedule_id):
+            raise RestApiException(
+                "The schedule ID {} doesn't exist".format(schedule_id),
+                status_code=hcodes.HTTP_BAD_NOTFOUND)
+
+        # check for schedule ownership
+        user = self.get_current_user()
+        if not RequestManager.check_owner(db, user.id, schedule_id=schedule_id):
+            raise RestApiException(
+                "This request doesn't come from the schedule's owner",
+                status_code=hcodes.HTTP_BAD_FORBIDDEN)
+
+        if get_total:
+            # get total count for user schedules
+            counter = RequestManager.count_schedule_requests(db, schedule_id)
+            return {"total": counter}
+
+        # get all submitted requests or the last for this schedule
+        res = RequestManager.get_schedule_requests(db, schedule_id, last)
+        return self.force_response(
+            res, code=hcodes.HTTP_OK_BASIC)

@@ -19,7 +19,6 @@ class UserRequests(EndpointResource):
         param = self.get_input()
         sort = param.get('sort-by')
         sort_order = param.get('sort-order')
-        filter = param.get('filter')
         get_total = param.get('get_total', False)
         if not get_total:
             page, limit = self.get_paging()
@@ -34,7 +33,7 @@ class UserRequests(EndpointResource):
             return {"total": counter}
 
         # get user requests list
-        # res = repo.get_user_requests(db, user.id, sort_by=sort, sort_order=sort_order, filter=filter)
+        # res = repo.get_user_requests(db, user.id, sort_by=sort, sort_order=sort_order)
         data = []
         requests = db.Request.query.filter_by(user_id=user.id) \
             .options(joinedload(db.Request.fileoutput)) \
@@ -50,6 +49,8 @@ class UserRequests(EndpointResource):
                 'status': r.status,
                 'task_id': r.task_id
             }
+            if r.schedule_id is not None:
+                item['schedule_id'] = r.schedule_id
             if r.end_date is not None:
                 item['end_date'] = r.end_date.isoformat()
             if r.error_message is not None:

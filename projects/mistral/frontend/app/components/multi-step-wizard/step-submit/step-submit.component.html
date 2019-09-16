@@ -26,8 +26,7 @@
                         {{schedule.time}}
                     </ng-container>
                     <ng-container *ngIf="schedule.type === 'period'">Repeat every {{schedule.every}}
-                        {{schedule.repeat}}
-                        <ng-container *ngIf="schedule.every > 1">s</ng-container>
+                        {{schedule.repeat}}{{(schedule.every > 1) ? 's' : ''}}
                     </ng-container>
                     <ng-container *ngIf="schedule.type === 'data-ready'">Repeat on data ready</ng-container>
                 </ng-template>

@@ -1,5 +1,5 @@
 schedules:
-  summary: Get schedules filtered by uuid.
+  summary: Get user schedules.
   custom:
     authentication: true
   parameters:
@@ -17,46 +17,29 @@ schedules:
       description: Retrieve total number of schedules
       type: boolean
       default: false
-
   responses:
     '200':
-      description: List of schedules of an user
+      description: List of user schedules.
       schema:
         $ref: "#/definitions/Requests"
-    '404':
-      description: User has no schedules
+    '401':
+      description: This endpoint requires a valid authorization token
 
-schedule-requests:
-  summary: Get submitted requests related to a specific schedule.
+schedule:
+  summary: Gets a schedule
+  description: Returns a single schedule by ID
+  tags:
+    - schedule
   custom:
     authentication: true
-  parameters:
-    - name: id
-      in: path
-      type: integer
-      required: true
-      description: schedule id
-    - name: sort-order
-      in: query
-      description: sort order
-      type: string
-      enum: [asc, desc]
-    - name: sort-by
-      in: query
-      description: params to sort requests
-      type: string
-    - name: get_total
-      in: query
-      description: Retrieve total number of requests related to a single schedule
-      type: boolean
-      default: false
-
   responses:
     '200':
-      description: List of requests related to a single schedule
+      description: Schedule successfully retrieved
       schema:
-        $ref: "#/definitions/Requests"
-    '404':
-      description: Schedule has no submitted requests
+        $ref: "#/definitions/Request"
     '401':
-      description: Current user is not allowed to see requests of the schedule in query
+      description: This endpoint requires a valid authorization token
+    '403':
+      description: User not allowed to get the schedule
+    '404':
+      description: The schedule does not exists

@@ -43,10 +43,15 @@ def data_extract(self, user_id, datasets, filters=None, request_id=None, schedul
 
         if schedule_id is not None:
             # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
-            request = RequestManager.create_request_record(db, user_id, filters, scheduled_id=schedule_id)
+            product_name = RequestManager.get_schedule_name (db,schedule_id)
+            request = RequestManager.create_request_record(db, user_id,product_name, {
+                'datasets': datasets,
+                'filters': filters,
+            }, schedule_id=schedule_id)
             # update the entry with celery task id
             # RequestManager.update_task_id(db, request_id, self.request.id)
             request.task_id = self.request.id
+            request_id = request.id
             db.session.commit()
             log.debug('Schedule at: {}, Request <ID:{}>'.format(schedule_id, request.id))
         else:

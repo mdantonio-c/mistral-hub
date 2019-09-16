@@ -17,7 +17,6 @@ import {DataService} from "../../services/data.service";
 export class RequestsComponent extends BasePaginationComponent {
     @ViewChild('myRequestsTable', {static: false}) table: any;
     expanded: any = {};
-    selectedTabId = 'requests';
 
     constructor(
         protected api: ApiService,
@@ -35,10 +34,6 @@ export class RequestsComponent extends BasePaginationComponent {
         this.counter_endpoint = 'requests';
         this.initPaging(20);
         this.list();
-    }
-
-    onTabChange($event) {
-        this.selectedTabId = $event.nextId;
     }
 
     list() {

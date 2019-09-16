@@ -29,36 +29,50 @@
             >
                 <div>
                     <div><strong>Schedule Details</strong></div>
-                    <ng-container *ngIf="row.args">
-                        <div class="my-2"></div>
-                        <dl class="mb-0">
-                            <dt>Dataset(s)</dt>
-                            <dd>
-                                <ul class="comma-list">
-                                    <li *ngFor="let ds of row.args.datasets">{{ds}}</li>
-                                </ul>
-                            </dd>
-                        </dl>
-                        <div class="my-2"></div>
-                        <dl class="mb-0" *ngIf="row.args.filters">
-                            <dt>Filter(s)</dt>
-                            <dd>
-                                <dl class="row no-gutters mb-0 px-0 request-summary"
-                                    *ngIf="(row.args.filters | keyvalue).length else noFilters">
-                                    <ng-container *ngFor="let f of row.args.filters | keyvalue">
-                                        <dt class="col-sm-3" style="font-weight: normal;">
-                                            {{f.key}}
-                                        </dt>
-                                        <dd class="col-sm-9"><p *ngFor="let v of f.value"
-                                                                class="mb-0"
-                                                                style="white-space: normal">
-                                            {{v.desc}}</p></dd>
-                                    </ng-container>
-                                </dl>
-                                <ng-template #noFilters>no filter selected</ng-template>
-                            </dd>
-                        </dl>
-                    </ng-container>
+                    <div class="row no-gutters">
+                        <div class="col-8">
+                        <ng-container *ngIf="row.args">
+                            <div class="my-2"></div>
+                            <dl class="mb-0">
+                                <dt>Dataset(s)</dt>
+                                <dd>
+                                    <ul class="comma-list">
+                                        <li *ngFor="let ds of row.args.datasets">{{ds}}</li>
+                                    </ul>
+                                </dd>
+                            </dl>
+                            <div class="my-2"></div>
+                            <dl class="mb-0" *ngIf="row.args.filters">
+                                <dt>Filter(s)</dt>
+                                <dd>
+                                    <dl class="row no-gutters mb-0 px-0 request-summary"
+                                        *ngIf="(row.args.filters | keyvalue).length else noFilters">
+                                        <ng-container *ngFor="let f of row.args.filters | keyvalue">
+                                            <dt class="col-sm-3" style="font-weight: normal;">
+                                                {{f.key}}
+                                            </dt>
+                                            <dd class="col-sm-9"><p *ngFor="let v of f.value"
+                                                                    class="mb-0"
+                                                                    style="white-space: normal">
+                                                {{v.desc}}</p></dd>
+                                        </ng-container>
+                                    </dl>
+                                    <ng-template #noFilters>no filter selected</ng-template>
+                                </dd>
+                            </dl>
+                        </ng-container>
+                        </div>
+                        <div class="col-4 pl-3" style="border-left: 1px solid #ddd;">
+                            <i class="fa fa-calendar mr-2"></i>
+                            <span *ngIf="row.periodic">{{row.periodic_settings}}</span>
+                            <span *ngIf="row.crontab">{{row.contab_settings}}</span>
+                            <div class="mt-4"><strong>Last submission </strong>(out of {{row.requests_count}})
+                                <button class="btn">
+                                    <i class="fa fa-sync" aria-hidden="true"></i></button>
+                            </div>
+                            <button class="btn p-0 mr-1"><i class="fa fa-download"></i></button>
+                        </div>
+                    </div>
                 </div>
             </ng-template>
         </ngx-datatable-row-detail>
@@ -104,7 +118,7 @@
         <!-- Creation date -->
         <ngx-datatable-column
                 name="Creation date"
-                prop="submission_date"
+                prop="creation_date"
                 [resizeable]="false"
                 [sortable]="false"
                 [draggable]="false"
@@ -123,8 +137,8 @@
                 [resizeable]="false"
                 [sortable]="false"
                 [draggable]="false"
-                [flexGrow]="0.12"
-                [minWidth]="42">
+                [flexGrow]="0.8"
+                [minWidth]="82">
             <ng-template
                     let-value="value"
                     let-row="row"
@@ -135,6 +149,12 @@
                         <!--                        <button class="btn p-0 mr-1" *ngIf="row.status == 'SUCCESS'"-->
                         <!--                                (click)='download(row.fileoutput)'><i class="fa fa-download"></i>-->
                         <!--                        </button>-->
+                        <button type="button" class="btn btn-sm btn-toggle" data-toggle="button"
+                                [ngbTooltip]="(row.enabled) ? 'Deactivate' : 'Activate'" placement="left"
+                                container="body"
+                                [ngClass]="{active: row.enabled}" (click)="toggleActiveState(row)">
+                            <div class="handle"></div>
+                        </button>
                         <button class="btn p-0"
                                 mwlConfirmationPopover
                                 [popoverTitle]="deleteConfirmation.title"

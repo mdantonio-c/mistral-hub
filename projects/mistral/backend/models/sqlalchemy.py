@@ -62,6 +62,7 @@ class Schedule (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
+    name = db.Column(db.String, index=True, nullable=False)
     args = db.Column(db.String)
     is_crontab = db.Column(db.Boolean)
     period = db.Column(db.Enum(PeriodEnum))
@@ -70,9 +71,6 @@ class Schedule (db.Model):
     is_enabled = db.Column(db.Boolean)
     submitted_request = db.relationship('Request', backref='schedule', lazy='dynamic')
 
-    def __str__(self):
-        return "db.%s(%s){%s}" \
-               % (self.__class__.__name__, self.token, self.emitted_for)
-
     def __repr__(self):
-        return self.__str__()
+        return "<Schedule(name='%s', creation date='%s', enabled='%s')" \
+               % (self.name, self.submission_date, self.is_enabled)

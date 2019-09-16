@@ -27,7 +27,7 @@ export class SchedulesComponent extends BasePaginationComponent {
         private dataService: DataService
     ) {
         super(api, auth, notify, modalService, formly);
-        this.init("schedule");
+        this.init('schedule');
 
         this.server_side_pagination = true;
         this.endpoint = 'schedules';
@@ -42,5 +42,21 @@ export class SchedulesComponent extends BasePaginationComponent {
 
     toggleExpandRow(row) {
         this.table.rowDetail.toggleExpandRow(row);
+    }
+
+    toggleActiveState(row) {
+        const scheduleId = row.id;
+        const currState = row.enabled;
+        const action = (!currState) ? 'Activate' : 'Deactivate';
+        console.log(`${action} schedule [ID:${scheduleId}]. Current state: ${currState}`);
+        this.dataService.toggleScheduleActiveState(scheduleId, !currState).subscribe(
+            response => {
+                console.log(response);
+                row.enabled = !currState;
+            },
+            error => {
+                this.notify.extractErrors(error.error.Response, this.notify.ERROR);
+            }
+        );
     }
 }
