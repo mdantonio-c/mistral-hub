@@ -34,4 +34,4 @@ script:
     - rapydo update -i main --rebuild 
     - rapydo start
     - export COMPOSE_INTERACTIVE_NO_CLI=1
-    - rapydo shell backend --command "restapi tests"
+    - rapydo shell no-tty backend --command "restapi tests"
