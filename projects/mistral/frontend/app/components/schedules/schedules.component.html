@@ -123,8 +123,8 @@
                 [resizeable]="false"
                 [sortable]="false"
                 [draggable]="false"
-                [flexGrow]="0.12"
-                [minWidth]="42">
+                [flexGrow]="0.8"
+                [minWidth]="82">
             <ng-template
                     let-value="value"
                     let-row="row"
@@ -135,6 +135,9 @@
                         <!--                        <button class="btn p-0 mr-1" *ngIf="row.status == 'SUCCESS'"-->
                         <!--                                (click)='download(row.fileoutput)'><i class="fa fa-download"></i>-->
                         <!--                        </button>-->
+                        <button type="button" class="btn btn-sm btn-toggle" data-toggle="button"
+                            [ngClass]="{active: row.enabled}" (click)="toggleActiveState(row)">
+                            <div class="handle"></div></button>
                         <button class="btn p-0"
                                 mwlConfirmationPopover
                                 [popoverTitle]="deleteConfirmation.title"

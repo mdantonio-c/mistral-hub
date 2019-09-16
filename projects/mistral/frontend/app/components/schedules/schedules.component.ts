@@ -43,4 +43,9 @@ export class SchedulesComponent extends BasePaginationComponent {
     toggleExpandRow(row) {
         this.table.rowDetail.toggleExpandRow(row);
     }
+
+    toggleActiveState(row) {
+        console.log(row);
+        console.log(`Activate/Deactivate schedule [ID:${row.id}]`);
+    }
 }
