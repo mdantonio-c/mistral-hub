@@ -27,7 +27,7 @@ export class SchedulesComponent extends BasePaginationComponent {
         private dataService: DataService
     ) {
         super(api, auth, notify, modalService, formly);
-        this.init("schedule");
+        this.init('schedule');
 
         this.server_side_pagination = true;
         this.endpoint = 'schedules';
