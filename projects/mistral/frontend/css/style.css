@@ -43,6 +43,15 @@
     color: #fff;
 }
 
+/* popover and confirmation  */
+.popover .card {
+    border: none !important;
+    text-align: start !important;
+}
+.popover .card .card-body {
+    padding: 0 !important;
+}
+
 .click-event {
     cursor: pointer;
 }

@@ -45,7 +45,7 @@ export class SchedulesComponent extends BasePaginationComponent {
         this.loadingLast = true;
         this.dataService.getLastScheduledRequest(row.id).subscribe(
             response => {
-                row.requests_count = response.Meta.elements;
+                //row.requests_count = response.Meta.elements;
                 row.last = response.Response.data;
             },
             (error) => {
@@ -63,6 +63,11 @@ export class SchedulesComponent extends BasePaginationComponent {
         this.loadLastSubmission(row);
         // open or close schedule details
         this.table.rowDetail.toggleExpandRow(row);
+    }
+
+    remove(scheduleID) {
+        console.log(`remove this schedule ${scheduleID}`);
+        return this.delete('schedules', scheduleID);
     }
 
     download(filename) {

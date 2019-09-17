@@ -72,13 +72,13 @@ class UserRequests(EndpointResource):
 
         db = self.get_service_instance('sqlalchemy')
         # check if the request exists
-        if not repo.check_request(db, single_request_id=request_id):
+        if not repo.check_request(db, request_id=request_id):
             raise RestApiException(
                 "The request doesn't exist",
                 status_code=hcodes.HTTP_BAD_NOTFOUND)
 
         # check if the current user is the owner of the request
-        if repo.check_owner(db, user.id, single_request_id=request_id):
+        if repo.check_owner(db, user.id, request_id=request_id):
 
             # delete request and fileoutput entry from database. Delete fileoutput from user folder
             repo.delete_request_record(db, user, request_id, DOWNLOAD_DIR)

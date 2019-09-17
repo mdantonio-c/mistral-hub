@@ -33,22 +33,21 @@ class RequestManager():
             log.info('file: {} is not in database'.format(filename))
 
     @staticmethod
-    def check_owner(db, user_id, schedule_id=None, single_request_id=None, file_id=None):
-
-        # check a single request
-        if single_request_id is not None:
+    def check_owner(db, user_id, schedule_id=None, request_id=None, file_id=None):
+        if request_id is not None:
+            # check a single request
             item = db.Request
-            item_id = single_request_id
-        # check a scheduled request
-        if schedule_id is not None:
+            item_id = request_id
+        elif schedule_id is not None:
+            # check a scheduled request
             item = db.Schedule
             item_id = schedule_id
         # check a file
-        if file_id is not None:
+        elif file_id is not None:
             item = db.FileOutput
             item_id = file_id
 
-        item_to_check = item.query.filter(item.id == item_id).first()
+        item_to_check = item.query.get(int(item_id))
         if item_to_check.user_id == user_id:
             return True
 
@@ -56,10 +55,10 @@ class RequestManager():
     def check_request(db, schedule_id=None, request_id=None):
         res = None
         if request_id is not None:
-            log.debug('check for request with ID {}'.format(schedule_id))
-            res = db.Schedule.query.get(int(request_id))
+            log.debug('look for request with ID {}'.format(request_id))
+            res = db.Request.query.get(int(request_id))
         elif schedule_id is not None:
-            log.debug('check for schedule with ID {}'.format(schedule_id))
+            log.debug('look for schedule with ID {}'.format(schedule_id))
             res = db.Schedule.query.get(int(schedule_id))
         return True if res is not None else False
 
