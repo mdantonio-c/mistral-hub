@@ -215,7 +215,7 @@ class RequestManager():
         else:
             sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'], reverse=True)
 
-        if last:
+        if sorted_list and last:
             log.debug('return ONLY the last request')
             return sorted_list[0]
         else:
