@@ -205,15 +205,22 @@ class ScheduledRequests(EndpointResource):
 
     @catch_error()
     def get(self, schedule_id):
-        '''
+        """
         Get all submitted requests for this schedule
         :param schedule_id:
         :return:
-        '''
+        """
         log.debug('get scheduled requests')
         param = self.get_input()
         get_total = param.get('get_total', False)
-        last = param.get('last', False)
+        last = param.get('last')
+        if isinstance(last, str) and (last == '' or last.lower() == 'true'):
+            last = True
+        elif type(last) == bool:
+            # do nothing
+            pass
+        else:
+            last = False
 
         db = self.get_service_instance('sqlalchemy')
 
@@ -236,6 +243,6 @@ class ScheduledRequests(EndpointResource):
             return {"total": counter}
 
         # get all submitted requests or the last for this schedule
-        res = RequestManager.get_schedule_requests(db, schedule_id, last)
+        res = RequestManager.get_schedule_requests(db, schedule_id, last=last)
         return self.force_response(
             res, code=hcodes.HTTP_OK_BASIC)

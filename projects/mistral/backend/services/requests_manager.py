@@ -173,39 +173,32 @@ class RequestManager():
         return schedule.name
 
     @staticmethod
-    # retrieve requests related to a scheduled task
-    def get_schedule_requests(db, schedule_id, sort_by=None, sort_order=None, last=None):
-
-        # default value if sort_by and sort_order are None
-        if sort_by is None:
-            sort_by = "date"
-        if sort_order is None:
-            sort_order = "desc"
-
+    def get_schedule_requests(db, schedule_id, sort_by="submission_date", sort_order="desc", last=None):
+        """
+        Retrieve requests related to a scheduled task
+        :param db:
+        :param schedule_id:
+        :param sort_by:
+        :param sort_order:
+        :param last:
+        :return:
+        """
         schedule = db.Schedule
         r = schedule.query.filter(schedule.id == schedule_id).first()
         requests_list = r.submitted_request
 
-        # update celery status for the requests coming from the database query
-        # for row in requests_list:
-        #    if row.task_id is not None:
-        #        RequestManager.update_task_status(db, row.task_id)
-        #    # handle the case rabbit was down when the request was posted and the request has not a task id
-        #    else:
-        #        message="service was temporarily unavailable when data extraction request was posted"
-        #        RequestManager.save_message_error(db, row.id, message)
-
         # create the response schema
         submitted_request_list = []
         for row in requests_list:
-            submitted_request = {}
-            submitted_request['id'] = row.id
-            submitted_request['name'] = row.name
-            submitted_request['request_id'] = row.id
-            submitted_request['task_id'] = row.task_id
-            submitted_request['submission_date'] = row.submission_date.isoformat()
-            submitted_request['end_date'] = row.end_date.isoformat()
-            submitted_request['status'] = row.status
+            submitted_request = {
+                'id': row.id,
+                'name': row.name,
+                'request_id': row.id,
+                'task_id': row.task_id,
+                'submission_date': row.submission_date.isoformat(),
+                'end_date': row.end_date.isoformat(),
+                'status': row.status
+            }
 
             if row.error_message is not None:
                 submitted_request['error message'] = row.error_message
@@ -220,19 +213,17 @@ class RequestManager():
 
             submitted_request_list.append(submitted_request)
 
-        # sorting the list if there are sorting parameters
-        if sort_by == "date":
-            if sort_order == "asc":
-                sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'])
-                return sorted_list
-            if sort_order == "desc":
-                sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'], reverse=True)
-                return sorted_list
-        if last == True:
+        # always sort the list. default by submission date
+        if sort_order == "asc":
+            sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'])
+        else:
             sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'], reverse=True)
+
+        if last:
+            log.debug('return ONLY the last request')
             return sorted_list[0]
         else:
-            return submitted_request_list
+            return sorted_list
 
     @staticmethod
     def get_user_requests(db, user_id, sort_by=None, sort_order=None):
