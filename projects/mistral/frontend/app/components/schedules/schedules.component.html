@@ -9,7 +9,7 @@
     </div>
 </div>
 <!-- load schedules in the table -->
-<div class="table-responsive" *ngIf="rows?.length">
+<div class="table-responsive" *ngIf="rows?.length" #tableWrapper>
     <ngx-datatable
             #mySchedulesTable
             class="expandable"

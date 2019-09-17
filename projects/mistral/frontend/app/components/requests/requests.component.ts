@@ -1,4 +1,4 @@
-import {Component, ViewChild, TemplateRef} from '@angular/core';
+import {Component, ViewChild, AfterViewChecked, ChangeDetectorRef} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
 import {BasePaginationComponent} from '/rapydo/src/app/components/base.pagination.component';
 
@@ -14,9 +14,11 @@ import {DataService} from "../../services/data.service";
     templateUrl: './requests.component.html',
     styleUrls: ['./requests.component.css']
 })
-export class RequestsComponent extends BasePaginationComponent {
+export class RequestsComponent extends BasePaginationComponent implements AfterViewChecked {
+    @ViewChild('tableWrapper', {static: false}) tableWrapper;
     @ViewChild('myRequestsTable', {static: false}) table: any;
     expanded: any = {};
+    private currentComponentWidth;
 
     constructor(
         protected api: ApiService,
@@ -24,7 +26,8 @@ export class RequestsComponent extends BasePaginationComponent {
         protected notify: NotificationService,
         protected modalService: NgbModal,
         protected formly: FormlyService,
-        private dataService: DataService
+        private dataService: DataService,
+        private changeDetectorRef: ChangeDetectorRef
     ) {
         super(api, auth, notify, modalService, formly);
         this.init("request");
@@ -60,6 +63,15 @@ export class RequestsComponent extends BasePaginationComponent {
 
     toggleExpandRow(row) {
         this.table.rowDetail.toggleExpandRow(row);
+    }
+
+    ngAfterViewChecked() {
+        // Check if the table size has changed,
+        if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+            this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
+            this.table.recalculate();
+            this.changeDetectorRef.detectChanges();
+        }
     }
 
 }

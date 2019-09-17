@@ -1,4 +1,4 @@
-import {Component, ViewChild, TemplateRef} from '@angular/core';
+import {Component, ViewChild, AfterViewChecked, ChangeDetectorRef} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
 import {BasePaginationComponent} from '/rapydo/src/app/components/base.pagination.component';
 
@@ -14,10 +14,12 @@ import {DataService} from "../../services/data.service";
     templateUrl: './schedules.component.html',
     styleUrls: ['./schedules.component.css']
 })
-export class SchedulesComponent extends BasePaginationComponent {
+export class SchedulesComponent extends BasePaginationComponent implements AfterViewChecked {
+    @ViewChild('tableWrapper', {static: false}) tableWrapper;
     @ViewChild('mySchedulesTable', {static: false}) table: any;
     expanded: any = {};
     loadingLast = false;    // it should be bound to the single row!
+    private currentComponentWidth;
 
     constructor(
         protected api: ApiService,
@@ -25,7 +27,8 @@ export class SchedulesComponent extends BasePaginationComponent {
         protected notify: NotificationService,
         protected modalService: NgbModal,
         protected formly: FormlyService,
-        private dataService: DataService
+        private dataService: DataService,
+        private changeDetectorRef: ChangeDetectorRef
     ) {
         super(api, auth, notify, modalService, formly);
         this.init('schedule');
@@ -54,7 +57,7 @@ export class SchedulesComponent extends BasePaginationComponent {
                 this.notify.extractErrors(error.error.Response, this.notify.ERROR);
             }
         ).add(() => {
-           this.loadingLast = false;
+            this.loadingLast = false;
         });
     }
 
@@ -97,5 +100,14 @@ export class SchedulesComponent extends BasePaginationComponent {
                 this.notify.extractErrors(error.error.Response, this.notify.ERROR);
             }
         );
+    }
+
+    ngAfterViewChecked() {
+        // Check if the table size has changed,
+        if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
+            this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
+            this.table.recalculate();
+            this.changeDetectorRef.detectChanges();
+        }
     }
 }

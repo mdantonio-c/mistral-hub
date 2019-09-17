@@ -382,16 +382,6 @@ div.board + pre {
     width: 100% !important;
 }
 
-/* This leads to a slight misalignment with the header when
-   browser v-scrollbar appears but prevents the header from
-   being partially hidden.
-*/
-/*
-.ngx-datatable .datatable-body-row,
-.ngx-datatable .datatable-body-row .datatable-row-group {
-    width: 100% !important;
-}*/
-
 .ngx-datatable .datatable-body-row:hover {
     background-color: #eee;
     transition-property: background;
