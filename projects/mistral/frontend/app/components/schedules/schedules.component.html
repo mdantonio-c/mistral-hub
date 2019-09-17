@@ -30,7 +30,7 @@
                 <div>
                     <div><strong>Schedule Details</strong></div>
                     <div class="row no-gutters">
-                        <div class="col-8">
+                        <div class="col-8 pr-3">
                         <ng-container *ngIf="row.args">
                             <div class="my-2"></div>
                             <dl class="mb-0">
@@ -67,10 +67,16 @@
                             <span *ngIf="row.periodic">{{row.periodic_settings}}</span>
                             <span *ngIf="row.crontab">{{row.contab_settings}}</span>
                             <div class="mt-4"><strong>Last submission </strong>(out of {{row.requests_count}})
-                                <button class="btn">
-                                    <i class="fa fa-sync" aria-hidden="true"></i></button>
+                                <button class="btn p-0" ngbTooltip="refresh last submission" placement="bottom">
+                                    <i class="fa fa-sync" aria-hidden="true" (click)="loadLastSubmission(row)"></i></button>
                             </div>
-                            <button class="btn p-0 mr-1"><i class="fa fa-download"></i></button>
+                            <loading *ngIf="loadingLast"></loading>
+                            <div *ngIf="!loadingLast && row.last">
+                                <button class="btn p-0 mr-1 mb-2">
+                                    <i class="fa fa-download" (click)='download(row.last.fileoutput)'></i></button>
+                                <span>{{row.last.filesize | bytes:2}} ({{row.last.end_date | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}})</span>
+                            </div>
+                            <div *ngIf="!loadingLast && !row.last">N/A</div>
                         </div>
                     </div>
                 </div>

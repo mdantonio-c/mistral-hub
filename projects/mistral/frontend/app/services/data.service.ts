@@ -183,4 +183,8 @@ export class DataService {
         return this.api.patch('schedules', scheduleId, data);
     }
 
+    getLastScheduledRequest(scheduleId): Observable<RapydoBundle<any>> {
+        return this.api.get(`schedules/${scheduleId}/requests`, '', {last: true}, {"rawResponse": true});
+    }
+
 }

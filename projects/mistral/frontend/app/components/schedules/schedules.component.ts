@@ -17,6 +17,7 @@ import {DataService} from "../../services/data.service";
 export class SchedulesComponent extends BasePaginationComponent {
     @ViewChild('mySchedulesTable', {static: false}) table: any;
     expanded: any = {};
+    loadingLast = false;    // it should be bound to the single row!
 
     constructor(
         protected api: ApiService,
@@ -40,8 +41,41 @@ export class SchedulesComponent extends BasePaginationComponent {
         return this.get(this.endpoint);
     }
 
+    loadLastSubmission(row) {
+        this.loadingLast = true;
+        this.dataService.getLastScheduledRequest(row.id).subscribe(
+            response => {
+                row.requests_count = response.Meta.elements;
+                row.last = response.Response.data;
+            },
+            (error) => {
+                this.notify.showError('Unable to load the last submission');
+                // show reason
+                this.notify.extractErrors(error.error.Response, this.notify.ERROR);
+            }
+        ).add(() => {
+           this.loadingLast = false;
+        });
+    }
+
     toggleExpandRow(row) {
+        // load last request
+        this.loadLastSubmission(row);
+        // open or close schedule details
         this.table.rowDetail.toggleExpandRow(row);
+    }
+
+    download(filename) {
+        this.dataService.downloadData(filename).subscribe(
+            resp => {
+                const contentType = resp.headers['content-type'] || 'application/octet-stream';
+                const blob = new Blob([resp.body], {type: contentType});
+                importedSaveAs(blob, filename);
+            },
+            error => {
+                this.notify.showError(`Unable to download file: ${filename}`);
+            }
+        );
     }
 
     toggleActiveState(row) {

@@ -53,18 +53,15 @@ class RequestManager():
             return True
 
     @staticmethod
-    def check_request(db, schedule_id=None, single_request_id=None):
-        # check a single request
-        if single_request_id is not None:
-            item = db.Request
-            item_id = single_request_id
-        # check a scheduled request
-        if schedule_id is not None:
-            item = db.Schedule
-            item_id = schedule_id
-        item_to_check = item.query.filter(item.id == item_id).first()
-        if item_to_check is not None:
-            return True
+    def check_request(db, schedule_id=None, request_id=None):
+        res = None
+        if request_id is not None:
+            log.debug('check for request with ID {}'.format(schedule_id))
+            res = db.Schedule.query.get(int(request_id))
+        elif schedule_id is not None:
+            log.debug('check for schedule with ID {}'.format(schedule_id))
+            res = db.Schedule.query.get(int(schedule_id))
+        return True if res is not None else False
 
     @staticmethod
     def count_user_requests(db, user_id):
