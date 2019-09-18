@@ -1,4 +1,4 @@
-import {Component, ViewChild, AfterViewChecked, ChangeDetectorRef} from '@angular/core';
+import {Component, ChangeDetectorRef} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
 import {BasePaginationComponent} from '/rapydo/src/app/components/base.pagination.component';
 
@@ -14,11 +14,8 @@ import {DataService} from "../../services/data.service";
     templateUrl: './requests.component.html',
     styleUrls: ['./requests.component.css']
 })
-export class RequestsComponent extends BasePaginationComponent implements AfterViewChecked {
-    @ViewChild('tableWrapper', {static: false}) tableWrapper;
-    @ViewChild('myRequestsTable', {static: false}) table: any;
+export class RequestsComponent extends BasePaginationComponent {
     expanded: any = {};
-    private currentComponentWidth;
 
     constructor(
         protected api: ApiService,
@@ -26,10 +23,10 @@ export class RequestsComponent extends BasePaginationComponent implements AfterV
         protected notify: NotificationService,
         protected modalService: NgbModal,
         protected formly: FormlyService,
+        protected changeDetectorRef: ChangeDetectorRef,
         private dataService: DataService,
-        private changeDetectorRef: ChangeDetectorRef
     ) {
-        super(api, auth, notify, modalService, formly);
+        super(api, auth, notify, modalService, formly, changeDetectorRef);
         this.init("request");
 
         this.server_side_pagination = true;
@@ -64,14 +61,4 @@ export class RequestsComponent extends BasePaginationComponent implements AfterV
     toggleExpandRow(row) {
         this.table.rowDetail.toggleExpandRow(row);
     }
-
-    ngAfterViewChecked() {
-        // Check if the table size has changed,
-        if (this.table && this.table.recalculate && (this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth)) {
-            this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
-            this.table.recalculate();
-            this.changeDetectorRef.detectChanges();
-        }
-    }
-
 }
