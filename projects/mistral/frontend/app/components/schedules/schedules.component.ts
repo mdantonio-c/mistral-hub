@@ -48,8 +48,10 @@ export class SchedulesComponent extends BasePaginationComponent implements After
         this.loadingLast = true;
         this.dataService.getLastScheduledRequest(row.id).subscribe(
             response => {
-                //row.requests_count = response.Meta.elements;
                 row.last = response.Response.data;
+                console.log(row.last);
+                // TODO what about the requests count? should be updated
+                //row.requests_count = response.Meta.elements;
             },
             (error) => {
                 this.notify.showError('Unable to load the last submission');
@@ -61,9 +63,11 @@ export class SchedulesComponent extends BasePaginationComponent implements After
         });
     }
 
-    toggleExpandRow(row) {
-        // load last request
-        this.loadLastSubmission(row);
+    toggleExpandRow(row, flag) {
+        if (flag === 'open') {
+            // load last request
+            this.loadLastSubmission(row);
+        }
         // open or close schedule details
         this.table.rowDetail.toggleExpandRow(row);
     }

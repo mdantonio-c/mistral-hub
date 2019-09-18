@@ -65,18 +65,22 @@
                         <div class="col-4 pl-3" style="border-left: 1px solid #ddd;">
                             <i class="fa fa-calendar mr-2"></i>
                             <span *ngIf="row.periodic">{{row.periodic_settings}}</span>
-                            <span *ngIf="row.crontab">{{row.contab_settings}}</span>
+                            <span *ngIf="row.crontab">
+                                <ng-container *ngIf="row.crontab_settings.day_of_week">weekly</ng-container>
+                                <ng-container *ngIf="row.crontab_settings.day_of_month">monthly</ng-container>
+                                <ng-container *ngIf="!row.crontab_settings.day_of_week && !row.crontab_settings.day_of_month">daily</ng-container>
+                                at {{row.crontab_settings.hour | number: '2.'}}:{{row.crontab_settings.minute | number: '2.'}}</span>
                             <div class="mt-4"><strong>Last submission </strong>(out of {{row.requests_count}})
                                 <button class="btn p-0" ngbTooltip="refresh last submission" placement="bottom">
                                     <i class="fa fa-sync" aria-hidden="true" (click)="loadLastSubmission(row)"></i></button>
                             </div>
                             <loading *ngIf="loadingLast"></loading>
-                            <div *ngIf="!loadingLast && row.last">
+                            <div *ngIf="!loadingLast && row.last && row.last.length !== 0; else notAvailable">
                                 <button class="btn p-0 mr-1 mb-2">
                                     <i class="fa fa-download" (click)='download(row.last.fileoutput)'></i></button>
                                 <span>{{row.last.filesize | bytes:2}} ({{row.last.end_date | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}})</span>
                             </div>
-                            <div *ngIf="!loadingLast && !row.last">N/A</div>
+                            <ng-template #notAvailable>N/A</ng-template>
                         </div>
                     </div>
                 </div>
@@ -98,11 +102,11 @@
                     ngx-datatable-cell-template
             >
                 <button class="btn p-0" *ngIf="!expanded"
-                        title="Show/Hide Details"
-                        (click)='toggleExpandRow(row)'><i class="fa fa-angle-right"></i></button>
+                        title="Show Details"
+                        (click)="toggleExpandRow(row, 'open')"><i class="fa fa-angle-right"></i></button>
                 <button class="btn p-0" *ngIf="expanded"
-                        title="Show/Hide Details"
-                        (click)='toggleExpandRow(row)'><i class="fa fa-angle-down"></i></button>
+                        title="Hide Details"
+                        (click)="toggleExpandRow(row, 'close')"><i class="fa fa-angle-down"></i></button>
             </ng-template>
         </ngx-datatable-column>
         <!-- Product -->
