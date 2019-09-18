@@ -53,7 +53,7 @@ export class StepSubmitComponent implements OnInit {
             }
         });
         // default product name
-        this.formData.defaultName();
+        // this.formData.defaultName();
         window.scroll(0, 0);
     }
 

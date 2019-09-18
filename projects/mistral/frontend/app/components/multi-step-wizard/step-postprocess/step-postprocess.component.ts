@@ -3,6 +3,13 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn} from '@angular/forms';
 import {FormDataService} from "../../../services/formData.service";
 
+const additionalVariables = [
+    {code: 'B12194', desc: 'Air density'},
+    {code: 'B13003', desc: 'Relative humidity'},
+    {code: 'B11001', desc: 'Wind direction'},
+    {code: 'B11002', desc: 'Wind speed'},
+];
+
 @Component({
     selector: 'step-postprocess',
     templateUrl: './step-postprocess.component.html'
@@ -10,26 +17,49 @@ import {FormDataService} from "../../../services/formData.service";
 export class StepPostprocessComponent implements OnInit {
     title = 'Choose a post-processing';
     form: FormGroup;
+    vars = additionalVariables;
 
     constructor(private formBuilder: FormBuilder,
-              private router: Router,
-              private route: ActivatedRoute,
-              private formDataService: FormDataService) {
+                private router: Router,
+                private route: ActivatedRoute,
+                private formDataService: FormDataService) {
         this.form = this.formBuilder.group({
-            // TODO
+            additional_variables: this.buildAdditionaVariables()
         });
     }
 
+    private buildAdditionaVariables() {
+        const av = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'additional_variables');
+        let presetVariables = [];
+        if (av && av.length) {
+            presetVariables = av[0].variables;
+        }
+        const arr = this.vars.map(v => {
+            return this.formBuilder.control(presetVariables.includes(v.code));
+        });
+        return this.formBuilder.array(arr);
+    }
+
     ngOnInit() {
-        window.scroll(0,0);
+        window.scroll(0, 0);
     }
 
     private save() {
         if (!this.form.valid) {
             return false;
         }
-        // TODO
-        this.formDataService.setPostProcessor([]);
+        const selectedProcessors = [];
+        // additional variables
+        const selectedAdditionalVariables = this.form.value.additional_variables
+            .map((v, i) => v ? this.vars[i].code : null)
+            .filter(v => v !== null);
+        if (selectedAdditionalVariables && selectedAdditionalVariables.length) {
+            selectedProcessors.push({
+                type: 'additional_variables',
+                variables: selectedAdditionalVariables
+            });
+        }
+        this.formDataService.setPostProcessor(selectedProcessors);
         return true;
     }
 
@@ -37,7 +67,7 @@ export class StepPostprocessComponent implements OnInit {
         if (this.save()) {
             // Navigate to the dataset page
             this.router.navigate(
-                ['../', 'filters'], { relativeTo: this.route });
+                ['../', 'filters'], {relativeTo: this.route});
         }
     }
 
@@ -45,7 +75,7 @@ export class StepPostprocessComponent implements OnInit {
         if (this.save()) {
             // Navigate to the postprocess page
             this.router.navigate(
-                ['../', 'submit'], { relativeTo: this.route });
+                ['../', 'submit'], {relativeTo: this.route});
         }
     }
 

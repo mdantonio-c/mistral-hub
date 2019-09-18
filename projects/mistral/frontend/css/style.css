@@ -323,7 +323,6 @@ input[type="radio"]:checked + .mst--radio-label:after {
     }
 }
 
-/* END */
 .btn-default {
     border-color: #ccc;
 }
@@ -354,14 +353,14 @@ input[type="radio"]:checked + .mst--radio-label:after {
 
 .board {
     /*width: 75%;*/
-    margin: 30px auto;
+    /*margin: 30px auto;*/
     /*height: 500px;*/
     background: #fff;
     /*box-shadow: 10px 10px #ccc,-10px 20px #ddd;*/
 }
 .board .nav-tabs {
     position: relative;
-    margin: 40px auto;
+    /*margin: 40px auto;*/
     margin-bottom: 0;
     box-sizing: border-box;
 }

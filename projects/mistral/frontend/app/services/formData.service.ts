@@ -9,7 +9,7 @@ export class FormData {
     name: string = '';
     datasets: string[] = [];
     filters: Filters[] = [];
-    postprocessors: string[] = [];
+    postprocessors: any[] = [];
     schedule: TaskSchedule;
 
     clear() {

@@ -38,21 +38,21 @@
         <div class="body">
             <dl class="request-summary">
                 <div class="input-group mb-3">
-                    <input type="text" class="mst--input pl-0 col"
-                           [(ngModel)]="formData.name"
-                           [ngClass]="{'mst--input-error': emptyName()}"
-                           placeholder="Product name"
-                           required>
                     <div class="input-group-append" [ngClass]="{'mst--input-error': emptyName()}">
                         <ng-template #tipContent>
                             Please give a name or a short description to your product
                         </ng-template>
                         <button class="btn-reset" type="button"
                                 [ngbTooltip]="tipContent"
-                                placement="left">
+                                placement="right">
                             <i class="material-icons">info</i>
                         </button>
                     </div>
+                    <input type="text" class="mst--input col"
+                           [(ngModel)]="formData.name"
+                           [ngClass]="{'mst--input-error': emptyName()}"
+                           placeholder="Product name"
+                           required>
                     <span class="mst--input-error-msg" *ngIf="emptyName()">Product name is required</span>
                 </div>
                 <dt>Dataset(s)</dt>
