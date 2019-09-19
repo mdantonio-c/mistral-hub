@@ -1,14 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn} from '@angular/forms';
-import {FormDataService} from "../../../services/formData.service";
-
-const additionalVariables = [
-    {code: 'B12194', desc: 'Air density'},
-    {code: 'B13003', desc: 'Relative humidity'},
-    {code: 'B11001', desc: 'Wind direction'},
-    {code: 'B11002', desc: 'Wind speed'},
-];
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {FormDataService, additionalVariables} from "../../../services/formData.service";
 
 @Component({
     selector: 'step-postprocess',

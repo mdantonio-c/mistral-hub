@@ -74,7 +74,17 @@
                 <dd *ngIf="!formData.filters || !formData.filters.length">None</dd>
                 <hr>
                 <dt>Post-Processing</dt>
-                <dd>None</dd>
+                <dd *ngIf="formData.postprocessors.length">
+                    <dl class="row">
+                        <ng-container *ngFor="let p of formData.postprocessors">
+                            <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}</dt>
+                            <ng-container *ngIf="p.type === 'additional_variables'">
+                                <dd class="col-sm-9"><p *ngFor="let v of p.variables">{{getVariableDescription(v)}}</p></dd>
+                            </ng-container>
+                        </ng-container>
+                    </dl>
+                </dd>
+                <dd *ngIf="!formData.postprocessors || !formData.postprocessors.length">None</dd>
             </dl>
         </div>
     </div>

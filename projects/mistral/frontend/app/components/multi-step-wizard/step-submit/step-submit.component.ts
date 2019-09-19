@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {FormData, FormDataService} from "../../../services/formData.service";
+import {additionalVariables, FormData, FormDataService} from "../../../services/formData.service";
 import {
     DataService,
     ScheduleType,
@@ -23,6 +23,7 @@ export class StepSubmitComponent implements OnInit {
     isFormValid = false;
     scheduleForm: FormGroup;
     schedule: TaskSchedule = null;
+    vars = additionalVariables;
 
     constructor(
         private router: Router,
@@ -60,6 +61,11 @@ export class StepSubmitComponent implements OnInit {
     emptyName() {
         return !this.formData.name || this.formData.name.trim().length === 0;
     }
+
+    getVariableDescription(code): string {
+        return this.vars.find(av => av.code === code).desc;
+    }
+
 
     showSchedule(content) {
         const modalRef = this.modalService.open(content);
