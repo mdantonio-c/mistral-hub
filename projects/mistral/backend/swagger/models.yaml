@@ -1,5 +1,4 @@
 definitions:
-
   DataExtraction:
     required:
       - name
@@ -18,9 +17,13 @@ definitions:
       filters:
         description: Apply different filtering criteria.
         $ref: "#/definitions/DataFilter"
-      post-process:
-        description: Apply post-processing to the filtered data.
-        type: string
+      postprocessors:
+        description: Apply one or more post-processing to the filtered data.
+        type: array
+        uniqueItems: true
+        items:
+          description: Post-processing request details
+          type: object
       format:
         description: Output format
         type: string
@@ -28,6 +31,32 @@ definitions:
           - json
           - bufr
           - grib
+  Processor:
+    type: object
+    discriminator: type
+    properties:
+      type:
+        type: string
+        enum:
+          - additional_variables
+    required:
+      - type
+  AVProcessor:
+    description: Additional variables post-processing
+    allOf:
+      - $ref: '#/definitions/Processor'
+      - type: object
+        properties:
+          variables:
+            type: string
+            description: The list of requested additional variables to be calculated.
+            enum:
+              - B12194  # Air density
+              - B13003  # Relative humidity
+              - B11001  # Wind direction
+              - B11002  # Wind speed
+        required:
+          - variables
   DataFilter:
     properties:
       area:
@@ -66,7 +95,6 @@ definitions:
         type: array
         items:
           type: object
-
   Datasets:
     type: array
     items:
