@@ -17,7 +17,7 @@ import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
     templateUrl: './step-submit.component.html'
 })
 export class StepSubmitComponent implements OnInit {
-    title = 'Submit your request';
+    title = 'Submit my request';
     summaryStats: SummaryStats = {c: 0, s: 0};
     @Input() formData: FormData;
     isFormValid = false;
