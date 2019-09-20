@@ -31,32 +31,26 @@ definitions:
           - json
           - bufr
           - grib
-  Processor:
+  AVProcessor:
+    description: Additional variables post-processing
     type: object
-    discriminator: type
     properties:
       type:
         type: string
-        enum:
-          - additional_variables
+      variables:
+        description: The list of requested additional variables to be calculated.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum:
+            - B12194  # Air density
+            - B13003  # Relative humidity
+            - B11001  # Wind direction
+            - B11002  # Wind speed
     required:
       - type
-  AVProcessor:
-    description: Additional variables post-processing
-    allOf:
-      - $ref: '#/definitions/Processor'
-      - type: object
-        properties:
-          variables:
-            type: string
-            description: The list of requested additional variables to be calculated.
-            enum:
-              - B12194  # Air density
-              - B13003  # Relative humidity
-              - B11001  # Wind direction
-              - B11002  # Wind speed
-        required:
-          - variables
+      - variables
   DataFilter:
     properties:
       area:

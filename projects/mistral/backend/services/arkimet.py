@@ -18,6 +18,10 @@ class BeArkimet():
         'area', 'level', 'origin', 'proddef', 'product', 'quantity', 'run', 'task', 'timerange'
     )
 
+    allowed_processors = (
+        'additional_variables',
+    )
+
     @staticmethod
     def load_datasets():
         """
@@ -102,6 +106,10 @@ class BeArkimet():
     @staticmethod
     def is_filter_allowed(filter_name):
         return True if filter_name in BeArkimet.allowed_filters else False
+
+    @staticmethod
+    def is_processor_allowed(processor_name):
+        return True if processor_name in BeArkimet.allowed_processors else False
 
     # @staticmethod
     # def parse_matchers(filters):

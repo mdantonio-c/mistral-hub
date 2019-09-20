@@ -120,7 +120,7 @@ export class DataService {
     /**
      * Request for data extraction.
      */
-    extractData(name: string, datasets: string[], filters?: Filters[], schedule?: TaskSchedule) {
+    extractData(name: string, datasets: string[], filters?: Filters[], schedule?: TaskSchedule, postprocessors?: any[]) {
         let data = {
             name: name,
             datasets: datasets
@@ -157,6 +157,9 @@ export class DataService {
                     };
                     break;
             }
+        }
+        if (postprocessors && postprocessors.length) {
+            data['postprocessors'] = postprocessors;
         }
         const endpoint = schedule ? 'schedules' : 'data';
         return this.api.post(endpoint, data, {"rawResponse": true});

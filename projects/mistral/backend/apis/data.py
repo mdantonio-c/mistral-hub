@@ -38,16 +38,28 @@ class Data(EndpointResource):
         # clean up filters from unknown values
         filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
 
+        processors = criteria.get('postprocessors', [])
+        # clean up processors from unknown values
+        # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
+        for p in processors:
+            p_type = p.get('type')
+            if p_type == 'additional_variables':
+                self.validate_input(p, 'AVProcessor')
+            else:
+                raise RestApiException('Unknown post-processor type for {}'.format(p_type),
+                                       status_code=hcodes.HTTP_BAD_REQUEST)
+
         # run the following steps in a transaction
         db = self.get_service_instance('sqlalchemy')
         try:
             request = repo.create_request_record(db, user.id, product_name, {
                 'datasets': dataset_names,
                 'filters': filters,
+                'postprocessors': processors
             })
 
             task = CeleryExt.data_extract.apply_async(
-                args=[user.id, dataset_names, filters, request.id],
+                args=[user.id, dataset_names, filters, processors, request.id],
                 countdown=1
             )
 
