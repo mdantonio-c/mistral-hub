@@ -29,13 +29,6 @@ export class FormData {
     }
 }
 
-export const additionalVariables = [
-    {code: 'B12194', desc: 'Air density'},
-    {code: 'B13003', desc: 'Relative humidity'},
-    {code: 'B11001', desc: 'Wind direction'},
-    {code: 'B11002', desc: 'Wind speed'},
-];
-
 @Injectable({
   providedIn: 'root'
 })

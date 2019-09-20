@@ -90,9 +90,9 @@ class RequestManager():
         return r
 
     @staticmethod
-    def create_schedule_record(db, user, product_name, filters, every=None, period=None, crontab_settings=None):
+    def create_schedule_record(db, user, product_name, args, every=None, period=None, crontab_settings=None):
         schedule = db.Schedule
-        args = json.dumps(filters)
+        args = json.dumps(args)
         # check if the request is periodic
         if (every or period) is not None:
             s = schedule(user_id=user.id, name=product_name, args=args, is_crontab=False, every=every,

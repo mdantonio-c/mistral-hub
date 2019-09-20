@@ -9,7 +9,7 @@ from restapi.flask_ext.flask_celery import CeleryExt
 from celery import states
 from celery.exceptions import Ignore
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
-# from restapi.flask_ext.flask_celery import send_errors_by_email
+from restapi.flask_ext.flask_celery import send_errors_by_email
 from mistral.services.requests_manager import RequestManager
 
 from utilities.logs import get_logger
@@ -18,10 +18,9 @@ celery_app = CeleryExt.celery_app
 
 log = get_logger(__name__)
 DOWNLOAD_DIR = '/data'
+# MAX_USER_QUOTA = 1570000000
 MAX_USER_QUOTA = 1073741824  # 1 GB
 
-
-# MAX_USER_QUOTA = 1570000000
 
 @celery_app.task(bind=True)
 def add(self, a, b):
@@ -31,7 +30,7 @@ def add(self, a, b):
 
 
 @celery_app.task(bind=True)
-# @send_errors_by_email
+@send_errors_by_email
 def data_extract(self, user_id, datasets, filters=None, postprocessors=[], request_id=None, schedule_id=None):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]".format(self.request.id, self.name))
@@ -81,9 +80,9 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
             if used_quota + data_size > MAX_USER_QUOTA:
                 free_space = MAX_USER_QUOTA - used_quota
                 # save error message in db
-                message = 'User quota exceeds: required size {} ({}); remaining space {} ({})'.format(
-                    data_size, human_size(data_size), free_space, human_size(free_space))
-                raise Exception(message)
+                message = 'Disk quota exceeded: required size {}; remaining space {}'.format(
+                    human_size(data_size), human_size(free_space))
+                raise DiskQuotaException(message)
 
             '''
              $ arki-query [OPZIONI] QUERY DATASET...
@@ -105,7 +104,7 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
                 pp_type = p.get('type')
                 if pp_type != 'additional_variables':
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
-                log.debug('Data extraction with post-processing: {}'.format(pp_type))
+                log.debug('Data extraction with post-processing <{}>'.format(pp_type))
                 # temporarily save the data extraction output
                 tmp_outfile = os.path.join(user_dir, out_filename + '.tmp')
                 # call data extraction
@@ -135,13 +134,12 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
             request.status = states.SUCCESS
             request.end_date = datetime.datetime.utcnow()
             db.session.commit()
-
         except Exception as e:
-            message = str(e)
-            log.error(message)
+            message = 'Failed to extract data'
+            log.error('{}: {}'.format(message, str(e)))
             # RequestManager.save_message_error(db, request_id, message)
             request.status = states.FAILURE
-            request.error_message = message
+            request.error_message = 'Failed to extract data'
             request.end_date = datetime.datetime.utcnow()
             db.session.commit()
             # manually update the task state too
@@ -150,7 +148,10 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
                 meta=message
             )
             log.info('Terminate task {} with state {}'.format(self.request.id, states.FAILURE))
-            raise e
+            if isinstance(e, DiskQuotaException):
+                raise Ignore()
+            else:
+                raise e
 
         log.info("Task [{}] completed successfully".format(self.request.id))
         return 1
@@ -161,3 +162,6 @@ def human_size(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
     :rtype: string
     """
     return str(bytes) + units[0] if bytes < 1024 else human_size(bytes >> 10, units[1:])
+
+
+class DiskQuotaException(Exception): pass

@@ -166,9 +166,13 @@ definitions:
       filters:
         description: Apply different filtering criteria.
         $ref: "#/definitions/DataFilter"
-      post-process:
-        description: Apply post-processing to the filtered data.
-        type: string
+      postprocessors:
+        description: Apply one or more post-processing to the filtered data.
+        type: array
+        uniqueItems: true
+        items:
+          description: Post-processing request details
+          type: object
       format:
         description: Output format
         type: string

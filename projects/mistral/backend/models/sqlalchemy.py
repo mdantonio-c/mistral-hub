@@ -29,7 +29,7 @@ class Request(db.Model):
     end_date = db.Column(db.DateTime)
     status = db.Column(db.String(64))
     task_id = db.Column(db.String(64), index=True, unique=True)
-    error_message = db.Column(db.String(128))
+    error_message = db.Column(db.Text)
     schedule_id = db.Column(db.Integer, db.ForeignKey('schedule.id'))
     fileoutput = db.relationship("FileOutput", backref='request', cascade="delete", uselist=False)
 

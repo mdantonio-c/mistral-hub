@@ -80,12 +80,19 @@ export interface DateSchedule {
     day: number;
 }
 
-interface TimeSchedule {
+export interface TimeSchedule {
     /** The hour in the `[0, 23]` range. */
     hour: number;
     /** The minute in the `[0, 59]` range. */
     minute: number;
 }
+
+export const additionalVariables = [
+    {code: 'B12194', desc: 'Air density'},
+    {code: 'B13003', desc: 'Relative humidity'},
+    {code: 'B11001', desc: 'Wind direction'},
+    {code: 'B11002', desc: 'Wind speed'},
+];
 
 @Injectable({
     providedIn: 'root'
@@ -188,6 +195,10 @@ export class DataService {
 
     getLastScheduledRequest(scheduleId): Observable<RapydoBundle<any>> {
         return this.api.get(`schedules/${scheduleId}/requests`, '', {last: true}, {"rawResponse": true});
+    }
+
+    getVariableDescription(code): string {
+        return additionalVariables.find(av => av.code === code).desc;
     }
 
 }

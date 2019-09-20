@@ -1,7 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup} from '@angular/forms';
-import {FormDataService, additionalVariables} from "../../../services/formData.service";
+import {FormDataService} from "../../../services/formData.service";
+import {additionalVariables} from "../../../services/data.service";
 
 @Component({
     selector: 'step-postprocess',

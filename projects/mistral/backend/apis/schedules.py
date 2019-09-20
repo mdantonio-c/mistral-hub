@@ -36,6 +36,17 @@ class Schedules(EndpointResource):
         # clean up filters from unknown values
         filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
 
+        processors = criteria.get('postprocessors', [])
+        # clean up processors from unknown values
+        # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
+        for p in processors:
+            p_type = p.get('type')
+            if p_type == 'additional_variables':
+                self.validate_input(p, 'AVProcessor')
+            else:
+                raise RestApiException('Unknown post-processor type for {}'.format(p_type),
+                                       status_code=hcodes.HTTP_BAD_REQUEST)
+
         db = self.get_service_instance('sqlalchemy')
 
         # check if scheduling parameters are correct
@@ -56,6 +67,7 @@ class Schedules(EndpointResource):
                 name_int = RequestManager.create_schedule_record(db, user, product_name, {
                     'datasets': dataset_names,
                     'filters': filters,
+                    'postprocessors': processors
                 }, every=every, period=period)
                 name = str(name_int)
 
@@ -70,7 +82,7 @@ class Schedules(EndpointResource):
                     task="mistral.tasks.data_extraction.data_extract",
                     every=every,
                     period=period,
-                    args=[user.id, dataset_names, filters, request_id, name_int],
+                    args=[user.id, dataset_names, filters, processors, request_id, name_int],
                 )
 
                 log.info("Scheduling periodic task")
@@ -86,6 +98,7 @@ class Schedules(EndpointResource):
                 name_int = RequestManager.create_schedule_record(db, user, product_name, {
                     'datasets': dataset_names,
                     'filters': filters,
+                    'postprocessors': processors
                 }, crontab_settings=crontab_settings)
                 name = str(name_int)
 
@@ -101,7 +114,7 @@ class Schedules(EndpointResource):
                     name=name,
                     task="mistral.tasks.data_extraction.data_extract",
                     **crontab_settings,
-                    args=[user.id, dataset_names, filters, request_id, name_int],
+                    args=[user.id, dataset_names, filters, processors, request_id, name_int],
                 )
 
                 log.info("Scheduling crontab task")

@@ -1,8 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {additionalVariables, FormData, FormDataService} from "../../../services/formData.service";
+import {FormData, FormDataService} from "../../../services/formData.service";
 import {
+    additionalVariables,
     DataService,
     ScheduleType,
     RepeatEvery,
@@ -60,10 +61,6 @@ export class StepSubmitComponent implements OnInit {
 
     emptyName() {
         return !this.formData.name || this.formData.name.trim().length === 0;
-    }
-
-    getVariableDescription(code): string {
-        return this.vars.find(av => av.code === code).desc;
     }
 
 
