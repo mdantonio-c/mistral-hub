@@ -50,6 +50,11 @@ export class Dataset {
     description ? = '';
 }
 
+export interface RefTime {
+    from?: Date;
+    to?: Date;
+}
+
 export interface TaskSchedule {
     type: ScheduleType;
     time?: string;    // hh:mm

@@ -5,6 +5,8 @@ import {FormDataService} from "../../../services/formData.service";
 import {NotificationService} from '/rapydo/src/app/services/notification';
 import {ArkimetService} from "../../../services/arkimet.service";
 import {Filters} from "../../../services/data.service";
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import * as moment from 'moment';
 
 @Component({
     selector: 'step-filters',
@@ -17,14 +19,24 @@ export class StepFiltersComponent implements OnInit {
     filterForm: FormGroup;
     filters: Filters;
 
+    today = moment();
+    maxDate = {year: this.today.year(), month: this.today.month(), day: this.today.day()};
+    disabledDp = false;
+
     constructor(private formBuilder: FormBuilder,
                 private router: Router,
                 private route: ActivatedRoute,
                 private formDataService: FormDataService,
                 private arkimetService: ArkimetService,
+                private modalService: NgbModal,
                 private notify: NotificationService) {
         this.filterForm = this.formBuilder.group({
-            filters: this.formBuilder.array([])
+            filters: this.formBuilder.array([]),
+            fromDate: [{vale:null, disabled: this.disabledDp}],
+            fromTime: ['00:00'],
+            toDate: [{vale:null, disabled: this.disabledDp}],
+            toTime: ['00:00'],
+            fullDataset: [false]
         });
     }
 
@@ -61,9 +73,29 @@ export class StepFiltersComponent implements OnInit {
                 this.notify.extractErrors(error.error.Response, this.notify.ERROR);
                 this.loading = false;
             });
+
+        const reftime = this.formDataService.getReftime();
+        if (reftime) {
+            setTimeout(() => {
+                (this.filterForm.controls.fromDate as FormControl).setValue(reftime.from);
+                (this.filterForm.controls.toDate as FormControl).setValue(reftime.to);
+            });
+        }
         window.scroll(0, 0);
     }
 
+    toggleFullDataset() {
+        this.disabledDp = !this.disabledDp;
+    }
+
+    editReftime(content) {
+        const modalRef = this.modalService.open(content);
+        modalRef.result.then((result) => {
+
+        }, (reason) => {
+            // do nothing
+        });
+    }
 
     private save() {
         if (!this.filterForm.valid) {

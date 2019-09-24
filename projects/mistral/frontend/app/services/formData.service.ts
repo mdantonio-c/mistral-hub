@@ -1,12 +1,14 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
+import * as moment from 'moment';
 
 import {WorkflowService} from './workflow.service';
 import {STEPS} from './workflow.model';
-import {DataService, Filters, RapydoResponse, SummaryStats, TaskSchedule} from "./data.service";
+import {DataService, Filters, RapydoResponse, SummaryStats, TaskSchedule, RefTime} from "./data.service";
 
 export class FormData {
     name: string = '';
+    reftime: RefTime = this.defaultReftime();
     datasets: string[] = [];
     filters: Filters[] = [];
     postprocessors: any[] = [];
@@ -18,6 +20,7 @@ export class FormData {
         this.filters = [];
         this.postprocessors = [];
         this.schedule = null;
+        this.reftime = this.defaultReftime();
     }
 
     setSchedule(schedule: TaskSchedule) {
@@ -26,6 +29,13 @@ export class FormData {
 
     defaultName() {
         this.name = this.datasets.join(' ').trim();
+    }
+
+    defaultReftime(): RefTime {
+        return {
+            from: moment().subtract(3, 'days').set({hour:0,minute:0,second:0,millisecond:0}).toDate(),
+            to: moment().toDate()
+        };
     }
 }
 
@@ -58,8 +68,37 @@ export class FormDataService {
         return this.formData.datasets.some(x => x === datasetId);
     }
 
+    /**
+     * Retrieve the filters available for the selected datasets.
+     * Optionally the dataset coverage can be restricted with respect to the reference time.
+     * If reftime is omitted the whole historical dataset will be considered.
+     */
     getFilters() {
+        let query;
+        if(this.formData.reftime) {
+            let arr = [];
+            if(this.formData.reftime.from) {arr.push(`>=${moment(this.formData.reftime.from).format("YYYY-MM-DD HH:mm")}`);}
+            if(this.formData.reftime.to) {arr.push(`<=${moment(this.formData.reftime.to).format("YYYY-MM-DD HH:mm")}`);}
+            query = arr.join(',');
+        }
+        console.log(`reftime query: ${query}`);
         return this.dataService.getSummary(this.formData.datasets);
+    }
+
+    getReftime() {
+        return this.formData.reftime;
+    }
+
+    setReftime(from?: Date, to?: Date) {
+        if (!this.formData.reftime) {
+            this.formData.reftime = this.formData.defaultReftime();
+        }
+        if (!from) {
+            this.formData.reftime.from = from;
+        }
+        if (!to) {
+            this.formData.reftime.to = to;
+        }
     }
 
     getSummaryStats(): Observable<RapydoResponse<SummaryStats>> {
