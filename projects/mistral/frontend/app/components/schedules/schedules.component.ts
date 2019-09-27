@@ -1,4 +1,4 @@
-import {Component, ChangeDetectorRef} from '@angular/core';
+import {Component, ChangeDetectorRef, ViewChild} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
 import {BasePaginationComponent} from '/rapydo/src/app/components/base.pagination.component';
 
@@ -17,6 +17,8 @@ import {DataService} from "../../services/data.service";
 export class SchedulesComponent extends BasePaginationComponent {
     expanded: any = {};
     loadingLast = false;    // it should be bound to the single row!
+    // @ts-ignore
+    @ViewChild('toggleBtn') toggleBtn;
 
     constructor(
         protected api: ApiService,
@@ -87,18 +89,21 @@ export class SchedulesComponent extends BasePaginationComponent {
         );
     }
 
-    toggleActiveState(row) {
-        const scheduleId = row.id;
-        const currState = row.enabled;
-        const action = (!currState) ? 'Activate' : 'Deactivate';
-        console.log(`${action} schedule [ID:${scheduleId}]. Current state: ${currState}`);
-        this.dataService.toggleScheduleActiveState(scheduleId, !currState).subscribe(
+    toggleActiveState($event: MouseEvent, row) {
+        // stop click event and propagation
+        $event.stopPropagation();
+
+        const action = (!row.enabled) ? 'Activate' : 'Deactivate';
+        console.log(`${action} schedule [ID:${row.id}]. Current state: ${row.enabled}`);
+        this.dataService.toggleScheduleActiveState(row.id, !row.enabled).subscribe(
             response => {
-                console.log(response);
-                row.enabled = !currState;
+                row.enabled = response.data.enabled;
+                (row.enabled) ?
+                    this.toggleBtn.nativeElement.classList.add('active') :
+                    this.toggleBtn.nativeElement.classList.remove('active')
             },
             error => {
-                this.notify.extractErrors(error.error.Response, this.notify.ERROR);
+                this.notify.extractErrors(error, this.notify.ERROR);
             }
         );
     }

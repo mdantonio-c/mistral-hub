@@ -175,13 +175,11 @@
             >
                 <div class="btn-toolbar justify-content-end" role="toolbar">
                     <div class="btn-group mr-1" role="group">
-                        <!--                        <button class="btn p-0 mr-1" *ngIf="row.status == 'SUCCESS'"-->
-                        <!--                                (click)='download(row.fileoutput)'><i class="fa fa-download"></i>-->
-                        <!--                        </button>-->
                         <button type="button" class="btn btn-sm btn-toggle" data-toggle="button"
                                 [ngbTooltip]="(row.enabled) ? 'Deactivate' : 'Activate'" placement="left"
                                 container="body"
-                                [ngClass]="{active: row.enabled}" (click)="toggleActiveState(row)">
+                                #toggleBtn
+                                [ngClass]="{active: row.enabled}" (click)="toggleActiveState($event, row)">
                             <div class="handle"></div>
                         </button>
                         <button class="btn p-0"

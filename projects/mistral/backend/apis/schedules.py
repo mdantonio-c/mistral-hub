@@ -172,14 +172,18 @@ class Schedules(EndpointResource):
         self.request_and_owner_check(db, user.id, schedule_id)
 
         # disable/enable the schedule
-        periodic = CeleryExt.get_periodic_task(name=schedule_id)
-        periodic.update(enabled=is_active)
+        task = CeleryExt.get_periodic_task(name=schedule_id)
+        if task is None:
+            raise RestApiException(
+                "Scheduled task is no longer available",
+                status_code=hcodes.HTTP_BAD_CONFLICT)
+        task.update(enabled=is_active)
 
         # update schedule status in database
         RequestManager.update_schedule_status(db, schedule_id, is_active)
 
         return self.force_response(
-            "Schedule {}: enabled = {}".format(schedule_id, is_active), code=hcodes.HTTP_OK_BASIC)
+            {'id': schedule_id, 'enabled':is_active}, code=hcodes.HTTP_OK_BASIC)
 
     @catch_error()
     def delete(self, schedule_id):
