@@ -30,12 +30,13 @@ export class StepFiltersComponent implements OnInit {
                 private arkimetService: ArkimetService,
                 private modalService: NgbModal,
                 private notify: NotificationService) {
+        const reftime = this.formDataService.getReftime();
         this.filterForm = this.formBuilder.group({
             filters: this.formBuilder.array([]),
-            fromDate: [{vale:null, disabled: this.disabledDp}],
-            fromTime: ['00:00'],
-            toDate: [{vale:null, disabled: this.disabledDp}],
-            toTime: ['00:00'],
+            fromDate: new FormControl({value: reftime.from, disabled: true}),
+            fromTime: new FormControl({value: '00:00', disabled: true}),
+            toDate: new FormControl({value: reftime.to, disabled: true}),
+            toTime: new FormControl({value: '00:00', disabled: true}),
             fullDataset: [false]
         });
     }
@@ -73,23 +74,35 @@ export class StepFiltersComponent implements OnInit {
                 this.notify.extractErrors(error.error.Response, this.notify.ERROR);
                 this.loading = false;
             });
-
-        const reftime = this.formDataService.getReftime();
-        if (reftime) {
-            setTimeout(() => {
-                (this.filterForm.controls.fromDate as FormControl).setValue(reftime.from);
-                (this.filterForm.controls.toDate as FormControl).setValue(reftime.to);
-            });
-        }
         window.scroll(0, 0);
     }
 
     toggleFullDataset() {
         this.disabledDp = !this.disabledDp;
+        (this.filterForm.controls.fullDataset as FormControl).setValue(this.disabledDp);
+        this.checkControls();
+        console.log(this.filterForm.value);
+    }
+
+    private checkControls() {
+        if (this.disabledDp) {
+            (this.filterForm.controls.fromDate as FormControl).disable();
+            (this.filterForm.controls.fromTime as FormControl).disable();
+            (this.filterForm.controls.toDate as FormControl).disable();
+            (this.filterForm.controls.toTime as FormControl).disable();
+        } else {
+            (this.filterForm.controls.fromDate as FormControl).enable();
+            (this.filterForm.controls.fromTime as FormControl).enable();
+            (this.filterForm.controls.toDate as FormControl).enable();
+            (this.filterForm.controls.toTime as FormControl).enable();
+        }
     }
 
     editReftime(content) {
         const modalRef = this.modalService.open(content);
+        setTimeout(() => {
+          this.checkControls();
+        });
         modalRef.result.then((result) => {
 
         }, (reason) => {
