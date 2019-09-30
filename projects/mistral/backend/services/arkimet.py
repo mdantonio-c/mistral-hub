@@ -88,8 +88,11 @@ class BeArkimet():
 
         ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
         args = shlex.split("arki-query --json --summary-short --annotate '{}' {}".format(query, ds))
-        with subprocess.Popen(args, stdout=subprocess.PIPE) as proc:
+        logger.debug('Launching Arkimet command: %s' % args)
+
+        with subprocess.Popen(args, encoding='utf-8', stdout=subprocess.PIPE) as proc:
             return json.loads(proc.stdout.read())
+
 
     @staticmethod
     def estimate_data_size(datasets, query):

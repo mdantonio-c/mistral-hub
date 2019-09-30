@@ -37,7 +37,8 @@ export class StepFiltersComponent implements OnInit {
             fromTime: new FormControl({value: '00:00', disabled: true}),
             toDate: new FormControl({value: reftime.to, disabled: true}),
             toTime: new FormControl({value: '00:00', disabled: true}),
-            fullDataset: [false]
+            fullDataset: [false],
+            validRefTime: [false, Validators.requiredTrue]
         });
     }
 
@@ -68,6 +69,13 @@ export class StepFiltersComponent implements OnInit {
                 });
                 //console.log(this.filterForm.get('filters'));
                 //console.log(this.filters);
+                if (this.summaryStats['s'] === 0) {
+                    (this.filterForm.controls.validRefTime as FormControl).setValue(false);
+                    this.notify.showWarning('The applied reference time does not produce any result. ' +
+                        'Please choose a different reference time range.');
+                } else {
+                    (this.filterForm.controls.validRefTime as FormControl).setValue(true);
+                }
                 this.loading = false;
             },
             error => {

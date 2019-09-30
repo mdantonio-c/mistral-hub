@@ -79,10 +79,10 @@ export class FormDataService {
             let arr = [];
             if(this.formData.reftime.from) {arr.push(`>=${moment(this.formData.reftime.from).format("YYYY-MM-DD HH:mm")}`);}
             if(this.formData.reftime.to) {arr.push(`<=${moment(this.formData.reftime.to).format("YYYY-MM-DD HH:mm")}`);}
-            query = arr.join(',');
+            query = `reftime: ${arr.join(',')}`;
+            console.log(query);
         }
-        console.log(`reftime query: ${query}`);
-        return this.dataService.getSummary(this.formData.datasets);
+        return this.dataService.getSummary(this.formData.datasets, query);
     }
 
     getReftime() {
