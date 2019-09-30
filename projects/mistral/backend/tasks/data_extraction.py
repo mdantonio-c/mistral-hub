@@ -16,7 +16,7 @@ from utilities.logs import get_logger
 
 celery_app = CeleryExt.celery_app
 
-log = get_logger(__name__)
+logger = get_logger(__name__)
 DOWNLOAD_DIR = '/data'
 # MAX_USER_QUOTA = 1570000000
 MAX_USER_QUOTA = 1073741824  # 1 GB
@@ -25,22 +25,22 @@ MAX_USER_QUOTA = 1073741824  # 1 GB
 @celery_app.task(bind=True)
 def add(self, a, b):
     c = a + b
-    log.critical("%s + %s = %s", a, b, c)
+    logger.critical("%s + %s = %s", a, b, c)
     return c
 
 
 @celery_app.task(bind=True)
-@send_errors_by_email
+#@send_errors_by_email
 def data_extract(self, user_id, datasets, filters=None, postprocessors=[], request_id=None, schedule_id=None):
     with celery_app.app.app_context():
-        log.info("Start task [{}:{}]".format(self.request.id, self.name))
+        logger.info("Start task [{}:{}]".format(self.request.id, self.name))
         try:
             db = celery_app.get_service('sqlalchemy')
 
             query = ''  # default to no matchers
             if filters is not None:
                 query = arki.parse_matchers(filters)
-                log.debug('Arkimet query: {}'.format(query))
+                logger.debug('Arkimet query: {}'.format(query))
 
             if schedule_id is not None:
                 # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
@@ -55,7 +55,7 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
                 request.task_id = self.request.id
                 request_id = request.id
                 db.session.commit()
-                log.debug('Schedule at: {}, Request <ID:{}>'.format(schedule_id, request.id))
+                logger.debug('Schedule at: {}, Request <ID:{}>'.format(schedule_id, request.id))
             else:
                 # load request by id
                 request = db.Request.query.get(request_id)
@@ -65,7 +65,7 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
             # I should check the user quota before...
             # check the output size
             data_size = arki.estimate_data_size(datasets, query)
-            log.debug('Resulting output size: {} ({})'.format(data_size, human_size(data_size)))
+            logger.debug('Resulting output size: {} ({})'.format(data_size, human_size(data_size)))
 
             # create download user dir if it doesn't exist
             uuid = RequestManager.get_uuid(db, user_id)
@@ -74,7 +74,7 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
 
             # check for current used space
             used_quota = int(subprocess.check_output(['du', '-sb', user_dir]).split()[0])
-            log.info('Current used space: {} ({})'.format(used_quota, human_size(used_quota)))
+            logger.info('Current used space: {} ({})'.format(used_quota, human_size(used_quota)))
 
             # check for exceeding quota
             if used_quota + data_size > MAX_USER_QUOTA:
@@ -89,7 +89,7 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
             '''
             ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
             arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
-            log.debug(arki_query_cmd)
+            logger.debug(arki_query_cmd)
 
             # output filename in the user space
             # max filename len = 64
@@ -100,11 +100,11 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
             if postprocessors:
                 # at the moment ONLY 'additional_variables' post-processing is allowed
                 p = postprocessors[0]
-                log.debug(p)
+                logger.debug(p)
                 pp_type = p.get('type')
                 if pp_type != 'additional_variables':
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
-                log.debug('Data extraction with post-processing <{}>'.format(pp_type))
+                logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
                 # temporarily save the data extraction output
                 tmp_outfile = os.path.join(user_dir, out_filename + '.tmp')
                 # call data extraction
@@ -119,7 +119,7 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
                     proc = subprocess.run(post_proc_cmd, stdout=subprocess.PIPE)
                     proc.check_returncode()
                 except Exception:
-                    log.error('Runtime error in post-processing')
+                    logger.error('Runtime error in post-processing')
                     raise
                 finally:
                     # always remove tmp file
@@ -132,29 +132,27 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
             RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
             # update request status
             request.status = states.SUCCESS
-            request.end_date = datetime.datetime.utcnow()
-            db.session.commit()
-        except Exception as e:
-            message = 'Failed to extract data'
-            log.error('{}: {}'.format(message, str(e)))
-            # RequestManager.save_message_error(db, request_id, message)
+
+        except DiskQuotaException as exc:
             request.status = states.FAILURE
-            request.error_message = 'Failed to extract data'
-            request.end_date = datetime.datetime.utcnow()
-            db.session.commit()
-            # manually update the task state too
+            request.error_message = str(exc)
+            logger.warn(str(exc))
+            # manually update the task state
             self.update_state(
                 state=states.FAILURE,
                 meta=message
             )
-            log.info('Terminate task {} with state {}'.format(self.request.id, states.FAILURE))
-            if isinstance(e, DiskQuotaException):
-                raise Ignore()
-            else:
-                raise e
-
-        log.info("Task [{}] completed successfully".format(self.request.id))
-        return 1
+            raise Ignore()
+        except Exception as exc:
+            # handle all the other exceptions
+            request.status = states.FAILURE
+            request.error_message = 'Failed to extract data'
+            logger.exception('Failed to extract data: %r', exc)
+            raise exc
+        finally:
+            request.end_date = datetime.datetime.utcnow()
+            db.session.commit()
+            logger.info('Terminate task {} with state {}'.format(self.request.id, request.status))
 
 
 def human_size(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
@@ -164,4 +162,5 @@ def human_size(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
     return str(bytes) + units[0] if bytes < 1024 else human_size(bytes >> 10, units[1:])
 
 
-class DiskQuotaException(Exception): pass
+class DiskQuotaException(Exception):
+    """Exception for disk quota exceeding."""
