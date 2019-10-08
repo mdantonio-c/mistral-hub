@@ -24,6 +24,15 @@ class Data(EndpointResource):
         self.validate_input(criteria, 'DataExtraction')
         product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
+        reftime = criteria.get('reftime')
+        if reftime is not None:
+            # 'from' and 'to' both mandatory by schema
+            # check from <= to
+            if reftime['from'] > reftime['to']:
+                raise RestApiException(
+                    'Invalid reftime: <from> greater than <to>',
+                    status_code=hcodes.HTTP_BAD_REQUEST
+                )
         # check for existing dataset(s)
         datasets = arki.load_datasets()
         for ds_name in dataset_names:
@@ -54,12 +63,13 @@ class Data(EndpointResource):
         try:
             request = repo.create_request_record(db, user.id, product_name, {
                 'datasets': dataset_names,
+                'reftime': reftime,
                 'filters': filters,
                 'postprocessors': processors
             })
 
             task = CeleryExt.data_extract.apply_async(
-                args=[user.id, dataset_names, filters, processors, request.id],
+                args=[user.id, dataset_names, reftime, filters, processors, request.id],
                 countdown=1
             )
 
@@ -71,5 +81,6 @@ class Data(EndpointResource):
             db.session.rollback()
             raise SystemError("Unable to submit the request")
 
-        return self.force_response(
-            {'task_id': task.id, 'task_status': task.status}, code=hcodes.HTTP_OK_ACCEPTED)
+        # return self.force_response(
+        #     {'task_id': task.id, 'task_status': task.status}, code=hcodes.HTTP_OK_ACCEPTED)
+        return self.empty_response()

@@ -22,6 +22,15 @@ class Schedules(EndpointResource):
         self.validate_input(criteria, 'DataExtraction')
         product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
+        reftime = criteria.get('reftime')
+        if reftime is not None:
+            # 'from' and 'to' both mandatory by schema
+            # check from <= to
+            if reftime['from'] > reftime['to']:
+                raise RestApiException(
+                    'Invalid reftime: <from> greater than <to>',
+                    status_code=hcodes.HTTP_BAD_REQUEST
+                )
         # check for existing dataset(s)
         datasets = arki.load_datasets()
         for ds_name in dataset_names:
@@ -66,6 +75,7 @@ class Schedules(EndpointResource):
             try:
                 name_int = RequestManager.create_schedule_record(db, user, product_name, {
                     'datasets': dataset_names,
+                    'reftime': reftime,
                     'filters': filters,
                     'postprocessors': processors
                 }, every=every, period=period)
@@ -82,7 +92,7 @@ class Schedules(EndpointResource):
                     task="mistral.tasks.data_extraction.data_extract",
                     every=every,
                     period=period,
-                    args=[user.id, dataset_names, filters, processors, request_id, name_int],
+                    args=[user.id, dataset_names, reftime, filters, processors, request_id, name_int],
                 )
 
                 log.info("Scheduling periodic task")
@@ -97,6 +107,7 @@ class Schedules(EndpointResource):
                 # get scheduled request id in postgres database as scheduled request name for mongodb
                 name_int = RequestManager.create_schedule_record(db, user, product_name, {
                     'datasets': dataset_names,
+                    'reftime': reftime,
                     'filters': filters,
                     'postprocessors': processors
                 }, crontab_settings=crontab_settings)
@@ -114,7 +125,7 @@ class Schedules(EndpointResource):
                     name=name,
                     task="mistral.tasks.data_extraction.data_extract",
                     **crontab_settings,
-                    args=[user.id, dataset_names, filters, processors, request_id, name_int],
+                    args=[user.id, dataset_names, reftime, filters, processors, request_id, name_int],
                 )
 
                 log.info("Scheduling crontab task")

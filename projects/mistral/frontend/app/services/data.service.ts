@@ -132,9 +132,10 @@ export class DataService {
     /**
      * Request for data extraction.
      */
-    extractData(name: string, datasets: string[], filters?: Filters[], schedule?: TaskSchedule, postprocessors?: any[]) {
+    extractData(name: string, reftime: RefTime, datasets: string[], filters?: Filters[], schedule?: TaskSchedule, postprocessors?: any[]) {
         let data = {
             name: name,
+            reftime: reftime,
             datasets: datasets
         };
         if (filters && filters.length) {

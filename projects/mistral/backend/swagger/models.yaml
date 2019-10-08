@@ -6,6 +6,8 @@ definitions:
     properties:
       name:
         type: string
+      reftime:
+        $ref: "#/definitions/RefTime"
       datasets:
         description: Data belong to the datasets of the list.
         type: array
@@ -51,6 +53,17 @@ definitions:
     required:
       - type
       - variables
+  RefTime:
+    required:
+      - from
+      - to
+    properties:
+      from:
+        type: string
+        format: date-time
+      to:
+        type: string
+        format: date-time
   DataFilter:
     properties:
       area:
@@ -155,6 +168,8 @@ definitions:
     properties:
       name:
         type: string
+      reftime:
+        $ref: "#/definitions/RefTime"
       datasets:
         description: Data belong to the datasets of the list.
         type: array

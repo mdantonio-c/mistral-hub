@@ -80,7 +80,7 @@ class RequestManager():
     @staticmethod
     def create_request_record(db, user_id, product_name, filters, schedule_id=None):
         args = json.dumps(filters)
-        r = db.Request(user_id=user_id, name=product_name, args=args)
+        r = db.Request(user_id=user_id, name=product_name, args=args, status='CREATED')
         if schedule_id is not None:
             # scheduled_request = db.Schedule
             r.schedule_id = schedule_id

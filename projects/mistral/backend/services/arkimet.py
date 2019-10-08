@@ -6,6 +6,7 @@ import os
 import glob
 import json
 import math
+import dateutil
 from utilities.logs import get_logger
 
 DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
@@ -114,18 +115,19 @@ class BeArkimet():
     def is_processor_allowed(processor_name):
         return True if processor_name in BeArkimet.allowed_processors else False
 
-    # @staticmethod
-    # def parse_matchers(filters):
-    #     """
-    #     Parse incoming filters and return an arkimet query.
-    #     :param filters:
-    #     :return:
-    #     """
-    #     matchers = []
-    #     for k in filters:
-    #         val = filters[k].strip()
-    #         matchers.append(k+':'+val)
-    #     return '' if not matchers else '; '.join(matchers)
+    @staticmethod
+    def parse_reftime(from_str, to_str):
+        """
+        Return Arkimet reftime query
+        :param from_str: ISO8610 date-time
+        :type from_str: string
+        :param to_str: ISO8610 date-time
+        :type to_str: string
+        :return: Arkimet query for reftime
+        """
+        from_dt = dateutil.parser.parse(from_str)
+        to_dt = dateutil.parser.parse(to_str)
+        return 'reftime: >='+from_dt.strftime("%Y-%m-%d %H:%M")+',<='+to_dt.strftime("%Y-%m-%d %H:%M")
 
     @staticmethod
     def parse_matchers(filters):

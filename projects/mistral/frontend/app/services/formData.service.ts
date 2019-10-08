@@ -74,7 +74,15 @@ export class FormDataService {
      * If reftime is omitted the whole historical dataset will be considered.
      */
     getFilters() {
-        let query;
+        let query = this.parseRefTime();
+        return this.dataService.getSummary(this.formData.datasets, query);
+    }
+
+    /**
+     * Return arkimet query for reftime or null.
+     */
+    private parseRefTime(): string {
+        let query = null;
         if(this.formData.reftime) {
             let arr = [];
             if(this.formData.reftime.from) {arr.push(`>=${moment(this.formData.reftime.from).format("YYYY-MM-DD HH:mm")}`);}
@@ -82,7 +90,7 @@ export class FormDataService {
             query = `reftime: ${arr.join(',')}`;
             console.log(query);
         }
-        return this.dataService.getSummary(this.formData.datasets, query);
+        return query;
     }
 
     getReftime() {
@@ -104,6 +112,12 @@ export class FormDataService {
 
     getSummaryStats(): Observable<RapydoResponse<SummaryStats>> {
         let q = this.formData.filters.map(filter => filter.query).join(';');
+        let reftime = this.parseRefTime();
+        if (reftime) {
+            // prepend the reftime
+            q = (q !== '') ? [reftime, q].join(';') : reftime;
+        }
+        console.log(`query for summary stats ${q}`);
         return this.dataService.getSummary(
             this.formData.datasets, q, true);
     }

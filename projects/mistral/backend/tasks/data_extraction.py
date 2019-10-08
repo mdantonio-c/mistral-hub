@@ -30,17 +30,13 @@ def add(self, a, b):
 
 
 @celery_app.task(bind=True)
-#@send_errors_by_email
-def data_extract(self, user_id, datasets, filters=None, postprocessors=[], request_id=None, schedule_id=None):
+# @send_errors_by_email
+def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[], request_id=None,
+                 schedule_id=None):
     with celery_app.app.app_context():
         logger.info("Start task [{}:{}]".format(self.request.id, self.name))
         try:
             db = celery_app.get_service('sqlalchemy')
-
-            query = ''  # default to no matchers
-            if filters is not None:
-                query = arki.parse_matchers(filters)
-                logger.debug('Arkimet query: {}'.format(query))
 
             if schedule_id is not None:
                 # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
@@ -61,6 +57,14 @@ def data_extract(self, user_id, datasets, filters=None, postprocessors=[], reque
                 request = db.Request.query.get(request_id)
                 if request is None:
                     raise ReferenceError("Cannot find request reference for task %s" % self.request.id)
+
+            query = ''  # default to no matchers
+            if filters is not None:
+                query = arki.parse_matchers(filters)
+                logger.debug('Arkimet query: {}'.format(query))
+            if reftime is not None:
+                reftime_query = arki.parse_reftime(reftime['from'], reftime['to'])
+                query = ";".join([reftime_query, query]) if query != '' else reftime_query
 
             # I should check the user quota before...
             # check the output size

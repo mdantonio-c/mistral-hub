@@ -138,6 +138,7 @@ export class StepSubmitComponent implements OnInit {
         console.log('submit request for data extraction');
         this.dataService.extractData(
             this.formData.name,
+            this.formData.reftime,
             this.formData.datasets,
             this.formData.filters,
             this.formData.schedule,

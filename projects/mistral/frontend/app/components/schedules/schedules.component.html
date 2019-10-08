@@ -42,6 +42,12 @@
                                     </dd>
                                 </dl>
                                 <div class="my-2"></div>
+                                <dl class="mb-0" *ngIf="row.args.reftime">
+                                    <dt>Reference time</dt>
+                                    <dd>{{row.args.reftime.from | amFromUtc | date: 'yyyy-MM-dd HH:mm'}} - {{row.args.reftime.to | amFromUtc | date: 'yyyy-MM-dd HH:mm'}}
+                                    </dd>
+                                </dl>
+                                <div class="my-2"></div>
                                 <dl class="mb-0" *ngIf="row.args.filters">
                                     <dt>Filter(s)</dt>
                                     <dd>

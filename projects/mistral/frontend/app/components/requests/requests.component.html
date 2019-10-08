@@ -41,6 +41,12 @@
                             </dd>
                         </dl>
                         <div class="my-2"></div>
+                        <dl class="mb-0" *ngIf="row.args.reftime">
+                            <dt>Reference time</dt>
+                            <dd>{{row.args.reftime.from | amFromUtc | date: 'yyyy-MM-dd HH:mm'}} - {{row.args.reftime.to | amFromUtc | date: 'yyyy-MM-dd HH:mm'}}
+                            </dd>
+                        </dl>
+                        <div class="my-2"></div>
                         <dl class="mb-0" *ngIf="row.args.filters">
                             <dt>Filter(s)</dt>
                             <dd>
@@ -64,11 +70,13 @@
                             <dt>Post-Processing</dt>
                             <dd>
                                 <dl class="row no-gutters mb-0 px-0 request-summary"
-                                    >
+                                >
                                     <ng-container *ngFor="let p of row.args.postprocessors">
-                                        <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}</dt>
+                                        <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}
+                                        </dt>
                                         <ng-container *ngIf="p.type === 'additional_variables'">
-                                            <dd class="col-sm-9"><p *ngFor="let v of p.variables">{{dataService.getVariableDescription(v)}}</p></dd>
+                                            <dd class="col-sm-9"><p *ngFor="let v of p.variables">
+                                                {{dataService.getVariableDescription(v)}}</p></dd>
                                         </ng-container>
                                     </ng-container>
                                 </dl>
@@ -132,7 +140,8 @@
                     let-row="row"
                     ngx-datatable-cell-template
             >
-                <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span><i class="fa fa-calendar ml-2" *ngIf="row.schedule_id"></i>
+                <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span><i class="fa fa-calendar ml-2"
+                                                                                   *ngIf="row.schedule_id"></i>
             </ng-template>
         </ngx-datatable-column>
         <!-- End date -->
