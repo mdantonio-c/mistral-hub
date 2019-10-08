@@ -51,8 +51,8 @@ export class Dataset {
 }
 
 export interface RefTime {
-    from?: Date;
-    to?: Date;
+    from: Date;
+    to: Date;
 }
 
 export interface TaskSchedule {

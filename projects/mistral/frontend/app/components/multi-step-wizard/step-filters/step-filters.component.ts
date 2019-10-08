@@ -18,32 +18,39 @@ export class StepFiltersComponent implements OnInit {
     summaryStats = {};
     filterForm: FormGroup;
     filters: Filters;
-
-    today = moment();
-    maxDate = {year: this.today.year(), month: this.today.month(), day: this.today.day()};
     disabledDp = false;
 
-    constructor(private formBuilder: FormBuilder,
+    constructor(private fb: FormBuilder,
                 private router: Router,
                 private route: ActivatedRoute,
                 private formDataService: FormDataService,
                 private arkimetService: ArkimetService,
                 private modalService: NgbModal,
                 private notify: NotificationService) {
-        const reftime = this.formDataService.getReftime();
-        this.filterForm = this.formBuilder.group({
-            filters: this.formBuilder.array([]),
-            fromDate: new FormControl({value: reftime.from, disabled: true}),
-            fromTime: new FormControl({value: '00:00', disabled: true}),
-            toDate: new FormControl({value: reftime.to, disabled: true}),
-            toTime: new FormControl({value: '00:00', disabled: true}),
+        const refTime = this.formDataService.getReftime();
+        this.filterForm = this.fb.group({
+            filters: this.fb.array([]),
+            fromDate: new FormControl({value: refTime ? refTime.from : this.formDataService.getDefaultRefTime().from, disabled: true}),
+            fromTime: new FormControl({value: refTime ? moment(refTime.from).format('HH:mm') : '00:00', disabled: true}),
+            toDate: new FormControl({value: refTime ? refTime.to : this.formDataService.getDefaultRefTime().to, disabled: true}),
+            toTime: new FormControl({value: refTime ? moment(refTime.to).format('HH:mm') : '00:00', disabled: true}),
             fullDataset: [false],
             validRefTime: [false, Validators.requiredTrue]
         });
     }
 
-    createFilter(name: string, values: any): FormGroup {
-        let filter = this.formBuilder.group({
+    ngOnInit() {
+        this.loadFilters();
+        window.scroll(0, 0);
+    }
+
+    today() {
+        const today = moment();
+        return {year: today.year(), month: today.month()+1, day: today.date()};
+    }
+
+    private addFilter(name: string, values: any): FormGroup {
+        let filter = this.fb.group({
             name: [name, Validators.required],
             values: new FormArray([])
         });
@@ -56,15 +63,26 @@ export class StepFiltersComponent implements OnInit {
         return filter;
     }
 
-    ngOnInit() {
+    private loadFilters() {
+        console.log('current filters', this.filters);
         this.loading = true;
+        // reset filters
+        (this.filterForm.controls.filters as FormArray).clear();
         this.formDataService.getFilters().subscribe(
             response => {
                 this.filters = response.data.items;
                 this.summaryStats = response.data.items.summarystats;
+                if (!this.summaryStats.hasOwnProperty('b')) {
+                    let from = moment(this.formDataService.getReftime().from);
+                    this.summaryStats['b'] = [from.year(), from.month()+1, from.date(), from.hour(), from.minute(), from.second()]
+                }
+                if (!this.summaryStats.hasOwnProperty('e')) {
+                    let to = moment(this.formDataService.getReftime().to);
+                    this.summaryStats['e'] = [to.year(), to.month()+1, to.date(), to.hour(), to.minute(), to.second()]
+                }
                 Object.entries(response.data.items).forEach(entry => {
                     if (entry[0] !== 'summarystats') {
-                        (this.filterForm.controls.filters as FormArray).push(this.createFilter(entry[0], entry[1]));
+                        (this.filterForm.controls.filters as FormArray).push(this.addFilter(entry[0], entry[1]));
                     }
                 });
                 //console.log(this.filterForm.get('filters'));
@@ -76,23 +94,22 @@ export class StepFiltersComponent implements OnInit {
                 } else {
                     (this.filterForm.controls.validRefTime as FormControl).setValue(true);
                 }
-                this.loading = false;
             },
             error => {
-                this.notify.extractErrors(error.error.Response, this.notify.ERROR);
-                this.loading = false;
-            });
-        window.scroll(0, 0);
+                this.notify.showError(`Unable to get summary fields`);
+            }
+        ).add(() => {
+            this.loading = false;
+        });
     }
 
     toggleFullDataset() {
         this.disabledDp = !this.disabledDp;
         (this.filterForm.controls.fullDataset as FormControl).setValue(this.disabledDp);
-        this.checkControls();
-        console.log(this.filterForm.value);
+        this.checkRefTimeControls();
     }
 
-    private checkControls() {
+    private checkRefTimeControls() {
         if (this.disabledDp) {
             (this.filterForm.controls.fromDate as FormControl).disable();
             (this.filterForm.controls.fromTime as FormControl).disable();
@@ -108,11 +125,28 @@ export class StepFiltersComponent implements OnInit {
 
     editReftime(content) {
         const modalRef = this.modalService.open(content);
+        let fullDataset = !this.formDataService.getReftime();
         setTimeout(() => {
-          this.checkControls();
+          this.disabledDp = fullDataset;
+          this.filterForm.get('fullDataset').setValue(fullDataset ? true : false);
+          this.checkRefTimeControls();
         });
         modalRef.result.then((result) => {
-
+            if (this.filterForm.controls.fullDataset.value) {
+                this.formDataService.setReftime(null);
+            } else {
+                let fromDate: Date = this.filterForm.get('fromDate').value;
+                const fromTime = this.filterForm.get('fromTime').value.split(':');
+                fromDate.setHours(parseInt(fromTime[0]), parseInt(fromTime[1]));
+                let toDate: Date = this.filterForm.get('toDate').value;
+                const toTime = this.filterForm.get('toTime').value.split(':');
+                toDate.setHours(parseInt(toTime[0]), parseInt(toTime[1]));
+                this.formDataService.setReftime({
+                    from: fromDate,
+                    to: toDate
+                });
+            }
+            this.loadFilters();
         }, (reason) => {
             // do nothing
         });

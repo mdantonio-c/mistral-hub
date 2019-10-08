@@ -8,7 +8,7 @@ import {DataService, Filters, RapydoResponse, SummaryStats, TaskSchedule, RefTim
 
 export class FormData {
     name: string = '';
-    reftime: RefTime = this.defaultReftime();
+    reftime: RefTime = this.defaultRefTime();
     datasets: string[] = [];
     filters: Filters[] = [];
     postprocessors: any[] = [];
@@ -20,7 +20,7 @@ export class FormData {
         this.filters = [];
         this.postprocessors = [];
         this.schedule = null;
-        this.reftime = this.defaultReftime();
+        this.reftime = this.defaultRefTime();
     }
 
     setSchedule(schedule: TaskSchedule) {
@@ -31,7 +31,7 @@ export class FormData {
         this.name = this.datasets.join(' ').trim();
     }
 
-    defaultReftime(): RefTime {
+    defaultRefTime(): RefTime {
         return {
             from: moment().subtract(3, 'days').set({hour:0,minute:0,second:0,millisecond:0}).toDate(),
             to: moment().toDate()
@@ -89,15 +89,16 @@ export class FormDataService {
         return this.formData.reftime;
     }
 
-    setReftime(from?: Date, to?: Date) {
-        if (!this.formData.reftime) {
-            this.formData.reftime = this.formData.defaultReftime();
-        }
-        if (!from) {
-            this.formData.reftime.from = from;
-        }
-        if (!to) {
-            this.formData.reftime.to = to;
+    getDefaultRefTime() {
+        return this.formData.defaultRefTime();
+    }
+
+    setReftime(value?: RefTime) {
+        if (value === undefined) {
+            // default reftime
+            this.formData.reftime = this.formData.defaultRefTime();
+        } else {
+            this.formData.reftime = value;
         }
     }
 

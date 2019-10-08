@@ -74,6 +74,7 @@
                     <input id="fromDate" class="form-control" placeholder="yyyy-mm-dd"
                            [formControl]="filterForm.controls.fromDate"
                            [attr.disabled]="disabledDp"
+                           [maxDate]="today()"
                            ngbDatepicker #from="ngbDatepicker">
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" (click)="from.toggle()" type="button">
@@ -91,6 +92,7 @@
                     <input id="toDate" class="form-control" placeholder="yyyy-mm-dd"
                            formControlName="toDate"
                            [attr.disabled]="disabledDp"
+                           [maxDate]="today()"
                            ngbDatepicker #to="ngbDatepicker">
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" (click)="to.toggle()" type="button">
@@ -109,7 +111,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-info">Save</button>
+            <button type="button" class="btn btn-info" (click)="modal.close('save')">Save</button>
         </div>
     </ng-template>
 </form>
