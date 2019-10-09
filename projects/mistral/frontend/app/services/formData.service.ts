@@ -33,8 +33,8 @@ export class FormData {
 
     defaultRefTime(): RefTime {
         return {
-            from: moment().subtract(3, 'days').set({hour:0,minute:0,second:0,millisecond:0}).toDate(),
-            to: moment().toDate()
+            from: moment.utc().subtract(3, 'days').set({hour:0,minute:0,second:0,millisecond:0}).toDate(),
+            to: moment.utc().toDate()
         };
     }
 }
