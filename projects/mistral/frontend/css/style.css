@@ -310,12 +310,15 @@ input[type="radio"]:checked + .mst--radio-label:after {
 }
 
 .mst--list-filter {
-    /*-webkit-columns: 400px 2;
-    -moz-columns: 400px 2;
-    max-height: 200px;*/
     max-height: 330px;
     overflow: auto;
     margin-bottom: 10px !important;
+}
+
+.mst--list-columns {
+    columns: 400px 2;
+    -webkit-columns: 400px 2;
+    -moz-columns: 400px 2;
 }
 
 
