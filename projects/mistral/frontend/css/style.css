@@ -310,18 +310,14 @@ input[type="radio"]:checked + .mst--radio-label:after {
 }
 
 .mst--list-filter {
-    columns: 2;
-    -webkit-columns: 2;
-    -moz-columns: 2;
+    /*-webkit-columns: 400px 2;
+    -moz-columns: 400px 2;
+    max-height: 200px;*/
+    max-height: 330px;
+    overflow: auto;
+    margin-bottom: 10px !important;
 }
 
-@media (max-width: 575.98px) {
-    .mst--list-filter-xs {
-        columns: 2;
-        -webkit-columns: 2;
-        -moz-columns: 2;
-    }
-}
 
 .btn-default {
     border-color: #ccc;

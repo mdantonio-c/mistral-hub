@@ -37,9 +37,10 @@
                                                          class="fa fa-question-circle"
                                                          aria-hidden="true"></i></span>
                     </div>
-                    <div class="body">
-                        <ul class="mst--list-filter">
-                            <li formArrayName="values" *ngFor="let v of f.controls.values.controls; let j = index">
+                    <div class="card-body mst--list-filter ">
+                        <ul class="row no-gutters">
+                            <li formArrayName="values" *ngFor="let v of f.controls.values.controls; let j = index"
+                                class="col-sm-12 col-md-6">
                                 <input class="mst--input-checkbox" type="checkbox" [formControlName]="j"
                                        id="{{f.value.name+'-'+j}}">
                                 <label for="{{f.value.name+'-'+j}}">{{filters[f.value.name][j].desc}}</label>
@@ -83,7 +84,8 @@
                     </div>
                 </div>
                 <div class="input-group col-sm-5">
-                    <ngb-timepicker formControlName="fromTime" name="fromTime" [attr.disabled]="disabledDp"></ngb-timepicker>
+                    <ngb-timepicker formControlName="fromTime" name="fromTime"
+                                    [attr.disabled]="disabledDp"></ngb-timepicker>
                 </div>
             </div>
             <div class="form-group row" style="align-items: center;">
@@ -101,12 +103,14 @@
                     </div>
                 </div>
                 <div class="input-group col-sm-5">
-                    <ngb-timepicker formControlName="toTime" name="toTime" [attr.disabled]="disabledDp"></ngb-timepicker>
+                    <ngb-timepicker formControlName="toTime" name="toTime"
+                                    [attr.disabled]="disabledDp"></ngb-timepicker>
                 </div>
             </div>
             <hr>
             <div>
-                <input class="mst--input-checkbox" type="checkbox" formControlName="fullDataset" id="full_ds" (click)="toggleFullDataset()">
+                <input class="mst--input-checkbox" type="checkbox" formControlName="fullDataset" id="full_ds"
+                       (click)="toggleFullDataset()">
                 <label for="full_ds">Full Dataset</label>
             </div>
         </div>
