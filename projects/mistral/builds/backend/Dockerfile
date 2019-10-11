@@ -1,4 +1,4 @@
-FROM rapydo/backendcentos:0.6.7
+FROM rapydo/backendcentos:0.7.0
 
 RUN git clone https://github.com/ARPA-SIMC/simc-docker-image
 RUN cp simc-docker-image/centos-7/build.sh simc-docker-image/centos-7/build.conf /
