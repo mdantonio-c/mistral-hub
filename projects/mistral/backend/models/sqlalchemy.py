@@ -14,6 +14,7 @@ logger.setLevel(logging.DEBUG)
 
 # Add (inject) attributes to User
 setattr(User, 'my_custom_field', db.Column(db.String(255)))
+setattr(User, 'disk_quota', db.Column(db.BigInteger, default=1073741824))   # 1 GB
 
 setattr(User, 'requests', db.relationship('Request', backref='author', lazy='dynamic'))
 setattr(User, 'fileoutput', db.relationship('FileOutput', backref='owner', lazy='dynamic'))
