@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
-import {ApiService} from '/rapydo/src/app/services/api';
 import {Observable, of} from 'rxjs';
+import {ApiService} from '@rapydo/services/api';
 
 export interface RapydoBundle<T> {
     Meta: RapydoMeta;

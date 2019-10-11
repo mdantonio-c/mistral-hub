@@ -1,8 +1,8 @@
 import {Component} from '@angular/core';
 
-import {ApiService} from '/rapydo/src/app/services/api';
-import {AuthService} from '/rapydo/src/app/services/auth';
-import {NotificationService} from '/rapydo/src/app/services/notification';
+import {ApiService} from '@rapydo/services/api';
+import {AuthService} from '@rapydo/services/auth';
+import {NotificationService} from '@rapydo/services/notification';
 
 @Component({
     templateUrl: './data.component.html'

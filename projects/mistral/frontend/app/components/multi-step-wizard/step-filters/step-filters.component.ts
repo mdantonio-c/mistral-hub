@@ -1,10 +1,10 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, FormArray, FormControl, Validators} from '@angular/forms';
-import {FormDataService} from "../../../services/formData.service";
-import {NotificationService} from '/rapydo/src/app/services/notification';
-import {ArkimetService} from "../../../services/arkimet.service";
-import {Filters} from "../../../services/data.service";
+import {NotificationService} from '@rapydo/services/notification';
+import {FormDataService} from "@app/services/formData.service";
+import {ArkimetService} from "@app/services/arkimet.service";
+import {Filters} from "@app/services/data.service";
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 

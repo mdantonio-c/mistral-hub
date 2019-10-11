@@ -1,9 +1,10 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn} from '@angular/forms';
-import {FormDataService} from "../../../services/formData.service";
-import {NotificationService} from '/rapydo/src/app/services/notification';
-import {Dataset} from "../../../services/data.service";
+
+import {NotificationService} from '@rapydo/services/notification';
+import {FormDataService} from "@app/services/formData.service";
+import {Dataset} from "@app/services/data.service";
 
 @Component({
     selector: 'step-datasets',

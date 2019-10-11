@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {STEPS} from './workflow.model';
+import {STEPS} from '@app/services/workflow.model';
 
 @Injectable({
   providedIn: 'root'
