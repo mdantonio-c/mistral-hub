@@ -17,7 +17,7 @@ export class DashboardComponent {
     }
 
     list() {
-        if (this.selectedTabId == 'requests') {
+        if (this.selectedTabId === 'requests') {
             this.requests.list();
         } else {
             this.schedules.list();

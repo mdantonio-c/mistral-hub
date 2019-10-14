@@ -11,6 +11,7 @@ import {DataComponent} from './components/data/data.component';
 import {RequestsComponent} from "./components/requests/requests.component";
 import {SchedulesComponent} from "./components/schedules/schedules.component";
 import {DashboardComponent} from "./components/dashboard/dashboard.component";
+import {StorageUsageComponent} from "./components/dashboard/storage-usage/storage-usage.component";
 import {NgbTimeStringAdapter} from './adapters/timepicker-adapter';
 
 /* Multi-Step Wizard Components */
@@ -56,6 +57,7 @@ const appRoutes: Routes = [
         StepPostprocessComponent,
         StepSubmitComponent,
         DashboardComponent,
+        StorageUsageComponent,
         RequestsComponent,
         SchedulesComponent,
         FormatDatePipe

@@ -52,6 +52,19 @@
     padding: 0 !important;
 }
 
+.hr {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  font-size: 0;
+  border-width: 1px 0 0 0;
+  border-top: 1px solid #E3E3E3;
+  margin: 12px 0;
+  border-top-color: rgba(0, 0, 0, .11)
+}
+.hr.dotted, .hr-dotted { border-style: dotted }
+.hr-24, .hr24 { margin: 24px 0 }
+
 .click-event {
     cursor: pointer;
 }
@@ -346,6 +359,9 @@ input[type="radio"]:checked + .mst--radio-label:after {
     margin-bottom: 5px;
 }
 
+.space-10 {
+    margin-top: 10px;
+}
 .space-20 {
     margin-top: 20px;
 }

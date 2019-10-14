@@ -1,0 +1,8 @@
+file: usage
+class: Usage
+schema:
+  expose: true
+mapping:
+  usage: "/usage"
+labels:
+  - usage

@@ -26,6 +26,11 @@ export interface SummaryStats {
     s: number;
 }
 
+export interface StorageUsage {
+  quota: number;
+  used: number;
+}
+
 /**
  * Expected filter names:
  *
@@ -205,6 +210,10 @@ export class DataService {
 
     getVariableDescription(code): string {
         return additionalVariables.find(av => av.code === code).desc;
+    }
+
+    getStorageUsage(): Observable<RapydoResponse<StorageUsage>> {
+        return this.api.get(`usage`);
     }
 
 }

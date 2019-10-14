@@ -371,3 +371,18 @@ definitions:
 #      type: string
 #    period2:
 #      type: string
+  StorageUsage:
+    required:
+      - quota
+      - used
+    properties:
+      quota:
+        description: Current disk user quota (in bytes)
+        type: integer
+        format: int64
+        minimum: 0
+      used:
+        description: Current disk usage (in bytes)
+        type: integer
+        format: int64
+        minimum: 0
