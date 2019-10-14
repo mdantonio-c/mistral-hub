@@ -18,8 +18,6 @@ celery_app = CeleryExt.celery_app
 
 logger = get_logger(__name__)
 DOWNLOAD_DIR = '/data'
-# MAX_USER_QUOTA = 1570000000
-MAX_USER_QUOTA = 1073741824  # 1 GB
 
 
 @celery_app.task(bind=True)
@@ -81,8 +79,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             logger.info('Current used space: {} ({})'.format(used_quota, human_size(used_quota)))
 
             # check for exceeding quota
-            if used_quota + data_size > MAX_USER_QUOTA:
-                free_space = MAX_USER_QUOTA - used_quota
+            max_user_quota = db.session.query(db.User.disk_quota).filter_by(id=user_id).scalar()
+            logger.debug('MAX USER QUOTA for user<{}>: {}'.format(user_id, max_user_quota))
+            if used_quota + data_size > max_user_quota:
+                free_space = max_user_quota - used_quota
                 # save error message in db
                 message = 'Disk quota exceeded: required size {}; remaining space {}'.format(
                     human_size(data_size), human_size(free_space))
