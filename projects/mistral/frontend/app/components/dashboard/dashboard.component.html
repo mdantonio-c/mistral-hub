@@ -18,13 +18,13 @@
             <ngb-tab id="schedules" title="Schedules"></ngb-tab>
         </ngb-tabset>
         <hr style="border-top-color: #BBB;"/>
-        <app-storage-usage></app-storage-usage>
+        <app-storage-usage #storage></app-storage-usage>
     </div>
 
     <div class="row justify-content-md-center page-with-sidebar">
         <div class="col-12">
             <ng-container *ngIf="selectedTabId === 'requests'">
-                <app-requests #rTab></app-requests>
+                <app-requests #rTab (onLoad)="storage.load()"></app-requests>
             </ng-container>
             <ng-container *ngIf="selectedTabId === 'schedules'">
                 <app-schedules #sTab></app-schedules>

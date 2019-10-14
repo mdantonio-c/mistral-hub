@@ -1,4 +1,4 @@
-import {Component, ChangeDetectorRef} from '@angular/core';
+import {Component, Output, EventEmitter, ChangeDetectorRef} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
 import {BasePaginationComponent} from '/rapydo/src/app/components/base.pagination.component';
 
@@ -16,6 +16,7 @@ import {DataService} from "../../services/data.service";
 })
 export class RequestsComponent extends BasePaginationComponent {
     expanded: any = {};
+    @Output() onLoad: EventEmitter<null> = new EventEmitter<null>();
 
     constructor(
         protected api: ApiService,
@@ -37,7 +38,8 @@ export class RequestsComponent extends BasePaginationComponent {
     }
 
     list() {
-        return this.get(this.endpoint);
+        this.get(this.endpoint);
+        this.onLoad.emit();
     }
 
     remove(requestID) {

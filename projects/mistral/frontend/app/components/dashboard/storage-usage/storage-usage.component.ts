@@ -14,7 +14,11 @@ export class StorageUsageComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.dataService.getStorageUsage().subscribe(resp => {
+        this.load();
+    }
+
+    load() {
+       this.dataService.getStorageUsage().subscribe(resp => {
             this.usage = resp.data;
             this.barValue = (this.usage.used * 100) / this.usage.quota;
         }, error => {
