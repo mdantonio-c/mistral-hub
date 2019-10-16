@@ -123,8 +123,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     proc = subprocess.run(post_proc_cmd, stdout=subprocess.PIPE)
                     proc.check_returncode()
                 except Exception:
-                    logger.error('Runtime error in post-processing')
-                    raise
+                    message = 'Error in post-processing: no results'
+                    raise PostProcessingException(message)
                 finally:
                     # always remove tmp file
                     os.remove(tmp_outfile)
@@ -138,6 +138,16 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             request.status = states.SUCCESS
 
         except DiskQuotaException as exc:
+            request.status = states.FAILURE
+            request.error_message = str(exc)
+            logger.warn(str(exc))
+            # manually update the task state
+            self.update_state(
+                state=states.FAILURE,
+                meta=message
+            )
+            raise Ignore()
+        except PostProcessingException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
             logger.warn(str(exc))
@@ -168,3 +178,6 @@ def human_size(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
 
 class DiskQuotaException(Exception):
     """Exception for disk quota exceeding."""
+
+class PostProcessingException(Exception):
+    """Exception for post-processing failure."""
