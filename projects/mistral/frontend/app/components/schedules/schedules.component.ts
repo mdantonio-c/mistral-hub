@@ -1,4 +1,4 @@
-import {Component, ChangeDetectorRef, ViewChild} from '@angular/core';
+import {Component, ChangeDetectorRef, ElementRef} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
 import {BasePaginationComponent} from '/rapydo/src/app/components/base.pagination.component';
 
@@ -17,8 +17,6 @@ import {DataService} from "../../services/data.service";
 export class SchedulesComponent extends BasePaginationComponent {
     expanded: any = {};
     loadingLast = false;    // it should be bound to the single row!
-    // @ts-ignore
-    @ViewChild('toggleBtn') toggleBtn;
 
     constructor(
         protected api: ApiService,
@@ -28,6 +26,7 @@ export class SchedulesComponent extends BasePaginationComponent {
         protected formly: FormlyService,
         protected changeDetectorRef: ChangeDetectorRef,
         private dataService: DataService,
+        private el: ElementRef
     ) {
         super(api, auth, notify, modalService, formly, changeDetectorRef);
         this.init('schedule');
@@ -98,9 +97,10 @@ export class SchedulesComponent extends BasePaginationComponent {
         this.dataService.toggleScheduleActiveState(row.id, !row.enabled).subscribe(
             response => {
                 row.enabled = response.data.enabled;
+                let toggleBtn = this.el.nativeElement.querySelector('#act-btn-'+row.id);
                 (row.enabled) ?
-                    this.toggleBtn.nativeElement.classList.add('active') :
-                    this.toggleBtn.nativeElement.classList.remove('active')
+                    toggleBtn.classList.add('active') :
+                    toggleBtn.classList.remove('active')
             },
             error => {
                 this.notify.extractErrors(error, this.notify.ERROR);

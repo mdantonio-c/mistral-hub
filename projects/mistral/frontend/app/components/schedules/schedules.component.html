@@ -183,9 +183,9 @@
                 <div class="btn-toolbar justify-content-end" role="toolbar">
                     <div class="btn-group mr-1" role="group">
                         <button type="button" class="btn btn-sm btn-toggle" data-toggle="button"
+                                [id]="'act-btn-'+row.id"
                                 [ngbTooltip]="(row.enabled) ? 'Deactivate' : 'Activate'" placement="left"
                                 container="body"
-                                #toggleBtn
                                 [ngClass]="{active: row.enabled}" (click)="toggleActiveState($event, row)">
                             <div class="handle"></div>
                         </button>
