@@ -106,7 +106,7 @@
                                     <i class="fa fa-download" (click)='download(row.last.fileoutput)'></i></button>
                                 <span>{{row.last.filesize | bytes:2}} ({{row.last.end_date | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}})</span>
                             </div>
-                            <ng-template #notAvailable>N/A</ng-template>
+                            <ng-template #notAvailable><ng-container *ngIf="!loadingLast">N/A</ng-container></ng-template>
                         </div>
                     </div>
                 </div>

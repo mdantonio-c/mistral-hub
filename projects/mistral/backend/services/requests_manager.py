@@ -191,9 +191,11 @@ class RequestManager():
                 'request_id': row.id,
                 'task_id': row.task_id,
                 'submission_date': row.submission_date.isoformat(),
-                'end_date': row.end_date.isoformat(),
+                'end_date': None,
                 'status': row.status
             }
+            if row.end_date is not None:
+                submitted_request['end_date'] = row.end_date.isoformat()
 
             if row.error_message is not None:
                 submitted_request['error message'] = row.error_message

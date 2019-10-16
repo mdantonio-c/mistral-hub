@@ -11,9 +11,12 @@ log = get_logger(__name__)
 
 
 class ScheduledRequests(EndpointResource):
+    """
+    DEPRECATED : NOT USED see ScheduledRequests in schedule.py
+    """
     @catch_error()
     def get(self):
-        param= self.get_input()
+        param = self.get_input()
         scheduled_request_id = param.get('id')
         sort = param.get('sort-by')
         sort_order = param.get('sort-order')
@@ -24,11 +27,12 @@ class ScheduledRequests(EndpointResource):
         # check if the current user is the owner of the scheduled request
         if not RequestManager.check_owner(db, user.id, schedule_id=scheduled_request_id):
             raise RestApiException(
-                    "Operation not allowed",
-                    status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
+                "Operation not allowed",
+                status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
 
-        #get requests list of a scheduled task
-        submitted_request_list = RequestManager.get_schedule_requests(db,scheduled_request_id,sort_by=sort,sort_order= sort_order)
+        # get requests list of a scheduled task
+        submitted_request_list = RequestManager.get_schedule_requests(db, scheduled_request_id, sort_by=sort,
+                                                                      sort_order=sort_order)
 
         return self.force_response(
-                submitted_request_list, code=hcodes.HTTP_OK_BASIC)
+            submitted_request_list, code=hcodes.HTTP_OK_BASIC)
