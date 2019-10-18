@@ -371,6 +371,8 @@ class RequestManager():
             resp['periodic'] = True
             periodic_settings = ('every', str(schedule.every), schedule.period.name)
             resp['periodic_settings'] = ' '.join(periodic_settings)
+            resp['every'] = schedule.every
+            resp['period'] = schedule.period.name
         else:
             resp['crontab'] = True
             resp['crontab_settings'] = json.loads(schedule.crontab_settings)
