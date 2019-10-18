@@ -134,9 +134,11 @@ class RequestManager():
         db.session.commit()
 
     def delete_schedule(db, schedule_id):
-        schedule = db.Schedule.query.get(id=schedule_id)
+        schedule = db.Schedule.query.get(schedule_id)
+        name = schedule.name
         db.session.delete(schedule)
         db.session.commit()
+        log.debug('Schedule <{}, {}> deleted'.format(schedule_id, name))
 
     @staticmethod
     # used in a deprecated endpoint
@@ -357,7 +359,6 @@ class RequestManager():
 
     @staticmethod
     def get_schedule_response(schedule):
-        log.debug(schedule)
         resp = {
             'id': schedule.id,
             'name': schedule.name,

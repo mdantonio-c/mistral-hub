@@ -102,7 +102,7 @@ class Schedules(EndpointResource):
 
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
-
+            log.info('Crontab settings {}'.format(crontab_settings))
             try:
                 # get scheduled request id in postgres database as scheduled request name for mongodb
                 name_int = RequestManager.create_schedule_record(db, user, product_name, {
@@ -120,7 +120,6 @@ class Schedules(EndpointResource):
                     crontab_settings[i] = str_val
 
                 request_id = None
-
                 CeleryExt.create_crontab_task(
                     name=name,
                     task="mistral.tasks.data_extraction.data_extract",
