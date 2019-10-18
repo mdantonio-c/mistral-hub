@@ -9,7 +9,7 @@ variables:
   env:
 
     BACKEND_BUILD_MODE: backendcentos
-    PYTHON_PATH: /usr/local/lib/python3.6/dist-packages
+    PYTHON_PATH: /usr/local/lib/python3.6/site-packages
 
     LOG_LEVEL: DEBUG
 
