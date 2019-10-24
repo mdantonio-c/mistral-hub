@@ -202,4 +202,37 @@ export class StepFiltersComponent implements OnInit {
                 ['../', 'postprocess'], {relativeTo: this.route});
         }
     }
+
+    getFilterTooltip(key: string) {
+        let desc = 'Add helpful info about this filter';
+        switch (key) {
+            case 'area':
+                desc = 'Definition of the domain area of the model.';
+                break;
+            case 'level':
+                desc = 'Levels of the atmosphere expressed in vertical coordinates (possibly layers). \n' +
+                    'The parameters of the vertical coordinates define the edges of the atmospheric layers in terms ' +
+                    'of surface pressure.';
+                break;
+            case 'origin':
+                desc = 'Identifies the forecast model, the characteristic and its configuration. \n' +
+                    'It is related to the selected dataset.';
+                break;
+            case 'proddef':
+                desc = 'Product definition information.';
+                break;
+            case 'product':
+                desc = 'Weather fields.';
+                break;
+            case 'run':
+                desc = 'A forecasting model process. In the case of Cosmo they  are 2 per day.';
+                break;
+            case 'timerange':
+                desc = 'Defines the time period of the forecast and any processing (eg instant data, hourly average, ' +
+                    'etc.). It is composed of 3 attributes: a value code (eg instant value, average, accumulation), ' +
+                    'difference between validity time and reference time, duration of statistical processing';
+                break;
+        }
+        return desc;
+    }
 }

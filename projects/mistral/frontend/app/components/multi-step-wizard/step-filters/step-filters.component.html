@@ -33,7 +33,7 @@
                     <div class="card-header">
                         <h5>{{f.value.name}}</h5>
                         <span class="info-help">&nbsp;<i placement="right"
-                                                         ngbTooltip="Add helpful info about this filter"
+                                                         [ngbTooltip]="getFilterTooltip(f.value.name)"
                                                          class="fa fa-question-circle"
                                                          aria-hidden="true"></i></span>
                     </div>
