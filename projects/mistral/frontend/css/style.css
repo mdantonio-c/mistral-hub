@@ -69,6 +69,11 @@
     cursor: pointer;
 }
 
+.info-fulltext .tooltip-inner {
+    text-align: left;
+    font-size: small;
+}
+
 .btn:focus, .btn:active,
 .form-control:focus,
 .btn-reset:focus, .btn-reset:active {
