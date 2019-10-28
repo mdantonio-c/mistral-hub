@@ -1,0 +1,14 @@
+<div class="media">
+  <i class="material-icons">storage</i>
+  <div class="media-body">
+    <h6 class="mt-1 ml-2">Storage</h6>
+    <div class="progress" style="height: 0.6rem;">
+      <div class="progress-bar" role="progressbar" [attr.aria-valuenow]="barValue"
+           aria-valuemin="0" aria-valuemax="100" [ngStyle]="{'width': barValue+'%'}">
+        <span class="sr-only">70% Complete</span>
+      </div>
+    </div>
+    <div class="space-10"></div>
+    <p class="small" style="line-height: 12px;">{{usage.used | bytes: 2}} of {{usage.quota | bytes: 2}} used</p>
+  </div>
+</div>

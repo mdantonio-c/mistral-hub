@@ -1,0 +1,11 @@
+usage:
+  summary: Get user disk usage.
+  custom:
+    authentication: true
+  responses:
+    '200':
+      description: Disk usage information
+      schema:
+        $ref: "#/definitions/StorageUsage"
+    '401':
+      description: Authentication required

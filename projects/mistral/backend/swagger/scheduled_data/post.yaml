@@ -19,3 +19,5 @@ scheduled:
   responses:
     '204':
       description: no response given
+    '400':
+      description: scheduling criteria are not valid

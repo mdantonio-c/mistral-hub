@@ -1,9 +1,43 @@
 import {Injectable} from '@angular/core';
+import {Observable} from 'rxjs';
+import * as moment from 'moment';
 
-import {FormData, Dataset, Filters} from './formData.model';
 import {WorkflowService} from './workflow.service';
 import {STEPS} from './workflow.model';
-import {DataService, SummaryStats} from "./data.service";
+import {DataService, Filters, RapydoResponse, SummaryStats, TaskSchedule, RefTime} from "./data.service";
+
+export class FormData {
+    name: string = '';
+    reftime: RefTime = this.defaultRefTime();
+    datasets: string[] = [];
+    filters: Filters[] = [];
+    postprocessors: any[] = [];
+    schedule: TaskSchedule;
+
+    clear() {
+        this.name = '';
+        this.datasets = [];
+        this.filters = [];
+        this.postprocessors = [];
+        this.schedule = null;
+        this.reftime = this.defaultRefTime();
+    }
+
+    setSchedule(schedule: TaskSchedule) {
+        this.schedule = schedule;
+    }
+
+    defaultName() {
+        this.name = this.datasets.join(' ').trim();
+    }
+
+    defaultRefTime(): RefTime {
+        return {
+            from: moment.utc().subtract(3, 'days').set({hour:0,minute:0,second:0,millisecond:0}).toDate(),
+            to: moment.utc().toDate()
+        };
+    }
+}
 
 @Injectable({
   providedIn: 'root'
@@ -34,12 +68,56 @@ export class FormDataService {
         return this.formData.datasets.some(x => x === datasetId);
     }
 
+    /**
+     * Retrieve the filters available for the selected datasets.
+     * Optionally the dataset coverage can be restricted with respect to the reference time.
+     * If reftime is omitted the whole historical dataset will be considered.
+     */
     getFilters() {
-        return this.dataService.getSummary(this.formData.datasets);
+        let query = this.parseRefTime();
+        return this.dataService.getSummary(this.formData.datasets, query);
     }
 
-    getSummaryStats() {
+    /**
+     * Return arkimet query for reftime or null.
+     */
+    private parseRefTime(): string {
+        let query = null;
+        if(this.formData.reftime) {
+            let arr = [];
+            if(this.formData.reftime.from) {arr.push(`>=${moment(this.formData.reftime.from).format("YYYY-MM-DD HH:mm")}`);}
+            if(this.formData.reftime.to) {arr.push(`<=${moment(this.formData.reftime.to).format("YYYY-MM-DD HH:mm")}`);}
+            query = `reftime: ${arr.join(',')}`;
+            console.log(query);
+        }
+        return query;
+    }
+
+    getReftime() {
+        return this.formData.reftime;
+    }
+
+    getDefaultRefTime() {
+        return this.formData.defaultRefTime();
+    }
+
+    setReftime(value?: RefTime) {
+        if (value === undefined) {
+            // default reftime
+            this.formData.reftime = this.formData.defaultRefTime();
+        } else {
+            this.formData.reftime = value;
+        }
+    }
+
+    getSummaryStats(): Observable<RapydoResponse<SummaryStats>> {
         let q = this.formData.filters.map(filter => filter.query).join(';');
+        let reftime = this.parseRefTime();
+        if (reftime) {
+            // prepend the reftime
+            q = (q !== '') ? [reftime, q].join(';') : reftime;
+        }
+        console.log(`query for summary stats ${q}`);
         return this.dataService.getSummary(
             this.formData.datasets, q, true);
     }
@@ -65,7 +143,7 @@ export class FormDataService {
     setPostProcessor(data: any) {
         // Update Postprocess only when the Postprocess Form had been validated successfully
         this.isPostprocessFormValid = true;
-        this.formData.postpocessors = data;
+        this.formData.postprocessors = data;
         // Validate Filter Step in Workflow
         this.workflowService.validateStep(STEPS.postprocess);
     }

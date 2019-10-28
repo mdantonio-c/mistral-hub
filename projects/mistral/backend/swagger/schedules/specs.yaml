@@ -1,0 +1,9 @@
+file: schedules
+class: Schedules
+schema:
+  expose: true
+mapping:
+  schedules: "/schedules"
+  schedule:  "/schedules/<schedule_id>"
+labels:
+  - schedule

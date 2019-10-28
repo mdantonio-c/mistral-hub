@@ -1,0 +1,11 @@
+request:
+  summary: Delete a request
+  custom:
+    authentication: true
+  responses:
+    '200':
+      description: Request deleted successfully.
+    '404':
+      description: Request does not exist.
+    '401' :
+      description: The user is not authorized to delete this request.

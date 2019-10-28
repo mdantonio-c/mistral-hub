@@ -33,6 +33,13 @@ class ScheduledData(EndpointResource):
 
         db= self.get_service_instance('sqlalchemy')
 
+        # check if scheduling parameters are correct
+        if not self.settings_validation(criteria):
+            raise RestApiException(
+                "scheduling criteria are not valid",
+                status_code=hcodes.HTTP_BAD_REQUEST)
+
+
         # parsing period settings
         period_settings = criteria.get('period-settings')
         if period_settings is not None:
@@ -47,12 +54,14 @@ class ScheduledData(EndpointResource):
             res = CeleryExt.delete_periodic_task(name=name)
             log.debug("Previous task deleted = %s", res)
 
+            request_id = None
+
             CeleryExt.create_periodic_task(
                 name=name,
                 task="mistral.tasks.data_extraction.data_extract",
                 every=every,
                 period=period,
-                args=[user.uuid, dataset_names, filters],
+                args=[user.id, dataset_names, filters, request_id, name_int],
             )
 
             log.info("Scheduling periodic task")
@@ -61,7 +70,7 @@ class ScheduledData(EndpointResource):
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
             # get scheduled request id in postgres database as scheduled request name for mongodb
-            name_int =RequestManager.create_scheduled_request_record(db, user, filters, crontab_settings=crontab_settings)
+            name_int =RequestManager.create_schedule_record(db, user, filters, crontab_settings=crontab_settings)
             name = str(name_int)
 
             # parsing crontab settings
@@ -74,7 +83,7 @@ class ScheduledData(EndpointResource):
                 name=name,
                 task="mistral.tasks.data_extraction.data_extract",
                 **crontab_settings,
-                args=[user.uuid, dataset_names, filters],
+                args=[user.id, dataset_names, filters],
             )
 
             log.info("Scheduling crontab task")
@@ -89,10 +98,16 @@ class ScheduledData(EndpointResource):
         user = self.get_current_user()
 
         db = self.get_service_instance('sqlalchemy')
+        # check if the request exists
+        if not RequestManager.check_request(db,schedule_id=task_name):
+            raise RestApiException(
+                "The request doesn't exist",
+                status_code=hcodes.HTTP_BAD_NOTFOUND)
+
         # check if the current user is the owner of the request
-        if RequestManager.check_owner(db,user.uuid,scheduled_request_id=task_name):
+        if RequestManager.check_owner(db,user.id,schedule_id=task_name):
             # delete request entry from database
-            RequestManager.delete_scheduled_request_record(db, task_name)
+            RequestManager.disable_schedule_record(db, task_name)
 
             CeleryExt.delete_periodic_task(name=task_name)
 
@@ -101,3 +116,13 @@ class ScheduledData(EndpointResource):
             raise RestApiException(
                 "This request doesn't come from the request's owner",
                 status_code=hcodes.HTTP_BAD_UNAUTHORIZED)
+
+    @staticmethod
+    def settings_validation(criteria):
+        # check if at least one scheduling parameter is in the request
+        period_settings = criteria.get('period-settings')
+        crontab_settings = criteria.get('crontab-settings')
+        if period_settings or crontab_settings is not None:
+            return True
+        else:
+            return False

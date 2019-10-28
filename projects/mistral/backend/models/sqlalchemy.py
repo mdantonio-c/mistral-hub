@@ -14,42 +14,42 @@ logger.setLevel(logging.DEBUG)
 
 # Add (inject) attributes to User
 setattr(User, 'my_custom_field', db.Column(db.String(255)))
+setattr(User, 'disk_quota', db.Column(db.BigInteger, default=1073741824))   # 1 GB
 
 setattr(User, 'requests', db.relationship('Request', backref='author', lazy='dynamic'))
 setattr(User, 'fileoutput', db.relationship('FileOutput', backref='owner', lazy='dynamic'))
-setattr(User, 'scheduledrequests', db.relationship('ScheduledRequest', backref='author', lazy='dynamic'))
+setattr(User, 'schedules', db.relationship('Schedule', backref='author', lazy='dynamic'))
 
 
-
-class Request (db.Model):
+class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
-    creation_date = db.Column(db.DateTime, default=datetime.utcnow)
-    args = db.Column(db.String)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    name = db.Column(db.String, index=True, nullable=False)
+    args = db.Column(db.String, nullable=False)
+    submission_date = db.Column(db.DateTime, default=datetime.utcnow)
+    end_date = db.Column(db.DateTime)
     status = db.Column(db.String(64))
     task_id = db.Column(db.String(64), index=True, unique=True)
-    fileoutput = db.relationship("FileOutput", backref='request', uselist=False)
-
-    def __str__(self):
-        return "db.%s(%s){%s}" \
-            % (self.__class__.__name__, self.token, self.emitted_for)
+    error_message = db.Column(db.Text)
+    schedule_id = db.Column(db.Integer, db.ForeignKey('schedule.id'))
+    fileoutput = db.relationship("FileOutput", backref='request', cascade="delete", uselist=False)
 
     def __repr__(self):
-        return self.__str__()
+        return "<Request(name='%s', submission date='%s', status='%s')" \
+               % (self.name, self.submission_date, self.status)
 
-class FileOutput (db.Model):
+
+class FileOutput(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(64), index=True, unique=True)
-    size = db.Column(db.Float)
-    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    size = db.Column(db.BigInteger)
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
 
-    def __str__(self):
-        return "db.%s(%s){%s}" \
-            % (self.__class__.__name__, self.token, self.emitted_for)
-
     def __repr__(self):
-        return self.__str__()
+        return "<FileOutput(filename='%s', size='%s')" \
+               % (self.filename, self.size)
+
 
 class PeriodEnum(enum.Enum):
     days = 1
@@ -59,20 +59,19 @@ class PeriodEnum(enum.Enum):
     microseconds = 5
 
 
-class ScheduledRequest (db.Model):
+class Schedule (db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_uuid = db.Column(db.String(36), db.ForeignKey('user.uuid'))
-    creation_date = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    submission_date = db.Column(db.DateTime, default=datetime.utcnow)
+    name = db.Column(db.String, index=True, nullable=False)
     args = db.Column(db.String)
-    periodic_task = db.Column(db.Boolean)
+    is_crontab = db.Column(db.Boolean)
     period = db.Column(db.Enum(PeriodEnum))
     every = db.Column(db.Integer)
-    crontab_task = db.Column(db.Boolean)
     crontab_settings = db.Column(db.String(64))
-
-    def __str__(self):
-        return "db.%s(%s){%s}" \
-            % (self.__class__.__name__, self.token, self.emitted_for)
+    is_enabled = db.Column(db.Boolean)
+    submitted_request = db.relationship('Request', backref='schedule', lazy='dynamic')
 
     def __repr__(self):
-        return self.__str__()
+        return "<Schedule(name='%s', creation date='%s', enabled='%s')" \
+               % (self.name, self.submission_date, self.is_enabled)

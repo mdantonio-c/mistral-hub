@@ -15,10 +15,13 @@ class Datasets(EndpointResource):
     @catch_error()
     def get(self, dataset_name=None):
         """ Get all the datasets or a specific one if a name is provided."""
-        datasets = arki.load_datasets()
+        try:
+            datasets = arki.load_datasets()
+        except Exception:
+            raise SystemError("Error loading the datasets")
         if dataset_name is not None:
             # retrieve dataset by name
-            logger.debug("retrive datset by name '{}'".format(dataset_name))
+            logger.debug("retrieve dataset by name '{}'".format(dataset_name))
             matched_ds = next((ds for ds in datasets if ds.get('id', '') == dataset_name), None)
             if not matched_ds:
                 raise RestApiException(

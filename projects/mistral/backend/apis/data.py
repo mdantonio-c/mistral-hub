@@ -7,57 +7,12 @@ from restapi.decorators import catch_error
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
-from mistral.services.requests_manager import RequestManager
+from mistral.services.requests_manager import RequestManager as repo
 
 log = get_logger(__name__)
 
 
 class Data(EndpointResource):
-
-    # @catch_error()
-    # def get(self, task_id):
-
-    #     celery = self.get_service_instance('celery')
-
-    #     task_result = celery.AsyncResult(task_id)
-    #     res = task_result.result
-    #     if not isinstance(res, dict):
-    #         res = str(res)
-    #     return {
-    #         'status': task_result.status,
-    #         'output': res,
-    #     }
-
-    @catch_error()
-    def put(self):
-
-        # obj = CeleryExt.get_periodic_task(name='add every 10')
-        # log.critical(obj)
-
-        # remove previous task
-        res = CeleryExt.delete_periodic_task(name='add every 10')
-        log.debug("Previous task deleted = %s", res)
-
-        CeleryExt.create_periodic_task(
-            name='add every 10',
-            task="mistral.tasks.data_extraction.add",
-            every=10,
-            period='seconds',
-            args=[7, 7],
-        )
-
-        log.info("Scheduling periodic task")
-
-        # Calls test('world') every 30 seconds
-        # sender.add_periodic_task(30.0, add.s(5, 5), expires=10)
-
-        # Executes every Monday morning at 7:30 a.m.
-        # sender.add_periodic_task(
-        #     crontab(hour=7, minute=30, day_of_week=1),
-        #     add.s(1, 1),
-        # )
-
-        return self.force_response("Scheduled")
 
     @catch_error()
     def post(self):
@@ -65,10 +20,19 @@ class Data(EndpointResource):
         user = self.get_current_user()
         log.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
         criteria = self.get_input()
-        log.info('criteria: {}'.format(criteria))
 
         self.validate_input(criteria, 'DataExtraction')
+        product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
+        reftime = criteria.get('reftime')
+        if reftime is not None:
+            # 'from' and 'to' both mandatory by schema
+            # check from <= to
+            if reftime['from'] > reftime['to']:
+                raise RestApiException(
+                    'Invalid reftime: <from> greater than <to>',
+                    status_code=hcodes.HTTP_BAD_REQUEST
+                )
         # check for existing dataset(s)
         datasets = arki.load_datasets()
         for ds_name in dataset_names:
@@ -77,24 +41,46 @@ class Data(EndpointResource):
                 raise RestApiException(
                     "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND)
+        # incoming filters: <dict> in form of filter_name: list_of_values
+        # e.g. 'level': [{...}, {...}] or 'level: {...}'
+        filters = criteria.get('filters', {})
+        # clean up filters from unknown values
+        filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
 
-        filters = criteria.get('filters')
-        # open transaction
-        # create request in db
-        db= self.get_service_instance('sqlalchemy')
-        request_id = RequestManager.create_request_record(db, user.uuid, filters)
+        processors = criteria.get('postprocessors', [])
+        # clean up processors from unknown values
+        # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
+        for p in processors:
+            p_type = p.get('type')
+            if p_type == 'additional_variables':
+                self.validate_input(p, 'AVProcessor')
+            else:
+                raise RestApiException('Unknown post-processor type for {}'.format(p_type),
+                                       status_code=hcodes.HTTP_BAD_REQUEST)
 
-        task = CeleryExt.data_extract.apply_async(
-            args=[user.uuid, dataset_names, filters,request_id],
-            countdown=1
-        )
+        # run the following steps in a transaction
+        db = self.get_service_instance('sqlalchemy')
+        try:
+            request = repo.create_request_record(db, user.id, product_name, {
+                'datasets': dataset_names,
+                'reftime': reftime,
+                'filters': filters,
+                'postprocessors': processors
+            })
 
-        RequestManager.update_task_id(db,request_id, task.id)
-        RequestManager.update_task_status(db, task.id)
-        log.info('current request id: {}'.format(request_id))
+            task = CeleryExt.data_extract.apply_async(
+                args=[user.id, dataset_names, reftime, filters, processors, request.id],
+                countdown=1
+            )
 
-        # update task field in request by id
-        # close transaction
+            request.task_id = task.id
+            request.status = task.status  # 'PENDING'
+            db.session.commit()
+            log.info('Request successfully saved: <ID:{}>'.format(request.id))
+        except Exception as error:
+            db.session.rollback()
+            raise SystemError("Unable to submit the request")
 
-        return self.force_response(
-            task.id, code=hcodes.HTTP_OK_ACCEPTED)
+        # return self.force_response(
+        #     {'task_id': task.id, 'task_status': task.status}, code=hcodes.HTTP_OK_ACCEPTED)
+        return self.empty_response()

@@ -17,11 +17,44 @@
     </div>
     <div class="card mst--expansion-panel mst--info-panel">
         <div class="card-header">
-            <h5>Your Request</h5>
+            <h5 class="card-title">My Request
+                <span class="badge badge-warning font-weight-light" *ngIf="schedule"
+                      [ngbTooltip]="tipSchedContent"
+                      placement="right">scheduled</span>
+                <ng-template #tipSchedContent>
+                    <ng-container *ngIf="schedule.type === 'crontab'">Repeat every {{schedule.repeat}} at
+                        {{schedule.time}}
+                    </ng-container>
+                    <ng-container *ngIf="schedule.type === 'period'">Repeat every {{schedule.every}}
+                        {{schedule.repeat}}{{(schedule.every > 1) ? 's' : ''}}
+                    </ng-container>
+                    <ng-container *ngIf="schedule.type === 'data-ready'">Repeat on data ready</ng-container>
+                </ng-template>
+            </h5>
+            <button class="btn btn-info btn-sm float-right" (click)="showSchedule(content)">
+                <i class="fa fa-calendar mr-2"></i>Schedule
+            </button>
         </div>
         <div class="body">
             <dl class="request-summary">
-                <hr>
+                <div class="input-group mb-3">
+                    <div class="input-group-append" [ngClass]="{'mst--input-error': emptyName()}">
+                        <ng-template #tipContent>
+                            Please give a name or a short description to your product
+                        </ng-template>
+                        <button class="btn-reset" type="button"
+                                [ngbTooltip]="tipContent"
+                                placement="right">
+                            <i class="material-icons">info</i>
+                        </button>
+                    </div>
+                    <input type="text" class="mst--input col"
+                           [(ngModel)]="formData.name"
+                           [ngClass]="{'mst--input-error': emptyName()}"
+                           placeholder="Product name"
+                           required>
+                    <span class="mst--input-error-msg" *ngIf="emptyName()">Product name is required</span>
+                </div>
                 <dt>Dataset(s)</dt>
                 <dd>
                     <ul class="comma-list">
@@ -31,7 +64,7 @@
                 <hr>
                 <dt>Filter(s)</dt>
                 <dd *ngIf="formData.filters.length">
-                    <dl  class="row">
+                    <dl class="row">
                         <ng-container *ngFor="let f of formData.filters">
                             <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
                             <dd class="col-sm-9"><p *ngFor="let v of f.values">{{v.desc}}</p></dd>
@@ -41,7 +74,17 @@
                 <dd *ngIf="!formData.filters || !formData.filters.length">None</dd>
                 <hr>
                 <dt>Post-Processing</dt>
-                <dd>None</dd>
+                <dd *ngIf="formData.postprocessors.length">
+                    <dl class="row">
+                        <ng-container *ngFor="let p of formData.postprocessors">
+                            <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}</dt>
+                            <ng-container *ngIf="p.type === 'additional_variables'">
+                                <dd class="col-sm-9"><p *ngFor="let v of p.variables">{{dataService.getVariableDescription(v)}}</p></dd>
+                            </ng-container>
+                        </ng-container>
+                    </dl>
+                </dd>
+                <dd *ngIf="!formData.postprocessors || !formData.postprocessors.length">None</dd>
             </dl>
         </div>
     </div>
@@ -50,8 +93,79 @@
     <button class="btn btn-outline-secondary mr-2" type="button"
             (click)="goToPrevious()"><i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
     </button>
-    <button class="btn btn-info" [disabled]="!isFormValid || summaryStats.c === 0"
+    <button class="btn btn-info" [disabled]="!isFormValid || emptyName() || summaryStats.c === 0"
             (click)="submit()"> Submit <i class="fa fa-arrow-right" aria-hidden="true"></i>
     </button>
 </div>
+
+<!-- Schedule Modal -->
+<ng-template #content let-modal>
+    <form [formGroup]="scheduleForm" (ngSubmit)="modal.close('save')">
+        <div class="modal-header">
+            <h4 class="modal-title">Schedule this request</h4>
+            <button type="button" class="btn close" aria-label="Close" (click)="modal.dismiss()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <h5 class="mb-2">Repeat:</h5>
+            <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" class="custom-control-input"
+                       formControlName="repeatType"
+                       value="crontab"
+                       id="crontab">
+                <label class="custom-control-label mst--radio-label" for="crontab">At time</label>
+            </div>
+            <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" class="custom-control-input"
+                       formControlName="repeatType"
+                       value="period"
+                       id="period">
+                <label class="custom-control-label mst--radio-label" for="period">Periodically</label>
+            </div>
+            <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" class="custom-control-input"
+                       formControlName="repeatType"
+                       value="data-ready"
+                       id="data-ready"
+                       disabled>
+                <label class="custom-control-label mst--radio-label" for="data-ready">On data ready</label>
+            </div>
+        </div>
+        <div class="ml-3 my-2">
+            <div *ngIf="scheduleForm.get('repeatType').value === 'crontab'">
+                <div class="form-inline">Every
+                    <select formControlName="cPeriod" class="custom-select mx-2">
+                        <option>day</option>
+                        <option>week</option>
+                        <option>month</option>
+                    </select> at:
+                </div>
+                <div>
+                    <ngb-timepicker formControlName="time"></ngb-timepicker>
+                </div>
+            </div>
+            <div *ngIf="scheduleForm.get('repeatType').value === 'period'">
+                <div class="form-inline">Every
+                    <input type="number" formControlName="every" min="1" class="form-control ml-2" style="width: 80px;"
+                           required>
+                    <select formControlName="period" class="custom-select mx-2">
+                        <option>minute</option>
+                        <option>hour</option>
+                        <option>day</option>
+                    </select>
+                </div>
+            </div>
+            <div *ngIf="scheduleForm.get('repeatType').value === 'data-ready'">
+                <!-- nothing -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" type="button"
+                    *ngIf="schedule"
+                    (click)="modal.close('remove')"><i class="fa fa-trash"></i></button>
+            <button type="submit" class="btn btn-info" [disabled]="scheduleForm.invalid">Save</button>
+        </div>
+    </form>
+</ng-template>
 

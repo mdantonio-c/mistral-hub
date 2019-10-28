@@ -1,4 +1,5 @@
 import {NgModule, ModuleWithProviders} from '@angular/core';
+import {NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
 import {RouterModule, Routes} from '@angular/router';
 import {DatePipe} from '@angular/common';
 
@@ -8,6 +9,10 @@ import {AuthGuard} from '/rapydo/src/app/app.auth.guard';
 import {HomeComponent} from './custom.home'
 import {DataComponent} from './components/data/data.component';
 import {RequestsComponent} from "./components/requests/requests.component";
+import {SchedulesComponent} from "./components/schedules/schedules.component";
+import {DashboardComponent} from "./components/dashboard/dashboard.component";
+import {StorageUsageComponent} from "./components/dashboard/storage-usage/storage-usage.component";
+import {NgbTimeStringAdapter} from './adapters/timepicker-adapter';
 
 /* Multi-Step Wizard Components */
 import {MultiStepWizardComponent} from './components/multi-step-wizard/multi-step-wizard.component';
@@ -32,7 +37,7 @@ const appRoutes: Routes = [
             {path: 'submit', component: StepSubmitComponent, outlet: 'step', canActivate: [WorkflowGuard]}
         ]
     },
-    {path: 'app/requests', component: RequestsComponent},
+    {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
     {path: 'app', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
     {path: '', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
 ];
@@ -51,11 +56,14 @@ const appRoutes: Routes = [
         StepFiltersComponent,
         StepPostprocessComponent,
         StepSubmitComponent,
+        DashboardComponent,
+        StorageUsageComponent,
         RequestsComponent,
+        SchedulesComponent,
         FormatDatePipe
     ],
     providers: [
-        DatePipe],
+        DatePipe, {provide: NgbTimeAdapter, useClass: NgbTimeStringAdapter}],
     exports: [
         RouterModule
     ]

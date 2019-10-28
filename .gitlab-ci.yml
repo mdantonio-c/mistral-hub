@@ -1,17 +1,27 @@
-image: python:3.4
+# image: rapydo/dind:0.6.7
 
 
-variables:
-  DOCKER_COMPOSE_VERSION: 1.7.0
+# variables:
+#   DOCKER_DRIVER: overlay2
+#   DOCKER_TLS_CERTDIR: ""
+#   DOCKER_HOST: 'tcp://127.0.0.1:2375' 
+  # DOCKER_COMPOSE_VERSION: 1.7.0
 
 before_script:
-  - curl -fsSL https://get.docker.com/ | sh
+  # - curl -fsSL https://get.docker.com/ | sh
   - docker -v
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - mv docker-compose /usr/local/bin
-  - pip install coveralls
-  - pip install python-coveralls
+  - docker ps
+  - rapydo install --git auto
+  # - apt-get install python3-pip
+  # - pip3 --version
+  # - pip3 install rapydo-controller
+  # - rapydo --version
+  # - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  # - chmod +x docker-compose
+  # - mv docker-compose /usr/local/bin
+  # - pip install coveralls
+  # - pip install python-coveralls
+  - sh scripts/create_projectrc.sh
 
 stages:
   - tests
@@ -19,4 +29,10 @@ stages:
 script:
   stage: tests
   script:
-   - docker-compose -f containers/docker-compose.yml exec backend ./tests.sh
+    - rapydo init
+    - rapydo remove
+    - rapydo update -i main --rebuild 
+    - rapydo start
+    - export COMPOSE_INTERACTIVE_NO_CLI=1
+    - rapydo shell --no-tty backend --command "restapi tests"
+    - rapydo remove

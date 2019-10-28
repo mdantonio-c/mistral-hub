@@ -1,9 +1,13 @@
 definitions:
-
   DataExtraction:
     required:
+      - name
       - datasets
     properties:
+      name:
+        type: string
+      reftime:
+        $ref: "#/definitions/RefTime"
       datasets:
         description: Data belong to the datasets of the list.
         type: array
@@ -15,9 +19,13 @@ definitions:
       filters:
         description: Apply different filtering criteria.
         $ref: "#/definitions/DataFilter"
-      post-process:
-        description: Apply post-processing to the filtered data.
-        type: string
+      postprocessors:
+        description: Apply one or more post-processing to the filtered data.
+        type: array
+        uniqueItems: true
+        items:
+          description: Post-processing request details
+          type: object
       format:
         description: Output format
         type: string
@@ -25,19 +33,75 @@ definitions:
           - json
           - bufr
           - grib
+  AVProcessor:
+    description: Additional variables post-processing
+    type: object
+    properties:
+      type:
+        type: string
+      variables:
+        description: The list of requested additional variables to be calculated.
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum:
+            - B12194  # Air density
+            - B13003  # Relative humidity
+            - B11001  # Wind direction
+            - B11002  # Wind speed
+    required:
+      - type
+      - variables
+  RefTime:
+    required:
+      - from
+      - to
+    properties:
+      from:
+        type: string
+        format: date-time
+      to:
+        type: string
+        format: date-time
   DataFilter:
     properties:
-      product:
-        type: string
-      origin:
-        type: string
+      area:
+        type: array
+        items:
+          type: object
       level:
-        type: string
+        type: array
+        items:
+          type: object
+      origin:
+        type: array
+        items:
+          type: object
       proddef:
-        type: string
+        type: array
+        items:
+          type: object
+      product:
+        type: array
+        items:
+          type: object
+      quantity:
+        type: array
+        items:
+          type: object
+      run:
+        type: array
+        items:
+          type: object
+      task:
+        type: array
+        items:
+          type: object
       timerange:
-        type: string
-
+        type: array
+        items:
+          type: object
   Datasets:
     type: array
     items:
@@ -99,8 +163,13 @@ definitions:
 
   DataScheduling:
     required:
+      - name
       - datasets
     properties:
+      name:
+        type: string
+      reftime:
+        $ref: "#/definitions/RefTime"
       datasets:
         description: Data belong to the datasets of the list.
         type: array
@@ -112,9 +181,13 @@ definitions:
       filters:
         description: Apply different filtering criteria.
         $ref: "#/definitions/DataFilter"
-      post-process:
-        description: Apply post-processing to the filtered data.
-        type: string
+      postprocessors:
+        description: Apply one or more post-processing to the filtered data.
+        type: array
+        uniqueItems: true
+        items:
+          description: Post-processing request details
+          type: object
       format:
         description: Output format
         type: string
@@ -125,20 +198,61 @@ definitions:
       period-settings:
         description: Settings for the periodic request
         type: object
-        properties:
-          every:
-            type: integer
-          period:
-            type: string
-            enum:
-              - days
-              - hours
-              - minutes
-              - seconds
-              - microseconds
+        $ref: "#/definitions/PeriodSettings"
       crontab-settings:
         description: Settings for the crontab request
         type: object
+        $ref: "#/definitions/CrontabSettings"
+
+  CrontabSettings:
+    properties:
+      minute:
+        type: integer
+        minimum: 0
+        exclusiveMinimum: false
+        maximum: 59
+        exclusiveMaximum: false
+      hour:
+        type: integer
+        minimum: 0
+        exclusiveMinimum: false
+        maximum: 23
+        exclusiveMaximum: false
+      day_of_week:
+        type: integer
+        minimum: 0
+        exclusiveMinimum: false
+        maximum: 7
+        exclusiveMaximum: false
+      day_of_month:
+        type: integer
+        minimum: 1
+        exclusiveMinimum: false
+        maximum: 31
+        exclusiveMaximum: false
+      month_of_year:
+        type: integer
+        minimum: 1
+        exclusiveMinimum: false
+        maximum: 12
+        exclusiveMaximum: false
+    minProperties: 1
+
+  PeriodSettings:
+      required:
+        - every
+        - period
+      properties:
+        every:
+          type: integer
+        period:
+          type: string
+          enum:
+            - days
+            - hours
+            - minutes
+            - seconds
+            - microseconds
 
   Fileoutput:
     properties:
@@ -147,13 +261,45 @@ definitions:
         format: binary
 
   Requests:
+    type: array
+    items:
+      $ref: "#/definitions/Request"
+  Request:
     required:
-      - user_requests
+      - id
+      - name
+      - args
+      - status
+      - submission_date
+      - user_name
     properties:
-      user_requests:
-        type: array
-        items:
-          type: object
+      id:
+        type: string
+      name:
+        type: string
+      args:
+        type: object
+      status:
+        type: string
+        enum:
+          - SUCCESS
+          - ERROR
+          - PENDING
+      submission_date:
+        type: string
+        format: date
+      end_date:
+        type: string
+        format: date
+      task_id:
+        type: string
+      user_name:
+        type: string
+      fileoutput:
+        type: string
+      filesize:
+        type: integer
+        format: int64
 
   Summary:
     required:
@@ -225,3 +371,18 @@ definitions:
 #      type: string
 #    period2:
 #      type: string
+  StorageUsage:
+    required:
+      - quota
+      - used
+    properties:
+      quota:
+        description: Current disk user quota (in bytes)
+        type: integer
+        format: int64
+        minimum: 0
+      used:
+        description: Current disk usage (in bytes)
+        type: integer
+        format: int64
+        minimum: 0

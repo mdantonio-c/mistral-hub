@@ -1,0 +1,234 @@
+<loading *ngIf="loading"></loading>
+<!-- no data -->
+<div class="row" *ngIf="!loading && !rows?.length">
+    <div class="col">
+        <div class="no-results">
+            <h2>No Data</h2>
+            <p>You have not submitted any scheduled requests yet</p>
+        </div>
+    </div>
+</div>
+<!-- load schedules in the table -->
+<div class="table-responsive" *ngIf="rows?.length" #tableWrapper>
+    <ngx-datatable
+            #mySchedulesTable
+            class="expandable"
+            [rows]="rows"
+            [columnMode]="'flex'"
+            [loadingIndicator]='true'
+            [footerHeight]="50"
+            [limit]="itemsPerPage">
+        <!-- Row Detail Template -->
+        <ngx-datatable-row-detail
+                [rowHeight]="'100%'"
+        >
+            <ng-template
+                    let-row="row"
+                    let-expanded="expanded"
+                    ngx-datatable-row-detail-template
+            >
+                <div>
+                    <div><strong>Schedule Details</strong></div>
+                    <div class="row no-gutters">
+                        <div class="col-8 pr-3">
+                            <ng-container *ngIf="row.args">
+                                <div class="my-2"></div>
+                                <dl class="mb-0">
+                                    <dt>Dataset(s)</dt>
+                                    <dd>
+                                        <ul class="comma-list">
+                                            <li *ngFor="let ds of row.args.datasets">{{ds}}</li>
+                                        </ul>
+                                    </dd>
+                                </dl>
+                                <div class="my-2"></div>
+                                <dl class="mb-0" *ngIf="row.args.reftime">
+                                    <dt>Reference time</dt>
+                                    <dd>{{row.args.reftime.from | amFromUtc | amDateFormat: 'YYYY-MM-DD HH:mm'}} -
+                                        {{row.args.reftime.to | amFromUtc | amDateFormat: 'YYYY-MM-DD HH:mm'}}
+                                    </dd>
+                                </dl>
+                                <div class="my-2"></div>
+                                <dl class="mb-0" *ngIf="row.args.filters">
+                                    <dt>Filter(s)</dt>
+                                    <dd>
+                                        <dl class="row no-gutters mb-0 px-0 request-summary"
+                                            *ngIf="(row.args.filters | keyvalue).length else noFilters">
+                                            <ng-container *ngFor="let f of row.args.filters | keyvalue">
+                                                <dt class="col-sm-3" style="font-weight: normal;">
+                                                    {{f.key}}
+                                                </dt>
+                                                <dd class="col-sm-9"><p *ngFor="let v of f.value"
+                                                                        class="mb-0"
+                                                                        style="white-space: normal">
+                                                    {{v.desc}}</p></dd>
+                                            </ng-container>
+                                        </dl>
+                                        <ng-template #noFilters>no filter selected</ng-template>
+                                    </dd>
+                                </dl>
+                                <dl class="mb-0" *ngIf="row.args.postprocessors">
+                                    <dt>Post-Processing</dt>
+                                    <dd>
+                                        <dl class="row no-gutters mb-0 px-0 request-summary">
+                                            <ng-container *ngFor="let p of row.args.postprocessors">
+                                                <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_',
+                                                    ' ')}}
+                                                </dt>
+                                                <ng-container *ngIf="p.type === 'additional_variables'">
+                                                    <dd class="col-sm-9"><p *ngFor="let v of p.variables">
+                                                        {{dataService.getVariableDescription(v)}}</p></dd>
+                                                </ng-container>
+                                            </ng-container>
+                                        </dl>
+                                    </dd>
+                                    <dd *ngIf="!row.args.postprocessors || !row.args.postprocessors.length">None</dd>
+                                </dl>
+                            </ng-container>
+                        </div>
+                        <div class="col-4 pl-3" style="border-left: 1px solid #ddd;">
+                            <i class="fa fa-calendar mr-2"></i>
+                            <span *ngIf="row.periodic">{{row.periodic_settings}}</span>
+                            <span *ngIf="row.crontab">
+                                <ng-container *ngIf="row.crontab_settings.day_of_week">weekly</ng-container>
+                                <ng-container *ngIf="row.crontab_settings.day_of_month">monthly</ng-container>
+                                <ng-container
+                                        *ngIf="!row.crontab_settings.day_of_week && !row.crontab_settings.day_of_month">daily</ng-container>
+                                at {{row.crontab_settings.hour | number: '2.'}}:{{row.crontab_settings.minute | number: '2.'}}</span>
+                            <div class="mt-4"><strong>Last submission </strong>(out of {{row.requests_count}})
+                                <button class="btn p-0" ngbTooltip="refresh last submission" placement="bottom">
+                                    <i class="fa fa-sync" aria-hidden="true" (click)="loadLastSubmission(row)"></i>
+                                </button>
+                            </div>
+                            <loading *ngIf="loadingLast"></loading>
+                            <div *ngIf="!loadingLast && row.last && row.last.length !== 0; else notAvailable">
+                                <button class="btn p-0 mr-1 mb-2">
+                                    <i class="fa fa-download" (click)='download(row.last.fileoutput)'></i></button>
+                                <span>{{row.last.filesize | bytes:2}} ({{row.last.end_date | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}})</span>
+                            </div>
+                            <ng-template #notAvailable><ng-container *ngIf="!loadingLast">N/A</ng-container></ng-template>
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+        </ngx-datatable-row-detail>
+
+        <!-- Column Templates -->
+        <!-- show details -->
+        <ngx-datatable-column
+                width="20"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [canAutoResize]="false"
+        >
+            <ng-template
+                    let-row="row"
+                    let-expanded="expanded"
+                    ngx-datatable-cell-template
+            >
+                <button class="btn p-0" *ngIf="!expanded"
+                        title="Show Details"
+                        (click)="toggleExpandRow(row, 'open')"><i class="fa fa-angle-right"></i></button>
+                <button class="btn p-0" *ngIf="expanded"
+                        title="Hide Details"
+                        (click)="toggleExpandRow(row, 'close')"><i class="fa fa-angle-down"></i></button>
+            </ng-template>
+        </ngx-datatable-column>
+        <!-- Product -->
+        <ngx-datatable-column
+                name="Product"
+                prop="name"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="2">
+            <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+            >
+                <strong>{{ value }}</strong>
+            </ng-template>
+        </ngx-datatable-column>
+        <!-- Creation date -->
+        <ngx-datatable-column
+                name="Creation date"
+                prop="creation_date"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="1.6"
+                [minWidth]="160">
+            <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+            >
+                <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
+            </ng-template>
+        </ngx-datatable-column>
+        <!-- Controls -->
+        <ngx-datatable-column
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="0.8"
+                [minWidth]="82">
+            <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+            >
+                <div class="btn-toolbar justify-content-end" role="toolbar">
+                    <div class="btn-group mr-1" role="group">
+                        <button type="button" class="btn btn-sm btn-toggle" data-toggle="button"
+                                [id]="'act-btn-'+row.id"
+                                [ngbTooltip]="(row.enabled) ? 'Deactivate' : 'Activate'" placement="left"
+                                container="body"
+                                [ngClass]="{active: row.enabled}" (click)="toggleActiveState($event, row)">
+                            <div class="handle"></div>
+                        </button>
+                        <button class="btn p-0"
+                                mwlConfirmationPopover
+                                [popoverTitle]="deleteConfirmation.title"
+                                [popoverMessage]="getDeleteConfirmation('schedule').message"
+                                placement="left"
+                                (confirm)="remove(row.id)">
+                            <i class="fa fa-trash" style='color:red;'></i></button>
+                    </div>
+                </div>
+            </ng-template>
+        </ngx-datatable-column>
+
+        <ngx-datatable-footer>
+            <ng-template
+                    ngx-datatable-footer-template
+                    let-pageSize="pageSize"
+                    let-selectedCount="selectedCount"
+                    let-curPage="curPage"
+                    let-offset="offset">
+                <div class='col-3'>
+                    {{paging.dataLength}} total
+                </div>
+                <div class='col-9'>
+                    <div class='float-right'>
+                        <ngb-pagination
+                                boundaryLinks="true"
+                                directionLinks="true"
+                                [page]="paging.page"
+                                [pageSize]="paging.itemsPerPage"
+                                [collectionSize]="paging.dataLength"
+                                [maxSize]="5"
+                                [rotate]="true"
+                                size="sm"
+                                (pageChange)="setPage($event)"
+                        >
+                        </ngb-pagination>
+                    </div>
+                </div>
+            </ng-template>
+        </ngx-datatable-footer>
+    </ngx-datatable>
+    <ng-template #noValue>-</ng-template>
+</div>
