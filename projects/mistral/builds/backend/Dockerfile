@@ -1,6 +1,6 @@
 FROM arpaesimc/centos
 
-FROM rapydo/backend:0.6.7
+FROM rapydo/backend:0.7.0
 
 # required to install libjasper-dev
 RUN apt-get install -y software-properties-common
