@@ -32,6 +32,7 @@ script:
     - rapydo init
     - rapydo remove
     - rapydo update -i main --rebuild 
+    - cp -r /arkimet/datasets/* data/arkimet/
     - rapydo start
     - export COMPOSE_INTERACTIVE_NO_CLI=1
     - rapydo shell --no-tty backend --command "restapi tests"
