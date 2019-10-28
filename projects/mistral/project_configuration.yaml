@@ -2,14 +2,14 @@
 project:
   title: Meteo-Hub
   description: "."
-  version: "0.6.7"
-  rapydo: 0.6.7
+  version: "0.2.x"
+  rapydo: 0.7.0
 
 variables:
   env:
 
     # BACKEND_BUILD_MODE: backendcentos
-    PYTHON_PATH: /usr/local/lib/python3.6/site-packages
+    # PYTHON_PATH: /usr/local/lib/python3.6/dist-packages
 
     LOG_LEVEL: DEBUG
 

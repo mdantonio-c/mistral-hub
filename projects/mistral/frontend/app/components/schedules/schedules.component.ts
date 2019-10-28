@@ -1,13 +1,14 @@
 import {Component, ChangeDetectorRef, ElementRef} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
-import {BasePaginationComponent} from '/rapydo/src/app/components/base.pagination.component';
-
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {ApiService} from '/rapydo/src/app/services/api';
-import {AuthService} from '/rapydo/src/app/services/auth';
-import {NotificationService} from '/rapydo/src/app/services/notification';
-import {FormlyService} from '/rapydo/src/app/services/formly'
-import {DataService} from "../../services/data.service";
+
+import {BasePaginationComponent} from '@rapydo/components/base.pagination.component';
+import {ApiService} from '@rapydo/services/api';
+import {AuthService} from '@rapydo/services/auth';
+import {NotificationService} from '@rapydo/services/notification';
+import {FormlyService} from '@rapydo/services/formly'
+
+import {DataService} from "@app/services/data.service";
 
 @Component({
     selector: 'app-schedules',

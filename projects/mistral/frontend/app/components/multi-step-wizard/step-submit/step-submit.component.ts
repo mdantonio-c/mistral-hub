@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {FormData, FormDataService} from "../../../services/formData.service";
+import {FormData, FormDataService} from "@app/services/formData.service";
 import {
     additionalVariables,
     DataService,
@@ -9,8 +9,8 @@ import {
     RepeatEvery,
     SummaryStats,
     TaskSchedule
-} from "../../../services/data.service";
-import {NotificationService} from '/rapydo/src/app/services/notification';
+} from "@app/services/data.service";
+import {NotificationService} from '@rapydo/services/notification';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 
 @Component({

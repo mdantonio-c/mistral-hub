@@ -3,27 +3,27 @@ import {NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
 import {RouterModule, Routes} from '@angular/router';
 import {DatePipe} from '@angular/common';
 
-import {RapydoModule} from '/rapydo/src/app/rapydo.module';
-import {AuthGuard} from '/rapydo/src/app/app.auth.guard';
+import {RapydoModule} from '@rapydo/rapydo.module';
+import {AuthGuard} from '@rapydo/app.auth.guard';
 
-import {HomeComponent} from './custom.home'
-import {DataComponent} from './components/data/data.component';
-import {RequestsComponent} from "./components/requests/requests.component";
-import {SchedulesComponent} from "./components/schedules/schedules.component";
-import {DashboardComponent} from "./components/dashboard/dashboard.component";
-import {StorageUsageComponent} from "./components/dashboard/storage-usage/storage-usage.component";
-import {NgbTimeStringAdapter} from './adapters/timepicker-adapter';
+import {HomeComponent} from '@app/custom.home'
+import {DataComponent} from '@app/components/data/data.component';
+import {RequestsComponent} from "@app/components/requests/requests.component";
+import {SchedulesComponent} from "@app/components/schedules/schedules.component";
+import {DashboardComponent} from "@app/components/dashboard/dashboard.component";
+import {StorageUsageComponent} from "@app/components/dashboard/storage-usage/storage-usage.component";
+import {NgbTimeStringAdapter} from '@app/adapters/timepicker-adapter';
 
 /* Multi-Step Wizard Components */
-import {MultiStepWizardComponent} from './components/multi-step-wizard/multi-step-wizard.component';
-import {NavbarComponent} from './components/multi-step-wizard/navbar/navbar.component';
-import {StepDatasetsComponent} from './components/multi-step-wizard/step-datasets/step-datasets.component'
-import {StepFiltersComponent} from './components/multi-step-wizard/step-filters/step-filters.component';
-import {StepPostprocessComponent} from "./components/multi-step-wizard/step-postprocess/step-postprocess.component";
-import {StepSubmitComponent} from "./components/multi-step-wizard/step-submit/step-submit.component";
+import {MultiStepWizardComponent} from '@app/components/multi-step-wizard/multi-step-wizard.component';
+import {NavbarComponent} from '@app/components/multi-step-wizard/navbar/navbar.component';
+import {StepDatasetsComponent} from '@app/components/multi-step-wizard/step-datasets/step-datasets.component'
+import {StepFiltersComponent} from '@app/components/multi-step-wizard/step-filters/step-filters.component';
+import {StepPostprocessComponent} from "@app/components/multi-step-wizard/step-postprocess/step-postprocess.component";
+import {StepSubmitComponent} from "@app/components/multi-step-wizard/step-submit/step-submit.component";
 
-import {FormatDatePipe} from './pipes/format-date.pipe';
-import {WorkflowGuard} from "./services/workflow-guard.service";
+import {FormatDatePipe} from '@app/pipes/format-date.pipe';
+import {WorkflowGuard} from "@app/services/workflow-guard.service";
 
 const appRoutes: Routes = [
     {

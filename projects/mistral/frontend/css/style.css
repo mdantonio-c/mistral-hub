@@ -1,3 +1,6 @@
+@import url('ngx-datatable.css');
+@import url('button-toggle.css');
+
 /* top navbar: force bg-dark */
 .navbar {
     background-color: #343a40 !important;

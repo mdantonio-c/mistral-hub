@@ -4,7 +4,7 @@ import {
     ActivatedRouteSnapshot,
 } from '@angular/router';
 
-import {WorkflowService} from './workflow.service';
+import {WorkflowService} from '@app/services/workflow.service';
 
 @Injectable({
   providedIn: 'root',

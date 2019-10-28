@@ -2,8 +2,8 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import * as moment from 'moment';
 
-import {WorkflowService} from './workflow.service';
-import {STEPS} from './workflow.model';
+import {WorkflowService} from '@app/services/workflow.service';
+import {STEPS} from '@app/services/workflow.model';
 import {DataService, Filters, RapydoResponse, SummaryStats, TaskSchedule, RefTime} from "./data.service";
 
 export class FormData {
