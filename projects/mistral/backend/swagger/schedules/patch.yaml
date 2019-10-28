@@ -24,5 +24,7 @@ schedule:
       description: schedule is succesfully disable/enable
     '404':
       description: schedule not found
+    '400':
+      description: schedule is already enabled/disabled
     '401':
       description: Current user is not allowed disable/enable the schedule in path
