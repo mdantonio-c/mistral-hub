@@ -181,21 +181,22 @@ class Schedules(EndpointResource):
         # check if the schedule exist and is owned by the current user
         self.request_and_owner_check(db, user.id, schedule_id)
 
-        #retreiving mongodb task
+        # retrieving mongodb task
         task = CeleryExt.get_periodic_task(name=schedule_id)
+        log.debug("Periodic task - {}".format(task))
         # disable the schedule deleting it from mongodb
         if is_active is False:
             if task is None:
                 raise RestApiException(
                     "Scheduled task is already disabled",
-                    status_code=hcodes.HTTP_BAD_REQUEST)
+                    status_code=hcodes.HTTP_BAD_CONFLICT)
             CeleryExt.delete_periodic_task(name=schedule_id)
         # enable the schedule
         if is_active is True:
             if task:
                 raise RestApiException(
                     "Scheduled task is already enabled",
-                    status_code=hcodes.HTTP_BAD_REQUEST)
+                    status_code=hcodes.HTTP_BAD_CONFLICT)
 
             # recreate the schedule in mongo retrieving the schedule from postgres
             schedule_response = RequestManager.get_schedule_by_id(db,schedule_id)
