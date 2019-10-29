@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {DataService, StorageUsage} from '../../../services/data.service';
-import {NotificationService} from '/rapydo/src/app/services/notification';
+import {DataService, StorageUsage} from '@app/services/data.service';
+import {NotificationService} from '@rapydo/services/notification';
 
 @Component({
     selector: 'app-storage-usage',
