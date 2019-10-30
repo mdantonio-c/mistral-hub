@@ -1,6 +1,7 @@
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
+from restapi.protocols.bearer import authentication
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.requests_manager import RequestManager
@@ -14,8 +15,13 @@ DOWNLOAD_DIR = '/data'
 
 class FileDownload(EndpointResource):
 
+    # schema_expose = True
+    labels = ['file']
+    GET = {'/data/<filename>': {'summary': 'Download output file', 'custom': {}, 'parameters': [{'in': 'path', 'name': 'file', 'type': 'string', 'required': True, 'description': 'file to download'}], 'responses': {'200': {'description': 'found the file to download', 'schema': {'$ref': '#/definitions/Fileoutput'}}, '404': {'description': 'file not found'}}}}
+
     @catch_error()
-    def get(self,filename):
+    @authentication.required()
+    def get(self, filename):
 
         user = self.get_current_user()
         db = self.get_service_instance('sqlalchemy')

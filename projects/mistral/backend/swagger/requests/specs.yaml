@@ -1,9 +1,0 @@
-file: requests
-class: UserRequests
-schema:
-  expose: true
-mapping:
-  requests: "/requests"
-  request: "/requests/<request_id>"
-labels:
-  - requests

@@ -3,18 +3,25 @@ import os
 import subprocess
 
 from restapi.rest.definition import EndpointResource
-from restapi.exceptions import RestApiException
+# from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
+from restapi.protocols.bearer import authentication
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
-from sqlalchemy.orm import load_only
+# from sqlalchemy.orm import load_only
 
 logger = get_logger(__name__)
 DOWNLOAD_DIR = '/data'
 
+
 class Usage(EndpointResource):
 
+    # schema_expose = True
+    labels = ['usage']
+    GET = {'/usage': {'summary': 'Get user disk usage.', 'custom': {}, 'responses': {'200': {'description': 'Disk usage information', 'schema': {'$ref': '#/definitions/StorageUsage'}}, '401': {'description': 'Authentication required'}}}}
+
     @catch_error()
+    @authentication.required()
     def get(self):
         """
         Get actual user disk quota and current usage

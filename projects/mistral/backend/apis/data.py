@@ -4,6 +4,7 @@ from restapi.rest.definition import EndpointResource
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
+from restapi.protocols.bearer import authentication
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
@@ -14,7 +15,12 @@ log = get_logger(__name__)
 
 class Data(EndpointResource):
 
+    # schema_expose = True
+    labels = ['data']
+    POST = {'/data': {'custom': {}, 'summary': 'Request for data extraction.', 'parameters': [{'name': 'criteria', 'in': 'body', 'description': 'Criteria for data extraction.', 'schema': {'$ref': '#/definitions/DataExtraction'}}], 'responses': {'202': {'description': 'Data extraction request queued'}}}}
+
     @catch_error()
+    @authentication.required()
     def post(self):
 
         user = self.get_current_user()

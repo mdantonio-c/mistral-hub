@@ -1,8 +1,0 @@
-file: file
-class: FileDownload
-schema:
-  expose: true
-mapping:
-  file: "/data/<filename>"
-labels:
-  - file

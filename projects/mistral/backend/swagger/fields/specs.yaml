@@ -1,8 +1,0 @@
-file: fields
-class: Fields
-schema:
-  expose: true
-mapping:
-  fields: "/fields"
-labels:
-  - field

@@ -2,6 +2,7 @@ from restapi.rest.definition import EndpointResource
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
+from restapi.protocols.bearer import authentication
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
@@ -12,7 +13,15 @@ log = get_logger(__name__)
 
 class Schedules(EndpointResource):
 
+    # schema_expose = True
+    labels = ['schedule']
+    GET = {'/schedules/<schedule_id>': {'summary': 'Get user schedules.', 'description': 'Returns a single schedule by ID', 'tags': ['schedule'], 'custom': {}, 'responses': {'200': {'description': 'List of user schedules.', 'schema': {'$ref': '#/definitions/Requests'}}, '401': {'description': 'This endpoint requires a valid authorization token'}, '403': {'description': 'User not allowed to get the schedule'}, '404': {'description': 'The schedule does not exists'}}, 'parameters': [{'name': 'sort-order', 'in': 'query', 'description': 'sort order', 'type': 'string', 'enum': ['asc', 'desc']}, {'name': 'sort-by', 'in': 'query', 'description': 'params to sort schedules', 'type': 'string'}, {'name': 'get_total', 'in': 'query', 'description': 'Retrieve total number of schedules', 'type': 'boolean', 'default': False}]}, '/schedules': {'summary': 'Get user schedules.', 'description': 'Returns a single schedule by ID', 'tags': ['schedule'], 'custom': {}, 'responses': {'200': {'description': 'List of user schedules.', 'schema': {'$ref': '#/definitions/Requests'}}, '401': {'description': 'This endpoint requires a valid authorization token'}, '403': {'description': 'User not allowed to get the schedule'}, '404': {'description': 'The schedule does not exists'}}, 'parameters': [{'name': 'sort-order', 'in': 'query', 'description': 'sort order', 'type': 'string', 'enum': ['asc', 'desc']}, {'name': 'sort-by', 'in': 'query', 'description': 'params to sort schedules', 'type': 'string'}, {'name': 'get_total', 'in': 'query', 'description': 'Retrieve total number of schedules', 'type': 'boolean', 'default': False}]}}
+    POST = {'/schedules': {'custom': {}, 'summary': 'Request for scheduling a data extraction.', 'parameters': [{'name': 'scheduled_criteria', 'in': 'body', 'description': 'Criteria for scheduled data extraction.', 'schema': {'$ref': '#/definitions/DataScheduling'}}], 'responses': {'201': {'description': 'succesfully created a scheduled request'}, '400': {'description': 'scheduling criteria are not valid'}, '404': {'description': 'dataset not found'}}}}
+    PATCH = {'/schedules/<schedule_id>': {'summary': 'enable or disable a schedule', 'custom': {}, 'parameters': [{'in': 'path', 'name': 'id', 'type': 'integer', 'required': True, 'description': 'schedule id'}, {'name': 'action', 'in': 'body', 'description': 'action to do on schedule (enabling or disabling)', 'schema': {'type': 'object', 'required': ['is_active'], 'properties': {'is_active': {'type': 'boolean', 'description': 'requested value for is active property'}}}}], 'responses': {'200': {'description': 'schedule is succesfully disable/enable'}, '404': {'description': 'schedule not found'}, '400': {'description': 'schedule is already enabled/disabled'}, '401': {'description': 'Current user is not allowed disable/enable the schedule in path'}}}}
+    DELETE = {'/schedules/<schedule_id>': {'summary': 'delete a schedule', 'custom': {}, 'parameters': [{'in': 'path', 'name': 'id', 'type': 'integer', 'required': True, 'description': 'schedule id'}], 'responses': {'200': {'description': 'schedule is succesfully disable/enable'}, '404': {'description': 'schedule not found'}, '401': {'description': 'Current user is not allowed disable/enable the schedule in path'}}}}
+
     @catch_error()
+    @authentication.required()
     def post(self):
 
         user = self.get_current_user()
@@ -145,6 +154,7 @@ class Schedules(EndpointResource):
             return False
 
     @catch_error()
+    @authentication.required()
     def get(self, schedule_id=None):
         param = self.get_input()
         sort = param.get('sort-by')
@@ -171,6 +181,7 @@ class Schedules(EndpointResource):
             res, code=hcodes.HTTP_OK_BASIC)
 
     @catch_error()
+    @authentication.required()
     def patch(self, schedule_id):
         param = self.get_input()
         is_active = param.get('is_active')
@@ -240,6 +251,7 @@ class Schedules(EndpointResource):
             {'id': schedule_id, 'enabled':is_active}, code=hcodes.HTTP_OK_BASIC)
 
     @catch_error()
+    @authentication.required()
     def delete(self, schedule_id):
         user = self.get_current_user()
 
@@ -274,7 +286,12 @@ class Schedules(EndpointResource):
 
 class ScheduledRequests(EndpointResource):
 
+    # schema_expose = True
+    labels = ['scheduled_requests']
+    GET = {'/schedules/<schedule_id>/requests': {'summary': 'Get requests related to a given schedule.', 'custom': {}, 'parameters': [{'name': 'get_total', 'in': 'query', 'description': 'Retrieve total number of requests', 'type': 'boolean', 'default': False}, {'name': 'last', 'in': 'query', 'description': 'retrieve only the last submitted request', 'type': 'boolean', 'allowEmptyValue': True}], 'responses': {'200': {'description': 'List of requests for a given schedule.', 'schema': {'$ref': '#/definitions/Requests'}}, '404': {'description': 'Schedule not found.'}, '403': {'description': 'User cannot access a schedule that does not belong to.'}}}}
+
     @catch_error()
+    @authentication.required()
     def get(self, schedule_id):
         """
         Get all submitted requests for this schedule

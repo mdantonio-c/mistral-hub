@@ -3,6 +3,7 @@ import json
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
+from restapi.protocols.bearer import authentication
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.requests_manager import RequestManager as repo
@@ -14,7 +15,13 @@ DOWNLOAD_DIR = '/data'
 
 class UserRequests(EndpointResource):
 
+    # schema_expose = True
+    labels = ['requests']
+    GET = {'/requests': {'summary': 'Get requests filtered by uuid.', 'custom': {}, 'parameters': [{'name': 'perpage', 'in': 'query', 'description': 'Number of videos returned', 'type': 'integer'}, {'name': 'currentpage', 'in': 'query', 'description': 'Page number', 'type': 'integer'}, {'name': 'sort-order', 'in': 'query', 'description': 'sort order', 'type': 'string', 'enum': ['asc', 'desc']}, {'name': 'sort-by', 'in': 'query', 'description': 'params to sort requests', 'type': 'string'}, {'name': 'get_total', 'in': 'query', 'description': 'Retrieve total number of requests', 'type': 'boolean', 'default': False}], 'responses': {'200': {'description': 'List of requests of an user', 'schema': {'$ref': '#/definitions/Requests'}}, '404': {'description': 'User has no requests'}, '401': {'description': 'Current user is not allowed to see requests of the user in query'}}}}
+    DELETE = {'/requests/<request_id>': {'summary': 'Delete a request', 'custom': {}, 'responses': {'200': {'description': 'Request deleted successfully.'}, '404': {'description': 'Request does not exist.'}, '401': {'description': 'The user is not authorized to delete this request.'}}}}
+
     @catch_error()
+    @authentication.required()
     def get(self, request_id=None):
         param = self.get_input()
         sort = param.get('sort-by')
@@ -65,6 +72,7 @@ class UserRequests(EndpointResource):
             data, code=hcodes.HTTP_OK_BASIC)
 
     @catch_error()
+    @authentication.required()
     def delete(self, request_id):
         log.debug("delete request %s" % request_id)
 

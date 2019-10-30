@@ -3,6 +3,7 @@
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
+from restapi.protocols.bearer import authentication
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
@@ -12,7 +13,12 @@ logger = get_logger(__name__)
 
 class Datasets(EndpointResource):
 
+    # schema_expose = True
+    labels = ['dataset']
+    GET = {'/datasets': {'summary': 'Get a dataset.', 'custom': {}, 'responses': {'200': {'description': 'Dataset successfully retrieved', 'schema': {'$ref': '#/definitions/Dataset'}}, '404': {'description': 'Dataset does not exists'}}, 'description': 'Return a single dataset filtered by name'}, '/datasets/<dataset_name>': {'summary': 'Get a dataset.', 'custom': {}, 'responses': {'200': {'description': 'Dataset successfully retrieved', 'schema': {'$ref': '#/definitions/Dataset'}}, '404': {'description': 'Dataset does not exists'}}, 'description': 'Return a single dataset filtered by name'}}
+
     @catch_error()
+    @authentication.required()
     def get(self, dataset_name=None):
         """ Get all the datasets or a specific one if a name is provided."""
         try:

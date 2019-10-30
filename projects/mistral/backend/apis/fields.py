@@ -3,10 +3,11 @@
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
+from restapi.protocols.bearer import authentication
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
-from flask import Response
+# from flask import Response
 # from flask import json
 
 logger = get_logger(__name__)
@@ -14,7 +15,12 @@ logger = get_logger(__name__)
 
 class Fields(EndpointResource):
 
+    # schema_expose = True
+    labels = ['field']
+    GET = {'/fields': {'summary': 'Get summary fields for given dataset(s).', 'custom': {}, 'parameters': [{'name': 'datasets', 'in': 'query', 'type': 'array', 'uniqueItems': True, 'collectionFormat': 'csv', 'items': {'type': 'string'}}, {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''}, {'name': 'onlySummaryStats', 'in': 'query', 'type': 'boolean', 'default': False, 'allowEmptyValue': True}], 'responses': {'200': {'description': 'List of fields successfully retrieved', 'schema': {'$ref': '#/definitions/Summary'}}}}}
+
     @catch_error()
+    @authentication.required()
     def get(self):
         """ Get all fields for given datasets"""
         params = self.get_input()

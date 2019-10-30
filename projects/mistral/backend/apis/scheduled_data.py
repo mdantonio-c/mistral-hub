@@ -2,6 +2,7 @@ from restapi.rest.definition import EndpointResource
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
+from restapi.protocols.bearer import authentication
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
@@ -12,7 +13,13 @@ log = get_logger(__name__)
 
 class ScheduledData(EndpointResource):
 
+    # schema_expose = True
+    labels = ['scheduled']
+    POST = {'/data/scheduled': {'custom': {}, 'summary': 'Request for data extraction.', 'parameters': [{'name': 'scheduled_criteria', 'in': 'body', 'description': 'Criteria for scheduled data extraction.', 'schema': {'$ref': '#/definitions/DataScheduling'}}], 'responses': {'204': {'description': 'no response given'}, '400': {'description': 'scheduling criteria are not valid'}}}}
+    DELETE = {'/data/scheduled': {'custom': {}, 'summary': 'Request for task deletion.', 'parameters': [{'name': 'task', 'in': 'query', 'description': 'Task to remove.', 'type': 'string', 'required': True}], 'responses': {'200': {'description': 'Task deleted'}, '404': {'description': 'Task not found'}, '401': {'description': 'The user is not the owner of the request to delete'}}}}
+
     @catch_error()
+    @authentication.required()
     def post(self):
 
         user = self.get_current_user()
@@ -91,6 +98,7 @@ class ScheduledData(EndpointResource):
         return self.force_response('Scheduled task {}'.format(name))
 
     @catch_error()
+    @authentication.required()
     def delete(self):
         param = self.get_input()
         task_name = param.get('task')

@@ -1,8 +1,0 @@
-file: data 
-class: Data 
-schema:
-  expose: true
-mapping:
-  data: "/data"
-labels:
-  - data 
