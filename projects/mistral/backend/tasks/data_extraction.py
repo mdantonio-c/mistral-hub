@@ -21,13 +21,6 @@ DOWNLOAD_DIR = '/data'
 
 
 @celery_app.task(bind=True)
-def add(self, a, b):
-    c = a + b
-    logger.critical("%s + %s = %s", a, b, c)
-    return c
-
-
-@celery_app.task(bind=True)
 # @send_errors_by_email
 def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[], request_id=None,
                  schedule_id=None):
