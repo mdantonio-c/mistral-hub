@@ -10,6 +10,7 @@ RUN apt-get install -y libhdf5-serial-dev libpq-dev libssl1.0.0 libssl-dev libpo
 
 COPY --from=0 /usr/bin/arki-* /usr/bin/
 
+COPY --from=0 /etc/arkimet/format /etc/arkimet/format
 COPY --from=0 /usr/share/eccodes /usr/share/
 
 COPY --from=0 /usr/lib64/libarkimet.* /lib/x86_64-linux-gnu/
