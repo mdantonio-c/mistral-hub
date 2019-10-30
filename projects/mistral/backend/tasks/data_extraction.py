@@ -6,6 +6,7 @@ import os
 import datetime
 from celery.schedules import crontab
 from restapi.flask_ext.flask_celery import CeleryExt
+from restapi.services.mail import send_mail, get_html_template
 from celery import states
 from celery.exceptions import Ignore
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
@@ -23,7 +24,7 @@ DOWNLOAD_DIR = '/data'
 @celery_app.task(bind=True)
 # @send_errors_by_email
 def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[], request_id=None,
-                 schedule_id=None):
+                 schedule_id=None, user_email=None):
     with celery_app.app.app_context():
         logger.info("Start task [{}:{}]".format(self.request.id, self.name))
         try:
@@ -129,6 +130,41 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
             # update request status
             request.status = states.SUCCESS
+
+            if user_email is not None:
+                # Send email notification
+                # HTML VERSION
+
+                # template = "???.html"
+
+                # replaces = {
+                #     "x": 'bla x',
+                #     "y": 'bla y',
+                #     "z": 'bla z',
+                # }
+                # html = get_html_template(template, replaces)
+                body = """
+        This email is an automatic notification to inform you that...
+
+        Best regards,
+        the MeteoHub portal
+        """
+
+                subject = "MeteoHub: data extraction completed"
+                # HTML VERSION
+                # send_mail(
+                #     html,
+                #     subject,
+                #     user_email,
+                #     plain_body=body
+                # )
+
+                # PLAIN VERSION
+                send_mail(
+                    body,
+                    subject,
+                    user_email
+                )
 
         except DiskQuotaException as exc:
             request.status = states.FAILURE
