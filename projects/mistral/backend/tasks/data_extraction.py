@@ -24,7 +24,7 @@ DOWNLOAD_DIR = '/data'
 @celery_app.task(bind=True)
 # @send_errors_by_email
 def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[], request_id=None,
-                 schedule_id=None, user_email=None):
+                 schedule_id=None):
     with celery_app.app.app_context():
         logger.info("Start task [{}:{}]".format(self.request.id, self.name))
         try:
@@ -131,41 +131,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # update request status
             request.status = states.SUCCESS
 
-            if user_email is not None:
-                # Send email notification
-                # HTML VERSION
-
-                # template = "???.html"
-
-                # replaces = {
-                #     "x": 'bla x',
-                #     "y": 'bla y',
-                #     "z": 'bla z',
-                # }
-                # html = get_html_template(template, replaces)
-                body = """
-        This email is an automatic notification to inform you that...
-
-        Best regards,
-        the MeteoHub portal
-        """
-
-                subject = "MeteoHub: data extraction completed"
-                # HTML VERSION
-                # send_mail(
-                #     html,
-                #     subject,
-                #     user_email,
-                #     plain_body=body
-                # )
-
-                # PLAIN VERSION
-                send_mail(
-                    body,
-                    subject,
-                    user_email
-                )
-
         except DiskQuotaException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
@@ -196,6 +161,26 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             request.end_date = datetime.datetime.utcnow()
             db.session.commit()
             logger.info('Terminate task {} with state {}'.format(self.request.id, request.status))
+            # user notification via email
+            user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
+            send_result_notication(user_email, request.status,
+                                   request.error_message if request.error_message is not None else "Your data is ready "
+                                                                                                   "for downloading")
+
+
+def send_result_notication(recipient, status, message):
+    """Send email notification. """
+    replaces = {
+        "status": status,
+        "message": message
+    }
+    body = get_html_template("data_extraction_result.html", replaces)
+    send_mail(
+        body,
+        "MeteoHub: data extraction completed",
+        recipient,
+        plain_body=body
+    )
 
 
 def human_size(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
@@ -207,6 +192,7 @@ def human_size(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
 
 class DiskQuotaException(Exception):
     """Exception for disk quota exceeding."""
+
 
 class PostProcessingException(Exception):
     """Exception for post-processing failure."""
