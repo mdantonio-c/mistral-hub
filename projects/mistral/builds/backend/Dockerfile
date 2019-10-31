@@ -2,6 +2,12 @@ FROM arpaesimc/centos
 
 FROM rapydo/backend:0.7.0
 
+ARG CURRENT_UID
+RUN test -n "$CURRENT_UID"
+ENV APIUSER developer
+
+RUN usermod -u $CURRENT_UID $APIUSER
+
 # required to install libjasper-dev
 RUN apt-get install -y software-properties-common
 RUN add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main"
