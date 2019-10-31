@@ -7,4 +7,10 @@
         <a class='nav-link' routerLink='app/requests' routerLinkActive="active">My Requests</a>
     </li>
 
+	<li class='nav-item' *ngIf="user && (user.isAdmin || user.isGroupAdmin)">
+		<a class='nav-link' routerLink="/app/admin/users">
+			Users
+		</a>
+	</li>
+
 </ul>

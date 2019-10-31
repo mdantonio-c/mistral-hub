@@ -386,3 +386,13 @@ definitions:
         type: integer
         format: int64
         minimum: 0
+
+FormDataParameters:
+  AdminUsers:
+    - name: disk_quota
+      in: formData
+      type: number
+      required: true
+      description: Disk quota in bytes
+      custom:
+        label: Disk quota

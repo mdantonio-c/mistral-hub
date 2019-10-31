@@ -6,11 +6,13 @@ export class ProjectOptions {
 	constructor() {}
 
 	public get_option(opt) {
-
-/*		if (opt == 'registration') {
-			return this.registration_options()
-		}
-*/
+        if (opt == 'user_page') {
+            return {
+                "custom": [
+                    {name: 'Disk Quota', prop: "disk_quota", flexGrow: 0.3}
+                ]
+            }
+        }
 		return null;
 	}
 
