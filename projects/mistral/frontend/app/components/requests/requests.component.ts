@@ -25,7 +25,7 @@ export class RequestsComponent extends BasePaginationComponent {
         protected modalService: NgbModal,
         protected formly: FormlyService,
         protected changeDetectorRef: ChangeDetectorRef,
-        private dataService: DataService,
+        public dataService: DataService,
     ) {
         super(api, auth, notify, modalService, formly, changeDetectorRef);
         this.init("request");
@@ -63,4 +63,5 @@ export class RequestsComponent extends BasePaginationComponent {
     toggleExpandRow(row) {
         this.table.rowDetail.toggleExpandRow(row);
     }
+
 }
