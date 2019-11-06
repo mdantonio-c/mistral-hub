@@ -18,6 +18,8 @@ COPY --from=0 /usr/bin/arki-* /usr/bin/
 
 COPY --from=0 /etc/arkimet/format /etc/arkimet/format
 COPY --from=0 /usr/share/eccodes /usr/share/
+COPY --from=0 /usr/share/eccodes-simc/definitions/ /usr/share/eccodes-simc/definitions/
+COPY --from=0 /usr/share/eccodes/definitions/ /usr/share/eccodes/definitions/
 
 COPY --from=0 /usr/lib64/libarkimet.* /lib/x86_64-linux-gnu/
 COPY --from=0 /usr/lib64/libdballe.* /lib/x86_64-linux-gnu/
