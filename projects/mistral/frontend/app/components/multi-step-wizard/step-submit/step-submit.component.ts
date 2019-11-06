@@ -134,7 +134,7 @@ export class StepSubmitComponent implements OnInit {
             ['../', 'postprocess'], {relativeTo: this.route});
     }
 
-    submit(form: any) {
+    submit() {
         console.log('submit request for data extraction');
         this.dataService.extractData(
             this.formData.name,

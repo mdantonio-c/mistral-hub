@@ -1,7 +1,6 @@
 import {Component, ViewChild} from '@angular/core';
 import {RequestsComponent} from "../requests/requests.component";
 import {SchedulesComponent} from "../schedules/schedules.component";
-import {StorageUsageComponent} from "./storage-usage/storage-usage.component";
 
 @Component({
     selector: 'app-dashboard',

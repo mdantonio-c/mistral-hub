@@ -15,7 +15,7 @@ import * as moment from 'moment';
 export class StepFiltersComponent implements OnInit {
     title = 'Filter your data';
     loading: boolean = false;
-    summaryStats = {};
+    summaryStats = {b: null, e: null, c: null, s: null};
     filterForm: FormGroup;
     filters: Filters;
     disabledDp = false;
@@ -195,7 +195,7 @@ export class StepFiltersComponent implements OnInit {
         }
     }
 
-    goToNext(form: any) {
+    goToNext() {
         if (this.save()) {
             // Navigate to the postprocess page
             this.router.navigate(

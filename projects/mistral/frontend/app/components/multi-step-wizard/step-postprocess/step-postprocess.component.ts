@@ -65,7 +65,7 @@ export class StepPostprocessComponent implements OnInit {
         }
     }
 
-    goToNext(form: any) {
+    goToNext() {
         if (this.save()) {
             // Navigate to the postprocess page
             this.router.navigate(

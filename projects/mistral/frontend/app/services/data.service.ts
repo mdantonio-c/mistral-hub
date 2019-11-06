@@ -20,8 +20,8 @@ export interface RapydoResponse<T> {
 }
 
 export interface SummaryStats {
-    b?: string[];
-    e?: string[];
+    b?: number[];
+    e?: number[];
     c: number;
     s: number;
 }

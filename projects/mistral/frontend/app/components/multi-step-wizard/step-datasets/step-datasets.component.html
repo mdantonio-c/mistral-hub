@@ -4,7 +4,7 @@
     <br/>
     <div class="loader col" *ngIf="loading"></div>
     <ul>
-      <li formArrayName="datasets" *ngFor="let ds of form.controls.datasets.controls; let i = index">
+      <li formArrayName="datasets" *ngFor="let ds of form.controls.datasets['controls']; let i = index">
           <input class="mst--input-checkbox" type="checkbox" [formControlName]="i" id="{{datasets[i].id}}">
           <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
       </li>
