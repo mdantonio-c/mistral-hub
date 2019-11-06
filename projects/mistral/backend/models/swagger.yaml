@@ -94,6 +94,8 @@ definitions:
           - average
           - min
           - max
+    required:
+      - type
   GCProcessor:
     description: Grid cropping post processor
     type: object
@@ -122,6 +124,8 @@ definitions:
         enum:
           - coord
           - bbox
+    required:
+      - type
   SPIProcessor:
     description: Spare points interpolation postprocessor
     type: object
@@ -152,6 +156,8 @@ definitions:
           - average
           - min
           - max
+    required:
+      - type
 
 
 

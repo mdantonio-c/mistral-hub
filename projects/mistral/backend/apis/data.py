@@ -60,6 +60,14 @@ class Data(EndpointResource):
             p_type = p.get('type')
             if p_type == 'additional_variables':
                 self.validate_input(p, 'AVProcessor')
+            elif p_type == 'grid_interpolation':
+                self.validate_input(p, 'GIProcessor')
+                self.validate_grid_interpol_params(p)
+            elif p_type == 'grid_cropping':
+                self.validate_input(p, 'GCProcessor')
+            elif p_type == 'spare_point_interpolation':
+                self.validate_input(p, 'SPIProcessor')
+                self.validate_spare_point_interpol_params(p)
             else:
                 raise RestApiException('Unknown post-processor type for {}'.format(p_type),
                                        status_code=hcodes.HTTP_BAD_REQUEST)
@@ -90,3 +98,31 @@ class Data(EndpointResource):
         # return self.force_response(
         #     {'task_id': task.id, 'task_status': task.status}, code=hcodes.HTTP_OK_ACCEPTED)
         return self.empty_response()
+
+    @staticmethod
+    def validate_grid_interpol_params(params):
+        if 'trans-type' and 'sub-type'in params:
+            trans_type = params['trans-type']
+            sub_type = params['sub-type']
+            if trans_type == "inter":
+                if sub_type not in ("near","bilin"):
+                    raise RestApiException('{} is a bad interpolation sub-type for {}'.format(sub_type,trans_type),
+                                           status_code=hcodes.HTTP_BAD_REQUEST)
+            elif trans_type == "boxinter":
+                if sub_type not in ("average","min","max"):
+                    raise RestApiException('{} is a bad interpolation sub type for {}'.format(sub_type,trans_type),
+                                           status_code=hcodes.HTTP_BAD_REQUEST)
+
+    @staticmethod
+    def validate_spare_point_interpol_params(params):
+        if 'trans-type' and 'sub-type' in params:
+            trans_type = params['trans-type']
+            sub_type = params['sub-type']
+            if trans_type == "inter":
+                if sub_type not in ("near", "bilin"):
+                    raise RestApiException('{} is a bad interpolation sub-type for {}'.format(sub_type, trans_type),
+                                           status_code=hcodes.HTTP_BAD_REQUEST)
+            elif trans_type == "polyinter":
+                if sub_type not in ("average", "min", "max"):
+                    raise RestApiException('{} is a bad interpolation sub type for {}'.format(sub_type, trans_type),
+                                           status_code=hcodes.HTTP_BAD_REQUEST)
