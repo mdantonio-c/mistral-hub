@@ -30,7 +30,7 @@ export class StepSubmitComponent implements OnInit {
         private router: Router,
         private route: ActivatedRoute,
         private formBuilder: FormBuilder,
-        private dataService: DataService,
+        public dataService: DataService,
         private formDataService: FormDataService,
         private modalService: NgbModal,
         private notify: NotificationService
