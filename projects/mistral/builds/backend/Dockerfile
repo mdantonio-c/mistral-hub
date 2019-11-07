@@ -14,23 +14,10 @@ RUN add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security ma
 
 RUN apt-get install -y libhdf5-serial-dev libpq-dev libssl1.0.0 libssl-dev libpopt-dev liblua5.1-0-dev libgeos-dev liblzo2-2 libreadline6-dev libpng16-16 libjasper-dev
 
-COPY --from=0 /usr/bin/arki-* /usr/bin/
-
-COPY --from=0 /etc/arkimet/format /etc/arkimet/format
-COPY --from=0 /usr/share/eccodes /usr/share/
-
-COPY --from=0 /usr/lib64/libarkimet.* /lib/x86_64-linux-gnu/
-COPY --from=0 /usr/lib64/libdballe.* /lib/x86_64-linux-gnu/
-COPY --from=0 /usr/lib64/libmeteo-vm2.* /lib/x86_64-linux-gnu/
-COPY --from=0 /usr/lib64/libwreport.* /lib/x86_64-linux-gnu/
-COPY --from=0 /usr/lib64/libeccodes.* /lib/x86_64-linux-gnu/
-
-COPY --from=0 /usr/lib64/mysql /lib/x86_64-linux-gnu/
-COPY --from=0 /usr/lib64/libcrypto.so.10 /lib/x86_64-linux-gnu/
-COPY --from=0 /usr/lib64/libssl.so.10 /lib/x86_64-linux-gnu/
-COPY --from=0 /usr/lib64/libpng15.so.15 /lib/x86_64-linux-gnu/
-
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/hdf5/serial"
+ENV PATH="$PATH:/usr/bin/centos"
+ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes/definitions/"
+ENV DATASET_ROOT="/arkimet/datasets/"
 
 WORKDIR /usr/lib/x86_64-linux-gnu/hdf5/serial
 
@@ -44,12 +31,18 @@ RUN ln -s libssl.so.1.0.0 libssl.so.10
 RUN ln -s libcrypto.so.1.0.0 libcrypto.so.10
 RUN ln -s liblua5.1.so liblua-5.1.so
 RUN ln -s libgeos-3.6.2.so libgeos-3.4.2.so
-RUN ln -s libpng16.so.16 libpng15.so.15
-RUN ln -s libjpeg.so.8 libjpeg.so.62
 RUN ln -s libreadline.so libreadline.so.6
 
-ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes/definitions/"
+# COPY --from=0 /usr/bin/arki-* /usr/bin/
+COPY --from=0 /usr/bin /usr/bin/centos
 
-ENV DATASET_ROOT="/arkimet/datasets/"
+COPY --from=0 /etc/arkimet/format /etc/arkimet/format
+COPY --from=0 /usr/share/eccodes /usr/share/
+COPY --from=0 /usr/share/eccodes-simc/definitions/ /usr/share/eccodes-simc/definitions/
+COPY --from=0 /usr/share/eccodes/definitions/ /usr/share/eccodes/definitions/
+
+COPY --from=0 /usr/lib64/libarkimet.* /usr/lib64/libdballe.* /usr/lib64/libmeteo-vm2.* /usr/lib64/libwreport.* /usr/lib64/libeccodes.* /usr/lib64/libeccodes_f90.* /usr/lib64/libsim_* /usr/lib64/libdballef.* /lib/x86_64-linux-gnu/
+
+COPY --from=0 /usr/lib64/libnetcdff.* /usr/lib64/libnetcdf.* /usr/lib64/liblog4fortran.* /usr/lib64/libfortrangis.* /usr/lib64/libfortranc.* /usr/lib64/libgfortran.* /usr/lib64/libgdal.* /usr/lib64/libproj.* /usr/lib64/libshp.* /usr/lib64/liblog4c.* /usr/lib64/libCharLS.* /usr/lib64/libarmadillo.* /usr/lib64/libcfitsio.* /usr/lib64/libdap.so.* /usr/lib64/libdapclient.* /usr/lib64/libdapserver.* /usr/lib64/libfreexl.* /usr/lib64/libgeotiff.* /usr/lib64/libgif.* /usr/lib64/libgta.* /usr/lib64/libodbc.* /usr/lib64/libodbcinst.* /usr/lib64/libogdi.* /usr/lib64/libopenjp2.* /usr/lib64/libpcre.* /usr/lib64/libpoppler.* /usr/lib64/libwebp.* /usr/lib64/libxerces-c-3.1.* /usr/lib64/libopenblaso.* /usr/lib64/liblapack.* /usr/lib64/libarpack.* /usr/lib64/libsuperlu.* /usr/lib64/liblcms2.* /usr/lib64/libopenjpeg.* /usr/lib64/libSM.* /usr/lib64/libICE.* /usr/lib64/mysql /usr/lib64/libcrypto.* /usr/lib64/libssl.* /usr/lib64/libblas.* /usr/lib64/atlas /usr/lib64/libsatlas.* /usr/lib64/libjpeg.* /usr/lib64/libpng15.* /lib/x86_64-linux-gnu/
 
 WORKDIR /code

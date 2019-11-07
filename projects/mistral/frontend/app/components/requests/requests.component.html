@@ -17,7 +17,7 @@
             [columnMode]="'flex'"
             [loadingIndicator]='true'
             [footerHeight]="50"
-            [limit]="itemsPerPage">
+            [limit]="paging.itemsPerPage">
         <!-- Row Detail Template -->
         <ngx-datatable-row-detail
                 [rowHeight]="'100%'"
@@ -52,7 +52,7 @@
                             <dt>Filter(s)</dt>
                             <dd>
                                 <dl class="row no-gutters mb-0 px-0 request-summary"
-                                    *ngIf="(row.args.filters | keyvalue).length else noFilters">
+                                    *ngIf="((row.args.filters | keyvalue) || []).length else noFilters">
                                     <ng-container *ngFor="let f of row.args.filters | keyvalue">
                                         <dt class="col-sm-3" style="font-weight: normal;">
                                             {{f.key}}

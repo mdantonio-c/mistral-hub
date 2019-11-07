@@ -8,7 +8,7 @@
     </li>
 
 	<li class='nav-item' *ngIf="user && (user.isAdmin || user.isGroupAdmin)">
-		<a class='nav-link' routerLink="/app/admin/users">
+		<a class='nav-link' routerLink="/app/admin/users" routerLinkActive="active">
 			Users
 		</a>
 	</li>

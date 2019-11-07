@@ -26,7 +26,7 @@ export class SchedulesComponent extends BasePaginationComponent {
         protected modalService: NgbModal,
         protected formly: FormlyService,
         protected changeDetectorRef: ChangeDetectorRef,
-        private dataService: DataService,
+        public dataService: DataService,
         private el: ElementRef
     ) {
         super(api, auth, notify, modalService, formly, changeDetectorRef);

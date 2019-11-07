@@ -13,7 +13,7 @@
             </div>
             <div class="body">
                 <ul class="mst--list-columns">
-                    <li *ngFor="let v of form.get('additional_variables').controls; let i=index">
+                    <li *ngFor="let v of form.get('additional_variables')['controls']; let i=index">
                         <input class="mst--input-checkbox" type="checkbox" [formControl]="v"
                                [id]="vars[i].code">
                         <label [for]="vars[i].code">{{vars[i].desc}}</label>

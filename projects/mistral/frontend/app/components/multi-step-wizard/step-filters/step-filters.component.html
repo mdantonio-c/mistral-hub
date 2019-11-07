@@ -28,7 +28,7 @@
             </div>
             <!-- Filters -->
             <div formArrayName="filters"
-                 *ngFor="let f of filterForm.get('filters').controls; let i = index;">
+                 *ngFor="let f of filterForm.get('filters')['controls']; let i = index;">
                 <div class="card mst--expansion-panel" [formGroupName]="i">
                     <div class="card-header">
                         <h5>{{f.value.name}}</h5>
