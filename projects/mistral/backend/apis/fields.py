@@ -17,7 +17,7 @@ class Fields(EndpointResource):
 
     # schema_expose = True
     labels = ['field']
-    GET = {'/fields': {'summary': 'Get summary fields for given dataset(s).', 'custom': {}, 'parameters': [{'name': 'datasets', 'in': 'query', 'type': 'array', 'uniqueItems': True, 'collectionFormat': 'csv', 'items': {'type': 'string'}}, {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''}, {'name': 'onlySummaryStats', 'in': 'query', 'type': 'boolean', 'default': False, 'allowEmptyValue': True}], 'responses': {'200': {'description': 'List of fields successfully retrieved', 'schema': {'$ref': '#/definitions/Summary'}}}}}
+    GET = {'/fields': {'summary': 'Get summary fields for given dataset(s).', 'parameters': [{'name': 'datasets', 'in': 'query', 'type': 'array', 'uniqueItems': True, 'collectionFormat': 'csv', 'items': {'type': 'string'}}, {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''}, {'name': 'onlySummaryStats', 'in': 'query', 'type': 'boolean', 'default': False, 'allowEmptyValue': True}], 'responses': {'200': {'description': 'List of fields successfully retrieved', 'schema': {'$ref': '#/definitions/Summary'}}}}}
 
     @catch_error()
     @authentication.required()
