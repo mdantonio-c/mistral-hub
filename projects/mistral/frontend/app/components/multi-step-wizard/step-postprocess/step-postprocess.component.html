@@ -2,10 +2,10 @@
     <div class="tab-pane fade show active mt-4">
         <h4 class="head text-center">{{title}}</h4>
         <br/>
-        <!-- Additional variables -->
+        <!-- Derived variables -->
         <div class="card mst--expansion-panel">
             <div class="card-header">
-                <h5>Additional Variables</h5>
+                <h5>Derived Variables</h5>
                 <span class="info-help">&nbsp;<i placement="right"
                                                  ngbTooltip="Add helpful info about this post-processing"
                                                  class="fa fa-question-circle"
@@ -13,7 +13,7 @@
             </div>
             <div class="body">
                 <ul class="mst--list-columns">
-                    <li *ngFor="let v of form.get('additional_variables')['controls']; let i=index">
+                    <li *ngFor="let v of form.get('derived_variables')['controls']; let i=index">
                         <input class="mst--input-checkbox" type="checkbox" [formControl]="v"
                                [id]="vars[i].code">
                         <label [for]="vars[i].code">{{vars[i].desc}}</label>
