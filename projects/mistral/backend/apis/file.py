@@ -17,7 +17,7 @@ class FileDownload(EndpointResource):
 
     # schema_expose = True
     labels = ['file']
-    GET = {'/data/<filename>': {'summary': 'Download output file', 'custom': {}, 'parameters': [{'in': 'path', 'name': 'file', 'type': 'string', 'required': True, 'description': 'file to download'}], 'responses': {'200': {'description': 'found the file to download', 'schema': {'$ref': '#/definitions/Fileoutput'}}, '404': {'description': 'file not found'}}}}
+    GET = {'/data/<filename>': {'summary': 'Download output file', 'parameters': [{'in': 'path', 'name': 'file', 'type': 'string', 'required': True, 'description': 'file to download'}], 'responses': {'200': {'description': 'found the file to download', 'schema': {'$ref': '#/definitions/Fileoutput'}}, '404': {'description': 'file not found'}}}}
 
     @catch_error()
     @authentication.required()

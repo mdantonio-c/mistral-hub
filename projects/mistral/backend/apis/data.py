@@ -17,7 +17,7 @@ class Data(EndpointResource):
 
     # schema_expose = True
     labels = ['data']
-    POST = {'/data': {'custom': {}, 'summary': 'Request for data extraction.', 'parameters': [
+    POST = {'/data': {'summary': 'Request for data extraction.', 'parameters': [
         {'name': 'criteria', 'in': 'body', 'description': 'Criteria for data extraction.',
          'schema': {'$ref': '#/definitions/DataExtraction'}}],
                       'responses': {'202': {'description': 'Data extraction request queued'}}}}
