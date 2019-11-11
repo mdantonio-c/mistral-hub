@@ -62,7 +62,7 @@ definitions:
         description: description of the postprocessor
         type: string
       boundings:
-        description: boundings of the new grid
+        description: boundings of the target grid
         type: object
         properties:
           x-min:
@@ -73,8 +73,8 @@ definitions:
             type: number
           y-max:
             type: number
-      points:
-        description: number of point of the new grid
+      nodes:
+        description: number of nodes of the target grid
         type: object
         properties:
           nx:

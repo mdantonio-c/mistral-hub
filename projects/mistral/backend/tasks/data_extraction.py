@@ -100,7 +100,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 p = postprocessors[0]
                 logger.debug(p)
                 pp_type = p.get('type')
-                if pp_type != 'derived_variables':
+                enabled_postprocessors = ('additional_variables','grid_interpolation','grid_cropping','spare_point_interpolation')
+                if pp_type not in enabled_postprocessors:
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
                 logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
                 # temporarily save the data extraction output
@@ -109,11 +110,39 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 with open(tmp_outfile, mode='w') as query_outfile:
                     subprocess.Popen(arki_query_cmd, stdout=query_outfile)
                 try:
-                    post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
-                        ",".join(p.get('variables')),
-                        tmp_outfile,
-                        os.path.join(user_dir, out_filename)
-                    ))
+                    if pp_type == 'additional_variables':
+                        post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
+                            ",".join(p.get('variables')),
+                            tmp_outfile,
+                            os.path.join(user_dir, out_filename)
+                        ))
+                    elif pp_type == 'grid_interpolation':
+                        post_proc_cmd =[]
+                        post_proc_cmd.append('vg6d_transform')
+                        post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
+                        post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
+                        post_proc_cmd.append('--type=regular_ll')
+                        post_proc_cmd.append('--x-min={}'.format(p['boundings']['x-min']))
+                        post_proc_cmd.append('--x-max={}'.format(p['boundings']['x-max']))
+                        post_proc_cmd.append('--y-min={}'.format(p['boundings']['y-min']))
+                        post_proc_cmd.append('--y-max={}'.format(p['boundings']['y-max']))
+                        post_proc_cmd.append('--nx={}'.format(p['nodes']['nx']))
+                        post_proc_cmd.append('--nx={}'.format(p['nodes']['ny']))
+                        post_proc_cmd.append(tmp_outfile)
+                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
+                    elif pp_type == 'grid_cropping':
+                        post_proc_cmd =[]
+                        post_proc_cmd.append('vg6d_transform')
+                        post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
+                        post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
+                        post_proc_cmd.append('--type=regular_ll')
+                        post_proc_cmd.append('--ilon={}'.format(p['boundings']['ilon']))
+                        post_proc_cmd.append('--ilat={}'.format(p['boundings']['ilat']))
+                        post_proc_cmd.append('--flon={}'.format(p['boundings']['flon']))
+                        post_proc_cmd.append('--flat={}'.format(p['boundings']['flat']))
+                        post_proc_cmd.append(tmp_outfile)
+                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
+                    logger.debug('Post process command: {}>'.format(post_proc_cmd))
                     proc = subprocess.run(post_proc_cmd, stdout=subprocess.PIPE)
                     proc.check_returncode()
                 except Exception:
