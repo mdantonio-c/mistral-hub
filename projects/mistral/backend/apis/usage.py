@@ -18,7 +18,7 @@ class Usage(EndpointResource):
 
     # schema_expose = True
     labels = ['usage']
-    GET = {'/usage': {'summary': 'Get user disk usage.', 'custom': {}, 'responses': {'200': {'description': 'Disk usage information', 'schema': {'$ref': '#/definitions/StorageUsage'}}, '401': {'description': 'Authentication required'}}}}
+    GET = {'/usage': {'summary': 'Get user disk usage.', 'responses': {'200': {'description': 'Disk usage information', 'schema': {'$ref': '#/definitions/StorageUsage'}}, '401': {'description': 'Authentication required'}}}}
 
     @catch_error()
     @authentication.required()

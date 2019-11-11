@@ -34,13 +34,13 @@ definitions:
           - bufr
           - grib
   AVProcessor:
-    description: Additional variables post-processing
+    description: Derived variables post-processing
     type: object
     properties:
       type:
         type: string
       variables:
-        description: The list of requested additional variables to be calculated.
+        description: The list of requested derived variables to be calculated.
         type: array
         uniqueItems: true
         items:

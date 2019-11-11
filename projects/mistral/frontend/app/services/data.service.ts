@@ -1,5 +1,8 @@
 import {Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/share';
 import {ApiService} from '@rapydo/services/api';
 
 export interface RapydoBundle<T> {
@@ -27,8 +30,13 @@ export interface SummaryStats {
 }
 
 export interface StorageUsage {
-  quota: number;
-  used: number;
+    quota: number;
+    used: number;
+}
+
+export interface DerivedVariables {
+    code: string;
+    desc: string;
 }
 
 /**
@@ -97,7 +105,7 @@ export interface TimeSchedule {
     minute: number;
 }
 
-export const additionalVariables = [
+export const derivedVariables = [
     {code: 'B12194', desc: 'Air density'},
     {code: 'B13003', desc: 'Relative humidity'},
     {code: 'B11001', desc: 'Wind direction'},
@@ -108,8 +116,11 @@ export const additionalVariables = [
     providedIn: 'root'
 })
 export class DataService {
+    private _derivedVariables: DerivedVariables[];
 
-    constructor(private api: ApiService) {
+    constructor(
+        private api: ApiService,
+        private http: HttpClient) {
     }
 
     /**
@@ -200,7 +211,7 @@ export class DataService {
     toggleScheduleActiveState(scheduleId, toState: boolean) {
         const data = {
             is_active: toState
-        }
+        };
         return this.api.patch('schedules', scheduleId, data);
     }
 
@@ -209,11 +220,40 @@ export class DataService {
     }
 
     getVariableDescription(code): string {
-        return additionalVariables.find(av => av.code === code).desc;
+        return derivedVariables.find(av => av.code === code).desc;
     }
 
     getStorageUsage(): Observable<RapydoResponse<StorageUsage>> {
         return this.api.get(`usage`);
+    }
+
+    getDerivedVariables(): Observable<any> {
+        if (this._derivedVariables) {
+            return of(this._derivedVariables);
+        } else {
+            return this.http.get('/app/custom/assets/config/derived_variables.csv', {responseType: 'text'})
+                .map(response => {
+                    this._derivedVariables = this.extractConfig(response);
+                    return this._derivedVariables;
+                }).share();
+        }
+    }
+
+    private extractConfig(csvData: string): DerivedVariables[] {
+        let allTextLines = csvData.split(/\r?\n/);
+        let lines = [];
+        for (let i = 0; i < allTextLines.length; i++) {
+            if (!allTextLines[i]) {
+                continue;
+            }
+            // split content based on comma
+            let data = allTextLines[i].split(',');
+            if (!data[1]) {  // ignore codes with no description
+                continue;
+            }
+            lines.push({code: data[0], desc: data[1]});
+        }
+        return lines;
     }
 
 }

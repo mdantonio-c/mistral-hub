@@ -78,7 +78,7 @@
                     <dl class="row">
                         <ng-container *ngFor="let p of formData.postprocessors">
                             <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}</dt>
-                            <ng-container *ngIf="p.type === 'additional_variables'">
+                            <ng-container *ngIf="p.type === 'derived_variables'">
                                 <dd class="col-sm-9"><p *ngFor="let v of p.variables">{{dataService.getVariableDescription(v)}}</p></dd>
                             </ng-container>
                         </ng-container>

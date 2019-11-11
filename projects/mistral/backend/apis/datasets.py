@@ -15,7 +15,7 @@ class Datasets(EndpointResource):
 
     # schema_expose = True
     labels = ['dataset']
-    GET = {'/datasets': {'summary': 'Get a dataset.', 'custom': {}, 'responses': {'200': {'description': 'Dataset successfully retrieved', 'schema': {'$ref': '#/definitions/Dataset'}}, '404': {'description': 'Dataset does not exists'}}, 'description': 'Return a single dataset filtered by name'}, '/datasets/<dataset_name>': {'summary': 'Get a dataset.', 'custom': {}, 'responses': {'200': {'description': 'Dataset successfully retrieved', 'schema': {'$ref': '#/definitions/Dataset'}}, '404': {'description': 'Dataset does not exists'}}, 'description': 'Return a single dataset filtered by name'}}
+    GET = {'/datasets': {'summary': 'Get a dataset.', 'responses': {'200': {'description': 'Dataset successfully retrieved', 'schema': {'$ref': '#/definitions/Dataset'}}, '404': {'description': 'Dataset does not exists'}}, 'description': 'Return a single dataset filtered by name'}, '/datasets/<dataset_name>': {'summary': 'Get a dataset.', 'responses': {'200': {'description': 'Dataset successfully retrieved', 'schema': {'$ref': '#/definitions/Dataset'}}, '404': {'description': 'Dataset does not exists'}}, 'description': 'Return a single dataset filtered by name'}}
 
     @catch_error()
     @authentication.required()

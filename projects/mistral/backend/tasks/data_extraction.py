@@ -96,11 +96,11 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 id=self.request.id)
 
             if postprocessors:
-                # at the moment ONLY 'additional_variables' post-processing is allowed
+                # at the moment ONLY 'derived_variables' post-processing is allowed
                 p = postprocessors[0]
                 logger.debug(p)
                 pp_type = p.get('type')
-                if pp_type != 'additional_variables':
+                if pp_type != 'derived_variables':
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
                 logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
                 # temporarily save the data extraction output

@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 
+import { BytesPipe } from '@rapydo/pipes/pipes';
+
 @Injectable()
 export class ProjectOptions {
 
@@ -9,7 +11,7 @@ export class ProjectOptions {
         if (opt == 'user_page') {
             return {
                 "custom": [
-                    {name: 'Disk Quota', prop: "disk_quota", flexGrow: 0.3}
+                    {name: 'Disk Quota', prop: "disk_quota", flexGrow: 0.3, pipe: new BytesPipe()}
                 ]
             }
         }

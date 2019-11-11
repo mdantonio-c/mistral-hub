@@ -17,7 +17,7 @@ class Data(EndpointResource):
 
     # schema_expose = True
     labels = ['data']
-    POST = {'/data': {'custom': {}, 'summary': 'Request for data extraction.', 'parameters': [
+    POST = {'/data': {'summary': 'Request for data extraction.', 'parameters': [
         {'name': 'criteria', 'in': 'body', 'description': 'Criteria for data extraction.',
          'schema': {'$ref': '#/definitions/DataExtraction'}}],
                       'responses': {'202': {'description': 'Data extraction request queued'}}}}
@@ -61,7 +61,7 @@ class Data(EndpointResource):
         # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
         for p in processors:
             p_type = p.get('type')
-            if p_type == 'additional_variables':
+            if p_type == 'derived_variables':
                 self.validate_input(p, 'AVProcessor')
             elif p_type == 'grid_interpolation':
                 self.validate_input(p, 'GIProcessor')
