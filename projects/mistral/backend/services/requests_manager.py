@@ -149,20 +149,23 @@ class RequestManager():
         db.session.commit()
 
     @staticmethod
-    def get_last_schedule_request(db, schedule_id):
-        schedule = db.Schedule
-        r = schedule.query.filter(schedule.id == schedule_id).first()
-        requests_list = r.submitted_request
-
-        sorted_list = sorted(requests_list, key=lambda date: r.submission_date)
-        log.info('______: {}'.format(sorted_list))
-
-        return sorted_list[0]
+    def get_last_scheduled_request(db, schedule_id):
+        """
+        Get the last scheduled request completed successfully for a given schedule.
+        :param db:
+        :param schedule_id: Schedule ID
+        :return:
+        """
+        r = db.Request.query \
+            .filter_by(schedule_id=schedule_id, status='SUCCESS') \
+            .order_by(db.Request.submission_date.desc()) \
+            .first()
+        return RequestManager._get_request_response(r) if r else None
 
     @staticmethod
     def get_schedule_by_id(db, schedule_id):
         schedule = db.Schedule.query.get(schedule_id)
-        return RequestManager.get_schedule_response(schedule)
+        return RequestManager._get_schedule_response(schedule)
 
     @staticmethod
     def get_schedule_name(db, schedule_id):
@@ -170,59 +173,52 @@ class RequestManager():
         return schedule.name
 
     @staticmethod
-    def get_schedule_requests(db, schedule_id, sort_by="submission_date", sort_order="desc", last=None):
+    def get_schedule_requests(db, schedule_id, sort_by="submission_date", sort_order="desc"):
         """
-        Retrieve requests related to a scheduled task
+        Retrieve all the scheduled requests for a given schedule.
         :param db:
         :param schedule_id:
         :param sort_by:
         :param sort_order:
-        :param last:
         :return:
         """
-        schedule = db.Schedule
-        r = schedule.query.filter(schedule.id == schedule_id).first()
-        requests_list = r.submitted_request
-
-        # create the response schema
-        submitted_request_list = []
+        scheduled_requests = []
+        requests_list = db.Request.query.filter_by(schedule_id=schedule_id)\
+            .order_by(db.Request.submission_date.desc())
         for row in requests_list:
-            submitted_request = {
-                'id': row.id,
-                'name': row.name,
-                'request_id': row.id,
-                'task_id': row.task_id,
-                'submission_date': row.submission_date.isoformat(),
-                'end_date': None,
-                'status': row.status
-            }
-            if row.end_date is not None:
-                submitted_request['end_date'] = row.end_date.isoformat()
+            scheduled_requests.append(RequestManager._get_request_response(row))
+        return scheduled_requests
 
-            if row.error_message is not None:
-                submitted_request['error message'] = row.error_message
+    @staticmethod
+    def _get_request_response(db_request):
+        """
+        Create the response schema
+        :param db_request:
+        :return:
+        """
+        r = {
+            'id': db_request.id,
+            'name': db_request.name,
+            'request_id': db_request.id,
+            'task_id': db_request.task_id,
+            'submission_date': db_request.submission_date.isoformat(),
+            'end_date': None,
+            'status': db_request.status
+        }
+        if db_request.end_date is not None:
+            r['end_date'] = db_request.end_date.isoformat()
 
-            current_fileoutput = row.fileoutput
-            if current_fileoutput is not None:
-                fileoutput_name = current_fileoutput.filename
-            else:
-                fileoutput_name = 'no file available'
-            submitted_request['fileoutput'] = fileoutput_name
-            submitted_request['filesize'] = current_fileoutput.size if current_fileoutput is not None else None
+        if db_request.error_message is not None:
+            r['error message'] = db_request.error_message
 
-            submitted_request_list.append(submitted_request)
-
-        # always sort the list. default by submission date
-        if sort_order == "asc":
-            sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'])
+        current_fileoutput = db_request.fileoutput
+        if current_fileoutput is not None:
+            fileoutput_name = current_fileoutput.filename
         else:
-            sorted_list = sorted(submitted_request_list, key=lambda date: date['submission_date'], reverse=True)
-
-        if sorted_list and last:
-            log.debug('return ONLY the last request')
-            return sorted_list[0]
-        else:
-            return sorted_list
+            fileoutput_name = 'no file available'
+        r['fileoutput'] = fileoutput_name
+        r['filesize'] = current_fileoutput.size if current_fileoutput is not None else None
+        return r
 
     @staticmethod
     def get_user_requests(db, user_id, sort_by=None, sort_order=None):
@@ -304,7 +300,7 @@ class RequestManager():
 
         # create the response schema
         for schedule in schedules_list:
-            user_schedules = RequestManager.get_schedule_response(schedule)
+            user_schedules = RequestManager._get_schedule_response(schedule)
             user_list.append(user_schedules)
 
         if sort_by == "date":
@@ -358,7 +354,7 @@ class RequestManager():
         db.session.commit()
 
     @staticmethod
-    def get_schedule_response(schedule):
+    def _get_schedule_response(schedule):
         resp = {
             'id': schedule.id,
             'name': schedule.name,
