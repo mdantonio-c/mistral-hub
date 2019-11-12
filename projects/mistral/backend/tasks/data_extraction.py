@@ -96,11 +96,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 id=self.request.id)
 
             if postprocessors:
-                # at the moment ONLY 'derived_variables' post-processing is allowed
                 p = postprocessors[0]
                 logger.debug(p)
                 pp_type = p.get('type')
-                enabled_postprocessors = ('additional_variables','grid_interpolation','grid_cropping','spare_point_interpolation')
+                enabled_postprocessors = ('derived_variables','grid_interpolation','grid_cropping','spare_point_interpolation')
                 if pp_type not in enabled_postprocessors:
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
                 logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
@@ -110,7 +109,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 with open(tmp_outfile, mode='w') as query_outfile:
                     subprocess.Popen(arki_query_cmd, stdout=query_outfile)
                 try:
-                    if pp_type == 'additional_variables':
+                    if pp_type == 'derived_variables':
                         post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
                             ",".join(p.get('variables')),
                             tmp_outfile,
@@ -121,13 +120,23 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         post_proc_cmd.append('vg6d_transform')
                         post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
                         post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
-                        post_proc_cmd.append('--type=regular_ll')
-                        post_proc_cmd.append('--x-min={}'.format(p['boundings']['x-min']))
-                        post_proc_cmd.append('--x-max={}'.format(p['boundings']['x-max']))
-                        post_proc_cmd.append('--y-min={}'.format(p['boundings']['y-min']))
-                        post_proc_cmd.append('--y-max={}'.format(p['boundings']['y-max']))
-                        post_proc_cmd.append('--nx={}'.format(p['nodes']['nx']))
-                        post_proc_cmd.append('--nx={}'.format(p['nodes']['ny']))
+
+                        # vg6d_transform automatically provides defaults for missing optional params
+                        if 'grid-params' in p:
+                            post_proc_cmd.append('--type={}'.format(p.get('grid-params')))
+                        if 'x-min' in p['boundings']:
+                            post_proc_cmd.append('--x-min={}'.format(p['boundings']['x-min']))
+                        if 'x-max' in p['boundings']:
+                            post_proc_cmd.append('--x-max={}'.format(p['boundings']['x-max']))
+                        if 'y-min' in p['boundings']:
+                            post_proc_cmd.append('--y-min={}'.format(p['boundings']['y-min']))
+                        if 'y-max' in p['boundings']:
+                            post_proc_cmd.append('--y-max={}'.format(p['boundings']['y-max']))
+                        if 'nx' in p['nodes']:
+                            post_proc_cmd.append('--nx={}'.format(p['nodes']['nx']))
+                        if 'ny' in p['nodes']:
+                            post_proc_cmd.append('--ny={}'.format(p['nodes']['ny']))
+
                         post_proc_cmd.append(tmp_outfile)
                         post_proc_cmd.append(os.path.join(user_dir, out_filename))
                     elif pp_type == 'grid_cropping':
@@ -135,11 +144,18 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         post_proc_cmd.append('vg6d_transform')
                         post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
                         post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
-                        post_proc_cmd.append('--type=regular_ll')
-                        post_proc_cmd.append('--ilon={}'.format(p['boundings']['ilon']))
-                        post_proc_cmd.append('--ilat={}'.format(p['boundings']['ilat']))
-                        post_proc_cmd.append('--flon={}'.format(p['boundings']['flon']))
-                        post_proc_cmd.append('--flat={}'.format(p['boundings']['flat']))
+
+                        if 'grid-params' in p:
+                            post_proc_cmd.append('--type={}'.format(p.get('grid-params')))
+                        if 'ilon' in p['boundings']:
+                            post_proc_cmd.append('--ilon={}'.format(p['boundings']['ilon']))
+                        if 'ilat' in p['boundings']:
+                            post_proc_cmd.append('--ilat={}'.format(p['boundings']['ilat']))
+                        if 'flon' in p['boundings']:
+                            post_proc_cmd.append('--flon={}'.format(p['boundings']['flon']))
+                        if 'flat' in p['boundings']:
+                            post_proc_cmd.append('--flat={}'.format(p['boundings']['flat']))
+
                         post_proc_cmd.append(tmp_outfile)
                         post_proc_cmd.append(os.path.join(user_dir, out_filename))
                     logger.debug('Post process command: {}>'.format(post_proc_cmd))
