@@ -48,14 +48,18 @@ export class SchedulesComponent extends BasePaginationComponent {
         this.dataService.getLastScheduledRequest(row.id).subscribe(
             response => {
                 row.last = response.Response.data;
-                console.log(row.last);
-                // TODO what about the requests count? should be updated
-                //row.requests_count = response.Meta.elements;
+                // what about the requests count? should be updated
+                row.requests_count = response.Meta.total;
             },
             (error) => {
-                this.notify.showError('Unable to load the last submission');
-                // show reason
-                this.notify.extractErrors(error.error.Response, this.notify.ERROR);
+                if (error.status === 404) {
+                    // No successful request is available for this schedule yet
+                    // do nothing
+                } else {
+                    this.notify.showError('Unable to load the last submission');
+                    // show reason
+                    this.notify.extractErrors(error.error.Response, this.notify.ERROR);
+                }
             }
         ).add(() => {
             this.loadingLast = false;

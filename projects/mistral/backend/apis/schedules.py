@@ -288,7 +288,23 @@ class ScheduledRequests(EndpointResource):
 
     # schema_expose = True
     labels = ['scheduled_requests']
-    GET = {'/schedules/<schedule_id>/requests': {'summary': 'Get requests related to a given schedule.', 'parameters': [{'name': 'get_total', 'in': 'query', 'description': 'Retrieve total number of requests', 'type': 'boolean', 'default': False}, {'name': 'last', 'in': 'query', 'description': 'retrieve only the last submitted request', 'type': 'boolean', 'allowEmptyValue': True}], 'responses': {'200': {'description': 'List of requests for a given schedule.', 'schema': {'$ref': '#/definitions/Requests'}}, '404': {'description': 'Schedule not found.'}, '403': {'description': 'User cannot access a schedule that does not belong to.'}}}}
+    GET = {
+        '/schedules/<schedule_id>/requests': {
+            'summary': 'Get requests related to a given schedule.',
+            'parameters': [
+                {'name': 'get_total', 'in': 'query', 'description': 'Retrieve total number of requests',
+                 'type': 'boolean',
+                 'default': False},
+                {'name': 'last', 'in': 'query', 'description': 'retrieve only the last submitted request',
+                 'type': 'boolean', 'allowEmptyValue': True}
+            ],
+            'responses': {
+                '200': {'description': 'List of requests for a given schedule.', 'schema': {'$ref': '#/definitions/Requests'}},
+                '404': {'description': 'Schedule not found.'},
+                '403': {'description': 'User cannot access a schedule that does not belong to.'}
+            }
+        }
+    }
 
     @catch_error()
     @authentication.required()
@@ -331,6 +347,16 @@ class ScheduledRequests(EndpointResource):
             return {"total": counter}
 
         # get all submitted requests or the last for this schedule
-        res = RequestManager.get_schedule_requests(db, schedule_id, last=last)
+        meta_response = {}
+        if last:
+            res = RequestManager.get_last_scheduled_request(db, schedule_id)
+            if res is None:
+                raise RestApiException(
+                    "No successful request is available for schedule ID {} yet".format(schedule_id),
+                    status_code=hcodes.HTTP_BAD_NOTFOUND)
+            # also return the total
+            meta_response['total'] = RequestManager.count_schedule_requests(db, schedule_id)
+        else:
+            res = RequestManager.get_schedule_requests(db, schedule_id)
         return self.force_response(
-            res, code=hcodes.HTTP_OK_BASIC)
+            res, meta=meta_response, code=hcodes.HTTP_OK_BASIC)
