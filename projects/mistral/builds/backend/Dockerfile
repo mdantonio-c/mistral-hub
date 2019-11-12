@@ -40,6 +40,7 @@ COPY --from=0 /etc/arkimet/format /etc/arkimet/format
 COPY --from=0 /usr/share/eccodes /usr/share/
 COPY --from=0 /usr/share/eccodes-simc/definitions/ /usr/share/eccodes-simc/definitions/
 COPY --from=0 /usr/share/eccodes/definitions/ /usr/share/eccodes/definitions/
+COPY --from=0 /usr/share/libsim/ /usr/share/libsim/
 
 COPY --from=0 /usr/lib64/libarkimet.* /usr/lib64/libdballe.* /usr/lib64/libmeteo-vm2.* /usr/lib64/libwreport.* /usr/lib64/libeccodes.* /usr/lib64/libeccodes_f90.* /usr/lib64/libsim_* /usr/lib64/libdballef.* /lib/x86_64-linux-gnu/
 
