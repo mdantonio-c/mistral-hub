@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {FormBuilder, FormGroup} from '@angular/forms';
-import {FormDataService} from "../../../services/formData.service";
-import {additionalVariables} from "../../../services/data.service";
+import {FormBuilder, FormGroup, FormArray} from '@angular/forms';
+import {FormDataService} from "@app/services/formData.service";
+import {DataService} from "@app/services/data.service";
+import {NotificationService} from '@rapydo/services/notification';
 
 @Component({
     selector: 'step-postprocess',
@@ -11,31 +12,42 @@ import {additionalVariables} from "../../../services/data.service";
 export class StepPostprocessComponent implements OnInit {
     title = 'Choose a post-processing';
     form: FormGroup;
-    vars = additionalVariables;
+    vars = [];
 
     constructor(private formBuilder: FormBuilder,
                 private router: Router,
                 private route: ActivatedRoute,
-                private formDataService: FormDataService) {
+                private formDataService: FormDataService,
+                private dataService: DataService,
+                private notify: NotificationService) {
         this.form = this.formBuilder.group({
-            additional_variables: this.buildAdditionaVariables()
+            derived_variables: new FormArray([])
         });
     }
 
-    private buildAdditionaVariables() {
-        const av = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'additional_variables');
+    private buildDerivedVariables() {
+        const av = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'derived_variables');
         let presetVariables = [];
         if (av && av.length) {
             presetVariables = av[0].variables;
         }
-        const arr = this.vars.map(v => {
-            return this.formBuilder.control(presetVariables.includes(v.code));
+        this.vars.map(v => {
+            const control = this.formBuilder.control(presetVariables.includes(v.code));
+            (this.form.controls.derived_variables as FormArray).push(control);
         });
-        return this.formBuilder.array(arr);
     }
 
     ngOnInit() {
         window.scroll(0, 0);
+        this.dataService.getDerivedVariables().subscribe(
+            data => {
+                this.vars = data;
+                this.buildDerivedVariables();
+            },
+            error => {
+                this.notify.showError('Unable to load derived variables configuration');
+            }
+        )
     }
 
     private save() {
@@ -43,14 +55,14 @@ export class StepPostprocessComponent implements OnInit {
             return false;
         }
         const selectedProcessors = [];
-        // additional variables
-        const selectedAdditionalVariables = this.form.value.additional_variables
+        // derived variables
+        const selectedDerivedVariables = this.form.value.derived_variables
             .map((v, i) => v ? this.vars[i].code : null)
             .filter(v => v !== null);
-        if (selectedAdditionalVariables && selectedAdditionalVariables.length) {
+        if (selectedDerivedVariables && selectedDerivedVariables.length) {
             selectedProcessors.push({
-                type: 'additional_variables',
-                variables: selectedAdditionalVariables
+                type: 'derived_variables',
+                variables: selectedDerivedVariables
             });
         }
         this.formDataService.setPostProcessor(selectedProcessors);

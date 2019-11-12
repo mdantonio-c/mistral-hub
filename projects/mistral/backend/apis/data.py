@@ -61,7 +61,7 @@ class Data(EndpointResource):
         # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
         for p in processors:
             p_type = p.get('type')
-            if p_type == 'additional_variables':
+            if p_type == 'derived_variables':
                 self.validate_input(p, 'AVProcessor')
             else:
                 raise RestApiException('Unknown post-processor type for {}'.format(p_type),
