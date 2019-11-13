@@ -17,17 +17,29 @@ class Data(EndpointResource):
 
     # schema_expose = True
     labels = ['data']
-    POST = {'/data': {'summary': 'Request for data extraction.', 'parameters': [
-        {'name': 'criteria', 'in': 'body', 'description': 'Criteria for data extraction.',
-         'schema': {'$ref': '#/definitions/DataExtraction'}}],
-                      'responses': {'202': {'description': 'Data extraction request queued'}}}}
+    POST = {
+        '/data': {
+            'summary': 'Request for data extraction.',
+            'parameters': [
+                {
+                    'name': 'criteria',
+                    'in': 'body',
+                    'description': 'Criteria for data extraction.',
+                    'schema': {'$ref': '#/definitions/DataExtraction'},
+                }
+            ],
+            'responses': {'202': {'description': 'Data extraction request queued'}},
+        }
+    }
 
     @catch_error()
     @authentication.required()
     def post(self):
 
         user = self.get_current_user()
-        log.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
+        log.info(
+            'request for data extraction coming from user UUID: {}'.format(user.uuid)
+        )
         criteria = self.get_input()
 
         self.validate_input(criteria, 'DataExtraction')
@@ -40,7 +52,7 @@ class Data(EndpointResource):
             if reftime['from'] > reftime['to']:
                 raise RestApiException(
                     'Invalid reftime: <from> greater than <to>',
-                    status_code=hcodes.HTTP_BAD_REQUEST
+                    status_code=hcodes.HTTP_BAD_REQUEST,
                 )
         # check for existing dataset(s)
         datasets = arki.load_datasets()
@@ -49,7 +61,8 @@ class Data(EndpointResource):
             if not found:
                 raise RestApiException(
                     "Dataset '{}' not found".format(ds_name),
-                    status_code=hcodes.HTTP_BAD_NOTFOUND)
+                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+                )
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
         filters = criteria.get('filters', {})
@@ -72,22 +85,29 @@ class Data(EndpointResource):
                 self.validate_input(p, 'SPIProcessor')
                 self.validate_spare_point_interpol_params(p)
             else:
-                raise RestApiException('Unknown post-processor type for {}'.format(p_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
+                raise RestApiException(
+                    'Unknown post-processor type for {}'.format(p_type),
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
 
         # run the following steps in a transaction
         db = self.get_service_instance('sqlalchemy')
         try:
-            request = repo.create_request_record(db, user.id, product_name, {
-                'datasets': dataset_names,
-                'reftime': reftime,
-                'filters': filters,
-                'postprocessors': processors
-            })
+            request = repo.create_request_record(
+                db,
+                user.id,
+                product_name,
+                {
+                    'datasets': dataset_names,
+                    'reftime': reftime,
+                    'filters': filters,
+                    'postprocessors': processors,
+                },
+            )
 
             task = CeleryExt.data_extract.apply_async(
                 args=[user.id, dataset_names, reftime, filters, processors, request.id],
-                countdown=1
+                countdown=1,
             )
 
             request.task_id = task.id
