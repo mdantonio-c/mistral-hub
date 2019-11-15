@@ -10,14 +10,26 @@
 </div>
 <!-- load requests in the table -->
 <div class="table-responsive" *ngIf="rows?.length" #tableWrapper>
+
     <ngx-datatable
+        #myRequestsTable
+        class="bootstrap"
+        [rows]="data"
+        [columns]="columns"
+        [columnMode]="ColumnMode.flex"
+        [headerHeight]="40"
+        [footerHeight]="40"
+        [limit]="paging.itemsPerPage"
+        [rowHeight]="'auto'">
+
+<!--     <ngx-datatable
             #myRequestsTable
             class="expandable"
             [rows]="rows"
             [columnMode]="'flex'"
             [loadingIndicator]='true'
             [footerHeight]="50"
-            [limit]="paging.itemsPerPage">
+            [limit]="paging.itemsPerPage"> -->
         <!-- Row Detail Template -->
         <ngx-datatable-row-detail
                 [rowHeight]="'100%'"
@@ -235,35 +247,6 @@
                 </div>
             </ng-template>
         </ngx-datatable-column>
-
-        <ngx-datatable-footer>
-            <ng-template
-                    ngx-datatable-footer-template
-                    let-pageSize="pageSize"
-                    let-selectedCount="selectedCount"
-                    let-curPage="curPage"
-                    let-offset="offset">
-                <div class='col-3'>
-                    {{paging.dataLength}} total
-                </div>
-                <div class='col-9'>
-                    <div class='float-right'>
-                        <ngb-pagination
-                                boundaryLinks="true"
-                                directionLinks="true"
-                                [page]="paging.page"
-                                [pageSize]="paging.itemsPerPage"
-                                [collectionSize]="paging.dataLength"
-                                [maxSize]="5"
-                                [rotate]="true"
-                                size="sm"
-                                (pageChange)="setPage($event)"
-                        >
-                        </ngb-pagination>
-                    </div>
-                </div>
-            </ng-template>
-        </ngx-datatable-footer>
     </ngx-datatable>
     <ng-template #noValue>-</ng-template>
 </div>
