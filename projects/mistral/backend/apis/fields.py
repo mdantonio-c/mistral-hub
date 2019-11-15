@@ -6,6 +6,7 @@ from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
+
 # from flask import Response
 # from flask import json
 
@@ -18,7 +19,35 @@ class Fields(EndpointResource):
 
     # schema_expose = True
     labels = ['field']
-    GET = {'/fields': {'summary': 'Get summary fields for given dataset(s).', 'parameters': [{'name': 'datasets', 'in': 'query', 'type': 'array', 'uniqueItems': True, 'collectionFormat': 'csv', 'items': {'type': 'string'}}, {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''}, {'name': 'onlySummaryStats', 'in': 'query', 'type': 'boolean', 'default': False, 'allowEmptyValue': True}], 'responses': {'200': {'description': 'List of fields successfully retrieved', 'schema': {'$ref': '#/definitions/Summary'}}}}}
+    GET = {
+        '/fields': {
+            'summary': 'Get summary fields for given dataset(s).',
+            'parameters': [
+                {
+                    'name': 'datasets',
+                    'in': 'query',
+                    'type': 'array',
+                    'uniqueItems': True,
+                    'collectionFormat': 'csv',
+                    'items': {'type': 'string'},
+                },
+                {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''},
+                {
+                    'name': 'onlySummaryStats',
+                    'in': 'query',
+                    'type': 'boolean',
+                    'default': False,
+                    'allowEmptyValue': True,
+                },
+            ],
+            'responses': {
+                '200': {
+                    'description': 'List of fields successfully retrieved',
+                    'schema': {'$ref': '#/definitions/Summary'},
+                }
+            },
+        }
+    }
 
     @catch_error()
     @authentication.required()
@@ -30,17 +59,20 @@ class Fields(EndpointResource):
 
         # check for existing dataset(s)
         for ds_name in datasets:
-            found = next((ds for ds in arki.load_datasets() if ds.get('id', '') == ds_name), None)
+            found = next(
+                (ds for ds in arki.load_datasets() if ds.get('id', '') == ds_name), None
+            )
             if not found:
                 raise RestApiException(
                     "Dataset '{}' not found".format(ds_name),
-                    status_code=hcodes.HTTP_BAD_NOTFOUND)
+                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+                )
 
         query = params.get('q')
         summary = arki.load_summary(datasets, query)
         onlySummaryStats = params.get('onlySummaryStats')
         if isinstance(onlySummaryStats, str) and (
-                onlySummaryStats == '' or onlySummaryStats.lower() == 'true'
+            onlySummaryStats == '' or onlySummaryStats.lower() == 'true'
         ):
             onlySummaryStats = True
         elif type(onlySummaryStats) == bool:

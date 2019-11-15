@@ -18,7 +18,27 @@ class FileDownload(EndpointResource):
 
     # schema_expose = True
     labels = ['file']
-    GET = {'/data/<filename>': {'summary': 'Download output file', 'parameters': [{'in': 'path', 'name': 'file', 'type': 'string', 'required': True, 'description': 'file to download'}], 'responses': {'200': {'description': 'found the file to download', 'schema': {'$ref': '#/definitions/Fileoutput'}}, '404': {'description': 'file not found'}}}}
+    GET = {
+        '/data/<filename>': {
+            'summary': 'Download output file',
+            'parameters': [
+                {
+                    'in': 'path',
+                    'name': 'file',
+                    'type': 'string',
+                    'required': True,
+                    'description': 'file to download',
+                }
+            ],
+            'responses': {
+                '200': {
+                    'description': 'found the file to download',
+                    'schema': {'$ref': '#/definitions/Fileoutput'},
+                },
+                '404': {'description': 'file not found'},
+            },
+        }
+    }
 
     @catch_error()
     @authentication.required()
@@ -27,7 +47,7 @@ class FileDownload(EndpointResource):
         user = self.get_current_user()
         db = self.get_service_instance('sqlalchemy')
         # check if the file exists, the current user is the owner and if it is in its folder
-        if RequestManager.check_fileoutput(db,  user, filename, DOWNLOAD_DIR):
+        if RequestManager.check_fileoutput(db, user, filename, DOWNLOAD_DIR):
             user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
             log.info('directory: {}'.format(user_dir))
             # download the file as a response attachment
@@ -35,5 +55,5 @@ class FileDownload(EndpointResource):
 
         else:
             raise RestApiException(
-                "File not found",
-                status_code=hcodes.HTTP_BAD_NOTFOUND)
+                "File not found", status_code=hcodes.HTTP_BAD_NOTFOUND
+            )

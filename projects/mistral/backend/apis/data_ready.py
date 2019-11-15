@@ -15,9 +15,7 @@ class DataReady(EndpointResource):
     POST = {
         "/data/ready": {
             "summary": "Notify that a dataset is ready",
-            "responses": {
-                "202": {"description": "Notification received"}
-            },
+            "responses": {"202": {"description": "Notification received"}},
         }
     }
 

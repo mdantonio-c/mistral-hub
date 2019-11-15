@@ -3,11 +3,13 @@ import os
 import subprocess
 
 from restapi.rest.definition import EndpointResource
+
 # from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
 from utilities.logs import get_logger
+
 # from sqlalchemy.orm import load_only
 
 logger = get_logger(__name__)
@@ -18,7 +20,18 @@ class Usage(EndpointResource):
 
     # schema_expose = True
     labels = ['usage']
-    GET = {'/usage': {'summary': 'Get user disk usage.', 'responses': {'200': {'description': 'Disk usage information', 'schema': {'$ref': '#/definitions/StorageUsage'}}, '401': {'description': 'Authentication required'}}}}
+    GET = {
+        '/usage': {
+            'summary': 'Get user disk usage.',
+            'responses': {
+                '200': {
+                    'description': 'Disk usage information',
+                    'schema': {'$ref': '#/definitions/StorageUsage'},
+                },
+                '401': {'description': 'Authentication required'},
+            },
+        }
+    }
 
     @catch_error()
     @authentication.required()
@@ -38,11 +51,9 @@ class Usage(EndpointResource):
         used_quota = 0
         user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
         if os.path.isdir(user_dir):
-            used_quota = int(subprocess.check_output(['du', '-sb', user_dir]).split()[0])
+            used_quota = int(
+                subprocess.check_output(['du', '-sb', user_dir]).split()[0]
+            )
 
-        data = {
-            'quota': user.disk_quota,
-            'used': used_quota
-        }
-        return self.force_response(
-            data, code=hcodes.HTTP_OK_BASIC)
+        data = {'quota': user.disk_quota, 'used': used_quota}
+        return self.force_response(data, code=hcodes.HTTP_OK_BASIC)

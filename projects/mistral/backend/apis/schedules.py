@@ -16,17 +16,169 @@ class Schedules(EndpointResource):
 
     # schema_expose = True
     labels = ['schedule']
-    GET = {'/schedules/<schedule_id>': {'summary': 'Get user schedules.', 'description': 'Returns a single schedule by ID', 'tags': ['schedule'], 'responses': {'200': {'description': 'List of user schedules.', 'schema': {'$ref': '#/definitions/Requests'}}, '401': {'description': 'This endpoint requires a valid authorization token'}, '403': {'description': 'User not allowed to get the schedule'}, '404': {'description': 'The schedule does not exists'}}, 'parameters': [{'name': 'sort-order', 'in': 'query', 'description': 'sort order', 'type': 'string', 'enum': ['asc', 'desc']}, {'name': 'sort-by', 'in': 'query', 'description': 'params to sort schedules', 'type': 'string'}, {'name': 'get_total', 'in': 'query', 'description': 'Retrieve total number of schedules', 'type': 'boolean', 'default': False}]}, '/schedules': {'summary': 'Get user schedules.', 'description': 'Returns a single schedule by ID', 'tags': ['schedule'], 'responses': {'200': {'description': 'List of user schedules.', 'schema': {'$ref': '#/definitions/Requests'}}, '401': {'description': 'This endpoint requires a valid authorization token'}, '403': {'description': 'User not allowed to get the schedule'}, '404': {'description': 'The schedule does not exists'}}, 'parameters': [{'name': 'sort-order', 'in': 'query', 'description': 'sort order', 'type': 'string', 'enum': ['asc', 'desc']}, {'name': 'sort-by', 'in': 'query', 'description': 'params to sort schedules', 'type': 'string'}, {'name': 'get_total', 'in': 'query', 'description': 'Retrieve total number of schedules', 'type': 'boolean', 'default': False}]}}
-    POST = {'/schedules': {'summary': 'Request for scheduling a data extraction.', 'parameters': [{'name': 'scheduled_criteria', 'in': 'body', 'description': 'Criteria for scheduled data extraction.', 'schema': {'$ref': '#/definitions/DataScheduling'}}], 'responses': {'201': {'description': 'succesfully created a scheduled request'}, '400': {'description': 'scheduling criteria are not valid'}, '404': {'description': 'dataset not found'}}}}
-    PATCH = {'/schedules/<schedule_id>': {'summary': 'enable or disable a schedule', 'parameters': [{'in': 'path', 'name': 'id', 'type': 'integer', 'required': True, 'description': 'schedule id'}, {'name': 'action', 'in': 'body', 'description': 'action to do on schedule (enabling or disabling)', 'schema': {'type': 'object', 'required': ['is_active'], 'properties': {'is_active': {'type': 'boolean', 'description': 'requested value for is active property'}}}}], 'responses': {'200': {'description': 'schedule is succesfully disable/enable'}, '404': {'description': 'schedule not found'}, '400': {'description': 'schedule is already enabled/disabled'}, '401': {'description': 'Current user is not allowed disable/enable the schedule in path'}}}}
-    DELETE = {'/schedules/<schedule_id>': {'summary': 'delete a schedule', 'parameters': [{'in': 'path', 'name': 'id', 'type': 'integer', 'required': True, 'description': 'schedule id'}], 'responses': {'200': {'description': 'schedule is succesfully disable/enable'}, '404': {'description': 'schedule not found'}, '401': {'description': 'Current user is not allowed disable/enable the schedule in path'}}}}
+    GET = {
+        '/schedules/<schedule_id>': {
+            'summary': 'Get user schedules.',
+            'description': 'Returns a single schedule by ID',
+            'tags': ['schedule'],
+            'responses': {
+                '200': {
+                    'description': 'List of user schedules.',
+                    'schema': {'$ref': '#/definitions/Requests'},
+                },
+                '401': {
+                    'description': 'This endpoint requires a valid authorization token'
+                },
+                '403': {'description': 'User not allowed to get the schedule'},
+                '404': {'description': 'The schedule does not exists'},
+            },
+            'parameters': [
+                {
+                    'name': 'sort-order',
+                    'in': 'query',
+                    'description': 'sort order',
+                    'type': 'string',
+                    'enum': ['asc', 'desc'],
+                },
+                {
+                    'name': 'sort-by',
+                    'in': 'query',
+                    'description': 'params to sort schedules',
+                    'type': 'string',
+                },
+                {
+                    'name': 'get_total',
+                    'in': 'query',
+                    'description': 'Retrieve total number of schedules',
+                    'type': 'boolean',
+                    'default': False,
+                },
+            ],
+        },
+        '/schedules': {
+            'summary': 'Get user schedules.',
+            'description': 'Returns a single schedule by ID',
+            'tags': ['schedule'],
+            'responses': {
+                '200': {
+                    'description': 'List of user schedules.',
+                    'schema': {'$ref': '#/definitions/Requests'},
+                },
+                '401': {
+                    'description': 'This endpoint requires a valid authorization token'
+                },
+                '403': {'description': 'User not allowed to get the schedule'},
+                '404': {'description': 'The schedule does not exists'},
+            },
+            'parameters': [
+                {
+                    'name': 'sort-order',
+                    'in': 'query',
+                    'description': 'sort order',
+                    'type': 'string',
+                    'enum': ['asc', 'desc'],
+                },
+                {
+                    'name': 'sort-by',
+                    'in': 'query',
+                    'description': 'params to sort schedules',
+                    'type': 'string',
+                },
+                {
+                    'name': 'get_total',
+                    'in': 'query',
+                    'description': 'Retrieve total number of schedules',
+                    'type': 'boolean',
+                    'default': False,
+                },
+            ],
+        },
+    }
+    POST = {
+        '/schedules': {
+            'summary': 'Request for scheduling a data extraction.',
+            'parameters': [
+                {
+                    'name': 'scheduled_criteria',
+                    'in': 'body',
+                    'description': 'Criteria for scheduled data extraction.',
+                    'schema': {'$ref': '#/definitions/DataScheduling'},
+                }
+            ],
+            'responses': {
+                '201': {'description': 'succesfully created a scheduled request'},
+                '400': {'description': 'scheduling criteria are not valid'},
+                '404': {'description': 'dataset not found'},
+            },
+        }
+    }
+    PATCH = {
+        '/schedules/<schedule_id>': {
+            'summary': 'enable or disable a schedule',
+            'parameters': [
+                {
+                    'in': 'path',
+                    'name': 'id',
+                    'type': 'integer',
+                    'required': True,
+                    'description': 'schedule id',
+                },
+                {
+                    'name': 'action',
+                    'in': 'body',
+                    'description': 'action to do on schedule (enabling or disabling)',
+                    'schema': {
+                        'type': 'object',
+                        'required': ['is_active'],
+                        'properties': {
+                            'is_active': {
+                                'type': 'boolean',
+                                'description': 'requested value for is active property',
+                            }
+                        },
+                    },
+                },
+            ],
+            'responses': {
+                '200': {'description': 'schedule is succesfully disable/enable'},
+                '404': {'description': 'schedule not found'},
+                '400': {'description': 'schedule is already enabled/disabled'},
+                '401': {
+                    'description': 'Current user is not allowed disable/enable the schedule in path'
+                },
+            },
+        }
+    }
+    DELETE = {
+        '/schedules/<schedule_id>': {
+            'summary': 'delete a schedule',
+            'parameters': [
+                {
+                    'in': 'path',
+                    'name': 'id',
+                    'type': 'integer',
+                    'required': True,
+                    'description': 'schedule id',
+                }
+            ],
+            'responses': {
+                '200': {'description': 'schedule is succesfully disable/enable'},
+                '404': {'description': 'schedule not found'},
+                '401': {
+                    'description': 'Current user is not allowed disable/enable the schedule in path'
+                },
+            },
+        }
+    }
 
     @catch_error()
     @authentication.required()
     def post(self):
 
         user = self.get_current_user()
-        log.info('request for data extraction coming from user UUID: {}'.format(user.uuid))
+        log.info(
+            'request for data extraction coming from user UUID: {}'.format(user.uuid)
+        )
         criteria = self.get_input()
 
         self.validate_input(criteria, 'DataExtraction')
@@ -39,7 +191,7 @@ class Schedules(EndpointResource):
             if reftime['from'] > reftime['to']:
                 raise RestApiException(
                     'Invalid reftime: <from> greater than <to>',
-                    status_code=hcodes.HTTP_BAD_REQUEST
+                    status_code=hcodes.HTTP_BAD_REQUEST,
                 )
         # check for existing dataset(s)
         datasets = arki.load_datasets()
@@ -48,7 +200,8 @@ class Schedules(EndpointResource):
             if not found:
                 raise RestApiException(
                     "Dataset '{}' not found".format(ds_name),
-                    status_code=hcodes.HTTP_BAD_NOTFOUND)
+                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+                )
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
         filters = criteria.get('filters', {})
@@ -63,16 +216,18 @@ class Schedules(EndpointResource):
             if p_type == 'additional_variables':
                 self.validate_input(p, 'AVProcessor')
             else:
-                raise RestApiException('Unknown post-processor type for {}'.format(p_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
+                raise RestApiException(
+                    'Unknown post-processor type for {}'.format(p_type),
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
 
         db = self.get_service_instance('sqlalchemy')
 
         # check if scheduling parameters are correct
         if not self.settings_validation(criteria):
             raise RestApiException(
-                "scheduling criteria are not valid",
-                status_code=hcodes.HTTP_BAD_REQUEST)
+                "scheduling criteria are not valid", status_code=hcodes.HTTP_BAD_REQUEST
+            )
 
         # parsing period settings
         period_settings = criteria.get('period-settings')
@@ -83,12 +238,19 @@ class Schedules(EndpointResource):
 
             # get schedule id in postgres database as scheduled request name for mongodb
             try:
-                name_int = RequestManager.create_schedule_record(db, user, product_name, {
-                    'datasets': dataset_names,
-                    'reftime': reftime,
-                    'filters': filters,
-                    'postprocessors': processors
-                }, every=every, period=period)
+                name_int = RequestManager.create_schedule_record(
+                    db,
+                    user,
+                    product_name,
+                    {
+                        'datasets': dataset_names,
+                        'reftime': reftime,
+                        'filters': filters,
+                        'postprocessors': processors,
+                    },
+                    every=every,
+                    period=period,
+                )
                 name = str(name_int)
 
                 # remove previous task
@@ -102,7 +264,15 @@ class Schedules(EndpointResource):
                     task="mistral.tasks.data_extraction.data_extract",
                     every=every,
                     period=period,
-                    args=[user.id, dataset_names, reftime, filters, processors, request_id, name_int],
+                    args=[
+                        user.id,
+                        dataset_names,
+                        reftime,
+                        filters,
+                        processors,
+                        request_id,
+                        name_int,
+                    ],
                 )
 
                 log.info("Scheduling periodic task")
@@ -115,12 +285,18 @@ class Schedules(EndpointResource):
             log.info('Crontab settings {}'.format(crontab_settings))
             try:
                 # get scheduled request id in postgres database as scheduled request name for mongodb
-                name_int = RequestManager.create_schedule_record(db, user, product_name, {
-                    'datasets': dataset_names,
-                    'reftime': reftime,
-                    'filters': filters,
-                    'postprocessors': processors
-                }, crontab_settings=crontab_settings)
+                name_int = RequestManager.create_schedule_record(
+                    db,
+                    user,
+                    product_name,
+                    {
+                        'datasets': dataset_names,
+                        'reftime': reftime,
+                        'filters': filters,
+                        'postprocessors': processors,
+                    },
+                    crontab_settings=crontab_settings,
+                )
                 name = str(name_int)
 
                 # parsing crontab settings
@@ -134,7 +310,15 @@ class Schedules(EndpointResource):
                     name=name,
                     task="mistral.tasks.data_extraction.data_extract",
                     **crontab_settings,
-                    args=[user.id, dataset_names, reftime, filters, processors, request_id, name_int],
+                    args=[
+                        user.id,
+                        dataset_names,
+                        reftime,
+                        filters,
+                        processors,
+                        request_id,
+                        name_int,
+                    ],
                 )
 
                 log.info("Scheduling crontab task")
@@ -176,10 +360,11 @@ class Schedules(EndpointResource):
                 counter = RequestManager.count_user_schedules(db, user.id)
                 return {"total": counter}
             # get user requests list
-            res = RequestManager.get_user_schedules(db, user.id, sort_by=sort, sort_order=sort_order)
+            res = RequestManager.get_user_schedules(
+                db, user.id, sort_by=sort, sort_order=sort_order
+            )
 
-        return self.force_response(
-            res, code=hcodes.HTTP_OK_BASIC)
+        return self.force_response(res, code=hcodes.HTTP_OK_BASIC)
 
     @catch_error()
     @authentication.required()
@@ -201,18 +386,20 @@ class Schedules(EndpointResource):
             if task is None:
                 raise RestApiException(
                     "Scheduled task is already disabled",
-                    status_code=hcodes.HTTP_BAD_CONFLICT)
+                    status_code=hcodes.HTTP_BAD_CONFLICT,
+                )
             CeleryExt.delete_periodic_task(name=schedule_id)
         # enable the schedule
         if is_active is True:
             if task:
                 raise RestApiException(
                     "Scheduled task is already enabled",
-                    status_code=hcodes.HTTP_BAD_CONFLICT)
+                    status_code=hcodes.HTTP_BAD_CONFLICT,
+                )
 
             # recreate the schedule in mongo retrieving the schedule from postgres
-            schedule_response = RequestManager.get_schedule_by_id(db,schedule_id)
-            log.debug ("schedule response: {}".format(schedule_response))
+            schedule_response = RequestManager.get_schedule_by_id(db, schedule_id)
+            log.debug("schedule response: {}".format(schedule_response))
 
             # recreate the schedule in mongo retrieving the schedule from postgres
             try:
@@ -223,12 +410,20 @@ class Schedules(EndpointResource):
                         task="mistral.tasks.data_extraction.data_extract",
                         every=schedule_response['every'],
                         period=schedule_response['period'],
-                        args=[user.id, schedule_response['args']['datasets'],schedule_response['args']['reftime'], schedule_response['args']['filters'], schedule_response['args']['postprocessors'], request_id, schedule_id],
+                        args=[
+                            user.id,
+                            schedule_response['args']['datasets'],
+                            schedule_response['args']['reftime'],
+                            schedule_response['args']['filters'],
+                            schedule_response['args']['postprocessors'],
+                            request_id,
+                            schedule_id,
+                        ],
                     )
 
-                if 'crontab'in schedule_response:
+                if 'crontab' in schedule_response:
                     # parsing crontab settings
-                    crontab_settings={}
+                    crontab_settings = {}
                     for i in schedule_response['crontab_settings'].keys():
                         log.debug(i)
                         val = schedule_response['crontab_settings'].get(i)
@@ -238,18 +433,26 @@ class Schedules(EndpointResource):
                         name=str(schedule_id),
                         task="mistral.tasks.data_extraction.data_extract",
                         **crontab_settings,
-                        args=[user.id, schedule_response['args']['datasets'],schedule_response['args']['reftime'], schedule_response['args']['filters'], schedule_response['args']['postprocessors'], request_id, schedule_id],
+                        args=[
+                            user.id,
+                            schedule_response['args']['datasets'],
+                            schedule_response['args']['reftime'],
+                            schedule_response['args']['filters'],
+                            schedule_response['args']['postprocessors'],
+                            request_id,
+                            schedule_id,
+                        ],
                     )
 
             except Exception as error:
                 raise SystemError("Unable to enable the request")
 
-
         # update schedule status in database
         RequestManager.update_schedule_status(db, schedule_id, is_active)
 
         return self.force_response(
-            {'id': schedule_id, 'enabled':is_active}, code=hcodes.HTTP_OK_BASIC)
+            {'id': schedule_id, 'enabled': is_active}, code=hcodes.HTTP_OK_BASIC
+        )
 
     @catch_error()
     @authentication.required()
@@ -268,28 +471,61 @@ class Schedules(EndpointResource):
         RequestManager.delete_schedule(db, schedule_id)
 
         return self.force_response(
-            "Schedule {} succesfully deleted".format(schedule_id), code=hcodes.HTTP_OK_BASIC)
+            "Schedule {} succesfully deleted".format(schedule_id),
+            code=hcodes.HTTP_OK_BASIC,
+        )
 
     @staticmethod
     def request_and_owner_check(db, user_id, schedule_id):
         # check if the schedule exists
         if not RequestManager.check_request(db, schedule_id=schedule_id):
             raise RestApiException(
-                "The request doesn't exist",
-                status_code=hcodes.HTTP_BAD_NOTFOUND)
+                "The request doesn't exist", status_code=hcodes.HTTP_BAD_NOTFOUND
+            )
 
         # check if the current user is the owner of the request
         if not RequestManager.check_owner(db, user_id, schedule_id=schedule_id):
             raise RestApiException(
                 "This request doesn't come from the request's owner",
-                status_code=hcodes.HTTP_BAD_FORBIDDEN)
+                status_code=hcodes.HTTP_BAD_FORBIDDEN,
+            )
 
 
 class ScheduledRequests(EndpointResource):
 
     # schema_expose = True
     labels = ['scheduled_requests']
-    GET = {'/schedules/<schedule_id>/requests': {'summary': 'Get requests related to a given schedule.', 'parameters': [{'name': 'get_total', 'in': 'query', 'description': 'Retrieve total number of requests', 'type': 'boolean', 'default': False}, {'name': 'last', 'in': 'query', 'description': 'retrieve only the last submitted request', 'type': 'boolean', 'allowEmptyValue': True}], 'responses': {'200': {'description': 'List of requests for a given schedule.', 'schema': {'$ref': '#/definitions/Requests'}}, '404': {'description': 'Schedule not found.'}, '403': {'description': 'User cannot access a schedule that does not belong to.'}}}}
+    GET = {
+        '/schedules/<schedule_id>/requests': {
+            'summary': 'Get requests related to a given schedule.',
+            'parameters': [
+                {
+                    'name': 'get_total',
+                    'in': 'query',
+                    'description': 'Retrieve total number of requests',
+                    'type': 'boolean',
+                    'default': False,
+                },
+                {
+                    'name': 'last',
+                    'in': 'query',
+                    'description': 'retrieve only the last submitted request',
+                    'type': 'boolean',
+                    'allowEmptyValue': True,
+                },
+            ],
+            'responses': {
+                '200': {
+                    'description': 'List of requests for a given schedule.',
+                    'schema': {'$ref': '#/definitions/Requests'},
+                },
+                '404': {'description': 'Schedule not found.'},
+                '403': {
+                    'description': 'User cannot access a schedule that does not belong to.'
+                },
+            },
+        }
+    }
 
     @catch_error()
     @authentication.required()
@@ -317,14 +553,16 @@ class ScheduledRequests(EndpointResource):
         if not RequestManager.check_request(db, schedule_id=schedule_id):
             raise RestApiException(
                 "The schedule ID {} doesn't exist".format(schedule_id),
-                status_code=hcodes.HTTP_BAD_NOTFOUND)
+                status_code=hcodes.HTTP_BAD_NOTFOUND,
+            )
 
         # check for schedule ownership
         user = self.get_current_user()
         if not RequestManager.check_owner(db, user.id, schedule_id=schedule_id):
             raise RestApiException(
                 "This request doesn't come from the schedule's owner",
-                status_code=hcodes.HTTP_BAD_FORBIDDEN)
+                status_code=hcodes.HTTP_BAD_FORBIDDEN,
+            )
 
         if get_total:
             # get total count for user schedules
@@ -332,6 +570,20 @@ class ScheduledRequests(EndpointResource):
             return {"total": counter}
 
         # get all submitted requests or the last for this schedule
-        res = RequestManager.get_schedule_requests(db, schedule_id, last=last)
-        return self.force_response(
-            res, code=hcodes.HTTP_OK_BASIC)
+        meta_response = {}
+        if last:
+            res = RequestManager.get_last_scheduled_request(db, schedule_id)
+            if res is None:
+                raise RestApiException(
+                    "No successful request is available for schedule ID {} yet".format(
+                        schedule_id
+                    ),
+                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+                )
+            # also return the total
+            meta_response['total'] = RequestManager.count_schedule_requests(
+                db, schedule_id
+            )
+        else:
+            res = RequestManager.get_schedule_requests(db, schedule_id)
+        return self.force_response(res, meta=meta_response, code=hcodes.HTTP_OK_BASIC)

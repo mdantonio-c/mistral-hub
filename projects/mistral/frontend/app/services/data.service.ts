@@ -15,6 +15,7 @@ export interface RapydoMeta {
     elements: number;
     errors: number;
     status: number;
+    total?: number;
 }
 
 export interface RapydoResponse<T> {

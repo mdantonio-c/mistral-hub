@@ -16,7 +16,30 @@ class Datasets(EndpointResource):
 
     # schema_expose = True
     labels = ['dataset']
-    GET = {'/datasets': {'summary': 'Get a dataset.', 'responses': {'200': {'description': 'Dataset successfully retrieved', 'schema': {'$ref': '#/definitions/Dataset'}}, '404': {'description': 'Dataset does not exists'}}, 'description': 'Return a single dataset filtered by name'}, '/datasets/<dataset_name>': {'summary': 'Get a dataset.', 'responses': {'200': {'description': 'Dataset successfully retrieved', 'schema': {'$ref': '#/definitions/Dataset'}}, '404': {'description': 'Dataset does not exists'}}, 'description': 'Return a single dataset filtered by name'}}
+    GET = {
+        '/datasets': {
+            'summary': 'Get a dataset.',
+            'responses': {
+                '200': {
+                    'description': 'Dataset successfully retrieved',
+                    'schema': {'$ref': '#/definitions/Dataset'},
+                },
+                '404': {'description': 'Dataset does not exists'},
+            },
+            'description': 'Return a single dataset filtered by name',
+        },
+        '/datasets/<dataset_name>': {
+            'summary': 'Get a dataset.',
+            'responses': {
+                '200': {
+                    'description': 'Dataset successfully retrieved',
+                    'schema': {'$ref': '#/definitions/Dataset'},
+                },
+                '404': {'description': 'Dataset does not exists'},
+            },
+            'description': 'Return a single dataset filtered by name',
+        },
+    }
 
     @catch_error()
     @authentication.required()
@@ -29,10 +52,13 @@ class Datasets(EndpointResource):
         if dataset_name is not None:
             # retrieve dataset by name
             logger.debug("retrieve dataset by name '{}'".format(dataset_name))
-            matched_ds = next((ds for ds in datasets if ds.get('id', '') == dataset_name), None)
+            matched_ds = next(
+                (ds for ds in datasets if ds.get('id', '') == dataset_name), None
+            )
             if not matched_ds:
                 raise RestApiException(
                     "Dataset not found for name: {}".format(dataset_name),
-                    status_code=hcodes.HTTP_BAD_NOTFOUND)
+                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+                )
             return self.force_response(matched_ds)
         return self.force_response(datasets)
