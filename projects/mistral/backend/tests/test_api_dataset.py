@@ -3,7 +3,7 @@
 # import time
 from restapi.tests import BaseTests, API_URI
 # from restapi.tests import AUTH_URI, BaseAuthentication
-from utilities.htmlcodes import HTTP_OK_BASIC, HTTP_BAD_UNAUTHORIZED, HTTP_BAD_NOTFOUND
+from restapi.utilities.htmlcodes import HTTP_OK_BASIC, HTTP_BAD_UNAUTHORIZED, HTTP_BAD_NOTFOUND
 from utilities.logs import get_logger
 
 __author__ = "Beatrice Chiavarini (b.chiavarini@cineca.it)"

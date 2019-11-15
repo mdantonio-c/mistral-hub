@@ -5,10 +5,11 @@ from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
-from utilities import htmlcodes as hcodes
-from utilities.logs import get_logger
+from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
+
+from utilities.logs import get_logger
 
 log = get_logger(__name__)
 

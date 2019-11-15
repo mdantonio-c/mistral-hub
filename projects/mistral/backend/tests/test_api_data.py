@@ -2,12 +2,13 @@ from restapi.flask_ext.flask_celery import CeleryExt
 #from mistral.tasks.data_extraction  import data_extract
 from restapi.tests import BaseTests, API_URI
 from unittest.mock import patch
-from utilities.htmlcodes import HTTP_OK_ACCEPTED, HTTP_BAD_UNAUTHORIZED
+from restapi.utilities.htmlcodes import HTTP_BAD_UNAUTHORIZED
+
 
 class TestApp(BaseTests):
 
     @patch.object(CeleryExt,'celery_app')
-    def mock_celery (self,celery_app):
+    def mock_celery (self, celery_app):
         with celery_app.app.app_context():
             return 1
 

@@ -6,7 +6,7 @@ from restapi.rest.definition import EndpointResource
 # from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
-from utilities import htmlcodes as hcodes
+from restapi.utilities.htmlcodes import hcodes
 from utilities.logs import get_logger
 # from sqlalchemy.orm import load_only
 

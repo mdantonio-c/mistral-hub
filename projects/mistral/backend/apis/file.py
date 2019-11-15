@@ -2,12 +2,13 @@ from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
-from utilities import htmlcodes as hcodes
-from utilities.logs import get_logger
+from restapi.utilities.htmlcodes import hcodes
 from mistral.services.requests_manager import RequestManager
 from flask import send_from_directory
 import os
 
+
+from utilities.logs import get_logger
 
 log = get_logger(__name__)
 DOWNLOAD_DIR = '/data'
