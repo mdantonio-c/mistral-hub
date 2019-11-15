@@ -5,15 +5,19 @@ from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
+from restapi.services.uploader import Uploader
+from restapi.confs import UPLOAD_FOLDER
 from utilities import htmlcodes as hcodes
 from utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 
+import os
+
 log = get_logger(__name__)
 
 
-class Data(EndpointResource):
+class Data(EndpointResource, Uploader):
 
     # schema_expose = True
     labels = ['data']
@@ -29,6 +33,29 @@ class Data(EndpointResource):
                 }
             ],
             'responses': {'202': {'description': 'Data extraction request queued'}},
+        }
+    }
+    PATCH = {
+        '/data': {
+            'summary': 'Uploading file for spare point interpolation postprocessor',
+            'consumes': ['multipart/form-data'],
+            'parameters': [
+                {
+                    'name': 'file',
+                    'in': 'formData',
+                    'description': 'spare point file for the interpolation',
+                    'type': 'file',
+                }
+            ],
+            'responses': {
+                '202': {
+                    'description': 'file uploaded',
+                    'schema': {'$ref': '#/definitions/SparePointFile'}
+                },
+                '400':{
+                    'description': 'file cannot be uploaded'
+                }
+            },
         }
     }
 
@@ -121,6 +148,36 @@ class Data(EndpointResource):
         # return self.force_response(
         #     {'task_id': task.id, 'task_status': task.status}, code=hcodes.HTTP_OK_ACCEPTED)
         return self.empty_response()
+
+    @catch_error()
+    @authentication.required()
+    def patch(self):
+        user = self.get_current_user()
+
+        # allowed formats for uploaded file
+        self.allowed_exts = ['shp', 'grib_api']
+
+        #use user.uuid as name for the subfolder where the file will be uploaded
+        upload_response = self.upload(subfolder=user.uuid)
+
+        if not upload_response.defined_content:
+            # raise RestApiException(
+            #     '{}'.format(next(iter(upload_response.errors))),
+            #     status_code=hcodes.HTTP_BAD_REQUEST,
+            # )
+            raise RestApiException(
+                upload_response.errors,
+                status_code=hcodes.HTTP_BAD_REQUEST,
+            )
+
+        upload_filename = upload_response.defined_content['filename']
+        upload_filepath = os.path.join(UPLOAD_FOLDER,user.uuid,upload_filename)
+        log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
+        f = self.split_dir_and_extension(upload_filepath)
+        r ={}
+        r['filepath'] = upload_filepath
+        r['format'] = f[1]
+        return self.force_response(r)
 
     @staticmethod
     def validate_grid_interpol_params(params):

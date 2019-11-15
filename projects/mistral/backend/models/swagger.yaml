@@ -82,7 +82,7 @@ definitions:
           ny:
             type: integer
       grid-params:
-        description: projection and parameters of interpolated grid
+        description: projection and parameters of target grid
         type: string
         enum:
           - regular_ll
@@ -125,7 +125,7 @@ definitions:
           flat:
             type: number
       grid-params:
-        description: projection and parameters of interpolated grid
+        description: projection and parameters of target grid
         type: string
         enum:
           - regular_ll
@@ -151,23 +151,17 @@ definitions:
       type:
         description: description of the postprocessor
         type: string
-      coord-file:
-        description: file to define the spare points
+      coord-filepath:
+        description: file to define the target spare points
         type: string
         format: binary
-      format:
-        description: format of the file
-        type: string
-        enum:
-          - shp
-          - grib_api
-      grid-params:
-        description: projection and parameters of interpolated grid
-        type: string
-        enum:
-          - regular_ll
-          - rotated_ll
-          - UTM
+#      grid-params:
+#        description: projection and parameters of target grid
+#        type: string
+#        enum:
+#          - regular_ll
+#          - rotated_ll
+#          - UTM
       trans-type:
         type: string
         enum:
@@ -187,7 +181,14 @@ definitions:
       - trans-type
       - sub-type
 
-
+  SparePointFile:
+    description: description of the file uploaded for spare point interpolation postprocessor
+    type: object
+    properties:
+      filepath:
+        type: string
+      format:
+        type: string
 
 
 #  GProcessor:
