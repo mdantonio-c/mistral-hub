@@ -27,11 +27,17 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                  schedule_id=None):
     with celery_app.app.app_context():
         logger.info("Start task [{}:{}]".format(self.request.id, self.name))
+        extra_msg = ''
         try:
             db = celery_app.get_service('sqlalchemy')
-
+            schedule = None
             if schedule_id is not None:
-                # if the request is a scheduled one, create an entry in request db linked to the scheduled request entry
+                # load schedule for this request
+                schedule = db.Schedule.query.get(schedule_id)
+                if schedule is None:
+                    raise ReferenceError("Cannot find schedule reference for task %s" % self.request.id)
+
+                # create an entry in request db linked to the scheduled request entry
                 product_name = RequestManager.get_schedule_name(db, schedule_id)
                 request = RequestManager.create_request_record(db, user_id, product_name, {
                     'datasets': datasets,
@@ -39,7 +45,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     'postprocessors': postprocessors
                 }, schedule_id=schedule_id)
                 # update the entry with celery task id
-                # RequestManager.update_task_id(db, request_id, self.request.id)
                 request.task_id = self.request.id
                 request_id = request.id
                 db.session.commit()
@@ -80,6 +85,13 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 # save error message in db
                 message = 'Disk quota exceeded: required size {}; remaining space {}'.format(
                     human_size(data_size), human_size(free_space))
+                # check if this request comes from a schedule. If so deactivate the schedule.
+                if schedule:
+                    logger.debug('Deactivate periodic task for schedule {}'.format(schedule_id))
+                    if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
+                        raise Exception('Cannot delete periodic task for schedule {}'.format(schedule_id))
+                    RequestManager.update_schedule_status(db, schedule_id, False)
+                    extra_msg = '<br/><br/>Schedule "{}" temporary disabled for limit quota exceeded.'.format(schedule.name)
                 raise DiskQuotaException(message)
 
             '''
@@ -163,9 +175,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             logger.info('Terminate task {} with state {}'.format(self.request.id, request.status))
             # user notification via email
             user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
-            send_result_notication(user_email, request.status,
-                                   request.error_message if request.error_message is not None else "Your data is ready "
-                                                                                                   "for downloading")
+            body_msg = request.error_message if request.error_message is not None else "Your data is ready for " \
+                                                                                       "downloading"
+            body_msg += extra_msg
+            send_result_notication(user_email, request.status, body_msg)
 
 
 def send_result_notication(recipient, status, message):
