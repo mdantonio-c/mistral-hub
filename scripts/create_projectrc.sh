@@ -1,7 +1,6 @@
 #!/bin/sh
 
 
-echo "development: True" > .projectrc
 echo "project_configuration:" >> .projectrc
 echo "  variables:" >> .projectrc
 echo "    env:" >> .projectrc
