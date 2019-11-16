@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from mistral.services.arkimet import BeArkimet as arki
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
-from mistral.services.arkimet import BeArkimet as arki
-
-from utilities.logs import get_logger
+from restapi.utilities.logs import get_logger
 
 logger = get_logger(__name__)
 

@@ -4,8 +4,7 @@ from restapi.rest.definition import EndpointResource
 from restapi import decorators as decorate
 from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
-
-from utilities.logs import get_logger
+from restapi.utilities.logs import get_logger
 
 log = get_logger(__name__)
 

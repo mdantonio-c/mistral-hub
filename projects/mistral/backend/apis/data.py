@@ -9,7 +9,7 @@ from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 
-from utilities.logs import get_logger
+from restapi.utilities.logs import get_logger
 
 log = get_logger(__name__)
 

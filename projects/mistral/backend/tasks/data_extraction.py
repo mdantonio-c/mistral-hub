@@ -4,16 +4,14 @@ import shlex
 import subprocess
 import os
 import datetime
-from celery.schedules import crontab
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.services.mail import send_mail, get_html_template
 from celery import states
 from celery.exceptions import Ignore
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
-from restapi.flask_ext.flask_celery import send_errors_by_email
 from mistral.services.requests_manager import RequestManager
 
-from utilities.logs import get_logger
+from restapi.utilities.logs import get_logger
 
 celery_app = CeleryExt.celery_app
 
