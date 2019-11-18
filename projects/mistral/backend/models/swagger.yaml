@@ -53,6 +53,192 @@ definitions:
     required:
       - type
       - variables
+
+  GIProcessor:
+    description: Grid interpolation post processor to interpolate data on a new grid
+    type: object
+    properties:
+      type:
+        description: description of the postprocessor
+        type: string
+      boundings:
+        description: boundings of the target grid
+        type: object
+        properties:
+          x-min:
+            type: number
+          x-max:
+            type: number
+          y-min:
+            type: number
+          y-max:
+            type: number
+      nodes:
+        description: number of nodes of the target grid
+        type: object
+        properties:
+          nx:
+            type: integer
+          ny:
+            type: integer
+      grid-params:
+        description: projection and parameters of target grid
+        type: string
+        enum:
+          - regular_ll
+          - rotated_ll
+          - UTM
+      trans-type:
+        type: string
+        enum:
+          - inter
+          - boxinter
+      sub-type:
+        type: string
+        enum:
+          - near
+          - bilin
+          - average
+          - min
+          - max
+    required:
+      - type
+      - trans-type
+      - sub-type
+  GCProcessor:
+    description: Grid cropping post processor
+    type: object
+    properties:
+      type:
+        description: description of the postprocessor
+        type: string
+      boundings:
+        description: boundings of the cropped grid
+        type: object
+        properties:
+          ilon:
+            type: number
+          ilat:
+            type: number
+          flon:
+            type: number
+          flat:
+            type: number
+      grid-params:
+        description: projection and parameters of target grid
+        type: string
+        enum:
+          - regular_ll
+          - rotated_ll
+          - UTM
+      trans-type:
+        type: string
+        enum:
+          - zoom
+      sub-type:
+        type: string
+        enum:
+          - coord
+          - bbox
+    required:
+      - type
+      - trans-type
+      - sub-type
+  SPIProcessor:
+    description: Spare points interpolation postprocessor
+    type: object
+    properties:
+      type:
+        description: description of the postprocessor
+        type: string
+      coord-filepath:
+        description: file to define the target spare points
+        type: string
+      format:
+        type: string
+        enum:
+          - shp
+          - grib_api
+#      grid-params:
+#        description: projection and parameters of target grid
+#        type: string
+#        enum:
+#          - regular_ll
+#          - rotated_ll
+#          - UTM
+      trans-type:
+        type: string
+        enum:
+          - inter
+          - polyinter
+      sub-type:
+        type: string
+        enum:
+          - near
+          - bilin
+          - average
+          - min
+          - max
+    required:
+      - type
+      - coord-filepath
+      - format
+      - trans-type
+      - sub-type
+
+  SparePointFile:
+    description: description of the file uploaded for spare point interpolation postprocessor
+    type: object
+    properties:
+      filepath:
+        type: string
+      format:
+        type: string
+
+
+#  GProcessor:
+#    description: post-processor for geographical elaborations, interpolations or cropping
+#    type: object
+#    properties:
+#      type:
+#        type: string
+#      input:
+#        description: The list of input for the elaboration.
+##        schema:
+#        oneOf:
+#          $ref: "#/definitions/GridInterpolation"
+#          $ref: "#/definitions/GridCropping"
+#          $ref: "#/definitions/SparePointInterpolation"
+#        discriminator:
+#          propertyName: method
+#  GridInterpolation:
+#    description: post processor to interpolate data on a new grid
+#    type: object
+#    properties:
+#      method:
+#        description: what kind of geographical interpolation
+#        type: string
+#      coordinates:
+#        description: coordinate of the new grid
+#        type: object
+#        properties:
+#         x-min:
+#           type: number
+#         x-max:
+#           type: number
+#         y-min:
+#           type: number
+#         y-max:
+#           type: number
+#      points:
+#        description: number of point of the new grid
+#        type: object
+#        properties:
+#         nx:
+#           type: integer
+#         ny:
+#           type: integer
+
   RefTime:
     required:
       - from

@@ -4,6 +4,8 @@ import shlex
 import subprocess
 import os
 import datetime
+import shutil
+from pathlib import Path
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.services.mail import send_mail, get_html_template
 from celery import states
@@ -106,11 +108,11 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 id=self.request.id)
 
             if postprocessors:
-                # at the moment ONLY 'derived_variables' post-processing is allowed
                 p = postprocessors[0]
                 logger.debug(p)
                 pp_type = p.get('type')
-                if pp_type != 'derived_variables':
+                enabled_postprocessors = ('derived_variables','grid_interpolation','grid_cropping','spare_point_interpolation')
+                if pp_type not in enabled_postprocessors:
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
                 logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
                 # temporarily save the data extraction output
@@ -119,11 +121,65 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 with open(tmp_outfile, mode='w') as query_outfile:
                     subprocess.Popen(arki_query_cmd, stdout=query_outfile)
                 try:
-                    post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
-                        ",".join(p.get('variables')),
-                        tmp_outfile,
-                        os.path.join(user_dir, out_filename)
-                    ))
+                    if pp_type == 'derived_variables':
+                        post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
+                            ",".join(p.get('variables')),
+                            tmp_outfile,
+                            os.path.join(user_dir, out_filename)
+                        ))
+                    elif pp_type == 'grid_interpolation':
+                        post_proc_cmd =[]
+                        post_proc_cmd.append('vg6d_transform')
+                        post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
+                        post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
+
+                        # vg6d_transform automatically provides defaults for missing optional params
+                        if 'grid-params' in p:
+                            post_proc_cmd.append('--type={}'.format(p.get('grid-params')))
+                        if 'x-min' in p['boundings']:
+                            post_proc_cmd.append('--x-min={}'.format(p['boundings']['x-min']))
+                        if 'x-max' in p['boundings']:
+                            post_proc_cmd.append('--x-max={}'.format(p['boundings']['x-max']))
+                        if 'y-min' in p['boundings']:
+                            post_proc_cmd.append('--y-min={}'.format(p['boundings']['y-min']))
+                        if 'y-max' in p['boundings']:
+                            post_proc_cmd.append('--y-max={}'.format(p['boundings']['y-max']))
+                        if 'nx' in p['nodes']:
+                            post_proc_cmd.append('--nx={}'.format(p['nodes']['nx']))
+                        if 'ny' in p['nodes']:
+                            post_proc_cmd.append('--ny={}'.format(p['nodes']['ny']))
+
+                        post_proc_cmd.append(tmp_outfile)
+                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
+                    elif pp_type == 'grid_cropping':
+                        post_proc_cmd =[]
+                        post_proc_cmd.append('vg6d_transform')
+                        post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
+                        post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
+
+                        if 'grid-params' in p:
+                            post_proc_cmd.append('--type={}'.format(p.get('grid-params')))
+                        if 'ilon' in p['boundings']:
+                            post_proc_cmd.append('--ilon={}'.format(p['boundings']['ilon']))
+                        if 'ilat' in p['boundings']:
+                            post_proc_cmd.append('--ilat={}'.format(p['boundings']['ilat']))
+                        if 'flon' in p['boundings']:
+                            post_proc_cmd.append('--flon={}'.format(p['boundings']['flon']))
+                        if 'flat' in p['boundings']:
+                            post_proc_cmd.append('--flat={}'.format(p['boundings']['flat']))
+
+                        post_proc_cmd.append(tmp_outfile)
+                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
+                    elif pp_type == 'spare_point_interpolation':
+                        post_proc_cmd = []
+                        post_proc_cmd.append('vg6d_transform')
+                        post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
+                        post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
+                        post_proc_cmd.append('--coord-file={}'.format(p.get('coord-filepath')))
+                        post_proc_cmd.append('--coord-format={}'.format(p.get('format')))
+                        post_proc_cmd.append(tmp_outfile)
+                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
+                    logger.debug('Post process command: {}>'.format(post_proc_cmd))
                     proc = subprocess.run(post_proc_cmd, stdout=subprocess.PIPE)
                     proc.check_returncode()
                 except Exception:
@@ -132,6 +188,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 finally:
                     # always remove tmp file
                     os.remove(tmp_outfile)
+                    if pp_type == 'spare_point_interpolation':
+                        # remove the temporary folder where the files for the intepolation were uploaded
+                        uploaded_filepath = Path(p.get('coord-filepath'))
+                        shutil.rmtree(uploaded_filepath.parent)
             else:
                 with open(os.path.join(user_dir, out_filename), mode='w') as outfile:
                     subprocess.Popen(arki_query_cmd, stdout=outfile)
@@ -177,6 +237,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                                                                        "downloading"
             body_msg += extra_msg
             send_result_notication(user_email, request.status, body_msg)
+
 
 
 def send_result_notication(recipient, status, message):
