@@ -155,6 +155,11 @@ definitions:
         description: file to define the target spare points
         type: string
         format: binary
+      format:
+        type: string
+        enum:
+          - shp
+          - grib_api
 #      grid-params:
 #        description: projection and parameters of target grid
 #        type: string
@@ -177,7 +182,8 @@ definitions:
           - max
     required:
       - type
-      - coord-file
+      - coord-filepath
+      - format
       - trans-type
       - sub-type
 

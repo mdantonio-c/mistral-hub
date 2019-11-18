@@ -13,6 +13,7 @@ from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 
 import os
+import requests
 
 log = get_logger(__name__)
 
@@ -44,7 +45,9 @@ class Data(EndpointResource, Uploader):
                     'name': 'file',
                     'in': 'formData',
                     'description': 'spare point file for the interpolation',
-                    'type': 'file',
+                    'type': 'file'
+                    # 'type': 'array',
+                    # 'items':{'type': 'string','format':'binary'},
                 }
             ],
             'responses': {
@@ -155,8 +158,7 @@ class Data(EndpointResource, Uploader):
         user = self.get_current_user()
 
         # allowed formats for uploaded file
-        self.allowed_exts = ['shp', 'grib_api']
-
+        self.allowed_exts = ['shp', 'shx','grib_api']
         #use user.uuid as name for the subfolder where the file will be uploaded
         upload_response = self.upload(subfolder=user.uuid)
 
@@ -204,3 +206,12 @@ class Data(EndpointResource, Uploader):
             if sub_type not in ("average", "min", "max"):
                 raise RestApiException('{} is a bad interpolation sub type for {}'.format(sub_type, trans_type),
                                        status_code=hcodes.HTTP_BAD_REQUEST)
+        coord_filepath = params['coord-filepath']
+        if not os.path.exists(coord_filepath):
+            raise RestApiException('the coord-filepath does not exists',
+                                   status_code=hcodes.HTTP_BAD_REQUEST)
+
+        filebase, fileext = os.path.splitext(coord_filepath)
+        if fileext.strip('.') != params['format']:
+            raise RestApiException('format parameter is not correct',
+                                   status_code=hcodes.HTTP_BAD_REQUEST)

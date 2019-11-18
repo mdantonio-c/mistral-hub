@@ -4,6 +4,8 @@ import shlex
 import subprocess
 import os
 import datetime
+import shutil
+from pathlib import Path
 from celery.schedules import crontab
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.services.mail import send_mail, get_html_template
@@ -158,6 +160,15 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
                         post_proc_cmd.append(tmp_outfile)
                         post_proc_cmd.append(os.path.join(user_dir, out_filename))
+                    elif pp_type == 'spare_point_interpolation':
+                        post_proc_cmd = []
+                        post_proc_cmd.append('vg6d_transform')
+                        post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
+                        post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
+                        post_proc_cmd.append('--coord-file={}'.format(p.get('coord-filepath')))
+                        post_proc_cmd.append('--coord-format={}'.format(p.get('format')))
+                        post_proc_cmd.append(tmp_outfile)
+                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
                     logger.debug('Post process command: {}>'.format(post_proc_cmd))
                     proc = subprocess.run(post_proc_cmd, stdout=subprocess.PIPE)
                     proc.check_returncode()
@@ -167,6 +178,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 finally:
                     # always remove tmp file
                     os.remove(tmp_outfile)
+                    if pp_type == 'spare_point_interpolation':
+                        # remove the temporary folder where the files for the intepolation were uploaded
+                        uploaded_filepath = Path(p.get('coord-filepath'))
+                        shutil.rmtree(uploaded_filepath.parent)
             else:
                 with open(os.path.join(user_dir, out_filename), mode='w') as outfile:
                     subprocess.Popen(arki_query_cmd, stdout=outfile)
@@ -211,6 +226,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             send_result_notication(user_email, request.status,
                                    request.error_message if request.error_message is not None else "Your data is ready "
                                                                                                    "for downloading")
+
 
 
 def send_result_notication(recipient, status, message):
