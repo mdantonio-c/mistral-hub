@@ -8,7 +8,8 @@ before_script:
   # - curl -fsSL https://get.docker.com/ | sh
   - docker -v
   - docker ps
-  - rapydo install --git auto
+  - sh scripts/create_projectrc.sh
+  - rapydo install auto
   # - apt-get install python3-pip
   # - pip3 --version
   # - pip3 install rapydo-controller
@@ -18,7 +19,6 @@ before_script:
   # - mv docker-compose /usr/local/bin
   # - pip install coveralls
   # - pip install python-coveralls
-  - sh scripts/create_projectrc.sh
 
 stages:
   - tests
@@ -28,6 +28,7 @@ script:
   script:
     - rapydo init
     - rapydo remove
+    - rapydo pull
     - rapydo update -i main --rebuild 
     - cp -r /arkimet/datasets/* data/arkimet/
     - rapydo start
