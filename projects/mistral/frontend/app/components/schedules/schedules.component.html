@@ -1,6 +1,6 @@
 <loading *ngIf="loading"></loading>
 <!-- no data -->
-<div class="row" *ngIf="!loading && !rows?.length">
+<div class="row" *ngIf="!loading && !data?.length">
     <div class="col">
         <div class="no-results">
             <h2>No Data</h2>
@@ -9,7 +9,7 @@
     </div>
 </div>
 <!-- load schedules in the table -->
-<div class="table-responsive" *ngIf="rows?.length" #tableWrapper>
+<div class="table-responsive" *ngIf="data?.length" #tableWrapper>
 
     <ngx-datatable
         #myRequestsTable
