@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from flask import request
+from pathlib import Path
 from restapi.rest.definition import EndpointResource
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
@@ -13,13 +15,13 @@ from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 
 import os
+import shutil
 import requests
 
 log = get_logger(__name__)
 
 
 class Data(EndpointResource, Uploader):
-
     # schema_expose = True
     labels = ['data']
     POST = {
@@ -33,7 +35,17 @@ class Data(EndpointResource, Uploader):
                     'schema': {'$ref': '#/definitions/DataExtraction'},
                 }
             ],
-            'responses': {'202': {'description': 'Data extraction request queued'}},
+            'responses': {
+                '202': {
+                    'description': 'Data extraction request queued'
+                },
+                '400': {
+                    'description': 'Parameters for post processing are not correct'
+                },
+                '500': {
+                    'description': 'File for spare point interpolation post processor is corrupted'
+                }
+            },
         }
     }
     PATCH = {
@@ -55,7 +67,7 @@ class Data(EndpointResource, Uploader):
                     'description': 'file uploaded',
                     'schema': {'$ref': '#/definitions/SparePointFile'}
                 },
-                '400':{
+                '400': {
                     'description': 'file cannot be uploaded'
                 }
             },
@@ -156,29 +168,36 @@ class Data(EndpointResource, Uploader):
     @authentication.required()
     def patch(self):
         user = self.get_current_user()
-
         # allowed formats for uploaded file
-        self.allowed_exts = ['shp', 'shx','grib_api']
-        #use user.uuid as name for the subfolder where the file will be uploaded
-        upload_response = self.upload(subfolder=user.uuid)
+        self.allowed_exts = ['shp', 'shx', 'grib_api','dbf']
 
-        if not upload_response.defined_content:
-            # raise RestApiException(
-            #     '{}'.format(next(iter(upload_response.errors))),
-            #     status_code=hcodes.HTTP_BAD_REQUEST,
-            # )
-            raise RestApiException(
-                upload_response.errors,
-                status_code=hcodes.HTTP_BAD_REQUEST,
-            )
+        uploaded_files = request.files.getlist('file')
+        self.check_files_to_upload(uploaded_files)
 
-        upload_filename = upload_response.defined_content['filename']
-        upload_filepath = os.path.join(UPLOAD_FOLDER,user.uuid,upload_filename)
-        log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
-        f = self.split_dir_and_extension(upload_filepath)
-        r ={}
-        r['filepath'] = upload_filepath
-        r['format'] = f[1]
+        r = {}
+        for e in uploaded_files:
+            # use user.uuid as name for the subfolder where the file will be uploaded
+            #upload_response = self.upload(subfolder=user.uuid)
+            upload_response = self.upload_data(e.filename, subfolder=user.uuid)
+
+            if not upload_response.defined_content:
+                # raise RestApiException(
+                #     '{}'.format(next(iter(upload_response.errors))),
+                #     status_code=hcodes.HTTP_BAD_REQUEST,
+                # )
+                raise RestApiException(
+                    "for file '{}' there are the following errors: {}".format(e.filename,upload_response.errors),
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
+
+            upload_filename = upload_response.defined_content['filename']
+            upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, upload_filename)
+            log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
+            f = self.split_dir_and_extension(upload_filepath)
+            # for shapefiles the file needed for the coord-file param is only the .shp. .shx and .dbf are useful only to decode the .shp
+            if f[1] == 'shp' or f[1] == 'grib_api':
+                r['filepath'] = upload_filepath
+                r['format'] = f[1]
         return self.force_response(r)
 
     @staticmethod
@@ -186,12 +205,12 @@ class Data(EndpointResource, Uploader):
         trans_type = params['trans-type']
         sub_type = params['sub-type']
         if trans_type == "inter":
-            if sub_type not in ("near","bilin"):
-                raise RestApiException('{} is a bad interpolation sub-type for {}'.format(sub_type,trans_type),
+            if sub_type not in ("near", "bilin"):
+                raise RestApiException('{} is a bad interpolation sub-type for {}'.format(sub_type, trans_type),
                                        status_code=hcodes.HTTP_BAD_REQUEST)
         elif trans_type == "boxinter":
-            if sub_type not in ("average","min","max"):
-                raise RestApiException('{} is a bad interpolation sub type for {}'.format(sub_type,trans_type),
+            if sub_type not in ("average", "min", "max"):
+                raise RestApiException('{} is a bad interpolation sub type for {}'.format(sub_type, trans_type),
                                        status_code=hcodes.HTTP_BAD_REQUEST)
 
     @staticmethod
@@ -215,3 +234,35 @@ class Data(EndpointResource, Uploader):
         if fileext.strip('.') != params['format']:
             raise RestApiException('format parameter is not correct',
                                    status_code=hcodes.HTTP_BAD_REQUEST)
+        # if a file is a shapefile, check if .shx and .dbf are in the same folder. If not ask the user to upload all the files again
+        if params['format'] == 'shp':
+            if not os.path.exists(filebase + '.shx') or not os.path.exists(filebase + '.dbf'):
+                # delete the folder with the corrupted files
+                uploaded_filepath = Path(params['coord-filepath'])
+                shutil.rmtree(uploaded_filepath.parent)
+                raise RestApiException('Sorry.The file for the interpolation is corrupted. Please try to upload it again',
+                                       status_code=hcodes.HTTP_SERVER_ERROR)
+
+
+    @staticmethod
+    def check_files_to_upload(files):
+        # create a dictionary to compare the uploaded files specs
+        file_dict = {}
+        for f in files:
+            e = f.filename.split(".")
+            file_dict[e[1]] = e[0]
+        if 'shp' in file_dict:
+            # check if there is a file .shx and a file .dbf
+            if 'shx' not in file_dict:
+                raise RestApiException('file .shx is missing',
+                                       status_code=hcodes.HTTP_BAD_REQUEST)
+            if 'dbf' not in file_dict:
+                raise RestApiException('file .dbf is missing',
+                                       status_code=hcodes.HTTP_BAD_REQUEST)
+            # check if the file .shx and the file .dbf are for the .shp file
+            if file_dict['shp'] != file_dict['shx']:
+                raise RestApiException('file .shx and file .shp does not match',
+                                       status_code=hcodes.HTTP_BAD_REQUEST)
+            if file_dict['shp'] != file_dict['dbf']:
+                raise RestApiException('file .dbf and file .shp does not match',
+                                       status_code=hcodes.HTTP_BAD_REQUEST)

@@ -154,7 +154,6 @@ definitions:
       coord-filepath:
         description: file to define the target spare points
         type: string
-        format: binary
       format:
         type: string
         enum:
