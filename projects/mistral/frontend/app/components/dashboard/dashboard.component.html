@@ -1,17 +1,4 @@
 <div class='container-fluid'>
-    <div class="row justify-content-md-center">
-        <div class='col-12'>
-            <div class="d-flex align-items-center">
-                <h5 class="mr-auto">My Requests</h5>
-                <div class="btn-group" role="group">
-                    <button class="btn" (click)="list()">
-                        <i class="fa fa-sync" aria-hidden="true"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="sidenav">
         <ngb-tabset justify='start' orientation='vertical' (tabChange)="onTabChange($event)">
             <ngb-tab id="requests" title="Requests"></ngb-tab>
