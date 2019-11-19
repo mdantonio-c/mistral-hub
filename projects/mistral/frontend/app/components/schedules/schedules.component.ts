@@ -12,8 +12,7 @@ import {DataService} from "@app/services/data.service";
 
 @Component({
     selector: 'app-schedules',
-    templateUrl: './schedules.component.html',
-    styleUrls: ['./schedules.component.css']
+    templateUrl: './schedules.component.html'
 })
 export class SchedulesComponent extends BasePaginationComponent {
     expanded: any = {};

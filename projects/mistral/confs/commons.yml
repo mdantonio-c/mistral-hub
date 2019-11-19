@@ -11,6 +11,7 @@ services:
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
       - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
+      - ${VANILLA_DIR}/data/uploads:/uploads
 
   rabbit:
     ports:
@@ -24,6 +25,7 @@ services:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
+      - ${VANILLA_DIR}/data/uploads:/uploads
 
   celery:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
@@ -33,6 +35,7 @@ services:
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
       - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
+      - ${VANILLA_DIR}/data/uploads:/uploads
 
   celery-beat:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
