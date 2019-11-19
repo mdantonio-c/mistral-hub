@@ -34,6 +34,10 @@ services:
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
       - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
 
+  celery-beat:
+    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+
   # arkimet:
   #   restart: always
   #   build:
