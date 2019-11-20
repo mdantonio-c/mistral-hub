@@ -158,7 +158,7 @@ definitions:
         type: string
         enum:
           - shp
-          - grib_api
+          - geojson
 #      grid-params:
 #        description: projection and parameters of target grid
 #        type: string

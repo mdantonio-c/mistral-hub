@@ -16,6 +16,7 @@ from mistral.services.requests_manager import RequestManager as repo
 
 import os
 import shutil
+from zipfile import ZipFile
 import requests
 
 log = get_logger(__name__)
@@ -169,16 +170,21 @@ class Data(EndpointResource, Uploader):
     def patch(self):
         user = self.get_current_user()
         # allowed formats for uploaded file
-        self.allowed_exts = ['shp', 'shx', 'grib_api','dbf']
-
-        uploaded_files = request.files.getlist('file')
-        self.check_files_to_upload(uploaded_files)
-
+        self.allowed_exts = ['shp', 'shx', 'geojson','dbf']
+        request_file = request.files['file']
+        f = request_file.filename.split(".")
+        if f[1]== '.zip':
+            zip = ZipFile(request.files.filename)
+            uploaded_files = zip.namelist()
+            self.check_files_to_upload(uploaded_files)
+        else:
+            uploaded_files = []
+            uploaded_files.append(request_file.filename)
         r = {}
         for e in uploaded_files:
             # use user.uuid as name for the subfolder where the file will be uploaded
             #upload_response = self.upload(subfolder=user.uuid)
-            upload_response = self.upload_data(e.filename, subfolder=user.uuid)
+            upload_response = self.upload_data(e, subfolder=user.uuid)
 
             if not upload_response.defined_content:
                 # raise RestApiException(
@@ -195,7 +201,7 @@ class Data(EndpointResource, Uploader):
             log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
             f = self.split_dir_and_extension(upload_filepath)
             # for shapefiles the file needed for the coord-file param is only the .shp. .shx and .dbf are useful only to decode the .shp
-            if f[1] == 'shp' or f[1] == 'grib_api':
+            if f[1] == 'shp' or f[1] == 'geojson':
                 r['filepath'] = upload_filepath
                 r['format'] = f[1]
         return self.force_response(r)
