@@ -1,15 +1,15 @@
 import { TestBed, async, inject } from '@angular/core/testing';
 
-import { WorkflowGuardServiceGuard } from './workflow-guard.service.guard';
+import { WorkflowGuard } from '@app/services/workflow-guard.service';
 
 describe('WorkflowGuardServiceGuard', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [WorkflowGuardServiceGuard]
+      providers: [WorkflowGuard]
     });
   });
 
-  it('should ...', inject([WorkflowGuardServiceGuard], (guard: WorkflowGuardServiceGuard) => {
+  it('should ...', inject([WorkflowGuard], (guard: WorkflowGuard) => {
     expect(guard).toBeTruthy();
   }));
 });

@@ -1,6 +1,6 @@
 import { TestBed, inject } from '@angular/core/testing';
 
-import { FormDataService } from './formData.service';
+import { FormDataService } from '@app/services/formData.service';
 
 describe('FormDataService', () => {
   beforeEach(() => {
