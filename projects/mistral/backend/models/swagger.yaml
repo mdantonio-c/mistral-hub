@@ -54,6 +54,41 @@ definitions:
       - type
       - variables
 
+  SEProcessor:
+    description: Statistic Elaboration post-processing
+    type: object
+    properties:
+      type:
+        type: string
+      input-timerange:
+        type: integer
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 6
+          - 254
+      output-timerange:
+        type: integer
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 6
+          - 254
+      interval:
+        description: Interval of elaboration
+        type: integer
+    required:
+      - type
+      - input-timerange
+      - output-timerange
+      - interval
+
   GIProcessor:
     description: Grid interpolation post processor to interpolate data on a new grid
     type: object
