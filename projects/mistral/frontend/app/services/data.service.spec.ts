@@ -1,15 +1,31 @@
-import { TestBed, inject } from '@angular/core/testing';
+import {TestBed, inject} from '@angular/core/testing';
+import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {ApiService} from '@rapydo/services/api';
+import {DataService} from '@app/services/data.service';
 
-import { DataService } from './data.service';
+class ApiServiceStub {
+}
 
 describe('DataService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [DataService]
-    });
-  });
+    let service, http;
 
-  it('should be created', inject([DataService], (service: DataService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            imports: [HttpClientTestingModule],
+            providers: [
+                DataService,
+                {provide: ApiService, useClass: ApiServiceStub}
+            ]
+        });
+        service = TestBed.get(DataService);
+        http = TestBed.get(HttpTestingController);
+    });
+
+    afterEach(() => {
+        http.verify();
+    });
+
+    it('should be created', inject([DataService], (service: DataService) => {
+        expect(service).toBeTruthy();
+    }));
 });

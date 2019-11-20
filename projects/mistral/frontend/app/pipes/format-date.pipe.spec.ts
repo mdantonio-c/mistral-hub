@@ -11,7 +11,6 @@ describe('FormatDatePipe', () => {
     });
 
     it('should transform a date array value', () => {
-      // TODO
-      //expect(pipe.transform(dateArray)).toEqual(`?????`);
+        expect(pipe.transform(dateArray)).toEqual(`?????`);
     });
 });
