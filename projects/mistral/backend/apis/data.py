@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from flask import request
-from pathlib import Path
 from restapi.rest.definition import EndpointResource
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
@@ -17,7 +16,7 @@ from mistral.services.requests_manager import RequestManager as repo
 import os
 import shutil
 from zipfile import ZipFile
-import requests
+from pathlib import Path
 
 log = get_logger(__name__)
 
@@ -170,40 +169,49 @@ class Data(EndpointResource, Uploader):
     def patch(self):
         user = self.get_current_user()
         # allowed formats for uploaded file
-        self.allowed_exts = ['shp', 'shx', 'geojson','dbf']
+        self.allowed_exts = ['shp', 'shx', 'geojson','dbf', 'zip']
         request_file = request.files['file']
-        f = request_file.filename.split(".")
-        if f[1]== '.zip':
-            zip = ZipFile(request.files.filename)
-            uploaded_files = zip.namelist()
-            self.check_files_to_upload(uploaded_files)
-        else:
-            uploaded_files = []
-            uploaded_files.append(request_file.filename)
+        f = request_file.filename.rsplit(".", 1)
+
+        # check if the shapefile in the zip folder is complete
+        if f[1]== 'zip':
+            with ZipFile(request_file, 'r') as zip:
+                uploaded_files = zip.namelist()
+                self.check_files_to_upload(uploaded_files)
+            request.files['file'].seek(0)
+
+        # upload the files
+        upload_response = self.upload(subfolder=user.uuid)
+
+        if not upload_response.defined_content:
+            # raise RestApiException(
+            #     '{}'.format(next(iter(upload_response.errors))),
+            #     status_code=hcodes.HTTP_BAD_REQUEST,
+            # )
+            raise RestApiException(
+                 upload_response.errors,
+                status_code=hcodes.HTTP_BAD_REQUEST,
+            )
+
+        upload_filename = upload_response.defined_content['filename']
+        upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, upload_filename)
+        log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
+
+        # if the file is a zip file extract the content in the upload folder
+        if f[1] == 'zip':
+            with ZipFile(upload_filepath, 'r') as zip:
+                upload_folder = Path(upload_filepath).parent
+                zip.extractall(path=upload_folder)
+            # get .shp file filename
+            files = os.listdir(upload_folder)
+            for f in files:
+                e = f.rsplit(".", 1)
+                if e[1]=='shp':
+                    upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, f)
         r = {}
-        for e in uploaded_files:
-            # use user.uuid as name for the subfolder where the file will be uploaded
-            #upload_response = self.upload(subfolder=user.uuid)
-            upload_response = self.upload_data(e, subfolder=user.uuid)
-
-            if not upload_response.defined_content:
-                # raise RestApiException(
-                #     '{}'.format(next(iter(upload_response.errors))),
-                #     status_code=hcodes.HTTP_BAD_REQUEST,
-                # )
-                raise RestApiException(
-                    "for file '{}' there are the following errors: {}".format(e.filename,upload_response.errors),
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
-
-            upload_filename = upload_response.defined_content['filename']
-            upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, upload_filename)
-            log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
-            f = self.split_dir_and_extension(upload_filepath)
-            # for shapefiles the file needed for the coord-file param is only the .shp. .shx and .dbf are useful only to decode the .shp
-            if f[1] == 'shp' or f[1] == 'geojson':
-                r['filepath'] = upload_filepath
-                r['format'] = f[1]
+        filename = self.split_dir_and_extension(upload_filepath)
+        r['filepath'] = upload_filepath
+        r['format'] = filename[1]
         return self.force_response(r)
 
     @staticmethod
@@ -255,7 +263,7 @@ class Data(EndpointResource, Uploader):
         # create a dictionary to compare the uploaded files specs
         file_dict = {}
         for f in files:
-            e = f.filename.split(".")
+            e = f.rsplit(".", 1)
             file_dict[e[1]] = e[0]
         if 'shp' in file_dict:
             # check if there is a file .shx and a file .dbf
