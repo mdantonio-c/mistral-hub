@@ -1,5 +1,5 @@
 import {Observable } from 'rxjs/Rx';
-import {HttpClient } from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 
 import {ApiService} from '@rapydo/services/api';
 import {DataService, RapydoResponse, StorageUsage} from "./data.service";

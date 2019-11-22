@@ -1,4 +1,4 @@
-import {Component, DebugElement} from '@angular/core'
+import {Component, DebugElement} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {ApiService} from '@rapydo/services/api';
 import {NotificationService} from '@rapydo/services/notification';

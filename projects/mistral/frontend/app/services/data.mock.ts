@@ -3145,3 +3145,303 @@ export const MockFiltersResponse: RapydoBundle<any> = {
         }, "errors": null
     }
 };
+
+export const MockRequestsTotalResponse: RapydoBundle<any> = {
+    "Meta": {
+        "data_type": "<class 'dict'>",
+        "elements": 1,
+        "errors": 0,
+        "status": 200
+    }, "Response": {"data": {"total": 2}, "errors": null}
+};
+
+export const MockRequestsNoDataResponse: RapydoBundle<any> = {
+    "Meta": {
+        "data_type": "<class 'list'>",
+        "elements": 2,
+        "errors": 0,
+        "status": 200
+    },
+    "Response": {
+        "data": [],
+        "errors": null
+    }
+};
+
+export const MockRequestsResponse: RapydoBundle<any> = {
+    "Meta": {
+        "data_type": "<class 'list'>",
+        "elements": 2,
+        "errors": 0,
+        "status": 200
+    },
+    "Response": {
+        "data": [
+            {
+                "args": {
+                    "datasets": ["lm5"],
+                    "filters": {
+                        "proddef": [{"desc": "GRIB(tod=1)", "s": "GRIB", "va": {"tod": 1}}],
+                        "product": [{"desc": "T Temperature K", "or": 80, "pr": 11, "s": "GRIB1", "ta": 2}],
+                        "run": [{"desc": "MINUTE(00:00)", "s": "MINUTE", "va": 0}],
+                        "timerange": [{
+                            "desc": "Forecast product valid at reference time + P1 (P1>0) - p1 0 time unit second",
+                            "p1": 0,
+                            "p2": 0,
+                            "s": "GRIB1",
+                            "ty": 0,
+                            "un": 1
+                        }, {
+                            "desc": "Forecast product valid at reference time + P1 (P1>0) - p1 3600 time unit second",
+                            "p1": 1,
+                            "p2": 0,
+                            "s": "GRIB1",
+                            "ty": 0,
+                            "un": 1
+                        }]
+                    },
+                    "postprocessors": []
+                },
+                "end_date": "2019-11-21T08:02:02.710789",
+                "fileoutput": "data-20191121T080202Z-9896b1d0-9ae4-456a-899d-78cb904b3c02.grib",
+                "filesize": 341539308,
+                "id": 246,
+                "name": "Test-scheduled",
+                "schedule_id": 11,
+                "status": "SUCCESS",
+                "submission_date": "2019-11-21T08:02:02.542379",
+                "task_id": "9896b1d0-9ae4-456a-899d-78cb904b3c02"
+            },
+            {
+                "args": {
+                    "datasets": ["lm2.2"],
+                    "filters": {
+                        "level": [{
+                            "desc": "sfc Surface (of the Earth, which includes sea surface) 0 0",
+                            "lt": 1,
+                            "s": "GRIB1"
+                        }, {
+                            "desc": "sfc Cloud base level 0 0",
+                            "lt": 2,
+                            "s": "GRIB1"
+                        }, {
+                            "desc": "sfc Cloud top level 0 0",
+                            "lt": 3,
+                            "s": "GRIB1"
+                        }, {
+                            "desc": "sfc 0 deg (C) isotherm level 0 0",
+                            "lt": 4,
+                            "s": "GRIB1"
+                        }, {
+                            "desc": "sfc Nominal top of atmosphere 0 0",
+                            "lt": 8,
+                            "s": "GRIB1"
+                        }, {
+                            "desc": "sfc Mean sea level 0 0 0 0",
+                            "lt": 102,
+                            "s": "GRIB1"
+                        }, {
+                            "desc": "sfc Fixed height above ground height in meters (2 octets) 2 0",
+                            "l1": 2,
+                            "lt": 105,
+                            "s": "GRIB1"
+                        }, {
+                            "desc": "sfc Fixed height above ground height in meters (2 octets) 10 0",
+                            "l1": 10,
+                            "lt": 105,
+                            "s": "GRIB1"
+                        }],
+                        "product": [{
+                            "desc": "U U-component of wind m s^-1",
+                            "or": 80,
+                            "pr": 33,
+                            "s": "GRIB1",
+                            "ta": 2
+                        }, {"desc": "V V-component of wind m s^-1", "or": 80, "pr": 34, "s": "GRIB1", "ta": 2}],
+                        "timerange": [{
+                            "desc": "Forecast product valid at reference time + P1 (P1>0) - p1 0 time unit second",
+                            "p1": 0,
+                            "p2": 0,
+                            "s": "GRIB1",
+                            "ty": 0,
+                            "un": 1
+                        }, {
+                            "desc": "Forecast product valid at reference time + P1 (P1>0) - p1 3600 time unit second",
+                            "p1": 1,
+                            "p2": 0,
+                            "s": "GRIB1",
+                            "ty": 0,
+                            "un": 1
+                        }, {
+                            "desc": "Forecast product valid at reference time + P1 (P1>0) - p1 7200 time unit second",
+                            "p1": 2,
+                            "p2": 0,
+                            "s": "GRIB1",
+                            "ty": 0,
+                            "un": 1
+                        }, {
+                            "desc": "Forecast product valid at reference time + P1 (P1>0) - p1 10800 time unit second",
+                            "p1": 3,
+                            "p2": 0,
+                            "s": "GRIB1",
+                            "ty": 0,
+                            "un": 1
+                        }]
+                    },
+                    "postprocessors": [{"type": "additional_variables", "variables": ["B11001", "B11002"]}],
+                    "reftime": null
+                },
+                "end_date": "2019-10-31T14:15:01.868711",
+                "fileoutput": "data-20191031T141501Z-fa40e3eb-42f3-4963-bd43-9bd324955952.grib",
+                "filesize": 103382016,
+                "id": 199,
+                "name": "test-vento",
+                "status": "SUCCESS",
+                "submission_date": "2019-10-31T14:09:59.543570",
+                "task_id": null
+            }
+        ],
+        "errors": null
+    }
+};
+
+export const MockSchedulesTotalResponse: RapydoBundle<any> = {
+    "Meta": {
+        "data_type": "<class 'dict'>",
+        "elements": 1,
+        "errors": 0,
+        "status": 200
+    },
+    "Response": {
+        "data": {"total": 3},
+        "errors": null
+    }
+};
+
+export const MockSchedulesNoDataResponse: RapydoBundle<any> = {
+    "Meta": {
+        "data_type": "<class 'list'>",
+        "elements": 0,
+        "errors": 0,
+        "status": 200
+    },
+    "Response": {
+        "data": [],
+        "errors": null
+    }
+};
+
+export const MockSchedulesResponse: RapydoBundle<any> = {
+    "Meta": {
+        "data_type": "<class 'list'>",
+        "elements": 3,
+        "errors": 0,
+        "status": 200
+    },
+    "Response": {
+        "data": [
+            {
+                "args": {
+                    "datasets": ["lm5"],
+                    "filters": {
+                        "proddef": [{"desc": "GRIB(tod=1)", "s": "GRIB", "va": {"tod": 1}}],
+                        "product": [{"desc": "T Temperature K", "or": 80, "pr": 11, "s": "GRIB1", "ta": 2}],
+                        "run": [{"desc": "MINUTE(00:00)", "s": "MINUTE", "va": 0}],
+                        "timerange": [{
+                            "desc": "Forecast product valid at reference time + P1 (P1>0) - p1 0 time unit second",
+                            "p1": 0,
+                            "p2": 0,
+                            "s": "GRIB1",
+                            "ty": 0,
+                            "un": 1
+                        }, {
+                            "desc": "Forecast product valid at reference time + P1 (P1>0) - p1 3600 time unit second",
+                            "p1": 1,
+                            "p2": 0,
+                            "s": "GRIB1",
+                            "ty": 0,
+                            "un": 1
+                        }]
+                    },
+                    "postprocessors": [],
+                    "reftime": {"from": "2019-09-01T00:00:00.000Z", "to": "2019-09-30T12:02:00.000Z"}
+                },
+                "creation_date": "2019-10-28T12:03:44.625372",
+                "enabled": true,
+                "every": 2,
+                "id": 11,
+                "name": "Test-scheduled",
+                "period": "days",
+                "periodic": true,
+                "periodic_settings": "every 2 days",
+                "requests_count": 8
+            },
+            {
+                "args": {
+                    "datasets": ["lm2.2"],
+                    "filters": {
+                        "level": [{
+                            "desc": "sfc Surface (of the Earth, which includes sea surface) 0 0",
+                            "lt": 1,
+                            "s": "GRIB1"
+                        }, {"desc": "sfc Cloud base level 0 0", "lt": 2, "s": "GRIB1"}],
+                        "product": [{"desc": "P Pressure Pa", "or": 80, "pr": 1, "s": "GRIB1", "ta": 2}],
+                        "timerange": [{
+                            "desc": "Forecast product valid at reference time + P1 (P1>0) - p1 0 time unit second",
+                            "p1": 0,
+                            "p2": 0,
+                            "s": "GRIB1",
+                            "ty": 0,
+                            "un": 1
+                        }]
+                    },
+                    "postprocessors": []
+                },
+                "creation_date": "2019-09-24T15:44:26.049672",
+                "crontab": true,
+                "crontab_settings": {"hour": 5, "minute": 0},
+                "enabled": true,
+                "id": 3,
+                "name": "lm2.2 pressure at surface and cloud level",
+                "requests_count": 7
+            },
+            {
+                "args": {
+                    "datasets": ["lm5"],
+                    "filters": {
+                        "area": [{
+                            "desc": "GRIB(Ni=1083, Nj=559, latfirst=-13050000, latlast=12060000, latp=-47000000, lonfirst=-25290000, lonlast=23400000, lonp=10000000, rot=0, type=10)",
+                            "s": "GRIB",
+                            "va": {
+                                "Ni": 1083,
+                                "Nj": 559,
+                                "latfirst": -13050000,
+                                "latlast": 12060000,
+                                "latp": -47000000,
+                                "lonfirst": -25290000,
+                                "lonlast": 23400000,
+                                "lonp": 10000000,
+                                "rot": 0,
+                                "type": 10
+                            }
+                        }],
+                        "level": [{
+                            "desc": "sfc Surface (of the Earth, which includes sea surface) 0 0",
+                            "lt": 1,
+                            "s": "GRIB1"
+                        }],
+                        "product": [{"desc": "P Pressure Pa", "or": 80, "pr": 1, "s": "GRIB1", "ta": 2}],
+                        "run": [{"desc": "MINUTE(00:00)", "s": "MINUTE", "va": 0}]
+                    }
+                },
+                "creation_date": "2019-09-17T12:42:10.125201",
+                "crontab": true,
+                "crontab_settings": {"hour": 0, "minute": 0},
+                "enabled": false,
+                "id": 1,
+                "name": "lm5",
+                "requests_count": 0
+            }],
+        "errors": null
+    }
+};
