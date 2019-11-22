@@ -1,7 +1,6 @@
 import {Component} from '@angular/core';
 
 import {ApiService} from '@rapydo/services/api';
-import {AuthService} from '@rapydo/services/auth';
 import {NotificationService} from '@rapydo/services/notification';
 
 @Component({
@@ -14,7 +13,6 @@ export class DataComponent {
 
     constructor(
         protected api: ApiService,
-        protected auth: AuthService,
         protected notify: NotificationService,
     ) { }
 
@@ -22,9 +20,7 @@ export class DataComponent {
         let data = {};
         this.api.post("data", data).subscribe(
             response => {
-
                 this.data_id = response['data'];
-
                 this.notify.extractErrors(response, this.notify.ERROR);
             }, error => {
                 this.notify.extractErrors(error, this.notify.ERROR);
