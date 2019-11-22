@@ -400,9 +400,9 @@ div.board + pre {
     margin: 2px 0px;
 }
 
-/*.ngx-datatable .datatable-body .datatable-scroll {
+.ngx-datatable .datatable-body .datatable-scroll {
     width: 100% !important;
-}*/
+}
 
 /* style my-requests sidebar */
 .sidenav .nav-tabs {
