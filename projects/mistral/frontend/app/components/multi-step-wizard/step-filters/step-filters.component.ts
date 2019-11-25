@@ -188,11 +188,9 @@ export class StepFiltersComponent implements OnInit {
     }
 
     goToPrevious() {
-        if (this.save()) {
-            // Navigate to the dataset page
-            this.router.navigate(
-                ['../', 'datasets'], {relativeTo: this.route});
-        }
+        // Navigate to the dataset page
+        this.router.navigate(
+            ['../', 'datasets'], {relativeTo: this.route});
     }
 
     goToNext() {
