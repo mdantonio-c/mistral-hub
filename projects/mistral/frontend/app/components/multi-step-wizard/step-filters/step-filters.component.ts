@@ -75,7 +75,7 @@ export class StepFiltersComponent implements OnInit {
         return filter;
     }
 
-    private loadFilters() {
+    loadFilters() {
         this.loading = true;
         // reset filters
         (this.filterForm.controls.filters as FormArray).clear();
