@@ -110,12 +110,15 @@
         <!-- Column Templates -->
         <!-- show details -->
         <ngx-datatable-column
-                width="20"
+                [width]="30"
                 [resizeable]="false"
                 [sortable]="false"
                 [draggable]="false"
                 [canAutoResize]="false"
         >
+            <ng-template let-column="column" ngx-datatable-header-template>
+                <span><i class="fa fa-sync click-event" aria-hidden="true" (click)="list()"></i></span>
+            </ng-template>
             <ng-template
                     let-row="row"
                     let-expanded="expanded"
@@ -227,11 +230,11 @@
         </ngx-datatable-column>
         <!-- Controls -->
         <ngx-datatable-column
+                width="60"
                 [resizeable]="false"
                 [sortable]="false"
                 [draggable]="false"
-                [flexGrow]="0.12"
-                [minWidth]="42">
+                [canAutoResize]="false">
             <ng-template
                     let-value="value"
                     let-row="row"

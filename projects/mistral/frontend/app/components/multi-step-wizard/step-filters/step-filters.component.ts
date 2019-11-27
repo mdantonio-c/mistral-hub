@@ -75,7 +75,7 @@ export class StepFiltersComponent implements OnInit {
         return filter;
     }
 
-    private loadFilters() {
+    loadFilters() {
         this.loading = true;
         // reset filters
         (this.filterForm.controls.filters as FormArray).clear();
@@ -188,11 +188,9 @@ export class StepFiltersComponent implements OnInit {
     }
 
     goToPrevious() {
-        if (this.save()) {
-            // Navigate to the dataset page
-            this.router.navigate(
-                ['../', 'datasets'], {relativeTo: this.route});
-        }
+        // Navigate to the dataset page
+        this.router.navigate(
+            ['../', 'datasets'], {relativeTo: this.route});
     }
 
     goToNext() {

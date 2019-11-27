@@ -30,16 +30,16 @@ const appRoutes: Routes = [
         path: 'app/data',
         component: DataComponent, canActivate: [AuthGuard], runGuardsAndResolvers: 'always',
         children: [
-            {path: '', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
-            {path: 'datasets', component: StepDatasetsComponent, outlet: 'step'},
-            {path: 'filters', component: StepFiltersComponent, outlet: 'step', canActivate: [WorkflowGuard]},
-            {path: 'postprocess', component: StepPostprocessComponent, outlet: 'step', canActivate: [WorkflowGuard]},
-            {path: 'submit', component: StepSubmitComponent, outlet: 'step', canActivate: [WorkflowGuard]}
+            {path: '', redirectTo: 'datasets', pathMatch: 'full'},
+            {path: 'datasets', component: StepDatasetsComponent},
+            {path: 'filters', component: StepFiltersComponent, canActivate: [WorkflowGuard]},
+            {path: 'postprocess', component: StepPostprocessComponent, canActivate: [WorkflowGuard]},
+            {path: 'submit', component: StepSubmitComponent, canActivate: [WorkflowGuard]}
         ]
     },
     {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
-    {path: 'app', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
-    {path: '', redirectTo: '/app/data/(step:datasets)', pathMatch: 'full'},
+    {path: 'app', redirectTo: '/app/data/datasets', pathMatch: 'full'},
+    {path: '', redirectTo: '/app/data/datasets', pathMatch: 'full'},
 ];
 
 @NgModule({

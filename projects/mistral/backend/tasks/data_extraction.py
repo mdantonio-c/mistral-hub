@@ -111,7 +111,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 p = postprocessors[0]
                 logger.debug(p)
                 pp_type = p.get('type')
-                enabled_postprocessors = ('derived_variables','grid_interpolation','grid_cropping','spare_point_interpolation')
+                enabled_postprocessors = ('derived_variables','grid_interpolation','grid_cropping','spare_point_interpolation', 'statistic_elaboration')
                 if pp_type not in enabled_postprocessors:
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
                 logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
@@ -179,9 +179,18 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         post_proc_cmd.append('--coord-format={}'.format(p.get('format')))
                         post_proc_cmd.append(tmp_outfile)
                         post_proc_cmd.append(os.path.join(user_dir, out_filename))
+
+                    elif pp_type == 'statistic_elaboration':
+                        post_proc_cmd =[]
+                        post_proc_cmd.append('vg6d_transform')
+                        post_proc_cmd.append('--comp-stat-proc={}:{}'.format(p.get('input-timerange'),p.get('output-timerange')))
+                        post_proc_cmd.append("--comp-step='{} {}'".format(p.get('interval')//24, "{:02d}".format(p.get('interval')%24)))
+                        post_proc_cmd.append(tmp_outfile)
+                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
                     logger.debug('Post process command: {}>'.format(post_proc_cmd))
                     proc = subprocess.run(post_proc_cmd, stdout=subprocess.PIPE)
                     proc.check_returncode()
+
                 except Exception:
                     message = 'Error in post-processing: no results'
                     raise PostProcessingException(message)
