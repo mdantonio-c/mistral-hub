@@ -58,8 +58,6 @@ class Data(EndpointResource, Uploader):
                     'in': 'formData',
                     'description': 'spare point file for the interpolation',
                     'type': 'file'
-                    # 'type': 'array',
-                    # 'items':{'type': 'string','format':'binary'},
                 }
             ],
             'responses': {
