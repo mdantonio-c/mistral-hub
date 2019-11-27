@@ -1,6 +1,6 @@
 <loading *ngIf="loading"></loading>
 <!-- no data -->
-<div class="row" *ngIf="!loading && !rows?.length">
+<div class="row" *ngIf="!loading && !data?.length">
     <div class="col">
         <div class="no-results">
             <h2>No Data</h2>
@@ -9,15 +9,30 @@
     </div>
 </div>
 <!-- load schedules in the table -->
-<div class="table-responsive" *ngIf="rows?.length" #tableWrapper>
+<div class="table-responsive" *ngIf="data?.length" #tableWrapper>
+
     <ngx-datatable
-            #mySchedulesTable
-            class="expandable"
-            [rows]="rows"
-            [columnMode]="'flex'"
-            [loadingIndicator]='true'
-            [footerHeight]="50"
-            [limit]="paging.itemsPerPage">
+        #myRequestsTable
+        class="bootstrap expandable"
+        [rows]="data"
+        [columns]="columns"
+        [columnMode]="ColumnMode.flex"
+        [headerHeight]="40"
+        [footerHeight]="40"
+        [externalPaging]="true"
+        [count]="paging.dataLength"
+        [limit]="paging.itemsPerPage"
+        [offset]="paging.page"
+        (page)="serverSidePagination($event)"
+        [rowHeight]="'auto'">
+<!--     <ngx-datatable
+        #mySchedulesTable
+        class="expandable"
+        [rows]="rows"
+        [columnMode]="'flex'"
+        [loadingIndicator]='true'
+        [footerHeight]="50"
+        [limit]="paging.itemsPerPage"> -->
         <!-- Row Detail Template -->
         <ngx-datatable-row-detail
                 [rowHeight]="'100%'"
@@ -116,12 +131,15 @@
         <!-- Column Templates -->
         <!-- show details -->
         <ngx-datatable-column
-                width="20"
+                width="30"
                 [resizeable]="false"
                 [sortable]="false"
                 [draggable]="false"
                 [canAutoResize]="false"
         >
+            <ng-template let-column="column" ngx-datatable-header-template>
+                <span><i class="fa fa-sync click-event" aria-hidden="true" (click)="list()"></i></span>
+            </ng-template>
             <ng-template
                     let-row="row"
                     let-expanded="expanded"
@@ -201,34 +219,6 @@
             </ng-template>
         </ngx-datatable-column>
 
-        <ngx-datatable-footer>
-            <ng-template
-                    ngx-datatable-footer-template
-                    let-pageSize="pageSize"
-                    let-selectedCount="selectedCount"
-                    let-curPage="curPage"
-                    let-offset="offset">
-                <div class='col-3'>
-                    {{paging.dataLength}} total
-                </div>
-                <div class='col-9'>
-                    <div class='float-right'>
-                        <ngb-pagination
-                                boundaryLinks="true"
-                                directionLinks="true"
-                                [page]="paging.page"
-                                [pageSize]="paging.itemsPerPage"
-                                [collectionSize]="paging.dataLength"
-                                [maxSize]="5"
-                                [rotate]="true"
-                                size="sm"
-                                (pageChange)="setPage($event)"
-                        >
-                        </ngb-pagination>
-                    </div>
-                </div>
-            </ng-template>
-        </ngx-datatable-footer>
     </ngx-datatable>
     <ng-template #noValue>-</ng-template>
 </div>

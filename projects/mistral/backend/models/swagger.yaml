@@ -424,6 +424,9 @@ definitions:
         description: Settings for the crontab request
         type: object
         $ref: "#/definitions/CrontabSettings"
+#      on-ready-settings:
+#        description: Settings for the on-ready scheduled request
+#        schema: {}
 
   CrontabSettings:
     properties:
@@ -474,7 +477,6 @@ definitions:
             - minutes
             - seconds
             - microseconds
-
   Fileoutput:
     properties:
       fileoutput:

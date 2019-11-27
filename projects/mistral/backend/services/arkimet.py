@@ -7,7 +7,7 @@ import glob
 import json
 import math
 import dateutil
-from utilities.logs import get_logger
+from restapi.utilities.logs import get_logger
 
 DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
 logger = get_logger(__name__)

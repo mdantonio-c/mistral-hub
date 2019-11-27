@@ -15,7 +15,7 @@
   width: 120px;
   position: fixed;
   z-index: 1;
-  top: 120px;
+  /*top: 120px;*/
   left: 10px;
   overflow-x: hidden;
   padding: 8px 0;
@@ -40,12 +40,12 @@
   padding: 0px 10px;
 }
 
-@media screen and (max-height: 450px) {
-  .sidenav {
-    padding-top: 15px;
-  }
+/*@media screen and (max-height: 450px) {*/
+/*  .sidenav {*/
+/*    padding-top: 15px;*/
+/*  }*/
 
-  .sidenav a {
-    font-size: 18px;
-  }
-}
+/*  .sidenav a {*/
+/*    font-size: 18px;*/
+/*  }*/
+/*}*/

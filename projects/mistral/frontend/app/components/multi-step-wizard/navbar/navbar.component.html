@@ -4,7 +4,7 @@
 
         <!-- circular datasets icon -->
         <li class="nav-item">
-            <a [routerLink]="[{ outlets: {step: ['datasets'] } }]"
+            <a [routerLink]="['datasets']"
                routerLinkActive="active"
                [routerLinkActiveOptions]="{ exact: true }"
                title="datasets" class="nav-link">
@@ -16,7 +16,7 @@
 
         <!-- circular filter icon -->
         <li class="nav-item">
-            <a [routerLink]="[{ outlets: {step: ['filters'] } }]"
+            <a [routerLink]="['filters']"
                routerLinkActive="active"
                title="filters" class="nav-link">
                 <span class="round-tabs two">
@@ -27,7 +27,7 @@
 
         <!-- circular postprocess icon -->
         <li class="nav-item">
-            <a [routerLink]="[{ outlets: { step: ['postprocess'] } }]"
+            <a [routerLink]="['postprocess']"
                routerLinkActive="active"
                title="postprocess" class="nav-link">
                 <span class="round-tabs three">
@@ -38,7 +38,7 @@
 
         <!-- circular done icon -->
         <li class="nav-item">
-            <a [routerLink]="[{ outlets: { step: ['submit'] } }]"
+            <a [routerLink]="['submit']"
                routerLinkActive="active"
                title="completed" class="nav-link">
                 <span class="round-tabs four">
