@@ -126,6 +126,9 @@ class Data(EndpointResource, Uploader):
             elif p_type == 'spare_point_interpolation':
                 self.validate_input(p, 'SPIProcessor')
                 self.validate_spare_point_interpol_params(p)
+            elif p_type == 'statistic_elaboration':
+                self.validate_input(p, 'SEProcessor')
+                self.validate_statistic_elaboration_params(p)
             else:
                 raise RestApiException(
                     'Unknown post-processor type for {}'.format(p_type),
@@ -242,6 +245,35 @@ class Data(EndpointResource, Uploader):
                 shutil.rmtree(uploaded_filepath.parent)
                 raise RestApiException('Sorry.The file for the interpolation is corrupted. Please try to upload it again',
                                        status_code=hcodes.HTTP_SERVER_ERROR)
+
+    @staticmethod
+    def validate_statistic_elaboration_params(params):
+        input = params['input-timerange']
+        output = params['output-timerange']
+        if input != output:
+            if input == 254:
+                if output == 1:
+                    raise RestApiException(
+                        'Parameters for statistic elaboration are not correct',
+                        status_code=hcodes.HTTP_BAD_REQUEST)
+                else:
+                    return
+            if input == 0:
+                if output != 254:
+                    raise RestApiException(
+                        'Parameters for statistic elaboration are not correct',
+                        status_code=hcodes.HTTP_BAD_REQUEST)
+                else:
+                    return
+            else:
+                raise RestApiException(
+                    'Parameters for statistic elaboration are not correct',
+                    status_code=hcodes.HTTP_BAD_REQUEST)
+        if input == output:
+            if input == 254:
+                raise RestApiException(
+                    'Parameters for statistic elaboration are not correct',
+                    status_code=hcodes.HTTP_BAD_REQUEST)
 
 
     @staticmethod
