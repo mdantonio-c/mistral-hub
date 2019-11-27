@@ -111,7 +111,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 p = postprocessors[0]
                 logger.debug(p)
                 pp_type = p.get('type')
-                enabled_postprocessors = ('derived_variables','grid_interpolation','grid_cropping','spare_point_interpolation', 'statistic_elaboration')
+                enabled_postprocessors = (
+                'derived_variables', 'grid_interpolation', 'grid_cropping', 'spare_point_interpolation',
+                'statistic_elaboration')
                 if pp_type not in enabled_postprocessors:
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
                 logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
@@ -191,7 +193,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     proc = subprocess.run(post_proc_cmd, stdout=subprocess.PIPE)
                     proc.check_returncode()
 
-                except Exception:
+                except Exception as perr:
+                    logger.warn(str(perr))
                     message = 'Error in post-processing: no results'
                     raise PostProcessingException(message)
                 finally:
