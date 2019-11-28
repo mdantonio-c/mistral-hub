@@ -106,13 +106,6 @@ export interface TimeSchedule {
     minute: number;
 }
 
-export const derivedVariables = [
-    {code: 'B12194', desc: 'Air density'},
-    {code: 'B13003', desc: 'Relative humidity'},
-    {code: 'B11001', desc: 'Wind direction'},
-    {code: 'B11002', desc: 'Wind speed'},
-];
-
 @Injectable({
     providedIn: 'root'
 })
@@ -221,7 +214,7 @@ export class DataService {
     }
 
     getVariableDescription(code): string {
-        return derivedVariables.find(av => av.code === code).desc;
+        return this._derivedVariables.find(av => av.code === code).desc;
     }
 
     getStorageUsage(): Observable<RapydoResponse<StorageUsage>> {

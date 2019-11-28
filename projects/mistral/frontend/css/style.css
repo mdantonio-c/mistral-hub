@@ -89,13 +89,23 @@
     background-color: #f8f8f8;
     border: 1px dashed #ccc;
     margin-bottom: 2rem;
-    padding: 1.6rem;
-
     margin-left: 5.5%;
     float: none;
     width: 80%;
-    padding-left: 1.5%;
-    padding-right: 1.5%;
+    padding: 1.6rem 1.5%;
+}
+
+/* Disable box-shadow in Firefox for invalid input fields */
+:invalid {
+  box-shadow: none;
+}
+
+:-moz-submit-invalid {
+  box-shadow: none;
+}
+
+:-moz-ui-invalid {
+  box-shadow:none;
 }
 
 ul {
@@ -104,7 +114,6 @@ ul {
 
 dl.request-summary {
     padding: 0px 40px;
-
 }
 
 dl.request-summary p {
@@ -114,7 +123,7 @@ dl.request-summary p {
 
 dl.request-summary p:before {
     content: "\f00c"; /* FontAwesome Unicode */
-    font-family: FontAwesome;
+    font-family: 'Font Awesome\ 5 Free';
     display: inline-block;
     margin-left: -1.3em;
     width: 1.3em;

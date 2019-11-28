@@ -3,7 +3,6 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {FormData, FormDataService} from "@app/services/formData.service";
 import {
-    derivedVariables,
     DataService,
     ScheduleType,
     RepeatEvery,
@@ -24,7 +23,6 @@ export class StepSubmitComponent implements OnInit {
     isFormValid = false;
     scheduleForm: FormGroup;
     schedule: TaskSchedule = null;
-    vars = derivedVariables;
 
     constructor(
         private router: Router,
