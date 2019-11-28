@@ -65,8 +65,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
             # I should check the user quota before...
             # check the output size
-            data_size = arki.estimate_data_size(datasets, query)
-            logger.debug('Resulting output size: {} ({})'.format(data_size, human_size(data_size)))
+            esti_data_size = arki.estimate_data_size(datasets, query)
+            logger.debug('Resulting output size: {} ({})'.format(esti_data_size, human_size(esti_data_size)))
 
             # create download user dir if it doesn't exist
             uuid = RequestManager.get_uuid(db, user_id)
@@ -80,11 +80,11 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # check for exceeding quota
             max_user_quota = db.session.query(db.User.disk_quota).filter_by(id=user_id).scalar()
             logger.debug('MAX USER QUOTA for user<{}>: {}'.format(user_id, max_user_quota))
-            if used_quota + data_size > max_user_quota:
+            if used_quota + esti_data_size > max_user_quota:
                 free_space = max_user_quota - used_quota
                 # save error message in db
                 message = 'Disk quota exceeded: required size {}; remaining space {}'.format(
-                    human_size(data_size), human_size(free_space))
+                    human_size(esti_data_size), human_size(free_space))
                 # check if this request comes from a schedule. If so deactivate the schedule.
                 if schedule:
                     logger.debug('Deactivate periodic task for schedule {}'.format(schedule_id))
@@ -208,6 +208,11 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 with open(os.path.join(user_dir, out_filename), mode='w') as outfile:
                     subprocess.Popen(arki_query_cmd, stdout=outfile)
 
+            # get the actual data size
+            data_size = os.path.getsize(os.path.join(user_dir, out_filename))
+            if data_size > esti_data_size:
+                logger.warn('Actual resulting data exceeds estimation of {}'.format(
+                    human_size(data_size - esti_data_size)))
             # create fileoutput record in db
             RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
             # update request status
