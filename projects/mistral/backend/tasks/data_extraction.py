@@ -81,7 +81,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             max_user_quota = db.session.query(db.User.disk_quota).filter_by(id=user_id).scalar()
             logger.debug('MAX USER QUOTA for user<{}>: {}'.format(user_id, max_user_quota))
             if used_quota + esti_data_size > max_user_quota:
-                free_space = max(max_user_quota - used_quota)
+                free_space = max(max_user_quota - used_quota, 0)
                 # save error message in db
                 message = 'Disk quota exceeded: required size {}; remaining space {}'.format(
                     human_size(esti_data_size), human_size(free_space))
