@@ -214,6 +214,10 @@ export class DataService {
     }
 
     getVariableDescription(code): string {
+        if (this._derivedVariables === undefined) {
+            console.warn(`Derived variables undefined so description cannot be retrieved for code ${code}`);
+            return;
+        }
         return this._derivedVariables.find(av => av.code === code).desc;
     }
 
@@ -221,7 +225,7 @@ export class DataService {
         return this.api.get(`usage`);
     }
 
-    getDerivedVariables(): Observable<any> {
+    getDerivedVariables(): Observable<DerivedVariables[]> {
         if (this._derivedVariables) {
             return of(this._derivedVariables);
         } else {
