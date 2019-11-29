@@ -38,7 +38,7 @@ export class RequestsComponent extends BasePaginationComponent {
 
     ngOnInit() {
         // make sure the derived variables have been loaded
-        this.dataService.getDerivedVariables().subscribe().then(r => {});
+        this.dataService.getDerivedVariables().subscribe();
     }
 
     list() {
