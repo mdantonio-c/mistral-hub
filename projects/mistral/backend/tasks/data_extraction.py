@@ -190,8 +190,11 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         post_proc_cmd.append(tmp_outfile)
                         post_proc_cmd.append(os.path.join(user_dir, out_filename))
                     logger.debug('Post process command: {}>'.format(post_proc_cmd))
-                    proc = subprocess.run(post_proc_cmd, stdout=subprocess.PIPE)
-                    proc.check_returncode()
+                    proc = subprocess.Popen(post_proc_cmd)
+                    # wait for the process to terminate
+                    proc.wait()
+                    if proc.returncode != 0:
+                        raise Exception()
 
                 except Exception as perr:
                     logger.warn(str(perr))
