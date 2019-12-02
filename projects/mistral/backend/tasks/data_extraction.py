@@ -121,7 +121,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 tmp_outfile = os.path.join(user_dir, out_filename + '.tmp')
                 # call data extraction
                 with open(tmp_outfile, mode='w') as query_outfile:
-                    subprocess.Popen(arki_query_cmd, stdout=query_outfile)
+                    ext_proc = subprocess.Popen(arki_query_cmd, stdout=query_outfile)
+                    ext_proc.wait()
+                    if ext_proc.wait() != 0:
+                        raise Exception('Failure in data extraction')
                 try:
                     if pp_type == 'derived_variables':
                         post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
@@ -192,9 +195,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     logger.debug('Post process command: {}>'.format(post_proc_cmd))
                     proc = subprocess.Popen(post_proc_cmd)
                     # wait for the process to terminate
-                    proc.wait()
-                    if proc.returncode != 0:
-                        raise Exception()
+                    if proc.wait() != 0:
+                        raise Exception('Failure in post-processing')
 
                 except Exception as perr:
                     logger.warn(str(perr))
