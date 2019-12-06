@@ -106,17 +106,20 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             out_filename = 'data-{utc_now}-{id}.grib'.format(
                 utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
                 id=self.request.id)
-
+            response = ''
             if postprocessors:
-                p = postprocessors[0]
-                logger.debug(p)
-                pp_type = p.get('type')
-                enabled_postprocessors = (
-                'derived_variables', 'grid_interpolation', 'grid_cropping', 'spare_point_interpolation',
-                'statistic_elaboration')
-                if pp_type not in enabled_postprocessors:
-                    raise ValueError("Unknown post-processor: {}".format(pp_type))
-                logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
+                logger.debug(postprocessors)
+                #check if requested postprocessors are enabled
+                for p in postprocessors:
+                    pp_type = p.get('type')
+                    enabled_postprocessors = (
+                        'derived_variables', 'grid_interpolation', 'grid_cropping', 'spare_point_interpolation',
+                        'statistic_elaboration')
+                    if pp_type not in enabled_postprocessors:
+                        raise ValueError("Unknown post-processor: {}".format(pp_type))
+
+                    logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
+
                 # temporarily save the data extraction output
                 tmp_outfile = os.path.join(user_dir, out_filename + '.tmp')
                 # call data extraction
@@ -125,84 +128,38 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     ext_proc.wait()
                     if ext_proc.wait() != 0:
                         raise Exception('Failure in data extraction')
-                try:
+                # final result
+                outfile = os.path.join(user_dir, out_filename)
+
+                # case of single postprocessor
+                if len(postprocessors) == 1:
+                    p = postprocessors[0]
+                    pp_type = p.get('type')
+
                     if pp_type == 'derived_variables':
-                        post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
-                            ",".join(p.get('variables')),
-                            tmp_outfile,
-                            os.path.join(user_dir, out_filename)
-                        ))
+                        pp_output = pp_derived_variables(datasets=datasets, params=p, tmp_extraction=tmp_outfile, query=query, user_dir=user_dir,reftime=reftime, filters=filters)
+                        # join pp_output and tmp_extraction in output file
+                        cat_cmd = ['cat',tmp_outfile,pp_output]
+                        with open(outfile,mode='w') as outfile:
+                            ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
+                            ext_proc.wait()
+                            if ext_proc.wait() != 0:
+                                raise Exception('Failure in data extraction')
+                        # delete pp_output
+                        os.remove(pp_output)
+
                     elif pp_type == 'grid_interpolation':
-                        post_proc_cmd =[]
-                        post_proc_cmd.append('vg6d_transform')
-                        post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
-                        post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
+                        pp_grid_interpolation(params=p, input=tmp_outfile, output=outfile)
 
-                        # vg6d_transform automatically provides defaults for missing optional params
-                        if 'grid-params' in p:
-                            post_proc_cmd.append('--type={}'.format(p.get('grid-params')))
-                        if 'x-min' in p['boundings']:
-                            post_proc_cmd.append('--x-min={}'.format(p['boundings']['x-min']))
-                        if 'x-max' in p['boundings']:
-                            post_proc_cmd.append('--x-max={}'.format(p['boundings']['x-max']))
-                        if 'y-min' in p['boundings']:
-                            post_proc_cmd.append('--y-min={}'.format(p['boundings']['y-min']))
-                        if 'y-max' in p['boundings']:
-                            post_proc_cmd.append('--y-max={}'.format(p['boundings']['y-max']))
-                        if 'nx' in p['nodes']:
-                            post_proc_cmd.append('--nx={}'.format(p['nodes']['nx']))
-                        if 'ny' in p['nodes']:
-                            post_proc_cmd.append('--ny={}'.format(p['nodes']['ny']))
-
-                        post_proc_cmd.append(tmp_outfile)
-                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
                     elif pp_type == 'grid_cropping':
-                        post_proc_cmd =[]
-                        post_proc_cmd.append('vg6d_transform')
-                        post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
-                        post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
+                        pp_grid_cropping(params=p, input=tmp_outfile, output=outfile)
 
-                        if 'grid-params' in p:
-                            post_proc_cmd.append('--type={}'.format(p.get('grid-params')))
-                        if 'ilon' in p['boundings']:
-                            post_proc_cmd.append('--ilon={}'.format(p['boundings']['ilon']))
-                        if 'ilat' in p['boundings']:
-                            post_proc_cmd.append('--ilat={}'.format(p['boundings']['ilat']))
-                        if 'flon' in p['boundings']:
-                            post_proc_cmd.append('--flon={}'.format(p['boundings']['flon']))
-                        if 'flat' in p['boundings']:
-                            post_proc_cmd.append('--flat={}'.format(p['boundings']['flat']))
-
-                        post_proc_cmd.append(tmp_outfile)
-                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
                     elif pp_type == 'spare_point_interpolation':
-                        post_proc_cmd = []
-                        post_proc_cmd.append('vg6d_transform')
-                        post_proc_cmd.append('--trans-type={}'.format(p.get('trans-type')))
-                        post_proc_cmd.append('--sub-type={}'.format(p.get('sub-type')))
-                        post_proc_cmd.append('--coord-file={}'.format(p.get('coord-filepath')))
-                        post_proc_cmd.append('--coord-format={}'.format(p.get('format')))
-                        post_proc_cmd.append(tmp_outfile)
-                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
+                        pp_sp_interpolation(params=p, input=tmp_outfile, output=outfile)
 
                     elif pp_type == 'statistic_elaboration':
-                        post_proc_cmd =[]
-                        post_proc_cmd.append('vg6d_transform')
-                        post_proc_cmd.append('--comp-stat-proc={}:{}'.format(p.get('input-timerange'),p.get('output-timerange')))
-                        post_proc_cmd.append("--comp-step='{} {}'".format(p.get('interval')//24, "{:02d}".format(p.get('interval')%24)))
-                        post_proc_cmd.append(tmp_outfile)
-                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
-                    logger.debug('Post process command: {}>'.format(post_proc_cmd))
-                    proc = subprocess.Popen(post_proc_cmd)
-                    # wait for the process to terminate
-                    if proc.wait() != 0:
-                        raise Exception('Failure in post-processing')
+                        pp_statistic_elaboration(params=p, input=tmp_outfile, output=outfile)
 
-                except Exception as perr:
-                    logger.warn(str(perr))
-                    message = 'Error in post-processing: no results'
-                    raise PostProcessingException(message)
-                finally:
                     # always remove tmp file
                     os.remove(tmp_outfile)
                     if pp_type == 'spare_point_interpolation':
@@ -240,7 +197,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,
-                meta=message
+                meta=str(exc)
             )
             raise Ignore()
         except Exception as exc:
@@ -260,6 +217,266 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             body_msg += extra_msg
             send_result_notication(user_email, request.status, body_msg)
 
+def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,reftime=None, filters=None):
+
+    product_query = []
+    level_query = []
+    # products for wind direction and wind speed
+    if ('B11001' or 'B11002') in params.get('variables'):
+        logger.debug('wind speed? {}'.format(params.get('variables')))
+        # u-component
+        product_query.append('GRIB1,80,2,33')
+        # v-component
+        product_query.append('GRIB1,80,2,34')
+        # level 10
+        level_query.append('GRIB1,105,10')
+    # products for relative humidity
+    if 'B13003' in params.get('variables'):
+        logger.debug('relative humidity? {}'.format(params.get('variables')))
+        # temperature
+        product_query.append('GRIB1,80,2,11')
+        # specific humidity
+        product_query.append('GRIB1,80,2,51')
+        # pressure
+        product_query.append('GRIB1,80,2,1')
+        # level 0
+        level_query.append('GRIB1,1')
+    # products for snowfall
+    if 'B13205' in params.get('variables'):
+        logger.debug('snowfall? {}'.format(params.get('variables')))
+        # grid scale snowfall
+        product_query.append('GRIB1,80,2,79')
+        # convective snowfall
+        product_query.append('GRIB1,80,2,78')
+        # level 0
+        level_query.append('GRIB1,1')
+    # products for u-component (--> is already in the dataset products..)
+    if 'B11003' in params.get('variables'):
+        logger.debug('u component? {}'.format(params.get('variables')))
+        # u-component
+        product_query.append('GRIB1,80,2,33')
+        # level 10
+        level_query.append('GRIB1,105,10')
+    # products for v-component (--> is already in the dataset products..)
+    if 'B11004' in params.get('variables'):
+        logger.debug('v component? {}'.format(params.get('variables')))
+        # v-component
+        product_query.append('GRIB1,80,2,34')
+        # level 10
+        level_query.append('GRIB1,105,10')
+    # products for dew-point temperature (--> is already in the dataset products..)
+    if 'B12103' in params.get('variables'):
+        logger.debug('dew point? {}'.format(params.get('variables')))
+        # dew-point temperature
+        product_query.append('GRIB1,80,2,17')
+    # products for specific humidity (--> is already in the dataset products..)
+    if 'B13001' in params.get('variables'):
+        logger.debug('specific humidity? {}'.format(params.get('variables')))
+        # specific humidity
+        product_query.append('GRIB1,80,2,51')
+        # level 0
+        level_query.append('GRIB1,1')
+    # air density??
+
+    logger.debug('Products needed for pp : {}'.format(product_query))
+    logger.debug('Levels needed for pp : {}'.format(level_query))
+    try:
+        new_tmp_extraction = None
+        tmp_extraction_basename = os.path.basename(tmp_extraction)
+        # check if requested products are already in the query
+        actual_filter_list = [x.strip() for x in query.split(';')]
+        actual_products = [i.split(":")[1] for i in actual_filter_list if i.startswith('product')]
+        if not all(elem in [x.strip() for x in actual_products[0].split('or')] for elem in product_query):
+            # products requested for postprocessing
+            pp_products = " or ".join(product_query)
+            # replace the products in query
+            new_filter_list_w_product = ['product:'+pp_products if i.startswith('product') else i for i in actual_filter_list]
+            new_query_w_product = ";".join(new_filter_list_w_product)
+            logger.debug('Query for pp with new products: {}'.format(new_query_w_product))
+            # check if the new query gives back some results
+            summary = arki.load_summary(datasets, new_query_w_product)
+            # if not replace also the level param
+            if summary['items']['summarystats']['s']==0 :
+                pp_levels = " or ".join(level_query)
+                # replace the levels in query
+                actual_filter_list = [x.strip() for x in new_query_w_product.split(';')]
+                new_filter_list_w_level = ['level:' + pp_levels if i.startswith('level') else i for i in
+                                             actual_filter_list]
+                new_query_w_level = ";".join(new_filter_list_w_level)
+                logger.debug('Query for pp with new levels: {}'.format(new_query_w_level))
+                # check if the new query gives back some results
+                summary = arki.load_summary(datasets, new_query_w_level)
+                # if not raise error
+                if summary['items']['summarystats']['s'] == 0:
+                    raise Exception('Failure in post-processing')
+                # if the new query with the new levels is correct, replace the old one
+                else:
+                    query = new_query_w_level
+            # if the new query with the new products is correct, replace the old one
+            else:
+                query = new_query_w_product
+            # temporarily save the data extraction output of the new query
+            ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
+            arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
+            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0]+'-new_temp_extr.grib.tmp'
+            new_tmp_extraction = os.path.join(user_dir,new_tmp_extraction_filename)
+            # call data extraction
+            with open(new_tmp_extraction, mode='w') as query_outfile:
+                ext_proc = subprocess.Popen(arki_query_cmd, stdout=query_outfile)
+                ext_proc.wait()
+                if ext_proc.wait() != 0:
+                    raise Exception('Failure in data extraction with parameters for derived variables')
+        # set the correct input file for postprocessing
+        if new_tmp_extraction is not None:
+            tmp_outfile = new_tmp_extraction
+        else:
+            tmp_outfile = tmp_extraction
+        #command for postprocessor
+        pp_output_filename = tmp_extraction_basename.split('.')[0]+'-pp_output.grib.tmp'
+        pp_output = os.path.join(user_dir,pp_output_filename)
+        post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
+            ",".join(params.get('variables')),
+            tmp_outfile,
+            pp_output)
+        )
+        logger.debug('Post process command: {}>'.format(post_proc_cmd))
+
+        proc = subprocess.Popen(post_proc_cmd)
+        # wait for the process to terminate
+        if proc.wait() != 0:
+            raise Exception('Failure in post-processing')
+        else:
+            return pp_output
+
+    except Exception as perr:
+        logger.warn(str(perr))
+        message = 'Error in post-processing: no results'
+        raise PostProcessingException(message)
+    finally:
+        if new_tmp_extraction is not None:
+            os.remove(new_tmp_extraction)
+
+def pp_grid_interpolation(params, input, output):
+    try:
+        post_proc_cmd =[]
+        post_proc_cmd.append('vg6d_transform')
+        post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
+        post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
+
+        # vg6d_transform automatically provides defaults for missing optional params
+        if 'grid-params' in params:
+            post_proc_cmd.append('--type={}'.format(params.get('grid-params')))
+        if 'x-min' in params['boundings']:
+            post_proc_cmd.append('--x-min={}'.format(params['boundings']['x-min']))
+        if 'x-max' in params['boundings']:
+            post_proc_cmd.append('--x-max={}'.format(params['boundings']['x-max']))
+        if 'y-min' in params['boundings']:
+            post_proc_cmd.append('--y-min={}'.format(params['boundings']['y-min']))
+        if 'y-max' in params['boundings']:
+            post_proc_cmd.append('--y-max={}'.format(params['boundings']['y-max']))
+        if 'nx' in params['nodes']:
+            post_proc_cmd.append('--nx={}'.format(params['nodes']['nx']))
+        if 'ny' in params['nodes']:
+            post_proc_cmd.append('--ny={}'.format(params['nodes']['ny']))
+
+        post_proc_cmd.append(input)
+        post_proc_cmd.append(output)
+        logger.debug('Post process command: {}>'.format(post_proc_cmd))
+
+        proc = subprocess.Popen(post_proc_cmd)
+        # wait for the process to terminate
+        if proc.wait() != 0:
+            raise Exception('Failure in post-processing')
+        else:
+            return output
+
+    except Exception as perr:
+        logger.warn(str(perr))
+        message = 'Error in post-processing: no results'
+        raise PostProcessingException(message)
+
+def pp_grid_cropping(params, input, output):
+    try:
+        post_proc_cmd = []
+        post_proc_cmd.append('vg6d_transform')
+        post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
+        post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
+
+        if 'grid-params' in params:
+            post_proc_cmd.append('--type={}'.format(params.get('grid-params')))
+        if 'ilon' in params['boundings']:
+            post_proc_cmd.append('--ilon={}'.format(params['boundings']['ilon']))
+        if 'ilat' in params['boundings']:
+            post_proc_cmd.append('--ilat={}'.format(params['boundings']['ilat']))
+        if 'flon' in params['boundings']:
+            post_proc_cmd.append('--flon={}'.format(params['boundings']['flon']))
+        if 'flat' in params['boundings']:
+            post_proc_cmd.append('--flat={}'.format(params['boundings']['flat']))
+
+        post_proc_cmd.append(input)
+        post_proc_cmd.append(output)
+        logger.debug('Post process command: {}>'.format(post_proc_cmd))
+
+        proc = subprocess.Popen(post_proc_cmd)
+        # wait for the process to terminate
+        if proc.wait() != 0:
+            raise Exception('Failure in post-processing')
+        else:
+            return output
+
+    except Exception as perr:
+        logger.warn(str(perr))
+        message = 'Error in post-processing: no results'
+        raise PostProcessingException(message)
+
+def pp_sp_interpolation(params, input, output):
+    try:
+        post_proc_cmd = []
+        post_proc_cmd.append('vg6d_transform')
+        post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
+        post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
+        post_proc_cmd.append('--coord-file={}'.format(params.get('coord-filepath')))
+        post_proc_cmd.append('--coord-format={}'.format(params.get('format')))
+        post_proc_cmd.append(input)
+        post_proc_cmd.append(output)
+        logger.debug('Post process command: {}>'.format(post_proc_cmd))
+
+        proc = subprocess.Popen(post_proc_cmd)
+        # wait for the process to terminate
+        if proc.wait() != 0:
+            raise Exception('Failure in post-processing')
+        else:
+            return output
+
+    except Exception as perr:
+        logger.warn(str(perr))
+        message = 'Error in post-processing: no results'
+        raise PostProcessingException(message)
+
+def pp_statistic_elaboration(params, input, output):
+    try:
+        post_proc_cmd = []
+        post_proc_cmd.append('vg6d_transform')
+        post_proc_cmd.append('--comp-stat-proc={}:{}'.format(params.get('input-timerange'), params.get('output-timerange')))
+        post_proc_cmd.append("--comp-step='{} {}'".format(params.get('interval') // 24, "{:02d}".format(params.get('interval') % 24)))
+        post_proc_cmd.append(input)
+        post_proc_cmd.append( output)
+        logger.debug('Post process command: {}>'.format(post_proc_cmd))
+
+        proc = subprocess.Popen(post_proc_cmd)
+        # wait for the process to terminate
+        if proc.wait() != 0:
+            raise Exception('Failure in post-processing')
+        else:
+            return output
+
+    except Exception as perr:
+        logger.warn(str(perr))
+        message = 'Error in post-processing: no results'
+        raise PostProcessingException(message)
+
+# @staticmethod
+# def pp_grid_interpolation(datasets, reftime=None, filters=None, postprocessors=[], ):
 
 
 def send_result_notication(recipient, status, message):
