@@ -5,9 +5,11 @@ import subprocess
 import os
 import datetime
 import shutil
+import glob
 from pathlib import Path
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.services.mail import send_mail, get_html_template
+from restapi.confs import UPLOAD_FOLDER
 from celery import states
 from celery.exceptions import Ignore
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
@@ -133,39 +135,118 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
                 # case of single postprocessor
                 if len(postprocessors) == 1:
-                    p = postprocessors[0]
-                    pp_type = p.get('type')
+                    try:
+                        p = postprocessors[0]
+                        pp_type = p.get('type')
 
-                    if pp_type == 'derived_variables':
-                        pp_output = pp_derived_variables(datasets=datasets, params=p, tmp_extraction=tmp_outfile, query=query, user_dir=user_dir,reftime=reftime, filters=filters)
-                        # join pp_output and tmp_extraction in output file
-                        cat_cmd = ['cat',tmp_outfile,pp_output]
-                        with open(outfile,mode='w') as outfile:
-                            ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
-                            ext_proc.wait()
-                            if ext_proc.wait() != 0:
-                                raise Exception('Failure in data extraction')
-                        # delete pp_output
-                        os.remove(pp_output)
+                        if pp_type == 'derived_variables':
+                            pp1_output = pp_derived_variables(datasets=datasets, params=p, tmp_extraction=tmp_outfile, query=query, user_dir=user_dir)
+                            # join pp1_output and tmp_extraction in output file
+                            cat_cmd = ['cat',tmp_outfile,pp1_output]
+                            with open(outfile,mode='w') as outfile:
+                                ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
+                                ext_proc.wait()
+                                if ext_proc.wait() != 0:
+                                    raise Exception('Failure in data extraction')
+                            # delete pp1_output
+                            os.remove(pp1_output)
 
-                    elif pp_type == 'grid_interpolation':
-                        pp_grid_interpolation(params=p, input=tmp_outfile, output=outfile)
+                        elif pp_type == 'grid_interpolation':
+                            pp_grid_interpolation(params=p, input=tmp_outfile, output=outfile)
 
-                    elif pp_type == 'grid_cropping':
-                        pp_grid_cropping(params=p, input=tmp_outfile, output=outfile)
+                        elif pp_type == 'grid_cropping':
+                            pp_grid_cropping(params=p, input=tmp_outfile, output=outfile)
 
-                    elif pp_type == 'spare_point_interpolation':
-                        pp_sp_interpolation(params=p, input=tmp_outfile, output=outfile)
+                        elif pp_type == 'spare_point_interpolation':
+                            pp_sp_interpolation(params=p, input=tmp_outfile, output=outfile)
 
-                    elif pp_type == 'statistic_elaboration':
-                        pp_statistic_elaboration(params=p, input=tmp_outfile, output=outfile)
+                        elif pp_type == 'statistic_elaboration':
+                            pp_statistic_elaboration(params=p, input=tmp_outfile, output=outfile)
 
-                    # always remove tmp file
-                    os.remove(tmp_outfile)
-                    if pp_type == 'spare_point_interpolation':
-                        # remove the temporary folder where the files for the intepolation were uploaded
-                        uploaded_filepath = Path(p.get('coord-filepath'))
-                        shutil.rmtree(uploaded_filepath.parent)
+                    finally:
+                        # always remove tmp file
+                        os.remove(tmp_outfile)
+                        if pp_type == 'spare_point_interpolation':
+                            # remove the temporary folder where the files for the intepolation were uploaded
+                            uploaded_filepath = Path(p.get('coord-filepath'))
+                            shutil.rmtree(uploaded_filepath.parent)
+                # case of multiple postprocessor
+                else:
+                    try:
+                        tmp_extraction_basename = os.path.basename(tmp_outfile)
+                        pp_output = None
+                        if any(d['type'] == 'derived_variables' for d in postprocessors):
+                            p = next(item for item in postprocessors if item["type"] == 'derived_variables')
+                            pp1_output = pp_derived_variables(datasets=datasets, params=p,
+                                                             tmp_extraction=tmp_outfile, query=query,
+                                                             user_dir=user_dir)
+                            # join pp1_output and tmp_extraction in output file
+                            cat_cmd = ['cat', tmp_outfile, pp1_output]
+                            # new temp file as pp output
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp1.grib.tmp'
+                            pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
+                            with open(pp_output, mode='w') as pp1_outfile:
+                                ext_proc = subprocess.Popen(cat_cmd, stdout=pp1_outfile)
+                                ext_proc.wait()
+                                if ext_proc.wait() != 0:
+                                    raise Exception('Failure in data extraction')
+                            # delete pp1_output
+                            os.remove(pp1_output)
+                        if any(d['type'] == 'statistic_elaboration' for d in postprocessors):
+                            p = next(item for item in postprocessors if item["type"] == 'statistic_elaboration')
+                            #check if the input has to be the previous postprocess output
+                            pp_input = ''
+                            if pp_output is not None:
+                                pp_input = pp_output
+                            else:
+                                pp_input = tmp_outfile
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp2.grib.tmp'
+                            pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
+                            pp_statistic_elaboration(params=p, input=pp_input, output=pp_output)
+                        if any(d['type'] == 'grid_cropping' for d in postprocessors):
+                            p = next(item for item in postprocessors if item["type"] == 'grid_cropping')
+                            # check if the input has to be the previous postprocess output
+                            pp_input = ''
+                            if pp_output is not None:
+                                pp_input = pp_output
+                            else:
+                                pp_input = tmp_outfile
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_2.grib.tmp'
+                            pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
+                            pp_grid_cropping(params=p, input=pp_input, output=pp_output)
+                        if any(d['type'] == 'grid_interpolation' for d in postprocessors):
+                            p = next(item for item in postprocessors if item["type"] == 'grid_interpolation')
+                            # check if the input has to be the previous postprocess output
+                            pp_input = ''
+                            if pp_output is not None:
+                                pp_input = pp_output
+                            else:
+                                pp_input = tmp_outfile
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_1.grib.tmp'
+                            pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
+                            pp_grid_interpolation(params=p, input=input, output=pp_output)
+                        if any(d['type'] == 'spare_point_interpolation' for d in postprocessors):
+                            p = next(item for item in postprocessors if item["type"] == 'spare_point_interpolation')
+                            # check if the input has to be the previous postprocess output
+                            pp_input = ''
+                            if pp_output is not None:
+                                pp_input = pp_output
+                            else:
+                                pp_input = tmp_outfile
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
+                            pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
+                            pp_sp_interpolation(params=p, input=pp_input, output=pp_output)
+                        # rename the final output of postprocessors as outfile
+                        logger.debug('dest: {}'.format(str(outfile)))
+                        os.rename(pp_output,outfile)
+                    finally:
+                        # remove all tmp file
+                        tmp_filelist= glob.glob(os.path.join(user_dir, "*.tmp"))
+                        for f in tmp_filelist:
+                            os.remove(f)
+                        # if there is, remove the temporary folder where the files for the sp_interpolation were uploaded
+                        if os.path.isdir(os.path.join(UPLOAD_FOLDER,uuid)):
+                            shutil.rmtree(os.path.join(UPLOAD_FOLDER,uuid))
             else:
                 with open(os.path.join(user_dir, out_filename), mode='w') as outfile:
                     subprocess.Popen(arki_query_cmd, stdout=outfile)
@@ -217,13 +298,12 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             body_msg += extra_msg
             send_result_notication(user_email, request.status, body_msg)
 
-def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,reftime=None, filters=None):
-
+def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir):
+    logger.debug('Derived variable postprocessor')
     product_query = []
     level_query = []
     # products for wind direction and wind speed
     if ('B11001' or 'B11002') in params.get('variables'):
-        logger.debug('wind speed? {}'.format(params.get('variables')))
         # u-component
         product_query.append('GRIB1,80,2,33')
         # v-component
@@ -232,7 +312,6 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,refti
         level_query.append('GRIB1,105,10')
     # products for relative humidity
     if 'B13003' in params.get('variables'):
-        logger.debug('relative humidity? {}'.format(params.get('variables')))
         # temperature
         product_query.append('GRIB1,80,2,11')
         # specific humidity
@@ -243,7 +322,6 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,refti
         level_query.append('GRIB1,1')
     # products for snowfall
     if 'B13205' in params.get('variables'):
-        logger.debug('snowfall? {}'.format(params.get('variables')))
         # grid scale snowfall
         product_query.append('GRIB1,80,2,79')
         # convective snowfall
@@ -252,26 +330,22 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,refti
         level_query.append('GRIB1,1')
     # products for u-component (--> is already in the dataset products..)
     if 'B11003' in params.get('variables'):
-        logger.debug('u component? {}'.format(params.get('variables')))
         # u-component
         product_query.append('GRIB1,80,2,33')
         # level 10
         level_query.append('GRIB1,105,10')
     # products for v-component (--> is already in the dataset products..)
     if 'B11004' in params.get('variables'):
-        logger.debug('v component? {}'.format(params.get('variables')))
         # v-component
         product_query.append('GRIB1,80,2,34')
         # level 10
         level_query.append('GRIB1,105,10')
     # products for dew-point temperature (--> is already in the dataset products..)
     if 'B12103' in params.get('variables'):
-        logger.debug('dew point? {}'.format(params.get('variables')))
         # dew-point temperature
         product_query.append('GRIB1,80,2,17')
     # products for specific humidity (--> is already in the dataset products..)
     if 'B13001' in params.get('variables'):
-        logger.debug('specific humidity? {}'.format(params.get('variables')))
         # specific humidity
         product_query.append('GRIB1,80,2,51')
         # level 0
@@ -332,12 +406,12 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,refti
         else:
             tmp_outfile = tmp_extraction
         #command for postprocessor
-        pp_output_filename = tmp_extraction_basename.split('.')[0]+'-pp_output.grib.tmp'
-        pp_output = os.path.join(user_dir,pp_output_filename)
+        pp1_output_filename = tmp_extraction_basename.split('.')[0]+'-pp1_output.grib.tmp'
+        pp1_output = os.path.join(user_dir,pp1_output_filename)
         post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
             ",".join(params.get('variables')),
             tmp_outfile,
-            pp_output)
+            pp1_output)
         )
         logger.debug('Post process command: {}>'.format(post_proc_cmd))
 
@@ -346,7 +420,7 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,refti
         if proc.wait() != 0:
             raise Exception('Failure in post-processing')
         else:
-            return pp_output
+            return pp1_output
 
     except Exception as perr:
         logger.warn(str(perr))
@@ -357,6 +431,7 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,refti
             os.remove(new_tmp_extraction)
 
 def pp_grid_interpolation(params, input, output):
+    logger.debug('Grid interpolation postprocessor')
     try:
         post_proc_cmd =[]
         post_proc_cmd.append('vg6d_transform')
@@ -396,6 +471,7 @@ def pp_grid_interpolation(params, input, output):
         raise PostProcessingException(message)
 
 def pp_grid_cropping(params, input, output):
+    logger.debug('Grid cropping postprocessor')
     try:
         post_proc_cmd = []
         post_proc_cmd.append('vg6d_transform')
@@ -430,6 +506,7 @@ def pp_grid_cropping(params, input, output):
         raise PostProcessingException(message)
 
 def pp_sp_interpolation(params, input, output):
+    logger.debug('Spare point interpolation postprocessor')
     try:
         post_proc_cmd = []
         post_proc_cmd.append('vg6d_transform')
@@ -454,6 +531,7 @@ def pp_sp_interpolation(params, input, output):
         raise PostProcessingException(message)
 
 def pp_statistic_elaboration(params, input, output):
+    logger.debug('Statistic elaboration postprocessor')
     try:
         post_proc_cmd = []
         post_proc_cmd.append('vg6d_transform')
