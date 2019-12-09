@@ -118,17 +118,20 @@ class RequestManager():
 
     @staticmethod
     def delete_fileoutput(uuid, download_dir, filename):
-        filepath = os.path.join(download_dir, uuid, filename)
-        os.remove(filepath)
+        try:
+            filepath = os.path.join(download_dir, uuid, filename)
+            os.remove(filepath)
+        except FileNotFoundError as error:
+            # silently pass when file is not found
+            log.warn(error)
 
     @staticmethod
     def delete_request_record(db, user, request_id, download_dir):
-        request = db.Request
-        r_to_delete = request.query.filter(request.id == request_id).first()
-        fileoutput = r_to_delete.fileoutput
-        if fileoutput is not None:
-            RequestManager.delete_fileoutput(user.uuid, download_dir, fileoutput.filename)
-        db.session.delete(r_to_delete)
+        request = db.Request.query.get(request_id)
+        out_file = request.fileoutput
+        if out_file is not None:
+            RequestManager.delete_fileoutput(user.uuid, download_dir, out_file.filename)
+        db.session.delete(request)
         db.session.commit()
 
     def delete_schedule(db, schedule_id):
