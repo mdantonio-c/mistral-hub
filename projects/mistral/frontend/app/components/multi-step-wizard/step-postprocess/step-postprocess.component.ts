@@ -70,11 +70,9 @@ export class StepPostprocessComponent implements OnInit {
     }
 
     goToPrevious() {
-        if (this.save()) {
-            // Navigate to the dataset page
-            this.router.navigate(
-                ['../', 'filters'], {relativeTo: this.route});
-        }
+        // Navigate to the dataset page
+        this.router.navigate(
+            ['../', 'filters'], {relativeTo: this.route});
     }
 
     goToNext() {

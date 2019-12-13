@@ -106,13 +106,6 @@ export interface TimeSchedule {
     minute: number;
 }
 
-export const derivedVariables = [
-    {code: 'B12194', desc: 'Air density'},
-    {code: 'B13003', desc: 'Relative humidity'},
-    {code: 'B11001', desc: 'Wind direction'},
-    {code: 'B11002', desc: 'Wind speed'},
-];
-
 @Injectable({
     providedIn: 'root'
 })
@@ -221,14 +214,18 @@ export class DataService {
     }
 
     getVariableDescription(code): string {
-        return derivedVariables.find(av => av.code === code).desc;
+        if (this._derivedVariables === undefined) {
+            console.warn(`Derived variables undefined so description cannot be retrieved for code ${code}`);
+            return;
+        }
+        return this._derivedVariables.find(av => av.code === code).desc;
     }
 
     getStorageUsage(): Observable<RapydoResponse<StorageUsage>> {
         return this.api.get(`usage`);
     }
 
-    getDerivedVariables(): Observable<any> {
+    getDerivedVariables(): Observable<DerivedVariables[]> {
         if (this._derivedVariables) {
             return of(this._derivedVariables);
         } else {

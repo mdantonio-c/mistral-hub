@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from flask import request
-from pathlib import Path
 from restapi.rest.definition import EndpointResource
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
@@ -16,7 +15,8 @@ from mistral.services.requests_manager import RequestManager as repo
 
 import os
 import shutil
-import requests
+from zipfile import ZipFile
+from pathlib import Path
 
 log = get_logger(__name__)
 
@@ -58,8 +58,6 @@ class Data(EndpointResource, Uploader):
                     'in': 'formData',
                     'description': 'spare point file for the interpolation',
                     'type': 'file'
-                    # 'type': 'array',
-                    # 'items':{'type': 'string','format':'binary'},
                 }
             ],
             'responses': {
@@ -126,6 +124,9 @@ class Data(EndpointResource, Uploader):
             elif p_type == 'spare_point_interpolation':
                 self.validate_input(p, 'SPIProcessor')
                 self.validate_spare_point_interpol_params(p)
+            elif p_type == 'statistic_elaboration':
+                self.validate_input(p, 'SEProcessor')
+                self.validate_statistic_elaboration_params(p)
             else:
                 raise RestApiException(
                     'Unknown post-processor type for {}'.format(p_type),
@@ -169,35 +170,49 @@ class Data(EndpointResource, Uploader):
     def patch(self):
         user = self.get_current_user()
         # allowed formats for uploaded file
-        self.allowed_exts = ['shp', 'shx', 'grib_api','dbf']
+        self.allowed_exts = ['shp', 'shx', 'geojson','dbf', 'zip']
+        request_file = request.files['file']
+        f = request_file.filename.rsplit(".", 1)
 
-        uploaded_files = request.files.getlist('file')
-        self.check_files_to_upload(uploaded_files)
+        # check if the shapefile in the zip folder is complete
+        if f[1]== 'zip':
+            with ZipFile(request_file, 'r') as zip:
+                uploaded_files = zip.namelist()
+                self.check_files_to_upload(uploaded_files)
+            request.files['file'].seek(0)
 
+        # upload the files
+        upload_response = self.upload(subfolder=user.uuid)
+
+        if not upload_response.defined_content:
+            # raise RestApiException(
+            #     '{}'.format(next(iter(upload_response.errors))),
+            #     status_code=hcodes.HTTP_BAD_REQUEST,
+            # )
+            raise RestApiException(
+                 upload_response.errors,
+                status_code=hcodes.HTTP_BAD_REQUEST,
+            )
+
+        upload_filename = upload_response.defined_content['filename']
+        upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, upload_filename)
+        log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
+
+        # if the file is a zip file extract the content in the upload folder
+        if f[1] == 'zip':
+            with ZipFile(upload_filepath, 'r') as zip:
+                upload_folder = Path(upload_filepath).parent
+                zip.extractall(path=upload_folder)
+            # get .shp file filename
+            files = os.listdir(upload_folder)
+            for f in files:
+                e = f.rsplit(".", 1)
+                if e[1]=='shp':
+                    upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, f)
         r = {}
-        for e in uploaded_files:
-            # use user.uuid as name for the subfolder where the file will be uploaded
-            #upload_response = self.upload(subfolder=user.uuid)
-            upload_response = self.upload_data(e.filename, subfolder=user.uuid)
-
-            if not upload_response.defined_content:
-                # raise RestApiException(
-                #     '{}'.format(next(iter(upload_response.errors))),
-                #     status_code=hcodes.HTTP_BAD_REQUEST,
-                # )
-                raise RestApiException(
-                    "for file '{}' there are the following errors: {}".format(e.filename,upload_response.errors),
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
-
-            upload_filename = upload_response.defined_content['filename']
-            upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, upload_filename)
-            log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
-            f = self.split_dir_and_extension(upload_filepath)
-            # for shapefiles the file needed for the coord-file param is only the .shp. .shx and .dbf are useful only to decode the .shp
-            if f[1] == 'shp' or f[1] == 'grib_api':
-                r['filepath'] = upload_filepath
-                r['format'] = f[1]
+        filename = self.split_dir_and_extension(upload_filepath)
+        r['filepath'] = upload_filepath
+        r['format'] = filename[1]
         return self.force_response(r)
 
     @staticmethod
@@ -243,13 +258,42 @@ class Data(EndpointResource, Uploader):
                 raise RestApiException('Sorry.The file for the interpolation is corrupted. Please try to upload it again',
                                        status_code=hcodes.HTTP_SERVER_ERROR)
 
+    @staticmethod
+    def validate_statistic_elaboration_params(params):
+        input = params['input-timerange']
+        output = params['output-timerange']
+        if input != output:
+            if input == 254:
+                if output == 1:
+                    raise RestApiException(
+                        'Parameters for statistic elaboration are not correct',
+                        status_code=hcodes.HTTP_BAD_REQUEST)
+                else:
+                    return
+            if input == 0:
+                if output != 254:
+                    raise RestApiException(
+                        'Parameters for statistic elaboration are not correct',
+                        status_code=hcodes.HTTP_BAD_REQUEST)
+                else:
+                    return
+            else:
+                raise RestApiException(
+                    'Parameters for statistic elaboration are not correct',
+                    status_code=hcodes.HTTP_BAD_REQUEST)
+        if input == output:
+            if input == 254:
+                raise RestApiException(
+                    'Parameters for statistic elaboration are not correct',
+                    status_code=hcodes.HTTP_BAD_REQUEST)
+
 
     @staticmethod
     def check_files_to_upload(files):
         # create a dictionary to compare the uploaded files specs
         file_dict = {}
         for f in files:
-            e = f.filename.split(".")
+            e = f.rsplit(".", 1)
             file_dict[e[1]] = e[0]
         if 'shp' in file_dict:
             # check if there is a file .shx and a file .dbf

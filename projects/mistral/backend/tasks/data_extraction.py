@@ -65,8 +65,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
             # I should check the user quota before...
             # check the output size
-            data_size = arki.estimate_data_size(datasets, query)
-            logger.debug('Resulting output size: {} ({})'.format(data_size, human_size(data_size)))
+            esti_data_size = arki.estimate_data_size(datasets, query)
+            logger.debug('Resulting output size: {} ({})'.format(esti_data_size, human_size(esti_data_size)))
 
             # create download user dir if it doesn't exist
             uuid = RequestManager.get_uuid(db, user_id)
@@ -80,11 +80,11 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # check for exceeding quota
             max_user_quota = db.session.query(db.User.disk_quota).filter_by(id=user_id).scalar()
             logger.debug('MAX USER QUOTA for user<{}>: {}'.format(user_id, max_user_quota))
-            if used_quota + data_size > max_user_quota:
-                free_space = max_user_quota - used_quota
+            if used_quota + esti_data_size > max_user_quota:
+                free_space = max(max_user_quota - used_quota, 0)
                 # save error message in db
                 message = 'Disk quota exceeded: required size {}; remaining space {}'.format(
-                    human_size(data_size), human_size(free_space))
+                    human_size(esti_data_size), human_size(free_space))
                 # check if this request comes from a schedule. If so deactivate the schedule.
                 if schedule:
                     logger.debug('Deactivate periodic task for schedule {}'.format(schedule_id))
@@ -111,7 +111,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 p = postprocessors[0]
                 logger.debug(p)
                 pp_type = p.get('type')
-                enabled_postprocessors = ('derived_variables','grid_interpolation','grid_cropping','spare_point_interpolation')
+                enabled_postprocessors = (
+                'derived_variables', 'grid_interpolation', 'grid_cropping', 'spare_point_interpolation',
+                'statistic_elaboration')
                 if pp_type not in enabled_postprocessors:
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
                 logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
@@ -119,7 +121,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 tmp_outfile = os.path.join(user_dir, out_filename + '.tmp')
                 # call data extraction
                 with open(tmp_outfile, mode='w') as query_outfile:
-                    subprocess.Popen(arki_query_cmd, stdout=query_outfile)
+                    ext_proc = subprocess.Popen(arki_query_cmd, stdout=query_outfile)
+                    ext_proc.wait()
+                    if ext_proc.wait() != 0:
+                        raise Exception('Failure in data extraction')
                 try:
                     if pp_type == 'derived_variables':
                         post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
@@ -179,10 +184,22 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         post_proc_cmd.append('--coord-format={}'.format(p.get('format')))
                         post_proc_cmd.append(tmp_outfile)
                         post_proc_cmd.append(os.path.join(user_dir, out_filename))
+
+                    elif pp_type == 'statistic_elaboration':
+                        post_proc_cmd =[]
+                        post_proc_cmd.append('vg6d_transform')
+                        post_proc_cmd.append('--comp-stat-proc={}:{}'.format(p.get('input-timerange'),p.get('output-timerange')))
+                        post_proc_cmd.append("--comp-step='{} {}'".format(p.get('interval')//24, "{:02d}".format(p.get('interval')%24)))
+                        post_proc_cmd.append(tmp_outfile)
+                        post_proc_cmd.append(os.path.join(user_dir, out_filename))
                     logger.debug('Post process command: {}>'.format(post_proc_cmd))
-                    proc = subprocess.run(post_proc_cmd, stdout=subprocess.PIPE)
-                    proc.check_returncode()
-                except Exception:
+                    proc = subprocess.Popen(post_proc_cmd)
+                    # wait for the process to terminate
+                    if proc.wait() != 0:
+                        raise Exception('Failure in post-processing')
+
+                except Exception as perr:
+                    logger.warn(str(perr))
                     message = 'Error in post-processing: no results'
                     raise PostProcessingException(message)
                 finally:
@@ -196,6 +213,11 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 with open(os.path.join(user_dir, out_filename), mode='w') as outfile:
                     subprocess.Popen(arki_query_cmd, stdout=outfile)
 
+            # get the actual data size
+            data_size = os.path.getsize(os.path.join(user_dir, out_filename))
+            if data_size > esti_data_size:
+                logger.warn('Actual resulting data exceeds estimation of {}'.format(
+                    human_size(data_size - esti_data_size)))
             # create fileoutput record in db
             RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
             # update request status

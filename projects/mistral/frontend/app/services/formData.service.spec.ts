@@ -4,8 +4,7 @@ import {FormDataService} from '@app/services/formData.service';
 import {WorkflowService} from '@app/services/workflow.service';
 import {DataService} from '@app/services/data.service';
 import {WorkflowServiceStub} from '@app/services/workflow.service.stub';
-
-class DataServiceStub {}
+import {DataServiceStub} from "./data.service.stub";
 
 describe('FormDataService', () => {
     beforeEach(() => {
