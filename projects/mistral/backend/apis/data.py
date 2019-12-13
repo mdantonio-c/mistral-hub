@@ -118,9 +118,10 @@ class Data(EndpointResource, Uploader):
                 self.validate_input(p, 'AVProcessor')
             elif p_type == 'grid_interpolation':
                 self.validate_input(p, 'GIProcessor')
-                self.validate_grid_interpol_params(p)
+                self.get_grid_interpol_trans_type(p)
             elif p_type == 'grid_cropping':
                 self.validate_input(p, 'GCProcessor')
+                p['trans-type'] = "zoom"
             elif p_type == 'spare_point_interpolation':
                 self.validate_input(p, 'SPIProcessor')
                 self.validate_spare_point_interpol_params(p)
@@ -216,30 +217,21 @@ class Data(EndpointResource, Uploader):
         return self.force_response(r)
 
     @staticmethod
-    def validate_grid_interpol_params(params):
-        trans_type = params['trans-type']
+    def get_grid_interpol_trans_type(params):
         sub_type = params['sub-type']
-        if trans_type == "inter":
-            if sub_type not in ("near", "bilin"):
-                raise RestApiException('{} is a bad interpolation sub-type for {}'.format(sub_type, trans_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
-        elif trans_type == "boxinter":
-            if sub_type not in ("average", "min", "max"):
-                raise RestApiException('{} is a bad interpolation sub type for {}'.format(sub_type, trans_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
+        if sub_type in ("near", "bilin"):
+            params['trans-type'] = "inter"
+        if sub_type in ("average", "min", "max"):
+            params['trans-type'] = "boxinter"
 
     @staticmethod
     def validate_spare_point_interpol_params(params):
-        trans_type = params['trans-type']
+        # get trans-type according to the sub-type coming from the request
         sub_type = params['sub-type']
-        if trans_type == "inter":
-            if sub_type not in ("near", "bilin"):
-                raise RestApiException('{} is a bad interpolation sub-type for {}'.format(sub_type, trans_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
-        elif trans_type == "polyinter":
-            if sub_type not in ("average", "min", "max"):
-                raise RestApiException('{} is a bad interpolation sub type for {}'.format(sub_type, trans_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
+        if sub_type in ("near", "bilin"):
+            params['trans-type'] = "inter"
+        if sub_type in ("average", "min", "max"):
+            params['trans-type'] = "boxinter"
         coord_filepath = params['coord-filepath']
         if not os.path.exists(coord_filepath):
             raise RestApiException('the coord-filepath does not exists',

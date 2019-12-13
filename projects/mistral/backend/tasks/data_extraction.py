@@ -449,8 +449,6 @@ def pp_grid_interpolation(params, input, output):
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
 
         # vg6d_transform automatically provides defaults for missing optional params
-        if 'grid-params' in params:
-            post_proc_cmd.append('--type={}'.format(params.get('grid-params')))
         if 'x-min' in params['boundings']:
             post_proc_cmd.append('--x-min={}'.format(params['boundings']['x-min']))
         if 'x-max' in params['boundings']:
@@ -488,8 +486,6 @@ def pp_grid_cropping(params, input, output):
         post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
 
-        if 'grid-params' in params:
-            post_proc_cmd.append('--type={}'.format(params.get('grid-params')))
         if 'ilon' in params['boundings']:
             post_proc_cmd.append('--ilon={}'.format(params['boundings']['ilon']))
         if 'ilat' in params['boundings']:

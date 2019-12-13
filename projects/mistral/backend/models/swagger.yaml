@@ -131,18 +131,6 @@ definitions:
             type: integer
           ny:
             type: integer
-      grid-params:
-        description: projection and parameters of target grid
-        type: string
-        enum:
-          - regular_ll
-          - rotated_ll
-          - UTM
-      trans-type:
-        type: string
-        enum:
-          - inter
-          - boxinter
       sub-type:
         type: string
         enum:
@@ -153,7 +141,6 @@ definitions:
           - max
     required:
       - type
-      - trans-type
       - sub-type
   GCProcessor:
     description: Grid cropping post processor
@@ -174,17 +161,6 @@ definitions:
             type: number
           flat:
             type: number
-      grid-params:
-        description: projection and parameters of target grid
-        type: string
-        enum:
-          - regular_ll
-          - rotated_ll
-          - UTM
-      trans-type:
-        type: string
-        enum:
-          - zoom
       sub-type:
         type: string
         enum:
@@ -192,7 +168,6 @@ definitions:
           - bbox
     required:
       - type
-      - trans-type
       - sub-type
   SPIProcessor:
     description: Spare points interpolation postprocessor
@@ -209,18 +184,6 @@ definitions:
         enum:
           - shp
           - geojson
-#      grid-params:
-#        description: projection and parameters of target grid
-#        type: string
-#        enum:
-#          - regular_ll
-#          - rotated_ll
-#          - UTM
-      trans-type:
-        type: string
-        enum:
-          - inter
-          - polyinter
       sub-type:
         type: string
         enum:
@@ -233,7 +196,6 @@ definitions:
       - type
       - coord-filepath
       - format
-      - trans-type
       - sub-type
 
   SparePointFile:
