@@ -36,7 +36,7 @@ RUN ln -s libreadline.so libreadline.so.6
 # COPY --from=0 /usr/bin/arki-* /usr/bin/
 COPY --from=0 /usr/bin /usr/bin/centos
 
-COPY --from=0 /etc/arkimet/format /etc/arkimet/format
+COPY --from=0 /etc/arkimet /etc/arkimet
 COPY --from=0 /usr/share/eccodes /usr/share/
 COPY --from=0 /usr/share/eccodes-simc/definitions/ /usr/share/eccodes-simc/definitions/
 COPY --from=0 /usr/share/eccodes/definitions/ /usr/share/eccodes/definitions/
