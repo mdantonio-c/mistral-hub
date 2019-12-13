@@ -88,12 +88,21 @@ definitions:
           - 254
       interval:
         description: Interval of elaboration
+        type: string
+        enum:
+          - hours
+          - days
+          - months
+          - years
+      step:
+        description: step range
         type: integer
     required:
       - type
       - input-timerange
       - output-timerange
       - interval
+      - step
 
   GIProcessor:
     description: Grid interpolation post processor to interpolate data on a new grid
