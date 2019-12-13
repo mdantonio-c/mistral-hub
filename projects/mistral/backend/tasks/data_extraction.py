@@ -542,11 +542,21 @@ def pp_sp_interpolation(params, input, output):
 
 def pp_statistic_elaboration(params, input, output):
     logger.debug('Statistic elaboration postprocessor')
+    step=""
+    interval= params.get('interval')
+    if interval=='years':
+        step = "{:04d}000000 00:00:00.000".format(params.get('step'))
+    if interval=='months':
+        step = "0000{:02d}0000 00:00:00.000".format(params.get('step'))
+    if interval=='days':
+        step = "000000{:04d} 00:00:00.000".format(params.get('step'))
+    if interval=='hours':
+        step = "0000000000 {:02d}:00:00.000".format(params.get('step'))
     try:
         post_proc_cmd = []
         post_proc_cmd.append('vg6d_transform')
         post_proc_cmd.append('--comp-stat-proc={}:{}'.format(params.get('input-timerange'), params.get('output-timerange')))
-        post_proc_cmd.append("--comp-step='{} {}'".format(params.get('interval') // 24, "{:02d}".format(params.get('interval') % 24)))
+        post_proc_cmd.append("--comp-step='{}'".format(step))
         post_proc_cmd.append(input)
         post_proc_cmd.append( output)
         logger.debug('Post process command: {}>'.format(post_proc_cmd))
