@@ -118,12 +118,13 @@ class Data(EndpointResource, Uploader):
                 self.validate_input(p, 'AVProcessor')
             elif p_type == 'grid_interpolation':
                 self.validate_input(p, 'GIProcessor')
-                self.get_grid_interpol_trans_type(p)
+                self.get_trans_type(p)
             elif p_type == 'grid_cropping':
                 self.validate_input(p, 'GCProcessor')
                 p['trans-type'] = "zoom"
             elif p_type == 'spare_point_interpolation':
                 self.validate_input(p, 'SPIProcessor')
+                self.get_trans_type(p)
                 self.validate_spare_point_interpol_params(p)
             elif p_type == 'statistic_elaboration':
                 self.validate_input(p, 'SEProcessor')
@@ -217,7 +218,8 @@ class Data(EndpointResource, Uploader):
         return self.force_response(r)
 
     @staticmethod
-    def get_grid_interpol_trans_type(params):
+    def get_trans_type(params):
+        # get trans-type according to the sub-type coming from the request
         sub_type = params['sub-type']
         if sub_type in ("near", "bilin"):
             params['trans-type'] = "inter"
@@ -226,12 +228,6 @@ class Data(EndpointResource, Uploader):
 
     @staticmethod
     def validate_spare_point_interpol_params(params):
-        # get trans-type according to the sub-type coming from the request
-        sub_type = params['sub-type']
-        if sub_type in ("near", "bilin"):
-            params['trans-type'] = "inter"
-        if sub_type in ("average", "min", "max"):
-            params['trans-type'] = "boxinter"
         coord_filepath = params['coord-filepath']
         if not os.path.exists(coord_filepath):
             raise RestApiException('the coord-filepath does not exists',
