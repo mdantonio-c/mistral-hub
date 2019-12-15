@@ -10,6 +10,7 @@ variables:
 
     # BACKEND_BUILD_MODE: backendcentos
     # PYTHON_PATH: /usr/local/lib/python3.6/dist-packages
+    FRONTEND_FRAMEWORK: angular
 
     LOG_LEVEL: DEBUG
 
@@ -39,5 +40,4 @@ variables:
         internal: staff_user
         admin: admin_root
         default: normal_user
-  frontend:
-    framework: angular
+
