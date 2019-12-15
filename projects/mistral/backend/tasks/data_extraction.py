@@ -7,7 +7,8 @@ import datetime
 import shutil
 from pathlib import Path
 from restapi.flask_ext.flask_celery import CeleryExt
-from restapi.services.mail import send_mail, get_html_template
+from restapi.services.mail import send_mail
+from restapi.utilities.templates import get_html_template
 from celery import states
 from celery.exceptions import Ignore
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
