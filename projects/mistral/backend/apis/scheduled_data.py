@@ -87,7 +87,7 @@ class ScheduledData(EndpointResource):
         if period_settings is not None:
             every = str(period_settings.get('every'))
             period = period_settings.get('period')
-            log.info("Period settings [{} {}]".format(every, period))
+            log.info("Period settings [{} {}]", every, period)
             # get scheduled request id in postgres database as scheduled request name for mongodb
             name_int = RequestManager.create_scheduled_request_record(
                 db, user, filters, every=every, period=period

@@ -48,7 +48,7 @@ class FileDownload(EndpointResource):
         # check if the file exists, the current user is the owner and if it is in its folder
         if RequestManager.check_fileoutput(db, user, filename, DOWNLOAD_DIR):
             user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
-            log.info('directory: {}'.format(user_dir))
+            log.info('directory: {}', user_dir)
             # download the file as a response attachment
             return send_from_directory(user_dir, filename, as_attachment=True)
 

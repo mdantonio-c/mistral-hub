@@ -22,11 +22,11 @@ class RequestManager():
                 if os.path.exists(path):
                     return True
                 else:
-                    log.info('file path: {} does not exists'.format(path))
+                    log.info('file path: {} does not exists', path)
             else:
                 log.info('user is not the file owner')
         else:
-            log.info('file: {} is not in database'.format(filename))
+            log.info('file: {} is not in database', filename)
 
     @staticmethod
     def check_owner(db, user_id, schedule_id=None, request_id=None, file_id=None):
@@ -51,26 +51,26 @@ class RequestManager():
     def check_request(db, schedule_id=None, request_id=None):
         res = None
         if request_id is not None:
-            log.debug('look for request with ID {}'.format(request_id))
+            log.debug('look for request with ID {}', request_id)
             res = db.Request.query.get(int(request_id))
         elif schedule_id is not None:
-            log.debug('look for schedule with ID {}'.format(schedule_id))
+            log.debug('look for schedule with ID {}', schedule_id)
             res = db.Schedule.query.get(int(schedule_id))
         return True if res is not None else False
 
     @staticmethod
     def count_user_requests(db, user_id):
-        log.debug('get total requests for user UUID {}'.format(user_id))
+        log.debug('get total requests for user UUID {}', user_id)
         return db.Request.query.filter_by(user_id=user_id).count()
 
     @staticmethod
     def count_user_schedules(db, user_id):
-        log.debug('get total schedules for user UUID {}'.format(user_id))
+        log.debug('get total schedules for user UUID {}', user_id)
         return db.Schedule.query.filter_by(user_id=user_id).count()
 
     @staticmethod
     def count_schedule_requests(db, schedule_id):
-        log.debug('get total requests for schedule {}'.format(schedule_id))
+        log.debug('get total requests for schedule {}', schedule_id)
         return db.Request.query.filter_by(schedule_id=schedule_id).count()
 
     @staticmethod
@@ -102,7 +102,7 @@ class RequestManager():
         db.session.add(s)
         db.session.commit()
         schedule_id = s.id
-        log.info('task record {}'.format(s.id))
+        log.info('task record {}', s.id)
 
         return schedule_id
 
@@ -112,7 +112,7 @@ class RequestManager():
         f = fileoutput(user_id=user_id, request_id=request_id, filename=filename, size=data_size)
         db.session.add(f)
         db.session.commit()
-        log.info('fileoutput for: {}'.format(request_id))
+        log.info('fileoutput for: {}', request_id)
 
     @staticmethod
     def delete_fileoutput(uuid, download_dir, filename):
@@ -137,7 +137,7 @@ class RequestManager():
         name = schedule.name
         db.session.delete(schedule)
         db.session.commit()
-        log.debug('Schedule <{}, {}> deleted'.format(schedule_id, name))
+        log.debug('Schedule <{}, {}> deleted', schedule_id, name)
 
     @staticmethod
     # used in a deprecated endpoint
@@ -341,13 +341,13 @@ class RequestManager():
 
     @staticmethod
     def update_task_status(db, task_id):
-        # log.info('updating status for: {}'.format(task_id))
+        # log.info('updating status for: {}', task_id)
         request = db.Request
         r_to_update = request.query.filter(request.task_id == task_id).first()
 
         # ask celery the status of the given request
         result = CeleryExt.data_extract.AsyncResult(task_id)
-        # log.info('status:{}'.format(result.status))
+        # log.info('status:{}', result.status)
 
         r_to_update.status = result.status
         db.session.commit()

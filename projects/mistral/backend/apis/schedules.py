@@ -232,7 +232,7 @@ class Schedules(EndpointResource):
         if period_settings is not None:
             every = str(period_settings.get('every'))
             period = period_settings.get('period')
-            log.info("Period settings [{} {}]".format(every, period))
+            log.info("Period settings [{} {}]", every, period)
 
             # get schedule id in postgres database as scheduled request name for mongodb
             try:
@@ -280,7 +280,7 @@ class Schedules(EndpointResource):
 
         crontab_settings = criteria.get('crontab-settings')
         if crontab_settings is not None:
-            log.info('Crontab settings {}'.format(crontab_settings))
+            log.info('Crontab settings {}', crontab_settings)
             try:
                 # get scheduled request id in postgres database as scheduled request name for mongodb
                 name_int = RequestManager.create_schedule_record(
@@ -378,7 +378,7 @@ class Schedules(EndpointResource):
 
         # retrieving mongodb task
         task = CeleryExt.get_periodic_task(name=schedule_id)
-        log.debug("Periodic task - {}".format(task))
+        log.debug("Periodic task - {}", task)
         # disable the schedule deleting it from mongodb
         if is_active is False:
             if task is None:
@@ -397,7 +397,7 @@ class Schedules(EndpointResource):
 
             # recreate the schedule in mongo retrieving the schedule from postgres
             schedule_response = RequestManager.get_schedule_by_id(db, schedule_id)
-            log.debug("schedule response: {}".format(schedule_response))
+            log.debug("schedule response: {}", schedule_response)
 
             # recreate the schedule in mongo retrieving the schedule from postgres
             try:

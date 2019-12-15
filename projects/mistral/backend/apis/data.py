@@ -154,7 +154,7 @@ class Data(EndpointResource, Uploader):
             request.task_id = task.id
             request.status = task.status  # 'PENDING'
             db.session.commit()
-            log.info('Request successfully saved: <ID:{}>'.format(request.id))
+            log.info('Request successfully saved: <ID:{}>', request.id)
         except Exception as error:
             db.session.rollback()
             raise SystemError("Unable to submit the request")
@@ -183,18 +183,14 @@ class Data(EndpointResource, Uploader):
         upload_response = self.upload(subfolder=user.uuid)
 
         if not upload_response.defined_content:
-            # raise RestApiException(
-            #     '{}'.format(next(iter(upload_response.errors))),
-            #     status_code=hcodes.HTTP_BAD_REQUEST,
-            # )
             raise RestApiException(
-                 upload_response.errors,
+                upload_response.errors,
                 status_code=hcodes.HTTP_BAD_REQUEST,
             )
 
         upload_filename = upload_response.defined_content['filename']
         upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, upload_filename)
-        log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
+        log.debug('File uploaded. Filepath : {}', upload_filepath)
 
         # if the file is a zip file extract the content in the upload folder
         if f[1] == 'zip':
@@ -205,7 +201,7 @@ class Data(EndpointResource, Uploader):
             files = os.listdir(upload_folder)
             for f in files:
                 e = f.rsplit(".", 1)
-                if e[1]=='shp':
+                if e[1] == 'shp':
                     upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, f)
         r = {}
         filename = self.split_dir_and_extension(upload_filepath)

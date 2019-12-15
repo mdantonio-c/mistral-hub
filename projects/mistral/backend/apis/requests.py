@@ -84,13 +84,13 @@ class UserRequests(EndpointResource):
     @authentication.required()
     def get(self, request_id=None):
         param = self.get_input()
-        sort = param.get('sort-by')
-        sort_order = param.get('sort-order')
+        # sort = param.get('sort-by')
+        # sort_order = param.get('sort-order')
         get_total = param.get('get_total', False)
         if not get_total:
             page, limit = self.get_paging()
             # offset = (current_page - 1) * limit
-            log.debug("paging: page {0}, limit {1}".format(page, limit))
+            log.debug("paging: page {0}, limit {1}", page, limit)
 
         user = self.get_current_user()
 
