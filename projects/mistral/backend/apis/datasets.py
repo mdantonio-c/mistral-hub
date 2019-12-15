@@ -6,9 +6,7 @@ from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
-from restapi.utilities.logs import get_logger
-
-logger = get_logger(__name__)
+from restapi.utilities.logs import log
 
 
 class Datasets(EndpointResource):
@@ -50,7 +48,7 @@ class Datasets(EndpointResource):
             raise SystemError("Error loading the datasets")
         if dataset_name is not None:
             # retrieve dataset by name
-            logger.debug("retrieve dataset by name '{}'".format(dataset_name))
+            log.debug("retrieve dataset by name '{}'", dataset_name)
             matched_ds = next(
                 (ds for ds in datasets if ds.get('id', '') == dataset_name), None
             )

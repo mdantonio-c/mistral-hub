@@ -6,9 +6,7 @@ from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
-from restapi.utilities.logs import get_logger
-
-logger = get_logger(__name__)
+from restapi.utilities.logs import log
 
 
 class Fields(EndpointResource):
@@ -78,7 +76,7 @@ class Fields(EndpointResource):
             onlySummaryStats = False
         if onlySummaryStats:
             # we want to return ONLY summary Stats with no fields
-            logger.debug('ONLY Summary Stats')
+            log.debug('ONLY Summary Stats')
             summary = summary['items']['summarystats']
         return self.force_response(summary)
         # js = json.dumps(summary)

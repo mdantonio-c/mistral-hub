@@ -4,9 +4,7 @@
 from restapi.tests import BaseTests, API_URI
 # from restapi.tests import AUTH_URI, BaseAuthentication
 from restapi.utilities.htmlcodes import hcodes
-from restapi.utilities.logs import get_logger
-
-log = get_logger(__name__)
+# from restapi.utilities.logs import log
 
 __author__ = "Beatrice Chiavarini (b.chiavarini@cineca.it)"
 

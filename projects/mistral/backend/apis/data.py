@@ -9,7 +9,7 @@ from restapi.protocols.bearer import authentication
 from restapi.services.uploader import Uploader
 from restapi.confs import UPLOAD_FOLDER
 from restapi.utilities.htmlcodes import hcodes
-from restapi.utilities.logs import get_logger
+from restapi.utilities.logs import log
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 
@@ -17,8 +17,6 @@ import os
 import shutil
 from zipfile import ZipFile
 from pathlib import Path
-
-log = get_logger(__name__)
 
 
 class Data(EndpointResource, Uploader):
@@ -286,7 +284,6 @@ class Data(EndpointResource, Uploader):
                 raise RestApiException(
                     'Parameters for statistic elaboration are not correct',
                     status_code=hcodes.HTTP_BAD_REQUEST)
-
 
     @staticmethod
     def check_files_to_upload(files):

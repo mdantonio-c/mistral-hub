@@ -14,11 +14,10 @@ from celery.exceptions import Ignore
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
 
-from restapi.utilities.logs import get_logger
+from restapi.utilities.logs import log
 
 celery_app = CeleryExt.celery_app
 
-logger = get_logger(__name__)
 DOWNLOAD_DIR = '/data'
 
 
@@ -27,7 +26,7 @@ DOWNLOAD_DIR = '/data'
 def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[], request_id=None,
                  schedule_id=None):
     with celery_app.app.app_context():
-        logger.info("Start task [{}:{}]", self.request.id, self.name)
+        log.info("Start task [{}:{}]", self.request.id, self.name)
         extra_msg = ''
         try:
             db = celery_app.get_service('sqlalchemy')
@@ -51,7 +50,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 request.task_id = self.request.id
                 request_id = request.id
                 db.session.commit()
-                logger.debug('Schedule at: {}, Request <ID:{}>', schedule_id, request.id)
+                log.debug('Schedule at: {}, Request <ID:{}>', schedule_id, request.id)
             else:
                 # load request by id
                 request = db.Request.query.get(request_id)
@@ -61,7 +60,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             query = ''  # default to no matchers
             if filters is not None:
                 query = arki.parse_matchers(filters)
-                logger.debug('Arkimet query: {}'.format(query))
+                log.debug('Arkimet query: {}', query)
             if reftime is not None:
                 reftime_query = arki.parse_reftime(reftime['from'], reftime['to'])
                 query = ";".join([reftime_query, query]) if query != '' else reftime_query
@@ -69,7 +68,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # I should check the user quota before...
             # check the output size
             esti_data_size = arki.estimate_data_size(datasets, query)
-            logger.debug('Resulting output size: {} ({})', esti_data_size, human_size(esti_data_size))
+            log.debug('Resulting output size: {} ({})', esti_data_size, human_size(esti_data_size))
 
             # create download user dir if it doesn't exist
             uuid = RequestManager.get_uuid(db, user_id)
@@ -78,11 +77,11 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
             # check for current used space
             used_quota = int(subprocess.check_output(['du', '-sb', user_dir]).split()[0])
-            logger.info('Current used space: {} ({})'.format(used_quota, human_size(used_quota)))
+            log.info('Current used space: {} ({})', used_quota, human_size(used_quota))
 
             # check for exceeding quota
             max_user_quota = db.session.query(db.User.disk_quota).filter_by(id=user_id).scalar()
-            logger.debug('MAX USER QUOTA for user<{}>: {}'.format(user_id, max_user_quota))
+            log.debug('MAX USER QUOTA for user<{}>: {}', user_id, max_user_quota)
             if used_quota + esti_data_size > max_user_quota:
                 free_space = max(max_user_quota - used_quota, 0)
                 # save error message in db
@@ -90,7 +89,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     human_size(esti_data_size), human_size(free_space))
                 # check if this request comes from a schedule. If so deactivate the schedule.
                 if schedule:
-                    logger.debug('Deactivate periodic task for schedule {}'.format(schedule_id))
+                    log.debug('Deactivate periodic task for schedule {}', schedule_id)
                     if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
                         raise Exception('Cannot delete periodic task for schedule {}'.format(schedule_id))
                     RequestManager.update_schedule_status(db, schedule_id, False)
@@ -102,7 +101,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             '''
             ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
             arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
-            logger.debug(arki_query_cmd)
+            log.debug(arki_query_cmd)
 
             # output filename in the user space
             # max filename len = 64
@@ -112,14 +111,14 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
             if postprocessors:
                 p = postprocessors[0]
-                logger.debug(p)
+                log.debug(p)
                 pp_type = p.get('type')
                 enabled_postprocessors = (
                 'derived_variables', 'grid_interpolation', 'grid_cropping', 'spare_point_interpolation',
                 'statistic_elaboration')
                 if pp_type not in enabled_postprocessors:
                     raise ValueError("Unknown post-processor: {}".format(pp_type))
-                logger.debug('Data extraction with post-processing <{}>'.format(pp_type))
+                log.debug('Data extraction with post-processing <{}>', pp_type)
                 # temporarily save the data extraction output
                 tmp_outfile = os.path.join(user_dir, out_filename + '.tmp')
                 # call data extraction
@@ -195,14 +194,14 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         post_proc_cmd.append("--comp-step='{} {}'".format(p.get('interval')//24, "{:02d}".format(p.get('interval')%24)))
                         post_proc_cmd.append(tmp_outfile)
                         post_proc_cmd.append(os.path.join(user_dir, out_filename))
-                    logger.debug('Post process command: {}>'.format(post_proc_cmd))
+                    log.debug('Post process command: {}>', post_proc_cmd)
                     proc = subprocess.Popen(post_proc_cmd)
                     # wait for the process to terminate
                     if proc.wait() != 0:
                         raise Exception('Failure in post-processing')
 
                 except Exception as perr:
-                    logger.warn(str(perr))
+                    log.warn(str(perr))
                     message = 'Error in post-processing: no results'
                     raise PostProcessingException(message)
                 finally:
@@ -219,8 +218,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # get the actual data size
             data_size = os.path.getsize(os.path.join(user_dir, out_filename))
             if data_size > esti_data_size:
-                logger.warn('Actual resulting data exceeds estimation of {}'.format(
-                    human_size(data_size - esti_data_size)))
+                log.warning(
+                    'Actual resulting data exceeds estimation of {}',
+                    human_size(data_size - esti_data_size)
+                )
             # create fileoutput record in db
             RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
             # update request status
@@ -229,7 +230,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
         except DiskQuotaException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
-            logger.warn(str(exc))
+            log.warn(str(exc))
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,
@@ -239,7 +240,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
         except PostProcessingException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
-            logger.warn(str(exc))
+            log.warn(str(exc))
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,
@@ -250,19 +251,18 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # handle all the other exceptions
             request.status = states.FAILURE
             request.error_message = 'Failed to extract data'
-            logger.exception('Failed to extract data: {}', repr(exc))
+            log.exception('Failed to extract data: {}', repr(exc))
             raise exc
         finally:
             request.end_date = datetime.datetime.utcnow()
             db.session.commit()
-            logger.info('Terminate task {} with state {}'.format(self.request.id, request.status))
+            log.info('Terminate task {} with state {}', self.request.id, request.status)
             # user notification via email
             user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
             body_msg = request.error_message if request.error_message is not None else "Your data is ready for " \
                                                                                        "downloading"
             body_msg += extra_msg
             send_result_notication(user_email, request.status, body_msg)
-
 
 
 def send_result_notication(recipient, status, message):

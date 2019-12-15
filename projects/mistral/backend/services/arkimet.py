@@ -7,10 +7,9 @@ import glob
 import json
 import math
 import dateutil
-from restapi.utilities.logs import get_logger
+from restapi.utilities.logs import log
 
 DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
-logger = get_logger(__name__)
 
 
 class BeArkimet():
@@ -34,10 +33,10 @@ class BeArkimet():
         datasets = []
         folders = glob.glob(DATASET_ROOT + "*")
         args = shlex.split("arki-mergeconf " + ' '.join(folders))
-        logger.debug('Launching Arkimet command: {}', args)
+        log.debug('Launching Arkimet command: {}', args)
 
         proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
-        logger.debug('return code: {}', proc.returncode)
+        log.debug('return code: {}', proc.returncode)
         # raise a CalledProcessError if returncode is non-zero
         proc.check_returncode()
         ds = None
@@ -89,7 +88,7 @@ class BeArkimet():
 
         ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
         args = shlex.split("arki-query --json --summary-short --annotate '{}' {}".format(query, ds))
-        logger.debug('Launching Arkimet command: {}', args)
+        log.debug('Launching Arkimet command: {}', args)
 
         with subprocess.Popen(args, encoding='utf-8', stdout=subprocess.PIPE) as proc:
             return json.loads(proc.stdout.read())
@@ -143,7 +142,7 @@ class BeArkimet():
             values = filters[k]
             if not isinstance(values, list):
                 values = [values]
-            logger.debug(values)
+            log.debug(values)
             if k == 'area':
                 q = ' or '.join([BeArkimet.__decode_area(i) for i in values])
             elif k == 'level':
@@ -163,7 +162,7 @@ class BeArkimet():
             elif k == 'timerange':
                 q = ' or '.join([BeArkimet.__decode_timerange(i) for i in values])
             else:
-                logger.warn('Invalid filter: {}', k)
+                log.warn('Invalid filter: {}', k)
                 continue
             matchers.append(k + ':' + q)
         return '' if not matchers else '; '.join(matchers)

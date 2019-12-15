@@ -7,11 +7,10 @@ from restapi.rest.definition import EndpointResource
 from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
-from restapi.utilities.logs import get_logger
+# from restapi.utilities.logs import log
 
 # from sqlalchemy.orm import load_only
 
-logger = get_logger(__name__)
 DOWNLOAD_DIR = '/data'
 
 
@@ -44,7 +43,7 @@ class Usage(EndpointResource):
         # get user disk quota
         # db = self.get_service_instance('sqlalchemy')
         # disk_quota = db.session.query(db.User.disk_quota).filter_by(id=user.id).scalar()
-        # logger.debug(disk_quota)
+        # log.debug(disk_quota)
 
         # get current usage
         used_quota = 0
