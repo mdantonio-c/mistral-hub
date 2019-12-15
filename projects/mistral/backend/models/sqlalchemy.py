@@ -35,8 +35,8 @@ class Request(db.Model):
     fileoutput = db.relationship("FileOutput", backref='request', cascade="delete", uselist=False)
 
     def __repr__(self):
-        return "<Request(name='%s', submission date='%s', status='%s')" \
-               % (self.name, self.submission_date, self.status)
+        return "<Request(name='{}', submission date='{}', status='{}')".format(
+            self.name, self.submission_date, self.status)
 
 
 class FileOutput(db.Model):
@@ -47,8 +47,8 @@ class FileOutput(db.Model):
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
 
     def __repr__(self):
-        return "<FileOutput(filename='%s', size='%s')" \
-               % (self.filename, self.size)
+        return "<FileOutput(filename='{}', size='{}')".format(
+            self.filename, self.size)
 
 
 class PeriodEnum(enum.Enum):
@@ -73,5 +73,5 @@ class Schedule (db.Model):
     submitted_request = db.relationship('Request', backref='schedule', lazy='dynamic')
 
     def __repr__(self):
-        return "<Schedule(name='%s', creation date='%s', enabled='%s')" \
-               % (self.name, self.submission_date, self.is_enabled)
+        return "<Schedule(name='{}', creation date='{}', enabled='{}')".format(
+            self.name, self.submission_date, self.is_enabled)

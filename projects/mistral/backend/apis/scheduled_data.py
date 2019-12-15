@@ -98,7 +98,7 @@ class ScheduledData(EndpointResource):
 
             # remove previous task
             res = CeleryExt.delete_periodic_task(name=name)
-            log.debug("Previous task deleted = %s", res)
+            log.debug("Previous task deleted = {}", res)
 
             request_id = None
 

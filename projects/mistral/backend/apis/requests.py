@@ -137,7 +137,7 @@ class UserRequests(EndpointResource):
     @catch_error()
     @authentication.required()
     def delete(self, request_id):
-        log.debug("delete request %s" % request_id)
+        log.debug("delete request {}", request_id)
 
         user = self.get_current_user()
 

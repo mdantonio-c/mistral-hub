@@ -24,9 +24,9 @@ class DataReady(EndpointResource):
     def post(self):
 
         data = self.get_input()
-        log.info("Cluster = %s", data.get("Cluster"))
-        log.info("Model = %s", data.get("Model"))
-        log.info("rundate = %s", data.get("rundate"))
+        log.info("Cluster = {}", data.get("Cluster"))
+        log.info("Model = {}", data.get("Model"))
+        log.info("rundate = {}", data.get("rundate"))
 
         db = self.get_service_instance('sqlalchemy')
         # Create as a method in RequestManager -> get_all_schedule_requests

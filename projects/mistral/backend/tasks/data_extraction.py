@@ -27,7 +27,7 @@ DOWNLOAD_DIR = '/data'
 def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[], request_id=None,
                  schedule_id=None):
     with celery_app.app.app_context():
-        logger.info("Start task [{}:{}]".format(self.request.id, self.name))
+        logger.info("Start task [{}:{}]", self.request.id, self.name)
         extra_msg = ''
         try:
             db = celery_app.get_service('sqlalchemy')
@@ -36,7 +36,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 # load schedule for this request
                 schedule = db.Schedule.query.get(schedule_id)
                 if schedule is None:
-                    raise ReferenceError("Cannot find schedule reference for task %s" % self.request.id)
+                    raise ReferenceError(
+                        "Cannot find schedule reference for task {}".format(
+                            self.request.id))
 
                 # create an entry in request db linked to the scheduled request entry
                 product_name = RequestManager.get_schedule_name(db, schedule_id)
@@ -49,12 +51,12 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 request.task_id = self.request.id
                 request_id = request.id
                 db.session.commit()
-                logger.debug('Schedule at: {}, Request <ID:{}>'.format(schedule_id, request.id))
+                logger.debug('Schedule at: {}, Request <ID:{}>', schedule_id, request.id)
             else:
                 # load request by id
                 request = db.Request.query.get(request_id)
                 if request is None:
-                    raise ReferenceError("Cannot find request reference for task %s" % self.request.id)
+                    raise ReferenceError("Cannot find request reference for task {}".format(self.request.id))
 
             query = ''  # default to no matchers
             if filters is not None:
@@ -67,7 +69,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # I should check the user quota before...
             # check the output size
             esti_data_size = arki.estimate_data_size(datasets, query)
-            logger.debug('Resulting output size: {} ({})'.format(esti_data_size, human_size(esti_data_size)))
+            logger.debug('Resulting output size: {} ({})', esti_data_size, human_size(esti_data_size))
 
             # create download user dir if it doesn't exist
             uuid = RequestManager.get_uuid(db, user_id)
@@ -248,7 +250,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # handle all the other exceptions
             request.status = states.FAILURE
             request.error_message = 'Failed to extract data'
-            logger.exception('Failed to extract data: %r', exc)
+            logger.exception('Failed to extract data: {}', repr(exc))
             raise exc
         finally:
             request.end_date = datetime.datetime.utcnow()

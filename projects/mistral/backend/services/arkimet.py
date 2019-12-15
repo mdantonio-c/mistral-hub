@@ -34,10 +34,10 @@ class BeArkimet():
         datasets = []
         folders = glob.glob(DATASET_ROOT + "*")
         args = shlex.split("arki-mergeconf " + ' '.join(folders))
-        logger.debug('Launching Arkimet command: %s' % args)
+        logger.debug('Launching Arkimet command: {}', args)
 
         proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
-        logger.debug('return code: %s' % proc.returncode)
+        logger.debug('return code: {}', proc.returncode)
         # raise a CalledProcessError if returncode is non-zero
         proc.check_returncode()
         ds = None
@@ -89,11 +89,10 @@ class BeArkimet():
 
         ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
         args = shlex.split("arki-query --json --summary-short --annotate '{}' {}".format(query, ds))
-        logger.debug('Launching Arkimet command: %s' % args)
+        logger.debug('Launching Arkimet command: {}', args)
 
         with subprocess.Popen(args, encoding='utf-8', stdout=subprocess.PIPE) as proc:
             return json.loads(proc.stdout.read())
-
 
     @staticmethod
     def estimate_data_size(datasets, query):
@@ -127,7 +126,10 @@ class BeArkimet():
         """
         from_dt = dateutil.parser.parse(from_str)
         to_dt = dateutil.parser.parse(to_str)
-        return 'reftime: >='+from_dt.strftime("%Y-%m-%d %H:%M")+',<='+to_dt.strftime("%Y-%m-%d %H:%M")
+
+        gt = from_dt.strftime("%Y-%m-%d %H:%M")
+        lt = to_dt.strftime("%Y-%m-%d %H:%M")
+        return 'reftime: >={},<={}'.format(gt, lt)
 
     @staticmethod
     def parse_matchers(filters):
@@ -161,15 +163,15 @@ class BeArkimet():
             elif k == 'timerange':
                 q = ' or '.join([BeArkimet.__decode_timerange(i) for i in values])
             else:
-                logger.warn('Invalid filter: {}'.format(k))
+                logger.warn('Invalid filter: {}', k)
                 continue
-            matchers.append(k+':'+q)
+            matchers.append(k + ':' + q)
         return '' if not matchers else '; '.join(matchers)
 
     @staticmethod
     def __decode_area(i):
         if not isinstance(i, dict):
-            raise ValueError('Unexpected input type for <%s>' % type(i).__name__)
+            raise ValueError('Unexpected input type for <{}>'.format(type(i).__name__))
         style = i.get('s')
         vals = [k[0] + '=' + str(k[1]) for k in i.get('va', {}).items()]
         if style == 'GRIB':
@@ -187,7 +189,7 @@ class BeArkimet():
     @staticmethod
     def __decode_level(i):
         if not isinstance(i, dict):
-            raise TypeError('Unexpected input type for <%s>' % type(i).__name__)
+            raise TypeError('Unexpected input type for <{}>'.format(type(i).__name__))
         style = i.get('s')
         if style == 'GRIB1':
             l = [str(i.get('lt', ''))]
@@ -222,7 +224,7 @@ class BeArkimet():
     @staticmethod
     def __decode_origin(i):
         if not isinstance(i, dict):
-            raise TypeError('Unexpected input type for <%s>' % type(i).__name__)
+            raise TypeError('Unexpected input type for <{}>'.format(type(i).__name__))
         style = i.get('s')
         if style == 'GRIB1':
             return 'GRIB1,{ce},{sc},{pr}'.format(
@@ -255,7 +257,7 @@ class BeArkimet():
     @staticmethod
     def __decode_proddef(i):
         if not isinstance(i, dict):
-            raise TypeError('Unexpected input type for <%s>' % type(i).__name__)
+            raise TypeError('Unexpected input type for <{}>'.format(type(i).__name__))
         style = i.get('s')
         if style == 'GRIB':
             vals = [k[0] + '=' + str(k[1]) for k in i.get('va', {}).items()]
@@ -266,7 +268,7 @@ class BeArkimet():
     @staticmethod
     def __decode_product(i):
         if not isinstance(i, dict):
-            raise TypeError('Unexpected input type for <%s>' % type(i).__name__)
+            raise TypeError('Unexpected input type for <{}>'.format(type(i).__name__))
         style = i.get('s')
         if style == 'GRIB1':
             return 'GRIB1,{origin},{table},{product}'.format(
@@ -288,7 +290,7 @@ class BeArkimet():
                 ls=i.get('ls', '')
             )
             vals = [k[0] + '=' + str(k[1]) for k in i.get('va', {}).items()]
-            return '%s:%s' % (s, ','.join(vals)) if vals else s
+            return '{}:{}'.format(s, ','.join(vals)) if vals else s
         elif style == 'ODIMH5':
             return 'ODIMH5,{obj},{product}'.format(
                 obj=i.get('ob', ''),
@@ -297,20 +299,20 @@ class BeArkimet():
         elif style == 'VM2':
             p = 'VM2,{id}'.format(i.get('id', ''))
             vals = [k[0] + '=' + str(k[1]) for k in i.get('va', {}).items()]
-            return '%s:%s' % (p, ','.join(vals)) if vals else p
+            return '{}:{}'.format(p, ','.join(vals)) if vals else p
         else:
             raise ValueError('Invalid <product> style for {}'.format(style))
 
     @staticmethod
     def __decode_quantity(i):
         if not isinstance(i, dict):
-            raise TypeError('Unexpected input type for <%s>' % type(i).__name__)
+            raise TypeError('Unexpected input type for <{}>'.format(type(i).__name__))
         return ','.join([str(k) for k in i.get('va', [])])
 
     @staticmethod
     def __decode_run(i):
         if not isinstance(i, dict):
-            raise TypeError('Unexpected input type for <%s>' % type(i).__name__)
+            raise TypeError('Unexpected input type for <{}>'.format(type(i).__name__))
         style = i.get('s')
         if style == 'MINUTE':
             val = i.get('va')
@@ -329,13 +331,13 @@ class BeArkimet():
     @staticmethod
     def __decode_task(i):
         if not isinstance(i, dict):
-            raise TypeError('Unexpected input type for <%s>' % type(i).__name__)
+            raise TypeError('Unexpected input type for <{}>'.format(type(i).__name__))
         return str(i.get('va', ''))
 
     @staticmethod
     def __decode_timerange(i):
         if not isinstance(i, dict):
-            raise TypeError('Unexpected input type for <%s>' % type(i).__name__)
+            raise TypeError('Unexpected input type for <{}>'.format(type(i).__name__))
         style = i.get('s')
         # un = {}
         if style == 'GRIB1':
@@ -409,7 +411,7 @@ class BeArkimet():
                 If the stat type is 255, then proctype = "-"
                 (see arki / types / timerange.cc:1403).
                 '''
-                s = ''.join([s , ',-'])
+                s = ''.join([s, ',-'])
 
             '''
             If i.pu is not defined, then the stat unit is UNIT_MISSING = 255 and i.pl is not defined too
