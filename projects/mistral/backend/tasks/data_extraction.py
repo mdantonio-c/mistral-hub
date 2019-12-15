@@ -201,7 +201,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         raise Exception('Failure in post-processing')
 
                 except Exception as perr:
-                    log.warn(str(perr))
+                    log.warning(str(perr))
                     message = 'Error in post-processing: no results'
                     raise PostProcessingException(message)
                 finally:
@@ -230,7 +230,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
         except DiskQuotaException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
-            log.warn(str(exc))
+            log.warning(str(exc))
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,
@@ -240,7 +240,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
         except PostProcessingException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
-            log.warn(str(exc))
+            log.warning(str(exc))
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,

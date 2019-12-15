@@ -121,7 +121,7 @@ class RequestManager():
             os.remove(filepath)
         except FileNotFoundError as error:
             # silently pass when file is not found
-            log.warn(error)
+            log.warning(error)
 
     @staticmethod
     def delete_request_record(db, user, request_id, download_dir):

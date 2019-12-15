@@ -162,7 +162,7 @@ class BeArkimet():
             elif k == 'timerange':
                 q = ' or '.join([BeArkimet.__decode_timerange(i) for i in values])
             else:
-                log.warn('Invalid filter: {}', k)
+                log.warning('Invalid filter: {}', k)
                 continue
             matchers.append(k + ':' + q)
         return '' if not matchers else '; '.join(matchers)
