@@ -1,6 +1,6 @@
 FROM arpaesimc/centos
 
-FROM rapydo/backend:0.7.0
+FROM rapydo/backend:0.7.1
 
 ARG CURRENT_UID
 RUN test -n "$CURRENT_UID"
