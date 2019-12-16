@@ -131,6 +131,9 @@ definitions:
             type: integer
           ny:
             type: integer
+      template:
+        description: grib template for interpolation
+        type: string
       sub-type:
         type: string
         enum:

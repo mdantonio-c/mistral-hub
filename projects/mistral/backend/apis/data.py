@@ -172,7 +172,7 @@ class Data(EndpointResource, Uploader):
     def patch(self):
         user = self.get_current_user()
         # allowed formats for uploaded file
-        self.allowed_exts = ['shp', 'shx', 'geojson','dbf', 'zip']
+        self.allowed_exts = ['shp', 'shx', 'geojson','dbf', 'zip', 'grib']
         request_file = request.files['file']
         f = request_file.filename.rsplit(".", 1)
 
