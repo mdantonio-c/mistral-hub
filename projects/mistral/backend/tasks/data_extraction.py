@@ -158,7 +158,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                             pp_grid_cropping(params=p, input=tmp_outfile, output=outfile)
 
                         elif pp_type == 'spare_point_interpolation':
-                            pp_sp_interpolation(params=p, input=tmp_outfile, output=outfile)
+                            #change output extension from .grib to .BUFR
+                            outfile_name, outfile_ext = os.path.splitext(outfile)
+                            bufr_outfile = outfile_name+'.BUFR'
+                            pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile)
 
                         elif pp_type == 'statistic_elaboration':
                             pp_statistic_elaboration(params=p, input=tmp_outfile, output=outfile)
@@ -233,7 +236,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
+                            #new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '.BUFR'
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             pp_sp_interpolation(params=p, input=pp_input, output=pp_output)
                         # rename the final output of postprocessors as outfile
@@ -522,7 +526,7 @@ def pp_sp_interpolation(params, input, output):
     logger.debug('Spare point interpolation postprocessor')
     try:
         post_proc_cmd = []
-        post_proc_cmd.append('vg6d_transform')
+        post_proc_cmd.append('vg6d_getpoint')
         post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
         post_proc_cmd.append('--coord-file={}'.format(params.get('coord-filepath')))

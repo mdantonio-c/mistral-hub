@@ -202,11 +202,13 @@ class Data(EndpointResource, Uploader):
 
         # if the file is a zip file extract the content in the upload folder
         if f[1] == 'zip':
+            files = []
             with ZipFile(upload_filepath, 'r') as zip:
+                files = zip.namelist()
+                log.debug('filelist: {}'.format(files))
                 upload_folder = Path(upload_filepath).parent
                 zip.extractall(path=upload_folder)
             # get .shp file filename
-            files = os.listdir(upload_folder)
             for f in files:
                 e = f.rsplit(".", 1)
                 if e[1]=='shp':
@@ -224,7 +226,10 @@ class Data(EndpointResource, Uploader):
         if sub_type in ("near", "bilin"):
             params['trans-type'] = "inter"
         if sub_type in ("average", "min", "max"):
-            params['trans-type'] = "boxinter"
+            if params['type'] == 'grid_interpolation':
+                params['trans-type'] = "boxinter"
+            else:
+                params['trans-type'] = "polyinter"
 
     @staticmethod
     def validate_spare_point_interpol_params(params):
