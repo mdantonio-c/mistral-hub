@@ -16,7 +16,8 @@
                     <li *ngFor="let v of form.get('derived_variables')['controls']; let i=index">
                         <input class="mst--input-checkbox" type="checkbox" [formControl]="v"
                                [id]="vars[i].code">
-                        <label [for]="vars[i].code">{{vars[i].desc}}</label>
+                        <label [for]="vars[i].code"
+                            ngbTooltip="{{vars[i].code}}" placement="right" openDelay="2000">{{vars[i].desc}}</label>
                     </li>
                 </ul>
             </div>
