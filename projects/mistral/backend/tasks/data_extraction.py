@@ -170,11 +170,18 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         # always remove tmp file
                         os.remove(tmp_outfile)
                         # if pp_type == 'spare_point_interpolation':
-                        #     # remove the temporary folder where the files for the intepolation were uploaded
+                        #     # remove the temporary folder where the files for the interpolation were uploaded
                         #     uploaded_filepath = Path(p.get('coord-filepath'))
                         #     shutil.rmtree(uploaded_filepath.parent)
                 # case of multiple postprocessor
                 else:
+                    #check if there is only one geographical postprocessor
+                    pp_list=[]
+                    for p in postprocessors:
+                        pp_list.append(p['type'])
+                    pp3_list=['grid_cropping','grid_interpolation','spare_point_interpolation']
+                    if len(set(pp_list).intersection(set(pp3_list))) > 1:
+                        raise PostProcessingException('Only one geographical postprocessing at a time can be executed')
                     try:
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
                         pp_output = None
@@ -237,12 +244,13 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                             else:
                                 pp_input = tmp_outfile
                             #new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '.BUFR'
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '.bufr'
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             pp_sp_interpolation(params=p, input=pp_input, output=pp_output)
-                        # rename the final output of postprocessors as outfile
-                        logger.debug('dest: {}'.format(str(outfile)))
-                        os.rename(pp_output,outfile)
+                        # rename the final output of postprocessors as outfile unless it is not a bufr file
+                        if pp_output.split('.')[-1]!='bufr':
+                            logger.debug('dest: {}'.format(str(outfile)))
+                            os.rename(pp_output,outfile)
                     finally:
                         # remove all tmp file
                         tmp_filelist= glob.glob(os.path.join(user_dir, "*.tmp"))

@@ -134,7 +134,17 @@ class Data(EndpointResource, Uploader):
                     'Unknown post-processor type for {}'.format(p_type),
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
-
+        # if there is a pp combination check if there is only one geographical postprocessor
+        if len(processors) > 1:
+            pp_list = []
+            for p in processors:
+                pp_list.append(p.get('type'))
+            pp3_list = ['grid_cropping', 'grid_interpolation', 'spare_point_interpolation']
+            if len(set(pp_list).intersection(set(pp3_list))) > 1:
+                raise RestApiException(
+                    'Only one geographical postprocessing at a time can be executed',
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
         # run the following steps in a transaction
         db = self.get_service_instance('sqlalchemy')
         try:
