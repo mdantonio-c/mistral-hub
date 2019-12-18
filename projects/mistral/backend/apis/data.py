@@ -15,6 +15,7 @@ from mistral.services.requests_manager import RequestManager as repo
 
 import os
 import shutil
+import subprocess
 from zipfile import ZipFile
 from pathlib import Path
 
@@ -187,7 +188,7 @@ class Data(EndpointResource, Uploader):
         f = request_file.filename.rsplit(".", 1)
 
         # check if the shapefile in the zip folder is complete
-        if f[1]== 'zip':
+        if f[-1]== 'zip':
             with ZipFile(request_file, 'r') as zip:
                 uploaded_files = zip.namelist()
                 self.check_files_to_upload(uploaded_files)
@@ -211,7 +212,7 @@ class Data(EndpointResource, Uploader):
         log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
 
         # if the file is a zip file extract the content in the upload folder
-        if f[1] == 'zip':
+        if f[-1] == 'zip':
             files = []
             with ZipFile(upload_filepath, 'r') as zip:
                 files = zip.namelist()
@@ -221,8 +222,12 @@ class Data(EndpointResource, Uploader):
             # get .shp file filename
             for f in files:
                 e = f.rsplit(".", 1)
-                if e[1]=='shp':
+                if e[-1]=='shp':
                     upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, f)
+        # if the file is a geojson convert it to shapefile
+        if f[-1] == 'geojson':
+            upload_filepath = self.convert_to_shapefile(upload_filepath)
+
         r = {}
         filename = self.split_dir_and_extension(upload_filepath)
         r['filepath'] = upload_filepath
@@ -313,3 +318,16 @@ class Data(EndpointResource, Uploader):
             if file_dict['shp'] != file_dict['dbf']:
                 raise RestApiException('file .dbf and file .shp does not match',
                                        status_code=hcodes.HTTP_BAD_REQUEST)
+
+    @staticmethod
+    def convert_to_shapefile(filepath):
+        filebase, fileext = os.path.splitext(filepath)
+        output_file = filebase+'.shp'
+        cmd = ['ogr2ogr',output_file,filepath]
+        proc = subprocess.Popen(cmd)
+        # wait for the process to terminate
+        if proc.wait() != 0:
+            raise RestApiException('Errors in converting the uploaded file',
+                                   status_code=hcodes.HTTP_SERVER_ERROR)
+        else:
+            return output_file
