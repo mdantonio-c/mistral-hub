@@ -43,3 +43,11 @@ variables:
         default: normal_user
   frontend:
     framework: angular
+
+controller:
+  commands:
+    init:
+      description: Init DB-All.e PostgreSQL database
+      command: sh /scripts/init_dballe.sh
+      service: backend
+      user: developer
