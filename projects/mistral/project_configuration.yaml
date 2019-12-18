@@ -19,7 +19,7 @@ variables:
     ALCHEMY_PASSWORD: chooseapasswordwisely
     ALCHEMY_API_DB: SQL_API
     ALCHEMY_ENGINE: postgresql
-    ALCHEMY_DBS: SQL_API
+    ALCHEMY_DBS: 'SQL_API DBALLE'
 
     ACTIVATE_MONGODB: 1
     ACTIVATE_CELERY: 1

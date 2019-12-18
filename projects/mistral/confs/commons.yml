@@ -19,7 +19,8 @@ services:
       - 15672:15672
 
   nifi:
-    image: apache/nifi
+    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/nifi
+    image: ${COMPOSE_PROJECT_NAME}/nifi:${RAPYDO_VERSION}
     ports:
       - 8070:8080
     environment:
