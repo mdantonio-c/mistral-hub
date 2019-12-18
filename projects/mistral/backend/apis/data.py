@@ -323,7 +323,7 @@ class Data(EndpointResource, Uploader):
     def convert_to_shapefile(filepath):
         filebase, fileext = os.path.splitext(filepath)
         output_file = filebase+'.shp'
-        cmd = ['ogr2ogr',output_file,filepath]
+        cmd = ['ogr2ogr','-f', "ESRI Shapefile",output_file,filepath]
         proc = subprocess.Popen(cmd)
         # wait for the process to terminate
         if proc.wait() != 0:
