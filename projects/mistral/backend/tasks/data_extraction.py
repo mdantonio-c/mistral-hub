@@ -158,7 +158,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                             pp_grid_cropping(params=p, input=tmp_outfile, output=outfile)
 
                         elif pp_type == 'spare_point_interpolation':
-                            pp_sp_interpolation(params=p, input=tmp_outfile, output=outfile)
+                            #change output extension from .grib to .BUFR
+                            outfile_name, outfile_ext = os.path.splitext(outfile)
+                            bufr_outfile = outfile_name+'.BUFR'
+                            pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile)
 
                         elif pp_type == 'statistic_elaboration':
                             pp_statistic_elaboration(params=p, input=tmp_outfile, output=outfile)
@@ -166,10 +169,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     finally:
                         # always remove tmp file
                         os.remove(tmp_outfile)
-                        if pp_type == 'spare_point_interpolation':
-                            # remove the temporary folder where the files for the intepolation were uploaded
-                            uploaded_filepath = Path(p.get('coord-filepath'))
-                            shutil.rmtree(uploaded_filepath.parent)
+                        # if pp_type == 'spare_point_interpolation':
+                        #     # remove the temporary folder where the files for the intepolation were uploaded
+                        #     uploaded_filepath = Path(p.get('coord-filepath'))
+                        #     shutil.rmtree(uploaded_filepath.parent)
                 # case of multiple postprocessor
                 else:
                     try:
@@ -233,7 +236,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
+                            #new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '.BUFR'
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             pp_sp_interpolation(params=p, input=pp_input, output=pp_output)
                         # rename the final output of postprocessors as outfile
@@ -245,8 +249,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         for f in tmp_filelist:
                             os.remove(f)
                         # if there is, remove the temporary folder where the files for the sp_interpolation were uploaded
-                        if os.path.isdir(os.path.join(UPLOAD_FOLDER,uuid)):
-                            shutil.rmtree(os.path.join(UPLOAD_FOLDER,uuid))
+                        # if os.path.isdir(os.path.join(UPLOAD_FOLDER,uuid)):
+                        #     shutil.rmtree(os.path.join(UPLOAD_FOLDER,uuid))
             else:
                 with open(os.path.join(user_dir, out_filename), mode='w') as outfile:
                     subprocess.Popen(arki_query_cmd, stdout=outfile)
@@ -448,22 +452,27 @@ def pp_grid_interpolation(params, input, output):
         post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
 
-        # vg6d_transform automatically provides defaults for missing optional params
-        if 'grid-params' in params:
-            post_proc_cmd.append('--type={}'.format(params.get('grid-params')))
-        if 'x-min' in params['boundings']:
-            post_proc_cmd.append('--x-min={}'.format(params['boundings']['x-min']))
-        if 'x-max' in params['boundings']:
-            post_proc_cmd.append('--x-max={}'.format(params['boundings']['x-max']))
-        if 'y-min' in params['boundings']:
-            post_proc_cmd.append('--y-min={}'.format(params['boundings']['y-min']))
-        if 'y-max' in params['boundings']:
-            post_proc_cmd.append('--y-max={}'.format(params['boundings']['y-max']))
-        if 'nx' in params['nodes']:
-            post_proc_cmd.append('--nx={}'.format(params['nodes']['nx']))
-        if 'ny' in params['nodes']:
-            post_proc_cmd.append('--ny={}'.format(params['nodes']['ny']))
+        # check if there is a grib file template. If not, looks for others interpolation params
+        if 'template' in params:
+            post_proc_cmd.append('--output-format=grib_api:{}'.format(params['template']))
+        else:
+            # vg6d_transform automatically provides defaults for missing optional params
+            if 'boundings' in params:
+                if 'x-min' in params['boundings']:
+                    post_proc_cmd.append('--x-min={}'.format(params['boundings']['x-min']))
+                if 'x-max' in params['boundings']:
+                    post_proc_cmd.append('--x-max={}'.format(params['boundings']['x-max']))
+                if 'y-min' in params['boundings']:
+                    post_proc_cmd.append('--y-min={}'.format(params['boundings']['y-min']))
+                if 'y-max' in params['boundings']:
+                    post_proc_cmd.append('--y-max={}'.format(params['boundings']['y-max']))
+            if 'nodes' in params:
+                if 'nx' in params['nodes']:
+                    post_proc_cmd.append('--nx={}'.format(params['nodes']['nx']))
+                if 'ny' in params['nodes']:
+                    post_proc_cmd.append('--ny={}'.format(params['nodes']['ny']))
 
+        #post_proc_cmd.append('--display')
         post_proc_cmd.append(input)
         post_proc_cmd.append(output)
         logger.debug('Post process command: {}>'.format(post_proc_cmd))
@@ -488,8 +497,6 @@ def pp_grid_cropping(params, input, output):
         post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
 
-        if 'grid-params' in params:
-            post_proc_cmd.append('--type={}'.format(params.get('grid-params')))
         if 'ilon' in params['boundings']:
             post_proc_cmd.append('--ilon={}'.format(params['boundings']['ilon']))
         if 'ilat' in params['boundings']:
@@ -519,7 +526,7 @@ def pp_sp_interpolation(params, input, output):
     logger.debug('Spare point interpolation postprocessor')
     try:
         post_proc_cmd = []
-        post_proc_cmd.append('vg6d_transform')
+        post_proc_cmd.append('vg6d_getpoint')
         post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
         post_proc_cmd.append('--coord-file={}'.format(params.get('coord-filepath')))
@@ -572,9 +579,6 @@ def pp_statistic_elaboration(params, input, output):
         logger.warn(str(perr))
         message = 'Error in post-processing: no results'
         raise PostProcessingException(message)
-
-# @staticmethod
-# def pp_grid_interpolation(datasets, reftime=None, filters=None, postprocessors=[], ):
 
 
 def send_result_notication(recipient, status, message):
