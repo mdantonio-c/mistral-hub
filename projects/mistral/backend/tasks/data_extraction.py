@@ -502,6 +502,7 @@ def pp_grid_cropping(params, input, output):
     try:
         post_proc_cmd = []
         post_proc_cmd.append('vg6d_transform')
+        post_proc_cmd.append('--trans-mode=s')  # parametro opzionale per limitare l'uso della memoria elaborando un messaggio alla volta
         post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
 
@@ -537,8 +538,9 @@ def pp_sp_interpolation(params, input, output):
         post_proc_cmd.append('vg6d_getpoint')
         post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
-        post_proc_cmd.append('--coord-file={}'.format(params.get('coord-filepath')))
         post_proc_cmd.append('--coord-format={}'.format(params.get('format')))
+        post_proc_cmd.append('--coord-file={}'.format(params.get('coord-filepath')))
+        post_proc_cmd.append('--output-format=BUFR')
         post_proc_cmd.append(input)
         post_proc_cmd.append(output)
         logger.debug('Post process command: {}>'.format(post_proc_cmd))
