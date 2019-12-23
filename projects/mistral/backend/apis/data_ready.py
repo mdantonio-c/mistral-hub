@@ -28,9 +28,9 @@ class DataReady(EndpointResource):
         model = data.get("Model")
         rundate = data.get("rundate")
 
-        log.info("Cluster = {}", cluster)
-        log.info("Model = {}", model)
-        log.info("rundate = {}", rundate)
+        log.info("Cluster = %s", cluster)
+        log.info("Model = %s", model)
+        log.info("rundate = %s", rundate)
 
         db = self.get_service_instance('sqlalchemy')
 
@@ -47,10 +47,10 @@ class DataReady(EndpointResource):
             # e.g. True
             enabled = r['enabled']
             if not enabled:
-                log.info("Skipping {}: not enabled", name)
+                log.info("Skipping %s: not enabled", name)
                 continue
 
-            log.info("Checking schedule: {}", name)
+            log.info("Checking schedule: %s", name)
 
             # e.g. '2019-12-13T15:52:30.834060'
             # creation_date = r['creation_date']
@@ -59,16 +59,16 @@ class DataReady(EndpointResource):
             datasets = r['args']['datasets']
 
             if len(datasets) == 0:
-                log.warning("This job requires no dataset: {}", datasets)
+                log.warning("This job requires no dataset: %s", datasets)
                 continue
 
             if len(datasets) >= 2:
                 log.warning(
-                    "Unsupported job requesting more than a dataset: {}", datasets)
+                    "Unsupported job requesting more than a dataset: %s", datasets)
                 continue
 
             if datasets[0] != model:
-                log.info("Skipping {}: schedule is looking for dataset {}", datasets)
+                log.info("Skipping %s: schedule is looking for dataset %s", datasets)
                 continue
 
             # e.g. {
@@ -97,7 +97,7 @@ class DataReady(EndpointResource):
 
             # e.g. days
             # period = r['period']
-            log.info("Periodic = {} - {}", periodic, periodic_settings)
+            log.info("Periodic = %s - %s", periodic, periodic_settings)
 
             # se tra gli args manca run significa che chiede sia 00 sia 12
             # reftime == 00 || reftime == 12,
