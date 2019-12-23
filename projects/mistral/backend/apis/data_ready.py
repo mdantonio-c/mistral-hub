@@ -47,10 +47,8 @@ class DataReady(EndpointResource):
             # e.g. True
             enabled = r['enabled']
             if not enabled:
-                log.info("Skipping %s: not enabled", name)
+                log.debug("Skipping %s: schedule is not enabled", name)
                 continue
-
-            log.info("Checking schedule: %s", name)
 
             # e.g. '2019-12-13T15:52:30.834060'
             # creation_date = r['creation_date']
@@ -59,19 +57,21 @@ class DataReady(EndpointResource):
             datasets = r['args']['datasets']
 
             if len(datasets) == 0:
-                log.warning("This job requires no dataset: %s", datasets)
+                log.warning(
+                    "Schedule %s requires no dataset: %s, skipping", name, datasets)
                 continue
 
             if len(datasets) >= 2:
                 log.warning(
-                    "Unsupported job requesting more than a dataset: %s", datasets)
+                    "Schedule %s requires more than a dataset: %s. This is still unsupported, skipping", name, datasets)
                 continue
 
             if datasets[0] != model:
-                log.info(
+                log.debug(
                     "Skipping %s: schedule is looking for dataset %s", name, datasets)
                 continue
 
+            log.info("Checking schedule: %s", name)
             # e.g. {
             #     'from': '2019-09-01T00:00:00.000Z',
             #     'to': '2019-09-30T12:02:00.000Z'
@@ -99,6 +99,7 @@ class DataReady(EndpointResource):
             # e.g. days
             # period = r['period']
             log.info("Periodic = %s - %s", periodic, periodic_settings)
+            log.info(r)
 
             # se tra gli args manca run significa che chiede sia 00 sia 12
             # reftime == 00 || reftime == 12,
