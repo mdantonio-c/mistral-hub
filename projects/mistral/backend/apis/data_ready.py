@@ -68,7 +68,8 @@ class DataReady(EndpointResource):
                 continue
 
             if datasets[0] != model:
-                log.info("Skipping %s: schedule is looking for dataset %s", datasets)
+                log.info(
+                    "Skipping %s: schedule is looking for dataset %s", name, datasets)
                 continue
 
             # e.g. {
