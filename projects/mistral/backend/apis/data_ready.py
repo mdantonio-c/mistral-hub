@@ -93,13 +93,23 @@ class DataReady(EndpointResource):
             # e.g. every 2 days
             periodic_settings = r.get('periodic_settings')
 
+            # e.g. True
+            crontab = r.get('crontab')
+
+            # e.g. {'hour': 5, 'minute': 0}
+            crontab_settings = r.get('crontab_settings')
+
             # e.g. 2
             # every = r['every']
 
             # e.g. days
             # period = r['period']
-            log.info("Periodic = %s - %s", periodic, periodic_settings)
-            log.info(r)
+            if crontab:
+                log.info("Crontab %s", crontab_settings)
+            elif periodic is not None:
+                log.info("Periodic = %s - %s", periodic, periodic_settings)
+            else:
+                log.info(r)
 
             # se tra gli args manca run significa che chiede sia 00 sia 12
             # reftime == 00 || reftime == 12,
