@@ -28,9 +28,7 @@ class DataReady(EndpointResource):
         model = data.get("Model")
         rundate = data.get("rundate")
 
-        log.info("Cluster = %s", cluster)
-        log.info("Model = %s", model)
-        log.info("rundate = %s", rundate)
+        log.info("Cluster = %s\tModel = %s\trundate = %s", cluster, model, rundate)
 
         db = self.get_service_instance('sqlalchemy')
 
@@ -39,10 +37,12 @@ class DataReady(EndpointResource):
             r = RequestManager._get_schedule_response(row)
 
             # e.g. 13
-            # request_id = r['id']
+            request_id = r['id']
 
             # e.g. DEmo-scheduled
-            name = r['name']
+            request_name = r['name']
+
+            name = "{} ({})".format(request_name, request_id)
 
             # e.g. True
             enabled = r['enabled']
