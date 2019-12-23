@@ -87,10 +87,10 @@ class DataReady(EndpointResource):
             # requests_count = r['requests_count']
 
             # e.g. True
-            periodic = r['periodic']
+            periodic = r.get('periodic')
 
             # e.g. every 2 days
-            periodic_settings = r['periodic_settings']
+            periodic_settings = r.get('periodic_settings')
 
             # e.g. 2
             # every = r['every']
