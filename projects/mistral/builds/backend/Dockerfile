@@ -9,10 +9,7 @@ ENV APIUSER developer
 RUN usermod -u $CURRENT_UID $APIUSER
 
 # required to install libjasper-dev
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main"
-
-RUN apt-get install -y libhdf5-serial-dev libpq-dev libssl1.0.0 libssl-dev libpopt-dev liblua5.1-0-dev libgeos-dev liblzo2-2 libreadline6-dev libpng16-16 libjasper-dev
+RUN add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" && apt-get install --yes libhdf5-serial-dev libpq-dev libssl1.0.0 libssl-dev libpopt-dev liblua5.1-0-dev libgeos-dev liblzo2-2 libreadline6-dev libpng16-16 libjasper-dev
 
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/hdf5/serial"
 ENV PATH="$PATH:/usr/bin/centos"
