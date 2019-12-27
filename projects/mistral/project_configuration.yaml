@@ -20,12 +20,14 @@ variables:
     ALCHEMY_PASSWORD: chooseapasswordwisely
     ALCHEMY_API_DB: SQL_API
     ALCHEMY_ENGINE: postgresql
-    ALCHEMY_DBS: SQL_API
+    ALCHEMY_DBS: 'SQL_API DBALLE'
 
     ACTIVATE_MONGODB: 1
     ACTIVATE_CELERY: 1
     ACTIVATE_CELERYUI: 1
     ACTIVATE_CELERY_BEAT: 1
+
+    ACTIVATE_NIFI: 1
 
     CELERY_BACKEND: MONGODB
 
@@ -42,3 +44,10 @@ variables:
         admin: admin_root
         default: normal_user
 
+controller:
+  commands:
+    init:
+      description: Init DB-All.e PostgreSQL database
+      command: sh /scripts/init_dballe.sh
+      service: backend
+      user: developer

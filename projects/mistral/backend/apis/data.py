@@ -116,11 +116,13 @@ class Data(EndpointResource, Uploader):
                 self.validate_input(p, 'AVProcessor')
             elif p_type == 'grid_interpolation':
                 self.validate_input(p, 'GIProcessor')
-                self.validate_grid_interpol_params(p)
+                self.get_trans_type(p)
             elif p_type == 'grid_cropping':
                 self.validate_input(p, 'GCProcessor')
+                p['trans-type'] = "zoom"
             elif p_type == 'spare_point_interpolation':
                 self.validate_input(p, 'SPIProcessor')
+                self.get_trans_type(p)
                 self.validate_spare_point_interpol_params(p)
             elif p_type == 'statistic_elaboration':
                 self.validate_input(p, 'SEProcessor')
@@ -168,7 +170,7 @@ class Data(EndpointResource, Uploader):
     def patch(self):
         user = self.get_current_user()
         # allowed formats for uploaded file
-        self.allowed_exts = ['shp', 'shx', 'geojson','dbf', 'zip']
+        self.allowed_exts = ['shp', 'shx', 'geojson','dbf', 'zip', 'grib']
         request_file = request.files['file']
         f = request_file.filename.rsplit(".", 1)
 
@@ -194,11 +196,13 @@ class Data(EndpointResource, Uploader):
 
         # if the file is a zip file extract the content in the upload folder
         if f[1] == 'zip':
+            files = []
             with ZipFile(upload_filepath, 'r') as zip:
+                files = zip.namelist()
+                log.debug('filelist: {}'.format(files))
                 upload_folder = Path(upload_filepath).parent
                 zip.extractall(path=upload_folder)
             # get .shp file filename
-            files = os.listdir(upload_folder)
             for f in files:
                 e = f.rsplit(".", 1)
                 if e[1] == 'shp':
@@ -210,30 +214,19 @@ class Data(EndpointResource, Uploader):
         return self.force_response(r)
 
     @staticmethod
-    def validate_grid_interpol_params(params):
-        trans_type = params['trans-type']
+    def get_trans_type(params):
+        # get trans-type according to the sub-type coming from the request
         sub_type = params['sub-type']
-        if trans_type == "inter":
-            if sub_type not in ("near", "bilin"):
-                raise RestApiException('{} is a bad interpolation sub-type for {}'.format(sub_type, trans_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
-        elif trans_type == "boxinter":
-            if sub_type not in ("average", "min", "max"):
-                raise RestApiException('{} is a bad interpolation sub type for {}'.format(sub_type, trans_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
+        if sub_type in ("near", "bilin"):
+            params['trans-type'] = "inter"
+        if sub_type in ("average", "min", "max"):
+            if params['type'] == 'grid_interpolation':
+                params['trans-type'] = "boxinter"
+            else:
+                params['trans-type'] = "polyinter"
 
     @staticmethod
     def validate_spare_point_interpol_params(params):
-        trans_type = params['trans-type']
-        sub_type = params['sub-type']
-        if trans_type == "inter":
-            if sub_type not in ("near", "bilin"):
-                raise RestApiException('{} is a bad interpolation sub-type for {}'.format(sub_type, trans_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
-        elif trans_type == "polyinter":
-            if sub_type not in ("average", "min", "max"):
-                raise RestApiException('{} is a bad interpolation sub type for {}'.format(sub_type, trans_type),
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
         coord_filepath = params['coord-filepath']
         if not os.path.exists(coord_filepath):
             raise RestApiException('the coord-filepath does not exists',
