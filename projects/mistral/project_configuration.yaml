@@ -29,6 +29,9 @@ variables:
 
     CELERY_BACKEND: MONGODB
 
+    RABBITMQ_ENABLE_MANAGEMENT_PLUGIN: 1
+    RABBITMQ_ENABLE_SHOVEL_PLUGIN: 1
+
   backend:
     credentials:
       username: "user@nomail.org"
