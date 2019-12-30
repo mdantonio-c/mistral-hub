@@ -172,9 +172,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                             #change output extension from .grib to .BUFR
                             outfile_name, outfile_ext = os.path.splitext(outfile)
                             bufr_outfile = outfile_name+'.BUFR'
-                            params=[]
-                            params.append(p)
-                            pp3_3.pp_sp_interpolation(params=params, input=tmp_outfile, output=bufr_outfile)
+                            pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile)
 
                     finally:
                         # always remove tmp file

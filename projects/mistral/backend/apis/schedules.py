@@ -6,6 +6,9 @@ from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
+from mistral.tools import grid_interpolation as pp3_1
+from mistral.tools import statistic_elaboration as pp2
+from mistral.tools import spare_point_interpol as pp3_3
 
 from restapi.utilities.logs import get_logger
 
@@ -213,11 +216,35 @@ class Schedules(EndpointResource):
         # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
         for p in processors:
             p_type = p.get('type')
-            if p_type == 'additional_variables':
+            if p_type == 'derived_variables':
                 self.validate_input(p, 'AVProcessor')
+            elif p_type == 'grid_interpolation':
+                self.validate_input(p, 'GIProcessor')
+                pp3_1.get_trans_type(p)
+            elif p_type == 'grid_cropping':
+                self.validate_input(p, 'GCProcessor')
+                p['trans-type'] = "zoom"
+            elif p_type == 'spare_point_interpolation':
+                self.validate_input(p, 'SPIProcessor')
+                pp3_3.get_trans_type(p)
+                pp3_3.validate_spare_point_interpol_params(p)
+            elif p_type == 'statistic_elaboration':
+                self.validate_input(p, 'SEProcessor')
+                pp2.validate_statistic_elaboration_params(p)
             else:
                 raise RestApiException(
                     'Unknown post-processor type for {}'.format(p_type),
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
+        # if there is a pp combination check if there is only one geographical postprocessor
+        if len(processors) > 1:
+            pp_list = []
+            for p in processors:
+                pp_list.append(p.get('type'))
+            pp3_list = ['grid_cropping', 'grid_interpolation', 'spare_point_interpolation']
+            if len(set(pp_list).intersection(set(pp3_list))) > 1:
+                raise RestApiException(
+                    'Only one geographical postprocessing at a time can be executed',
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
 
