@@ -12,9 +12,11 @@ from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
+from mistral.tools import grid_interpolation as pp3_1
+from mistral.tools import statistic_elaboration as pp2
+from mistral.tools import spare_point_interpol as pp3_3
 
 import os
-import shutil
 import subprocess
 from zipfile import ZipFile
 from pathlib import Path
@@ -119,17 +121,17 @@ class Data(EndpointResource, Uploader):
                 self.validate_input(p, 'AVProcessor')
             elif p_type == 'grid_interpolation':
                 self.validate_input(p, 'GIProcessor')
-                self.get_trans_type(p)
+                pp3_1.get_trans_type(p)
             elif p_type == 'grid_cropping':
                 self.validate_input(p, 'GCProcessor')
                 p['trans-type'] = "zoom"
             elif p_type == 'spare_point_interpolation':
                 self.validate_input(p, 'SPIProcessor')
-                self.get_trans_type(p)
-                self.validate_spare_point_interpol_params(p)
+                pp3_3.get_trans_type(p)
+                pp3_3.validate_spare_point_interpol_params(p)
             elif p_type == 'statistic_elaboration':
                 self.validate_input(p, 'SEProcessor')
-                self.validate_statistic_elaboration_params(p)
+                pp2.validate_statistic_elaboration_params(p)
             else:
                 raise RestApiException(
                     'Unknown post-processor type for {}'.format(p_type),
@@ -233,68 +235,6 @@ class Data(EndpointResource, Uploader):
         r['filepath'] = upload_filepath
         r['format'] = filename[1]
         return self.force_response(r)
-
-    @staticmethod
-    def get_trans_type(params):
-        # get trans-type according to the sub-type coming from the request
-        sub_type = params['sub-type']
-        if sub_type in ("near", "bilin"):
-            params['trans-type'] = "inter"
-        if sub_type in ("average", "min", "max"):
-            if params['type'] == 'grid_interpolation':
-                params['trans-type'] = "boxinter"
-            else:
-                params['trans-type'] = "polyinter"
-
-    @staticmethod
-    def validate_spare_point_interpol_params(params):
-        coord_filepath = params['coord-filepath']
-        if not os.path.exists(coord_filepath):
-            raise RestApiException('the coord-filepath does not exists',
-                                   status_code=hcodes.HTTP_BAD_REQUEST)
-
-        filebase, fileext = os.path.splitext(coord_filepath)
-        if fileext.strip('.') != params['format']:
-            raise RestApiException('format parameter is not correct',
-                                   status_code=hcodes.HTTP_BAD_REQUEST)
-        # if a file is a shapefile, check if .shx and .dbf are in the same folder. If not ask the user to upload all the files again
-        if params['format'] == 'shp':
-            if not os.path.exists(filebase + '.shx') or not os.path.exists(filebase + '.dbf'):
-                # delete the folder with the corrupted files
-                uploaded_filepath = Path(params['coord-filepath'])
-                shutil.rmtree(uploaded_filepath.parent)
-                raise RestApiException('Sorry.The file for the interpolation is corrupted. Please try to upload it again',
-                                       status_code=hcodes.HTTP_SERVER_ERROR)
-
-    @staticmethod
-    def validate_statistic_elaboration_params(params):
-        input = params['input-timerange']
-        output = params['output-timerange']
-        if input != output:
-            if input == 254:
-                if output == 1:
-                    raise RestApiException(
-                        'Parameters for statistic elaboration are not correct',
-                        status_code=hcodes.HTTP_BAD_REQUEST)
-                else:
-                    return
-            if input == 0:
-                if output != 254:
-                    raise RestApiException(
-                        'Parameters for statistic elaboration are not correct',
-                        status_code=hcodes.HTTP_BAD_REQUEST)
-                else:
-                    return
-            else:
-                raise RestApiException(
-                    'Parameters for statistic elaboration are not correct',
-                    status_code=hcodes.HTTP_BAD_REQUEST)
-        if input == output:
-            if input == 254:
-                raise RestApiException(
-                    'Parameters for statistic elaboration are not correct',
-                    status_code=hcodes.HTTP_BAD_REQUEST)
-
 
     @staticmethod
     def check_files_to_upload(files):
