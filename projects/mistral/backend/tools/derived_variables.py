@@ -7,7 +7,7 @@ from mistral.exceptions import PostProcessingException
 
 logger = get_logger(__name__)
 
-def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir):
+def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,fileformat):
     logger.debug('Derived variable postprocessor')
 
     # ------ correcting the choice of filters in order to always obtain a result for postprocessing ----- not necessary at the moment
@@ -125,7 +125,13 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir):
         #command for postprocessor
         pp1_output_filename = tmp_extraction_basename.split('.')[0]+'-pp1_output.grib.tmp'
         pp1_output = os.path.join(user_dir,pp1_output_filename)
-        post_proc_cmd = shlex.split("vg6d_transform --output-variable-list={} {} {}".format(
+        libsim_tool = ''
+        if fileformat.startswith( 'grib' ):
+            libsim_tool='vg6d_transform'
+        else:
+            libsim_tool='v7d_transform'
+        post_proc_cmd = shlex.split("{} --output-variable-list={} {} {}".format(
+            libsim_tool,
             ",".join(params.get('variables')),
             tmp_outfile,
             pp1_output)

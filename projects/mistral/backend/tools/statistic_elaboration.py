@@ -41,7 +41,7 @@ def validate_statistic_elaboration_params(params):
                 'Parameters for statistic elaboration are not correct',
                 status_code=hcodes.HTTP_BAD_REQUEST)
 
-def pp_statistic_elaboration(params, input, output):
+def pp_statistic_elaboration(params, input, output,fileformat):
     logger.debug('Statistic elaboration postprocessor')
 
     # get timeranges tuples
@@ -86,7 +86,7 @@ def pp_statistic_elaboration(params, input, output):
         p = next(item for item in params if item['input-timerange'] == tr[0] and item['output-timerange'] == tr[1])
         splitted_input = filebase + "_%d_%d.grib.tmp" % tr
         tmp_output = filebase + "_%d_%d_result.grib.tmp" % tr
-        pp_output = run_statistic_elaboration(params=p, input=splitted_input, output=tmp_output)
+        pp_output = run_statistic_elaboration(params=p, input=splitted_input, output=tmp_output,fileformat=fileformat)
         fileouput_to_join.append(pp_output)
 
     # join all the fileoutput
@@ -101,7 +101,7 @@ def pp_statistic_elaboration(params, input, output):
 
 
 
-def run_statistic_elaboration(params, input, output):
+def run_statistic_elaboration(params, input, output,fileformat):
     logger.debug ('postprocessing file {}'.format(input))
     step=""
     interval= params.get('interval')
@@ -113,9 +113,16 @@ def run_statistic_elaboration(params, input, output):
         step = "000000{:04d} 00:00:00.000".format(params.get('step'))
     if interval=='hours':
         step = "0000000000 {:02d}:00:00.000".format(params.get('step'))
+
+    libsim_tool = ''
+    if fileformat.startswith('grib'):
+        libsim_tool = 'vg6d_transform'
+    else:
+        libsim_tool = 'v7d_transform'
+
     try:
         post_proc_cmd = []
-        post_proc_cmd.append('vg6d_transform')
+        post_proc_cmd.append(libsim_tool)
         post_proc_cmd.append('--comp-stat-proc={}:{}'.format(params.get('input-timerange'), params.get('output-timerange')))
         post_proc_cmd.append("--comp-step='{}'".format(step))
         post_proc_cmd.append(input)

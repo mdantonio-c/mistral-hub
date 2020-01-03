@@ -167,6 +167,43 @@ class BeArkimet():
         return '' if not matchers else '; '.join(matchers)
 
     @staticmethod
+    def get_datasets_format(datasets):
+        """
+        Load dataset using arki-mergeconf
+        $ arki-mergeconf $HOME/datasets/*
+
+        :return: format of files in datasets
+        """
+        formats=[]
+        for ds in datasets:
+            folder = glob.glob(DATASET_ROOT + ds)
+            args = shlex.split("arki-mergeconf " + ' '.join(folder))
+            logger.debug('Launching Arkimet command: %s' % args)
+
+            proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
+            logger.debug('return code: %s' % proc.returncode)
+            # raise a CalledProcessError if returncode is non-zero
+            proc.check_returncode()
+            for line in proc.stdout.split('\n'):
+                line = line.strip()
+                if line == '':
+                    continue
+                if line.startswith('['):
+                    continue
+
+                name, val = line.partition("=")[::2]
+                name = name.strip()
+                val = val.strip()
+                if name == 'format':
+                    formats.append(val)
+        # check if all the datasets are of the same type (else return an error)
+        # return the general format of the datasets (bufr or grib)
+        if all(x == formats[0] for x in formats):
+            return formats[0]
+        else:
+            raise ValueError('Invalid set of datasets : datasets have different formats')  # check if this kind of error is correct
+
+    @staticmethod
     def __decode_area(i):
         if not isinstance(i, dict):
             raise ValueError('Unexpected input type for <%s>' % type(i).__name__)

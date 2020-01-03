@@ -39,12 +39,18 @@ def validate_spare_point_interpol_params(params):
             raise RestApiException('Sorry.The file for the interpolation is corrupted. Please try to upload it again',
                                    status_code=hcodes.HTTP_SERVER_ERROR)
 
-def pp_sp_interpolation(params, input, output):
+def pp_sp_interpolation(params, input, output,fileformat):
     logger.debug('Spare point interpolation postprocessor')
     try:
         post_proc_cmd = []
-        post_proc_cmd.append('vg6d_getpoint')
-        post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
+
+        if fileformat.startswith('grib'):
+            post_proc_cmd.append('vg6d_getpoint')
+            post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
+        else:
+            post_proc_cmd.append('v7d_transform')
+            post_proc_cmd.append('--pre-trans-type={}'.format(params.get('trans-type')))
+
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
         post_proc_cmd.append('--coord-format={}'.format(params.get('format')))
         post_proc_cmd.append('--coord-file={}'.format(params.get('coord-filepath')))

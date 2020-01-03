@@ -111,11 +111,15 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
             logger.debug(arki_query_cmd)
 
+            # get the format of the datasets
+            dataset_format = arki.get_datasets_format(datasets)
+
             # output filename in the user space
             # max filename len = 64
-            out_filename = 'data-{utc_now}-{id}.grib'.format(
+            out_filename = 'data-{utc_now}-{id}.{fileformat}'.format(
                 utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
-                id=self.request.id)
+                id=self.request.id,
+                fileformat=dataset_format)
             response = ''
             if postprocessors:
                 logger.debug(postprocessors)
@@ -147,8 +151,13 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         p = postprocessors[0]
                         pp_type = p.get('type')
 
+                        # raise an error if the dataset is a bufr and a grid interpolation/cropping is requested
+                        if dataset_format=='bufr':
+                            if pp_type == 'grid_cropping' or pp_type == 'grid_interpolation':
+                                raise ValueError("Post processors unaivailable for the requested datasets")
+
                         if pp_type == 'derived_variables':
-                            pp1_output = pp1.pp_derived_variables(datasets=datasets, params=p, tmp_extraction=tmp_outfile, query=query, user_dir=user_dir)
+                            pp1_output = pp1.pp_derived_variables(datasets=datasets, params=p, tmp_extraction=tmp_outfile, query=query, user_dir=user_dir,fileformat=dataset_format)
                             # join pp1_output and tmp_extraction in output file
                             cat_cmd = ['cat',tmp_outfile,pp1_output]
                             with open(outfile,mode='w') as outfile:
@@ -160,7 +169,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         elif pp_type == 'statistic_elaboration':
                             params = []
                             params.append(p)
-                            pp2.pp_statistic_elaboration(params=params, input=tmp_outfile, output=outfile)
+                            pp2.pp_statistic_elaboration(params=params, input=tmp_outfile, output=outfile,fileformat=dataset_format)
 
                         elif pp_type == 'grid_interpolation':
                             pp3_1.pp_grid_interpolation(params=p, input=tmp_outfile, output=outfile)
@@ -172,7 +181,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                             #change output extension from .grib to .BUFR
                             outfile_name, outfile_ext = os.path.splitext(outfile)
                             bufr_outfile = outfile_name+'.BUFR'
-                            pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile)
+                            pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
 
                     finally:
                         # always remove tmp file
@@ -194,17 +203,23 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     if len(set(pp_list).intersection(set(pp3_list))) > 1:
                         raise PostProcessingException('Only one geographical postprocessing at a time can be executed')
                     try:
+
+                        # raise an error if the dataset is a bufr and a grid interpolation/cropping is requested
+                        if dataset_format == 'bufr':
+                            if any(d['type'] == 'grid_cropping' for d in postprocessors) or any(d['type'] == 'grid_interpolation' for d in postprocessors):
+                                raise ValueError("Post processors unaivailable for the requested datasets")
+
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
                         pp_output = None
                         if any(d['type'] == 'derived_variables' for d in postprocessors):
                             p = next(item for item in postprocessors if item["type"] == 'derived_variables')
                             pp1_output = pp1.pp_derived_variables(datasets=datasets, params=p,
                                                              tmp_extraction=tmp_outfile, query=query,
-                                                             user_dir=user_dir)
+                                                             user_dir=user_dir,fileformat=dataset_format)
                             # join pp1_output and tmp_extraction in output file
                             cat_cmd = ['cat', tmp_outfile, pp1_output]
                             # new temp file as pp output
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp1.grib.tmp'
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp1.{fileformat}.tmp'.format(fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             with open(pp_output, mode='w') as pp1_outfile:
                                 ext_proc = subprocess.Popen(cat_cmd, stdout=pp1_outfile)
@@ -222,9 +237,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp2.grib.tmp'
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp2.{fileformat}.tmp'.format(fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
-                            pp2.pp_statistic_elaboration(params=p, input=pp_input, output=pp_output)
+                            pp2.pp_statistic_elaboration(params=p, input=pp_input, output=pp_output,fileformat=dataset_format)
                         if any(d['type'] == 'grid_cropping' for d in postprocessors):
                             p = next(item for item in postprocessors if item["type"] == 'grid_cropping')
                             # check if the input has to be the previous postprocess output
@@ -233,7 +248,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_2.grib.tmp'
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_2.{fileformat}.tmp'.format(fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             pp3_2.pp_grid_cropping(params=p, input=pp_input, output=pp_output)
                         if any(d['type'] == 'grid_interpolation' for d in postprocessors):
@@ -244,7 +259,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_1.grib.tmp'
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_1.{fileformat}.tmp'.format(fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             pp3_1.pp_grid_interpolation(params=p, input=input, output=pp_output)
                         if any(d['type'] == 'spare_point_interpolation' for d in postprocessors):
@@ -258,7 +273,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                             #new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
                             new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '.bufr'
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
-                            pp3_3.pp_sp_interpolation(params=p, input=pp_input, output=pp_output)
+                            pp3_3.pp_sp_interpolation(params=p, input=pp_input, output=pp_output,fileformat=dataset_format)
                         # rename the final output of postprocessors as outfile unless it is not a bufr file
                         if pp_output.split('.')[-1]!='bufr':
                             logger.debug('dest: {}'.format(str(outfile)))
