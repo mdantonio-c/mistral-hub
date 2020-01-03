@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from flask import request
 from restapi.rest.definition import EndpointResource
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
 from restapi.services.uploader import Uploader
-from restapi.confs import UPLOAD_FOLDER
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import get_logger
 from mistral.services.arkimet import BeArkimet as arki
@@ -16,10 +14,6 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import statistic_elaboration as pp2
 from mistral.tools import spare_point_interpol as pp3_3
 
-import os
-import subprocess
-from zipfile import ZipFile
-from pathlib import Path
 
 log = get_logger(__name__)
 
@@ -47,29 +41,6 @@ class Data(EndpointResource, Uploader):
                 },
                 '500': {
                     'description': 'File for spare point interpolation post processor is corrupted'
-                }
-            },
-        }
-    }
-    PATCH = {
-        '/data': {
-            'summary': 'Uploading file for spare point interpolation postprocessor',
-            'consumes': ['multipart/form-data'],
-            'parameters': [
-                {
-                    'name': 'file',
-                    'in': 'formData',
-                    'description': 'spare point file for the interpolation',
-                    'type': 'file'
-                }
-            ],
-            'responses': {
-                '202': {
-                    'description': 'file uploaded',
-                    'schema': {'$ref': '#/definitions/SparePointFile'}
-                },
-                '400': {
-                    'description': 'file cannot be uploaded'
                 }
             },
         }
@@ -179,95 +150,3 @@ class Data(EndpointResource, Uploader):
         # return self.force_response(
         #     {'task_id': task.id, 'task_status': task.status}, code=hcodes.HTTP_OK_ACCEPTED)
         return self.empty_response()
-
-    @catch_error()
-    @authentication.required()
-    def patch(self):
-        user = self.get_current_user()
-        # allowed formats for uploaded file
-        self.allowed_exts = ['shp', 'shx', 'geojson','dbf', 'zip', 'grib']
-        request_file = request.files['file']
-        f = request_file.filename.rsplit(".", 1)
-
-        # check if the shapefile in the zip folder is complete
-        if f[-1]== 'zip':
-            with ZipFile(request_file, 'r') as zip:
-                uploaded_files = zip.namelist()
-                self.check_files_to_upload(uploaded_files)
-            request.files['file'].seek(0)
-
-        # upload the files
-        upload_response = self.upload(subfolder=user.uuid)
-
-        if not upload_response.defined_content:
-            # raise RestApiException(
-            #     '{}'.format(next(iter(upload_response.errors))),
-            #     status_code=hcodes.HTTP_BAD_REQUEST,
-            # )
-            raise RestApiException(
-                 upload_response.errors,
-                status_code=hcodes.HTTP_BAD_REQUEST,
-            )
-
-        upload_filename = upload_response.defined_content['filename']
-        upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, upload_filename)
-        log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
-
-        # if the file is a zip file extract the content in the upload folder
-        if f[-1] == 'zip':
-            files = []
-            with ZipFile(upload_filepath, 'r') as zip:
-                files = zip.namelist()
-                log.debug('filelist: {}'.format(files))
-                upload_folder = Path(upload_filepath).parent
-                zip.extractall(path=upload_folder)
-            # get .shp file filename
-            for f in files:
-                e = f.rsplit(".", 1)
-                if e[-1]=='shp':
-                    upload_filepath = os.path.join(UPLOAD_FOLDER, user.uuid, f)
-        # if the file is a geojson convert it to shapefile
-        if f[-1] == 'geojson':
-            upload_filepath = self.convert_to_shapefile(upload_filepath)
-
-        r = {}
-        filename = self.split_dir_and_extension(upload_filepath)
-        r['filepath'] = upload_filepath
-        r['format'] = filename[1]
-        return self.force_response(r)
-
-    @staticmethod
-    def check_files_to_upload(files):
-        # create a dictionary to compare the uploaded files specs
-        file_dict = {}
-        for f in files:
-            e = f.rsplit(".", 1)
-            file_dict[e[1]] = e[0]
-        if 'shp' in file_dict:
-            # check if there is a file .shx and a file .dbf
-            if 'shx' not in file_dict:
-                raise RestApiException('file .shx is missing',
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
-            if 'dbf' not in file_dict:
-                raise RestApiException('file .dbf is missing',
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
-            # check if the file .shx and the file .dbf are for the .shp file
-            if file_dict['shp'] != file_dict['shx']:
-                raise RestApiException('file .shx and file .shp does not match',
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
-            if file_dict['shp'] != file_dict['dbf']:
-                raise RestApiException('file .dbf and file .shp does not match',
-                                       status_code=hcodes.HTTP_BAD_REQUEST)
-
-    @staticmethod
-    def convert_to_shapefile(filepath):
-        filebase, fileext = os.path.splitext(filepath)
-        output_file = filebase+'.shp'
-        cmd = ['ogr2ogr','-f', "ESRI Shapefile",output_file,filepath]
-        proc = subprocess.Popen(cmd)
-        # wait for the process to terminate
-        if proc.wait() != 0:
-            raise RestApiException('Errors in converting the uploaded file',
-                                   status_code=hcodes.HTTP_SERVER_ERROR)
-        else:
-            return output_file

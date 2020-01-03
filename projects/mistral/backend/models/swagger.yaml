@@ -201,8 +201,8 @@ definitions:
       - format
       - sub-type
 
-  SparePointFile:
-    description: description of the file uploaded for spare point interpolation postprocessor
+  TemplateFile:
+    description: description of the template file uploaded
     type: object
     properties:
       filepath:
