@@ -16,12 +16,12 @@ services:
 
   postgres:
     ports:
-      - 5432:5432
+      - ${ALCHEMY_PORT}:${ALCHEMY_PORT}
 
   rabbit:
     ports:
-      - 5672:5672
-      - 15672:15672
+      - ${RABBITMQ_PORT}:${RABBITMQ_PORT}
+      - ${RABBITMQ_MANAGEMENT_PORT}:${RABBITMQ_MANAGEMENT_PORT}
 
 #  nifi:
 #    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/nifi
