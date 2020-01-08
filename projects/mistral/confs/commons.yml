@@ -15,6 +15,7 @@ services:
       - ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/scripts:/scripts
 
   postgres:
+    image: postgres:11.5-alpine
     ports:
       - ${ALCHEMY_PORT}:${ALCHEMY_PORT}
 
