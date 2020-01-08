@@ -11,6 +11,7 @@ from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import get_logger
 
 import os
+import glob
 import subprocess
 from zipfile import ZipFile
 
@@ -20,6 +21,79 @@ log = get_logger(__name__)
 class Templates(EndpointResource, Uploader):
     # schema_expose = True
     labels = ['templates']
+    GET = {
+        '/templates/<template_name>': {
+            'summary': 'Get a template filepath',
+            'description': 'Returns a single template by name',
+            'tags': ['templates'],
+            'responses': {
+                '200': {
+                    'description': 'template filepath.',
+                    'schema': {'$ref': '#/definitions/TemplateFile'},
+                },
+                '401': {
+                    'description': 'This endpoint requires a valid authorization token'
+                },
+                '404': {'description': 'template not found'},
+            },
+            'parameters': [
+                {
+                    'in': 'path',
+                    'name': 'name',
+                    'type': 'string',
+                    'required': True,
+                    'description': 'template name',
+                },
+            ],
+        },
+        '/templates': {
+            'summary': 'Get templates',
+            'description': 'Returns the user templates list',
+            'tags': ['templates'],
+            'responses': {
+                '200': {
+                    'description': 'List of user templates',
+                    'schema': {
+                        'type': 'array',
+                        'items': {
+                            '$ref': '#/definitions/TemplateFile'
+                        }
+                    },
+                },
+                '401': {
+                    'description': 'This endpoint requires a valid authorization token'
+                },
+            },
+            'parameters': [
+                {
+                    'name': 'format',
+                    'in': 'query',
+                    'description': 'format to filter the templates',
+                    'type': 'string',
+                    'enum': ['grib', 'shp'],
+                },
+                {
+                    'name': 'perpage',
+                    'in': 'query',
+                    'description': 'Number of files returned',
+                    'type': 'integer',
+                },
+                {
+                    'name': 'currentpage',
+                    'in': 'query',
+                    'description': 'Page number',
+                    'type': 'integer',
+                },
+                {
+                    'name': 'get_total',
+                    'in': 'query',
+                    'description': 'Retrieve total number of templates',
+                    'type': 'boolean',
+                    'default': False,
+                },
+            ],
+        },
+    }
     POST = {
         '/templates': {
             'summary': 'Upload of templates for postprocessors',
@@ -42,6 +116,24 @@ class Templates(EndpointResource, Uploader):
                 }
             },
         }
+    }
+    DELETE = {
+         '/templates/<template_name>': {
+             'summary': 'delete a template',
+             'parameters': [
+                 {
+                     'in': 'path',
+                     'name': 'name',
+                     'type': 'string',
+                     'required': True,
+                     'description': 'template name',
+                 }
+             ],
+             'responses': {
+                 '200': {'description': 'template is succesfully deleted'},
+                 '404': {'description': 'template not found'},
+             },
+         }
     }
 
     @catch_error()
@@ -113,6 +205,84 @@ class Templates(EndpointResource, Uploader):
         r['filepath'] = upload_filepath
         r['format'] = filename[1]
         return self.force_response(r)
+
+    @catch_error()
+    @authentication.required()
+    def get(self, template_name=None):
+        param = self.get_input()
+        format_filter = param.get('format')
+        get_total = param.get('get_total', False)
+        if not get_total:
+            page, limit = self.get_paging()
+            # offset = (current_page - 1) * limit
+            log.debug("paging: page {0}, limit {1}".format(page, limit))
+        # come uso page e limit? nell'altro endpoint usa un metodo apposta per il db
+
+        user = self.get_current_user()
+
+        if template_name is not None:
+            # get the template extension to determine the folder where to find it
+            filebase, fileext = os.path.splitext(template_name)
+
+            filepath = os.path.join(UPLOAD_FOLDER, user.uuid, fileext.strip('.'), template_name)
+            # check if the template exists
+            if not os.path.exists(filepath):
+                raise RestApiException(
+                    "The template doesn't exist", status_code=hcodes.HTTP_BAD_NOTFOUND
+                )
+            res = {}
+            res['filepath'] = filepath
+            res['format'] = fileext.strip('.')
+        else:
+            grib_templates = glob.glob(os.path.join(UPLOAD_FOLDER,user.uuid,'grib', "*"))
+            shp_templates = glob.glob(os.path.join(UPLOAD_FOLDER,user.uuid,'shp', "*.shp"))
+            templates= []
+            if format_filter == 'grib':
+                # get only grib templates
+                templates = grib_templates
+            elif format_filter == 'shp':
+                # get only shp templates
+                templates = shp_templates
+            else:
+                for t in grib_templates:
+                    templates.append(t)
+                for t in shp_templates:
+                    templates.append(t)
+            # get total count for user templates
+            if get_total:
+                counter = len(templates)
+                return {"total": counter}
+            res = []
+            for e in templates:
+                item = {}
+                filebase, fileext = os.path.splitext(e)
+                item['filepath'] = e
+                item['format'] = fileext.strip('.')
+                res.append(item)
+        return self.force_response(res, code=hcodes.HTTP_OK_BASIC)
+
+    @catch_error()
+    @authentication.required()
+    def delete(self, template_name):
+        user = self.get_current_user()
+        # get the template extension to determine the folder where to find it
+        filebase, fileext = os.path.splitext(template_name)
+
+        filepath = os.path.join(UPLOAD_FOLDER,user.uuid,fileext.strip('.'),template_name)
+        # check if the template exists
+        if not os.path.exists(filepath):
+            raise RestApiException(
+                "The template doesn't exist", status_code=hcodes.HTTP_BAD_NOTFOUND
+            )
+        # get all the files related to the template to remove
+        filelist = glob.glob(os.path.join(UPLOAD_FOLDER,user.uuid,fileext.strip('.'),filebase + "*"))
+        for f in filelist:
+            os.remove(f)
+        return self.force_response(
+            "File {} succesfully deleted".format(template_name),
+            code=hcodes.HTTP_OK_BASIC,
+        )
+
 
     @staticmethod
     def check_files_to_upload(UPLOAD_FOLDER,user_uuid,files):
