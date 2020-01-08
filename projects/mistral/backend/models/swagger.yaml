@@ -210,6 +210,21 @@ definitions:
       format:
         type: string
 
+  TemplateList:
+    description: list of user templates
+    type: array
+    items:
+      type: object
+      properties:
+        format:
+          type: string
+          enum:
+            - grib
+            - shp
+        files:
+          type: array
+          items:
+            type: string
 
 #  GProcessor:
 #    description: post-processor for geographical elaborations, interpolations or cropping

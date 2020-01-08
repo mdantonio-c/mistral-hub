@@ -53,12 +53,7 @@ class Templates(EndpointResource, Uploader):
             'responses': {
                 '200': {
                     'description': 'List of user templates',
-                    'schema': {
-                        'type': 'array',
-                        'items': {
-                            '$ref': '#/definitions/TemplateFile'
-                        }
-                    },
+                    'schema': {'$ref': '#/definitions/TemplateList'},
                 },
                 '401': {
                     'description': 'This endpoint requires a valid authorization token'
@@ -236,29 +231,28 @@ class Templates(EndpointResource, Uploader):
         else:
             grib_templates = glob.glob(os.path.join(UPLOAD_FOLDER,user.uuid,'grib', "*"))
             shp_templates = glob.glob(os.path.join(UPLOAD_FOLDER,user.uuid,'shp', "*.shp"))
-            templates= []
+            res = []
+            grib_object = {}
+            grib_object['type'] = 'grib'
+            grib_object['files'] = []
+            for t in grib_templates:
+                grib_object['files'].append(t)
+            shp_object = {}
+            shp_object['type'] = 'shp'
+            shp_object['files'] = []
+            for t in shp_templates:
+                shp_object['files'].append(t)
             if format_filter == 'grib':
-                # get only grib templates
-                templates = grib_templates
+                res.append(grib_object)
             elif format_filter == 'shp':
-                # get only shp templates
-                templates = shp_templates
+                res.append(shp_object)
             else:
-                for t in grib_templates:
-                    templates.append(t)
-                for t in shp_templates:
-                    templates.append(t)
+                res.append(grib_object)
+                res.append(shp_object)
             # get total count for user templates
             if get_total:
                 counter = len(templates)
                 return {"total": counter}
-            res = []
-            for e in templates:
-                item = {}
-                filebase, fileext = os.path.splitext(e)
-                item['filepath'] = e
-                item['format'] = fileext.strip('.')
-                res.append(item)
         return self.force_response(res, code=hcodes.HTTP_OK_BASIC)
 
     @catch_error()
