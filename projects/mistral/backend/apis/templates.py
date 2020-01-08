@@ -136,7 +136,7 @@ class Templates(EndpointResource, Uploader):
     def post(self):
         user = self.get_current_user()
         # allowed formats for uploaded file
-        self.allowed_exts = ['shp', 'shx', 'geojson','dbf', 'zip', 'grib']
+        allowed_ext = self.allowed_exts = ['shp', 'shx', 'geojson','dbf', 'zip', 'grib']
         request_file = request.files['file']
         f = request_file.filename.rsplit(".", 1)
 
@@ -144,7 +144,7 @@ class Templates(EndpointResource, Uploader):
         if f[-1]== 'zip':
             with ZipFile(request_file, 'r') as zip:
                 uploaded_files = zip.namelist()
-                self.check_files_to_upload(UPLOAD_FOLDER,user.uuid,uploaded_files)
+                self.check_files_to_upload(UPLOAD_FOLDER,user.uuid,uploaded_files,allowed_ext)
             request.files['file'].seek(0)
 
         # upload the files
@@ -279,12 +279,11 @@ class Templates(EndpointResource, Uploader):
 
 
     @staticmethod
-    def check_files_to_upload(UPLOAD_FOLDER,user_uuid,files):
+    def check_files_to_upload(UPLOAD_FOLDER,user_uuid,files,allowed_ext):
         # create a dictionary to compare the uploaded files specs
         file_dict = {}
         for f in files:
             e = f.rsplit(".", 1)
-
             # check in the correct folder if the file was already uploaded
             subfolder=''
             if e[-1]=='shp' or e[-1]=='geojson':
@@ -311,6 +310,12 @@ class Templates(EndpointResource, Uploader):
             if file_dict['shp'] != file_dict['dbf']:
                 raise RestApiException('file .dbf and file .shp does not match',
                                        status_code=hcodes.HTTP_BAD_REQUEST)
+        # if the file is not a shapefile, only grib and geojson are allowed
+        else:
+            for k in file_dict.keys():
+                if k not in allowed_ext:
+                    raise RestApiException("Wrong extension: File extension not allowed",
+                                           status_code=hcodes.HTTP_BAD_REQUEST)
 
     @staticmethod
     def convert_to_shapefile(filepath):
