@@ -12,11 +12,24 @@ services:
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
       - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
       - ${VANILLA_DIR}/data/uploads:/uploads
+      - ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/scripts:/scripts
+
+  postgres:
+    ports:
+      - 5432:5432
 
   rabbit:
     ports:
       - 5672:5672
       - 15672:15672
+
+#  nifi:
+#    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/nifi
+#    image: ${COMPOSE_PROJECT_NAME}/nifi:${RAPYDO_VERSION}
+#    ports:
+#      - 8070:8080
+#    environment:
+#      ACTIVATE: ${ACTIVATE_NIFI}
 
   celeryui:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
