@@ -201,8 +201,8 @@ definitions:
       - format
       - sub-type
 
-  SparePointFile:
-    description: description of the file uploaded for spare point interpolation postprocessor
+  TemplateFile:
+    description: description of the template file uploaded
     type: object
     properties:
       filepath:
@@ -210,6 +210,21 @@ definitions:
       format:
         type: string
 
+  TemplateList:
+    description: list of user templates
+    type: array
+    items:
+      type: object
+      properties:
+        format:
+          type: string
+          enum:
+            - grib
+            - shp
+        files:
+          type: array
+          items:
+            type: string
 
 #  GProcessor:
 #    description: post-processor for geographical elaborations, interpolations or cropping
