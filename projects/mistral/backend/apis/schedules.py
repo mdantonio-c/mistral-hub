@@ -104,9 +104,9 @@ class Schedules(EndpointResource):
                 }
             ],
             'responses': {
-                '201': {'description': 'succesfully created a scheduled request'},
-                '400': {'description': 'scheduling criteria are not valid'},
-                '404': {'description': 'dataset not found'},
+                '201': {'description': 'scheduled request successfully created'},
+                '400': {'description': 'invalid scheduled request'},
+                '404': {'description': 'impossible to schedule the request: dataset not found'},
             },
         }
     }
@@ -172,7 +172,6 @@ class Schedules(EndpointResource):
     @catch_error()
     @authentication.required()
     def post(self):
-
         user = self.get_current_user()
         log.info(
             'request for data extraction coming from user UUID: {}'.format(user.uuid)
@@ -211,8 +210,21 @@ class Schedules(EndpointResource):
         # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
         for p in processors:
             p_type = p.get('type')
-            if p_type == 'additional_variables':
+            if p_type == 'derived_variables':
                 self.validate_input(p, 'AVProcessor')
+            elif p_type == 'grid_interpolation':
+                self.validate_input(p, 'GIProcessor')
+                self.get_trans_type(p)
+            elif p_type == 'grid_cropping':
+                self.validate_input(p, 'GCProcessor')
+                p['trans-type'] = "zoom"
+            elif p_type == 'spare_point_interpolation':
+                self.validate_input(p, 'SPIProcessor')
+                self.get_trans_type(p)
+                self.validate_spare_point_interpol_params(p)
+            elif p_type == 'statistic_elaboration':
+                self.validate_input(p, 'SEProcessor')
+                self.validate_statistic_elaboration_params(p)
             else:
                 raise RestApiException(
                     'Unknown post-processor type for {}'.format(p_type),
@@ -227,15 +239,15 @@ class Schedules(EndpointResource):
                 "scheduling criteria are not valid", status_code=hcodes.HTTP_BAD_REQUEST
             )
 
-        # parsing period settings
-        period_settings = criteria.get('period-settings')
-        if period_settings is not None:
-            every = str(period_settings.get('every'))
-            period = period_settings.get('period')
-            log.info("Period settings [{} {}]", every, period)
+        try:
+            # parsing period settings
+            period_settings = criteria.get('period-settings')
+            if period_settings is not None:
+                every = str(period_settings.get('every'))
+                period = period_settings.get('period')
+                log.info("Period settings [{} {}]", every, period)
 
-            # get schedule id in postgres database as scheduled request name for mongodb
-            try:
+                # get schedule id in postgres database as scheduled request name for mongodb
                 name_int = RequestManager.create_schedule_record(
                     db,
                     user,
@@ -256,7 +268,6 @@ class Schedules(EndpointResource):
                 log.debug("Previous task deleted = {}", res)
 
                 request_id = None
-
                 CeleryExt.create_periodic_task(
                     name=name,
                     task="mistral.tasks.data_extraction.data_extract",
@@ -272,16 +283,11 @@ class Schedules(EndpointResource):
                         name_int,
                     ],
                 )
-
                 log.info("Scheduling periodic task")
-            except Exception as error:
-                db.session.rollback()
-                raise SystemError("Unable to submit the request")
 
-        crontab_settings = criteria.get('crontab-settings')
-        if crontab_settings is not None:
-            log.info('Crontab settings {}', crontab_settings)
-            try:
+            crontab_settings = criteria.get('crontab-settings')
+            if crontab_settings is not None:
+                log.info('Crontab settings {}', crontab_settings)
                 # get scheduled request id in postgres database as scheduled request name for mongodb
                 name_int = RequestManager.create_schedule_record(
                     db,
@@ -318,12 +324,26 @@ class Schedules(EndpointResource):
                         name_int,
                     ],
                 )
-
                 log.info("Scheduling crontab task")
-            except Exception as error:
-                db.session.rollback()
-                raise SystemError("Unable to submit the request")
 
+            if period_settings is None and crontab_settings is None:
+                # here on_data_ready is True
+                name = RequestManager.create_schedule_record(
+                    db,
+                    user,
+                    product_name,
+                    {
+                        'datasets': dataset_names,
+                        'reftime': reftime,
+                        'filters': filters,
+                        'postprocessors': processors,
+                    },
+                    on_data_ready=True,
+                )
+        except Exception as error:
+            log.error(error)
+            db.session.rollback()
+            raise SystemError("Unable to submit the request")
         return self.force_response('Scheduled task {}'.format(name))
 
     @staticmethod
@@ -331,10 +351,12 @@ class Schedules(EndpointResource):
         # check if at least one scheduling parameter is in the request
         period_settings = criteria.get('period-settings')
         crontab_settings = criteria.get('crontab-settings')
+        on_data_ready = criteria['on-data-ready'] if 'on-data-ready' in criteria and isinstance(
+            criteria['on-data-ready'], bool) else False
         if period_settings or crontab_settings is not None:
             return True
         else:
-            return False
+            return on_data_ready
 
     @catch_error()
     @authentication.required()

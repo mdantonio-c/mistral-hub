@@ -86,30 +86,34 @@ class RequestManager():
         return r
 
     @staticmethod
-    def create_schedule_record(db, user, product_name, args, every=None, period=None, crontab_settings=None):
-        schedule = db.Schedule
-        args = json.dumps(args)
+    def create_schedule_record(db, user, product_name, args, **schedule_settings):
+        # load schedule settings
+        every = schedule_settings['every'] if 'every' in schedule_settings else None
+        period = schedule_settings['period'] if 'period' in schedule_settings else None
+        crontab_settings = schedule_settings['crontab_settings'] if 'crontab_settings' in schedule_settings else None
+        on_data_ready = schedule_settings['on_data_ready'] if 'on_data_ready' else False
+
+        s = db.Schedule(user_id=user.id, name=product_name, args=json.dumps(args), is_crontab=False)
         # check if the request is periodic
         if (every or period) is not None:
-            s = schedule(user_id=user.id, name=product_name, args=args, is_crontab=False, every=every,
-                         period=period)
+            s.every = every
+            s.period = period
         # check if the request is a crontab type
         if crontab_settings is not None:
-            crontab_args = json.dumps(crontab_settings)
-            s = schedule(user_id=user.id, name=product_name, args=args, is_crontab=True,
-                         crontab_settings=crontab_args)
+            s.is_crontab = True
+            s.crontab_settings = json.dumps(crontab_settings)
         s.is_enabled = True
+        s.on_data_ready = on_data_ready
+
         db.session.add(s)
         db.session.commit()
-        schedule_id = s.id
-        log.info('task record {}', s.id)
+        log.info('schedule created: ID <{}>', s.id)
 
-        return schedule_id
+        return s.id
 
     @staticmethod
     def create_fileoutput_record(db, user_id, request_id, filename, data_size):
-        fileoutput = db.FileOutput
-        f = fileoutput(user_id=user_id, request_id=request_id, filename=filename, size=data_size)
+        f = db.FileOutput(user_id=user_id, request_id=request_id, filename=filename, size=data_size)
         db.session.add(f)
         db.session.commit()
         log.info('fileoutput for: {}', request_id)
@@ -360,15 +364,16 @@ class RequestManager():
             'creation_date': schedule.submission_date.isoformat(),
             'args': json.loads(schedule.args),
             'requests_count': schedule.submitted_request.count(),
-            'enabled': schedule.is_enabled
+            'enabled': schedule.is_enabled,
+            'on_data_ready': schedule.on_data_ready
         }
-        if not schedule.is_crontab:
+        if schedule.is_crontab:
+            resp['crontab'] = True
+            resp['crontab_settings'] = json.loads(schedule.crontab_settings)
+        elif schedule.period and schedule.every:
             resp['periodic'] = True
             periodic_settings = ('every', str(schedule.every), schedule.period.name)
             resp['periodic_settings'] = ' '.join(periodic_settings)
             resp['every'] = schedule.every
             resp['period'] = schedule.period.name
-        else:
-            resp['crontab'] = True
-            resp['crontab_settings'] = json.loads(schedule.crontab_settings)
         return resp

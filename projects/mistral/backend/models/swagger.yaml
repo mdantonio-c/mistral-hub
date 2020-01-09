@@ -319,49 +319,6 @@ definitions:
         items:
           type: string
 
-#  Requests:
-#    required:
-#      - submission_date
-#      - args
-#      - user_name
-#      - status
-#      - fileoutput
-#    properties:
-#      submission_date:
-#        type: string
-#        format: dateTime
-#      args:
-#        type: object
-#      user_name:
-#        type: string
-#      status:
-#        type: string
-#      fileoutput:
-#        type: string
-
-#  DataScheduling:
-#    properties:
-#      periode-settings:
-#        description: Settings for the periodic request
-#        type: object
-#        properties:
-#          every:
-#            type: integer
-#          period:
-#            type: string
-#            enum:
-#              - days
-#              - hours
-#              - minutes
-#              - seconds
-#              - microseconds
-#      crontab_settings:
-#        description: Settings for the crontab request
-#        type: object
-#      minProperties: 1
-#      maxProperties: 1
-#      additionalProperties: none
-
   DataScheduling:
     required:
       - name
@@ -396,6 +353,7 @@ definitions:
           - json
           - bufr
           - grib
+      # Schedule settings
       period-settings:
         description: Settings for the periodic request
         type: object
@@ -404,9 +362,10 @@ definitions:
         description: Settings for the crontab request
         type: object
         $ref: "#/definitions/CrontabSettings"
-#      on-ready-settings:
-#        description: Settings for the on-ready scheduled request
-#        schema: {}
+      on-data-ready:
+        description: Activate data extraction when requested data is ready
+        type: boolean
+        default: false
 
   CrontabSettings:
     properties:

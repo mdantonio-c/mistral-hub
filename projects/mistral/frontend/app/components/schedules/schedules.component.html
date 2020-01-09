@@ -103,6 +103,7 @@
                         </div>
                         <div class="col-4 pl-3" style="border-left: 1px solid #ddd;">
                             <i class="fa fa-calendar mr-2"></i>
+                            <span *ngIf="row.on_data_ready">on data ready&nbsp;</span>
                             <span *ngIf="row.periodic">{{row.periodic_settings}}</span>
                             <span *ngIf="row.crontab">
                                 <ng-container *ngIf="row.crontab_settings.day_of_week">weekly</ng-container>

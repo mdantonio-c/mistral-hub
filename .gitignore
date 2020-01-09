@@ -8,12 +8,6 @@ uploads
 /node_modules
 
 ########################
-##  Migrations  ##
-########################
-
-projects/mistral/backend/migrations
-
-########################
 ##  Host configuration  ##
 ########################
 .projectrc

@@ -179,6 +179,9 @@ export class DataService {
                         period: `${schedule.repeat}s`
                     };
                     break;
+                case ScheduleType.DATA_READY:
+                    data['on-data-ready'] = true;
+                    break;
             }
         }
         if (postprocessors && postprocessors.length) {

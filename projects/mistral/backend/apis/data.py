@@ -73,7 +73,6 @@ class Data(EndpointResource, Uploader):
     @catch_error()
     @authentication.required()
     def post(self):
-
         user = self.get_current_user()
         log.info(
             'request for data extraction coming from user UUID: {}'.format(user.uuid)
