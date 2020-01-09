@@ -6,6 +6,9 @@ from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
+from mistral.tools import grid_interpolation as pp3_1
+from mistral.tools import statistic_elaboration as pp2
+from mistral.tools import spare_point_interpol as pp3_3
 
 from restapi.utilities.logs import log
 
@@ -182,6 +185,7 @@ class Schedules(EndpointResource):
         product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         reftime = criteria.get('reftime')
+        output_format = criteria.get('format')
         if reftime is not None:
             # 'from' and 'to' both mandatory by schema
             # check from <= to
@@ -214,22 +218,52 @@ class Schedules(EndpointResource):
                 self.validate_input(p, 'AVProcessor')
             elif p_type == 'grid_interpolation':
                 self.validate_input(p, 'GIProcessor')
-                self.get_trans_type(p)
+                pp3_1.get_trans_type(p)
             elif p_type == 'grid_cropping':
                 self.validate_input(p, 'GCProcessor')
                 p['trans-type'] = "zoom"
             elif p_type == 'spare_point_interpolation':
                 self.validate_input(p, 'SPIProcessor')
-                self.get_trans_type(p)
-                self.validate_spare_point_interpol_params(p)
+                pp3_3.get_trans_type(p)
+                pp3_3.validate_spare_point_interpol_params(p)
             elif p_type == 'statistic_elaboration':
                 self.validate_input(p, 'SEProcessor')
-                self.validate_statistic_elaboration_params(p)
+                pp2.validate_statistic_elaboration_params(p)
             else:
                 raise RestApiException(
                     'Unknown post-processor type for {}'.format(p_type),
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
+        # if there is a pp combination check if there is only one geographical postprocessor
+        if len(processors) > 1:
+            pp_list = []
+            for p in processors:
+                pp_list.append(p.get('type'))
+            pp3_list = ['grid_cropping', 'grid_interpolation', 'spare_point_interpolation']
+            if len(set(pp_list).intersection(set(pp3_list))) > 1:
+                raise RestApiException(
+                    'Only one geographical postprocessing at a time can be executed',
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
+
+        # check if the output format chosen by the user is compatible with the chosen datasets
+        if output_format is not None:
+            # get the format of the datasets
+            dataset_format = arki.get_datasets_format(dataset_names)
+            if dataset_format != output_format:
+                if dataset_format == 'grib':
+                    postprocessors_list = [i.get('type') for i in processors]
+                    # spare point interpolation has bufr as output format
+                    if 'spare_point_interpolation' not in postprocessors_list:
+                        raise RestApiException(
+                            'The chosen datasets does not support {} output format'.format(output_format),
+                            status_code=hcodes.HTTP_BAD_REQUEST,
+                        )
+                if dataset_format == 'bufr' and output_format == 'grib':
+                    raise RestApiException(
+                        'The chosen datasets does not support {} output format'.format(output_format),
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
 
         db = self.get_service_instance('sqlalchemy')
 
@@ -257,6 +291,7 @@ class Schedules(EndpointResource):
                         'reftime': reftime,
                         'filters': filters,
                         'postprocessors': processors,
+                        'format': output_format,
                     },
                     every=every,
                     period=period,
@@ -279,6 +314,7 @@ class Schedules(EndpointResource):
                         reftime,
                         filters,
                         processors,
+                        output_format,
                         request_id,
                         name_int,
                     ],
@@ -298,6 +334,7 @@ class Schedules(EndpointResource):
                         'reftime': reftime,
                         'filters': filters,
                         'postprocessors': processors,
+                        'format': output_format,
                     },
                     crontab_settings=crontab_settings,
                 )
@@ -320,6 +357,7 @@ class Schedules(EndpointResource):
                         reftime,
                         filters,
                         processors,
+                        output_format,
                         request_id,
                         name_int,
                     ],
