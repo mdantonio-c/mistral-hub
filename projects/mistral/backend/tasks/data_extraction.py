@@ -17,11 +17,13 @@ from mistral.services.requests_manager import RequestManager
 from mistral.exceptions import DiskQuotaException
 from mistral.exceptions import PostProcessingException
 
+# postprocessing
 from mistral.tools import derived_variables as pp1
 from mistral.tools import statistic_elaboration as pp2
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import grid_cropping as pp3_2
 from mistral.tools import spare_point_interpol as pp3_3
+from mistral.tools import output_formatting
 
 from restapi.utilities.logs import get_logger
 
@@ -33,7 +35,7 @@ DOWNLOAD_DIR = '/data'
 
 @celery_app.task(bind=True)
 # @send_errors_by_email
-def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[], request_id=None,
+def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[],output_format=None, request_id=None,
                  schedule_id=None):
     with celery_app.app.app_context():
         logger.info("Start task [{}:{}]".format(self.request.id, self.name))
@@ -289,6 +291,14 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             else:
                 with open(os.path.join(user_dir, out_filename), mode='w') as outfile:
                     subprocess.Popen(arki_query_cmd, stdout=outfile)
+
+            if output_format:
+                filebase, fileext = os.path.splitext(out_filename)
+                input = os.path.join(user_dir, out_filename)
+                output = os.path.join(user_dir, filebase + "." + output_format)
+                out_filepath = output_formatting.pp_output_formatting(output_format, input, output)
+                out_filename = os.path.basename(out_filepath)
+
 
             # get the actual data size
             data_size = os.path.getsize(os.path.join(user_dir, out_filename))

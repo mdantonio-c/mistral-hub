@@ -60,6 +60,7 @@ class Data(EndpointResource, Uploader):
         product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         reftime = criteria.get('reftime')
+        output_format = criteria.get('format')
         if reftime is not None:
             # 'from' and 'to' both mandatory by schema
             # check from <= to
@@ -119,6 +120,30 @@ class Data(EndpointResource, Uploader):
                     'Only one geographical postprocessing at a time can be executed',
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
+        # check if the output format chosen by the user is compatible with the chosen datasets
+        if output_format is not None:
+            # get the format of the datasets
+            dataset_format = arki.get_datasets_format(dataset_names)
+            postprocessors_list = [i.get('type') for i in processors]
+            if dataset_format != output_format:
+                if dataset_format == 'grib':
+                    # spare point interpolation has bufr as output format
+                    if 'spare_point_interpolation' not in postprocessors_list:
+                        raise RestApiException(
+                            'The chosen datasets does not support {} output format'.format(output_format),
+                            status_code=hcodes.HTTP_BAD_REQUEST,
+                        )
+                if dataset_format == 'bufr' and output_format == 'grib':
+                    raise RestApiException(
+                        'The chosen datasets does not support {} output format'.format(output_format),
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
+            else:
+                if dataset_format == 'grib' and 'spare_point_interpolation' in postprocessors_list:
+                    raise RestApiException(
+                        'The chosen postprocessor does not support {} output format'.format(output_format),
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
         # run the following steps in a transaction
         db = self.get_service_instance('sqlalchemy')
         try:
@@ -131,11 +156,12 @@ class Data(EndpointResource, Uploader):
                     'reftime': reftime,
                     'filters': filters,
                     'postprocessors': processors,
+                    'format': output_format,
                 },
             )
 
             task = CeleryExt.data_extract.apply_async(
-                args=[user.id, dataset_names, reftime, filters, processors, request.id],
+                args=[user.id, dataset_names, reftime, filters, processors, output_format, request.id],
                 countdown=1,
             )
 

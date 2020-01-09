@@ -188,6 +188,7 @@ class Schedules(EndpointResource):
         product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         reftime = criteria.get('reftime')
+        output_format = criteria.get('format')
         if reftime is not None:
             # 'from' and 'to' both mandatory by schema
             # check from <= to
@@ -248,6 +249,25 @@ class Schedules(EndpointResource):
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
 
+        # check if the output format chosen by the user is compatible with the chosen datasets
+        if output_format is not None:
+            # get the format of the datasets
+            dataset_format = arki.get_datasets_format(dataset_names)
+            if dataset_format != output_format:
+                if dataset_format == 'grib':
+                    postprocessors_list = [i.get('type') for i in processors]
+                    # spare point interpolation has bufr as output format
+                    if 'spare_point_interpolation' not in postprocessors_list:
+                        raise RestApiException(
+                            'The chosen datasets does not support {} output format'.format(output_format),
+                            status_code=hcodes.HTTP_BAD_REQUEST,
+                        )
+                if dataset_format == 'bufr' and output_format == 'grib':
+                    raise RestApiException(
+                        'The chosen datasets does not support {} output format'.format(output_format),
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
+
         db = self.get_service_instance('sqlalchemy')
 
         # check if scheduling parameters are correct
@@ -274,6 +294,7 @@ class Schedules(EndpointResource):
                         'reftime': reftime,
                         'filters': filters,
                         'postprocessors': processors,
+                        'format': output_format,
                     },
                     every=every,
                     period=period,
@@ -297,6 +318,7 @@ class Schedules(EndpointResource):
                         reftime,
                         filters,
                         processors,
+                        output_format,
                         request_id,
                         name_int,
                     ],
@@ -321,6 +343,7 @@ class Schedules(EndpointResource):
                         'reftime': reftime,
                         'filters': filters,
                         'postprocessors': processors,
+                        'format': output_format,
                     },
                     crontab_settings=crontab_settings,
                 )
@@ -343,6 +366,7 @@ class Schedules(EndpointResource):
                         reftime,
                         filters,
                         processors,
+                        output_format,
                         request_id,
                         name_int,
                     ],
