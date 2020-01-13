@@ -3,8 +3,9 @@ version: '3'
 
 services:
   backend:
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    # image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    image: mdantonio/mistralbackend:0.7.1
 
     volumes:
       - ${VANILLA_DIR}/data/test:/data
@@ -33,8 +34,9 @@ services:
 #      ACTIVATE: ${ACTIVATE_NIFI}
 
   celeryui:
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    # image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    image: mdantonio/mistralbackend:0.7.1
     volumes:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
@@ -42,8 +44,9 @@ services:
       - ${VANILLA_DIR}/data/uploads:/uploads
 
   celery:
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    # image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    image: mdantonio/mistralbackend:0.7.1
     volumes:
       - ${VANILLA_DIR}/data/test:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
@@ -52,8 +55,9 @@ services:
       - ${VANILLA_DIR}/data/uploads:/uploads
 
   celery-beat:
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    # image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    image: mdantonio/mistralbackend:0.7.1
 
   # arkimet:
   #   restart: always
