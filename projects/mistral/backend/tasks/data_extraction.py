@@ -318,7 +318,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
         except DiskQuotaException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
-            log.warning(str(exc))
+            log.warning(exc)
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,
@@ -328,7 +328,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
         except PostProcessingException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
-            log.warning(str(exc))
+            log.warning(exc)
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,

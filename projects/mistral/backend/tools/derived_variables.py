@@ -2,13 +2,12 @@ import shlex
 import subprocess
 import os
 
-from restapi.utilities.logs import get_logger
+from restapi.utilities.logs import log
 from mistral.exceptions import PostProcessingException
 
-logger = get_logger(__name__)
 
-def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,fileformat):
-    logger.debug('Derived variable postprocessor')
+def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir, fileformat):
+    log.debug('Derived variable postprocessor')
 
     # ------ correcting the choice of filters in order to always obtain a result for postprocessing ----- not necessary at the moment
     # product_query = []
@@ -63,8 +62,8 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,filef
     #     level_query.append('GRIB1,1')
     # # air density??
     #
-    # logger.debug('Products needed for pp : {}'.format(product_query))
-    # logger.debug('Levels needed for pp : {}'.format(level_query))
+    # log.debug('Products needed for pp : {}', product_query)
+    # log.debug('Levels needed for pp : {}', level_query)
     # --------------------------------------------------------------------
 
     try:
@@ -80,7 +79,7 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,filef
         #     # replace the products in query
         #     new_filter_list_w_product = ['product:'+pp_products if i.startswith('product') else i for i in actual_filter_list]
         #     new_query_w_product = ";".join(new_filter_list_w_product)
-        #     logger.debug('Query for pp with new products: {}'.format(new_query_w_product))
+        #     log.debug('Query for pp with new products: {}', new_query_w_product)
         #     # check if the new query gives back some results
         #     summary = arki.load_summary(datasets, new_query_w_product)
         #     # if not replace also the level param
@@ -91,7 +90,7 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,filef
         #         new_filter_list_w_level = ['level:' + pp_levels if i.startswith('level') else i for i in
         #                                      actual_filter_list]
         #         new_query_w_level = ";".join(new_filter_list_w_level)
-        #         logger.debug('Query for pp with new levels: {}'.format(new_query_w_level))
+        #         log.debug('Query for pp with new levels: {}', new_query_w_level)
         #         # check if the new query gives back some results
         #         summary = arki.load_summary(datasets, new_query_w_level)
         #         # if not raise error
@@ -122,21 +121,21 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,filef
         # --------------------------------------------------------------------
 
         tmp_outfile = tmp_extraction
-        #command for postprocessor
-        pp1_output_filename = tmp_extraction_basename.split('.')[0]+'-pp1_output.grib.tmp'
-        pp1_output = os.path.join(user_dir,pp1_output_filename)
+        # command for postprocessor
+        pp1_output_filename = tmp_extraction_basename.split('.')[0] + '-pp1_output.grib.tmp'
+        pp1_output = os.path.join(user_dir, pp1_output_filename)
         libsim_tool = ''
-        if fileformat.startswith( 'grib' ):
-            libsim_tool='vg6d_transform'
+        if fileformat.startswith('grib'):
+            libsim_tool = 'vg6d_transform'
         else:
-            libsim_tool='v7d_transform'
+            libsim_tool = 'v7d_transform'
         post_proc_cmd = shlex.split("{} --output-variable-list={} {} {}".format(
             libsim_tool,
             ",".join(params.get('variables')),
             tmp_outfile,
             pp1_output)
         )
-        logger.debug('Post process command: {}>'.format(post_proc_cmd))
+        log.debug('Post process command: {}>', post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
         # wait for the process to terminate
@@ -146,11 +145,11 @@ def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir,filef
             return pp1_output
 
     except Exception as perr:
-        logger.warn(str(perr))
+        log.warning(perr)
         message = 'Error in post-processing: no results'
         raise PostProcessingException(message)
     # ------ correcting the choice of filters in order to always obtain a result for postprocessing ----- not necessary at the moment
     # finally:
     #     if new_tmp_extraction is not None:
     #         os.remove(new_tmp_extraction)
-    #-----------------------------------------------
+    # -----------------------------------------------

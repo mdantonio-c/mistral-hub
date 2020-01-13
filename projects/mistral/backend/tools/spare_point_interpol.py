@@ -3,13 +3,10 @@ import os
 import shutil
 from pathlib import Path
 
-from restapi.utilities.logs import get_logger
+from restapi.utilities.logs import log
 from mistral.exceptions import PostProcessingException
 from restapi.utilities.htmlcodes import hcodes
 from restapi.exceptions import RestApiException
-
-
-logger = get_logger(__name__)
 
 
 def get_trans_type(params):
@@ -19,6 +16,7 @@ def get_trans_type(params):
         params['trans-type'] = "inter"
     if sub_type in ("average", "min", "max"):
         params['trans-type'] = "polyinter"
+
 
 def validate_spare_point_interpol_params(params):
     coord_filepath = params['coord-filepath']
@@ -39,8 +37,9 @@ def validate_spare_point_interpol_params(params):
             raise RestApiException('Sorry.The file for the interpolation is corrupted. Please try to upload it again',
                                    status_code=hcodes.HTTP_SERVER_ERROR)
 
-def pp_sp_interpolation(params, input, output,fileformat):
-    logger.debug('Spare point interpolation postprocessor')
+
+def pp_sp_interpolation(params, input, output, fileformat):
+    log.debug('Spare point interpolation postprocessor')
     try:
         post_proc_cmd = []
 
@@ -57,7 +56,7 @@ def pp_sp_interpolation(params, input, output,fileformat):
         post_proc_cmd.append('--output-format=BUFR')
         post_proc_cmd.append(input)
         post_proc_cmd.append(output)
-        logger.debug('Post process command: {}>'.format(post_proc_cmd))
+        log.debug('Post process command: {}>', post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
         # wait for the process to terminate
@@ -67,6 +66,6 @@ def pp_sp_interpolation(params, input, output,fileformat):
             return output
 
     except Exception as perr:
-        logger.warn(str(perr))
+        log.warning(perr)
         message = 'Error in post-processing: no results'
         raise PostProcessingException(message)

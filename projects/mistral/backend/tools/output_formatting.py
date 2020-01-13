@@ -1,15 +1,13 @@
 import subprocess
 
-from restapi.utilities.logs import get_logger
+from restapi.utilities.logs import log
 from mistral.exceptions import PostProcessingException
 
-logger = get_logger(__name__)
 
-
-def pp_output_formatting(output_format,input, output):
+def pp_output_formatting(output_format, input, output):
     try:
         if output_format == 'json':
-            logger.debug('Output formatting to {}'.format(output_format))
+            log.debug('Output formatting to {}', output_format)
             post_proc_cmd = []
             post_proc_cmd.append('dbamsg')
             post_proc_cmd.append('dump')
@@ -20,7 +18,7 @@ def pp_output_formatting(output_format,input, output):
             post_proc_cmd.append('>')
             post_proc_cmd.append(output)
 
-            logger.debug('Post process command: {}>'.format(post_proc_cmd))
+            log.debug('Post process command: {}>', post_proc_cmd)
 
             proc = subprocess.Popen(post_proc_cmd)
             # wait for the process to terminate
@@ -33,6 +31,6 @@ def pp_output_formatting(output_format,input, output):
             return input
 
     except Exception as perr:
-        logger.warn(str(perr))
+        log.warning(perr)
         message = 'Error in post-processing: no results'
         raise PostProcessingException(message)

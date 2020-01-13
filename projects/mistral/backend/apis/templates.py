@@ -8,14 +8,12 @@ from restapi.protocols.bearer import authentication
 from restapi.services.uploader import Uploader
 from restapi.confs import UPLOAD_FOLDER
 from restapi.utilities.htmlcodes import hcodes
-from restapi.utilities.logs import get_logger
+from restapi.utilities.logs import log
 
 import os
 import glob
 import subprocess
 from zipfile import ZipFile
-
-log = get_logger(__name__)
 
 
 class Templates(EndpointResource, Uploader):
@@ -160,25 +158,25 @@ class Templates(EndpointResource, Uploader):
             #     status_code=hcodes.HTTP_BAD_REQUEST,
             # )
             raise RestApiException(
-                 upload_response.errors,
+                upload_response.errors,
                 status_code=hcodes.HTTP_BAD_REQUEST,
             )
 
         upload_filename = upload_response.defined_content['filename']
         upload_filepath = os.path.join(UPLOAD_FOLDER, subfolder, upload_filename)
-        log.debug('File uploaded. Filepath : {}'.format(upload_filepath))
+        log.debug('File uploaded. Filepath : {}', upload_filepath)
 
         # if the file is a zip file extract the content in the upload folder
         if f[-1] == 'zip':
             files = []
             with ZipFile(upload_filepath, 'r') as zip:
                 files = zip.namelist()
-                log.debug('filelist: {}'.format(files))
+                log.debug('filelist: {}', files)
                 if any(i.endswith('shp') for i in files) or any(i.endswith('geojson') for i in files):
-                    subfolder= os.path.join(user.uuid,'shp')
+                    subfolder = os.path.join(user.uuid, 'shp')
                 if any(i.endswith('grib') for i in files):
                     subfolder = os.path.join(user.uuid, 'grib')
-                upload_folder = os.path.join(UPLOAD_FOLDER,subfolder)
+                upload_folder = os.path.join(UPLOAD_FOLDER, subfolder)
                 zip.extractall(path=upload_folder)
             # remove the zip file
             os.remove(upload_filepath)
@@ -210,7 +208,7 @@ class Templates(EndpointResource, Uploader):
         if not get_total:
             page, limit = self.get_paging()
             # offset = (current_page - 1) * limit
-            log.debug("paging: page {0}, limit {1}".format(page, limit))
+            log.debug("paging: page {0}, limit {1}", page, limit)
         # come uso page e limit? nell'altro endpoint usa un metodo apposta per il db
 
         user = self.get_current_user()

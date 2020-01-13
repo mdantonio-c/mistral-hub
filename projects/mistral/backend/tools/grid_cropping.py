@@ -1,12 +1,11 @@
 import subprocess
 
-from restapi.utilities.logs import get_logger
+from restapi.utilities.logs import log
 from mistral.exceptions import PostProcessingException
 
-logger = get_logger(__name__)
 
 def pp_grid_cropping(params, input, output):
-    logger.debug('Grid cropping postprocessor')
+    log.debug('Grid cropping postprocessor')
     try:
         post_proc_cmd = []
         post_proc_cmd.append('vg6d_transform')
@@ -25,7 +24,7 @@ def pp_grid_cropping(params, input, output):
 
         post_proc_cmd.append(input)
         post_proc_cmd.append(output)
-        logger.debug('Post process command: {}>'.format(post_proc_cmd))
+        log.debug('Post process command: {}>', post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
         # wait for the process to terminate
@@ -35,6 +34,6 @@ def pp_grid_cropping(params, input, output):
             return output
 
     except Exception as perr:
-        logger.warn(str(perr))
+        log.warning(perr)
         message = 'Error in post-processing: no results'
         raise PostProcessingException(message)

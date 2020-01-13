@@ -1,9 +1,7 @@
 import subprocess
 
-from restapi.utilities.logs import get_logger
+from restapi.utilities.logs import log
 from mistral.exceptions import PostProcessingException
-
-logger = get_logger(__name__)
 
 
 def get_trans_type(params):
@@ -14,10 +12,11 @@ def get_trans_type(params):
     if sub_type in ("average", "min", "max"):
         params['trans-type'] = "boxinter"
 
+
 def pp_grid_interpolation(params, input, output):
-    logger.debug('Grid interpolation postprocessor')
+    log.debug('Grid interpolation postprocessor')
     try:
-        post_proc_cmd =[]
+        post_proc_cmd = []
         post_proc_cmd.append('vg6d_transform')
         post_proc_cmd.append('--trans-type={}'.format(params.get('trans-type')))
         post_proc_cmd.append('--sub-type={}'.format(params.get('sub-type')))
@@ -42,10 +41,10 @@ def pp_grid_interpolation(params, input, output):
                 if 'ny' in params['nodes']:
                     post_proc_cmd.append('--ny={}'.format(params['nodes']['ny']))
 
-        #post_proc_cmd.append('--display')
+        # post_proc_cmd.append('--display')
         post_proc_cmd.append(input)
         post_proc_cmd.append(output)
-        logger.debug('Post process command: {}>'.format(post_proc_cmd))
+        log.debug('Post process command: {}>', post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
         # wait for the process to terminate
@@ -55,6 +54,6 @@ def pp_grid_interpolation(params, input, output):
             return output
 
     except Exception as perr:
-        logger.warn(str(perr))
+        log.warning(perr)
         message = 'Error in post-processing: no results'
         raise PostProcessingException(message)

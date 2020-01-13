@@ -175,14 +175,14 @@ class BeArkimet():
 
         :return: format of files in datasets
         """
-        formats=[]
+        formats = []
         for ds in datasets:
             folder = glob.glob(DATASET_ROOT + ds)
             args = shlex.split("arki-mergeconf " + ' '.join(folder))
-            logger.debug('Launching Arkimet command: %s' % args)
+            log.debug('Launching Arkimet command: {}', args)
 
             proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
-            logger.debug('return code: %s' % proc.returncode)
+            log.debug('return code: {}', proc.returncode)
             # raise a CalledProcessError if returncode is non-zero
             proc.check_returncode()
             for line in proc.stdout.split('\n'):
