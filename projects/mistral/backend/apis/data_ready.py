@@ -49,6 +49,12 @@ class DataReady(EndpointResource):
                 log.debug("Skipping {}: schedule is not enabled", name)
                 continue
 
+            # e.g. True
+            on_data_ready = r['on_data_ready']
+            if not on_data_ready:
+                log.debug("Skipping {}: schedule is not on_data_ready", name)
+                continue
+
             # e.g. '2019-12-13T15:52:30.834060'
             # creation_date = r['creation_date']
 
@@ -83,32 +89,7 @@ class DataReady(EndpointResource):
             # e.g. []
             # postprocessors = r['args']['postprocessors']
 
-            # e.g. 3
-            # requests_count = r['requests_count']
-
-            # e.g. True
-            periodic = r.get('periodic')
-
-            # e.g. every 2 days
-            periodic_settings = r.get('periodic_settings')
-
-            # e.g. True
-            crontab = r.get('crontab')
-
-            # e.g. {'hour': 5, 'minute': 0}
-            crontab_settings = r.get('crontab_settings')
-
-            # e.g. 2
-            # every = r['every']
-
-            # e.g. days
-            # period = r['period']
-            if crontab:
-                log.info("Crontab {}", crontab_settings)
-            elif periodic is not None:
-                log.info("Periodic = {} - {}", periodic, periodic_settings)
-            else:
-                log.info(r)
+            log.info(r)
 
             # se tra gli args manca run significa che chiede sia 00 sia 12
             # reftime == 00 || reftime == 12,
