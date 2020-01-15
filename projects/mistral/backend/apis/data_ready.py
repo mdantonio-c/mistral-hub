@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from mistral.services.requests_manager import RequestManager
 from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.rest.definition import EndpointResource
+from restapi.exceptions import RestApiException
 from restapi import decorators as decorate
 from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
@@ -28,6 +30,18 @@ class DataReady(EndpointResource):
         model = data.get("Model")
         rundate = data.get("rundate")
 
+        if len(rundate) != 10:
+            raise RestApiException("Unexpected rundate, valid format is: yyyymmddhh")
+
+        try:
+            runyear = int(rundate[0:4])
+            runmonth = int(rundate[4:6])
+            runday = int(rundate[6:8])
+            runhour = int(rundate[8:10])
+        except ValueError as e:
+            log.error(e)
+            raise RestApiException("Invalid rundate, valid format is: yyyymmddhh")
+
         log.info("Cluster = {}\tModel = {}\trundate = {}", cluster, model, rundate)
 
         db = self.get_service_instance('sqlalchemy')
@@ -42,7 +56,7 @@ class DataReady(EndpointResource):
             # e.g. DEmo-scheduled
             request_name = r['name']
 
-            name = "{} ({})".format(request_name, request_id)
+            name = "{} (id={})".format(request_name, request_id)
 
             # e.g. True
             enabled = r['enabled']
@@ -77,7 +91,11 @@ class DataReady(EndpointResource):
                     "Skipping {}: schedule is looking for dataset {}", name, datasets)
                 continue
 
-            log.info("Checking schedule: {}", name)
+            # TO DO check if schedule is requesting runhour...
+
+            # if r.get('run') != runhour: fail
+
+            log.info("Checking schedule: {}\n{}", name, r)
             # e.g. {
             #     'from': '2019-09-01T00:00:00.000Z',
             #     'to': '2019-09-30T12:02:00.000Z'
@@ -90,15 +108,20 @@ class DataReady(EndpointResource):
             # e.g. []
             # postprocessors = r['args']['postprocessors']
 
-            log.info(r)
-
             # se tra gli args manca run significa che chiede sia 00 sia 12
             # reftime == 00 || reftime == 12,
             # quindi modificare reftime ricevuto per impostare la corsa successiva
             # == rundate at 00 || rundate at 12
 
             # e.g. {'from': '2020-01-13T11:00:00.000Z','to': '2020-01-14T12:57:24.791Z'}
-            reftime = r['args'].get('reftime')
+            # reftime = r['args'].get('reftime')
+            try:
+                d = datetime(year=runyear, month=runmonth, day=runday, hour=runhour)
+            except ValueError as e:
+                log.error(e)
+                raise RestApiException("Invalid rundate, valid format is: yyyymmddhh")
+
+            reftime = {'from': d.isoformat(), 'to': d.isoformat()}
 
             filters = r['args'].get('filters')
             processors = r['args'].get('processors')
