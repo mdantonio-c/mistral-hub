@@ -360,6 +360,7 @@ class RequestManager():
     def _get_schedule_response(schedule):
         resp = {
             'id': schedule.id,
+            'user_id': schedule.user_id,
             'name': schedule.name,
             'creation_date': schedule.submission_date.isoformat(),
             'args': json.loads(schedule.args),

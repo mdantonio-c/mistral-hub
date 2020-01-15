@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from mistral.services.requests_manager import RequestManager
+from restapi.flask_ext.flask_celery import CeleryExt
 from restapi.rest.definition import EndpointResource
 from restapi import decorators as decorate
 from restapi.protocols.bearer import authentication
@@ -95,5 +96,48 @@ class DataReady(EndpointResource):
             # reftime == 00 || reftime == 12,
             # quindi modificare reftime ricevuto per impostare la corsa successiva
             # == rundate at 00 || rundate at 12
+
+            # e.g. {'from': '2020-01-13T11:00:00.000Z','to': '2020-01-14T12:57:24.791Z'}
+            reftime = r['args'].get('reftime')
+
+            filters = r['args'].get('filters')
+            processors = r['args'].get('processors')
+            output_format = r['args'].get('format')
+
+            try:
+                request = RequestManager.create_request_record(
+                    db,
+                    r.get('user_id'),
+                    request_name,
+                    {
+                        'datasets': datasets,
+                        'reftime': reftime,
+                        'filters': filters,
+                        'postprocessors': processors,
+                        'format': output_format,
+                    },
+                )
+
+                task = CeleryExt.data_extract.apply_async(
+                    args=[
+                        r.get('user_id'),
+                        datasets,
+                        reftime,
+                        filters,
+                        processors,
+                        output_format,
+                        request.id
+                    ],
+                    countdown=1,
+                )
+
+                request.task_id = task.id
+                request.status = task.status  # 'PENDING'
+                db.session.commit()
+                log.info('Request successfully saved: <ID:{}>', request.id)
+            except Exception as error:
+                log.error(error)
+                db.session.rollback()
+                raise SystemError("Unable to submit the request")
 
         return self.force_response("1", code=hcodes.HTTP_OK_ACCEPTED)
