@@ -65,6 +65,7 @@ class Schedule(db.Model):
     every = db.Column(db.Integer)
     crontab_settings = db.Column(db.String(64))
     on_data_ready = db.Column(db.Boolean, default=False)
+    time_delta = db.Column(db.Interval)
     is_enabled = db.Column(db.Boolean)
     submitted_request = db.relationship('Request', backref='schedule', lazy='dynamic')
 
