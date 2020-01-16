@@ -104,8 +104,7 @@ class RequestManager():
             s.crontab_settings = json.dumps(crontab_settings)
         s.is_enabled = True
         s.on_data_ready = on_data_ready
-        if on_data_ready is True:
-            s.time_delta = schedule_settings['time_delta']
+        s.time_delta = schedule_settings['time_delta']
 
         db.session.add(s)
         db.session.commit()

@@ -50,13 +50,17 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     raise ReferenceError(
                         "Cannot find schedule reference for task {}".format(
                             self.request.id))
+                # adapt the request reftime
+                reftime = adapt_reftime(schedule,reftime)
 
                 # create an entry in request db linked to the scheduled request entry
                 product_name = RequestManager.get_schedule_name(db, schedule_id)
                 request = RequestManager.create_request_record(db, user_id, product_name, {
                     'datasets': datasets,
+                    'reftime': reftime,
                     'filters': filters,
-                    'postprocessors': postprocessors
+                    'postprocessors': postprocessors,
+                    'format': output_format,
                 }, schedule_id=schedule_id)
                 # update the entry with celery task id
                 request.task_id = self.request.id
@@ -314,6 +318,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
             # update request status
             request.status = states.SUCCESS
+            log.debug('reftime ', reftime)
 
         except DiskQuotaException as exc:
             request.status = states.FAILURE
@@ -372,4 +377,21 @@ def human_size(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
     :rtype: string
     """
     return str(bytes) + units[0] if bytes < 1024 else human_size(bytes >> 10, units[1:])
+
+
+def adapt_reftime(schedule,reftime):
+    new_reftime=None
+    if reftime is not None:
+        new_reftime = {}
+        now = datetime.datetime.utcnow()
+        reftime_to = datetime.datetime.strptime(reftime['to'], "%Y-%m-%dT%H:%M:%S.%fZ")
+        submission_date = schedule.submission_date
+        time_delta_to = submission_date - reftime_to
+        time_delta_from = schedule.time_delta
+        new_reftime_to = now - time_delta_to
+        new_reftime_from = new_reftime_to - time_delta_from
+        new_reftime['from'] = new_reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        new_reftime['to'] = new_reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    return new_reftime
+
 

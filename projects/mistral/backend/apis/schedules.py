@@ -188,6 +188,9 @@ class Schedules(EndpointResource):
         dataset_names = criteria.get('datasets')
         reftime = criteria.get('reftime')
         output_format = criteria.get('format')
+
+        time_delta = None
+        reftime_to = None
         if reftime is not None:
             # 'from' and 'to' both mandatory by schema
             # check from <= to
@@ -196,6 +199,10 @@ class Schedules(EndpointResource):
                     'Invalid reftime: <from> greater than <to>',
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
+            reftime_to = datetime.datetime.strptime(reftime['to'], "%Y-%m-%dT%H:%M:%S.%fZ")
+            reftime_from = datetime.datetime.strptime(reftime['from'], "%Y-%m-%dT%H:%M:%S.%fZ")
+            time_delta = reftime_to - reftime_from
+
         # check for existing dataset(s)
         datasets = arki.load_datasets()
         for ds_name in dataset_names:
@@ -269,18 +276,13 @@ class Schedules(EndpointResource):
 
         # check if the schedule is a 'on-data-ready' one
         data_ready = False
-        time_delta = None
         # data ready option is not for observed data
         if dataset_format == 'grib':
             # get today date
             today = datetime.date.today()
-            if reftime is not None:
-                reftime_to = datetime.datetime.strptime(reftime['to'], "%Y-%m-%dT%H:%M:%S.%fZ")
-                # if the date of reftime['to'] is today or yesterday the request can be considered a data-ready one
-                if reftime_to.date() == today or reftime_to.date() == today - datetime.timedelta(days=1):
-                    data_ready = True
-                    reftime_from = datetime.datetime.strptime(reftime['from'], "%Y-%m-%dT%H:%M:%S.%fZ")
-                    time_delta = reftime_to - reftime_from
+            # if the date of reftime['to'] is today or yesterday the request can be considered a data-ready one
+            if reftime_to.date() == today or reftime_to.date() == today - datetime.timedelta(days=1):
+                data_ready = True
             # what if reftime is None?
 
         db = self.get_service_instance('sqlalchemy')
