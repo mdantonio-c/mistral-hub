@@ -12,6 +12,8 @@ from mistral.tools import spare_point_interpol as pp3_3
 
 from restapi.utilities.logs import log
 
+import datetime
+
 
 class Schedules(EndpointResource):
 
@@ -246,10 +248,10 @@ class Schedules(EndpointResource):
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
 
+        # get the format of the datasets
+        dataset_format = arki.get_datasets_format(dataset_names)
         # check if the output format chosen by the user is compatible with the chosen datasets
         if output_format is not None:
-            # get the format of the datasets
-            dataset_format = arki.get_datasets_format(dataset_names)
             if dataset_format != output_format:
                 if dataset_format == 'grib':
                     postprocessors_list = [i.get('type') for i in processors]
@@ -264,6 +266,22 @@ class Schedules(EndpointResource):
                         'The chosen datasets does not support {} output format'.format(output_format),
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
+
+        # check if the schedule is a 'on-data-ready' one
+        data_ready = False
+        time_delta = None
+        # data ready option is not for observed data
+        if dataset_format == 'grib':
+            # get today date
+            today = datetime.date.today()
+            if reftime is not None:
+                reftime_to = datetime.datetime.strptime(reftime['to'], "%Y-%m-%dT%H:%M:%S.%fZ")
+                # if the date of reftime['to'] is today or yesterday the request can be considered a data-ready one
+                if reftime_to.date() == today or reftime_to.date() == today - datetime.timedelta(days=1):
+                    data_ready = True
+                    reftime_from = datetime.datetime.strptime(reftime['from'], "%Y-%m-%dT%H:%M:%S.%fZ")
+                    time_delta = reftime_to - reftime_from
+            # what if reftime is None?
 
         db = self.get_service_instance('sqlalchemy')
 
@@ -295,31 +313,34 @@ class Schedules(EndpointResource):
                     },
                     every=every,
                     period=period,
+                    on_data_ready=data_ready,
+                    time_delta=time_delta,
                 )
                 name = str(name_int)
 
-                # remove previous task
-                res = CeleryExt.delete_periodic_task(name=name)
-                log.debug("Previous task deleted = {}", res)
+                if data_ready is False:
+                    # remove previous task
+                    res = CeleryExt.delete_periodic_task(name=name)
+                    log.debug("Previous task deleted = {}", res)
 
-                request_id = None
-                CeleryExt.create_periodic_task(
-                    name=name,
-                    task="mistral.tasks.data_extraction.data_extract",
-                    every=every,
-                    period=period,
-                    args=[
-                        user.id,
-                        dataset_names,
-                        reftime,
-                        filters,
-                        processors,
-                        output_format,
-                        request_id,
-                        name_int,
-                    ],
-                )
-                log.info("Scheduling periodic task")
+                    request_id = None
+                    CeleryExt.create_periodic_task(
+                        name=name,
+                        task="mistral.tasks.data_extraction.data_extract",
+                        every=every,
+                        period=period,
+                        args=[
+                            user.id,
+                            dataset_names,
+                            reftime,
+                            filters,
+                            processors,
+                            output_format,
+                            request_id,
+                            name_int,
+                        ],
+                    )
+                    log.info("Scheduling periodic task")
 
             crontab_settings = criteria.get('crontab-settings')
             if crontab_settings is not None:
@@ -337,47 +358,35 @@ class Schedules(EndpointResource):
                         'format': output_format,
                     },
                     crontab_settings=crontab_settings,
+                    on_data_ready=data_ready,
+                    time_delta=time_delta,
                 )
                 name = str(name_int)
+                if data_ready is False:
+                    # parsing crontab settings
+                    for i in crontab_settings.keys():
+                        val = crontab_settings.get(i)
+                        str_val = str(val)
+                        crontab_settings[i] = str_val
 
-                # parsing crontab settings
-                for i in crontab_settings.keys():
-                    val = crontab_settings.get(i)
-                    str_val = str(val)
-                    crontab_settings[i] = str_val
+                    request_id = None
+                    CeleryExt.create_crontab_task(
+                        name=name,
+                        task="mistral.tasks.data_extraction.data_extract",
+                        **crontab_settings,
+                        args=[
+                            user.id,
+                            dataset_names,
+                            reftime,
+                            filters,
+                            processors,
+                            output_format,
+                            request_id,
+                            name_int,
+                        ],
+                    )
+                    log.info("Scheduling crontab task")
 
-                request_id = None
-                CeleryExt.create_crontab_task(
-                    name=name,
-                    task="mistral.tasks.data_extraction.data_extract",
-                    **crontab_settings,
-                    args=[
-                        user.id,
-                        dataset_names,
-                        reftime,
-                        filters,
-                        processors,
-                        output_format,
-                        request_id,
-                        name_int,
-                    ],
-                )
-                log.info("Scheduling crontab task")
-
-            if period_settings is None and crontab_settings is None:
-                # here on_data_ready is True
-                name = RequestManager.create_schedule_record(
-                    db,
-                    user,
-                    product_name,
-                    {
-                        'datasets': dataset_names,
-                        'reftime': reftime,
-                        'filters': filters,
-                        'postprocessors': processors,
-                    },
-                    on_data_ready=True,
-                )
         except Exception as error:
             log.error(error)
             db.session.rollback()
@@ -436,74 +445,78 @@ class Schedules(EndpointResource):
         # check if the schedule exist and is owned by the current user
         self.request_and_owner_check(db, user.id, schedule_id)
 
-        # retrieving mongodb task
-        task = CeleryExt.get_periodic_task(name=schedule_id)
-        log.debug("Periodic task - {}", task)
-        # disable the schedule deleting it from mongodb
-        if is_active is False:
-            if task is None:
-                raise RestApiException(
-                    "Scheduled task is already disabled",
-                    status_code=hcodes.HTTP_BAD_CONFLICT,
-                )
-            CeleryExt.delete_periodic_task(name=schedule_id)
-        # enable the schedule
-        if is_active is True:
-            if task:
-                raise RestApiException(
-                    "Scheduled task is already enabled",
-                    status_code=hcodes.HTTP_BAD_CONFLICT,
-                )
-
-            # recreate the schedule in mongo retrieving the schedule from postgres
-            schedule_response = RequestManager.get_schedule_by_id(db, schedule_id)
-            log.debug("schedule response: {}", schedule_response)
-
-            # recreate the schedule in mongo retrieving the schedule from postgres
-            try:
-                request_id = None
-                if 'periodic' in schedule_response:
-                    CeleryExt.create_periodic_task(
-                        name=str(schedule_id),
-                        task="mistral.tasks.data_extraction.data_extract",
-                        every=schedule_response['every'],
-                        period=schedule_response['period'],
-                        args=[
-                            user.id,
-                            schedule_response['args']['datasets'],
-                            schedule_response['args']['reftime'],
-                            schedule_response['args']['filters'],
-                            schedule_response['args']['postprocessors'],
-                            request_id,
-                            schedule_id,
-                        ],
+        schedule = db.Schedule.query.get(schedule_id)
+        if schedule.on_data_ready is False:
+            # retrieving mongodb task
+            task = CeleryExt.get_periodic_task(name=schedule_id)
+            log.debug("Periodic task - {}", task)
+            # disable the schedule deleting it from mongodb
+            if is_active is False:
+                if task is None:
+                    raise RestApiException(
+                        "Scheduled task is already disabled",
+                        status_code=hcodes.HTTP_BAD_CONFLICT,
+                    )
+                CeleryExt.delete_periodic_task(name=schedule_id)
+            # enable the schedule
+            if is_active is True:
+                if task:
+                    raise RestApiException(
+                        "Scheduled task is already enabled",
+                        status_code=hcodes.HTTP_BAD_CONFLICT,
                     )
 
-                if 'crontab' in schedule_response:
-                    # parsing crontab settings
-                    crontab_settings = {}
-                    for i in schedule_response['crontab_settings'].keys():
-                        log.debug(i)
-                        val = schedule_response['crontab_settings'].get(i)
-                        str_val = str(val)
-                        crontab_settings[i] = str_val
-                    CeleryExt.create_crontab_task(
-                        name=str(schedule_id),
-                        task="mistral.tasks.data_extraction.data_extract",
-                        **crontab_settings,
-                        args=[
-                            user.id,
-                            schedule_response['args']['datasets'],
-                            schedule_response['args']['reftime'],
-                            schedule_response['args']['filters'],
-                            schedule_response['args']['postprocessors'],
-                            request_id,
-                            schedule_id,
-                        ],
-                    )
+                # recreate the schedule in mongo retrieving the schedule from postgres
+                schedule_response = RequestManager.get_schedule_by_id(db, schedule_id)
+                log.debug("schedule response: {}", schedule_response)
 
-            except Exception as error:
-                raise SystemError("Unable to enable the request")
+                # recreate the schedule in mongo retrieving the schedule from postgres
+                try:
+                    request_id = None
+                    if 'periodic' in schedule_response:
+                        CeleryExt.create_periodic_task(
+                            name=str(schedule_id),
+                            task="mistral.tasks.data_extraction.data_extract",
+                            every=schedule_response['every'],
+                            period=schedule_response['period'],
+                            args=[
+                                user.id,
+                                schedule_response['args']['datasets'],
+                                schedule_response['args']['reftime'],
+                                schedule_response['args']['filters'],
+                                schedule_response['args']['postprocessors'],
+                                schedule_response['args']['format'],
+                                request_id,
+                                schedule_id,
+                            ],
+                        )
+
+                    if 'crontab' in schedule_response:
+                        # parsing crontab settings
+                        crontab_settings = {}
+                        for i in schedule_response['crontab_settings'].keys():
+                            log.debug(i)
+                            val = schedule_response['crontab_settings'].get(i)
+                            str_val = str(val)
+                            crontab_settings[i] = str_val
+                        CeleryExt.create_crontab_task(
+                            name=str(schedule_id),
+                            task="mistral.tasks.data_extraction.data_extract",
+                            **crontab_settings,
+                            args=[
+                                user.id,
+                                schedule_response['args']['datasets'],
+                                schedule_response['args']['reftime'],
+                                schedule_response['args']['filters'],
+                                schedule_response['args']['postprocessors'],
+                                schedule_response['args']['format'],
+                                request_id,
+                                schedule_id,
+                            ],
+                        )
+
+                except Exception as error:
+                    raise SystemError("Unable to enable the request")
 
         # update schedule status in database
         RequestManager.update_schedule_status(db, schedule_id, is_active)

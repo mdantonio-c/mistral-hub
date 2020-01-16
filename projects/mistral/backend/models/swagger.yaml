@@ -377,10 +377,10 @@ definitions:
         description: Settings for the crontab request
         type: object
         $ref: "#/definitions/CrontabSettings"
-      on-data-ready:
-        description: Activate data extraction when requested data is ready
-        type: boolean
-        default: false
+#      on-data-ready:
+#        description: Activate data extraction when requested data is ready
+#        type: boolean
+#        default: false
 
   CrontabSettings:
     properties:
