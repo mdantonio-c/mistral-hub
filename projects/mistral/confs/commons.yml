@@ -3,8 +3,8 @@ version: '3'
 
 services:
   backend:
-    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
+    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
 
     volumes:
@@ -34,8 +34,8 @@ services:
 #      ACTIVATE: ${ACTIVATE_NIFI}
 
   celeryui:
-    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
+    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
     volumes:
       - ${VANILLA_DIR}/data/test:/data
@@ -44,8 +44,8 @@ services:
       - ${VANILLA_DIR}/data/uploads:/uploads
 
   celery:
-    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
+    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
     volumes:
       - ${VANILLA_DIR}/data/test:/data
@@ -55,8 +55,8 @@ services:
       - ${VANILLA_DIR}/data/uploads:/uploads
 
   celery-beat:
-    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
+    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
 
   # arkimet:
