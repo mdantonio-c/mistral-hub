@@ -106,8 +106,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 # check if this request comes from a schedule. If so deactivate the schedule.
                 if schedule:
                     log.debug('Deactivate periodic task for schedule {}', schedule_id)
-                    if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
-                        raise Exception('Cannot delete periodic task for schedule {}'.format(schedule_id))
+                    if schedule.on_data_ready is False:
+                        if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
+                            raise Exception('Cannot delete periodic task for schedule {}'.format(schedule_id))
                     RequestManager.update_schedule_status(db, schedule_id, False)
                     extra_msg = '<br/><br/>Schedule "{}" temporary disabled for limit quota exceeded.'.format(schedule.name)
                 raise DiskQuotaException(message)
