@@ -161,7 +161,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         pp_type = p.get('type')
 
                         # raise an error if the dataset is a bufr and a grid interpolation/cropping is requested
-                        if dataset_format=='bufr':
+                        if dataset_format == 'bufr':
                             if pp_type == 'grid_cropping' or pp_type == 'grid_interpolation':
                                 raise ValueError("Post processors unaivailable for the requested datasets")
 
@@ -187,7 +187,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                             pp3_2.pp_grid_cropping(params=p, input=tmp_outfile, output=outfile)
 
                         elif pp_type == 'spare_point_interpolation':
-                            #change output extension from .grib to .BUFR
+                            # change output extension from .grib to .BUFR
                             outfile_name, outfile_ext = os.path.splitext(outfile)
                             bufr_outfile = outfile_name+'.BUFR'
                             pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
@@ -204,7 +204,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
                 # case of multiple postprocessor
                 else:
-                    #check if there is only one geographical postprocessor
+                    # check if there is only one geographical postprocessor
                     pp_list=[]
                     for p in postprocessors:
                         pp_list.append(p['type'])
@@ -240,7 +240,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                             for item in postprocessors:
                                 if item["type"] == 'statistic_elaboration':
                                     p.append(item)
-                            #check if the input has to be the previous postprocess output
+                            # check if the input has to be the previous postprocess output
                             pp_input = ''
                             if pp_output is not None:
                                 pp_input = pp_output
@@ -279,13 +279,13 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            #new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
+                            # new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
                             new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '.bufr'
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             pp3_3.pp_sp_interpolation(params=p, input=pp_input, output=pp_output,fileformat=dataset_format)
                         # rename the final output of postprocessors as outfile unless it is not a bufr file
                         if pp_output.split('.')[-1]!='bufr':
-                            logger.debug('dest: {}'.format(str(outfile)))
+                            log.debug('dest: {}'.format(str(outfile)))
                             os.rename(pp_output,outfile)
                     finally:
                         # remove all tmp file
@@ -297,7 +297,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         #     shutil.rmtree(os.path.join(UPLOAD_FOLDER,uuid))
             else:
                 with open(os.path.join(user_dir, out_filename), mode='w') as outfile:
-                    subprocess.Popen(arki_query_cmd, stdout=outfile)
+                    ext_proc = subprocess.Popen(arki_query_cmd, stdout=outfile)
+                    ext_proc.wait()
+                    if ext_proc.wait() != 0:
+                        raise Exception('Failure in data extraction')
 
             if output_format:
                 filebase, fileext = os.path.splitext(out_filename)
@@ -306,9 +309,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 out_filepath = output_formatting.pp_output_formatting(output_format, input, output)
                 out_filename = os.path.basename(out_filepath)
 
-
             # get the actual data size
             data_size = os.path.getsize(os.path.join(user_dir, out_filename))
+            log.debug('Actual resulting data size: {}'.format(data_size))
             if data_size > esti_data_size:
                 log.warning(
                     'Actual resulting data exceeds estimation of {}',
@@ -318,7 +321,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
             # update request status
             request.status = states.SUCCESS
-            log.debug('reftime ', reftime)
+            log.debug('reftime: {}', reftime)
 
         except DiskQuotaException as exc:
             request.status = states.FAILURE
@@ -356,6 +359,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                                                                        "downloading"
             body_msg += extra_msg
             send_result_notication(user_email, request.name, request.status, body_msg)
+
 
 def send_result_notication(recipient, title, status, message):
     """Send email notification. """

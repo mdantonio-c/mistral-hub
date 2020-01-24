@@ -117,7 +117,7 @@ class RequestManager():
         f = db.FileOutput(user_id=user_id, request_id=request_id, filename=filename, size=data_size)
         db.session.add(f)
         db.session.commit()
-        log.info('fileoutput for: {}', request_id)
+        log.info('fileoutput for request ID <{}>', request_id)
 
     @staticmethod
     def delete_fileoutput(uuid, download_dir, filename):
