@@ -355,11 +355,12 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             body_msg = request.error_message if request.error_message is not None else "Your data is ready for " \
                                                                                        "downloading"
             body_msg += extra_msg
-            send_result_notication(user_email, request.status, body_msg)
+            send_result_notication(user_email, request.name, request.status, body_msg)
 
-def send_result_notication(recipient, status, message):
+def send_result_notication(recipient, title, status, message):
     """Send email notification. """
     replaces = {
+        "title": title,
         "status": status,
         "message": message
     }
