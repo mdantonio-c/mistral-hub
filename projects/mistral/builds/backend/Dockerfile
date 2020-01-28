@@ -1,4 +1,4 @@
-FROM arpaesimc/centos
+FROM arpaesimc/centos:7
 
 FROM rapydo/backend:0.7.1
 
