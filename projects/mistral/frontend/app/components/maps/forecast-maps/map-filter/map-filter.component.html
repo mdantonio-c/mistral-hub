@@ -1,0 +1,97 @@
+<div id="parameters">
+    <div class="card bg-light">
+        <div class="card-body">
+            <!--
+            <button id="hide-button" type="button" class="btn btn-secondary float-right">
+                <i class="fas fa-times"></i>
+            </button>
+            -->
+            <h4 class="card-title"><strong>PARAMETERS</strong></h4>
+            <br>
+            <form [formGroup]="filterForm">
+                <!-- FIELD -->
+                <div class="form-group">
+                    <label class="col-form-label"><strong>FIELDS:</strong></label>
+                    <div id="fieldGroup">
+                        <ng-container *ngFor="let f of fields">
+                            <label [title]="f.value" class="btn-circle" data-toggle="tooltip"
+                                   [ngClass]="(filterForm.get('field').value === f.key) ? 'btn-info' : 'btn-secondary'">
+                                <input [value]="f.key" formControlName="field" type="radio"
+                                       [attr.data-description]="f.value">
+                                <i class="wi"
+                                   [ngClass]="{'wi-cloud wi-fw': f.key==='cloud',
+                                               'wi-cloudy wi-fw': f.key==='cloud_hml',
+                                               'wi-umbrella': f.key==='prec3' || f.key=='prec6',
+                                               'wi-snow': f.key==='snow3' || f.key=='snow6',
+                                               'wi-sandstorm': f.key==='maxwind',
+                                               'wi-strong-wind': f.key==='wind',
+                                               'wi-humidity': f.key==='humidity',
+                                               'wi-thermometer': f.key==='t2m_0c' || f.key==='t2m'}">
+                                    <small class="verySmallText" *ngIf="f.key==='prec3' || f.key==='snow3'">3h</small>
+                                    <small class="verySmallText" *ngIf="f.key==='prec6' || f.key==='snow6'">6h</small>
+                                    <small class="verySmallText" *ngIf="f.key==='t2m_0c'">0m</small>
+                                    <small class="verySmallText" *ngIf="f.key==='t2m'">2m</small>
+                                    <small *ngIf="f.key==='zerot'">0°C</small>
+                                </i>
+                            </label>
+                        </ng-container>
+                    </div>
+                </div>
+                <!-- RUN -->
+                <div class="form-group">
+                    <label class="col-form-label"><strong>RUN:</strong></label>
+                    <div id="runGroup">
+                        <ng-container *ngFor="let run of runs">
+                            <label class="btn-circle"
+                                   [ngClass]="(filterForm.get('run').value === run.key) ? 'btn-success' : 'btn-secondary'">
+                                <input type="radio" formControlName="run" [value]="run.key">
+                                <strong>{{ run.key }}</strong>
+                            </label>
+                        </ng-container>
+                    </div>
+                </div>
+                <!-- RESOLUTION -->
+                <fieldset>
+                    <div class="form-group">
+                        <label class="col-form-label"><strong>RESOLUTION (Km):</strong></label>
+                        <div id="resolutionGroup">
+                            <ng-container *ngFor="let res of resolutions; index as i">
+                                <label class="btn-circle"
+                                       [ngClass]="(filterForm.get('resolution').value === res.key) ? 'btn-warning' : 'btn-secondary'">
+                                    <input id="resolution-input-{{i}}" [attr.data-description]="res.value" type="radio"
+                                           formControlName="resolution"
+                                           [value]="res.key">
+                                    <strong>{{ res.value }}</strong>
+                                </label>
+                            </ng-container>
+                        </div>
+                    </div>
+                </fieldset>
+                <!-- PLATFORM -->
+                <div class="form-group">
+                    <label class="col-form-label"><strong>PLATFORM:</strong></label>
+                    <select id="platformGroup" formControlName="platform" class="form-control">
+                        <option *ngFor="let p of platforms" [value]="p.key">{{p.value}}</option>
+                    </select>
+                </div>
+                <!-- MODALITY -->
+                <div class="form-group" *ngIf="user && (user.isAdmin || user.isGroupAdmin)">
+                    <label class="col-form-label"><strong>MODALITY:</strong></label>
+                    <select id="modalityGroup" formControlName="modality" class="form-control">
+                        <option *ngFor="let env of envs" [value]="env.key">{{env.value}}</option>
+                    </select>
+                </div>
+                <!-- AREA -->
+                <fieldset>
+                    <div class="form-group">
+                        <label class="col-form-label"><strong>AREA:</strong></label>
+                        <select id="areaGroup" formControlName="area" class="form-control">
+                            <option *ngFor="let area of areas" [value]="area.key">{{area.value}}</option>
+                        </select>
+                    </div>
+                </fieldset>
+            </form>
+<!--            <pre>{{filterForm.value | json}}</pre>-->
+        </div>
+    </div>
+</div>

@@ -1,0 +1,42 @@
+.card-footer, .card-header {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+
+.card-body {
+  padding: 0.50rem;
+}
+
+[type='radio'] {
+  display: none;
+}
+
+.verySmallText {
+  font-size: 12px;
+}
+
+.btn-circle {
+  width: 49px;
+  height: 49px;
+  text-align: center;
+  /* padding-bottom: 1px; */
+  margin: 2px 2px;
+  font-size: 25px;
+  line-height: 2.00;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+@media (max-width: 801px)  {
+  .btn-circle {
+    width: 75px;
+    height: 75px;
+    text-align: center;
+    /* padding-bottom: 1px; */
+    margin: 2px 2px;
+    font-size: 45px;
+    line-height: 1.70;
+    border-radius: 40px;
+    cursor: pointer;
+  }
+}
