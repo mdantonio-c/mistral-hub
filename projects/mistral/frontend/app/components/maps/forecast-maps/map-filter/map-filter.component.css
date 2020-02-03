@@ -1,3 +1,9 @@
+@media (min-width: 992px) {
+  .card-title {
+    font-size: 1.8vw !important;
+  }
+}
+
 .card-footer, .card-header {
   padding-top: 0.2rem;
   padding-bottom: 0.2rem;

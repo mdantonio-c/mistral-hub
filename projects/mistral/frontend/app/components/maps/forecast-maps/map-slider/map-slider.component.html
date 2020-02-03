@@ -24,15 +24,18 @@
         </div>
     </div>
     <div class="card-body">
-        <div id="image-slider">
+        <div id="map-container">
             <div id="slider-carousel-maps" class="carousel" data-interval="false" data-slide-to="0">
                 <div class="carousel-inner">
-                    <ngb-carousel #carousel interval="1000"
+                    <ngb-carousel #carousel interval="500"
                                   [showNavigationArrows]="false"
                                   [showNavigationIndicators]="false">
                         <ng-template ngbSlide *ngFor="let image of images">
                             <div class="picsum-img-wrapper">
-                                <img [src]="image" alt="map image" style="width: 100%">
+                                <img [src]="image" style="height: 73vh;" class="mx-auto d-block">
+                                <h5 class="position-absolute" style="bottom: 0; right: 0">
+                                    <span class="badge badge-primary label-time">{{ today | amUtc | amDateFormat: 'DD-MM-YYYY HH:00 (UTC)' }}</span>
+                                </h5>
                             </div>
                         </ng-template>
                     </ngb-carousel>
@@ -51,9 +54,11 @@
                     <button type="button" id="day2" href="#" class="btn btn-secondary btn-sm">+24h</button>
                     <button type="button" id="day3" href="#" class="btn btn-secondary btn-sm">+48h</button>
                 </div>
+                <!--
                 <h5>
                     <span class="badge badge-primary label-time">{{ today | amUtc | amDateFormat: 'DD-MM-YYYY HH:00 (UTC)' }}</span>
                 </h5>
+                -->
             </div>
             <!--
             <div id="slider-bar" class="col-xs-6 col-sm-7 col-md-8 col-lg-9 col-xl-10">

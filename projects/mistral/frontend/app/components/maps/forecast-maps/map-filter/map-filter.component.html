@@ -7,7 +7,6 @@
             </button>
             -->
             <h4 class="card-title"><strong>PARAMETERS</strong></h4>
-            <br>
             <form [formGroup]="filterForm">
                 <!-- FIELD -->
                 <div class="form-group">
@@ -56,7 +55,7 @@
                         <label class="col-form-label"><strong>RESOLUTION (Km):</strong></label>
                         <div id="resolutionGroup">
                             <ng-container *ngFor="let res of resolutions; index as i">
-                                <label class="btn-circle"
+                                <label class="btn-circle" *ngIf="!(res.key === 'lm2.2' && filterForm.get('area').value ==='Area_Mediterranea')"
                                        [ngClass]="(filterForm.get('resolution').value === res.key) ? 'btn-warning' : 'btn-secondary'">
                                     <input id="resolution-input-{{i}}" [attr.data-description]="res.value" type="radio"
                                            formControlName="resolution"
@@ -86,7 +85,9 @@
                     <div class="form-group">
                         <label class="col-form-label"><strong>AREA:</strong></label>
                         <select id="areaGroup" formControlName="area" class="form-control">
-                            <option *ngFor="let area of areas" [value]="area.key">{{area.value}}</option>
+                            <ng-container *ngFor="let area of areas">
+                                <option [value]="area.key" *ngIf="!(area.key === 'Area_Mediterranea' && filterForm.get('resolution').value ==='lm2.2')">{{area.value}}</option>
+                            </ng-container>
                         </select>
                     </div>
                 </fieldset>

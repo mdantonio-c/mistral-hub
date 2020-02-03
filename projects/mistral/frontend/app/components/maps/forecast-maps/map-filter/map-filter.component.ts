@@ -1,5 +1,5 @@
 import {Component, OnInit, Output, EventEmitter} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {FormBuilder, FormGroup, Validators, FormControl} from '@angular/forms';
 import {KeyValuePair, Fields, Runs, Areas, Resolutions, Platforms, Envs} from '../services/data';
 import {MeteoFilter} from "../services/meteo.service";
 import {AuthService} from '@rapydo/services/auth';
@@ -40,13 +40,20 @@ export class MapFilterComponent implements OnInit {
         this.filter();
     }
 
-    onChanges(): void {
-      this.filterForm.valueChanges.subscribe(val => {
-        this.filter();
-      });
+    private onChanges(): void {
+        this.filterForm.get('area').valueChanges.subscribe(val => {
+           if (val === 'Area_Mediterranea') {
+               this.filterForm.get('resolution').setValue('lm5', {emitEvent: false});
+           }
+        });
+        this.filterForm.valueChanges.subscribe(val => {
+            this.filter();
+        });
     }
 
     private filter() {
+        console.log('apply filter');
+        let filter = this.filterForm.value;
         this.onFilterChange.emit(this.filterForm.value);
     }
 

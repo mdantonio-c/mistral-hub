@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewChild, AfterViewInit} from '@angular/core';
+import {Component, Input, OnInit, ViewChild, AfterViewInit, ViewEncapsulation} from '@angular/core';
 import {MeteoFilter} from "../services/meteo.service";
 import {Areas, Fields, Resolutions} from "../services/data";
 import {NgbCarousel, NgbSlideEvent, NgbSlideEventSource} from '@ng-bootstrap/ng-bootstrap';
@@ -9,7 +9,8 @@ const base_url = "https://meteo.cineca.it/media";
 @Component({
     selector: 'app-map-slider',
     templateUrl: './map-slider.component.html',
-    styleUrls: ['./map-slider.component.css']
+    styleUrls: ['./map-slider.component.css'],
+    encapsulation: ViewEncapsulation.None
 })
 export class MapSliderComponent implements OnInit, AfterViewInit {
     @Input() filter: MeteoFilter;
@@ -20,8 +21,14 @@ export class MapSliderComponent implements OnInit, AfterViewInit {
     @ViewChild('carousel', {static: true}) carousel: NgbCarousel;
 
     ngOnInit() {
-        this.images = ['0003', '0004', '0005'].map((offset) => this.getImageUrl(offset));
+        let offsets = Array(24).fill(null).map((_, i) => '00' + i.toString().padStart(2, '0'));
+        let arr2 = Array(24).fill(null).map((_, i) => '01' + i.toString().padStart(2, '0'));
+        let arr3 = Array(24).fill(null).map((_, i) => '02' + i.toString().padStart(2, '0'));
+        offsets.push(...arr2);
+        offsets.push(...['0300']);
+        this.images = offsets.map((offset) => this.getImageUrl(offset));
     }
+
     ngAfterViewInit() {
         this.carousel.pause();
     }
