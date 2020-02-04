@@ -1,3 +1,5 @@
+import 'ion-rangeslider/js/ion.rangeSlider.min.js';
+
 import {NgModule, ModuleWithProviders} from '@angular/core';
 import {NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
 import {RouterModule, Routes} from '@angular/router';
@@ -5,6 +7,8 @@ import {DatePipe} from '@angular/common';
 
 import {RapydoModule} from '@rapydo/rapydo.module';
 import {AuthGuard} from '@rapydo/app.auth.guard';
+
+import {IonRangeSliderModule} from "ng2-ion-range-slider";
 
 import {HomeComponent} from '@app/custom.home'
 import {DataComponent} from '@app/components/data/data.component';
@@ -53,7 +57,8 @@ const appRoutes: Routes = [
 @NgModule({
     imports: [
         RapydoModule,
-        RouterModule.forChild(appRoutes)
+        RouterModule.forChild(appRoutes),
+        IonRangeSliderModule
     ],
     declarations: [
         HomeComponent,

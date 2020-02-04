@@ -27,14 +27,19 @@
         <div id="map-container">
             <div id="slider-carousel-maps" class="carousel" data-interval="false" data-slide-to="0">
                 <div class="carousel-inner">
-                    <ngb-carousel #carousel interval="500"
+                    <ngb-carousel #carousel interval="300"
+                                  [pauseOnHover]="false"
                                   [showNavigationArrows]="false"
-                                  [showNavigationIndicators]="false">
-                        <ng-template ngbSlide *ngFor="let image of images">
+                                  [showNavigationIndicators]="false"
+                                  (slide)="onSlide($event)">
+                        <ng-template ngbSlide *ngFor="let image of images; index as i" id="slideId-{{i}}">
+                            <div class="carousel-caption">
+                                <h3>Forecast +{{image.datetime}}h</h3>
+                            </div>
                             <div class="picsum-img-wrapper">
-                                <img [src]="image" style="height: 73vh;" class="mx-auto d-block">
+                                <img [src]="image.url" style="height: 73vh;" class="mx-auto d-block">
                                 <h5 class="position-absolute" style="bottom: 0; right: 0">
-                                    <span class="badge badge-primary label-time">{{ today | amUtc | amDateFormat: 'DD-MM-YYYY HH:00 (UTC)' }}</span>
+                                    <span class="badge badge-secondary label-time">{{ today | amUtc | amDateFormat: 'DD-MM-YYYY HH:00 (UTC)' }}</span>
                                 </h5>
                             </div>
                         </ng-template>
@@ -45,34 +50,22 @@
     </div>
     <div class="card-footer text-muted">
         <div class="row">
-            <div id="slider-play" class="col-xs-6 col-sm-5 col-md-4 col-lg-3 col-xl-2">
-                <button type="button" id="play-button" class="btn btn-lg btn-info" (click)="togglePaused()">
+            <div id="slider-bar" class="col d-flex align-items-center">
+                <button type="button" id="play-button" class="btn btn-info btn-sm mr-3" (click)="togglePaused()">
                     <span class="fas" [ngClass]="this.paused ? 'fa-play' : 'fa-pause'"></span>
                 </button>
-                <div class="btn-group">
-                    <button type="button" id="day1" href="#" class="btn btn-secondary btn-sm">0</button>
-                    <button type="button" id="day2" href="#" class="btn btn-secondary btn-sm">+24h</button>
-                    <button type="button" id="day3" href="#" class="btn btn-secondary btn-sm">+48h</button>
-                </div>
-                <!--
-                <h5>
-                    <span class="badge badge-primary label-time">{{ today | amUtc | amDateFormat: 'DD-MM-YYYY HH:00 (UTC)' }}</span>
-                </h5>
-                -->
-            </div>
-            <!--
-            <div id="slider-bar" class="col-xs-6 col-sm-7 col-md-8 col-lg-9 col-xl-10">
-                <div id="slider" class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all"
-                     aria-disabled="false">
-                    <a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left: 0%;">
-                        <label>
-                            <i class="fas fa-angle-left"></i> 0
-                            <i class="fas fa-angle-right"></i>
-                        </label>
-                    </a>
+                <div class="w-100">
+                    <ion-range-slider #timeSlider
+                                      type="single"
+                                      [min]="0"
+                                      [max]="maxHour"
+                                      grid="true"
+                                      prefix="+"
+                                      postfix=" h"
+                                      to_shadow="true"
+                                      (onChange)="updateSlider($event)"></ion-range-slider>
                 </div>
             </div>
-            -->
         </div>
     </div>
 </div>

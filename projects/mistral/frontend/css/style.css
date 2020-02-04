@@ -1,4 +1,8 @@
-/*@import url('ngx-datatable.css');*/
+/* add the ion-range-slider style and skin css */
+@import url('ion-rangeslider/css/ion.rangeSlider.css');
+@import url('ion-rangeslider/css/ion.rangeSlider.skinFlat.css');
+@import url('custom-irc.css');
+
 @import url('button-toggle.css');
 @import url('weather-icons.css');
 

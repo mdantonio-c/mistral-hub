@@ -30,8 +30,15 @@ h4 {
   }
 }
 **/
+@media (max-width: 991.98px) {
+  .badges { margin-bottom: 10px; }
+}
 
 .carousel:focus { outline: none !important;}
+
+.carousel-caption {
+  bottom: -20px !important;
+}
 
 .card-footer, .card-header {
   padding-top: 0.2rem;
