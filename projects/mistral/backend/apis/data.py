@@ -117,10 +117,15 @@ class Data(EndpointResource, Uploader):
                     'Only one geographical postprocessing at a time can be executed',
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
+        # get the format of the datasets
+        dataset_format = arki.get_datasets_format(dataset_names)
+        if not dataset_format:
+            raise RestApiException(
+                "Invalid set of datasets : datasets have different formats",
+                status_code=hcodes.HTTP_BAD_REQUEST,
+            )
         # check if the output format chosen by the user is compatible with the chosen datasets
         if output_format is not None:
-            # get the format of the datasets
-            dataset_format = arki.get_datasets_format(dataset_names)
             postprocessors_list = [i.get('type') for i in processors]
             if dataset_format != output_format:
                 if dataset_format == 'grib':

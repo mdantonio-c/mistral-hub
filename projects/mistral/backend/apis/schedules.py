@@ -257,6 +257,11 @@ class Schedules(EndpointResource):
 
         # get the format of the datasets
         dataset_format = arki.get_datasets_format(dataset_names)
+        if not dataset_format:
+            raise RestApiException(
+                "Invalid set of datasets : datasets have different formats",
+                status_code=hcodes.HTTP_BAD_REQUEST,
+            )
         # check if the output format chosen by the user is compatible with the chosen datasets
         if output_format is not None:
             if dataset_format != output_format:

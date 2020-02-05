@@ -6,6 +6,7 @@ from restapi.decorators import catch_error
 from restapi.protocols.bearer import authentication
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.dballe import BeDballe as dballe
 from restapi.utilities.logs import log
 
 
@@ -49,6 +50,7 @@ class Fields(EndpointResource):
         """ Get all fields for given datasets"""
         params = self.get_input()
         ds = params.get('datasets')
+        query = params.get('q')
         datasets = ds.split(',') if ds is not None else []
 
         # check for existing dataset(s)
@@ -62,8 +64,51 @@ class Fields(EndpointResource):
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
 
-        query = params.get('q')
-        summary = arki.load_summary(datasets, query)
+        # check if the datasets are of the same type
+        dataset_format = arki.get_datasets_format(datasets)
+        if not dataset_format:
+            raise RestApiException(
+                "Invalid set of datasets : datasets have different formats",
+                status_code=hcodes.HTTP_BAD_REQUEST,
+            )
+        ########## OBSERVED DATA ###########
+        if dataset_format == 'bufr':
+            summary = None
+            # TO DO split between arkimet and dballe. For now there is only the dballe case
+
+            resulting_filters={}
+            for ds in datasets:
+                # get dataset params (to filter dballe according the requested dataset)
+                ds_params = arki.get_observed_dataset_params(ds)
+                log.info('dataset: {}, networks: {}'.format(ds,ds_params))
+                filters = dballe.load_filters(ds_params,query)
+                if not filters:
+                    continue
+                # fare questa cosa con keys in dictionary keys
+                else:
+                    for key in filters:
+                        # check and integrate the filter dic
+                        if key not in resulting_filters:
+                            resulting_filters[key] = filters[key]
+                        else:
+                            # merge the two lists
+                            resulting_filters[key].extend(x for x in filters[key] if x not in resulting_filters[key])
+
+            if resulting_filters:
+                summary = resulting_filters
+            else:
+                raise RestApiException(
+                        "Invalid set of filters : the applied filters does not give any result",
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
+
+
+
+        ########## ARKIMET ###########
+        else:
+            summary = arki.load_summary(datasets, query)
+
+        ########## ONLY ARKIMET SUMMARY ###########
         onlySummaryStats = params.get('onlySummaryStats')
         if isinstance(onlySummaryStats, str) and (
             onlySummaryStats == '' or onlySummaryStats.lower() == 'true'
