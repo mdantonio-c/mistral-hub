@@ -1,33 +1,122 @@
 <form [formGroup]="form" (ngSubmit)="goToNext()">
     <div class="tab-pane fade show active mt-4">
         <h4 class="head text-center">{{title}}</h4>
-        <br/>
+        <br />
         <!-- Derived variables -->
         <div class="card mst--expansion-panel">
             <div class="card-header">
                 <h5>Derived Variables</h5>
                 <span class="info-help">&nbsp;<i placement="right"
-                                                 ngbTooltip="Add helpful info about this post-processing"
-                                                 class="fa fa-question-circle"
-                                                 aria-hidden="true"></i></span>
+                        ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
+                        aria-hidden="true"></i></span>
             </div>
             <div class="body">
                 <ul class="mst--list-columns">
                     <li *ngFor="let v of form.get('derived_variables')['controls']; let i=index">
-                        <input class="mst--input-checkbox" type="checkbox" [formControl]="v"
-                               [id]="vars[i].code">
-                        <label [for]="vars[i].code"
-                            ngbTooltip="{{vars[i].code}}" placement="right" openDelay="2000">{{vars[i].desc}}</label>
+                        <input class="mst--input-checkbox" type="checkbox" [formControl]="v" [id]="vars[i].code">
+                        <label [for]="vars[i].code" ngbTooltip="{{vars[i].code}}" placement="right"
+                            openDelay="2000">{{vars[i].desc}}</label>
                     </li>
                 </ul>
             </div>
         </div>
+        <!-- Time Post Process-->
+        <div class="card mst--expansion-panel" hidden>
+            <div class="card-header">
+                <h5>Time Post Process</h5>
+                <span class="info-help">&nbsp;<i placement="right"
+                        ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
+                        aria-hidden="true"></i></span>
+            </div>
+            <div class="body">
+                <ul class="mst--list-columns">
+                    <li>
+                        Coming soon...
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Space Post Process-->
+        <div class="card mst--expansion-panel">
+            <div class="card-header">
+                <h5>Space Post Process</h5>
+                <span class="info-help">&nbsp;<i placement="right"
+                        ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
+                        aria-hidden="true"></i></span>
+            </div>
+            <div class="body">
+                <ul class="mst--list-columns">
+                    <fieldset>
+                        <label for="pp_radio_crop" class="mst--radio-label" placement="right" openDelay="2000">
+                            <input type="radio" formControlName="space_type" value="crop" [id]="pp_radio_crop"
+                                 checked>
+                            Area Crop</label>
+                        <label for="pp_radio_grid" class="mst--radio-label" placement="right" openDelay="2000" hidden>
+                            <input type="radio" formControlName="space_type" value="grid" [id]="pp_radio_grid"
+                                 hidden>
+                            Grid Interpolation</label>
+                        <label for="pp_radio_sparse" class="mst--radio-label" placement="right" openDelay="2000" hidden>
+                            <input type="radio" formControlName="space_type" value="points" [id]="pp_radio_sparse"
+                                 hidden>
+                            Sparse Points</label>
+                    </fieldset>
+                </ul>
+                <!-- AREA CROP PP -->
+                <div class="card mst--expansion-panel" id="pp-card-area" [hidden]="false">
+                    <div class="card-header">
+                        <h5>Area crop</h5>
+                    </div>
+                    <div class="card-body mst--list-filter ">
+                        <div class="row">
+                            <div id="pp-space-area-map" class="d-none d-lg-block col-lg-8">
+                                <img src="/app/custom/assets/images/OpenStreetMap-europe.png" alt="area crop" style="max-width: 100%;">
+                            </div>
+                            <div id="pp-space-area-fields" class="col">
+                                <ul class="mst--list-columns">
+                                    <li *ngFor="let b of form.get('space_crop')['controls']; let i=index">
+                                        <input type="number" [formControl]="b" [id]="space_crop_boundings[i].code">
+                                        <label [for]="space_crop_boundings[i].code" ngbTooltip="{{space_crop_boundings[i].code}}" placement="right"
+                                            openDelay="2000">{{space_crop_boundings[i].desc}}</label>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRID INTERPOLATION PP -->
+                <div class="card mst--expansion-panel" id="pp-card-grid" [hidden]="true">
+                    <div class="card-header">
+                        <h5>Grid Interpolation</h5>
+                    </div>
+                    <div class="card-body mst--list-filter ">
+                        <div class="row">
+                            <div id="pp-space-area-map" class="col">
+                                <img src="/app/custom/assets/images/OpenStreetMap-europe.png" alt="">
+                            </div>
+                            <div id="pp-space-area-fields" class="col">
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SPARSE POINTS PP -->
+                <div class="card mst--expansion-panel" id="pp-card-sparse" [hidden]="true">
+                    Sparse Points
+                </div>
+
+            </div>
+        </div>
+
+
         <div class="form-group text-center space-20">
-            <button class="btn btn-outline-secondary mr-2" type="button"
-                    (click)="goToPrevious()"><i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
+            <button class="btn btn-outline-secondary mr-2" type="button" (click)="goToPrevious()"><i
+                    class="fa fa-arrow-left" aria-hidden="true"></i> Previous
             </button>
-            <button class="btn btn-info" type="submit"
-                    [disabled]="!form.valid"> Next <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
+            <button class="btn btn-info" type="submit" [disabled]="!form.valid"> Next <i class="fa fa-arrow-right"
+                    aria-hidden="true"></i></button>
         </div>
     </div>
 </form>
