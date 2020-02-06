@@ -76,26 +76,25 @@ class Fields(EndpointResource):
             summary = None
             # TO DO split between arkimet and dballe. For now there is only the dballe case
 
-            resulting_filters={}
+            resulting_fields={}
             for ds in datasets:
                 # get dataset params (to filter dballe according the requested dataset)
                 ds_params = arki.get_observed_dataset_params(ds)
                 log.info('dataset: {}, networks: {}'.format(ds,ds_params))
-                filters = dballe.load_filters(ds_params,query)
-                if not filters:
+                fields = dballe.load_filters(ds_params,query)
+                if not fields:
                     continue
-                # fare questa cosa con keys in dictionary keys
                 else:
-                    for key in filters:
+                    for key in fields:
                         # check and integrate the filter dic
-                        if key not in resulting_filters:
-                            resulting_filters[key] = filters[key]
+                        if key not in resulting_fields:
+                            resulting_fields[key] = fields[key]
                         else:
                             # merge the two lists
-                            resulting_filters[key].extend(x for x in filters[key] if x not in resulting_filters[key])
+                            resulting_fields[key].extend(x for x in fields[key] if x not in resulting_fields[key])
 
-            if resulting_filters:
-                summary = resulting_filters
+            if resulting_fields:
+                summary = resulting_fields
             else:
                 raise RestApiException(
                         "Invalid set of filters : the applied filters does not give any result",

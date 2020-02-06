@@ -15,7 +15,6 @@ class BeDballe():
     @staticmethod
     ####### TO DO prendere dentro anche una possibile query (pensare come) in maniera tale da creare un metodo che mi vada bene per l'idea futura di caricare i fields in maniera dinamica
     # cicli multipli tipo questi https://stackoverflow.com/questions/14379103/double-for-loops-in-python
-    # N.B. ricordarsi alla fine di pulire la lista e tirare via gli elementi doppi
     def load_filters(params,q=None):
         # create and update the explorer object
         explorer = dballe.Explorer()
@@ -38,50 +37,99 @@ class BeDballe():
             # if there aren't requested network, data will be filtered only by dataset
             query_networks_list = params
         log.debug('query networks list : {}'.format(query_networks_list))
+
         # perform the queries in database to get the list of possible filters
-        filters = {}
+        fields = {}
         networks_list = []
         variables = []
+        levels = []
         for n in query_networks_list:
+            # filter the dballe database by network
             explorer.set_filter({'report': n})
+
+            # list of the variables of this network
+            net_variables = []
+
+            ######### VARIABLES FIELDS
+            # get the list of all the variables of the network
             varlist = explorer.varcodes
-            variables_temp = []
+
+            #### PRODUCT is in the query filters
             if 'product' in query:
-                # check if the requested variables are in the already filtered data
+                # check if the requested variables are in the network
                 for e in query['product']:
                     if e in varlist:
-                        variables_temp.append(e)
-                if not variables_temp:
+                        # if there is append it to the temporary list of matching variables
+                        net_variables.append(e)
+                if not net_variables:
+                    # if at the end of the cycle the temporary list of matching variables is still empty go to the next network
+                    continue
+            else:
+                # if product is not in the query filter append all the variable of the network o the final list of the fields
+                net_variables = varlist
+
+
+            ######### LEVELS FIELDS
+            # filter the dballe database by list of variables (level depends on variable)
+            explorer.set_filter({'varlist': net_variables})
+            # get the list of all the levels according to the variables
+            level_list = explorer.levels
+            # parse the dballe.Level object
+            level_list_parsed = []
+            for l in level_list:
+                level = BeDballe.from_level_object_to_string(l)
+                level_list_parsed.append(level)
+
+            #### LEVEL is in the query filters
+            if 'level' in query:
+                temp_levels = []
+                # check if the requested levels matches the one required for the given variables
+                for e in query['level']:
+                    if e in level_list_parsed:
+                        # if there is append it to the temporary list of matching levels
+                        temp_levels.append(e)
+                if not temp_levels:
+                    # if at the end of the cycle the temporary list of matching variables is still empty go to the next network
                     continue
                 else:
-                    variables.extend(x for x in variables_temp if x not in variables)
+                    # if only level is in query and not product, discard from the network variable list all products not matching the level
+                    if 'product' not in query:
+                        variables_by_levels = []
+                        for ql in query['level']:
+                            # for each variable i check if the level matches
+                            for e in net_variables:
+                                explorer.set_filter({'var': e})
+                                level_list = explorer.levels
+                                level_list_parsed = []
+                                for l in level_list:
+                                    level = BeDballe.from_level_object_to_string(l)
+                                    level_list_parsed.append(level)
+                                # if the level matches append the variable in a temporary list
+                                if ql in level_list_parsed:
+                                    variables_by_levels.append(e)
+                        # the temporary list of variables matching the requested levels become the list of the variable of the network
+                        net_variables = variables_by_levels
+                    levels.extend(x for x in temp_levels if x not in levels)
             else:
-                variables.extend(x for x in varlist if x not in variables)
-            if variables:  # maybe all the variables have been discarded by the previous filters
-                filters['product'] = variables
-            else:
-                continue
+                # if level is not in the query filter append all the levels of the network in the final list of the fields
+                levels.extend(x for x in level_list_parsed if x not in levels)
+
+            # append all the network variables in the final field list
+            variables.extend(x for x in net_variables if x not in variables)
+
+            # if there are results, this network can be in the final fields
             networks_list.append(n)
 
-            # levels = []
-            # if 'level' in query:
-            #     level_params = []
-            #     for l in query['level']:
-            #         # get the single params describing a level
-            #         level_params = l.split(',')
-            #         for v in variables:
-            #             # forse non c'è bisogno del report?
-            #             explorer.set_filter({'report': n,'var':v})
-            #             level_list = explorer.levels
-
+        # if matching fields were found network list can't be empty
         if networks_list:
-            filters['network'] = networks_list
-            return filters
+            # create the final dictionary
+            fields['network'] = networks_list
+            fields['product'] = variables
+            fields['level'] = levels
+            return fields
         else:
             return None
 
-
-        # TO DO: ricordarsi di pulire la lista dai doppi
         # TO DO: il reftime a che mi serve in questo caso??
 
 
@@ -118,3 +166,36 @@ class BeDballe():
                         val_list = [x.strip() for x in val.split('or')]
                         query_dic[p] = val_list
         return query_dic
+
+    @staticmethod
+    def from_level_object_to_string(level):
+        level_list=[]
+
+        if level.ltype1:
+            ltype1 = str(level.ltype1)
+        else:
+            ltype1= '0'
+        level_list.append(ltype1)
+
+        if level.l1:
+            l1 = str(level.l1)
+        else:
+            l1= '0'
+        level_list.append(l1)
+
+        if level.ltype2:
+            ltype2 = str(level.ltype2)
+        else:
+            ltype2= '0'
+        level_list.append(ltype2)
+
+        if level.l2:
+            l2 = str(level.l2)
+        else:
+            l2= '0'
+        level_list.append(l2)
+
+        level_parsed = ','.join(level_list)
+        return level_parsed
+
+
