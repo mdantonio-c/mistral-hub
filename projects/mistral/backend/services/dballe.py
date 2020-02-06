@@ -13,8 +13,6 @@ DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engi
 class BeDballe():
 
     @staticmethod
-    ####### TO DO prendere dentro anche una possibile query (pensare come) in maniera tale da creare un metodo che mi vada bene per l'idea futura di caricare i fields in maniera dinamica
-    # cicli multipli tipo questi https://stackoverflow.com/questions/14379103/double-for-loops-in-python
     def load_filters(params,q=None):
         # create and update the explorer object
         explorer = dballe.Explorer()
@@ -43,6 +41,7 @@ class BeDballe():
         networks_list = []
         variables = []
         levels = []
+        tranges = []
         for n in query_networks_list:
             # filter the dballe database by network
             explorer.set_filter({'report': n})
@@ -68,51 +67,31 @@ class BeDballe():
                 # if product is not in the query filter append all the variable of the network o the final list of the fields
                 net_variables = varlist
 
-
             ######### LEVELS FIELDS
-            # filter the dballe database by list of variables (level depends on variable)
-            explorer.set_filter({'varlist': net_variables})
-            # get the list of all the levels according to the variables
-            level_list = explorer.levels
-            # parse the dballe.Level object
-            level_list_parsed = []
-            for l in level_list:
-                level = BeDballe.from_level_object_to_string(l)
-                level_list_parsed.append(level)
+            level_fields, net_variables_temp = BeDballe.get_fields(explorer, n, net_variables, query, param='level')
+            if not level_fields:
+                continue
+            # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
+            if not all(elem in net_variables_temp for elem in net_variables):
+                net_variables = net_variables_temp
 
-            #### LEVEL is in the query filters
-            if 'level' in query:
-                temp_levels = []
-                # check if the requested levels matches the one required for the given variables
-                for e in query['level']:
-                    if e in level_list_parsed:
-                        # if there is append it to the temporary list of matching levels
-                        temp_levels.append(e)
-                if not temp_levels:
-                    # if at the end of the cycle the temporary list of matching variables is still empty go to the next network
-                    continue
-                else:
-                    # if only level is in query and not product, discard from the network variable list all products not matching the level
-                    if 'product' not in query:
-                        variables_by_levels = []
-                        for ql in query['level']:
-                            # for each variable i check if the level matches
-                            for e in net_variables:
-                                explorer.set_filter({'var': e})
-                                level_list = explorer.levels
-                                level_list_parsed = []
-                                for l in level_list:
-                                    level = BeDballe.from_level_object_to_string(l)
-                                    level_list_parsed.append(level)
-                                # if the level matches append the variable in a temporary list
-                                if ql in level_list_parsed:
-                                    variables_by_levels.append(e)
-                        # the temporary list of variables matching the requested levels become the list of the variable of the network
-                        net_variables = variables_by_levels
-                    levels.extend(x for x in temp_levels if x not in levels)
-            else:
-                # if level is not in the query filter append all the levels of the network in the final list of the fields
-                levels.extend(x for x in level_list_parsed if x not in levels)
+            ######### TIMERANGES FIELDS
+            trange_fields, net_variables_temp, level_fields_temp = BeDballe.get_fields(explorer, n, net_variables, query, param='timerange')
+            if not trange_fields:
+                continue
+            # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
+            if not all(elem in net_variables_temp for elem in net_variables):
+                net_variables = net_variables_temp
+
+            # check if the temporary list of levels is not more little of the general one. If it is, replace the general list
+            if not all(elem in level_fields_temp for elem in level_fields):
+                level_fields = level_fields_temp
+
+            # append in the final list the timeranges retrieved
+            tranges.extend(x for x in trange_fields if x not in tranges)
+
+            # append in the final list the levels retrieved
+            levels.extend(x for x in level_fields if x not in levels)
 
             # append all the network variables in the final field list
             variables.extend(x for x in net_variables if x not in variables)
@@ -126,19 +105,117 @@ class BeDballe():
             fields['network'] = networks_list
             fields['product'] = variables
             fields['level'] = levels
+            fields['timerange'] = tranges
+
+            # add description in model for the levels and the timeranges?
             return fields
         else:
             return None
 
         # TO DO: il reftime a che mi serve in questo caso??
 
+    @staticmethod
+    def get_fields(explorer, network, variables,query,param):
+        # filter the dballe database by list of variables (level and timerange depend on variable)
+        explorer.set_filter({'varlist': variables,'report': network})
+        level_list = []
+        # get the list of all the fields for requested param according to the variables
+        if param == 'level':
+            param_list = explorer.levels
+        elif param == 'timerange':
+            param_list = explorer.tranges
+            # if the param is timerange, 3 values packed are needed
+            level_list = explorer.levels
 
+        # parse the dballe object
+        param_list_parsed = []
+        for e in param_list:
+            if param == 'level':
+                p = BeDballe.from_level_object_to_string(e)
+            elif param == 'timerange':
+                p = BeDballe.from_trange_object_to_string(e)
+            param_list_parsed.append(p)
 
+        if level_list:
+            level_list_parsed = []
+            # parse the level list
+            for l in level_list:
+                level = BeDballe.from_level_object_to_string(l)
+                level_list_parsed.append(level)
+
+        #### the param is in the query filters
+        if param in query:
+            temp_fields = []
+            # check if the requested params matches the one required for the given variables
+            for e in query[param]:
+                if e in param_list_parsed:
+                    # if there is append it to the temporary list of matching fields
+                    temp_fields.append(e)
+            if not temp_fields:
+                # if at the end of the cycle the temporary list of matching variables is still empty go to the next network
+                if param == 'level':
+                    return None, None
+                elif param == 'timerange':
+                    return None, None, None
+            else:
+                # if only the param is in query and not product, discard from the network variable list all products not matching the param
+                if 'product' not in query:
+                    variables_by_param = []
+                    levels_by_trange = []
+                    for qp in query[param]:
+                        # for each variable i check if the param matches
+                        for v in variables:
+                            explorer.set_filter({'var': v})
+                            if param == 'level':
+                                param_list = explorer.levels
+                            elif param == 'timerange':
+                                param_list = explorer.tranges
+                            # parse the dballe object
+                            param_list_parsed = []
+                            for e in param_list:
+                                if param == 'level':
+                                    p = BeDballe.from_level_object_to_string(e)
+                                elif param == 'timerange':
+                                    p = BeDballe.from_trange_object_to_string(e)
+                                param_list_parsed.append(p)
+                            # if the param matches append the variable in a temporary list
+                            if qp in param_list_parsed:
+                                variables_by_param.append(v)
+                    # the temporary list of variables matching the requested param become the list of the variable of the network
+                    variables = variables_by_param
+                    # if the list of variables has been modified, we are filtering by timeranges and level is not in
+                    # query, i have to check if the level fields still matches the new variable list
+                    if param == 'timerange' and 'level' not in query:
+                        # for each variable check if the level matches
+                        for level in level_list_parsed:
+                            for v in variables:
+                                explorer.set_filter({'var': v})
+                                var_level = explorer.levels
+                                var_level_parsed = []
+                                # parse the dballe.Level object
+                                for e in var_level:
+                                    l = BeDballe.from_level_object_to_string(e)
+                                    var_level_parsed.append(l)
+                                # if the level matches append the level in a temporary list
+                                if level in var_level_parsed:
+                                    levels_by_trange.append(level)
+                        # the temporary list of levels matching the resulted variables become the list of levels to return
+                        level_list_parsed = levels_by_trange
+                if param == 'level':
+                    return temp_fields, variables
+                elif param == 'timerange':
+                    return temp_fields, variables, level_list_parsed
+        else:
+            # if param is not in the query filter append return all the fields
+            if param == 'level':
+                return param_list_parsed, variables
+            elif param == 'timerange':
+                return param_list_parsed, variables, level_list_parsed
 
     @staticmethod
     def from_query_to_dic(q):
         # example of query string: string= "reftime: >=2020-02-01 01:00,<=2020-02-04 15:13;level:1,0,0,0 or 103,2000,0,0;product:B11001 or B13011;timerange:0,0,3600 or 1,0,900;network:fidupo or agrmet"
-        params_list = ['reftime','network','product','level','timerange']
+        params_list = ['reftime', 'network', 'product', 'level', 'timerange']
         query_list = q.split(';')
         query_dic = {}
         for e in query_list:
@@ -148,7 +225,7 @@ class BeDballe():
                     # ex. from 'level:1,0,0,0 or 103,2000,0,0' to '1,0,0,0 or 103,2000,0,0'
 
                     # reftime param has to be parsed differently
-                    if p =='reftime':
+                    if p == 'reftime':
                         refs = {}
                         reftimes = [x.strip() for x in val.split(',')]
                         # ex. from ' >=2020-02-01 01:00,<=2020-02-04 15:13' to ['>=2020-02-01 01:00', '<=2020-02-04 15:13']
@@ -159,7 +236,7 @@ class BeDballe():
                                 refs['max_reftime'] = r.strip('<=')
                             if r.startswith('='):
                                 refs['min_reftime'] = refs['max_reftime'] = r.strip('=')
-                        query_dic['reftime']=refs
+                        query_dic['reftime'] = refs
 
                     # parsing all other parameters
                     else:
@@ -198,4 +275,18 @@ class BeDballe():
         level_parsed = ','.join(level_list)
         return level_parsed
 
+    @staticmethod
+    def from_trange_object_to_string(trange):
+        trange_list = []
 
+        pind = str(trange.pind)
+        trange_list.append(pind)
+
+        p1 = str(trange.p1)
+        trange_list.append(p1)
+
+        p2 = str(trange.p2)
+        trange_list.append(p2)
+
+        trange_parsed = ','.join(trange_list)
+        return trange_parsed
