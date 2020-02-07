@@ -160,7 +160,7 @@ class MapLegend(EndpointResource, MapEndpoint):
     labels = ['legend']
     GET = {
         '/maps/legend': {
-            'summary': 'Get a forecast map for a specific run.',
+            'summary': 'Get a specific forecast map legend.',
             'parameters': MapEndpoint.__meteo_params__,
             'responses': {
                 '200': {'description': 'Legend successfully retrieved'},
