@@ -563,6 +563,22 @@ definitions:
         type: integer
         format: int64
         minimum: 0
+  Mapset:
+    required:
+      - reftime
+      - offsets
+    properties:
+      reftime:
+        description: Date of the last requested run available
+        type: string
+        pattern: '^0[0-3][0-2][0-9](00|12)$'
+      offsets:
+        description: The list of all available maps for that specific run, identified by its offset (e.g. +3h=0003)
+        type: array
+        items:
+          description: Map offset
+          type: string
+          pattern: '^\d{4}$'
 
 FormDataParameters:
   AdminUsers:

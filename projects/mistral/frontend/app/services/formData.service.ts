@@ -53,7 +53,7 @@ export class FormDataService {
     }
 
     getDatasets() {
-        return this.dataService.getDatsets();
+        return this.dataService.getDatasets();
     }
 
     setDatasets(data: string[]) {

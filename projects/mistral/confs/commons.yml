@@ -12,6 +12,7 @@ services:
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
       - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
+      - ${VANILLA_DIR}/data/maps:/meteo
       - ${VANILLA_DIR}/data/uploads:/uploads
       - ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/scripts:/scripts
 

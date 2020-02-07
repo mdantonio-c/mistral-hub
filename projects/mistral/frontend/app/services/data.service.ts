@@ -120,7 +120,7 @@ export class DataService {
     /**
      * Get all the available datasets.
      */
-    getDatsets() {
+    getDatasets() {
         return this.api.get('datasets');
     }
 
