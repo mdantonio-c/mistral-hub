@@ -56,9 +56,9 @@
                         <div id="resolutionGroup">
                             <ng-container *ngFor="let res of resolutions; index as i">
                                 <label class="btn-circle" *ngIf="!(res.key === 'lm2.2' && filterForm.get('area').value ==='Area_Mediterranea')"
-                                       [ngClass]="(filterForm.get('resolution').value === res.key) ? 'btn-warning' : 'btn-secondary'">
-                                    <input id="resolution-input-{{i}}" [attr.data-description]="res.value" type="radio"
-                                           formControlName="resolution"
+                                       [ngClass]="(filterForm.get('res').value === res.key) ? 'btn-warning' : 'btn-secondary'">
+                                    <input id="res-input-{{i}}" [attr.data-description]="res.value" type="radio"
+                                           formControlName="res"
                                            [value]="res.key">
                                     <strong>{{ res.value }}</strong>
                                 </label>
@@ -66,33 +66,32 @@
                         </div>
                     </div>
                 </fieldset>
-                <!-- PLATFORM -->
-                <div class="form-group">
-                    <label class="col-form-label"><strong>PLATFORM:</strong></label>
-                    <select id="platformGroup" formControlName="platform" class="form-control">
-                        <option *ngFor="let p of platforms" [value]="p.key">{{p.value}}</option>
-                    </select>
-                </div>
-                <!-- MODALITY -->
-                <div class="form-group" *ngIf="user && (user.isAdmin || user.isGroupAdmin)">
-                    <label class="col-form-label"><strong>MODALITY:</strong></label>
-                    <select id="modalityGroup" formControlName="modality" class="form-control">
-                        <option *ngFor="let env of envs" [value]="env.key">{{env.value}}</option>
-                    </select>
-                </div>
                 <!-- AREA -->
                 <fieldset>
                     <div class="form-group">
                         <label class="col-form-label"><strong>AREA:</strong></label>
                         <select id="areaGroup" formControlName="area" class="form-control">
                             <ng-container *ngFor="let area of areas">
-                                <option [value]="area.key" *ngIf="!(area.key === 'Area_Mediterranea' && filterForm.get('resolution').value ==='lm2.2')">{{area.value}}</option>
+                                <option [value]="area.key" *ngIf="!(area.key === 'Area_Mediterranea' && filterForm.get('res').value ==='lm2.2')">{{area.value}}</option>
                             </ng-container>
                         </select>
                     </div>
                 </fieldset>
+                <!-- PLATFORM -->
+                <div class="form-group" *ngIf="user && (user.isAdmin || user.isGroupAdmin)">
+                    <label class="col-form-label"><strong>PLATFORM:</strong></label>
+                    <select id="platformGroup" formControlName="platform" class="form-control">
+                        <option *ngFor="let p of platforms" [value]="p.key">{{p.value}}</option>
+                    </select>
+                </div>
+                <!-- ENV -->
+                <div class="form-group" *ngIf="user && (user.isAdmin || user.isGroupAdmin)">
+                    <label class="col-form-label"><strong>ENVIRONMENT:</strong></label>
+                    <select id="envGroup" formControlName="env" class="form-control">
+                        <option *ngFor="let env of envs" [value]="env.key">{{env.value}}</option>
+                    </select>
+                </div>
             </form>
-<!--            <pre>{{filterForm.value | json}}</pre>-->
         </div>
     </div>
 </div>

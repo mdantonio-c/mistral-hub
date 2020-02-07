@@ -26,8 +26,8 @@ export const Resolutions: KeyValuePair[] = [
 ];
 
 export const Platforms: KeyValuePair[] = [
-    {key: 'galileo_meteo_download/OPE/web', value: 'GALILEO'},
-    {key: 'meucci_meteo_download/OPE/web', value: 'MEUCCI'}
+    {key: 'GALILEO', value: 'GALILEO'},
+    {key: 'MEUCCI', value: 'MEUCCI'}
 ];
 
 export const Envs: KeyValuePair[] = [

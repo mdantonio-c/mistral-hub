@@ -12,14 +12,16 @@
                     <span class="badge badge-success">{{ filter.run }}</span>
                 </h4>
                 <h4>
-                    <span class="badge badge-warning">{{ getValue('resolution', filter.resolution) }} Km</span>
+                    <span class="badge badge-warning">{{ getValue('res', filter.res) }} Km</span>
                 </h4>
                 <h4>
                     <span class="badge badge-secondary">{{ getValue('area', filter.area) }}</span>
                 </h4>
             </div>
             <div class="col-lg">
-                <img class="img-fluid legend" [src]="getLegendUrl()" alt="legend">
+                <img class="img-fluid legend" [src]="legendToShow"
+                     alt="legend"
+                    *ngIf="legendToShow">
             </div>
         </div>
     </div>
@@ -34,13 +36,13 @@
                                   (slide)="onSlide($event)">
                         <ng-template ngbSlide *ngFor="let image of images; index as i" id="slideId-{{i}}">
                             <div class="carousel-caption">
-                                <h3>Forecast +{{image.datetime}}h</h3>
+<!--                                <h3>Forecast +{{i}}h</h3>-->
+                                <h5>
+                                    <span class="badge badge-secondary label-time">{{ timestamp | amLocal | amDateFormat: 'YYYY-MM-DD HH:00' }}</span>
+                                </h5>
                             </div>
                             <div class="picsum-img-wrapper">
-                                <img [src]="image.url" style="height: 73vh;" class="mx-auto d-block">
-                                <h5 class="position-absolute" style="bottom: 0; right: 0">
-                                    <span class="badge badge-secondary label-time">{{ today | amUtc | amDateFormat: 'DD-MM-YYYY HH:00 (UTC)' }}</span>
-                                </h5>
+                                <img [src]="image" style="height: 73vh;" class="mx-auto d-block" *ngIf="image">
                             </div>
                         </ng-template>
                     </ngb-carousel>
@@ -63,7 +65,7 @@
                                       prefix="+"
                                       postfix=" h"
                                       to_shadow="true"
-                                      (onChange)="updateSlider($event)"></ion-range-slider>
+                                      (onChange)="updateCarousel($event.from)"></ion-range-slider>
                 </div>
             </div>
         </div>

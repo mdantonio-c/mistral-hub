@@ -25,9 +25,9 @@ export class MapFilterComponent implements OnInit {
         this.filterForm = this.fb.group({
             field: ['prec3', Validators.required],
             run: ['00', Validators.required],
-            resolution: ['lm2.2', Validators.required],
-            platform: ['galileo_meteo_download/OPE/web', Validators.required],
-            modality: ['PROD', Validators.required],
+            res: ['lm2.2', Validators.required],
+            platform: ['GALILEO', Validators.required],
+            env: ['PROD', Validators.required],
             area: ['Italia', Validators.required]
         });
     }

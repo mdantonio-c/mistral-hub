@@ -97,7 +97,7 @@ class MapImage(EndpointResource, MapEndpoint):
 
         # Check if the images are ready: 2017112900.READY
         ready_file = self.get_ready_file(params['area'])
-        reftime = ready_file[:8]
+        reftime = ready_file[:10]
 
         # get map image
         map_image_file = os.path.join(
@@ -105,7 +105,7 @@ class MapImage(EndpointResource, MapEndpoint):
             params['area'],
             params['field'],
             '{field}.{reftime}.{offset}.png'.format(
-                field=params['field'], reftime=reftime+params['run'], offset=map_offset
+                field=params['field'], reftime=reftime, offset=map_offset
             ))
         if not os.path.isfile(map_image_file):
             raise RestApiException('Map image not found for offset {}'.format(map_offset), hcodes.HTTP_BAD_NOTFOUND)
@@ -138,7 +138,7 @@ class MapSet(EndpointResource, MapEndpoint):
 
         # Check if the images are ready: 2017112900.READY
         ready_file = self.get_ready_file(params['area'])
-        reftime = ready_file[:8]
+        reftime = ready_file[:10]
 
         data = {
             'reftime': reftime,
