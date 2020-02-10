@@ -11,7 +11,7 @@ RUN usermod -u $CURRENT_UID $APIUSER
 # required to install libjasper-dev
 RUN add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" && apt-get install --yes libhdf5-serial-dev libpq-dev libssl1.0.0 libssl-dev libpopt-dev liblua5.1-0-dev liblzo2-2 libreadline6-dev libpng16-16 libjasper-dev gdal-bin
 
-RUN pip install eccodes-python && apt-get install -y python3-eccodes && python3 -m eccodes selfcheck
+RUN pip3 install eccodes-python && apt-get install -y python3-eccodes && python3 -m eccodes selfcheck
 
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/hdf5/serial"
 ENV PATH="$PATH:/usr/bin/centos"
