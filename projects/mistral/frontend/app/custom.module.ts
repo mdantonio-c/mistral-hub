@@ -5,7 +5,8 @@ import {NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
 import {RouterModule, Routes} from '@angular/router';
 import {DatePipe} from '@angular/common';
 
-import {RapydoModule} from '@rapydo/rapydo.module';
+
+import {SharedModule} from '@rapydo/shared.module';
 import {AuthGuard} from '@rapydo/app.auth.guard';
 
 import {IonRangeSliderModule} from "ng2-ion-range-slider";
@@ -56,7 +57,7 @@ const appRoutes: Routes = [
 
 @NgModule({
     imports: [
-        RapydoModule,
+        SharedModule,
         RouterModule.forChild(appRoutes),
         IonRangeSliderModule
     ],

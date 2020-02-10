@@ -2,8 +2,8 @@
 project:
   title: Meteo-Hub
   description: "."
-  version: "0.2.1"
-  rapydo: 0.7.1
+  version: "0.2.2"
+  rapydo: 0.7.2
 
 variables:
   env:
@@ -36,8 +36,6 @@ variables:
 
   backend:
     credentials:
-      username: "user@nomail.org"
-      password: "test"
       roles:
         user: normal_user
         internal: staff_user
