@@ -74,7 +74,7 @@ class Fields(EndpointResource):
         ########## OBSERVED DATA ###########
         if dataset_format == 'bufr':
             summary = None
-            # TO DO split between arkimet and dballe. For now there is only the dballe case
+            # TODO split between arkimet and dballe. For now there is only the dballe case
 
             resulting_fields={}
             for ds in datasets:

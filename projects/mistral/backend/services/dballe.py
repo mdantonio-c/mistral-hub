@@ -1,6 +1,11 @@
 from restapi.utilities.logs import log
 import dballe
 import os
+import itertools
+import subprocess
+import glob
+
+
 user = os.environ.get("ALCHEMY_USER")
 pw = os.environ.get("ALCHEMY_PASSWORD")
 host = os.environ.get("ALCHEMY_HOST")
@@ -13,12 +18,17 @@ DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engi
 class BeDballe():
 
     @staticmethod
-    def load_filters(params,q=None):
-        # create and update the explorer object
+    def build_explorer():
         explorer = dballe.Explorer()
         with explorer.rebuild() as update:
             with DB.transaction() as tr:
                 update.add_db(tr)
+        return explorer
+
+    @staticmethod
+    def load_filters(params,q=None):
+        # create and update the explorer object
+        explorer = BeDballe.build_explorer()
 
         # parse the query
         query = BeDballe.from_query_to_dic(q)
@@ -102,17 +112,17 @@ class BeDballe():
         # if matching fields were found network list can't be empty
         if networks_list:
             # create the final dictionary
-            fields['network'] = networks_list
-            fields['product'] = variables
-            fields['level'] = levels
-            fields['timerange'] = tranges
+            fields['network'] = BeDballe.from_list_of_params_to_list_of_dic(networks_list)
+            fields['product'] = BeDballe.from_list_of_params_to_list_of_dic(variables)
+            fields['level'] = BeDballe.from_list_of_params_to_list_of_dic(levels)
+            fields['timerange'] = BeDballe.from_list_of_params_to_list_of_dic(tranges)
 
             # add description in model for the levels and the timeranges?
             return fields
         else:
             return None
 
-        # TO DO: il reftime a che mi serve in questo caso??
+        # TODO: il reftime a che mi serve in questo caso??
 
     @staticmethod
     def get_fields(explorer, network, variables,query,param):
@@ -290,3 +300,84 @@ class BeDballe():
 
         trange_parsed = ','.join(trange_list)
         return trange_parsed
+
+    @staticmethod
+    def from_list_of_params_to_list_of_dic(param_list):
+        list_dic = []
+        for p in param_list:
+            item = {}
+            item['dballe_p'] = p
+            list_dic.append(item)
+        return list_dic
+
+    @staticmethod
+    def from_filters_to_lists(filters):
+        fields = []
+        queries = []
+        allowed_keys = ['level', 'network', 'product', 'timerange']
+        dballe_keys = ['level', 'rep_memo', 'var', 'trange']
+
+        for key, value in filters.items():
+            if key in allowed_keys:
+                # change the key name from model to dballe name
+                key_index = allowed_keys.index(key)
+                fields.append(dballe_keys[key_index])
+
+                field_queries = []
+                for e in value:
+                    if key == 'timerange' or key == 'level':
+                        # transform the timerange or level value in a tuple (required for dballe query)
+                        tuple_list = []
+                        for v in e['dballe_p'].split(','):
+                            if key == 'level' and v == '0':
+                                val = None
+                                tuple_list.append(val)
+                            else:
+                                tuple_list.append(int(v))
+                        field_queries.append(tuple(tuple_list))
+                    else:
+                        field_queries.append(e['dballe_p'])
+                queries.append(field_queries)
+            else:
+                continue
+
+        return fields, queries
+
+    @staticmethod
+    def extract_data(fields, queries, outfile):
+        # get all the possible combinations of queries
+        all_queries = list(itertools.product(*queries))
+        counter = 1
+        cat_cmd = ['cat']
+        for q in all_queries:
+            dballe_query = {}
+            for k, v in zip(fields, q):
+                dballe_query[k] = v
+            #log.debug('counter= {} dballe query: {}'.format(str(counter), dballe_query))
+            # check if the query gives a result:
+            # create and update the explorer object
+            explorer = BeDballe.build_explorer()
+            # set the query as filter
+            explorer.set_filter(dballe_query)
+            # check if the query gives a result using any field
+            level = explorer.levels
+            if not level:
+                continue
+
+            # set the filename for the partial extraction
+            filebase, fileext = os.path.splitext(outfile)
+            part_outfile = filebase + '_part' + str(counter) + fileext + '.tmp'
+            # extract in a partial extraction
+            with DB.transaction() as tr:
+                tr.export_to_file(dballe_query, 'BUFR', part_outfile)
+
+            cat_cmd.append(part_outfile)
+            # update counter
+            counter += 1
+
+        # join all the partial extractions
+        with open(outfile, mode='w') as output:
+            ext_proc = subprocess.Popen(cat_cmd, stdout=output)
+            ext_proc.wait()
+            if ext_proc.wait() != 0:
+                raise Exception('Failure in post processing')

@@ -6,7 +6,7 @@ from restapi.utilities.logs import log
 from mistral.exceptions import PostProcessingException
 
 
-def pp_derived_variables(datasets, params, tmp_extraction, query, user_dir, fileformat):
+def pp_derived_variables(datasets, params, tmp_extraction, user_dir, fileformat):
     log.debug('Derived variable postprocessor')
 
     # ------ correcting the choice of filters in order to always obtain a result for postprocessing ----- not necessary at the moment
