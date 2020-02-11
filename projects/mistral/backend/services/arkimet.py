@@ -15,7 +15,7 @@ DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
 class BeArkimet():
 
     allowed_filters = (
-        'area', 'level', 'origin', 'proddef', 'product', 'quantity', 'run', 'task', 'timerange'
+        'area', 'level', 'origin', 'proddef', 'product', 'quantity', 'run', 'task', 'timerange', 'network'
     )
 
     allowed_processors = (
