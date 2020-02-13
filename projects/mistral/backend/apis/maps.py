@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import copy
 import datetime
 from flask import send_file
 
@@ -29,6 +30,17 @@ def validate_meteo_params(params):
     # TODO validate parameters
 
 
+def set_platform_optional(params):
+    for d in params:
+        if d['name'] == 'platform':
+            d['required'] = False
+    return params
+
+
+def check_platform_availability(platform):
+    return os.access(os.path.join(MEDIA_ROOT, platform), os.X_OK)
+
+
 class MapEndpoint:
 
     __meteo_params__ = [
@@ -40,7 +52,7 @@ class MapEndpoint:
          'description': 'Forecast parameter (e.g. temperature, humidity etc.)'},
         {'name': 'area', 'in': 'query', 'required': True, 'type': 'string', 'enum': AREAS,
          'description': 'Forecast area'},
-        {'name': 'platform', 'in': 'query', 'default': 'GALILEO', 'type': 'string', 'enum': PLATFORMS,
+        {'name': 'platform', 'in': 'query', 'required': True, 'type': 'string', 'enum': PLATFORMS,
          'description': 'HPC cluster'},
         {'name': 'env', 'in': 'query', 'default': 'PROD', 'type': 'string', 'enum': ENVS,
          'description': 'Execution environment'}
@@ -117,7 +129,7 @@ class MapSet(EndpointResource, MapEndpoint):
     GET = {
         '/maps/ready': {
             'summary': 'Get the last available map set for a specific run returning the reference time as well.',
-            'parameters': MapEndpoint.__meteo_params__,
+            'parameters': set_platform_optional(copy.deepcopy(MapEndpoint.__meteo_params__)),
             'responses': {
                 '200': {'description': 'Map set successfully retrieved', 'schema': {'$ref': '#/definitions/Mapset'}},
                 '400': {'description': 'Invalid parameters'},
@@ -129,10 +141,33 @@ class MapSet(EndpointResource, MapEndpoint):
     @catch_error()
     @authentication.required()
     def get(self):
-        """Get the last available map set for a specific run returning the reference time as well."""
+        """
+        Get the last available map set for a specific run returning the reference time as well.
+        """
+        # includes pre-set defaults
         params = self.get_input()
         # validate_meteo_params(params)
         log.debug('Retrieve map set for last run <{}>'.format(params['run']))
+
+        # only admin user can request for a specific platform
+        if params.get('platform') is not None and not self.auth.verify_admin():
+            params['platform'] = None
+
+        # if PLATFORM is not provided, set as default the first available in the order: GALILEO, MEUCCI
+        if 'platform' not in params or params['platform'] is None:
+            platforms_to_be_check = PLATFORMS
+        else:
+            platforms_to_be_check = [params['platform']]
+        for platform in platforms_to_be_check:
+            if not check_platform_availability(platform):
+                log.warning('platform {} not available'.format(platform))
+                continue
+            else:
+                params['platform'] = platform
+                break
+        else:
+            raise RestApiException(
+                'Map service is currently unavailable', hcodes.HTTP_SERVICE_UNAVAILABLE)
 
         self.set_base_path(params)
 
@@ -142,7 +177,8 @@ class MapSet(EndpointResource, MapEndpoint):
 
         data = {
             'reftime': reftime,
-            'offsets': []
+            'offsets': [],
+            'platform': params['platform']
         }
 
         # load image offsets

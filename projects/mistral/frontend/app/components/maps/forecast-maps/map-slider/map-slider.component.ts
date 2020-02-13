@@ -33,7 +33,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         private meteoService: MeteoService) {
     }
 
-
     ngOnChanges(): void {
         // parse reftime as utc date
         // console.log(`reference time ${this.reftime}`);

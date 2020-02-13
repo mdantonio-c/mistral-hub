@@ -9,8 +9,8 @@ export interface MeteoFilter {
     field: string,
     run: string,
     res: string,
-    platform: string,
-    env: string,
+    platform?: string,
+    env?: string,
     area: string
 }
 
