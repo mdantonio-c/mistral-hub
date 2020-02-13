@@ -143,9 +143,9 @@ export class StepPostprocessComponent implements OnInit {
             boundings[this.space_crop_boundings[i].code] = value;
         })
         return {
-            type: 'grid_cropping',
-            sub_type: 'coord',
-            boundings: boundings,
+            'type': 'grid_cropping',
+            'sub-type': 'coord',
+            'boundings': boundings,
         }
     }
 
