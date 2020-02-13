@@ -119,7 +119,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 # TODO how can i check user quota using dballe??
                 log.debug('observation in dballe')
 
-            response = ''
             if postprocessors:
                 log.debug(postprocessors)
                 # check if requested postprocessors are enabled
@@ -139,6 +138,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 # call data extraction
                 if dataset_format == 'grib':
                     arkimet_extraction(arki_query_cmd, tmp_outfile)
+                else:
+                    dballe_extraction(datasets, filters, tmp_outfile)
 
                 # case of single postprocessor
                 if len(postprocessors) == 1:
@@ -286,7 +287,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 if dataset_format == 'grib':
                     arkimet_extraction(arki_query_cmd, outfile)
                 else:
-                    dballe_extraction(datasets,filters, outfile)
+                    dballe_extraction(datasets, filters, reftime, outfile)
+
 
             if output_format:
                 filebase, fileext = os.path.splitext(out_filename)
@@ -391,7 +393,7 @@ def arkimet_extraction(arki_query_cmd, outfile):
         if ext_proc.wait() != 0:
             raise Exception('Failure in data extraction')
 
-def dballe_extraction(datasets,filters, outfile):
+def dballe_extraction(datasets,filters, reftime, outfile):
     # create a query for dballe
     if filters is not None:
         fields, queries = dballe.from_filters_to_lists(filters)
@@ -401,6 +403,13 @@ def dballe_extraction(datasets,filters, outfile):
         queries = []
         networks = arki.get_observed_dataset_params(datasets)
         queries.append(networks)
+    if reftime is not None:
+        date_min, date_max = dballe.parse_reftime(reftime['from'], reftime['to'])
+        fields.append('datetimemin')
+        queries.append([date_min])
+        fields.append('datetimemax')
+        queries.append([date_max])
+
     log.debug('fields: {}, queries: {}', fields, queries)
     # extract data
     dballe.extract_data(fields, queries, outfile)
