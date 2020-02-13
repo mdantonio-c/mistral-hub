@@ -437,7 +437,7 @@ class BeArkimet():
             if i.get('su') == 255:
                 s = ''.join([s, ',-'])
             else:
-                s = ''.join([s, ',-{}{}'.format(i.get('sl'), un[i.get('su')])])
+                s = ''.join([s, ',{}{}'.format(i.get('sl'), un[i.get('su')])])
             if i.get('pt'):
                 s = ''.join([s, ',{}'.format(i.get('pt'))])
             else:
@@ -456,7 +456,7 @@ class BeArkimet():
             (see arki / types / timerange.cc:1408).
             '''
             if i.get('pu'):
-                s = ''.join([s, ',{}{}'.format(i.get('pl'), un[i.get('un')])])
+                s = ''.join([s, ',{}{}'.format(i.get('pl'), un[i.get('su')])])
             else:
                 s = ''.join([s, ',-'])
             return s
