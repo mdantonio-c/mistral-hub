@@ -437,7 +437,7 @@ class BeArkimet():
             if i.get('su') == 255:
                 s = ''.join([s, ',-'])
             else:
-                s = ''.join([s, ',-{}{}'.format(i.get('sl'), un[i.get('un')])])
+                s = ''.join([s, ',-{}{}'.format(i.get('sl'), un[i.get('su')])])
             if i.get('pt'):
                 s = ''.join([s, ',{}'.format(i.get('pt'))])
             else:
