@@ -38,7 +38,14 @@
                             <div class="carousel-caption">
 <!--                                <h3>Forecast +{{i}}h</h3>-->
                                 <h5>
-                                    <span class="badge badge-secondary label-time">{{ timestamp | amLocal | amDateFormat: 'YYYY-MM-DD HH:00' }}</span>
+                                    <span class="badge badge-secondary label-time" (click)="toggleUtcTime()">
+                                        <ng-container *ngIf="utcTime; else noUtc">
+                                            {{ timestamp | amFromUtc | amDateFormat: 'YYYY-MM-DD HH:00' }} (UTC)
+                                        </ng-container>
+                                        <ng-template #noUtc>
+                                            {{ timestamp | amDateFormat: 'YYYY-MM-DD HH:00 (Z)' }}
+                                        </ng-template>
+                                    </span>
                                 </h5>
                             </div>
                             <div class="picsum-img-wrapper">
@@ -65,7 +72,8 @@
                                       prefix="+"
                                       postfix=" h"
                                       to_shadow="true"
-                                      [values]="custom_slider_array"
+                                      step="1"
+                                      [grid_num]="grid_num"
                                       (onChange)="updateCarousel($event.from)"></ion-range-slider>
                 </div>
             </div>
