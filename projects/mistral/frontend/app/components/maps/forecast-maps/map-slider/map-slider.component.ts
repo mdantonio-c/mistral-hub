@@ -18,9 +18,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 
     images: any[] = [];
     paused = true;
-    maxHour: number = 48;
+    fromMin: number;
+    maxHour = 48;
     legendToShow: any;
     isLegendLoading = false;
+    grid_num = 6;
+    utcTime = true;
 
     private lastRunAt: moment.Moment;
     timestamp: string;
@@ -33,13 +36,14 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         private meteoService: MeteoService) {
     }
 
-
     ngOnChanges(): void {
         // parse reftime as utc date
         // console.log(`reference time ${this.reftime}`);
         this.lastRunAt = moment.utc(`${this.reftime}`, "YYYYMMDDHH");
         console.log(`last run at ${this.lastRunAt}`);
         this.timestamp = this.lastRunAt.format();
+
+        this.grid_num = (this.filter.res === 'lm2.2') ? 4 : 6;
 
         this.images.length = 0;
         for (let i = 0; i < this.offsets.length; i++) {
@@ -49,7 +53,14 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
                 console.log(error);
             });
         }
-        this.maxHour = this.filter.res === 'lm2.2' ? 48 : 72;
+        if (this.filter.field === 'prec3' || this.filter.field === 'snow3') {
+            this.fromMin = 3;
+        } else if (this.filter.field === 'prec6' || this.filter.field === 'snow6') {
+            this.fromMin = 6;
+        } else {
+            this.fromMin = 0
+        }
+        this.maxHour = (this.filter.res === 'lm2.2') ? 48 : 72;
 
         // get legend from service
         this.isLegendLoading = true;
@@ -65,7 +76,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     }
 
     ngAfterViewInit() {
-        this.setCurrentTime();
+        this.presetSlider();
         this.carousel.pause();
     }
 
@@ -81,15 +92,19 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         this.paused = !this.paused;
     }
 
+    toggleUtcTime() {
+        this.utcTime = !this.utcTime;
+    }
+
     /**
      * Called every time the slide transition is completed.
      * @param slideEvent
      */
     onSlide(slideEvent: NgbSlideEvent) {
         // position the handle of the slider accordingly
-        let idx = slideEvent.current.split("-").slice(-1)[0];
+        let idx = parseInt(slideEvent.current.split("-").slice(-1)[0]);
         this.setSliderTo(idx);
-        this.updateTimestamp(parseInt(idx));
+        this.updateTimestamp(idx);
     }
 
     /**
@@ -98,6 +113,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
      */
     updateCarousel(index: number) {
         // load image slide into the carousel accordingly
+        console.log(`update carousel to slideId-${index}`);
         this.carousel.select(`slideId-${index}`);
         this.updateTimestamp(index);
     }
@@ -123,17 +139,25 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     }
 
     /**
-     * Set timestamp to closest current hour
+     * Preset the slider on the nearest current hour. Skip
      */
-    private setCurrentTime() {
+    private presetSlider() {
         let today = moment.utc();
-        // today.add(-7, 'days');  // for local test
-        if (this.lastRunAt.isSame(today, 'day')) {
-            this.setSliderTo(today.hours());
-            setTimeout(() => {
-                this.updateCarousel(today.hours());
-            }, 500);
+        let from = 0;
+        // today.add(-13, 'days');  // for local test
+        if (this.filter.field === 'prec3' || this.filter.field === 'snow3') {
+            from += 3;
         }
+        if (this.filter.field === 'prec6' || this.filter.field === 'snow6') {
+            from += 6;
+        }
+        if (this.lastRunAt.isSame(today, 'day')) {
+            from = today.hours();
+        }
+        this.setSliderTo(from);
+        setTimeout(() => {
+            this.updateCarousel(from);
+        }, 500);
     }
 
 }

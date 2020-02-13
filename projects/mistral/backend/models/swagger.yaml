@@ -567,6 +567,7 @@ definitions:
     required:
       - reftime
       - offsets
+      - platform
     properties:
       reftime:
         description: Date of the last requested run available
@@ -579,6 +580,12 @@ definitions:
           description: Map offset
           type: string
           pattern: '^\d{4}$'
+      platform:
+        description: Which platform actually provides the map set
+        type: string
+        enum:
+          - GALILEO
+          - MEUCCI
 
 FormDataParameters:
   AdminUsers:
