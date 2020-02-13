@@ -26,14 +26,18 @@ export class MapFilterComponent implements OnInit {
             field: ['prec3', Validators.required],
             run: ['00', Validators.required],
             res: ['lm2.2', Validators.required],
-            platform: ['GALILEO', Validators.required],
-            env: ['PROD', Validators.required],
+            platform: [''],
+            env: [''],
             area: ['Italia', Validators.required]
         });
     }
 
     ngOnInit() {
         this.user = this.authService.getUser();
+        if (this.user.isAdmin) {
+            (this.filterForm.controls.platform as FormControl).setValue('GALILEO');
+            (this.filterForm.controls.env as FormControl).setValue('PROD');
+        }
         // subscribe for form value changes
         this.onChanges();
         // apply filter the first time
@@ -52,9 +56,10 @@ export class MapFilterComponent implements OnInit {
     }
 
     private filter() {
-        console.log('apply filter');
-        let filter = this.filterForm.value;
-        this.onFilterChange.emit(this.filterForm.value);
+        let filter: MeteoFilter = this.filterForm.value;
+        if (filter.env === '') {delete filter['env']}
+        if (filter.platform === '') {delete filter['platform']}
+        this.onFilterChange.emit(filter);
     }
 
 }

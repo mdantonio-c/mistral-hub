@@ -26,9 +26,15 @@ export class ForecastMapsComponent {
             response => {
                 this.offsets = response.data.offsets;
                 this.reftime = response.data.reftime;
+                // always apply platform value from this response
+                // this means request maps from that platform
+                this.filter.platform = response.data.platform;
+                if (!this.filter.env) {
+                    this.filter.env = 'PROD';
+                }
             },
             error => {
-                this.notify.showWarning(`Maps NOT READY for the requested params`);
+                this.notify.extractErrors(error, this.notify.ERROR);
             }
         ).add(() => {
             this.loading = false;
