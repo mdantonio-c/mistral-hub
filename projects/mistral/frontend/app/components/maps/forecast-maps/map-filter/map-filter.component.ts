@@ -25,10 +25,10 @@ export class MapFilterComponent implements OnInit {
         this.filterForm = this.fb.group({
             field: ['prec3', Validators.required],
             run: ['00', Validators.required],
-            res: ['lm2.2', Validators.required],
+            res: ['lm5', Validators.required],
             platform: [''],
             env: [''],
-            area: ['Italia', Validators.required]
+            area: ['Area_Mediterranea', Validators.required]
         });
     }
 
