@@ -21,7 +21,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     maxHour: number = 48;
     legendToShow: any;
     isLegendLoading = false;
-    custom_slider_array = [];
+    grid_num = 6;
+    utcTime = true;
 
     private lastRunAt: moment.Moment;
     timestamp: string;
@@ -41,7 +42,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         console.log(`last run at ${this.lastRunAt}`);
         this.timestamp = this.lastRunAt.format();
 
-        this.custom_slider_array = this.filter.res === 'lm2.2' ? [0, 12, 24, 36, 48] : [0, 12, 24, 36, 48, 60, 72];
+        this.grid_num = (this.filter.res === 'lm2.2') ? 4 : 6;
 
         this.images.length = 0;
         for (let i = 0; i < this.offsets.length; i++) {
@@ -81,6 +82,10 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
             this.carousel.pause();
         }
         this.paused = !this.paused;
+    }
+
+    toggleUtcTime() {
+        this.utcTime = !this.utcTime;
     }
 
     /**
