@@ -21,6 +21,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     maxHour: number = 48;
     legendToShow: any;
     isLegendLoading = false;
+    custom_slider_array = [];
 
     private lastRunAt: moment.Moment;
     timestamp: string;
@@ -39,6 +40,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         this.lastRunAt = moment.utc(`${this.reftime}`, "YYYYMMDDHH");
         console.log(`last run at ${this.lastRunAt}`);
         this.timestamp = this.lastRunAt.format();
+
+        this.custom_slider_array = this.filter.res === 'lm2.2' ? [0, 12, 24, 36, 48] : [0, 12, 24, 36, 48, 60, 72];
 
         this.images.length = 0;
         for (let i = 0; i < this.offsets.length; i++) {
