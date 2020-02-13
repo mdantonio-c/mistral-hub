@@ -3,7 +3,8 @@ import dballe
 import os
 import itertools
 import subprocess
-import glob
+import dateutil
+import datetime
 
 
 user = os.environ.get("ALCHEMY_USER")
@@ -344,6 +345,14 @@ class BeDballe():
         return fields, queries
 
     @staticmethod
+    def parse_reftime(from_str, to_str):
+        from_dt = dateutil.parser.parse(from_str)
+        to_dt = dateutil.parser.parse(to_str)
+
+        #from_dt = datetime.datetime.strptime(from_dt_parsed, "%Y-%m-%d %H:%M:%S")
+        return from_dt,to_dt
+
+    @staticmethod
     def extract_data(fields, queries, outfile):
         # get all the possible combinations of queries
         all_queries = list(itertools.product(*queries))
@@ -353,31 +362,45 @@ class BeDballe():
             dballe_query = {}
             for k, v in zip(fields, q):
                 dballe_query[k] = v
-            #log.debug('counter= {} dballe query: {}'.format(str(counter), dballe_query))
             # check if the query gives a result:
-            # create and update the explorer object
-            explorer = BeDballe.build_explorer()
-            # set the query as filter
-            explorer.set_filter(dballe_query)
-            # check if the query gives a result using any field
-            level = explorer.levels
-            if not level:
-                continue
+
+            # # create and update the explorer object
+            # explorer = BeDballe.build_explorer()
+            # # set the query as filter
+            # explorer.set_filter(dballe_query)
+            # # check if the query gives a result using any field
+            # level = explorer.levels
+            # if not level:
+            #     continue
 
             # set the filename for the partial extraction
-            filebase, fileext = os.path.splitext(outfile)
+            if outfile.endswith('.tmp'):
+                outfile_split = outfile[:-4]
+                filebase, fileext = os.path.splitext(outfile_split)
+            else:
+                filebase, fileext = os.path.splitext(outfile)
             part_outfile = filebase + '_part' + str(counter) + fileext + '.tmp'
             # extract in a partial extraction
             with DB.transaction() as tr:
-                tr.export_to_file(dballe_query, 'BUFR', part_outfile)
-
+                # check if the query gives a result
+                count = tr.query_data(dballe_query).remaining
+                #log.debug('counter= {} dballe query: {} count:{}'.format(str(counter), dballe_query, count))
+                if count == 0:
+                    continue
+                exporter = dballe.Exporter("BUFR")
+                with open(part_outfile, "wb") as out:
+                    for row in tr.query_messages(dballe_query):
+                        out.write(exporter.to_binary(row.message))
             cat_cmd.append(part_outfile)
             # update counter
             counter += 1
+        if counter == 1:
+            # any query has given a result
+            raise Exception('Failure in data extraction: the query does not give any result')
 
         # join all the partial extractions
         with open(outfile, mode='w') as output:
             ext_proc = subprocess.Popen(cat_cmd, stdout=output)
             ext_proc.wait()
             if ext_proc.wait() != 0:
-                raise Exception('Failure in post processing')
+                raise Exception('Failure in data extraction')

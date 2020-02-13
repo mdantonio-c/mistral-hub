@@ -122,7 +122,10 @@ def pp_derived_variables(datasets, params, tmp_extraction, user_dir, fileformat)
 
         tmp_outfile = tmp_extraction
         # command for postprocessor
-        pp1_output_filename = tmp_extraction_basename.split('.')[0] + '-pp1_output.grib.tmp'
+        if fileformat.startswith('grib'):
+            pp1_output_filename = tmp_extraction_basename.split('.')[0] + '-pp1_output.grib.tmp'
+        else:
+            pp1_output_filename = tmp_extraction_basename.split('.')[0] + '-pp1_output.bufr.tmp'
         pp1_output = os.path.join(user_dir, pp1_output_filename)
         libsim_tool = ''
         if fileformat.startswith('grib'):
