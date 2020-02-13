@@ -34,9 +34,9 @@
                                   [showNavigationArrows]="false"
                                   [showNavigationIndicators]="false"
                                   (slide)="onSlide($event)">
-                        <ng-template ngbSlide *ngFor="let image of images; index as i" id="slideId-{{i}}">
+                        <ng-template ngbSlide *ngFor="let image of images | slice:fromMin; index as i" id="slideId-{{i+fromMin}}">
                             <div class="carousel-caption">
-<!--                                <h3>Forecast +{{i}}h</h3>-->
+<!--                                <h3>Image[{{i+fromMin}}] - slice {{fromMin}}</h3>-->
                                 <h5>
                                     <span class="badge badge-secondary label-time" (click)="toggleUtcTime()">
                                         <ng-container *ngIf="utcTime; else noUtc">
@@ -66,14 +66,16 @@
                 <div class="w-100">
                     <ion-range-slider #timeSlider
                                       type="single"
-                                      [min]="0"
+                                      min="0"
                                       [max]="maxHour"
+                                      [from_min]="fromMin"
                                       grid="true"
                                       prefix="+"
                                       postfix=" h"
                                       to_shadow="true"
                                       step="1"
                                       [grid_num]="grid_num"
+                                      from_shadow="true"
                                       (onChange)="updateCarousel($event.from)"></ion-range-slider>
                 </div>
             </div>
