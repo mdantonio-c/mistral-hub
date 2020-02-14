@@ -404,7 +404,7 @@ def dballe_extraction(datasets,filters, reftime, outfile):
         networks = arki.get_observed_dataset_params(datasets)
         queries.append(networks)
     if reftime is not None:
-        date_min, date_max = dballe.parse_reftime(reftime['from'], reftime['to'])
+        date_min, date_max = dballe.parse_data_extraction_reftime(reftime['from'], reftime['to'])
         fields.append('datetimemin')
         queries.append([date_min])
         fields.append('datetimemax')
@@ -413,7 +413,6 @@ def dballe_extraction(datasets,filters, reftime, outfile):
     log.debug('fields: {}, queries: {}', fields, queries)
     # extract data
     dballe.extract_data(fields, queries, outfile)
-    # TODO managing reftime in query
 
 def send_result_notication(recipient, title, status, message):
     """Send email notification. """

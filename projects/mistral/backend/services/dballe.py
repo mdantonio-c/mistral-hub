@@ -55,7 +55,10 @@ class BeDballe():
         tranges = []
         for n in query_networks_list:
             # filter the dballe database by network
-            explorer.set_filter({'report': n})
+            if not 'datetimemin' in query:
+                explorer.set_filter({'report': n})
+            else:
+                explorer.set_filter({'report': n, 'datetimemin':query['datetimemin'], 'datetimemax':query['datetimemax']})
 
             # list of the variables of this network
             net_variables = []
@@ -128,7 +131,10 @@ class BeDballe():
     @staticmethod
     def get_fields(explorer, network, variables,query,param):
         # filter the dballe database by list of variables (level and timerange depend on variable)
-        explorer.set_filter({'varlist': variables,'report': network})
+        if not 'datetimemin' in query:
+            explorer.set_filter({'varlist': variables,'report': network})
+        else:
+            explorer.set_filter({'varlist': variables,'report': network, 'datetimemin': query['datetimemin'], 'datetimemax': query['datetimemax']})
         level_list = []
         # get the list of all the fields for requested param according to the variables
         if param == 'level':
@@ -176,7 +182,12 @@ class BeDballe():
                     for qp in query[param]:
                         # for each variable i check if the param matches
                         for v in variables:
-                            explorer.set_filter({'var': v})
+                            if not 'datetimemin' in query:
+                                explorer.set_filter({'var': v})
+                            else:
+                                explorer.set_filter(
+                                    {'var': v, 'datetimemin': query['datetimemin'],
+                                     'datetimemax': query['datetimemax']})
                             if param == 'level':
                                 param_list = explorer.levels
                             elif param == 'timerange':
@@ -200,7 +211,12 @@ class BeDballe():
                         # for each variable check if the level matches
                         for level in level_list_parsed:
                             for v in variables:
-                                explorer.set_filter({'var': v})
+                                if not 'datetimemin' in query:
+                                    explorer.set_filter({'var': v})
+                                else:
+                                    explorer.set_filter(
+                                        {'var': v, 'datetimemin': query['datetimemin'],
+                                         'datetimemax': query['datetimemax']})
                                 var_level = explorer.levels
                                 var_level_parsed = []
                                 # parse the dballe.Level object
@@ -237,17 +253,18 @@ class BeDballe():
 
                     # reftime param has to be parsed differently
                     if p == 'reftime':
-                        refs = {}
                         reftimes = [x.strip() for x in val.split(',')]
                         # ex. from ' >=2020-02-01 01:00,<=2020-02-04 15:13' to ['>=2020-02-01 01:00', '<=2020-02-04 15:13']
                         for r in reftimes:
                             if r.startswith('>'):
-                                refs['min_reftime'] = r.strip('>=')
+                                date_min = r.strip('>=')
+                                query_dic['datetimemin'] = dateutil.parser.parse(date_min)
                             if r.startswith('<'):
-                                refs['max_reftime'] = r.strip('<=')
+                                date_max = r.strip('<=')
+                                query_dic['datetimemax'] = dateutil.parser.parse(date_max)
                             if r.startswith('='):
-                                refs['min_reftime'] = refs['max_reftime'] = r.strip('=')
-                        query_dic['reftime'] = refs
+                                date = r.strip('=')
+                                query_dic['datetimemin'] = query_dic['datetimemax'] = dateutil.parser.parse(date)
 
                     # parsing all other parameters
                     else:
@@ -345,7 +362,7 @@ class BeDballe():
         return fields, queries
 
     @staticmethod
-    def parse_reftime(from_str, to_str):
+    def parse_data_extraction_reftime(from_str, to_str):
         from_dt = dateutil.parser.parse(from_str)
         to_dt = dateutil.parser.parse(to_str)
 
@@ -362,17 +379,6 @@ class BeDballe():
             dballe_query = {}
             for k, v in zip(fields, q):
                 dballe_query[k] = v
-            # check if the query gives a result:
-
-            # # create and update the explorer object
-            # explorer = BeDballe.build_explorer()
-            # # set the query as filter
-            # explorer.set_filter(dballe_query)
-            # # check if the query gives a result using any field
-            # level = explorer.levels
-            # if not level:
-            #     continue
-
             # set the filename for the partial extraction
             if outfile.endswith('.tmp'):
                 outfile_split = outfile[:-4]
