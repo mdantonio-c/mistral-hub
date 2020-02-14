@@ -41,7 +41,7 @@ def check_platform_availability(platform):
     return os.access(os.path.join(MEDIA_ROOT, platform), os.X_OK)
 
 
-class MapEndpoint:
+class MapEndpoint(EndpointResource):
 
     __meteo_params__ = [
         {'name': 'run', 'in': 'query', 'required': True, 'type': 'string', 'enum': RUNS,
@@ -59,6 +59,7 @@ class MapEndpoint:
     ]
 
     def __init__(self):
+        super().__init__()
         self.base_path = None
 
     def set_base_path(self, params):
@@ -83,7 +84,7 @@ class MapEndpoint:
         return ready_files[0]
 
 
-class MapImage(EndpointResource, MapEndpoint):
+class MapImage(MapEndpoint):
     labels = ['map image']
     GET = {
         '/maps/<map_offset>': {
@@ -96,6 +97,9 @@ class MapImage(EndpointResource, MapEndpoint):
             }
         }
     }
+
+    def __init__(self):
+        super().__init__()
 
     @catch_error()
     @authentication.required()
@@ -124,7 +128,7 @@ class MapImage(EndpointResource, MapEndpoint):
         return send_file(map_image_file, mimetype='image/png')
 
 
-class MapSet(EndpointResource, MapEndpoint):
+class MapSet(MapEndpoint):
     labels = ['map set']
     GET = {
         '/maps/ready': {
@@ -137,6 +141,9 @@ class MapSet(EndpointResource, MapEndpoint):
             }
         }
     }
+
+    def __init__(self):
+        super().__init__()
 
     @catch_error()
     @authentication.required()
@@ -192,7 +199,7 @@ class MapSet(EndpointResource, MapEndpoint):
         return self.force_response(data)
 
 
-class MapLegend(EndpointResource, MapEndpoint):
+class MapLegend(MapEndpoint):
     labels = ['legend']
     GET = {
         '/maps/legend': {
@@ -205,6 +212,9 @@ class MapLegend(EndpointResource, MapEndpoint):
             }
         }
     }
+
+    def __init__(self):
+        super().__init__()
 
     @catch_error()
     @authentication.required()

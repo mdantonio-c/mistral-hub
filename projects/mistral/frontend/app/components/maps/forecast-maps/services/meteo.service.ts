@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable, of} from 'rxjs';
+import {Observable, forkJoin, of} from 'rxjs';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/share';
 import {ApiService} from '@rapydo/services/api';
@@ -44,6 +44,14 @@ export class MeteoService {
             }
         };
         return this.api.get('maps', offset, params, options);
+    }
+
+    getAllMapImages(params: MeteoFilter, offsets: string[]): Observable<any[]> {
+        const observables = [];
+        for (let i = 0; i < offsets.length; i++) {
+            observables.push(this.getMapImage(params, offsets[i]));
+        }
+        return forkJoin(observables);
     }
 
 }
