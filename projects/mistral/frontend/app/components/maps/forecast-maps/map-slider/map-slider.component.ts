@@ -5,6 +5,7 @@ import {Areas, Fields, Resolutions} from "../services/data";
 import {NgbCarousel, NgbSlideEvent} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import {IonRangeSliderComponent} from "ng2-ion-range-slider";
+import {forkJoin} from 'rxjs';
 
 @Component({
     selector: 'app-map-slider',
@@ -22,6 +23,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     maxHour = 48;
     legendToShow: any;
     isLegendLoading = false;
+    isImageLoading = false;
     grid_num = 6;
     utcTime = true;
 
@@ -46,13 +48,27 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         this.grid_num = (this.filter.res === 'lm2.2') ? 4 : 6;
 
         this.images.length = 0;
-        for (let i = 0; i < this.offsets.length; i++) {
-            this.meteoService.getMapImage(this.filter, this.offsets[i]).subscribe(blob => {
-                this.images[i] = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blob));
+        this.isImageLoading = true;
+        // for (let i = 0; i < this.offsets.length; i++) {
+        //     this.meteoService.getMapImage(this.filter, this.offsets[i]).subscribe(blob => {
+        //         this.images[i] = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blob));
+        //     }, error => {
+        //         console.log(error);
+        //     });
+        // }
+        this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
+            blobs => {
+                for (let i = 0; i < this.offsets.length; i++) {
+                    this.images[i] = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blobs[i]));
+                }
+                this.presetSlider();
             }, error => {
                 console.log(error);
-            });
-        }
+            }
+        ).add(() => {
+            this.isImageLoading = false;
+        });
+
         if (this.filter.field === 'prec3' || this.filter.field === 'snow3') {
             this.fromMin = 3;
         } else if (this.filter.field === 'prec6' || this.filter.field === 'snow6') {
@@ -76,7 +92,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     }
 
     ngAfterViewInit() {
-        this.presetSlider();
         this.carousel.pause();
     }
 

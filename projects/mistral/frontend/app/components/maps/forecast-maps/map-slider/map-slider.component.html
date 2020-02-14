@@ -19,6 +19,7 @@
                 </h4>
             </div>
             <div class="col-lg">
+                <loading *ngIf="isLegendLoading"></loading>
                 <img class="img-fluid legend" [src]="legendToShow"
                      alt="legend"
                     *ngIf="legendToShow">
@@ -27,6 +28,7 @@
     </div>
     <div class="card-body">
         <div id="map-container">
+            <loading *ngIf="isImageLoading"></loading>
             <div id="slider-carousel-maps" class="carousel" data-interval="false" data-slide-to="0">
                 <div class="carousel-inner">
                     <ngb-carousel #carousel interval="300"
@@ -59,7 +61,7 @@
     </div>
     <div class="card-footer text-muted">
         <div class="row">
-            <div id="slider-bar" class="col d-flex align-items-center">
+            <div id="slider-bar" class="col d-flex align-items-center" *ngIf="images.length > 0">
                 <button type="button" id="play-button" class="btn btn-info btn-sm mr-3" (click)="togglePaused()">
                     <span class="fas" [ngClass]="this.paused ? 'fa-play' : 'fa-pause'"></span>
                 </button>
