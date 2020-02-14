@@ -5,7 +5,6 @@ import {Areas, Fields, Resolutions} from "../services/data";
 import {NgbCarousel, NgbSlideEvent} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import {IonRangeSliderComponent} from "ng2-ion-range-slider";
-import {forkJoin} from 'rxjs';
 
 @Component({
     selector: 'app-map-slider',
