@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, ViewChild, AfterViewInit} from '@angular/core';
+import {Component, Input, Output, OnChanges, ViewChild, AfterViewInit, EventEmitter} from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
 import {MeteoFilter, MeteoService} from "../services/meteo.service";
 import {Areas, Fields, Resolutions} from "../services/data";
@@ -25,6 +25,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     isImageLoading = false;
     grid_num = 6;
     utcTime = true;
+
+    @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
     private lastRunAt: moment.Moment;
     timestamp: string;
@@ -60,7 +62,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
                 for (let i = 0; i < this.offsets.length; i++) {
                     this.images[i] = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blobs[i]));
                 }
-                this.presetSlider();
             }, error => {
                 console.log(error);
             }
@@ -92,6 +93,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 
     ngAfterViewInit() {
         this.carousel.pause();
+        this.presetSlider();
     }
 
     /**
@@ -108,6 +110,10 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 
     toggleUtcTime() {
         this.utcTime = !this.utcTime;
+    }
+
+    collapse() {
+        this.onCollapse.emit();
     }
 
     /**
