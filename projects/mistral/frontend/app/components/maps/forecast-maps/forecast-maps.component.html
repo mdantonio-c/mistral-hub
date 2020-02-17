@@ -1,11 +1,15 @@
 <div class="container-fluid mb-2">
     <div class="row">
-        <app-map-filter class="col-lg-2 pr-0" style="min-width: 160px;"
-            (onFilterChange)="applyFilter($event)"></app-map-filter>
+        <div class="col-lg-2 mb-2" style="min-width: 160px;">
+            <app-map-filter class="collapse" id="filters"
+                [ngbCollapse]="isFilterCollapsed"
+                (onFilterChange)="applyFilter($event)"></app-map-filter>
+        </div>
         <div class="col-lg-10">
             <div id="map-wrapper">
                 <loading *ngIf="loading"></loading>
                 <app-map-slider [filter]="filter" [offsets]="offsets" [reftime]="reftime"
+                                (onCollapse)="toggleCollapse()"
                                 *ngIf="!loading && offsets.length > 0"></app-map-slider>
                 <!-- no maps -->
                 <div class="no-results" *ngIf="!loading && !offsets?.length">

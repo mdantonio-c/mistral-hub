@@ -1,28 +1,35 @@
 <div class="card">
     <div class="card-header">
         <div class="row">
-            <div class="col-lg badges">
-                <button id="show-button" type="button" class="btn btn-default btn-lg" hidden>
-                    <i class="fas fa-bars"></i>
+            <div class="col-auto align-self-center px-1">
+                <button id="collapse-filter" type="button" class="btn btn-default btn-lg"
+                        (click)="collapse()">
+                    &#9776;
                 </button>
-                <h4>
-                    <span class="badge badge-info">{{ getValue('field', filter.field) }}</span>
-                </h4>
-                <h4>
-                    <span class="badge badge-success">{{ filter.run }}</span>
-                </h4>
-                <h4>
-                    <span class="badge badge-warning">{{ getValue('res', filter.res) }} Km</span>
-                </h4>
-                <h4>
-                    <span class="badge badge-secondary">{{ getValue('area', filter.area) }}</span>
-                </h4>
             </div>
-            <div class="col-lg">
-                <loading *ngIf="isLegendLoading"></loading>
-                <img class="img-fluid legend" [src]="legendToShow"
-                     alt="legend"
-                    *ngIf="legendToShow">
+            <div class="col px-1">
+                <div class="row">
+                  <div class="col-lg-6 badges">
+                        <h4>
+                            <span class="badge badge-info">{{ getValue('field', filter.field) }}</span>
+                        </h4>
+                        <h4>
+                            <span class="badge badge-success">{{ filter.run }}</span>
+                        </h4>
+                        <h4>
+                            <span class="badge badge-warning">{{ getValue('res', filter.res) }} Km</span>
+                        </h4>
+                        <h4>
+                            <span class="badge badge-secondary">{{ getValue('area', filter.area) }}</span>
+                        </h4>
+                    </div>
+                    <div class="col-lg-6">
+                        <loading *ngIf="isLegendLoading"></loading>
+                        <img class="img-fluid legend" [src]="legendToShow"
+                             alt="legend"
+                            *ngIf="legendToShow">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -51,7 +58,7 @@
                                 </h5>
                             </div>
                             <div class="picsum-img-wrapper">
-                                <img [src]="image" style="height: 73vh;" class="mx-auto d-block" *ngIf="image">
+                                <img [src]="image" class="mx-auto d-block carousel-img" *ngIf="image">
                             </div>
                         </ng-template>
                     </ngb-carousel>
@@ -61,7 +68,8 @@
     </div>
     <div class="card-footer text-muted">
         <div class="row">
-            <div id="slider-bar" class="col d-flex align-items-center" *ngIf="images.length > 0">
+            <div id="slider-bar" class="col d-flex align-items-center"
+                 [hidden]="isImageLoading">
                 <button type="button" id="play-button" class="btn btn-info btn-sm mr-3" (click)="togglePaused()">
                     <span class="fas" [ngClass]="this.paused ? 'fa-play' : 'fa-pause'"></span>
                 </button>
