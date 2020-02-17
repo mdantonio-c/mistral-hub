@@ -1,4 +1,4 @@
-import {Component, OnInit, ViewChild, ElementRef} from "@angular/core";
+import {Component, OnInit, ViewChild, ElementRef, HostListener} from "@angular/core";
 import {MeteoFilter, MeteoService} from "./services/meteo.service";
 import {NotificationService} from '@rapydo/services/notification';
 
@@ -6,13 +6,19 @@ import {NotificationService} from '@rapydo/services/notification';
     selector: 'app-forecast-maps',
     templateUrl: './forecast-maps.component.html'
 })
-export class ForecastMapsComponent {
+export class ForecastMapsComponent implements OnInit {
     loading = false;
     filter: MeteoFilter;
     offsets: string[] = [];
     reftime: string; // YYYYMMDD
+    isFilterCollapsed = false;
+    private collapsed = false;
 
     constructor(private meteoService: MeteoService, private notify: NotificationService) {
+    }
+
+    ngOnInit() {
+        this.setCollapse(window.innerWidth);
     }
 
     applyFilter(filter: MeteoFilter) {
@@ -39,5 +45,26 @@ export class ForecastMapsComponent {
         ).add(() => {
             this.loading = false;
         });
+    }
+
+    toggleCollapse() {
+        this.isFilterCollapsed = !this.isFilterCollapsed;
+    }
+
+    private setCollapse(width: number) {
+        if (width < 991.98) {
+            if (!this.collapsed) {
+                this.isFilterCollapsed = true;
+                this.collapsed = true;
+            }
+        } else {
+            this.isFilterCollapsed = false;
+            this.collapsed = false;
+        }
+    }
+
+    @HostListener('window:resize', ['$event'])
+    onResize(event) {
+        this.setCollapse(event.target.innerWidth);
     }
 }
