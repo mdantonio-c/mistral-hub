@@ -18,6 +18,9 @@ DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engi
 
 class BeDballe():
 
+    explorer = None
+
+
     @staticmethod
     def build_explorer():
         explorer = dballe.Explorer()
@@ -29,7 +32,11 @@ class BeDballe():
     @staticmethod
     def load_filters(params,q=None):
         # create and update the explorer object
-        explorer = BeDballe.build_explorer()
+        #explorer = BeDballe.build_explorer()
+
+        if not BeDballe.explorer:
+            BeDballe.explorer = BeDballe.build_explorer()
+        explorer = BeDballe.explorer
 
         # parse the query
         query = BeDballe.from_query_to_dic(q)
