@@ -1,4 +1,4 @@
-import {Component, Input, Output, OnChanges, ViewChild, AfterViewInit, EventEmitter} from '@angular/core';
+import {Component, Input, Output, OnChanges, ViewChild, AfterViewInit, EventEmitter, HostListener} from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
 import {MeteoFilter, MeteoService} from "../services/meteo.service";
 import {Areas, Fields, Resolutions} from "../services/data";
@@ -133,7 +133,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
      */
     updateCarousel(index: number) {
         // load image slide into the carousel accordingly
-        console.log(`update carousel to slideId-${index}`);
+        // console.log(`update carousel to slideId-${index}`);
         this.carousel.select(`slideId-${index}`);
         this.updateTimestamp(index);
     }
@@ -178,6 +178,16 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         setTimeout(() => {
             this.updateCarousel(from);
         }, 500);
+    }
+
+    @HostListener('window:keydown', ['$event'])
+    keyEvent(event: KeyboardEvent) {
+        if (event.code === 'ArrowLeft') {
+            this.carousel.prev();
+        }
+        if (event.code === 'ArrowRight') {
+            this.carousel.next();
+        }
     }
 
 }

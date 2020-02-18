@@ -42,6 +42,7 @@
                                   [pauseOnHover]="false"
                                   [showNavigationArrows]="false"
                                   [showNavigationIndicators]="false"
+                                  [keyboard]="false"
                                   (slide)="onSlide($event)">
                         <ng-template ngbSlide *ngFor="let image of images | slice:fromMin; index as i" id="slideId-{{i+fromMin}}">
                             <div class="carousel-caption">
