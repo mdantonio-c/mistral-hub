@@ -1,5 +1,4 @@
 import subprocess
-import os
 
 from restapi.utilities.logs import log
 from mistral.exceptions import PostProcessingException
@@ -16,16 +15,17 @@ def pp_output_formatting(output_format, input, output):
             post_proc_cmd.append('-t')
             post_proc_cmd.append('bufr')
             post_proc_cmd.append(input)
+            post_proc_cmd.append('>')
+            post_proc_cmd.append(output)
 
             log.debug('Post process command: {}>', post_proc_cmd)
 
-            with open(output, mode='w') as outfile:
-                proc = subprocess.Popen(post_proc_cmd, stdout=outfile)
-                # wait for the process to terminate
-                if proc.wait() != 0:
-                    raise Exception('Failure in post-processing')
-                else:
-                    return output
+            proc = subprocess.Popen(post_proc_cmd)
+            # wait for the process to terminate
+            if proc.wait() != 0:
+                raise Exception('Failure in post-processing')
+            else:
+                return output
         else:
             # up to now we have only one postprocessor for output formatting. Here we can add others in future if needed
             return input
@@ -34,7 +34,3 @@ def pp_output_formatting(output_format, input, output):
         log.warning(perr)
         message = 'Error in post-processing: no results'
         raise PostProcessingException(message)
-
-    finally:
-        # remove the input file
-        os.remove(input)
