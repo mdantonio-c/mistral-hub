@@ -53,7 +53,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
     fileouput_to_join = []
     filebase, fileext = os.path.splitext(output)
     # split the input file according to the input timeranges
-    file_not_for_pp = filebase + "_others.{fileformat}.tmp".format(fileformat=fileformat)
+    file_not_for_pp = filebase + "_others.grib.tmp"
     with open(input, mode='r') as filein:
         fd = {}
         fdother = None
@@ -66,7 +66,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
                 if match_timerange(gid, tr[0]):
                     if fd.get(tr, None) is None:  # better way?
                         # create name for the temporary output
-                        file_for_pp = filebase + "_%d_%d.{fileformat}.tmp".format(fileformat=fileformat) % tr
+                        file_for_pp = filebase + "_%d_%d.grib.tmp" % tr
                         fd[tr] = open(file_for_pp, "wb")
                     match = True
                     # write to file/pipe for tr
@@ -83,8 +83,8 @@ def pp_statistic_elaboration(params, input, output, fileformat):
     # postprocess each file coming from the splitted input
     for tr in trs:
         p = next(item for item in params if item['input-timerange'] == tr[0] and item['output-timerange'] == tr[1])
-        splitted_input = filebase + "_%d_%d.{fileformat}.tmp".format(fileformat=fileformat) % tr
-        tmp_output = filebase + "_%d_%d_result.{fileformat}.tmp".format(fileformat=fileformat) % tr
+        splitted_input = filebase + "_%d_%d.grib.tmp" % tr
+        tmp_output = filebase + "_%d_%d_result.grib.tmp" % tr
         pp_output = run_statistic_elaboration(params=p, input=splitted_input, output=tmp_output, fileformat=fileformat)
         fileouput_to_join.append(pp_output)
 

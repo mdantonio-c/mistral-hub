@@ -57,7 +57,7 @@ class Data(EndpointResource, Uploader):
         product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         reftime = criteria.get('reftime')
-        output_format = criteria.get('output_format')
+        output_format = criteria.get('format')
         if reftime is not None:
             # 'from' and 'to' both mandatory by schema
             # check from <= to
@@ -75,15 +75,6 @@ class Data(EndpointResource, Uploader):
                     "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
-
-        # get the format of the datasets
-        dataset_format = arki.get_datasets_format(dataset_names)
-        if not dataset_format:
-            raise RestApiException(
-                "Invalid set of datasets : datasets have different formats",
-                status_code=hcodes.HTTP_BAD_REQUEST,
-            )
-
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
         filters = criteria.get('filters', {})
@@ -128,6 +119,8 @@ class Data(EndpointResource, Uploader):
                 )
         # check if the output format chosen by the user is compatible with the chosen datasets
         if output_format is not None:
+            # get the format of the datasets
+            dataset_format = arki.get_datasets_format(dataset_names)
             postprocessors_list = [i.get('type') for i in processors]
             if dataset_format != output_format:
                 if dataset_format == 'grib':
@@ -148,7 +141,6 @@ class Data(EndpointResource, Uploader):
                         'The chosen postprocessor does not support {} output format'.format(output_format),
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
-
         # run the following steps in a transaction
         db = self.get_service_instance('sqlalchemy')
         try:
@@ -161,7 +153,7 @@ class Data(EndpointResource, Uploader):
                     'reftime': reftime,
                     'filters': filters,
                     'postprocessors': processors,
-                    'output_format': output_format,
+                    'format': output_format,
                 },
             )
 

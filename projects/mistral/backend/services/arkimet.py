@@ -15,7 +15,7 @@ DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
 class BeArkimet():
 
     allowed_filters = (
-        'area', 'level', 'origin', 'proddef', 'product', 'quantity', 'run', 'task', 'timerange', 'network'
+        'area', 'level', 'origin', 'proddef', 'product', 'quantity', 'run', 'task', 'timerange'
     )
 
     allowed_processors = (
@@ -202,62 +202,7 @@ class BeArkimet():
         if all(x == formats[0] for x in formats):
             return formats[0]
         else:
-            return None
-
-    #### to configure observed datasets one by one
-    @staticmethod
-    def get_observed_dataset_params(dataset):
-        folder = glob.glob(DATASET_ROOT + dataset)
-        args = shlex.split("arki-mergeconf " + ' '.join(folder))
-        log.debug('Launching Arkimet command: {}', args)
-
-        proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
-        filters = None
-        for line in proc.stdout.split('\n'):
-            line = line.strip()
-            name, val = line.partition("=")[::2]
-            name = name.strip()
-            val = val.strip()
-            if name == 'filter':
-                filters = val
-        filters_split = shlex.split(filters)
-        # networks is the parameter that defines the different dataset for observed data
-        networks = []
-        for f in filters_split:
-            if f.startswith('BUFR'):
-                networks.append(f.split('=')[1])
-        return networks
-
-    #### to configure all observed datasets at one time
-
-    # @staticmethod
-    # def get_observed_dataset_params(datasets):
-    #     dataset_items = []
-    #     for ds in datasets:
-    #         ds_params = {}
-    #         folder = glob.glob(DATASET_ROOT + ds)
-    #         args = shlex.split("arki-mergeconf " + ' '.join(folder))
-    #         log.debug('Launching Arkimet command: {}', args)
-    #
-    #         proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
-    #         filters = None
-    #         for line in proc.stdout.split('\n'):
-    #             line = line.strip()
-    #             name, val = line.partition("=")[::2]
-    #             name = name.strip()
-    #             val = val.strip()
-    #             if name == 'filter':
-    #                 filters = val
-    #         filters_split = shlex.split(filters)
-    #         # networks is the parameter that defines the different dataset for observed data
-    #         networks = []
-    #         for f in filters_split:
-    #             if f.startswith('BUFR'):
-    #                 networks.append(f.split('=')[1])
-    #         ds_params['dataset'] = ds
-    #         ds_params['filters'] = networks
-    #         dataset_items.append(ds_params)
-    #     return dataset_items
+            raise ValueError('Invalid set of datasets : datasets have different formats')  # check if this kind of error is correct
 
     @staticmethod
     def __decode_area(i):

@@ -26,7 +26,7 @@ definitions:
         items:
           description: Post-processing request details
           type: object
-      output_format:
+      format:
         description: Output format
         type: string
         enum:
@@ -318,11 +318,6 @@ definitions:
         type: array
         items:
           type: object
-      network:
-        type: array
-        items:
-          type: object
-
   Datasets:
     type: array
     items:
@@ -366,7 +361,7 @@ definitions:
         items:
           description: Post-processing request details
           type: object
-      output_format:
+      format:
         description: Output format
         type: string
         enum:
