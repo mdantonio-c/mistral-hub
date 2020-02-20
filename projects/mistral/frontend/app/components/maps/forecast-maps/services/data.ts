@@ -37,7 +37,7 @@ export const Envs: KeyValuePair[] = [
 
 export const Areas: KeyValuePair[] = [
     {key:'Italia', value:'Italy'},
-    {key:'Nord Italia', value:'Northern Italy'},
+    {key:'Nord_Italia', value:'Northern Italy'},
     {key:'Centro_Italia', value:'Central Italy'},
     {key:'Sud_Italia', value:'Southern Italy'},
     {key:'Area_Mediterranea', value:'Mediterranean region'}

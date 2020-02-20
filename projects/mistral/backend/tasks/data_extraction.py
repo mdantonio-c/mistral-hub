@@ -175,9 +175,13 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
                         elif pp_type == 'spare_point_interpolation':
                             # change output extension from .grib to .BUFR
-                            outfile_name, outfile_ext = os.path.splitext(outfile)
-                            bufr_outfile = outfile_name+'.BUFR'
-                            pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
+                            outfile_name, outfile_ext = os.path.splitext(out_filename)
+                            out_filename= outfile_name+'.BUFR'
+                            outfile = os.path.join(user_dir, out_filename)
+                            #bufr_outfile = outfile_name+'.BUFR'
+                            #pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
+                            pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=outfile,
+                                                      fileformat=dataset_format)
 
                     finally:
                         # always remove tmp file
@@ -268,12 +272,16 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = tmp_outfile
                             # new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
                             new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '.bufr'
+                            out_filename = new_tmp_extraction_filename
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             pp3_3.pp_sp_interpolation(params=p, input=pp_input, output=pp_output,fileformat=dataset_format)
                         # rename the final output of postprocessors as outfile unless it is not a bufr file
                         if pp_output.split('.')[-1]!='bufr':
                             log.debug('dest: {}'.format(str(outfile)))
                             os.rename(pp_output,outfile)
+                        # else:
+                        #     # if it is a bufr file, the filename resulting from the pp is will be the new outifle filename
+                        #     outfile = pp_output
                     finally:
                         log.debug('end of multiple postprocessors')
                     #     # remove all tmp file
