@@ -212,7 +212,7 @@ class BeArkimet():
         log.debug('Launching Arkimet command: {}', args)
 
         proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
-        filters = None
+        filters = ''
         for line in proc.stdout.split('\n'):
             line = line.strip()
             name, val = line.partition("=")[::2]

@@ -75,12 +75,13 @@ class Fields(EndpointResource):
         if dataset_format == 'bufr':
             summary = None
             # TODO split between arkimet and dballe. For now there is only the dballe case
+            log.debug('Dataset(s) for observed data: {}'.format(datasets))
 
-            resulting_fields={}
+            resulting_fields = {}
             for ds in datasets:
                 # get dataset params (to filter dballe according the requested dataset)
                 ds_params = arki.get_observed_dataset_params(ds)
-                log.info('dataset: {}, networks: {}'.format(ds,ds_params))
+                log.info('dataset: {}, networks: {}'.format(ds, ds_params))
                 fields = dballe.load_filters(ds_params,query)
                 if not fields:
                     continue
