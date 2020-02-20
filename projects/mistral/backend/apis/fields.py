@@ -77,7 +77,9 @@ class Fields(EndpointResource):
             # TODO split between arkimet and dballe. For now there is only the dballe case
             log.debug('Dataset(s) for observed data: {}'.format(datasets))
 
-            resulting_fields = {}
+            resulting_fields = {
+                'summarystats': {'c': 0, 's': 0}
+            }
             for ds in datasets:
                 # get dataset params (to filter dballe according the requested dataset)
                 ds_params = arki.get_observed_dataset_params(ds)
@@ -95,34 +97,30 @@ class Fields(EndpointResource):
                             resulting_fields[key].extend(x for x in fields[key] if x not in resulting_fields[key])
 
             if resulting_fields:
-                summary = resulting_fields
+                # TODO fill in the summarystats
+                summary = {'items': resulting_fields}
             else:
                 raise RestApiException(
                         "Invalid set of filters : the applied filters does not give any result",
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
-
-
-
         ########## ARKIMET ###########
         else:
             summary = arki.load_summary(datasets, query)
 
         ########## ONLY ARKIMET SUMMARY ###########
-        onlySummaryStats = params.get('onlySummaryStats')
-        if isinstance(onlySummaryStats, str) and (
-            onlySummaryStats == '' or onlySummaryStats.lower() == 'true'
+        only_summary_stats = params.get('onlySummaryStats')
+        if isinstance(only_summary_stats, str) and (
+            only_summary_stats == '' or only_summary_stats.lower() == 'true'
         ):
-            onlySummaryStats = True
-        elif type(onlySummaryStats) == bool:
+            only_summary_stats = True
+        elif type(only_summary_stats) == bool:
             # do nothing
             pass
         else:
-            onlySummaryStats = False
-        if onlySummaryStats:
+            only_summary_stats = False
+        if only_summary_stats:
             # we want to return ONLY summary Stats with no fields
             log.debug('ONLY Summary Stats')
             summary = summary['items']['summarystats']
         return self.force_response(summary)
-        # js = json.dumps(summary)
-        # return Response(js, status=200, mimetype='application/json')
