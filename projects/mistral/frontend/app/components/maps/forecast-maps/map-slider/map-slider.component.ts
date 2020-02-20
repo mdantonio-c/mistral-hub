@@ -43,20 +43,13 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         // parse reftime as utc date
         // console.log(`reference time ${this.reftime}`);
         this.lastRunAt = moment.utc(`${this.reftime}`, "YYYYMMDDHH");
-        console.log(`last run at ${this.lastRunAt}`);
+        // console.log(`last run at ${this.lastRunAt}`);
         this.timestamp = this.lastRunAt.format();
 
         this.grid_num = (this.filter.res === 'lm2.2') ? 4 : 6;
 
         this.images.length = 0;
         this.isImageLoading = true;
-        // for (let i = 0; i < this.offsets.length; i++) {
-        //     this.meteoService.getMapImage(this.filter, this.offsets[i]).subscribe(blob => {
-        //         this.images[i] = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blob));
-        //     }, error => {
-        //         console.log(error);
-        //     });
-        // }
         this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
             blobs => {
                 for (let i = 0; i < this.offsets.length; i++) {
@@ -67,6 +60,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
             }
         ).add(() => {
             this.isImageLoading = false;
+            // once the maps have been loaded I can preset the carousel
+            this.presetSlider();
         });
 
         if (this.filter.field === 'prec3' || this.filter.field === 'snow3') {
@@ -93,7 +88,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 
     ngAfterViewInit() {
         this.carousel.pause();
-        this.presetSlider();
     }
 
     /**
@@ -139,6 +133,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     }
 
     private setSliderTo(from) {
+        // console.log(`set slider to ${from}`);
         this.timeSliderEl.update({from: from});
     }
 
@@ -159,12 +154,13 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     }
 
     /**
-     * Preset the slider on the nearest current hour. Skip
+     * Preset the carousel and the slider on the nearest current hour.
      */
     private presetSlider() {
+        // console.log('preset slider and update the carousel');
         let today = moment.utc();
+        // let today = moment.utc("2020-01-31T18:30"); // for local test
         let from = 0;
-        // today.add(-13, 'days');  // for local test
         if (this.filter.field === 'prec3' || this.filter.field === 'snow3') {
             from += 3;
         }
@@ -174,10 +170,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         if (this.lastRunAt.isSame(today, 'day')) {
             from = today.hours();
         }
-        this.setSliderTo(from);
-        setTimeout(() => {
-            this.updateCarousel(from);
-        }, 500);
+        setTimeout(() => { this.updateCarousel(from); });
     }
 
     @HostListener('window:keydown', ['$event'])

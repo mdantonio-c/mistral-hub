@@ -36,41 +36,37 @@
     <div class="card-body">
         <div id="map-container">
             <loading *ngIf="isImageLoading"></loading>
-            <div id="slider-carousel-maps" class="carousel" data-interval="false" data-slide-to="0">
-                <div class="carousel-inner">
-                    <ngb-carousel #carousel interval="300"
-                                  [pauseOnHover]="false"
-                                  [showNavigationArrows]="false"
-                                  [showNavigationIndicators]="false"
-                                  [keyboard]="false"
-                                  (slide)="onSlide($event)">
-                        <ng-template ngbSlide *ngFor="let image of images | slice:fromMin; index as i" id="slideId-{{i+fromMin}}">
-                            <div class="carousel-caption">
+            <ngb-carousel #carousel interval="300"
+                          [pauseOnHover]="false"
+                          [showNavigationArrows]="false"
+                          [showNavigationIndicators]="false"
+                          [keyboard]="false"
+                          (slide)="onSlide($event)">
+                <ng-template ngbSlide *ngFor="let image of images | slice:fromMin; index as i" id="slideId-{{i+fromMin}}">
+                    <div class="carousel-caption">
 <!--                                <h3>Image[{{i+fromMin}}] - slice {{fromMin}}</h3>-->
-                                <h5>
-                                    <span class="badge badge-secondary label-time" (click)="toggleUtcTime()">
-                                        <ng-container *ngIf="utcTime; else noUtc">
-                                            {{ timestamp | amFromUtc | amDateFormat: 'YYYY-MM-DD HH:00' }} (UTC)
-                                        </ng-container>
-                                        <ng-template #noUtc>
-                                            {{ timestamp | amDateFormat: 'YYYY-MM-DD HH:00 (Z)' }}
-                                        </ng-template>
-                                    </span>
-                                </h5>
-                            </div>
-                            <div class="picsum-img-wrapper">
-                                <img [src]="image" class="mx-auto d-block carousel-img" *ngIf="image">
-                            </div>
-                        </ng-template>
-                    </ngb-carousel>
-                </div>
-            </div>
+                        <h5>
+                            <span class="badge badge-secondary label-time" (click)="toggleUtcTime()">
+                                <ng-container *ngIf="utcTime; else noUtc">
+                                    {{ timestamp | amFromUtc | amDateFormat: 'YYYY-MM-DD HH:00' }} (UTC)
+                                </ng-container>
+                                <ng-template #noUtc>
+                                    {{ timestamp | amDateFormat: 'YYYY-MM-DD HH:00 (Z)' }}
+                                </ng-template>
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="picsum-img-wrapper">
+                        <img [src]="image" class="mx-auto d-block carousel-img" *ngIf="image">
+                    </div>
+                </ng-template>
+            </ngb-carousel>
         </div>
     </div>
     <div class="card-footer text-muted">
         <div class="row">
             <div id="slider-bar" class="col d-flex align-items-center"
-                 [hidden]="isImageLoading">
+                 [hidden]="isImageLoading || images.length === 0">
                 <button type="button" id="play-button" class="btn btn-info btn-sm mr-3" (click)="togglePaused()">
                     <span class="fas" [ngClass]="this.paused ? 'fa-play' : 'fa-pause'"></span>
                 </button>
