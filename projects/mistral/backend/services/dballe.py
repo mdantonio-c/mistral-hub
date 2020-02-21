@@ -162,10 +162,10 @@ class BeDballe():
         # if matching fields were found network list can't be empty
         if networks_list:
             # create the final dictionary
-            fields['network'] = BeDballe.from_list_of_params_to_list_of_dic(networks_list)
-            fields['product'] = BeDballe.from_list_of_params_to_list_of_dic(variables)
-            fields['level'] = BeDballe.from_list_of_params_to_list_of_dic(levels)
-            fields['timerange'] = BeDballe.from_list_of_params_to_list_of_dic(tranges)
+            fields['network'] = BeDballe.from_list_of_params_to_list_of_dic(networks_list,type='network')
+            fields['product'] = BeDballe.from_list_of_params_to_list_of_dic(variables,type='product')
+            fields['level'] = BeDballe.from_list_of_params_to_list_of_dic(levels,type='level')
+            fields['timerange'] = BeDballe.from_list_of_params_to_list_of_dic(tranges,type='timerange')
 
             # add description in model for the levels and the timeranges?
             return fields
@@ -365,13 +365,35 @@ class BeDballe():
         return trange_parsed
 
     @staticmethod
-    def from_list_of_params_to_list_of_dic(param_list):
+    def from_list_of_params_to_list_of_dic(param_list,type):
         list_dic = []
         for p in param_list:
             item = {}
             item['dballe_p'] = p
+            item['desc'] = BeDballe.get_description(p, type)
             list_dic.append(item)
         return list_dic
+
+    @staticmethod
+    def get_description(value,type):
+        if type == 'product' or type == 'network':
+            description = value
+        elif type == 'timerange' or type == 'level':
+            list=[]
+            for v in value.split(','):
+                if type == 'level' and v == '0':
+                    val = None
+                    list.append(val)
+                else:
+                    list.append(int(v))
+            if type == 'timerange':
+                tr = dballe.Trange(list[0], list[1], list[2])
+                description = tr.describe()
+            else:
+                l = dballe.Level(list[0], list[1], list[2], list[3])
+                description = l.describe()
+
+        return description
 
     @staticmethod
     def from_filters_to_lists(filters):
