@@ -98,7 +98,7 @@ export class StepFiltersComponent implements OnInit {
                 });
                 //console.log(this.filterForm.get('filters'));
                 //console.log(this.filters);
-                if (this.summaryStats['s'] === 0) {
+                if (this.summaryStats['c'] === 0) {
                     (this.filterForm.controls.validRefTime as FormControl).setValue(false);
                     this.notify.showWarning('The applied reference time does not produce any result. ' +
                         'Please choose a different reference time range.');
