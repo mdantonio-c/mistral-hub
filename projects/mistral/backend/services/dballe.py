@@ -30,6 +30,45 @@ class BeDballe():
         return explorer
 
     @staticmethod
+    def get_summary(params,q=None):
+        summarystats = {'s':None}
+        # parse the query
+        query = BeDballe.from_query_to_dic(q)
+
+        # if there aren't networks, use dataset networks as filters
+        if 'network' not in query:
+            query['network'] = params
+
+        log.info('query: {}'.format(query))
+
+        fields, queries = BeDballe.from_query_to_lists(query)
+        log.debug('fields: {}, queries: {}', fields, queries)
+
+        # get all the possible combinations of queries to count the messages
+        all_queries = list(itertools.product(*queries))
+        message_count = 0
+        for q in all_queries:
+            dballe_query = {}
+            for k, v in zip(fields, q):
+                dballe_query[k] = v
+            # count the items for each query
+            with DB.transaction() as tr:
+                message_count += tr.query_data(dballe_query).remaining
+
+        summarystats['c'] = message_count
+        if 'datetimemin' in query:
+            summarystats['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
+        # else:
+        #     summarystats['b'] = None
+        if 'datetimemax' in query:
+            summarystats['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
+        # else:
+        #     summarystats['e'] = None
+        return summarystats
+
+
+
+    @staticmethod
     def load_filters(params,q=None):
         # create and update the explorer object
         #explorer = BeDballe.build_explorer()
@@ -132,8 +171,6 @@ class BeDballe():
             return fields
         else:
             return None
-
-        # TODO: il reftime a che mi serve in questo caso??
 
     @staticmethod
     def get_fields(explorer, network, variables,query,param):
@@ -277,6 +314,7 @@ class BeDballe():
                     else:
                         val_list = [x.strip() for x in val.split('or')]
                         query_dic[p] = val_list
+        log.debug('query dic ', query_dic)
         return query_dic
 
     @staticmethod
@@ -369,12 +407,59 @@ class BeDballe():
         return fields, queries
 
     @staticmethod
+
+    def from_query_to_lists(query):
+        fields = []
+        queries = []
+        allowed_keys = ['level', 'network', 'product', 'timerange', 'datetimemin', 'datetimemax']
+        dballe_keys = ['level', 'rep_memo', 'var', 'trange', 'datetimemin', 'datetimemax']
+
+        for key, value in query.items():
+            if key in allowed_keys:
+                # change the key name from model to dballe name
+                key_index = allowed_keys.index(key)
+                fields.append(dballe_keys[key_index])
+                if key == 'timerange' or key == 'level':
+                    # transform the timerange or level value in a tuple (required for dballe query)
+                    query_list = []
+                    for v in value:
+                        split_list = v.split(',')
+                        tuple_list = []
+                        for s in split_list:
+                            if key == 'level' and s == '0':
+                                val = None
+                                tuple_list.append(val)
+                            else:
+                                tuple_list.append(int(s))
+                        query_list.append(tuple(tuple_list))
+                    queries.append(query_list)
+                elif key == 'datetimemin' or key == 'datetimemax':
+                    query_list = []
+                    query_list.append(value)
+                    queries.append(query_list)
+                else:
+                    queries.append(value)
+            else:
+                continue
+        return fields, queries
+
+
+    @staticmethod
     def parse_data_extraction_reftime(from_str, to_str):
         from_dt = dateutil.parser.parse(from_str)
         to_dt = dateutil.parser.parse(to_str)
 
         #from_dt = datetime.datetime.strptime(from_dt_parsed, "%Y-%m-%d %H:%M:%S")
         return from_dt,to_dt
+
+    @staticmethod
+    def from_datetime_to_list(dt):
+        str = dt.strftime("%Y,%m,%d,%H,%M,%S")
+        str_list = str.split(',')
+        list = []
+        for s in str_list:
+            list.append(int(s))
+        return list
 
     @staticmethod
     def extract_data(fields, queries, outfile):

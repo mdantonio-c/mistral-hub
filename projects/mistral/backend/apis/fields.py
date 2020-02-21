@@ -98,6 +98,8 @@ class Fields(EndpointResource):
 
             if resulting_fields:
                 # TODO fill in the summarystats
+                summarystats = dballe.get_summary(ds_params,query)
+                resulting_fields['summarystats'] = summarystats
                 summary = {'items': resulting_fields}
             else:
                 raise RestApiException(
