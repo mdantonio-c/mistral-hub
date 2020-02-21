@@ -47,7 +47,7 @@ user@nomail.org
 test
 ```
 
-Execute frontend only
+## Execute frontend only
 
 -----------------
 You can configure your instance to only execute frontend container by connecting to a remove server for all backend services.
