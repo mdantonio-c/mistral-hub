@@ -179,10 +179,14 @@ export class StepFiltersComponent implements OnInit {
             };
             if (res.values.length) {
                 res.query = this.arkimetService.getQuery(res);
+                // dballe query
+                if (res.query === '' || res.query.split(':')[1] === '') {
+                    res.query += res.values.map(v => v.dballe_p).join(' or ')
+                }
                 selectedFilters.push(res);
             }
         });
-        // console.log(`selected filters: ${selectedFilters}`);
+        // console.log('selected filters', selectedFilters);
         this.formDataService.setFilters(selectedFilters);
         return true;
     }
