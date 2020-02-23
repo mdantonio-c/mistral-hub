@@ -258,23 +258,59 @@ export class ArkimetService {
         // console.log(filter);
         switch (filter.name) {
             case MetaType.AREA:
-                return `${MetaType.AREA}:` + (filter.values as any[]).map(v => ArkimetService.decodeArea(v)).join(' or ');
+                return `${MetaType.AREA}:` +
+                    (filter.values as any[])
+                        .map(v => ArkimetService.decodeArea(v))
+                        .filter(v => v)
+                        .join(' or ');
             case MetaType.LEVEL:
-                return `${MetaType.LEVEL}:` + (filter.values as any[]).map(v => ArkimetService.decodeLevel(v)).join(' or ');
+                return `${MetaType.LEVEL}:` +
+                    (filter.values as any[])
+                        .map(v => ArkimetService.decodeLevel(v))
+                        .filter(v => v)
+                        .join(' or ');
             case MetaType.ORIGIN:
-                return `${MetaType.ORIGIN}:` + (filter.values as any[]).map(v => ArkimetService.decodeOrigin(v)).join(' or ');
+                return `${MetaType.ORIGIN}:` +
+                    (filter.values as any[])
+                        .map(v => ArkimetService.decodeOrigin(v))
+                        .filter(v => v)
+                        .join(' or ');
             case MetaType.PROD_DEF:
-                return `${MetaType.PROD_DEF}:` + (filter.values as any[]).map(v => ArkimetService.decodeProddef(v)).join(' or ');
+                return `${MetaType.PROD_DEF}:` +
+                    (filter.values as any[])
+                        .map(v => ArkimetService.decodeProddef(v))
+                        .filter(v => v)
+                        .join(' or ');
             case MetaType.PRODUCT:
-                return `${MetaType.PRODUCT}:` + (filter.values as any[]).map(v => ArkimetService.decodeProduct(v)).join(' or ');
+                return `${MetaType.PRODUCT}:` +
+                    (filter.values as any[])
+                        .map(v => ArkimetService.decodeProduct(v))
+                        .filter(v => v)
+                        .join(' or ');
             case MetaType.QUANTITY:
-                return `${MetaType.QUANTITY}:` + (filter.values as any[]).map(v => ArkimetService.decodeQuantity(v)).join(' or ');
+                return `${MetaType.QUANTITY}:` +
+                    (filter.values as any[])
+                        .map(v => ArkimetService.decodeQuantity(v))
+                        .filter(v => v)
+                        .join(' or ');
             case MetaType.RUN:
-                return `${MetaType.RUN}:` + (filter.values as any[]).map(v => ArkimetService.decodeRun(v)).join(' or ');
+                return `${MetaType.RUN}:` +
+                    (filter.values as any[])
+                        .map(v => ArkimetService.decodeRun(v))
+                        .filter(v => v)
+                        .join(' or ');
             case MetaType.TASK:
-                return `${MetaType.TASK}:` + (filter.values as any[]).map(v => ArkimetService.decodeTask(v)).join(' or ');
+                return `${MetaType.TASK}:` +
+                    (filter.values as any[])
+                        .map(v => ArkimetService.decodeTask(v))
+                        .filter(v => v)
+                        .join(' or ');
             case MetaType.TIMERANGE:
-                return `${MetaType.TIMERANGE}:` + (filter.values as any[]).map(v => ArkimetService.decodeTimerange(v)).join(' or ');
+                return `${MetaType.TIMERANGE}:` +
+                    (filter.values as any[])
+                        .map(v => ArkimetService.decodeTimerange(v))
+                        .filter(v => v)
+                        .join(' or ');
             default:
                 throw new Error(`Invalid filter type for ${filter.name}`);
         }

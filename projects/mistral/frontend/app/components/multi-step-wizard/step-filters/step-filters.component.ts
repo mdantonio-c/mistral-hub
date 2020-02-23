@@ -98,7 +98,7 @@ export class StepFiltersComponent implements OnInit {
                 });
                 //console.log(this.filterForm.get('filters'));
                 //console.log(this.filters);
-                if (this.summaryStats['s'] === 0) {
+                if (this.summaryStats['c'] === 0) {
                     (this.filterForm.controls.validRefTime as FormControl).setValue(false);
                     this.notify.showWarning('The applied reference time does not produce any result. ' +
                         'Please choose a different reference time range.');
@@ -179,10 +179,14 @@ export class StepFiltersComponent implements OnInit {
             };
             if (res.values.length) {
                 res.query = this.arkimetService.getQuery(res);
+                // dballe query
+                if (res.query === '' || res.query.split(':')[1] === '') {
+                    res.query += res.values.map(v => v.dballe_p).join(' or ')
+                }
                 selectedFilters.push(res);
             }
         });
-        // console.log(`selected filters: ${selectedFilters}`);
+        // console.log('selected filters', selectedFilters);
         this.formDataService.setFilters(selectedFilters);
         return true;
     }
