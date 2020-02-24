@@ -46,7 +46,38 @@ export class StepPostprocessComponent implements OnInit {
                 Validators.max(90)
             ]
         },
-    ]
+    ];
+    
+    timeRanges = [
+    {
+        code: 0,
+        desc: 'Average'
+    },
+    {
+        code: 1,
+        desc: 'Accumulation'
+    },
+    {
+        code: 2,
+        desc: 'Maximum'
+    },
+    {
+        code: 3,
+        desc: 'Minimum'
+    }];
+    
+    selectedInputTimeRange = {
+        code: 0,
+        desc: 'Average'
+    };
+    
+    selectedOutputTimeRange =  {
+        code: 0,
+        desc: 'Average'
+    };
+
+    stepIntervals = ["hour", "day", "month", "year"];
+    selectedStepInterval = "hour";
 
     constructor(private formBuilder: FormBuilder,
         private router: Router,
@@ -161,6 +192,18 @@ export class StepPostprocessComponent implements OnInit {
             this.router.navigate(
                 ['../', 'submit'], { relativeTo: this.route });
         }
+    }
+
+    setInputRange(inRange){
+        this.selectedInputTimeRange = inRange;
+    }
+
+    setOutputRange(outRange){
+        this.selectedOutputTimeRange = outRange;
+    }
+
+    setStepInterval(interval){
+        this.selectedStepInterval = interval;
     }
 
 }

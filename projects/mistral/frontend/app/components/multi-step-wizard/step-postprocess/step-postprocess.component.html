@@ -5,7 +5,7 @@
         <!-- Derived variables -->
         <div class="card mst--expansion-panel">
             <div class="card-header">
-                <h5>Derived Variables</h5>
+                <h5>1. Derived Variables</h5>
                 <span class="info-help">&nbsp;<i placement="right"
                         ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
                         aria-hidden="true"></i></span>
@@ -21,26 +21,68 @@
             </div>
         </div>
         <!-- Time Post Process-->
-        <div class="card mst--expansion-panel" hidden>
+        <div class="card mst--expansion-panel">
             <div class="card-header">
-                <h5>Time Post Process</h5>
+                <h5>2. Time Post Processing</h5>
                 <span class="info-help">&nbsp;<i placement="right"
                         ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
                         aria-hidden="true"></i></span>
             </div>
-            <div class="body">
-                <ul class="mst--list-columns">
-                    <li>
-                        Coming soon...
-                    </li>
-                </ul>
+            <div class="body">                       
+                <div class="card mst--expansion-panel" id="pp-card-area" [hidden]="false">
+                    <div class="card-body">
+                        <div class="row py-3">
+                            <div class="col-lg-3">
+                               <label>Input time range</label>   
+                            </div>
+                             <div class="col-lg-3">
+                                <div ngbDropdown class="d-inline-block">
+                                    <button type="button" class="btn btn-outline-secondary" id="in-time-range-drop" ngbDropdownToggle>{{selectedInputTimeRange.desc}}</button>
+                                        <div ngbDropdownMenu aria-labelledby="in-time-range-drop">
+                                            <button type="button" ngbDropdownItem *ngFor="let inRange of timeRanges" (click)="setInputRange(inRange)">{{inRange.desc}}</button>
+                                        </div>
+                                </div>                        
+                            </div>                            
+                            <div class="col-lg-3">
+                                <label>Output time range</label>   
+                            </div>                           
+                            <div class="col-lg-3">
+                                <div ngbDropdown class="d-inline-block">
+                                    <button type="button" class="btn btn-outline-secondary" id="out-time-range-drop" ngbDropdownToggle>{{selectedOutputTimeRange.desc}}</button>
+                                        <div ngbDropdownMenu aria-labelledby="out-time-range-drop">
+                                            <button type="button" ngbDropdownItem *ngFor="let outRange of timeRanges" (click)="setOutputRange(outRange)">{{outRange.desc}}</button>
+                                        </div>
+                                </div>                        
+                            </div>                                                                
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <label>Step </label>
+                            </div>
+                            <div class="col-lg-3">
+                                <input type="number" id="timeStep">
+                            </div>
+                            <div class="col-lg-3">
+                                <label>Elaboration interval</label>
+                            </div>    
+                            <div class="col-lg-3">                                
+                                <div ngbDropdown class="d-inline-block">
+                                    <button type="button" class="btn btn-outline-secondary" id="step-interval" ngbDropdownToggle>{{selectedStepInterval}}</button>
+                                        <div ngbDropdownMenu aria-labelledby="step-interval">
+                                            <button type="button" ngbDropdownItem *ngFor="let interval of stepIntervals" (click)="setStepInterval(interval)">{{interval}}</button>
+                                        </div>
+                                </div>                        
+                            </div>    
+                        </div>
+                    </div>
+                </div>            
             </div>
         </div>
 
         <!-- Space Post Process-->
         <div class="card mst--expansion-panel">
             <div class="card-header">
-                <h5>Space Post Process</h5>
+                <h5>3. Space Post Process</h5>
                 <span class="info-help">&nbsp;<i placement="right"
                         ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
                         aria-hidden="true"></i></span>
@@ -49,16 +91,14 @@
                 <ul class="mst--list-columns">
                     <fieldset>
                         <label for="pp_radio_crop" class="mst--radio-label" placement="right" openDelay="2000">
-                            <input type="radio" formControlName="space_type" value="crop" [id]="pp_radio_crop"
+                            <input type="radio" formControlName="space_type" value="crop" 
                                  checked>
                             Area Crop</label>
-                        <label for="pp_radio_grid" class="mst--radio-label" placement="right" openDelay="2000" hidden>
-                            <input type="radio" formControlName="space_type" value="grid" [id]="pp_radio_grid"
-                                 hidden>
+                        <label for="pp_radio_grid" class="mst--radio-label" placement="right" openDelay="2000">
+                            <input type="radio" formControlName="space_type" value="grid">
                             Grid Interpolation</label>
-                        <label for="pp_radio_sparse" class="mst--radio-label" placement="right" openDelay="2000" hidden>
-                            <input type="radio" formControlName="space_type" value="points" [id]="pp_radio_sparse"
-                                 hidden>
+                        <label for="pp_radio_sparse" class="mst--radio-label" placement="right" openDelay="2000">
+                            <input type="radio" formControlName="space_type" value="points">
                             Sparse Points</label>
                     </fieldset>
                 </ul>
