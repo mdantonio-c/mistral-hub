@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
 import { FormDataService } from "@app/services/formData.service";
 import { DataService } from "@app/services/data.service";
 import { NotificationService } from '@rapydo/services/notification';
@@ -79,6 +79,24 @@ export class StepPostprocessComponent implements OnInit {
     stepIntervals = ["hour", "day", "month", "year"];
     selectedStepInterval = "hour";
 
+    cropTypes = [
+        {
+            code: 0,
+            desc: 'coord'
+        },
+        {
+            code: 1,
+            desc: 'bbox'
+        }
+    ];
+
+    selectedCropType = {
+        code: 0,
+        desc: 'coord'
+    };
+
+    fileToUpload: File = null;
+
     constructor(private formBuilder: FormBuilder,
         private router: Router,
         private route: ActivatedRoute,
@@ -88,7 +106,9 @@ export class StepPostprocessComponent implements OnInit {
         this.form = this.formBuilder.group({
             derived_variables: new FormArray([]),
             space_type: ['crop'],
-            space_crop: new FormArray([])
+            space_crop: new FormArray([]),
+            gridInterpolationType: ['template'],
+            importFile: new FormControl('', Validators.required)
         });
     }
 
@@ -204,6 +224,10 @@ export class StepPostprocessComponent implements OnInit {
 
     setStepInterval(interval){
         this.selectedStepInterval = interval;
+    }
+
+    setCropType(cropType){
+        this.selectedCropType = cropType;
     }
 
 }
