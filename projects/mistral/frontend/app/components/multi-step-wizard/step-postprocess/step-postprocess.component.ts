@@ -103,6 +103,7 @@ export class StepPostprocessComponent implements OnInit {
     interpolationTypes = [" ", "near", "bilin", "average", "min", "max"];
     selectedInterpolationType = " ";
 
+
     cropTypes = [
         {
             code: -1,
