@@ -47,8 +47,29 @@ export class StepPostprocessComponent implements OnInit {
             ]
         },
     ];
+
+    interpolation_nodes_boundings = [
+        {
+            code: 'nx',
+            desc: 'Number of nodes along X axis',
+            validators: [
+                Validators.min(0)
+            ]
+        },
+        {
+            code: 'ny',
+            desc: 'Number of nodes along Y axis',
+            validators: [
+                Validators.min(0)
+            ]
+        }
+    ];
     
     timeRanges = [
+    {
+        code: -1,
+        desc: ' '
+    },
     {
         code: 0,
         desc: 'Average'
@@ -67,19 +88,26 @@ export class StepPostprocessComponent implements OnInit {
     }];
     
     selectedInputTimeRange = {
-        code: 0,
-        desc: 'Average'
+        code: -1,
+        desc: ' '
     };
     
     selectedOutputTimeRange =  {
-        code: 0,
-        desc: 'Average'
+        code: -1,
+        desc: ' '
     };
 
-    stepIntervals = ["hour", "day", "month", "year"];
-    selectedStepInterval = "hour";
+    stepIntervals = [" ", "hour", "day", "month", "year"];
+    selectedStepInterval = " ";
+
+    interpolationTypes = [" ", "near", "bilin", "average", "min", "max"];
+    selectedInterpolationType = " ";
 
     cropTypes = [
+        {
+            code: -1,
+            desc: ' '
+        },
         {
             code: 0,
             desc: 'coord'
@@ -91,8 +119,8 @@ export class StepPostprocessComponent implements OnInit {
     ];
 
     selectedCropType = {
-        code: 0,
-        desc: 'coord'
+        code: -1,
+        desc: ' '
     };
 
     fileToUpload: File = null;
@@ -108,7 +136,8 @@ export class StepPostprocessComponent implements OnInit {
             space_type: ['crop'],
             space_crop: new FormArray([]),
             gridInterpolationType: ['template'],
-            importFile: new FormControl('', Validators.required)
+            importFile: new FormControl(''),
+            interpolationNodes: new FormArray([])
         });
     }
 
@@ -131,6 +160,13 @@ export class StepPostprocessComponent implements OnInit {
         })
     }
 
+    private buildNodesInterpolation() {
+        this.interpolation_nodes_boundings.map(node => {
+            const control = this.formBuilder.control(0, node.validators);
+            (this.form.controls.interpolationNodes as FormArray).push(control);
+        })
+    }
+
     ngOnInit() {
         window.scroll(0, 0);
         this.dataService.getDerivedVariables().subscribe(
@@ -143,6 +179,7 @@ export class StepPostprocessComponent implements OnInit {
             }
         )
         this.buildSpaceCrop();
+        this.buildNodesInterpolation();
     }
 
     private save() {
@@ -228,6 +265,10 @@ export class StepPostprocessComponent implements OnInit {
 
     setCropType(cropType){
         this.selectedCropType = cropType;
+    }
+
+    setInterpolationType(interpolationType){
+        this.selectedInterpolationType = interpolationType;
     }
 
 }
