@@ -15,7 +15,6 @@ from mistral.tools import statistic_elaboration as pp2
 from mistral.tools import spare_point_interpol as pp3_3
 
 
-
 class Data(EndpointResource, Uploader):
     # schema_expose = True
     labels = ['data']
@@ -166,7 +165,15 @@ class Data(EndpointResource, Uploader):
             )
 
             task = CeleryExt.data_extract.apply_async(
-                args=[user.id, dataset_names, reftime, filters, processors, output_format, request.id],
+                args=[
+                    user.id,
+                    dataset_names,
+                    reftime,
+                    filters,
+                    processors,
+                    output_format,
+                    request.id
+                ],
                 countdown=1,
             )
 
@@ -174,10 +181,8 @@ class Data(EndpointResource, Uploader):
             request.status = task.status  # 'PENDING'
             db.session.commit()
             log.info('Request successfully saved: <ID:{}>', request.id)
-        except Exception as error:
+        except Exception:
             db.session.rollback()
             raise SystemError("Unable to submit the request")
 
-        # return self.force_response(
-        #     {'task_id': task.id, 'task_status': task.status}, code=hcodes.HTTP_OK_ACCEPTED)
         return self.empty_response()
