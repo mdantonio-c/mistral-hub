@@ -36,23 +36,29 @@
                                <label>Input time range</label>   
                             </div>
                              <div class="col-lg-3">
-                                <div ngbDropdown class="d-inline-block" style="width: 60%;">
-                                    <button type="button" class="btn btn-outline-secondary" id="in-time-range-drop" ngbDropdownToggle style="width:100%;">{{selectedInputTimeRange.desc}}</button>
-                                        <div ngbDropdownMenu aria-labelledby="in-time-range-drop">
-                                            <button type="button" ngbDropdownItem *ngFor="let inRange of timeRanges" (click)="setInputRange(inRange)">{{inRange.desc}}</button>
-                                        </div>
+                                <div class="btn-group mr-3" style="width:100%; padding-right:30px;">
+                                    <button type="button" class="btn btn-outline-secondary" >{{selectedInputTimeRange.desc}}</button>
+                                    <div ngbDropdown class="btn-group">
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="in-time-range-drop" ngbDropdownToggle></button>
+                                            <div ngbDropdownMenu aria-labelledby="in-time-range-drop">
+                                                <button type="button" ngbDropdownItem *ngFor="let inRange of timeRanges" (click)="setInputRange(inRange)">{{inRange.desc}}</button>
+                                            </div>
+                                    </div>
                                 </div>                        
                             </div>                            
                             <div class="col-lg-3">
                                 <label>Output time range</label>   
                             </div>                           
                             <div class="col-lg-3">
-                                <div ngbDropdown class="d-inline-block" style="width: 60%;">
-                                    <button type="button" class="btn btn-outline-secondary" id="out-time-range-drop" ngbDropdownToggle style="width:100%;">{{selectedOutputTimeRange.desc}}</button>
-                                        <div ngbDropdownMenu aria-labelledby="out-time-range-drop">
-                                            <button type="button" ngbDropdownItem *ngFor="let outRange of timeRanges" (click)="setOutputRange(outRange)">{{outRange.desc}}</button>
-                                        </div>
-                                </div>                        
+                                <div class="btn-group mr-3" style="width:100%; padding-right:30px;">
+                                    <button type="button" class="btn btn-outline-secondary" >{{selectedOutputTimeRange.desc}}</button>
+                                    <div ngbDropdown class="btn-group">
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="out-time-range-drop" ngbDropdownToggle></button>
+                                            <div ngbDropdownMenu aria-labelledby="out-time-range-drop">
+                                                <button type="button" ngbDropdownItem *ngFor="let outRange of timeRanges" (click)="setOutputRange(outRange)">{{outRange.desc}}</button>
+                                            </div>
+                                    </div> 
+                                </div>                       
                             </div>                                                                
                         </div>
                         <div class="row">
@@ -60,18 +66,21 @@
                                 <label>Step </label>
                             </div>
                             <div class="col-lg-3">
-                                <input type="number" id="timeStep" style="width: 60%;">
+                                <input id="timeStep" style="width: 85%;">
                             </div>
                             <div class="col-lg-3">
                                 <label>Elaboration interval</label>
                             </div>    
-                            <div class="col-lg-3">                                
-                                <div ngbDropdown class="d-inline-block" style="width: 60%;">
-                                    <button type="button" class="btn btn-outline-secondary" id="step-interval" ngbDropdownToggle style="width:100%;">{{selectedStepInterval}}</button>
-                                        <div ngbDropdownMenu aria-labelledby="step-interval">
-                                            <button type="button" ngbDropdownItem *ngFor="let interval of stepIntervals" (click)="setStepInterval(interval)">{{interval}}</button>
-                                        </div>
-                                </div>                        
+                            <div class="col-lg-3">
+                                <div class="btn-group mr-3" style="width:100%; padding-right:30px;">  
+                                    <button type="button" class="btn btn-outline-secondary" >{{selectedStepInterval}}</button>                     
+                                    <div ngbDropdown class="btn-group">
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="step-interval" ngbDropdownToggle></button>
+                                            <div ngbDropdownMenu aria-labelledby="step-interval">
+                                                <button type="button" ngbDropdownItem *ngFor="let interval of stepIntervals" (click)="setStepInterval(interval)">{{interval}}</button>
+                                            </div>
+                                    </div>                        
+                                </div>
                             </div>    
                         </div>
                     </div>
@@ -109,30 +118,37 @@
                     <div class="card-body">
                         <div class="row">
                             <div id="pp-space-area-map" class="d-none d-lg-block col-lg-8">
-                                <img src="/app/custom/assets/images/OpenStreetMap-europe.png" alt="area crop" style="max-width: 100%;">
+                                <img src="/app/custom/assets/images/postProcessMap.jpg" alt="area crop" style="max-width: 100%;">
                             </div>
                             <div id="pp-space-area-fields" class="col">
                                 <div class="py-3">
-                                    <span>Draw a rectangle on the map or insert lat/lon to crop or regrid data</span>
+                                    <span>Draw a rectangle on the map or insert lat/lon to crop data</span>
                                 </div>
                                 <ul class="mst--list-columns">
                                     <li *ngFor="let b of form.get('space_crop')['controls']; let i=index" class="py-1">
                                         <div class="row">                                        
                                             <label [for]="space_crop_boundings[i].code" ngbTooltip="{{space_crop_boundings[i].code}}" placement="right" class="col"
                                                 openDelay="2000">{{space_crop_boundings[i].desc}}</label>                                    
-                                            <input type="number" [formControl]="b" [id]="space_crop_boundings[i].code" class="col" style="width: 50%">    
+                                            <input [formControl]="b" [id]="space_crop_boundings[i].code" class="col" style="width: 50%">    
                                             
                                         </div>
                                     </li>
                                     <li class="py-1"> 
-                                        <div class="row">                                       
-                                            <label placement="right" class="col" openDelay="2000" style="padding-right: 0px;"> Crop type</label>
-                                            <div ngbDropdown class="col" style="padding-left:0px;">
-                                                <button type="button" class="btn btn-outline-secondary" id="crop-type" ngbDropdownToggle style="width:100%">{{selectedCropType.desc}}</button>
-                                                <div ngbDropdownMenu aria-labelledby="crop-type">
-                                                    <button type="button" ngbDropdownItem *ngFor="let cropType of cropTypes" (click)="setCropType(cropType)">{{cropType.desc}}</button>
+                                        <div class="row">
+                                            <div class="col" style="padding-right:0px;">
+                                                <label placement="right" openDelay="2000" style="padding-right: 0px;"> Crop type</label>    
+                                            </div>                                      
+                                            <div class="col" style="padding-left:0px;">
+                                                <div class="btn-group mr-3" style="width:100%; padding-right:30px;">
+                                                    <button type="button" class="btn btn-outline-secondary" >{{selectedCropType.desc}}</button>                     
+                                                    <div ngbDropdown class="btn-group" style="padding-left:0px;">
+                                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="crop-type" ngbDropdownToggle></button>
+                                                        <div ngbDropdownMenu aria-labelledby="crop-type">
+                                                            <button type="button" ngbDropdownItem *ngFor="let cropType of cropTypes" (click)="setCropType(cropType)">{{cropType.desc}}</button>
+                                                        </div>
+                                                    </div>                                            
                                                 </div>
-                                            </div>                                            
+                                            </div>
                                         </div>
                                     </li> 
                                 </ul>
@@ -150,21 +166,30 @@
                         <ul class="mst--list-columns">
                             <fieldset>                        
                                 <label class="mst--radio-label" placement="right" openDelay="2000">
-                                    <input type="radio" formControlName="gridInterpolationType" value="template">Template Interpolation</label>
+                                    <input type="radio" formControlName="gridInterpolationType" value="template">By GRIB Template</label>
                                 <label class="mst--radio-label" placement="right" openDelay="2000">
-                                    <input type="radio" formControlName="gridInterpolationType" value="area">Area Interpolation</label>
+                                    <input type="radio" formControlName="gridInterpolationType" value="area">By Coordinates</label>
                             </fieldset>
                         </ul>                                 
                         <div class="card mst--expansion-panel">
                             <div class="card-body">                                                  
                                 <div class="d-none d-lg-block col-lg-8 py-3">
-                                    <label class="px-2"> Interpolation type</label>
-                                    <div ngbDropdown class="d-inline-block" style="width:25%;">
-                                        <button type="button" class="btn btn-outline-secondary" id="interpolation-type" ngbDropdownToggle style="width:100%;">{{selectedInterpolationType}}</button>
-                                            <div ngbDropdownMenu aria-labelledby="interpolation-type">
-                                                <button type="button" ngbDropdownItem *ngFor="let interpolationType of interpolationTypes" (click)="setInterpolationType(interpolationType)">{{interpolationType}}</button>
+                                    <div class="row">
+                                        <div class="col-lg-4">
+                                            <label class="px-2"> Interpolation type</label>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="btn-group mr-3" style="width:100%;">
+                                                <button type="button" class="btn btn-outline-secondary">{{selectedInterpolationType}}</button>                     
+                                                <div ngbDropdown class="btn-group">
+                                                    <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="interpolation-type" ngbDropdownToggle></button>
+                                                    <div ngbDropdownMenu aria-labelledby="interpolation-type">
+                                                        <button type="button" ngbDropdownItem *ngFor="let interpolationType of interpolationTypes" (click)="setInterpolationType(interpolationType)">{{interpolationType}}</button>
+                                                    </div>
+                                                </div>                                    
                                             </div>
-                                    </div>                                    
+                                        </div>
+                                    </div>
                                 </div>
                                 <div *ngIf="form.value.gridInterpolationType === 'template'" class="d-none d-lg-block col-lg-8 py-2">
                                     <div class="input-group">
@@ -177,28 +202,29 @@
                                 </div>
                                 <div *ngIf="form.value.gridInterpolationType === 'area'" class="row">
                                     <div id="pp-space-area-map" class="d-none d-lg-block col-lg-8">
-                                        <img src="/app/custom/assets/images/OpenStreetMap-europe.png" alt="area crop" style="max-width: 100%;">
+                                        <img src="/app/custom/assets/images/postProcessMap.jpg" alt="area crop" style="max-width: 100%;">
                                     </div>
                                     <div id="pp-space-area-fields" class="col">
                                         <div class="py-3">
-                                            <span>Draw a rectangle on the map or insert lat/lon to crop or regrid data</span>
+                                            <span>Draw a rectangle on the map or insert lat/lon to regrid data</span>
                                         </div>
                                         <ul class="mst--list-columns" style="padding-left: 0%;">
-                                            <li *ngFor="let b of form.get('space_crop')['controls']; let i=index" class="py-1">
+                                            <li *ngFor="let b of form.get('space_grid')['controls']; let i=index" class="py-1">
                                                 <div class="row">
-                                                    <label [for]="space_crop_boundings[i].code" ngbTooltip="{{space_crop_boundings[i].code}}" placement="right" class="col"
-                                                        openDelay="2000">{{space_crop_boundings[i].desc}}</label>   
-                                                    <input type="number" [formControl]="b" [id]="space_crop_boundings[i].code" class="col" style="width: 50%">                                                                                    
+                                                    <label [for]="space_grid_boundings[i].code" ngbTooltip="{{space_grid_boundings[i].code}}" placement="right" class="col"
+                                                        openDelay="2000">{{space_grid_boundings[i].desc}}</label>   
+                                                    <input [formControl]="b" [id]="space_grid_boundings[i].code" class="col" style="width: 50%">                                                                  
                                                 </div>
                                             </li>                                    
                                         </ul>
-                                    </div>
-                                    <div class="col py-2">
-                                        <ul class="mst--list-columns">
-                                            <li *ngFor="let b of form.get('interpolationNodes')['controls']; let i=index" class="py-1">                                        
-                                                <input type="number" [formControl]="b" [id]="interpolation_nodes_boundings[i].code">    
-                                                <label [for]="interpolation_nodes_boundings[i].code" ngbTooltip="{{interpolation_nodes_boundings[i].code}}" placement="right" class="px-2"
-                                                    openDelay="2000">{{interpolation_nodes_boundings[i].desc}}</label>                                 
+                                        <hr class="my-4">
+                                        <ul class="mst--list-columns" style="padding-left: 0%;">
+                                            <li *ngFor="let b of form.get('interpolationNodes')['controls']; let i=index" class="py-1">         
+                                                <div class="row">                               
+                                                    <label [for]="interpolation_nodes[i].code" ngbTooltip="{{interpolation_nodes[i].code}}" placement="right" class="col"
+                                                    openDelay="2000">{{interpolation_nodes[i].desc}}</label>
+                                                    <input [formControl]="b" [id]="interpolation_nodes[i].code" class="col" style="max-height: 33px;">
+                                                </div>                                                
                                             </li> 
                                         </ul>
                                     </div>
@@ -215,13 +241,22 @@
                     </div>
                     <div class="card-body">
                         <div class="d-none d-lg-block col-lg-8 py-3 px-3">
-                            <label class="px-2"> Interpolation type</label>
-                            <div ngbDropdown class="d-inline-block" style="width:20%;">
-                                <button type="button" class="btn btn-outline-secondary" id="interpolation-type" style="width:100%;" ngbDropdownToggle>{{selectedInterpolationType}}</button>
-                                <div ngbDropdownMenu aria-labelledby="interpolation-type">
-                                    <button type="button" ngbDropdownItem *ngFor="let interpolationType of interpolationTypes" (click)="setInterpolationType(interpolationType)">{{interpolationType}}</button>
+                            <div class="row">
+                                <div class="col-lg-4">
+                                    <label class="px-2"> Interpolation type</label>
                                 </div>
-                            </div>                            
+                                <div class="col-lg-4">
+                                    <div class="btn-group mr-3" style="width:100%;">
+                                        <button type="button" class="btn btn-outline-secondary">{{selectedInterpolationType}}</button> 
+                                        <div ngbDropdown class="btn-group">
+                                            <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="interpolation-type" ngbDropdownToggle></button>
+                                            <div ngbDropdownMenu aria-labelledby="interpolation-type">
+                                                <button type="button" ngbDropdownItem *ngFor="let interpolationType of interpolationTypes" (click)="setInterpolationType(interpolationType)">{{interpolationType}}</button>
+                                            </div>
+                                        </div> 
+                                    </div>
+                                </div>
+                            </div>                          
                         </div>
                         <div class="d-none d-lg-block col-lg-8 py-2">
                             <div class="input-group">
@@ -236,8 +271,34 @@
                 </div>
             </div>
         </div>
-
-
+        <div class="card mst--expansion-panel">
+            <div class="card-header">
+                <h5>4. Format conversion</h5>
+                <span class="info-help">&nbsp;<i placement="right"
+                        ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
+                        aria-hidden="true"></i></span>
+            </div>
+            <div class="body">
+                <div class="d-none d-lg-block col-lg-8 py-3 px-3">
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <label class="px-4">Format: </label>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="btn-group mr-3" style="width:100%;">
+                                <button type="button" class="btn btn-outline-secondary">{{selectedConversionFormat}}</button>
+                                <div class="btn-group" ngbDropdown role="group">
+                                    <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="interpolation-type" ngbDropdownToggle></button>
+                                    <div ngbDropdownMenu  class="dropdown-menu" aria-labelledby="interpolation-type">
+                                        <button type="button" ngbDropdownItem *ngFor="let format of formatTypes" (click)="setConversionFormat(format)">{{format}}</button>
+                                    </div>
+                                </div>
+                            </div>  
+                        </div>
+                    </div>     
+                </div>
+            </div>
+        </div>
         <div class="form-group text-center space-20">
             <button class="btn btn-outline-secondary mr-2" type="button" (click)="goToPrevious()"><i
                     class="fa fa-arrow-left" aria-hidden="true"></i> Previous

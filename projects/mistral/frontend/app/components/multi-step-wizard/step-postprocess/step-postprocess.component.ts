@@ -48,17 +48,52 @@ export class StepPostprocessComponent implements OnInit {
         },
     ];
 
-    interpolation_nodes_boundings = [
+    space_grid_boundings = [
+        {
+            code: 'x-min',
+            desc: 'Initial Lon',
+            validators: [
+                Validators.min(-180),
+                Validators.max(180)
+            ]
+        },
+        {
+            code: 'y-min',
+            desc: 'Initial Lat',
+            validators: [
+                Validators.min(-90),
+                Validators.max(90)
+            ]
+        },
+        {
+            code: 'x-max',
+            desc: 'Final Lon',
+            validators: [
+                Validators.min(-180),
+                Validators.max(180)
+            ]
+        },
+        {
+            code: 'y-max',
+            desc: 'Final Lat',
+            validators: [
+                Validators.min(-90),
+                Validators.max(90)
+            ]
+        },
+    ];
+
+    interpolation_nodes = [
         {
             code: 'nx',
-            desc: 'Number of nodes along X axis',
+            desc: 'nx',
             validators: [
                 Validators.min(0)
             ]
         },
         {
             code: 'ny',
-            desc: 'Number of nodes along Y axis',
+            desc: 'ny',
             validators: [
                 Validators.min(0)
             ]
@@ -68,7 +103,7 @@ export class StepPostprocessComponent implements OnInit {
     timeRanges = [
     {
         code: -1,
-        desc: ' '
+        desc: '-'
     },
     {
         code: 0,
@@ -89,25 +124,22 @@ export class StepPostprocessComponent implements OnInit {
     
     selectedInputTimeRange = {
         code: -1,
-        desc: ' '
+        desc: '-'
     };
     
     selectedOutputTimeRange =  {
         code: -1,
-        desc: ' '
+        desc: '-'
     };
 
-    stepIntervals = [" ", "hour", "day", "month", "year"];
-    selectedStepInterval = " ";
+    stepIntervals = ["-", "hour", "day", "month", "year"];
+    selectedStepInterval = "-";
 
-    interpolationTypes = [" ", "near", "bilin", "average", "min", "max"];
-    selectedInterpolationType = " ";
+    interpolationTypes = ["-", "near", "bilin", "average", "min", "max"];
+    selectedInterpolationType = "-";
 
-    cropTypes = [
-        {
-            code: -1,
-            desc: ' '
-        },
+
+    cropTypes = [        
         {
             code: 0,
             desc: 'coord'
@@ -119,11 +151,13 @@ export class StepPostprocessComponent implements OnInit {
     ];
 
     selectedCropType = {
-        code: -1,
-        desc: ' '
-    };
+            code: 0,
+            desc: 'coord'
+        };
 
-    fileToUpload: File = null;
+    formatTypes = ['-','json'];    
+
+    selectedConversionFormat = '-';
 
     constructor(private formBuilder: FormBuilder,
         private router: Router,
@@ -135,9 +169,11 @@ export class StepPostprocessComponent implements OnInit {
             derived_variables: new FormArray([]),
             space_type: ['crop'],
             space_crop: new FormArray([]),
+            space_grid: new FormArray([]),            
             gridInterpolationType: ['template'],
-            importFile: new FormControl(''),
-            interpolationNodes: new FormArray([])
+            gridTemplateFile: new FormControl(''),
+            interpolationNodes: new FormArray([]),
+            conversionFormat: ['json']
         });
     }
 
@@ -160,8 +196,15 @@ export class StepPostprocessComponent implements OnInit {
         })
     }
 
+    private buildSpaceGrid() {
+        this.space_grid_boundings.map(bound => {
+            const control = this.formBuilder.control(0, bound.validators);
+            (this.form.controls.space_grid as FormArray).push(control);
+        })
+    }
+
     private buildNodesInterpolation() {
-        this.interpolation_nodes_boundings.map(node => {
+        this.interpolation_nodes.map(node => {
             const control = this.formBuilder.control(0, node.validators);
             (this.form.controls.interpolationNodes as FormArray).push(control);
         })
@@ -179,6 +222,7 @@ export class StepPostprocessComponent implements OnInit {
             }
         )
         this.buildSpaceCrop();
+        this.buildSpaceGrid();
         this.buildNodesInterpolation();
     }
 
@@ -208,7 +252,7 @@ export class StepPostprocessComponent implements OnInit {
                 }
 
                 case 'grid': {
-                    // selectedProcessors.push(this.calculateSpaceGrid());
+                    selectedProcessors.push(this.calculateSpaceGridCoord());
                     break;
                 }
 
@@ -221,6 +265,9 @@ export class StepPostprocessComponent implements OnInit {
         }
 
         this.formDataService.setPostProcessor(selectedProcessors);
+        if (this.selectedConversionFormat != null && this.selectedConversionFormat != ' '){
+            this.formDataService.setOutputFormat(this.selectedConversionFormat);
+        }
         return true;
     }
 
@@ -230,11 +277,31 @@ export class StepPostprocessComponent implements OnInit {
         this.form.value.space_crop.map((value, i) => {
             boundings[this.space_crop_boundings[i].code] = value;
         })
+        
         return {
             'type': 'grid_cropping',
-            'sub-type': 'coord',
-            'boundings': boundings,
+            'sub-type': this.selectedCropType.desc,
+            'boundings': boundings
         }
+    }
+
+    calculateSpaceGridCoord(){
+        const boundings = {};
+        const nodes = {};
+        this.form.value.space_grid.map((value, i) => {
+            boundings[this.space_grid_boundings[i].code] = value;
+        });
+        this.form.value.interpolationNodes.map((value, i) => {
+            nodes[this.interpolation_nodes[i].code] = value;
+        })
+
+        return {
+            'type': 'grid_interpolation',
+            'sub_type': this.selectedInterpolationType,
+            'boundings': boundings,
+            'nodes': nodes
+        }
+
     }
 
     goToPrevious() {
@@ -269,6 +336,10 @@ export class StepPostprocessComponent implements OnInit {
 
     setInterpolationType(interpolationType){
         this.selectedInterpolationType = interpolationType;
+    }
+
+    setConversionFormat(format){
+        this.selectedConversionFormat = format;
     }
 
 }
