@@ -66,7 +66,7 @@
                                 <label>Step </label>
                             </div>
                             <div class="col-lg-3">
-                                <input id="timeStep" style="width: 85%;">
+                                <input type="number" id="timeStep" style="width: 85%;">
                             </div>
                             <div class="col-lg-3">
                                 <label>Elaboration interval</label>
@@ -129,7 +129,7 @@
                                         <div class="row">                                        
                                             <label [for]="space_crop_boundings[i].code" ngbTooltip="{{space_crop_boundings[i].code}}" placement="right" class="col"
                                                 openDelay="2000">{{space_crop_boundings[i].desc}}</label>                                    
-                                            <input [formControl]="b" [id]="space_crop_boundings[i].code" class="col" style="width: 50%">    
+                                            <input type="number" [formControl]="b" [id]="space_crop_boundings[i].code" class="col" style="width: 50%">    
                                             
                                         </div>
                                     </li>
@@ -213,7 +213,7 @@
                                                 <div class="row">
                                                     <label [for]="space_grid_boundings[i].code" ngbTooltip="{{space_grid_boundings[i].code}}" placement="right" class="col"
                                                         openDelay="2000">{{space_grid_boundings[i].desc}}</label>   
-                                                    <input [formControl]="b" [id]="space_grid_boundings[i].code" class="col" style="width: 50%">                                                                  
+                                                    <input type="number" [formControl]="b" [id]="space_grid_boundings[i].code" class="col" style="width: 50%">                                                                  
                                                 </div>
                                             </li>                                    
                                         </ul>
@@ -223,7 +223,7 @@
                                                 <div class="row">                               
                                                     <label [for]="interpolation_nodes[i].code" ngbTooltip="{{interpolation_nodes[i].code}}" placement="right" class="col"
                                                     openDelay="2000">{{interpolation_nodes[i].desc}}</label>
-                                                    <input [formControl]="b" [id]="interpolation_nodes[i].code" class="col" style="max-height: 33px;">
+                                                    <input type="number" [formControl]="b" [id]="interpolation_nodes[i].code" class="col" style="max-height: 33px;">
                                                 </div>                                                
                                             </li> 
                                         </ul>
