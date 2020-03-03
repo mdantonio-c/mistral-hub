@@ -13,12 +13,14 @@ export class FormData {
     filters: Filters[] = [];
     postprocessors: any[] = [];
     schedule: TaskSchedule;
+    output_format = '';
 
     clear() {
         this.name = '';
         this.datasets = [];
         this.filters = [];
         this.postprocessors = [];
+        this.output_format = '';
         this.schedule = null;
         this.reftime = this.defaultRefTime();
     }
@@ -167,6 +169,10 @@ export class FormDataService {
         return this.isDatasetFormValid &&
             this.isFilterFormValid &&
             this.isPostprocessFormValid;
+    }
+
+    setOutputFormat(data: any){
+        this.formData.output_format = data;
     }
 
 }
