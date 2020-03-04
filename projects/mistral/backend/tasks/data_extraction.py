@@ -79,14 +79,21 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
             # TODO and if are observation data in arkimet and not in dballe?
             # create a query for arkimet
-            if dataset_format == 'grib':
-                query = ''  # default to no matchers
-                if filters is not None:
-                    query = arki.parse_matchers(filters)
-                    log.debug('Arkimet query: {}', query)
-                if reftime is not None:
-                    reftime_query = arki.parse_reftime(reftime['from'], reftime['to'])
-                    query = ";".join([reftime_query, query]) if query != '' else reftime_query
+            # if dataset_format == 'grib':
+            #     query = ''  # default to no matchers
+            #     if filters is not None:
+            #         query = arki.parse_matchers(filters)
+            #         log.debug('Arkimet query: {}', query)
+            #     if reftime is not None:
+            #         reftime_query = arki.parse_reftime(reftime['from'], reftime['to'])
+            #         query = ";".join([reftime_query, query]) if query != '' else reftime_query
+            query = ''  # default to no matchers
+            if filters is not None:
+                query = arki.parse_matchers(filters)
+                log.debug('Arkimet query: {}', query)
+            if reftime is not None:
+                reftime_query = arki.parse_reftime(reftime['from'], reftime['to'])
+                query = ";".join([reftime_query, query]) if query != '' else reftime_query
 
             # create download user dir if it doesn't exist
             uuid = RequestManager.get_uuid(db, user_id)
@@ -102,22 +109,32 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # final result
             outfile = os.path.join(user_dir, out_filename)
 
-            if dataset_format == 'grib':
-                if schedule:
-                    esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db, schedule_id)
-                else:
-                    esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db)
-                '''
-                $ arki-query [OPZIONI] QUERY DATASET...
-                '''
-                ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
-                arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
-                log.debug(arki_query_cmd)
-
-            # observed data. in future the if statement will be for data using arkimet and data using dballe
+            # if dataset_format == 'grib':
+            #     if schedule:
+            #         esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db, schedule_id)
+            #     else:
+            #         esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db)
+            #     '''
+            #     $ arki-query [OPZIONI] QUERY DATASET...
+            #     '''
+            #     ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
+            #     arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
+            #     log.debug(arki_query_cmd)
+            #
+            # # observed data. in future the if statement will be for data using arkimet and data using dballe
+            # else:
+            #     # TODO how can i check user quota using dballe??
+            #     log.debug('observation in dballe')
+            if schedule:
+                esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db, schedule_id)
             else:
-                # TODO how can i check user quota using dballe??
-                log.debug('observation in dballe')
+                esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db)
+            '''
+            $ arki-query [OPZIONI] QUERY DATASET...
+            '''
+            ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
+            arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
+            log.debug(arki_query_cmd)
 
             if postprocessors:
                 log.debug(postprocessors)
@@ -292,10 +309,11 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         # if os.path.isdir(os.path.join(UPLOAD_FOLDER,uuid)):
                         #     shutil.rmtree(os.path.join(UPLOAD_FOLDER,uuid))
             else:
-                if dataset_format == 'grib':
-                    arkimet_extraction(arki_query_cmd, outfile)
-                else:
-                    dballe_extraction(datasets, filters, reftime, outfile)
+                # if dataset_format == 'grib':
+                #     arkimet_extraction(arki_query_cmd, outfile)
+                # else:
+                #     dballe_extraction(datasets, filters, reftime, outfile)
+                arkimet_extraction(arki_query_cmd, outfile)
 
 
             if output_format:

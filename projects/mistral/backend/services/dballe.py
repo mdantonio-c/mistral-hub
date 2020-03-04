@@ -4,8 +4,9 @@ import os
 import itertools
 import subprocess
 import dateutil
-import datetime
+from datetime import datetime, timedelta
 
+from mistral.services.arkimet import BeArkimet as arki
 
 user = os.environ.get("ALCHEMY_USER")
 pw = os.environ.get("ALCHEMY_PASSWORD")
@@ -16,10 +17,48 @@ port = os.environ.get("ALCHEMY_PORT")
 DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
                                                                             host=host, port=port))
 
+
 class BeDballe():
-
     explorer = None
+    lastdays = 2557  # insert the number of days after which data pass in Arkimet
 
+    @staticmethod
+    def get_db(date_min, date_max):
+        # date_limit = datetime.utcnow()- timedelta(days=lastdays)
+        # min_delta = date_min - date_limit
+        date_min_compar = datetime.utcnow() - date_min
+        if date_min_compar.days > BeDballe.lastdays:
+            date_max_compar = datetime.utcnow() - date_max
+            if date_max_compar.days > BeDballe.lastdays:
+                db_type = 'arkimet'
+            else:
+                db_type = 'mixed'
+        else:
+            db_type = 'dballe'
+        return db_type
+
+    @staticmethod
+    def split_reftimes(date_min, date_max):
+        refmax_dballe = date_max
+        refmin_dballe = datetime.utcnow() - timedelta(days=BeDballe.lastdays)
+        refmax_arki_dt = refmin_dballe - timedelta(minutes=1)
+        refmax_arki = refmax_arki_dt.strftime("%Y-%m-%d %H:%M")
+        refmin_arki = date_min.strftime("%Y-%m-%d %H:%M")
+        return refmax_dballe, refmin_dballe, refmax_arki, refmin_arki
+
+    @staticmethod
+    def build_arkimet_query(datemin=None, datemax=None, network=None):
+        arkimet_query = ''
+        if datemin:
+            arkimet_query = "reftime: >={datemin},<={datemax};".format(
+                datemin=datemin,
+                datemax=datemax)
+        if network:
+            arkimet_query += 'product: BUFR:t = {}'.format(network[0])
+            if len(network) > 1:
+                for i in network[1:]:
+                    arkimet_query += ' or  BUFR:t = {}'.format(i)
+        return arkimet_query
 
     @staticmethod
     def build_explorer():
@@ -30,10 +69,41 @@ class BeDballe():
         return explorer
 
     @staticmethod
-    def get_summary(params,q=None):
-        summarystats = {'s':None}
+    def get_summary(datasets, params, q=None):
+        summarystats = {'s': None}
         # parse the query
         query = BeDballe.from_query_to_dic(q)
+
+        arki_summary = None
+        if 'datetimemin' in query:
+            db_type = BeDballe.get_db(query['datetimemin'], query['datetimemax'])
+        else:
+            db_type = 'mixed'
+
+        if db_type == 'mixed':
+            arkimet_query = ''
+            if 'datetimemin' in query:
+                refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(query['datetimemin'],
+                                                                                                 query['datetimemax'])
+                # set the datetimemin as limit to data in dballe
+                query['datetimemin'] = refmin_dballe
+                arkimet_query = BeDballe.build_arkimet_query(datemin=refmin_arki, datemax=refmax_arki)
+            if 'network' in query:
+                if not arkimet_query:
+                    arkimet_query = BeDballe.build_arkimet_query(network=query['network'])
+                else:
+                    arkimet_query += BeDballe.build_arkimet_query(network=query['network'])
+            arki_summary = arki.load_summary(datasets, arkimet_query)
+        if db_type == 'arkimet':
+            # redirect the query to arkimet to check if the data exists
+            if 'network' in query:
+                arkimet_query = BeDballe.build_arkimet_query(datemin=query['datetimemin'].strftime("%Y-%m-%d %H:%M"),
+                                                             datemax=query['datetimemax'].strftime("%Y-%m-%d %H:%M"),
+                                                             network=query['network'])
+            else:
+                arkimet_query = BeDballe.build_arkimet_query(datemin=query['datetimemin'].strftime("%Y-%m-%d %H:%M"),
+                                                             datemax=query['datetimemax'].strftime("%Y-%m-%d %H:%M"))
+            arki_summary = arki.load_summary(datasets, arkimet_query)
 
         # if there aren't networks, use dataset networks as filters
         if 'network' not in query:
@@ -55,23 +125,43 @@ class BeDballe():
             with DB.transaction() as tr:
                 message_count += tr.query_data(dballe_query).remaining
 
+        if arki_summary:
+            # TODO this message count is approximate..do we need a real one?
+            message_count += arki_summary['items']['summarystats']['c']
+
         summarystats['c'] = message_count
         if 'datetimemin' in query:
-            summarystats['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
+            if db_type == 'mixed' or db_type == 'arkimet':
+                if 'b' in arki_summary['items']['summarystats']:
+                    summarystats['b'] = arki_summary['items']['summarystats']['b']
+                else:
+                    summarystats['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
+            else:
+                summarystats['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
+        elif db_type == 'mixed':
+            if 'b' in arki_summary['items']['summarystats']:
+                summarystats['b'] = arki_summary['items']['summarystats']['b']
         # else:
         #     summarystats['b'] = None
         if 'datetimemax' in query:
-            summarystats['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
+            if db_type == 'arkimet':
+                if 'e' in arki_summary['items']['summarystats']:
+                    summarystats['e'] = arki_summary['items']['summarystats']['e']
+                else:
+                    summarystats['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
+            else:
+                summarystats['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
+        elif db_type == 'mixed':
+            # the date is approximated because we can't get the datetimemax of data in dballe due to segmentation fault
+            summarystats['e'] = BeDballe.from_datetime_to_list(datetime.utcnow())
         # else:
         #     summarystats['e'] = None
         return summarystats
 
-
-
     @staticmethod
-    def load_filters(params,q=None):
+    def load_filters(datasets, params, q=None):
         # create and update the explorer object
-        #explorer = BeDballe.build_explorer()
+        # explorer = BeDballe.build_explorer()
 
         if not BeDballe.explorer:
             BeDballe.explorer = BeDballe.build_explorer()
@@ -79,7 +169,36 @@ class BeDballe():
 
         # parse the query
         query = BeDballe.from_query_to_dic(q)
-        log.info('query: {}'.format(query))
+        log.info('query: {}', query)
+
+        db_type = None
+        # check where are the requested data
+        if 'datetimemin' in query:
+            db_type = BeDballe.get_db(query['datetimemin'], query['datetimemax'])
+            log.debug('db type: {}', db_type)
+
+            if db_type == 'mixed':
+                refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(query['datetimemin'],
+                                                                                                 query['datetimemax'])
+                # set the datetimemin as limit to data in dballe
+                query['datetimemin'] = refmin_dballe
+            if db_type == 'arkimet':
+                # redirect the query to arkimet to check if the data exists
+                if 'network' in query:
+                    arkimet_query = BeDballe.build_arkimet_query(
+                        datemin=query['datetimemin'].strftime("%Y-%m-%d %H:%M"),
+                        datemax=query['datetimemax'].strftime("%Y-%m-%d %H:%M"),
+                        network=query['network'])
+                else:
+                    arkimet_query = BeDballe.build_arkimet_query(
+                        datemin=query['datetimemin'].strftime("%Y-%m-%d %H:%M"),
+                        datemax=query['datetimemax'].strftime("%Y-%m-%d %H:%M"))
+                datasize = arki.estimate_data_size(datasets, arkimet_query)
+                if datasize == 0:
+                    return None
+                else:
+                    # delete the datetimemin in query (i will check for filters in dballe in general)
+                    query.pop('datetimemin', None)
 
         # check if requested networks are in that dataset
         query_networks_list = []
@@ -104,7 +223,8 @@ class BeDballe():
             if not 'datetimemin' in query:
                 explorer.set_filter({'report': n})
             else:
-                explorer.set_filter({'report': n, 'datetimemin':query['datetimemin'], 'datetimemax':query['datetimemax']})
+                explorer.set_filter(
+                    {'report': n, 'datetimemin': query['datetimemin'], 'datetimemax': query['datetimemax']})
 
             # list of the variables of this network
             net_variables = []
@@ -112,6 +232,25 @@ class BeDballe():
             ######### VARIABLES FIELDS
             # get the list of all the variables of the network
             varlist = explorer.varcodes
+            if not varlist and db_type:
+                if db_type == 'mixed':
+                    # check if arkimet has data
+                    if 'network' in query:
+                        arkimet_query = BeDballe.build_arkimet_query(
+                            datemin=refmin_arki,
+                            datemax=refmax_arki,
+                            network=query['network'])
+                    else:
+                        arkimet_query = BeDballe.build_arkimet_query(
+                            datemin=refmin_arki,
+                            datemax=refmax_arki)
+                    datasize = arki.estimate_data_size(datasets, arkimet_query)
+                    if datasize != 0:
+                        # filter dballe database again without reftime only to get the fields name
+                        explorer.set_filter({'report': n})
+                        varlist = explorer.varcodes
+                        # delete the datetimemin in query (i will check for filters in dballe in general)
+                        query.pop('datetimemin', None)
 
             #### PRODUCT is in the query filters
             if 'product' in query:
@@ -136,7 +275,8 @@ class BeDballe():
                 net_variables = net_variables_temp
 
             ######### TIMERANGES FIELDS
-            trange_fields, net_variables_temp, level_fields_temp = BeDballe.get_fields(explorer, n, net_variables, query, param='timerange')
+            trange_fields, net_variables_temp, level_fields_temp = BeDballe.get_fields(explorer, n, net_variables,
+                                                                                       query, param='timerange')
             if not trange_fields:
                 continue
             # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
@@ -162,23 +302,24 @@ class BeDballe():
         # if matching fields were found network list can't be empty
         if networks_list:
             # create the final dictionary
-            fields['network'] = BeDballe.from_list_of_params_to_list_of_dic(networks_list,type='network')
-            fields['product'] = BeDballe.from_list_of_params_to_list_of_dic(variables,type='product')
-            fields['level'] = BeDballe.from_list_of_params_to_list_of_dic(levels,type='level')
-            fields['timerange'] = BeDballe.from_list_of_params_to_list_of_dic(tranges,type='timerange')
+            fields['network'] = BeDballe.from_list_of_params_to_list_of_dic(networks_list, type='network')
+            fields['product'] = BeDballe.from_list_of_params_to_list_of_dic(variables, type='product')
+            fields['level'] = BeDballe.from_list_of_params_to_list_of_dic(levels, type='level')
+            fields['timerange'] = BeDballe.from_list_of_params_to_list_of_dic(tranges, type='timerange')
 
-            # add description in model for the levels and the timeranges?
             return fields
         else:
             return None
 
     @staticmethod
-    def get_fields(explorer, network, variables,query,param):
+    def get_fields(explorer, network, variables, query, param):
         # filter the dballe database by list of variables (level and timerange depend on variable)
         if not 'datetimemin' in query:
-            explorer.set_filter({'varlist': variables,'report': network})
+            explorer.set_filter({'varlist': variables, 'report': network})
         else:
-            explorer.set_filter({'varlist': variables,'report': network, 'datetimemin': query['datetimemin'], 'datetimemax': query['datetimemax']})
+            explorer.set_filter({'varlist': variables, 'report': network, 'datetimemin': query['datetimemin'],
+                                 'datetimemax': query['datetimemax']})
+
         level_list = []
         # get the list of all the fields for requested param according to the variables
         if param == 'level':
@@ -232,6 +373,7 @@ class BeDballe():
                                 explorer.set_filter(
                                     {'var': v, 'datetimemin': query['datetimemin'],
                                      'datetimemax': query['datetimemax']})
+
                             if param == 'level':
                                 param_list = explorer.levels
                             elif param == 'timerange':
@@ -261,6 +403,7 @@ class BeDballe():
                                     explorer.set_filter(
                                         {'var': v, 'datetimemin': query['datetimemin'],
                                          'datetimemax': query['datetimemax']})
+
                                 var_level = explorer.levels
                                 var_level_parsed = []
                                 # parse the dballe.Level object
@@ -314,35 +457,34 @@ class BeDballe():
                     else:
                         val_list = [x.strip() for x in val.split('or')]
                         query_dic[p] = val_list
-        log.debug('query dic ', query_dic)
         return query_dic
 
     @staticmethod
     def from_level_object_to_string(level):
-        level_list=[]
+        level_list = []
 
         if level.ltype1:
             ltype1 = str(level.ltype1)
         else:
-            ltype1= '0'
+            ltype1 = '0'
         level_list.append(ltype1)
 
         if level.l1:
             l1 = str(level.l1)
         else:
-            l1= '0'
+            l1 = '0'
         level_list.append(l1)
 
         if level.ltype2:
             ltype2 = str(level.ltype2)
         else:
-            ltype2= '0'
+            ltype2 = '0'
         level_list.append(ltype2)
 
         if level.l2:
             l2 = str(level.l2)
         else:
-            l2= '0'
+            l2 = '0'
         level_list.append(l2)
 
         level_parsed = ','.join(level_list)
@@ -365,7 +507,7 @@ class BeDballe():
         return trange_parsed
 
     @staticmethod
-    def from_list_of_params_to_list_of_dic(param_list,type):
+    def from_list_of_params_to_list_of_dic(param_list, type):
         list_dic = []
         for p in param_list:
             item = {}
@@ -375,11 +517,11 @@ class BeDballe():
         return list_dic
 
     @staticmethod
-    def get_description(value,type):
+    def get_description(value, type):
         if type == 'product' or type == 'network':
             description = value
         elif type == 'timerange' or type == 'level':
-            list=[]
+            list = []
             for v in value.split(','):
                 if type == 'level' and v == '0':
                     val = None
@@ -429,7 +571,6 @@ class BeDballe():
         return fields, queries
 
     @staticmethod
-
     def from_query_to_lists(query):
         fields = []
         queries = []
@@ -465,14 +606,13 @@ class BeDballe():
                 continue
         return fields, queries
 
-
     @staticmethod
     def parse_data_extraction_reftime(from_str, to_str):
         from_dt = dateutil.parser.parse(from_str)
         to_dt = dateutil.parser.parse(to_str)
 
-        #from_dt = datetime.datetime.strptime(from_dt_parsed, "%Y-%m-%d %H:%M:%S")
-        return from_dt,to_dt
+        # from_dt = datetime.datetime.strptime(from_dt_parsed, "%Y-%m-%d %H:%M:%S")
+        return from_dt, to_dt
 
     @staticmethod
     def from_datetime_to_list(dt):
@@ -504,7 +644,7 @@ class BeDballe():
             with DB.transaction() as tr:
                 # check if the query gives a result
                 count = tr.query_data(dballe_query).remaining
-                #log.debug('counter= {} dballe query: {} count:{}'.format(str(counter), dballe_query, count))
+                # log.debug('counter= {} dballe query: {} count:{}'.format(str(counter), dballe_query, count))
                 if count == 0:
                     continue
                 exporter = dballe.Exporter("BUFR")
