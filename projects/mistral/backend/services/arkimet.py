@@ -7,12 +7,13 @@ import glob
 import json
 import math
 import dateutil
+from arkimet.cfg import Sections
 from restapi.utilities.logs import log
 
 DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
 
 
-class BeArkimet():
+class BeArkimet:
 
     allowed_filters = (
         'area', 'level', 'origin', 'proddef', 'product', 'quantity', 'run', 'task', 'timerange', 'network'
@@ -25,52 +26,25 @@ class BeArkimet():
     @staticmethod
     def load_datasets():
         """
-        Load dataset using arki-mergeconf
-        $ arki-mergeconf $HOME/datasets/*
+        Load dataset parsing arkimet.conf
 
         :return: list of datasets
         """
         datasets = []
-        folders = glob.glob(DATASET_ROOT + "*")
-        args = shlex.split("arki-mergeconf " + ' '.join(folders))
-        log.debug('Launching Arkimet command: {}', args)
-
-        proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
-        log.debug('return code: {}', proc.returncode)
-        # raise a CalledProcessError if returncode is non-zero
-        proc.check_returncode()
-        ds = None
-        for line in proc.stdout.split('\n'):
-            line = line.strip()
-            if line == '':
-                continue
-            if line.startswith('['):
-                # new dataset config
-                if ds is not None and ds['id'] not in ('error', 'duplicates'):
-                    datasets.append(ds)
-                ds = {
-                    'id': line.split('[', 1)[1].split(']')[0]
-                }
-                continue
-            '''
-              name <str>
-              description <str>
-              allowed <bool>
-              bounding <str>
-              postprocess <list>
-            '''
-            name, val = line.partition("=")[::2]
-            name = name.strip()
-            val = val.strip()
-            if name in ('name', 'description', 'bounding'):
-                ds[name] = val
-            elif name == 'allowed':
-                ds[name] = bool(val)
-            elif name == 'postprocess':
-                ds[name] = val.split(",")
-        # add the latest ds
-        datasets.append(ds)
-
+        cfg_sections = Sections()
+        cfg = cfg_sections.parse('/arkimet/config/arkimet.conf')
+        for i in [a for a in cfg.items() if a[0] not in ['error', 'duplicates']]:
+            ds = {'id': i[0]}
+            for k,v in i[1].items():
+                if k == 'name':
+                    ds['name'] = v
+                elif k == 'description':
+                    ds['description'] = v
+                elif k == '_license':
+                    ds['license'] = v
+                elif k == '_category':
+                    ds['category'] = v
+            datasets.append(ds)
         return datasets
 
     @staticmethod
