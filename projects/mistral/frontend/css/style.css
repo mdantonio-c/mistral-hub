@@ -6,6 +6,18 @@
 @import url('button-toggle.css');
 @import url('weather-icons.css');
 
+/* customize container width */
+@media (min-width: 1200px) {
+  .container, .container-lg, .container-md, .container-sm, .container-xl {
+    max-width: 1400px;
+  }
+}
+@media (max-width: 991.98px)  {
+  .container, .container-md, .container-sm {
+      max-width: none;
+  }
+}
+
 /* top navbar: force bg-dark */
 .navbar {
     background-color: #343a40 !important;

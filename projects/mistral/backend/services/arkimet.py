@@ -26,7 +26,7 @@ class BeArkimet:
     @staticmethod
     def load_datasets():
         """
-        Load dataset parsing arkimet.conf
+        Load datasets by parsing arkimet.conf
 
         :return: list of datasets
         """
