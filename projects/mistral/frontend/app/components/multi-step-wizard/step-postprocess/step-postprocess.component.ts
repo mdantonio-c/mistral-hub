@@ -167,7 +167,8 @@ export class StepPostprocessComponent implements OnInit {
         private notify: NotificationService) {
         this.form = this.formBuilder.group({
             derived_variables: new FormArray([]),
-            space_type: ['crop'],
+            // space_type: ['crop'],
+            space_type: [],
             space_crop: new FormArray([]),
             space_grid: new FormArray([]),            
             gridInterpolationType: ['template'],
