@@ -139,7 +139,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 if dataset_format == 'grib':
                     arkimet_extraction(arki_query_cmd, tmp_outfile)
                 else:
-                    dballe_extraction(datasets, filters, tmp_outfile)
+                    dballe_extraction(datasets, filters,reftime, tmp_outfile)
 
                 # case of single postprocessor
                 if len(postprocessors) == 1:
