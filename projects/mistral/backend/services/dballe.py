@@ -4,9 +4,11 @@ import os
 import itertools
 import subprocess
 import dateutil
+import tempfile
+import shlex
 from datetime import datetime, timedelta
 
-from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 
 user = os.environ.get("ALCHEMY_USER")
 pw = os.environ.get("ALCHEMY_PASSWORD")
@@ -23,9 +25,7 @@ class BeDballe():
     lastdays = 2557  # insert the number of days after which data pass in Arkimet
 
     @staticmethod
-    def get_db(date_min, date_max):
-        # date_limit = datetime.utcnow()- timedelta(days=lastdays)
-        # min_delta = date_min - date_limit
+    def get_db_type(date_min, date_max):
         date_min_compar = datetime.utcnow() - date_min
         if date_min_compar.days > BeDballe.lastdays:
             date_max_compar = datetime.utcnow() - date_max
@@ -48,6 +48,14 @@ class BeDballe():
 
     @staticmethod
     def build_arkimet_query(datemin=None, datemax=None, network=None):
+        if isinstance(datemin, datetime):
+            datemin_str = datemin.strftime("%Y-%m-%d %H:%M:%S")
+            datemin = datemin_str
+
+        if isinstance(datemax, datetime):
+            datemax_str = datemax.strftime("%Y-%m-%d %H:%M:%S")
+            datemax = datemax_str
+
         arkimet_query = ''
         if datemin:
             arkimet_query = "reftime: >={datemin},<={datemax};".format(
@@ -76,7 +84,7 @@ class BeDballe():
 
         arki_summary = None
         if 'datetimemin' in query:
-            db_type = BeDballe.get_db(query['datetimemin'], query['datetimemax'])
+            db_type = BeDballe.get_db_type(query['datetimemin'], query['datetimemax'])
         else:
             db_type = 'mixed'
 
@@ -174,7 +182,7 @@ class BeDballe():
         db_type = None
         # check where are the requested data
         if 'datetimemin' in query:
-            db_type = BeDballe.get_db(query['datetimemin'], query['datetimemax'])
+            db_type = BeDballe.get_db_type(query['datetimemin'], query['datetimemax'])
             log.debug('db type: {}', db_type)
 
             if db_type == 'mixed':
@@ -611,8 +619,11 @@ class BeDballe():
         from_dt = dateutil.parser.parse(from_str)
         to_dt = dateutil.parser.parse(to_str)
 
-        # from_dt = datetime.datetime.strptime(from_dt_parsed, "%Y-%m-%d %H:%M:%S")
-        return from_dt, to_dt
+        # to prevent problems with timezones
+        from_naive = from_dt.replace(tzinfo=None)
+        to_naive = to_dt.replace(tzinfo=None)
+
+        return from_naive, to_naive
 
     @staticmethod
     def from_datetime_to_list(dt):
@@ -624,7 +635,28 @@ class BeDballe():
         return list
 
     @staticmethod
-    def extract_data(fields, queries, outfile):
+    def fill_db_from_arkimet(datasets, query):
+        db = dballe.DB.connect("mem:")
+        ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
+        arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
+        log.debug('extracting obs data from arkimet: {}',arki_query_cmd)
+        proc = subprocess.Popen(arki_query_cmd, stdout=subprocess.PIPE)
+        # write the result of the extraction on a temporary file
+        with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
+            tmpf.write(proc.stdout.read())
+            tmpf.seek(0)
+            with db.transaction() as tr:
+                tr.load(tmpf, "BUFR")
+        return db
+
+    @staticmethod
+    def extract_data(fields, queries, outfile=None, temp_db=None):
+        if temp_db and outfile:
+            # case of extracting from a temp db
+            DB = temp_db
+        # case of extracting from the general db or filling the temp db
+        else:
+            DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host = host, port = port))
         # get all the possible combinations of queries
         all_queries = list(itertools.product(*queries))
         counter = 1
@@ -634,12 +666,14 @@ class BeDballe():
             for k, v in zip(fields, q):
                 dballe_query[k] = v
             # set the filename for the partial extraction
-            if outfile.endswith('.tmp'):
-                outfile_split = outfile[:-4]
-                filebase, fileext = os.path.splitext(outfile_split)
-            else:
-                filebase, fileext = os.path.splitext(outfile)
-            part_outfile = filebase + '_part' + str(counter) + fileext + '.tmp'
+            if outfile:
+                if outfile.endswith('.tmp'):
+                    outfile_split = outfile[:-4]
+                    filebase, fileext = os.path.splitext(outfile_split)
+                else:
+                    filebase, fileext = os.path.splitext(outfile)
+                part_outfile = filebase + '_part' + str(counter) + fileext + '.tmp'
+
             # extract in a partial extraction
             with DB.transaction() as tr:
                 # check if the query gives a result
@@ -647,20 +681,33 @@ class BeDballe():
                 # log.debug('counter= {} dballe query: {} count:{}'.format(str(counter), dballe_query, count))
                 if count == 0:
                     continue
-                exporter = dballe.Exporter("BUFR")
-                with open(part_outfile, "wb") as out:
-                    for row in tr.query_messages(dballe_query):
-                        out.write(exporter.to_binary(row.message))
-            cat_cmd.append(part_outfile)
-            # update counter
-            counter += 1
-        if counter == 1:
-            # any query has given a result
-            raise Exception('Failure in data extraction: the query does not give any result')
+                # if there is the outfile do the extraction
+                if outfile:
+                    exporter = dballe.Exporter("BUFR")
+                    with open(part_outfile, "wb") as out:
+                        for row in tr.query_messages(dballe_query):
+                            out.write(exporter.to_binary(row.message))
+                # if there is not outfile, fill the temporary db
+                else:
+                    with temp_db.transaction() as temptr:
+                        for cur in tr.query_messages(dballe_query):
+                            temptr.import_messages(cur.message)
 
-        # join all the partial extractions
-        with open(outfile, mode='w') as output:
-            ext_proc = subprocess.Popen(cat_cmd, stdout=output)
-            ext_proc.wait()
-            if ext_proc.wait() != 0:
-                raise Exception('Failure in data extraction')
+            if outfile:
+                cat_cmd.append(part_outfile)
+                # update counter
+                counter += 1
+
+        if outfile:
+            if counter == 1:
+                # any query has given a result
+                raise Exception('Failure in data extraction: the query does not give any result')
+
+            # join all the partial extractions
+            with open(outfile, mode='w') as output:
+                ext_proc = subprocess.Popen(cat_cmd, stdout=output)
+                ext_proc.wait()
+                if ext_proc.wait() != 0:
+                    raise Exception('Failure in data extraction')
+        else:
+            return temp_db

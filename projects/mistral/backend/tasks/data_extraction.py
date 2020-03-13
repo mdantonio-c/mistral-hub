@@ -36,7 +36,8 @@ DOWNLOAD_DIR = '/data'
 
 @celery_app.task(bind=True)
 # @send_errors_by_email
-def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[],output_format=None, request_id=None,
+def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[], output_format=None,
+                 request_id=None,
                  schedule_id=None):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]", self.request.id, self.name)
@@ -52,7 +53,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         "Cannot find schedule reference for task {}".format(
                             self.request.id))
                 # adapt the request reftime
-                reftime = adapt_reftime(schedule,reftime)
+                reftime = adapt_reftime(schedule, reftime)
 
                 # create an entry in request db linked to the scheduled request entry
                 product_name = RequestManager.get_schedule_name(db, schedule_id)
@@ -79,21 +80,14 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
             # TODO and if are observation data in arkimet and not in dballe?
             # create a query for arkimet
-            # if dataset_format == 'grib':
-            #     query = ''  # default to no matchers
-            #     if filters is not None:
-            #         query = arki.parse_matchers(filters)
-            #         log.debug('Arkimet query: {}', query)
-            #     if reftime is not None:
-            #         reftime_query = arki.parse_reftime(reftime['from'], reftime['to'])
-            #         query = ";".join([reftime_query, query]) if query != '' else reftime_query
-            query = ''  # default to no matchers
-            if filters is not None:
-                query = arki.parse_matchers(filters)
-                log.debug('Arkimet query: {}', query)
-            if reftime is not None:
-                reftime_query = arki.parse_reftime(reftime['from'], reftime['to'])
-                query = ";".join([reftime_query, query]) if query != '' else reftime_query
+            if dataset_format == 'grib':
+                query = ''  # default to no matchers
+                if filters is not None:
+                    query = arki.parse_matchers(filters)
+                    log.debug('Arkimet query: {}', query)
+                if reftime is not None:
+                    reftime_query = arki.parse_reftime(reftime['from'], reftime['to'])
+                    query = ";".join([reftime_query, query]) if query != '' else reftime_query
 
             # create download user dir if it doesn't exist
             uuid = RequestManager.get_uuid(db, user_id)
@@ -109,32 +103,22 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # final result
             outfile = os.path.join(user_dir, out_filename)
 
-            # if dataset_format == 'grib':
-            #     if schedule:
-            #         esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db, schedule_id)
-            #     else:
-            #         esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db)
-            #     '''
-            #     $ arki-query [OPZIONI] QUERY DATASET...
-            #     '''
-            #     ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
-            #     arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
-            #     log.debug(arki_query_cmd)
-            #
-            # # observed data. in future the if statement will be for data using arkimet and data using dballe
-            # else:
-            #     # TODO how can i check user quota using dballe??
-            #     log.debug('observation in dballe')
-            if schedule:
-                esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db, schedule_id)
+            if dataset_format == 'grib':
+                if schedule:
+                    esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db, schedule_id)
+                else:
+                    esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db)
+                '''
+                $ arki-query [OPZIONI] QUERY DATASET...
+                '''
+                ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
+                arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
+                log.debug(arki_query_cmd)
+
+            # observed data. in future the if statement will be for data using arkimet and data using dballe
             else:
-                esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db)
-            '''
-            $ arki-query [OPZIONI] QUERY DATASET...
-            '''
-            ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
-            arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
-            log.debug(arki_query_cmd)
+                # TODO how can i check user quota using dballe??
+                log.debug('observation in dballe')
 
             if postprocessors:
                 log.debug(postprocessors)
@@ -156,7 +140,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 if dataset_format == 'grib':
                     arkimet_extraction(arki_query_cmd, tmp_outfile)
                 else:
-                    dballe_extraction(datasets, filters, tmp_outfile)
+                    # dballe_extraction(datasets, filters, reftime, outfile)
+                    observed_extraction(datasets, filters, reftime, outfile)
 
                 # case of single postprocessor
                 if len(postprocessors) == 1:
@@ -170,10 +155,12 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 raise ValueError("Post processors unaivailable for the requested datasets")
 
                         if pp_type == 'derived_variables':
-                            pp1_output = pp1.pp_derived_variables(datasets=datasets, params=p, tmp_extraction=tmp_outfile, user_dir=user_dir,fileformat=dataset_format)
+                            pp1_output = pp1.pp_derived_variables(datasets=datasets, params=p,
+                                                                  tmp_extraction=tmp_outfile, user_dir=user_dir,
+                                                                  fileformat=dataset_format)
                             # join pp1_output and tmp_extraction in output file
-                            cat_cmd = ['cat',tmp_outfile,pp1_output]
-                            with open(outfile,mode='w') as outfile:
+                            cat_cmd = ['cat', tmp_outfile, pp1_output]
+                            with open(outfile, mode='w') as outfile:
                                 ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
                                 ext_proc.wait()
                                 if ext_proc.wait() != 0:
@@ -182,7 +169,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         elif pp_type == 'statistic_elaboration':
                             params = []
                             params.append(p)
-                            pp2.pp_statistic_elaboration(params=params, input=tmp_outfile, output=outfile,fileformat=dataset_format)
+                            pp2.pp_statistic_elaboration(params=params, input=tmp_outfile, output=outfile,
+                                                         fileformat=dataset_format)
 
                         elif pp_type == 'grid_interpolation':
                             pp3_1.pp_grid_interpolation(params=p, input=tmp_outfile, output=outfile)
@@ -193,10 +181,10 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         elif pp_type == 'spare_point_interpolation':
                             # change output extension from .grib to .BUFR
                             outfile_name, outfile_ext = os.path.splitext(out_filename)
-                            out_filename= outfile_name+'.BUFR'
+                            out_filename = outfile_name + '.BUFR'
                             outfile = os.path.join(user_dir, out_filename)
-                            #bufr_outfile = outfile_name+'.BUFR'
-                            #pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
+                            # bufr_outfile = outfile_name+'.BUFR'
+                            # pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
                             pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=outfile,
                                                       fileformat=dataset_format)
 
@@ -213,17 +201,18 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 # case of multiple postprocessor
                 else:
                     # check if there is only one geographical postprocessor
-                    pp_list=[]
+                    pp_list = []
                     for p in postprocessors:
                         pp_list.append(p['type'])
-                    pp3_list=['grid_cropping','grid_interpolation','spare_point_interpolation']
+                    pp3_list = ['grid_cropping', 'grid_interpolation', 'spare_point_interpolation']
                     if len(set(pp_list).intersection(set(pp3_list))) > 1:
                         raise PostProcessingException('Only one geographical postprocessing at a time can be executed')
                     try:
 
                         # raise an error if the dataset is a bufr and a grid interpolation/cropping is requested
                         if dataset_format == 'bufr':
-                            if any(d['type'] == 'grid_cropping' for d in postprocessors) or any(d['type'] == 'grid_interpolation' for d in postprocessors):
+                            if any(d['type'] == 'grid_cropping' for d in postprocessors) or any(
+                                    d['type'] == 'grid_interpolation' for d in postprocessors):
                                 raise ValueError("Post processors unaivailable for the requested datasets")
 
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
@@ -231,12 +220,14 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         if any(d['type'] == 'derived_variables' for d in postprocessors):
                             p = next(item for item in postprocessors if item["type"] == 'derived_variables')
                             pp1_output = pp1.pp_derived_variables(datasets=datasets, params=p,
-                                                             tmp_extraction=tmp_outfile,
-                                                             user_dir=user_dir,fileformat=dataset_format)
+                                                                  tmp_extraction=tmp_outfile,
+                                                                  user_dir=user_dir, fileformat=dataset_format)
                             # join pp1_output and tmp_extraction in output file
                             cat_cmd = ['cat', tmp_outfile, pp1_output]
                             # new temp file as pp output
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp1.{fileformat}.tmp'.format(fileformat=dataset_format)
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[
+                                                              0] + '-pp1.{fileformat}.tmp'.format(
+                                fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             with open(pp_output, mode='w') as pp1_outfile:
                                 ext_proc = subprocess.Popen(cat_cmd, stdout=pp1_outfile)
@@ -244,7 +235,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 if ext_proc.wait() != 0:
                                     raise Exception('Failure in data extraction')
                         if any(d['type'] == 'statistic_elaboration' for d in postprocessors):
-                            p=[]
+                            p = []
                             for item in postprocessors:
                                 if item["type"] == 'statistic_elaboration':
                                     p.append(item)
@@ -254,9 +245,12 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp2.{fileformat}.tmp'.format(fileformat=dataset_format)
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[
+                                                              0] + '-pp2.{fileformat}.tmp'.format(
+                                fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
-                            pp2.pp_statistic_elaboration(params=p, input=pp_input, output=pp_output,fileformat=dataset_format)
+                            pp2.pp_statistic_elaboration(params=p, input=pp_input, output=pp_output,
+                                                         fileformat=dataset_format)
                         if any(d['type'] == 'grid_cropping' for d in postprocessors):
                             p = next(item for item in postprocessors if item["type"] == 'grid_cropping')
                             # check if the input has to be the previous postprocess output
@@ -265,7 +259,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_2.{fileformat}.tmp'.format(fileformat=dataset_format)
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[
+                                                              0] + '-pp3_2.{fileformat}.tmp'.format(
+                                fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             pp3_2.pp_grid_cropping(params=p, input=pp_input, output=pp_output)
                         if any(d['type'] == 'grid_interpolation' for d in postprocessors):
@@ -276,7 +272,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_1.{fileformat}.tmp'.format(fileformat=dataset_format)
+                            new_tmp_extraction_filename = tmp_extraction_basename.split('.')[
+                                                              0] + '-pp3_1.{fileformat}.tmp'.format(
+                                fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
                             pp3_1.pp_grid_interpolation(params=p, input=input, output=pp_output)
                         if any(d['type'] == 'spare_point_interpolation' for d in postprocessors):
@@ -291,11 +289,12 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                             new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '.bufr'
                             out_filename = new_tmp_extraction_filename
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
-                            pp3_3.pp_sp_interpolation(params=p, input=pp_input, output=pp_output,fileformat=dataset_format)
+                            pp3_3.pp_sp_interpolation(params=p, input=pp_input, output=pp_output,
+                                                      fileformat=dataset_format)
                         # rename the final output of postprocessors as outfile unless it is not a bufr file
-                        if pp_output.split('.')[-1]!='bufr':
+                        if pp_output.split('.')[-1] != 'bufr':
                             log.debug('dest: {}'.format(str(outfile)))
-                            os.rename(pp_output,outfile)
+                            os.rename(pp_output, outfile)
                         # else:
                         #     # if it is a bufr file, the filename resulting from the pp is will be the new outifle filename
                         #     outfile = pp_output
@@ -305,16 +304,15 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     #     tmp_filelist = glob.glob(os.path.join(user_dir, "*.tmp"))
                     #     for f in tmp_filelist:
                     #         os.remove(f)
-                        # if there is, remove the temporary folder where the files for the sp_interpolation were uploaded
-                        # if os.path.isdir(os.path.join(UPLOAD_FOLDER,uuid)):
-                        #     shutil.rmtree(os.path.join(UPLOAD_FOLDER,uuid))
+                    # if there is, remove the temporary folder where the files for the sp_interpolation were uploaded
+                    # if os.path.isdir(os.path.join(UPLOAD_FOLDER,uuid)):
+                    #     shutil.rmtree(os.path.join(UPLOAD_FOLDER,uuid))
             else:
-                # if dataset_format == 'grib':
-                #     arkimet_extraction(arki_query_cmd, outfile)
-                # else:
-                #     dballe_extraction(datasets, filters, reftime, outfile)
-                arkimet_extraction(arki_query_cmd, outfile)
-
+                if dataset_format == 'grib':
+                    arkimet_extraction(arki_query_cmd, outfile)
+                else:
+                    # dballe_extraction(datasets, filters, reftime, outfile)
+                    observed_extraction(datasets, filters, reftime, outfile)
 
             if output_format:
                 filebase, fileext = os.path.splitext(out_filename)
@@ -332,7 +330,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         'Actual resulting data exceeds estimation of {}',
                         human_size(data_size - esti_data_size)
                     )
-
 
             # create fileoutput record in db
             RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
@@ -412,6 +409,7 @@ def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
         raise DiskQuotaException(message)
     return esti_data_size
 
+
 def arkimet_extraction(arki_query_cmd, outfile):
     with open(outfile, mode='w') as outfile:
         ext_proc = subprocess.Popen(arki_query_cmd, stdout=outfile)
@@ -419,7 +417,8 @@ def arkimet_extraction(arki_query_cmd, outfile):
         if ext_proc.wait() != 0:
             raise Exception('Failure in data extraction')
 
-def dballe_extraction(datasets,filters, reftime, outfile):
+
+def dballe_extraction(datasets, filters, reftime, outfile=None, ark_query=None, memdb=None, mixed=False):
     # create a query for dballe
     if filters is not None:
         fields, queries = dballe.from_filters_to_lists(filters)
@@ -427,18 +426,98 @@ def dballe_extraction(datasets,filters, reftime, outfile):
         # if there aren't filters, data are filtered only by dataset's networks
         fields = ['rep_memo']
         queries = []
-        networks = arki.get_observed_dataset_params(datasets)
+        networks = []
+        for ds in datasets:
+            ds_networks = arki.get_observed_dataset_params(ds)
+            for n in ds_networks:
+                networks.append(n)
         queries.append(networks)
     if reftime is not None:
-        date_min, date_max = dballe.parse_data_extraction_reftime(reftime['from'], reftime['to'])
         fields.append('datetimemin')
-        queries.append([date_min])
+        queries.append([reftime['from']])
         fields.append('datetimemax')
-        queries.append([date_max])
+        queries.append([reftime['to']])
 
     log.debug('fields: {}, queries: {}', fields, queries)
-    # extract data
-    dballe.extract_data(fields, queries, outfile)
+    # if is a mixed request
+    if mixed:
+        # fill the db with the data from arkimet
+        temp_db = dballe.fill_db_from_arkimet(datasets, ark_query)
+        # fill the db with the data from dballe
+        filled_db = dballe.extract_data(fields, queries, temp_db=temp_db)
+        return filled_db
+        # extract the data from the temporary db
+    # if is the request of extraction from a temporary db
+    elif memdb:
+        dballe.extract_data(fields, queries, temp_db=memdb, outfile=outfile)
+        # remember to clean the temporary db
+        memdb.remove_all()
+    else:
+        # extract data only from dballe
+        dballe.extract_data(fields, queries, outfile=outfile)
+
+
+def observed_extraction(datasets, filters, reftime, outfile):
+    # get db type
+    date_min = None
+    date_max = None
+    if reftime is not None:
+        date_min, date_max = dballe.parse_data_extraction_reftime(reftime['from'], reftime['to'])
+        db_type = dballe.get_db_type(date_min, date_max)
+        # replace the reftime with the parsed one
+        reftime['from'] = date_min
+        reftime['to'] = date_max
+    else:
+        db_type = 'mixed'
+        refmin_arki = None
+        refmax_arki = None
+
+    if db_type == 'arkimet' or db_type == 'mixed':
+        # get the datemax and datemin for arkimet query. if db_type is mixed, call the method to split the reftime
+        partial_reftime = None
+        if reftime is not None:
+            if db_type == 'mixed':
+                refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = dballe.split_reftimes(date_min, date_max)
+                # create a dictionary with the new reftime for dballe
+                partial_reftime = {'from': refmin_dballe, 'to': refmax_dballe}
+            else:
+                refmin_arki = date_min
+                refmax_arki = date_max
+        # get the network filters
+        network = []
+        dataset_nets = []
+        for ds in datasets:
+            nets = arki.get_observed_dataset_params(ds)
+            for n in nets:
+                dataset_nets.append(n)
+        if "network" in filters:
+            for n in filters["network"]:
+                network.append(n['dballe_p'])
+            # check if the requested networks is compatible with the requested datasets
+            log.debug('dataset nets: {}, network {}', dataset_nets, network)
+            if not all(elem in dataset_nets for elem in network):
+                raise Exception('Failure in data extraction: Invalid set of filters')
+        else:
+            # if there is not network specified in filters, extract all dataset networks
+            network = None
+        # build the arkimet query
+        arkimet_query = dballe.build_arkimet_query(datemin=refmin_arki, datemax=refmax_arki, network=network)
+
+        if db_type == 'arkimet':
+            # extract data, fill the temporary db and get the temporary db in return
+            temp_db = dballe.fill_db_from_arkimet(datasets, arkimet_query)
+
+        if db_type == 'mixed':
+            # extract data, fill the temporary db and get the temporary db in return
+            temp_db = dballe_extraction(datasets, filters, partial_reftime, ark_query=arkimet_query, mixed=True)
+
+        # extract the data from the temporary db
+        dballe_extraction(datasets, filters, reftime, outfile=outfile, memdb=temp_db)
+
+    else:
+        # extract data from the general db
+        dballe_extraction(datasets, filters, reftime, outfile=outfile)
+
 
 def send_result_notication(recipient, title, status, message):
     """Send email notification. """
@@ -463,8 +542,8 @@ def human_size(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
     return str(bytes) + units[0] if bytes < 1024 else human_size(bytes >> 10, units[1:])
 
 
-def adapt_reftime(schedule,reftime):
-    new_reftime=None
+def adapt_reftime(schedule, reftime):
+    new_reftime = None
     if reftime is not None:
         new_reftime = {}
         now = datetime.datetime.utcnow()
@@ -477,5 +556,3 @@ def adapt_reftime(schedule,reftime):
         new_reftime['from'] = new_reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         new_reftime['to'] = new_reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     return new_reftime
-
-
