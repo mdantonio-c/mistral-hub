@@ -329,15 +329,27 @@ definitions:
       $ref: "#/definitions/Dataset"
   Dataset:
     required:
+      - id
       - name
-      - fields
+      - category
     properties:
+      id:
+        type: string
       name:
         type: string
-      fields:
-        type: array
-        items:
-          type: string
+      description:
+        type: string
+      license:
+        type: string
+        enum:
+          - CCBY  # Creative Commons BY (Attribution) 4.0
+          - ODBL  # Open Database License
+      category:
+        type: string
+        enum:
+          - FOR # Forecast Data
+          - OBS # Observational Data
+          - RAD # Radar Data
 
   DataScheduling:
     required:

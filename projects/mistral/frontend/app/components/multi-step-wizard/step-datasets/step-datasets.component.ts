@@ -31,6 +31,7 @@ export class StepDatasetsComponent implements OnInit {
         this.formDataService.getDatasets().subscribe(
             response => {
                 this.datasets = response.data;
+                console.log('Dataset(s) loaded', this.datasets);
                 if (this.datasets.length === 0) {
                     this.notify.showWarning("Unexpected result. The list of datasets is empty.");
                 }
@@ -38,7 +39,6 @@ export class StepDatasetsComponent implements OnInit {
                     const control = new FormControl(this.formDataService.isDatasetSelected(o.id));
                     (this.form.controls.datasets as FormArray).push(control);
                 });
-                console.log('Datasets loaded!');
                 this.loading = false;
             },
             error => {

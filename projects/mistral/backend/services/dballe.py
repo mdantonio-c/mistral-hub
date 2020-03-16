@@ -16,10 +16,10 @@ host = os.environ.get("ALCHEMY_HOST")
 engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
 
+
 LASTDAYS = os.environ.get("LASTDAYS")  # number of days after which data pass in Arkimet
 
-DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
-                                                                            host=host, port=port))
+#DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
 
 
 class BeDballe():
@@ -71,6 +71,8 @@ class BeDballe():
 
     @staticmethod
     def build_explorer():
+        DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
+                                                                            host=host, port=port))
         explorer = dballe.Explorer()
         with explorer.rebuild() as update:
             with DB.transaction() as tr:
@@ -131,6 +133,8 @@ class BeDballe():
             for k, v in zip(fields, q):
                 dballe_query[k] = v
             # count the items for each query
+            DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
+                                                                            host=host, port=port))
             with DB.transaction() as tr:
                 message_count += tr.query_data(dballe_query).remaining
 
@@ -170,11 +174,11 @@ class BeDballe():
     @staticmethod
     def load_filters(datasets, params, q=None):
         # create and update the explorer object
-        # explorer = BeDballe.build_explorer()
+        explorer = BeDballe.build_explorer()
 
-        if not BeDballe.explorer:
-            BeDballe.explorer = BeDballe.build_explorer()
-        explorer = BeDballe.explorer
+        # if not BeDballe.explorer:
+            # BeDballe.explorer = BeDballe.build_explorer()
+        # explorer = BeDballe.explorer
 
         # parse the query
         query = BeDballe.from_query_to_dic(q)
@@ -309,7 +313,7 @@ class BeDballe():
             networks_list.append(n)
 
         # if matching fields were found network list can't be empty
-        if networks_list:
+        if networks_list: 
             # create the final dictionary
             fields['network'] = BeDballe.from_list_of_params_to_list_of_dic(networks_list, type='network')
             fields['product'] = BeDballe.from_list_of_params_to_list_of_dic(variables, type='product')
@@ -676,6 +680,8 @@ class BeDballe():
                 part_outfile = filebase + '_part' + str(counter) + fileext + '.tmp'
 
             # extract in a partial extraction
+            DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
+                                                                            host=host, port=port))
             with DB.transaction() as tr:
                 # check if the query gives a result
                 count = tr.query_data(dballe_query).remaining

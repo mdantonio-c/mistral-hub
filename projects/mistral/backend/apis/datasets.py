@@ -44,8 +44,9 @@ class Datasets(EndpointResource):
         """ Get all the datasets or a specific one if a name is provided."""
         try:
             datasets = arki.load_datasets()
-        except Exception:
-            raise SystemError("Error loading the datasets")
+        except Exception as e:
+            log.error(e)
+            raise RestApiException("Error loading the datasets", status_code=hcodes.HTTP_SERVER_ERROR)
         if dataset_name is not None:
             # retrieve dataset by name
             log.debug("retrieve dataset by name '{}'", dataset_name)

@@ -61,7 +61,10 @@ export interface Filters {
 
 export class Dataset {
     id = '';
+    name = '';
+    category = '';
     description ? = '';
+    license ? = '';
 }
 
 export interface RefTime {
