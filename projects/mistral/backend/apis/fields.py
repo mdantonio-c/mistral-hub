@@ -84,7 +84,7 @@ class Fields(EndpointResource):
                 # get dataset params (to filter dballe according the requested dataset)
                 ds_params = arki.get_observed_dataset_params(ds)
                 log.info('dataset: {}, networks: {}'.format(ds, ds_params))
-                fields = dballe.load_filters(ds_params,query)
+                fields = dballe.load_filters(datasets,ds_params,query)
                 if not fields:
                     continue
                 else:
@@ -98,7 +98,7 @@ class Fields(EndpointResource):
 
             if resulting_fields:
                 # TODO fill in the summarystats
-                summarystats = dballe.get_summary(ds_params,query)
+                summarystats = dballe.get_summary(datasets,ds_params,query)
                 resulting_fields['summarystats'] = summarystats
                 summary = {'items': resulting_fields}
             else:
