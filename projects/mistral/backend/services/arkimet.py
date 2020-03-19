@@ -44,6 +44,8 @@ class BeArkimet:
                     ds['license'] = v
                 elif k == '_category':
                     ds['category'] = v
+                elif k == 'format':
+                    ds['format'] = v
             datasets.append(ds)
         return datasets
 
