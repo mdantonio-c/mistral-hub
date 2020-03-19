@@ -52,7 +52,9 @@ export class StepDatasetsComponent implements OnInit {
             return false;
         }
 
-        this.formDataService.setDatasets(selectedDatasetsIds);
+        this.formDataService.setDatasets(
+            this.datasets.filter(x => selectedDatasetsIds.includes(x.id))
+        );
         return true;
     }
 

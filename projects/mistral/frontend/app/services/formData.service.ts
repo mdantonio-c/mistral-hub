@@ -4,12 +4,12 @@ import * as moment from 'moment';
 
 import {WorkflowService} from '@app/services/workflow.service';
 import {STEPS} from '@app/services/workflow.model';
-import {DataService, Filters, RapydoResponse, SummaryStats, TaskSchedule, RefTime} from "./data.service";
+import {DataService, Filters, Dataset, RapydoResponse, SummaryStats, TaskSchedule, RefTime} from "./data.service";
 
 export class FormData {
     name: string = '';
     reftime: RefTime = this.defaultRefTime();
-    datasets: string[] = [];
+    datasets: Dataset[] = [];
     filters: Filters[] = [];
     postprocessors: any[] = [];
     schedule: TaskSchedule;
@@ -58,7 +58,7 @@ export class FormDataService {
         return this.dataService.getDatasets();
     }
 
-    setDatasets(data: string[]) {
+    setDatasets(data: Dataset[]) {
         // Update Datasets only when the Dataset Form had been validated successfully
         this.isDatasetFormValid = true;
         this.formData.datasets = data;
@@ -67,7 +67,7 @@ export class FormDataService {
     }
 
     isDatasetSelected(datasetId: string): boolean {
-        return this.formData.datasets.some(x => x === datasetId);
+        return this.formData.datasets.some(x => x.id === datasetId);
     }
 
     /**
@@ -77,7 +77,7 @@ export class FormDataService {
      */
     getFilters() {
         let query = this.parseRefTime();
-        return this.dataService.getSummary(this.formData.datasets, query);
+        return this.dataService.getSummary(this.formData.datasets.map(x => x.id), query);
     }
 
     /**
@@ -121,7 +121,7 @@ export class FormDataService {
         }
         console.log(`query for summary stats ${q}`);
         return this.dataService.getSummary(
-            this.formData.datasets, q, true);
+            this.formData.datasets.map(x => x.id), q, true);
     }
 
     setFilters(data: any) {
