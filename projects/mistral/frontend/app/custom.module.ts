@@ -19,6 +19,8 @@ import {DashboardComponent} from "@app/components/dashboard/dashboard.component"
 import {StorageUsageComponent} from "@app/components/dashboard/storage-usage/storage-usage.component";
 import {NgbTimeStringAdapter} from '@app/adapters/timepicker-adapter';
 
+import {DisableControlDirective} from "@app/directives/disable-control";
+
 /* Multi-Step Wizard Components */
 import {MultiStepWizardComponent} from '@app/components/multi-step-wizard/multi-step-wizard.component';
 import {NavbarComponent} from '@app/components/multi-step-wizard/navbar/navbar.component';
@@ -78,7 +80,8 @@ const appRoutes: Routes = [
         StorageUsageComponent,
         RequestsComponent,
         SchedulesComponent,
-        FormatDatePipe
+        FormatDatePipe,
+        DisableControlDirective
     ],
     providers: [
         DatePipe, {provide: NgbTimeAdapter, useClass: NgbTimeStringAdapter}],
