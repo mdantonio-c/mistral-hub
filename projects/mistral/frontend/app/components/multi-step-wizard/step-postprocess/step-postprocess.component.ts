@@ -122,22 +122,9 @@ export class StepPostprocessComponent implements OnInit {
         desc: 'Minimum'
     }];
     
-    selectedInputTimeRange = {
-        code: -1,
-        desc: '-'
-    };
-    
-    selectedOutputTimeRange =  {
-        code: -1,
-        desc: '-'
-    };
-
     stepIntervals = ["-", "hour", "day", "month", "year"];
-    selectedStepInterval = "-";
-
+    
     interpolationTypes = ["-", "near", "bilin", "average", "min", "max"];
-    selectedInterpolationType = "-";
-
 
     cropTypes = [        
         {
@@ -157,23 +144,28 @@ export class StepPostprocessComponent implements OnInit {
 
     formatTypes = ['-','json'];    
 
-    selectedConversionFormat = '-';
+    selectedInputTimeRange;
+    selectedOutputTimeRange;
+    selectedStepInterval;
+    selectedInterpolationType;
+    selectedConversionFormat;
 
     constructor(private formBuilder: FormBuilder,
         private router: Router,
         private route: ActivatedRoute,
         private formDataService: FormDataService,
-        private dataService: DataService,
+        private dataService: DataService,        
         private notify: NotificationService) {
         this.form = this.formBuilder.group({
             derived_variables: new FormArray([]),
-            space_type: ['crop'],
+            space_type: [],
             space_crop: new FormArray([]),
             space_grid: new FormArray([]),            
             gridInterpolationType: ['template'],
             gridTemplateFile: new FormControl(''),
             interpolationNodes: new FormArray([]),
-            conversionFormat: ['json']
+            conversionFormat: ['json'],
+            timeStep: new FormControl()
         });
     }
 
@@ -187,6 +179,28 @@ export class StepPostprocessComponent implements OnInit {
             const control = this.formBuilder.control(presetVariables.includes(v.code));
             (this.form.controls.derived_variables as FormArray).push(control);
         });
+    }
+
+    private buildTimePostProcess(){
+        const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'statistic_elaboration');
+        if (pt && pt.length){
+            this.selectedStepInterval = pt[0].interval; //'interval': this.selectedStepInterval,
+            this.form.controls['timeStep'].setValue(pt[0].step); //'step': this.form.value.timeStep
+            this.selectedInputTimeRange = this.timeRanges.filter(t => t.code == pt[0]['input-timerange'])[0];
+            this.selectedOutputTimeRange = this.timeRanges.filter(t => t.code == pt[0]['output-timerange'])[0];
+        }else{
+            this.selectedStepInterval = "-";
+            this.selectedInputTimeRange = {
+                code: -1,
+                desc: '-'
+            };
+            
+            this.selectedOutputTimeRange =  {
+                code: -1,
+                desc: '-'
+            };
+        }
+
     }
 
     private buildSpaceCrop() {
@@ -221,6 +235,9 @@ export class StepPostprocessComponent implements OnInit {
                 this.notify.showError('Unable to load derived variables configuration');
             }
         )
+        this.buildTimePostProcess();
+        this.selectedInterpolationType = "-";
+        this.selectedConversionFormat = '-';   
         this.buildSpaceCrop();
         this.buildSpaceGrid();
         this.buildNodesInterpolation();
@@ -241,8 +258,16 @@ export class StepPostprocessComponent implements OnInit {
                 variables: selectedDerivedVariables
             });
         }
+
+        // Time post processing
+        if (this.selectedInputTimeRange.code != null && this.selectedInputTimeRange.code != -1
+            && this.selectedOutputTimeRange.code != null && this.selectedOutputTimeRange.code != -1
+            && this.form.value.timeStep != null
+            && this.selectedStepInterval != null && this.selectedStepInterval != '-'){
+            selectedProcessors.push(this.calculateTimePostProcessor());
+        }
+
         // push space processor object in selectedProcessors
-        // TODO: space pp type <==> radio buttons binding
         const selectedSpaceProcessor = this.form.value.space_type;
         if (selectedSpaceProcessor && selectedSpaceProcessor.length) {
             switch (selectedSpaceProcessor) {
@@ -302,6 +327,16 @@ export class StepPostprocessComponent implements OnInit {
             'nodes': nodes
         }
 
+    }
+
+    calculateTimePostProcessor(){
+        return {
+            'type': 'statistic_elaboration',
+            'input-timerange': this.selectedInputTimeRange.code,
+            'output-timerange': this.selectedOutputTimeRange.code,
+            'interval': this.selectedStepInterval,
+            'step': this.form.value.timeStep
+        }
     }
 
     goToPrevious() {
