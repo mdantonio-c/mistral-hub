@@ -18,7 +18,7 @@
                     </button>
                     <button type="button" class="btn btn-sm ml-2 p-0 mb-1 float-right"
                             (click)="loadFilters()"
-                            ngbTooltip="Refresh filters"
+                            ngbTooltip="Reset filters"
                             placement="left"
                             >
                         <i class="fa fa-sync"></i>
@@ -50,7 +50,9 @@
                             <li formArrayName="values" *ngFor="let v of f.controls.values.controls; let j = index"
                                 class="col-sm-12 col-md-6">
                                 <input class="mst--input-checkbox" type="checkbox" [formControlName]="j"
-                                       id="{{f.value.name+'-'+j}}">
+                                       id="{{f.value.name+'-'+j}}"
+                                       [disableControl]="!filters[f.value.name][j].active"
+                                       (change)="onFilterChange()">
                                 <label for="{{f.value.name+'-'+j}}">{{filters[f.value.name][j].desc}}</label>
                             </li>
                         </ul>

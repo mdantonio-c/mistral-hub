@@ -7,6 +7,7 @@ import {ArkimetService} from "@app/services/arkimet.service";
 import {Filters} from "@app/services/data.service";
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
+import * as _ from 'lodash';
 
 @Component({
     selector: 'step-filters',
@@ -61,7 +62,7 @@ export class StepFiltersComponent implements OnInit {
         return {year: today.year(), month: today.month() + 1, day: today.date()};
     }
 
-    private addFilter(name: string, values: any): FormGroup {
+    private getFilterGroup(name: string, values: any): FormGroup {
         let filter = this.fb.group({
             name: [name, Validators.required],
             values: new FormArray([])
@@ -70,9 +71,41 @@ export class StepFiltersComponent implements OnInit {
         values.map(o => {
             // pre-set actual values from formData
             const control = new FormControl(this.formDataService.isFilterSelected(o));
+            if (!o['active']) {
+                control.disable();
+            }
             (filter.controls.values as FormArray).push(control);
         });
         return filter;
+    }
+
+    onFilterChange() {
+        let selectedFilters = this.getSelectedFilters();
+        console.log('selected filter(s)', selectedFilters);
+        let excludeNames = selectedFilters.map(f => f.name);
+        excludeNames.push('summarystats');
+        this.formDataService.getFilters(selectedFilters).subscribe(
+            response => {
+                let results = response.data.items;
+                console.log(results);
+                // compare the current filters with the selection results
+                // in order to disable the missing ones
+                Object.entries(this.filters).forEach(f => {
+                    if (!excludeNames.includes(f[0])) {
+                        // ["name", [{...},{...}]]
+                        let m = Object.entries(results)
+                            .filter(e => e[0] === f[0])[0];
+                        for (const obj of <Array<any>>f[1]) {
+                            // equal by desc
+                            obj['active'] = _.some(<Array<any>>m[1],
+                                (o, i) => o.desc === obj.desc);
+                        }
+                    }
+                });
+            },
+                error => {
+                this.notify.showError(`Unable to get summary fields`);
+            });
     }
 
     loadFilters() {
@@ -91,9 +124,12 @@ export class StepFiltersComponent implements OnInit {
                     let to = moment.utc(this.formDataService.getReftime().to);
                     this.summaryStats['e'] = [to.year(), to.month() + 1, to.date(), to.hour(), to.minute(), to.second()]
                 }
-                Object.entries(response.data.items).forEach(entry => {
+                Object.entries(this.filters).forEach(entry => {
                     if (entry[0] !== 'summarystats') {
-                        (this.filterForm.controls.filters as FormArray).push(this.addFilter(entry[0], entry[1]));
+                        (<Array<any>>entry[1]).forEach(function (obj) {
+                          obj['active'] = true;
+                        });
+                        (this.filterForm.controls.filters as FormArray).push(this.getFilterGroup(entry[0], entry[1]));
                     }
                 });
                 //console.log(this.filterForm.get('filters'));
@@ -168,6 +204,12 @@ export class StepFiltersComponent implements OnInit {
         if (!this.filterForm.valid) {
             return false;
         }
+        this.formDataService.setFilters(
+            this.getSelectedFilters());
+        return true;
+    }
+
+    private getSelectedFilters() {
         const selectedFilters = [];
         this.filterForm.value.filters.forEach(f => {
             let res = {
@@ -186,9 +228,7 @@ export class StepFiltersComponent implements OnInit {
                 selectedFilters.push(res);
             }
         });
-        // console.log('selected filters', selectedFilters);
-        this.formDataService.setFilters(selectedFilters);
-        return true;
+        return selectedFilters;
     }
 
     goToPrevious() {

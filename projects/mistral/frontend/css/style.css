@@ -270,6 +270,12 @@ input[type="radio"]:checked + .mst--radio-label:after {
 .mst--input-checkbox:disabled + label:before {
     box-shadow: none;
     background: #f7f7f7;
+    border: 2px solid #f0f0f0;
+}
+
+.mst--input-checkbox:disabled + label {
+    color: #A9A9A9;
+    cursor: auto;
 }
 
 .mst--input-checkbox:checked + label:after {
