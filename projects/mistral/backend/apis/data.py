@@ -125,6 +125,16 @@ class Data(EndpointResource, Uploader):
                     'Only one geographical postprocessing at a time can be executed',
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
+
+        # check if requested space post processing are available for the chosen datasets
+        if dataset_format == 'bufr':
+            for p in processors:
+                if p.get('type') == 'grid_cropping' or p.get('type') == 'grid_interpolation':
+                    raise RestApiException(
+                        'Post processors unaivailable for the requested datasets',
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
+
         # check if the output format chosen by the user is compatible with the chosen datasets
         if output_format is not None:
             postprocessors_list = [i.get('type') for i in processors]

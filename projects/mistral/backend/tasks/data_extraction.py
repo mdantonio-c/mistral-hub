@@ -149,11 +149,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         p = postprocessors[0]
                         pp_type = p.get('type')
 
-                        # raise an error if the dataset is a bufr and a grid interpolation/cropping is requested
-                        if dataset_format == 'bufr':
-                            if pp_type == 'grid_cropping' or pp_type == 'grid_interpolation':
-                                raise ValueError("Post processors unaivailable for the requested datasets")
-
                         if pp_type == 'derived_variables':
                             pp1_output = pp1.pp_derived_variables(datasets=datasets, params=p,
                                                                   tmp_extraction=tmp_outfile, user_dir=user_dir,
@@ -208,12 +203,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     if len(set(pp_list).intersection(set(pp3_list))) > 1:
                         raise PostProcessingException('Only one geographical postprocessing at a time can be executed')
                     try:
-
-                        # raise an error if the dataset is a bufr and a grid interpolation/cropping is requested
-                        if dataset_format == 'bufr':
-                            if any(d['type'] == 'grid_cropping' for d in postprocessors) or any(
-                                    d['type'] == 'grid_interpolation' for d in postprocessors):
-                                raise ValueError("Post processors unaivailable for the requested datasets")
 
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
                         pp_output = None
