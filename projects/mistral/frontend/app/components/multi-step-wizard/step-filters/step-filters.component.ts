@@ -82,24 +82,36 @@ export class StepFiltersComponent implements OnInit {
     onFilterChange() {
         let selectedFilters = this.getSelectedFilters();
         console.log('selected filter(s)', selectedFilters);
-        let excludeNames = selectedFilters.map(f => f.name);
-        excludeNames.push('summarystats');
+        let selectedFilterNames = selectedFilters.map(f => f.name);
         this.formDataService.getFilters(selectedFilters).subscribe(
             response => {
                 let results = response.data.items;
-                console.log(results);
+                // console.log(results);
                 // compare the current filters with the selection results
                 // in order to disable the missing ones
                 Object.entries(this.filters).forEach(f => {
-                    if (!excludeNames.includes(f[0])) {
+                    // if (!selectedFilterNames.includes(f[0])) {
+                    if (f[0] !== 'summarystats') {
                         // ["name", [{...},{...}]]
+                        // console.log(f[0]);
+                        // console.log('....OLD....', f[1]);
                         let m = Object.entries(results)
                             .filter(e => e[0] === f[0])[0];
-                        for (const obj of <Array<any>>f[1]) {
-                            // equal by desc
-                            obj['active'] = _.some(<Array<any>>m[1],
-                                (o, i) => o.desc === obj.desc);
+                        if (selectedFilterNames.includes(m[0])) {
+                            if (selectedFilterNames.length === 1) {
+                                // active them all
+                                for (const obj of <Array<any>>f[1]) {
+                                    obj['active'] = true;
+                                }
+                            }
+                        } else {
+                            for (const obj of <Array<any>>f[1]) {
+                                // equal by desc
+                                obj['active'] = _.some(<Array<any>>m[1],
+                                    (o, i) => o.desc === obj.desc);
+                            }
                         }
+                        // console.log('....NEW....', m[1]);
                     }
                 });
             },
@@ -211,11 +223,11 @@ export class StepFiltersComponent implements OnInit {
 
     private getSelectedFilters() {
         const selectedFilters = [];
-        this.filterForm.value.filters.forEach(f => {
+        (this.filterForm.controls.filters as FormArray).controls.forEach((f: FormGroup) => {
             let res = {
-                name: f.name,
-                values: f.values
-                    .map((v, j) => v ? this.filters[f.name][j] : null)
+                name: f.controls.name.value,
+                values: (f.controls.values as FormArray).controls
+                    .map((v, j) => v.value ? this.filters[f.controls.name.value][j] : null)
                     .filter(v => v !== null),
                 query: ''
             };
