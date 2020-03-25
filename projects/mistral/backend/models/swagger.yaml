@@ -226,49 +226,6 @@ definitions:
           items:
             type: string
 
-#  GProcessor:
-#    description: post-processor for geographical elaborations, interpolations or cropping
-#    type: object
-#    properties:
-#      type:
-#        type: string
-#      input:
-#        description: The list of input for the elaboration.
-##        schema:
-#        oneOf:
-#          $ref: "#/definitions/GridInterpolation"
-#          $ref: "#/definitions/GridCropping"
-#          $ref: "#/definitions/SparePointInterpolation"
-#        discriminator:
-#          propertyName: method
-#  GridInterpolation:
-#    description: post processor to interpolate data on a new grid
-#    type: object
-#    properties:
-#      method:
-#        description: what kind of geographical interpolation
-#        type: string
-#      coordinates:
-#        description: coordinate of the new grid
-#        type: object
-#        properties:
-#         x-min:
-#           type: number
-#         x-max:
-#           type: number
-#         y-min:
-#           type: number
-#         y-max:
-#           type: number
-#      points:
-#        description: number of point of the new grid
-#        type: object
-#        properties:
-#         nx:
-#           type: integer
-#         ny:
-#           type: integer
-
   RefTime:
     required:
       - from
@@ -494,6 +451,55 @@ definitions:
       filesize:
         type: integer
         format: int64
+
+  MapObservedData:
+    type: array
+    items:
+      description: list of data
+      type: object
+      properties:
+        station:
+          description: data related to the station (like ident, lon,lat)
+          type: object
+          properties:
+            id:
+              type: integer
+            ident:
+              type: string
+            lat:
+              type: number
+            lon:
+              type: number
+            network:
+              type: string
+            station-name:
+              type: string
+            variables:
+              description: list of variables measured by the stations (if param onlyStations is true)
+              type: array
+              items:
+                type: string
+        data:
+          type: object
+          properties:
+            variable:
+              description: code of the variable
+              type: array
+              items:
+                type: object
+                properties:
+                  value:
+                    type: number
+                  reftime:
+                    type: string
+            timerange:
+              type: array
+              items:
+                type: number
+            level:
+              type: array
+              items:
+                type: number
 
   Summary:
     required:

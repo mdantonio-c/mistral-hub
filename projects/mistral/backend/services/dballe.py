@@ -73,7 +73,7 @@ class BeDballe():
     def build_explorer():
         DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
                                                                             host=host, port=port))
-        explorer = dballe.Explorer()
+        explorer = dballe.DBExplorer()
         with explorer.rebuild() as update:
             with DB.transaction() as tr:
                 update.add_db(tr)
@@ -438,6 +438,54 @@ class BeDballe():
                 return param_list_parsed, variables
             elif param == 'timerange':
                 return param_list_parsed, variables, level_list_parsed
+
+    @staticmethod
+    def get_data_for_map(stations, networks, bounding_box, query, db_type):
+        DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host, port=port))
+        explorer = BeDballe.build_explorer()
+        response = []
+        # splitting in two external functions? one for station data and one for actual data?
+
+        # prepare the query for stations
+        ###############################
+
+        # get station data
+        # it is correct assuming stations are the same poth for archived and recent data?
+        # TODO Managing case of reftime requested? (and so the different dbs?
+        with DB.transaction() as tr:
+            # TODO managing multiple request if there are filters
+            for rec in tr.query_stations():
+                res_element = {}
+                station_data = {}
+                station_data['id'] = rec['ana_id']
+                query_station_data = {'ana_id': rec['ana_id']} # TODO managing the case additional filters are requested
+                station_data["lat"] = float(rec["lat"])
+                station_data["lon"] = float(rec["lon"])
+                station_data["ident"] = rec["ident"]
+                station_data["network"] = rec["rep_memo"]
+                for row in tr.query_station_data(query_station_data):
+                    var = row['variable']
+                    code = var.code
+                    # codes of variable already present in station records
+                    list_codes = ['B01194', 'B05001', 'B06001']
+                    if code in list_codes:
+                        continue
+                    elif code == 'B01019':  # code corresponding to name of the station
+                        station_data['station name'] = var.get()
+                    else:
+                        station_data[code] = var.get()
+
+                # case of map displaying stations: fill the list of products registered by that station
+                if not query:
+                    explorer.set_filter(query_station_data)
+                    products = explorer.varcodes
+                    station_data['products available'] = products
+                # TODO if query go to other function to append data resulting the query
+                res_element['station'] = station_data
+                log.debug(res_element)
+                response.append(res_element)
+        return response
+
 
     @staticmethod
     def from_query_to_dic(q):
