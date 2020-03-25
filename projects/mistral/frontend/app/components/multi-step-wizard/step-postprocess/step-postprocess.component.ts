@@ -13,6 +13,7 @@ export class StepPostprocessComponent implements OnInit {
     title = 'Choose a post-processing';
     form: FormGroup;
     vars = [];
+    templates = [];
     space_crop_boundings = [
         {
             code: 'ilon',
@@ -165,7 +166,8 @@ export class StepPostprocessComponent implements OnInit {
             gridTemplateFile: new FormControl(''),
             interpolationNodes: new FormArray([]),
             conversionFormat: ['json'],
-            timeStep: new FormControl()
+            timeStep: new FormControl(),
+            templates: []
         });
     }
 
@@ -224,6 +226,26 @@ export class StepPostprocessComponent implements OnInit {
         })
     }
 
+    private buildTemplates(){
+        this.templates = [];
+        this.dataService.getTemplates().subscribe(
+            data => {
+                   
+                    for (let type of data.data)
+                        {
+                            for (let file of type.files)
+                            {   let filepath = file.split('/');
+                                let label = filepath[filepath.length-1];
+                                this.templates.push({'label':label,'filepath': file, 'format':type.type});
+                            }
+                        }
+            },
+            error => {
+                this.notify.showError('Unable to load templates');
+            }
+            )
+    }
+
     ngOnInit() {
         window.scroll(0, 0);
         this.dataService.getDerivedVariables().subscribe(
@@ -235,12 +257,33 @@ export class StepPostprocessComponent implements OnInit {
                 this.notify.showError('Unable to load derived variables configuration');
             }
         )
+        this.buildTemplates();
         this.buildTimePostProcess();
         this.selectedInterpolationType = "-";
         this.selectedConversionFormat = '-';   
         this.buildSpaceCrop();
         this.buildSpaceGrid();
         this.buildNodesInterpolation();
+    }
+
+    loadFile(files: FileList){
+        if (files.length == 1){
+            let file :File = files[0];
+            console.log(file);
+            this.uploadFile(file);
+
+        }
+    }
+    uploadFile(file: File){
+        this.dataService.uploadTemplate(file).subscribe(
+            data => {
+                     this.buildTemplates();
+                    // this.form.controls['templates'].setValue(file.name);
+
+
+                    },
+            error => {this.notify.showError(error.error.Response.errors[0]);}
+            );
     }
 
     private save() {
@@ -282,7 +325,7 @@ export class StepPostprocessComponent implements OnInit {
                 }
 
                 case 'points': {
-                    // selectedProcessors.push(this.calculateSpacePoints());
+                    selectedProcessors.push(this.calculateSpacePoints());
                     break;
                 }
             }
@@ -313,20 +356,45 @@ export class StepPostprocessComponent implements OnInit {
     calculateSpaceGridCoord(){
         const boundings = {};
         const nodes = {};
-        this.form.value.space_grid.map((value, i) => {
-            boundings[this.space_grid_boundings[i].code] = value;
-        });
-        this.form.value.interpolationNodes.map((value, i) => {
-            nodes[this.interpolation_nodes[i].code] = value;
-        })
+
+        if (this.form.value.gridInterpolationType =="area")
+        {
+               this.form.value.space_grid.map((value, i) => {
+                boundings[this.space_grid_boundings[i].code] = value;
+            });
+            this.form.value.interpolationNodes.map((value, i) => {
+                nodes[this.interpolation_nodes[i].code] = value;
+            })
+
+         return {
+             'type': 'grid_interpolation',
+                'sub_type': this.selectedInterpolationType,
+               'boundings': boundings,
+               'nodes': nodes
+            } 
+        }
+         if (this.form.value.gridInterpolationType =="template")
+         {
+            
+            return {
+                'type': 'grid_interpolation',
+                 'template': this.form.value.templates,
+                'sub_type': this.selectedInterpolationType,
+            }
+         }
+        
+
+    }
+
+    calculateSpacePoints(){
 
         return {
-            'type': 'grid_interpolation',
-            'sub_type': this.selectedInterpolationType,
-            'boundings': boundings,
-            'nodes': nodes
+            'type' : 'spare_point_interpolation',
+            'coord-filepath': this.form.value.templates,
+            'format' : this.templates.find(t => t.filepath == this.form.value.templates).format,
+             'sub_type': this.selectedInterpolationType,
+            
         }
-
     }
 
     calculateTimePostProcessor(){

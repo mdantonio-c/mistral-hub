@@ -164,11 +164,16 @@
                     </div>
                     <div class="card-body">                        
                         <ul class="mst--list-columns">
-                            <fieldset>                        
-                                <label class="mst--radio-label" placement="right" openDelay="2000">
+                            <fieldset>
+                                                    
+                                    <label class="mst--radio-label" placement="right" openDelay="2000">
                                     <input type="radio" formControlName="gridInterpolationType" value="template">By GRIB Template</label>
-                                <label class="mst--radio-label" placement="right" openDelay="2000">
+                                
+                                
+                                    <label class="mst--radio-label" placement="right" openDelay="2000">
+
                                     <input type="radio" formControlName="gridInterpolationType" value="area">By Coordinates</label>
+                                
                             </fieldset>
                         </ul>                                 
                         <div class="card mst--expansion-panel">
@@ -179,6 +184,7 @@
                                             <label class="px-2"> Interpolation type</label>
                                         </div>
                                         <div class="col-lg-4">
+                                            
                                             <div class="btn-group mr-3" style="width:100%;">
                                                 <button type="button" class="btn btn-outline-secondary">{{selectedInterpolationType}}</button>                     
                                                 <div ngbDropdown class="btn-group">
@@ -193,9 +199,33 @@
                                 </div>
                                 <div *ngIf="form.value.gridInterpolationType === 'template'" class="d-none d-lg-block col-lg-8 py-2">
                                     <div class="input-group">
+                                       <div class="card mst--expansion-panel"> 
+                                       
+
+                                        <div class="card-header">
+                                                <h5>Templates</h5>
+                                                 
+                                        </div>
+                                        <div class="card-body mst--list-filter">
+                                        <fieldset>
+                                            <ul class="mst--list-columns">
+                                           
+
+                                                <li *ngFor="let v of templates; let i=index">
+                                                  
+                                                     <label class="mst--radio-label" placement="right" openDelay="2000">
+                                                    <input type="radio" formControlName="templates" value="{{v.filepath}}">{{v.label}}</label>
+                                                </li>
+                                                
+                                              
+                                           
+                                            </ul> 
+                                       </fieldset>
+                                   </div>
+                                   </div>
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input" id="input-grid-template"
-                                              aria-describedby="inputGroupFileAddon01">
+                                              aria-describedby="inputGroupFileAddon01" (change)="loadFile($event.target.files)">
                                             <label class="custom-file-label" for="inputGroupFile01">Select a file from your area or upload a new one</label>
                                         </div>                   
                                     </div>      
@@ -260,8 +290,19 @@
                         </div>
                         <div class="d-none d-lg-block col-lg-8 py-2">
                             <div class="input-group">
+                                <ul class="mst--list-columns">
+                                            <fieldset> 
+
+                                                <li *ngFor="let v of templates; let i=index">
+                                                  
+                                                     <label class="mst--radio-label" placement="right" openDelay="2000">
+                                                    <input type="radio" formControlName="templates" value="{{v.filepath}}">{{v.label}}</label>
+                                                </li>
+                                              
+                                            </fieldset>
+                                        </ul> 
                                 <div class="custom-file">
-                                    <input type="file" class="custom-file-input" id="input-grid-template"
+                                    <input type="file" class="custom-file-input" id="input-grid-template" (change)="loadFile($event.target.files)"
                                         aria-describedby="inputGroupFileAddon01">
                                     <label class="custom-file-label" for="inputGroupFile01">Select a file from your area or upload a new one</label>
                                 </div>                   

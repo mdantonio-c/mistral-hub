@@ -4,6 +4,8 @@ import {Observable, of} from 'rxjs';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/share';
 import {ApiService} from '@rapydo/services/api';
+import { environment } from '@rapydo/../environments/environment';
+
 
 export interface RapydoBundle<T> {
     Meta: RapydoMeta;
@@ -124,6 +126,8 @@ export class DataService {
         return this.api.get('datasets');
     }
 
+
+
     /**
      * Get summary fields for a give list of datasets.
      * @param datasets
@@ -139,6 +143,22 @@ export class DataService {
         return this.api.get('fields', '', params);
     }
 
+
+    uploadTemplate(file: File){
+      let formData: FormData = new FormData();
+    formData.append('file', file);
+     let data = {file: formData};
+     
+      let  ep = environment.apiUrl + "/" + 'templates';
+    return this.http.post(ep, formData);
+    
+
+     // return this.api.post('templates', formData);
+    }
+
+    getTemplates(){
+        return this.api.get('templates');
+    }
     /**
      * Request for data extraction.
      */
