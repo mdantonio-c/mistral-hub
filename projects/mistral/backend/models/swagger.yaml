@@ -452,54 +452,52 @@ definitions:
         type: integer
         format: int64
 
-  MapObservedData:
+  MapStations:
     type: array
     items:
-      description: list of data
-      type: object
-      properties:
-        station:
-          description: data related to the station (like ident, lon,lat)
-          type: object
-          properties:
-            id:
-              type: integer
-            ident:
+     $ref: "#/definitions/MapStationData"
+
+  MapStationData:
+    description: list of data
+    type: object
+    properties:
+      station:
+        description: data related to the station (like ident, lon,lat)
+        type: object
+        required:
+          - lat
+          - lon
+        properties:
+          id:
+            type: integer
+          ident:
+            type: string
+          lat:
+            type: number
+          lon:
+            type: number
+          network:
+            type: string
+          station-name:
+            type: string
+          variables:
+            description: list of variables measured by the stations (if param onlyStations is true)
+            type: array
+            items:
               type: string
-            lat:
-              type: number
-            lon:
-              type: number
-            network:
-              type: string
-            station-name:
-              type: string
-            variables:
-              description: list of variables measured by the stations (if param onlyStations is true)
-              type: array
-              items:
-                type: string
-        data:
-          type: object
-          properties:
-            variable:
-              description: code of the variable
-              type: array
-              items:
-                type: object
-                properties:
-                  value:
-                    type: number
-                  reftime:
-                    type: string
-            timerange:
-              type: array
-              items:
-                type: number
-            level:
-              type: array
-              items:
-                type: number
+      data:
+        type: object
+        properties:
+          variable:
+            description: code of the variable
+            type: array
+            items:
+              type: object
+              properties:
+                value:
+                  type: number
+                reftime:
+                  type: string
 
   Summary:
     required:

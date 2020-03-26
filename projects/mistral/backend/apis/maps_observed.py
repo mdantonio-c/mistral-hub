@@ -19,14 +19,6 @@ class MapsObservations(EndpointResource):
             'summary': 'Get values of observed parameters',
             'parameters': [
                 {
-                    'name': 'stations',
-                    'in': 'query',
-                    'type': 'array',
-                    'uniqueItems': True,
-                    'items': {'type': 'string'},
-                    'description': 'id of stations',
-                },
-                {
                     'name': 'networks',
                     'in': 'query',
                     'type': 'array',
@@ -35,19 +27,34 @@ class MapsObservations(EndpointResource):
                 },
                 {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''},
                 {'name': 'bounding-box', 'in': 'query', 'type': 'string', 'description': 'coordinates of a bounding box'},
-                # {
-                #     'name': 'onlyStations',
-                #     'in': 'query',
-                #     'type': 'boolean',
-                #     'default': True,
-                #     'allowEmptyValue': True,
-                # },
 
             ],
             'responses': {
                 '200': {
                     'description': 'List of values successfully retrieved',
-                    'schema': {'$ref': '#/definitions/MapObservedData'},
+                    'schema': {'$ref': '#/definitions/MapStations'},
+                }
+            },
+        },
+        '/maps/observations/<station_id>': {
+            'summary': 'Get station information by id',
+            'parameters': [
+                {
+                    'name': 'networks',
+                    'in': 'query',
+                    'type': 'array',
+                    'uniqueItems': True,
+                    'items': {'type': 'string'},
+                },
+                {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''},
+            ],
+            'responses': {
+                '200': {
+                    'description': 'List of values successfully retrieved',
+                    'schema': {'$ref': '#/definitions/MapStationData'},
+                },
+                '404': {
+                   'description': 'station not found',
                 }
             },
         }
@@ -55,14 +62,13 @@ class MapsObservations(EndpointResource):
 
     @catch_error()
     @authentication.required()
-    def get(self):
+    def get(self, station_id=None):
         params = self.get_input()
         # ids = params.get('stations')
         # nt = params.get('networks')
         # stations = ids.split(',') if ids is not None else []
         # networks = nt.split(',') if nt is not None else []
-        log.debug('params: {}',params)
-        stations = params.get('stations')
+        log.debug('params: {}', params)
         networks = params.get('networks')
         bbox = params.get('bounding-box')
         bbox_list = bbox.split(',') if bbox is not None else []
@@ -96,7 +102,14 @@ class MapsObservations(EndpointResource):
                     query['datetimemin_arki'] = refmin_arki
             else:
                 db_type = 'mixed'
-        res = dballe.get_data_for_map(stations, networks, bounding_box, query, db_type)
+
+        res = dballe.get_maps_data(networks, bounding_box, query, db_type, station_id=station_id)
+
+        if station_id and not res:
+            raise RestApiException(
+                "Station '{}' not found".format(station_id),
+                status_code=hcodes.HTTP_BAD_NOTFOUND,
+            )
 
 
         # # check if only stations are requested
