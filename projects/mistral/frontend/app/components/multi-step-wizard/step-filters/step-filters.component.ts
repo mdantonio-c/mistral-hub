@@ -73,9 +73,6 @@ export class StepFiltersComponent implements OnInit {
         values.map(o => {
             // pre-set actual values from formData
             const control = new FormControl(this.formDataService.isFilterSelected(o));
-            if (!o['active']) {
-                control.disable();
-            }
             (filter.controls.values as FormArray).push(control);
         });
         return filter;
@@ -165,6 +162,11 @@ export class StepFiltersComponent implements OnInit {
         ).add(() => {
             this.loading = false;
         });
+    }
+
+    resetFilters() {
+        this.formDataService.setFilters([]);
+        this.loadFilters();
     }
 
     toggleFullDataset() {
