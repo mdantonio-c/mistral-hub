@@ -1,6 +1,6 @@
 import 'ion-rangeslider/js/ion.rangeSlider.min.js';
 
-import {NgModule, ModuleWithProviders} from '@angular/core';
+import {NgModule, CUSTOM_ELEMENTS_SCHEMA, ModuleWithProviders} from '@angular/core';
 import {NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
 import {RouterModule, Routes} from '@angular/router';
 import {DatePipe} from '@angular/common';
@@ -10,6 +10,7 @@ import {SharedModule} from '@rapydo/shared.module';
 import {AuthGuard} from '@rapydo/app.auth.guard';
 
 import {IonRangeSliderModule} from "ng2-ion-range-slider";
+import {NgxSpinnerModule} from "ngx-spinner";
 
 import {HomeComponent} from '@app/custom.home'
 import {DataComponent} from '@app/components/data/data.component';
@@ -61,7 +62,8 @@ const appRoutes: Routes = [
     imports: [
         SharedModule,
         RouterModule.forChild(appRoutes),
-        IonRangeSliderModule
+        IonRangeSliderModule,
+        NgxSpinnerModule
     ],
     declarations: [
         HomeComponent,
@@ -83,6 +85,7 @@ const appRoutes: Routes = [
         FormatDatePipe,
         DisableControlDirective
     ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [
         DatePipe, {provide: NgbTimeAdapter, useClass: NgbTimeStringAdapter}],
     exports: [

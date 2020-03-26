@@ -6,6 +6,7 @@ import {FormDataService} from "@app/services/formData.service";
 import {ArkimetService} from "@app/services/arkimet.service";
 import {Filters} from "@app/services/data.service";
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {NgxSpinnerService} from "ngx-spinner";
 import * as moment from 'moment';
 import * as _ from 'lodash';
 
@@ -27,7 +28,8 @@ export class StepFiltersComponent implements OnInit {
                 private formDataService: FormDataService,
                 private arkimetService: ArkimetService,
                 private modalService: NgbModal,
-                private notify: NotificationService) {
+                private notify: NotificationService,
+                private spinner: NgxSpinnerService) {
         const refTime = this.formDataService.getReftime();
         this.filterForm = this.fb.group({
             filters: this.fb.array([]),
@@ -80,6 +82,7 @@ export class StepFiltersComponent implements OnInit {
     }
 
     onFilterChange() {
+        this.spinner.show();
         let selectedFilters = this.getSelectedFilters();
         console.log('selected filter(s)', selectedFilters);
         let selectedFilterNames = selectedFilters.map(f => f.name);
@@ -117,7 +120,9 @@ export class StepFiltersComponent implements OnInit {
             },
                 error => {
                 this.notify.showError(`Unable to get summary fields`);
-            });
+            }).add(() => {
+                this.spinner.hide();
+        });
     }
 
     loadFilters() {

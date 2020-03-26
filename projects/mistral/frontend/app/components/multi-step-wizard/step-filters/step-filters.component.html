@@ -4,6 +4,14 @@
         <br/>
         <div class="loader col" *ngIf="loading"></div>
         <div *ngIf="filters">
+            <ngx-spinner
+                    bdColor="rgba(51,51,51,0.8)"
+                    size="medium"
+                    color="#fff"
+                    type="ball-scale-multiple"
+            >
+                <p style="font-size: 20px; color: white">Updating Filters...</p>
+            </ngx-spinner>
             <!-- Summary Stats-->
             <div class="card mst--expansion-panel mst--info-panel" *ngIf="summaryStats">
                 <div class="card-header">
