@@ -46,6 +46,8 @@ class BeArkimet:
                     ds['category'] = v
                 elif k == 'format':
                     ds['format'] = v
+                elif k == 'bounding':
+                    ds['bounding'] = v
             datasets.append(ds)
         return datasets
 
