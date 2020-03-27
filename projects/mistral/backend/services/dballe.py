@@ -446,19 +446,32 @@ class BeDballe():
         # splitting in two external functions? one for station data and one for actual data?
 
         # prepare the query for stations
+        query_station_data = {}
+        if bounding_box:
+            for key,value in bounding_box.items():
+                query_station_data[key]=value
+        if networks:
+            # for now we consider only single parameters.
+            query_station_data['rep_memo'] = networks
         ###############################
         # append to the query the station id if there is one
         # TODO managing the case additional filters are requested
         if station_id:
-            query_station_data = {'ana_id': int(station_id)}
-        else:
-            query_station_data = {}
+            query_station_data['ana_id'] = int(station_id)
+
+        # quattro casi: all stations, station id, query, station id e query
+
+        # caso 3: dopo aver preparato la query del caso, la mando a una funzione esterna assieme al db e ci pensa lei
+        # caso2-4: in fondo funzione esterna per andare a gestire la query. si passa id e db (così la si gestisce alla borinud)
+        # togliere l'explorer, la lista di variabili la rida indietro la funzione che piglia i parametri
+
 
         # get station data
         # it is correct assuming stations are the same poth for archived and recent data?
         # TODO Managing case of reftime requested? (and so the different dbs?
         with DB.transaction() as tr:
             # TODO managing multiple request if there are filters
+            log.debug('query station {}', query_station_data)
             # check if query gives back a result
             count_data = tr.query_stations(query_station_data).remaining
             if count_data == 0:

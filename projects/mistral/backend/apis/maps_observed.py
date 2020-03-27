@@ -18,13 +18,15 @@ class MapsObservations(EndpointResource):
         '/maps/observations': {
             'summary': 'Get values of observed parameters',
             'parameters': [
-                {
-                    'name': 'networks',
-                    'in': 'query',
-                    'type': 'array',
-                    'uniqueItems': True,
-                    'items': {'type': 'string'},
-                },
+                # uncomment if we decide that networks can be multiple
+                # {
+                #     'name': 'networks',
+                #     'in': 'query',
+                #     'type': 'array',
+                #     'uniqueItems': True,
+                #     'items': {'type': 'string'},
+                # },
+                {'name': 'networks', 'in': 'query', 'type': 'string'},
                 {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''},
                 {'name': 'bounding-box', 'in': 'query', 'type': 'string', 'description': 'coordinates of a bounding box'},
 
@@ -33,6 +35,9 @@ class MapsObservations(EndpointResource):
                 '200': {
                     'description': 'List of values successfully retrieved',
                     'schema': {'$ref': '#/definitions/MapStations'},
+                },
+                '404': {
+                    'description': 'the query does not give result',
                 }
             },
         },
@@ -68,8 +73,8 @@ class MapsObservations(EndpointResource):
         # nt = params.get('networks')
         # stations = ids.split(',') if ids is not None else []
         # networks = nt.split(',') if nt is not None else []
-        log.debug('params: {}', params)
         networks = params.get('networks')
+        log.debug(networks)
         bbox = params.get('bounding-box')
         bbox_list = bbox.split(',') if bbox is not None else []
         q = params.get('q')
@@ -105,11 +110,17 @@ class MapsObservations(EndpointResource):
 
         res = dballe.get_maps_data(networks, bounding_box, query, db_type, station_id=station_id)
 
-        if station_id and not res:
-            raise RestApiException(
-                "Station '{}' not found".format(station_id),
-                status_code=hcodes.HTTP_BAD_NOTFOUND,
-            )
+        if not res:
+            if station_id:
+                raise RestApiException(
+                    "Station '{}' not found".format(station_id),
+                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+                )
+            else:
+                raise RestApiException(
+                    "The query does not give any result",
+                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+                )
 
 
         # # check if only stations are requested
