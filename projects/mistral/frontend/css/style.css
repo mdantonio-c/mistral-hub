@@ -212,9 +212,66 @@ input[type="radio"]:focus,
 }
 
 .mst--radio-label {
+    position: relative;
     font-weight: 400;
     margin-left: 15px;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
+
+.mst--radio-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkradio {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+  border-radius: 50%;
+}
+
+.mst--radio-label:hover input ~ .checkradio {
+  background-color: #ccc;
+}
+
+/* When the radio button is checked, add a blue background */
+.mst--radio-label input:checked ~ .checkradio {
+  background-color: #53b8e2;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkradio:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.mst--radio-label input:checked ~ .checkradio:after {
+  display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.mst--radio-label .checkradio:after {
+    top: 7.2px;
+    left: 7.2px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: white;
+}
+
+/***********************************************/
 
 .mst--radio-label:before {
     background: #fff;
@@ -461,6 +518,16 @@ div.board + pre {
 .sidenav .nav-tabs .nav-link.active {
     background-color: #e8f0fe;
     color: #1967d2;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input.ng-invalid {
+  border-color: red !important;
 }
 
 /* the following fix flickering issues with map carousel */

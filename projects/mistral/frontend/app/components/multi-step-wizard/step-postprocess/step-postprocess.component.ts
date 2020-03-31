@@ -13,6 +13,8 @@ export class StepPostprocessComponent implements OnInit {
     title = 'Choose a post-processing';
     form: FormGroup;
     vars = [];
+    templates = [];
+    validationResults = [];
     space_crop_boundings = [
         {
             code: 'ilon',
@@ -120,24 +122,23 @@ export class StepPostprocessComponent implements OnInit {
     {
         code: 3,
         desc: 'Minimum'
+    },
+    {
+        code: 4,
+        desc: 'Difference'
+    },
+    {
+        code: 6,
+        desc: 'Standard deviation'
+    },
+    {
+        code: 254,
+        desc: 'Immediate'
     }];
     
-    selectedInputTimeRange = {
-        code: -1,
-        desc: '-'
-    };
-    
-    selectedOutputTimeRange =  {
-        code: -1,
-        desc: '-'
-    };
-
     stepIntervals = ["-", "hour", "day", "month", "year"];
-    selectedStepInterval = "-";
-
+    
     interpolationTypes = ["-", "near", "bilin", "average", "min", "max"];
-    selectedInterpolationType = "-";
-
 
     cropTypes = [        
         {
@@ -153,28 +154,35 @@ export class StepPostprocessComponent implements OnInit {
     selectedCropType = {
             code: 0,
             desc: 'coord'
-        };
+    };
 
     formatTypes = ['-','json'];    
 
-    selectedConversionFormat = '-';
+    selectedInputTimeRange;
+    selectedOutputTimeRange;
+    selectedStepInterval;
+    selectedInterpolationType;
+    selectedConversionFormat;
 
     constructor(private formBuilder: FormBuilder,
         private router: Router,
         private route: ActivatedRoute,
         private formDataService: FormDataService,
-        private dataService: DataService,
+        private dataService: DataService,        
         private notify: NotificationService) {
         this.form = this.formBuilder.group({
             derived_variables: new FormArray([]),
-            // space_type: ['crop'],
             space_type: [],
-            space_crop: new FormArray([]),
+            space_crop: new FormArray([], [Validators.required]),
             space_grid: new FormArray([]),            
             gridInterpolationType: ['template'],
             gridTemplateFile: new FormControl(''),
             interpolationNodes: new FormArray([]),
-            conversionFormat: ['json']
+            conversionFormat: ['json'],
+            timeStep: new FormControl(),
+            templates: new FormControl(),
+            selectedTimePP: new FormControl(),
+            selectedSpacePP: new FormControl()
         });
     }
 
@@ -190,11 +198,41 @@ export class StepPostprocessComponent implements OnInit {
         });
     }
 
+    private buildTimePostProcess(){
+        const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'statistic_elaboration');
+        if (pt && pt.length){
+            this.form.controls['selectedTimePP'].setValue(true);
+            this.selectedStepInterval = pt[0].interval; //'interval': this.selectedStepInterval,
+            this.form.controls['timeStep'].setValue(pt[0].step); //'step': this.form.value.timeStep
+            this.selectedInputTimeRange = this.timeRanges.filter(t => t.code == pt[0]['input-timerange'])[0];
+            this.selectedOutputTimeRange = this.timeRanges.filter(t => t.code == pt[0]['output-timerange'])[0];
+        }else{
+            this.selectedStepInterval = "-";
+            this.selectedInputTimeRange = {
+                code: -1,
+                desc: '-'
+            };
+            
+            this.selectedOutputTimeRange =  {
+                code: -1,
+                desc: '-'
+            };
+        }
+
+    }
+
     private buildSpaceCrop() {
+        const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'grid_cropping');
+        if (pt && pt.length){
+            this.form.controls['selectedSpacePP'].setValue(true);
+            this.form.controls['space_type'].setValue('crop');
+        }
+        
         this.space_crop_boundings.map(bound => {
             const control = this.formBuilder.control(0, bound.validators);
             (this.form.controls.space_crop as FormArray).push(control);
-        })
+        });
+        
     }
 
     private buildSpaceGrid() {
@@ -211,6 +249,26 @@ export class StepPostprocessComponent implements OnInit {
         })
     }
 
+    private buildTemplates(){
+        this.templates = [];
+        this.dataService.getTemplates().subscribe(
+            data => {
+                   
+                    for (let type of data.data)
+                        {
+                            for (let file of type.files)
+                            {   let filepath = file.split('/');
+                                let label = filepath[filepath.length-1];
+                                this.templates.push({'label':label,'filepath': file, 'format':type.type});
+                            }
+                        }
+            },
+            error => {
+                this.notify.showError('Unable to load templates');
+            }
+            )
+    }
+
     ngOnInit() {
         window.scroll(0, 0);
         this.dataService.getDerivedVariables().subscribe(
@@ -222,9 +280,33 @@ export class StepPostprocessComponent implements OnInit {
                 this.notify.showError('Unable to load derived variables configuration');
             }
         )
+        this.buildTemplates();
+        this.buildTimePostProcess();
+        this.selectedInterpolationType = "-";
+        this.selectedConversionFormat = '-';   
         this.buildSpaceCrop();
         this.buildSpaceGrid();
         this.buildNodesInterpolation();
+    }
+
+    loadFile(files: FileList){
+        if (files.length == 1){
+            let file :File = files[0];
+            console.log(file);
+            this.uploadFile(file);
+
+        }
+    }
+    uploadFile(file: File){
+        this.dataService.uploadTemplate(file).subscribe(
+            data => {
+                     this.buildTemplates();
+                    // this.form.controls['templates'].setValue(file.name);
+
+
+                    },
+            error => {this.notify.showError(error.error.Response.errors[0]);}
+            );
     }
 
     private save() {
@@ -242,23 +324,43 @@ export class StepPostprocessComponent implements OnInit {
                 variables: selectedDerivedVariables
             });
         }
+
+        // Time post processing
+        if (this.form.value.selectedTimePP){            
+            this.validateTimePostProcessor();
+            let timeValidationItem = this.validationResults.filter(v => v.type == 'time')[0];
+            if (!timeValidationItem){
+                selectedProcessors.push(this.calculateTimePostProcessor());    
+            }
+        }
+
         // push space processor object in selectedProcessors
-        // TODO: space pp type <==> radio buttons binding
         const selectedSpaceProcessor = this.form.value.space_type;
-        if (selectedSpaceProcessor && selectedSpaceProcessor.length) {
+        if (this.form.value.selectedSpacePP && selectedSpaceProcessor && selectedSpaceProcessor.length) {
             switch (selectedSpaceProcessor) {
-                case 'crop': {
-                    selectedProcessors.push(this.calculateSpaceCrop());
+                case 'crop': {                    
+                    this.validateAreaCrop();
+                    let areaValidationItem = this.validationResults.filter(v => v.type == 'area')[0];
+                    if (!areaValidationItem){
+                        selectedProcessors.push(this.calculateSpaceCrop());
+                    }
                     break;
                 }
-
                 case 'grid': {
-                    selectedProcessors.push(this.calculateSpaceGridCoord());
+                    this.validateGridInterpolation();
+                    let gridAreaValidationItem = this.validationResults.filter(v => v.type == 'grid')[0];
+                    if (!gridAreaValidationItem){
+                        selectedProcessors.push(this.calculateSpaceGridCoord());
+                    }                                    
                     break;
                 }
 
                 case 'points': {
-                    // selectedProcessors.push(this.calculateSpacePoints());
+                    this.validateSparePoints();
+                    let sparePointsValidationItem = this.validationResults.filter(v => v.type == 'spare_points')[0];
+                    if (!sparePointsValidationItem){
+                        selectedProcessors.push(this.calculateSpacePoints());    
+                    }                    
                     break;
                 }
             }
@@ -269,9 +371,23 @@ export class StepPostprocessComponent implements OnInit {
         if (this.selectedConversionFormat != null && this.selectedConversionFormat != ' '){
             this.formDataService.setOutputFormat(this.selectedConversionFormat);
         }
-        return true;
-    }
 
+        if(this.validationResults.length){
+            this.validationResults.forEach(r => {
+                if (r.messages.length){
+                    let errorMessage = "";
+                    r.messages.forEach(m => {
+                        errorMessage = errorMessage + m;
+                    })                   
+                    this.notify.showError(errorMessage, r.title);
+                }
+            });
+            this.validationResults = [];
+            return false;
+        }else{
+            return true;    
+        }        
+    }
 
     calculateSpaceCrop() {
         const boundings = {}
@@ -289,20 +405,165 @@ export class StepPostprocessComponent implements OnInit {
     calculateSpaceGridCoord(){
         const boundings = {};
         const nodes = {};
-        this.form.value.space_grid.map((value, i) => {
-            boundings[this.space_grid_boundings[i].code] = value;
-        });
-        this.form.value.interpolationNodes.map((value, i) => {
-            nodes[this.interpolation_nodes[i].code] = value;
-        })
+
+        if (this.form.value.gridInterpolationType =="area")
+        {
+               this.form.value.space_grid.map((value, i) => {
+                boundings[this.space_grid_boundings[i].code] = value;
+            });
+            this.form.value.interpolationNodes.map((value, i) => {
+                nodes[this.interpolation_nodes[i].code] = value;
+            })
+
+         return {
+             'type': 'grid_interpolation',
+                'sub_type': this.selectedInterpolationType,
+               'boundings': boundings,
+               'nodes': nodes
+            } 
+        }
+         if (this.form.value.gridInterpolationType =="template")
+         {
+            
+            return {
+                'type': 'grid_interpolation',
+                 'template': this.form.value.templates,
+                'sub_type': this.selectedInterpolationType,
+            }
+         }
+        
+
+    }
+
+    calculateSpacePoints(){
 
         return {
-            'type': 'grid_interpolation',
-            'sub_type': this.selectedInterpolationType,
-            'boundings': boundings,
-            'nodes': nodes
+            'type' : 'spare_point_interpolation',
+            'coord-filepath': this.form.value.templates,
+            'format' : this.templates.find(t => t.filepath == this.form.value.templates).format,
+             'sub_type': this.selectedInterpolationType,
+            
+        }
+    }
+
+    calculateTimePostProcessor(){
+        return {
+            'type': 'statistic_elaboration',
+            'input-timerange': this.selectedInputTimeRange.code,
+            'output-timerange': this.selectedOutputTimeRange.code,
+            'interval': this.selectedStepInterval,
+            'step': this.form.value.timeStep
+        }
+    }
+
+    validateTimePostProcessor(){
+        
+        let validationItem = {
+            'type': 'time',
+            'title': 'Time Post Processing',
+            'messages': []
+        };
+                
+        if (this.selectedInputTimeRange.code == null || this.selectedInputTimeRange.code == -1
+        || this.selectedOutputTimeRange.code == null || this.selectedOutputTimeRange.code == -1
+        || this.form.value.timeStep == null
+        || this.selectedStepInterval == null || this.selectedStepInterval == '-'){
+            validationItem.messages.push(" - Missing mandatory fields<br/>");            
         }
 
+        if (this.selectedInputTimeRange.code != this.selectedOutputTimeRange.code){
+            if ((this.selectedInputTimeRange.code == 254 && (this.selectedOutputTimeRange.code == 1 || this.selectedOutputTimeRange.code == 254))
+            || (this.selectedInputTimeRange.code == 0 && this.selectedOutputTimeRange.code != 254)){
+                validationItem.messages.push(" - Inconsistent values<br/>");
+            }    
+        }
+
+        let timeStepRegex = new RegExp('^-?[0-9]+$');
+        if(this.form.value.timeStep != null && (this.form.value.timeStep <= 0 || !timeStepRegex.test(this.form.value.timeStep))){
+            validationItem.messages.push(" - Step value must be a positive integer<br/>");
+        }
+
+        if (validationItem.messages.length){
+            this.validationResults.push(validationItem);    
+        }        
+    }
+
+    validateAreaCrop(){
+
+        let validationItem = {
+            'type': 'area',
+            'title': 'Area crop',
+            'messages': []
+        };
+        
+        if (this.form.value.space_crop.filter(s => {
+            let regex = new RegExp('[1-9]{1,2}\.?[\d]{0,6}$');
+            return !regex.test(s);
+        }).length){
+            validationItem.messages.push(" - Lat/Lon values must be greater than zero<br/>");
+            this.validationResults.push(validationItem);
+        }
+        
+    }
+
+    validateGridInterpolation(){
+
+        let validationItem = {
+            'type': 'grid',
+            'title': 'Grid interpolation',
+            'messages': []
+        };
+
+        if (this.form.value.gridInterpolationType =="area"){ 
+            if (this.form.value.space_grid.filter(s => {
+                let regex = new RegExp('[1-9]{1,2}\.?[\d]{0,6}$');
+                return !regex.test(s);
+            }).length){
+                validationItem.messages.push(" - Lat/Lon values must be greater than zero<br/>");
+            }
+
+            if (this.form.value.interpolationNodes.filter(n => {
+                let regex = new RegExp('^-?[0-9]+$');
+                return !regex.test(n);
+            }).length){
+                validationItem.messages.push(" - nx/ny values must be greater than zero<br/>");
+            }
+            
+        }else {
+            if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
+                validationItem.messages.push(" - interpolation type required<br/>");
+            }
+
+            if (!this.form.value.templates){
+                validationItem.messages.push(" - at least one template must be selected<br/>");
+            }
+        }
+
+        if (validationItem.messages.length){
+                this.validationResults.push(validationItem);    
+        }
+
+    }
+
+    validateSparePoints(){
+
+        let validationItem = {
+            'type': 'spare_points',
+            'title': 'Spare points',
+            'messages': []
+        };
+
+        if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
+                validationItem.messages.push(" - interpolation type required<br/>");
+            }
+
+            if (!this.form.value.templates){
+                validationItem.messages.push(" - at least one template must be selected<br/>");
+        }
+
+        if (validationItem.messages.length){
+                this.validationResults.push(validationItem);    
+        }
     }
 
     goToPrevious() {
