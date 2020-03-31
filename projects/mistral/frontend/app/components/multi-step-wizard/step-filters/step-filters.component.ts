@@ -161,6 +161,9 @@ export class StepFiltersComponent implements OnInit {
             }
         ).add(() => {
             this.loading = false;
+            if (this.formDataService.getFormData().filters.length !== 0) {
+                this.onFilterChange();
+            }
         });
     }
 
