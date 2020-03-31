@@ -435,3 +435,13 @@ div.board + pre {
     background-color: #e8f0fe;
     color: #1967d2;
 }
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input.ng-invalid {
+  border-color: red !important;
+}

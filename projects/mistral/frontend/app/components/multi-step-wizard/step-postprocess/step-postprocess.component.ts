@@ -14,6 +14,7 @@ export class StepPostprocessComponent implements OnInit {
     form: FormGroup;
     vars = [];
     templates = [];
+    validationResults = [];
     space_crop_boundings = [
         {
             code: 'ilon',
@@ -121,6 +122,18 @@ export class StepPostprocessComponent implements OnInit {
     {
         code: 3,
         desc: 'Minimum'
+    },
+    {
+        code: 4,
+        desc: 'Difference'
+    },
+    {
+        code: 6,
+        desc: 'Standard deviation'
+    },
+    {
+        code: 254,
+        desc: 'Immediate'
     }];
     
     stepIntervals = ["-", "hour", "day", "month", "year"];
@@ -141,7 +154,7 @@ export class StepPostprocessComponent implements OnInit {
     selectedCropType = {
             code: 0,
             desc: 'coord'
-        };
+    };
 
     formatTypes = ['-','json'];    
 
@@ -160,14 +173,16 @@ export class StepPostprocessComponent implements OnInit {
         this.form = this.formBuilder.group({
             derived_variables: new FormArray([]),
             space_type: [],
-            space_crop: new FormArray([]),
+            space_crop: new FormArray([], [Validators.required]),
             space_grid: new FormArray([]),            
             gridInterpolationType: ['template'],
             gridTemplateFile: new FormControl(''),
             interpolationNodes: new FormArray([]),
             conversionFormat: ['json'],
             timeStep: new FormControl(),
-            templates: []
+            templates: new FormControl(),
+            selectedTimePP: new FormControl(),
+            selectedSpacePP: new FormControl()
         });
     }
 
@@ -303,29 +318,41 @@ export class StepPostprocessComponent implements OnInit {
         }
 
         // Time post processing
-        if (this.selectedInputTimeRange.code != null && this.selectedInputTimeRange.code != -1
-            && this.selectedOutputTimeRange.code != null && this.selectedOutputTimeRange.code != -1
-            && this.form.value.timeStep != null
-            && this.selectedStepInterval != null && this.selectedStepInterval != '-'){
-            selectedProcessors.push(this.calculateTimePostProcessor());
+        if (this.form.value.selectedTimePP){            
+            this.validateTimePostProcessor();
+            let timeValidationItem = this.validationResults.filter(v => v.type == 'time')[0];
+            if (!timeValidationItem){
+                selectedProcessors.push(this.calculateTimePostProcessor());    
+            }
         }
 
         // push space processor object in selectedProcessors
         const selectedSpaceProcessor = this.form.value.space_type;
-        if (selectedSpaceProcessor && selectedSpaceProcessor.length) {
+        if (this.form.value.selectedSpacePP && selectedSpaceProcessor && selectedSpaceProcessor.length) {
             switch (selectedSpaceProcessor) {
-                case 'crop': {
-                    selectedProcessors.push(this.calculateSpaceCrop());
+                case 'crop': {                    
+                    this.validateAreaCrop();
+                    let areaValidationItem = this.validationResults.filter(v => v.type == 'area')[0];
+                    if (!areaValidationItem){
+                        selectedProcessors.push(this.calculateSpaceCrop());
+                    }
                     break;
                 }
-
                 case 'grid': {
-                    selectedProcessors.push(this.calculateSpaceGridCoord());
+                    this.validateGridInterpolation();
+                    let gridAreaValidationItem = this.validationResults.filter(v => v.type == 'grid')[0];
+                    if (!gridAreaValidationItem){
+                        selectedProcessors.push(this.calculateSpaceGridCoord());
+                    }                                    
                     break;
                 }
 
                 case 'points': {
-                    selectedProcessors.push(this.calculateSpacePoints());
+                    this.validateSparePoints();
+                    let sparePointsValidationItem = this.validationResults.filter(v => v.type == 'spare_points')[0];
+                    if (!sparePointsValidationItem){
+                        selectedProcessors.push(this.calculateSpacePoints());    
+                    }                    
                     break;
                 }
             }
@@ -336,9 +363,23 @@ export class StepPostprocessComponent implements OnInit {
         if (this.selectedConversionFormat != null && this.selectedConversionFormat != ' '){
             this.formDataService.setOutputFormat(this.selectedConversionFormat);
         }
-        return true;
-    }
 
+        if(this.validationResults.length){
+            this.validationResults.forEach(r => {
+                if (r.messages.length){
+                    let errorMessage = "";
+                    r.messages.forEach(m => {
+                        errorMessage = errorMessage + m;
+                    })                   
+                    this.notify.showError(errorMessage, r.title);
+                }
+            });
+            this.validationResults = [];
+            return false;
+        }else{
+            return true;    
+        }        
+    }
 
     calculateSpaceCrop() {
         const boundings = {}
@@ -404,6 +445,115 @@ export class StepPostprocessComponent implements OnInit {
             'output-timerange': this.selectedOutputTimeRange.code,
             'interval': this.selectedStepInterval,
             'step': this.form.value.timeStep
+        }
+    }
+
+    validateTimePostProcessor(){
+        
+        let validationItem = {
+            'type': 'time',
+            'title': 'Time Post Processing',
+            'messages': []
+        };
+                
+        if (this.selectedInputTimeRange.code == null || this.selectedInputTimeRange.code == -1
+        || this.selectedOutputTimeRange.code == null || this.selectedOutputTimeRange.code == -1
+        || this.form.value.timeStep == null
+        || this.selectedStepInterval == null || this.selectedStepInterval == '-'){
+            validationItem.messages.push(" - Missing mandatory fields<br/>");            
+        }
+
+        if ((this.selectedInputTimeRange.code != this.selectedOutputTimeRange.code)
+            || (this.selectedInputTimeRange.code == 254 && (this.selectedOutputTimeRange.code == 1 || this.selectedOutputTimeRange.code == 254))
+            || (this.selectedInputTimeRange.code == 0 && this.selectedOutputTimeRange.code != 254)){
+            validationItem.messages.push(" - Inconsistent values<br/>");
+        }
+
+        let timeStepRegex = new RegExp('^-?[0-9]+$');
+        if(this.form.value.timeStep != null && (this.form.value.timeStep <= 0 || !timeStepRegex.test(this.form.value.timeStep))){
+            validationItem.messages.push(" - Step value must be a positive integer<br/>");
+        }
+
+        if (validationItem.messages.length){
+            this.validationResults.push(validationItem);    
+        }        
+    }
+
+    validateAreaCrop(){
+
+        let validationItem = {
+            'type': 'area',
+            'title': 'Area crop',
+            'messages': []
+        };
+        
+        if (this.form.value.space_crop.filter(s => {
+            let regex = new RegExp('[1-9]{1,2}\.?[\d]{0,6}$');
+            return !regex.test(s);
+        }).length){
+            validationItem.messages.push(" - Lat/Lon values must be greater than zero<br/>");
+            this.validationResults.push(validationItem);
+        }
+        
+    }
+
+    validateGridInterpolation(){
+
+        let validationItem = {
+            'type': 'grid',
+            'title': 'Grid interpolation',
+            'messages': []
+        };
+
+        if (this.form.value.gridInterpolationType =="area"){ 
+            if (this.form.value.space_grid.filter(s => {
+                let regex = new RegExp('[1-9]{1,2}\.?[\d]{0,6}$');
+                return !regex.test(s);
+            }).length){
+                validationItem.messages.push(" - Lat/Lon values must be greater than zero<br/>");
+            }
+
+            if (this.form.value.interpolationNodes.filter(n => {
+                let regex = new RegExp('^-?[0-9]+$');
+                return !regex.test(n);
+            }).length){
+                validationItem.messages.push(" - nx/ny values must be greater than zero<br/>");
+            }
+            
+        }else {
+            if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
+                validationItem.messages.push(" - interpolation type required<br/>");
+            }
+
+            if (!this.form.value.templates){
+                validationItem.messages.push(" - at least one template must be selected<br/>");
+            }
+        }
+
+        if (validationItem.messages.length){
+                this.validationResults.push(validationItem);    
+        }
+
+    }
+
+    validateSparePoints(){
+
+        let validationItem = {
+            'type': 'spare_points',
+            'title': 'Spare points',
+            'messages': []
+        };
+
+        if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
+                validationItem.messages.push(" - interpolation type required<br/>");
+            }
+
+            if (!this.form.value.templates){
+                validationItem.messages.push(" - at least one template must be selected<br/>");
+        }
+
+        if (validationItem.messages.length){
+                this.validationResults.push(validationItem);    
         }
     }
 

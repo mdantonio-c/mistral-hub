@@ -145,15 +145,12 @@ export class DataService {
 
 
     uploadTemplate(file: File){
-      let formData: FormData = new FormData();
-    formData.append('file', file);
-     let data = {file: formData};
-     
-      let  ep = environment.apiUrl + "/" + 'templates';
-    return this.http.post(ep, formData);
-    
-
-     // return this.api.post('templates', formData);
+        let formData: FormData = new FormData();
+        formData.append('file', file);
+        let data = {file: formData};
+        let  ep = environment.apiUrl + "/" + 'templates';
+        return this.http.post(ep, formData);
+        //return this.api.post('templates', formData);
     }
 
     getTemplates(){
