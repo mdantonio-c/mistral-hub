@@ -74,7 +74,7 @@ class MapsObservations(EndpointResource):
         # stations = ids.split(',') if ids is not None else []
         # networks = nt.split(',') if nt is not None else []
         networks = params.get('networks')
-        log.debug(networks)
+        # log.debug(networks)
         bbox = params.get('bounding-box')
         bbox_list = bbox.split(',') if bbox is not None else []
         q = params.get('q')
@@ -107,13 +107,13 @@ class MapsObservations(EndpointResource):
                     query['datetimemin_arki'] = refmin_arki
             else:
                 db_type = 'mixed'
-
-        res = dballe.get_maps_data(networks, bounding_box, query, db_type, station_id=station_id)
+        log.debug(db_type)
+        res = dballe.get_maps_response(networks, bounding_box, query, db_type, station_id=station_id)
 
         if not res:
             if station_id:
                 raise RestApiException(
-                    "Station '{}' not found".format(station_id),
+                    "Station '{}': data not found".format(station_id),
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
             else:

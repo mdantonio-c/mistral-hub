@@ -6,7 +6,7 @@ import subprocess
 import dateutil
 import tempfile
 import shlex
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, time
 
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 
@@ -16,10 +16,10 @@ host = os.environ.get("ALCHEMY_HOST")
 engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
 
-
 LASTDAYS = os.environ.get("LASTDAYS")  # number of days after which data pass in Arkimet
 
-#DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
+
+# DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
 
 
 class BeDballe():
@@ -28,7 +28,7 @@ class BeDballe():
     @staticmethod
     def get_db_type(date_min, date_max):
         date_min_compar = datetime.utcnow() - date_min
-        if date_min_compar.days >int(LASTDAYS):
+        if date_min_compar.days > int(LASTDAYS):
             date_max_compar = datetime.utcnow() - date_max
             if date_max_compar.days > int(LASTDAYS):
                 db_type = 'arkimet'
@@ -72,7 +72,7 @@ class BeDballe():
     @staticmethod
     def build_explorer():
         DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
-                                                                            host=host, port=port))
+                                                                                    host=host, port=port))
         explorer = dballe.DBExplorer()
         with explorer.rebuild() as update:
             with DB.transaction() as tr:
@@ -134,7 +134,7 @@ class BeDballe():
                 dballe_query[k] = v
             # count the items for each query
             DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
-                                                                            host=host, port=port))
+                                                                                        host=host, port=port))
             with DB.transaction() as tr:
                 message_count += tr.query_data(dballe_query).remaining
 
@@ -177,7 +177,7 @@ class BeDballe():
         explorer = BeDballe.build_explorer()
 
         # if not BeDballe.explorer:
-            # BeDballe.explorer = BeDballe.build_explorer()
+        # BeDballe.explorer = BeDballe.build_explorer()
         # explorer = BeDballe.explorer
 
         # parse the query
@@ -313,7 +313,7 @@ class BeDballe():
             networks_list.append(n)
 
         # if matching fields were found network list can't be empty
-        if networks_list: 
+        if networks_list:
             # create the final dictionary
             fields['network'] = BeDballe.from_list_of_params_to_list_of_dic(networks_list, type='network')
             fields['product'] = BeDballe.from_list_of_params_to_list_of_dic(variables, type='product')
@@ -440,43 +440,57 @@ class BeDballe():
                 return param_list_parsed, variables, level_list_parsed
 
     @staticmethod
-    def get_maps_data(networks, bounding_box, query, db_type, station_id=None):
-        DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host, port=port))
+    def get_maps_response(networks, bounding_box, query, db_type, station_id=None):
+        DB = dballe.DB.connect(
+            "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host, port=port))
         response = []
         # splitting in two external functions? one for station data and one for actual data?
 
         # prepare the query for stations
         query_station_data = {}
         if bounding_box:
-            for key,value in bounding_box.items():
-                query_station_data[key]=value
+            for key, value in bounding_box.items():
+                query_station_data[key] = value
         if networks:
             # for now we consider only single parameters.
+            # TODO choose if the network will be a single or multiple param
             query_station_data['rep_memo'] = networks
         ###############################
         # append to the query the station id if there is one
-        # TODO managing the case additional filters are requested
         if station_id:
             query_station_data['ana_id'] = int(station_id)
 
-        # quattro casi: all stations, station id, query, station id e query
+        query_data = {}
+        if query_station_data:
+            for key, value in query_station_data.items():
+                query_data[key] = value
+        if query:
+            # adapt the query to the dballe syntax and add the params to the general query
+            allowed_keys = ['level', 'network', 'product', 'timerange', 'datetimemin', 'datetimemax']
+            dballe_keys = ['level', 'rep_memo', 'var', 'trange', 'datetimemin', 'datetimemax']
+            for key, value in query.items():
+                key_index = allowed_keys.index(key)
+                if not isinstance(value, list):
+                    query_data[dballe_keys[key_index]] = value
+                else:
+                    query_data[dballe_keys[key_index]] = value[0]
 
-        # caso 3: dopo aver preparato la query del caso, la mando a una funzione esterna assieme al db e ci pensa lei
-        # caso2-4: in fondo funzione esterna per andare a gestire la query. si passa id e db (così la si gestisce alla borinud)
-        # togliere l'explorer, la lista di variabili la rida indietro la funzione che piglia i parametri
+        if query and not station_id:
+            # get data
+            response = BeDballe.get_data_for_maps(DB, query_data)
+            return response
 
-
-        # get station data
-        # it is correct assuming stations are the same poth for archived and recent data?
-        # TODO Managing case of reftime requested? (and so the different dbs?
+        # get station data or data by station
+        # TODO it is correct assuming stations are the same both for archived and recent data?
+        # TODO Managing case of reftime requested? (and so the different dbs?)
         with DB.transaction() as tr:
-            # TODO managing multiple request if there are filters
-            log.debug('query station {}', query_station_data)
+            log.debug('query station {}', query_data)
             # check if query gives back a result
-            count_data = tr.query_stations(query_station_data).remaining
+            count_data = tr.query_stations(query_data).remaining
+            # log.debug('count {}',count_data)
             if count_data == 0:
                 return None
-            for rec in tr.query_stations(query_station_data):
+            for rec in tr.query_stations(query_data):
                 res_element = {}
                 station_data = {}
                 station_data['id'] = rec['ana_id']
@@ -485,7 +499,7 @@ class BeDballe():
                 station_data["ident"] = rec["ident"]
                 if station_id:
                     station_data["network"] = rec["rep_memo"]
-                    # add additional informations about the station
+                    # add additional informations about the station (we use query_station_data because varcodes are differents)
                     for row in tr.query_station_data(query_station_data):
                         var = row['variable']
                         code = var.code
@@ -497,19 +511,92 @@ class BeDballe():
                             station_data['station name'] = var.get()
                         else:
                             station_data[code] = var.get()
-                    # get the list of products registered by the station
-                    explorer = BeDballe.build_explorer()
-                    explorer.set_filter(query_station_data)
-                    products = explorer.varcodes
-                    station_data['products available'] = products
+
                 res_element['station'] = station_data
                 response.append(res_element)
-                # TODO if query ....
         if station_id:
+            products, data = BeDballe.get_data_by_station(DB, query_data)
+            res_element['station']['products available'] = products
+            res_element['data'] = data
             return res_element
         else:
             return response
 
+    @staticmethod
+    def get_data_for_maps(db, query):
+        response = []
+        if 'datetimemin' not in query.keys():
+            # if there is no reftime i use the time now
+            # TODO is it correct or i have to use the most recent data i have?(how to get it?) or the ones at thishour:00 or thishour:30?
+            query['datetimemin'] = query['datetimemax'] = datetime.now()
+        log.debug('query data for maps {}', query)
+        with db.transaction() as tr:
+            # check if query gives back a result
+            count_data = tr.query_stations(query).remaining
+            # log.debug('count {}',count_data)
+            if count_data == 0:
+                return None
+            for rec in tr.query_data(query):
+                res_element = {}
+                # get data about the station
+                station_data = {}
+                station_data['id'] = rec['ana_id']
+                station_data["lat"] = float(rec["lat"])
+                station_data["lon"] = float(rec["lon"])
+                station_data["ident"] = rec["ident"]
+                res_element['station'] = station_data
+
+                # get data values
+                data = {}
+                data[rec['var']] = []
+                product_el = {}
+                product_el['value'] = rec[rec['var']].get()
+                product_el['reftime'] = datetime(rec["year"], rec["month"], rec["day"], rec["hour"], rec["min"],
+                                                 rec["sec"])
+                data[rec['var']].append(product_el)
+                res_element['data'] = data
+
+                response.append(res_element)
+        return response
+
+    @staticmethod
+    def get_data_by_station(db, query):
+        log.debug('query data for station {}', query)
+        products = []
+        data = {}
+        # if query add query params to query station
+        # if query check if reftime, if not use the standard one (today)
+        if 'datetimemin' not in query.keys():
+            # for prod
+            # today = date.today()
+            # query_station_data['datetimemax']= datetime.now()
+            # query_station_data['datetimemin'] = datetime.combine(today, time(0, 0, 0))
+            # for local tests
+            today = date(2015, 12, 31)
+            time_now = datetime.now().time()
+            query['datetimemax'] = datetime.combine(today, time_now)
+            query['datetimemin'] = datetime.combine(today, time(0, 0, 0))
+
+        log.debug('query for timeseries {}', query)
+        with db.transaction() as tr:
+            for row in tr.query_data(query):
+                varcode = row['var']
+                # log.debug(varcode)
+                # check if the product is already in the list
+                if varcode not in products:
+                    products.append(varcode)
+                if varcode not in data.keys():
+                    data[varcode] = []
+                # log.debug('data {}',data)
+                product_el = {}
+                product_el['value'] = row[varcode].get()
+                # reftime = row['datetime']
+                # product_el['reftime'] = reftime.strftime("%Y,%m,%d,%H,%M,%S")
+                product_el['reftime'] = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"],
+                                                 row["sec"])
+                data[varcode].append(product_el)
+
+        return products, data
 
     @staticmethod
     def from_query_to_dic(q):
@@ -716,7 +803,7 @@ class BeDballe():
         db = dballe.DB.connect("mem:")
         ds = ' '.join([DATASET_ROOT + '{}'.format(i) for i in datasets])
         arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
-        log.debug('extracting obs data from arkimet: {}',arki_query_cmd)
+        log.debug('extracting obs data from arkimet: {}', arki_query_cmd)
         proc = subprocess.Popen(arki_query_cmd, stdout=subprocess.PIPE)
         # write the result of the extraction on a temporary file
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
@@ -733,7 +820,9 @@ class BeDballe():
             DB = temp_db
         # case of extracting from the general db or filling the temp db
         else:
-            DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host = host, port = port))
+            DB = dballe.DB.connect(
+                "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host,
+                                                                     port=port))
         # get all the possible combinations of queries
         all_queries = list(itertools.product(*queries))
         counter = 1
@@ -753,7 +842,7 @@ class BeDballe():
 
             # extract in a partial extraction
             DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
-                                                                            host=host, port=port))
+                                                                                        host=host, port=port))
             with DB.transaction() as tr:
                 # check if the query gives a result
                 count = tr.query_data(dballe_query).remaining
