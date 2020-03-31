@@ -102,17 +102,23 @@
             <div class="body">
                 <ul class="mst--list-columns">
                     <fieldset>
-                        <label for="pp_radio_crop" class="mst--radio-label" placement="right" openDelay="2000">
+                        <label class="mst--radio-label" placement="right" openDelay="2000">
                             <input type="radio" formControlName="space_type" value="crop" >
-                            Area Crop</label>
-                        <label for="pp_radio_grid" class="mst--radio-label" placement="right" openDelay="2000">
+                            Area Crop
+                            <span class="checkradio"></span>
+                        </label>
+                        <label class="mst--radio-label" placement="right" openDelay="2000">
                             <input type="radio" formControlName="space_type" value="grid" >
-                            Grid Interpolation</label>
-                        <label for="pp_radio_sparse" class="mst--radio-label" placement="right" openDelay="2000">
+                            Grid Interpolation
+                            <span class="checkradio"></span>
+                        </label>
+                        <label class="mst--radio-label" placement="right" openDelay="2000">
                             <input type="radio" formControlName="space_type" value="points" >
-                            Sparse Points</label>
+                            Sparse Points
+                            <span class="checkradio"></span>
+                        </label>
                     </fieldset>
-                </ul>
+                </ul>                
                 <!-- AREA CROP PP -->
                 <div *ngIf="form.value.space_type === 'crop'" class="card mst--expansion-panel" id="pp-card-area">
                     <div class="card-header">
@@ -170,19 +176,25 @@
                         <ul class="mst--list-columns">
                             <fieldset>        
                                 <label class="mst--radio-label" placement="right" openDelay="2000">
-                                <input type="radio" formControlName="gridInterpolationType" value="template">By GRIB Template</label>
+                                    <input type="radio" formControlName="gridInterpolationType" value="template">
+                                    By GRIB Template
+                                    <span class="checkradio"></span>
+                                </label>
                                 <label class="mst--radio-label" placement="right" openDelay="2000">
-                                <input type="radio" formControlName="gridInterpolationType" value="area">By Coordinates</label>                                
+                                    <input type="radio" formControlName="gridInterpolationType" value="area">
+                                    By Coordinates
+                                    <span class="checkradio"></span>
+                                </label>                                
                             </fieldset>
                         </ul>                                 
                         <div class="card mst--expansion-panel">
                             <div class="card-body">                                                  
-                                <div class="d-none d-lg-block col-lg-8 py-3">
+                                <div class="d-none d-lg-block col-lg-12 py-3">
                                     <div class="row">
-                                        <div class="col-lg-4">
-                                            <label class="px-2"> Interpolation type</label>
+                                        <div class="col-lg-3">
+                                            <label class="px-2"> Interpolation type <span *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</span></label>
                                         </div>
-                                        <div class="col-lg-4">
+                                        <div class="col-lg-3">
                                             
                                             <div class="btn-group mr-3" style="width:100%;">
                                                 <button type="button" class="btn btn-outline-secondary">{{selectedInterpolationType}}</button>                     
@@ -203,12 +215,14 @@
                                                     <h5>Choose existing template from your personal area</h5>                                                 
                                             </div>
                                             <div class="card-body">
-                                                <div class="card-body mst--list-filter" style="margin-left: 15px;">
+                                                <div class="card-body mst--list-filter">
                                                     <ul class="mst--list-columns">                                        
                                                         <li *ngFor="let v of templates; let i=index">
-                                                            <input type="radio" formControlName="templates" value="{{v.filepath}}">
-                                                             <label class="mst--radio-label" placement="right" openDelay="2000">
-                                                            {{v.label}}</label>
+                                                            <label class="mst--radio-label" placement="right" openDelay="2000">
+                                                                <input type="radio" formControlName="templates" value="{{v.filepath}}">
+                                                                {{v.label}}
+                                                                <span class="checkradio"></span>
+                                                            </label>
                                                         </li>    
                                                     </ul> 
                                                 </div>
@@ -237,7 +251,7 @@
                                             <li *ngFor="let b of form.get('space_grid')['controls']; let i=index" class="py-1">
                                                 <div class="row">
                                                     <label [for]="space_grid_boundings[i].code" ngbTooltip="{{space_grid_boundings[i].code}}" placement="right" class="col"
-                                                        openDelay="2000">{{space_grid_boundings[i].desc}}</label>   
+                                                        openDelay="2000">{{space_grid_boundings[i].desc}} <span *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</span></label>   
                                                     <input type="number" [required]="form.value.space_type === 'grid' && form.value.gridInterpolationType === 'area' && form.value.selectedSpacePP" [formControl]="b" [id]="space_grid_boundings[i].code" class="col" style="text-align: right; width: 50%">                                                                  
                                                 </div>
                                             </li>                                    
@@ -247,7 +261,7 @@
                                             <li *ngFor="let b of form.get('interpolationNodes')['controls']; let i=index" class="py-1">         
                                                 <div class="row">                               
                                                     <label [for]="interpolation_nodes[i].code" ngbTooltip="{{interpolation_nodes[i].code}}" placement="right" class="col"
-                                                    openDelay="2000">{{interpolation_nodes[i].desc}}</label>
+                                                    openDelay="2000">{{interpolation_nodes[i].desc}} <span *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</span></label>
                                                     <input type="number" [required]="form.value.space_type === 'grid' && form.value.gridInterpolationType === 'area' && form.value.selectedSpacePP" [formControl]="b" [id]="interpolation_nodes[i].code" class="col" style="text-align: right; max-height: 33px;">
                                                 </div>                                                
                                             </li> 
@@ -265,12 +279,12 @@
                         <h6>Get data on your points</h6>
                     </div>
                     <div class="card-body">
-                        <div class="d-none d-lg-block col-lg-8 py-3 px-3">
+                        <div class="d-none d-lg-block col-lg-12 py-3 px-3">
                             <div class="row">
-                                <div class="col-lg-4">
-                                    <label class="px-2"> Interpolation type</label>
+                                <div class="col-lg-3">
+                                    <label class="px-2"> Interpolation type <span *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</span></label>
                                 </div>
-                                <div class="col-lg-4">
+                                <div class="col-lg-3">
                                     <div class="btn-group mr-3" style="width:100%;">
                                         <button type="button" class="btn btn-outline-secondary">{{selectedInterpolationType}}</button> 
                                         <div ngbDropdown class="btn-group">
@@ -293,9 +307,11 @@
                                         <div class="card-body mst--list-filter" style="margin-left: 15px;">
                                             <ul class="mst--list-columns">                                        
                                                 <li *ngFor="let v of templates; let i=index">
-                                                    <input type="radio" formControlName="templates" value="{{v.filepath}}">
                                                     <label class="mst--radio-label" placement="right" openDelay="2000">
-                                                    {{v.label}}</label>
+                                                        <input type="radio" formControlName="templates" value="{{v.filepath}}">
+                                                        {{v.label}}
+                                                        <span class="checkradio"></span>
+                                                    </label>
                                                 </li>    
                                             </ul> 
                                         </div>

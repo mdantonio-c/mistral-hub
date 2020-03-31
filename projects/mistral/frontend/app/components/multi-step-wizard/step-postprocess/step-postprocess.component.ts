@@ -201,6 +201,7 @@ export class StepPostprocessComponent implements OnInit {
     private buildTimePostProcess(){
         const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'statistic_elaboration');
         if (pt && pt.length){
+            this.form.controls['selectedTimePP'].setValue(true);
             this.selectedStepInterval = pt[0].interval; //'interval': this.selectedStepInterval,
             this.form.controls['timeStep'].setValue(pt[0].step); //'step': this.form.value.timeStep
             this.selectedInputTimeRange = this.timeRanges.filter(t => t.code == pt[0]['input-timerange'])[0];
@@ -221,10 +222,17 @@ export class StepPostprocessComponent implements OnInit {
     }
 
     private buildSpaceCrop() {
+        const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'grid_cropping');
+        if (pt && pt.length){
+            this.form.controls['selectedSpacePP'].setValue(true);
+            this.form.controls['space_type'].setValue('crop');
+        }
+        
         this.space_crop_boundings.map(bound => {
             const control = this.formBuilder.control(0, bound.validators);
             (this.form.controls.space_crop as FormArray).push(control);
-        })
+        });
+        
     }
 
     private buildSpaceGrid() {
@@ -463,10 +471,11 @@ export class StepPostprocessComponent implements OnInit {
             validationItem.messages.push(" - Missing mandatory fields<br/>");            
         }
 
-        if ((this.selectedInputTimeRange.code != this.selectedOutputTimeRange.code)
-            || (this.selectedInputTimeRange.code == 254 && (this.selectedOutputTimeRange.code == 1 || this.selectedOutputTimeRange.code == 254))
+        if (this.selectedInputTimeRange.code != this.selectedOutputTimeRange.code){
+            if ((this.selectedInputTimeRange.code == 254 && (this.selectedOutputTimeRange.code == 1 || this.selectedOutputTimeRange.code == 254))
             || (this.selectedInputTimeRange.code == 0 && this.selectedOutputTimeRange.code != 254)){
-            validationItem.messages.push(" - Inconsistent values<br/>");
+                validationItem.messages.push(" - Inconsistent values<br/>");
+            }    
         }
 
         let timeStepRegex = new RegExp('^-?[0-9]+$');
