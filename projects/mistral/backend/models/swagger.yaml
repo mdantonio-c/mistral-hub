@@ -26,7 +26,7 @@ definitions:
         items:
           description: Post-processing request details
           type: object
-      format:
+      output_format:
         description: Output format
         type: string
         enum:
@@ -318,21 +318,38 @@ definitions:
         type: array
         items:
           type: object
+      network:
+        type: array
+        items:
+          type: object
+
   Datasets:
     type: array
     items:
       $ref: "#/definitions/Dataset"
   Dataset:
     required:
+      - id
       - name
-      - fields
+      - category
     properties:
+      id:
+        type: string
       name:
         type: string
-      fields:
-        type: array
-        items:
-          type: string
+      description:
+        type: string
+      license:
+        type: string
+        enum:
+          - CCBY  # Creative Commons BY (Attribution) 4.0
+          - ODBL  # Open Database License
+      category:
+        type: string
+        enum:
+          - FOR # Forecast Data
+          - OBS # Observational Data
+          - RAD # Radar Data
 
   DataScheduling:
     required:
@@ -361,7 +378,7 @@ definitions:
         items:
           description: Post-processing request details
           type: object
-      format:
+      output_format:
         description: Output format
         type: string
         enum:
@@ -563,6 +580,29 @@ definitions:
         type: integer
         format: int64
         minimum: 0
+  Mapset:
+    required:
+      - reftime
+      - offsets
+      - platform
+    properties:
+      reftime:
+        description: Date of the last requested run available
+        type: string
+        pattern: '^0[0-3][0-2][0-9](00|12)$'
+      offsets:
+        description: The list of all available maps for that specific run, identified by its offset (e.g. +3h=0003)
+        type: array
+        items:
+          description: Map offset
+          type: string
+          pattern: '^\d{4}$'
+      platform:
+        description: Which platform actually provides the map set
+        type: string
+        enum:
+          - GALILEO
+          - MEUCCI
 
 FormDataParameters:
   AdminUsers:

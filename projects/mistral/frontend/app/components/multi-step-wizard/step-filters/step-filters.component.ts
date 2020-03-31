@@ -6,7 +6,9 @@ import {FormDataService} from "@app/services/formData.service";
 import {ArkimetService} from "@app/services/arkimet.service";
 import {Filters} from "@app/services/data.service";
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {NgxSpinnerService} from "ngx-spinner";
 import * as moment from 'moment';
+import * as _ from 'lodash';
 
 @Component({
     selector: 'step-filters',
@@ -26,7 +28,8 @@ export class StepFiltersComponent implements OnInit {
                 private formDataService: FormDataService,
                 private arkimetService: ArkimetService,
                 private modalService: NgbModal,
-                private notify: NotificationService) {
+                private notify: NotificationService,
+                private spinner: NgxSpinnerService) {
         const refTime = this.formDataService.getReftime();
         this.filterForm = this.fb.group({
             filters: this.fb.array([]),
@@ -61,7 +64,7 @@ export class StepFiltersComponent implements OnInit {
         return {year: today.year(), month: today.month() + 1, day: today.date()};
     }
 
-    private addFilter(name: string, values: any): FormGroup {
+    private getFilterGroup(name: string, values: any): FormGroup {
         let filter = this.fb.group({
             name: [name, Validators.required],
             values: new FormArray([])
@@ -73,6 +76,50 @@ export class StepFiltersComponent implements OnInit {
             (filter.controls.values as FormArray).push(control);
         });
         return filter;
+    }
+
+    onFilterChange() {
+        this.spinner.show();
+        let selectedFilters = this.getSelectedFilters();
+        console.log('selected filter(s)', selectedFilters);
+        let selectedFilterNames = selectedFilters.map(f => f.name);
+        this.formDataService.getFilters(selectedFilters).subscribe(
+            response => {
+                let results = response.data.items;
+                // console.log(results);
+                // compare the current filters with the selection results
+                // in order to disable the missing ones
+                Object.entries(this.filters).forEach(f => {
+                    // if (!selectedFilterNames.includes(f[0])) {
+                    if (f[0] !== 'summarystats') {
+                        // ["name", [{...},{...}]]
+                        // console.log(f[0]);
+                        // console.log('....OLD....', f[1]);
+                        let m = Object.entries(results)
+                            .filter(e => e[0] === f[0])[0];
+                        if (selectedFilterNames.includes(m[0])) {
+                            if (selectedFilterNames.length === 1) {
+                                // active them all
+                                for (const obj of <Array<any>>f[1]) {
+                                    obj['active'] = true;
+                                }
+                            }
+                        } else {
+                            for (const obj of <Array<any>>f[1]) {
+                                // equal by desc
+                                obj['active'] = _.some(<Array<any>>m[1],
+                                    (o, i) => o.desc === obj.desc);
+                            }
+                        }
+                        // console.log('....NEW....', m[1]);
+                    }
+                });
+            },
+                error => {
+                this.notify.showError(`Unable to get summary fields`);
+            }).add(() => {
+                this.spinner.hide();
+        });
     }
 
     loadFilters() {
@@ -91,14 +138,17 @@ export class StepFiltersComponent implements OnInit {
                     let to = moment.utc(this.formDataService.getReftime().to);
                     this.summaryStats['e'] = [to.year(), to.month() + 1, to.date(), to.hour(), to.minute(), to.second()]
                 }
-                Object.entries(response.data.items).forEach(entry => {
+                Object.entries(this.filters).forEach(entry => {
                     if (entry[0] !== 'summarystats') {
-                        (this.filterForm.controls.filters as FormArray).push(this.addFilter(entry[0], entry[1]));
+                        (<Array<any>>entry[1]).forEach(function (obj) {
+                          obj['active'] = true;
+                        });
+                        (this.filterForm.controls.filters as FormArray).push(this.getFilterGroup(entry[0], entry[1]));
                     }
                 });
                 //console.log(this.filterForm.get('filters'));
                 //console.log(this.filters);
-                if (this.summaryStats['s'] === 0) {
+                if (this.summaryStats['c'] === 0) {
                     (this.filterForm.controls.validRefTime as FormControl).setValue(false);
                     this.notify.showWarning('The applied reference time does not produce any result. ' +
                         'Please choose a different reference time range.');
@@ -111,7 +161,15 @@ export class StepFiltersComponent implements OnInit {
             }
         ).add(() => {
             this.loading = false;
+            if (this.formDataService.getFormData().filters.length !== 0) {
+                this.onFilterChange();
+            }
         });
+    }
+
+    resetFilters() {
+        this.formDataService.setFilters([]);
+        this.loadFilters();
     }
 
     toggleFullDataset() {
@@ -168,23 +226,31 @@ export class StepFiltersComponent implements OnInit {
         if (!this.filterForm.valid) {
             return false;
         }
+        this.formDataService.setFilters(
+            this.getSelectedFilters());
+        return true;
+    }
+
+    private getSelectedFilters() {
         const selectedFilters = [];
-        this.filterForm.value.filters.forEach(f => {
+        (this.filterForm.controls.filters as FormArray).controls.forEach((f: FormGroup) => {
             let res = {
-                name: f.name,
-                values: f.values
-                    .map((v, j) => v ? this.filters[f.name][j] : null)
+                name: f.controls.name.value,
+                values: (f.controls.values as FormArray).controls
+                    .map((v, j) => v.value ? this.filters[f.controls.name.value][j] : null)
                     .filter(v => v !== null),
                 query: ''
             };
             if (res.values.length) {
                 res.query = this.arkimetService.getQuery(res);
+                // dballe query
+                if (res.query === '' || res.query.split(':')[1] === '') {
+                    res.query += res.values.map(v => v.dballe_p).join(' or ')
+                }
                 selectedFilters.push(res);
             }
         });
-        // console.log(`selected filters: ${selectedFilters}`);
-        this.formDataService.setFilters(selectedFilters);
-        return true;
+        return selectedFilters;
     }
 
     goToPrevious() {

@@ -2,8 +2,8 @@
 project:
   title: Meteo-Hub
   description: "."
-  version: "0.2.1"
-  rapydo: 0.7.1
+  version: "0.2.2"
+  rapydo: 0.7.2
 
 variables:
   env:
@@ -17,12 +17,13 @@ variables:
     ACTIVATE_ALCHEMY: 1
     ACTIVATE_POSTGRES: 1
     ALCHEMY_USER: sqluser
-    ALCHEMY_PASSWORD: chooseapasswordwisely
+    # ALCHEMY_PASSWORD: chooseapasswordwisely
     ALCHEMY_API_DB: SQL_API
     ALCHEMY_ENGINE: postgresql
     ALCHEMY_DBS: 'SQL_API DBALLE'
 
     ACTIVATE_MONGODB: 1
+    ACTIVATE_RABBIT: 1
     ACTIVATE_CELERY: 1
     ACTIVATE_CELERYUI: 1
     ACTIVATE_CELERY_BEAT: 1
@@ -31,13 +32,15 @@ variables:
 
     CELERY_BACKEND: MONGODB
 
+    LASTDAYS: 10
+
     RABBITMQ_ENABLE_MANAGEMENT_PLUGIN: 1
     RABBITMQ_ENABLE_SHOVEL_PLUGIN: 1
 
+    CORS_ALLOW_ALL_ORIGINS: 1
+
   backend:
     credentials:
-      username: "user@nomail.org"
-      password: "test"
       roles:
         user: normal_user
         internal: staff_user

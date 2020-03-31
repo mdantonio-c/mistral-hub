@@ -137,7 +137,7 @@ export class StepSubmitComponent implements OnInit {
         this.dataService.extractData(
             this.formData.name,
             this.formData.reftime,
-            this.formData.datasets,
+            this.formData.datasets.map(x => x.id),
             this.formData.filters,
             this.formData.schedule,
             this.formData.postprocessors).subscribe(

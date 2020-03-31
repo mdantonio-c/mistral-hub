@@ -187,7 +187,7 @@ class Schedules(EndpointResource):
         product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         reftime = criteria.get('reftime')
-        output_format = criteria.get('format')
+        output_format = criteria.get('output_format')
 
         time_delta = None
         reftime_to = None
@@ -257,6 +257,11 @@ class Schedules(EndpointResource):
 
         # get the format of the datasets
         dataset_format = arki.get_datasets_format(dataset_names)
+        if not dataset_format:
+            raise RestApiException(
+                "Invalid set of datasets : datasets have different formats",
+                status_code=hcodes.HTTP_BAD_REQUEST,
+            )
         # check if the output format chosen by the user is compatible with the chosen datasets
         if output_format is not None:
             if dataset_format != output_format:
@@ -311,7 +316,7 @@ class Schedules(EndpointResource):
                         'reftime': reftime,
                         'filters': filters,
                         'postprocessors': processors,
-                        'format': output_format,
+                        'output_format': output_format,
                     },
                     every=every,
                     period=period,
@@ -357,7 +362,7 @@ class Schedules(EndpointResource):
                         'reftime': reftime,
                         'filters': filters,
                         'postprocessors': processors,
-                        'format': output_format,
+                        'output_format': output_format,
                     },
                     crontab_settings=crontab_settings,
                     on_data_ready=data_ready,
@@ -487,7 +492,7 @@ class Schedules(EndpointResource):
                                 schedule_response['args']['reftime'],
                                 schedule_response['args']['filters'],
                                 schedule_response['args']['postprocessors'],
-                                schedule_response['args']['format'],
+                                schedule_response['args']['output_format'],
                                 request_id,
                                 schedule_id,
                             ],
@@ -511,7 +516,7 @@ class Schedules(EndpointResource):
                                 schedule_response['args']['reftime'],
                                 schedule_response['args']['filters'],
                                 schedule_response['args']['postprocessors'],
-                                schedule_response['args']['format'],
+                                schedule_response['args']['output_format'],
                                 request_id,
                                 schedule_id,
                             ],

@@ -1,0 +1,57 @@
+.irs-bar {
+  background: #17a2b8;
+}
+
+.irs-from:after, .irs-to:after, .irs-single:after {
+  border-top-color: #17a2b8;
+}
+
+.irs-from, .irs-to, .irs-single {
+  background: #17a2b8;
+}
+
+.irs-slider {
+  top: 20px;
+  background: #F8F8F8;
+  border: 1px solid;
+  cursor: pointer;
+  display: inline-block;
+  width: 1.45em;
+  height: 1.45em;
+  position: absolute;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  border-radius: 0;
+  line-height: 2.2em;
+  text-align: center;
+  border-color: #4AA4CE !important;
+  outline: 0 !important;
+}
+
+.irs-slider:after, .irs-slider:before {
+  display: block;
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 7px;
+  width: 4px;
+  height: 8px;
+  border: 1px solid;
+  border-width: 0 1px;
+  border-color: inherit
+}
+
+.irs-slider:after {
+  left: 10px;
+  border-width: 0 1px 0 0
+}
+
+.irs-slider:hover {
+  background-color: #FFF
+}
+
+.irs-slider:active, .irs-slider:focus, .irs-slider:hover {
+  outline: 0;
+  -webkit-box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3);
+  box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3)
+}
