@@ -4,12 +4,12 @@ import * as moment from 'moment';
 
 import {WorkflowService} from '@app/services/workflow.service';
 import {STEPS} from '@app/services/workflow.model';
-import {DataService, Filters, RapydoResponse, SummaryStats, TaskSchedule, RefTime} from "./data.service";
+import {DataService, Filters, Dataset, RapydoResponse, SummaryStats, TaskSchedule, RefTime} from "./data.service";
 
 export class FormData {
     name: string = '';
     reftime: RefTime = this.defaultRefTime();
-    datasets: string[] = [];
+    datasets: Dataset[] = [];
     filters: Filters[] = [];
     postprocessors: any[] = [];
     schedule: TaskSchedule;
@@ -55,10 +55,10 @@ export class FormDataService {
     }
 
     getDatasets() {
-        return this.dataService.getDatsets();
+        return this.dataService.getDatasets();
     }
 
-    setDatasets(data: string[]) {
+    setDatasets(data: Dataset[]) {
         // Update Datasets only when the Dataset Form had been validated successfully
         this.isDatasetFormValid = true;
         this.formData.datasets = data;
@@ -67,7 +67,7 @@ export class FormDataService {
     }
 
     isDatasetSelected(datasetId: string): boolean {
-        return this.formData.datasets.some(x => x === datasetId);
+        return this.formData.datasets.some(x => x.id === datasetId);
     }
 
     /**
@@ -75,9 +75,18 @@ export class FormDataService {
      * Optionally the dataset coverage can be restricted with respect to the reference time.
      * If reftime is omitted the whole historical dataset will be considered.
      */
-    getFilters() {
-        let query = this.parseRefTime();
-        return this.dataService.getSummary(this.formData.datasets, query);
+    getFilters(filters?: Filters[]) {
+        let q = null;
+        if (filters) {
+            q = filters.map(f => f.query).join(';');
+        }
+        let reftime = this.parseRefTime();
+        if (reftime) {
+            // prepend the reftime
+            q = (q !== '') ? [reftime, q].join(';') : reftime;
+        }
+        console.log(`query for summary: ${q}`);
+        return this.dataService.getSummary(this.formData.datasets.map(x => x.id), q);
     }
 
     /**
@@ -113,7 +122,7 @@ export class FormDataService {
     }
 
     getSummaryStats(): Observable<RapydoResponse<SummaryStats>> {
-        let q = this.formData.filters.map(filter => filter.query).join(';');
+        let q = this.formData.filters.map(f => f.query).join(';');
         let reftime = this.parseRefTime();
         if (reftime) {
             // prepend the reftime
@@ -121,7 +130,7 @@ export class FormDataService {
         }
         console.log(`query for summary stats ${q}`);
         return this.dataService.getSummary(
-            this.formData.datasets, q, true);
+            this.formData.datasets.map(x => x.id), q, true);
     }
 
     setFilters(data: any) {

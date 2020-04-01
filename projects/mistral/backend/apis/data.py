@@ -15,7 +15,6 @@ from mistral.tools import statistic_elaboration as pp2
 from mistral.tools import spare_point_interpol as pp3_3
 
 
-
 class Data(EndpointResource, Uploader):
     # schema_expose = True
     labels = ['data']
@@ -57,7 +56,7 @@ class Data(EndpointResource, Uploader):
         product_name = criteria.get('name')
         dataset_names = criteria.get('datasets')
         reftime = criteria.get('reftime')
-        output_format = criteria.get('format')
+        output_format = criteria.get('output_format')
         if reftime is not None:
             # 'from' and 'to' both mandatory by schema
             # check from <= to
@@ -75,6 +74,15 @@ class Data(EndpointResource, Uploader):
                     "Dataset '{}' not found".format(ds_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
+
+        # get the format of the datasets
+        dataset_format = arki.get_datasets_format(dataset_names)
+        if not dataset_format:
+            raise RestApiException(
+                "Invalid set of datasets : datasets have different formats",
+                status_code=hcodes.HTTP_BAD_REQUEST,
+            )
+
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
         filters = criteria.get('filters', {})
@@ -117,10 +125,18 @@ class Data(EndpointResource, Uploader):
                     'Only one geographical postprocessing at a time can be executed',
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
+
+        # check if requested space post processing are available for the chosen datasets
+        if dataset_format == 'bufr':
+            for p in processors:
+                if p.get('type') == 'grid_cropping' or p.get('type') == 'grid_interpolation':
+                    raise RestApiException(
+                        'Post processors unaivailable for the requested datasets',
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
+
         # check if the output format chosen by the user is compatible with the chosen datasets
         if output_format is not None:
-            # get the format of the datasets
-            dataset_format = arki.get_datasets_format(dataset_names)
             postprocessors_list = [i.get('type') for i in processors]
             if dataset_format != output_format:
                 if dataset_format == 'grib':
@@ -141,6 +157,7 @@ class Data(EndpointResource, Uploader):
                         'The chosen postprocessor does not support {} output format'.format(output_format),
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
+
         # run the following steps in a transaction
         db = self.get_service_instance('sqlalchemy')
         try:
@@ -153,12 +170,20 @@ class Data(EndpointResource, Uploader):
                     'reftime': reftime,
                     'filters': filters,
                     'postprocessors': processors,
-                    'format': output_format,
+                    'output_format': output_format,
                 },
             )
 
             task = CeleryExt.data_extract.apply_async(
-                args=[user.id, dataset_names, reftime, filters, processors, output_format, request.id],
+                args=[
+                    user.id,
+                    dataset_names,
+                    reftime,
+                    filters,
+                    processors,
+                    output_format,
+                    request.id
+                ],
                 countdown=1,
             )
 
@@ -166,10 +191,8 @@ class Data(EndpointResource, Uploader):
             request.status = task.status  # 'PENDING'
             db.session.commit()
             log.info('Request successfully saved: <ID:{}>', request.id)
-        except Exception as error:
+        except Exception:
             db.session.rollback()
             raise SystemError("Unable to submit the request")
 
-        # return self.force_response(
-        #     {'task_id': task.id, 'task_status': task.status}, code=hcodes.HTTP_OK_ACCEPTED)
         return self.empty_response()

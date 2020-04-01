@@ -63,7 +63,10 @@ export interface Filters {
 
 export class Dataset {
     id = '';
+    name = '';
+    category = '';
     description ? = '';
+    license ? = '';
 }
 
 export interface RefTime {
@@ -122,7 +125,7 @@ export class DataService {
     /**
      * Get all the available datasets.
      */
-    getDatsets() {
+    getDatasets() {
         return this.api.get('datasets');
     }
 

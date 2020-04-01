@@ -7,15 +7,16 @@ import glob
 import json
 import math
 import dateutil
+from arkimet.cfg import Sections
 from restapi.utilities.logs import log
 
 DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
 
 
-class BeArkimet():
+class BeArkimet:
 
     allowed_filters = (
-        'area', 'level', 'origin', 'proddef', 'product', 'quantity', 'run', 'task', 'timerange'
+        'area', 'level', 'origin', 'proddef', 'product', 'quantity', 'run', 'task', 'timerange', 'network'
     )
 
     allowed_processors = (
@@ -25,52 +26,29 @@ class BeArkimet():
     @staticmethod
     def load_datasets():
         """
-        Load dataset using arki-mergeconf
-        $ arki-mergeconf $HOME/datasets/*
+        Load datasets by parsing arkimet.conf
 
         :return: list of datasets
         """
         datasets = []
-        folders = glob.glob(DATASET_ROOT + "*")
-        args = shlex.split("arki-mergeconf " + ' '.join(folders))
-        log.debug('Launching Arkimet command: {}', args)
-
-        proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
-        log.debug('return code: {}', proc.returncode)
-        # raise a CalledProcessError if returncode is non-zero
-        proc.check_returncode()
-        ds = None
-        for line in proc.stdout.split('\n'):
-            line = line.strip()
-            if line == '':
-                continue
-            if line.startswith('['):
-                # new dataset config
-                if ds is not None and ds['id'] not in ('error', 'duplicates'):
-                    datasets.append(ds)
-                ds = {
-                    'id': line.split('[', 1)[1].split(']')[0]
-                }
-                continue
-            '''
-              name <str>
-              description <str>
-              allowed <bool>
-              bounding <str>
-              postprocess <list>
-            '''
-            name, val = line.partition("=")[::2]
-            name = name.strip()
-            val = val.strip()
-            if name in ('name', 'description', 'bounding'):
-                ds[name] = val
-            elif name == 'allowed':
-                ds[name] = bool(val)
-            elif name == 'postprocess':
-                ds[name] = val.split(",")
-        # add the latest ds
-        datasets.append(ds)
-
+        cfg_sections = Sections()
+        cfg = cfg_sections.parse('/arkimet/config/arkimet.conf')
+        for i in [a for a in cfg.items() if a[0] not in ['error', 'duplicates']]:
+            ds = {'id': i[0]}
+            for k,v in i[1].items():
+                if k == 'name':
+                    ds['name'] = v
+                elif k == 'description':
+                    ds['description'] = v
+                elif k == '_license':
+                    ds['license'] = v
+                elif k == '_category':
+                    ds['category'] = v
+                elif k == 'format':
+                    ds['format'] = v
+                elif k == 'bounding':
+                    ds['bounding'] = v
+            datasets.append(ds)
         return datasets
 
     @staticmethod
@@ -202,7 +180,62 @@ class BeArkimet():
         if all(x == formats[0] for x in formats):
             return formats[0]
         else:
-            raise ValueError('Invalid set of datasets : datasets have different formats')  # check if this kind of error is correct
+            return None
+
+    #### to configure observed datasets one by one
+    @staticmethod
+    def get_observed_dataset_params(dataset):
+        folder = glob.glob(DATASET_ROOT + dataset)
+        args = shlex.split("arki-mergeconf " + ' '.join(folder))
+        log.debug('Launching Arkimet command: {}', args)
+
+        proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
+        filters = ''
+        for line in proc.stdout.split('\n'):
+            line = line.strip()
+            name, val = line.partition("=")[::2]
+            name = name.strip()
+            val = val.strip()
+            if name == 'filter':
+                filters = val
+        filters_split = shlex.split(filters)
+        # networks is the parameter that defines the different dataset for observed data
+        networks = []
+        for f in filters_split:
+            if f.startswith('BUFR'):
+                networks.append(f.split('=')[1])
+        return networks
+
+    #### to configure all observed datasets at one time
+
+    # @staticmethod
+    # def get_observed_dataset_params(datasets):
+    #     dataset_items = []
+    #     for ds in datasets:
+    #         ds_params = {}
+    #         folder = glob.glob(DATASET_ROOT + ds)
+    #         args = shlex.split("arki-mergeconf " + ' '.join(folder))
+    #         log.debug('Launching Arkimet command: {}', args)
+    #
+    #         proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
+    #         filters = None
+    #         for line in proc.stdout.split('\n'):
+    #             line = line.strip()
+    #             name, val = line.partition("=")[::2]
+    #             name = name.strip()
+    #             val = val.strip()
+    #             if name == 'filter':
+    #                 filters = val
+    #         filters_split = shlex.split(filters)
+    #         # networks is the parameter that defines the different dataset for observed data
+    #         networks = []
+    #         for f in filters_split:
+    #             if f.startswith('BUFR'):
+    #                 networks.append(f.split('=')[1])
+    #         ds_params['dataset'] = ds
+    #         ds_params['filters'] = networks
+    #         dataset_items.append(ds_params)
+    #     return dataset_items
 
     @staticmethod
     def __decode_area(i):
@@ -437,7 +470,7 @@ class BeArkimet():
             if i.get('su') == 255:
                 s = ''.join([s, ',-'])
             else:
-                s = ''.join([s, ',-{}{}'.format(i.get('sl'), un[i.get('un')])])
+                s = ''.join([s, ',{}{}'.format(i.get('sl'), un[i.get('su')])])
             if i.get('pt'):
                 s = ''.join([s, ',{}'.format(i.get('pt'))])
             else:
@@ -456,7 +489,7 @@ class BeArkimet():
             (see arki / types / timerange.cc:1408).
             '''
             if i.get('pu'):
-                s = ''.join([s, ',{}{}'.format(i.get('pl'), un[i.get('un')])])
+                s = ''.join([s, ',{}{}'.format(i.get('pl'), un[i.get('su')])])
             else:
                 s = ''.join([s, ',-'])
             return s

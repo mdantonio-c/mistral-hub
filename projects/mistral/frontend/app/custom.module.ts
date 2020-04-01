@@ -1,10 +1,16 @@
-import {NgModule, ModuleWithProviders} from '@angular/core';
+import 'ion-rangeslider/js/ion.rangeSlider.min.js';
+
+import {NgModule, CUSTOM_ELEMENTS_SCHEMA, ModuleWithProviders} from '@angular/core';
 import {NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
 import {RouterModule, Routes} from '@angular/router';
 import {DatePipe} from '@angular/common';
 
-import {RapydoModule} from '@rapydo/rapydo.module';
+
+import {SharedModule} from '@rapydo/shared.module';
 import {AuthGuard} from '@rapydo/app.auth.guard';
+
+import {IonRangeSliderModule} from "ng2-ion-range-slider";
+import {NgxSpinnerModule} from "ngx-spinner";
 
 import {HomeComponent} from '@app/custom.home'
 import {DataComponent} from '@app/components/data/data.component';
@@ -14,6 +20,8 @@ import {DashboardComponent} from "@app/components/dashboard/dashboard.component"
 import {StorageUsageComponent} from "@app/components/dashboard/storage-usage/storage-usage.component";
 import {NgbTimeStringAdapter} from '@app/adapters/timepicker-adapter';
 
+import {DisableControlDirective} from "@app/directives/disable-control";
+
 /* Multi-Step Wizard Components */
 import {MultiStepWizardComponent} from '@app/components/multi-step-wizard/multi-step-wizard.component';
 import {NavbarComponent} from '@app/components/multi-step-wizard/navbar/navbar.component';
@@ -21,6 +29,12 @@ import {StepDatasetsComponent} from '@app/components/multi-step-wizard/step-data
 import {StepFiltersComponent} from '@app/components/multi-step-wizard/step-filters/step-filters.component';
 import {StepPostprocessComponent} from "@app/components/multi-step-wizard/step-postprocess/step-postprocess.component";
 import {StepSubmitComponent} from "@app/components/multi-step-wizard/step-submit/step-submit.component";
+
+/* Maps */
+import {ForecastMapsComponent} from '@app/components/maps/forecast-maps/forecast-maps.component';
+import {MapFilterComponent} from '@app/components/maps/forecast-maps/map-filter/map-filter.component';
+import {MapSliderComponent} from '@app/components/maps/forecast-maps/map-slider/map-slider.component';
+import {ObservationMapsComponent} from '@app/components/maps/observation-maps/observation-maps.component';
 
 import {FormatDatePipe} from '@app/pipes/format-date.pipe';
 import {WorkflowGuard} from "@app/services/workflow-guard.service";
@@ -38,18 +52,26 @@ const appRoutes: Routes = [
         ]
     },
     {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
+    {path: 'app/maps/forecasts', component: ForecastMapsComponent, canActivate: [AuthGuard]},
+    {path: 'app/maps/observations', component: ObservationMapsComponent, canActivate: [AuthGuard]},
     {path: 'app', redirectTo: '/app/data/datasets', pathMatch: 'full'},
     {path: '', redirectTo: '/app/data/datasets', pathMatch: 'full'},
 ];
 
 @NgModule({
     imports: [
-        RapydoModule,
-        RouterModule.forChild(appRoutes)
+        SharedModule,
+        RouterModule.forChild(appRoutes),
+        IonRangeSliderModule,
+        NgxSpinnerModule
     ],
     declarations: [
         HomeComponent,
         DataComponent,
+        ForecastMapsComponent,
+        MapFilterComponent,
+        MapSliderComponent,
+        ObservationMapsComponent,
         MultiStepWizardComponent,
         NavbarComponent,
         StepDatasetsComponent,
@@ -60,8 +82,10 @@ const appRoutes: Routes = [
         StorageUsageComponent,
         RequestsComponent,
         SchedulesComponent,
-        FormatDatePipe
+        FormatDatePipe,
+        DisableControlDirective
     ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [
         DatePipe, {provide: NgbTimeAdapter, useClass: NgbTimeStringAdapter}],
     exports: [

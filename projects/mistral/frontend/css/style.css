@@ -1,5 +1,22 @@
-/*@import url('ngx-datatable.css');*/
+/* add the ion-range-slider style and skin css */
+@import url('ion-rangeslider/css/ion.rangeSlider.css');
+@import url('ion-rangeslider/css/ion.rangeSlider.skinFlat.css');
+@import url('custom-irc.css');
+
 @import url('button-toggle.css');
+@import url('weather-icons.css');
+
+/* customize container width */
+@media (min-width: 1200px) {
+  .container, .container-lg, .container-md, .container-sm, .container-xl {
+    max-width: 1400px;
+  }
+}
+@media (max-width: 991.98px)  {
+  .container, .container-md, .container-sm {
+      max-width: none;
+  }
+}
 
 /* top navbar: force bg-dark */
 .navbar {
@@ -44,6 +61,10 @@
 
 .navbar .navbar-nav .nav-link.active {
     color: #fff;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 /* popover and confirmation  */
@@ -304,6 +325,12 @@ input[type="radio"]:checked + .mst--radio-label:after {
 .mst--input-checkbox:disabled + label:before {
     box-shadow: none;
     background: #f7f7f7;
+    border: 2px solid #f0f0f0;
+}
+
+.mst--input-checkbox:disabled + label {
+    color: #A9A9A9;
+    cursor: auto;
 }
 
 .mst--input-checkbox:checked + label:after {
@@ -499,4 +526,22 @@ input[type=number]::-webkit-outer-spin-button {
 
 input.ng-invalid {
   border-color: red !important;
+}
+
+/* the following fix flickering issues with map carousel */
+.carousel-inner .carousel-item {
+  opacity: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: block;
+  position: absolute;
+}
+
+.carousel-inner .carousel-item:first-of-type {
+  position: relative;
+}
+
+.carousel-inner .active {
+  opacity: 1;
 }
