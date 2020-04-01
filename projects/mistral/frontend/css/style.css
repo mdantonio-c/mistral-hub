@@ -179,6 +179,19 @@ dl.request-summary p:not(:last-child) {
     width: 100%;
 }
 
+.mst--data-attribution {
+    font-size: 11px;
+    background: rgba(255,255,255,.7);
+    margin: 0;
+    padding: 0 5px;
+    color: #333;
+    cursor: auto;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 800;
+}
+
 .mst--input {
     background: transparent;
     border: none;
