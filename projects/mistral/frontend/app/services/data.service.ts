@@ -153,8 +153,12 @@ export class DataService {
         //return this.api.post('templates', formData);
     }
 
-    getTemplates(){
-        return this.api.get('templates');
+    getTemplates(param: string){
+        if (param){
+            return this.api.get('templates?format='+param);
+        }else{
+            return this.api.get('templates');    
+        }        
     }
     /**
      * Request for data extraction.

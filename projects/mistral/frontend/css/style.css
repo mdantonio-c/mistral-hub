@@ -250,8 +250,6 @@ input[type="radio"]:focus,
     background: white;
 }
 
-/***********************************************/
-
 .mst--radio-label:before {
     background: #fff;
     border: 2px solid #707070;
