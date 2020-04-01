@@ -149,7 +149,7 @@ class Templates(EndpointResource, Uploader):
         if f[-1]== 'grib':
             subfolder= os.path.join(user.uuid,'grib')
         else:
-            subfolder=user.uuid
+            subfolder= os.path.join(user.uuid,'shp')
         upload_response = self.upload(subfolder=subfolder)
 
         if not upload_response.defined_content:
