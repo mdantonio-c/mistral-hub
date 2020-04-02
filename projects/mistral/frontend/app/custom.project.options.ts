@@ -24,7 +24,8 @@ export class ProjectOptions {
         }
 
         if (opt == 'cookie_law_text') {
-        	return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page. If you need more information you can read <a target='_blank' href='/app/privacy'>privacy and cookie policy</a>";
+        	// return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page. If you need more information you can read <a target='_blank' href='/app/privacy'>privacy and cookie policy</a>";
+        	return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page.";
         }
 		return null;
 	}
