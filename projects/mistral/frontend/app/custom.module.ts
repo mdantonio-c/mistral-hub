@@ -19,6 +19,7 @@ import {SchedulesComponent} from "@app/components/schedules/schedules.component"
 import {DashboardComponent} from "@app/components/dashboard/dashboard.component";
 import {StorageUsageComponent} from "@app/components/dashboard/storage-usage/storage-usage.component";
 import {NgbTimeStringAdapter} from '@app/adapters/timepicker-adapter';
+import {PrivacyComponent} from "@app/components/privacy/privacy.component";
 
 import {DisableControlDirective} from "@app/directives/disable-control";
 
@@ -54,6 +55,7 @@ const appRoutes: Routes = [
     {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/forecasts', component: ForecastMapsComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/observations', component: ObservationMapsComponent, canActivate: [AuthGuard]},
+    {path: 'public/privacy', component: PrivacyComponent},
     {path: 'app', redirectTo: '/app/data/datasets', pathMatch: 'full'},
     {path: '', redirectTo: '/app/data/datasets', pathMatch: 'full'},
 ];
@@ -82,6 +84,7 @@ const appRoutes: Routes = [
         StorageUsageComponent,
         RequestsComponent,
         SchedulesComponent,
+        PrivacyComponent,
         FormatDatePipe,
         DisableControlDirective
     ],
