@@ -91,7 +91,7 @@
         </div>
 
         <!-- Space Post Process-->
-        <div class="card mst--expansion-panel">
+        <div class="card mst--expansion-panel" [hidden]="!form.value.hasGribDataset">
             <div class="card-header" style="padding-left: 13px;">
                 <input class="mst--input-checkbox" type="checkbox" formControlName="selectedSpacePP" id="selectedSpacePP">
                 <label for="selectedSpacePP" placement="right" openDelay="2000"><h5>3. Space Post Process</h5></label>
@@ -332,7 +332,7 @@
                 </div>
             </div>
         </div>
-        <div class="card mst--expansion-panel">
+        <div class="card mst--expansion-panel" [hidden]="!form.value.hasBufrDataset && (form.value.hasGribDataset && form.value.space_type != 'points')">
             <div class="card-header">
                 <h5>4. Format conversion</h5>
                 <span class="info-help">&nbsp;<i placement="right"

@@ -137,7 +137,7 @@ export class StepPostprocessComponent implements OnInit {
         desc: 'Immediate'
     }];
     
-    stepIntervals = ["-", "hour", "day", "month", "year"];
+    stepIntervals = ["-", "hours", "days", "months", "years"];
     
     interpolationTypes = ["-", "near", "bilin", "average", "min", "max"];
 
@@ -180,7 +180,9 @@ export class StepPostprocessComponent implements OnInit {
             selectedGITemplate: new FormControl(),
             selectedSPTemplate: new FormControl(),
             selectedTimePP: new FormControl(),
-            selectedSpacePP: new FormControl()
+            selectedSpacePP: new FormControl(),
+            hasGribDataset: false,
+            hasBufrDataset: false
         });
     }
 
@@ -248,7 +250,7 @@ export class StepPostprocessComponent implements OnInit {
         if (pt && pt.length){
             this.form.controls['selectedSpacePP'].setValue(true);
             this.form.controls['space_type'].setValue('grid');
-            this.selectedInterpolationType = this.interpolationTypes.filter(i => i === pt[0]['sub_type'])[0];
+            this.selectedInterpolationType = this.interpolationTypes.filter(i => i === pt[0]['sub-type'])[0];
             const boundings = pt[0].boundings;
             if(boundings){
                 this.form.controls['gridInterpolationType'].setValue('area');
@@ -292,7 +294,7 @@ export class StepPostprocessComponent implements OnInit {
         if (pt && pt.length){
             this.form.controls['selectedSpacePP'].setValue(true);
             this.form.controls['space_type'].setValue('points');
-            this.selectedInterpolationType = this.interpolationTypes.filter(i => i === pt[0]['sub_type'])[0];
+            this.selectedInterpolationType = this.interpolationTypes.filter(i => i === pt[0]['sub-type'])[0];
             const selectedTemplate = this.sparePointsTemplates.filter(t => t.filepath === pt[0]['coord-filepath'])[0];
             this.form.controls['selectedSPTemplate'].setValue(selectedTemplate.filepath);
         }else{
@@ -306,7 +308,7 @@ export class StepPostprocessComponent implements OnInit {
         this.dataService.getTemplates("grib").subscribe(
             data => {
                 for (let type of data.data){
-                    for (let file of type.files){   
+                    for (let file of type.files){
                         let filepath = file.split('/');
                         let label = filepath[filepath.length-1];
                         this.gridInterpolationTemplates.push({'label':label,'filepath': file, 'format':type.type});
@@ -346,8 +348,15 @@ export class StepPostprocessComponent implements OnInit {
         }
     }
 
+    private checkDatasetFormat(){
+        const selectedDataset = this.formDataService.getFormData().datasets;
+        this.form.controls['hasBufrDataset'].setValue(selectedDataset.some( d => d.format === 'bufr'));
+        this.form.controls['hasGribDataset'].setValue(selectedDataset.some( d => d.format === 'grib'));
+    }
+
     ngOnInit() {
         window.scroll(0, 0);
+        this.checkDatasetFormat();
         this.dataService.getDerivedVariables().subscribe(
             data => {
                 this.vars = data;
@@ -491,7 +500,7 @@ export class StepPostprocessComponent implements OnInit {
 
          return {
              'type': 'grid_interpolation',
-             'sub_type': this.selectedInterpolationType,
+             'sub-type': this.selectedInterpolationType,
              'boundings': boundings,
              'nodes': nodes
             } 
@@ -502,7 +511,7 @@ export class StepPostprocessComponent implements OnInit {
             return {
                 'type': 'grid_interpolation',
                 'template': this.form.value.selectedGITemplate,
-                'sub_type': this.selectedInterpolationType,
+                'sub-type': this.selectedInterpolationType,
             }
          }
         
@@ -515,7 +524,7 @@ export class StepPostprocessComponent implements OnInit {
             'type' : 'spare_point_interpolation',
             'coord-filepath': this.form.value.selectedSPTemplate,
             'format' : this.sparePointsTemplates.find(t => t.filepath == this.form.value.selectedSPTemplate).format,
-            'sub_type': this.selectedInterpolationType,
+            'sub-type': this.selectedInterpolationType,
             
         }
     }
