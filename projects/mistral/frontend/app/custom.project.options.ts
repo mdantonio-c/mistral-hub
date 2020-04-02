@@ -5,6 +5,9 @@ import { BytesPipe } from '@rapydo/pipes/pipes';
 @Injectable()
 export class ProjectOptions {
 
+    private policy_it: string;
+    private policy_en: string;
+
 	constructor() {
 		this.initTemplates();
     }
