@@ -4,6 +4,7 @@ import shlex
 import subprocess
 import os
 import datetime
+import tarfile
 # import shutil
 import glob
 # from pathlib import Path
@@ -93,6 +94,14 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             uuid = RequestManager.get_uuid(db, user_id)
             user_dir = os.path.join(DOWNLOAD_DIR, uuid)
             os.makedirs(user_dir, exist_ok=True)
+
+            # check that the datasets are all under the same license
+            license = arki.get_unique_license(datasets)
+            log.debug('license: {}', license)
+            # get license file
+            license_file = os.path.join(os.curdir, 'mistral', 'licenses', '{}.txt'.format(license))
+            if not os.path.isfile(license_file):
+                raise IOError('License file not found')
 
             # output filename in the user space
             # max filename len = 64
@@ -320,8 +329,24 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         human_size(data_size - esti_data_size)
                     )
 
+            # package data and license
+            tar_filename = 'data-{utc_now}.tar.gz'.format(
+                utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ.%f"),
+                id=self.request.id)
+            tar_file = os.path.join(user_dir, tar_filename)
+            with tarfile.open(tar_file, "w:gz") as tar:
+                log.debug('--TAR ARCHIVE-------------------------')
+                log.debug('data file: {}', outfile)
+                tar.add(outfile, arcname=os.path.basename(outfile))
+                log.debug('license file: {}', license_file)
+                tar.add(license_file, arcname='LICENSE')
+                log.debug('--------------------------------------')
+
+            # delete out_filename
+            os.remove(outfile)
+
             # create fileoutput record in db
-            RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
+            RequestManager.create_fileoutput_record(db, user_id, request_id, tar_filename, data_size)
             # update request status
             request.status = states.SUCCESS
             log.debug('reftime: {}', reftime)
