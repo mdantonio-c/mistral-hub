@@ -250,7 +250,7 @@ class Templates(EndpointResource, Uploader):
             # get total count for user templates
             if get_total:
                 counter = len(templates)
-                return {"total": counter}
+                return self.force_response({"total": counter})
         return self.force_response(res, code=hcodes.HTTP_OK_BASIC)
 
     @catch_error()
