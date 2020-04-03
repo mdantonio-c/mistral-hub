@@ -65,6 +65,7 @@ export class Dataset {
     id = '';
     name = '';
     category = '';
+    format = '';
     description ? = '';
     license ? = '';
 }
