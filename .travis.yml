@@ -25,6 +25,6 @@ jobs:
     script: rapydo shell backend --command 'restapi tests --wait'
     env:
     - JOB=backend
-    script: rapydo -s frontend logs && rapydo shell frontend --command 'npm run single-test'
+    script: rapydo -s frontend logs && sleep 60 && rapydo shell frontend --command 'npm run single-test'
     env:
     - JOB=frontend
