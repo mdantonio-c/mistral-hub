@@ -6,15 +6,16 @@ python:
 services:
 - docker
 
+env:
+  VERSION=0.7.2
+
 install:
 - docker --version && docker-compose --version
-- pip3 install rapydo-controller
-- rapydo install auto
+- pip install --upgrade git+https://github.com/rapydo/do.git@$VERSION
 - /bin/bash scripts/create_projectrc.sh
 - rapydo init
 - rapydo pull
 - rapydo start
-
 
 jobs:
   include:
