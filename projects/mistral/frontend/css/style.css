@@ -297,8 +297,6 @@ input[type="radio"]:focus,
     background: white;
 }
 
-/***********************************************/
-
 .mst--radio-label:before {
     background: #fff;
     border: 2px solid #707070;
@@ -552,9 +550,10 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0; 
 }
 
-input.ng-invalid {
+/*input.ng-invalid {
   border-color: red !important;
-}
+  border-style: solid;
+}*/
 
 /* the following fix flickering issues with map carousel */
 .carousel-inner .carousel-item {
