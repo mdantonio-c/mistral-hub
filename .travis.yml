@@ -13,6 +13,7 @@ script:
 - pip3 install rapydo-controller
 - rapydo install auto
 # - /bin/bash templates/create_testing_projectrc.sh 
+- touch .projetrc
 - rapydo init
 - rapydo pull
 - rapydo start
