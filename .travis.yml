@@ -1,25 +1,20 @@
 language: python
 sudo: required
-dist: xenial
+dist: bionic
 python:
-- 3.7.1
+- 3.8
 services:
 - docker
-script:
-  - docker -v
-  - docker ps
-  - sh scripts/create_projectrc.sh
-  - pip3 install --upgrade --no-cache-dir rapydo-controller 
-  - rapydo install auto
-  - rapydo init
-  - rapydo pull
-  # - cp -r /arkimet/datasets/* data/arkimet/
-  - rapydo start
-  - rapydo shell backend --command 'restapi wait'
-  - rapydo shell backend --command 'restapi forced-clean'
-  - rapydo shell backend --command 'restapi init'
-  - rapydo shell backend --command 'restapi tests'
-  - rapydo remove
+env:
+- PROJECT=mistral
 
-notifications:
-  email: true
+script:
+- docker --version && docker-compose --version
+- pip3 install rapydo-controller
+- rapydo install auto
+# - /bin/bash templates/create_testing_projectrc.sh 
+- rapydo init
+- rapydo pull
+- rapydo start
+- rapydo shell backend --command 'restapi tests --wait'
+
