@@ -24,7 +24,7 @@ jobs:
   - stage: tests
     script: rapydo shell backend --command 'restapi tests --wait'
     env:
-    - STAGE=backend
+    - JOB=backend
     script: rapydo shell frontend --command 'npm run single-test'
     env:
-    - STAGE=frontend
+    - JOB=frontend
