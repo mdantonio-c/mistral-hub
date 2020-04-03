@@ -7,7 +7,7 @@ services:
 - docker
 
 env:
-  VERSION=0.7.2
+- VERSION=0.7.2
 
 install:
 - docker --version && docker-compose --version
