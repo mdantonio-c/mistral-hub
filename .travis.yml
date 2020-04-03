@@ -19,8 +19,11 @@ install:
 - rapydo pull
 - rapydo start
 
-
 jobs:
   include:
     - script: rapydo shell backend --command 'restapi tests --wait'
-    - script: rapydo -s frontend logs && rapydo shell frontend --command 'npm run single-test'
+      env:
+      - STAGE=BACKEND
+    - script: sleep 60 && rapydo -s frontend logs && rapydo shell frontend --command 'npm run single-test'
+      env:
+      - STAGE=FRONTEND
