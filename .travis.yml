@@ -11,6 +11,7 @@ install:
 - wget $DATASET_URL/arkimet.zip
 - unzip arkimet.zip -d data/
 - ls data/
+- mv data/arkimet/datasets/* data/arkimet/
 - ls data/arkimet/
 - pip install --upgrade git+https://github.com/rapydo/do.git@0.7.2
 - /bin/bash scripts/create_projectrc.sh
@@ -21,10 +22,5 @@ install:
 
 jobs:
   include:
-  - stage: tests
-    script: rapydo shell backend --command 'restapi tests --wait'
-    env:
-    - JOB=backend
-    script: rapydo -s frontend logs && sleep 60 && rapydo shell frontend --command 'npm run single-test'
-    env:
-    - JOB=frontend
+    - script: rapydo shell backend --command 'restapi tests --wait'
+    - script: rapydo -s frontend logs && rapydo shell frontend --command 'npm run single-test'
