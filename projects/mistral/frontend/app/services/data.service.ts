@@ -65,6 +65,7 @@ export class Dataset {
     id = '';
     name = '';
     category = '';
+    format = '';
     description ? = '';
     license ? = '';
 }
@@ -156,13 +157,17 @@ export class DataService {
         //return this.api.post('templates', formData);
     }
 
-    getTemplates(){
-        return this.api.get('templates');
+    getTemplates(param: string){
+        if (param){
+            return this.api.get('templates?format='+param);
+        }else{
+            return this.api.get('templates');    
+        }        
     }
     /**
      * Request for data extraction.
      */
-    extractData(name: string, reftime: RefTime, datasets: string[], filters?: Filters[], schedule?: TaskSchedule, postprocessors?: any[]) {
+    extractData(name: string, reftime: RefTime, datasets: string[], filters?: Filters[], schedule?: TaskSchedule, postprocessors?: any[], outputformat?: string) {
         let data = {
             name: name,
             reftime: reftime,
@@ -206,6 +211,9 @@ export class DataService {
         }
         if (postprocessors && postprocessors.length) {
             data['postprocessors'] = postprocessors;
+        }
+        if (outputformat){
+            data['output_format'] = outputformat;
         }
         const endpoint = schedule ? 'schedules' : 'data';
         return this.api.post(endpoint, data, {"rawResponse": true});

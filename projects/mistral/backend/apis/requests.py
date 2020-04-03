@@ -97,7 +97,7 @@ class UserRequests(EndpointResource):
         db = self.get_service_instance('sqlalchemy')
         if get_total:
             counter = repo.count_user_requests(db, user.id)
-            return {"total": counter}
+            return self.force_response({"total": counter})
 
         # get user requests list
         # res = repo.get_user_requests(db, user.id, sort_by=sort, sort_order=sort_order)
