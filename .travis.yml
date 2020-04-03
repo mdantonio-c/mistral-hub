@@ -5,17 +5,23 @@ python:
 - 3.8
 services:
 - docker
-env:
-- PROJECT=mistral
 
-script:
+install:
 - docker --version && docker-compose --version
 - pip3 install rapydo-controller
 - rapydo install auto
-# - /bin/bash templates/create_testing_projectrc.sh 
-- touch .projetrc
+- /bin/bash scripts/create_projectrc.sh
 - rapydo init
 - rapydo pull
 - rapydo start
-- rapydo shell backend --command 'restapi tests --wait'
 
+
+jobs:
+  include:
+  - stage: tests
+    script: rapydo shell backend --command 'restapi tests --wait'
+    env:
+    - STAGE=backend
+  - script: echo 1
+    env:
+    - STAGE=frontend
