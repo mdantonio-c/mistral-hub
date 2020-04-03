@@ -27,3 +27,6 @@ jobs:
     - script: sleep 60 && rapydo -s frontend logs && rapydo shell frontend --command 'npm run single-test'
       env:
       - STAGE=FRONTEND
+
+notifications:
+  email: true
