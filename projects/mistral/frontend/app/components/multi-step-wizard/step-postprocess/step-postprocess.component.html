@@ -317,7 +317,7 @@
                                         </div>
                                         <hr/>
                                         <div>
-                                            <h5>Add new shp or geoJson file to your personal area. If you upload geoJson this will be converted into a shape file</h5>                                                 
+                                            <h5>Add new shape or geoJson file to your personal area. If you upload geoJson this will be converted into a shape file</h5>                                                 
                                         </div>
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input" id="input-grid-template"
@@ -332,7 +332,7 @@
                 </div>
             </div>
         </div>
-        <div class="card mst--expansion-panel" [hidden]="!form.value.hasBufrDataset && (form.value.hasGribDataset && form.value.space_type != 'points')">
+        <div class="card mst--expansion-panel" [hidden]="!form.value.hasBufrDataset && ( (form.value.hasGribDataset && !form.value.selectedSpacePP) || (form.value.hasGribDataset && form.value.selectedSpacePP && form.value.space_type != 'points'))">
             <div class="card-header">
                 <h5>4. Format conversion</h5>
                 <span class="info-help">&nbsp;<i placement="right"

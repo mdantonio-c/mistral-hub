@@ -524,9 +524,10 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0; 
 }
 
-input.ng-invalid {
+/*input.ng-invalid {
   border-color: red !important;
-}
+  border-style: solid;
+}*/
 
 /* the following fix flickering issues with map carousel */
 .carousel-inner .carousel-item {

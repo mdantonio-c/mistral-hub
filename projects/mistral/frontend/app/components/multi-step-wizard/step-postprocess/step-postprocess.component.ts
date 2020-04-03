@@ -16,6 +16,7 @@ export class StepPostprocessComponent implements OnInit {
     gridInterpolationTemplates = [];
     sparePointsTemplates = [];
     validationResults = [];
+    uploadedFileName;
     space_crop_boundings = [
         {
             code: 'ilon',
@@ -312,6 +313,9 @@ export class StepPostprocessComponent implements OnInit {
                         let filepath = file.split('/');
                         let label = filepath[filepath.length-1];
                         this.gridInterpolationTemplates.push({'label':label,'filepath': file, 'format':type.type});
+                        if (this.uploadedFileName && label === this.uploadedFileName){
+                            this.form.controls['selectedGITemplate'].setValue(file);                        
+                        }
                     }
                 }
                 this.buildSpaceGrid();
@@ -329,7 +333,18 @@ export class StepPostprocessComponent implements OnInit {
                     for (let file of type.files){   
                         let filepath = file.split('/');
                         let label = filepath[filepath.length-1];
-                        this.sparePointsTemplates.push({'label':label,'filepath': file, 'format':type.type});
+                        this.sparePointsTemplates.push({'label':label,'filepath': file, 'format':type.type});                        
+                        if (this.uploadedFileName){
+                            let extractExtensionRegex = new RegExp('(?:\.([^.]+))?$');
+                            let fileExtension = extractExtensionRegex.exec(this.uploadedFileName)[1];
+                            if (fileExtension === 'geojson'){
+                                this.uploadedFileName = this.uploadedFileName.replace('geojson','shp');
+                            }else if (fileExtension === 'zip') {
+                                this.uploadedFileName = this.uploadedFileName.replace('zip','shp');
+                            }
+                            if ( label === this.uploadedFileName)
+                            this.form.controls['selectedSPTemplate'].setValue(file);                        
+                        }
                     }
                 }
                 this.buildSparePoint();
@@ -375,21 +390,18 @@ export class StepPostprocessComponent implements OnInit {
     loadFile(files: FileList){
         if (files.length == 1){
             let file :File = files[0];
-            console.log(file);
+            this.uploadedFileName = file.name;
             this.uploadFile(file);
 
         }
     }
-    uploadFile(file: File){
+    uploadFile(file: File){        
         this.dataService.uploadTemplate(file).subscribe(
             data => {
-                     this.buildTemplates();
-                    // this.form.controls['templates'].setValue(file.name);
-
-
-                    },
+                this.buildTemplates();            
+            },
             error => {this.notify.showError(error.error.Response.errors[0]);}
-            );
+        );
     }
 
     private save() {
@@ -451,8 +463,11 @@ export class StepPostprocessComponent implements OnInit {
         }
 
         this.formDataService.setPostProcessor(selectedProcessors);
-        if (this.selectedConversionFormat != null && this.selectedConversionFormat != ' '){
+        if (this.selectedConversionFormat != null && this.selectedConversionFormat != '-'
+            && (this.form.value.hasBufrDataset || (this.form.value.hasGribDataset && this.form.value.selectedSpacePP && this.form.value.space_type === 'points'))){
             this.formDataService.setOutputFormat(this.selectedConversionFormat);
+        }else {
+            this.formDataService.setOutputFormat("");
         }
 
         if(this.validationResults.length){
@@ -580,10 +595,10 @@ export class StepPostprocessComponent implements OnInit {
         };
         
         if (this.form.value.space_crop.filter(s => {
-            let regex = new RegExp('[1-9]{1,2}\.?[\d]{0,6}$');
+            let regex = new RegExp('-?[1-9]{1,2}\.?[\d]{0,6}$');
             return !regex.test(s);
         }).length){
-            validationItem.messages.push(" - Lat/Lon values must be greater than zero<br/>");
+            validationItem.messages.push(" - Lat/Lon values must be nonzero<br/>");
             this.validationResults.push(validationItem);
         }
         
@@ -597,26 +612,27 @@ export class StepPostprocessComponent implements OnInit {
             'messages': []
         };
 
+        if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
+                        validationItem.messages.push(" - interpolation type required<br/>");
+        }
+
         if (this.form.value.gridInterpolationType =="area"){ 
             if (this.form.value.space_grid.filter(s => {
-                let regex = new RegExp('[1-9]{1,2}\.?[\d]{0,6}$');
+                let regex = new RegExp('-?[1-9]{1,2}\.?[\d]{0,6}$');
                 return !regex.test(s);
             }).length){
-                validationItem.messages.push(" - Lat/Lon values must be greater than zero<br/>");
+                validationItem.messages.push(" - Lat/Lon values must be nonzero<br/>");
             }
 
             if (this.form.value.interpolationNodes.filter(n => {
                 let regex = new RegExp('^-?[0-9]+$');
                 return !regex.test(n);
             }).length){
-                validationItem.messages.push(" - nx/ny values must be greater than zero<br/>");
+                validationItem.messages.push(" - nx/ny values must be nonzero<br/>");
             }
             
         }else {
-            if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
-                validationItem.messages.push(" - interpolation type required<br/>");
-            }
-
+            
             if (!this.form.value.selectedGITemplate){
                 validationItem.messages.push(" - at least one template must be selected<br/>");
             }
