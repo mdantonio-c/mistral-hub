@@ -8,11 +8,16 @@ services:
 
 install:
 - docker --version && docker-compose --version
+- wget $DATASET_ZIP .
+- unzip arkimet.zip -d data/
+- ls data/
+- ls data/arkimet/
 - pip install --upgrade git+https://github.com/rapydo/do.git@0.7.2
 - /bin/bash scripts/create_projectrc.sh
 - rapydo init
 - rapydo pull
 - rapydo start
+
 
 jobs:
   include:
