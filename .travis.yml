@@ -6,12 +6,9 @@ python:
 services:
 - docker
 
-env:
-- VERSION=0.7.2
-
 install:
 - docker --version && docker-compose --version
-- pip install --upgrade git+https://github.com/rapydo/do.git@$VERSION
+- pip install --upgrade git+https://github.com/rapydo/do.git@0.7.2
 - /bin/bash scripts/create_projectrc.sh
 - rapydo init
 - rapydo pull
