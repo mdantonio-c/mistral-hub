@@ -13,7 +13,7 @@ install:
 - ls data/
 - mv data/arkimet/datasets/* data/arkimet/
 - ls data/arkimet/
-- pip install --upgrade git+https://github.com/rapydo/do.git@0.7.2
+- pip install --upgrade git+https://github.com/rapydo/do.git@0.7.3
 - /bin/bash scripts/create_projectrc.sh
 - rapydo init
 - rapydo pull
