@@ -41,15 +41,13 @@ export class ProjectOptions {
     private privacy_acceptance() {
 
         return [
-            {'label': 'IT', 'text': this.policy_it},
-            {'label': 'EN', 'text': this.policy_en},
+            //{'label': 'IT', 'text': this.policy_it},
+            {'label': 'Click here to visualize our Terms of Use', 'text': this.policy_en},
         ];
     }
 
 	private initTemplates() {
         this.policy_it = `
-<p>
-
 PERCHÉ QUESTE INFORMAZIONI
 
 La presente informativa, resa ai sensi del Regolamento (UE) 2016/679 (di seguito "Regolamento"), descrive le modalità di trattamento dei dati personali degli utenti che consultano il sito web o accedono alla piattaforma meteo-hub del progetto Mistral (Progetto europeo CEF 2014-2020 AGREEMENT No INEA/CEF/ICT/A2017/1567101) accessibile per via telematica ai seguenti indirizzi web:
@@ -139,98 +137,87 @@ Si precisa che in riferimento ai suoi dati personali conferiti, è detentore dei
 Per esercitare i diritti sopra riportati potrà rivolgersi al Titolare del trattamento al seguente indirizzo: Cineca Consorzio Interuniversitario – via Magnanelli 6/3, 40033 Casalecchio di Reno (BO) oppure all’indirizzo di posta elettronica: privacy@cineca.it all’attenzione del “Responsabile della protezione dei dati personali”.  Al fine di agevolare il rispetto dei termini di legge, si consiglia di riportare nella richiesta la dicitura "Esercizio diritti ex art. 15 e ss. del Regolamento Europeo n. 679 /2016".
 
 Il Titolare del trattamento è tenuto a fornirle una risposta entro un mese dalla richiesta, estensibili fino a tre mesi in caso di particolare complessità della richiesta. 
-
-
-</p
-		`;
+`;
 
 		this.policy_en = `
-<p>
+This information, made pursuant to Regulation (EU) 2016/679 (hereinafter the "Regulation"), describes the methods of processing of personal data of users who consult the Mistral project website or access the meteo-hub platform, accessible electronically to the following web addresses:<br/>
+<ul>
+    <li>mistralportal.eu</li>
+    <li>mistralportal.it</li>
+    <li>meteo-hub.hpc.cineca.it</li>
+</ul>
+This information is provided solely for those who access and interact with the sites listed above and not for all other websites that may be consulted by the user through hypertext links on the site, for which Cineca is not responsible.<br/>
+<br/>
+We therefore provide you with the following information:<br/>
+<br/>
 
-This information, made pursuant to Regulation (EU) 2016/679 (hereinafter the "Regulation"), describes the methods of processing of personal data of users who consult the Mistral project website or access the meteo-hub platform, accessible electronically to the following web addresses:
+<h5>HOLDER OF DATA PROCESSING</h5>
+The Holder of the treatment of personal data entered during the consultation of our site and any other data entered voluntarily by the user in filling out information request forms, is the "CINECA - Interuniversity Consortium - Via Magnanelli 6/3 cap. 40033 Casalecchio di Reno (BO) - Tel. Switchboard 051 6171411" e-mail: privacy@cineca.it<br/>
+<br/>
+You can contact the Holder of the treatment by writing to the above address or by sending an e-mail to the following e-mail address: privacy@cineca.it<br/>
+<br/>
 
-mistralportal.eu
-mistralportal.it
-meteo-hub.hpc.cineca.it
+<h5>RESPONSIBLE FOR DATA PROTECTION</h5>
+The Data Protection Officer (DPO) can be reached at the following address: <br/>Cineca Consorzio Interuniversitario - via Magnanelli 6/3 email: privacy@cineca.it<br/>
+<br/>
 
-This information is provided solely for those who access and interact with the sites listed above and not for all other websites that may be consulted by the user through hypertext links on the site, for which Cineca is not responsible.
+<h5>LEGAL BASIS OF THE TREATMENT</h5>
+The legal basis of the processing is represented by the pursuit of the legitimate interest of the Cineca as a coordinating partner of the Mistral project, pursuant to Article 6 paragraph f) of the Regulation, to the publication on the web of the project informative site aimed at the dissemination of activities and initiatives dissemination of the project itself.<br/> 
 
-We therefore provide you with the following information:
+The provision of personal data provided voluntarily in completing the form accessible on the CONTACTS page of the Mistral website or by sending e-mail or to register your login credentials is optional. Any refusal to provide them may make it impossible to use the requested Services. The data requested are those strictly necessary to respond to the user's requests (contact details).<br/> 
+<br/> 
 
-HOLDER OF DATA PROCESSING
+<h5>PURPOSE OF THE TREATMENT AND TYPE OF DATA PROCESSED</h5>
 
-The Holder of the treatment of personal data entered during the consultation of our site and any other data entered voluntarily by the user in filling out information request forms, is the "CINECA - Interuniversity Consortium - Via Magnanelli 6/3 cap. 40033 Casalecchio di Reno (BO) - Tel. Switchboard 051 6171411" e-mail: privacy@cineca.it
+<h5>DATA ENTERING VOLUNTARILY BY THE USER</h5>
+The personal data provided directly by users through the compilation of web based forms for sending comments or for registering on the site in order to receive information, or for authentication to the digital Meteo-hub platform, will be used to allow the sending the requested information material (newsletter, replies to requests for information, sending "Mistral" publications) and / or to allow access to the meteo-hub platform and the use of the services offered and will eventually be communicated only to the other partner entities of the project.<br/>
+<br/>
 
-You can contact the Holder of the treatment by writing to the above address or by sending an e-mail to the following e-mail address: privacy@cineca.it
+<h5>NAVIGATION DATA</h5>
+The computer systems and software procedures, responsible for the functioning of this website, acquire, during their normal operation, some data whose transmission is inherent in the use of Internet communication protocols. This information is not collected to be associated with identified interested parties, but by their very nature could, through processing and association with data held by third parties, allow users to be identified. This category of data includes IP addresses or domain names of computers used by users who connect to the site, URI (Uniform Resource Identifier: addresses) is a string that uniquely identifies a generic resource that can be a web address, a document, a file etc. of the requested resources, the time of the request, the method used in submitting the request to the server, the size of the file obtained in response, the numeric code indicating the status of the response given by the server (successful , error, etc.) and other parameters relating to the operating system and the user's computer environment (browser used by the user).<br/>
+<br/>
+The system does not allow instead to collect the identity of the user who connects.<br/>
+<br/>
+These data are used only on an aggregate basis and never personalized, to statistically analyze the behavior of the user in order to understand how visitors use the site and to measure the interest found for the different pages that make up the site. This makes it possible to improve the content of the site and simplify it and make the consultation more efficient.<br/>
+<br/>
+These data are used for the sole purpose of obtaining anonymous statistical information on the use of the site and to check its correct functioning and are kept for the period necessary for the purposes defined in this statement. The data in question could be used to ascertain responsibility in the event of computer crimes against our site, in compliance with the guarantees imposed by the law. It should be noted that the use of navigation data and cookies is in no way aimed at "user profiling", that is, a technique aimed at gathering information on consumers to better target promotional campaigns and sales offers.<br/>
+<br/>
 
-RESPONSIBLE FOR DATA PROTECTION
+<h5>CONFIGURING THE LOGS OF THE CINECA WEB SERVER</h5>
+While browsing, each user's browser communicates to the Cineca web server the IP address of the navigator. The IP address is a number automatically assigned to each computer while browsing the web.<br>
+<br/>
+The Cineca web server is configured in such a way as not to allow the identification of the user (user name) associated with the IP address or other personal identity information, therefore the user remains anonymous during the site visit.<br>
+<br/>
 
-The Data Protection Officer (DPO) can be reached at the following address: Cineca Consorzio Interuniversitario - via Magnanelli 6/3 email: privacy@cineca.it
-
-LEGAL BASIS OF THE TREATMENT
-
-The legal basis of the processing is represented by the pursuit of the legitimate interest of the Cineca as a coordinating partner of the Mistral project, pursuant to Article 6 paragraph f) of the Regulation, to the publication on the web of the project informative site aimed at the dissemination of activities and initiatives dissemination of the project itself.
-
-The provision of personal data provided voluntarily in completing the form accessible on the CONTACTS page of the Mistral website or by sending e-mail or to register your login credentials is optional. Any refusal to provide them may make it impossible to use the requested Services. The data requested are those strictly necessary to respond to the user's requests (contact details).
-
- 
-
-PURPOSE OF THE TREATMENT AND TYPE OF DATA PROCESSED
-
-DATA ENTERING VOLUNTARILY BY THE USER
-
-The personal data provided directly by users through the compilation of web based forms for sending comments or for registering on the site in order to receive information, or for authentication to the digital Meteo-hub platform, will be used to allow the sending the requested information material (newsletter, replies to requests for information, sending "Mistral" publications) and / or to allow access to the meteo-hub platform and the use of the services offered and will eventually be communicated only to the other partner entities of the project.
-
-NAVIGATION DATA
-
-The computer systems and software procedures, responsible for the functioning of this website, acquire, during their normal operation, some data whose transmission is inherent in the use of Internet communication protocols. This information is not collected to be associated with identified interested parties, but by their very nature could, through processing and association with data held by third parties, allow users to be identified. This category of data includes IP addresses or domain names of computers used by users who connect to the site, URI (Uniform Resource Identifier: addresses) is a string that uniquely identifies a generic resource that can be a web address, a document, a file etc. of the requested resources, the time of the request, the method used in submitting the request to the server, the size of the file obtained in response, the numeric code indicating the status of the response given by the server (successful , error, etc.) and other parameters relating to the operating system and the user's computer environment (browser used by the user).
-
-The system does not allow instead to collect the identity of the user who connects.
-
-These data are used only on an aggregate basis and never personalized, to statistically analyze the behavior of the user in order to understand how visitors use the site and to measure the interest found for the different pages that make up the site. This makes it possible to improve the content of the site and simplify it and make the consultation more efficient.
-
-These data are used for the sole purpose of obtaining anonymous statistical information on the use of the site and to check its correct functioning and are kept for the period necessary for the purposes defined in this statement. The data in question could be used to ascertain responsibility in the event of computer crimes against our site, in compliance with the guarantees imposed by the law. It should be noted that the use of navigation data and cookies is in no way aimed at "user profiling", that is, a technique aimed at gathering information on consumers to better target promotional campaigns and sales offers.
-
-CONFIGURING THE LOGS OF THE CINECA WEB SERVER
-While browsing, each user's browser communicates to the Cineca web server the IP address of the navigator. The IP address is a number automatically assigned to each computer while browsing the web.
-
-The Cineca web server is configured in such a way as not to allow the identification of the user (user name) associated with the IP address or other personal identity information, therefore the user remains anonymous during the site visit.
-
-THE USE OF COOKIES AND OTHER TRACKING SYSTEMS
+<h5>THE USE OF COOKIES AND OTHER TRACKING SYSTEMS</h5>
 See the information available at the following URL:
-https://www.cineca.it/privacy/cookies-cineca
+https://www.cineca.it/privacy/cookies-cineca<br/>
+<br/>
 
+<h5>DATA ADDRESSEES</h5>
+The recipients of the data collected after completing the form or sending an e-mail or subscription to the site are the HOLDER OF DATA PROCESSING (Cineca) and any Data Processors appointed by the Holder, as well as the physical persons within the Cineca authorized to process the data for the purposes indicated above<br/>.
+<br/>
+The navigation data (IP address, site of origin, browser used, OS used, pages visited, time spent on individual pages, etc.) on the pages of the website mistralportal.eu and mistralportal.it are only transmitted to the Google company that provides the Cineca the service called Google Analytics (http://www.google.com/analytics/): it is a service of statistical processing of site accesses, which are used only within the mistral project, to analyze usage of the site by users in order to improve the service offered and to make the use of the site quicker and easier to access.<br/>
+These data are not processed in any way to define the profile or personality of the person concerned, or to analyze habits or consumption choices for commercial purposes.<br/>
+Your personal data will not be subject to disclosure.<br/>
+<br/>
 
+<h5>DATA STORAGE</h5>
+Except in the event that the data subject does not express the request for deletion of his personal data, the data collected will be kept until they are necessary with respect to the legitimate purposes for which they were collected.<br/>
+<br/>
 
+<h5>RIGHTS OF THE INTERESTED PARTY AND METHOD OF EXERCISE</h5>
+It is specified that in reference to your personal data, you are the holder of the following rights:<br/>
+<ol>
+<li>access to your personal data;</li>
+<li>to obtain the rectification or cancellation of the same or the limitation <br/>of the treatment concerning it;</li>
+<li>to oppose the processing;</li>
+<li>to lodge a complaint with the supervisory authority (Guarantor for the prot<br/>ection of personal data)</li>
+</ol>
 
-DATA ADDRESSEES
-
-The recipients of the data collected after completing the form or sending an e-mail or subscription to the site are the HOLDER OF DATA PROCESSING (Cineca) and any Data Processors appointed by the Holder, as well as the physical persons within the Cineca authorized to process the data for the purposes indicated above.
-
-
-The navigation data (IP address, site of origin, browser used, OS used, pages visited, time spent on individual pages, etc.) on the pages of the website mistralportal.eu and mistralportal.it are only transmitted to the Google company that provides the Cineca the service called Google Analytics (http://www.google.com/analytics/): it is a service of statistical processing of site accesses, which are used only within the mistral project, to analyze usage of the site by users in order to improve the service offered and to make the use of the site quicker and easier to access.
-These data are not processed in any way to define the profile or personality of the person concerned, or to analyze habits or consumption choices for commercial purposes.
-Your personal data will not be subject to disclosure.
-
-DATA STORAGE
-
-Except in the event that the data subject does not express the request for deletion of his personal data, the data collected will be kept until they are necessary with respect to the legitimate purposes for which they were collected.
- 
-
-RIGHTS OF THE INTERESTED PARTY AND METHOD OF EXERCISE
-
-It is specified that in reference to your personal data, you are the holder of the following rights:
-
-1. access to your personal data;
-2. to obtain the rectification or cancellation of the same or the limitation of the treatment concerning it;
-3. to oppose the processing;
-4. to lodge a complaint with the supervisory authority (Guarantor for the protection of personal data)
-
-To exercise the above rights, you can contact the Holder of data processing  at the following address: Cineca Interuniversity Consortium - via Magnanelli 6/3, 40033 Casalecchio di Reno (BO) or at the e-mail address: privacy@cineca.it for the attention of "Responsible for the protection of personal data". In order to facilitate compliance with the terms of the law, it is advisable to include in the request the words "Exercise of rights pursuant to article 15 and following of European Regulation n. 679/2016".
-
-The Holder of data processing is required to provide a response within one month of the request, extendable up to three months if the request is particularly complex.
-
-</p
+To exercise the above rights, you can contact the Holder of data processing  at the following address: Cineca Interuniversity Consortium - via Magnanelli 6/3, 40033 Casalecchio di Reno (BO) or at the e-mail address: privacy@cineca.it for the attention of "Responsible for the protection of personal data". In order to facilitate compliance with the terms of the law, it is advisable to include in the request the words "Exercise of rights pursuant to article 15 and following of European Regulation n. 679/2016".<br/>
+<br/>
+The Holder of data processing is required to provide a response within one month of the request, extendable up to three months if the request is particularly complex.<br/>
 		`;
 	}
 
