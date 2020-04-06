@@ -22,7 +22,7 @@ export class StorageUsageComponent implements OnInit {
             this.usage = resp.data;
             this.barValue = (this.usage.used * 100) / this.usage.quota;
         }, error => {
-            this.notify.extractErrors(error, this.notify.ERROR);
+            this.notify.showError(error);
         });
     }
 

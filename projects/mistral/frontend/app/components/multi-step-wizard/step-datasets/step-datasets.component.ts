@@ -42,7 +42,7 @@ export class StepDatasetsComponent implements OnInit {
                 this.loading = false;
             },
             error => {
-                this.notify.extractErrors(error, this.notify.ERROR);
+                this.notify.showError(error);
                 this.loading = false;
             });
     }

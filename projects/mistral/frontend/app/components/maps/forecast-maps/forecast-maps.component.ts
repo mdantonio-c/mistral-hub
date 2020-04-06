@@ -40,7 +40,7 @@ export class ForecastMapsComponent implements OnInit {
                 }
             },
             error => {
-                this.notify.extractErrors(error, this.notify.ERROR);
+                this.notify.showError(error);
             }
         ).add(() => {
             this.loading = false;

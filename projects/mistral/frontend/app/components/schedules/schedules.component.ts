@@ -98,7 +98,7 @@ export class SchedulesComponent extends BasePaginationComponent {
                     toggleBtn.classList.remove('active')
             },
             error => {
-                this.notify.extractErrors(error, this.notify.ERROR);
+                this.notify.showError(error);
             }
         );
     }
