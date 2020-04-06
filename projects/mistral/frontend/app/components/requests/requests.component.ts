@@ -8,6 +8,7 @@ import {AuthService} from '@rapydo/services/auth';
 import {NotificationService} from '@rapydo/services/notification';
 import {FormlyService} from '@rapydo/services/formly'
 import {DataService} from "@app/services/data.service";
+import {environment} from '@rapydo/../environments/environment';
 
 @Component({
     selector: 'app-requests',
@@ -62,6 +63,26 @@ export class RequestsComponent extends BasePaginationComponent {
                 this.notify.showError(`Unable to download file: ${filename}`);
             }
         );
+    }
+
+    private getFileURL(filename) {
+        const source_url = `${environment.apiUrl}/data/${filename}`;
+        let token = this.auth.getToken();
+        return source_url + '&access_token=' + token;
+    }
+
+    downloadByUrl(filename) {
+        // const downloadUrl = "http://localhost/app/custom/assets/images/cropped-logo-mistral-bianco-web.png";
+        // const downloadUrl = this.getFileURL(filename);
+        const downloadUrl = "https://imc-dev.hpc.cineca.it/api/images/cf2b1137-6a8f-4dab-b17a-f92f565cfd6b/content?type=image&access_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoiNmUwYzNhZDEtMTZmYy00MzI1LWEwODctNDkxNzQ4NzA2ZGU0IiwianRpIjoiYmM1OGE3MjctZGI1OS00NmQ4LTljNzctZTdlNmFkODM2YWQxIiwiaWF0IjoxNTg2MTg0NjkyLCJuYmYiOjE1ODYxODQ2OTIsImV4cCI6MTU4ODc3NjY5Mn0.6E68zxDb_i9qFaCHNAj-7-YCCrFr19TfuZehpkeTP0iM6W0ttdrFh_NPXWYT003oEiS86eTdGDViFylbJN6HmA";
+
+        var link = document.createElement('a');
+        link.href = downloadUrl;
+        // link.download = downloadUrl.substr(downloadUrl.lastIndexOf('/') + 1);
+        link.download = filename;
+        link.target = "_blank"; // ignored if download works properly
+        link.style.visibility = "hidden";
+        link.click();
     }
 
     toggleExpandRow(row) {
