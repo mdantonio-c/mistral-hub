@@ -1,12 +1,7 @@
-import {Component, Output, EventEmitter, ChangeDetectorRef} from '@angular/core';
+import {Component, Output, EventEmitter, Injector} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
 import {BasePaginationComponent} from '@rapydo/components/base.pagination.component';
 
-import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {ApiService} from '@rapydo/services/api';
-import {AuthService} from '@rapydo/services/auth';
-import {NotificationService} from '@rapydo/services/notification';
-import {FormlyService} from '@rapydo/services/formly'
 import {DataService} from "@app/services/data.service";
 
 @Component({
@@ -17,16 +12,8 @@ export class RequestsComponent extends BasePaginationComponent {
     expanded: any = {};
     @Output() onLoad: EventEmitter<null> = new EventEmitter<null>();
 
-    constructor(
-        protected api: ApiService,
-        protected auth: AuthService,
-        protected notify: NotificationService,
-        protected modalService: NgbModal,
-        protected formly: FormlyService,
-        protected changeDetectorRef: ChangeDetectorRef,
-        public dataService: DataService,
-    ) {
-        super(api, auth, notify, modalService, formly, changeDetectorRef);
+    constructor(protected injector: Injector, public dataService: DataService) {
+        super(injector);
         this.init("request");
 
         this.server_side_pagination = true;

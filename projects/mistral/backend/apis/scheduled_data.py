@@ -1,8 +1,7 @@
 from restapi.rest.definition import EndpointResource
-from restapi.flask_ext.flask_celery import CeleryExt
+from restapi.connectors.celery import CeleryExt
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
@@ -53,8 +52,8 @@ class ScheduledData(EndpointResource):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def post(self):
 
         user = self.get_current_user()
@@ -135,8 +134,8 @@ class ScheduledData(EndpointResource):
 
         return self.force_response('Scheduled task {}'.format(name))
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def delete(self):
         param = self.get_input()
         task_name = param.get('task')

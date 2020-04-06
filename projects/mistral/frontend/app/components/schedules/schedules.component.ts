@@ -1,12 +1,7 @@
-import {Component, ChangeDetectorRef, ElementRef} from '@angular/core';
+import {Component, ElementRef, Injector} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
-import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 
 import {BasePaginationComponent} from '@rapydo/components/base.pagination.component';
-import {ApiService} from '@rapydo/services/api';
-import {AuthService} from '@rapydo/services/auth';
-import {NotificationService} from '@rapydo/services/notification';
-import {FormlyService} from '@rapydo/services/formly'
 
 import {DataService} from "@app/services/data.service";
 
@@ -18,17 +13,8 @@ export class SchedulesComponent extends BasePaginationComponent {
     expanded: any = {};
     loadingLast = false;    // it should be bound to the single row!
 
-    constructor(
-        protected api: ApiService,
-        protected auth: AuthService,
-        protected notify: NotificationService,
-        protected modalService: NgbModal,
-        protected formly: FormlyService,
-        protected changeDetectorRef: ChangeDetectorRef,
-        public dataService: DataService,
-        private el: ElementRef
-    ) {
-        super(api, auth, notify, modalService, formly, changeDetectorRef);
+    constructor(protected injector: Injector, public dataService: DataService, private el: ElementRef) {
+        super(injector);
         this.init('schedule');
 
         this.server_side_pagination = true;

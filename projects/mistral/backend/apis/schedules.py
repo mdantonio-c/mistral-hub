@@ -1,8 +1,7 @@
 from restapi.rest.definition import EndpointResource
-from restapi.flask_ext.flask_celery import CeleryExt
+from restapi.connectors.celery import CeleryExt
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
@@ -174,8 +173,8 @@ class Schedules(EndpointResource):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def post(self):
         user = self.get_current_user()
         log.info(
@@ -412,8 +411,8 @@ class Schedules(EndpointResource):
         else:
             return on_data_ready
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def get(self, schedule_id=None):
         param = self.get_input()
         sort = param.get('sort-by')
@@ -440,8 +439,8 @@ class Schedules(EndpointResource):
 
         return self.force_response(res, code=hcodes.HTTP_OK_BASIC)
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def patch(self, schedule_id):
         param = self.get_input()
         is_active = param.get('is_active')
@@ -532,8 +531,8 @@ class Schedules(EndpointResource):
             {'id': schedule_id, 'enabled': is_active}, code=hcodes.HTTP_OK_BASIC
         )
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def delete(self, schedule_id):
         user = self.get_current_user()
 
@@ -605,8 +604,8 @@ class ScheduledRequests(EndpointResource):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def get(self, schedule_id):
         """
         Get all submitted requests for this schedule

@@ -3,8 +3,7 @@
 from flask import request
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.services.uploader import Uploader
 from restapi.confs import UPLOAD_FOLDER
 from restapi.utilities.htmlcodes import hcodes
@@ -129,8 +128,8 @@ class Templates(EndpointResource, Uploader):
          }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def post(self):
         user = self.get_current_user()
         # allowed formats for uploaded file
@@ -199,8 +198,8 @@ class Templates(EndpointResource, Uploader):
         r['format'] = filename[1]
         return self.force_response(r)
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def get(self, template_name=None):
         param = self.get_input()
         format_filter = param.get('format')
@@ -253,8 +252,8 @@ class Templates(EndpointResource, Uploader):
                 return self.force_response({"total": counter})
         return self.force_response(res, code=hcodes.HTTP_OK_BASIC)
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def delete(self, template_name):
         user = self.get_current_user()
         # get the template extension to determine the folder where to find it

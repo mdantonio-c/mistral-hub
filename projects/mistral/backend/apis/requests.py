@@ -6,8 +6,7 @@ from sqlalchemy.orm import joinedload
 from mistral.services.requests_manager import RequestManager as repo
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
@@ -80,8 +79,8 @@ class UserRequests(EndpointResource):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def get(self, request_id=None):
         param = self.get_input()
         # sort = param.get('sort-by')
@@ -133,8 +132,8 @@ class UserRequests(EndpointResource):
 
         return self.force_response(data, code=hcodes.HTTP_OK_BASIC)
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def delete(self, request_id):
         log.debug("delete request {}", request_id)
 

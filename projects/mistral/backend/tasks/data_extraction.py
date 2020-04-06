@@ -8,7 +8,7 @@ import tarfile
 # import shutil
 import glob
 # from pathlib import Path
-from restapi.flask_ext.flask_celery import CeleryExt
+from restapi.connectors.celery import CeleryExt
 from restapi.services.mail import send_mail
 from restapi.utilities.templates import get_html_template
 # from restapi.confs import UPLOAD_FOLDER

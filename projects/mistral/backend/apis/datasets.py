@@ -3,8 +3,7 @@
 from mistral.services.arkimet import BeArkimet as arki
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
@@ -38,8 +37,8 @@ class Datasets(EndpointResource):
         },
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def get(self, dataset_name=None):
         """ Get all the datasets or a specific one if a name is provided."""
         try:
