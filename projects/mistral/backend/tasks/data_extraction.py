@@ -164,8 +164,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                                                   fileformat=dataset_format)
                             # join pp1_output and tmp_extraction in output file
                             cat_cmd = ['cat', tmp_outfile, pp1_output]
-                            with open(outfile, mode='w') as outfile:
-                                ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
+                            with open(outfile, mode='w') as out:
+                                ext_proc = subprocess.Popen(cat_cmd, stdout=out)
                                 ext_proc.wait()
                                 if ext_proc.wait() != 0:
                                     raise Exception('Failure in data extraction')
