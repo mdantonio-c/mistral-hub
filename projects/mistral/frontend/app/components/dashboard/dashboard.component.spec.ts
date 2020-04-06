@@ -39,7 +39,7 @@ describe('DashboardComponent', () => {
                 StubSchedulesComponent
             ],
             imports: [
-                NgbModule.forRoot()
+                NgbModule
             ]
         })
             .compileComponents();

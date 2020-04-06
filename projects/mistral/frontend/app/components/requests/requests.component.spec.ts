@@ -54,7 +54,7 @@ describe('RequestsComponent', () => {
             imports: [
                 NgxDatatableModule,
                 MomentModule,
-                NgbModule.forRoot(),
+                NgbModule,
                 ConfirmationPopoverModule.forRoot(
                     // set defaults here
                     {
