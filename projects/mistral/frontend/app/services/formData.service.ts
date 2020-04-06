@@ -4,7 +4,7 @@ import * as moment from 'moment';
 
 import {WorkflowService} from '@app/services/workflow.service';
 import {STEPS} from '@app/services/workflow.model';
-import {DataService, Filters, Dataset, RapydoResponse, SummaryStats, TaskSchedule, RefTime} from "./data.service";
+import {DataService, Filters, Dataset, SummaryStats, TaskSchedule, RefTime} from "./data.service";
 
 export class FormData {
     name: string = '';
@@ -121,7 +121,7 @@ export class FormDataService {
         }
     }
 
-    getSummaryStats(): Observable<RapydoResponse<SummaryStats>> {
+    getSummaryStats(): Observable<SummaryStats> {
         let q = this.formData.filters.map(f => f.query).join(';');
         let reftime = this.parseRefTime();
         if (reftime) {

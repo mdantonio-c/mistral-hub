@@ -2,7 +2,7 @@ import {Observable } from 'rxjs/Rx';
 import {HttpClient} from '@angular/common/http';
 
 import {ApiService} from '@rapydo/services/api';
-import {DataService, RapydoResponse, StorageUsage} from "./data.service";
+import {DataService, StorageUsage} from "./data.service";
 import {MockDerivedVariables, MockStorageUsageResponse} from "./data.mock";
 
 export class DataServiceStub extends DataService {
@@ -10,7 +10,7 @@ export class DataServiceStub extends DataService {
         super({} as ApiService, {} as HttpClient)
     }
 
-    getStorageUsage(): Observable<RapydoResponse<StorageUsage>> {
+    getStorageUsage(): Observable<StorageUsage> {
         return Observable.of(MockStorageUsageResponse.Response);
     }
 
