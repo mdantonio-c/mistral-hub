@@ -432,7 +432,7 @@ class Schedules(EndpointResource):
             # get total count for user schedules
             if get_total:
                 counter = RequestManager.count_user_schedules(db, user.id)
-                return {"total": counter}
+                return self.force_response({"total": counter})
             # get user requests list
             res = RequestManager.get_user_schedules(
                 db, user.id, sort_by=sort, sort_order=sort_order
@@ -645,7 +645,7 @@ class ScheduledRequests(EndpointResource):
         if get_total:
             # get total count for user schedules
             counter = RequestManager.count_schedule_requests(db, schedule_id)
-            return {"total": counter}
+            return self.force_response({"total": counter})
 
         # get all submitted requests or the last for this schedule
         meta_response = {}

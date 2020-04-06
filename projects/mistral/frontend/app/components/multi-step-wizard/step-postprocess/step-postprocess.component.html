@@ -31,7 +31,7 @@
                         aria-hidden="true"></i></span>
             </div>
             <div class="body">                       
-                <div class="card mst--expansion-panel" id="pp-card-area" [hidden]="false">
+                <div class="card mst--expansion-panel" id="pp-card-area" [hidden]="!form.value.selectedTimePP">
                     <div class="card-body">
                         <div class="row py-3">
                             <div class="col-lg-3">
@@ -91,7 +91,7 @@
         </div>
 
         <!-- Space Post Process-->
-        <div class="card mst--expansion-panel">
+        <div class="card mst--expansion-panel" [hidden]="!form.value.hasGribDataset">
             <div class="card-header" style="padding-left: 13px;">
                 <input class="mst--input-checkbox" type="checkbox" formControlName="selectedSpacePP" id="selectedSpacePP">
                 <label for="selectedSpacePP" placement="right" openDelay="2000"><h5>3. Space Post Process</h5></label>
@@ -99,7 +99,7 @@
                         ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
                         aria-hidden="true"></i></span>
             </div>
-            <div class="body">
+            <div class="body" [hidden]="!form.value.selectedSpacePP">
                 <ul class="mst--list-columns">
                     <fieldset>
                         <label class="mst--radio-label" placement="right" openDelay="2000">
@@ -221,9 +221,9 @@
                                             <div class="card-body">
                                                 <div class="card-body mst--list-filter">
                                                     <ul class="mst--list-columns">                                        
-                                                        <li *ngFor="let v of templates; let i=index">
+                                                        <li *ngFor="let v of gridInterpolationTemplates; let i=index">
                                                             <label class="mst--radio-label" placement="right" openDelay="2000">
-                                                                <input type="radio" formControlName="templates" value="{{v.filepath}}">
+                                                                <input type="radio" formControlName="selectedGITemplate" value="{{v.filepath}}">
                                                                 {{v.label}}
                                                                 <span class="checkradio"></span>
                                                             </label>
@@ -305,14 +305,14 @@
                             <div class="input-group">
                                 <div class="card mst--expansion-panel" style="margin-left: 0px; margin-top: 0px;">                                     
                                     <div class="card-header">
-                                        <h5>Choose existing template from your personal area</h5>                                                 
+                                        <h5>Choose existing shape file from your personal area</h5>                                                 
                                     </div>
                                     <div class="card-body">
                                         <div class="card-body mst--list-filter" style="margin-left: 15px;">
                                             <ul class="mst--list-columns">                                        
-                                                <li *ngFor="let v of templates; let i=index">
+                                                <li *ngFor="let v of sparePointsTemplates; let i=index">
                                                     <label class="mst--radio-label" placement="right" openDelay="2000">
-                                                        <input type="radio" formControlName="templates" value="{{v.filepath}}">
+                                                        <input type="radio" formControlName="selectedSPTemplate" value="{{v.filepath}}">
                                                         {{v.label}}
                                                         <span class="checkradio"></span>
                                                     </label>
@@ -321,7 +321,7 @@
                                         </div>
                                         <hr/>
                                         <div>
-                                            <h5>Add new template to your personal area</h5>                                                 
+                                            <h5>Add new shape or geoJson file to your personal area. If you upload geoJson this will be converted into a shape file</h5>                                                 
                                         </div>
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input" id="input-grid-template"
@@ -336,7 +336,7 @@
                 </div>
             </div>
         </div>
-        <div class="card mst--expansion-panel">
+        <div class="card mst--expansion-panel" [hidden]="!form.value.hasBufrDataset && ( (form.value.hasGribDataset && !form.value.selectedSpacePP) || (form.value.hasGribDataset && form.value.selectedSpacePP && form.value.space_type != 'points'))">
             <div class="card-header">
                 <h5>4. Format conversion</h5>
                 <span class="info-help">&nbsp;<i placement="right"

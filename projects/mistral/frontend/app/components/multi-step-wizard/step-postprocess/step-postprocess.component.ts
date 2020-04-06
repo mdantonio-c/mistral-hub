@@ -13,9 +13,10 @@ export class StepPostprocessComponent implements OnInit {
     title = 'Choose a post-processing';
     form: FormGroup;
     vars = [];
-    templates = [];
+    gridInterpolationTemplates = [];
+    sparePointsTemplates = [];
     validationResults = [];
-
+    uploadedFileName;
     space_crop_boundings = [
         {
             code: 'ilon',
@@ -137,7 +138,7 @@ export class StepPostprocessComponent implements OnInit {
         desc: 'Immediate'
     }];
     
-    stepIntervals = ["-", "hour", "day", "month", "year"];
+    stepIntervals = ["-", "hours", "days", "months", "years"];
     
     interpolationTypes = ["-", "near", "bilin", "average", "min", "max"];
 
@@ -152,11 +153,6 @@ export class StepPostprocessComponent implements OnInit {
         }
     ];
 
-    selectedCropType = {
-            code: 0,
-            desc: 'coord'
-    };
-
     formatTypes = ['-','json'];    
 
     selectedInputTimeRange;
@@ -164,6 +160,7 @@ export class StepPostprocessComponent implements OnInit {
     selectedStepInterval;
     selectedInterpolationType;
     selectedConversionFormat;
+    selectedCropType;
 
     constructor(private formBuilder: FormBuilder,
         private router: Router,
@@ -181,9 +178,12 @@ export class StepPostprocessComponent implements OnInit {
             interpolationNodes: new FormArray([]),
             conversionFormat: ['json'],
             timeStep: new FormControl(),
-            templates: new FormControl(),
+            selectedGITemplate: new FormControl(),
+            selectedSPTemplate: new FormControl(),
             selectedTimePP: new FormControl(),
-            selectedSpacePP: new FormControl()
+            selectedSpacePP: new FormControl(),
+            hasGribDataset: false,
+            hasBufrDataset: false
         });
     }
 
@@ -227,51 +227,151 @@ export class StepPostprocessComponent implements OnInit {
         if (pt && pt.length){
             this.form.controls['selectedSpacePP'].setValue(true);
             this.form.controls['space_type'].setValue('crop');
+            this.selectedCropType = this.cropTypes.filter(c => c.desc === pt[0]['sub-type'])[0];
+            const boundings = pt[0].boundings;
+            this.space_crop_boundings.map(bound => {                
+                const control = this.formBuilder.control(boundings[bound.code], bound.validators);
+                (this.form.controls.space_crop as FormArray).push(control);
+            });    
+
+        }else{
+            this.selectedCropType = {
+                code: 0,
+                desc: 'coord'
+            };
+            this.space_crop_boundings.map(bound => {
+                const control = this.formBuilder.control(0, bound.validators);
+                (this.form.controls.space_crop as FormArray).push(control);
+            });    
         }
-        
-        this.space_crop_boundings.map(bound => {
-            const control = this.formBuilder.control(0, bound.validators);
-            (this.form.controls.space_crop as FormArray).push(control);
-        });
-        
     }
 
     private buildSpaceGrid() {
-        this.space_grid_boundings.map(bound => {
-            const control = this.formBuilder.control(0, bound.validators);
-            (this.form.controls.space_grid as FormArray).push(control);
-        })
+        const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'grid_interpolation');
+        if (pt && pt.length){
+            this.form.controls['selectedSpacePP'].setValue(true);
+            this.form.controls['space_type'].setValue('grid');
+            this.selectedInterpolationType = this.interpolationTypes.filter(i => i === pt[0]['sub-type'])[0];
+            const boundings = pt[0].boundings;
+            if(boundings){
+                this.form.controls['gridInterpolationType'].setValue('area');
+                this.space_grid_boundings.map(bound => {
+                    const control = this.formBuilder.control(boundings[bound.code], bound.validators);
+                    (this.form.controls.space_grid as FormArray).push(control);
+                });
+                const nodes = pt[0].nodes;
+                this.interpolation_nodes.map(node => {
+                    const control = this.formBuilder.control(nodes[node.code], node.validators);
+                    (this.form.controls.interpolationNodes as FormArray).push(control);
+                })
+            }else{
+                this.form.controls['gridInterpolationType'].setValue('template');
+                const selectedTemplate = this.gridInterpolationTemplates.filter(t => t.filepath === pt[0].template)[0];
+                this.form.controls['selectedGITemplate'].setValue(selectedTemplate.filepath);
+                this.space_grid_boundings.map(bound => {
+                    const control = this.formBuilder.control(0, bound.validators);
+                    (this.form.controls.space_grid as FormArray).push(control);
+                });
+                this.interpolation_nodes.map(node => {
+                    const control = this.formBuilder.control(0, node.validators);
+                    (this.form.controls.interpolationNodes as FormArray).push(control);
+                });
+            }
+        }else{
+            this.selectedInterpolationType = "-";                        
+            this.space_grid_boundings.map(bound => {
+                const control = this.formBuilder.control(0, bound.validators);
+                (this.form.controls.space_grid as FormArray).push(control);
+            });
+            this.interpolation_nodes.map(node => {
+                const control = this.formBuilder.control(0, node.validators);
+                (this.form.controls.interpolationNodes as FormArray).push(control);
+            });
+        }
     }
 
-    private buildNodesInterpolation() {
-        this.interpolation_nodes.map(node => {
-            const control = this.formBuilder.control(0, node.validators);
-            (this.form.controls.interpolationNodes as FormArray).push(control);
-        })
+    private buildSparePoint(){
+        const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'spare_point_interpolation');
+        if (pt && pt.length){
+            this.form.controls['selectedSpacePP'].setValue(true);
+            this.form.controls['space_type'].setValue('points');
+            this.selectedInterpolationType = this.interpolationTypes.filter(i => i === pt[0]['sub-type'])[0];
+            const selectedTemplate = this.sparePointsTemplates.filter(t => t.filepath === pt[0]['coord-filepath'])[0];
+            this.form.controls['selectedSPTemplate'].setValue(selectedTemplate.filepath);
+        }else{
+            this.selectedInterpolationType = "-";
+        }
     }
 
     private buildTemplates(){
-        this.templates = [];
-        this.dataService.getTemplates().subscribe(
+        this.gridInterpolationTemplates = [];
+        // grid interpolation templates
+        this.dataService.getTemplates("grib").subscribe(
             data => {
-                   
-                    for (let type of data.data)
-                        {
-                            for (let file of type.files)
-                            {   let filepath = file.split('/');
-                                let label = filepath[filepath.length-1];
-                                this.templates.push({'label':label,'filepath': file, 'format':type.type});
-                            }
+                for (let type of data.data){
+                    for (let file of type.files){
+                        let filepath = file.split('/');
+                        let label = filepath[filepath.length-1];
+                        this.gridInterpolationTemplates.push({'label':label,'filepath': file, 'format':type.type});
+                        if (this.uploadedFileName && label === this.uploadedFileName){
+                            this.form.controls['selectedGITemplate'].setValue(file);                        
                         }
+                    }
+                }
+                this.buildSpaceGrid();
             },
             error => {
                 this.notify.showError('Unable to load templates');
             }
-            )
+        )
+
+        // spare points templates
+        this.sparePointsTemplates = [];
+        this.dataService.getTemplates("shp").subscribe(
+            data => {
+                for (let type of data.data){
+                    for (let file of type.files){   
+                        let filepath = file.split('/');
+                        let label = filepath[filepath.length-1];
+                        this.sparePointsTemplates.push({'label':label,'filepath': file, 'format':type.type});                        
+                        if (this.uploadedFileName){
+                            let extractExtensionRegex = new RegExp('(?:\.([^.]+))?$');
+                            let fileExtension = extractExtensionRegex.exec(this.uploadedFileName)[1];
+                            if (fileExtension === 'geojson'){
+                                this.uploadedFileName = this.uploadedFileName.replace('geojson','shp');
+                            }else if (fileExtension === 'zip') {
+                                this.uploadedFileName = this.uploadedFileName.replace('zip','shp');
+                            }
+                            if ( label === this.uploadedFileName)
+                            this.form.controls['selectedSPTemplate'].setValue(file);                        
+                        }
+                    }
+                }
+                this.buildSparePoint();
+            },
+            error => {
+                this.notify.showError('Unable to load templates');
+            }
+        )
+    }
+
+    private buildOutputFormat(){
+        if(this.formDataService.getFormData().output_format){
+            this.selectedConversionFormat = this.formDataService.getFormData().output_format;
+        }else{
+            this.selectedConversionFormat = '-';
+        }
+    }
+
+    private checkDatasetFormat(){
+        const selectedDataset = this.formDataService.getFormData().datasets;
+        this.form.controls['hasBufrDataset'].setValue(selectedDataset.some( d => d.format === 'bufr'));
+        this.form.controls['hasGribDataset'].setValue(selectedDataset.some( d => d.format === 'grib'));
     }
 
     ngOnInit() {
         window.scroll(0, 0);
+        this.checkDatasetFormat();
         this.dataService.getDerivedVariables().subscribe(
             data => {
                 this.vars = data;
@@ -282,32 +382,26 @@ export class StepPostprocessComponent implements OnInit {
             }
         )
         this.buildTemplates();
-        this.buildTimePostProcess();
-        this.selectedInterpolationType = "-";
-        this.selectedConversionFormat = '-';   
+        this.buildTimePostProcess();   
         this.buildSpaceCrop();
-        this.buildSpaceGrid();
-        this.buildNodesInterpolation();
+        this.buildOutputFormat();
     }
 
     loadFile(files: FileList){
         if (files.length == 1){
             let file :File = files[0];
-            console.log(file);
+            this.uploadedFileName = file.name;
             this.uploadFile(file);
 
         }
     }
-    uploadFile(file: File){
+    uploadFile(file: File){        
         this.dataService.uploadTemplate(file).subscribe(
             data => {
-                     this.buildTemplates();
-                    // this.form.controls['templates'].setValue(file.name);
-
-
-                    },
+                this.buildTemplates();            
+            },
             error => {this.notify.showError(error.error.Response.errors[0]);}
-            );
+        );
     }
 
     private save() {
@@ -360,7 +454,7 @@ export class StepPostprocessComponent implements OnInit {
                     this.validateSparePoints();
                     let sparePointsValidationItem = this.validationResults.filter(v => v.type == 'spare_points')[0];
                     if (!sparePointsValidationItem){
-                        selectedProcessors.push(this.calculateSpacePoints());    
+                        selectedProcessors.push(this.calculateSparePoints());    
                     }                    
                     break;
                 }
@@ -369,8 +463,11 @@ export class StepPostprocessComponent implements OnInit {
         }
 
         this.formDataService.setPostProcessor(selectedProcessors);
-        if (this.selectedConversionFormat != null && this.selectedConversionFormat != ' '){
+        if (this.selectedConversionFormat != null && this.selectedConversionFormat != '-'
+            && (this.form.value.hasBufrDataset || (this.form.value.hasGribDataset && this.form.value.selectedSpacePP && this.form.value.space_type === 'points'))){
             this.formDataService.setOutputFormat(this.selectedConversionFormat);
+        }else {
+            this.formDataService.setOutputFormat("");
         }
 
         if(this.validationResults.length){
@@ -418,9 +515,9 @@ export class StepPostprocessComponent implements OnInit {
 
          return {
              'type': 'grid_interpolation',
-                'sub_type': this.selectedInterpolationType,
-               'boundings': boundings,
-               'nodes': nodes
+             'sub-type': this.selectedInterpolationType,
+             'boundings': boundings,
+             'nodes': nodes
             } 
         }
          if (this.form.value.gridInterpolationType =="template")
@@ -428,19 +525,19 @@ export class StepPostprocessComponent implements OnInit {
             
             return {
                 'type': 'grid_interpolation',
-                 'template': this.form.value.templates,
-                'sub_type': this.selectedInterpolationType,
+                'template': this.form.value.selectedGITemplate,
+                'sub-type': this.selectedInterpolationType,
             }
          }
     }
 
-    calculateSpacePoints(){
+    calculateSparePoints(){
 
         return {
             'type' : 'spare_point_interpolation',
-            'coord-filepath': this.form.value.templates,
-            'format' : this.templates.find(t => t.filepath == this.form.value.templates).format,
-             'sub_type': this.selectedInterpolationType,
+            'coord-filepath': this.form.value.selectedSPTemplate,
+            'format' : this.sparePointsTemplates.find(t => t.filepath == this.form.value.selectedSPTemplate).format,
+            'sub-type': this.selectedInterpolationType,
             
         }
     }
@@ -474,7 +571,7 @@ export class StepPostprocessComponent implements OnInit {
             if ((this.selectedInputTimeRange.code == 254 && (this.selectedOutputTimeRange.code == 1 || this.selectedOutputTimeRange.code == 254))
             || (this.selectedInputTimeRange.code == 0 && this.selectedOutputTimeRange.code != 254)){
                 validationItem.messages.push(" - Inconsistent values<br/>");
-            }    
+            }
         }
 
         let timeStepRegex = new RegExp('^-?[0-9]+$');
@@ -496,10 +593,10 @@ export class StepPostprocessComponent implements OnInit {
         };
         
         if (this.form.value.space_crop.filter(s => {
-            let regex = new RegExp('[1-9]{1,2}\.?[\d]{0,6}$');
+            let regex = new RegExp('-?[1-9]{1,2}\.?[\d]{0,6}$');
             return !regex.test(s);
         }).length){
-            validationItem.messages.push(" - Lat/Lon values must be greater than zero<br/>");
+            validationItem.messages.push(" - Lat/Lon values must be nonzero<br/>");
             this.validationResults.push(validationItem);
         }
         
@@ -513,27 +610,28 @@ export class StepPostprocessComponent implements OnInit {
             'messages': []
         };
 
+        if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
+                        validationItem.messages.push(" - interpolation type required<br/>");
+        }
+
         if (this.form.value.gridInterpolationType =="area"){ 
             if (this.form.value.space_grid.filter(s => {
-                let regex = new RegExp('[1-9]{1,2}\.?[\d]{0,6}$');
+                let regex = new RegExp('-?[1-9]{1,2}\.?[\d]{0,6}$');
                 return !regex.test(s);
             }).length){
-                validationItem.messages.push(" - Lat/Lon values must be greater than zero<br/>");
+                validationItem.messages.push(" - Lat/Lon values must be nonzero<br/>");
             }
 
             if (this.form.value.interpolationNodes.filter(n => {
                 let regex = new RegExp('^-?[0-9]+$');
                 return !regex.test(n);
             }).length){
-                validationItem.messages.push(" - nx/ny values must be greater than zero<br/>");
+                validationItem.messages.push(" - nx/ny values must be nonzero<br/>");
             }
             
         }else {
-            if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
-                validationItem.messages.push(" - interpolation type required<br/>");
-            }
-
-            if (!this.form.value.templates){
+            
+            if (!this.form.value.selectedGITemplate){
                 validationItem.messages.push(" - at least one template must be selected<br/>");
             }
         }
@@ -556,7 +654,7 @@ export class StepPostprocessComponent implements OnInit {
                 validationItem.messages.push(" - interpolation type required<br/>");
             }
 
-            if (!this.form.value.templates){
+            if (!this.form.value.selectedSPTemplate){
                 validationItem.messages.push(" - at least one template must be selected<br/>");
         }
 

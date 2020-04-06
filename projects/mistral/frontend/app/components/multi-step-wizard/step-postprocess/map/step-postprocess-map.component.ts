@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { Draw } from '@asymmetrik/ngx-leaflet-draw';
 
@@ -8,7 +8,7 @@ import * as L from 'leaflet';
 	selector: 'step-postprocess-map',
 	templateUrl: './step-postprocess-map.component.html'
 })
-export class StepPostprocessMapComponent implements OnChanges {
+export class StepPostprocessMapComponent {
 
 	@Input() formGroup: FormGroup;
 	// ilon, ilat, flon, flat
@@ -47,12 +47,6 @@ export class StepPostprocessMapComponent implements OnChanges {
 		}
 	};
 
-	ngOnChanges(changes: SimpleChanges): void {
-		//Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
-		//Add '${implements OnChanges}' to the class.
-
-	}
-
 	onMapReady(map) {
 		this.mapView = map;
 		map.on(L.Draw.Event.DRAWSTART, (e) => {
@@ -68,7 +62,8 @@ export class StepPostprocessMapComponent implements OnChanges {
 			this.ilatControl,
 			this.flonControl,
 			this.flatControl
-		]
+		];
+		// Form-changes event listener
 		this.formControls.forEach(control =>
 			control.valueChanges.subscribe(val => {
 				this.updateRectangle();

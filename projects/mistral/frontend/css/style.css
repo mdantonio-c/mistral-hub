@@ -18,6 +18,19 @@
   }
 }
 
+.footer {
+/*    background-color: #343a40 !important;*/
+/*    margin-top: 16px;*/
+    color: rgba(255, 255, 255, 0.5);
+/*    
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    margin-bottom: 0px;
+*/
+
+}
+
 /* top navbar: force bg-dark */
 .navbar {
     background-color: #343a40 !important;
@@ -179,6 +192,19 @@ dl.request-summary p:not(:last-child) {
     width: 100%;
 }
 
+.mst--data-attribution {
+    font-size: 11px;
+    background: rgba(255,255,255,.7);
+    margin: 0;
+    padding: 0 5px;
+    color: #333;
+    cursor: auto;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 800;
+}
+
 .mst--input {
     background: transparent;
     border: none;
@@ -270,8 +296,6 @@ input[type="radio"]:focus,
     border-radius: 50%;
     background: white;
 }
-
-/***********************************************/
 
 .mst--radio-label:before {
     background: #fff;
@@ -526,9 +550,10 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0; 
 }
 
-input.ng-invalid {
+/*input.ng-invalid {
   border-color: red !important;
-}
+  border-style: solid;
+}*/
 
 /* the following fix flickering issues with map carousel */
 .carousel-inner .carousel-item {
