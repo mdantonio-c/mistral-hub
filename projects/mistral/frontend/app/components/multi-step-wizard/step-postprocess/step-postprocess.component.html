@@ -245,7 +245,11 @@
                                 </div>
                                 <div *ngIf="form.value.gridInterpolationType === 'area'" class="row">
                                     <div id="pp-space-area-map" class="d-none d-lg-block col-lg-8">
-                                        <img src="/app/custom/assets/images/postProcessMap.jpg" alt="area crop" style="max-width: 100%;">
+                                        <step-postprocess-map [formGroup]="form"
+                                            [ilonControl]="form.get('space_grid')['controls'][0]"
+                                            [ilatControl]="form.get('space_grid')['controls'][1]"
+                                            [flonControl]="form.get('space_grid')['controls'][2]"
+                                            [flatControl]="form.get('space_grid')['controls'][3]"></step-postprocess-map>
                                     </div>
                                     <div id="pp-space-area-fields" class="col">
                                         <div class="py-3">

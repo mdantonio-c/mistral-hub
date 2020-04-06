@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
-import { Draw } from '@asymmetrik/ngx-leaflet-draw';
 
 import * as L from 'leaflet';
 
@@ -70,7 +69,7 @@ export class StepPostprocessMapComponent {
 			}));
 	}
 
-	onDrawReady(drawControl: Draw.Control) {
+	onDrawReady(drawControl: L.Control.Draw) {
 		this.drawControl = drawControl;
 	}
 
@@ -91,8 +90,8 @@ export class StepPostprocessMapComponent {
 	public updateRectangle() {
 		this.clearAll()
 		const poly = new L.Rectangle([
-			[this.ilatControl.value, this.ilonControl.value],
-			[this.flatControl.value, this.flonControl.value]
+			L.latLng(this.ilatControl.value, this.ilonControl.value),
+			L.latLng(this.flatControl.value, this.flonControl.value)
 		]);
 
 		this.drawControl.options.edit.featureGroup.addLayer(poly);
