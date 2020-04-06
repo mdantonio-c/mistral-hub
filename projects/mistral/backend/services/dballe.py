@@ -120,10 +120,10 @@ class BeDballe():
         if 'network' not in query:
             query['network'] = params
 
-        log.info('query: {}'.format(query))
+        log.info('Loading summary: query: {}'.format(query))
 
         fields, queries = BeDballe.from_query_to_lists(query)
-        log.debug('fields: {}, queries: {}', fields, queries)
+        log.debug('Loading summary: fields: {}, queries: {}', fields, queries)
 
         # get all the possible combinations of queries to count the messages
         all_queries = list(itertools.product(*queries))
@@ -182,7 +182,7 @@ class BeDballe():
 
         # parse the query
         query = BeDballe.from_query_to_dic(q)
-        log.info('query: {}', query)
+        log.info('Loading filters dataset: {}, query: {}', params, query)
 
         db_type = None
         # check where are the requested data
@@ -223,7 +223,7 @@ class BeDballe():
         else:
             # if there aren't requested network, data will be filtered only by dataset
             query_networks_list = params
-        log.debug('query networks list : {}'.format(query_networks_list))
+        log.debug('Loading filters: query networks list : {}'.format(query_networks_list))
 
         # perform the queries in database to get the list of possible filters
         fields = {}
@@ -657,6 +657,7 @@ class BeDballe():
     @staticmethod
     def extract_data(fields, queries, outfile=None, temp_db=None):
         if temp_db and outfile:
+            log.debug('Mixed dbs: Extracting data from the temp db')
             # case of extracting from a temp db
             DB = temp_db
         # case of extracting from the general db or filling the temp db
@@ -690,12 +691,14 @@ class BeDballe():
                     continue
                 # if there is the outfile do the extraction
                 if outfile:
+                    log.debug('Extract data from dballe. query: {}', dballe_query)
                     exporter = dballe.Exporter("BUFR")
                     with open(part_outfile, "wb") as out:
                         for row in tr.query_messages(dballe_query):
                             out.write(exporter.to_binary(row.message))
                 # if there is not outfile, fill the temporary db
                 else:
+                    log.debug('Filling temp db with data from dballe. query: {}',dballe_query)
                     with temp_db.transaction() as temptr:
                         for cur in tr.query_messages(dballe_query):
                             temptr.import_messages(cur.message)
