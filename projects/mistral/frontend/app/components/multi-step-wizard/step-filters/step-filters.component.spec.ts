@@ -12,6 +12,8 @@ import {StepFiltersComponent} from './step-filters.component';
 import {FormDataService} from "../../../services/formData.service";
 import {FormDataServiceStub} from "../../../services/formData.service.stub";
 import {FormatDatePipe} from "../../../pipes/format-date.pipe";
+import {DisableControlDirective} from "@app/directives/disable-control";
+
 import {BytesPipe} from '@rapydo/pipes/pipes';
 
 class NotificationServiceStub {
@@ -26,7 +28,12 @@ describe('StepFiltersComponent', () => {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            declarations: [StepFiltersComponent, FormatDatePipe, BytesPipe],
+            declarations: [
+                StepFiltersComponent,
+                FormatDatePipe,
+                BytesPipe,
+                DisableControlDirective
+            ],
             imports: [
                 ReactiveFormsModule,
                 RouterTestingModule.withRoutes([]),
