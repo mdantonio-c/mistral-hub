@@ -150,7 +150,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     arkimet_extraction(arki_query_cmd, tmp_outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
-                    observed_extraction(datasets, filters, reftime, outfile)
+                    observed_extraction(datasets, filters, reftime, tmp_outfile)
 
                 # case of single postprocessor
                 if len(postprocessors) == 1:
@@ -164,8 +164,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                                                   fileformat=dataset_format)
                             # join pp1_output and tmp_extraction in output file
                             cat_cmd = ['cat', tmp_outfile, pp1_output]
-                            with open(outfile, mode='w') as outfile:
-                                ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
+                            with open(outfile, mode='w') as out:
+                                ext_proc = subprocess.Popen(cat_cmd, stdout=out)
                                 ext_proc.wait()
                                 if ext_proc.wait() != 0:
                                     raise Exception('Failure in data extraction')
@@ -274,7 +274,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                                               0] + '-pp3_1.{fileformat}.tmp'.format(
                                 fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
-                            pp3_1.pp_grid_interpolation(params=p, input=input, output=pp_output)
+                            pp3_1.pp_grid_interpolation(params=p, input=pp_input, output=pp_output)
                         if any(d['type'] == 'spare_point_interpolation' for d in postprocessors):
                             p = next(item for item in postprocessors if item["type"] == 'spare_point_interpolation')
                             # check if the input has to be the previous postprocess output
@@ -318,6 +318,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 output = os.path.join(user_dir, filebase + "." + output_format)
                 out_filepath = output_formatting.pp_output_formatting(output_format, input, output)
                 out_filename = os.path.basename(out_filepath)
+                # rename outfile correctly
+                outfile = os.path.join(user_dir, out_filename)
+
 
             # get the actual data size
             data_size = os.path.getsize(os.path.join(user_dir, out_filename))
