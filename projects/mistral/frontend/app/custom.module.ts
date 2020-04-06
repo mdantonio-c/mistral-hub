@@ -12,6 +12,9 @@ import {AuthGuard} from '@rapydo/app.auth.guard';
 import {IonRangeSliderModule} from "ng2-ion-range-slider";
 import {NgxSpinnerModule} from "ngx-spinner";
 
+import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { LeafletDrawModule } from '@asymmetrik/ngx-leaflet-draw';
+
 import {HomeComponent} from '@app/custom.home'
 import {DataComponent} from '@app/components/data/data.component';
 import {RequestsComponent} from "@app/components/requests/requests.component";
@@ -28,6 +31,7 @@ import {NavbarComponent} from '@app/components/multi-step-wizard/navbar/navbar.c
 import {StepDatasetsComponent} from '@app/components/multi-step-wizard/step-datasets/step-datasets.component'
 import {StepFiltersComponent} from '@app/components/multi-step-wizard/step-filters/step-filters.component';
 import {StepPostprocessComponent} from "@app/components/multi-step-wizard/step-postprocess/step-postprocess.component";
+import {StepPostprocessMapComponent} from '@app/components/multi-step-wizard/step-postprocess/map/step-postprocess-map.component';
 import {StepSubmitComponent} from "@app/components/multi-step-wizard/step-submit/step-submit.component";
 
 /* Maps */
@@ -63,7 +67,9 @@ const appRoutes: Routes = [
         SharedModule,
         RouterModule.forChild(appRoutes),
         IonRangeSliderModule,
-        NgxSpinnerModule
+        NgxSpinnerModule,
+        LeafletModule,
+        LeafletDrawModule
     ],
     declarations: [
         HomeComponent,
@@ -77,6 +83,7 @@ const appRoutes: Routes = [
         StepDatasetsComponent,
         StepFiltersComponent,
         StepPostprocessComponent,
+        StepPostprocessMapComponent,
         StepSubmitComponent,
         DashboardComponent,
         StorageUsageComponent,
