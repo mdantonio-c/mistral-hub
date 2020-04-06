@@ -18,8 +18,8 @@ export class StorageUsageComponent implements OnInit {
     }
 
     load() {
-       this.dataService.getStorageUsage().subscribe(resp => {
-            this.usage = resp.data;
+       this.dataService.getStorageUsage().subscribe(response => {
+            this.usage = response;
             this.barValue = (this.usage.used * 100) / this.usage.quota;
         }, error => {
             this.notify.showError(error);

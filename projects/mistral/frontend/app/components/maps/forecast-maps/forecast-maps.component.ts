@@ -30,11 +30,11 @@ export class ForecastMapsComponent implements OnInit {
         // get data
         this.meteoService.getMapset(filter).subscribe(
             response => {
-                this.offsets = response.data.offsets;
-                this.reftime = response.data.reftime;
+                this.offsets = response.offsets;
+                this.reftime = response.reftime;
                 // always apply platform value from this response
                 // this means request maps from that platform
-                this.filter.platform = response.data.platform;
+                this.filter.platform = response.platform;
                 if (!this.filter.env) {
                     this.filter.env = 'PROD';
                 }

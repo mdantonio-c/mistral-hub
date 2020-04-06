@@ -37,9 +37,9 @@ export class SchedulesComponent extends BasePaginationComponent {
         this.loadingLast = true;
         this.dataService.getLastScheduledRequest(row.id).subscribe(
             response => {
-                row.last = response.Response.data;
+                row.last = response;
                 // what about the requests count? should be updated
-                row.requests_count = response.Meta.total;
+                row.requests_count = response.length;
             },
             (error) => {
                 if (error.status === 404) {
@@ -48,7 +48,7 @@ export class SchedulesComponent extends BasePaginationComponent {
                 } else {
                     this.notify.showError('Unable to load the last submission');
                     // show reason
-                    this.notify.extractErrors(error.error.Response, this.notify.ERROR);
+                    this.notify.showError(error.error);
                 }
             }
         ).add(() => {
@@ -91,7 +91,7 @@ export class SchedulesComponent extends BasePaginationComponent {
         console.log(`${action} schedule [ID:${row.id}]. Current state: ${row.enabled}`);
         this.dataService.toggleScheduleActiveState(row.id, !row.enabled).subscribe(
             response => {
-                row.enabled = response.data.enabled;
+                row.enabled = response.enabled;
                 let toggleBtn = this.el.nativeElement.querySelector('#act-btn-'+row.id);
                 (row.enabled) ?
                     toggleBtn.classList.add('active') :

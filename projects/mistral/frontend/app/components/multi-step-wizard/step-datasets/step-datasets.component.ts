@@ -30,7 +30,7 @@ export class StepDatasetsComponent implements OnInit {
         this.loading = true;
         this.formDataService.getDatasets().subscribe(
             response => {
-                this.datasets = response.data;
+                this.datasets = response;
                 // console.log('Dataset(s) loaded', this.datasets);
                 if (this.datasets.length === 0) {
                     this.notify.showWarning("Unexpected result. The list of datasets is empty.");

@@ -85,7 +85,7 @@ export class StepFiltersComponent implements OnInit {
         let selectedFilterNames = selectedFilters.map(f => f.name);
         this.formDataService.getFilters(selectedFilters).subscribe(
             response => {
-                let results = response.data.items;
+                let results = response.items;
                 // console.log(results);
                 // compare the current filters with the selection results
                 // in order to disable the missing ones
@@ -128,8 +128,8 @@ export class StepFiltersComponent implements OnInit {
         (this.filterForm.controls.filters as FormArray).clear();
         this.formDataService.getFilters().subscribe(
             response => {
-                this.filters = response.data.items;
-                this.summaryStats = response.data.items.summarystats;
+                this.filters = response.items;
+                this.summaryStats = response.items.summarystats;
                 if (!this.summaryStats.hasOwnProperty('b')) {
                     let from = moment.utc(this.formDataService.getReftime().from);
                     this.summaryStats['b'] = [from.year(), from.month() + 1, from.date(), from.hour(), from.minute(), from.second()]
