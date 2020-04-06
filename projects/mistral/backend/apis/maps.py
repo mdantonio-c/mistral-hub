@@ -193,7 +193,7 @@ class MapSet(MapEndpoint):
         list_file = sorted(os.listdir(images_path))
         data['offsets'] = [f.split('.')[-2] for f in list_file if os.path.isfile(
             os.path.join(images_path, f))]
-        return self.force_response(data)
+        return self.response(data)
 
 
 class MapLegend(MapEndpoint):

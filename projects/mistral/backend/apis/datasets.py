@@ -57,5 +57,5 @@ class Datasets(EndpointResource):
                     "Dataset not found for name: {}".format(dataset_name),
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
-            return self.force_response(matched_ds)
-        return self.force_response(datasets)
+            return self.response(matched_ds)
+        return self.response(datasets)

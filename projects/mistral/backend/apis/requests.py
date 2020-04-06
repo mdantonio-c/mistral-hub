@@ -96,7 +96,7 @@ class UserRequests(EndpointResource):
         db = self.get_service_instance('sqlalchemy')
         if get_total:
             counter = repo.count_user_requests(db, user.id)
-            return self.force_response({"total": counter})
+            return self.response({"total": counter})
 
         # get user requests list
         # res = repo.get_user_requests(db, user.id, sort_by=sort, sort_order=sort_order)
@@ -130,7 +130,7 @@ class UserRequests(EndpointResource):
                 item['filesize'] = r.fileoutput.size
             data.append(item)
 
-        return self.force_response(data, code=hcodes.HTTP_OK_BASIC)
+        return self.response(data, code=hcodes.HTTP_OK_BASIC)
 
     @decorators.catch_errors()
     @decorators.auth.required()
@@ -152,7 +152,7 @@ class UserRequests(EndpointResource):
             # delete request and fileoutput entry from database. Delete fileoutput from user folder
             repo.delete_request_record(db, user, request_id, DOWNLOAD_DIR)
 
-            return self.force_response('Removed request {}'.format(request_id))
+            return self.response('Removed request {}'.format(request_id))
         else:
             raise RestApiException(
                 "This request doesn't come from the request's owner",

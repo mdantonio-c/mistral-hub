@@ -397,7 +397,7 @@ class Schedules(EndpointResource):
             log.error(error)
             db.session.rollback()
             raise SystemError("Unable to submit the request")
-        return self.force_response('Scheduled task {}'.format(name))
+        return self.response('Scheduled task {}'.format(name))
 
     @staticmethod
     def settings_validation(criteria):
@@ -431,13 +431,13 @@ class Schedules(EndpointResource):
             # get total count for user schedules
             if get_total:
                 counter = RequestManager.count_user_schedules(db, user.id)
-                return self.force_response({"total": counter})
+                return self.response({"total": counter})
             # get user requests list
             res = RequestManager.get_user_schedules(
                 db, user.id, sort_by=sort, sort_order=sort_order
             )
 
-        return self.force_response(res, code=hcodes.HTTP_OK_BASIC)
+        return self.response(res, code=hcodes.HTTP_OK_BASIC)
 
     @decorators.catch_errors()
     @decorators.auth.required()
@@ -527,7 +527,7 @@ class Schedules(EndpointResource):
         # update schedule status in database
         RequestManager.update_schedule_status(db, schedule_id, is_active)
 
-        return self.force_response(
+        return self.response(
             {'id': schedule_id, 'enabled': is_active}, code=hcodes.HTTP_OK_BASIC
         )
 
@@ -547,7 +547,7 @@ class Schedules(EndpointResource):
         # delete schedule status in database
         RequestManager.delete_schedule(db, schedule_id)
 
-        return self.force_response(
+        return self.response(
             "Schedule {} succesfully deleted".format(schedule_id),
             code=hcodes.HTTP_OK_BASIC,
         )
@@ -644,7 +644,7 @@ class ScheduledRequests(EndpointResource):
         if get_total:
             # get total count for user schedules
             counter = RequestManager.count_schedule_requests(db, schedule_id)
-            return self.force_response({"total": counter})
+            return self.response({"total": counter})
 
         # get all submitted requests or the last for this schedule
         meta_response = {}
@@ -663,4 +663,4 @@ class ScheduledRequests(EndpointResource):
             )
         else:
             res = RequestManager.get_schedule_requests(db, schedule_id)
-        return self.force_response(res, meta=meta_response, code=hcodes.HTTP_OK_BASIC)
+        return self.response(res, meta=meta_response, code=hcodes.HTTP_OK_BASIC)

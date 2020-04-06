@@ -196,7 +196,7 @@ class Templates(EndpointResource, Uploader):
         filename = self.split_dir_and_extension(upload_filepath)
         r['filepath'] = upload_filepath
         r['format'] = filename[1]
-        return self.force_response(r)
+        return self.response(r)
 
     @decorators.catch_errors()
     @decorators.auth.required()
@@ -249,8 +249,8 @@ class Templates(EndpointResource, Uploader):
             # get total count for user templates
             if get_total:
                 counter = len(templates)
-                return self.force_response({"total": counter})
-        return self.force_response(res, code=hcodes.HTTP_OK_BASIC)
+                return self.response({"total": counter})
+        return self.response(res, code=hcodes.HTTP_OK_BASIC)
 
     @decorators.catch_errors()
     @decorators.auth.required()
@@ -269,7 +269,7 @@ class Templates(EndpointResource, Uploader):
         filelist = glob.glob(os.path.join(UPLOAD_FOLDER,user.uuid,fileext.strip('.'),filebase + "*"))
         for f in filelist:
             os.remove(f)
-        return self.force_response(
+        return self.response(
             "File {} succesfully deleted".format(template_name),
             code=hcodes.HTTP_OK_BASIC,
         )

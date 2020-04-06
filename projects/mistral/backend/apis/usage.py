@@ -53,4 +53,4 @@ class Usage(EndpointResource):
             )
 
         data = {'quota': user.disk_quota, 'used': used_quota}
-        return self.force_response(data, code=hcodes.HTTP_OK_BASIC)
+        return self.response(data, code=hcodes.HTTP_OK_BASIC)

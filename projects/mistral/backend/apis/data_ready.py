@@ -162,4 +162,4 @@ class DataReady(EndpointResource):
                 db.session.rollback()
                 raise SystemError("Unable to submit the request")
 
-        return self.force_response("1", code=hcodes.HTTP_OK_ACCEPTED)
+        return self.response("1", code=hcodes.HTTP_OK_ACCEPTED)

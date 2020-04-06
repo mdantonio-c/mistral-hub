@@ -132,7 +132,7 @@ class ScheduledData(EndpointResource):
 
             log.info("Scheduling crontab task")
 
-        return self.force_response('Scheduled task {}'.format(name))
+        return self.response('Scheduled task {}'.format(name))
 
     @decorators.catch_errors()
     @decorators.auth.required()
@@ -156,7 +156,7 @@ class ScheduledData(EndpointResource):
 
             CeleryExt.delete_periodic_task(name=task_name)
 
-            return self.force_response('Removed task {}'.format(task_name))
+            return self.response('Removed task {}'.format(task_name))
         else:
             raise RestApiException(
                 "This request doesn't come from the request's owner",

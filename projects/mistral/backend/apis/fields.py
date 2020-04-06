@@ -124,4 +124,4 @@ class Fields(EndpointResource):
             # we want to return ONLY summary Stats with no fields
             log.debug('ONLY Summary Stats')
             summary = summary['items']['summarystats']
-        return self.force_response(summary)
+        return self.response(summary)
