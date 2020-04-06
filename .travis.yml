@@ -8,6 +8,7 @@ services:
 
 install:
 - docker --version && docker-compose --version
+- wget $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf
 - wget $DATASET_URL/arkimet.zip
 - unzip arkimet.zip -d data/
 - ls data/

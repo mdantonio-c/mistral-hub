@@ -28,7 +28,7 @@ describe('StepPostprocessComponent', () => {
             imports: [
                 ReactiveFormsModule,
                 RouterTestingModule.withRoutes([]),
-                NgbModule.forRoot()
+                NgbModule
             ],
             providers: [
                 DatePipe,
