@@ -436,18 +436,22 @@ def arkimet_extraction(arki_query_cmd, outfile):
 
 
 def dballe_extraction(datasets, filters, reftime, outfile=None, ark_query=None, memdb=None, mixed=False):
+    # get networks by dataset
+    networks = []
+    for ds in datasets:
+        ds_networks = arki.get_observed_dataset_params(ds)
+        for n in ds_networks:
+            networks.append(n)
     # create a query for dballe
     if filters is not None:
         fields, queries = dballe.from_filters_to_lists(filters)
+        if 'rep_memo' not in filters:
+            fields.append('rep_memo')
+            queries.append(networks)
     else:
         # if there aren't filters, data are filtered only by dataset's networks
         fields = ['rep_memo']
         queries = []
-        networks = []
-        for ds in datasets:
-            ds_networks = arki.get_observed_dataset_params(ds)
-            for n in ds_networks:
-                networks.append(n)
         queries.append(networks)
     if reftime is not None:
         fields.append('datetimemin')
@@ -520,6 +524,7 @@ def observed_extraction(datasets, filters, reftime, outfile):
         # build the arkimet query
         arkimet_query = dballe.build_arkimet_query(datemin=refmin_arki, datemax=refmax_arki, network=network)
 
+        log.debug('type of extraction: {}', db_type)
         if db_type == 'arkimet':
             # extract data, fill the temporary db and get the temporary db in return
             temp_db = dballe.fill_db_from_arkimet(datasets, arkimet_query)
