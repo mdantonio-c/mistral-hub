@@ -89,14 +89,15 @@ export class StepPostprocessMapComponent {
 
 	public updateRectangle() {
 		this.clearAll()
-		const poly = new L.Rectangle(L.latLngBounds(
-			L.latLng(this.ilatControl.value, this.ilonControl.value),
-			L.latLng(this.flatControl.value, this.flonControl.value)
-		));
-
-		this.drawControl.options.edit.featureGroup.addLayer(poly);
-		this.mapView.addLayer(poly);
-		this.layerList.push(poly);
+		if (this.ilatControl.value && this.ilonControl.value && this.flatControl.value && this.flonControl.value) {
+			const poly = new L.Rectangle(L.latLngBounds(
+				L.latLng(this.ilatControl.value, this.ilonControl.value),
+				L.latLng(this.flatControl.value, this.flonControl.value)
+			));
+			this.drawControl.options.edit.featureGroup.addLayer(poly);
+			this.mapView.addLayer(poly);
+			this.layerList.push(poly);
+		}
 	}
 
 	public onDrawCreated(e: any) {
@@ -104,10 +105,10 @@ export class StepPostprocessMapComponent {
 		const layer = (e as any).layer;
 		if (type === 'rectangle') {
 			const objll = layer._latlngs;
-			this.ilonControl.setValue(objll[0][0].lng, {emitEvent:false});
-			this.ilatControl.setValue(objll[0][0].lat, {emitEvent:false});
-			this.flonControl.setValue(objll[0][2].lng, {emitEvent:false});
-			this.flatControl.setValue(objll[0][2].lat, {emitEvent:false});
+			this.ilonControl.setValue(objll[0][0].lng, { emitEvent: false });
+			this.ilatControl.setValue(objll[0][0].lat, { emitEvent: false });
+			this.flonControl.setValue(objll[0][2].lng, { emitEvent: false });
+			this.flatControl.setValue(objll[0][2].lat, { emitEvent: false });
 			this.layerList.push(layer);
 			// console.log(this.layerList);
 		}
@@ -116,10 +117,10 @@ export class StepPostprocessMapComponent {
 	public onEditStop(e: any) {
 		this.layerList.forEach((layer) => {
 			const objll = layer._latlngs;
-			this.ilonControl.setValue(objll[0][0].lng, {emitEvent:false});
-			this.ilatControl.setValue(objll[0][0].lat, {emitEvent:false});
-			this.flonControl.setValue(objll[0][2].lng, {emitEvent:false});
-			this.flatControl.setValue(objll[0][2].lat, {emitEvent:false});
+			this.ilonControl.setValue(objll[0][0].lng, { emitEvent: false });
+			this.ilatControl.setValue(objll[0][0].lat, { emitEvent: false });
+			this.flonControl.setValue(objll[0][2].lng, { emitEvent: false });
+			this.flatControl.setValue(objll[0][2].lat, { emitEvent: false });
 		});
 	}
 
