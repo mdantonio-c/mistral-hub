@@ -89,10 +89,10 @@ export class StepPostprocessMapComponent {
 
 	public updateRectangle() {
 		this.clearAll()
-		const poly = new L.Rectangle([
+		const poly = new L.Rectangle(L.latLngBounds(
 			L.latLng(this.ilatControl.value, this.ilonControl.value),
 			L.latLng(this.flatControl.value, this.flonControl.value)
-		]);
+		));
 
 		this.drawControl.options.edit.featureGroup.addLayer(poly);
 		this.mapView.addLayer(poly);
