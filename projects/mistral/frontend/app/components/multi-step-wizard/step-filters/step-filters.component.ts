@@ -114,6 +114,7 @@ export class StepFiltersComponent implements OnInit {
                         // console.log('....NEW....', m[1]);
                     }
                 });
+                this.updateSummaryStats(response.data.items.summarystats);
             },
                 error => {
                 this.notify.showError(`Unable to get summary fields`);
@@ -129,15 +130,6 @@ export class StepFiltersComponent implements OnInit {
         this.formDataService.getFilters().subscribe(
             response => {
                 this.filters = response.data.items;
-                this.summaryStats = response.data.items.summarystats;
-                if (!this.summaryStats.hasOwnProperty('b')) {
-                    let from = moment.utc(this.formDataService.getReftime().from);
-                    this.summaryStats['b'] = [from.year(), from.month() + 1, from.date(), from.hour(), from.minute(), from.second()]
-                }
-                if (!this.summaryStats.hasOwnProperty('e')) {
-                    let to = moment.utc(this.formDataService.getReftime().to);
-                    this.summaryStats['e'] = [to.year(), to.month() + 1, to.date(), to.hour(), to.minute(), to.second()]
-                }
                 Object.entries(this.filters).forEach(entry => {
                     if (entry[0] !== 'summarystats') {
                         (<Array<any>>entry[1]).forEach(function (obj) {
@@ -148,13 +140,8 @@ export class StepFiltersComponent implements OnInit {
                 });
                 //console.log(this.filterForm.get('filters'));
                 //console.log(this.filters);
-                if (this.summaryStats['c'] === 0) {
-                    (this.filterForm.controls.validRefTime as FormControl).setValue(false);
-                    this.notify.showWarning('The applied reference time does not produce any result. ' +
-                        'Please choose a different reference time range.');
-                } else {
-                    (this.filterForm.controls.validRefTime as FormControl).setValue(true);
-                }
+
+                this.updateSummaryStats(response.data.items.summarystats);
             },
             error => {
                 this.notify.showError(`Unable to get summary fields`);
@@ -165,6 +152,25 @@ export class StepFiltersComponent implements OnInit {
                 this.onFilterChange();
             }
         });
+    }
+
+    private updateSummaryStats(summaryStats) {
+        this.summaryStats = summaryStats;
+        if (!this.summaryStats.hasOwnProperty('b')) {
+            let from = moment.utc(this.formDataService.getReftime().from);
+            this.summaryStats['b'] = [from.year(), from.month() + 1, from.date(), from.hour(), from.minute(), from.second()]
+        }
+        if (!this.summaryStats.hasOwnProperty('e')) {
+            let to = moment.utc(this.formDataService.getReftime().to);
+            this.summaryStats['e'] = [to.year(), to.month() + 1, to.date(), to.hour(), to.minute(), to.second()]
+        }
+        if (this.summaryStats['c'] === 0) {
+            (this.filterForm.controls.validRefTime as FormControl).setValue(false);
+            this.notify.showWarning('The applied reference time does not produce any result. ' +
+                'Please choose a different reference time range.');
+        } else {
+            (this.filterForm.controls.validRefTime as FormControl).setValue(true);
+        }
     }
 
     resetFilters() {
