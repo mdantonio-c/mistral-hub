@@ -3260,7 +3260,7 @@ export const MockRequestsResponse: any = [
 
 export const MockSchedulesTotalResponse: any = {"total": 3};
 
-export const MockSchedulesNoDataResponse: any = []};
+export const MockSchedulesNoDataResponse: any = [];
 
 export const MockSchedulesResponse: any = [
     {
