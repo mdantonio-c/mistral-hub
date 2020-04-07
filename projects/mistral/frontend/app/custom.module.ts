@@ -57,7 +57,7 @@ const appRoutes: Routes = [
         ]
     },
     {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
-    {path: 'app/maps/forecasts', component: ForecastMapsComponent, canActivate: [AuthGuard]},
+    {path: 'app/maps/forecasts', component: ForecastMapsComponent},
     {path: 'app/maps/observations', component: ObservationMapsComponent, canActivate: [AuthGuard]},
     {path: 'public/privacy', component: PrivacyComponent},
     {path: 'app', redirectTo: '/app/data/datasets', pathMatch: 'full'},
