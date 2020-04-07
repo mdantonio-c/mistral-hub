@@ -8,6 +8,7 @@ import {AuthService} from '@rapydo/services/auth';
 import {NotificationService} from '@rapydo/services/notification';
 import {FormlyService} from '@rapydo/services/formly'
 import {DataService} from "@app/services/data.service";
+import {environment} from '@rapydo/../environments/environment';
 
 @Component({
     selector: 'app-requests',
@@ -62,6 +63,21 @@ export class RequestsComponent extends BasePaginationComponent {
                 this.notify.showError(`Unable to download file: ${filename}`);
             }
         );
+    }
+
+    private getFileURL(filename) {
+        const source_url = `${environment.apiUrl}/data/${filename}`;
+        let token = this.auth.getToken();
+        return source_url + '?access_token=' + token;
+    }
+
+    downloadByUrl(filename) {
+        const downloadUrl = this.getFileURL(filename);
+        var link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        link.style.visibility = "hidden";
+        link.click();
     }
 
     toggleExpandRow(row) {
