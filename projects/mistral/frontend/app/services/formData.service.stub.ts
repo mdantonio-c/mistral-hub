@@ -11,15 +11,15 @@ export class FormDataServiceStub extends FormDataService {
     }
 
     getDatasets(): any {
-        return Observable.of(MockDatasetsResponse.Response);
+        return Observable.of(MockDatasetsResponse);
     }
 
     getFilters(): any {
-        return Observable.of(MockFiltersResponse.Response);
+        return Observable.of(MockFiltersResponse);
     }
 
     getSummaryStats(): Observable<SummaryStats> {
-        return Observable.of(MockSummaryStatsResponse.Response);
+        return Observable.of(MockSummaryStatsResponse);
     }
 
 }

@@ -31,9 +31,9 @@ class ApiServiceStub extends ApiService {
 
     get(endpoint: string, id = "", data = {}, options = {}) {
         if (data['get_total'] === true) {
-            return Observable.of(MockRequestsTotalResponse.Response);
+            return Observable.of(MockRequestsTotalResponse);
         } else {
-            return Observable.of(MockRequestsResponse.Response);
+            return Observable.of(MockRequestsResponse);
         }
     }
 }

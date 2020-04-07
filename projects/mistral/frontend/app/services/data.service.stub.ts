@@ -11,7 +11,7 @@ export class DataServiceStub extends DataService {
     }
 
     getStorageUsage(): Observable<StorageUsage> {
-        return Observable.of(MockStorageUsageResponse.Response);
+        return Observable.of(MockStorageUsageResponse);
     }
 
     getDerivedVariables(): Observable<any> {
