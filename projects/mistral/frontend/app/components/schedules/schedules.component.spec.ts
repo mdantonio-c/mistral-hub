@@ -1,4 +1,5 @@
 import {Component, DebugElement} from '@angular/core';
+import { Injectable } from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {NgxDatatableModule} from '@swimlane/ngx-datatable';
 import {MomentModule} from 'ngx-moment';
@@ -29,6 +30,8 @@ import {
 })
 class StubLoadingComponent {
 }
+
+@Injectable()
 class ApiServiceStub extends ApiService {
     constructor() {
         super({} as HttpClient);

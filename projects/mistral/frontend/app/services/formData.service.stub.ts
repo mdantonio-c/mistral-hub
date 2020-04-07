@@ -1,10 +1,12 @@
 import {Observable } from 'rxjs/Rx';
+import { Injectable } from '@angular/core';
 
 import {FormDataService} from "./formData.service";
 import {WorkflowService} from "./workflow.service";
 import {DataService, SummaryStats} from "./data.service";
 import {MockDatasetsResponse, MockFiltersResponse, MockSummaryStatsResponse} from "./data.mock";
 
+@Injectable()
 export class FormDataServiceStub extends FormDataService {
     constructor() {
         super({} as WorkflowService, {} as DataService);
