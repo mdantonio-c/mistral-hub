@@ -1,6 +1,11 @@
 /* add the ion-range-slider style and skin css */
 @import url('ion-rangeslider/css/ion.rangeSlider.css');
 @import url('ion-rangeslider/css/ion.rangeSlider.skinFlat.css');
+
+/* add leaflet and leaflet-draw css */
+@import url('leaflet/dist/leaflet.css');
+@import url('leaflet-draw/dist/leaflet.draw.css');
+
 @import url('custom-irc.css');
 
 @import url('button-toggle.css');
