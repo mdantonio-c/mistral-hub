@@ -16,8 +16,7 @@ import {DisableControlDirective} from "@app/directives/disable-control";
 
 import {BytesPipe} from '@rapydo/pipes/pipes';
 
-class NotificationServiceStub {
-}
+class NotificationServiceStub {}
 
 describe('StepFiltersComponent', () => {
     let component: StepFiltersComponent;
