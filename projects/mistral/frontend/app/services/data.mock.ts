@@ -1,7 +1,8 @@
 import {DerivedVariables, StorageUsage, SummaryStats} from "./data.service";
 
 export const MockStorageUsageResponse: StorageUsage = {
-    {"quota": 5368709120, "used": 2973844488}
+    "quota": 5368709120,
+    "used": 2973844488
 };
 
 export const MockDerivedVariables: DerivedVariables[] = [
