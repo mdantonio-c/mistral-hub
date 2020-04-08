@@ -45,7 +45,7 @@ describe('StepPostprocessComponent', () => {
         fixture = TestBed.createComponent(StepPostprocessComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
-        router = TestBed.get(Router);
+        router = TestBed.inject(Router);
     });
 
     it('should create', () => {
