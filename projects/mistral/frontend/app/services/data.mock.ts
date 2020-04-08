@@ -21,6 +21,46 @@ export const MockDerivedVariables: DerivedVariables[] = [
     {code: 'B13205', desc: 'Snowfall (grid-scale + convective)'}
 ];
 
+export const MockGribTemplateResponse: RapydoBundle<any> = {
+    "Meta": {
+        "data_type": "<class 'dict'>",
+        "elements": 1,
+        "errors": 0,
+        "status": 200
+    },
+    "Response": {
+        "data": [
+            {
+                "files": [
+                    "/uploads/965812e7-b8d3-45d3-b05a-6ee31d347ea5/shp/it_100km.grib"
+                ],
+                "type": "grib"
+            }
+        ],
+        "errors": null
+    }
+};
+
+export const MockShapeTemplateResponse: RapydoBundle<any> = {
+    "Meta": {
+        "data_type": "<class 'dict'>",
+        "elements": 1,
+        "errors": 0,
+        "status": 200
+    },
+    "Response": {
+        "data": [
+            {
+                "files": [
+                    "/uploads/965812e7-b8d3-45d3-b05a-6ee31d347ea5/shp/it_100km.shp"
+                ],
+                "type": "shp"
+            }
+        ],
+        "errors": null
+    }
+};
+
 export const MockSummaryStatsResponse: RapydoBundle<SummaryStats> = {
     "Meta": {"data_type": "<class 'dict'>", "elements": 4, "errors": 0, "status": 200},
     "Response": {
