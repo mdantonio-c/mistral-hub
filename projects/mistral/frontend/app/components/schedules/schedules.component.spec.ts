@@ -14,6 +14,7 @@ import {BytesPipe} from '@rapydo/pipes/pipes';
 import {AuthService} from '@rapydo/services/auth';
 import {NotificationService} from '@rapydo/services/notification';
 import {FormlyService} from '@rapydo/services/formly'
+import {ProjectOptions} from '@app/custom.project.options';
 import {ApiService} from '@rapydo/services/api';
 import {DataService} from "../../services/data.service";
 import {DataServiceStub} from "../../services/data.service.stub";
@@ -84,6 +85,7 @@ describe('SchedulesComponent', () => {
             ],
             providers: [
                 NotificationService,
+                ProjectOptions,
                 {provide: DataService, useClass: DataServiceStub},
                 {provide: ApiService, useClass: ApiServiceStub},
                 {provide: AuthService, useClass: AuthServiceStub},
