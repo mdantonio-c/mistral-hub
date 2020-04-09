@@ -16,7 +16,7 @@ export class FormDataServiceStub extends FormDataService {
         return Observable.of(MockDatasetsResponse);
     }
 
-    getFilters(): any {
+    getFilters(filters?: Filters[]): any {
         return Observable.of(MockFiltersResponse);
     }
 
