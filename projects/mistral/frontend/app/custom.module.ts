@@ -9,7 +9,7 @@ import {DatePipe} from '@angular/common';
 import {SharedModule} from '@rapydo/shared.module';
 import {AuthGuard} from '@rapydo/app.auth.guard';
 
-import {IonRangeSliderModule} from "ng2-ion-range-slider";
+// import {IonRangeSliderModule} from "ng2-ion-range-slider";
 import {NgxSpinnerModule} from "ngx-spinner";
 
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
@@ -68,7 +68,7 @@ const appRoutes: Routes = [
     imports: [
         SharedModule,
         RouterModule.forChild(appRoutes),
-        IonRangeSliderModule,
+        // IonRangeSliderModule,
         NgxSpinnerModule,
         LeafletModule,
         LeafletDrawModule
