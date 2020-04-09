@@ -680,9 +680,6 @@ class BeDballe():
                     filebase, fileext = os.path.splitext(outfile)
                 part_outfile = filebase + '_part' + str(counter) + fileext + '.tmp'
 
-            # extract in a partial extraction
-            DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
-                                                                            host=host, port=port))
             with DB.transaction() as tr:
                 # check if the query gives a result
                 count = tr.query_data(dballe_query).remaining

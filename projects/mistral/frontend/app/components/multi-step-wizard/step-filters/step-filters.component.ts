@@ -38,7 +38,7 @@ export class StepFiltersComponent implements OnInit {
                 disabled: true
             }),
             fromTime: new FormControl({
-                value: refTime ? moment.utc(refTime.from).format('HH:mm') : '00:00',
+                value: refTime ? moment(refTime.from).format('HH:mm') : '00:00',
                 disabled: true
             }),
             toDate: new FormControl({
@@ -46,7 +46,7 @@ export class StepFiltersComponent implements OnInit {
                 disabled: true
             }),
             toTime: new FormControl({
-                value: refTime ? moment.utc(refTime.to).format('HH:mm') : '00:00',
+                value: refTime ? moment(refTime.to).format('HH:mm') : '00:00',
                 disabled: true
             }),
             fullDataset: [false],
@@ -114,6 +114,7 @@ export class StepFiltersComponent implements OnInit {
                         // console.log('....NEW....', m[1]);
                     }
                 });
+                this.updateSummaryStats(response.data.items.summarystats);
             },
                 error => {
                 this.notify.showError(`Unable to get summary fields`);
@@ -148,13 +149,8 @@ export class StepFiltersComponent implements OnInit {
                 });
                 //console.log(this.filterForm.get('filters'));
                 //console.log(this.filters);
-                if (this.summaryStats['c'] === 0) {
-                    (this.filterForm.controls.validRefTime as FormControl).setValue(false);
-                    this.notify.showWarning('The applied reference time does not produce any result. ' +
-                        'Please choose a different reference time range.');
-                } else {
-                    (this.filterForm.controls.validRefTime as FormControl).setValue(true);
-                }
+
+                this.updateSummaryStats(response.data.items.summarystats);
             },
             error => {
                 this.notify.showError(`Unable to get summary fields`);
@@ -165,6 +161,25 @@ export class StepFiltersComponent implements OnInit {
                 this.onFilterChange();
             }
         });
+    }
+
+    private updateSummaryStats(summaryStats) {
+        this.summaryStats = summaryStats;
+        if (!this.summaryStats.hasOwnProperty('b')) {
+            let from = moment(this.formDataService.getReftime().from);
+            this.summaryStats['b'] = [from.year(), from.month() + 1, from.date(), from.hour(), from.minute(), from.second()]
+        }
+        if (!this.summaryStats.hasOwnProperty('e')) {
+            let to = moment(this.formDataService.getReftime().to);
+            this.summaryStats['e'] = [to.year(), to.month() + 1, to.date(), to.hour(), to.minute(), to.second()]
+        }
+        if (this.summaryStats['c'] === 0) {
+            (this.filterForm.controls.validRefTime as FormControl).setValue(false);
+            this.notify.showWarning('The applied reference time does not produce any result. ' +
+                'Please choose a different reference time range.');
+        } else {
+            (this.filterForm.controls.validRefTime as FormControl).setValue(true);
+        }
     }
 
     resetFilters() {
@@ -205,12 +220,11 @@ export class StepFiltersComponent implements OnInit {
                 this.formDataService.setReftime(null);
             } else {
                 let fromDate: Date = this.filterForm.get('fromDate').value;
-                console.log(fromDate.constructor.name);
                 const fromTime = this.filterForm.get('fromTime').value.split(':');
-                fromDate.setUTCHours(parseInt(fromTime[0]), parseInt(fromTime[1]));
+                fromDate.setHours(parseInt(fromTime[0]), parseInt(fromTime[1]));
                 let toDate: Date = this.filterForm.get('toDate').value;
                 const toTime = this.filterForm.get('toTime').value.split(':');
-                toDate.setUTCHours(parseInt(toTime[0]), parseInt(toTime[1]));
+                toDate.setHours(parseInt(toTime[0]), parseInt(toTime[1]));
                 this.formDataService.setReftime({
                     from: fromDate,
                     to: toDate

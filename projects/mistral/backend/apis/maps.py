@@ -99,7 +99,6 @@ class MapImage(MapEndpoint):
         super().__init__()
 
     @decorators.catch_errors()
-    @decorators.auth.required()
     def get(self, map_offset):
         """Get a forecast map for a specific run."""
         params = self.get_input()
@@ -143,7 +142,6 @@ class MapSet(MapEndpoint):
         super().__init__()
 
     @decorators.catch_errors()
-    @decorators.auth.required()
     def get(self):
         """
         Get the last available map set for a specific run returning the reference time as well.
@@ -214,7 +212,6 @@ class MapLegend(MapEndpoint):
         super().__init__()
 
     @decorators.catch_errors()
-    @decorators.auth.required()
     def get(self):
         """Get a forecast legend for a specific run."""
         params = self.get_input()

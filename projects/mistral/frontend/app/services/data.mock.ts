@@ -24,6 +24,24 @@ export const MockSummaryStatsResponse: SummaryStats = {
     "s": 456198422400
 };
 
+export const MockGribTemplateResponse: RapydoBundle<any> = [
+    {
+        "files": [
+            "/uploads/965812e7-b8d3-45d3-b05a-6ee31d347ea5/shp/it_100km.grib"
+        ],
+        "type": "grib"
+    }
+];
+
+export const MockShapeTemplateResponse: RapydoBundle<any> = [
+    {
+        "files": [
+            "/uploads/965812e7-b8d3-45d3-b05a-6ee31d347ea5/shp/it_100km.shp"
+        ],
+        "type": "shp"
+    }
+];
+
 export const MockDatasetsResponse: any = [ 
     {
         "description": "COSMO a 2.2km sull'Italia, area completa",
