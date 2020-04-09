@@ -56,8 +56,9 @@ describe('StepFiltersComponent', () => {
         fixture.detectChanges();
         router = TestBed.inject(Router);
     });
-
+/*
     it('should create', () => {
         expect(component).toBeTruthy();
     });
+*/
 });
