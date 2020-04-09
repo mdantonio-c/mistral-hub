@@ -24,7 +24,7 @@ export const MockSummaryStatsResponse: SummaryStats = {
     "s": 456198422400
 };
 
-export const MockGribTemplateResponse: RapydoBundle<any> = [
+export const MockGribTemplateResponse: any = [
     {
         "files": [
             "/uploads/965812e7-b8d3-45d3-b05a-6ee31d347ea5/shp/it_100km.grib"
@@ -33,7 +33,7 @@ export const MockGribTemplateResponse: RapydoBundle<any> = [
     }
 ];
 
-export const MockShapeTemplateResponse: RapydoBundle<any> = [
+export const MockShapeTemplateResponse: any = [
     {
         "files": [
             "/uploads/965812e7-b8d3-45d3-b05a-6ee31d347ea5/shp/it_100km.shp"
