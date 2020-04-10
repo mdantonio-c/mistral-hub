@@ -32,7 +32,7 @@ describe('StepSubmitComponent', () => {
                 FormsModule,
                 ReactiveFormsModule,
                 RouterTestingModule.withRoutes([]),
-                NgbModule.forRoot()
+                NgbModule
             ],
             providers: [
                 DatePipe,

@@ -10,11 +10,13 @@ from datetime import datetime, timedelta, date, time
 
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 
+
 user = os.environ.get("ALCHEMY_USER")
 pw = os.environ.get("ALCHEMY_PASSWORD")
 host = os.environ.get("ALCHEMY_HOST")
 engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
+
 
 LASTDAYS = os.environ.get("LASTDAYS")  # number of days after which data pass in Arkimet
 
@@ -48,7 +50,7 @@ class BeDballe():
         return refmax_dballe, refmin_dballe, refmax_arki, refmin_arki
 
     @staticmethod
-    def build_arkimet_query(datemin=None, datemax=None, network=None):
+    def build_arkimet_query(datemin=None, datemax=None, network=None, bounding_box=None):
         if isinstance(datemin, datetime):
             datemin_str = datemin.strftime("%Y-%m-%d %H:%M:%S")
             datemin = datemin_str
@@ -62,6 +64,10 @@ class BeDballe():
             arkimet_query = "reftime: >={datemin},<={datemax};".format(
                 datemin=datemin,
                 datemax=datemax)
+        if bounding_box:
+            arkimet_query += 'area: bbox intersects POLYGON(({lonmin} {latmin},{lonmin} {latmax},{lonmax} {latmax}, {lonmax} {latmin}, {lonmin} {latmin}));'.format(
+                lonmin=bounding_box['lonmin'], latmin=bounding_box['latmin'], lonmax=bounding_box['lonmax'],
+                latmax=bounding_box['latmax'])
         if network:
             arkimet_query += 'product: BUFR:t = {}'.format(network[0])
             if len(network) > 1:
@@ -120,10 +126,10 @@ class BeDballe():
         if 'network' not in query:
             query['network'] = params
 
-        log.info('query: {}'.format(query))
+        log.info('Loading summary: query: {}'.format(query))
 
         fields, queries = BeDballe.from_query_to_lists(query)
-        log.debug('fields: {}, queries: {}', fields, queries)
+        log.debug('Loading summary: fields: {}, queries: {}', fields, queries)
 
         # get all the possible combinations of queries to count the messages
         all_queries = list(itertools.product(*queries))
@@ -182,7 +188,7 @@ class BeDballe():
 
         # parse the query
         query = BeDballe.from_query_to_dic(q)
-        log.info('query: {}', query)
+        log.info('Loading filters dataset: {}, query: {}', params, query)
 
         db_type = None
         # check where are the requested data
@@ -223,7 +229,7 @@ class BeDballe():
         else:
             # if there aren't requested network, data will be filtered only by dataset
             query_networks_list = params
-        log.debug('query networks list : {}'.format(query_networks_list))
+        log.debug('Loading filters: query networks list : {}'.format(query_networks_list))
 
         # perform the queries in database to get the list of possible filters
         fields = {}
@@ -441,10 +447,12 @@ class BeDballe():
 
     @staticmethod
     def get_maps_response(networks, bounding_box, query, db_type, station_id=None):
+
         DB = dballe.DB.connect(
             "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host, port=port))
+
         response = []
-        # splitting in two external functions? one for station data and one for actual data?
+        # TODO va fatto un check licenze compatibili qui all'inizio (by dataset)? oppure a seconda della licenza lo si manda su un dballe o un altro?
 
         # prepare the query for stations
         query_station_data = {}
@@ -460,6 +468,47 @@ class BeDballe():
         if station_id:
             query_station_data['ana_id'] = int(station_id)
 
+        # managing db_type
+        if db_type == 'mixed' or db_type == 'arkimet':
+            if station_id:
+                # get station network
+                with DB.transaction() as tr:
+                    count_data = tr.query_stations(query_station_data).remaining
+                    # log.debug('count {}',count_data)
+                    if count_data == 0:
+                        return None
+                    for rec in tr.query_stations(query_station_data):
+                        networks = rec['rep_memo']
+            datemin = None
+            datemax = None
+            if query:
+                if 'datetimemin_arki' in query.keys():
+                    datemin = query['datetimemin_arki']
+                    datemax = query['datetimemax_arki']
+                elif 'datetimemin' in query.keys():
+                    datemin = query['datetimemin']
+                    datemax = query['datetimemax']
+            # for now we consider network as a single parameters.
+            # TODO choose if the network will be a single or multiple param
+            networks_as_list = None
+            if networks:
+                networks_as_list = [networks]
+            query_for_arkimet = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=networks_as_list, bounding_box=bounding_box)
+            # check if there is a queried license
+            license = None
+            if query:
+                if 'license' in query.keys():
+                    license = query['license']
+            # get the correct arkimet dataset
+            datasets = arki.get_datasets(query_for_arkimet, license)
+
+            if not datasets:
+                return None
+            # check datasets license,
+            # TODO se non passa il check il frontend lancerà un messaggio del tipo: 'dati con licenze diverse, prego sceglierne una'
+            check_license = arki.get_unique_license(datasets) # the exception raised by this function is enough?
+            log.debug('datasets: {}', datasets)
+
         query_data = {}
         if query_station_data:
             for key, value in query_station_data.items():
@@ -469,6 +518,8 @@ class BeDballe():
             allowed_keys = ['level', 'network', 'product', 'timerange', 'datetimemin', 'datetimemax']
             dballe_keys = ['level', 'rep_memo', 'var', 'trange', 'datetimemin', 'datetimemax']
             for key, value in query.items():
+                if key == 'license':
+                    continue
                 key_index = allowed_keys.index(key)
                 if not isinstance(value, list):
                     query_data[dballe_keys[key_index]] = value
@@ -601,7 +652,7 @@ class BeDballe():
     @staticmethod
     def from_query_to_dic(q):
         # example of query string: string= "reftime: >=2020-02-01 01:00,<=2020-02-04 15:13;level:1,0,0,0 or 103,2000,0,0;product:B11001 or B13011;timerange:0,0,3600 or 1,0,900;network:fidupo or agrmet"
-        params_list = ['reftime', 'network', 'product', 'level', 'timerange']
+        params_list = ['reftime', 'network', 'product', 'level', 'timerange', 'license']
         query_list = q.split(';')
         query_dic = {}
         for e in query_list:
@@ -816,6 +867,7 @@ class BeDballe():
     @staticmethod
     def extract_data(fields, queries, outfile=None, temp_db=None):
         if temp_db and outfile:
+            log.debug('Mixed dbs: Extracting data from the temp db')
             # case of extracting from a temp db
             DB = temp_db
         # case of extracting from the general db or filling the temp db
@@ -840,9 +892,6 @@ class BeDballe():
                     filebase, fileext = os.path.splitext(outfile)
                 part_outfile = filebase + '_part' + str(counter) + fileext + '.tmp'
 
-            # extract in a partial extraction
-            DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
-                                                                                        host=host, port=port))
             with DB.transaction() as tr:
                 # check if the query gives a result
                 count = tr.query_data(dballe_query).remaining
@@ -851,12 +900,14 @@ class BeDballe():
                     continue
                 # if there is the outfile do the extraction
                 if outfile:
+                    log.debug('Extract data from dballe. query: {}', dballe_query)
                     exporter = dballe.Exporter("BUFR")
                     with open(part_outfile, "wb") as out:
                         for row in tr.query_messages(dballe_query):
                             out.write(exporter.to_binary(row.message))
                 # if there is not outfile, fill the temporary db
                 else:
+                    log.debug('Filling temp db with data from dballe. query: {}',dballe_query)
                     with temp_db.transaction() as temptr:
                         for cur in tr.query_messages(dballe_query):
                             temptr.import_messages(cur.message)

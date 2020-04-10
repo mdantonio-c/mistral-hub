@@ -107,7 +107,8 @@ class MapsObservations(EndpointResource):
                     query['datetimemin_arki'] = refmin_arki
             else:
                 db_type = 'mixed'
-        log.debug(db_type)
+        log.debug('type of database: {}',db_type)
+        # log.debug('API maps query: {}',query)
         res = dballe.get_maps_response(networks, bounding_box, query, db_type, station_id=station_id)
 
         if not res:

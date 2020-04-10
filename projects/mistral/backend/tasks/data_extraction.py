@@ -4,6 +4,7 @@ import shlex
 import subprocess
 import os
 import datetime
+import tarfile
 # import shutil
 import glob
 # from pathlib import Path
@@ -94,6 +95,14 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             user_dir = os.path.join(DOWNLOAD_DIR, uuid)
             os.makedirs(user_dir, exist_ok=True)
 
+            # check that the datasets are all under the same license
+            license = arki.get_unique_license(datasets)
+            log.debug('license: {}', license)
+            # get license file
+            license_file = os.path.join(os.curdir, 'mistral', 'licenses', '{}.txt'.format(license))
+            if not os.path.isfile(license_file):
+                raise IOError('License file not found')
+
             # output filename in the user space
             # max filename len = 64
             out_filename = 'data-{utc_now}-{id}.{fileformat}'.format(
@@ -141,7 +150,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     arkimet_extraction(arki_query_cmd, tmp_outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
-                    observed_extraction(datasets, filters, reftime, outfile)
+                    observed_extraction(datasets, filters, reftime, tmp_outfile)
 
                 # case of single postprocessor
                 if len(postprocessors) == 1:
@@ -149,19 +158,14 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         p = postprocessors[0]
                         pp_type = p.get('type')
 
-                        # raise an error if the dataset is a bufr and a grid interpolation/cropping is requested
-                        if dataset_format == 'bufr':
-                            if pp_type == 'grid_cropping' or pp_type == 'grid_interpolation':
-                                raise ValueError("Post processors unaivailable for the requested datasets")
-
                         if pp_type == 'derived_variables':
                             pp1_output = pp1.pp_derived_variables(datasets=datasets, params=p,
                                                                   tmp_extraction=tmp_outfile, user_dir=user_dir,
                                                                   fileformat=dataset_format)
                             # join pp1_output and tmp_extraction in output file
                             cat_cmd = ['cat', tmp_outfile, pp1_output]
-                            with open(outfile, mode='w') as outfile:
-                                ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
+                            with open(outfile, mode='w') as out:
+                                ext_proc = subprocess.Popen(cat_cmd, stdout=out)
                                 ext_proc.wait()
                                 if ext_proc.wait() != 0:
                                     raise Exception('Failure in data extraction')
@@ -208,12 +212,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     if len(set(pp_list).intersection(set(pp3_list))) > 1:
                         raise PostProcessingException('Only one geographical postprocessing at a time can be executed')
                     try:
-
-                        # raise an error if the dataset is a bufr and a grid interpolation/cropping is requested
-                        if dataset_format == 'bufr':
-                            if any(d['type'] == 'grid_cropping' for d in postprocessors) or any(
-                                    d['type'] == 'grid_interpolation' for d in postprocessors):
-                                raise ValueError("Post processors unaivailable for the requested datasets")
 
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
                         pp_output = None
@@ -276,7 +274,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                                               0] + '-pp3_1.{fileformat}.tmp'.format(
                                 fileformat=dataset_format)
                             pp_output = os.path.join(user_dir, new_tmp_extraction_filename)
-                            pp3_1.pp_grid_interpolation(params=p, input=input, output=pp_output)
+                            pp3_1.pp_grid_interpolation(params=p, input=pp_input, output=pp_output)
                         if any(d['type'] == 'spare_point_interpolation' for d in postprocessors):
                             p = next(item for item in postprocessors if item["type"] == 'spare_point_interpolation')
                             # check if the input has to be the previous postprocess output
@@ -320,6 +318,9 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 output = os.path.join(user_dir, filebase + "." + output_format)
                 out_filepath = output_formatting.pp_output_formatting(output_format, input, output)
                 out_filename = os.path.basename(out_filepath)
+                # rename outfile correctly
+                outfile = os.path.join(user_dir, out_filename)
+
 
             # get the actual data size
             data_size = os.path.getsize(os.path.join(user_dir, out_filename))
@@ -331,8 +332,24 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                         human_size(data_size - esti_data_size)
                     )
 
+            # package data and license
+            tar_filename = 'data-{utc_now}.tar.gz'.format(
+                utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ.%f"),
+                id=self.request.id)
+            tar_file = os.path.join(user_dir, tar_filename)
+            with tarfile.open(tar_file, "w:gz") as tar:
+                log.debug('--TAR ARCHIVE-------------------------')
+                log.debug('data file: {}', outfile)
+                tar.add(outfile, arcname=os.path.basename(outfile))
+                log.debug('license file: {}', license_file)
+                tar.add(license_file, arcname='LICENSE')
+                log.debug('--------------------------------------')
+
+            # delete out_filename
+            os.remove(outfile)
+
             # create fileoutput record in db
-            RequestManager.create_fileoutput_record(db, user_id, request_id, out_filename, data_size)
+            RequestManager.create_fileoutput_record(db, user_id, request_id, tar_filename, data_size)
             # update request status
             request.status = states.SUCCESS
             log.debug('reftime: {}', reftime)
@@ -419,18 +436,22 @@ def arkimet_extraction(arki_query_cmd, outfile):
 
 
 def dballe_extraction(datasets, filters, reftime, outfile=None, ark_query=None, memdb=None, mixed=False):
+    # get networks by dataset
+    networks = []
+    for ds in datasets:
+        ds_networks = arki.get_observed_dataset_params(ds)
+        for n in ds_networks:
+            networks.append(n)
     # create a query for dballe
     if filters is not None:
         fields, queries = dballe.from_filters_to_lists(filters)
+        if 'rep_memo' not in filters:
+            fields.append('rep_memo')
+            queries.append(networks)
     else:
         # if there aren't filters, data are filtered only by dataset's networks
         fields = ['rep_memo']
         queries = []
-        networks = []
-        for ds in datasets:
-            ds_networks = arki.get_observed_dataset_params(ds)
-            for n in ds_networks:
-                networks.append(n)
         queries.append(networks)
     if reftime is not None:
         fields.append('datetimemin')
@@ -503,6 +524,7 @@ def observed_extraction(datasets, filters, reftime, outfile):
         # build the arkimet query
         arkimet_query = dballe.build_arkimet_query(datemin=refmin_arki, datemax=refmax_arki, network=network)
 
+        log.debug('type of extraction: {}', db_type)
         if db_type == 'arkimet':
             # extract data, fill the temporary db and get the temporary db in return
             temp_db = dballe.fill_db_from_arkimet(datasets, arkimet_query)

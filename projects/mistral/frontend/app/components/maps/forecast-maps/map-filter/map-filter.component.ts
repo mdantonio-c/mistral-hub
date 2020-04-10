@@ -34,7 +34,7 @@ export class MapFilterComponent implements OnInit {
 
     ngOnInit() {
         this.user = this.authService.getUser();
-        if (this.user.isAdmin) {
+        if (this.user && this.user.isAdmin) {
             (this.filterForm.controls.platform as FormControl).setValue('GALILEO');
             (this.filterForm.controls.env as FormControl).setValue('PROD');
         }

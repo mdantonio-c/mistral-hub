@@ -1,6 +1,11 @@
 /* add the ion-range-slider style and skin css */
 @import url('ion-rangeslider/css/ion.rangeSlider.css');
 @import url('ion-rangeslider/css/ion.rangeSlider.skinFlat.css');
+
+/* add leaflet and leaflet-draw css */
+@import url('leaflet/dist/leaflet.css');
+@import url('leaflet-draw/dist/leaflet.draw.css');
+
 @import url('custom-irc.css');
 
 @import url('button-toggle.css');
@@ -16,6 +21,19 @@
   .container, .container-md, .container-sm {
       max-width: none;
   }
+}
+
+.footer {
+/*    background-color: #343a40 !important;*/
+/*    margin-top: 16px;*/
+    color: rgba(255, 255, 255, 0.5);
+/*    
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    margin-bottom: 0px;
+*/
+
 }
 
 /* top navbar: force bg-dark */
@@ -179,6 +197,19 @@ dl.request-summary p:not(:last-child) {
     width: 100%;
 }
 
+.mst--data-attribution {
+    font-size: 11px;
+    background: rgba(255,255,255,.7);
+    margin: 0;
+    padding: 0 5px;
+    color: #333;
+    cursor: auto;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 800;
+}
+
 .mst--input {
     background: transparent;
     border: none;
@@ -212,8 +243,63 @@ input[type="radio"]:focus,
 }
 
 .mst--radio-label {
+    position: relative;
     font-weight: 400;
     margin-left: 15px;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.mst--radio-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkradio {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+  border-radius: 50%;
+}
+
+.mst--radio-label:hover input ~ .checkradio {
+  background-color: #ccc;
+}
+
+/* When the radio button is checked, add a blue background */
+.mst--radio-label input:checked ~ .checkradio {
+  background-color: #53b8e2;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkradio:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.mst--radio-label input:checked ~ .checkradio:after {
+  display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.mst--radio-label .checkradio:after {
+    top: 7.2px;
+    left: 7.2px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: white;
 }
 
 .mst--radio-label:before {
@@ -270,6 +356,12 @@ input[type="radio"]:checked + .mst--radio-label:after {
 .mst--input-checkbox:disabled + label:before {
     box-shadow: none;
     background: #f7f7f7;
+    border: 2px solid #f0f0f0;
+}
+
+.mst--input-checkbox:disabled + label {
+    color: #A9A9A9;
+    cursor: auto;
 }
 
 .mst--input-checkbox:checked + label:after {
@@ -456,6 +548,17 @@ div.board + pre {
     background-color: #e8f0fe;
     color: #1967d2;
 }
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+/*input.ng-invalid {
+  border-color: red !important;
+  border-style: solid;
+}*/
 
 /* the following fix flickering issues with map carousel */
 .carousel-inner .carousel-item {

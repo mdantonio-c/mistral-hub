@@ -75,9 +75,18 @@ export class FormDataService {
      * Optionally the dataset coverage can be restricted with respect to the reference time.
      * If reftime is omitted the whole historical dataset will be considered.
      */
-    getFilters() {
-        let query = this.parseRefTime();
-        return this.dataService.getSummary(this.formData.datasets.map(x => x.id), query);
+    getFilters(filters?: Filters[]) {
+        let q = null;
+        if (filters) {
+            q = filters.map(f => f.query).join(';');
+        }
+        let reftime = this.parseRefTime();
+        if (reftime) {
+            // prepend the reftime
+            q = (q !== '') ? [reftime, q].join(';') : reftime;
+        }
+        console.log(`query for summary: ${q}`);
+        return this.dataService.getSummary(this.formData.datasets.map(x => x.id), q);
     }
 
     /**
@@ -113,7 +122,7 @@ export class FormDataService {
     }
 
     getSummaryStats(): Observable<RapydoResponse<SummaryStats>> {
-        let q = this.formData.filters.map(filter => filter.query).join(';');
+        let q = this.formData.filters.map(f => f.query).join(';');
         let reftime = this.parseRefTime();
         if (reftime) {
             // prepend the reftime

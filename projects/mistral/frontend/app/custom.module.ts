@@ -1,6 +1,6 @@
 import 'ion-rangeslider/js/ion.rangeSlider.min.js';
 
-import {NgModule, ModuleWithProviders} from '@angular/core';
+import {NgModule, CUSTOM_ELEMENTS_SCHEMA, ModuleWithProviders} from '@angular/core';
 import {NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
 import {RouterModule, Routes} from '@angular/router';
 import {DatePipe} from '@angular/common';
@@ -10,6 +10,10 @@ import {SharedModule} from '@rapydo/shared.module';
 import {AuthGuard} from '@rapydo/app.auth.guard';
 
 import {IonRangeSliderModule} from "ng2-ion-range-slider";
+import {NgxSpinnerModule} from "ngx-spinner";
+
+import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { LeafletDrawModule } from '@asymmetrik/ngx-leaflet-draw';
 
 import {HomeComponent} from '@app/custom.home'
 import {DataComponent} from '@app/components/data/data.component';
@@ -18,6 +22,9 @@ import {SchedulesComponent} from "@app/components/schedules/schedules.component"
 import {DashboardComponent} from "@app/components/dashboard/dashboard.component";
 import {StorageUsageComponent} from "@app/components/dashboard/storage-usage/storage-usage.component";
 import {NgbTimeStringAdapter} from '@app/adapters/timepicker-adapter';
+import {PrivacyComponent} from "@app/components/privacy/privacy.component";
+
+import {DisableControlDirective} from "@app/directives/disable-control";
 
 /* Multi-Step Wizard Components */
 import {MultiStepWizardComponent} from '@app/components/multi-step-wizard/multi-step-wizard.component';
@@ -25,6 +32,7 @@ import {NavbarComponent} from '@app/components/multi-step-wizard/navbar/navbar.c
 import {StepDatasetsComponent} from '@app/components/multi-step-wizard/step-datasets/step-datasets.component'
 import {StepFiltersComponent} from '@app/components/multi-step-wizard/step-filters/step-filters.component';
 import {StepPostprocessComponent} from "@app/components/multi-step-wizard/step-postprocess/step-postprocess.component";
+import {StepPostprocessMapComponent} from '@app/components/multi-step-wizard/step-postprocess/map/step-postprocess-map.component';
 import {StepSubmitComponent} from "@app/components/multi-step-wizard/step-submit/step-submit.component";
 
 /* Maps */
@@ -49,8 +57,9 @@ const appRoutes: Routes = [
         ]
     },
     {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
-    {path: 'app/maps/forecasts', component: ForecastMapsComponent, canActivate: [AuthGuard]},
+    {path: 'app/maps/forecasts', component: ForecastMapsComponent},
     {path: 'app/maps/observations', component: ObservationMapsComponent, canActivate: [AuthGuard]},
+    {path: 'public/privacy', component: PrivacyComponent},
     {path: 'app', redirectTo: '/app/data/datasets', pathMatch: 'full'},
     {path: '', redirectTo: '/app/data/datasets', pathMatch: 'full'},
 ];
@@ -59,7 +68,10 @@ const appRoutes: Routes = [
     imports: [
         SharedModule,
         RouterModule.forChild(appRoutes),
-        IonRangeSliderModule
+        IonRangeSliderModule,
+        NgxSpinnerModule,
+        LeafletModule,
+        LeafletDrawModule
     ],
     declarations: [
         HomeComponent,
@@ -73,13 +85,17 @@ const appRoutes: Routes = [
         StepDatasetsComponent,
         StepFiltersComponent,
         StepPostprocessComponent,
+        StepPostprocessMapComponent,
         StepSubmitComponent,
         DashboardComponent,
         StorageUsageComponent,
         RequestsComponent,
         SchedulesComponent,
-        FormatDatePipe
+        PrivacyComponent,
+        FormatDatePipe,
+        DisableControlDirective
     ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [
         DatePipe, {provide: NgbTimeAdapter, useClass: NgbTimeStringAdapter}],
     exports: [

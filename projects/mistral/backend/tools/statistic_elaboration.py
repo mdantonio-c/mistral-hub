@@ -79,7 +79,8 @@ def pp_statistic_elaboration(params, input, output, fileformat):
                 eccodes.codes_write(gid, fdother)
             eccodes.codes_release(gid)
 
-    fileouput_to_join.append(file_not_for_pp)
+    if os.path.exists(file_not_for_pp):
+        fileouput_to_join.append(file_not_for_pp)
     # postprocess each file coming from the splitted input
     for tr in trs:
         p = next(item for item in params if item['input-timerange'] == tr[0] and item['output-timerange'] == tr[1])
@@ -122,7 +123,7 @@ def run_statistic_elaboration(params, input, output, fileformat):
         post_proc_cmd = []
         post_proc_cmd.append(libsim_tool)
         post_proc_cmd.append('--comp-stat-proc={}:{}'.format(params.get('input-timerange'), params.get('output-timerange')))
-        post_proc_cmd.append("--comp-step='{}'".format(step))
+        post_proc_cmd.append('--comp-step={}'.format(step))
         post_proc_cmd.append(input)
         post_proc_cmd.append(output)
         log.debug('Post process command: {}>', post_proc_cmd)

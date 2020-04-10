@@ -4,6 +4,14 @@
         <br/>
         <div class="loader col" *ngIf="loading"></div>
         <div *ngIf="filters">
+            <ngx-spinner
+                    bdColor="rgba(51,51,51,0.8)"
+                    size="medium"
+                    color="#fff"
+                    type="ball-scale-multiple"
+            >
+                <p style="font-size: 20px; color: white">Updating Filters...</p>
+            </ngx-spinner>
             <!-- Summary Stats-->
             <div class="card mst--expansion-panel mst--info-panel" *ngIf="summaryStats">
                 <div class="card-header">
@@ -17,11 +25,11 @@
                         <i class="fa fa-edit"></i>
                     </button>
                     <button type="button" class="btn btn-sm ml-2 p-0 mb-1 float-right"
-                            (click)="loadFilters()"
-                            ngbTooltip="Refresh filters"
+                            (click)="resetFilters()"
+                            ngbTooltip="Reset filters"
                             placement="left"
                             >
-                        <i class="fa fa-sync"></i>
+                        <i class="fa fa-undo"></i>
                     </button>
                 </div>
                 <div class="body">
@@ -50,7 +58,9 @@
                             <li formArrayName="values" *ngFor="let v of f.controls.values.controls; let j = index"
                                 class="col-sm-12 col-md-6">
                                 <input class="mst--input-checkbox" type="checkbox" [formControlName]="j"
-                                       id="{{f.value.name+'-'+j}}">
+                                       id="{{f.value.name+'-'+j}}"
+                                       [disableControl]="!filters[f.value.name][j].active"
+                                       (change)="onFilterChange()">
                                 <label for="{{f.value.name+'-'+j}}">{{filters[f.value.name][j].desc}}</label>
                             </li>
                         </ul>

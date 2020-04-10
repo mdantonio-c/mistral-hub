@@ -9,6 +9,7 @@ import math
 import dateutil
 from arkimet.cfg import Sections
 from restapi.utilities.logs import log
+from mistral.exceptions import InvalidLicenseException
 
 DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
 
@@ -23,6 +24,10 @@ class BeArkimet:
         'additional_variables',
     )
 
+    allowed_licenses = ('CCBY', )
+
+    arkimet_conf = '/arkimet/config/arkimet.conf'
+
     @staticmethod
     def load_datasets():
         """
@@ -32,7 +37,7 @@ class BeArkimet:
         """
         datasets = []
         cfg_sections = Sections()
-        cfg = cfg_sections.parse('/arkimet/config/arkimet.conf')
+        cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
         for i in [a for a in cfg.items() if a[0] not in ['error', 'duplicates']]:
             ds = {'id': i[0]}
             for k,v in i[1].items():
@@ -46,8 +51,40 @@ class BeArkimet:
                     ds['category'] = v
                 elif k == 'format':
                     ds['format'] = v
+                elif k == 'bounding':
+                    ds['bounding'] = v
             datasets.append(ds)
         return datasets
+
+    @staticmethod
+    def get_unique_license(datasets):
+        """
+        Get license name for a give list of datasets.
+        If the list of datasets does not share the same license, an exception is raised.
+        Datasets that do not specify a license are not allowed.
+        :return: the unique license name
+        """
+        if not datasets:
+            raise ValueError('Unexpected empty datasets list')
+        cfg_sections = Sections()
+        cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
+        licenses = set()
+        for ds in [a for a in cfg.items() if a[0] in datasets]:
+            id = ds[0]
+            val = ds[1].get('_license')
+            if not val:
+                raise InvalidLicenseException('Missing license for dataset {}'.format(id))
+            val = val.upper()
+            if val not in BeArkimet.allowed_licenses:
+                raise InvalidLicenseException(
+                    'Unexpected license <{}> for dataset {}. '
+                    'Allowed licenses are {}'.format(val, id,
+                                                     list(BeArkimet.allowed_licenses)))
+            licenses.add(val)
+        return (
+            list(licenses)[0] if len(licenses) == 1
+            else InvalidLicenseException('Datasets do not share the same license. {}'.format(licenses)))
+
 
     @staticmethod
     def load_summary(datasets=[], query=''):
@@ -234,6 +271,57 @@ class BeArkimet:
     #         ds_params['filters'] = networks
     #         dataset_items.append(ds_params)
     #     return dataset_items
+
+    @staticmethod
+    def get_datasets(query,license):
+        datasets = []
+        cfg_sections = Sections()
+        cfg = cfg_sections.parse('/arkimet/config/arkimet.conf')
+        for i in [a for a in cfg.items() if a[0] not in ['error', 'duplicates']]:
+            category = i[1]['_category']
+            # check if the dataset is for observed data
+            if category != 'OBS':
+                continue
+            # if a license is queried, filter by license
+            if license:
+                matches = False
+                for l in license:
+                    if i[1]['_license'] != l:
+                        continue
+                    else:
+                        matches = True
+                        break
+                if not matches:
+                    continue
+            # filter by query
+            if query:
+                ds_filepath = DATASET_ROOT + i[0]
+                arki_summary_cmd = "arki-query --dump --summary-short '{}' {}".format(query, ds_filepath)
+                args = shlex.split(arki_summary_cmd)
+                p = subprocess.Popen(args, stdout=subprocess.PIPE)
+                # check if the query gives a result
+                count = int(subprocess.check_output(('awk', '/Count/ {print $2}'), stdin=p.stdout))
+                if count == 0:
+                    continue
+            # append the filtered datasets
+            datasets.append(i[0])
+
+
+            # if networks:
+            #     # TODO choose if the network will be a single or multiple param
+            #     filter = i[1]['filter']
+            #     filters_split = shlex.split(filter)
+            #     # networks is the parameter that defines the different dataset for observed data
+            #     nets = []
+            #     for f in filters_split:
+            #         if f.startswith('BUFR'):
+            #             nets.append(f.split('=')[1])
+            #     if networks in nets:
+            #         # append the id in dataset list
+            #         datasets.append(i[0])
+            #     continue
+        return datasets
+
 
     @staticmethod
     def __decode_area(i):
