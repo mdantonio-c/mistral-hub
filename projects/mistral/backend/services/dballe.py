@@ -468,8 +468,13 @@ class BeDballe():
         if station_id:
             query_station_data['ana_id'] = int(station_id)
 
+        # original_db=None
         # managing db_type
         if db_type == 'mixed' or db_type == 'arkimet':
+            # save in the variable the original db to get the correct station_id
+            # original_db = dballe.DB.connect(
+            #     "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host,
+            #                                                          port=port))
             if station_id:
                 # get station network
                 with DB.transaction() as tr:
@@ -518,30 +523,63 @@ class BeDballe():
             allowed_keys = ['level', 'network', 'product', 'timerange', 'datetimemin', 'datetimemax']
             dballe_keys = ['level', 'rep_memo', 'var', 'trange', 'datetimemin', 'datetimemax']
             for key, value in query.items():
-                if key == 'license':
-                    continue
-                key_index = allowed_keys.index(key)
-                if not isinstance(value, list):
-                    query_data[dballe_keys[key_index]] = value
-                else:
-                    query_data[dballe_keys[key_index]] = value[0]
+                if key in allowed_keys:
+                    key_index = allowed_keys.index(key)
+                    if not isinstance(value, list):
+                        query_data[dballe_keys[key_index]] = value
+                    else:
+                        query_data[dballe_keys[key_index]] = value[0]
+            if db_type == 'mixed':
+                # for the query_data (the final query) set the correct datetimemin requested from the user
+                query_data['datetimemin']=datetime.strptime(query['datetimemin_arki'], '%Y-%m-%d %H:%M')
+
+        # managing different dbs
+        if db_type == 'arkimet':
+            memdb = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
+        if db_type == 'mixed':
+            # extract data from arkimet and fill the temporary db
+            temp_db = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
+            fields = []
+            queries = []
+            if query:
+                # fields, queries = BeDballe.from_query_to_lists(query)
+                for key,value in query_data.items():
+                    fields.append(key)
+                    if not isinstance(value, list):
+                        vallist=[value]
+                        queries.append(vallist)
+                    else:
+                        queries.append(value)
+            # fill the temporary db with the data coming from dballe
+            memdb = BeDballe.extract_data(fields, queries, temp_db=temp_db)
 
         if query and not station_id:
-            # get data
-            response = BeDballe.get_data_for_maps(DB, query_data)
+            if db_type == 'arkimet' or db_type=='mixed':
+                # get data
+                response = BeDballe.get_data_for_maps(memdb, query_data, original_db=DB)
+            else:
+                response = BeDballe.get_data_for_maps(DB, query_data)
+            # remove data from temp db
+            memdb.remove_all()
             return response
 
         # get station data or data by station
         # TODO it is correct assuming stations are the same both for archived and recent data?
         # TODO Managing case of reftime requested? (and so the different dbs?)
         with DB.transaction() as tr:
-            log.debug('query station {}', query_data)
+            query_station={}
+            for key,value in query_data.items():
+                query_station[key] = value
+            # remove datetime to search stations only in dballe
+            query_station.pop('datetimemin', None)
+            query_station.pop('datetimemax', None)
+            log.debug('query station {}', query_station)
             # check if query gives back a result
-            count_data = tr.query_stations(query_data).remaining
+            count_data = tr.query_stations(query_station).remaining
             # log.debug('count {}',count_data)
             if count_data == 0:
                 return None
-            for rec in tr.query_stations(query_data):
+            for rec in tr.query_stations(query_station):
                 res_element = {}
                 station_data = {}
                 station_data['id'] = rec['ana_id']
@@ -550,6 +588,7 @@ class BeDballe():
                 station_data["ident"] = rec["ident"]
                 if station_id:
                     station_data["network"] = rec["rep_memo"]
+                    log.debug('query station data: {}',query_station_data)
                     # add additional informations about the station (we use query_station_data because varcodes are differents)
                     for row in tr.query_station_data(query_station_data):
                         var = row['variable']
@@ -565,8 +604,12 @@ class BeDballe():
 
                 res_element['station'] = station_data
                 response.append(res_element)
+
         if station_id:
-            products, data = BeDballe.get_data_by_station(DB, query_data)
+            if db_type == 'arkimet' or db_type == 'mixed':
+                products, data = BeDballe.get_data_by_station(memdb, query_data,original_db=DB)
+            else:
+                products, data = BeDballe.get_data_by_station(DB, query_data)
             res_element['station']['products available'] = products
             res_element['data'] = data
             return res_element
@@ -574,7 +617,7 @@ class BeDballe():
             return response
 
     @staticmethod
-    def get_data_for_maps(db, query):
+    def get_data_for_maps(db, query, original_db=None):
         response = []
         if 'datetimemin' not in query.keys():
             # if there is no reftime i use the time now
@@ -591,11 +634,12 @@ class BeDballe():
                 res_element = {}
                 # get data about the station
                 station_data = {}
-                station_data['id'] = rec['ana_id']
                 station_data["lat"] = float(rec["lat"])
                 station_data["lon"] = float(rec["lon"])
-                station_data["ident"] = rec["ident"]
-                res_element['station'] = station_data
+                if not original_db:
+                    # it means we are using the actual station ids
+                    station_data['id'] = rec['ana_id']
+                    station_data["ident"] = rec["ident"]
 
                 # get data values
                 data = {}
@@ -605,28 +649,58 @@ class BeDballe():
                 product_el['reftime'] = datetime(rec["year"], rec["month"], rec["day"], rec["hour"], rec["min"],
                                                  rec["sec"])
                 data[rec['var']].append(product_el)
-                res_element['data'] = data
-
-                response.append(res_element)
+                # determine where append the values
+                existent_station = False
+                for i in response:
+                    # check if station is already on the response
+                    if float(rec["lat"]) == i['station']['lat'] and float(rec["lon"]) == i['station']['lon']:
+                        existent_station = True
+                        # check if the element has already the given product
+                        if not rec['var'] in i['data'].keys():
+                            i['data'][rec['var']] = []
+                        # append here the value
+                        i['data'][rec['var']].append(product_el)
+                if not existent_station:
+                    # create a new record
+                    res_element['station'] = station_data
+                    res_element['data'] = data
+                    response.append(res_element)
+        if original_db:
+            # get the correct station id from the original dballe
+            with original_db.transaction() as tr:
+                for el in response:
+                    station_query = {}
+                    station_query['lat'] = el['station']['lat']
+                    station_query['lon'] = el['station']['lon']
+                    for cur in tr.query_stations(station_query):
+                        el['station']['ana_id']=cur['ana_id']
+                        el['station']['ident'] = cur['ident']
         return response
 
     @staticmethod
-    def get_data_by_station(db, query):
-        log.debug('query data for station {}', query)
+    def get_data_by_station(db, query,original_db=None):
+        if original_db:
+            # substitute ana_id in query with lat lon params of that station
+            id_query = {'ana_id':query['ana_id']}
+            with original_db.transaction() as tr:
+                for cur in tr.query_stations(id_query):
+                    query['lat'] = float(cur['lat'])
+                    query['lon'] = float(cur['lon'])
+            query.pop('ana_id', None)
         products = []
         data = {}
         # if query add query params to query station
         # if query check if reftime, if not use the standard one (today)
         if 'datetimemin' not in query.keys():
             # for prod
-            # today = date.today()
-            # query_station_data['datetimemax']= datetime.now()
-            # query_station_data['datetimemin'] = datetime.combine(today, time(0, 0, 0))
+            today = date.today()
+            query_station_data['datetimemax']= datetime.now()
+            query_station_data['datetimemin'] = datetime.combine(today, time(0, 0, 0))
             # for local tests
-            today = date(2015, 12, 31)
-            time_now = datetime.now().time()
-            query['datetimemax'] = datetime.combine(today, time_now)
-            query['datetimemin'] = datetime.combine(today, time(0, 0, 0))
+            # today = date(2015, 12, 31)
+            # time_now = datetime.now().time()
+            # query['datetimemax'] = datetime.combine(today, time_now)
+            # query['datetimemin'] = datetime.combine(today, time(0, 0, 0))
 
         log.debug('query for timeseries {}', query)
         with db.transaction() as tr:
@@ -797,11 +871,12 @@ class BeDballe():
     def from_query_to_lists(query):
         fields = []
         queries = []
-        allowed_keys = ['level', 'network', 'product', 'timerange', 'datetimemin', 'datetimemax']
-        dballe_keys = ['level', 'rep_memo', 'var', 'trange', 'datetimemin', 'datetimemax']
+        allowed_keys = ['level', 'network', 'product', 'timerange', 'datetimemin', 'datetimemax','ana_id','latmin','lonmin','latmax','lonmax']
+        dballe_keys = ['level', 'rep_memo', 'var', 'trange', 'datetimemin', 'datetimemax','ana_id','latmin','lonmin','latmax','lonmax']
 
         for key, value in query.items():
             if key in allowed_keys:
+                log.debug('{}: {}',key,value)
                 # change the key name from model to dballe name
                 key_index = allowed_keys.index(key)
                 fields.append(dballe_keys[key_index])
