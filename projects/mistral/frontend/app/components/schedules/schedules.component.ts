@@ -5,11 +5,15 @@ import {BasePaginationComponent} from '@rapydo/components/base.pagination.compon
 
 import {DataService} from "@app/services/data.service";
 
+export interface Schedule {
+
+}
+
 @Component({
     selector: 'app-schedules',
     templateUrl: './schedules.component.html'
 })
-export class SchedulesComponent extends BasePaginationComponent {
+export class SchedulesComponent extends BasePaginationComponent<Schedule> {
     expanded: any = {};
     loadingLast = false;    // it should be bound to the single row!
 
