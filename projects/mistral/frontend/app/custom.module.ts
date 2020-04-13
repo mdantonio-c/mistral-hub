@@ -10,7 +10,6 @@ import {SharedModule} from '@rapydo/shared.module';
 import {AuthGuard} from '@rapydo/app.auth.guard';
 
 // import {IonRangeSliderModule} from "ng2-ion-range-slider";
-import {NgxSpinnerModule} from "ngx-spinner";
 
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { LeafletDrawModule } from '@asymmetrik/ngx-leaflet-draw';
@@ -69,7 +68,6 @@ const appRoutes: Routes = [
         SharedModule,
         RouterModule.forChild(appRoutes),
         // IonRangeSliderModule,
-        NgxSpinnerModule,
         LeafletModule,
         LeafletDrawModule
     ],
