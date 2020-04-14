@@ -74,7 +74,6 @@ class Fields(EndpointResource):
         ########## OBSERVED DATA ###########
         if dataset_format == 'bufr':
             summary = None
-            # TODO split between arkimet and dballe. For now there is only the dballe case
             log.debug('Dataset(s) for observed data: {}'.format(datasets))
 
             resulting_fields = {
@@ -87,7 +86,10 @@ class Fields(EndpointResource):
                 for net in ds_params:
                     requested_nets.append(net)
                 log.info('dataset: {}, networks: {}'.format(ds, ds_params))
-                fields = dballe.load_filters(datasets,ds_params,query)
+                if 'reftime' in query:
+                    fields = dballe.load_filters(datasets,ds_params,q=query)
+                else:
+                    fields = dballe.load_all_dataset_filter(datasets, ds_params, query)
                 if not fields:
                     continue
                 else:
