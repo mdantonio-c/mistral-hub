@@ -556,10 +556,10 @@ class BeDballe():
             if db_type == 'arkimet' or db_type=='mixed':
                 # get data
                 response = BeDballe.get_data_for_maps(memdb, query_data, original_db=DB)
+                # remove data from temp db
+                memdb.remove_all()
             else:
                 response = BeDballe.get_data_for_maps(DB, query_data)
-            # remove data from temp db
-            memdb.remove_all()
             return response
 
         # get station data or data by station
