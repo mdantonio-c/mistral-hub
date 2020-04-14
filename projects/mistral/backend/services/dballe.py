@@ -468,13 +468,8 @@ class BeDballe():
         if station_id:
             query_station_data['ana_id'] = int(station_id)
 
-        # original_db=None
         # managing db_type
         if db_type == 'mixed' or db_type == 'arkimet':
-            # save in the variable the original db to get the correct station_id
-            # original_db = dballe.DB.connect(
-            #     "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host,
-            #                                                          port=port))
             if station_id:
                 # get station network
                 with DB.transaction() as tr:
@@ -484,6 +479,7 @@ class BeDballe():
                         return None
                     for rec in tr.query_stations(query_station_data):
                         networks = rec['rep_memo']
+            # manage reftime for queries in arkimet
             datemin = None
             datemax = None
             if query:
@@ -495,6 +491,7 @@ class BeDballe():
                     datemax = query['datetimemax']
             # for now we consider network as a single parameters.
             # TODO choose if the network will be a single or multiple param
+            # transform network param in a list to be managed better for arkimet queries
             networks_as_list = None
             if networks:
                 networks_as_list = [networks]
@@ -509,11 +506,13 @@ class BeDballe():
 
             if not datasets:
                 return None
+
             # check datasets license,
             # TODO se non passa il check il frontend lancerà un messaggio del tipo: 'dati con licenze diverse, prego sceglierne una'
             check_license = arki.get_unique_license(datasets) # the exception raised by this function is enough?
             log.debug('datasets: {}', datasets)
 
+        # build query for data starting from the one for stations
         query_data = {}
         if query_station_data:
             for key, value in query_station_data.items():
@@ -567,13 +566,15 @@ class BeDballe():
         # TODO it is correct assuming stations are the same both for archived and recent data?
         # TODO Managing case of reftime requested? (and so the different dbs?)
         with DB.transaction() as tr:
-            query_station={}
-            for key,value in query_data.items():
+            # build a query for station
+            query_station = {}
+            for key, value in query_data.items():
                 query_station[key] = value
             # remove datetime to search stations only in dballe
             query_station.pop('datetimemin', None)
             query_station.pop('datetimemax', None)
             log.debug('query station {}', query_station)
+
             # check if query gives back a result
             count_data = tr.query_stations(query_station).remaining
             # log.debug('count {}',count_data)
@@ -606,6 +607,7 @@ class BeDballe():
                 response.append(res_element)
 
         if station_id:
+            # get data for station timeserie
             if db_type == 'arkimet' or db_type == 'mixed':
                 products, data = BeDballe.get_data_by_station(memdb, query_data,original_db=DB)
             else:
@@ -687,6 +689,7 @@ class BeDballe():
                     query['lat'] = float(cur['lat'])
                     query['lon'] = float(cur['lon'])
             query.pop('ana_id', None)
+
         products = []
         data = {}
         # if query add query params to query station
@@ -701,6 +704,11 @@ class BeDballe():
             # time_now = datetime.now().time()
             # query['datetimemax'] = datetime.combine(today, time_now)
             # query['datetimemin'] = datetime.combine(today, time(0, 0, 0))
+
+        # i want all products from a station, so i delete variable,timeranges and levels from the query
+        query.pop('var', None)
+        query.pop('level', None)
+        query.pop('trange', None)
 
         log.debug('query for timeseries {}', query)
         with db.transaction() as tr:

@@ -44,13 +44,7 @@ class MapsObservations(EndpointResource):
         '/maps/observations/<station_id>': {
             'summary': 'Get station information by id',
             'parameters': [
-                {
-                    'name': 'networks',
-                    'in': 'query',
-                    'type': 'array',
-                    'uniqueItems': True,
-                    'items': {'type': 'string'},
-                },
+                {'name': 'networks', 'in': 'query', 'type': 'string'},
                 {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''},
             ],
             'responses': {
