@@ -114,7 +114,7 @@ export class StepFiltersComponent implements OnInit {
                         // console.log('....NEW....', m[1]);
                     }
                 });
-                this.updateSummaryStats(response.data.items.summarystats);
+                this.updateSummaryStats(response.items.summarystats);
             },
                 error => {
                 this.notify.showError(`Unable to get summary fields`);
@@ -129,10 +129,9 @@ export class StepFiltersComponent implements OnInit {
         (this.filterForm.controls.filters as FormArray).clear();
         this.formDataService.getFilters().subscribe(
             response => {
-                this.filters = response.data.items;
+                this.filters = response.items;
                 let toBeExcluded = ['summarystats', 'network'];
                 Object.entries(this.filters).forEach(entry => {
-                    console.log(entry[0]);
                     if (!toBeExcluded.includes(entry[0])) {
                         (<Array<any>>entry[1]).forEach(function (obj) {
                           obj['active'] = true;
@@ -143,7 +142,7 @@ export class StepFiltersComponent implements OnInit {
                 //console.log(this.filterForm.get('filters'));
                 //console.log(this.filters);
 
-                this.updateSummaryStats(response.data.items.summarystats);
+                this.updateSummaryStats(response.items.summarystats);
             },
             error => {
                 this.notify.showError(`Unable to get summary fields`);
