@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
 import { FormDataService } from "@app/services/formData.service";
@@ -531,8 +531,6 @@ export class StepPostprocessComponent implements OnInit {
                 'sub-type': this.selectedInterpolationType,
             }
          }
-        
-
     }
 
     calculateSparePoints(){
