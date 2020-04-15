@@ -16,7 +16,6 @@ from zipfile import ZipFile
 
 
 class Templates(EndpointResource, Uploader):
-    # schema_expose = True
     labels = ['templates']
     GET = {
         '/templates/<template_name>': {

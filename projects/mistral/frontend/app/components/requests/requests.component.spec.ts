@@ -13,6 +13,7 @@ import {RequestsComponent} from './requests.component';
 import {BytesPipe} from '@rapydo/pipes/pipes';
 import {AuthService} from '@rapydo/services/auth';
 import {NotificationService} from '@rapydo/services/notification';
+import {ProjectOptions} from '@app/custom.project.options';
 import {FormlyService} from '@rapydo/services/formly'
 import {ApiService} from '@rapydo/services/api';
 import {DataService} from "../../services/data.service";
@@ -79,6 +80,7 @@ describe('RequestsComponent', () => {
             ],
             providers: [
                 NotificationService,
+                ProjectOptions,
                 {provide: DataService, useClass: DataServiceStub},
                 {provide: ApiService, useClass: ApiServiceStub},
                 {provide: AuthService, useClass: AuthServiceStub},

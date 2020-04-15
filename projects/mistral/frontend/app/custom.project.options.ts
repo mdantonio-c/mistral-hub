@@ -21,7 +21,7 @@ export class ProjectOptions {
         if (opt == 'user_page') {
             return {
                 "custom": [
-                    {name: 'Disk Quota', prop: "disk_quota", flexGrow: 0.3, pipe: new BytesPipe()}
+                    {name: 'Disk<br>Quota', prop: "disk_quota", flexGrow: 0.3, pipe: new BytesPipe()}
                 ]
             }
         }

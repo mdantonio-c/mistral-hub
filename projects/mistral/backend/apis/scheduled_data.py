@@ -11,7 +11,6 @@ from restapi.utilities.logs import log
 
 class ScheduledData(EndpointResource):
 
-    # schema_expose = True
     labels = ['scheduled']
     POST = {
         '/data/scheduled': {

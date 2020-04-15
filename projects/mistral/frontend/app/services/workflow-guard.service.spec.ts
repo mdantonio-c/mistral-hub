@@ -16,7 +16,7 @@ describe('WorkflowGuardServiceGuard', () => {
                 {provide: WorkflowService, useClass: WorkflowServiceStub}
             ]
         });
-        router = TestBed.get(Router);
+        router = TestBed.inject(Router);
     });
 
     it('should ...', inject([WorkflowGuard], (guard: WorkflowGuard) => {

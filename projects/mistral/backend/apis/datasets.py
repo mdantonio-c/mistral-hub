@@ -10,7 +10,6 @@ from restapi.utilities.logs import log
 
 class Datasets(EndpointResource):
 
-    # schema_expose = True
     labels = ['dataset']
     GET = {
         '/datasets': {

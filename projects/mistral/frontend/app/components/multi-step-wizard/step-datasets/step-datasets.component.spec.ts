@@ -38,7 +38,7 @@ describe('StepDatasetsComponent', () => {
         fixture = TestBed.createComponent(StepDatasetsComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
-        router = TestBed.get(Router);
+        router = TestBed.inject(Router);
     });
 
     it('should create', () => {

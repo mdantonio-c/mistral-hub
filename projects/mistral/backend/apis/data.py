@@ -15,7 +15,6 @@ from mistral.tools import spare_point_interpol as pp3_3
 
 
 class Data(EndpointResource, Uploader):
-    # schema_expose = True
     labels = ['data']
     POST = {
         '/data': {

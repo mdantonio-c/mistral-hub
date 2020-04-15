@@ -6,14 +6,6 @@ import 'rxjs/add/operator/share';
 import {ApiService} from '@rapydo/services/api';
 import { environment } from '@rapydo/../environments/environment';
 
-export interface RapydoMeta {
-    data_type: string;
-    elements: number;
-    errors: number;
-    status: number;
-    total?: number;
-}
-
 export interface SummaryStats {
     b?: number[];
     e?: number[];

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 
 import {FormDataService} from "./formData.service";
 import {WorkflowService} from "./workflow.service";
-import {DataService, SummaryStats} from "./data.service";
+import {DataService, SummaryStats, Filters} from "./data.service";
 import {MockDatasetsResponse, MockFiltersResponse, MockSummaryStatsResponse} from "./data.mock";
 
 @Injectable()
@@ -16,7 +16,7 @@ export class FormDataServiceStub extends FormDataService {
         return Observable.of(MockDatasetsResponse);
     }
 
-    getFilters(): any {
+    getFilters(filters?: Filters[]): any {
         return Observable.of(MockFiltersResponse);
     }
 

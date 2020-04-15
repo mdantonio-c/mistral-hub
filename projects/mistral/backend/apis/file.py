@@ -14,7 +14,6 @@ DOWNLOAD_DIR = '/data'
 
 class FileDownload(EndpointResource):
 
-    # schema_expose = True
     labels = ['file']
     GET = {
         '/data/<filename>': {

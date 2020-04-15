@@ -17,8 +17,8 @@ describe('DataService', () => {
                 {provide: ApiService, useClass: ApiServiceStub}
             ]
         });
-        service = TestBed.get(DataService);
-        http = TestBed.get(HttpTestingController);
+        service = TestBed.inject(DataService);
+        http = TestBed.inject(HttpTestingController);
     });
 
     afterEach(() => {

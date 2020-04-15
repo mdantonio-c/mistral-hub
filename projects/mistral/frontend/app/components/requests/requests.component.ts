@@ -5,11 +5,15 @@ import {BasePaginationComponent} from '@rapydo/components/base.pagination.compon
 import {DataService} from "@app/services/data.service";
 import {environment} from '@rapydo/../environments/environment';
 
+export interface Request {
+
+}
+
 @Component({
     selector: 'app-requests',
     templateUrl: './requests.component.html'
 })
-export class RequestsComponent extends BasePaginationComponent {
+export class RequestsComponent extends BasePaginationComponent<Request> {
     expanded: any = {};
     @Output() onLoad: EventEmitter<null> = new EventEmitter<null>();
 

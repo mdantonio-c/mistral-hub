@@ -11,7 +11,6 @@ from restapi.utilities.logs import log
 
 class Fields(EndpointResource):
 
-    # schema_expose = True
     labels = ['field']
     GET = {
         '/fields': {
