@@ -130,8 +130,10 @@ export class StepFiltersComponent implements OnInit {
         this.formDataService.getFilters().subscribe(
             response => {
                 this.filters = response.data.items;
+                let toBeExcluded = ['summarystats', 'network'];
                 Object.entries(this.filters).forEach(entry => {
-                    if (entry[0] !== 'summarystats') {
+                    console.log(entry[0]);
+                    if (!toBeExcluded.includes(entry[0])) {
                         (<Array<any>>entry[1]).forEach(function (obj) {
                           obj['active'] = true;
                         });
