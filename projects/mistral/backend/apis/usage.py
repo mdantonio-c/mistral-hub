@@ -15,7 +15,6 @@ DOWNLOAD_DIR = '/data'
 
 class Usage(EndpointResource):
 
-    # schema_expose = True
     labels = ['usage']
     GET = {
         '/usage': {

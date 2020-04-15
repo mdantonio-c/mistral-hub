@@ -16,7 +16,6 @@ import datetime
 
 class Schedules(EndpointResource):
 
-    # schema_expose = True
     labels = ['schedule']
     GET = {
         '/schedules/<schedule_id>': {
@@ -570,7 +569,6 @@ class Schedules(EndpointResource):
 
 class ScheduledRequests(EndpointResource):
 
-    # schema_expose = True
     labels = ['scheduled_requests']
     GET = {
         '/schedules/<schedule_id>/requests': {
