@@ -1,6 +1,7 @@
 import {Component, OnInit, ViewChild, ElementRef, HostListener} from "@angular/core";
 import {MeteoFilter, MeteoService} from "./services/meteo.service";
 import {NotificationService} from '@rapydo/services/notification';
+import {NgxSpinnerService} from 'ngx-spinner';
 
 @Component({
     selector: 'app-forecast-maps',
@@ -14,7 +15,9 @@ export class ForecastMapsComponent implements OnInit {
     isFilterCollapsed = false;
     private collapsed = false;
 
-    constructor(private meteoService: MeteoService, private notify: NotificationService) {
+    constructor(private meteoService: MeteoService,
+                private notify: NotificationService,
+                private spinner: NgxSpinnerService) {
     }
 
     ngOnInit() {
@@ -23,6 +26,7 @@ export class ForecastMapsComponent implements OnInit {
 
     applyFilter(filter: MeteoFilter) {
         this.loading = true;
+        this.spinner.show();
         this.filter = filter;
         this.offsets.length = 0;
         console.log(filter);
@@ -44,6 +48,7 @@ export class ForecastMapsComponent implements OnInit {
             }
         ).add(() => {
             this.loading = false;
+            this.spinner.hide();
         });
     }
 

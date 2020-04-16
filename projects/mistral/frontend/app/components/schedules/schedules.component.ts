@@ -2,7 +2,6 @@ import {Component, ElementRef, Injector} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
 
 import {BasePaginationComponent} from '@rapydo/components/base.pagination.component';
-
 import {DataService} from "@app/services/data.service";
 
 export interface Schedule {
@@ -39,6 +38,7 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
 
     loadLastSubmission(row) {
         this.loadingLast = true;
+        this.spinner.show('last');
         this.dataService.getLastScheduledRequest(row.id).subscribe(
             response => {
                 row.last = response;
@@ -57,6 +57,7 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
             }
         ).add(() => {
             this.loadingLast = false;
+            this.spinner.hide('last')
         });
     }
 

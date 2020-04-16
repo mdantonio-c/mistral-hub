@@ -116,7 +116,13 @@
                                     <i class="fa fa-sync" aria-hidden="true" (click)="loadLastSubmission(row)"></i>
                                 </button>
                             </div>
-                            <loading *ngIf="loadingLast"></loading>
+                            <ngx-spinner
+                                    name="last"
+                                    bdColor="rgba(255,255,255,0.8)"
+                                    color="#6c757d"
+                                    zIndex="1000"
+                                    [fullScreen]="false" type="ball-clip-rotate-multiple" size="small">
+                            </ngx-spinner>
                             <div *ngIf="!loadingLast && row.last && row.last.length !== 0; else notAvailable">
                                 <button class="btn p-0 mr-1 mb-2">
                                     <i class="fa fa-download" (click)='download(row.last.fileoutput)'></i></button>

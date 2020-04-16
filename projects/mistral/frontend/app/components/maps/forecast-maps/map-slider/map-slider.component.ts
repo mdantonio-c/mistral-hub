@@ -5,6 +5,8 @@ import {Areas, Fields, Resolutions} from "../services/data";
 import {NgbCarousel, NgbSlideEvent} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import {IonRangeSliderComponent} from "ng2-ion-range-slider";
+import {NgxSpinnerService} from 'ngx-spinner';
+
 
 @Component({
     selector: 'app-map-slider',
@@ -21,10 +23,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     fromMin: number;
     maxHour = 48;
     legendToShow: any;
-    isLegendLoading = false;
     isImageLoading = false;
     grid_num = 6;
     utcTime = true;
+    public readonly LEGEND_SPINNER = 'legendSpinner';
+    public readonly IMAGE_SPINNER = 'imageSpinner';
 
     @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
@@ -36,7 +39,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 
     constructor(
         private sanitizer: DomSanitizer,
-        private meteoService: MeteoService) {
+        private meteoService: MeteoService,
+        private spinner: NgxSpinnerService) {
     }
 
     ngOnChanges(): void {
@@ -49,6 +53,10 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         this.grid_num = (this.filter.res === 'lm2.2') ? 4 : 6;
 
         this.images.length = 0;
+        setTimeout(() => {
+            this.spinner.show(this.IMAGE_SPINNER);
+        }, 0);
+
         this.isImageLoading = true;
         this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
             blobs => {
@@ -59,6 +67,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
                 console.log(error);
             }
         ).add(() => {
+            this.spinner.hide(this.IMAGE_SPINNER);
             this.isImageLoading = false;
             // once the maps have been loaded I can preset the carousel
             this.presetSlider();
@@ -74,7 +83,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         this.maxHour = (this.filter.res === 'lm2.2') ? 48 : 72;
 
         // get legend from service
-        this.isLegendLoading = true;
+        this.spinner.show(this.LEGEND_SPINNER);
         this.meteoService.getMapLegend(this.filter).subscribe(
             blob => {
                 this.legendToShow = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blob));
@@ -82,7 +91,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
                 console.log(error);
             }
         ).add(() => {
-            this.isLegendLoading = false;
+            this.spinner.hide(this.LEGEND_SPINNER)
         });
     }
 

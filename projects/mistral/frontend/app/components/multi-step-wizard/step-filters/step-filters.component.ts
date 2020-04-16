@@ -16,7 +16,6 @@ import * as _ from 'lodash';
 })
 export class StepFiltersComponent implements OnInit {
     title = 'Filter your data';
-    loading: boolean = false;
     summaryStats = {b: null, e: null, c: null, s: null};
     filterForm: FormGroup;
     filters: Filters;
@@ -79,7 +78,7 @@ export class StepFiltersComponent implements OnInit {
     }
 
     onFilterChange() {
-        this.spinner.show();
+        this.spinner.show('sp2');
         let selectedFilters = this.getSelectedFilters();
         console.log('selected filter(s)', selectedFilters);
         let selectedFilterNames = selectedFilters.map(f => f.name);
@@ -119,12 +118,12 @@ export class StepFiltersComponent implements OnInit {
                 error => {
                 this.notify.showError(`Unable to get summary fields`);
             }).add(() => {
-                this.spinner.hide();
+                this.spinner.hide('sp2');
         });
     }
 
     loadFilters() {
-        this.loading = true;
+        this.spinner.show('sp1');
         // reset filters
         (this.filterForm.controls.filters as FormArray).clear();
         this.formDataService.getFilters().subscribe(
@@ -148,7 +147,7 @@ export class StepFiltersComponent implements OnInit {
                 this.notify.showError(`Unable to get summary fields`);
             }
         ).add(() => {
-            this.loading = false;
+            this.spinner.hide('sp1');
             if (this.formDataService.getFormData().filters.length !== 0) {
                 this.onFilterChange();
             }
