@@ -15,6 +15,7 @@ import {FormatDatePipe} from "../../../pipes/format-date.pipe";
 import {DisableControlDirective} from "@app/directives/disable-control";
 
 import {BytesPipe} from '@rapydo/pipes/pipes';
+import {ArkimetService} from "../../../services/arkimet.service";
 
 class NotificationServiceStub {}
 
@@ -42,6 +43,7 @@ describe('StepFiltersComponent', () => {
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
             providers: [
                 DatePipe,
+                ArkimetService,
                 {provide: FormBuilder, useValue: formBuilder},
                 {provide: FormDataService, useClass: FormDataServiceStub},
                 {provide: NotificationService, useClass: NotificationServiceStub}
@@ -56,9 +58,9 @@ describe('StepFiltersComponent', () => {
         fixture.detectChanges();
         router = TestBed.inject(Router);
     });
-/*
+
     it('should create', () => {
         expect(component).toBeTruthy();
     });
-*/
+
 });

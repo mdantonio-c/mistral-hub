@@ -114,7 +114,7 @@ export class StepFiltersComponent implements OnInit {
                         // console.log('....NEW....', m[1]);
                     }
                 });
-                this.updateSummaryStats(response.data.items.summarystats);
+                this.updateSummaryStats(response.items.summarystats);
             },
                 error => {
                 this.notify.showError(`Unable to get summary fields`);
@@ -130,17 +130,9 @@ export class StepFiltersComponent implements OnInit {
         this.formDataService.getFilters().subscribe(
             response => {
                 this.filters = response.items;
-                this.summaryStats = response.items.summarystats;
-                if (!this.summaryStats.hasOwnProperty('b')) {
-                    let from = moment.utc(this.formDataService.getReftime().from);
-                    this.summaryStats['b'] = [from.year(), from.month() + 1, from.date(), from.hour(), from.minute(), from.second()]
-                }
-                if (!this.summaryStats.hasOwnProperty('e')) {
-                    let to = moment.utc(this.formDataService.getReftime().to);
-                    this.summaryStats['e'] = [to.year(), to.month() + 1, to.date(), to.hour(), to.minute(), to.second()]
-                }
+                let toBeExcluded = ['summarystats', 'network'];
                 Object.entries(this.filters).forEach(entry => {
-                    if (entry[0] !== 'summarystats') {
+                    if (!toBeExcluded.includes(entry[0])) {
                         (<Array<any>>entry[1]).forEach(function (obj) {
                           obj['active'] = true;
                         });
@@ -150,7 +142,7 @@ export class StepFiltersComponent implements OnInit {
                 //console.log(this.filterForm.get('filters'));
                 //console.log(this.filters);
 
-                this.updateSummaryStats(response.data.items.summarystats);
+                this.updateSummaryStats(response.items.summarystats);
             },
             error => {
                 this.notify.showError(`Unable to get summary fields`);
