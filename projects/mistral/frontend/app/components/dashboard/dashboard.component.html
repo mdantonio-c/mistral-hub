@@ -1,21 +1,26 @@
 <div class='container-fluid'>
     <div class="sidenav">
-        <ngb-tabset justify='start' orientation='vertical' (tabChange)="onTabChange($event)">
-            <ngb-tab id="requests" title="Requests"></ngb-tab>
-            <ngb-tab id="schedules" title="Schedules"></ngb-tab>
-        </ngb-tabset>
+        <ul ngbNav #nav="ngbNav" class="nav-pills" orientation="vertical" (navChange)="onTabChange($event)">
+          <li ngbNavItem="requests">
+            <a ngbNavLink>Requests</a>
+            <ng-template ngbNavContent>
+                <app-requests #rTab (onLoad)="storage.load()"></app-requests>
+            </ng-template>
+          </li>
+          <li ngbNavItem="schedules">
+            <a ngbNavLink>Schedules</a>
+            <ng-template ngbNavContent>
+                <app-schedules #sTab></app-schedules>
+            </ng-template>
+          </li>
+        </ul>
         <hr style="border-top-color: #BBB;"/>
         <app-storage-usage #storage></app-storage-usage>
     </div>
 
     <div class="row justify-content-md-center page-with-sidebar">
         <div class="col-12">
-            <ng-container *ngIf="selectedTabId === 'requests'">
-                <app-requests #rTab (onLoad)="storage.load()"></app-requests>
-            </ng-container>
-            <ng-container *ngIf="selectedTabId === 'schedules'">
-                <app-schedules #sTab></app-schedules>
-            </ng-container>
+            <div [ngbNavOutlet]="nav"></div>
         </div>
     </div>
 </div>
