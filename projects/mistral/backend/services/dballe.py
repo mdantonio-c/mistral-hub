@@ -968,16 +968,129 @@ class BeDballe():
         return db
 
     @staticmethod
-    def extract_data(fields, queries, outfile=None, temp_db=None):
-        if temp_db and outfile:
-            log.debug('Mixed dbs: Extracting data from the temp db')
-            # case of extracting from a temp db
-            DB = temp_db
-        # case of extracting from the general db or filling the temp db
+    def parse_query_for_data_extraction(datasets, filters=None, reftime=None):
+
+        # get network list from requested datasets
+        dataset_nets = []
+        for ds in datasets:
+            nets = arki.get_observed_dataset_params(ds)
+            for n in nets:
+                dataset_nets.append(n)
+
+        fields = []
+        queries = []
+        # create a "base" query using the filters
+        if filters:
+            fields, queries = BeDballe.from_filters_to_lists(filters)
+            # check if requested networks are in that dataset
+            if 'rep_memo' in fields:
+                key_index = fields.index('rep_memo')
+                nets_in_query = queries[key_index]
+                if not all(elem in dataset_nets for elem in nets_in_query):
+                    raise Exception('Failure in data extraction: Invalid set of filters')
+
+        # parsing reftime and add it to the query
+        if reftime:
+            date_min, date_max = BeDballe.parse_data_extraction_reftime(reftime['from'], reftime['to'])
+            fields.append('datetimemin')
+            queries.append([date_min])
+            fields.append('datetimemax')
+            queries.append([date_max])
+
+        # if there aren't filters, data are filtered only by dataset's networks
+        if 'rep_memo' not in fields:
+            fields.append('rep_memo')
+            queries.append(dataset_nets)
+
+        return fields, queries
+
+    @staticmethod
+    def extract_data_for_mixed(datasets, fields, queries, outfile):
+
+        # extract data from the dballe database
+        log.debug('mixed dbs: extract data from dballe')
+        dballe_queries = []
+        for q in queries:
+            dballe_queries.append(q)
+        if 'datetimemin' in fields:
+            refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(queries[fields.index('datetimemin')][0],
+                                                                                             queries[fields.index('datetimemax')][0])
+            # set up query for dballe with the correct reftimes
+            dballe_queries[fields.index('datetimemin')][0] = refmin_dballe
+
+        # set the filename for the partial extraction
+        if outfile.endswith('.tmp'):
+            outfile_split = outfile[:-4]
+            filebase, fileext = os.path.splitext(outfile_split)
+        else:
+            filebase, fileext = os.path.splitext(outfile)
+
+        dballe_outfile = filebase + '_dballe_part' + fileext + '.tmp'
+
+        # extract
+        BeDballe.extract_data(datasets, fields, dballe_queries, dballe_outfile, db_type='dballe')
+
+        # extract data from the arkimet database
+        log.debug('mixed dbs: extract data from arkimet')
+        arki_queries = []
+        for q in queries:
+            arki_queries.append(q)
+        if 'datetimemin' in fields:
+            # set up query for arkimet with the correct reftimes
+            arki_queries[fields.index('datetimemin')][0] = refmin_arki
+            arki_queries[fields.index('datetimemax')][0] = refmax_arki
+        else:
+            # get reftime min and max for arkimet datasets
+            arki_summary = arki.load_summary(datasets)
+            arki_queries[fields.index('datetimemin')][0] = datetime(*arki_summary['items']['summarystats']['b'])
+            arki_queries[fields.index('datetimemax')][0] = datetime(*arki_summary['items']['summarystats']['e'])
+
+        arki_outfile = filebase + '_arki_part' + fileext + '.tmp'
+
+        # extract
+        BeDballe.extract_data(datasets, fields, arki_queries, arki_outfile, db_type='arkimet')
+
+        cat_cmd = ['cat']
+        if os.path.exists(dballe_outfile):
+            cat_cmd.append(dballe_outfile)
+        if os.path.exists(arki_outfile):
+            cat_cmd.append(arki_outfile)
+
+        # check if the extractions were done
+        if len(cat_cmd) == 1:
+            # any extraction file exists
+            raise Exception('Failure in data extraction')
+
+        # join the dballe extraction with the arki one
+        with open(outfile, mode='w') as output:
+            ext_proc = subprocess.Popen(cat_cmd, stdout=output)
+            ext_proc.wait()
+            if ext_proc.wait() != 0:
+                raise Exception('Failure in data extraction')
+
+
+    @staticmethod
+    def extract_data(datasets, fields, queries, outfile, db_type):
+
+        # choose the db
+        if db_type == 'arkimet':
+            # create arkimet query
+            network = None
+            if 'rep_memo' in fields:
+                network = queries[fields.index('rep_memo')]
+
+            datemin = queries[fields.index('datetimemin')][0].strftime("%Y-%m-%d %H:%M")
+            datemax = queries[fields.index('datetimemax')][0].strftime("%Y-%m-%d %H:%M")
+
+            arkimet_query = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=network)
+
+            # fill the temp db and choose it as the db for extraction
+            DB = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
         else:
             DB = dballe.DB.connect(
                 "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host,
                                                                      port=port))
+
         # get all the possible combinations of queries
         all_queries = list(itertools.product(*queries))
         counter = 1
@@ -987,13 +1100,12 @@ class BeDballe():
             for k, v in zip(fields, q):
                 dballe_query[k] = v
             # set the filename for the partial extraction
-            if outfile:
-                if outfile.endswith('.tmp'):
-                    outfile_split = outfile[:-4]
-                    filebase, fileext = os.path.splitext(outfile_split)
-                else:
-                    filebase, fileext = os.path.splitext(outfile)
-                part_outfile = filebase + '_part' + str(counter) + fileext + '.tmp'
+            if outfile.endswith('.tmp'):
+                outfile_split = outfile[:-4]
+                filebase, fileext = os.path.splitext(outfile_split)
+            else:
+                filebase, fileext = os.path.splitext(outfile)
+            part_outfile = filebase + '_part' + str(counter) + fileext + '.tmp'
 
             with DB.transaction() as tr:
                 # check if the query gives a result
@@ -1001,35 +1113,27 @@ class BeDballe():
                 # log.debug('counter= {} dballe query: {} count:{}'.format(str(counter), dballe_query, count))
                 if count == 0:
                     continue
-                # if there is the outfile do the extraction
-                if outfile:
-                    log.debug('Extract data from dballe. query: {}', dballe_query)
-                    exporter = dballe.Exporter("BUFR")
-                    with open(part_outfile, "wb") as out:
-                        for row in tr.query_messages(dballe_query):
-                            out.write(exporter.to_binary(row.message))
-                # if there is not outfile, fill the temporary db
-                else:
-                    log.debug('Filling temp db with data from dballe. query: {}',dballe_query)
-                    with temp_db.transaction() as temptr:
-                        for cur in tr.query_messages(dballe_query):
-                            temptr.import_messages(cur.message)
+                log.debug('Extract data from dballe. query: {}', dballe_query)
+                exporter = dballe.Exporter("BUFR")
+                with open(part_outfile, "wb") as out:
+                    for row in tr.query_messages(dballe_query):
+                        out.write(exporter.to_binary(row.message))
 
-            if outfile:
-                cat_cmd.append(part_outfile)
-                # update counter
-                counter += 1
+            cat_cmd.append(part_outfile)
+            # update counter
+            counter += 1
 
-        if outfile:
-            if counter == 1:
-                # any query has given a result
-                raise Exception('Failure in data extraction: the query does not give any result')
+        if db_type == 'arkimet':
+            # clear the temporary db
+            DB.remove_all()
 
-            # join all the partial extractions
-            with open(outfile, mode='w') as output:
-                ext_proc = subprocess.Popen(cat_cmd, stdout=output)
-                ext_proc.wait()
-                if ext_proc.wait() != 0:
-                    raise Exception('Failure in data extraction')
-        else:
-            return temp_db
+        if counter == 1:
+            # any query has given a result
+            raise Exception('Failure in data extraction: the query does not give any result')
+
+        # join all the partial extractions
+        with open(outfile, mode='w') as output:
+            ext_proc = subprocess.Popen(cat_cmd, stdout=output)
+            ext_proc.wait()
+            if ext_proc.wait() != 0:
+                raise Exception('Failure in data extraction')
