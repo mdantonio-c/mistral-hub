@@ -44,9 +44,12 @@ class BeDballe():
     def split_reftimes(date_min, date_max):
         refmax_dballe = date_max
         refmin_dballe = datetime.utcnow() - timedelta(days=int(LASTDAYS))
-        refmax_arki_dt = refmin_dballe - timedelta(minutes=1)
-        refmax_arki = refmax_arki_dt.strftime("%Y-%m-%d %H:%M")
-        refmin_arki = date_min.strftime("%Y-%m-%d %H:%M")
+        # refmax_arki_dt = refmin_dballe - timedelta(minutes=1)
+        # refmax_arki = refmax_arki_dt.strftime("%Y-%m-%d %H:%M")
+        # refmin_arki = date_min.strftime("%Y-%m-%d %H:%M")
+        refmax_arki = refmin_dballe - timedelta(minutes=1)
+        refmin_arki = date_min
+
         return refmax_dballe, refmin_dballe, refmax_arki, refmin_arki
 
     @staticmethod
@@ -180,24 +183,43 @@ class BeDballe():
         #     summarystats['e'] = None
         return summarystats
 
-    @staticmethod
-    def load_all_dataset_filter(datasets, params, q=None):
-        # TODO get all dataset filter can be optimized? (for now all the data in arkimet dataset are transfered in a temp dballe)
-        query_dic = {}
-        if q:
-            query_dic = BeDballe.from_query_to_dic(q)
-        # get fields for the dballe dataset
-        log.debug('all dataset: get fields from dballe')
-        dballe_fields = BeDballe.load_filters(datasets, params, query_dic=query_dic)
 
-        # get retime min and max for arkimet datasets
-        arki_summary = arki.load_summary(datasets)
-        query_dic['datetimemin'] = datetime(* arki_summary['items']['summarystats']['b'])
-        query_dic['datetimemax'] = datetime(*arki_summary['items']['summarystats']['e'])
-        arki_fields = BeDballe.load_filters(datasets, params, query_dic=query_dic)
+    @staticmethod
+    def load_filter_for_mixed(datasets, params, query=None):
+        # TODO get all dataset filter can be optimized? (for now all the data in arkimet dataset are transfered in a temp dballe)
+        # get fields for the dballe database
+        log.debug('mixed dbs: get fields from dballe')
+        query_for_dballe = {}
+        for key, value in query.items():
+            query_for_dballe[key] = value
+        if 'datetimemin' in query:
+            refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(query['datetimemin'],
+                                                                                             query['datetimemax'])
+            # set up query for dballe with the correct reftimes
+            query_for_dballe['datetimemin']=refmin_dballe
+
+        dballe_fields = BeDballe.load_filters(datasets, params, db_type='dballe', query=query_for_dballe)
+
+        # get fields for the arkimet database
+        log.debug('mixed dbs: get fields from arkimet')
+        query_for_arki = {}
+        for key, value in query.items():
+            query_for_arki[key] = value
+        if 'datetimemin' in query:
+            # set up query for arkimet with the correct reftimes
+            query_for_arki['datetimemin'] = refmin_arki
+            query_for_arki['datetimemax'] = refmax_arki
+        else:
+            # get retime min and max for arkimet datasets
+            arki_summary = arki.load_summary(datasets)
+            query_for_arki['datetimemin'] = datetime(*arki_summary['items']['summarystats']['b'])
+            query_for_arki['datetimemax'] = datetime(*arki_summary['items']['summarystats']['e'])
+
+        arki_fields = BeDballe.load_filters(datasets, params, db_type='arkimet', query=query_for_arki)
 
         if not dballe_fields and not arki_fields:
             return None
+
         # integrate the dballe dic with the arki one
         for key in arki_fields:
             if key not in dballe_fields:
@@ -208,19 +230,12 @@ class BeDballe():
         return dballe_fields
 
     @staticmethod
-    def load_filters(datasets, params, q=None, query_dic=None):
+    def load_filters(datasets, params, db_type, query=None):
 
         # if not BeDballe.explorer:
         # BeDballe.explorer = BeDballe.build_explorer()
         # explorer = BeDballe.explorer
 
-        # parse the query
-        query = {}
-        if q:
-            query = BeDballe.from_query_to_dic(q)
-        if query_dic:
-            for key,value in query_dic.items():
-                query[key] = value
         log.info('Loading filters dataset: {}, query: {}', params, query)
 
         # check if requested networks are in that dataset
@@ -235,44 +250,8 @@ class BeDballe():
             query_networks_list = params
         log.debug('Loading filters: query networks list : {}'.format(query_networks_list))
 
-        db_type = None
-        # check where are the requested data
-        if 'datetimemin' in query:
-            db_type = BeDballe.get_db_type(query['datetimemin'], query['datetimemax'])
-            log.debug('db type: {}', db_type)
-
         memdb = None
-        if db_type == 'mixed':
-            network = None
-            refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(query['datetimemin'],
-                                                                                         query['datetimemax'])
-            datemin = refmin_arki
-            datemax = refmax_arki
-            if 'network' in query:
-                network = query['network']
-            # build arkimet query
-            arkimet_query = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=network)
-            # extract data from arkimet and fill the temporary db
-            temp_db = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
-            # create query for dballe
-            fields = []
-            queries = []
-            if query:
-                fields, queries = BeDballe.from_query_to_lists(query)
-                # replace datetimemin original value with the datetimemin of the splitted reftimes
-                if 'datetimemin' in fields:
-                    key_index = fields.index('datetimemin')
-                    query_list = []
-                    query_list.append(refmin_dballe)
-                    queries[key_index] = query_list
-            if 'rep_memo' not in fields:
-                fields.append('rep_memo')
-                queries.append(params)
-            # fill the temporary db with the data coming from dballe
-            memdb = BeDballe.extract_data(fields, queries, temp_db=temp_db)
 
-            # set the datetimemin as limit to data in dballe
-            # query['datetimemin'] = refmin_dballe
         if db_type == 'arkimet':
             # redirect the query to arkimet to check if the data exists
             network = None
@@ -287,9 +266,6 @@ class BeDballe():
                 return None
             else:
                 memdb = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
-
-                # delete the datetimemin in query (i will check for filters in dballe in general)
-                # query.pop('datetimemin', None)
 
         # create and update the explorer object
         explorer = BeDballe.build_explorer(memdb)
@@ -314,25 +290,6 @@ class BeDballe():
             ######### VARIABLES FIELDS
             # get the list of all the variables of the network
             varlist = explorer.varcodes
-            if not varlist and db_type:
-                if db_type == 'mixed':
-                    # check if arkimet has data
-                    if 'network' in query:
-                        arkimet_query = BeDballe.build_arkimet_query(
-                            datemin=refmin_arki,
-                            datemax=refmax_arki,
-                            network=query['network'])
-                    else:
-                        arkimet_query = BeDballe.build_arkimet_query(
-                            datemin=refmin_arki,
-                            datemax=refmax_arki)
-                    datasize = arki.estimate_data_size(datasets, arkimet_query)
-                    if datasize != 0:
-                        # filter dballe database again without reftime only to get the fields name
-                        explorer.set_filter({'report': n})
-                        varlist = explorer.varcodes
-                        # delete the datetimemin in query (i will check for filters in dballe in general)
-                        query.pop('datetimemin', None)
 
             #### PRODUCT is in the query filters
             if 'product' in query:

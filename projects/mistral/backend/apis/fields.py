@@ -80,16 +80,26 @@ class Fields(EndpointResource):
                 'summarystats': {'c': 0, 's': 0}
             }
             requested_nets = []
+            # check db type
+            query_dic = {}
+            if query:
+                query_dic = dballe.from_query_to_dic(query)
+            if 'datetimemin' in query_dic:
+                db_type = dballe.get_db_type(query_dic['datetimemin'], query_dic['datetimemax'])
+            else:
+                db_type = 'mixed'
+            log.debug('db type: {}', db_type)
+
             for ds in datasets:
                 # get dataset params (to filter dballe according the requested dataset)
                 ds_params = arki.get_observed_dataset_params(ds)
                 for net in ds_params:
                     requested_nets.append(net)
                 log.info('dataset: {}, networks: {}'.format(ds, ds_params))
-                if 'reftime' in query:
-                    fields = dballe.load_filters(datasets,ds_params,q=query)
+                if db_type == 'mixed':
+                    fields = dballe.load_filter_for_mixed(datasets, ds_params, query=query_dic)
                 else:
-                    fields = dballe.load_all_dataset_filter(datasets, ds_params, query)
+                    fields = dballe.load_filters(datasets, ds_params, db_type=db_type, query=query_dic)
                 if not fields:
                     continue
                 else:
