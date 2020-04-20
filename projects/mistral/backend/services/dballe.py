@@ -221,12 +221,13 @@ class BeDballe():
             return None
 
         # integrate the dballe dic with the arki one
-        for key in arki_fields:
-            if key not in dballe_fields:
-                dballe_fields[key] = arki_fields[key]
-            else:
-                # merge the two lists
-                dballe_fields[key].extend(x for x in arki_fields[key] if x not in dballe_fields[key])
+        if arki_fields:
+            for key in arki_fields:
+                if key not in dballe_fields:
+                    dballe_fields[key] = arki_fields[key]
+                else:
+                    # merge the two lists
+                    dballe_fields[key].extend(x for x in arki_fields[key] if x not in dballe_fields[key])
         return dballe_fields
 
     @staticmethod
@@ -904,7 +905,7 @@ class BeDballe():
 
         for key, value in query.items():
             if key in allowed_keys:
-                log.debug('{}: {}',key,value)
+                # log.debug('{}: {}',key,value)
                 # change the key name from model to dballe name
                 key_index = allowed_keys.index(key)
                 fields.append(dballe_keys[key_index])
