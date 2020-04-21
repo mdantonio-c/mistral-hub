@@ -92,51 +92,17 @@ class BeDballe():
         return explorer
 
     @staticmethod
-    def get_summary(datasets, params, q=None):
-        summarystats = {'s': None}
-        # parse the query
-        query = BeDballe.from_query_to_dic(q)
-
-        arki_summary = None
-        if 'datetimemin' in query:
-            db_type = BeDballe.get_db_type(query['datetimemin'], query['datetimemax'])
-        else:
-            db_type = 'mixed'
-
-        if db_type == 'mixed':
-            arkimet_query = ''
-            if 'datetimemin' in query:
-                refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(query['datetimemin'],
-                                                                                                 query['datetimemax'])
-                # set the datetimemin as limit to data in dballe
-                query['datetimemin'] = refmin_dballe
-                arkimet_query = BeDballe.build_arkimet_query(datemin=refmin_arki, datemax=refmax_arki)
-            if 'network' in query:
-                if not arkimet_query:
-                    arkimet_query = BeDballe.build_arkimet_query(network=query['network'])
-                else:
-                    arkimet_query += BeDballe.build_arkimet_query(network=query['network'])
-            arki_summary = arki.load_summary(datasets, arkimet_query)
-        if db_type == 'arkimet':
-            # redirect the query to arkimet to check if the data exists
-            if 'network' in query:
-                arkimet_query = BeDballe.build_arkimet_query(datemin=query['datetimemin'].strftime("%Y-%m-%d %H:%M"),
-                                                             datemax=query['datetimemax'].strftime("%Y-%m-%d %H:%M"),
-                                                             network=query['network'])
-            else:
-                arkimet_query = BeDballe.build_arkimet_query(datemin=query['datetimemin'].strftime("%Y-%m-%d %H:%M"),
-                                                             datemax=query['datetimemax'].strftime("%Y-%m-%d %H:%M"))
-            arki_summary = arki.load_summary(datasets, arkimet_query)
-
-        # if there aren't networks, use dataset networks as filters
+    def count_messages(params, query=None, memdb=None):
         if 'network' not in query:
             query['network'] = params
-
-        log.info('Loading summary: query: {}'.format(query))
-
         fields, queries = BeDballe.from_query_to_lists(query)
-        log.debug('Loading summary: fields: {}, queries: {}', fields, queries)
+        log.debug('Counting messages: fields: {}, queries: {}', fields, queries)
 
+        if memdb:
+            DB = memdb
+        else:
+            DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
+                                                                                        host=host, port=port))
         # get all the possible combinations of queries to count the messages
         all_queries = list(itertools.product(*queries))
         message_count = 0
@@ -145,44 +111,9 @@ class BeDballe():
             for k, v in zip(fields, q):
                 dballe_query[k] = v
             # count the items for each query
-            DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,
-                                                                                        host=host, port=port))
             with DB.transaction() as tr:
                 message_count += tr.query_data(dballe_query).remaining
-
-        if arki_summary:
-            # TODO this message count is approximate..do we need a real one?
-            message_count += arki_summary['items']['summarystats']['c']
-
-        summarystats['c'] = message_count
-        if 'datetimemin' in query:
-            if db_type == 'mixed' or db_type == 'arkimet':
-                if 'b' in arki_summary['items']['summarystats']:
-                    summarystats['b'] = arki_summary['items']['summarystats']['b']
-                else:
-                    summarystats['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
-            else:
-                summarystats['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
-        elif db_type == 'mixed':
-            if 'b' in arki_summary['items']['summarystats']:
-                summarystats['b'] = arki_summary['items']['summarystats']['b']
-        # else:
-        #     summarystats['b'] = None
-        if 'datetimemax' in query:
-            if db_type == 'arkimet':
-                if 'e' in arki_summary['items']['summarystats']:
-                    summarystats['e'] = arki_summary['items']['summarystats']['e']
-                else:
-                    summarystats['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
-            else:
-                summarystats['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
-        elif db_type == 'mixed':
-            # the date is approximated because we can't get the datetimemax of data in dballe due to segmentation fault
-            summarystats['e'] = BeDballe.from_datetime_to_list(datetime.utcnow())
-        # else:
-        #     summarystats['e'] = None
-        return summarystats
-
+        return message_count
 
     @staticmethod
     def load_filter_for_mixed(datasets, params, query=None):
@@ -198,7 +129,7 @@ class BeDballe():
             # set up query for dballe with the correct reftimes
             query_for_dballe['datetimemin']=refmin_dballe
 
-        dballe_fields = BeDballe.load_filters(datasets, params, db_type='dballe', query=query_for_dballe)
+        dballe_fields, dballe_summary = BeDballe.load_filters(datasets, params, db_type='dballe', query_dic=query_for_dballe)
 
         # get fields for the arkimet database
         log.debug('mixed dbs: get fields from arkimet')
@@ -215,10 +146,10 @@ class BeDballe():
             query_for_arki['datetimemin'] = datetime(*arki_summary['items']['summarystats']['b'])
             query_for_arki['datetimemax'] = datetime(*arki_summary['items']['summarystats']['e'])
 
-        arki_fields = BeDballe.load_filters(datasets, params, db_type='arkimet', query=query_for_arki)
+        arki_fields, arki_summary = BeDballe.load_filters(datasets, params, db_type='arkimet', query_dic=query_for_arki)
 
         if not dballe_fields and not arki_fields:
-            return None
+            return None, None
 
         # integrate the dballe dic with the arki one
         if arki_fields:
@@ -228,10 +159,22 @@ class BeDballe():
                 else:
                     # merge the two lists
                     dballe_fields[key].extend(x for x in arki_fields[key] if x not in dballe_fields[key])
-        return dballe_fields
+
+            # update summary
+            if not dballe_summary:
+                dballe_summary = arki_summary
+            else:
+                dballe_summary['b'] = arki_summary['b']
+                dballe_summary['c'] += arki_summary['c']
+        return dballe_fields, dballe_summary
 
     @staticmethod
-    def load_filters(datasets, params, db_type, query=None):
+    def load_filters(datasets, params, db_type, query_dic=None):
+
+        query = {}
+        if query_dic:
+            for key, value in query_dic.items():
+                query[key] = value
 
         # if not BeDballe.explorer:
         # BeDballe.explorer = BeDballe.build_explorer()
@@ -243,7 +186,7 @@ class BeDballe():
         query_networks_list = []
         if 'network' in query:
             if not all(elem in params for elem in query['network']):
-                return None
+                return None, None
             else:
                 query_networks_list = query['network']
         else:
@@ -252,6 +195,7 @@ class BeDballe():
         log.debug('Loading filters: query networks list : {}'.format(query_networks_list))
 
         memdb = None
+        arkimet_query = None
 
         if db_type == 'arkimet':
             # redirect the query to arkimet to check if the data exists
@@ -264,7 +208,7 @@ class BeDballe():
             arkimet_query = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=network)
             datasize = arki.estimate_data_size(datasets, arkimet_query)
             if datasize == 0:
-                return None
+                return None, None
             else:
                 memdb = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
 
@@ -347,9 +291,25 @@ class BeDballe():
             fields['level'] = BeDballe.from_list_of_params_to_list_of_dic(levels, type='level')
             fields['timerange'] = BeDballe.from_list_of_params_to_list_of_dic(tranges, type='timerange')
 
-            return fields
+            # create summary
+            summary = {}
+            summary['c'] = BeDballe.count_messages(params, query, memdb)
+            if arkimet_query:
+                arki_summary = arki.load_summary(datasets, arkimet_query)
+                summary['b'] = arki_summary['items']['summarystats']['b']
+                summary['e'] = arki_summary['items']['summarystats']['e']
+            else:
+                if 'datetimemin' in query:
+                    summary['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
+                    summary['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
+                else:  # case of query of all dataset
+                    datemin_dballe = datetime.utcnow() - timedelta(days=int(LASTDAYS))
+                    summary['b'] = BeDballe.from_datetime_to_list(datemin_dballe)
+                    summary['e'] = BeDballe.from_datetime_to_list(datetime.utcnow())
+
+            return fields, summary
         else:
-            return None
+            return None, None
 
     @staticmethod
     def get_fields(explorer, network, variables, query, param):
