@@ -34,8 +34,8 @@
 }
 
 .btn-squared {
-  width: 20px;
-  height: 20px;
+  width: 27px;
+  height: 27px;
   text-align: center;
   vertical-align: middle;
   /* padding-bottom: 1px; */
@@ -43,6 +43,7 @@
   font-size: 15px;
   line-height: 2.00;
   cursor: pointer;
+  border-radius: 8px;
 }
 
 @media (max-width: 801px)  {
@@ -58,13 +59,14 @@
     cursor: pointer;
   }
   .btn-squared {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     text-align: center;
     /* padding-bottom: 1px; */
     margin: 2px 2px;
     font-size: 20px;
     line-height: 1.70;
     cursor: pointer;
+    border-radius: 8px;
   }
 }
