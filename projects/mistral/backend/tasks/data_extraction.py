@@ -11,7 +11,7 @@ import glob
 from restapi.connectors.celery import CeleryExt
 from restapi.services.mail import send_mail
 from restapi.utilities.templates import get_html_template
-# from restapi.confs import UPLOAD_FOLDER
+# from restapi.confs import UPLOAD_PATH
 from celery import states
 from celery.exceptions import Ignore
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
@@ -303,8 +303,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     #     for f in tmp_filelist:
                     #         os.remove(f)
                     # if there is, remove the temporary folder where the files for the sp_interpolation were uploaded
-                    # if os.path.isdir(os.path.join(UPLOAD_FOLDER,uuid)):
-                    #     shutil.rmtree(os.path.join(UPLOAD_FOLDER,uuid))
+                    # if os.path.isdir(os.path.join(UPLOAD_PATH,uuid)):
+                    #     shutil.rmtree(os.path.join(UPLOAD_PATH,uuid))
             else:
                 if dataset_format == 'grib':
                     arkimet_extraction(arki_query_cmd, outfile)

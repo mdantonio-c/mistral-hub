@@ -5,7 +5,7 @@ from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
 from restapi import decorators
 from restapi.services.uploader import Uploader
-from restapi.confs import UPLOAD_FOLDER
+from restapi.confs import UPLOAD_PATH
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
@@ -140,7 +140,7 @@ class Templates(EndpointResource, Uploader):
         if f[-1]== 'zip':
             with ZipFile(request_file, 'r') as zip:
                 uploaded_files = zip.namelist()
-                self.check_files_to_upload(UPLOAD_FOLDER,user.uuid,uploaded_files,allowed_ext)
+                self.check_files_to_upload(UPLOAD_PATH,user.uuid,uploaded_files,allowed_ext)
             request.files['file'].seek(0)
 
         # upload the files
@@ -161,7 +161,7 @@ class Templates(EndpointResource, Uploader):
             )
 
         upload_filename = upload_response.defined_content['filename']
-        upload_filepath = os.path.join(UPLOAD_FOLDER, subfolder, upload_filename)
+        upload_filepath = os.path.join(UPLOAD_PATH, subfolder, upload_filename)
         log.debug('File uploaded. Filepath : {}', upload_filepath)
 
         # if the file is a zip file extract the content in the upload folder
@@ -174,17 +174,17 @@ class Templates(EndpointResource, Uploader):
                     subfolder = os.path.join(user.uuid, 'shp')
                 if any(i.endswith('grib') for i in files):
                     subfolder = os.path.join(user.uuid, 'grib')
-                upload_folder = os.path.join(UPLOAD_FOLDER, subfolder)
-                zip.extractall(path=upload_folder)
+                UPLOAD_PATH = os.path.join(UPLOAD_PATH, subfolder)
+                zip.extractall(path=UPLOAD_PATH)
             # remove the zip file
             os.remove(upload_filepath)
             # get .shp file filename
             for f in files:
                 e = f.rsplit(".", 1)
                 if e[-1]=='shp' or e[-1]=='grib':
-                    upload_filepath = os.path.join(UPLOAD_FOLDER, subfolder, f)
+                    upload_filepath = os.path.join(UPLOAD_PATH, subfolder, f)
                 if e[-1] == 'geojson':
-                    upload_filepath = os.path.join(UPLOAD_FOLDER, subfolder, f)
+                    upload_filepath = os.path.join(UPLOAD_PATH, subfolder, f)
                     upload_filepath = self.convert_to_shapefile(upload_filepath)
 
         # if the file is a geojson convert it to shapefile
@@ -215,7 +215,7 @@ class Templates(EndpointResource, Uploader):
             # get the template extension to determine the folder where to find it
             filebase, fileext = os.path.splitext(template_name)
 
-            filepath = os.path.join(UPLOAD_FOLDER, user.uuid, fileext.strip('.'), template_name)
+            filepath = os.path.join(UPLOAD_PATH, user.uuid, fileext.strip('.'), template_name)
             # check if the template exists
             if not os.path.exists(filepath):
                 raise RestApiException(
@@ -225,8 +225,8 @@ class Templates(EndpointResource, Uploader):
             res['filepath'] = filepath
             res['format'] = fileext.strip('.')
         else:
-            grib_templates = glob.glob(os.path.join(UPLOAD_FOLDER,user.uuid,'grib', "*"))
-            shp_templates = glob.glob(os.path.join(UPLOAD_FOLDER,user.uuid,'shp', "*.shp"))
+            grib_templates = glob.glob(os.path.join(UPLOAD_PATH,user.uuid,'grib', "*"))
+            shp_templates = glob.glob(os.path.join(UPLOAD_PATH,user.uuid,'shp', "*.shp"))
             res = []
             grib_object = {}
             grib_object['type'] = 'grib'
@@ -258,14 +258,14 @@ class Templates(EndpointResource, Uploader):
         # get the template extension to determine the folder where to find it
         filebase, fileext = os.path.splitext(template_name)
 
-        filepath = os.path.join(UPLOAD_FOLDER,user.uuid,fileext.strip('.'),template_name)
+        filepath = os.path.join(UPLOAD_PATH,user.uuid,fileext.strip('.'),template_name)
         # check if the template exists
         if not os.path.exists(filepath):
             raise RestApiException(
                 "The template doesn't exist", status_code=hcodes.HTTP_BAD_NOTFOUND
             )
         # get all the files related to the template to remove
-        filelist = glob.glob(os.path.join(UPLOAD_FOLDER,user.uuid,fileext.strip('.'),filebase + "*"))
+        filelist = glob.glob(os.path.join(UPLOAD_PATH,user.uuid,fileext.strip('.'),filebase + "*"))
         for f in filelist:
             os.remove(f)
         return self.response(
@@ -275,7 +275,7 @@ class Templates(EndpointResource, Uploader):
 
 
     @staticmethod
-    def check_files_to_upload(UPLOAD_FOLDER,user_uuid,files,allowed_ext):
+    def check_files_to_upload(UPLOAD_PATH,user_uuid,files,allowed_ext):
         # create a dictionary to compare the uploaded files specs
         file_dict = {}
         for f in files:
@@ -286,7 +286,7 @@ class Templates(EndpointResource, Uploader):
                 subfolder = os.path.join(user_uuid, 'shp')
             if e[-1]=='grib':
                 subfolder = os.path.join(user_uuid, 'grib')
-            if os.path.exists(os.path.join(UPLOAD_FOLDER,subfolder,f)):
+            if os.path.exists(os.path.join(UPLOAD_PATH,subfolder,f)):
                 raise RestApiException("File '" + f + "' already exists",
                                        status_code=hcodes.HTTP_BAD_REQUEST)
 
