@@ -46,7 +46,7 @@ export class StepSubmitComponent implements OnInit {
         this.formData = this.formDataService.getFormData();
         this.isFormValid = this.formDataService.isFormValid();
         this.formDataService.getSummaryStats().subscribe(response => {
-            this.summaryStats = response.data;
+            this.summaryStats = response;
             if (this.summaryStats.s === 0) {
                 this.notify.showWarning('The applied filter do not produce any result. ' +
                     'Please choose different filters.');
@@ -150,7 +150,7 @@ export class StepSubmitComponent implements OnInit {
                 this.router.navigate(['app/requests']);
             },
             error => {
-                this.notify.extractErrors(error.error.Response, this.notify.ERROR);
+                this.notify.showError(error.error);
             }
         );
     }

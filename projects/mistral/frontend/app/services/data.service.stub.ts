@@ -1,8 +1,9 @@
-import {Observable} from 'rxjs/Rx';
+import {Observable } from 'rxjs/Rx';
+import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 
 import {ApiService} from '@rapydo/services/api';
-import {DataService, RapydoResponse, StorageUsage} from "./data.service";
+import {DataService, StorageUsage} from "./data.service";
 import {
     MockDerivedVariables,
     MockGribTemplateResponse,
@@ -10,13 +11,14 @@ import {
     MockStorageUsageResponse
 } from "./data.mock";
 
+@Injectable()
 export class DataServiceStub extends DataService {
     constructor() {
         super({} as ApiService, {} as HttpClient)
     }
 
-    getStorageUsage(): Observable<RapydoResponse<StorageUsage>> {
-        return Observable.of(MockStorageUsageResponse.Response);
+    getStorageUsage(): Observable<StorageUsage> {
+        return Observable.of(MockStorageUsageResponse);
     }
 
     getDerivedVariables(): Observable<any> {
@@ -25,9 +27,9 @@ export class DataServiceStub extends DataService {
 
     getTemplates(param): Observable<any> {
         if (param == 'grib') {
-            return Observable.of(MockGribTemplateResponse.Response);
+            return Observable.of(MockGribTemplateResponse);
         } else if (param == 'shp') {
-            return Observable.of(MockShapeTemplateResponse.Response);
+            return Observable.of(MockShapeTemplateResponse);
         }
     }
 }

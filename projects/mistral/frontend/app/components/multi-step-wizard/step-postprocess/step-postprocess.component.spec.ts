@@ -59,7 +59,7 @@ describe('StepPostprocessComponent', () => {
         component = fixture.componentInstance;
         de = fixture.debugElement;
         fixture.detectChanges();
-        router = TestBed.get(Router);
+        router = TestBed.inject(Router);
     });
 
     it('should create', () => {

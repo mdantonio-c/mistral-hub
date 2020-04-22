@@ -6,25 +6,6 @@ import 'rxjs/add/operator/share';
 import {ApiService} from '@rapydo/services/api';
 import { environment } from '@rapydo/../environments/environment';
 
-
-export interface RapydoBundle<T> {
-    Meta: RapydoMeta;
-    Response: RapydoResponse<T>;
-}
-
-export interface RapydoMeta {
-    data_type: string;
-    elements: number;
-    errors: number;
-    status: number;
-    total?: number;
-}
-
-export interface RapydoResponse<T> {
-    data: T;
-    errors: any;
-}
-
 export interface SummaryStats {
     b?: number[];
     e?: number[];
@@ -240,7 +221,7 @@ export class DataService {
         return this.api.patch('schedules', scheduleId, data);
     }
 
-    getLastScheduledRequest(scheduleId): Observable<RapydoBundle<any>> {
+    getLastScheduledRequest(scheduleId): Observable<any> {
         return this.api.get(`schedules/${scheduleId}/requests`, '', {last: true}, {"rawResponse": true});
     }
 
@@ -252,7 +233,7 @@ export class DataService {
         return this._derivedVariables.find(av => av.code === code).desc;
     }
 
-    getStorageUsage(): Observable<RapydoResponse<StorageUsage>> {
+    getStorageUsage(): Observable<StorageUsage> {
         return this.api.get(`usage`);
     }
 

@@ -6,6 +6,7 @@
 uploads
 /data
 /node_modules
+projects/mistral/scripts/dballe2arkimet
 
 ########################
 ##  Host configuration  ##

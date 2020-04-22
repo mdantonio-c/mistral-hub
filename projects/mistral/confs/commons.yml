@@ -20,6 +20,10 @@ services:
     environment:
       LASTDAYS: ${LASTDAYS}
 
+  frontend:
+    environment:
+      INJECT_FRONTEND_DEBUG: ${FRONTEND_DEBUG}
+
   postgres:
     image: postgres:11.5-alpine
     ports:

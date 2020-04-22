@@ -1,7 +1,7 @@
 import json
 import os
 
-from restapi.flask_ext.flask_celery import CeleryExt
+from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 celery_app = CeleryExt.celery_app
 

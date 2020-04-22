@@ -1,8 +1,7 @@
 from restapi.rest.definition import EndpointResource
-from restapi.flask_ext.flask_celery import CeleryExt
+from restapi.connectors.celery import CeleryExt
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
@@ -12,7 +11,6 @@ from restapi.utilities.logs import log
 
 class ScheduledData(EndpointResource):
 
-    # schema_expose = True
     labels = ['scheduled']
     POST = {
         '/data/scheduled': {
@@ -53,8 +51,8 @@ class ScheduledData(EndpointResource):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def post(self):
 
         user = self.get_current_user()
@@ -133,10 +131,10 @@ class ScheduledData(EndpointResource):
 
             log.info("Scheduling crontab task")
 
-        return self.force_response('Scheduled task {}'.format(name))
+        return self.response('Scheduled task {}'.format(name))
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def delete(self):
         param = self.get_input()
         task_name = param.get('task')
@@ -157,7 +155,7 @@ class ScheduledData(EndpointResource):
 
             CeleryExt.delete_periodic_task(name=task_name)
 
-            return self.force_response('Removed task {}'.format(task_name))
+            return self.response('Removed task {}'.format(task_name))
         else:
             raise RestApiException(
                 "This request doesn't come from the request's owner",

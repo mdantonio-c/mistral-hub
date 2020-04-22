@@ -1,34 +1,23 @@
-import {Component, ChangeDetectorRef, ElementRef} from '@angular/core';
+import {Component, ElementRef, Injector} from '@angular/core';
 import {saveAs as importedSaveAs} from "file-saver";
-import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 
 import {BasePaginationComponent} from '@rapydo/components/base.pagination.component';
-import {ApiService} from '@rapydo/services/api';
-import {AuthService} from '@rapydo/services/auth';
-import {NotificationService} from '@rapydo/services/notification';
-import {FormlyService} from '@rapydo/services/formly'
-
 import {DataService} from "@app/services/data.service";
+
+export interface Schedule {
+
+}
 
 @Component({
     selector: 'app-schedules',
     templateUrl: './schedules.component.html'
 })
-export class SchedulesComponent extends BasePaginationComponent {
+export class SchedulesComponent extends BasePaginationComponent<Schedule> {
     expanded: any = {};
     loadingLast = false;    // it should be bound to the single row!
 
-    constructor(
-        protected api: ApiService,
-        protected auth: AuthService,
-        protected notify: NotificationService,
-        protected modalService: NgbModal,
-        protected formly: FormlyService,
-        protected changeDetectorRef: ChangeDetectorRef,
-        public dataService: DataService,
-        private el: ElementRef
-    ) {
-        super(api, auth, notify, modalService, formly, changeDetectorRef);
+    constructor(protected injector: Injector, public dataService: DataService, private el: ElementRef) {
+        super(injector);
         this.init('schedule');
 
         this.server_side_pagination = true;
@@ -49,11 +38,12 @@ export class SchedulesComponent extends BasePaginationComponent {
 
     loadLastSubmission(row) {
         this.loadingLast = true;
+        this.spinner.show('last');
         this.dataService.getLastScheduledRequest(row.id).subscribe(
             response => {
-                row.last = response.Response.data;
+                row.last = response;
                 // what about the requests count? should be updated
-                row.requests_count = response.Meta.total;
+                row.requests_count = response.length;
             },
             (error) => {
                 if (error.status === 404) {
@@ -62,11 +52,12 @@ export class SchedulesComponent extends BasePaginationComponent {
                 } else {
                     this.notify.showError('Unable to load the last submission');
                     // show reason
-                    this.notify.extractErrors(error.error.Response, this.notify.ERROR);
+                    this.notify.showError(error.error);
                 }
             }
         ).add(() => {
             this.loadingLast = false;
+            this.spinner.hide('last')
         });
     }
 
@@ -105,14 +96,14 @@ export class SchedulesComponent extends BasePaginationComponent {
         console.log(`${action} schedule [ID:${row.id}]. Current state: ${row.enabled}`);
         this.dataService.toggleScheduleActiveState(row.id, !row.enabled).subscribe(
             response => {
-                row.enabled = response.data.enabled;
+                row.enabled = response.enabled;
                 let toggleBtn = this.el.nativeElement.querySelector('#act-btn-'+row.id);
                 (row.enabled) ?
                     toggleBtn.classList.add('active') :
                     toggleBtn.classList.remove('active')
             },
             error => {
-                this.notify.extractErrors(error, this.notify.ERROR);
+                this.notify.showError(error);
             }
         );
     }

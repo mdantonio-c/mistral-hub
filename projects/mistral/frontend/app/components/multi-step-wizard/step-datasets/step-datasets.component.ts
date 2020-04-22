@@ -5,6 +5,7 @@ import {FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn} from '@angu
 import {NotificationService} from '@rapydo/services/notification';
 import {FormDataService} from "@app/services/formData.service";
 import {Dataset} from "@app/services/data.service";
+import {NgxSpinnerService} from 'ngx-spinner';
 
 @Component({
     selector: 'step-datasets',
@@ -12,7 +13,6 @@ import {Dataset} from "@app/services/data.service";
 })
 export class StepDatasetsComponent implements OnInit {
     title = 'Please select one or more datasets';
-    loading = false;
     datasets: Dataset[];
     form: FormGroup;
 
@@ -20,17 +20,18 @@ export class StepDatasetsComponent implements OnInit {
                 private router: Router,
                 private route: ActivatedRoute,
                 private formDataService: FormDataService,
-                private notify: NotificationService) {
+                private notify: NotificationService,
+                private spinner: NgxSpinnerService) {
         this.form = this.formBuilder.group({
             datasets: new FormArray([], minSelectedCheckboxes(1))
         });
     }
 
     ngOnInit() {
-        this.loading = true;
+        this.spinner.show();
         this.formDataService.getDatasets().subscribe(
             response => {
-                this.datasets = response.data;
+                this.datasets = response;
                 // console.log('Dataset(s) loaded', this.datasets);
                 if (this.datasets.length === 0) {
                     this.notify.showWarning("Unexpected result. The list of datasets is empty.");
@@ -39,12 +40,12 @@ export class StepDatasetsComponent implements OnInit {
                     const control = new FormControl(this.formDataService.isDatasetSelected(o.id));
                     (this.form.controls.datasets as FormArray).push(control);
                 });
-                this.loading = false;
             },
             error => {
-                this.notify.extractErrors(error, this.notify.ERROR);
-                this.loading = false;
-            });
+                this.notify.showError(error);
+            }).add(() => {
+            this.spinner.hide();
+        });
     }
 
     private save(selectedDatasetsIds: string[]): boolean {
@@ -75,7 +76,7 @@ export class StepDatasetsComponent implements OnInit {
 function minSelectedCheckboxes(min = 1) {
     const validator: ValidatorFn = (formArray: FormArray) => {
         const totalSelected = formArray.controls
-        // get a list of checkbox values (boolean)
+            // get a list of checkbox values (boolean)
             .map(control => control.value)
             // total up the number of checked checkboxes
             .reduce((prev, next) => next ? prev + next : prev, 0);

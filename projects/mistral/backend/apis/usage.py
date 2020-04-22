@@ -4,8 +4,7 @@ import subprocess
 
 from restapi.rest.definition import EndpointResource
 
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 # from restapi.utilities.logs import log
 
@@ -16,7 +15,6 @@ DOWNLOAD_DIR = '/data'
 
 class Usage(EndpointResource):
 
-    # schema_expose = True
     labels = ['usage']
     GET = {
         '/usage': {
@@ -31,8 +29,8 @@ class Usage(EndpointResource):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def get(self):
         """
         Get actual user disk quota and current usage
@@ -54,4 +52,4 @@ class Usage(EndpointResource):
             )
 
         data = {'quota': user.disk_quota, 'used': used_quota}
-        return self.force_response(data, code=hcodes.HTTP_OK_BASIC)
+        return self.response(data, code=hcodes.HTTP_OK_BASIC)

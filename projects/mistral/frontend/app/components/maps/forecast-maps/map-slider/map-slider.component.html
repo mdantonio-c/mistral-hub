@@ -24,7 +24,11 @@
                         </h4>
                     </div>
                     <div class="col-lg-6">
-                        <loading *ngIf="isLegendLoading"></loading>
+                        <ngx-spinner
+                                [name]="LEGEND_SPINNER"
+                                bdColor="rgba(248, 249, 250, 0.8)"
+                                color="#6c757d"
+                                [fullScreen]="false" type="ball-clip-rotate-multiple" size="default"></ngx-spinner>
                         <img class="img-fluid legend" [src]="legendToShow"
                              alt="legend"
                             *ngIf="legendToShow">
@@ -34,8 +38,15 @@
         </div>
     </div>
     <div class="card-body">
+        <ngx-spinner
+                [name]="IMAGE_SPINNER"
+                bdColor="rgba(255,255,255,0.8)"
+                color="#6c757d"
+                zIndex="1000"
+                [fullScreen]="false" type="ball-clip-rotate-multiple" size="medium">
+            <p style="margin-top: 3rem;">Map loading...</p>
+        </ngx-spinner>
         <div id="map-container">
-            <loading *ngIf="isImageLoading"></loading>
             <ngb-carousel #carousel interval="300"
                           [pauseOnHover]="false"
                           [showNavigationArrows]="false"

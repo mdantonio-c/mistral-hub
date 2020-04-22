@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from restapi.rest.definition import EndpointResource
-from restapi.flask_ext.flask_celery import CeleryExt
+from restapi.connectors.celery import CeleryExt
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.services.uploader import Uploader
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -16,7 +15,6 @@ from mistral.tools import spare_point_interpol as pp3_3
 
 
 class Data(EndpointResource, Uploader):
-    # schema_expose = True
     labels = ['data']
     POST = {
         '/data': {
@@ -43,8 +41,8 @@ class Data(EndpointResource, Uploader):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def post(self):
         user = self.get_current_user()
         log.info(

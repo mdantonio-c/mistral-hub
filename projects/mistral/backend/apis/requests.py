@@ -6,8 +6,7 @@ from sqlalchemy.orm import joinedload
 from mistral.services.requests_manager import RequestManager as repo
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
@@ -16,7 +15,6 @@ DOWNLOAD_DIR = '/data'
 
 class UserRequests(EndpointResource):
 
-    # schema_expose = True
     labels = ['requests']
     GET = {
         '/requests': {
@@ -80,8 +78,8 @@ class UserRequests(EndpointResource):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def get(self, request_id=None):
         param = self.get_input()
         # sort = param.get('sort-by')
@@ -97,7 +95,7 @@ class UserRequests(EndpointResource):
         db = self.get_service_instance('sqlalchemy')
         if get_total:
             counter = repo.count_user_requests(db, user.id)
-            return self.force_response({"total": counter})
+            return self.response({"total": counter})
 
         # get user requests list
         # res = repo.get_user_requests(db, user.id, sort_by=sort, sort_order=sort_order)
@@ -131,10 +129,10 @@ class UserRequests(EndpointResource):
                 item['filesize'] = r.fileoutput.size
             data.append(item)
 
-        return self.force_response(data, code=hcodes.HTTP_OK_BASIC)
+        return self.response(data, code=hcodes.HTTP_OK_BASIC)
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def delete(self, request_id):
         log.debug("delete request {}", request_id)
 
@@ -153,7 +151,7 @@ class UserRequests(EndpointResource):
             # delete request and fileoutput entry from database. Delete fileoutput from user folder
             repo.delete_request_record(db, user, request_id, DOWNLOAD_DIR)
 
-            return self.force_response('Removed request {}'.format(request_id))
+            return self.response('Removed request {}'.format(request_id))
         else:
             raise RestApiException(
                 "This request doesn't come from the request's owner",

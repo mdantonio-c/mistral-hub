@@ -16,7 +16,6 @@ import * as _ from 'lodash';
 })
 export class StepFiltersComponent implements OnInit {
     title = 'Filter your data';
-    loading: boolean = false;
     summaryStats = {b: null, e: null, c: null, s: null};
     filterForm: FormGroup;
     filters: Filters;
@@ -79,13 +78,13 @@ export class StepFiltersComponent implements OnInit {
     }
 
     onFilterChange() {
-        this.spinner.show();
+        this.spinner.show('sp2');
         let selectedFilters = this.getSelectedFilters();
         console.log('selected filter(s)', selectedFilters);
         let selectedFilterNames = selectedFilters.map(f => f.name);
         this.formDataService.getFilters(selectedFilters).subscribe(
             response => {
-                let results = response.data.items;
+                let results = response.items;
                 // console.log(results);
                 // compare the current filters with the selection results
                 // in order to disable the missing ones
@@ -114,24 +113,25 @@ export class StepFiltersComponent implements OnInit {
                         // console.log('....NEW....', m[1]);
                     }
                 });
-                this.updateSummaryStats(response.data.items.summarystats);
+                this.updateSummaryStats(response.items.summarystats);
             },
                 error => {
                 this.notify.showError(`Unable to get summary fields`);
             }).add(() => {
-                this.spinner.hide();
+                this.spinner.hide('sp2');
         });
     }
 
     loadFilters() {
-        this.loading = true;
+        this.spinner.show('sp1');
         // reset filters
         (this.filterForm.controls.filters as FormArray).clear();
         this.formDataService.getFilters().subscribe(
             response => {
-                this.filters = response.data.items;
+                this.filters = response.items;
+                let toBeExcluded = ['summarystats', 'network'];
                 Object.entries(this.filters).forEach(entry => {
-                    if (entry[0] !== 'summarystats') {
+                    if (!toBeExcluded.includes(entry[0])) {
                         (<Array<any>>entry[1]).forEach(function (obj) {
                           obj['active'] = true;
                         });
@@ -141,13 +141,13 @@ export class StepFiltersComponent implements OnInit {
                 //console.log(this.filterForm.get('filters'));
                 //console.log(this.filters);
 
-                this.updateSummaryStats(response.data.items.summarystats);
+                this.updateSummaryStats(response.items.summarystats);
             },
             error => {
                 this.notify.showError(`Unable to get summary fields`);
             }
         ).add(() => {
-            this.loading = false;
+            this.spinner.hide('sp1');
             if (this.formDataService.getFormData().filters.length !== 0) {
                 this.onFilterChange();
             }

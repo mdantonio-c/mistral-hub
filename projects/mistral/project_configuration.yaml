@@ -2,8 +2,8 @@
 project:
   title: Meteo-Hub
   description: "."
-  version: "0.2.2"
-  rapydo: 0.7.2
+  version: "0.3.0"
+  rapydo: 0.7.3
 
 variables:
   env:
@@ -26,13 +26,14 @@ variables:
     ACTIVATE_RABBIT: 1
     ACTIVATE_CELERY: 1
     ACTIVATE_CELERYUI: 1
-    ACTIVATE_CELERY_BEAT: 1
+    ACTIVATE_CELERYBEAT: 1
 
     ALLOW_ACCESS_TOKEN_PARAMETER: True
 
     CELERY_BACKEND: MONGODB
 
     LASTDAYS: 10
+    FRONTEND_DEBUG: 0
 
     RABBITMQ_ENABLE_MANAGEMENT_PLUGIN: 1
     # RABBITMQ_ENABLE_SHOVEL_PLUGIN: 1

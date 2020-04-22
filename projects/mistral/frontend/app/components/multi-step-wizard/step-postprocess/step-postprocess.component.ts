@@ -308,7 +308,7 @@ export class StepPostprocessComponent implements OnInit {
         // grid interpolation templates
         this.dataService.getTemplates("grib").subscribe(
             data => {
-                for (let type of data.data){
+                for (let type of data){
                     for (let file of type.files){
                         let filepath = file.split('/');
                         let label = filepath[filepath.length-1];
@@ -329,7 +329,7 @@ export class StepPostprocessComponent implements OnInit {
         this.sparePointsTemplates = [];
         this.dataService.getTemplates("shp").subscribe(
             data => {
-                for (let type of data.data){
+                for (let type of data){
                     for (let file of type.files){   
                         let filepath = file.split('/');
                         let label = filepath[filepath.length-1];
@@ -400,7 +400,9 @@ export class StepPostprocessComponent implements OnInit {
             data => {
                 this.buildTemplates();            
             },
-            error => {this.notify.showError(error.error.Response.errors[0]);}
+            error => {
+                this.notify.showError(error.error);
+            }
         );
     }
 

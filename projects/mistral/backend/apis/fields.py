@@ -2,8 +2,7 @@
 
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
@@ -13,7 +12,6 @@ from datetime import datetime
 
 class Fields(EndpointResource):
 
-    # schema_expose = True
     labels = ['field']
     GET = {
         '/fields': {
@@ -45,8 +43,8 @@ class Fields(EndpointResource):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def get(self):
         """ Get all fields for given datasets"""
         params = self.get_input()
@@ -149,4 +147,4 @@ class Fields(EndpointResource):
             # we want to return ONLY summary Stats with no fields
             log.debug('ONLY Summary Stats')
             summary = summary['items']['summarystats']
-        return self.force_response(summary)
+        return self.response(summary)

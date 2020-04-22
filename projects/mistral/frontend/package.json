@@ -3,7 +3,6 @@
   "dependencies": {
     "ion-rangeslider": "2.1.6",
     "ng2-ion-range-slider": "2.0.0",
-    "ngx-spinner": "8.1.0",
 
     "leaflet": "1.6.0",
     "leaflet-draw": "1.0.4",

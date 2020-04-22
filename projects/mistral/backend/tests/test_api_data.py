@@ -1,4 +1,4 @@
-from restapi.flask_ext.flask_celery import CeleryExt
+from restapi.connectors.celery import CeleryExt
 #from mistral.tasks.data_extraction  import data_extract
 from restapi.tests import BaseTests, API_URI
 from unittest.mock import patch

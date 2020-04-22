@@ -1,6 +1,7 @@
 import {Component, OnInit, ViewChild, ElementRef, HostListener} from "@angular/core";
 import {MeteoFilter, MeteoService} from "./services/meteo.service";
 import {NotificationService} from '@rapydo/services/notification';
+import {NgxSpinnerService} from 'ngx-spinner';
 
 @Component({
     selector: 'app-forecast-maps',
@@ -14,7 +15,9 @@ export class ForecastMapsComponent implements OnInit {
     isFilterCollapsed = false;
     private collapsed = false;
 
-    constructor(private meteoService: MeteoService, private notify: NotificationService) {
+    constructor(private meteoService: MeteoService,
+                private notify: NotificationService,
+                private spinner: NgxSpinnerService) {
     }
 
     ngOnInit() {
@@ -23,6 +26,7 @@ export class ForecastMapsComponent implements OnInit {
 
     applyFilter(filter: MeteoFilter) {
         this.loading = true;
+        this.spinner.show();
         this.filter = filter;
         this.offsets.length = 0;
         console.log(filter);
@@ -30,20 +34,21 @@ export class ForecastMapsComponent implements OnInit {
         // get data
         this.meteoService.getMapset(filter).subscribe(
             response => {
-                this.offsets = response.data.offsets;
-                this.reftime = response.data.reftime;
+                this.offsets = response.offsets;
+                this.reftime = response.reftime;
                 // always apply platform value from this response
                 // this means request maps from that platform
-                this.filter.platform = response.data.platform;
+                this.filter.platform = response.platform;
                 if (!this.filter.env) {
                     this.filter.env = 'PROD';
                 }
             },
             error => {
-                this.notify.extractErrors(error, this.notify.ERROR);
+                this.notify.showError(error);
             }
         ).add(() => {
             this.loading = false;
+            this.spinner.hide();
         });
     }
 

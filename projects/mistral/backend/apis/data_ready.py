@@ -2,11 +2,10 @@
 
 from datetime import datetime
 from mistral.services.requests_manager import RequestManager
-from restapi.flask_ext.flask_celery import CeleryExt
+from restapi.connectors.celery import CeleryExt
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
-from restapi import decorators as decorate
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
@@ -20,8 +19,8 @@ class DataReady(EndpointResource):
         }
     }
 
-    @decorate.catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def post(self):
 
         data = self.get_input()
@@ -163,4 +162,4 @@ class DataReady(EndpointResource):
                 db.session.rollback()
                 raise SystemError("Unable to submit the request")
 
-        return self.force_response("1", code=hcodes.HTTP_OK_ACCEPTED)
+        return self.response("1", code=hcodes.HTTP_OK_ACCEPTED)

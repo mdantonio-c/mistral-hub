@@ -1,4 +1,5 @@
 import {Component, DebugElement} from '@angular/core';
+import { Injectable } from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {NgxDatatableModule} from '@swimlane/ngx-datatable';
 import {MomentModule} from 'ngx-moment';
@@ -12,6 +13,7 @@ import {SchedulesComponent} from './schedules.component';
 import {BytesPipe} from '@rapydo/pipes/pipes';
 import {AuthService} from '@rapydo/services/auth';
 import {NotificationService} from '@rapydo/services/notification';
+import {ProjectOptions} from '@app/custom.project.options';
 import {FormlyService} from '@rapydo/services/formly'
 import {ApiService} from '@rapydo/services/api';
 import {DataService} from "../../services/data.service";
@@ -29,6 +31,8 @@ import {
 })
 class StubLoadingComponent {
 }
+
+@Injectable()
 class ApiServiceStub extends ApiService {
     constructor() {
         super({} as HttpClient);
@@ -36,9 +40,9 @@ class ApiServiceStub extends ApiService {
 
     get(endpoint: string, id = "", data = {}, options = {}) {
         if (data['get_total'] === true) {
-            return Observable.of(MockSchedulesTotalResponse.Response);
+            return Observable.of(MockSchedulesTotalResponse);
         } else {
-            return Observable.of(MockSchedulesResponse.Response);
+            return Observable.of(MockSchedulesResponse);
         }
     }
 }
@@ -81,6 +85,7 @@ describe('SchedulesComponent', () => {
             ],
             providers: [
                 NotificationService,
+                ProjectOptions,
                 {provide: DataService, useClass: DataServiceStub},
                 {provide: ApiService, useClass: ApiServiceStub},
                 {provide: AuthService, useClass: AuthServiceStub},

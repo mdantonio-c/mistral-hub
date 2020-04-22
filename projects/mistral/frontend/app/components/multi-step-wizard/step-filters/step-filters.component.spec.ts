@@ -1,4 +1,5 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {RouterTestingModule} from '@angular/router/testing';
 import {Router} from '@angular/router';
@@ -15,9 +16,9 @@ import {FormatDatePipe} from "../../../pipes/format-date.pipe";
 import {DisableControlDirective} from "@app/directives/disable-control";
 
 import {BytesPipe} from '@rapydo/pipes/pipes';
+import {ArkimetService} from "../../../services/arkimet.service";
 
-class NotificationServiceStub {
-}
+class NotificationServiceStub {}
 
 describe('StepFiltersComponent', () => {
     let component: StepFiltersComponent;
@@ -35,6 +36,7 @@ describe('StepFiltersComponent', () => {
                 DisableControlDirective
             ],
             imports: [
+                BrowserAnimationsModule,
                 ReactiveFormsModule,
                 RouterTestingModule.withRoutes([]),
                 NgxSpinnerModule,
@@ -43,6 +45,7 @@ describe('StepFiltersComponent', () => {
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
             providers: [
                 DatePipe,
+                ArkimetService,
                 {provide: FormBuilder, useValue: formBuilder},
                 {provide: FormDataService, useClass: FormDataServiceStub},
                 {provide: NotificationService, useClass: NotificationServiceStub}
@@ -55,10 +58,11 @@ describe('StepFiltersComponent', () => {
         fixture = TestBed.createComponent(StepFiltersComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
-        router = TestBed.get(Router);
+        router = TestBed.inject(Router);
     });
 
     it('should create', () => {
         expect(component).toBeTruthy();
     });
+
 });

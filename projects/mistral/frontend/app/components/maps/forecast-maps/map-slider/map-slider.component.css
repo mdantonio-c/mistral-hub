@@ -54,6 +54,7 @@ h4 {
 
 .card-body {
   padding: 0.50rem;
+  position: relative;
 }
 
 /* fit image centered in the carousel */
@@ -62,4 +63,13 @@ h4 {
     /*height: 100%;*/
     max-height: 73vh;
     object-fit: scale-down;
+}
+
+#map-container {
+  min-height: 380px;
+}
+@media (max-width: 991.98px)  {
+  #map-container {
+    min-height: auto;
+  }
 }

@@ -1,6 +1,6 @@
-language: python
-sudo: required
+os: linux
 dist: bionic
+language: python
 python:
 - 3.8
 services:
@@ -8,24 +8,31 @@ services:
 
 install:
 - docker --version && docker-compose --version
-- wget $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf
-- wget $DATASET_URL/arkimet.zip
-- unzip arkimet.zip -d data/
-- ls data/
-- mv data/arkimet/datasets/* data/arkimet/
-- ls data/arkimet/
-- pip install --upgrade git+https://github.com/rapydo/do.git@0.7.2
+- pip install --upgrade git+https://github.com/rapydo/do.git@0.7.3
 - /bin/bash scripts/create_projectrc.sh
 - rapydo init
-- rapydo pull
-- rapydo start
 
 jobs:
   include:
-    - script: rapydo shell backend --command 'restapi tests --wait'
+
+    - script: wget $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf &&
+              wget $DATASET_URL/arkimet.zip &&
+              unzip arkimet.zip -d data/ &&
+              mv data/arkimet/datasets/* data/arkimet/ &&
+              rapydo pull &&
+              rapydo start &&
+              rapydo shell backend --command 'restapi tests --wait' &&
+              docker cp mistral_backend_1:/code/coverage.xml coverage.xml && 
+              bash <(curl -s https://codecov.io/bash)
+
       env:
       - STAGE=BACKEND
-    - script: sleep 60 && rapydo -s frontend logs && rapydo shell frontend --command 'npm run single-test'
+
+    - script: rapydo -s frontend pull &&
+              rapydo dump &&
+              docker-compose up --exit-code-from frontend frontend &&
+              cp data/mistral/karma/lcov.info . &&
+              bash <(curl -s https://codecov.io/bash)
       env:
       - STAGE=FRONTEND
 
