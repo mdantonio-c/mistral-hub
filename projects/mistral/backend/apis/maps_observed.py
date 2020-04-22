@@ -2,8 +2,7 @@
 
 from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
-from restapi.decorators import catch_error
-from restapi.protocols.bearer import authentication
+from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
@@ -59,8 +58,8 @@ class MapsObservations(EndpointResource):
         }
     }
 
-    @catch_error()
-    @authentication.required()
+    @decorators.catch_errors()
+    @decorators.auth.required()
     def get(self, station_id=None):
         params = self.get_input()
         # ids = params.get('stations')
