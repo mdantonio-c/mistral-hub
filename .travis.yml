@@ -9,8 +9,7 @@ services:
 install:
 - docker --version && docker-compose --version
 - pip install --upgrade git+https://github.com/rapydo/do.git@0.7.3
-- /bin/bash scripts/create_projectrc.sh
-- rapydo init
+- APP_MODE=test rapydo init
 
 jobs:
   include:

@@ -1,0 +1,15 @@
+project: mistral 
+# stack: your_custom_stack 
+hostname: {{ hostname }}
+
+project_configuration:
+  variables:
+    env:
+    APP_MODE: test
+      CELERYUI_PASSWORD: {{ 'RANDOM'| password }}
+      CELERYUI_USER: {{ 'RANDOM'| username }}
+      RABBITMQ_USER: {{ 'RANDOM'| username }}
+      RABBITMQ_PASSWORD: {{ 'RANDOM'| password }}
+      AUTH_DEFAULT_USERNAME: {{ 'RANDOM'| username }}@nomail.org
+      AUTH_DEFAULT_PASSWORD: {{ 'RANDOM'| password }}
+      ALCHEMY_PASSWORD: {{ 'RANDOM'| password }}

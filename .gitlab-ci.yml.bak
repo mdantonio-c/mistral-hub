@@ -8,17 +8,7 @@ before_script:
   # - curl -fsSL https://get.docker.com/ | sh
   - docker -v
   - docker ps
-  - sh scripts/create_projectrc.sh
   - rapydo install auto
-  # - apt-get install python3-pip
-  # - pip3 --version
-  # - pip3 install rapydo-controller
-  # - rapydo --version
-  # - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  # - chmod +x docker-compose
-  # - mv docker-compose /usr/local/bin
-  # - pip install coveralls
-  # - pip install python-coveralls
 
 stages:
   - tests
@@ -26,7 +16,7 @@ stages:
 script:
   stage: tests
   script:
-    - rapydo init
+    - APP_MODE=test rapydo init
     - rapydo remove
     - rapydo pull
     - rapydo update -i main --rebuild 
