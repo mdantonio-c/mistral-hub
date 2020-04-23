@@ -1,0 +1,20 @@
+project: mistral 
+# stack: your_custom_stack 
+# production: True
+hostname: {{ hostname }}
+
+project_configuration:
+  variables:
+    env:
+      LOG_LEVEL: INFO
+      # CELERYUI_PASSWORD: DECIDE_A_PWD 
+      # CELERYUI_USER: DECIDE_A_USERNAME
+      # RABBITMQ_USER: DECIDE_A_USERNAME
+      # RABBITMQ_PASSWORD: DECIDE_A_PWD 
+      # AUTH_DEFAULT_USERNAME: DECIDE_A_USERNAME
+      # AUTH_DEFAULT_PASSWORD: DECIDE_A_PWD
+      # ALCHEMY_PASSWORD: DECIDE_A_PWD 
+
+      # SMTP_ADMIN: your@email.org
+      # other variables
+
