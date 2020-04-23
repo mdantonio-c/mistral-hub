@@ -5,7 +5,7 @@ hostname: {{ hostname }}
 project_configuration:
   variables:
     env:
-    APP_MODE: test
+      APP_MODE: test
       CELERYUI_PASSWORD: {{ 'RANDOM'| password }}
       CELERYUI_USER: {{ 'RANDOM'| username }}
       RABBITMQ_USER: {{ 'RANDOM'| username }}
