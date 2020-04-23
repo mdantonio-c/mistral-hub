@@ -12,11 +12,12 @@ class CustomProfile(object):
 
         return data
 
+    # strip_required is True when the model is invoked by put endpoints
     @staticmethod
-    def get_custom_fields():
+    def get_custom_fields(strip_required=False):
         return {
             'disk_quota': fields.Int(
-                required=True,
+                required=not strip_required,
                 label="Disk quota",
                 description="Disk quota in bytes"
             )
