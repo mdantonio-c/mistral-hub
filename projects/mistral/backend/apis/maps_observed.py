@@ -28,6 +28,13 @@ class MapsObservations(EndpointResource):
                 {'name': 'networks', 'in': 'query', 'type': 'string'},
                 {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''},
                 {'name': 'bounding-box', 'in': 'query', 'type': 'string', 'description': 'coordinates of a bounding box'},
+                {
+                    'name': 'onlyStations',
+                    'in': 'query',
+                    'type': 'boolean',
+                    'default': False,
+                    'allowEmptyValue': True,
+                },
 
             ],
             'responses': {
@@ -79,6 +86,18 @@ class MapsObservations(EndpointResource):
                 split = i.split(':')
                 bounding_box[split[0]] = split[1]
 
+        # check if only stations are requested
+        only_stations = params.get('onlyStations')
+        if isinstance(only_stations, str) and (
+                only_stations == '' or only_stations.lower() == 'true'
+        ):
+            only_stations = True
+        elif type(only_stations) == bool:
+            # do nothing
+            pass
+        else:
+            only_stations = False
+
         query = None
         db_type = None
         if q:
@@ -88,21 +107,13 @@ class MapsObservations(EndpointResource):
             # get db type
             if 'datetimemin' in query:
                 db_type = dballe.get_db_type(query['datetimemin'], query['datetimemax'])
-                # log.debug('db type: {}', db_type)
-                # if reftime is expressed and db_type is mixed, split the query for  arkimet and dballe
-                if db_type == 'mixed':
-                    refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = dballe.split_reftimes(
-                        query['datetimemin'],
-                        query['datetimemax'])
-                    # set the datetimemin as limit to data in dballe
-                    query['datetimemin'] = refmin_dballe
-                    query['datetimemax_arki'] = refmax_arki
-                    query['datetimemin_arki'] = refmin_arki
             else:
                 db_type = 'mixed'
         log.debug('type of database: {}',db_type)
-        # log.debug('API maps query: {}',query)
-        res = dballe.get_maps_response(networks, bounding_box, query, db_type, station_id=station_id)
+        if db_type == 'mixed':
+            res = dballe.get_maps_response_for_mixed(networks, bounding_box, query,only_stations, station_id=station_id)
+        else:
+            res = dballe.get_maps_response(networks, bounding_box, query, only_stations, db_type=db_type, station_id=station_id)
 
         if not res:
             if station_id:
@@ -116,19 +127,4 @@ class MapsObservations(EndpointResource):
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
 
-
-        # # check if only stations are requested
-        # only_stations = params.get('onlyStations')
-        # if isinstance(only_stations, str) and (
-        #         only_stations == '' or only_stations.lower() == 'true'
-        # ):
-        #     only_stations = True
-        # elif type(only_stations) == bool:
-        #     # do nothing
-        #     pass
-        # else:
-        #     only_stations = False
-
-        # per il reftime: se sono dati puntuali, non ha to from ma ha solo data e ora
-
-        return self.force_response(res)
+        return self.response(res)
