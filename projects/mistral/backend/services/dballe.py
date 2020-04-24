@@ -442,11 +442,11 @@ class BeDballe():
             # if there is no reftime i'll get the data of the last hour
             # TODO last hour or last day as default?
             #for production
-            # instant_now = datetime.now()
+            instant_now = datetime.now()
             # for local tests
-            today = date(2015, 12, 31)
-            time_now = datetime.now().time()
-            instant_now = datetime.combine(today, time_now)
+            # today = date(2015, 12, 31)
+            # time_now = datetime.now().time()
+            # instant_now = datetime.combine(today, time_now)
 
             query_for_dballe['datetimemax'] = instant_now
             query_for_dballe['datetimemin'] = datetime.combine(instant_now, time(instant_now.hour, 0, 0))
@@ -711,14 +711,14 @@ class BeDballe():
             else:
                 # use the standard one (today)
                 # for prod
-                # today = date.today()
-                # query_station_data['datetimemax'] = datetime.now()
-                # query_station_data['datetimemin'] = datetime.combine(today, time(0, 0, 0))
-                # for local tests
-                today = date(2015, 12, 31)
-                time_now = datetime.now().time()
-                query_station_data['datetimemax'] = datetime.combine(today, time_now)
+                today = date.today()
+                query_station_data['datetimemax'] = datetime.now()
                 query_station_data['datetimemin'] = datetime.combine(today, time(0, 0, 0))
+                # for local tests
+                # today = date(2015, 12, 31)
+                # time_now = datetime.now().time()
+                # query_station_data['datetimemax'] = datetime.combine(today, time_now)
+                # query_station_data['datetimemin'] = datetime.combine(today, time(0, 0, 0))
             if 'rep_memo' in query_data:
                 query_station_data['rep_memo'] = query_data['rep_memo']
 
