@@ -5,7 +5,6 @@ import {Areas, Fields, Resolutions} from "../services/data";
 import {NgbCarousel, NgbSlideEvent} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import {NgxSpinnerService} from 'ngx-spinner';
-import * as bootstrap_slider from 'bootstrap-slider/dist/bootstrap-slider.min.js'
 
 const SLIDER_TICKS = [0, 12, 24, 36, 48, 60, 72];
 
