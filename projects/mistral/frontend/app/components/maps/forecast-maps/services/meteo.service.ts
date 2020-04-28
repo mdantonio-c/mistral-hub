@@ -7,6 +7,8 @@ import {ApiService} from '@rapydo/services/api';
 
 export interface MeteoFilter {
     field: string,
+    level_pe: string,
+    level_pr: string,
     run: string,
     res: string,
     platform?: string,

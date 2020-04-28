@@ -12,7 +12,25 @@ export const Fields: KeyValuePair[] = [
     {key: 'cloud_hml', value: 'Cloud coverage high, medium, low (%)'},
     {key: 'humidity', value: 'Relative humidity (%)'},
     {key: 'snow3', value: 'Accumulated total snow prec. 3h (Kg/mq)'},
-    {key: 'snow6', value: 'Accumulated total snow prec. 6h (Kg/mq)'}
+    {key: 'snow6', value: 'Accumulated total snow prec. 6h (Kg/mq)'},
+    {key: 'percentile', value: 'Flash Flood - 6h precipitation (mm)'},
+    {key: 'probability', value: 'Flash Flood - 6h precipitation probability (%)'}
+];
+
+export const Levels_pe: KeyValuePair[] = [
+    {key: '1', value: '1'},
+    {key: '10', value: '10'},
+    {key: '25', value: '25'},
+    {key: '50', value: '50'},
+    {key: '75', value: '75'},
+    {key: '99', value: '99'}
+];
+
+export const Levels_pr: KeyValuePair[] = [
+    {key: '5', value: '5'},
+    {key: '10', value: '10'},
+    {key: '20', value: '20'},
+    {key: '50', value: '50'}
 ];
 
 export const Runs: KeyValuePair[] = [

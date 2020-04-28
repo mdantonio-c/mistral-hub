@@ -1,6 +1,6 @@
 import {Component, OnInit, Output, EventEmitter} from '@angular/core';
 import {FormBuilder, FormGroup, Validators, FormControl} from '@angular/forms';
-import {KeyValuePair, Fields, Runs, Areas, Resolutions, Platforms, Envs} from '../services/data';
+import {KeyValuePair, Fields, Levels_pe, Levels_pr, Runs, Areas, Resolutions, Platforms, Envs} from '../services/data';
 import {MeteoFilter} from "../services/meteo.service";
 import {AuthService} from '@rapydo/services/auth';
 
@@ -12,6 +12,8 @@ import {AuthService} from '@rapydo/services/auth';
 export class MapFilterComponent implements OnInit {
     filterForm: FormGroup;
     fields: KeyValuePair[] = Fields;
+    levels_pe: KeyValuePair[] = Levels_pe;
+    levels_pr: KeyValuePair[] = Levels_pr;
     runs: KeyValuePair[] = Runs;
     resolutions: KeyValuePair[] = Resolutions;
     platforms: KeyValuePair[] = Platforms;
@@ -24,6 +26,8 @@ export class MapFilterComponent implements OnInit {
     constructor(private fb: FormBuilder, private authService: AuthService) {
         this.filterForm = this.fb.group({
             field: ['prec3', Validators.required],
+            level_pe: ['25'],
+            level_pr: ['20'],
             run: ['00', Validators.required],
             res: ['lm5', Validators.required],
             platform: [''],

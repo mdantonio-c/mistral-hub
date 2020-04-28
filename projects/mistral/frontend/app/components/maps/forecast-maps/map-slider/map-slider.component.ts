@@ -83,6 +83,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
             this.fromMin = 3;
         } else if (this.filter.field === 'prec6' || this.filter.field === 'snow6') {
             this.fromMin = 6;
+        } else if (this.filter.field === 'percentile' || this.filter.field === 'probability') {
+            this.fromMin = 6;
         } else {
             this.fromMin = 0
         }
@@ -190,6 +192,9 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         if (this.filter.field === 'prec6' || this.filter.field === 'snow6') {
             from += 6;
         }
+        if (this.filter.field === 'percentile' || this.filter.field === 'probability') {
+            from += 6;
+	}
         if (this.lastRunAt.isSame(today, 'day')) {
             from = today.hours();
         }
