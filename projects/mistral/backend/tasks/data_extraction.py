@@ -321,7 +321,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 # rename outfile correctly
                 outfile = os.path.join(user_dir, out_filename)
 
-
             # get the actual data size
             data_size = os.path.getsize(os.path.join(user_dir, out_filename))
             log.debug('Actual resulting data size: {}'.format(data_size))
@@ -434,111 +433,22 @@ def arkimet_extraction(arki_query_cmd, outfile):
         if ext_proc.wait() != 0:
             raise Exception('Failure in data extraction')
 
-
-def dballe_extraction(datasets, filters, reftime, outfile=None, ark_query=None, memdb=None, mixed=False):
-    # get networks by dataset
-    networks = []
-    for ds in datasets:
-        ds_networks = arki.get_observed_dataset_params(ds)
-        for n in ds_networks:
-            networks.append(n)
-    # create a query for dballe
-    if filters is not None:
-        fields, queries = dballe.from_filters_to_lists(filters)
-        if 'rep_memo' not in filters:
-            fields.append('rep_memo')
-            queries.append(networks)
-    else:
-        # if there aren't filters, data are filtered only by dataset's networks
-        fields = ['rep_memo']
-        queries = []
-        queries.append(networks)
-    if reftime is not None:
-        fields.append('datetimemin')
-        queries.append([reftime['from']])
-        fields.append('datetimemax')
-        queries.append([reftime['to']])
-
-    log.debug('fields: {}, queries: {}', fields, queries)
-    # if is a mixed request
-    if mixed:
-        # fill the db with the data from arkimet
-        temp_db = dballe.fill_db_from_arkimet(datasets, ark_query)
-        # fill the db with the data from dballe
-        filled_db = dballe.extract_data(fields, queries, temp_db=temp_db)
-        return filled_db
-        # extract the data from the temporary db
-    # if is the request of extraction from a temporary db
-    elif memdb:
-        dballe.extract_data(fields, queries, temp_db=memdb, outfile=outfile)
-        # remember to clean the temporary db
-        memdb.remove_all()
-    else:
-        # extract data only from dballe
-        dballe.extract_data(fields, queries, outfile=outfile)
-
-
 def observed_extraction(datasets, filters, reftime, outfile):
+    # parsing the query
+    fields, queries = dballe.parse_query_for_data_extraction(datasets, filters, reftime)
+
     # get db type
-    date_min = None
-    date_max = None
     if reftime is not None:
-        date_min, date_max = dballe.parse_data_extraction_reftime(reftime['from'], reftime['to'])
-        db_type = dballe.get_db_type(date_min, date_max)
-        # replace the reftime with the parsed one
-        reftime['from'] = date_min
-        reftime['to'] = date_max
+        db_type = dballe.get_db_type(date_min=queries[fields.index('datetimemin')][0],
+                                     date_max=queries[fields.index('datetimemax')][0])
     else:
         db_type = 'mixed'
-        refmin_arki = None
-        refmax_arki = None
 
-    if db_type == 'arkimet' or db_type == 'mixed':
-        # get the datemax and datemin for arkimet query. if db_type is mixed, call the method to split the reftime
-        partial_reftime = None
-        if reftime is not None:
-            if db_type == 'mixed':
-                refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = dballe.split_reftimes(date_min, date_max)
-                # create a dictionary with the new reftime for dballe
-                partial_reftime = {'from': refmin_dballe, 'to': refmax_dballe}
-            else:
-                refmin_arki = date_min
-                refmax_arki = date_max
-        # get the network filters
-        network = []
-        dataset_nets = []
-        for ds in datasets:
-            nets = arki.get_observed_dataset_params(ds)
-            for n in nets:
-                dataset_nets.append(n)
-        if "network" in filters:
-            for n in filters["network"]:
-                network.append(n['dballe_p'])
-            # check if the requested networks is compatible with the requested datasets
-            log.debug('dataset nets: {}, network {}', dataset_nets, network)
-            if not all(elem in dataset_nets for elem in network):
-                raise Exception('Failure in data extraction: Invalid set of filters')
-        else:
-            # if there is not network specified in filters, extract all dataset networks
-            network = None
-        # build the arkimet query
-        arkimet_query = dballe.build_arkimet_query(datemin=refmin_arki, datemax=refmax_arki, network=network)
-
-        log.debug('type of extraction: {}', db_type)
-        if db_type == 'arkimet':
-            # extract data, fill the temporary db and get the temporary db in return
-            temp_db = dballe.fill_db_from_arkimet(datasets, arkimet_query)
-
-        if db_type == 'mixed':
-            # extract data, fill the temporary db and get the temporary db in return
-            temp_db = dballe_extraction(datasets, filters, partial_reftime, ark_query=arkimet_query, mixed=True)
-
-        # extract the data from the temporary db
-        dballe_extraction(datasets, filters, reftime, outfile=outfile, memdb=temp_db)
-
+    # extract the data
+    if db_type == 'mixed':
+        dballe.extract_data_for_mixed(datasets,fields, queries, outfile)
     else:
-        # extract data from the general db
-        dballe_extraction(datasets, filters, reftime, outfile=outfile)
+        dballe.extract_data(datasets, fields, queries, outfile, db_type)
 
 
 def send_result_notication(recipient, title, status, message):

@@ -8,6 +8,7 @@ from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from restapi.utilities.logs import log
 
+from datetime import datetime
 
 class Fields(EndpointResource):
 
@@ -72,20 +73,32 @@ class Fields(EndpointResource):
         ########## OBSERVED DATA ###########
         if dataset_format == 'bufr':
             summary = None
-            # TODO split between arkimet and dballe. For now there is only the dballe case
             log.debug('Dataset(s) for observed data: {}'.format(datasets))
 
             resulting_fields = {
                 'summarystats': {'c': 0, 's': 0}
             }
             requested_nets = []
+            # check db type
+            query_dic = {}
+            if query:
+                query_dic = dballe.from_query_to_dic(query)
+            if 'datetimemin' in query_dic:
+                db_type = dballe.get_db_type(query_dic['datetimemin'], query_dic['datetimemax'])
+            else:
+                db_type = 'mixed'
+            log.debug('db type: {}', db_type)
+
             for ds in datasets:
                 # get dataset params (to filter dballe according the requested dataset)
                 ds_params = arki.get_observed_dataset_params(ds)
                 for net in ds_params:
                     requested_nets.append(net)
                 log.info('dataset: {}, networks: {}'.format(ds, ds_params))
-                fields = dballe.load_filters(datasets,ds_params,query)
+                if db_type == 'mixed':
+                    fields, summary = dballe.load_filter_for_mixed(datasets, ds_params, query=query_dic)
+                else:
+                    fields, summary = dballe.load_filters(datasets, ds_params, db_type=db_type, query_dic=query_dic)
                 if not fields:
                     continue
                 else:
@@ -96,17 +109,25 @@ class Fields(EndpointResource):
                         else:
                             # merge the two lists
                             resulting_fields[key].extend(x for x in fields[key] if x not in resulting_fields[key])
+                    # update the summary
+                    resulting_fields['summarystats']['c'] += summary['c']
+                    if not 'e' in resulting_fields['summarystats']:
+                        resulting_fields['summarystats']['e'] = summary['e']
+                    else:
+                        summary_date = datetime(*resulting_fields['summarystats']['e'])
+                        new_date = datetime(*summary['e'])
+                        if new_date > summary_date:
+                            resulting_fields['summarystats']['e'] = summary['e']
+                    if not 'b' in resulting_fields['summarystats']:
+                        resulting_fields['summarystats']['b'] = summary['b']
+                    else:
+                        summary_date = datetime(*resulting_fields['summarystats']['b'])
+                        new_date = datetime(*summary['b'])
+                        if new_date < summary_date:
+                            resulting_fields['summarystats']['b'] = summary['b']
 
-            if resulting_fields:
-                # TODO fill in the summarystats
-                summarystats = dballe.get_summary(datasets,requested_nets,query)
-                resulting_fields['summarystats'] = summarystats
-                summary = {'items': resulting_fields}
-            else:
-                raise RestApiException(
-                        "Invalid set of filters : the applied filters does not give any result",
-                        status_code=hcodes.HTTP_BAD_REQUEST,
-                    )
+            summary = {'items': resulting_fields}
+
         ########## ARKIMET ###########
         else:
             summary = arki.load_summary(datasets, query)
