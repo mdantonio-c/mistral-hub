@@ -1,0 +1,115 @@
+/* add custom styles for slider */
+
+#mst-slider .slider {
+  width: 100% !important;
+}
+
+#mst-slider .slider-selection {
+  background: #17a2b8;
+}
+
+#mst-slider .slider-track-high {
+  background: #e1e4e9;
+}
+
+#mst-slider .slider-handle {
+  background: #F8F8F8;
+  border: 1px solid;
+  cursor: pointer;
+  width: 1.45em;
+  height: 1.45em;
+  position: absolute;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  border-radius: 0;
+  line-height: 2.2em;
+  text-align: center;
+  border-color: #4AA4CE !important;
+  outline: 0 !important;
+}
+
+#mst-slider .slider-handle:after,
+#mst-slider .slider-handle:before {
+  display: block;
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 7px;
+  width: 4px;
+  height: 8px;
+  border: 1px solid;
+  border-width: 0 1px;
+  border-color: inherit
+}
+
+#mst-slider .slider-handle:after {
+  left: 10px;
+  border-width: 0 1px 0 0
+}
+
+#mst-slider .slider-handle:hover {
+  background-color: #FFF
+}
+
+#mst-slider .slider-handle:active,
+#mst-slider .slider-handle:focus,
+#mst-slider .slider-handle:hover {
+  outline: 0;
+  -webkit-box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3);
+  box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3)
+}
+
+#mst-slider .slider-tick {
+  display: none;
+}
+
+#mst-slider .slider.slider-horizontal .slider-tick-label-container .slider-tick-label {
+  white-space: nowrap;
+  text-align: center;
+  font-size: 9px;
+  line-height: 9px;
+  color: #999;
+}
+
+/*#mst-slider .slider.slider-horizontal .tooltip.tooltip-min*/
+/*#mst-slider .slider.slider-horizontal .tooltip.tooltip-max,*/
+#mst-slider .slider.slider-horizontal .tooltip.tooltip-main
+{
+  opacity: 1 !important;
+}
+
+#mst-slider .slider.slider-horizontal .tooltip.tooltip-main.top .tooltip-arrow:after {
+  content: '';
+  width: 0;
+  height: 0;
+  position: absolute;
+  left: 40%;
+  bottom: -10px;
+  border: transparent 5px solid;
+  border-top: #000 5px solid;
+}
+
+#mst-slider .slider.slider-horizontal .tooltip.tooltip-main.top .tooltip-arrow:after {
+  left: 40%;
+  border-top: #17a2b8 5px solid;
+}
+
+#mst-slider .slider .tooltip-inner {
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.333;
+  text-shadow: none;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #17a2b8;
+}
+
+#mst-slider .slider .tooltip.top {
+  margin-top: -23px;
+}
+
+#mst-slider .slider .tooltip.tooltip-min.top .tooltip-inner,
+#mst-slider .slider .tooltip.tooltip-max.top .tooltip-inner {
+  color: #999;
+  background: #e1e4e9;
+}

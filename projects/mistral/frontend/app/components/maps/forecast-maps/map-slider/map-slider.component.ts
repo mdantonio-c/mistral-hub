@@ -4,9 +4,10 @@ import {MeteoFilter, MeteoService} from "../services/meteo.service";
 import {Areas, Fields, Resolutions} from "../services/data";
 import {NgbCarousel, NgbSlideEvent} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
-import {IonRangeSliderComponent} from "ng2-ion-range-slider";
 import {NgxSpinnerService} from 'ngx-spinner';
+import * as bootstrap_slider from 'bootstrap-slider/dist/bootstrap-slider.min.js'
 
+const SLIDER_TICKS = [0, 12, 24, 36, 48, 60, 72];
 
 @Component({
     selector: 'app-map-slider',
@@ -22,6 +23,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     paused = true;
     fromMin: number;
     maxHour = 48;
+    sid: number;
+    sliderTicks = SLIDER_TICKS;
     legendToShow: any;
     isImageLoading = false;
     grid_num = 6;
@@ -35,12 +38,15 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     timestamp: string;
 
     @ViewChild('carousel', {static: true}) carousel: NgbCarousel;
-    @ViewChild('timeSlider', {static: false}) timeSliderEl: IonRangeSliderComponent;
 
     constructor(
         private sanitizer: DomSanitizer,
         private meteoService: MeteoService,
         private spinner: NgxSpinnerService) {
+    }
+
+    setInputSliderFormatter(value) {
+        return `+${value}h`;
     }
 
     ngOnChanges(): void {
@@ -80,7 +86,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         } else {
             this.fromMin = 0
         }
+        this.sid = this.fromMin;
         this.maxHour = (this.filter.res === 'lm2.2') ? 48 : 72;
+        if (this.maxHour === 48) {
+            this.sliderTicks.slice(this.sliderTicks.length - 2);
+        }
 
         // get legend from service
         this.spinner.show(this.LEGEND_SPINNER);
@@ -126,6 +136,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     onSlide(slideEvent: NgbSlideEvent) {
         // position the handle of the slider accordingly
         let idx = parseInt(slideEvent.current.split("-").slice(-1)[0]);
+        // console.log(`onSlide ${idx}`);
         this.setSliderTo(idx);
         this.updateTimestamp(idx);
     }
@@ -137,13 +148,16 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     updateCarousel(index: number) {
         // load image slide into the carousel accordingly
         // console.log(`update carousel to slideId-${index}`);
-        this.carousel.select(`slideId-${index}`);
-        this.updateTimestamp(index);
+        setTimeout(() => {
+            this.carousel.select(`slideId-${index}`);
+            this.updateTimestamp(index);
+        });
+
     }
 
     private setSliderTo(from) {
         // console.log(`set slider to ${from}`);
-        this.timeSliderEl.update({from: from});
+        this.sid = from;
     }
 
     getValue(param: string, key: string) {

@@ -9,7 +9,7 @@
             </div>
             <div class="col px-1">
                 <div class="row">
-                  <div class="col-lg-6 badges">
+                    <div class="col-lg-6 badges">
                         <h4>
                             <span class="badge badge-info">{{ getValue('field', filter.field) }}</span>
                         </h4>
@@ -31,7 +31,7 @@
                                 [fullScreen]="false" type="ball-clip-rotate-multiple" size="default"></ngx-spinner>
                         <img class="img-fluid legend" [src]="legendToShow"
                              alt="legend"
-                            *ngIf="legendToShow">
+                             *ngIf="legendToShow">
                     </div>
                 </div>
             </div>
@@ -53,9 +53,10 @@
                           [showNavigationIndicators]="false"
                           [keyboard]="false"
                           (slide)="onSlide($event)">
-                <ng-template ngbSlide *ngFor="let image of images | slice:fromMin; index as i" id="slideId-{{i+fromMin}}">
+                <ng-template ngbSlide *ngFor="let image of images | slice:fromMin; index as i"
+                             id="slideId-{{i+fromMin}}">
                     <div class="carousel-caption">
-<!--                                <h3>Image[{{i+fromMin}}] - slice {{fromMin}}</h3>-->
+                        <!--                                <h3>Image[{{i+fromMin}}] - slice {{fromMin}}</h3>-->
                         <h5>
                             <span class="badge badge-secondary label-time" (click)="toggleUtcTime()">
                                 <ng-container *ngIf="utcTime; else noUtc">
@@ -70,7 +71,9 @@
                     <div class="picsum-img-wrapper">
                         <img [src]="image" class="mx-auto d-block carousel-img" *ngIf="image">
                         <div class="mst--data-attribution">
-                            Work distributed under License <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en" title="CC-BY 4.0">CC-BY 4.0</a>
+                            Work distributed under License <a target="_blank" rel="noopener"
+                                                              href="https://creativecommons.org/licenses/by/4.0/deed.en"
+                                                              title="CC-BY 4.0">CC-BY 4.0</a>
                         </div>
                     </div>
                 </ng-template>
@@ -85,19 +88,15 @@
                     <span class="fas" [ngClass]="this.paused ? 'fa-play' : 'fa-pause'"></span>
                 </button>
                 <div class="w-100">
-                    <ion-range-slider #timeSlider
-                                      type="single"
-                                      min="0"
-                                      [max]="maxHour"
-                                      [from_min]="fromMin"
-                                      grid="true"
-                                      prefix="+"
-                                      postfix=" h"
-                                      to_shadow="true"
-                                      step="1"
-                                      [grid_num]="grid_num"
-                                      from_shadow="true"
-                                      (onChange)="updateCarousel($event.from)"></ion-range-slider>
+                    <mv-slider #timeSlider
+                               id="mst-slider"
+                               [(value)]="sid"
+                               [min]="0"
+                               [max]="maxHour"
+                               step="1"
+                               [ticks]="sliderTicks"
+                               [formatter]="setInputSliderFormatter"
+                               (change)="updateCarousel($event.newValue)"></mv-slider>
                 </div>
             </div>
         </div>

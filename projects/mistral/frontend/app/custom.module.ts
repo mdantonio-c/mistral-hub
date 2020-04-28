@@ -1,5 +1,3 @@
-import 'ion-rangeslider/js/ion.rangeSlider.min.js';
-
 import {NgModule, CUSTOM_ELEMENTS_SCHEMA, ModuleWithProviders} from '@angular/core';
 import {NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
 import {RouterModule, Routes} from '@angular/router';
@@ -8,10 +6,10 @@ import {DatePipe} from '@angular/common';
 import {SharedModule} from '@rapydo/shared.module';
 import {AuthGuard} from '@rapydo/app.auth.guard';
 
-// import {IonRangeSliderModule} from "ng2-ion-range-slider";
+import {NgxBootstrapSliderModule} from 'ngx-bootstrap-slider';
 
-import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { LeafletDrawModule } from '@asymmetrik/ngx-leaflet-draw';
+import {LeafletModule} from '@asymmetrik/ngx-leaflet';
+import {LeafletDrawModule} from '@asymmetrik/ngx-leaflet-draw';
 
 import {HomeComponent} from '@app/custom.home'
 import {DataComponent} from '@app/components/data/data.component';
@@ -66,7 +64,7 @@ const appRoutes: Routes = [
     imports: [
         SharedModule,
         RouterModule.forChild(appRoutes),
-        // IonRangeSliderModule,
+        NgxBootstrapSliderModule,
         LeafletModule,
         LeafletDrawModule
     ],

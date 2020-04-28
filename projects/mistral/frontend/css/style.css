@@ -1,12 +1,10 @@
-/* add the ion-range-slider style and skin css */
-@import url('ion-rangeslider/css/ion.rangeSlider.css');
-@import url('ion-rangeslider/css/ion.rangeSlider.skinFlat.css');
+/* add the bootstrap-slider style css */
+@import url('bootstrap-slider/dist/css/bootstrap-slider.min.css');
+@import url('custom-slider.css');
 
 /* add leaflet and leaflet-draw css */
 @import url('leaflet/dist/leaflet.css');
 @import url('leaflet-draw/dist/leaflet.draw.css');
-
-@import url('custom-irc.css');
 
 @import url('button-toggle.css');
 @import url('weather-icons.css');
