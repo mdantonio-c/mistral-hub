@@ -26,6 +26,7 @@ class Fields(EndpointResource):
                     'items': {'type': 'string'},
                 },
                 {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''},
+                {'name': 'type', 'in': 'query', 'type': 'string','enum': ['OBS', 'FOR'],},
                 {
                     'name': 'onlySummaryStats',
                     'in': 'query',
@@ -50,28 +51,41 @@ class Fields(EndpointResource):
         params = self.get_input()
         ds = params.get('datasets')
         query = params.get('q')
+        data_type = params.get('type')
         datasets = ds.split(',') if ds is not None else []
 
         # check for existing dataset(s)
-        for ds_name in datasets:
-            found = next(
-                (ds for ds in arki.load_datasets() if ds.get('id', '') == ds_name), None
-            )
-            if not found:
-                raise RestApiException(
-                    "Dataset '{}' not found".format(ds_name),
-                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+        if datasets:
+            for ds_name in datasets:
+                found = next(
+                    (ds for ds in arki.load_datasets() if ds.get('id', '') == ds_name), None
                 )
+                if not found:
+                    raise RestApiException(
+                        "Dataset '{}' not found".format(ds_name),
+                        status_code=hcodes.HTTP_BAD_NOTFOUND,
+                    )
 
         # check if the datasets are of the same type
-        dataset_format = arki.get_datasets_format(datasets)
-        if not dataset_format:
-            raise RestApiException(
-                "Invalid set of datasets : datasets have different formats",
-                status_code=hcodes.HTTP_BAD_REQUEST,
-            )
+            dataset_format = arki.get_datasets_format(datasets)
+            if not dataset_format:
+                raise RestApiException(
+                    "Invalid set of datasets : datasets have different formats",
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
+            if data_type:
+                if data_type == 'FOR' and dataset_format == 'bufr':
+                    raise RestApiException(
+                        "Invalid request : datasets and data_type required not matches",
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
+                if data_type == 'OBS' and dataset_format == 'grib':
+                    raise RestApiException(
+                        "Invalid request : datasets and data_type required not matches",
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
         ########## OBSERVED DATA ###########
-        if dataset_format == 'bufr':
+        if data_type == 'OBS':
             summary = None
             log.debug('Dataset(s) for observed data: {}'.format(datasets))
 
@@ -89,42 +103,54 @@ class Fields(EndpointResource):
                 db_type = 'mixed'
             log.debug('db type: {}', db_type)
 
-            for ds in datasets:
-                # get dataset params (to filter dballe according the requested dataset)
-                ds_params = arki.get_observed_dataset_params(ds)
-                for net in ds_params:
-                    requested_nets.append(net)
-                log.info('dataset: {}, networks: {}'.format(ds, ds_params))
+            if datasets:
+                for ds in datasets:
+                    # get dataset params (to filter dballe according the requested dataset)
+                    ds_params = arki.get_observed_dataset_params(ds)
+                    for net in ds_params:
+                        requested_nets.append(net)
+                    log.info('dataset: {}, networks: {}'.format(ds, ds_params))
+                    if db_type == 'mixed':
+                        fields, summary = dballe.load_filter_for_mixed(datasets, ds_params, query=query_dic)
+                    else:
+                        fields, summary = dballe.load_filters(datasets, ds_params, db_type=db_type, query_dic=query_dic)
+                    if not fields:
+                        continue
+                    else:
+                        for key in fields:
+                            # check and integrate the filter dic
+                            if key not in resulting_fields:
+                                resulting_fields[key] = fields[key]
+                            else:
+                                # merge the two lists
+                                resulting_fields[key].extend(x for x in fields[key] if x not in resulting_fields[key])
+                        # update the summary
+                        resulting_fields['summarystats']['c'] += summary['c']
+                        if not 'e' in resulting_fields['summarystats']:
+                            resulting_fields['summarystats']['e'] = summary['e']
+                        else:
+                            summary_date = datetime(*resulting_fields['summarystats']['e'])
+                            new_date = datetime(*summary['e'])
+                            if new_date > summary_date:
+                                resulting_fields['summarystats']['e'] = summary['e']
+                        if not 'b' in resulting_fields['summarystats']:
+                            resulting_fields['summarystats']['b'] = summary['b']
+                        else:
+                            summary_date = datetime(*resulting_fields['summarystats']['b'])
+                            new_date = datetime(*summary['b'])
+                            if new_date < summary_date:
+                                resulting_fields['summarystats']['b'] = summary['b']
+            else:
+                ds_params=[]
                 if db_type == 'mixed':
                     fields, summary = dballe.load_filter_for_mixed(datasets, ds_params, query=query_dic)
                 else:
                     fields, summary = dballe.load_filters(datasets, ds_params, db_type=db_type, query_dic=query_dic)
-                if not fields:
-                    continue
-                else:
+                if fields:
                     for key in fields:
-                        # check and integrate the filter dic
-                        if key not in resulting_fields:
-                            resulting_fields[key] = fields[key]
-                        else:
-                            # merge the two lists
-                            resulting_fields[key].extend(x for x in fields[key] if x not in resulting_fields[key])
-                    # update the summary
-                    resulting_fields['summarystats']['c'] += summary['c']
-                    if not 'e' in resulting_fields['summarystats']:
-                        resulting_fields['summarystats']['e'] = summary['e']
-                    else:
-                        summary_date = datetime(*resulting_fields['summarystats']['e'])
-                        new_date = datetime(*summary['e'])
-                        if new_date > summary_date:
-                            resulting_fields['summarystats']['e'] = summary['e']
-                    if not 'b' in resulting_fields['summarystats']:
-                        resulting_fields['summarystats']['b'] = summary['b']
-                    else:
-                        summary_date = datetime(*resulting_fields['summarystats']['b'])
-                        new_date = datetime(*summary['b'])
-                        if new_date < summary_date:
-                            resulting_fields['summarystats']['b'] = summary['b']
+                        resulting_fields[key] = fields[key]
+                    for key in summary:
+                        resulting_fields['summarystats'][key]=summary[key]
 
             summary = {'items': resulting_fields}
 

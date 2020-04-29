@@ -93,7 +93,7 @@ class BeDballe():
 
     @staticmethod
     def count_messages(params, query=None, memdb=None):
-        if 'network' not in query:
+        if params and 'network' not in query:
             query['network'] = params
         fields, queries = BeDballe.from_query_to_lists(query)
         log.debug('Counting messages: fields: {}, queries: {}', fields, queries)
@@ -184,14 +184,18 @@ class BeDballe():
 
         # check if requested networks are in that dataset
         query_networks_list = []
-        if 'network' in query:
-            if not all(elem in params for elem in query['network']):
-                return None, None
+        if params:
+            if 'network' in query:
+                if not all(elem in params for elem in query['network']):
+                    return None, None
+                else:
+                    query_networks_list = query['network']
             else:
-                query_networks_list = query['network']
+                # if there aren't requested network, data will be filtered only by dataset
+                query_networks_list = params
         else:
-            # if there aren't requested network, data will be filtered only by dataset
-            query_networks_list = params
+            if 'network' in query:
+                query_networks_list = query['network']
         log.debug('Loading filters: query networks list : {}'.format(query_networks_list))
 
         memdb = None
@@ -206,6 +210,10 @@ class BeDballe():
             datemax = query['datetimemax'].strftime("%Y-%m-%d %H:%M")
 
             arkimet_query = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=network)
+            if not datasets:
+                # TODO managing license
+                license = None
+                datasets = arki.get_datasets(arkimet_query, license)
             datasize = arki.estimate_data_size(datasets, arkimet_query)
             if datasize == 0:
                 return None, None
@@ -221,6 +229,9 @@ class BeDballe():
         variables = []
         levels = []
         tranges = []
+        if not query_networks_list:
+            query_networks_list = explorer.all_reports
+            log.debug('all networks: {}',query_networks_list)
         for n in query_networks_list:
             # filter the dballe database by network
             if not 'datetimemin' in query:
