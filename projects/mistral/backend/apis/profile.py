@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from marshmallow import fields
+from marshmallow import fields, validate
 
 
 class CustomProfile(object):
@@ -18,6 +18,8 @@ class CustomProfile(object):
         return {
             'disk_quota': fields.Int(
                 required=not strip_required,
+                # validate=validate.Range(min=0, max=???),
+                validate=validate.Range(min=0),
                 label="Disk quota",
                 description="Disk quota in bytes"
             )
