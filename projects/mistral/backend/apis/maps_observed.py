@@ -109,6 +109,8 @@ class MapsObservations(EndpointResource):
                 db_type = dballe.get_db_type(query['datetimemin'], query['datetimemax'])
             else:
                 db_type = 'mixed'
+        else:
+            db_type = 'mixed'
         log.debug('type of database: {}',db_type)
         if db_type == 'mixed':
             res = dballe.get_maps_response_for_mixed(networks, bounding_box, query,only_stations, station_id=station_id)
