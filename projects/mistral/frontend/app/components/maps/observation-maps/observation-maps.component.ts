@@ -2,7 +2,6 @@ import {Component, OnInit, ViewChild, ElementRef} from "@angular/core";
 import {icon, latLng, Map, marker, point, polyline, tileLayer} from 'leaflet';
 import {NgbDateStruct, NgbPanelChangeEvent} from '@ng-bootstrap/ng-bootstrap';
 
-const MAP_CENTER = [41.879966, 12.280000];
 
 @Component({
     selector: 'app-observation-maps',
@@ -27,8 +26,8 @@ export class ObservationMapsComponent implements OnInit {
         layers: [
             this.streetMaps
         ],
-        zoom: 6,
-        center: MAP_CENTER
+        zoom: 5,
+        center: [45.0, 12.0]
     };
 
     ngOnInit() {

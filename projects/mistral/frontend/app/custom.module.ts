@@ -36,6 +36,7 @@ import {ForecastMapsComponent} from '@app/components/maps/forecast-maps/forecast
 import {MapFilterComponent} from '@app/components/maps/forecast-maps/map-filter/map-filter.component';
 import {MapSliderComponent} from '@app/components/maps/forecast-maps/map-slider/map-slider.component';
 import {ObservationMapsComponent} from '@app/components/maps/observation-maps/observation-maps.component';
+import {MeteoTilesComponent} from '@app/components/maps/meteo-tiles/meteo-tiles.component';
 
 import {FormatDatePipe} from '@app/pipes/format-date.pipe';
 import {WorkflowGuard} from "@app/services/workflow-guard.service";
@@ -55,6 +56,7 @@ const appRoutes: Routes = [
     {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/forecasts', component: ForecastMapsComponent},
     {path: 'app/maps/observations', component: ObservationMapsComponent, canActivate: [AuthGuard]},
+    {path: 'app/maps/meteotiles', component: MeteoTilesComponent, canActivate: [AuthGuard]},
     {path: 'public/privacy', component: PrivacyComponent},
     {path: 'app', redirectTo: '/app/data/datasets', pathMatch: 'full'},
     {path: '', redirectTo: '/app/data/datasets', pathMatch: 'full'},
@@ -75,6 +77,7 @@ const appRoutes: Routes = [
         MapFilterComponent,
         MapSliderComponent,
         ObservationMapsComponent,
+        MeteoTilesComponent,
         MultiStepWizardComponent,
         NavbarComponent,
         StepDatasetsComponent,
