@@ -431,9 +431,10 @@ class BeDballe():
         # get data from the dballe database
         log.debug('mixed dbs: get data from dballe')
         query_for_dballe = {}
-        for key, value in query.items():
-            query_for_dballe[key] = value
-        if 'datetimemin' in query:
+        if query:
+            for key, value in query.items():
+                query_for_dballe[key] = value
+        if 'datetimemin' in query_for_dballe:
             refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(query['datetimemin'],
                                                                                              query['datetimemax'])
             # set up query for dballe with the correct reftimes
@@ -453,54 +454,56 @@ class BeDballe():
 
         dballe_maps_data = BeDballe.get_maps_response(networks, bounding_box, query_for_dballe, only_stations, db_type='dballe', station_id=station_id)
 
-        if 'datetimemin' not in query:
-            return dballe_maps_data
-        else:
-            # get data from the arkimet database
-            log.debug('mixed dbs: get data from arkimet')
-            query_for_arki = {}
-            for key, value in query.items():
-                query_for_arki[key] = value
-            # set up query for arkimet with the correct reftimes
-            query_for_arki['datetimemin'] = refmin_arki
-            query_for_arki['datetimemax'] = refmax_arki
-            arki_maps_data = BeDballe.get_maps_response(networks, bounding_box, query_for_arki, only_stations,
-                                                          db_type='arkimet', station_id=station_id)
+        if query:
+            if 'datetimemin' not in query:
+                return dballe_maps_data
+            else:
+                # get data from the arkimet database
+                log.debug('mixed dbs: get data from arkimet')
+                query_for_arki = {}
+                if query:
+                    for key, value in query.items():
+                        query_for_arki[key] = value
+                # set up query for arkimet with the correct reftimes
+                query_for_arki['datetimemin'] = refmin_arki
+                query_for_arki['datetimemax'] = refmax_arki
+                arki_maps_data = BeDballe.get_maps_response(networks, bounding_box, query_for_arki, only_stations,
+                                                              db_type='arkimet', station_id=station_id)
 
-            if not dballe_maps_data and not arki_maps_data:
-                return None
+                if not dballe_maps_data and not arki_maps_data:
+                    return None
 
-            if arki_maps_data:
-                if not station_id:
-                    for i in arki_maps_data:
-                        if dballe_maps_data:
-                            if any(d['station']['id'] == i['station']['id'] for d in dballe_maps_data):
-                                # get the element index
-                                for e in dballe_maps_data:
-                                    if e['station']['id'] == i['station']['id']:
-                                        el_index = dballe_maps_data.index(e)
-                                        break
-                                # append values to the variable
-                                if not only_stations:
-                                    for key, value in i['data'].items():
-                                        if key not in dballe_maps_data[el_index]['data']:
-                                            dballe_maps_data[el_index]['data'][key] = []
-                                        for v in value:
-                                            dballe_maps_data[el_index]['data'][key].append(v)
+                if arki_maps_data:
+                    if not station_id:
+                        for i in arki_maps_data:
+                            if dballe_maps_data:
+                                if any(d['station']['id'] == i['station']['id'] for d in dballe_maps_data):
+                                    # get the element index
+                                    for e in dballe_maps_data:
+                                        if e['station']['id'] == i['station']['id']:
+                                            el_index = dballe_maps_data.index(e)
+                                            break
+                                    # append values to the variable
+                                    if not only_stations:
+                                        for key, value in i['data'].items():
+                                            if key not in dballe_maps_data[el_index]['data']:
+                                                dballe_maps_data[el_index]['data'][key] = []
+                                            for v in value:
+                                                dballe_maps_data[el_index]['data'][key].append(v)
+                                else:
+                                    dballe_maps_data.append(i)
                             else:
                                 dballe_maps_data.append(i)
-                        else:
-                            dballe_maps_data.append(i)
-                else:
-                    # only one station in the response: add arkimet values to dballe response
-                    if dballe_maps_data:
-                        for key, value in arki_maps_data['data'].items():
-                            if key not in dballe_maps_data['data']:
-                                dballe_maps_data['data'][key] = []
-                            for v in value:
-                                dballe_maps_data['data'][key].append(v)
                     else:
-                         dballe_maps_data = arki_maps_data
+                        # only one station in the response: add arkimet values to dballe response
+                        if dballe_maps_data:
+                            for key, value in arki_maps_data['data'].items():
+                                if key not in dballe_maps_data['data']:
+                                    dballe_maps_data['data'][key] = []
+                                for v in value:
+                                    dballe_maps_data['data'][key].append(v)
+                        else:
+                             dballe_maps_data = arki_maps_data
 
         return dballe_maps_data
 
@@ -613,7 +616,7 @@ class BeDballe():
         log.debug('query data for maps {}', query)
         with db.transaction() as tr:
             # check if query gives back a result
-            count_data = tr.query_stations(query).remaining
+            count_data = tr.query_data(query).remaining
             # log.debug('count {}',count_data)
             if count_data == 0:
                 return None
