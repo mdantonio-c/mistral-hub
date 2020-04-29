@@ -1,7 +1,8 @@
 import {Component, OnInit, ViewChild, ElementRef} from "@angular/core";
 import {icon, latLng, Map, marker, point, polyline, tileLayer} from 'leaflet';
-import {NgbDateStruct, NgbPanelChangeEvent} from '@ng-bootstrap/ng-bootstrap';
-
+import {ObsFilter, ObsService} from "./services/obs.service";
+import {NotificationService} from '@rapydo/services/notification';
+import {NgxSpinnerService} from 'ngx-spinner';
 
 @Component({
     selector: 'app-observation-maps',
@@ -9,8 +10,6 @@ import {NgbDateStruct, NgbPanelChangeEvent} from '@ng-bootstrap/ng-bootstrap';
     styleUrls: ['./observation-maps.component.css']
 })
 export class ObservationMapsComponent implements OnInit {
-
-    model: NgbDateStruct;
 
     // base layers
     streetMaps = tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -30,6 +29,11 @@ export class ObservationMapsComponent implements OnInit {
         center: [45.0, 12.0]
     };
 
+    constructor(private meteoService: ObsService,
+                private notify: NotificationService,
+                private spinner: NgxSpinnerService) {
+    }
+
     ngOnInit() {
 
     }
@@ -38,5 +42,19 @@ export class ObservationMapsComponent implements OnInit {
         // When the map is created, the ngx-leaflet directive calls
         // onMapReady passing a reference to the map as an argument
         // TODO
+    }
+
+    applyFilter(filter: ObsFilter) {
+
+        // get data
+        this.meteoService.getObservations(filter).subscribe(
+            response => {
+
+            },
+            error => {
+                this.notify.showError(error);
+            }
+        );
+
     }
 }

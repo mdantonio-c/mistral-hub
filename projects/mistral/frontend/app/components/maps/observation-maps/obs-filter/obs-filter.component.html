@@ -1,0 +1,76 @@
+<form class="filter">
+    <div class="form-group">
+        <label for="variable">Variable</label>
+        <select class="form-control" id="variable">
+            <option>Temperature °C</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+        </select>
+    </div>
+    <!-- Date -->
+    <div class="form-row">
+        <div class="col-md-8">
+            <label for="date">Date</label>
+            <div class="input-group">
+                <input class="form-control" id="date" placeholder="yyyy-mm-dd"
+                       name="dp" [(ngModel)]="model" ngbDatepicker #d="ngbDatepicker">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" (click)="d.toggle()" type="button">
+                        <i class="fa fa-calendar"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <label for="hour">Hour</label>
+            <input type="text" class="form-control" id="hour" required>
+        </div>
+    </div>
+    <!-- Level -->
+    <div class="form-group">
+        <label for="level">Level</label>
+        <select class="form-control" id="level">
+            <option></option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+        </select>
+    </div>
+    <!-- Time range -->
+    <div class="form-group">
+        <label for="timerange">Time range</label>
+        <select class="form-control" id="timerange">
+            <option></option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+        </select>
+    </div>
+    <!-- Area -->
+    <!-- Network -->
+    <div class="form-group">
+        <label for="network">Network</label>
+        <select class="form-control" id="network">
+            <option></option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+        </select>
+    </div>
+    <!-- License -->
+    <div class="form-group">
+        <label for="license">License</label>
+        <select class="form-control" id="license">
+            <option></option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+        </select>
+    </div>
+</form>
