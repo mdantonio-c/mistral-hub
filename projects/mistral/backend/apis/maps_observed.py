@@ -14,7 +14,7 @@ class MapsObservations(EndpointResource):
     # schema_expose = True
     labels = ['maps-observations']
     GET = {
-        '/maps/observations': {
+        '/observations': {
             'summary': 'Get values of observed parameters',
             'parameters': [
                 # uncomment if we decide that networks can be multiple
@@ -47,7 +47,7 @@ class MapsObservations(EndpointResource):
                 }
             },
         },
-        '/maps/observations/<station_id>': {
+        '/observations/<station_id>': {
             'summary': 'Get station information by id',
             'parameters': [
                 {'name': 'networks', 'in': 'query', 'type': 'string'},
