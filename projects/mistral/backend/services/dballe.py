@@ -482,7 +482,8 @@ class BeDballe():
                                                               db_type='arkimet', station_id=station_id)
 
                 if not dballe_maps_data and not arki_maps_data:
-                    return None
+                    response = []
+                    return response
 
                 if arki_maps_data:
                     if not station_id:
@@ -527,6 +528,8 @@ class BeDballe():
 
         # TODO va fatto un check licenze compatibili qui all'inizio (by dataset)? oppure a seconda della licenza lo si manda su un dballe o un altro?
 
+        response = []
+
         # prepare the query for stations
         query_station_data = {}
         if bounding_box:
@@ -549,7 +552,7 @@ class BeDballe():
                     count_data = tr.query_stations(query_station_data).remaining
                     # log.debug('count {}',count_data)
                     if count_data == 0:
-                        return None
+                        return response
                     for rec in tr.query_stations(query_station_data):
                         networks = rec['rep_memo']
             # manage reftime for queries in arkimet
@@ -574,7 +577,7 @@ class BeDballe():
             datasets = arki.get_datasets(query_for_arkimet, license)
 
             if not datasets:
-                return None
+                return response
 
             # check datasets license,
             # TODO se non passa il check il frontend lancerà un messaggio del tipo: 'dati con licenze diverse, prego sceglierne una'
@@ -630,7 +633,7 @@ class BeDballe():
             count_data = tr.query_data(query).remaining
             # log.debug('count {}',count_data)
             if count_data == 0:
-                return None
+                return response
             for rec in tr.query_data(query):
                 res_element = {}
                 # get data about the station

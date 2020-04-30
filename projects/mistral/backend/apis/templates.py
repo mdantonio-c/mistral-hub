@@ -151,9 +151,10 @@ class Templates(EndpointResource, Uploader):
             subfolder = os.path.join(user.uuid, 'grib')
         else:
             subfolder = os.path.join(user.uuid, 'shp')
+        log.debug('uploading in {}',subfolder)
         upload_response = self.upload(subfolder=subfolder)
 
-        upload_filename = upload_response['filename']
+        upload_filename = upload_response.get_json()['filename']
         upload_filepath = os.path.join(UPLOAD_PATH, subfolder, upload_filename)
         log.debug('File uploaded. Filepath : {}', upload_filepath)
 
@@ -167,8 +168,8 @@ class Templates(EndpointResource, Uploader):
                     subfolder = os.path.join(user.uuid, 'shp')
                 if any(i.endswith('grib') for i in files):
                     subfolder = os.path.join(user.uuid, 'grib')
-                UPLOAD_PATH = os.path.join(UPLOAD_PATH, subfolder)
-                zip.extractall(path=UPLOAD_PATH)
+                zip_upload_path = os.path.join(UPLOAD_PATH, subfolder)
+                zip.extractall(path=zip_upload_path)
             # remove the zip file
             os.remove(upload_filepath)
             # get .shp file filename
@@ -226,6 +227,15 @@ class Templates(EndpointResource, Uploader):
             shp_templates = glob.glob(
                 os.path.join(UPLOAD_PATH, user.uuid, 'shp', "*.shp")
             )
+            # get total count for user templates
+            if get_total:
+                if format_filter == 'grib':
+                    counter = len(grib_templates)
+                elif format_filter == 'shp':
+                    counter = len(shp_templates)
+                else:
+                    counter = len(grib_templates) + len(shp_templates)
+                return self.response({"total": counter})
             res = []
             grib_object = {}
             grib_object['type'] = 'grib'
@@ -244,10 +254,7 @@ class Templates(EndpointResource, Uploader):
             else:
                 res.append(grib_object)
                 res.append(shp_object)
-            # get total count for user templates
-            if get_total:
-                counter = len(templates)
-                return self.response({"total": counter})
+
         return self.response(res, code=hcodes.HTTP_OK_BASIC)
 
     @decorators.catch_errors()
