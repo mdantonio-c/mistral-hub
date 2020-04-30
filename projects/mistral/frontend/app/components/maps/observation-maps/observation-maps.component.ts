@@ -45,11 +45,10 @@ export class ObservationMapsComponent implements OnInit {
     }
 
     applyFilter(filter: ObsFilter) {
-
         // get data
-        this.meteoService.getObservations(filter).subscribe(
+        this.meteoService.getStations(filter).subscribe(
             response => {
-
+                console.log(response);
             },
             error => {
                 this.notify.showError(error);

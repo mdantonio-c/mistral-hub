@@ -1,4 +1,4 @@
-<form class="filter">
+<form class="filter" [formGroup]="filterForm">
     <div class="form-group">
         <label for="variable">Variable</label>
         <select class="form-control" id="variable">
@@ -15,7 +15,8 @@
             <label for="date">Date</label>
             <div class="input-group">
                 <input class="form-control" id="date" placeholder="yyyy-mm-dd"
-                       name="dp" [(ngModel)]="model" ngbDatepicker #d="ngbDatepicker">
+                       [formControl]="filterForm.controls.reftime"
+                       ngbDatepicker #d="ngbDatepicker">
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary" (click)="d.toggle()" type="button">
                         <i class="fa fa-calendar"></i>
@@ -54,23 +55,15 @@
     <!-- Network -->
     <div class="form-group">
         <label for="network">Network</label>
-        <select class="form-control" id="network">
-            <option></option>
-            <option>2</option>
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
+        <select id="network" class="form-control" formControlName="network">
+            <option [value]="n.nemo" *ngFor="let n of allNetworks">{{n.memo}}</option>
         </select>
     </div>
     <!-- License -->
     <div class="form-group">
         <label for="license">License</label>
-        <select class="form-control" id="license">
-            <option></option>
-            <option>2</option>
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
+        <select id="license" class="form-control" formControlName="license">
+            <option [value]="l" *ngFor="let l of allLicenses">{{l}}</option>
         </select>
     </div>
 </form>

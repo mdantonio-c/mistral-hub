@@ -37,6 +37,7 @@ import {MapFilterComponent} from '@app/components/maps/forecast-maps/map-filter/
 import {MapSliderComponent} from '@app/components/maps/forecast-maps/map-slider/map-slider.component';
 import {ObservationMapsComponent} from '@app/components/maps/observation-maps/observation-maps.component';
 import {ObsFilterComponent} from '@app/components/maps/observation-maps/obs-filter/obs-filter.component';
+import {ObsNavbarComponent} from '@app/components/maps/observation-maps/obs-navbar/obs-navbar.component';
 import {MeteoTilesComponent} from '@app/components/maps/meteo-tiles/meteo-tiles.component';
 
 import {FormatDatePipe} from '@app/pipes/format-date.pipe';
@@ -79,6 +80,7 @@ const appRoutes: Routes = [
         MapSliderComponent,
         ObservationMapsComponent,
         ObsFilterComponent,
+        ObsNavbarComponent,
         MeteoTilesComponent,
         MultiStepWizardComponent,
         NavbarComponent,

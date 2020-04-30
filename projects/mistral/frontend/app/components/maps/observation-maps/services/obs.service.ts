@@ -6,7 +6,13 @@ import 'rxjs/add/operator/share';
 import {ApiService} from '@rapydo/services/api';
 
 export interface ObsFilter {
-    product: string,
+    product?: string,
+    onlyStations?: boolean
+}
+export interface Network {
+    id: number;
+    memo: string;
+    descr?: string;
 }
 
 @Injectable({
@@ -18,6 +24,14 @@ export class ObsService {
     }
 
     getObservations(filter: ObsFilter) {
+        return this.api.get('observations', '', filter);
+    }
+
+    getStations(filter: ObsFilter) {
+        //filter.onlyStations = true;
+        filter = {
+            'onlyStations': true
+        }
         return this.api.get('observations', '', filter);
     }
 }

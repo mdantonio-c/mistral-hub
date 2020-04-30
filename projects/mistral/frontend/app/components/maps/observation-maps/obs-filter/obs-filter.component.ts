@@ -1,8 +1,7 @@
 import {Component, OnInit, Output, EventEmitter} from '@angular/core';
 import {FormBuilder, FormGroup, Validators, FormControl} from '@angular/forms';
-import {ObsFilter} from '../services/obs.service';
-import {AuthService} from '@rapydo/services/auth';
-import {NgbDateStruct, NgbPanelChangeEvent} from '@ng-bootstrap/ng-bootstrap';
+import {Network, ObsFilter, ObsService} from '../services/obs.service';
+import {NETWORKS, LICENSES} from "../services/data";
 
 @Component({
     selector: 'app-obs-filter',
@@ -11,23 +10,38 @@ import {NgbDateStruct, NgbPanelChangeEvent} from '@ng-bootstrap/ng-bootstrap';
 })
 export class ObsFilterComponent implements OnInit {
     filterForm: FormGroup;
-    user: any;
-    model: NgbDateStruct;
+    allNetworks: Network[] = NETWORKS;
+    allLicenses: string[] = LICENSES;
 
     @Output() onFilterChange: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
 
-    constructor(private fb: FormBuilder, private authService: AuthService) {
+    constructor(private fb: FormBuilder) {
         this.filterForm = this.fb.group({
             product: ['B11001', Validators.required],
             level: ['', Validators.required],
-            reftime: ['lm5', Validators.required],
+            reftime: ['', Validators.required],
             timerange: [''],
             boundingBox: [''],
-            license: ['CC-BY', Validators.required]
+            network: [''],
+            license: ['CC-BY']
         });
     }
 
     ngOnInit() {
-        this.user = this.authService.getUser();
+        // subscribe for form value changes
+        this.onChanges();
+        // apply filter the first time
+        this.filter();
+    }
+
+    private onChanges(): void {
+        this.filterForm.valueChanges.subscribe(val => {
+            this.filter();
+        });
+    }
+
+    private filter() {
+        let filter: ObsFilter = this.filterForm.value;
+        this.onFilterChange.emit(filter);
     }
 }
