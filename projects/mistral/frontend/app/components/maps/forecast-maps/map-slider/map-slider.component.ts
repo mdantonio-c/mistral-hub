@@ -22,8 +22,10 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     images: any[] = [];
     paused = true;
     fromMin: number;
+    fromMinImage: number;
     maxHour = 48;
     sid: number;
+    step: number;
     sliderTicks = SLIDER_TICKS;
     legendToShow: any;
     isImageLoading = false;
@@ -64,6 +66,13 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         }, 0);
 
         this.isImageLoading = true;
+
+	if(this.filter.field === 'percentile' || this.filter.field === 'probability'){
+	    // take only till 0048, the first 15 images
+	    this.offsets = this.offsets.slice(0,15);
+	}
+	console.log(`ngOnChanges: offsets=${this.offsets}`);
+
         this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
             blobs => {
                 for (let i = 0; i < this.offsets.length; i++) {
@@ -79,14 +88,20 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
             this.presetSlider();
         });
 
+	this.step=1;
         if (this.filter.field === 'prec3' || this.filter.field === 'snow3') {
             this.fromMin = 3;
+	    this.fromMinImage = 3;
         } else if (this.filter.field === 'prec6' || this.filter.field === 'snow6') {
             this.fromMin = 6;
+	    this.fromMinImage = 6;
         } else if (this.filter.field === 'percentile' || this.filter.field === 'probability') {
             this.fromMin = 6;
+	    this.fromMinImage = 0;
+	    this.step=3;
         } else {
             this.fromMin = 0
+	    this.fromMinImage = 0;
         }
         this.sid = this.fromMin;
         this.maxHour = (this.filter.res === 'lm2.2') ? 48 : 72;
@@ -138,9 +153,13 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     onSlide(slideEvent: NgbSlideEvent) {
         // position the handle of the slider accordingly
         let idx = parseInt(slideEvent.current.split("-").slice(-1)[0]);
-        // console.log(`onSlide ${idx}`);
-        this.setSliderTo(idx);
-        this.updateTimestamp(idx);
+        console.log(`onSlide: idx=${idx}`);
+
+	var idxSlider = idx * this.step + this.fromMin;
+        console.log(`onSlide: idxSlider=${idxSlider}`);
+
+        this.setSliderTo(idxSlider);
+        this.updateTimestamp(idxSlider);
     }
 
     /**
@@ -149,9 +168,20 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
      */
     updateCarousel(index: number) {
         // load image slide into the carousel accordingly
-        // console.log(`update carousel to slideId-${index}`);
+        console.log(`updateCarousel: index=${index}`);
+	var indexImage = index;
+	if (this.filter.field === 'percentile' || this.filter.field === 'probability') {
+	    if(index < this.fromMin){
+		index = this.fromMin;
+		console.log(`updateCarousel: 2- index=${index}`);
+		this.sid = index;
+	    }
+
+	    indexImage = parseInt((index - this.fromMin)/this.step);
+	}
+	console.log(`updateCarousel: indexImage=${indexImage}`);
         setTimeout(() => {
-            this.carousel.select(`slideId-${index}`);
+            this.carousel.select(`slideId-${indexImage}`);
             this.updateTimestamp(index);
         });
 
@@ -195,7 +225,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         if (this.filter.field === 'percentile' || this.filter.field === 'probability') {
             from += 6;
 	}
-        if (this.lastRunAt.isSame(today, 'day')) {
+        if ( !(this.filter.field === 'percentile' || this.filter.field === 'probability') && (this.lastRunAt.isSame(today, 'day')) ) {
             from = today.hours();
         }
         setTimeout(() => { this.updateCarousel(from); });
