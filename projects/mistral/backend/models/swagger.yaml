@@ -346,11 +346,13 @@ definitions:
       period-settings:
         description: Settings for the periodic request
         type: object
-        $ref: "#/definitions/PeriodSettings"
+        allOf:
+          - $ref: "#/definitions/PeriodSettings"
       crontab-settings:
         description: Settings for the crontab request
         type: object
-        $ref: "#/definitions/CrontabSettings"
+        allOf:
+          - $ref: "#/definitions/CrontabSettings"
 #      on-data-ready:
 #        description: Activate data extraction when requested data is ready
 #        type: boolean
