@@ -1,0 +1,22 @@
+<div class="map-nav row mx-1">
+    <div class="mr-auto">
+        <div id="toggle-result-format" class="btn-group" role="group">
+            <button type="button" class="btn btn-icon-border-classic no-rounded" (click)="changeView('Stations')"
+                    [ngClass]="{'active btn-success': displayMode==='Stations'}">
+                Stations
+            </button>
+            <button type="button" class="btn btn-icon-border-classic no-rounded" (click)="changeView('Data')"
+                    [ngClass]="{'active btn-primary': displayMode==='Data'}">
+                Data
+            </button>
+        </div>
+    </div>
+    <div class="ml-auto my-auto">
+        <b *ngIf="displayMode==='Stations'">
+            <span *ngIf="!loading">{{ totalItems }}</span>
+            <span *ngIf="loading">
+			<i class="fa fa-spinner fa-spin blue" aria-hidden="true" style="font-size:12px"></i>
+		</span>
+            stations</b>
+    </div>
+</div>

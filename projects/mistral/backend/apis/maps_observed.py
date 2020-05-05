@@ -117,16 +117,10 @@ class MapsObservations(EndpointResource):
         else:
             res = dballe.get_maps_response(networks, bounding_box, query, only_stations, db_type=db_type, station_id=station_id)
 
-        if not res:
-            if station_id:
-                raise RestApiException(
-                    "Station '{}': data not found".format(station_id),
-                    status_code=hcodes.HTTP_BAD_NOTFOUND,
-                )
-            else:
-                raise RestApiException(
-                    "The query does not give any result",
-                    status_code=hcodes.HTTP_BAD_NOTFOUND,
-                )
+        if not res and  station_id:
+            raise RestApiException(
+                "Station '{}': data not found".format(station_id),
+                status_code=hcodes.HTTP_BAD_NOTFOUND,
+            )
 
         return self.response(res)
