@@ -176,7 +176,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 		this.sid = index;
 	    }
 
-	    indexImage = parseInt((index - this.fromMin)/this.step);
+	    indexImage = (index - this.fromMin)/this.step;
 	}
 	console.log(`updateCarousel: indexImage=${indexImage}`);
         setTimeout(() => {
