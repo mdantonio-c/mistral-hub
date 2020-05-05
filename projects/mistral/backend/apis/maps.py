@@ -13,7 +13,9 @@ MEDIA_ROOT = '/meteo/'
 
 RUNS = ['00', '12']
 RESOLUTIONS = ['lm2.2', 'lm5']
-FIELDS = ['prec3', 'prec6', 't2m', 'wind', 'cloud', 'cloud_hml', 'humidity', 'snow3', 'snow6']
+FIELDS = ['prec3', 'prec6', 't2m', 'wind', 'cloud', 'cloud_hml', 'humidity', 'snow3', 'snow6','percentile','probability']
+LEVELS_PE = ['1', '10', '25', '50', '75', '99']
+LEVELS_PR = ['5', '10', '20', '50']
 AREAS = ['Italia', 'Nord_Italia', 'Centro_Italia', 'Sud_Italia', 'Area_Mediterranea']
 PLATFORMS = ['GALILEO', 'MEUCCI']
 ENVS = ['PROD', 'DEV']
@@ -47,6 +49,10 @@ class MapEndpoint(EndpointResource):
          'description': 'Resolution of the forecast model'},
         {'name': 'field', 'in': 'query', 'required': True, 'type': 'string', 'enum': FIELDS,
          'description': 'Forecast parameter (e.g. temperature, humidity etc.)'},
+        {'name': 'level_pe', 'in': 'query', 'required': False, 'type': 'string', 'enum': LEVELS_PE,
+         'description': 'Flash flood percentile level (1, 10, 25, 50, 75, 99)'},
+        {'name': 'level_pr', 'in': 'query', 'required': False, 'type': 'string', 'enum': LEVELS_PR,
+         'description': 'Flash flood probability level (5, 10, 20, 50)'},
         {'name': 'area', 'in': 'query', 'required': True, 'type': 'string', 'enum': AREAS,
          'description': 'Forecast area'},
         {'name': 'platform', 'in': 'query', 'required': True, 'type': 'string', 'enum': PLATFORMS,
@@ -60,13 +66,23 @@ class MapEndpoint(EndpointResource):
         self.base_path = None
 
     def set_base_path(self, params):
-        self.base_path = os.path.join(
-            MEDIA_ROOT,
-            params['platform'],
-            params['env'], "Magics-{}-{}.web".format(params['run'], params['res']))
+        # flood fields have a different path
+        if (params['field'] == 'percentile') or (params['field'] == 'probability'):
+            self.base_path = os.path.join(
+                MEDIA_ROOT,
+                params['platform'],
+                params['env'], "PROB-{}-2.2.web".format(params['run']))
+        else:
+            self.base_path = os.path.join(
+                MEDIA_ROOT,
+                params['platform'],
+                params['env'], "Magics-{}-{}.web".format(params['run'], params['res']))
+        log.debug("base_path: {}".format(self.base_path))
 
     def get_ready_file(self, area):
         ready_path = os.path.join(self.base_path, area)
+        log.debug("ready_path: {}".format(ready_path))
+
         ready_files = []
         if os.path.exists(ready_path):
             ready_files = [f for f in os.listdir(ready_path) if os.path.isfile(
@@ -103,6 +119,14 @@ class MapImage(MapEndpoint):
         """Get a forecast map for a specific run."""
         params = self.get_input()
         # validate_meteo_params(params)
+        #log.debug('Retrieve map image by offset <{}>'.format(map_offset))
+
+        # flash flood offset is a bit more complicate
+        if params['field'] == 'percentile':
+            map_offset = '_'.join( (map_offset,params['level_pe']) )
+        elif params['field'] == 'probability':
+            map_offset = '_'.join( (map_offset,params['level_pr']) )
+
         log.debug('Retrieve map image by offset <{}>'.format(map_offset))
 
         self.set_base_path(params)
@@ -112,13 +136,30 @@ class MapImage(MapEndpoint):
         reftime = ready_file[:10]
 
         # get map image
-        map_image_file = os.path.join(
-            self.base_path,
-            params['area'],
-            params['field'],
-            '{field}.{reftime}.{offset}.png'.format(
-                field=params['field'], reftime=reftime, offset=map_offset
-            ))
+        if params['field'] == 'percentile':
+            map_image_file = os.path.join(
+                self.base_path,
+                params['area'],
+                params['field'],
+                '{field}.{reftime}.{offset}.png'.format(
+                    field='perc6', reftime=reftime, offset=map_offset))
+        elif params['field'] == 'probability':
+            map_image_file = os.path.join(
+                self.base_path,
+                params['area'],
+                params['field'],
+                '{field}.{reftime}.{offset}.png'.format(
+                    field='prob6', reftime=reftime, offset=map_offset))
+        else: 
+            map_image_file = os.path.join(
+                self.base_path,
+                params['area'],
+                params['field'],
+                '{field}.{reftime}.{offset}.png'.format(
+                    field=params['field'], reftime=reftime, offset=map_offset))
+
+        log.debug('map_image_file: {}'.format(map_image_file))
+
         if not os.path.isfile(map_image_file):
             raise RestApiException('Map image not found for offset {}'.format(map_offset), hcodes.HTTP_BAD_NOTFOUND)
         return send_file(map_image_file, mimetype='image/png')
@@ -185,12 +226,32 @@ class MapSet(MapEndpoint):
 
         # load image offsets
         images_path = os.path.join(
-            self.base_path,
-            params['area'],
-            params['field'])
+                self.base_path,
+                params['area'],
+                params['field'])
+
         list_file = sorted(os.listdir(images_path))
-        data['offsets'] = [f.split('.')[-2] for f in list_file if os.path.isfile(
-            os.path.join(images_path, f))]
+
+        if params['field'] == 'percentile' or params['field'] == 'probability':
+            # flash flood offset is a bit more complicate
+            for f in list_file:
+                if os.path.isfile(os.path.join(images_path, f)):
+                    offset = f.split('.')[-2]
+                    # offset is like this now: 0006_10
+                    offset,level = offset.split('_')
+                    #log.debug('data offsets: {}, level: {}'.format(offset,level))
+                    #log.debug('level_pe: {}, level_pr: {}'.format(params['level_pe'],params['level_pr']))
+
+                    if params['field'] == 'percentile' and params['level_pe'] == level:
+                        data['offsets'].append(offset)
+                    elif params['field'] == 'probability' and params['level_pr'] == level:
+                        data['offsets'].append(offset)
+        else:
+            data['offsets'] = [f.split('.')[-2] for f in list_file if os.path.isfile(
+                os.path.join(images_path, f))]
+
+        log.debug('data offsets: {}'.format(data['offsets']))
+
         return self.response(data)
 
 
@@ -224,8 +285,15 @@ class MapLegend(MapEndpoint):
 
         # Get legend image
         legend_path = os.path.join(self.base_path, "legends")
-        map_legend_file = os.path.join(
-            legend_path, params['field'] + ".png")
+        if params['field'] == 'percentile':
+            map_legend_file = os.path.join(
+                legend_path, 'perc6' + ".png")
+        elif params['field'] == 'probability':
+            map_legend_file = os.path.join(
+                legend_path, 'prob6' + ".png")
+        else:
+            map_legend_file = os.path.join(
+                legend_path, params['field'] + ".png")
         log.debug(map_legend_file)
         if not os.path.isfile(map_legend_file):
             raise RestApiException(

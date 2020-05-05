@@ -33,6 +33,19 @@
   cursor: pointer;
 }
 
+.btn-squared {
+  width: 27px;
+  height: 27px;
+  text-align: center;
+  vertical-align: middle;
+  /* padding-bottom: 1px; */
+  margin: 2px 2px;
+  font-size: 15px;
+  line-height: 2.00;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
 @media (max-width: 801px)  {
   .btn-circle {
     width: 75px;
@@ -44,5 +57,16 @@
     line-height: 1.70;
     border-radius: 40px;
     cursor: pointer;
+  }
+  .btn-squared {
+    width: 34px;
+    height: 34px;
+    text-align: center;
+    /* padding-bottom: 1px; */
+    margin: 2px 2px;
+    font-size: 20px;
+    line-height: 1.70;
+    cursor: pointer;
+    border-radius: 8px;
   }
 }
