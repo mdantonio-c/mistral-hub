@@ -1,7 +1,7 @@
 import {Component, OnInit, Output, EventEmitter} from '@angular/core';
 import {FormBuilder, FormGroup, Validators, FormControl} from '@angular/forms';
-import {Network, ObsFilter, ObsService} from '../services/obs.service';
-import {NETWORKS, LICENSES} from "../services/data";
+import {Network, Product, ObsFilter, ObsService} from '../services/obs.service';
+import {NETWORKS, LICENSES, CodeDescPair} from "../services/data";
 
 @Component({
     selector: 'app-obs-filter',
@@ -9,39 +9,66 @@ import {NETWORKS, LICENSES} from "../services/data";
     styleUrls: ['./obs-filter.component.css']
 })
 export class ObsFilterComponent implements OnInit {
+    filter: ObsFilter;
     filterForm: FormGroup;
-    allNetworks: Network[] = NETWORKS;
+    allNetworks: CodeDescPair[];
+    allLevels: CodeDescPair[];
+    allProducts: CodeDescPair[];
+    allTimeranges: CodeDescPair[];
     allLicenses: string[] = LICENSES;
 
     @Output() onFilterChange: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
+    @Output() onFilterUpdate: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
 
-    constructor(private fb: FormBuilder) {
+    constructor(private fb: FormBuilder, private obsService: ObsService) {
         this.filterForm = this.fb.group({
-            product: ['B11001', Validators.required],
+            product: ['B12101', Validators.required],
             level: ['', Validators.required],
             reftime: ['', Validators.required],
             timerange: [''],
             boundingBox: [''],
-            network: [''],
+            network: ['agrmet'],
             license: ['CC-BY']
         });
     }
 
     ngOnInit() {
+        // get fields enabling the form
+        this.loadFilter();
         // subscribe for form value changes
         this.onChanges();
-        // apply filter the first time
-        this.filter();
+    }
+
+    private loadFilter() {
+        this.obsService.getFields().subscribe(data => {
+                // TODO manage filters
+                let items = data.items;
+                if (items.network) { this.allNetworks = items.network; }
+                if (items.level) { this.allLevels = items.level; }
+                if (items.timerange) { this.allTimeranges = items.timerange; }
+                if (items.product) { this.allProducts = items.product; }
+                // apply filter
+                this.applyFilter();
+            },
+            error => {
+                // TODO
+            });
     }
 
     private onChanges(): void {
         this.filterForm.valueChanges.subscribe(val => {
-            this.filter();
+            // this.filter();
+            console.log('filter changed', val);
         });
     }
 
-    private filter() {
-        let filter: ObsFilter = this.filterForm.value;
-        this.onFilterChange.emit(filter);
+    resetFiltersToDefault() {
+        // TODO
+    }
+
+    applyFilter() {
+        let filter = this.filterForm.value;
+        console.log('apply filter', filter);
+        this.onFilterUpdate.emit(filter);
     }
 }

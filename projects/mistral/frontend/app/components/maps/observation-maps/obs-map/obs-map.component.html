@@ -1,0 +1,11 @@
+<div class="fill p-2">
+    <div class="map"
+         leaflet
+         (leafletMapReady)="onMapReady($event)"
+         [leafletOptions]="options"
+
+         [leafletMarkerCluster]="markerClusterData"
+         [leafletMarkerClusterOptions]="markerClusterOptions"
+         (leafletMarkerClusterReady)="markerClusterReady($event)">
+    </div>
+</div>

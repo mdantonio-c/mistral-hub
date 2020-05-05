@@ -1,4 +1,10 @@
 <div id="observation-maps" class="container-fluid mb-2">
+    <ngx-spinner
+            bdColor="rgba(255,255,255,0.8)"
+            color="#6c757d"
+            zIndex="1000"
+            [fullScreen]="false" type="ball-clip-rotate-multiple" size="medium">
+    </ngx-spinner>
     <div class="row .no-gutters">
         <div class="col-lg-3 mb-2">
             <ngb-accordion #acc="ngbAccordion" activeIds="filter-panel">
@@ -10,7 +16,7 @@
                     </ng-template>
                     <ng-template ngbPanelContent let-opened="opened">
                         <app-obs-filter
-                            (onFilterChange)="applyFilter($event)"></app-obs-filter>
+                                (onFilterUpdate)="applyFilter($event)"></app-obs-filter>
                     </ng-template>
                 </ngb-panel>
                 <ngb-panel>
@@ -33,17 +39,12 @@
         <div class="col-lg-9">
             <div class="card h-100">
                 <div class="card-header">
-                    <app-obs-navbar></app-obs-navbar>
+                    <app-obs-navbar [totalItems]=totalItems></app-obs-navbar>
                 </div>
-                <div class="card-body fill p-2">
-                    <div class="map"
-                         leaflet
-                         (leafletMapReady)="onMapReady($event)"
-                         [leafletOptions]="options">
-                    </div>
+                <div class="card-body p-0">
+                    <app-obs-map [filter]="filter" (updateCount)="totalItems=$event"></app-obs-map>
                 </div>
             </div>
         </div>
     </div>
-</div>
 

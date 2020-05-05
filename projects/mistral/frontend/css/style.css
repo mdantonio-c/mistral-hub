@@ -5,6 +5,7 @@
 /* add leaflet and leaflet-draw css */
 @import url('leaflet/dist/leaflet.css');
 @import url('leaflet-draw/dist/leaflet.draw.css');
+@import url('leaflet.markercluster/dist/MarkerCluster.Default.css');
 
 @import url('button-toggle.css');
 @import url('weather-icons.css');
