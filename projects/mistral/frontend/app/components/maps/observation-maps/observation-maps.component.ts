@@ -1,5 +1,6 @@
 import {Component, OnInit, ViewChild, ElementRef} from "@angular/core";
 import {ObsFilter} from "./services/obs.service";
+import {ObsMapComponent} from "./obs-map/obs-map.component";
 
 @Component({
     selector: 'app-observation-maps',
@@ -7,11 +8,15 @@ import {ObsFilter} from "./services/obs.service";
     styleUrls: ['./observation-maps.component.css']
 })
 export class ObservationMapsComponent {
-    filter: ObsFilter;
     totalItems: number = 0;
 
+    @ViewChild(ObsMapComponent) map: ObsMapComponent;
+
     applyFilter(filter: ObsFilter) {
-        this.filter = filter;
+        setTimeout(() => {
+             this.map.updateMap(filter);
+        }, 0);
+
     }
 
 }

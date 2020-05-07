@@ -1,7 +1,8 @@
-import {Component, OnInit, Output, EventEmitter} from '@angular/core';
+import {Component, OnInit, Output, EventEmitter, ViewChild, AfterViewInit} from '@angular/core';
 import {FormBuilder, FormGroup, Validators, FormControl} from '@angular/forms';
 import {Network, Product, ObsFilter, ObsService} from '../services/obs.service';
 import {NETWORKS, LICENSES, CodeDescPair} from "../services/data";
+import {NgbDateStruct, NgbCalendar, NgbDateAdapter, NgbDateNativeAdapter, NgbInputDatepicker} from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
     selector: 'app-obs-filter',
@@ -9,22 +10,22 @@ import {NETWORKS, LICENSES, CodeDescPair} from "../services/data";
     styleUrls: ['./obs-filter.component.css']
 })
 export class ObsFilterComponent implements OnInit {
-    filter: ObsFilter;
     filterForm: FormGroup;
     allNetworks: CodeDescPair[];
     allLevels: CodeDescPair[];
     allProducts: CodeDescPair[];
     allTimeranges: CodeDescPair[];
     allLicenses: string[] = LICENSES;
+    today: Date = new Date();
 
-    @Output() onFilterChange: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
-    @Output() onFilterUpdate: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
+    @Output() filterChange: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
+    @Output() filterUpdate: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
 
-    constructor(private fb: FormBuilder, private obsService: ObsService) {
+    constructor(private fb: FormBuilder, private calendar: NgbCalendar, private obsService: ObsService) {
         this.filterForm = this.fb.group({
             product: ['B12101', Validators.required],
             level: ['', Validators.required],
-            reftime: ['', Validators.required],
+            reftime: [this.today, Validators.required],
             timerange: [''],
             boundingBox: [''],
             network: ['agrmet'],
@@ -35,8 +36,8 @@ export class ObsFilterComponent implements OnInit {
     ngOnInit() {
         // get fields enabling the form
         this.loadFilter();
-        // subscribe for form value changes
-        this.onChanges();
+        // subscribe form value changes
+        // this.onChanges();
     }
 
     private loadFilter() {
@@ -47,28 +48,36 @@ export class ObsFilterComponent implements OnInit {
                 if (items.level) { this.allLevels = items.level; }
                 if (items.timerange) { this.allTimeranges = items.timerange; }
                 if (items.product) { this.allProducts = items.product; }
-                // apply filter
-                this.applyFilter();
+                // emit filter update
+                this.update();
             },
             error => {
                 // TODO
             });
     }
-
+    /*
     private onChanges(): void {
         this.filterForm.valueChanges.subscribe(val => {
             // this.filter();
-            console.log('filter changed', val);
+            // console.log('filter changed', val);
         });
     }
+     */
 
     resetFiltersToDefault() {
         // TODO
     }
 
-    applyFilter() {
-        let filter = this.filterForm.value;
-        console.log('apply filter', filter);
-        this.onFilterUpdate.emit(filter);
+    update() {
+        let form = this.filterForm.value;
+        let filter: ObsFilter = {
+            product: form.product,
+            reftime: form.reftime
+        }
+        if (form.network !== '') {
+            filter.network = form.network;
+        }
+        console.log('emit update filter', filter);
+        this.filterUpdate.emit(filter);
     }
 }
