@@ -28,7 +28,7 @@ export class ObsFilterComponent implements OnInit {
             reftime: [this.today, Validators.required],
             timerange: [''],
             boundingBox: [''],
-            network: ['agrmet'],
+            network: [''],
             license: ['CC-BY']
         });
     }

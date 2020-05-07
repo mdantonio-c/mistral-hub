@@ -12,7 +12,7 @@ import 'leaflet.markercluster';
     templateUrl: './obs-map.component.html',
     styleUrls: ['./obs-map.component.css']
 })
-export class ObsMapComponent implements OnInit {
+export class ObsMapComponent {
 
     @Output() updateCount: EventEmitter<number> = new EventEmitter<number>();
 
