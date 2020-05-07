@@ -29,7 +29,7 @@ export class ForecastMapsComponent implements OnInit {
         this.spinner.show();
         this.filter = filter;
         this.offsets.length = 0;
-        console.log(filter);
+        //console.log(filter);
 
         // get data
         this.meteoService.getMapset(filter).subscribe(

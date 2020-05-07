@@ -70,7 +70,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 	    // take only till 0048, the first 15 images
 	    this.offsets = this.offsets.slice(0,15);
 	}
-	console.log(`ngOnChanges: offsets=${this.offsets}`);
+	//console.log(`ngOnChanges: offsets=${this.offsets}`);
 
         this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
             blobs => {
@@ -152,10 +152,10 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     onSlide(slideEvent: NgbSlideEvent) {
         // position the handle of the slider accordingly
         let idx = parseInt(slideEvent.current.split("-").slice(-1)[0]);
-        console.log(`onSlide: idx=${idx}`);
+        //console.log(`onSlide: idx=${idx}`);
 
 	var idxSlider = idx * this.step + this.fromMin;
-        console.log(`onSlide: idxSlider=${idxSlider}`);
+        //console.log(`onSlide: idxSlider=${idxSlider}`);
 
         this.setSliderTo(idxSlider);
         this.updateTimestamp(idxSlider);
@@ -167,18 +167,18 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
      */
     updateCarousel(index: number) {
         // load image slide into the carousel accordingly
-        console.log(`updateCarousel: index=${index}`);
+        //console.log(`updateCarousel: index=${index}`);
 	var indexImage = index;
 	if (this.filter.field === 'percentile' || this.filter.field === 'probability') {
 	    if(index < this.fromMin){
 		index = this.fromMin;
-		console.log(`updateCarousel: 2- index=${index}`);
+		//console.log(`updateCarousel: 2- index=${index}`);
 		this.sid = index;
 	    }
 
 	    indexImage = (index - this.fromMin)/this.step;
 	}
-	console.log(`updateCarousel: indexImage=${indexImage}`);
+	//console.log(`updateCarousel: indexImage=${indexImage}`);
         setTimeout(() => {
             this.carousel.select(`slideId-${indexImage}`);
             this.updateTimestamp(index);
