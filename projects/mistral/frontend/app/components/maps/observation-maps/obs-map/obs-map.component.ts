@@ -8,12 +8,12 @@ import * as L from 'leaflet';
 import 'leaflet.markercluster';
 
 @Component({
-	selector: 'app-obs-map',
-	templateUrl: './obs-map.component.html',
-	styleUrls: ['./obs-map.component.css']
+    selector: 'app-obs-map',
+    templateUrl: './obs-map.component.html',
+    styleUrls: ['./obs-map.component.css']
 })
-export class ObsMapComponent implements OnChanges {
-    @Input() filter: ObsFilter;
+export class ObsMapComponent implements OnInit {
+
     @Output() updateCount: EventEmitter<number> = new EventEmitter<number>();
 
     showLayer = false;
@@ -26,34 +26,12 @@ export class ObsMapComponent implements OnChanges {
         detectRetina: true,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
-    // layers = [];
 
     // Marker cluster stuff
     markerClusterGroup: L.MarkerClusterGroup;
     markerClusterData: L.Marker[] = [];
     markerClusterOptions: L.MarkerClusterGroupOptions;
     map: L.Map;
-    /*
-    summit = L.marker([45.0, 12.0], {
-        icon: L.icon({
-            iconSize: [25, 41],
-            iconAnchor: [13, 41],
-            iconUrl: 'leaflet/marker-icon.png',
-            shadowUrl: 'leaflet/marker-shadow.png'
-        })
-    });
-    layers = [ this.summit ];
-    // Layers control object with our two base layers and the three overlay layers
-    layersControl = {
-        baseLayers: {
-            'Street Maps': this.streetMaps,
-            'Wikimedia Maps': this.wMaps
-        },
-        overlays: {
-            "Summit": this.summit
-        }
-    };
-    */
 
     // Set the initial set of displayed layers
     options = {
@@ -68,34 +46,16 @@ export class ObsMapComponent implements OnChanges {
                 private notify: NotificationService,
                 private spinner: NgxSpinnerService) {
     }
-    /*
-    ngOnInit() {
-        // this.applyFilter({});
-        // this.loadMarkers(obsData);
-        // console.log('ng init', this.markerClusterData);
-    }
-     */
-    ngOnChanges() {
-        this.applyFilter(this.filter);
-    }
 
     onMapReady(map: L.Map) {
         this.map = map;
     }
 
     markerClusterReady(group: L.MarkerClusterGroup) {
-        console.log('markerClusterReady', group);
         this.markerClusterGroup = group;
-        /*
-        this.map.fitBounds(this.markerClusterGroup.getBounds(), {
-            padding: L.point(24, 24),
-            maxZoom: 12,
-            animate: true
-        });
-        */
     }
 
-    applyFilter(filter: ObsFilter) {
+    updateMap(filter: ObsFilter) {
         // get data
         this.showLayer = false;
         if (this.markerClusterGroup) {
@@ -131,13 +91,14 @@ export class ObsMapComponent implements OnChanges {
             markers.push(L.marker([s.station.lat, s.station.lon], {icon}));
         })
         this.markerClusterData = markers;
-        setTimeout(() => {
+        this.markerClusterGroup.addLayers(markers);
+        if (markers.length > 0) {
             this.map.fitBounds(this.markerClusterGroup.getBounds(), {
-                padding: L.point(24, 24),
-                maxZoom: 12,
-                animate: true
-            });
-        }, 500)
+                    padding: L.point(24, 24),
+                    maxZoom: 12,
+                    animate: true
+                });
+        }
 
     }
 }

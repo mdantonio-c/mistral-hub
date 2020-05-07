@@ -16,7 +16,7 @@
                     </ng-template>
                     <ng-template ngbPanelContent let-opened="opened">
                         <app-obs-filter
-                                (onFilterUpdate)="applyFilter($event)"></app-obs-filter>
+                                (filterUpdate)="applyFilter($event)"></app-obs-filter>
                     </ng-template>
                 </ngb-panel>
                 <ngb-panel>
@@ -42,7 +42,7 @@
                     <app-obs-navbar [totalItems]=totalItems></app-obs-navbar>
                 </div>
                 <div class="card-body p-0">
-                    <app-obs-map [filter]="filter" (updateCount)="totalItems=$event"></app-obs-map>
+                    <app-obs-map (updateCount)="totalItems=$event"></app-obs-map>
                 </div>
             </div>
         </div>

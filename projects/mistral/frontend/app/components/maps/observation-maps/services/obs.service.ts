@@ -7,9 +7,10 @@ import {ApiService} from '@rapydo/services/api';
 import {FIELDS_SUMMARY} from "./data";
 
 export interface ObsFilter {
-    product?: string,
-    network?: string
-    onlyStations?: boolean
+    product: string;
+    reftime: Date;
+    network?: string;
+    onlyStations?: boolean;
 }
 export interface Network {
     id: number;
@@ -50,9 +51,14 @@ export class ObsService {
     }
 
     getStations(filter: ObsFilter) {
+        let d = [
+            `${filter.reftime.getFullYear()}`,
+            `${filter.reftime.getMonth()+1}`.padStart(2, '0'),
+            `${filter.reftime.getDate()}`.padStart(2, '0')
+            ].join('-');
         let params = {
             onlyStations: true,
-            q: `reftime: >=2020-05-04 00:00,<=2020-05-04 23:59;product:${filter.product}`
+            q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`
         }
         if (filter.network && filter.network !== '') {
             params['networks'] = filter.network;
