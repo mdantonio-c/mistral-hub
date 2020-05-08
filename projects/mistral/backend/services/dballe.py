@@ -970,7 +970,7 @@ class BeDballe():
         arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
         log.debug('extracting obs data from arkimet: {}', arki_query_cmd)
         proc = subprocess.Popen(arki_query_cmd, stdout=subprocess.PIPE)
-        if proc.wait() != 0:
+        if proc.returncode:
             raise AccessToDatasetDenied('Access to dataset denied')
         # write the result of the extraction on a temporary file
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
