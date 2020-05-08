@@ -4,7 +4,6 @@ import { environment } from '@rapydo/../environments/environment';
 
 @Component({
   selector: 'customlinks',
-  providers: [],
   templateUrl: './custom.navbar.links.html',
 })
 export class CustomNavbarComponent {
@@ -18,7 +17,6 @@ export class CustomNavbarComponent {
 
 @Component({
   selector: 'custombrand',
-  providers: [],
   templateUrl: './custom.navbar.brand.html',
 })
 export class CustomBrandComponent {
