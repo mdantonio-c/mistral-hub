@@ -7,6 +7,7 @@ from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from restapi.utilities.logs import log
+from mistral.exceptions import AccessToDatasetDenied
 
 from datetime import datetime
 
@@ -110,10 +111,16 @@ class Fields(EndpointResource):
                     for net in ds_params:
                         requested_nets.append(net)
                     log.info('dataset: {}, networks: {}'.format(ds, ds_params))
-                    if db_type == 'mixed':
-                        fields, summary = dballe.load_filter_for_mixed(datasets, ds_params, query=query_dic)
-                    else:
-                        fields, summary = dballe.load_filters(datasets, ds_params, db_type=db_type, query_dic=query_dic)
+                    try:
+                        if db_type == 'mixed':
+                            fields, summary = dballe.load_filter_for_mixed(datasets, ds_params, query=query_dic)
+                        else:
+                            fields, summary = dballe.load_filters(datasets, ds_params, db_type=db_type, query_dic=query_dic)
+                    except AccessToDatasetDenied:
+                        raise RestApiException(
+                            'Access to dataset denied',
+                            status_code=hcodes.HTTP_SERVER_ERROR,
+                        )
                     if not fields:
                         continue
                     else:
@@ -156,7 +163,13 @@ class Fields(EndpointResource):
 
         ########## ARKIMET ###########
         else:
-            summary = arki.load_summary(datasets, query)
+            try:
+                summary = arki.load_summary(datasets, query)
+            except AccessToDatasetDenied:
+                raise RestApiException(
+                    'Access to dataset denied',
+                    status_code=hcodes.HTTP_SERVER_ERROR,
+                )
 
         ########## ONLY ARKIMET SUMMARY ###########
         only_summary_stats = params.get('onlySummaryStats')

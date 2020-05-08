@@ -8,3 +8,7 @@ class PostProcessingException(Exception):
 
 class InvalidLicenseException(Exception):
     """Exception for invalid license."""
+
+
+class AccessToDatasetDenied(Exception):
+    """Exception for permission denied to access arkimet dataset"""

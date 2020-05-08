@@ -9,6 +9,7 @@ import shlex
 from datetime import datetime, timedelta, date, time
 
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
+from mistral.exceptions import AccessToDatasetDenied
 
 
 user = os.environ.get("ALCHEMY_USER")
@@ -969,6 +970,8 @@ class BeDballe():
         arki_query_cmd = shlex.split("arki-query --data '{}' {}".format(query, ds))
         log.debug('extracting obs data from arkimet: {}', arki_query_cmd)
         proc = subprocess.Popen(arki_query_cmd, stdout=subprocess.PIPE)
+        if proc.wait() != 0:
+            raise AccessToDatasetDenied('Access to dataset denied')
         # write the result of the extraction on a temporary file
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
             tmpf.write(proc.stdout.read())
