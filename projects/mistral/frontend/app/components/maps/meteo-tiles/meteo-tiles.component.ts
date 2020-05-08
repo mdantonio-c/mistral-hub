@@ -1,8 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import * as L from 'leaflet';
-// import 'leaflet-timedimension/dist/leaflet.timedimension.src.js';
-const MAP_CENTER = [41.879966, 12.280000];
+import 'leaflet-timedimension/dist/leaflet.timedimension.src.js';
+declare module 'leaflet' {
+   var timeDimension: any;
+}
 
+const MAP_CENTER = [41.879966, 12.280000];
 
 @Component({
     selector: 'app-meteo-tiles',
@@ -134,7 +137,9 @@ export class MeteoTilesComponent implements OnInit {
       this.temperature2m
     ],
     zoom: 5,
-    center: L.latLng([ 46.879966, 11.726909 ])
+    center: L.latLng([ 46.879966, 11.726909 ]),
+    timeDimension: true,
+    timeDimensionControl: true
   };
   ngOnInit() {
 
