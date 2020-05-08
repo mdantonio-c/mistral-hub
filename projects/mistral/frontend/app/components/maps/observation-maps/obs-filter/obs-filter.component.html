@@ -12,8 +12,9 @@
             <div class="input-group">
                 <input class="form-control" id="date" placeholder="dd/mm/yyyy"
                        formControlName="reftime"
-                       [maxDate]="today"
+                       [maxDate]="maxDate"
                        [footerTemplate]="footerTemplate"
+                       [ngClass]="{'is-invalid': filterForm.controls.reftime.invalid}"
                        ngbDatepicker #d="ngbDatepicker">
                 <ng-template #footerTemplate>
                   <hr class="my-0">
@@ -25,6 +26,9 @@
                         <i class="fa fa-calendar"></i>
                     </button>
                 </div>
+            </div>
+            <div class="invalid-feedback" *ngIf="filterForm.controls.reftime.invalid">
+              Please choose a date.
             </div>
         </div>
         <div class="col-md-4">
@@ -66,17 +70,16 @@
     </div>
 
     <div class="text-center mt-4">
+        <!--
         <button type="button" class="btn btn-border-classic btn-sm no-rounded" (click)="resetFiltersToDefault()">
             <i class="fas fa-undo"></i>
             Reset
         </button>
-        <button type="submit" class="btn btn-primary no-rounded ml-2">
+        -->
+        <button type="submit" class="btn btn-primary no-rounded ml-2" [disabled]="filterForm.invalid">
             <i class="fas fa-filter"></i>
             Update
         </button>
     </div>
 </form>
-<!--
-<hr>
-<pre>{{filterForm.value | json}}</pre>
--->
+

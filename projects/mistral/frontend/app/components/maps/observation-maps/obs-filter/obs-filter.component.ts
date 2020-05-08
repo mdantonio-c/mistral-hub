@@ -1,8 +1,9 @@
-import {Component, OnInit, Output, EventEmitter, ViewChild, AfterViewInit} from '@angular/core';
-import {FormBuilder, FormGroup, Validators, FormControl} from '@angular/forms';
-import {Network, Product, ObsFilter, ObsService} from '../services/obs.service';
+import {Component, OnInit, Output, EventEmitter} from '@angular/core';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {ObsFilter, ObsService} from '../services/obs.service';
 import {NETWORKS, LICENSES, CodeDescPair} from "../services/data";
-import {NgbDateStruct, NgbCalendar, NgbDateAdapter, NgbDateNativeAdapter, NgbInputDatepicker} from '@ng-bootstrap/ng-bootstrap';
+import {NgbDateStruct, NgbCalendar} from '@ng-bootstrap/ng-bootstrap';
+import {NotificationService} from '@rapydo/services/notification';
 
 @Component({
     selector: 'app-obs-filter',
@@ -17,19 +18,29 @@ export class ObsFilterComponent implements OnInit {
     allTimeranges: CodeDescPair[];
     allLicenses: string[] = LICENSES;
     today: Date = new Date();
+    maxDate: NgbDateStruct = {
+        year: this.today.getFullYear(),
+        month: this.today.getMonth() + 1,
+        day: this.today.getDate()
+    }
 
     @Output() filterChange: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
     @Output() filterUpdate: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
 
-    constructor(private fb: FormBuilder, private calendar: NgbCalendar, private obsService: ObsService) {
+    constructor(
+        private fb: FormBuilder,
+        private calendar: NgbCalendar,
+        private obsService: ObsService,
+        private notify: NotificationService
+    ) {
         this.filterForm = this.fb.group({
             product: ['B12101', Validators.required],
-            level: ['', Validators.required],
             reftime: [this.today, Validators.required],
+            level: [''],
             timerange: [''],
             boundingBox: [''],
             network: [''],
-            license: ['CC-BY']
+            license: ['CC-BY', Validators.required]
         });
     }
 
@@ -37,32 +48,41 @@ export class ObsFilterComponent implements OnInit {
         // get fields enabling the form
         this.loadFilter();
         // subscribe form value changes
-        // this.onChanges();
+        this.onChanges();
     }
 
     private loadFilter() {
         this.obsService.getFields().subscribe(data => {
                 // TODO manage filters
                 let items = data.items;
-                if (items.network) { this.allNetworks = items.network; }
-                if (items.level) { this.allLevels = items.level; }
-                if (items.timerange) { this.allTimeranges = items.timerange; }
-                if (items.product) { this.allProducts = items.product; }
+                if (items.network) {
+                    this.allNetworks = items.network;
+                }
+                if (items.level) {
+                    this.allLevels = items.level;
+                }
+                if (items.timerange) {
+                    this.allTimeranges = items.timerange;
+                }
+                if (items.product) {
+                    this.allProducts = items.product;
+                }
                 // emit filter update
-                this.update();
+                if (!this.filterForm.invalid) {
+                    this.update();
+                }
             },
             error => {
-                // TODO
+                this.notify.showError(error);
             });
     }
-    /*
+
     private onChanges(): void {
         this.filterForm.valueChanges.subscribe(val => {
-            // this.filter();
-            // console.log('filter changed', val);
+            console.log('filter changed', val);
+            console.log('is form invalid?', this.filterForm.invalid);
         });
     }
-     */
 
     resetFiltersToDefault() {
         // TODO
