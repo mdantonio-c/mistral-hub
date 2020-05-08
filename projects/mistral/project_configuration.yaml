@@ -11,6 +11,7 @@ variables:
     # BACKEND_BUILD_MODE: backendcentos
     # PYTHON_PATH: /usr/local/lib/python3.6/dist-packages
     FRONTEND_FRAMEWORK: angular
+    ENABLE_FOOTER: true
     # RUN_SCHEMATHESIS: 0
 
     LOG_LEVEL: DEBUG
