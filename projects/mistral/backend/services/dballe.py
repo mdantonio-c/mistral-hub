@@ -122,8 +122,8 @@ class BeDballe():
         # get fields for the dballe database
         log.debug('mixed dbs: get fields from dballe')
         query_for_dballe = {}
-        for key, value in query.items():
-            query_for_dballe[key] = value
+        if query:
+            query_for_dballe = {**query}
         if 'datetimemin' in query:
             refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(query['datetimemin'],
                                                                                              query['datetimemax'])
@@ -135,8 +135,8 @@ class BeDballe():
         # get fields for the arkimet database
         log.debug('mixed dbs: get fields from arkimet')
         query_for_arki = {}
-        for key, value in query.items():
-            query_for_arki[key] = value
+        if query:
+            query_for_arki = {**query}
         if 'datetimemin' in query:
             # set up query for arkimet with the correct reftimes
             query_for_arki['datetimemin'] = refmin_arki
@@ -151,11 +151,13 @@ class BeDballe():
 
         if not dballe_fields and not arki_fields:
             return None, None
-
         # integrate the dballe dic with the arki one
         if arki_fields:
             for key in arki_fields:
-                if key not in dballe_fields:
+                if not dballe_fields:
+                    dballe_fields = {}
+                    dballe_fields[key] = arki_fields[key]
+                elif key not in dballe_fields:
                     dballe_fields[key] = arki_fields[key]
                 else:
                     # merge the two lists
@@ -174,8 +176,7 @@ class BeDballe():
 
         query = {}
         if query_dic:
-            for key, value in query_dic.items():
-                query[key] = value
+            query = {**query_dic}
 
         # if not BeDballe.explorer:
         # BeDballe.explorer = BeDballe.build_explorer()
@@ -199,6 +200,12 @@ class BeDballe():
                 query_networks_list = query['network']
         log.debug('Loading filters: query networks list : {}'.format(query_networks_list))
 
+        bbox = {}
+        bbox_keys = ['latmin', 'lonmin', 'latmax', 'lonmax']
+        for key, value in query.items():
+            if key in bbox_keys:
+                bbox[key] = value
+
         memdb = None
         arkimet_query = None
 
@@ -209,8 +216,7 @@ class BeDballe():
                 network = query['network']
             datemin = query['datetimemin'].strftime("%Y-%m-%d %H:%M")
             datemax = query['datetimemax'].strftime("%Y-%m-%d %H:%M")
-
-            arkimet_query = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=network)
+            arkimet_query = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=network, bounding_box=bbox)
             if not datasets:
                 # TODO managing license
                 license = None
@@ -232,14 +238,18 @@ class BeDballe():
         tranges = []
         if not query_networks_list:
             query_networks_list = explorer.all_reports
-            log.debug('all networks: {}',query_networks_list)
+            log.debug('all networks: {}', query_networks_list)
         for n in query_networks_list:
             # filter the dballe database by network
-            if not 'datetimemin' in query:
-                explorer.set_filter({'report': n})
-            else:
-                explorer.set_filter(
-                    {'report': n, 'datetimemin': query['datetimemin'], 'datetimemax': query['datetimemax']})
+            filters_for_explorer = {'report': n}
+            if bbox:
+                for key, value in bbox.items():
+                    filters_for_explorer[key] = value
+            if 'datetimemin' in query:
+                filters_for_explorer['datetimemin'] = query['datetimemin']
+                filters_for_explorer['datetimemax'] = query['datetimemax']
+
+            explorer.set_filter(filters_for_explorer)
 
             # list of the variables of this network
             net_variables = []
@@ -263,7 +273,8 @@ class BeDballe():
                 net_variables = varlist
 
             ######### LEVELS FIELDS
-            level_fields, net_variables_temp = BeDballe.get_fields(explorer, n, net_variables, query, param='level')
+            level_fields, net_variables_temp = BeDballe.get_fields(explorer, filters_for_explorer, net_variables, query,
+                                                                   param='level')
             if not level_fields:
                 continue
             # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
@@ -271,7 +282,7 @@ class BeDballe():
                 net_variables = net_variables_temp
 
             ######### TIMERANGES FIELDS
-            trange_fields, net_variables_temp, level_fields_temp = BeDballe.get_fields(explorer, n, net_variables,
+            trange_fields, net_variables_temp, level_fields_temp = BeDballe.get_fields(explorer, filters_for_explorer, net_variables,
                                                                                        query, param='timerange')
             if not trange_fields:
                 continue
@@ -318,19 +329,15 @@ class BeDballe():
                     datemin_dballe = datetime.utcnow() - timedelta(days=int(LASTDAYS))
                     summary['b'] = BeDballe.from_datetime_to_list(datemin_dballe)
                     summary['e'] = BeDballe.from_datetime_to_list(datetime.utcnow())
-
             return fields, summary
         else:
             return None, None
 
     @staticmethod
-    def get_fields(explorer, network, variables, query, param):
+    def get_fields(explorer, filters_for_explorer, variables, query, param):
         # filter the dballe database by list of variables (level and timerange depend on variable)
-        if not 'datetimemin' in query:
-            explorer.set_filter({'varlist': variables, 'report': network})
-        else:
-            explorer.set_filter({'varlist': variables, 'report': network, 'datetimemin': query['datetimemin'],
-                                 'datetimemax': query['datetimemax']})
+        filters_w_varlist = {**filters_for_explorer, 'varlist': variables}
+        explorer.set_filter(filters_w_varlist)
 
         level_list = []
         # get the list of all the fields for requested param according to the variables
@@ -379,12 +386,10 @@ class BeDballe():
                     for qp in query[param]:
                         # for each variable i check if the param matches
                         for v in variables:
-                            if not 'datetimemin' in query:
-                                explorer.set_filter({'var': v})
-                            else:
-                                explorer.set_filter(
-                                    {'var': v, 'datetimemin': query['datetimemin'],
-                                     'datetimemax': query['datetimemax']})
+                            filters_w_var = {**filters_for_explorer, 'var': v}
+                            # discard from the query the query params i don't need
+                            filters_w_var.pop('report', None)
+                            explorer.set_filter(filters_w_var)
 
                             if param == 'level':
                                 param_list = explorer.levels
@@ -409,12 +414,10 @@ class BeDballe():
                         # for each variable check if the level matches
                         for level in level_list_parsed:
                             for v in variables:
-                                if not 'datetimemin' in query:
-                                    explorer.set_filter({'var': v})
-                                else:
-                                    explorer.set_filter(
-                                        {'var': v, 'datetimemin': query['datetimemin'],
-                                         'datetimemax': query['datetimemax']})
+                                filters_w_var = {**filters_for_explorer, 'var': v}
+                                # discard from the query the query params i don't need
+                                filters_w_var.pop('report', None)
+                                explorer.set_filter(filters_w_var)
 
                                 var_level = explorer.levels
                                 var_level_parsed = []
@@ -444,8 +447,8 @@ class BeDballe():
         log.debug('mixed dbs: get data from dballe')
         query_for_dballe = {}
         if query:
-            for key, value in query.items():
-                query_for_dballe[key] = value
+            query_for_dballe = {**query}
+
         if 'datetimemin' in query_for_dballe:
             refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(query['datetimemin'],
                                                                                              query['datetimemax'])
@@ -474,8 +477,7 @@ class BeDballe():
                 log.debug('mixed dbs: get data from arkimet')
                 query_for_arki = {}
                 if query:
-                    for key, value in query.items():
-                        query_for_arki[key] = value
+                    query_for_arki = {**query}
                 # set up query for arkimet with the correct reftimes
                 query_for_arki['datetimemin'] = refmin_arki
                 query_for_arki['datetimemax'] = refmax_arki
@@ -534,8 +536,7 @@ class BeDballe():
         # prepare the query for stations
         query_station_data = {}
         if bounding_box:
-            for key, value in bounding_box.items():
-                query_station_data[key] = value
+            query_station_data = {**bounding_box}
         if networks:
             # for now we consider only single parameters.
             # TODO choose if the network will be a single or multiple param
@@ -588,8 +589,7 @@ class BeDballe():
         # build query for data starting from the one for stations
         query_data = {}
         if query_station_data:
-            for key, value in query_station_data.items():
-                query_data[key] = value
+            query_data = {**query_station_data}
         if query:
             # adapt the query to the dballe syntax and add the params to the general query
             allowed_keys = ['level', 'network', 'product', 'timerange', 'datetimemin', 'datetimemax']
@@ -938,7 +938,10 @@ class BeDballe():
                     query_list.append(value)
                     queries.append(query_list)
                 else:
-                    queries.append(value)
+                    if isinstance(value, list):
+                        queries.append(value)
+                    else:
+                        queries.append([value])
             else:
                 continue
         return fields, queries

@@ -28,6 +28,8 @@ class Fields(EndpointResource):
                 },
                 {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''},
                 {'name': 'type', 'in': 'query', 'type': 'string','enum': ['OBS', 'FOR'],},
+                {'name': 'bounding-box', 'in': 'query', 'type': 'string',
+                 'description': 'coordinates of a bounding box'},
                 {
                     'name': 'onlySummaryStats',
                     'in': 'query',
@@ -53,6 +55,15 @@ class Fields(EndpointResource):
         ds = params.get('datasets')
         query = params.get('q')
         data_type = params.get('type')
+        bbox = params.get('bounding-box')
+        bbox_list = bbox.split(',') if bbox is not None else []
+        bounding_box = {}
+        if bbox_list:
+            log.debug(bbox_list)
+            for i in bbox_list:
+                split = i.split(':')
+                bounding_box[split[0]] = split[1]
+
         datasets = ds.split(',') if ds is not None else []
 
         # check for existing dataset(s)
@@ -98,6 +109,9 @@ class Fields(EndpointResource):
             query_dic = {}
             if query:
                 query_dic = dballe.from_query_to_dic(query)
+            if bounding_box:
+                for key, value in bounding_box.items():
+                    query_dic[key] = value
             if 'datetimemin' in query_dic:
                 db_type = dballe.get_db_type(query_dic['datetimemin'], query_dic['datetimemax'])
             else:
@@ -148,7 +162,7 @@ class Fields(EndpointResource):
                             if new_date < summary_date:
                                 resulting_fields['summarystats']['b'] = summary['b']
             else:
-                ds_params=[]
+                ds_params = []
                 if db_type == 'mixed':
                     fields, summary = dballe.load_filter_for_mixed(datasets, ds_params, query=query_dic)
                 else:
@@ -158,7 +172,6 @@ class Fields(EndpointResource):
                         resulting_fields[key] = fields[key]
                     for key in summary:
                         resulting_fields['summarystats'][key]=summary[key]
-
             summary = {'items': resulting_fields}
 
         ########## ARKIMET ###########
