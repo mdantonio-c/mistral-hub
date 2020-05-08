@@ -121,6 +121,11 @@
   box-shadow: none;
 }
 
+.invalid-feedback {
+  display: block;
+  margin-top: 0;
+}
+
 /* Buttons */
 .btn.no-rounded {
   border-radius: 0 !important;

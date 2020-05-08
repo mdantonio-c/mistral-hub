@@ -4,9 +4,9 @@ from restapi.rest.definition import EndpointResource
 from restapi.exceptions import RestApiException
 from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
-from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from restapi.utilities.logs import log
+from mistral.exceptions import AccessToDatasetDenied
 
 
 class MapsObservations(EndpointResource):
@@ -112,10 +112,16 @@ class MapsObservations(EndpointResource):
         else:
             db_type = 'mixed'
         log.debug('type of database: {}',db_type)
-        if db_type == 'mixed':
-            res = dballe.get_maps_response_for_mixed(networks, bounding_box, query,only_stations, station_id=station_id)
-        else:
-            res = dballe.get_maps_response(networks, bounding_box, query, only_stations, db_type=db_type, station_id=station_id)
+        try:
+            if db_type == 'mixed':
+                res = dballe.get_maps_response_for_mixed(networks, bounding_box, query,only_stations, station_id=station_id)
+            else:
+                res = dballe.get_maps_response(networks, bounding_box, query, only_stations, db_type=db_type, station_id=station_id)
+        except AccessToDatasetDenied:
+            raise RestApiException(
+                'Access to dataset denied',
+                status_code=hcodes.HTTP_SERVER_ERROR,
+            )
 
         if not res and  station_id:
             raise RestApiException(

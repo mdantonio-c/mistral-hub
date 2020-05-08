@@ -19,6 +19,7 @@ from mistral.services.dballe import BeDballe as dballe
 from mistral.services.requests_manager import RequestManager
 from mistral.exceptions import DiskQuotaException
 from mistral.exceptions import PostProcessingException
+from mistral.exceptions import AccessToDatasetDenied
 
 # postprocessing
 from mistral.tools import derived_variables as pp1
@@ -371,6 +372,16 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             self.update_state(
                 state=states.FAILURE,
                 meta=str(exc)
+            )
+            raise Ignore()
+        except AccessToDatasetDenied as exc:
+            request.status = states.FAILURE
+            request.error_message = str(exc)
+            log.warning(exc)
+            # manually update the task state
+            self.update_state(
+                state=states.FAILURE,
+                meta=message
             )
             raise Ignore()
         except Exception as exc:

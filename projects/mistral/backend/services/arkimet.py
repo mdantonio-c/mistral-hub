@@ -9,7 +9,7 @@ import math
 import dateutil
 from arkimet.cfg import Sections
 from restapi.utilities.logs import log
-from mistral.exceptions import InvalidLicenseException
+from mistral.exceptions import InvalidLicenseException, AccessToDatasetDenied
 
 DATASET_ROOT = os.environ.get('DATASET_ROOT', '/')
 
@@ -103,8 +103,15 @@ class BeArkimet:
         args = shlex.split("arki-query --json --summary-short --annotate '{}' {}".format(query, ds))
         log.debug('Launching Arkimet command: {}', args)
 
-        with subprocess.Popen(args, encoding='utf-8', stdout=subprocess.PIPE) as proc:
+        proc = subprocess.Popen(args, encoding='utf-8', stdout=subprocess.PIPE)
+        if proc.wait() == 0:
             return json.loads(proc.stdout.read())
+        else:
+            raise AccessToDatasetDenied('Access to dataset denied')
+
+        # with subprocess.Popen(args, encoding='utf-8', stdout=subprocess.PIPE) as proc:
+        #     return json.loads(proc.stdout.read())
+
 
     @staticmethod
     def estimate_data_size(datasets, query):
@@ -115,6 +122,8 @@ class BeArkimet:
         arki_summary_cmd = "arki-query --dump --summary-short '{}' {}".format(query, ds)
         args = shlex.split(arki_summary_cmd)
         p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        if p.wait() != 0:
+            raise AccessToDatasetDenied('Access to dataset denied')
         # extract the size
         return int(subprocess.check_output(('awk', '/Size/ {print $2}'), stdin=p.stdout))
 
@@ -299,6 +308,8 @@ class BeArkimet:
                 arki_summary_cmd = "arki-query --dump --summary-short '{}' {}".format(query, ds_filepath)
                 args = shlex.split(arki_summary_cmd)
                 p = subprocess.Popen(args, stdout=subprocess.PIPE)
+                if p.wait() != 0:
+                    raise AccessToDatasetDenied('Access to dataset denied')
                 # check if the query gives a result
                 count = int(subprocess.check_output(('awk', '/Count/ {print $2}'), stdin=p.stdout))
                 if count == 0:
