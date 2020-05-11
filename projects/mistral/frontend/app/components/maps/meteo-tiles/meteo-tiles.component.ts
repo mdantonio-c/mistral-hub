@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import * as L from 'leaflet';
 import 'leaflet-timedimension/dist/leaflet.timedimension.src.js';
+import 'leaflet-timedimension/examples/js/extras/leaflet.timedimension.tilelayer.portus.js';
 declare module 'leaflet' {
    var timeDimension: any;
 }
@@ -40,7 +41,7 @@ export class MeteoTilesComponent implements OnInit {
     opacity: 0.6,
     // bounds: [[25.0, -25.0], [50.0, 47.0]],
   });
-  // t2m_time = L.timeDimension.layer.tileLayer.portus(this.temperature2m, {});
+  t2m_time = L.timeDimension.layer.tileLayer.portus(this.temperature2m, {});
 
   totalPrecipitation = L.tileLayer("app/custom/assets/images/tp/2020030200/{z}/{x}/{y}.png", {
     minZoom: 3,
