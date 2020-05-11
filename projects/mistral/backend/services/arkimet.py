@@ -226,6 +226,43 @@ class BeArkimet:
         else:
             return None
 
+    @staticmethod
+    def get_datasets_category(datasets):
+        """
+        Load dataset using arki-mergeconf
+        $ arki-mergeconf $HOME/datasets/*
+
+        :return: datasets category (forecast or observed)
+        """
+        category = []
+        for ds in datasets:
+            folder = glob.glob(DATASET_ROOT + ds)
+            args = shlex.split("arki-mergeconf " + ' '.join(folder))
+            log.debug('Launching Arkimet command: {}', args)
+
+            proc = subprocess.run(args, encoding='utf-8', stdout=subprocess.PIPE)
+            log.debug('return code: {}', proc.returncode)
+            # raise a CalledProcessError if returncode is non-zero
+            proc.check_returncode()
+            for line in proc.stdout.split('\n'):
+                line = line.strip()
+                if line == '':
+                    continue
+                if line.startswith('['):
+                    continue
+
+                name, val = line.partition("=")[::2]
+                name = name.strip()
+                val = val.strip()
+                if name == '_category':
+                    category.append(val)
+        # check if all the datasets are of the same type (else return an error)
+        # return the general format of the datasets (bufr or grib)
+        if all(x == category[0] for x in category):
+            return category[0]
+        else:
+            return None
+
     #### to configure observed datasets one by one
     @staticmethod
     def get_observed_dataset_params(dataset):

@@ -27,7 +27,6 @@ class Fields(EndpointResource):
                     'items': {'type': 'string'},
                 },
                 {'name': 'q', 'in': 'query', 'type': 'string', 'default': ''},
-                {'name': 'type', 'in': 'query', 'type': 'string','enum': ['OBS', 'FOR'],},
                 {'name': 'bounding-box', 'in': 'query', 'type': 'string',
                  'description': 'coordinates of a bounding box'},
                 {
@@ -54,7 +53,6 @@ class Fields(EndpointResource):
         params = self.get_input()
         ds = params.get('datasets')
         query = params.get('q')
-        data_type = params.get('type')
         bbox = params.get('bounding-box')
         bbox_list = bbox.split(',') if bbox is not None else []
         bounding_box = {}
@@ -78,24 +76,13 @@ class Fields(EndpointResource):
                         status_code=hcodes.HTTP_BAD_NOTFOUND,
                     )
 
-        # check if the datasets are of the same type
-            dataset_format = arki.get_datasets_format(datasets)
-            if not dataset_format:
+            data_type = arki.get_datasets_category(datasets)
+            if not data_type:
                 raise RestApiException(
-                    "Invalid set of datasets : datasets have different formats",
+                    "Invalid set of datasets : datasets categories are different",
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
-            if data_type:
-                if data_type == 'FOR' and dataset_format == 'bufr':
-                    raise RestApiException(
-                        "Invalid request : datasets and data_type required not matches",
-                        status_code=hcodes.HTTP_BAD_REQUEST,
-                    )
-                if data_type == 'OBS' and dataset_format == 'grib':
-                    raise RestApiException(
-                        "Invalid request : datasets and data_type required not matches",
-                        status_code=hcodes.HTTP_BAD_REQUEST,
-                    )
+
         ########## OBSERVED DATA ###########
         if data_type == 'OBS':
             summary = None
