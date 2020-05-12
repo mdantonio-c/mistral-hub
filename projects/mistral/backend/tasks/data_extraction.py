@@ -79,10 +79,12 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
             # get the format of the datasets
             dataset_format = arki.get_datasets_format(datasets)
+            # get the category of the datasets
+            data_type = arki.get_datasets_category(datasets)
 
             # TODO and if are observation data in arkimet and not in dballe?
             # create a query for arkimet
-            if dataset_format == 'grib':
+            if data_type == 'FOR':
                 query = ''  # default to no matchers
                 if filters is not None:
                     query = arki.parse_matchers(filters)
@@ -113,7 +115,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # final result
             outfile = os.path.join(user_dir, out_filename)
 
-            if dataset_format == 'grib':
+            if data_type == 'FOR':
                 if schedule:
                     esti_data_size = check_user_quota(user_id, user_dir, datasets, query, db, schedule_id)
                 else:
@@ -147,7 +149,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 # temporarily save the data extraction output
                 tmp_outfile = os.path.join(user_dir, out_filename + '.tmp')
                 # call data extraction
-                if dataset_format == 'grib':
+                if data_type == 'FOR':
                     arkimet_extraction(arki_query_cmd, tmp_outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
@@ -307,7 +309,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                     # if os.path.isdir(os.path.join(UPLOAD_PATH,uuid)):
                     #     shutil.rmtree(os.path.join(UPLOAD_PATH,uuid))
             else:
-                if dataset_format == 'grib':
+                if data_type == 'FOR':
                     arkimet_extraction(arki_query_cmd, outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
@@ -325,7 +327,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # get the actual data size
             data_size = os.path.getsize(os.path.join(user_dir, out_filename))
             log.debug('Actual resulting data size: {}'.format(data_size))
-            if dataset_format == 'grib':
+            if data_type == 'FOR':
                 if data_size > esti_data_size:
                     log.warning(
                         'Actual resulting data exceeds estimation of {}',
