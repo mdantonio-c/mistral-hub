@@ -9,7 +9,7 @@ declare module 'leaflet' {
 }
 
 const MAP_CENTER = [41.879966, 12.280000];
-const TILES_PATH = 'app/custom/assets/images/tiles/00-lm5/t2m-t2m';
+const TILES_PATH = 'resources/tiles/00-lm5/t2m-t2m';
 
 @Component({
     selector: 'app-meteo-tiles',
