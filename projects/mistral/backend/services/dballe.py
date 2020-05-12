@@ -118,7 +118,7 @@ class BeDballe():
         return message_count
 
     @staticmethod
-    def load_filter_for_mixed(datasets, params, query=None):
+    def load_filter_for_mixed(datasets, params, summary_stats, query=None):
         # TODO get all dataset filter can be optimized? (for now all the data in arkimet dataset are transfered in a temp dballe)
         # get fields for the dballe database
         log.debug('mixed dbs: get fields from dballe')
@@ -131,7 +131,7 @@ class BeDballe():
             # set up query for dballe with the correct reftimes
             query_for_dballe['datetimemin']=refmin_dballe
 
-        dballe_fields, dballe_summary = BeDballe.load_filters(datasets, params, db_type='dballe', query_dic=query_for_dballe)
+        dballe_fields, dballe_summary = BeDballe.load_filters(datasets, params, summary_stats, db_type='dballe', query_dic=query_for_dballe)
 
         # get fields for the arkimet database
         log.debug('mixed dbs: get fields from arkimet')
@@ -148,7 +148,7 @@ class BeDballe():
             query_for_arki['datetimemin'] = datetime(*arki_summary['items']['summarystats']['b'])
             query_for_arki['datetimemax'] = datetime(*arki_summary['items']['summarystats']['e'])
 
-        arki_fields, arki_summary = BeDballe.load_filters(datasets, params, db_type='arkimet', query_dic=query_for_arki)
+        arki_fields, arki_summary = BeDballe.load_filters(datasets, params,summary_stats, db_type='arkimet', query_dic=query_for_arki)
 
         if not dballe_fields and not arki_fields:
             return None, None
@@ -165,15 +165,16 @@ class BeDballe():
                     dballe_fields[key].extend(x for x in arki_fields[key] if x not in dballe_fields[key])
 
             # update summary
-            if not dballe_summary:
-                dballe_summary = arki_summary
-            else:
-                dballe_summary['b'] = arki_summary['b']
-                dballe_summary['c'] += arki_summary['c']
+            if dballe_summary or arki_summary:
+                if not dballe_summary:
+                    dballe_summary = arki_summary
+                else:
+                    dballe_summary['b'] = arki_summary['b']
+                    dballe_summary['c'] += arki_summary['c']
         return dballe_fields, dballe_summary
 
     @staticmethod
-    def load_filters(datasets, params, db_type, query_dic=None):
+    def load_filters(datasets, params,summary_stats, db_type, query_dic=None):
 
         query = {}
         if query_dic:
@@ -324,19 +325,21 @@ class BeDballe():
 
             # create summary
             summary = {}
-            summary['c'] = BeDballe.count_messages(params, query, memdb)
-            if arkimet_query:
-                arki_summary = arki.load_summary(datasets, arkimet_query)
-                summary['b'] = arki_summary['items']['summarystats']['b']
-                summary['e'] = arki_summary['items']['summarystats']['e']
-            else:
-                if 'datetimemin' in query:
-                    summary['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
-                    summary['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
-                else:  # case of query of all dataset
-                    datemin_dballe = datetime.utcnow() - timedelta(days=int(LASTDAYS))
-                    summary['b'] = BeDballe.from_datetime_to_list(datemin_dballe)
-                    summary['e'] = BeDballe.from_datetime_to_list(datetime.utcnow())
+            # if summary is required
+            if summary_stats:
+                summary['c'] = BeDballe.count_messages(params, query, memdb)
+                if arkimet_query:
+                    arki_summary = arki.load_summary(datasets, arkimet_query)
+                    summary['b'] = arki_summary['items']['summarystats']['b']
+                    summary['e'] = arki_summary['items']['summarystats']['e']
+                else:
+                    if 'datetimemin' in query:
+                        summary['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
+                        summary['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
+                    else:  # case of query of all dataset
+                        datemin_dballe = datetime.utcnow() - timedelta(days=int(LASTDAYS))
+                        summary['b'] = BeDballe.from_datetime_to_list(datemin_dballe)
+                        summary['e'] = BeDballe.from_datetime_to_list(datetime.utcnow())
             return fields, summary
         else:
             return None, None
