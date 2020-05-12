@@ -23,6 +23,8 @@ services:
   frontend:
     environment:
       INJECT_FRONTEND_DEBUG: ${FRONTEND_DEBUG}
+    volumes:
+      - ${VANILLA_DIR}/data/maps:/meteo
 
   postgres:
     image: postgres:11.5-alpine
