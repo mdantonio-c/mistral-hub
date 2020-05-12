@@ -218,9 +218,16 @@ class BeDballe():
             datemax = query['datetimemax'].strftime("%Y-%m-%d %H:%M")
             arkimet_query = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=network, bounding_box=bbox)
             if not datasets:
-                # TODO managing license
                 license = None
+                if query:
+                    if 'license' in query.keys():
+                        license = query['license']
                 datasets = arki.get_datasets(arkimet_query, license)
+                if not datasets:
+                    # any dataset matches the query
+                    return None, None
+                # TODO managing check for unique license: it will be substituted by a dsn management?
+
             datasize = arki.estimate_data_size(datasets, arkimet_query)
             if datasize == 0:
                 return None, None
