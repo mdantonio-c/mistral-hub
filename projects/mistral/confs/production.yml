@@ -3,7 +3,7 @@ version: '3'
 services:
   proxy:
     volumes:
-    - ${VANILLA_DIR}/data/maps/GALILEO/PROD/Tiles-00-lm2.2.web/Italia:/app/dist/app/custom/assets/tiles/00-lm2.2
-    - ${VANILLA_DIR}/data/maps/GALILEO/PROD/Tiles-00-lm5.web/Area_Mediterranea:/app/dist/app/custom/assets/tiles/00-lm5
-    - ${VANILLA_DIR}/data/maps/GALILEO/PROD/Tiles-12-lm2.2.web/Italia:/app/dist/app/custom/assets/tiles/12-lm2.2
-    - ${VANILLA_DIR}/data/maps/GALILEO/PROD/Tiles-12-lm5.web/Area_Mediterranea:/app/dist/app/custom/assets/tiles/12-lm5
+    - ${VANILLA_DIR}/data/maps/GALILEO/PROD/Tiles-00-lm2.2.web/Italia:/app/dist/app/custom/assets/images/tiles/00-lm2.2
+    - ${VANILLA_DIR}/data/maps/GALILEO/PROD/Tiles-00-lm5.web/Area_Mediterranea:/app/dist/app/custom/assets/images/tiles/00-lm5
+    - ${VANILLA_DIR}/data/maps/GALILEO/PROD/Tiles-12-lm2.2.web/Italia:/app/dist/app/custom/assets/tiles/images/12-lm2.2
+    - ${VANILLA_DIR}/data/maps/GALILEO/PROD/Tiles-12-lm5.web/Area_Mediterranea:/app/dist/app/custom/assets/images/tiles/12-lm5
