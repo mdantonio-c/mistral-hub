@@ -7,6 +7,7 @@ import dateutil
 import tempfile
 import shlex
 from datetime import datetime, timedelta, date, time
+from decimal import Decimal
 
 from mistral.services.arkimet import DATASET_ROOT, BeArkimet as arki
 from mistral.exceptions import AccessToDatasetDenied
@@ -555,6 +556,8 @@ class BeDballe():
 
         # managing db_type
         if db_type == 'arkimet':
+            station_lat = None
+            station_lon = None
             if station_id:
                 # get station network
                 with DB.transaction() as tr:
@@ -564,6 +567,20 @@ class BeDballe():
                         return response
                     for rec in tr.query_stations(query_station_data):
                         networks = rec['rep_memo']
+                        station_lat = rec['lat']
+                        station_lon = rec['lon']
+            # manage bounding box for queries by station id
+            if not bounding_box and station_lat and station_lon:
+                lat_decimals = Decimal(station_lat).as_tuple()[-1]*-1
+                lon_decimals = Decimal(station_lon).as_tuple()[-1] * -1
+                lat_add = Decimal(1) / Decimal(10**lat_decimals)
+                lon_add = Decimal(1) / Decimal(10**lon_decimals)
+                bounding_box['latmin'] = float(station_lat - lat_add)
+                bounding_box['lonmin'] = float(station_lon - lon_add)
+                bounding_box['latmax'] = float(station_lat + lat_add)
+                bounding_box['lonmax'] = float(station_lon + lon_add)
+                # log.debug('bounding box for station {} : {}',station_id, bounding_box)
+
             # manage reftime for queries in arkimet
             datemin = None
             datemax = None
