@@ -36,6 +36,13 @@ class Fields(EndpointResource):
                     'default': False,
                     'allowEmptyValue': True,
                 },
+                {
+                    'name': 'SummaryStats',
+                    'in': 'query',
+                    'type': 'boolean',
+                    'default': True,
+                    'allowEmptyValue': True,
+                },
             ],
             'responses': {
                 '200': {
@@ -62,6 +69,18 @@ class Fields(EndpointResource):
                 split = i.split(':')
                 bounding_box[split[0]] = split[1]
 
+        ########## QUERY FOR    SUMMARY ###########
+        summary_stats = params.get('SummaryStats')
+        if isinstance(summary_stats, str) and (
+            summary_stats == '' or summary_stats.lower() == 'true'
+        ):
+            only_summary_stats = True
+        elif type(summary_stats) == bool:
+            # do nothing
+            pass
+        else:
+            summary_stats = False
+
         datasets = ds.split(',') if ds is not None else []
 
         # check for existing dataset(s)
@@ -82,6 +101,9 @@ class Fields(EndpointResource):
                     "Invalid set of datasets : datasets categories are different",
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
+        else:
+            # if data_type is forecast always dataset has to be specified. If dataset is not in query data_type can't be 'FOR'
+            data_type = 'OBS'
 
         ########## OBSERVED DATA ###########
         if data_type == 'OBS':
@@ -114,9 +136,9 @@ class Fields(EndpointResource):
                     log.info('dataset: {}, networks: {}'.format(ds, ds_params))
                     try:
                         if db_type == 'mixed':
-                            fields, summary = dballe.load_filter_for_mixed(datasets, ds_params, query=query_dic)
+                            fields, summary = dballe.load_filter_for_mixed(datasets, ds_params, summary_stats, query=query_dic)
                         else:
-                            fields, summary = dballe.load_filters(datasets, ds_params, db_type=db_type, query_dic=query_dic)
+                            fields, summary = dballe.load_filters(datasets, ds_params, summary_stats, db_type=db_type, query_dic=query_dic)
                     except AccessToDatasetDenied:
                         raise RestApiException(
                             'Access to dataset denied',
@@ -133,32 +155,36 @@ class Fields(EndpointResource):
                                 # merge the two lists
                                 resulting_fields[key].extend(x for x in fields[key] if x not in resulting_fields[key])
                         # update the summary
-                        resulting_fields['summarystats']['c'] += summary['c']
-                        if not 'e' in resulting_fields['summarystats']:
-                            resulting_fields['summarystats']['e'] = summary['e']
-                        else:
-                            summary_date = datetime(*resulting_fields['summarystats']['e'])
-                            new_date = datetime(*summary['e'])
-                            if new_date > summary_date:
+                        if summary_stats:
+                            resulting_fields['summarystats']['c'] += summary['c']
+                            if not 'e' in resulting_fields['summarystats']:
                                 resulting_fields['summarystats']['e'] = summary['e']
-                        if not 'b' in resulting_fields['summarystats']:
-                            resulting_fields['summarystats']['b'] = summary['b']
-                        else:
-                            summary_date = datetime(*resulting_fields['summarystats']['b'])
-                            new_date = datetime(*summary['b'])
-                            if new_date < summary_date:
+                            else:
+                                summary_date = datetime(*resulting_fields['summarystats']['e'])
+                                new_date = datetime(*summary['e'])
+                                if new_date > summary_date:
+                                    resulting_fields['summarystats']['e'] = summary['e']
+                            if not 'b' in resulting_fields['summarystats']:
                                 resulting_fields['summarystats']['b'] = summary['b']
+                            else:
+                                summary_date = datetime(*resulting_fields['summarystats']['b'])
+                                new_date = datetime(*summary['b'])
+                                if new_date < summary_date:
+                                    resulting_fields['summarystats']['b'] = summary['b']
             else:
                 ds_params = []
                 if db_type == 'mixed':
-                    fields, summary = dballe.load_filter_for_mixed(datasets, ds_params, query=query_dic)
+                    fields, summary = dballe.load_filter_for_mixed(datasets, ds_params,summary_stats, query=query_dic)
                 else:
-                    fields, summary = dballe.load_filters(datasets, ds_params, db_type=db_type, query_dic=query_dic)
+                    fields, summary = dballe.load_filters(datasets, ds_params,summary_stats, db_type=db_type, query_dic=query_dic)
                 if fields:
                     for key in fields:
                         resulting_fields[key] = fields[key]
-                    for key in summary:
-                        resulting_fields['summarystats'][key]=summary[key]
+                    if summary_stats:
+                        for key in summary:
+                            resulting_fields['summarystats'][key]=summary[key]
+                    else:
+                        resulting_fields.pop('summarystats', None)
             summary = {'items': resulting_fields}
 
         ########## ARKIMET ###########
