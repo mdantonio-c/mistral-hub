@@ -7,7 +7,7 @@ uploads
 /data
 /node_modules
 projects/mistral/scripts/dballe2arkimet
-#projects/mistral/frontend/assets/images/tiles
+projects/mistral/frontend/assets/images/tiles
 
 ########################
 ##  Host configuration  ##
