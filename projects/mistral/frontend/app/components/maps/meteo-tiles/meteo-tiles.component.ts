@@ -1,4 +1,5 @@
 import {Component, OnInit} from '@angular/core';
+import {environment} from '@rapydo/../environments/environment';
 import * as moment from 'moment';
 import * as L from 'leaflet';
 import 'leaflet-timedimension/dist/leaflet.timedimension.src.js';
@@ -9,7 +10,7 @@ declare module 'leaflet' {
 }
 
 const MAP_CENTER = [41.879966, 12.280000];
-const TILES_PATH = 'resources/tiles/00-lm5';
+const TILES_PATH = environment.production ? 'resources/tiles/00-lm5' : 'app/custom/assets/images/tiles/00-lm5';
 
 @Component({
     selector: 'app-meteo-tiles',
