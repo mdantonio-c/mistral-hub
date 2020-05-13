@@ -1,5 +1,10 @@
+:host {
+  height: calc(100% - 107px);
+}
+
 .map {
-  height: calc(100% - 58px);
+  /*height: calc(100% - 58px);*/
+  height: 100%;
   padding: 0;
 }
 
