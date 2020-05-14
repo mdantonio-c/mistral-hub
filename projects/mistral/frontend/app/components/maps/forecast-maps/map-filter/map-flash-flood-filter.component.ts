@@ -1,17 +1,16 @@
 import {Component, OnInit, Output, EventEmitter} from '@angular/core';
-// import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-// import {KeyValuePair, FlashFloodFFields, Levels_pe, Levels_pr} from '../services/data';
-// import {MeteoFilter} from "../services/meteo.service";
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {KeyValuePair, FlashFloodFFields, Levels_pe, Levels_pr} from '../services/data';
+import {MeteoFilter} from "../services/meteo.service";
+import {AuthService} from '@rapydo/services/auth';
 
 @Component({
     selector: 'app-map-flash-flood-filter',
-    //selector: 'app-map-flash-flood-filter',
-    //templateUrl: './map-flash-flood-filter.component.html',
-    //styleUrls: ['./map-filter.component.css']
-    template: `<p>ciao come stai?</p>`
+    templateUrl: './map-flash-flood-filter.component.html',
+    styleUrls: ['./map-filter.component.css']
 })
-export class MapFlashFloodFilterComponent { //implements OnInit {
-    /*
+export class MapFlashFloodFilterComponent implements OnInit {
+
     filterForm: FormGroup;
     fields: KeyValuePair[] = FlashFloodFFields;
     levels_pe: KeyValuePair[] = Levels_pe;
@@ -19,10 +18,11 @@ export class MapFlashFloodFilterComponent { //implements OnInit {
     runs: KeyValuePair[] = [{key: '00', value: '00'}];
     resolutions: KeyValuePair[] = [{key: 'lm2.2', value: '2.2'}];
     areas: KeyValuePair[] = [{key:'Italia', value:'Italy'}];
+    user;
 
     @Output() onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<MeteoFilter>();
 
-    constructor(private fb: FormBuilder) {
+    constructor(private fb: FormBuilder, private authService: AuthService) {
         this.filterForm = this.fb.group({
             field: ['percentile', Validators.required],
             level_pe: ['25'],
@@ -34,6 +34,7 @@ export class MapFlashFloodFilterComponent { //implements OnInit {
     }
 
     ngOnInit() {
+        this.user = this.authService.getUser();
         // subscribe for form value changes
         this.onChanges();
         // apply filter the first time
@@ -50,5 +51,5 @@ export class MapFlashFloodFilterComponent { //implements OnInit {
         let filter: MeteoFilter = this.filterForm.value;
         this.onFilterChange.emit(filter);
     }
-*/
+
 }

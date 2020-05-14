@@ -1,11 +1,6 @@
 <div id="parameters">
     <div class="card bg-light">
         <div class="card-body">
-            <!--
-            <button id="hide-button" type="button" class="btn btn-secondary float-right">
-                <i class="fas fa-times"></i>
-            </button>
-            -->
             <h4 class="card-title"><strong>PARAMETERS</strong></h4>
             <form [formGroup]="filterForm">
                 <!-- FIELD -->
@@ -13,14 +8,14 @@
                     <label class="col-form-label"><strong>FIELDS:</strong></label>
                     <div id="fieldGroup">
                         <ng-container *ngFor="let f of fields">
-			  <div style="display:inline;">
-                            <label [title]="f.value" class="btn-circle" data-toggle="tooltip"
-                                   [ngClass]="(filterForm.get('field').value === f.key) ? 'btn-info' : 'btn-secondary'"
-                                   *ngIf="!(((f.key === 'percentile' || f.key === 'probability')) && (!user || (filterForm.get('area').value ==='Area_Mediterranea') || (filterForm.get('res').value ==='lm5') || (filterForm.get('run').value ==='12')))">
-                                <input [value]="f.key" formControlName="field" type="radio"
-                                       [attr.data-description]="f.value">
-                                <i class="wi"
-                                   [ngClass]="{'wi-cloud wi-fw': f.key==='cloud',
+                            <div style="display:inline;">
+                                <label [title]="f.value" class="btn-circle" data-toggle="tooltip"
+                                       [ngClass]="(filterForm.get('field').value === f.key) ? 'btn-info' : 'btn-secondary'"
+                                       *ngIf="!(((f.key === 'percentile' || f.key === 'probability')) && (!user || (filterForm.get('area').value ==='Area_Mediterranea') || (filterForm.get('res').value ==='lm5') || (filterForm.get('run').value ==='12')))">
+                                    <input [value]="f.key" formControlName="field" type="radio"
+                                           [attr.data-description]="f.value">
+                                    <i class="wi"
+                                       [ngClass]="{'wi-cloud wi-fw': f.key==='cloud',
                                                'wi-cloudy wi-fw': f.key==='cloud_hml',
                                                'wi-umbrella': f.key==='prec3' || f.key==='prec6',
                                                'wi-snow': f.key==='snow3' || f.key==='snow6',
@@ -29,43 +24,18 @@
                                                'wi-humidity': f.key==='humidity',
                                                'wi-flood': f.key==='percentile' || f.key==='probability',
                                                'wi-thermometer': f.key==='t2m_0c' || f.key==='t2m'}">
-                                    <small class="verySmallText" *ngIf="f.key==='prec3' || f.key==='snow3'">3h</small>
-                                    <small class="verySmallText" *ngIf="f.key==='prec6' || f.key==='snow6'">6h</small>
-                                    <small class="verySmallText" *ngIf="f.key==='t2m_0c'">0m</small>
-                                    <small class="verySmallText" *ngIf="f.key==='t2m'">2m</small>
-                                    <small *ngIf="f.key==='zerot'">0°C</small>
-                                    <small class="verySmallText" *ngIf="f.key==='percentile'">pe</small>
-				    <small class="verySmallText" *ngIf="f.key==='probability'">pr</small>
-                                </i>
-                            </label>
-
-				<!-- LEVEL only for Flash flood -->
-				<div class="form-group" style="display:inline;" *ngIf="(filterForm.get('field').value ==='percentile') && f.key === 'percentile'">
-				   <div id="levelGroup" style="display:inline-grid;">
-				        <ng-container *ngFor="let level of levels_pe">
-						<label class="btn-squared" data-toggle="tooltip"
-							[ngClass]="(filterForm.get('level_pe').value === level.key) ? 'btn-info' : 'btn-secondary'">
-				               	<input [value]="level.key" formControlName="level_pe" type="radio"
-							[attr.data-description]="level.value">
-						<span>{{level.key}}</span>
-						</label>
-				        </ng-container>
-				    </div>
-				</div>
-
-				<div class="form-group" style="display:inline;" *ngIf="(filterForm.get('field').value ==='probability') && f.key === 'probability'">
-				   <div id="levelGroup" style="display:inline-grid;">
-				        <ng-container *ngFor="let level of levels_pr">
-						<label class="btn-squared" data-toggle="tooltip"
-							[ngClass]="(filterForm.get('level_pr').value === level.key) ? 'btn-info' : 'btn-secondary'">
-				               	<input [value]="level.key" formControlName="level_pr" type="radio"
-							[attr.data-description]="level.value">{{level.key}}
-						</label>
-				        </ng-container>
-				    </div>
-				</div>
-
-			  </div>
+                                        <small class="verySmallText"
+                                               *ngIf="f.key==='prec3' || f.key==='snow3'">3h</small>
+                                        <small class="verySmallText"
+                                               *ngIf="f.key==='prec6' || f.key==='snow6'">6h</small>
+                                        <small class="verySmallText" *ngIf="f.key==='t2m_0c'">0m</small>
+                                        <small class="verySmallText" *ngIf="f.key==='t2m'">2m</small>
+                                        <small *ngIf="f.key==='zerot'">0°C</small>
+                                        <small class="verySmallText" *ngIf="f.key==='percentile'">pe</small>
+                                        <small class="verySmallText" *ngIf="f.key==='probability'">pr</small>
+                                    </i>
+                                </label>
+                            </div>
                         </ng-container>
                     </div>
                 </div>
@@ -90,7 +60,8 @@
                         <label class="col-form-label"><strong>RESOLUTION (Km):</strong></label>
                         <div id="resolutionGroup">
                             <ng-container *ngFor="let res of resolutions; index as i">
-                                <label class="btn-circle" *ngIf="!(res.key === 'lm2.2' && filterForm.get('area').value ==='Area_Mediterranea') && !(!(filterForm.get('area').value ==='Area_Mediterranea') && (res.key === 'lm5') && ((filterForm.get('field').value ==='percentile') || (filterForm.get('field').value ==='probability')))"
+                                <label class="btn-circle"
+                                       *ngIf="!(res.key === 'lm2.2' && filterForm.get('area').value ==='Area_Mediterranea') && !(!(filterForm.get('area').value ==='Area_Mediterranea') && (res.key === 'lm5') && ((filterForm.get('field').value ==='percentile') || (filterForm.get('field').value ==='probability')))"
                                        [ngClass]="(filterForm.get('res').value === res.key) ? 'btn-warning' : 'btn-secondary'">
                                     <input id="res-input-{{i}}" [attr.data-description]="res.value" type="radio"
                                            formControlName="res"
@@ -107,11 +78,14 @@
                         <label class="col-form-label"><strong>AREA:</strong></label>
                         <select id="areaGroup" formControlName="area" class="form-control">
                             <ng-container *ngFor="let area of areas">
-<!--
-                               <option [value]="area.key" *ngIf="!(area.key === 'Area_Mediterranea' && filterForm.get('res').value ==='lm2.2')">{{area.value}}</option>
+                                <!--
+                                                               <option [value]="area.key" *ngIf="!(area.key === 'Area_Mediterranea' && filterForm.get('res').value ==='lm2.2')">{{area.value}}</option>
 
---> 
-                                <option [value]="area.key" *ngIf="!((area.key === 'Area_Mediterranea' && filterForm.get('res').value === 'lm2.2') || (!( area.key === 'Italia') && ((filterForm.get('field').value === 'percentile') || (filterForm.get('field').value === 'probability'))))">{{area.value}}</option>
+                                -->
+                                <option [value]="area.key"
+                                        *ngIf="!((area.key === 'Area_Mediterranea' && filterForm.get('res').value === 'lm2.2') || (!( area.key === 'Italia') && ((filterForm.get('field').value === 'percentile') || (filterForm.get('field').value === 'probability'))))">
+                                    {{area.value}}
+                                </option>
 
                             </ng-container>
                         </select>

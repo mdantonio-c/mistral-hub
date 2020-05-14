@@ -33,7 +33,6 @@ import {StepPostprocessMapComponent} from '@app/components/multi-step-wizard/ste
 import {StepSubmitComponent} from "@app/components/multi-step-wizard/step-submit/step-submit.component";
 
 /* Maps */
-import {PippoComponent} from '@app/components/maps/forecast-maps/pippo/pippo.component';
 import {ForecastMapsBaseComponent} from '@app/components/maps/forecast-maps/forecast-maps-base.component';
 import {ForecastMapsComponent} from '@app/components/maps/forecast-maps/forecast-maps.component';
 import {FlashFloodMapsComponent} from '@app/components/maps/forecast-maps/flash-flood-maps.component';
@@ -85,9 +84,9 @@ const appRoutes: Routes = [
         DataComponent,
         ForecastMapsBaseComponent,
         ForecastMapsComponent,
+        FlashFloodMapsComponent,
         MapFilterComponent,
         MapFlashFloodFilterComponent,
-        PippoComponent,
         MapSliderComponent,
         ObservationMapsComponent,
         ObsFilterComponent,
