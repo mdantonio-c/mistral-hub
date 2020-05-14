@@ -304,29 +304,49 @@ export class MeteoTilesComponent implements OnInit {
         };
         legend_t2m.addTo(map);
 
-        map.on('overlayadd', function (event){
-          console.log(event.name);
-                        if (event.name === 'Temperature at 2 meters'){legend_t2m.addTo(map);}
-                        else if (event.name === 'Total Precipitation (3h)'){legend_prec3tp.addTo(this);}
-                        else if (event.name === 'Total Precipitation (6h)'){legend_prec3tp.addTo(this);}
-                        else if (event.name === 'Snowfall (3h)'){legend_sf3.addTo(this);}
-                        else if (event.name === 'Snowfall (6h)'){legend_sf6.addTo(this);}
-                        else if (event.name === 'Relative Humidity'){legend_rh.addTo(this);}
-                        else if (event.name === 'High Cloud'){legend_hcc.addTo(this);}
-                        else if (event.name === 'Medium Cloud'){legend_mcc.addTo(this);}
-                        else if (event.name === 'Low Cloud'){legend_lcc.addTo(this);}
-                    });
-                    map.on('overlayremove', function (event) {
-                      if (event.name === 'Temperature at 2 meters'){this.removeControl(legend_t2m);}
-                      else if (event.name == 'Total Precipitation (3h)'){this.removeControl(legend_prec3tp);}
-                      else if (event.name == 'Total Precipitation (6h)'){this.removeControl(legend_prec6tp);}
-                      else if (event.name === 'Snowfall (3h)'){this.removeControl(legend_sf3);}
-                      else if (event.name === 'Snowfall (6h)'){this.removeControl(legend_sf6);}
-                      else if (event.name === 'Relative Humidity'){this.removeControl(legend_rh);}
-                      else if (event.name === 'High Cloud'){this.removeControl(legend_hcc);}
-                      else if (event.name === 'High Cloud'){this.removeControl(legend_mcc);}
-                      else if (event.name === 'High Cloud'){this.removeControl(legend_lcc);}
-                    });
+        map.on('overlayadd', function (event) {
+            console.log(event['name']);
+            if (event['name'] === 'Temperature at 2 meters') {
+                legend_t2m.addTo(map);
+            } else if (event['name'] === 'Total Precipitation (3h)') {
+                legend_prec3tp.addTo(this);
+            } else if (event['name'] === 'Total Precipitation (6h)') {
+                legend_prec3tp.addTo(this);
+            } else if (event['name'] === 'Snowfall (3h)') {
+                legend_sf3.addTo(this);
+            } else if (event['name'] === 'Snowfall (6h)') {
+                legend_sf6.addTo(this);
+            } else if (event['name'] === 'Relative Humidity') {
+                legend_rh.addTo(this);
+            } else if (event['name'] === 'High Cloud') {
+                legend_hcc.addTo(this);
+            } else if (event['name'] === 'Medium Cloud') {
+                legend_mcc.addTo(this);
+            } else if (event['name'] === 'Low Cloud') {
+                legend_lcc.addTo(this);
+            }
+        });
+        map.on('overlayremove', function (event) {
+            if (event['name'] === 'Temperature at 2 meters') {
+                this.removeControl(legend_t2m);
+            } else if (event['name'] == 'Total Precipitation (3h)') {
+                this.removeControl(legend_prec3tp);
+            } else if (event['name'] == 'Total Precipitation (6h)') {
+                this.removeControl(legend_prec6tp);
+            } else if (event['name'] === 'Snowfall (3h)') {
+                this.removeControl(legend_sf3);
+            } else if (event['name'] === 'Snowfall (6h)') {
+                this.removeControl(legend_sf6);
+            } else if (event['name'] === 'Relative Humidity') {
+                this.removeControl(legend_rh);
+            } else if (event['name'] === 'High Cloud') {
+                this.removeControl(legend_hcc);
+            } else if (event['name'] === 'High Cloud') {
+                this.removeControl(legend_mcc);
+            } else if (event['name'] === 'High Cloud') {
+                this.removeControl(legend_lcc);
+            }
+        });
         //
         // const legend_t2m = new L.Control({ position: "bottomright" });
         // legend_t2m.onAdd = map => {
