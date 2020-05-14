@@ -28,7 +28,7 @@ class TestApp(BaseTests):
 
     def test_endpoint_with_login(self, client):
 
-        headers, _ = BaseTests.do_login(client, None, None)
+        headers, _ = self.do_login(client, None, None)
         self.save("auth_header", headers)
 
         endpoint = API_URI + '/datasets'
