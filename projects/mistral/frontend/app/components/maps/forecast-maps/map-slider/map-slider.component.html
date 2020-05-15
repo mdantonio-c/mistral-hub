@@ -11,12 +11,16 @@
                 <div class="row">
                     <div class="col-lg-6 badges">
                         <h4>
-                            <span class="badge badge-info" *ngIf="filter.field != 'percentile' && filter.field != 'probability'">{{ getValue('field', filter.field) }}</span>
-
-                            <span class="badge badge-info" *ngIf="filter.field == 'percentile'">{{ getValue('field', filter.field) }}: percentile {{ filter.level_pe }}</span>
-                            <span class="badge badge-info" *ngIf="filter.field == 'probability'">{{ getValue('field', filter.field) }}: {{ filter.level_pr }} mm</span>
-
-
+                            <span class="badge badge-info"
+                                  *ngIf="filter.field != 'percentile' && filter.field != 'probability'">
+                                {{ getValue('field', filter.field) }}
+                            </span>
+                            <span class="badge badge-info" *ngIf="filter.field == 'percentile'">
+                                {{ getValue('field', filter.field) }}: percentile {{ filter.level_pe }}
+                            </span>
+                            <span class="badge badge-info" *ngIf="filter.field == 'probability'">
+                                {{ getValue('field', filter.field) }}: {{ filter.level_pr }} mm
+                            </span>
                         </h4>
                         <h4>
                             <span class="badge badge-success">{{ filter.run }}</span>
@@ -27,7 +31,11 @@
                         <h4>
                             <span class="badge badge-secondary">{{ getValue('area', filter.area) }}</span>
                         </h4>
-			
+			<div *ngIf="filter.field == 'percentile' || filter.field == 'probability'" style="font-size:90%;margin:5px;">
+				From 6h to 48h: blending of ecPoint rainfall and COSMO-2I-EPS post-processed
+				<br />
+				From 48h to 240h (day 10): only ecPoint rainfall is available
+			</div>
                     </div>
                     <div class="col-lg-6">
                         <ngx-spinner
@@ -62,7 +70,7 @@
                 <ng-template ngbSlide *ngFor="let image of images | slice:fromMinImage; index as i"
                              id="slideId-{{i+fromMinImage}}">
                     <div class="carousel-caption">
-                        <!--                                <h3>Image[{{i+fromMinImage}}] - slice {{fromMinImage}}</h3>   -->
+                        <!--                                 <h3>Image[{{i+fromMinImage}}] - slice {{fromMinImage}}</h3>  -->
                         <h5>
                             <span class="badge badge-secondary label-time" (click)="toggleUtcTime()">
                                 <ng-container *ngIf="utcTime; else noUtc">

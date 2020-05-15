@@ -1,12 +1,12 @@
-import {Component, OnInit, ViewChild, ElementRef, HostListener} from "@angular/core";
-import {MeteoFilter, MeteoService} from "./services/meteo.service";
+import {Component, OnInit} from "@angular/core";
 import {ForecastMapsBaseComponent} from "./forecast-maps-base.component";
+import {MeteoFilter} from "./services/meteo.service";
 
 @Component({
-    selector: 'app-forecast-maps',
-    templateUrl: './forecast-maps.component.html'
+    selector: 'app-flash-flood-maps',
+    templateUrl: './flash-flood-maps.component.html'
 })
-export class ForecastMapsComponent extends ForecastMapsBaseComponent implements OnInit {
+export class FlashFloodMapsComponent extends ForecastMapsBaseComponent implements OnInit {
     loading = false;
     filter: MeteoFilter;
     offsets: string[] = [];
@@ -43,4 +43,5 @@ export class ForecastMapsComponent extends ForecastMapsBaseComponent implements 
             this.spinner.hide();
         });
     }
+
 }
