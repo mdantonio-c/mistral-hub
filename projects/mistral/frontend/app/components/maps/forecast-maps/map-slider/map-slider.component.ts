@@ -66,16 +66,18 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 
         this.isImageLoading = true;
 
-	if(this.filter.field === 'percentile' || this.filter.field === 'probability'){
-	    // take only till 0048, the first 15 images
-	    this.offsets = this.offsets.slice(0,15);
-	}
+	//if(this.filter.field === 'percentile' || this.filter.field === 'probability'){
+	//    // take only till 0048, the first 15 images
+	//    this.offsets = this.offsets.slice(0,15);
+	//}
 	//console.log(`ngOnChanges: offsets=${this.offsets}`);
 
         this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
             blobs => {
+		//console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
                 for (let i = 0; i < this.offsets.length; i++) {
                     this.images[i] = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blobs[i]));
+			//console.log(`ngOnChanges: i=${i}`);
                 }
             }, error => {
                 console.log(error);
@@ -103,11 +105,16 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 	    this.fromMinImage = 0;
         }
         this.sid = this.fromMin;
-        this.maxHour = (this.filter.res === 'lm2.2') ? 48 : 72;
-        if (this.maxHour === 48) {
-            this.sliderTicks.slice(this.sliderTicks.length - 2);
-        }
 
+	if (this.filter.field === 'percentile' || this.filter.field === 'probability') {
+            this.maxHour = 240;
+	}else{
+
+           this.maxHour = (this.filter.res === 'lm2.2') ? 48 : 72;
+           if (this.maxHour === 48) {
+               this.sliderTicks.slice(this.sliderTicks.length - 2);
+           }
+	}
         // get legend from service
         this.spinner.show(this.LEGEND_SPINNER);
         this.meteoService.getMapLegend(this.filter).subscribe(
@@ -155,6 +162,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
         //console.log(`onSlide: idx=${idx}`);
 
 	var idxSlider = idx * this.step + this.fromMin;
+	// temporary patch
+	// due to: flash flood step from 144h to 240h is 6h
+	if( (this.filter.field === 'percentile' || this.filter.field === 'probability') && idx>=47){
+	    idxSlider = idxSlider + (idx-46)*3;
+	}
         //console.log(`onSlide: idxSlider=${idxSlider}`);
 
         this.setSliderTo(idxSlider);
@@ -175,8 +187,15 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 		//console.log(`updateCarousel: 2- index=${index}`);
 		this.sid = index;
 	    }
+	    // temporary patch
+	    // due to: flash flood step from 144h to 240h is 6h
+	    if(index>=150){
+		indexImage = (index - this.fromMin)/this.step;
+		indexImage = 46 + (index-144)/6
 
-	    indexImage = (index - this.fromMin)/this.step;
+	    }else{
+	       indexImage = (index - this.fromMin)/this.step;
+	    }
 	}
 	//console.log(`updateCarousel: indexImage=${indexImage}`);
         setTimeout(() => {
