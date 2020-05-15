@@ -7,8 +7,10 @@
                 <div class="form-group">
                     <label class="col-form-label"><strong>FIELDS:</strong></label>
                     <div id="fieldGroup">
-                        <ng-container *ngFor="let f of fields">
-                            <label [title]="f.value" class="btn-circle" data-toggle="tooltip"
+                        <!-- FIELDS -->
+                        <div class="form-group">
+                            <ng-container *ngFor="let f of fields">
+                                <label [title]="f.value" class="btn-circle" data-toggle="tooltip"
                                        [ngClass]="(filterForm.get('field').value === f.key) ? 'btn-info' : 'btn-secondary'"
                                        *ngIf="!(((f.key === 'percentile' || f.key === 'probability')) && (!user || (filterForm.get('area').value ==='Area_Mediterranea') || (filterForm.get('res').value ==='lm5') || (filterForm.get('run').value ==='12')))">
                                     <input [value]="f.key" formControlName="field" type="radio"
@@ -19,34 +21,30 @@
                                         <small class="verySmallText" *ngIf="f.key==='probability'">pr</small>
                                     </i>
                                 </label>
-                            <!-- LEVEL only for Flash flood -->
-                            <div class="form-group" style="display:inline;"
-                                 *ngIf="(filterForm.get('field').value ==='percentile') && f.key === 'percentile'">
-                                <div style="display:inline-grid;">
-                                    <ng-container *ngFor="let level of levels_pe">
-                                        <label class="btn-squared" data-toggle="tooltip"
-                                               [ngClass]="(filterForm.get('level_pe').value === level.key) ? 'btn-info' : 'btn-secondary'">
-                                            <input [value]="level.key" formControlName="level_pe" type="radio"
-                                                   [attr.data-description]="level.value">
-                                            <span>{{level.key}}</span>
-                                        </label>
-                                    </ng-container>
-                                </div>
-                            </div>
-
-                            <div class="form-group" style="display:inline;"
-                                 *ngIf="(filterForm.get('field').value ==='probability') && f.key === 'probability'">
-                                <div style="display:inline-grid;">
-                                    <ng-container *ngFor="let level of levels_pr">
-                                        <label class="btn-squared" data-toggle="tooltip"
-                                               [ngClass]="(filterForm.get('level_pr').value === level.key) ? 'btn-info' : 'btn-secondary'">
-                                            <input [value]="level.key" formControlName="level_pr" type="radio"
-                                                   [attr.data-description]="level.value">{{level.key}}
-                                        </label>
-                                    </ng-container>
-                                </div>
-                            </div>
-                        </ng-container>
+                            </ng-container>
+                        </div>
+                        <!-- LEVEL -->
+                        <div class="form-group"
+                             *ngIf="(filterForm.get('field').value ==='percentile')">
+                            <ng-container *ngFor="let level of levels_pe">
+                                <label class="btn-squared" data-toggle="tooltip"
+                                       [ngClass]="(filterForm.get('level_pe').value === level.key) ? 'btn-info' : 'btn-secondary'">
+                                    <input [value]="level.key" formControlName="level_pe" type="radio"
+                                           [attr.data-description]="level.value">
+                                    <span>{{level.key}}</span>
+                                </label>
+                            </ng-container>
+                        </div>
+                        <div class="form-group"
+                             *ngIf="(filterForm.get('field').value ==='probability')">
+                            <ng-container *ngFor="let level of levels_pr">
+                                <label class="btn-squared" data-toggle="tooltip"
+                                       [ngClass]="(filterForm.get('level_pr').value === level.key) ? 'btn-info' : 'btn-secondary'">
+                                    <input [value]="level.key" formControlName="level_pr" type="radio"
+                                           [attr.data-description]="level.value">{{level.key}}
+                                </label>
+                            </ng-container>
+                        </div>
                     </div>
                 </div>
 
