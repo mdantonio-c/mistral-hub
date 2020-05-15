@@ -1,7 +1,7 @@
 import {Component, Input, Output, OnChanges, ViewChild, AfterViewInit, EventEmitter, HostListener} from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
 import {MeteoFilter, MeteoService} from "../services/meteo.service";
-import {Areas, Fields, Resolutions} from "../services/data";
+import {Areas, Fields, FlashFloodFFields, Resolutions} from "../services/data";
 import {NgbCarousel, NgbSlideEvent} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import {NgxSpinnerService} from 'ngx-spinner';
@@ -194,7 +194,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     getValue(param: string, key: string) {
         switch (param) {
             case 'field':
-                return Fields.find(f => f.key === key).value;
+                return Fields.concat(FlashFloodFFields).find(f => f.key === key).value;
             case 'res':
                 return Resolutions.find(r => r.key === key).value;
             case 'area':
