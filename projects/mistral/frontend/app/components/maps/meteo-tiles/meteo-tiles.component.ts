@@ -341,9 +341,9 @@ export class MeteoTilesComponent implements OnInit {
                 this.removeControl(legend_rh);
             } else if (event['name'] === 'High Cloud') {
                 this.removeControl(legend_hcc);
-            } else if (event['name'] === 'High Cloud') {
+            } else if (event['name'] === 'Medium Cloud') {
                 this.removeControl(legend_mcc);
-            } else if (event['name'] === 'High Cloud') {
+            } else if (event['name'] === 'Low Cloud') {
                 this.removeControl(legend_lcc);
             }
         });
