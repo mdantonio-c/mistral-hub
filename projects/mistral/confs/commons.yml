@@ -23,6 +23,7 @@ services:
   frontend:
     environment:
       INJECT_FRONTEND_DEBUG: ${FRONTEND_DEBUG}
+      INJECT_LASTDAYS: ${LASTDAYS}
     volumes:
       - ${VANILLA_DIR}/data/maps:/meteo
 

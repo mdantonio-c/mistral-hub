@@ -83,12 +83,17 @@ export class ObsMapComponent {
     private loadMarkers(data) {
         const markers: L.Marker[] = [];
         data.forEach((s) => {
-            // console.log(s);
             const icon = L.icon({
                 iconUrl: 'leaflet/marker-icon.png',
                 shadowUrl: 'leaflet/marker-shadow.png'
             });
-            markers.push(L.marker([s.station.lat, s.station.lon], {icon}));
+            const template = `<ul class="p-1 m-0"><li><b>Network</b>: ${s.station.network}</li>`+
+              `<li><b>Lat</b>: ${s.station.lat}</li>`+
+              `<li><b>Lon</b>: ${s.station.lon}</li>`+
+            `</ul>`;
+            markers.push(L.marker([s.station.lat, s.station.lon], {
+                icon
+            }).bindTooltip(template, {direction: 'top', offset: [12, 0]}));
         })
         this.markerClusterData = markers;
         this.markerClusterGroup.addLayers(markers);

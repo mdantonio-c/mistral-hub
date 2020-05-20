@@ -33,8 +33,11 @@ import {StepPostprocessMapComponent} from '@app/components/multi-step-wizard/ste
 import {StepSubmitComponent} from "@app/components/multi-step-wizard/step-submit/step-submit.component";
 
 /* Maps */
+import {ForecastMapsBaseComponent} from '@app/components/maps/forecast-maps/forecast-maps-base.component';
 import {ForecastMapsComponent} from '@app/components/maps/forecast-maps/forecast-maps.component';
+import {FlashFloodMapsComponent} from '@app/components/maps/forecast-maps/flash-flood-maps.component';
 import {MapFilterComponent} from '@app/components/maps/forecast-maps/map-filter/map-filter.component';
+import {MapFlashFloodFilterComponent} from '@app/components/maps/forecast-maps/map-filter/map-flash-flood-filter.component';
 import {MapSliderComponent} from '@app/components/maps/forecast-maps/map-slider/map-slider.component';
 import {ObservationMapsComponent} from '@app/components/maps/observation-maps/observation-maps.component';
 import {ObsFilterComponent} from '@app/components/maps/observation-maps/obs-filter/obs-filter.component';
@@ -59,6 +62,7 @@ const appRoutes: Routes = [
     },
     {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/forecasts', component: ForecastMapsComponent},
+    {path: 'app/maps/flashflood', component: FlashFloodMapsComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/observations', component: ObservationMapsComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/meteotiles', component: MeteoTilesComponent, canActivate: [AuthGuard]},
     {path: 'public/privacy', component: PrivacyComponent},
@@ -78,8 +82,11 @@ const appRoutes: Routes = [
     declarations: [
         HomeComponent,
         DataComponent,
+        ForecastMapsBaseComponent,
         ForecastMapsComponent,
+        FlashFloodMapsComponent,
         MapFilterComponent,
+        MapFlashFloodFilterComponent,
         MapSliderComponent,
         ObservationMapsComponent,
         ObsFilterComponent,
@@ -105,7 +112,7 @@ const appRoutes: Routes = [
     providers: [
         DatePipe, {provide: NgbTimeAdapter, useClass: NgbTimeStringAdapter}],
     exports: [
-        RouterModule
+        RouterModule, MapFlashFloodFilterComponent
     ]
 })
 
