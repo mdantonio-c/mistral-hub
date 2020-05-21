@@ -618,16 +618,27 @@ class BeDballe():
         if query_station_data:
             query_data = {**query_station_data}
         if query:
+            # TODO: now query does not support multiple values for a single param
             # adapt the query to the dballe syntax and add the params to the general query
             allowed_keys = ['level', 'network', 'product', 'timerange', 'datetimemin', 'datetimemax']
             dballe_keys = ['level', 'rep_memo', 'var', 'trange', 'datetimemin', 'datetimemax']
             for key, value in query.items():
                 if key in allowed_keys:
                     key_index = allowed_keys.index(key)
-                    if not isinstance(value, list):
-                        query_data[dballe_keys[key_index]] = value
+                    if key == 'timerange' or key == 'level':
+                        tuple_list = []
+                        for v in value[0].split(','):
+                            if key == 'level' and v == '0':
+                                val = None
+                                tuple_list.append(val)
+                            else:
+                                tuple_list.append(int(v))
+                        query_data[dballe_keys[key_index]]=tuple(tuple_list)
                     else:
-                        query_data[dballe_keys[key_index]] = value[0]
+                        if not isinstance(value, list):
+                            query_data[dballe_keys[key_index]] = value
+                        else:
+                            query_data[dballe_keys[key_index]] = value[0]
 
         # managing different dbs
         if db_type == 'arkimet':
