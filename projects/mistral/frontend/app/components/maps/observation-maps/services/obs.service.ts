@@ -10,6 +10,9 @@ export interface ObsFilter {
     product: string;
     reftime: Date;
     network?: string;
+    timerange?: string;
+    level?: string;
+    bbox?: BoundingBox;
     onlyStations?: boolean;
 }
 export interface Network {
@@ -20,6 +23,12 @@ export interface Network {
 export interface Product {
     code: string;
     desc?: string;
+}
+export interface BoundingBox {
+    latMin: number;
+    lonMin: number;
+    latMax: number;
+    lonMax: number;
 }
 
 export interface FieldsSummary {
@@ -60,8 +69,19 @@ export class ObsService {
             onlyStations: true,
             q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`
         }
+        if (filter.timerange && filter.timerange !== '') {
+            params['q'] += `;timerange:${filter.timerange}`;
+        }
+        if (filter.level && filter.level !== '') {
+            params['q'] += `;level:${filter.level}`;
+        }
+        // ONLY network and boundingbox as distinct params
         if (filter.network && filter.network !== '') {
             params['networks'] = filter.network;
+        }
+        if (filter.bbox) {
+            params['bounding-box'] = `latmin:${filter.bbox.latMin},lonmin:${filter.bbox.lonMin}` +
+                `,latmax:${filter.bbox.latMax},lonmax:${filter.bbox.lonMax}`;
         }
         return this.api.get('observations', '', params);
     }
