@@ -19,7 +19,7 @@
                                 {{ getValue('field', filter.field) }}: percentile {{ filter.level_pe }}
                             </span>
                             <span class="badge badge-info" *ngIf="filter.field == 'probability'">
-                                {{ getValue('field', filter.field) }}: {{ filter.level_pr }} mm
+                                {{ getValue('field', filter.field) }} &gt; {{ filter.level_pr }} mm
                             </span>
                         </h4>
                         <h4>
@@ -32,9 +32,9 @@
                             <span class="badge badge-secondary">{{ getValue('area', filter.area) }}</span>
                         </h4>
 			<div *ngIf="filter.field == 'percentile' || filter.field == 'probability'" style="font-size:90%;margin:5px;">
-				From 0h to 48h: blending of ecPoint rainfall and COSMO-2I-EPS post-processed
+				From 0h to 48h: blending of ecPoint-Rainfall and COSMO-2I-EPS post-processed
 				<br />
-				From 48h to 240h (day 10): only ecPoint rainfall is available
+				From 48h to 240h (day 10): only ecPoint-Rainfall is available
 			</div>
                     </div>
                     <div class="col-lg-6">
