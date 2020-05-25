@@ -62,7 +62,7 @@ export class ObsMapComponent {
             this.markerClusterGroup.clearLayers();
         }
         setTimeout(() => this.spinner.show(), 0);
-        this.meteoService.getStations(filter).subscribe(
+        this.meteoService.getData(filter).subscribe(
             data => {
                 // console.log(data);
                 this.updateCount.emit(data.length);

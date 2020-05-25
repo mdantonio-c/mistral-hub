@@ -9,12 +9,12 @@ export class ObsNavbarComponent {
 	@Input() totalItems: number;
 	@Input() loading: boolean;
 	displayMode: string = 'Stations';
-	@Output() onViewChange: EventEmitter<string> = new EventEmitter<string>();
+	@Output() viewChange: EventEmitter<string> = new EventEmitter<string>();
 
 	ngOnChanges() {}
 
 	changeView(choice) {
 		this.displayMode = choice;
-		this.onViewChange.emit(choice);
+		this.viewChange.emit(choice);
 	}
 }

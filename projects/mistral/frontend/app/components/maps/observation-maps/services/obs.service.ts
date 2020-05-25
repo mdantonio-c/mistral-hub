@@ -59,15 +59,17 @@ export class ObsService {
         return this.api.get('observations', '', filter);
     }
 
-    getStations(filter: ObsFilter) {
+    getData(filter: ObsFilter) {
         let d = [
             `${filter.reftime.getFullYear()}`,
             `${filter.reftime.getMonth()+1}`.padStart(2, '0'),
             `${filter.reftime.getDate()}`.padStart(2, '0')
             ].join('-');
         let params = {
-            onlyStations: true,
             q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`
+        }
+        if (filter.onlyStations) {
+            params['onlyStations'] = true
         }
         if (filter.timerange && filter.timerange !== '') {
             params['q'] += `;timerange:${filter.timerange}`;
