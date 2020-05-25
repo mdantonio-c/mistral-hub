@@ -369,7 +369,7 @@ input[type="radio"]:checked + .mst--radio-label:after {
 
 .mst--input-checkbox {
   opacity: 0;
-  position: absolute;
+  position: fixed;
 }
 
 .mst--input-checkbox + label {
