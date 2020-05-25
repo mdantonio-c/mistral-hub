@@ -183,8 +183,6 @@ class Fields(EndpointResource):
                     if summary_stats:
                         for key in summary:
                             resulting_fields['summarystats'][key]=summary[key]
-                    else:
-                        resulting_fields.pop('summarystats', None)
             summary = {'items': resulting_fields}
 
         ########## ARKIMET ###########
@@ -212,4 +210,7 @@ class Fields(EndpointResource):
             # we want to return ONLY summary Stats with no fields
             log.debug('ONLY Summary Stats')
             summary = summary['items']['summarystats']
+        if not summary_stats:
+            log.debug('not summar')
+            resulting_fields.pop('summarystats', None)
         return self.response(summary)

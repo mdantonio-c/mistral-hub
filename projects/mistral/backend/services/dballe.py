@@ -224,7 +224,7 @@ class BeDballe():
                 if query:
                     if 'license' in query.keys():
                         license = query['license']
-                datasets = arki.get_datasets(arkimet_query, license)
+                datasets = arki.get_obs_datasets(arkimet_query, license)
                 if not datasets:
                     # any dataset matches the query
                     return None, None
@@ -603,7 +603,7 @@ class BeDballe():
                 if 'license' in query.keys():
                     license = query['license']
             # get the correct arkimet dataset
-            datasets = arki.get_datasets(query_for_arkimet, license)
+            datasets = arki.get_obs_datasets(query_for_arkimet, license)
 
             if not datasets:
                 return response
@@ -680,7 +680,7 @@ class BeDballe():
                 station_data["lat"] = float(rec["lat"])
                 station_data["lon"] = float(rec["lon"])
                 station_data['network'] = rec['rep_memo']
-                station_data["ident"] = rec["ident"]
+                station_data["ident"] = "" if rec["ident"] is None else rec["ident"]
                 if not original_db:
                     # it means we are using the actual station ids
                     station_data['id'] = rec['ana_id']
@@ -722,7 +722,7 @@ class BeDballe():
                     station_query = {}
                     station_query['lat'] = el['station']['lat']
                     station_query['lon'] = el['station']['lon']
-                    station_query['ident'] = el['station']['ident']
+                    station_query['ident'] = None if el['station']['ident'] == "" else el['station']['ident']
                     station_query['rep_memo'] = el['station']['network']
                     for cur in tr.query_stations(station_query):
                         el['station']['id'] = cur['ana_id']

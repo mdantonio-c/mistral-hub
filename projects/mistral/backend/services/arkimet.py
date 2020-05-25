@@ -319,7 +319,7 @@ class BeArkimet:
     #     return dataset_items
 
     @staticmethod
-    def get_datasets(query,license):
+    def get_obs_datasets(query, license):
         datasets = []
         cfg_sections = Sections()
         cfg = cfg_sections.parse('/arkimet/config/arkimet.conf')
