@@ -1,71 +1,72 @@
 <form [formGroup]="form" (ngSubmit)="goToNext()">
-  <div class="tab-pane fade show active mt-4">
-    <h4 class="head text-center">{{title}}</h4>
-    <br/>
-    <ngx-spinner
-        bdColor="rgba(255,255,255,0.8)"
-        color="#6c757d"
-        zIndex="1000"
-        [fullScreen]="false" type="ball-clip-rotate-multiple" size="medium">
-    </ngx-spinner>
-    <!--
-    <ul>
-      <li formArrayName="datasets" *ngFor="let ds of form.controls.datasets['controls']; let i = index">
-          <input class="mst--input-checkbox" type="checkbox" [formControlName]="i" id="{{datasets[i].id}}">
-          <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
-      </li>
-    </ul>
-    -->
-    <ng-container>
-      <div class="row justify-content-md-center">
-        <div class="col-12 col-lg-4 mb-2">
-          <h5 class="text-center">
-            <img src="/app/custom/assets/images/icon_obs_sm.png" style="width:48px;height:48px;" class="mr-1">Observations</h5>
-          <div style="max-height: 400px; overflow: auto">
-          <ul class="px-0">
-            <ng-container *ngFor="let ds of form.controls.datasets['controls']; let i = index">
-              <li formArrayName="datasets" *ngIf="datasets[i].category === 'OBS'">
-                <input class="mst--input-checkbox" type="checkbox" [formControlName]="i" id="{{datasets[i].id}}">
-                <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
-              </li>
-            </ng-container>
-          </ul>
-          </div>
+    <div class="tab-pane fade show active mt-4">
+        <h4 class="head text-center">{{title}}</h4>
+        <br/>
+        <ngx-spinner
+                bdColor="rgba(255,255,255,0.8)"
+                color="#6c757d"
+                zIndex="1000"
+                [fullScreen]="false" type="ball-clip-rotate-multiple" size="medium">
+        </ngx-spinner>
+        <!--
+        <ul>
+          <li formArrayName="datasets" *ngFor="let ds of form.controls.datasets['controls']; let i = index">
+              <input class="mst--input-checkbox" type="checkbox" [formControlName]="i" id="{{datasets[i].id}}">
+              <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
+          </li>
+        </ul>
+        -->
+        <div class="row justify-content-md-center">
+            <div class="col-12 col-lg-4 mb-2">
+                <h5 class="text-center">
+                    <img src="/app/custom/assets/images/icon_obs_sm.png" class="mr-1">Observations</h5>
+                <div class="clearfix">
+                    <ul class="vertical-list px-0">
+                        <ng-container *ngFor="let ds of form.controls.datasets['controls']; let i = index">
+                            <li formArrayName="datasets" *ngIf="datasets[i].category === 'OBS'">
+                                <input class="mst--input-checkbox" type="checkbox" [formControlName]="i"
+                                       id="{{datasets[i].id}}">
+                                <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
+                            </li>
+                        </ng-container>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4 mb-2 border-right border-left">
+                <h5 class="text-center">
+                    <img src="/app/custom/assets/images/icon_for_sm.png" class="mr-1">Forecasts</h5>
+                <div class="clearfix">
+                    <ul class="vertical-list px-0">
+                        <ng-container *ngFor="let ds of form.controls.datasets['controls']; let i = index">
+                            <li formArrayName="datasets" *ngIf="datasets[i].category === 'FOR'">
+                                <input class="mst--input-checkbox" type="checkbox" [formControlName]="i"
+                                       id="{{datasets[i].id}}">
+                                <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
+                            </li>
+                        </ng-container>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4 mb-2">
+                <h5 class="text-center">
+                    <img src="/app/custom/assets/images/icon_rad_sm.png" class="mr-1">Radar</h5>
+                <div class="clearfix">
+                    <ul class="vertical-list px-0">
+                        <ng-container *ngFor="let ds of form.controls.datasets['controls']; let i = index">
+                            <li formArrayName="datasets" *ngIf="datasets[i].category === 'RAD'">
+                                <input class="mst--input-checkbox" type="checkbox" [formControlName]="i"
+                                       id="{{datasets[i].id}}">
+                                <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
+                            </li>
+                        </ng-container>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div class="col-12 col-lg-4 mb-2 border-right border-left">
-          <h5 class="text-center">
-            <img src="/app/custom/assets/images/icon_for_sm.png" style="width:48px;height:48px;" class="mr-1">Forecasts</h5>
-          <div style="max-height: 400px; overflow: auto">
-          <ul class="px-0">
-            <ng-container *ngFor="let ds of form.controls.datasets['controls']; let i = index">
-              <li formArrayName="datasets" *ngIf="datasets[i].category === 'FOR'">
-                <input class="mst--input-checkbox" type="checkbox" [formControlName]="i" id="{{datasets[i].id}}">
-                <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
-              </li>
-            </ng-container>
-          </ul>
-          </div>
+        <div class="form-group text-center">
+            <button class="btn btn-success btn-info" type="submit"
+                    [disabled]="!form.valid"> Next <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
         </div>
-        <div class="col-12 col-lg-4 mb-2">
-          <h5 class="text-center">
-            <img src="/app/custom/assets/images/icon_rad_sm.png" style="width:48px;height:48px;" class="mr-1">Radar</h5>
-          <div style="max-height: 400px; overflow: auto">
-          <ul class="px-0">
-            <ng-container *ngFor="let ds of form.controls.datasets['controls']; let i = index">
-              <li formArrayName="datasets" *ngIf="datasets[i].category === 'RAD'">
-                <input class="mst--input-checkbox" type="checkbox" [formControlName]="i" id="{{datasets[i].id}}">
-                <label for="{{datasets[i].id}}">{{datasets[i].description}}</label>
-              </li>
-            </ng-container>
-          </ul>
-          </div>
-        </div>
-      </div>
-    </ng-container>
-    <div class="form-group text-center">
-      <button class="btn btn-success btn-info" type="submit"
-              [disabled]="!form.valid"> Next <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
     </div>
-  </div>
 </form>
 

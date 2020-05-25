@@ -9,7 +9,8 @@ import {NgxSpinnerService} from 'ngx-spinner';
 
 @Component({
     selector: 'step-datasets',
-    templateUrl: './step-datasets.component.html'
+    templateUrl: './step-datasets.component.html',
+    styleUrls: ['./step-datasets.component.css']
 })
 export class StepDatasetsComponent implements OnInit {
     title = 'Please select one or more datasets';
