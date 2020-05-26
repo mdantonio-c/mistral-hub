@@ -5,13 +5,11 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 	templateUrl: './obs-navbar.component.html',
 	styleUrls: ['./obs-navbar.component.css']
 })
-export class ObsNavbarComponent {
+export class ObsNavbarComponent  {
+	@Input() displayMode: string;
 	@Input() totalItems: number;
-	@Input() loading: boolean;
-	displayMode: string = 'Stations';
+	@Input() loading: boolean = false;
 	@Output() viewChange: EventEmitter<string> = new EventEmitter<string>();
-
-	ngOnChanges() {}
 
 	changeView(choice) {
 		this.displayMode = choice;

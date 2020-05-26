@@ -9,7 +9,7 @@ import {ObsMapComponent} from "./obs-map/obs-map.component";
 })
 export class ObservationMapsComponent {
     totalItems: number = 0;
-    currentView: string = 'Stations';
+    currentView: string = 'Data';
     filter: ObsFilter;
 
     @ViewChild(ObsMapComponent) map: ObsMapComponent;
@@ -22,7 +22,6 @@ export class ObservationMapsComponent {
         setTimeout(() => {
              this.map.updateMap(this.filter);
         }, 0);
-
     }
 
     changeView(view) {
