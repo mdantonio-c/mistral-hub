@@ -44,17 +44,17 @@ export class ObsMapComponent {
             }
             if (childMarkers[0].options['data']) {
                 let sum = 0;
-                for (const m of childMarkers){
+                for (const m of childMarkers) {
                     const obj = m.options['data'];
                     const arr: any[] = obj[Object.keys(obj)[0]];
-                    sum += arr.map(v => v.value).reduce((a,b) => a + b, 0) / arr.length;
+                    sum += arr.map(v => v.value).reduce((a, b) => a + b, 0) / arr.length;
                 }
-                res = Math.round(sum / childCount) / 10;
+                res = Math.round(sum / childCount);
             }
             return new L.DivIcon({
-                    html: '<div><span>' + res + '</span></div>',
-                    className: 'marker-cluster' + c, iconSize: new L.Point(40, 40)
-                });
+                html: '<div><span>' + res + '</span></div>',
+                className: 'marker-cluster' + c, iconSize: new L.Point(40, 40)
+            });
         }
     };
     map: L.Map;
@@ -104,6 +104,16 @@ export class ObsMapComponent {
         });
     }
 
+    fitBounds() {
+        if (this.markerClusterData.length > 0) {
+            this.map.fitBounds(this.markerClusterGroup.getBounds(), {
+                padding: L.point(24, 24),
+                maxZoom: 12,
+                animate: true
+            });
+        }
+    }
+
     /**
      *
      * @param data
@@ -115,10 +125,10 @@ export class ObsMapComponent {
                 iconUrl: 'leaflet/marker-icon.png',
                 shadowUrl: 'leaflet/marker-shadow.png'
             });
-            const template = `<ul class="p-1 m-0"><li><b>Network</b>: ${s.station.network}</li>`+
-              `<li><b>Lat</b>: ${s.station.lat}</li>`+
-              `<li><b>Lon</b>: ${s.station.lon}</li>`+
-            `</ul>`;
+            const template = `<ul class="p-1 m-0"><li><b>Network</b>: ${s.station.network}</li>` +
+                `<li><b>Lat</b>: ${s.station.lat}</li>` +
+                `<li><b>Lon</b>: ${s.station.lon}</li>` +
+                `</ul>`;
             const marker = new L.Marker([s.station.lat, s.station.lon], {
                 icon: icon
             });
@@ -133,13 +143,6 @@ export class ObsMapComponent {
         this.markerClusterData = markers;
         this.markerClusterGroup.addLayers(markers);
 
-        if (markers.length > 0) {
-            this.map.fitBounds(this.markerClusterGroup.getBounds(), {
-                    padding: L.point(24, 24),
-                    maxZoom: 12,
-                    animate: true
-                });
-        }
-
+        this.fitBounds();
     }
 }
