@@ -42,6 +42,19 @@ export interface Items {
     timerange?: any[];
 }
 
+export interface Station {
+    ident?: string;
+    altitude?: string;
+    network: string;
+    lat: number;
+    lon: number;
+}
+
+export interface Observation {
+    station: Station;
+    data?: any;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -59,7 +72,7 @@ export class ObsService {
         return this.api.get('observations', '', filter);
     }
 
-    getData(filter: ObsFilter) {
+    getData(filter: ObsFilter): Observable<Observation[]> {
         let d = [
             `${filter.reftime.getFullYear()}`,
             `${filter.reftime.getMonth()+1}`.padStart(2, '0'),

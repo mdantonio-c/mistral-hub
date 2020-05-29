@@ -1,5 +1,5 @@
-import {Component, Input, OnInit, OnChanges, Output, EventEmitter} from '@angular/core';
-import {ObsFilter, ObsService} from "../services/obs.service";
+import {Component, Output, EventEmitter} from '@angular/core';
+import {ObsFilter, ObsService, Station} from "../services/obs.service";
 import {obsData} from "../services/data";
 import {NotificationService} from '@rapydo/services/notification';
 import {NgxSpinnerService} from 'ngx-spinner';
@@ -125,10 +125,6 @@ export class ObsMapComponent {
                 iconUrl: 'leaflet/marker-icon.png',
                 shadowUrl: 'leaflet/marker-shadow.png'
             });
-            const template = `<ul class="p-1 m-0"><li><b>Network</b>: ${s.station.network}</li>` +
-                `<li><b>Lat</b>: ${s.station.lat}</li>` +
-                `<li><b>Lon</b>: ${s.station.lon}</li>` +
-                `</ul>`;
             const marker = new L.Marker([s.station.lat, s.station.lon], {
                 icon: icon
             });
@@ -136,7 +132,9 @@ export class ObsMapComponent {
             if (s.data) {
                 marker.options['data'] = s.data;
             }
-            marker.bindTooltip(template, {direction: 'top', offset: [12, 0]});
+
+            marker.bindTooltip(this.buildTooltipTemplate(s.station),
+                {direction: 'top', offset: [12, 0]});
             markers.push(marker);
         })
 
@@ -144,5 +142,17 @@ export class ObsMapComponent {
         this.markerClusterGroup.addLayers(markers);
 
         this.fitBounds();
+    }
+
+    private buildTooltipTemplate(station: Station) {
+        let ident = station.ident || '';
+        let altitude = station.altitude || '';
+        const template = `<ul class="p-1 m-0"><li><b>Network</b>: ${station.network}</li>` +
+            ident +
+            `<li><b>Lat</b>: ${station.lat}</li>` +
+            `<li><b>Lon</b>: ${station.lon}</li>` +
+            altitude +
+            `</ul>`;
+        return template;
     }
 }
