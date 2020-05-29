@@ -1,8 +1,10 @@
+/*
 .map {
   height: 100%;
   padding: 0;
 }
+ */
 
 .fill .map {
-  min-height: 82vh;
+  min-height: 74vh;
 }
