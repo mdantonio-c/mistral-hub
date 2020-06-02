@@ -1,4 +1,4 @@
-import {Component, Output, EventEmitter} from '@angular/core';
+import {Component, Output, EventEmitter, OnInit} from '@angular/core';
 import {ObsFilter, ObsService, Station} from "../services/obs.service";
 import {obsData} from "../services/data";
 import {NotificationService} from '@rapydo/services/notification';
@@ -12,7 +12,7 @@ import 'leaflet.markercluster';
     templateUrl: './obs-map.component.html',
     styleUrls: ['./obs-map.component.css']
 })
-export class ObsMapComponent {
+export class ObsMapComponent implements OnInit {
 
     @Output() updateCount: EventEmitter<number> = new EventEmitter<number>();
 
@@ -77,6 +77,10 @@ export class ObsMapComponent {
         this.map = map;
     }
 
+    private printHello() {
+        console.log('Hello');
+    }
+
     markerClusterReady(group: L.MarkerClusterGroup) {
         this.markerClusterGroup = group;
     }
@@ -121,9 +125,20 @@ export class ObsMapComponent {
     private loadMarkers(data, onlyStations = false) {
         const markers: L.Marker[] = [];
         data.forEach((s) => {
-            const icon = L.icon({
-                iconUrl: 'leaflet/marker-icon.png',
-                shadowUrl: 'leaflet/marker-shadow.png'
+            let value: number;
+            if (s.data) {
+                const obj = s.data;
+                const arr: any[] = obj[Object.keys(obj)[0]];
+                value = Math.round(arr.map(v => v.value).reduce((a, b) => a + b, 0) / arr.length);
+            }
+            const icon = (s.data) ? L.divIcon({
+                html: `<div class="mstDataIcon"><span>${value}</span></div>`,
+                iconSize: [24, 6],
+                className: 'leaflet-marker-icon marker-cluster-small'
+            }) : L.divIcon({
+                html: '<i class="fa fa-map-marker-alt fa-3x"></i>',
+                iconSize: [20, 20],
+                className: 'mstDivIcon'
             });
             const marker = new L.Marker([s.station.lat, s.station.lon], {
                 icon: icon
@@ -134,7 +149,7 @@ export class ObsMapComponent {
             }
 
             marker.bindTooltip(this.buildTooltipTemplate(s.station),
-                {direction: 'top', offset: [12, 0]});
+                {direction: 'top', offset: [3, -8]});
             markers.push(marker);
         })
 
