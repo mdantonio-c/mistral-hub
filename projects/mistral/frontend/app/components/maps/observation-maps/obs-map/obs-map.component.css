@@ -1,8 +1,18 @@
+/*
 .map {
   height: 100%;
   padding: 0;
 }
+ */
 
 .fill .map {
-  min-height: 82vh;
+  min-height: 74vh;
 }
+
+.mstDivIcon {
+  text-align: center;
+  /* Horizontally center the text (icon) */
+  line-height: 20px;
+  /* Vertically center the text (icon) */
+}
+
