@@ -100,4 +100,46 @@ export class ObsService {
         }
         return this.api.get('observations', '', params);
     }
+
+    getColor(v: number) {
+        if (v < -28) { return "ffcc00"; }
+        else if (v < -26) { return "ff9900"; }
+        else if (v < -24) { return "ff6600"; }
+        else if (v < -22) { return "ff0000"; }
+        else if (v < -20) { return "cc0000"; }
+        else if (v < -18) { return "990000"; }
+        else if (v < -16) { return "660000"; }
+        else if (v < -14) { return "660066"; }
+        else if (v < -12) { return "990099"; }
+        else if (v < -10) { return "cc00cc"; }
+        else if (v < -8) { return "ff00ff"; }
+        else if (v < -6) { return "bf00ff"; }
+        else if (v < -4) { return "7200ff"; }
+        else if (v < -2) { return "0000ff"; }
+        else if (v < 0) { return "0059ff"; }
+        else if (v < 2) { return "008cff"; }
+        else if (v < 4) { return "00bfff"; }
+        else if (v < 6) { return "00ffff"; }
+        else if (v < 8) { return "00e5cc"; }
+        else if (v < 10) { return "00cc7f"; }
+        else if (v < 12) { return "00b200"; }
+        else if (v < 14) { return "7fcc00"; }
+        else if (v < 16) { return "cce500"; }
+        else if (v < 18) { return "ffff00"; }
+        else if (v < 20) { return "ffcc00"; }
+        else if (v < 22) { return "ff9900"; }
+        else if (v < 24) { return "ff6600"; }
+        else if (v < 26) { return "ff0000"; }
+        else if (v < 28) { return "cc0000"; }
+        else if (v < 30) { return "990000"; }
+        else if (v < 32) { return "660000"; }
+        else if (v < 34) { return "660066"; }
+        else if (v < 36) { return "990099"; }
+        else if (v < 38) { return "cc00cc"; }
+        else if (v < 40) { return "ff00ff"; }
+        else if (v < 42) { return "bf00ff"; }
+        else if (v < 44) { return "7200ff"; }
+        else if (v < 46) { return "ffcc00"; }
+        else { return "ff9900"; }
+    }
 }
