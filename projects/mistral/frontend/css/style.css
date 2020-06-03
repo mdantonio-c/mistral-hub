@@ -369,7 +369,7 @@ input[type="radio"]:checked + .mst--radio-label:after {
 
 .mst--input-checkbox {
   opacity: 0;
-  position: absolute;
+  position: fixed;
 }
 
 .mst--input-checkbox + label {
@@ -730,3 +730,57 @@ input[type=number]::-webkit-outer-spin-button {
     margin-right: 8px;
     opacity: 0.7;
 }
+
+/* leaflet markers */
+.leaflet-marker-icon {
+  display: flex;
+}
+
+.mstDataIcon {
+  text-align: center;
+  height: 25px;
+  line-height: 20px;
+  border-style: double;
+  white-space: nowrap;
+  padding: 0px 2px;
+}
+
+.mst-marker-color-ffcc00 div { background-color: #ffcc00; }
+.mst-marker-color-ff9900 div { background-color: #ff9900; }
+.mst-marker-color-ff6600 div { background-color: #ff6600; }
+.mst-marker-color-ff0000 div { background-color: #ff0000; }
+.mst-marker-color-cc0000 div { background-color: #cc0000; }
+.mst-marker-color-990000 div { background-color: #990000; }
+.mst-marker-color-660000 div { background-color: #660000; }
+.mst-marker-color-660066 div { background-color: #660066; }
+.mst-marker-color-990099 div { background-color: #990099; }
+.mst-marker-color-cc00cc div { background-color: #cc00cc; }
+.mst-marker-color-ff00ff div { background-color: #ff00ff; }
+.mst-marker-color-bf00ff div { background-color: #bf00ff; }
+.mst-marker-color-7200ff div { background-color: #7200ff; }
+.mst-marker-color-0000ff div { background-color: #0000ff; }
+.mst-marker-color-0059ff div { background-color: #0059ff; }
+.mst-marker-color-008cff div { background-color: #008cff; }
+.mst-marker-color-00bfff div { background-color: #00bfff; }
+.mst-marker-color-00ffff div { background-color: #00ffff; }
+.mst-marker-color-00e5cc div { background-color: #00e5cc; }
+.mst-marker-color-00cc7f div { background-color: #00cc7f; }
+.mst-marker-color-00b200 div { background-color: #00b200; }
+.mst-marker-color-7fcc00 div { background-color: #7fcc00; }
+.mst-marker-color-cce500 div { background-color: #cce500; }
+.mst-marker-color-ffff00 div { background-color: #ffff00; }
+.mst-marker-color-ffcc00 div { background-color: #ffcc00; }
+.mst-marker-color-ff9900 div { background-color: #ff9900; }
+.mst-marker-color-ff6600 div { background-color: #ff6600; }
+.mst-marker-color-ff0000 div { background-color: #ff0000; }
+.mst-marker-color-cc0000 div { background-color: #cc0000; }
+.mst-marker-color-990000 div { background-color: #990000; }
+.mst-marker-color-660000 div { background-color: #660000; }
+.mst-marker-color-660066 div { background-color: #660066; }
+.mst-marker-color-990099 div { background-color: #990099; }
+.mst-marker-color-cc00cc div { background-color: #cc00cc; }
+.mst-marker-color-ff00ff div { background-color: #ff00ff; }
+.mst-marker-color-bf00ff div { background-color: #bf00ff; }
+.mst-marker-color-7200ff div { background-color: #7200ff; }
+.mst-marker-color-ffcc00 div { background-color: #ffcc00; }
+.mst-marker-color-ff9900 div { background-color: #ff9900; }
