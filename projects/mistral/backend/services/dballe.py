@@ -1096,6 +1096,8 @@ class BeDballe():
         else:
             # get reftime min and max for arkimet datasets
             arki_summary = arki.load_summary(datasets)
+            fields.append['datetimemin']
+            fields.append['datetimemax']
             arki_queries[fields.index('datetimemin')][0] = datetime(*arki_summary['items']['summarystats']['b'])
             arki_queries[fields.index('datetimemax')][0] = datetime(*arki_summary['items']['summarystats']['e'])
 
