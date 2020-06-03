@@ -1059,18 +1059,18 @@ class BeDballe():
         return fields, queries
 
     @staticmethod
-    def extract_data_for_mixed(datasets, fields_for_q, queries, outfile):
+    def extract_data_for_mixed(datasets, fields, queries, outfile):
 
         # extract data from the dballe database
         log.debug('mixed dbs: extract data from dballe')
         dballe_queries = []
         for q in queries:
             dballe_queries.append(q)
-        if 'datetimemin' in fields_for_q:
+        if 'datetimemin' in fields:
             refmax_dballe, refmin_dballe, refmax_arki, refmin_arki = BeDballe.split_reftimes(queries[fields.index('datetimemin')][0],
                                                                                              queries[fields.index('datetimemax')][0])
             # set up query for dballe with the correct reftimes
-            dballe_queries[fields_for_q.index('datetimemin')][0] = refmin_dballe
+            dballe_queries[fields.index('datetimemin')][0] = refmin_dballe
 
         # set the filename for the partial extraction
         if outfile.endswith('.tmp'):
@@ -1082,29 +1082,29 @@ class BeDballe():
         dballe_outfile = filebase + '_dballe_part' + fileext + '.tmp'
 
         # extract
-        BeDballe.extract_data(datasets, fields_for_q, dballe_queries, dballe_outfile, db_type='dballe')
+        BeDballe.extract_data(datasets, fields, dballe_queries, dballe_outfile, db_type='dballe')
 
         # extract data from the arkimet database
         log.debug('mixed dbs: extract data from arkimet')
         arki_queries = []
         for q in queries:
             arki_queries.append(q)
-        if 'datetimemin' in fields_for_q:
+        if 'datetimemin' in fields:
             # set up query for arkimet with the correct reftimes
-            arki_queries[fields_for_q.index('datetimemin')][0] = refmin_arki
-            arki_queries[fields_for_q.index('datetimemax')][0] = refmax_arki
+            arki_queries[fields.index('datetimemin')][0] = refmin_arki
+            arki_queries[fields.index('datetimemax')][0] = refmax_arki
         else:
             # get reftime min and max for arkimet datasets
             arki_summary = arki.load_summary(datasets)
-            fields_for_q.append['datetimemin']
-            fields_for_q.append['datetimemax']
-            arki_queries[fields_for_q.index('datetimemin')][0] = datetime(*arki_summary['items']['summarystats']['b'])
-            arki_queries[fields_for_q.index('datetimemax')][0] = datetime(*arki_summary['items']['summarystats']['e'])
+            fields.append('datetimemin')
+            fields.append('datetimemax')
+            arki_queries[fields.index('datetimemin')][0] = datetime(*arki_summary['items']['summarystats']['b'])
+            arki_queries[fields.index('datetimemax')][0] = datetime(*arki_summary['items']['summarystats']['e'])
 
         arki_outfile = filebase + '_arki_part' + fileext + '.tmp'
 
         # extract
-        BeDballe.extract_data(datasets, fields_for_q, arki_queries, arki_outfile, db_type='arkimet')
+        BeDballe.extract_data(datasets, fields, arki_queries, arki_outfile, db_type='arkimet')
 
         cat_cmd = ['cat']
         if os.path.exists(dballe_outfile):
