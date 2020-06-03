@@ -29,40 +29,7 @@ export class ObsMapComponent {
     // Marker cluster stuff
     markerClusterGroup: L.MarkerClusterGroup;
     markerClusterData: L.Marker[] = [];
-    markerClusterOptions: L.MarkerClusterGroupOptions = {
-        iconCreateFunction: function (cluster) {
-            const childCount = cluster.getChildCount();
-            const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
-            let res: number = childCount;
-            let c = ' marker-cluster-';
-            if (childCount < 10) {
-                c += 'small';
-            } else if (childCount < 100) {
-                c += 'medium';
-            } else {
-                c += 'large';
-            }
-            let type: string;
-            if (childMarkers[0].options['data']) {
-                let sum = 0;
-                for (const m of childMarkers) {
-                    const obj = m.options['data'];
-                    const arr: any[] = obj[Object.keys(obj)[0]];
-                    if (!type) { type = Object.keys(obj)[0]; }
-                    sum += arr.map(v => v.value).reduce((a, b) => a + b, 0) / arr.length;
-                }
-                res = sum / childCount;
-                if (type === 'B12101') {
-                    res -= 273.15;    // convert temperatures from Kelvin to Celsius
-                }
-                res = Math.round(res);
-            }
-            return new L.DivIcon({
-                html: '<div><span>' + res + '</span></div>',
-                className: 'marker-cluster' + c, iconSize: new L.Point(40, 40)
-            });
-        }
-    };
+    markerClusterOptions: L.MarkerClusterGroupOptions;
     map: L.Map;
     legend = new L.Control({position: "bottomright"});
 
@@ -78,6 +45,46 @@ export class ObsMapComponent {
     constructor(private meteoService: ObsService,
                 private notify: NotificationService,
                 private spinner: NgxSpinnerService) {
+        // custom cluster options
+        this.markerClusterOptions = {
+            iconCreateFunction: function (cluster, service = meteoService) {
+                const childCount = cluster.getChildCount();
+                const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
+                let res: number = childCount;
+                let c = ' marker-cluster-';
+                if (childCount < 10) {
+                    c += 'small';
+                } else if (childCount < 100) {
+                    c += 'medium';
+                } else {
+                    c += 'large';
+                }
+                let type: string;
+                if (childMarkers[0].options['data']) {
+                    let sum = 0;
+                    for (const m of childMarkers) {
+                        const obj = m.options['data'];
+                        const arr: any[] = obj[Object.keys(obj)[0]];
+                        if (!type) {
+                            type = Object.keys(obj)[0];
+                        }
+                        sum += arr.map(v => v.value).reduce((a, b) => a + b, 0) / arr.length;
+                    }
+                    res = sum / childCount;
+                    if (type === 'B12101') {
+                        // convert temperatures from Kelvin to Celsius
+                        res -= 273.15;
+                    }
+                    res = Math.round(res);
+                    // custom background color of cluster
+                    c = ' mst-marker-color-' + service.getColor(res);
+                }
+                return new L.DivIcon({
+                    html: '<div><span>' + res + '</span></div>',
+                    className: 'marker-cluster' + c, iconSize: new L.Point(40, 40)
+                });
+            }
+        }
     }
 
     onMapReady(map: L.Map) {
