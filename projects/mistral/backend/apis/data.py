@@ -25,6 +25,14 @@ class Data(EndpointResource, Uploader):
                     'in': 'body',
                     'description': 'Criteria for data extraction.',
                     'schema': {'$ref': '#/definitions/DataExtraction'},
+                },
+                {
+                    'name': 'push',
+                    'in': 'query',
+                    'description': 'Enable push notification',
+                    'type': 'boolean',
+                    'default': False,
+                    'allowEmptyValue': True,
                 }
             ],
             'responses': {
@@ -55,6 +63,7 @@ class Data(EndpointResource, Uploader):
         dataset_names = criteria.get('datasets')
         reftime = criteria.get('reftime')
         output_format = criteria.get('output_format')
+
         if reftime is not None:
             # 'from' and 'to' both mandatory by schema
             # check from <= to
@@ -156,8 +165,29 @@ class Data(EndpointResource, Uploader):
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
 
+        push = criteria.get('push')
+        if isinstance(push, str) and (
+                push.lower() == 'true'
+        ):
+            push = True
+        elif type(push) == bool:
+            # do nothing
+            pass
+        else:
+            push = False
+
+        # get queue for pushing notifications
+        pushing_queue = None
+        if push:
+            # TODO build the queue name according to the chosen convention
+            # pushing_queue = xxxxxxx
+            rabbit = self.get_service_instance('rabbitmq')
+            # TODO: check if pushing_queue exists,
+            #  if not raise an error (401? user is not authorized to get push notification)
+
         # run the following steps in a transaction
         db = self.get_service_instance('sqlalchemy')
+        task = None
         try:
             request = repo.create_request_record(
                 db,
@@ -169,6 +199,7 @@ class Data(EndpointResource, Uploader):
                     'filters': filters,
                     'postprocessors': processors,
                     'output_format': output_format,
+                    'pushing_queue': pushing_queue,
                 },
             )
 
@@ -180,7 +211,8 @@ class Data(EndpointResource, Uploader):
                     filters,
                     processors,
                     output_format,
-                    request.id
+                    request.id,
+                    pushing_queue
                 ],
                 countdown=1,
             )
@@ -192,5 +224,12 @@ class Data(EndpointResource, Uploader):
         except Exception:
             db.session.rollback()
             raise SystemError("Unable to submit the request")
+        if task:
+            r = {'task_id': task.id}
 
-        return self.empty_response()
+        else:
+            raise RestApiException(
+                'Unable to submit the request',
+                status_code=hcodes.HTTP_SERVER_ERROR,
+            )
+        return self.response(r, code=hcodes.HTTP_OK_ACCEPTED)
