@@ -1093,13 +1093,6 @@ class BeDballe():
             # set up query for arkimet with the correct reftimes
             arki_queries[fields.index('datetimemin')][0] = refmin_arki
             arki_queries[fields.index('datetimemax')][0] = refmax_arki
-        else:
-            # get reftime min and max for arkimet datasets
-            arki_summary = arki.load_summary(datasets)
-            fields.append('datetimemin')
-            fields.append('datetimemax')
-            arki_queries[fields.index('datetimemin')][0] = datetime(*arki_summary['items']['summarystats']['b'])
-            arki_queries[fields.index('datetimemax')][0] = datetime(*arki_summary['items']['summarystats']['e'])
 
         arki_outfile = filebase + '_arki_part' + fileext + '.tmp'
 
@@ -1135,8 +1128,11 @@ class BeDballe():
             if 'rep_memo' in fields:
                 network = queries[fields.index('rep_memo')]
 
-            datemin = queries[fields.index('datetimemin')][0].strftime("%Y-%m-%d %H:%M")
-            datemax = queries[fields.index('datetimemax')][0].strftime("%Y-%m-%d %H:%M")
+            datemin = None
+            datemax = None
+            if 'datetimemin' in fields:
+                datemin = queries[fields.index('datetimemin')][0].strftime("%Y-%m-%d %H:%M")
+                datemax = queries[fields.index('datetimemax')][0].strftime("%Y-%m-%d %H:%M")
 
             arkimet_query = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=network)
 
