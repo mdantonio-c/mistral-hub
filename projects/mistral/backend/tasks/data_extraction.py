@@ -356,6 +356,8 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # create fileoutput record in db
             RequestManager.create_fileoutput_record(db, user_id, request_id, tar_filename, data_size)
             # update request status
+            request.status = states.SUCCESS
+
             if amqp_queue:
                 rabbit = self.get_service_instance('rabbitmq')
                 # host = get_backend_url()
@@ -376,7 +378,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,
-                meta=message
+                meta=str(exc)
             )
             raise Ignore()
         except PostProcessingException as exc:
@@ -396,7 +398,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,
-                meta=message
+                meta=str(exc)
             )
             raise Ignore()
         except Exception as exc:
