@@ -421,6 +421,24 @@ class Schedules(EndpointResource):
                         ],
                     )
                     log.info("Scheduling crontab task")
+            if data_ready:
+                # submit the first request
+                request_id = None
+                CeleryExt.data_extract.apply_async(
+                    args=[
+                        user.id,
+                        dataset_names,
+                        reftime,
+                        filters,
+                        processors,
+                        output_format,
+                        request_id,
+                        pushing_queue,
+                        name
+                    ],
+                    countdown=1,
+                )
+
 
         except Exception as error:
             log.error(error)
