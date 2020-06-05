@@ -319,10 +319,10 @@ class BeArkimet:
     #     return dataset_items
 
     @staticmethod
-    def get_datasets(query,license):
+    def get_obs_datasets(query, license):
         datasets = []
         cfg_sections = Sections()
-        cfg = cfg_sections.parse('/arkimet/config/arkimet.conf')
+        cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
         for i in [a for a in cfg.items() if a[0] not in ['error', 'duplicates']]:
             category = i[1]['_category']
             # check if the dataset is for observed data

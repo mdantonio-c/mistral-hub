@@ -19,6 +19,7 @@
                                 (filterUpdate)="applyFilter($event)"></app-obs-filter>
                     </ng-template>
                 </ngb-panel>
+                <!--
                 <ngb-panel>
                     <ng-template ngbPanelHeader let-opened="opened">
                         <div class="d-flex align-items-center justify-content-between">
@@ -34,12 +35,14 @@
                         3 wolf moon officia
                     </ng-template>
                 </ngb-panel>
+                -->
             </ngb-accordion>
         </div>
         <div class="col-lg-9">
             <div class="card h-100">
                 <div class="card-header">
-                    <app-obs-navbar [totalItems]=totalItems></app-obs-navbar>
+                    <app-obs-navbar [displayMode]="currentView"
+                            [totalItems]=totalItems (viewChange)="changeView($event)"></app-obs-navbar>
                 </div>
                 <div class="card-body p-0">
                     <app-obs-map (updateCount)="totalItems=$event"></app-obs-map>

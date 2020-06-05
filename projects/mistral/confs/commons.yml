@@ -8,11 +8,11 @@ services:
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
 
     volumes:
-      - ${VANILLA_DIR}/data/test:/data
+      - ${VANILLA_DIR}/data/user_repo:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
-      - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
-      - ${VANILLA_DIR}/data/flash-flood:/arkimet/flash-flood
+      # - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
+      # - ${VANILLA_DIR}/data/flash-flood:/arkimet/flash-flood
       - ${VANILLA_DIR}/data/maps:/meteo
       - ${VANILLA_DIR}/data/uploads:/uploads
       - ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/scripts:/scripts
@@ -23,6 +23,7 @@ services:
   frontend:
     environment:
       INJECT_FRONTEND_DEBUG: ${FRONTEND_DEBUG}
+      INJECT_LASTDAYS: ${LASTDAYS}
     volumes:
       - ${VANILLA_DIR}/data/maps:/meteo
 
@@ -49,7 +50,7 @@ services:
     # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
     volumes:
-      - ${VANILLA_DIR}/data/test:/data
+      - ${VANILLA_DIR}/data/user_repo:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
       - ${VANILLA_DIR}/data/uploads:/uploads
@@ -59,11 +60,11 @@ services:
     # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
     volumes:
-      - ${VANILLA_DIR}/data/test:/data
+      - ${VANILLA_DIR}/data/user_repo:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
-      - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
-      - ${VANILLA_DIR}/data/flash-flood:/arkimet/flash-flood
+      # - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
+      # - ${VANILLA_DIR}/data/flash-flood:/arkimet/flash-flood
       - ${VANILLA_DIR}/data/uploads:/uploads
     environment:
       LASTDAYS: ${LASTDAYS}

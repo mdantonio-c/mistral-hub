@@ -369,7 +369,7 @@ input[type="radio"]:checked + .mst--radio-label:after {
 
 .mst--input-checkbox {
   opacity: 0;
-  position: absolute;
+  position: fixed;
 }
 
 .mst--input-checkbox + label {
@@ -730,3 +730,96 @@ input[type=number]::-webkit-outer-spin-button {
     margin-right: 8px;
     opacity: 0.7;
 }
+
+/* leaflet markers */
+.leaflet-marker-icon {
+  display: flex;
+}
+
+.mstDataIcon {
+  text-align: center;
+  height: 25px;
+  line-height: 20px;
+  border-style: double;
+  white-space: nowrap;
+  padding: 0px 2px;
+}
+
+.mst-marker-color-ffcc00 { background-color: rgba(255, 216, 61, 0.6); }
+.mst-marker-color-ffcc00 div { background-color: rgba(255, 204, 0, 0.6); }
+.mst-marker-color-ff9900 { background-color: rgba(255, 176, 61, 0.6); }
+.mst-marker-color-ff9900 div { background-color: rgba(255, 153, 0, 0.6); }
+.mst-marker-color-ff6600 { background-color: rgba(255, 139, 61, 0.6); }
+.mst-marker-color-ff6600 div { background-color: rgba(255, 102, 0, 0.6); }
+.mst-marker-color-ff0000 { background-color: rgba(255, 61, 61, 0.6); }
+.mst-marker-color-ff0000 div { background-color: rgba(255, 0, 0, 0.6); }
+.mst-marker-color-cc0000 { background-color: rgba(194, 45, 45, 0.6); }
+.mst-marker-color-cc0000 div { background-color: rgba(204, 0, 0, 0.6); }
+.mst-marker-color-990000 { background-color: rgba(150, 36, 36, 0.6); }
+.mst-marker-color-990000 div { background-color: rgba(153, 0, 0, 0.6); }
+.mst-marker-color-660000 { background-color: rgba(99, 23, 23, 0.6); }
+.mst-marker-color-660000 div { background-color: rgba(102, 0, 0, 0.6); }
+.mst-marker-color-660066 { background-color: rgba(99, 22, 99, 0.6); }
+.mst-marker-color-660066 div { background-color: rgba(102, 0, 102, 0.6); }
+.mst-marker-color-990099 { background-color: rgba(150, 32, 150, 0.6); }
+.mst-marker-color-990099 div { background-color: rgba(153, 0, 153, 0.6); }
+.mst-marker-color-cc00cc { background-color: rgba(199, 44, 199, 0.6); }
+.mst-marker-color-cc00cc div { background-color: rgba(204, 0, 204, 0.6); }
+.mst-marker-color-ff00ff { background-color: rgba(255, 61, 255, 0.6); }
+.mst-marker-color-ff00ff div { background-color: rgba(255, 0, 255, 0.6); }
+.mst-marker-color-bf00ff { background-color: rgba(206, 61, 255, 0.6); }
+.mst-marker-color-bf00ff div { background-color: rgba(191, 0, 255, 0.6); }
+.mst-marker-color-7200ff { background-color: rgba(146, 61, 255, 0.6); }
+.mst-marker-color-7200ff div { background-color: rgba(114, 0, 255, 0.6); }
+.mst-marker-color-0000ff { background-color: rgba(61, 61, 255, 0.6); }
+.mst-marker-color-0000ff div { background-color: rgba(0, 0, 255, 0.6); }
+.mst-marker-color-0059ff { background-color: rgba(61, 127, 255, 0.6); }
+.mst-marker-color-0059ff div { background-color: rgba(0, 89, 255, 0.6); }
+.mst-marker-color-008cff { background-color: rgba(61, 168, 255, 0.6); }
+.mst-marker-color-008cff div { background-color: rgba(0, 140, 255, 0.6); }
+.mst-marker-color-00bfff { background-color: rgba(61, 207, 255, 0.6); }
+.mst-marker-color-00bfff div { background-color: rgba(0, 191, 255, 0.6); }
+.mst-marker-color-00ffff { background-color: rgba(61, 255, 255, 0.6); }
+.mst-marker-color-00ffff div { background-color: rgba(0, 255, 255, 0.6); }
+.mst-marker-color-00e5cc { background-color: rgba(54, 224, 205, 0.6); }
+.mst-marker-color-00e5cc div { background-color: rgba(0, 229, 204, 0.6); }
+.mst-marker-color-00cc7f { background-color: rgba(46, 199, 141, 0.6); }
+.mst-marker-color-00cc7f div { background-color: rgba(0, 204, 127, 0.6); }
+.mst-marker-color-00b200 { background-color: rgba(42, 181, 42, 0.6); }
+.mst-marker-color-00b200 div { background-color: rgba(0, 178, 0, 0.6); }
+.mst-marker-color-7fcc00 { background-color: rgba(146, 207, 45, 0.6); }
+.mst-marker-color-7fcc00 div { background-color: rgba(127, 204, 0, 0.6); }
+.mst-marker-color-cce500 { background-color: rgba(208, 227, 52, 0.6); }
+.mst-marker-color-cce500 div { background-color: rgba(204, 229, 0, 0.6); }
+.mst-marker-color-ffff00 { background-color: rgba(255, 255, 61, 0.6); }
+.mst-marker-color-ffff00 div { background-color: rgba(255, 255, 0, 0.6); }
+.mst-marker-color-ffcc00 { background-color: rgba(255, 216, 64, 0.6); }
+.mst-marker-color-ffcc00 div { background-color: rgba(255, 204, 0, 0.6); }
+.mst-marker-color-ff9900 { background-color: rgba(255, 177, 61, 0.6); }
+.mst-marker-color-ff9900 div { background-color: rgba(255, 153, 0, 0.6); }
+.mst-marker-color-ff6600 { background-color: rgba(255, 136, 56, 0.6); }
+.mst-marker-color-ff6600 div { background-color: rgba(255, 102, 0, 0.6); }
+.mst-marker-color-ff0000 { background-color: rgba(255, 59, 59, 0.6); }
+.mst-marker-color-ff0000 div { background-color: rgba(255, 0, 0, 0.6); }
+.mst-marker-color-cc0000 { background-color: rgba(196, 45, 45, 0.6); }
+.mst-marker-color-cc0000 div { background-color: rgba(204, 0, 0, 0.6); }
+.mst-marker-color-990000 { background-color: rgba(156, 39, 39, 0.6); }
+.mst-marker-color-990000 div { background-color: rgba(153, 0, 0, 0.6); }
+.mst-marker-color-660000 { background-color: rgba(99, 24, 24, 0.6); }
+.mst-marker-color-660000 div { background-color: rgba(102, 0, 0, 0.6); }
+.mst-marker-color-660066 { background-color: rgba(102, 24, 102, 0.6); }
+.mst-marker-color-660066 div { background-color: rgba(102, 0, 102, 0.6); }
+.mst-marker-color-990099 { background-color: rgba(153, 38, 153, 0.6); }
+.mst-marker-color-990099 div { background-color: rgba(153, 0, 153, 0.6); }
+.mst-marker-color-cc00cc { background-color: rgba(204, 47, 204, 0.6); }
+.mst-marker-color-cc00cc div { background-color: rgba(204, 0, 204, 0.6); }
+.mst-marker-color-ff00ff { background-color: rgba(255, 61, 255, 0.6); }
+.mst-marker-color-ff00ff div { background-color: rgba(255, 0, 255, 0.6); }
+.mst-marker-color-bf00ff { background-color: rgba(207, 64, 255, 0.6); }
+.mst-marker-color-bf00ff div { background-color: rgba(191, 0, 255, 0.6); }
+.mst-marker-color-7200ff { background-color: rgba(148, 61, 255, 0.6); }
+.mst-marker-color-7200ff div { background-color: rgba(114, 0, 255, 0.6); }
+.mst-marker-color-ffcc00 { background-color: rgba(255, 216, 61, 0.6); }
+.mst-marker-color-ffcc00 div { background-color: rgba(255, 204, 0, 0.6); }
+.mst-marker-color-ff9900 { background-color: rgba(255, 177, 61, 0.6); }
+.mst-marker-color-ff9900 div { background-color: rgba(255, 153, 0, 0.6); }

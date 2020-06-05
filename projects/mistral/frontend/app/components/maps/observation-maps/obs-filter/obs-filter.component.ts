@@ -4,6 +4,9 @@ import {ObsFilter, ObsService} from '../services/obs.service';
 import {NETWORKS, LICENSES, CodeDescPair} from "../services/data";
 import {NgbDateStruct, NgbCalendar} from '@ng-bootstrap/ng-bootstrap';
 import {NotificationService} from '@rapydo/services/notification';
+import {environment} from '@rapydo/../environments/environment';
+
+const LAST_DAYS = +environment.ALL['LASTDAYS'] || 10;
 
 @Component({
     selector: 'app-obs-filter',
@@ -36,8 +39,9 @@ export class ObsFilterComponent implements OnInit {
         this.filterForm = this.fb.group({
             product: ['B12101', Validators.required],
             reftime: [this.today, Validators.required],
-            level: [''],
-            timerange: [''],
+            // reftime: [new Date(2020, 4, 22), Validators.required],
+            level: ['103,2000,0,0'],
+            timerange: ['254,0,0'],
             boundingBox: [''],
             network: [''],
             license: ['CC-BY', Validators.required]
@@ -96,6 +100,12 @@ export class ObsFilterComponent implements OnInit {
         }
         if (form.network !== '') {
             filter.network = form.network;
+        }
+        if (form.timerange) {
+            filter.timerange = form.timerange;
+        }
+        if (form.level) {
+            filter.level = form.level;
         }
         console.log('emit update filter', filter);
         this.filterUpdate.emit(filter);

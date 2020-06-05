@@ -42,6 +42,7 @@ variables:
     # RABBITMQ_ENABLE_SHOVEL_PLUGIN: 1
 
     CORS_ALLOW_ALL_ORIGINS: 1
+    SET_CSP_IMG_SRC: https://c.tile.openstreetmap.org
 
   backend:
     credentials:

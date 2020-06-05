@@ -224,7 +224,7 @@ class BeDballe():
                 if query:
                     if 'license' in query.keys():
                         license = query['license']
-                datasets = arki.get_datasets(arkimet_query, license)
+                datasets = arki.get_obs_datasets(arkimet_query, license)
                 if not datasets:
                     # any dataset matches the query
                     return None, None
@@ -603,7 +603,7 @@ class BeDballe():
                 if 'license' in query.keys():
                     license = query['license']
             # get the correct arkimet dataset
-            datasets = arki.get_datasets(query_for_arkimet, license)
+            datasets = arki.get_obs_datasets(query_for_arkimet, license)
 
             if not datasets:
                 return response
@@ -618,16 +618,27 @@ class BeDballe():
         if query_station_data:
             query_data = {**query_station_data}
         if query:
+            # TODO: now query does not support multiple values for a single param
             # adapt the query to the dballe syntax and add the params to the general query
             allowed_keys = ['level', 'network', 'product', 'timerange', 'datetimemin', 'datetimemax']
             dballe_keys = ['level', 'rep_memo', 'var', 'trange', 'datetimemin', 'datetimemax']
             for key, value in query.items():
                 if key in allowed_keys:
                     key_index = allowed_keys.index(key)
-                    if not isinstance(value, list):
-                        query_data[dballe_keys[key_index]] = value
+                    if key == 'timerange' or key == 'level':
+                        tuple_list = []
+                        for v in value[0].split(','):
+                            if key == 'level' and v == '0':
+                                val = None
+                                tuple_list.append(val)
+                            else:
+                                tuple_list.append(int(v))
+                        query_data[dballe_keys[key_index]]=tuple(tuple_list)
                     else:
-                        query_data[dballe_keys[key_index]] = value[0]
+                        if not isinstance(value, list):
+                            query_data[dballe_keys[key_index]] = value
+                        else:
+                            query_data[dballe_keys[key_index]] = value[0]
 
         # managing different dbs
         if db_type == 'arkimet':
@@ -669,7 +680,7 @@ class BeDballe():
                 station_data["lat"] = float(rec["lat"])
                 station_data["lon"] = float(rec["lon"])
                 station_data['network'] = rec['rep_memo']
-                station_data["ident"] = rec["ident"]
+                station_data["ident"] = "" if rec["ident"] is None else rec["ident"]
                 if not original_db:
                     # it means we are using the actual station ids
                     station_data['id'] = rec['ana_id']
@@ -711,7 +722,7 @@ class BeDballe():
                     station_query = {}
                     station_query['lat'] = el['station']['lat']
                     station_query['lon'] = el['station']['lon']
-                    station_query['ident'] = el['station']['ident']
+                    station_query['ident'] = None if el['station']['ident'] == "" else el['station']['ident']
                     station_query['rep_memo'] = el['station']['network']
                     for cur in tr.query_stations(station_query):
                         el['station']['id'] = cur['ana_id']
@@ -1082,11 +1093,6 @@ class BeDballe():
             # set up query for arkimet with the correct reftimes
             arki_queries[fields.index('datetimemin')][0] = refmin_arki
             arki_queries[fields.index('datetimemax')][0] = refmax_arki
-        else:
-            # get reftime min and max for arkimet datasets
-            arki_summary = arki.load_summary(datasets)
-            arki_queries[fields.index('datetimemin')][0] = datetime(*arki_summary['items']['summarystats']['b'])
-            arki_queries[fields.index('datetimemax')][0] = datetime(*arki_summary['items']['summarystats']['e'])
 
         arki_outfile = filebase + '_arki_part' + fileext + '.tmp'
 
@@ -1122,8 +1128,11 @@ class BeDballe():
             if 'rep_memo' in fields:
                 network = queries[fields.index('rep_memo')]
 
-            datemin = queries[fields.index('datetimemin')][0].strftime("%Y-%m-%d %H:%M")
-            datemax = queries[fields.index('datetimemax')][0].strftime("%Y-%m-%d %H:%M")
+            datemin = None
+            datemax = None
+            if 'datetimemin' in fields:
+                datemin = queries[fields.index('datetimemin')][0].strftime("%Y-%m-%d %H:%M")
+                datemax = queries[fields.index('datetimemax')][0].strftime("%Y-%m-%d %H:%M")
 
             arkimet_query = BeDballe.build_arkimet_query(datemin=datemin, datemax=datemax, network=network)
 

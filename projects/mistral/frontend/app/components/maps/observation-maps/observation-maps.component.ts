@@ -9,14 +9,24 @@ import {ObsMapComponent} from "./obs-map/obs-map.component";
 })
 export class ObservationMapsComponent {
     totalItems: number = 0;
+    currentView: string = 'Data';
+    filter: ObsFilter;
 
     @ViewChild(ObsMapComponent) map: ObsMapComponent;
 
-    applyFilter(filter: ObsFilter) {
+    applyFilter(filter?: ObsFilter) {
+        if (filter) {
+            this.filter = filter;
+        }
+        this.filter.onlyStations = (this.currentView === 'Stations');
         setTimeout(() => {
-             this.map.updateMap(filter);
+             this.map.updateMap(this.filter);
         }, 0);
-
     }
+
+    changeView(view) {
+		this.currentView = view;
+        this.applyFilter();
+	}
 
 }

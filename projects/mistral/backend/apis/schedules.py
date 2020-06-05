@@ -15,7 +15,6 @@ import datetime
 
 
 class Schedules(EndpointResource):
-
     labels = ['schedule']
     GET = {
         '/schedules/<schedule_id>': {
@@ -104,6 +103,14 @@ class Schedules(EndpointResource):
                     'in': 'body',
                     'description': 'Criteria for scheduled data extraction.',
                     'schema': {'$ref': '#/definitions/DataScheduling'},
+                },
+                {
+                    'name': 'push',
+                    'in': 'query',
+                    'description': 'Enable push notification',
+                    'type': 'boolean',
+                    'default': False,
+                    'allowEmptyValue': True,
                 }
             ],
             'responses': {
@@ -288,6 +295,26 @@ class Schedules(EndpointResource):
                 data_ready = True
             # what if reftime is None?
 
+        push = criteria.get('push')
+        if isinstance(push, str) and (
+                push.lower() == 'true'
+        ):
+            push = True
+        elif type(push) == bool:
+            # do nothing
+            pass
+        else:
+            push = False
+
+        # get queue for pushing notifications
+        pushing_queue = None
+        if push:
+            # TODO build the queue name according to the chosen convention
+            # pushing_queue = xxxxxxx
+            rabbit = self.get_service_instance('rabbitmq')
+            # TODO: check if pushing_queue exists,
+            #  if not raise an error (401? user is not authorized to get push notification)
+
         db = self.get_service_instance('sqlalchemy')
 
         # check if scheduling parameters are correct
@@ -295,7 +322,7 @@ class Schedules(EndpointResource):
             raise RestApiException(
                 "scheduling criteria are not valid", status_code=hcodes.HTTP_BAD_REQUEST
             )
-
+        name = None
         try:
             # parsing period settings
             period_settings = criteria.get('period-settings')
@@ -315,6 +342,7 @@ class Schedules(EndpointResource):
                         'filters': filters,
                         'postprocessors': processors,
                         'output_format': output_format,
+                        'pushing_queue': pushing_queue,
                     },
                     every=every,
                     period=period,
@@ -342,6 +370,7 @@ class Schedules(EndpointResource):
                             processors,
                             output_format,
                             request_id,
+                            pushing_queue,
                             name_int,
                         ],
                     )
@@ -387,16 +416,42 @@ class Schedules(EndpointResource):
                             processors,
                             output_format,
                             request_id,
+                            pushing_queue,
                             name_int,
                         ],
                     )
                     log.info("Scheduling crontab task")
+            if data_ready:
+                # submit the first request
+                request_id = None
+                CeleryExt.data_extract.apply_async(
+                    args=[
+                        user.id,
+                        dataset_names,
+                        reftime,
+                        filters,
+                        processors,
+                        output_format,
+                        request_id,
+                        pushing_queue,
+                        name
+                    ],
+                    countdown=1,
+                )
+
 
         except Exception as error:
             log.error(error)
             db.session.rollback()
             raise SystemError("Unable to submit the request")
-        return self.response('Scheduled task {}'.format(name))
+        if name:
+            r = {'schedule_id': name}
+        else:
+            raise RestApiException(
+                'Unable to submit the request',
+                status_code=hcodes.HTTP_SERVER_ERROR,
+            )
+        return self.response(r, code=hcodes.HTTP_OK_ACCEPTED)
 
     @staticmethod
     def settings_validation(criteria):
@@ -492,6 +547,7 @@ class Schedules(EndpointResource):
                                 schedule_response['args']['postprocessors'],
                                 schedule_response['args']['output_format'],
                                 request_id,
+                                schedule_response['args']['pushing_queue'],
                                 schedule_id,
                             ],
                         )
@@ -516,6 +572,7 @@ class Schedules(EndpointResource):
                                 schedule_response['args']['postprocessors'],
                                 schedule_response['args']['output_format'],
                                 request_id,
+                                schedule_response['args']['pushing_queue'],
                                 schedule_id,
                             ],
                         )
@@ -568,7 +625,6 @@ class Schedules(EndpointResource):
 
 
 class ScheduledRequests(EndpointResource):
-
     labels = ['scheduled_requests']
     GET = {
         '/schedules/<schedule_id>/requests': {

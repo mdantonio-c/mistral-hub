@@ -12,8 +12,11 @@ export const Fields: KeyValuePair[] = [
     {key: 'cloud_hml', value: 'Cloud coverage high, medium, low (%)'},
     {key: 'humidity', value: 'Relative humidity (%)'},
     {key: 'snow3', value: 'Accumulated total snow prec. 3h (Kg/mq)'},
-    {key: 'snow6', value: 'Accumulated total snow prec. 6h (Kg/mq)'},
-    {key: 'percentile', value: 'Flash Flood - 6h precipitation (mm)'},
+    {key: 'snow6', value: 'Accumulated total snow prec. 6h (Kg/mq)'}
+];
+
+export const FlashFloodFFields: KeyValuePair[] = [
+    {key: 'percentile', value: 'Flash Flood - 6h precipitation percentiles (mm)'},
     {key: 'probability', value: 'Flash Flood - 6h precipitation probability (%)'}
 ];
 

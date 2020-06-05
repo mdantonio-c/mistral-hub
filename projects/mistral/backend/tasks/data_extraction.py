@@ -20,6 +20,7 @@ from mistral.services.requests_manager import RequestManager
 from mistral.exceptions import DiskQuotaException
 from mistral.exceptions import PostProcessingException
 from mistral.exceptions import AccessToDatasetDenied
+# from restapi.confs import get_backend_url
 
 # postprocessing
 from mistral.tools import derived_variables as pp1
@@ -39,8 +40,9 @@ DOWNLOAD_DIR = '/data'
 @celery_app.task(bind=True)
 # @send_errors_by_email
 def data_extract(self, user_id, datasets, reftime=None, filters=None, postprocessors=[], output_format=None,
-                 request_id=None,
+                 request_id=None, amqp_queue=None,
                  schedule_id=None):
+
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]", self.request.id, self.name)
         extra_msg = ''
@@ -76,6 +78,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 request = db.Request.query.get(request_id)
                 if request is None:
                     raise ReferenceError("Cannot find request reference for task {}".format(self.request.id))
+
 
             # get the format of the datasets
             dataset_format = arki.get_datasets_format(datasets)
@@ -354,7 +357,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             RequestManager.create_fileoutput_record(db, user_id, request_id, tar_filename, data_size)
             # update request status
             request.status = states.SUCCESS
-            log.debug('reftime: {}', reftime)
 
         except DiskQuotaException as exc:
             request.status = states.FAILURE
@@ -363,7 +365,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,
-                meta=message
+                meta=str(exc)
             )
             raise Ignore()
         except PostProcessingException as exc:
@@ -383,7 +385,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # manually update the task state
             self.update_state(
                 state=states.FAILURE,
-                meta=message
+                meta=str(exc)
             )
             raise Ignore()
         except Exception as exc:
@@ -401,12 +403,32 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             request.end_date = datetime.datetime.utcnow()
             db.session.commit()
             log.info('Terminate task {} with state {}', self.request.id, request.status)
-            # user notification via email
-            user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
-            body_msg = request.error_message if request.error_message is not None else "Your data is ready for " \
-                                                                                       "downloading"
-            body_msg += extra_msg
-            send_result_notication(user_email, request.name, request.status, body_msg)
+            if not amqp_queue:
+                # user notification via email
+                user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
+                body_msg = request.error_message if request.error_message is not None else "Your data is ready for " \
+                                                                                           "downloading"
+                body_msg += extra_msg
+                send_result_notication(user_email, request.name, request.status, body_msg)
+            else:
+                rabbit = self.get_service_instance('rabbitmq')
+                # host = get_backend_url()
+                # url = '{host}/api/data/{filename}'.format(host=host,filename=tar_filename)
+                rabbit_msg = {
+                    'task_id': self.request.id,
+                    'schedule_id': schedule_id,
+                    'status': request.status
+                }
+                if request.error_message is None:
+                    rabbit_msg['filename'] = tar_filename
+                    # rabbit_msg['url'] = url
+                else:
+                    rabbit_msg['error_message'] = request.error_message
+
+                rabbit.write_to_queue(rabbit_msg, amqp_queue)
+                rabbit.close_connection()
+
+
 
 
 def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
