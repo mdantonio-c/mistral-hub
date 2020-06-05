@@ -892,8 +892,12 @@ class BeDballe():
 
     @staticmethod
     def get_description(value, type):
-        if type == 'product' or type == 'network':
+        if type == 'network':
             description = value
+        elif type == 'product':
+            var_code = value
+            var_infos = dballe.varinfo(var_code)
+            description = var_infos.desc
         elif type == 'timerange' or type == 'level':
             list = []
             for v in value.split(','):
