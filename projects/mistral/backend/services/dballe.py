@@ -511,11 +511,21 @@ class BeDballe():
                                             break
                                     # append values to the variable
                                     if not only_stations:
-                                        for key, value in i['data'].items():
-                                            if key not in dballe_maps_data[el_index]['data']:
-                                                dballe_maps_data[el_index]['data'][key] = []
-                                            for v in value:
-                                                dballe_maps_data[el_index]['data'][key].append(v)
+                                        for e in i['products']:
+                                            varcode = e['varcode']
+                                            existent_product = False
+                                            for el in dballe_maps_data[el_index]['products']:
+                                                if el['varcode'] == varcode:
+                                                    existent_product = True
+                                                    for v in e['values']:
+                                                        el['values'].append(v)
+                                            if not existent_product:
+                                                dballe_maps_data[el_index]['products'].append(e)
+                                        # for key, value in i['data'].items():
+                                        #     if key not in dballe_maps_data[el_index]['data']:
+                                        #         dballe_maps_data[el_index]['data'][key] = []
+                                        #     for v in value:
+                                        #         dballe_maps_data[el_index]['data'][key].append(v)
                                 else:
                                     dballe_maps_data.append(i)
                             else:
@@ -687,15 +697,27 @@ class BeDballe():
 
                 # get data values
                 if not only_stations:
-                    data = {}
-                    data[rec['var']] = []
-                    product_el = {}
-                    product_el['value'] = rec[rec['var']].get()
-                    product_el['reftime'] = datetime(rec["year"], rec["month"], rec["day"], rec["hour"], rec["min"],
+                    product_data = {}
+                    product_data['varcode'] = rec['var']
+                    var_info = dballe.varinfo(rec['var'])
+                    product_data['description'] = var_info.desc
+                    product_data['unit'] = var_info.unit
+                    product_data['scale'] = var_info.scale
+                    product_val = {}
+                    product_val['value'] = rec[rec['var']].get()
+                    product_val['reftime'] = datetime(rec["year"], rec["month"], rec["day"], rec["hour"], rec["min"],
                                                      rec["sec"])
-                    product_el['level'] = BeDballe.from_level_object_to_string(rec['level'])
-                    product_el['timerange'] = BeDballe.from_trange_object_to_string(rec['trange'])
-                    data[rec['var']].append(product_el)
+                    product_val['level'] = BeDballe.from_level_object_to_string(rec['level'])
+                    product_val['timerange'] = BeDballe.from_trange_object_to_string(rec['trange'])
+                    # data = {}
+                    # data[rec['var']] = []
+                    # product_el = {}
+                    # product_el['value'] = rec[rec['var']].get()
+                    # product_el['reftime'] = datetime(rec["year"], rec["month"], rec["day"], rec["hour"], rec["min"],
+                    #                                  rec["sec"])
+                    # product_el['level'] = BeDballe.from_level_object_to_string(rec['level'])
+                    # product_el['timerange'] = BeDballe.from_trange_object_to_string(rec['trange'])
+                    # data[rec['var']].append(product_el)
                 # determine where append the values
                 existent_station = False
                 for i in response:
@@ -704,16 +726,32 @@ class BeDballe():
                         existent_station = True
                         if not only_stations:
                             # check if the element has already the given product
-                            if not rec['var'] in i['data'].keys():
-                                i['data'][rec['var']] = []
-                            # append here the value
-                            i['data'][rec['var']].append(product_el)
+                            existent_product = False
+                            for e in i['products']:
+                                if e['varcode'] == rec['var']:
+                                    existent_product = True
+                                    e['values'].append(product_val)
+                            if not existent_product:
+                                product_data['values'] = []
+                                product_data['values'].append(product_val)
+                                i['products'].append(product_data)
+                            # if not rec['var'] in i['data'].keys():
+                            #     i['data'][rec['var']] = []
+                            # # append here the value
+                            # i['data'][rec['var']].append(product_el)
                 if not existent_station:
                     # create a new record
                     res_element['station'] = station_data
                     if not only_stations:
-                        res_element['data'] = data
+                        res_element['products'] = []
+                        product_data['values'] = []
+                        product_data['values'].append(product_val)
+                        res_element['products'].append(product_data)
                     response.append(res_element)
+                    # res_element['station'] = station_data
+                    # if not only_stations:
+                    #     res_element['data'] = data
+                    # response.append(res_element)
 
         if original_db:
             # get the correct station id from the original dballe

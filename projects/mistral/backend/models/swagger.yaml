@@ -487,19 +487,32 @@ definitions:
             type: array
             items:
               type: string
-      data:
-        type: object
-        properties:
-          variable:
-            description: code of the variable
-            type: array
-            items:
-              type: object
-              properties:
-                value:
-                  type: number
-                reftime:
-                  type: string
+      products:
+        type: array
+        items:
+          type: object
+          properties:
+            varcode:
+              type: string
+            description:
+              type: string
+            unit:
+              type: string
+            scale:
+              type: number
+            values:
+              type: array
+              items:
+                type: object
+                properties:
+                  value:
+                    type: number
+                  reftime:
+                    type: string
+                  level:
+                    type: string
+                  timerange:
+                    type: string
 
   Summary:
     required:
