@@ -358,19 +358,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             # update request status
             request.status = states.SUCCESS
 
-            if amqp_queue:
-                rabbit = self.get_service_instance('rabbitmq')
-                # host = get_backend_url()
-                # url = '{host}/api/data/{filename}'.format(host=host,filename=tar_filename)
-                rabbit_msg = {
-                    'task_id': self.request.id,
-                    'schedule_id': schedule_id,
-                    'filename': tar_filename,
-                    # 'url': url
-                }
-                rabbit.write_to_queue(rabbit_msg, amqp_queue)
-                rabbit.close_connection()
-
         except DiskQuotaException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
@@ -423,6 +410,24 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                                                                                            "downloading"
                 body_msg += extra_msg
                 send_result_notication(user_email, request.name, request.status, body_msg)
+            else:
+                rabbit = self.get_service_instance('rabbitmq')
+                # host = get_backend_url()
+                # url = '{host}/api/data/{filename}'.format(host=host,filename=tar_filename)
+                rabbit_msg = {
+                    'task_id': self.request.id,
+                    'schedule_id': schedule_id,
+                    'status': request.status
+                }
+                if request.error_message is None:
+                    rabbit_msg['filename'] = tar_filename
+                    # rabbit_msg['url'] = url
+                else:
+                    rabbit_msg['error_message'] = request.error_message
+
+                rabbit.write_to_queue(rabbit_msg, amqp_queue)
+                rabbit.close_connection()
+
 
 
 
