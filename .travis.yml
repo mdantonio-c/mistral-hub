@@ -13,9 +13,9 @@ install:
 jobs:
   include:
 
-    - script: wget $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf &&
-              wget $DATASET_URL/arkimet.zip &&
-              unzip arkimet.zip -d data/ &&
+    - script: wget --quiet $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf &&
+              wget --quiet $DATASET_URL/arkimet.zip &&
+              unzip -q arkimet.zip -d data/ &&
               mv data/arkimet/datasets/* data/arkimet/ &&
               rapydo pull &&
               rapydo start &&
