@@ -1,5 +1,13 @@
+<ngx-spinner
+        bdColor="rgba(255,255,255,0.8)"
+        color="#6c757d"
+        zIndex="1000"
+        [fullScreen]="false" type="ball-clip-rotate-multiple" size="medium">
+</ngx-spinner>
 <div class="map"
      leaflet
-     (leafletMapReady)="onMapReady($event)"
      [leafletOptions]="options"
-     [leafletLayersControl]="layersControl"></div>
+     [leafletLayers]="layers"
+     [leafletLayersControl]="layersControl"
+     (leafletMapReady)="onMapReady($event)">
+</div>

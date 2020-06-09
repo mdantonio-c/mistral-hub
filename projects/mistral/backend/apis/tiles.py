@@ -9,6 +9,8 @@ from restapi import decorators
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
+MEDIA_ROOT = '/meteo/'
+
 RUNS = ['00', '12']
 RESOLUTIONS = ['lm2.2', 'lm5']
 
@@ -29,11 +31,30 @@ class TilesEndpoint(EndpointResource):
         }
     }
 
+    def __init__(self):
+        super().__init__()
+        self.base_path = None;
+
     @decorators.catch_errors()
     def get(self):
-        pass
+        params = self.get_input()
+        # TODO validate params
+        # e.g. Tiles-00-lm2.2.web
+        run = params['run'] if 'run' in params else '00'
+        self.base_path = os.path.join(
+            MEDIA_ROOT,
+            'GALILEO',
+            'PROD', "Tiles-{}-{}.web".format(run, params['res']))
+        area = 'Italia' if params['res'] == 'lm2.2' else 'Area_Mediterranea'
+        ready_file = self._get_ready_file(area)
 
-    def get_ready_file(self, area):
+        data = {
+            'reftime': ready_file[:10],
+            'platform': 'GALILEO'
+        }
+        return self.response(data)
+
+    def _get_ready_file(self, area):
         ready_path = os.path.join(self.base_path, area)
         log.debug("ready_path: {}".format(ready_path))
 
