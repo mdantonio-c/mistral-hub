@@ -55,7 +55,19 @@ export class MeteoTilesComponent {
         zoom: 5,
         center: L.latLng([46.879966, 11.726909]),
         timeDimension: true,
-        timeDimensionControl: true
+        timeDimensionControl: true,
+        timeDimensionControlOptions: {
+            autoPlay: false,
+            loopButton: true,
+            timeSteps: 1,
+            playReverseButton: true,
+            limitSliders: true,
+            playerOptions: {
+                buffer: 0,
+                transitionTime: 250,
+                loop: true,
+            }
+        }
     };
 
     constructor(private tilesService: TilesService,
@@ -64,24 +76,11 @@ export class MeteoTilesComponent {
 
         // set the initial set of displayed layers
         this.layers = [this.LAYER_MAPBOX_LIGHT];
-
-        // set time
-        // let startDate = new Date(Date.UTC(2020, 4, 11));
-        // startDate.setUTCHours(0, 0, 0, 0);
-        // this.options['timeDimensionOptions'] = {
-        //     timeInterval: startDate.toISOString() + "/PT72H",
-        //     period: "PT1H",
-        //     currentTime: startDate
-        // }
-
-        // add overlays to control
-        // this.setOverlaysToMap('2020051100');
     }
 
     onMapReady(map: L.Map) {
-        console.log('Map ready', map);
+        // console.log('Map ready', map);
         this.map = map;
-        // this.tDimension = L.timeDimension().addTo(map);
         this.initLegends(map);
         this.spinner.show();
         this.tilesService.getLastRun('lm5', '00').subscribe(runAvailable => {
@@ -95,24 +94,22 @@ export class MeteoTilesComponent {
             let startTime = moment.utc(reftime, "YYYYMMDDHH").toDate();
             // let startTime = new Date(Date.UTC(2020, 4, 11));
             startTime.setUTCHours(0, 0, 0, 0);
-            console.log(startTime.toISOString());
-            let endTime = 'PT72H';
+            // let endTime = 'PT72H';
+            let endTime = moment.utc(reftime, "YYYYMMDDHH").add(3, 'days').toDate();
+            console.log(endTime);
 
             // add time dimension
-            // let newAvailableTimes = L.timeDimension.Util.explodeTimeRange(startTime, endTime, 'PT1H');
-            // this.tDimension.setAvailableTimes(newAvailableTimes, 'replace');
-            // this.tDimension.setCurrentTime(startTime);
+            let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(startTime, endTime, 'PT1H');
+            (map as any).timeDimension.setAvailableTimes(newAvailableTimes, 'replace');
+            (map as any).timeDimension.setCurrentTime(startTime);
 
-            // this.options['timeDimensionOptions'] = {
-            //     timeInterval: startDate.toISOString() + "/PT72H",
-            //     period: "PT1H",
-            //     currentTime: startDate
-            // }
             this.setOverlaysToMap(reftime);
 
             this.layers.push(
                 this.layersControl['overlays']['Temperature at 2 meters']
             );
+            // TODO trigger event to add proper legend
+            // new Event('overlayadd');
         }, error => {
             this.notify.showError(error);
         }).add(() => {
@@ -126,6 +123,7 @@ export class MeteoTilesComponent {
             L.tileLayer(`${TILES_PATH}/t2m-t2m/${reftime}/{z}/{x}/{y}.png`, {
                 minZoom: 3,
                 maxZoom: 5,
+                tms: false,
                 opacity: 0.6,
                 // bounds: [[25.0, -25.0], [50.0, 47.0]],
             }), {}),
@@ -134,7 +132,7 @@ export class MeteoTilesComponent {
                 L.tileLayer(`${TILES_PATH}/prec3-tp/${reftime}/{z}/{x}/{y}.png`, {
                     minZoom: 3,
                     maxZoom: 5,
-                    tms: true,
+                    tms: false,
                     opacity: 0.6,
                     // bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {}),
