@@ -14,6 +14,7 @@ declare module 'leaflet' {
 
 // const MAP_CENTER = [41.879966, 12.280000];
 const TILES_PATH = environment.production ? 'resources/tiles/00-lm5' : 'app/custom/assets/images/tiles/00-lm5';
+const DEFAULT_PRODUCT = 'Temperature at 2 meters';
 
 @Component({
     selector: 'app-meteo-tiles',
@@ -85,10 +86,8 @@ export class MeteoTilesComponent {
         this.spinner.show();
         this.tilesService.getLastRun('lm5', '00').subscribe(runAvailable => {
             // runAvailable.reftime : 2020051100
-            console.log(runAvailable);
+            console.log('Available Run', runAvailable);
             let reftime = runAvailable.reftime;
-            //this.addLegendsToMap(map);
-            //legend_t2m.addTo(map);
 
             // set time
             let startTime = moment.utc(reftime, "YYYYMMDDHH").toDate();
@@ -105,11 +104,15 @@ export class MeteoTilesComponent {
 
             this.setOverlaysToMap(reftime);
 
-            this.layers.push(
-                this.layersControl['overlays']['Temperature at 2 meters']
-            );
+            // add default layer
+            let tm2m: L.Layer = this.layersControl['overlays'][DEFAULT_PRODUCT];
+            this.layers.push(tm2m);
+            
             // TODO trigger event to add proper legend
-            // new Event('overlayadd');
+            //legend_t2m.addTo(map);
+            // new Event('overlayadd', {name: 'Temperature at 2 meters'});
+            //new CustomEvent('overlayadd', {name: DEFAULT_PRODUCT});
+
         }, error => {
             this.notify.showError(error);
         }).add(() => {
