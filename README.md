@@ -4,12 +4,12 @@ Mistral Meteo-hub
 HOWTO Get started
 -----------------
 
-Install rapydo framework last version 0.7.3
+Install rapydo framework last version 0.7.4
 
-`$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@0.7.3`
+`$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@0.7.4`
 
-or ugprade to rapydo 0.7.3  
-`$ rapydo install 0.7.3`
+or ugprade to rapydo 0.7.4  
+`$ rapydo install 0.7.4`
 
 ####Clone the project
 ```
@@ -19,7 +19,7 @@ $ git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub.git
 ####Init & start
 ```
 $ cd meteo-hub
-$ git checkout 0.2.3
+$ git checkout 0.3.1
 $ rapydo init
 $ rapydo pull
 $ rapydo start

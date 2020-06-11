@@ -4,19 +4,15 @@
     "ngx-bootstrap-slider": "^1.8.0",
     "leaflet": "1.6.0",
     "@types/leaflet": "^1.5.12",
-    "@types/leaflet.markercluster": "^1.4.2",
     "leaflet-draw": "1.0.4",
-    "leaflet-timedimension": "1.1.1",
+    "@types/leaflet-draw": "1.0.2",
     "leaflet.markercluster": "1.4.1",
+    "@types/leaflet.markercluster": "^1.4.2",
+    "leaflet-timedimension": "1.1.1",
     "iso8601-js-period": "0.2.1",
     "@asymmetrik/ngx-leaflet": "6.0.1",
     "@asymmetrik/ngx-leaflet-draw": "5.0.1",
     "@asymmetrik/ngx-leaflet-markercluster": "^3.0.0"
-  },
-
-  "devDependencies": {
-    "@types/leaflet": "1.5.12",
-    "@types/leaflet-draw": "1.0.2"
   }
 }
 

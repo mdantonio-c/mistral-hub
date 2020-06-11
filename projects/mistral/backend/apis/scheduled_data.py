@@ -1,51 +1,50 @@
-from restapi.rest.definition import EndpointResource
-from restapi.connectors.celery import CeleryExt
-from restapi.exceptions import RestApiException
-from restapi import decorators
-from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
-
+from restapi import decorators
+from restapi.connectors.celery import CeleryExt
+from restapi.exceptions import RestApiException
+from restapi.rest.definition import EndpointResource
+from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 
 class ScheduledData(EndpointResource):
 
-    labels = ['scheduled']
-    POST = {
-        '/data/scheduled': {
-            'summary': 'Request for data extraction.',
-            'parameters': [
+    labels = ["scheduled"]
+    _POST = {
+        "/data/scheduled": {
+            "summary": "Request for data extraction.",
+            "parameters": [
                 {
-                    'name': 'scheduled_criteria',
-                    'in': 'body',
-                    'description': 'Criteria for scheduled data extraction.',
-                    'schema': {'$ref': '#/definitions/DataScheduling'},
+                    "name": "scheduled_criteria",
+                    "in": "body",
+                    "description": "Criteria for scheduled data extraction.",
+                    "schema": {"$ref": "#/definitions/DataScheduling"},
                 }
             ],
-            'responses': {
-                '204': {'description': 'no response given'},
-                '400': {'description': 'scheduling criteria are not valid'},
+            "responses": {
+                "204": {"description": "no response given"},
+                "400": {"description": "scheduling criteria are not valid"},
             },
         }
     }
-    DELETE = {
-        '/data/scheduled': {
-            'summary': 'Request for task deletion.',
-            'parameters': [
+    _DELETE = {
+        "/data/scheduled": {
+            "summary": "Request for task deletion.",
+            "parameters": [
                 {
-                    'name': 'task',
-                    'in': 'query',
-                    'description': 'Task to remove.',
-                    'type': 'string',
-                    'required': True,
+                    "name": "task",
+                    "in": "query",
+                    "description": "Task to remove.",
+                    "type": "string",
+                    "required": True,
                 }
             ],
-            'responses': {
-                '200': {'description': 'Task deleted'},
-                '404': {'description': 'Task not found'},
-                '401': {
-                    'description': 'The user is not the owner of the request to delete'
+            "responses": {
+                "200": {"description": "Task deleted"},
+                "404": {"description": "Task not found"},
+                "401": {
+                    "description": "The user is not the owner of the request to delete"
                 },
             },
         }
@@ -57,22 +56,22 @@ class ScheduledData(EndpointResource):
 
         user = self.get_current_user()
         criteria = self.get_input()
-        self.validate_input(criteria, 'DataScheduling')
+        self.validate_input(criteria, "DataScheduling")
 
-        dataset_names = criteria.get('datasets')
+        dataset_names = criteria.get("datasets")
         # check for existing dataset(s)
         datasets = arki.load_datasets()
         for ds_name in dataset_names:
-            found = next((ds for ds in datasets if ds.get('id', '') == ds_name), None)
+            found = next((ds for ds in datasets if ds.get("id", "") == ds_name), None)
             if not found:
                 raise RestApiException(
-                    "Dataset '{}' not found".format(ds_name),
+                    f"Dataset '{ds_name}' not found",
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
 
-        filters = criteria.get('filters')
+        filters = criteria.get("filters")
 
-        db = self.get_service_instance('sqlalchemy')
+        db = self.get_service_instance("sqlalchemy")
 
         # check if scheduling parameters are correct
         if not self.settings_validation(criteria):
@@ -81,10 +80,10 @@ class ScheduledData(EndpointResource):
             )
 
         # parsing period settings
-        period_settings = criteria.get('period-settings')
+        period_settings = criteria.get("period-settings")
         if period_settings is not None:
-            every = str(period_settings.get('every'))
-            period = period_settings.get('period')
+            every = str(period_settings.get("every"))
+            period = period_settings.get("period")
             log.info("Period settings [{} {}]", every, period)
             # get scheduled request id in postgres database as scheduled request name for mongodb
             name_int = RequestManager.create_scheduled_request_record(
@@ -108,7 +107,7 @@ class ScheduledData(EndpointResource):
 
             log.info("Scheduling periodic task")
 
-        crontab_settings = criteria.get('crontab-settings')
+        crontab_settings = criteria.get("crontab-settings")
         if crontab_settings is not None:
             # get scheduled request id in postgres database as scheduled request name for mongodb
             name_int = RequestManager.create_schedule_record(
@@ -131,17 +130,17 @@ class ScheduledData(EndpointResource):
 
             log.info("Scheduling crontab task")
 
-        return self.response('Scheduled task {}'.format(name))
+        return self.response(f"Scheduled task {name}")
 
     @decorators.catch_errors()
     @decorators.auth.required()
     def delete(self):
         param = self.get_input()
-        task_name = param.get('task')
+        task_name = param.get("task")
 
         user = self.get_current_user()
 
-        db = self.get_service_instance('sqlalchemy')
+        db = self.get_service_instance("sqlalchemy")
         # check if the request exists
         if not RequestManager.check_request(db, schedule_id=task_name):
             raise RestApiException(
@@ -155,7 +154,7 @@ class ScheduledData(EndpointResource):
 
             CeleryExt.delete_periodic_task(name=task_name)
 
-            return self.response('Removed task {}'.format(task_name))
+            return self.response(f"Removed task {task_name}")
         else:
             raise RestApiException(
                 "This request doesn't come from the request's owner",
@@ -165,8 +164,8 @@ class ScheduledData(EndpointResource):
     @staticmethod
     def settings_validation(criteria):
         # check if at least one scheduling parameter is in the request
-        period_settings = criteria.get('period-settings')
-        crontab_settings = criteria.get('crontab-settings')
+        period_settings = criteria.get("period-settings")
+        crontab_settings = criteria.get("crontab-settings")
         if period_settings or crontab_settings is not None:
             return True
         else:

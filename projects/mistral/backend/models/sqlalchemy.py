@@ -1,24 +1,26 @@
-# -*- coding: utf-8 -*-
-
 """ CUSTOM Models for the relational database """
 
-from restapi.models.sqlalchemy import db, User
+import enum
 from datetime import datetime
 
-import enum
+from restapi.connectors.sqlalchemy.models import User, db
 
 # Add (inject) attributes to User
-setattr(User, 'my_custom_field', db.Column(db.String(255)))
-setattr(User, 'disk_quota', db.Column(db.BigInteger, default=1073741824))   # 1 GB
+setattr(User, "my_custom_field", db.Column(db.String(255)))
+setattr(User, "disk_quota", db.Column(db.BigInteger, default=1073741824))  # 1 GB
 
-setattr(User, 'requests', db.relationship('Request', backref='author', lazy='dynamic'))
-setattr(User, 'fileoutput', db.relationship('FileOutput', backref='owner', lazy='dynamic'))
-setattr(User, 'schedules', db.relationship('Schedule', backref='author', lazy='dynamic'))
+setattr(User, "requests", db.relationship("Request", backref="author", lazy="dynamic"))
+setattr(
+    User, "fileoutput", db.relationship("FileOutput", backref="owner", lazy="dynamic")
+)
+setattr(
+    User, "schedules", db.relationship("Schedule", backref="author", lazy="dynamic")
+)
 
 
 class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     name = db.Column(db.String, index=True, nullable=False)
     args = db.Column(db.String, nullable=False)
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -26,24 +28,26 @@ class Request(db.Model):
     status = db.Column(db.String(64))
     task_id = db.Column(db.String(64), index=True, unique=True)
     error_message = db.Column(db.Text)
-    schedule_id = db.Column(db.Integer, db.ForeignKey('schedule.id'))
-    fileoutput = db.relationship("FileOutput", backref='request', cascade="delete", uselist=False)
+    schedule_id = db.Column(db.Integer, db.ForeignKey("schedule.id"))
+    fileoutput = db.relationship(
+        "FileOutput", backref="request", cascade="delete", uselist=False
+    )
 
     def __repr__(self):
         return "<Request(name='{}', submission date='{}', status='{}')".format(
-            self.name, self.submission_date, self.status)
+            self.name, self.submission_date, self.status
+        )
 
 
 class FileOutput(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(64), index=True, unique=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     size = db.Column(db.BigInteger)
-    request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
+    request_id = db.Column(db.Integer, db.ForeignKey("request.id"))
 
     def __repr__(self):
-        return "<FileOutput(filename='{}', size='{}')".format(
-            self.filename, self.size)
+        return f"<FileOutput(filename='{self.filename}', size='{self.size}')"
 
 
 class PeriodEnum(enum.Enum):
@@ -56,7 +60,7 @@ class PeriodEnum(enum.Enum):
 
 class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     name = db.Column(db.String, index=True, nullable=False)
     args = db.Column(db.String)
@@ -67,8 +71,9 @@ class Schedule(db.Model):
     on_data_ready = db.Column(db.Boolean, default=False)
     time_delta = db.Column(db.Interval)
     is_enabled = db.Column(db.Boolean)
-    submitted_request = db.relationship('Request', backref='schedule', lazy='dynamic')
+    submitted_request = db.relationship("Request", backref="schedule", lazy="dynamic")
 
     def __repr__(self):
         return "<Schedule(name='{}', creation date='{}', enabled='{}')".format(
-            self.name, self.submission_date, self.is_enabled)
+            self.name, self.submission_date, self.is_enabled
+        )
