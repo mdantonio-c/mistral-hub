@@ -403,6 +403,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
             request.end_date = datetime.datetime.utcnow()
             db.session.commit()
             log.info('Terminate task {} with state {}', self.request.id, request.status)
+
             if not amqp_queue:
                 # user notification via email
                 user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
@@ -411,7 +412,7 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
                 body_msg += extra_msg
                 send_result_notication(user_email, request.name, request.status, body_msg)
             else:
-                rabbit = self.get_service_instance('rabbitmq')
+                rabbit = celery_app.get_service('rabbit')
                 # host = get_backend_url()
                 # url = '{host}/api/data/{filename}'.format(host=host,filename=tar_filename)
                 rabbit_msg = {
@@ -427,7 +428,6 @@ def data_extract(self, user_id, datasets, reftime=None, filters=None, postproces
 
                 rabbit.write_to_queue(rabbit_msg, amqp_queue)
                 rabbit.close_connection()
-
 
 
 
