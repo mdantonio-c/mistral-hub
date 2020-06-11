@@ -1,13 +1,13 @@
+import os
 import shlex
 import subprocess
-import os
 
-from restapi.utilities.logs import log
 from mistral.exceptions import PostProcessingException
+from restapi.utilities.logs import log
 
 
 def pp_derived_variables(datasets, params, tmp_extraction, user_dir, fileformat):
-    log.debug('Derived variable postprocessor')
+    log.debug("Derived variable postprocessor")
 
     # ------ correcting the choice of filters in order to always obtain a result for postprocessing ----- not necessary at the moment
     # product_query = []
@@ -122,34 +122,37 @@ def pp_derived_variables(datasets, params, tmp_extraction, user_dir, fileformat)
 
         tmp_outfile = tmp_extraction
         # command for postprocessor
-        if fileformat.startswith('grib'):
-            pp1_output_filename = tmp_extraction_basename.split('.')[0] + '-pp1_output.grib.tmp'
+        if fileformat.startswith("grib"):
+            pp1_output_filename = (
+                tmp_extraction_basename.split(".")[0] + "-pp1_output.grib.tmp"
+            )
         else:
-            pp1_output_filename = tmp_extraction_basename.split('.')[0] + '-pp1_output.bufr.tmp'
+            pp1_output_filename = (
+                tmp_extraction_basename.split(".")[0] + "-pp1_output.bufr.tmp"
+            )
         pp1_output = os.path.join(user_dir, pp1_output_filename)
-        libsim_tool = ''
-        if fileformat.startswith('grib'):
-            libsim_tool = 'vg6d_transform'
+        libsim_tool = ""
+        if fileformat.startswith("grib"):
+            libsim_tool = "vg6d_transform"
         else:
-            libsim_tool = 'v7d_transform'
-        post_proc_cmd = shlex.split("{} --output-variable-list={} {} {}".format(
-            libsim_tool,
-            ",".join(params.get('variables')),
-            tmp_outfile,
-            pp1_output)
+            libsim_tool = "v7d_transform"
+        post_proc_cmd = shlex.split(
+            "{} --output-variable-list={} {} {}".format(
+                libsim_tool, ",".join(params.get("variables")), tmp_outfile, pp1_output
+            )
         )
-        log.debug('Post process command: {}>', post_proc_cmd)
+        log.debug("Post process command: {}>", post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
         # wait for the process to terminate
         if proc.wait() != 0:
-            raise Exception('Failure in post-processing')
+            raise Exception("Failure in post-processing")
         else:
             return pp1_output
 
     except Exception as perr:
         log.warning(perr)
-        message = 'Error in post-processing: no results'
+        message = "Error in post-processing: no results"
         raise PostProcessingException(message)
     # ------ correcting the choice of filters in order to always obtain a result for postprocessing ----- not necessary at the moment
     # finally:

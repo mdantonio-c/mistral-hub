@@ -1,29 +1,29 @@
-import subprocess
 import os
+import subprocess
 
-from restapi.utilities.logs import log
 from mistral.exceptions import PostProcessingException
+from restapi.utilities.logs import log
 
 
 def pp_output_formatting(output_format, input, output):
     try:
-        if output_format == 'json':
-            log.debug('Output formatting to {}', output_format)
+        if output_format == "json":
+            log.debug("Output formatting to {}", output_format)
             post_proc_cmd = []
-            post_proc_cmd.append('dbamsg')
-            post_proc_cmd.append('dump')
-            post_proc_cmd.append('--json')
-            post_proc_cmd.append('-t')
-            post_proc_cmd.append('bufr')
+            post_proc_cmd.append("dbamsg")
+            post_proc_cmd.append("dump")
+            post_proc_cmd.append("--json")
+            post_proc_cmd.append("-t")
+            post_proc_cmd.append("bufr")
             post_proc_cmd.append(input)
 
-            log.debug('Post process command: {}>', post_proc_cmd)
+            log.debug("Post process command: {}>", post_proc_cmd)
 
-            with open(output, mode='w') as outfile:
+            with open(output, mode="w") as outfile:
                 proc = subprocess.Popen(post_proc_cmd, stdout=outfile)
                 # wait for the process to terminate
                 if proc.wait() != 0:
-                    raise Exception('Failure in post-processing')
+                    raise Exception("Failure in post-processing")
                 else:
                     return output
         else:
@@ -32,7 +32,7 @@ def pp_output_formatting(output_format, input, output):
 
     except Exception as perr:
         log.warning(perr)
-        message = 'Error in post-processing: no results'
+        message = "Error in post-processing: no results"
         raise PostProcessingException(message)
 
     finally:
