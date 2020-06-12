@@ -66,10 +66,13 @@ class TestApp(BaseTests):
         date_from = date_from_dt.strftime("%Y-%m-%d %H:%M")
         date_to = date_to_dt.strftime("%Y-%m-%d %H:%M")
 
-        endpoint = API_URI + '/fields?q=reftime:>={date_from},<={date_to}&datasets={dataset}&SummaryStats=false'.format(
-            date_from=date_from, date_to=date_to, dataset=dataset)
-        r = client.get(endpoint, headers=headers)
-        response_data = TestApp.get_content(r)
+        for d in obs_dataset:
+            endpoint = API_URI + '/fields?q=reftime:>={date_from},<={date_to}&datasets={dataset}&SummaryStats=false'.format(
+                date_from=date_from, date_to=date_to, dataset=d)
+            r = client.get(endpoint, headers=headers)
+            response_data = TestApp.get_content(r)
+            if response_data['items']:
+                break
 
         # from the response pick a network and a product
         params_value = {}
