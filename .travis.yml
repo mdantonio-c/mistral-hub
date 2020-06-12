@@ -17,10 +17,7 @@ jobs:
               wget --quiet $DATASET_URL/sample.bufr -O data/arkimet_conf/sample.bufr &&
               wget --quiet $DATASET_URL/arkimet.zip &&
               unzip -q arkimet.zip -d data/ &&
-          
-              # mv data/arkimet/datasets/* data/arkimet/ &&
               ls data/arkimet &&              
-
               rapydo pull &&
               rapydo start &&
               echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" > import.sh &&
