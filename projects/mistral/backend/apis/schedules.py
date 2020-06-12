@@ -294,13 +294,12 @@ class Schedules(EndpointResource):
             pass
         else:
             push = False
-
         # get queue for pushing notifications
         pushing_queue = None
         if push:
             # TODO build the queue name according to the chosen convention
-            # pushing_queue = xxxxxxx
-            # rabbit = self.get_service_instance("rabbitmq")
+            pushing_queue = user.id
+            # rabbit = self.get_service_instance('rabbit')
             self.get_service_instance("rabbitmq")
             # TODO: check if pushing_queue exists,
             #  if not raise an error (401? user is not authorized to get push notification)
@@ -380,6 +379,7 @@ class Schedules(EndpointResource):
                         "filters": filters,
                         "postprocessors": processors,
                         "output_format": output_format,
+                        "pushing_queue": pushing_queue,
                     },
                     crontab_settings=crontab_settings,
                     on_data_ready=data_ready,

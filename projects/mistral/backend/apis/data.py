@@ -182,9 +182,10 @@ class Data(EndpointResource, Uploader):
         pushing_queue = None
         if push:
             # TODO build the queue name according to the chosen convention
-            # pushing_queue = xxxxxxx
+            pushing_queue = user.id
             # rabbit = self.get_service_instance("rabbitmq")
             self.get_service_instance("rabbitmq")
+            # rabbit = self.get_service_instance('rabbit')
             # TODO: check if pushing_queue exists,
             #  if not raise an error (401? user is not authorized to get push notification)
             # from Mattia: you may also use 403 FORBIDDEN

@@ -525,7 +525,7 @@ def data_extract(
                     user_email, request.name, request.status, body_msg
                 )
             else:
-                rabbit = self.get_service_instance("rabbitmq")
+                rabbit = celery_app.get_service("rabbitmq")
                 # host = get_backend_url()
                 # url = '{host}/api/data/{filename}'.format(host=host,filename=tar_filename)
                 rabbit_msg = {
