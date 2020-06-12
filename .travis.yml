@@ -22,6 +22,7 @@ jobs:
               rapydo start &&
               echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" > import.sh &&
               docker cp import.sh mistral_backend_1:/tmp/import.sh &&
+              rapydo shell backend --command 'dbadb --wipe' &&
               rapydo shell backend --command 'bash /tmp/import.sh' &&
               rapydo shell backend --command 'restapi tests --wait --folder custom' &&
               docker cp mistral_backend_1:/code/coverage.xml coverage.xml && 
