@@ -23,6 +23,8 @@ jobs:
               echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE r" > init.sh &&
               echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" >> init.sh &&
               docker cp init.sh mistral_backend_1:/tmp/init.sh &&
+              rapydo shell backend --command 'ls -l /arkimet/config/sample.bufr' &&
+              rapydo shell backend --command 'cat /tmp/init.sh' &&
               rapydo shell backend --command 'bash /tmp/init.sh' &&
               rapydo shell backend --command 'restapi tests --wait --folder custom' &&
               docker cp mistral_backend_1:/code/coverage.xml coverage.xml && 
