@@ -2,33 +2,75 @@
 
 from datetime import datetime, timedelta
 import os
+import dballe
 from restapi.tests import BaseTests, API_URI
-# from restapi.tests import AUTH_URI, BaseAuthentication
 from restapi.utilities.htmlcodes import hcodes
 from mistral.services.arkimet import BeArkimet as arki
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 
-LASTDAYS = os.environ.get("LASTDAYS")
+user = os.environ.get("ALCHEMY_USER")
+pw = os.environ.get("ALCHEMY_PASSWORD")
+host = os.environ.get("ALCHEMY_HOST")
+engine = os.environ.get("ALCHEMY_DBTYPE")
+port = os.environ.get("ALCHEMY_PORT")
 
 
 class TestApp(BaseTests):
 
     @staticmethod
-    def get_params_value(client, headers, reftime):
+    def get_params_value(client, headers, db_type):
         # get an existing dataset of observed data
         obs_dataset = arki.get_obs_datasets(None, None)
-        # q params può essere una lista e la risposta è un vocabolario con nome parametro:valore
-        # networks, bounding-box,
-        date_from = reftime['datetime_min'].strftime("%Y-%m-%d %H:%M")
-        date_to = reftime['datetime_max'].strftime("%Y-%m-%d %H:%M")
-        for dataset in obs_dataset:
-            endpoint = API_URI + '/fields?q=reftime:>={date_from},<={date_to}&datasets={dataset}&SummaryStats=false'.format(
-                date_from=date_from, date_to=date_to, dataset=dataset)
-            r = client.get(endpoint, headers=headers)
-            response_data = TestApp.get_content(r)
-            if response_data['items']:
+        dataset = None
+        date_from_dt = None
+        date_to_dt = None
+        for d in obs_dataset:
+            if db_type == 'dballe':
+                db = dballe.DB.connect(
+                    "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host,
+                                                                         port=port))
+                # get a valid reftime for dballe
+                with db.transaction() as tr:
+                    for row in tr.query_data({'rep_memo': d}):
+                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"])
+                        date_from_dt = date_to_dt - timedelta(hours=1)
+                        break
+            elif db_type == 'arkimet':
+                # get a valid reftime for arkimet
+                arki_summary = arki.load_summary(datasets=[d])
+                if 'e' in arki_summary['items']['summarystats']:  # this means that the dataset contains data
+                    summary_to = arki_summary['items']['summarystats']['e']
+                    date_to_dt = datetime(summary_to[0], summary_to[1], summary_to[2], summary_to[3], summary_to[4])
+                    date_from_dt = date_to_dt - timedelta(hours=1)
+            elif db_type == 'mixed':
+                db = dballe.DB.connect(
+                    "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host,
+                                                                         port=port))
+                # get a valid reftime for dballe
+                with db.transaction() as tr:
+                    for row in tr.query_data({'rep_memo': d}):
+                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"])
+                        break
+
+                # get a valid reftime for arkimet
+                arki_summary = arki.load_summary(datasets=[d])
+                if 'e' in arki_summary['items']['summarystats']:  # this means that the dataset contains data
+                    summary_from = arki_summary['items']['summarystats']['e']
+                    date_from_dt = datetime(summary_from[0], summary_from[1], summary_from[2], summary_from[3], summary_from[4])
+
+            if date_from_dt and date_to_dt:
+                dataset = d
                 break
+
+        date_from = date_from_dt.strftime("%Y-%m-%d %H:%M")
+        date_to = date_to_dt.strftime("%Y-%m-%d %H:%M")
+
+        endpoint = API_URI + '/fields?q=reftime:>={date_from},<={date_to}&datasets={dataset}&SummaryStats=false'.format(
+            date_from=date_from, date_to=date_to, dataset=dataset)
+        r = client.get(endpoint, headers=headers)
+        response_data = TestApp.get_content(r)
+
         # from the response pick a network and a product
         params_value = {}
         params_value['date_from'] = date_from
@@ -42,32 +84,19 @@ class TestApp(BaseTests):
         return params_value
 
     @staticmethod
-    def get_reftime(q_db_type):
-        q_reftime = {}
-        if q_db_type == 'dballe':
-            q_reftime['datetime_max'] = datetime.utcnow()
-            q_reftime['datetime_min'] = datetime.utcnow() - timedelta(hours=1)
-        elif q_db_type == 'arkimet':
-            q_reftime['datetime_max'] = datetime.utcnow() - timedelta(days=int(LASTDAYS) + 1)
-            q_reftime['datetime_min'] = q_reftime['datetime_max'] - timedelta(hours=1)
-        elif q_db_type == 'mixed':
-            q_reftime['datetime_max'] = datetime.utcnow() - timedelta(days=int(LASTDAYS) - 1)
-            q_reftime['datetime_min'] = datetime.utcnow() - timedelta(days=int(LASTDAYS) + 1)
-        return q_reftime
-
-    @staticmethod
     def check_response_content(res, product1, product2):
         check_product_1 = False
         check_product_2 = False
         for i in res:
-            if product1 in i['data']:
-                check_product_1 = True
-            if product2 in i['data']:
-                check_product_2 = True
+            for e in i['products']:
+                if e['varcode'] == product1:
+                    check_product_1 = True
+                if e['varcode'] == product2:
+                    check_product_2 = True
+
             if check_product_1 and check_product_2:
                 break
         return check_product_1, check_product_2
-
 
     def test_endpoint_without_login(self, client):
 
@@ -83,32 +112,20 @@ class TestApp(BaseTests):
         headers, _ = self.do_login(client, None, None)
         self.save("auth_header", headers)
         headers = self.get("auth_header")
-        dballe_reftime = self.get_reftime('dballe')
 
-        ##### local tests
-        # dballe_reftime = {'datetime_max': datetime(2015, 12, 1, 1, 0), 'datetime_min': datetime(2015, 12, 1, 0, 0)}
-
-        q_params = self.get_params_value(client, headers, dballe_reftime)
+        q_params = self.get_params_value(client, headers, 'dballe')
         self.standard_observed_endpoint_testing(client, headers, q_params)
 
     def test_for_arkimet_dbtype(self, client):
         headers = self.get("auth_header")
-        arki_reftime = self.get_reftime('arkimet')
 
-        ##### local tests
-        # arki_reftime = {'datetime_max': datetime(2006, 1, 1, 1, 0), 'datetime_min': datetime(2006, 1, 1, 0, 0)}
-
-        q_params = self.get_params_value(client, headers, arki_reftime)
+        q_params = self.get_params_value(client, headers, 'arkimet')
         self.standard_observed_endpoint_testing(client, headers, q_params)
 
     def test_for_mixed_dbtype(self, client):
         headers = self.get("auth_header")
-        mixed_reftime = self.get_reftime('mixed')
 
-        ##### local tests
-        # mixed_reftime = {'datetime_max': datetime(2015, 12, 1, 1, 0), 'datetime_min': datetime(2006, 1, 31, 0, 0)}
-
-        q_params = self.get_params_value(client, headers, mixed_reftime)
+        q_params = self.get_params_value(client, headers, 'mixed')
         self.standard_observed_endpoint_testing(client, headers, q_params)
 
     def standard_observed_endpoint_testing(self, client, headers, q_params):
@@ -125,7 +142,7 @@ class TestApp(BaseTests):
         EndpointResource.validate_input(response_data, 'MapStations')
         # check response content
         check_product_1, check_product_2 = self.check_response_content(response_data, q_params['product_1'],
-                                                                          q_params['product_2'])
+                                                                       q_params['product_2'])
         assert check_product_1 is True
         assert check_product_2 is True
 
@@ -140,7 +157,7 @@ class TestApp(BaseTests):
         EndpointResource.validate_input(response_data, 'MapStations')
         # check response content
         check_product_1, check_product_2 = self.check_response_content(response_data, q_params['product_1'],
-                                                                          q_params['product_2'])
+                                                                       q_params['product_2'])
         assert check_product_1 is True
         assert check_product_2 is True
         # check error with random net param
@@ -165,7 +182,7 @@ class TestApp(BaseTests):
         EndpointResource.validate_input(response_data, 'MapStations')
         # check response content
         check_product_1, check_product_2 = self.check_response_content(response_data, q_params['product_1'],
-                                                                          q_params['product_2'])
+                                                                       q_params['product_2'])
         assert check_product_1 is True
         assert check_product_2 is True
         # check error with random param
@@ -203,7 +220,8 @@ class TestApp(BaseTests):
 
         #### all arguments ####
         endpoint = API_URI + '/observations?q=reftime:>={date_from},<={date_to};product:{product}&bounding-box={bbox}&networks={network}'.format(
-            date_from=q_params['date_from'], date_to=q_params['date_to'], product=q_params['product_1'],bbox=bbox,network=q_params['network'])
+            date_from=q_params['date_from'], date_to=q_params['date_to'], product=q_params['product_1'], bbox=bbox,
+            network=q_params['network'])
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         # check response code
@@ -236,6 +254,7 @@ class TestApp(BaseTests):
         assert r.status_code == hcodes.HTTP_OK_BASIC
         # check random network
         endpoint = API_URI + '/observations/{station_id}?q=reftime:>={date_from},<={date_to}&networks={network}'.format(
-            station_id=station_id_example,date_from=q_params['date_from'], date_to=q_params['date_to'], network=random_net)
+            station_id=station_id_example, date_from=q_params['date_from'], date_to=q_params['date_to'],
+            network=random_net)
         r = client.get(endpoint, headers=headers)
         assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
