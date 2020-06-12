@@ -17,15 +17,6 @@ class FileDownload(EndpointResource):
     _GET = {
         "/data/<filename>": {
             "summary": "Download output file",
-            "parameters": [
-                {
-                    "in": "path",
-                    "name": "file",
-                    "type": "string",
-                    "required": True,
-                    "description": "file to download",
-                }
-            ],
             "responses": {
                 "200": {
                     "description": "found the file to download",
@@ -42,7 +33,7 @@ class FileDownload(EndpointResource):
 
         user = self.get_current_user()
         db = self.get_service_instance("sqlalchemy")
-        # check if the file exists, the current user is the owner and if it is in its folder
+        # check for file existence, ownership and location
         if RequestManager.check_fileoutput(db, user, filename, DOWNLOAD_DIR):
             user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
             log.info("directory: {}", user_dir)

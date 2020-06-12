@@ -30,15 +30,6 @@ class Templates(EndpointResource, Uploader):
                 },
                 "404": {"description": "template not found"},
             },
-            "parameters": [
-                {
-                    "in": "path",
-                    "name": "name",
-                    "type": "string",
-                    "required": True,
-                    "description": "template name",
-                },
-            ],
         },
         "/templates": {
             "summary": "Get templates",
@@ -107,15 +98,6 @@ class Templates(EndpointResource, Uploader):
     _DELETE = {
         "/templates/<template_name>": {
             "summary": "delete a template",
-            "parameters": [
-                {
-                    "in": "path",
-                    "name": "name",
-                    "type": "string",
-                    "required": True,
-                    "description": "template name",
-                }
-            ],
             "responses": {
                 "200": {"description": "template is succesfully deleted"},
                 "404": {"description": "template not found"},

@@ -126,13 +126,6 @@ class Schedules(EndpointResource):
             "summary": "enable or disable a schedule",
             "parameters": [
                 {
-                    "in": "path",
-                    "name": "id",
-                    "type": "integer",
-                    "required": True,
-                    "description": "schedule id",
-                },
-                {
                     "name": "action",
                     "in": "body",
                     "description": "action to do on schedule (enabling or disabling)",
@@ -159,15 +152,6 @@ class Schedules(EndpointResource):
     _DELETE = {
         "/schedules/<schedule_id>": {
             "summary": "delete a schedule",
-            "parameters": [
-                {
-                    "in": "path",
-                    "name": "id",
-                    "type": "integer",
-                    "required": True,
-                    "description": "schedule id",
-                }
-            ],
             "responses": {
                 "200": {"description": "schedule is succesfully disable/enable"},
                 "404": {"description": "schedule not found"},
