@@ -1,30 +1,29 @@
-# -*- coding: utf-8 -*-
 import os
 import subprocess
 
-from restapi.rest.definition import EndpointResource
-
 from restapi import decorators
+from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
+
 # from restapi.utilities.logs import log
 
 # from sqlalchemy.orm import load_only
 
-DOWNLOAD_DIR = '/data'
+DOWNLOAD_DIR = "/data"
 
 
 class Usage(EndpointResource):
 
-    labels = ['usage']
+    labels = ["usage"]
     GET = {
-        '/usage': {
-            'summary': 'Get user disk usage.',
-            'responses': {
-                '200': {
-                    'description': 'Disk usage information',
-                    'schema': {'$ref': '#/definitions/StorageUsage'},
+        "/usage": {
+            "summary": "Get user disk usage.",
+            "responses": {
+                "200": {
+                    "description": "Disk usage information",
+                    "schema": {"$ref": "#/definitions/StorageUsage"},
                 },
-                '401': {'description': 'Authentication required'},
+                "401": {"description": "Authentication required"},
             },
         }
     }
@@ -39,7 +38,7 @@ class Usage(EndpointResource):
         user = self.get_current_user()
 
         # get user disk quota
-        # db = self.get_service_instance('sqlalchemy')
+        # db = self.get_service_instance('sqlalchemy', global_instance=False)
         # disk_quota = db.session.query(db.User.disk_quota).filter_by(id=user.id).scalar()
         # log.debug(disk_quota)
 
@@ -48,8 +47,8 @@ class Usage(EndpointResource):
         user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
         if os.path.isdir(user_dir):
             used_quota = int(
-                subprocess.check_output(['du', '-sb', user_dir]).split()[0]
+                subprocess.check_output(["du", "-sb", user_dir]).split()[0]
             )
 
-        data = {'quota': user.disk_quota, 'used': used_quota}
+        data = {"quota": user.disk_quota, "used": used_quota}
         return self.response(data, code=hcodes.HTTP_OK_BASIC)

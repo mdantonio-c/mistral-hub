@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-
 from datetime import datetime
+
 from mistral.services.requests_manager import RequestManager
-from restapi.connectors.celery import CeleryExt
-from restapi.rest.definition import EndpointResource
-from restapi.exceptions import RestApiException
 from restapi import decorators
+from restapi.connectors.celery import CeleryExt
+from restapi.exceptions import RestApiException
+from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
@@ -43,28 +42,28 @@ class DataReady(EndpointResource):
 
         log.info("Cluster = {}\tModel = {}\trundate = {}", cluster, model, rundate)
 
-        db = self.get_service_instance('sqlalchemy')
+        db = self.get_service_instance("sqlalchemy", global_instance=False)
 
         schedules_list = db.Schedule.query.all()
         for row in schedules_list:
             r = RequestManager._get_schedule_response(row)
 
             # e.g. 13
-            request_id = r['id']
+            request_id = r["id"]
 
             # e.g. DEmo-scheduled
-            request_name = r['name']
+            request_name = r["name"]
 
-            name = "{} (id={})".format(request_name, request_id)
+            name = f"{request_name} (id={request_id})"
 
             # e.g. True
-            enabled = r['enabled']
+            enabled = r["enabled"]
             if not enabled:
                 log.debug("Skipping {}: schedule is not enabled", name)
                 continue
 
             # e.g. True
-            on_data_ready = r['on_data_ready']
+            on_data_ready = r["on_data_ready"]
             if not on_data_ready:
                 log.debug("Skipping {}: schedule is not on_data_ready", name)
                 continue
@@ -73,21 +72,26 @@ class DataReady(EndpointResource):
             # creation_date = r['creation_date']
 
             # e.g. ['lm5']
-            datasets = r['args']['datasets']
+            datasets = r["args"]["datasets"]
 
             if len(datasets) == 0:
                 log.warning(
-                    "Schedule {} requires no dataset: {}, skipping", name, datasets)
+                    "Schedule {} requires no dataset: {}, skipping", name, datasets
+                )
                 continue
 
             if len(datasets) >= 2:
                 log.warning(
-                    "Schedule {} requires more than a dataset: {}. This is still unsupported, skipping", name, datasets)
+                    "Schedule {} requires more than a dataset: {}. This is still unsupported, skipping",
+                    name,
+                    datasets,
+                )
                 continue
 
             if datasets[0] != model:
                 log.debug(
-                    "Skipping {}: schedule is looking for dataset {}", name, datasets)
+                    "Skipping {}: schedule is looking for dataset {}", name, datasets
+                )
                 continue
 
             # TO DO check if schedule is requesting runhour...
@@ -120,35 +124,35 @@ class DataReady(EndpointResource):
                 log.error(e)
                 raise RestApiException("Invalid rundate, valid format is: yyyymmddhh")
 
-            reftime = {'from': d.isoformat(), 'to': d.isoformat()}
+            reftime = {"from": d.isoformat(), "to": d.isoformat()}
 
-            filters = r['args'].get('filters')
-            processors = r['args'].get('processors')
-            output_format = r['args'].get('format')
+            filters = r["args"].get("filters")
+            processors = r["args"].get("processors")
+            output_format = r["args"].get("format")
 
             try:
                 request = RequestManager.create_request_record(
                     db,
-                    r.get('user_id'),
+                    r.get("user_id"),
                     request_name,
                     {
-                        'datasets': datasets,
-                        'reftime': reftime,
-                        'filters': filters,
-                        'postprocessors': processors,
-                        'format': output_format,
+                        "datasets": datasets,
+                        "reftime": reftime,
+                        "filters": filters,
+                        "postprocessors": processors,
+                        "format": output_format,
                     },
                 )
 
                 task = CeleryExt.data_extract.apply_async(
                     args=[
-                        r.get('user_id'),
+                        r.get("user_id"),
                         datasets,
                         reftime,
                         filters,
                         processors,
                         output_format,
-                        request.id
+                        request.id,
                     ],
                     countdown=1,
                 )
@@ -156,7 +160,7 @@ class DataReady(EndpointResource):
                 request.task_id = task.id
                 request.status = task.status  # 'PENDING'
                 db.session.commit()
-                log.info('Request successfully saved: <ID:{}>', request.id)
+                log.info("Request successfully saved: <ID:{}>", request.id)
             except Exception as error:
                 log.error(error)
                 db.session.rollback()
