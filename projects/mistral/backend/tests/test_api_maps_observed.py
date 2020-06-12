@@ -33,7 +33,7 @@ class TestApp(BaseTests):
                 # get a valid reftime for dballe
                 with db.transaction() as tr:
                     for row in tr.query_data({'rep_memo': d}):
-                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"])
+                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"]) + timedelta(hours=1)
                         date_from_dt = date_to_dt - timedelta(hours=1)
                         break
             elif db_type == 'arkimet':
@@ -50,7 +50,7 @@ class TestApp(BaseTests):
                 # get a valid reftime for dballe
                 with db.transaction() as tr:
                     for row in tr.query_data({'rep_memo': d}):
-                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"])
+                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"]) + timedelta(hours=1)
                         break
 
                 # get a valid reftime for arkimet
