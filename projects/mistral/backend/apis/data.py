@@ -1,50 +1,46 @@
-# -*- coding: utf-8 -*-
-
-from restapi.rest.definition import EndpointResource
-from restapi.connectors.celery import CeleryExt
-from restapi.exceptions import RestApiException
-from restapi import decorators
-from restapi.services.uploader import Uploader
-from restapi.utilities.htmlcodes import hcodes
-from restapi.utilities.logs import log
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 from mistral.tools import grid_interpolation as pp3_1
-from mistral.tools import statistic_elaboration as pp2
 from mistral.tools import spare_point_interpol as pp3_3
+from mistral.tools import statistic_elaboration as pp2
+from restapi import decorators
+from restapi.connectors.celery import CeleryExt
+from restapi.exceptions import RestApiException
+from restapi.rest.definition import EndpointResource
+from restapi.services.uploader import Uploader
+from restapi.utilities.htmlcodes import hcodes
+from restapi.utilities.logs import log
 
 
 class Data(EndpointResource, Uploader):
-    labels = ['data']
+    labels = ["data"]
     POST = {
-        '/data': {
-            'summary': 'Request for data extraction.',
-            'parameters': [
+        "/data": {
+            "summary": "Request for data extraction.",
+            "parameters": [
                 {
-                    'name': 'criteria',
-                    'in': 'body',
-                    'description': 'Criteria for data extraction.',
-                    'schema': {'$ref': '#/definitions/DataExtraction'},
+                    "name": "criteria",
+                    "in": "body",
+                    "description": "Criteria for data extraction.",
+                    "schema": {"$ref": "#/definitions/DataExtraction"},
                 },
                 {
-                    'name': 'push',
-                    'in': 'query',
-                    'description': 'Enable push notification',
-                    'type': 'boolean',
-                    'default': False,
-                    'allowEmptyValue': True,
-                }
+                    "name": "push",
+                    "in": "query",
+                    "description": "Enable push notification",
+                    "type": "boolean",
+                    "default": False,
+                    "allowEmptyValue": True,
+                },
             ],
-            'responses': {
-                '202': {
-                    'description': 'Data extraction request queued'
+            "responses": {
+                "202": {"description": "Data extraction request queued"},
+                "400": {
+                    "description": "Parameters for post processing are not correct"
                 },
-                '400': {
-                    'description': 'Parameters for post processing are not correct'
+                "500": {
+                    "description": "File for spare point interpolation post processor is corrupted"
                 },
-                '500': {
-                    'description': 'File for spare point interpolation post processor is corrupted'
-                }
             },
         }
     }
@@ -53,32 +49,30 @@ class Data(EndpointResource, Uploader):
     @decorators.auth.required()
     def post(self):
         user = self.get_current_user()
-        log.info(
-            'request for data extraction coming from user UUID: {}'.format(user.uuid)
-        )
+        log.info(f"request for data extraction coming from user UUID: {user.uuid}")
         criteria = self.get_input()
 
-        self.validate_input(criteria, 'DataExtraction')
-        product_name = criteria.get('name')
-        dataset_names = criteria.get('datasets')
-        reftime = criteria.get('reftime')
-        output_format = criteria.get('output_format')
+        self.validate_input(criteria, "DataExtraction")
+        product_name = criteria.get("name")
+        dataset_names = criteria.get("datasets")
+        reftime = criteria.get("reftime")
+        output_format = criteria.get("output_format")
 
         if reftime is not None:
             # 'from' and 'to' both mandatory by schema
             # check from <= to
-            if reftime['from'] > reftime['to']:
+            if reftime["from"] > reftime["to"]:
                 raise RestApiException(
-                    'Invalid reftime: <from> greater than <to>',
+                    "Invalid reftime: <from> greater than <to>",
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
         # check for existing dataset(s)
         datasets = arki.load_datasets()
         for ds_name in dataset_names:
-            found = next((ds for ds in datasets if ds.get('id', '') == ds_name), None)
+            found = next((ds for ds in datasets if ds.get("id", "") == ds_name), None)
             if not found:
                 raise RestApiException(
-                    "Dataset '{}' not found".format(ds_name),
+                    f"Dataset '{ds_name}' not found",
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
 
@@ -92,83 +86,91 @@ class Data(EndpointResource, Uploader):
 
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
-        filters = criteria.get('filters', {})
+        filters = criteria.get("filters", {})
         # clean up filters from unknown values
         filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
 
-        processors = criteria.get('postprocessors', [])
+        processors = criteria.get("postprocessors", [])
         # clean up processors from unknown values
         # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
         for p in processors:
-            p_type = p.get('type')
-            if p_type == 'derived_variables':
-                self.validate_input(p, 'AVProcessor')
-            elif p_type == 'grid_interpolation':
-                self.validate_input(p, 'GIProcessor')
+            p_type = p.get("type")
+            if p_type == "derived_variables":
+                self.validate_input(p, "AVProcessor")
+            elif p_type == "grid_interpolation":
+                self.validate_input(p, "GIProcessor")
                 pp3_1.get_trans_type(p)
-            elif p_type == 'grid_cropping':
-                self.validate_input(p, 'GCProcessor')
-                p['trans-type'] = "zoom"
-            elif p_type == 'spare_point_interpolation':
-                self.validate_input(p, 'SPIProcessor')
+            elif p_type == "grid_cropping":
+                self.validate_input(p, "GCProcessor")
+                p["trans-type"] = "zoom"
+            elif p_type == "spare_point_interpolation":
+                self.validate_input(p, "SPIProcessor")
                 pp3_3.get_trans_type(p)
                 pp3_3.validate_spare_point_interpol_params(p)
-            elif p_type == 'statistic_elaboration':
-                self.validate_input(p, 'SEProcessor')
+            elif p_type == "statistic_elaboration":
+                self.validate_input(p, "SEProcessor")
                 pp2.validate_statistic_elaboration_params(p)
             else:
                 raise RestApiException(
-                    'Unknown post-processor type for {}'.format(p_type),
+                    f"Unknown post-processor type for {p_type}",
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
         # if there is a pp combination check if there is only one geographical postprocessor
         if len(processors) > 1:
             pp_list = []
             for p in processors:
-                pp_list.append(p.get('type'))
-            pp3_list = ['grid_cropping', 'grid_interpolation', 'spare_point_interpolation']
+                pp_list.append(p.get("type"))
+            pp3_list = [
+                "grid_cropping",
+                "grid_interpolation",
+                "spare_point_interpolation",
+            ]
             if len(set(pp_list).intersection(set(pp3_list))) > 1:
                 raise RestApiException(
-                    'Only one geographical postprocessing at a time can be executed',
+                    "Only one geographical postprocessing at a time can be executed",
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
 
         # check if requested space post processing are available for the chosen datasets
-        if dataset_format == 'bufr':
+        if dataset_format == "bufr":
             for p in processors:
-                if p.get('type') == 'grid_cropping' or p.get('type') == 'grid_interpolation':
+                if (
+                    p.get("type") == "grid_cropping"
+                    or p.get("type") == "grid_interpolation"
+                ):
                     raise RestApiException(
-                        'Post processors unaivailable for the requested datasets',
+                        "Post processors unaivailable for the requested datasets",
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
 
         # check if the output format chosen by the user is compatible with the chosen datasets
         if output_format is not None:
-            postprocessors_list = [i.get('type') for i in processors]
+            postprocessors_list = [i.get("type") for i in processors]
             if dataset_format != output_format:
-                if dataset_format == 'grib':
+                if dataset_format == "grib":
                     # spare point interpolation has bufr as output format
-                    if 'spare_point_interpolation' not in postprocessors_list:
+                    if "spare_point_interpolation" not in postprocessors_list:
                         raise RestApiException(
-                            'The chosen datasets does not support {} output format'.format(output_format),
+                            f"The chosen datasets does not support {output_format} output format",
                             status_code=hcodes.HTTP_BAD_REQUEST,
                         )
-                if dataset_format == 'bufr' and output_format == 'grib':
+                if dataset_format == "bufr" and output_format == "grib":
                     raise RestApiException(
-                        'The chosen datasets does not support {} output format'.format(output_format),
+                        f"The chosen datasets does not support {output_format} output format",
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
             else:
-                if dataset_format == 'grib' and 'spare_point_interpolation' in postprocessors_list:
+                if (
+                    dataset_format == "grib"
+                    and "spare_point_interpolation" in postprocessors_list
+                ):
                     raise RestApiException(
-                        'The chosen postprocessor does not support {} output format'.format(output_format),
+                        f"The chosen postprocessor does not support {output_format} output format",
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
 
-        push = criteria.get('push')
-        if isinstance(push, str) and (
-                push.lower() == 'true'
-        ):
+        push = criteria.get("push")
+        if isinstance(push, str) and (push.lower() == "true"):
             push = True
         elif type(push) == bool:
             # do nothing
@@ -181,12 +183,13 @@ class Data(EndpointResource, Uploader):
         if push:
             # TODO build the queue name according to the chosen convention
             pushing_queue = user.id
-            rabbit = self.get_service_instance('rabbit')
+            # rabbit = self.get_service_instance("rabbit")
+            self.get_service_instance("rabbit")
             # TODO: check if pushing_queue exists,
             #  if not raise an error (401? user is not authorized to get push notification)
 
         # run the following steps in a transaction
-        db = self.get_service_instance('sqlalchemy')
+        db = self.get_service_instance("sqlalchemy", global_instance=False)
         task = None
         try:
             request = repo.create_request_record(
@@ -194,12 +197,12 @@ class Data(EndpointResource, Uploader):
                 user.id,
                 product_name,
                 {
-                    'datasets': dataset_names,
-                    'reftime': reftime,
-                    'filters': filters,
-                    'postprocessors': processors,
-                    'output_format': output_format,
-                    'pushing_queue': pushing_queue,
+                    "datasets": dataset_names,
+                    "reftime": reftime,
+                    "filters": filters,
+                    "postprocessors": processors,
+                    "output_format": output_format,
+                    "pushing_queue": pushing_queue,
                 },
             )
 
@@ -212,7 +215,7 @@ class Data(EndpointResource, Uploader):
                     processors,
                     output_format,
                     request.id,
-                    pushing_queue
+                    pushing_queue,
                 ],
                 countdown=1,
             )
@@ -220,16 +223,15 @@ class Data(EndpointResource, Uploader):
             request.task_id = task.id
             request.status = task.status  # 'PENDING'
             db.session.commit()
-            log.info('Request successfully saved: <ID:{}>', request.id)
+            log.info("Request successfully saved: <ID:{}>", request.id)
         except Exception:
             db.session.rollback()
             raise SystemError("Unable to submit the request")
         if task:
-            r = {'task_id': task.id}
+            r = {"task_id": task.id}
 
         else:
             raise RestApiException(
-                'Unable to submit the request',
-                status_code=hcodes.HTTP_SERVER_ERROR,
+                "Unable to submit the request", status_code=hcodes.HTTP_SERVER_ERROR,
             )
         return self.response(r, code=hcodes.HTTP_OK_ACCEPTED)
