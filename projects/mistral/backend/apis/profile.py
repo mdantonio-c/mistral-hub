@@ -7,7 +7,7 @@ class CustomProfile:
 
     @staticmethod
     def manipulate(ref, user, data):
-        data["Disk Quota"] = user.disk_quota
+        data["disk_quota"] = user.disk_quota
 
         return data
 
