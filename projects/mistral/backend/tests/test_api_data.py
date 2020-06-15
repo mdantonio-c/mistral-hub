@@ -15,7 +15,7 @@ class TestApp(BaseTests):
         r = self.mock_celery()
         assert r == 1
 
-    @patch.object(CeleryExt, "data_extract", side_effect=mock_celery)
+    @patch.object(CeleryExt.celery_app, "data_extract", side_effect=mock_celery)
     def test_endpoint_without_login(self, mock_celery, client):
         endpoint = API_URI + "/data"
         r = client.post(endpoint)
