@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta
 import os
+import pytest
 import dballe
 from restapi.tests import BaseTests, API_URI
 from restapi.utilities.htmlcodes import hcodes
@@ -33,7 +34,7 @@ class TestApp(BaseTests):
                 # get a valid reftime for dballe
                 with db.transaction() as tr:
                     for row in tr.query_data({'rep_memo': d}):
-                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"])
+                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"]) + timedelta(hours=1)
                         date_from_dt = date_to_dt - timedelta(hours=1)
                         break
             elif db_type == 'arkimet':
@@ -50,7 +51,7 @@ class TestApp(BaseTests):
                 # get a valid reftime for dballe
                 with db.transaction() as tr:
                     for row in tr.query_data({'rep_memo': d}):
-                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"])
+                        date_to_dt = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"]) + timedelta(hours=1)
                         break
 
                 # get a valid reftime for arkimet
@@ -60,24 +61,33 @@ class TestApp(BaseTests):
                     date_from_dt = datetime(summary_from[0], summary_from[1], summary_from[2], summary_from[3], summary_from[4])
 
             if date_from_dt and date_to_dt:
-                dataset = d
+                # dataset = d
                 break
 
         date_from = date_from_dt.strftime("%Y-%m-%d %H:%M")
         date_to = date_to_dt.strftime("%Y-%m-%d %H:%M")
 
-        endpoint = API_URI + '/fields?q=reftime:>={date_from},<={date_to}&datasets={dataset}&SummaryStats=false'.format(
-            date_from=date_from, date_to=date_to, dataset=dataset)
-        r = client.get(endpoint, headers=headers)
-        response_data = TestApp.get_content(r)
+        for d in obs_dataset:
+            endpoint = API_URI + '/fields?q=reftime:>={date_from},<={date_to}&datasets={dataset}&SummaryStats=false'.format(
+                date_from=date_from, date_to=date_to, dataset=d)
+            r = client.get(endpoint, headers=headers)
+            response_data = TestApp.get_content(r)
+            if response_data['items']:
+                break
+
+        if not response_data['items']:
+            pytest.fail("No results obtained from DBALLE")
 
         # from the response pick a network and a product
         params_value = {}
         params_value['date_from'] = date_from
         params_value['date_to'] = date_to
         params_value['network'] = response_data['items']['network'][0]['dballe_p']
-        params_value['product_1'] = response_data['items']['product'][0]['dballe_p']
-        params_value['product_2'] = response_data['items']['product'][1]['dballe_p']
+        if len(response_data['items']['product']) >= 2:
+            params_value['product_1'] = response_data['items']['product'][0]['dballe_p']
+            params_value['product_2'] = response_data['items']['product'][1]['dballe_p']
+        else:
+            pytest.fail("Products in DBALLE are less than 2 ")
 
         log.debug('test_params: {}', params_value)
 

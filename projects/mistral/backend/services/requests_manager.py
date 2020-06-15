@@ -18,7 +18,7 @@ class RequestManager():
             # check if the user owns the file
             if RequestManager.check_owner(db, user.id, file_id=f_to_download.id):
                 # check if the requested file is in the user folder
-                path = os.path.join(download_dir, user.uuid, f_to_download.filename)
+                path = os.path.join(download_dir, user.uuid, 'outputs', f_to_download.filename)
                 if os.path.exists(path):
                     return True
                 else:
@@ -122,7 +122,7 @@ class RequestManager():
     @staticmethod
     def delete_fileoutput(uuid, download_dir, filename):
         try:
-            filepath = os.path.join(download_dir, uuid, filename)
+            filepath = os.path.join(download_dir, uuid, 'outputs', filename)
             os.remove(filepath)
         except FileNotFoundError as error:
             # silently pass when file is not found
