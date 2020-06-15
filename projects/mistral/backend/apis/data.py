@@ -4,7 +4,6 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi import decorators
-from restapi.connectors.celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
@@ -48,7 +47,7 @@ class Data(EndpointResource, Uploader):
     @decorators.catch_errors()
     @decorators.auth.required()
     def post(self):
-        user = self.get_current_user()
+        user = self.get_user()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
         criteria = self.get_input()
 
@@ -208,7 +207,8 @@ class Data(EndpointResource, Uploader):
                 },
             )
 
-            task = CeleryExt.data_extract.apply_async(
+            celery = self.get_service_instance("celery")
+            task = celery.data_extract.apply_async(
                 args=[
                     user.id,
                     dataset_names,

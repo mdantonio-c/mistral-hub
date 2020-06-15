@@ -108,7 +108,7 @@ class Templates(EndpointResource, Uploader):
     @decorators.catch_errors()
     @decorators.auth.required()
     def post(self):
-        user = self.get_current_user()
+        user = self.get_user()
         # allowed formats for uploaded file
         allowed_ext = self.allowed_exts = [
             "shp",
@@ -189,7 +189,7 @@ class Templates(EndpointResource, Uploader):
             log.debug("paging: page {0}, limit {1}", page, limit)
         # come uso page e limit? nell'altro endpoint usa un metodo apposta per il db
 
-        user = self.get_current_user()
+        user = self.get_user()
 
         if template_name is not None:
             # get the template extension to determine the folder where to find it
@@ -246,7 +246,7 @@ class Templates(EndpointResource, Uploader):
     @decorators.catch_errors()
     @decorators.auth.required()
     def delete(self, template_name):
-        user = self.get_current_user()
+        user = self.get_user()
         # get the template extension to determine the folder where to find it
         filebase, fileext = os.path.splitext(template_name)
 

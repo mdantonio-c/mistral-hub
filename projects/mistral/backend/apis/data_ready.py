@@ -2,7 +2,6 @@ from datetime import datetime
 
 from mistral.services.requests_manager import RequestManager
 from restapi import decorators
-from restapi.connectors.celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
@@ -144,7 +143,8 @@ class DataReady(EndpointResource):
                     },
                 )
 
-                task = CeleryExt.data_extract.apply_async(
+                celery = self.get_service_instance("celery")
+                task = celery.data_extract.apply_async(
                     args=[
                         r.get("user_id"),
                         datasets,

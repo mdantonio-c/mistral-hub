@@ -35,7 +35,7 @@ class Usage(EndpointResource):
         Get actual user disk quota and current usage
         :return:
         """
-        user = self.get_current_user()
+        user = self.get_user()
 
         # get user disk quota
         # db = self.get_service_instance('sqlalchemy')

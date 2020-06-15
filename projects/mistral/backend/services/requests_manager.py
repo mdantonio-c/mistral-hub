@@ -4,8 +4,6 @@ import os
 from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 
-celery_app = CeleryExt.celery_app
-
 
 class RequestManager:
     @staticmethod
@@ -373,7 +371,7 @@ class RequestManager:
         r_to_update = request.query.filter(request.task_id == task_id).first()
 
         # ask celery the status of the given request
-        result = CeleryExt.data_extract.AsyncResult(task_id)
+        result = CeleryExt.celery_app.data_extract.AsyncResult(task_id)
         # log.info('status:{}', result.status)
 
         r_to_update.status = result.status

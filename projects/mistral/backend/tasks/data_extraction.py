@@ -540,7 +540,7 @@ def data_extract(
                     rabbit_msg["error_message"] = request.error_message
 
                 rabbit.write_to_queue(rabbit_msg, amqp_queue)
-                rabbit.close_connection()
+                rabbit.disconnect()
 
 
 def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):

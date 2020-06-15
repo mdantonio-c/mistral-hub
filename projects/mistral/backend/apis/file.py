@@ -31,7 +31,7 @@ class FileDownload(EndpointResource):
     @decorators.auth.required()
     def get(self, filename):
 
-        user = self.get_current_user()
+        user = self.get_user()
         db = self.get_service_instance("sqlalchemy")
         # check for file existence, ownership and location
         if RequestManager.check_fileoutput(db, user, filename, DOWNLOAD_DIR):

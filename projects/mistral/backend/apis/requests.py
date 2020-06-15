@@ -19,18 +19,6 @@ class UserRequests(EndpointResource):
             "summary": "Get requests filtered by uuid.",
             "parameters": [
                 {
-                    "name": "perpage",
-                    "in": "query",
-                    "description": "Number of videos returned",
-                    "type": "integer",
-                },
-                {
-                    "name": "currentpage",
-                    "in": "query",
-                    "description": "Page number",
-                    "type": "integer",
-                },
-                {
                     "name": "sort-order",
                     "in": "query",
                     "description": "sort order",
@@ -42,13 +30,6 @@ class UserRequests(EndpointResource):
                     "in": "query",
                     "description": "params to sort requests",
                     "type": "string",
-                },
-                {
-                    "name": "get_total",
-                    "in": "query",
-                    "description": "Retrieve total number of requests",
-                    "type": "boolean",
-                    "default": False,
                 },
             ],
             "responses": {
@@ -77,23 +58,20 @@ class UserRequests(EndpointResource):
     }
 
     @decorators.catch_errors()
+    @decorators.get_pagination
     @decorators.auth.required()
-    def get(self, request_id=None):
-        param = self.get_input()
-        # sort = param.get('sort-by')
-        # sort_order = param.get('sort-order')
-        get_total = param.get("get_total", False)
-        if not get_total:
-            page, limit = self.get_paging()
-            # offset = (current_page - 1) * limit
-            log.debug("paging: page {0}, limit {1}", page, limit)
+    def get(self, request_id=None, get_total=None, page=None, size=None):
 
-        user = self.get_current_user()
+        user = self.get_user()
 
         db = self.get_service_instance("sqlalchemy")
         if get_total:
             counter = repo.count_user_requests(db, user.id)
             return self.response({"total": counter})
+
+        # offset = (page - 1) * size
+
+        log.debug("paging: page {0}, size {1}", page, size)
 
         # get user requests list
         # res = repo.get_user_requests(db, user.id, sort_by=sort, sort_order=sort_order)
@@ -102,7 +80,7 @@ class UserRequests(EndpointResource):
             db.Request.query.filter_by(user_id=user.id)
             .options(joinedload(db.Request.fileoutput))
             .order_by(db.Request.submission_date.desc())
-            .paginate(page, limit, False)
+            .paginate(page, size, False)
             .items
         )
         log.debug(requests)
@@ -134,7 +112,7 @@ class UserRequests(EndpointResource):
     def delete(self, request_id):
         log.debug("delete request {}", request_id)
 
-        user = self.get_current_user()
+        user = self.get_user()
 
         db = self.get_service_instance("sqlalchemy")
         # check if the request exists
@@ -146,7 +124,8 @@ class UserRequests(EndpointResource):
         # check if the current user is the owner of the request
         if repo.check_owner(db, user.id, request_id=request_id):
 
-            # delete request and fileoutput entry from database. Delete fileoutput from user folder
+            # delete request and fileoutput entry from database.
+            # Delete fileoutput from user folder
             repo.delete_request_record(db, user, request_id, DOWNLOAD_DIR)
 
             return self.response(f"Removed request {request_id}")

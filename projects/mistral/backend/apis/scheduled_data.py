@@ -1,7 +1,6 @@
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
 from restapi import decorators
-from restapi.connectors.celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
@@ -54,7 +53,7 @@ class ScheduledData(EndpointResource):
     @decorators.auth.required()
     def post(self):
 
-        user = self.get_current_user()
+        user = self.get_user()
         criteria = self.get_input()
         self.validate_input(criteria, "DataScheduling")
 
@@ -72,6 +71,7 @@ class ScheduledData(EndpointResource):
         filters = criteria.get("filters")
 
         db = self.get_service_instance("sqlalchemy")
+        celery = self.get_service_instance("celery")
 
         # check if scheduling parameters are correct
         if not self.settings_validation(criteria):
@@ -92,12 +92,12 @@ class ScheduledData(EndpointResource):
             name = str(name_int)
 
             # remove previous task
-            res = CeleryExt.delete_periodic_task(name=name)
+            res = celery.delete_periodic_task(name=name)
             log.debug("Previous task deleted = {}", res)
 
             request_id = None
 
-            CeleryExt.create_periodic_task(
+            celery.create_periodic_task(
                 name=name,
                 task="mistral.tasks.data_extraction.data_extract",
                 every=every,
@@ -121,7 +121,7 @@ class ScheduledData(EndpointResource):
                 str_val = str(val)
                 crontab_settings[i] = str_val
 
-            CeleryExt.create_crontab_task(
+            celery.create_crontab_task(
                 name=name,
                 task="mistral.tasks.data_extraction.data_extract",
                 **crontab_settings,
@@ -138,9 +138,11 @@ class ScheduledData(EndpointResource):
         param = self.get_input()
         task_name = param.get("task")
 
-        user = self.get_current_user()
+        user = self.get_user()
 
         db = self.get_service_instance("sqlalchemy")
+        celery = self.get_service_instance("celery")
+
         # check if the request exists
         if not RequestManager.check_request(db, schedule_id=task_name):
             raise RestApiException(
@@ -152,7 +154,7 @@ class ScheduledData(EndpointResource):
             # delete request entry from database
             RequestManager.disable_schedule_record(db, task_name)
 
-            CeleryExt.delete_periodic_task(name=task_name)
+            celery.delete_periodic_task(name=task_name)
 
             return self.response(f"Removed task {task_name}")
         else:

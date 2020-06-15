@@ -6,7 +6,6 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi import decorators
-from restapi.connectors.celery import CeleryExt
 from restapi.exceptions import RestApiException
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
@@ -45,13 +44,6 @@ class Schedules(EndpointResource):
                     "description": "params to sort schedules",
                     "type": "string",
                 },
-                {
-                    "name": "get_total",
-                    "in": "query",
-                    "description": "Retrieve total number of schedules",
-                    "type": "boolean",
-                    "default": False,
-                },
             ],
         },
         "/schedules": {
@@ -82,13 +74,6 @@ class Schedules(EndpointResource):
                     "in": "query",
                     "description": "params to sort schedules",
                     "type": "string",
-                },
-                {
-                    "name": "get_total",
-                    "in": "query",
-                    "description": "Retrieve total number of schedules",
-                    "type": "boolean",
-                    "default": False,
                 },
             ],
         },
@@ -163,7 +148,7 @@ class Schedules(EndpointResource):
     @decorators.catch_errors()
     @decorators.auth.required()
     def post(self):
-        user = self.get_current_user()
+        user = self.get_user()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
         criteria = self.get_input()
 
@@ -305,6 +290,7 @@ class Schedules(EndpointResource):
             #  if not raise an error (401? user is not authorized to get push notification)
 
         db = self.get_service_instance("sqlalchemy")
+        celery = self.get_service_instance("celery")
 
         # check if scheduling parameters are correct
         if not self.settings_validation(criteria):
@@ -342,11 +328,11 @@ class Schedules(EndpointResource):
 
                 if data_ready is False:
                     # remove previous task
-                    res = CeleryExt.delete_periodic_task(name=name)
+                    res = celery.delete_periodic_task(name=name)
                     log.debug("Previous task deleted = {}", res)
 
                     request_id = None
-                    CeleryExt.create_periodic_task(
+                    celery.create_periodic_task(
                         name=name,
                         task="mistral.tasks.data_extraction.data_extract",
                         every=every,
@@ -394,7 +380,7 @@ class Schedules(EndpointResource):
                         crontab_settings[i] = str_val
 
                     request_id = None
-                    CeleryExt.create_crontab_task(
+                    celery.create_crontab_task(
                         name=name,
                         task="mistral.tasks.data_extraction.data_extract",
                         **crontab_settings,
@@ -414,7 +400,7 @@ class Schedules(EndpointResource):
             if data_ready:
                 # submit the first request
                 request_id = None
-                CeleryExt.data_extract.apply_async(
+                celery.data_extract.apply_async(
                     args=[
                         user.id,
                         dataset_names,
@@ -458,14 +444,14 @@ class Schedules(EndpointResource):
             return on_data_ready
 
     @decorators.catch_errors()
+    @decorators.get_pagination
     @decorators.auth.required()
-    def get(self, schedule_id=None):
+    def get(self, schedule_id=None, get_total=None, page=None, size=None):
         param = self.get_input()
         sort = param.get("sort-by")
         sort_order = param.get("sort-order")
-        get_total = param.get("get_total", False)
 
-        user = self.get_current_user()
+        user = self.get_user()
 
         db = self.get_service_instance("sqlalchemy")
         if schedule_id is not None:
@@ -490,9 +476,10 @@ class Schedules(EndpointResource):
     def patch(self, schedule_id):
         param = self.get_input()
         is_active = param.get("is_active")
-        user = self.get_current_user()
+        user = self.get_user()
 
         db = self.get_service_instance("sqlalchemy")
+        celery = self.get_service_instance("celery")
 
         # check if the schedule exist and is owned by the current user
         self.request_and_owner_check(db, user.id, schedule_id)
@@ -500,7 +487,7 @@ class Schedules(EndpointResource):
         schedule = db.Schedule.query.get(schedule_id)
         if schedule.on_data_ready is False:
             # retrieving mongodb task
-            task = CeleryExt.get_periodic_task(name=schedule_id)
+            task = celery.get_periodic_task(name=schedule_id)
             log.debug("Periodic task - {}", task)
             # disable the schedule deleting it from mongodb
             if is_active is False:
@@ -509,7 +496,7 @@ class Schedules(EndpointResource):
                         "Scheduled task is already disabled",
                         status_code=hcodes.HTTP_BAD_CONFLICT,
                     )
-                CeleryExt.delete_periodic_task(name=schedule_id)
+                celery.delete_periodic_task(name=schedule_id)
             # enable the schedule
             if is_active is True:
                 if task:
@@ -526,7 +513,7 @@ class Schedules(EndpointResource):
                 try:
                     request_id = None
                     if "periodic" in schedule_response:
-                        CeleryExt.create_periodic_task(
+                        celery.create_periodic_task(
                             name=str(schedule_id),
                             task="mistral.tasks.data_extraction.data_extract",
                             every=schedule_response["every"],
@@ -552,7 +539,7 @@ class Schedules(EndpointResource):
                             val = schedule_response["crontab_settings"].get(i)
                             str_val = str(val)
                             crontab_settings[i] = str_val
-                        CeleryExt.create_crontab_task(
+                        celery.create_crontab_task(
                             name=str(schedule_id),
                             task="mistral.tasks.data_extraction.data_extract",
                             **crontab_settings,
@@ -582,15 +569,16 @@ class Schedules(EndpointResource):
     @decorators.catch_errors()
     @decorators.auth.required()
     def delete(self, schedule_id):
-        user = self.get_current_user()
+        user = self.get_user()
 
         db = self.get_service_instance("sqlalchemy")
+        celery = self.get_service_instance("celery")
 
         # check if the schedule exist and is owned by the current user
         self.request_and_owner_check(db, user.id, schedule_id)
 
         # delete schedule in mongodb
-        CeleryExt.delete_periodic_task(name=schedule_id)
+        celery.delete_periodic_task(name=schedule_id)
 
         # delete schedule status in database
         RequestManager.delete_schedule(db, schedule_id)
@@ -679,7 +667,7 @@ class ScheduledRequests(EndpointResource):
             )
 
         # check for schedule ownership
-        user = self.get_current_user()
+        user = self.get_user()
         if not RequestManager.check_owner(db, user.id, schedule_id=schedule_id):
             raise RestApiException(
                 "This request doesn't come from the schedule's owner",
