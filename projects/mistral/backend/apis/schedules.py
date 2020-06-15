@@ -101,7 +101,7 @@ class Schedules(EndpointResource):
                 "201": {"description": "scheduled request successfully created"},
                 "400": {"description": "invalid scheduled request"},
                 "404": {
-                    "description": "cannot schedule the request: dataset not found"
+                    "description": "Cannot schedule the request: dataset not found"
                 },
             },
         }
@@ -218,7 +218,8 @@ class Schedules(EndpointResource):
                     f"Unknown post-processor type for {p_type}",
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
-        # if there is a pp combination check if there is only one geographical postprocessor
+        # if there is a processors combination
+        # check if there is only one geographical postprocessor
         if len(processors) > 1:
             pp_list = []
             for p in processors:
@@ -241,7 +242,7 @@ class Schedules(EndpointResource):
                 "Invalid set of datasets : datasets have different formats",
                 status_code=hcodes.HTTP_BAD_REQUEST,
             )
-        # check if the output format chosen by the user is compatible with the chosen datasets
+        # check if the output format chosen by the user is compatible with the datasets
         if output_format is not None:
             if dataset_format != output_format:
                 if dataset_format == "grib":
@@ -249,12 +250,12 @@ class Schedules(EndpointResource):
                     # spare point interpolation has bufr as output format
                     if "spare_point_interpolation" not in postprocessors_list:
                         raise RestApiException(
-                            f"The chosen datasets does not support {output_format} output format",
+                            f"Chosen datasets do not support {output_format} format",
                             status_code=hcodes.HTTP_BAD_REQUEST,
                         )
                 if dataset_format == "bufr" and output_format == "grib":
                     raise RestApiException(
-                        f"The chosen datasets does not support {output_format} output format",
+                        f"Chosen datasets do not support {output_format} format",
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
 
@@ -262,12 +263,12 @@ class Schedules(EndpointResource):
         data_ready = False
         # data ready option is not for observed data
         if dataset_format == "grib":
-            # get today date
             today = datetime.date.today()
-            # if the date of reftime['to'] is today or yesterday the request can be considered a data-ready one
-            if reftime_to.date() == today or reftime_to.date() == today - datetime.timedelta(
-                days=1
-            ):
+            yesterday = today - datetime.timedelta(days=1)
+            # if the date of reftime['to'] is today or yesterday
+            # the request can be considered a data-ready one
+            refdate = reftime_to.date()
+            if refdate == today or refdate == yesterday:
                 data_ready = True
             # what if reftime is None?
 
@@ -287,7 +288,7 @@ class Schedules(EndpointResource):
             # rabbit = self.get_service_instance('rabbit')
             self.get_service_instance("rabbitmq")
             # TODO: check if pushing_queue exists,
-            #  if not raise an error (401? user is not authorized to get push notification)
+            #  if not raise an error 401 user is not authorized or 403 forbidden
 
         db = self.get_service_instance("sqlalchemy")
         celery = self.get_service_instance("celery")
@@ -306,7 +307,8 @@ class Schedules(EndpointResource):
                 period = period_settings.get("period")
                 log.info("Period settings [{} {}]", every, period)
 
-                # get schedule id in postgres database as scheduled request name for mongodb
+                # get schedule id in postgres database
+                # as scheduled request name for mongodb
                 name_int = RequestManager.create_schedule_record(
                     db,
                     user,
@@ -354,7 +356,8 @@ class Schedules(EndpointResource):
             crontab_settings = criteria.get("crontab-settings")
             if crontab_settings is not None:
                 log.info("Crontab settings {}", crontab_settings)
-                # get scheduled request id in postgres database as scheduled request name for mongodb
+                # get scheduled request id in postgres database
+                # as scheduled request name for mongodb
                 name_int = RequestManager.create_schedule_record(
                     db,
                     user,
@@ -630,9 +633,7 @@ class ScheduledRequests(EndpointResource):
                     "schema": {"$ref": "#/definitions/Requests"},
                 },
                 "404": {"description": "Schedule not found."},
-                "403": {
-                    "description": "User cannot access a schedule that does not belong to."
-                },
+                "403": {"description": "Cannot access a schedule not belonging to you"},
             },
         }
     }

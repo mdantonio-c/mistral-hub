@@ -85,7 +85,8 @@ class ScheduledData(EndpointResource):
             every = str(period_settings.get("every"))
             period = period_settings.get("period")
             log.info("Period settings [{} {}]", every, period)
-            # get scheduled request id in postgres database as scheduled request name for mongodb
+            # get scheduled request id in postgres database
+            # as scheduled request name for mongodb
             name_int = RequestManager.create_scheduled_request_record(
                 db, user, filters, every=every, period=period
             )
@@ -109,7 +110,8 @@ class ScheduledData(EndpointResource):
 
         crontab_settings = criteria.get("crontab-settings")
         if crontab_settings is not None:
-            # get scheduled request id in postgres database as scheduled request name for mongodb
+            # get scheduled request id in postgres database
+            # as scheduled request name for mongodb
             name_int = RequestManager.create_schedule_record(
                 db, user, filters, crontab_settings=crontab_settings
             )

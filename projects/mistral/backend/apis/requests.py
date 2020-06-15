@@ -38,9 +38,7 @@ class UserRequests(EndpointResource):
                     "schema": {"$ref": "#/definitions/Requests"},
                 },
                 "404": {"description": "User has no requests"},
-                "401": {
-                    "description": "Current user is not allowed to see requests of the user in query"
-                },
+                "401": {"description": "Current user is not allowed"},
             },
         }
     }
