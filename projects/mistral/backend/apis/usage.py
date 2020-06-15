@@ -38,7 +38,7 @@ class Usage(EndpointResource):
         user = self.get_user()
 
         # get user disk quota
-        # db = self.get_service_instance('sqlalchemy', global_instance=False)
+        # db = self.get_service_instance('sqlalchemy')
         # disk_quota = db.session.query(
         #     db.User.disk_quota).filter_by(id=user.id).scalar()
         # log.debug(disk_quota)
