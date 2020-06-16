@@ -18,7 +18,6 @@ host = os.environ.get("ALCHEMY_HOST")
 engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
 
-LASTDAYS = os.environ.get("LASTDAYS")  # number of days after which data pass in Arkimet
 
 
 # DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
@@ -26,13 +25,14 @@ LASTDAYS = os.environ.get("LASTDAYS")  # number of days after which data pass in
 
 class BeDballe():
     explorer = None
+    LASTDAYS = os.environ.get("LASTDAYS")  # number of days after which data pass in Arkimet
 
     @staticmethod
     def get_db_type(date_min, date_max):
         date_min_compar = datetime.utcnow() - date_min
-        if date_min_compar.days > int(LASTDAYS):
+        if date_min_compar.days > int(BeDballe.LASTDAYS):
             date_max_compar = datetime.utcnow() - date_max
-            if date_max_compar.days > int(LASTDAYS):
+            if date_max_compar.days > int(BeDballe.LASTDAYS):
                 db_type = 'arkimet'
             else:
                 db_type = 'mixed'
@@ -43,7 +43,7 @@ class BeDballe():
     @staticmethod
     def split_reftimes(date_min, date_max):
         refmax_dballe = date_max
-        refmin_dballe = datetime.utcnow() - timedelta(days=int(LASTDAYS))
+        refmin_dballe = datetime.utcnow() - timedelta(days=int(BeDballe.LASTDAYS))
         # refmax_arki_dt = refmin_dballe - timedelta(minutes=1)
         # refmax_arki = refmax_arki_dt.strftime("%Y-%m-%d %H:%M")
         # refmin_arki = date_min.strftime("%Y-%m-%d %H:%M")
@@ -339,7 +339,7 @@ class BeDballe():
                         summary['b'] = BeDballe.from_datetime_to_list(query['datetimemin'])
                         summary['e'] = BeDballe.from_datetime_to_list(query['datetimemax'])
                     else:  # case of query of all dataset
-                        datemin_dballe = datetime.utcnow() - timedelta(days=int(LASTDAYS))
+                        datemin_dballe = datetime.utcnow() - timedelta(days=int(BeDballe.LASTDAYS))
                         summary['b'] = BeDballe.from_datetime_to_list(datemin_dballe)
                         summary['e'] = BeDballe.from_datetime_to_list(datetime.utcnow())
             return fields, summary
