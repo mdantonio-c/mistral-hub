@@ -50,7 +50,8 @@ class TestApp(BaseTests):
                 if 'e' in arki_summary['items']['summarystats']:  # this means that the dataset contains data
                     summary_to = arki_summary['items']['summarystats']['e']
                     date_to_dt = datetime(summary_to[0], summary_to[1], summary_to[2], summary_to[3], summary_to[4])
-                    date_from_dt = date_to_dt - timedelta(hours=1)
+                    summary_from = arki_summary['items']['summarystats']['b']
+                    date_from_dt = datetime(summary_from[0], summary_from[1], summary_from[2], summary_from[3], summary_from[4])
             elif db_type == 'mixed':
                 db = dballe.DB.connect(
                     "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host,
@@ -64,7 +65,7 @@ class TestApp(BaseTests):
                 # get a valid reftime for arkimet
                 arki_summary = arki.load_summary(datasets=[d])
                 if 'e' in arki_summary['items']['summarystats']:  # this means that the dataset contains data
-                    summary_from = arki_summary['items']['summarystats']['e']
+                    summary_from = arki_summary['items']['summarystats']['b']
                     date_from_dt = datetime(summary_from[0], summary_from[1], summary_from[2], summary_from[3], summary_from[4])
 
             if date_from_dt and date_to_dt:
