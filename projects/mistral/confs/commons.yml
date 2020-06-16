@@ -14,7 +14,7 @@ services:
       # - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
       # - ${VANILLA_DIR}/data/flash-flood:/arkimet/flash-flood
       - ${VANILLA_DIR}/data/maps:/meteo
-      - ${VANILLA_DIR}/data/uploads:/uploads
+      # - ${VANILLA_DIR}/data/uploads:/uploads
       - ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/scripts:/scripts
 
     environment:
@@ -53,7 +53,7 @@ services:
       - ${VANILLA_DIR}/data/user_repo:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
-      - ${VANILLA_DIR}/data/uploads:/uploads
+      # - ${VANILLA_DIR}/data/uploads:/uploads
 
   celery:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
@@ -65,7 +65,7 @@ services:
       - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
       # - ${VANILLA_DIR}/data/cosmo-lami:/arkimet/cosmo-lami
       # - ${VANILLA_DIR}/data/flash-flood:/arkimet/flash-flood
-      - ${VANILLA_DIR}/data/uploads:/uploads
+      # - ${VANILLA_DIR}/data/uploads:/uploads
     environment:
       LASTDAYS: ${LASTDAYS}
 
