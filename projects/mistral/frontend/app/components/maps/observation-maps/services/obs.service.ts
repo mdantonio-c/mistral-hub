@@ -49,10 +49,30 @@ export interface Station {
     lat: number;
     lon: number;
 }
+/*
+    description: "TEMPERATURE/DRY-BULB TEMPERATURE"
+    scale: 2
+    unit: "K"
+    values: [
+        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 00:00:00 GMT", timerange: "254,0,0", value: 287.75}
+        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 05:00:00 GMT", timerange: "254,0,0", value: 287.75}
+        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 06:00:00 GMT", timerange: "254,0,0", value: 290.75}
+        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 07:00:00 GMT", timerange: "254,0,0", value: 292.65}
+        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 08:00:00 GMT", timerange: "254,0,0", value: 294.65}
+    ]
+    varcode: "B12101"
+ */
+export interface ObsData {
+    description: string;
+    scale: number;
+    unit: string;
+    values: any[];
+    varcode: string;
+}
 
 export interface Observation {
     station: Station;
-    data?: any;
+    products?: ObsData[];
 }
 
 @Injectable({

@@ -1,5 +1,5 @@
 import {Component, Output, EventEmitter} from '@angular/core';
-import {Observation, ObsFilter, ObsService, Station} from "../services/obs.service";
+import {ObsData, Observation, ObsFilter, ObsService, Station} from "../services/obs.service";
 import {obsData} from "../services/data";
 import {NotificationService} from '@rapydo/services/notification';
 import {NgxSpinnerService} from 'ngx-spinner';
@@ -63,12 +63,11 @@ export class ObsMapComponent {
                 if (childMarkers[0].options['data']) {
                     let sum = 0;
                     for (const m of childMarkers) {
-                        const obj = m.options['data'];
-                        const arr: any[] = obj[Object.keys(obj)[0]];
+                        const obsData: ObsData = m.options['data'];
                         if (!type) {
-                            type = Object.keys(obj)[0];
+                            type = obsData.varcode;
                         }
-                        sum += arr.map(v => v.value).reduce((a, b) => a + b, 0) / arr.length;
+                        sum += obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
                     }
                     res = sum / childCount;
                     if (type === 'B12101') {
@@ -135,26 +134,27 @@ export class ObsMapComponent {
     private loadMarkers(data: Observation[], product: string, onlyStations = false) {
         const markers: L.Marker[] = [];
         let min: number, max: number;
+        let obsData: ObsData;
         data.forEach((s) => {
             let value: number;
-            if (s.data) {
-                const obj = s.data;
-                const arr: any[] = obj[Object.keys(obj)[0]];
+            if (!onlyStations) {
+                obsData = s.products.find(x => x.varcode === product);
+                // const arr: any[] = obj[Object.keys(obj)[0]];
                 // value = Math.round(arr.map(v => v.value).reduce((a, b) => a + b, 0) / arr.length);
-                value = arr.map(v => v.value).reduce((a, b) => a + b, 0) / arr.length;
+                value = obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
                 if (product === 'B12101') {
                     value -= 273.15;    // convert temperatures from Kelvin to Celsius
                 }
-                let localMin = Math.min(...arr.map(v => v.value));
+                let localMin = Math.min(...obsData.values.map(v => v.value));
                 if (!min || localMin < min) {
                     min = localMin;
                 }
-                let localMax = Math.max(...arr.map(v => v.value));
+                let localMax = Math.max(...obsData.values.map(v => v.value));
                 if (!max || localMax > max) {
                     max = localMax;
                 }
             }
-            const icon = (s.data) ? L.divIcon({
+            const icon = (s.products) ? L.divIcon({
                 html: `<div class="mstDataIcon"><span>${value.toFixed(2)}</span></div>`,
                 iconSize: [24, 6],
                 className: 'leaflet-marker-icon mst-marker-color-' + this.meteoService.getColor(value)
@@ -167,8 +167,8 @@ export class ObsMapComponent {
                 icon: icon
             });
             marker.options['station'] = s.station;
-            if (s.data) {
-                marker.options['data'] = s.data;
+            if (s.products) {
+                marker.options['data'] = obsData;
             }
 
             marker.bindTooltip(this.buildTooltipTemplate(s.station),
