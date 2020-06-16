@@ -32,6 +32,7 @@ class FileDownload(EndpointResource):
 
         user = self.get_user()
         db = self.get_service_instance("sqlalchemy")
+
         # check for file existence, ownership and location
         if not RequestManager.check_fileoutput(db, user, filename, DOWNLOAD_DIR):
             raise NotFound("File not found")

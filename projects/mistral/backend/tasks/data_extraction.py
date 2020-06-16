@@ -118,7 +118,7 @@ def data_extract(
 
             # create download user dir if it doesn't exist
             uuid = RequestManager.get_uuid(db, user_id)
-            user_dir = os.path.join(DOWNLOAD_DIR, uuid)
+            user_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
             os.makedirs(user_dir, exist_ok=True)
 
             # check that the datasets are all under the same license

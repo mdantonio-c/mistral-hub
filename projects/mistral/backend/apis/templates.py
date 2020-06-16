@@ -132,9 +132,9 @@ class Templates(EndpointResource, Uploader):
 
         # upload the files
         if f[-1] == "grib":
-            subfolder = os.path.join(user.uuid, "grib")
+            subfolder = os.path.join(user.uuid, "uploads", "grib")
         else:
-            subfolder = os.path.join(user.uuid, "shp")
+            subfolder = os.path.join(user.uuid, "uploads", "shp")
         log.debug("uploading in {}", subfolder)
         upload_response = self.upload(subfolder=subfolder)
 
@@ -147,13 +147,14 @@ class Templates(EndpointResource, Uploader):
             files = []
             with ZipFile(upload_filepath, "r") as zip:
                 files = zip.namelist()
+
                 log.debug("filelist: {}", files)
                 if any(i.endswith("shp") for i in files) or any(
                     i.endswith("geojson") for i in files
                 ):
-                    subfolder = os.path.join(user.uuid, "shp")
+                    subfolder = os.path.join(user.uuid, "uploads", "shp")
                 if any(i.endswith("grib") for i in files):
-                    subfolder = os.path.join(user.uuid, "grib")
+                    subfolder = os.path.join(user.uuid, "uploads", "grib")
                 zip_upload_path = os.path.join(UPLOAD_PATH, subfolder)
                 zip.extractall(path=zip_upload_path)
             # remove the zip file
@@ -196,7 +197,7 @@ class Templates(EndpointResource, Uploader):
             filebase, fileext = os.path.splitext(template_name)
 
             filepath = os.path.join(
-                UPLOAD_PATH, user.uuid, fileext.strip("."), template_name
+                UPLOAD_PATH, user.uuid, "uploads", fileext.strip("."), template_name
             )
             # check if the template exists
             if not os.path.exists(filepath):
@@ -208,10 +209,10 @@ class Templates(EndpointResource, Uploader):
             res["format"] = fileext.strip(".")
         else:
             grib_templates = glob.glob(
-                os.path.join(UPLOAD_PATH, user.uuid, "grib", "*")
+                os.path.join(UPLOAD_PATH, user.uuid, "uploads", "grib", "*")
             )
             shp_templates = glob.glob(
-                os.path.join(UPLOAD_PATH, user.uuid, "shp", "*.shp")
+                os.path.join(UPLOAD_PATH, user.uuid, "uploads", "shp", "*.shp")
             )
             # get total count for user templates
             if get_total:
@@ -251,7 +252,7 @@ class Templates(EndpointResource, Uploader):
         filebase, fileext = os.path.splitext(template_name)
 
         filepath = os.path.join(
-            UPLOAD_PATH, user.uuid, fileext.strip("."), template_name
+            UPLOAD_PATH, user.uuid, "uploads", fileext.strip("."), template_name
         )
         # check if the template exists
         if not os.path.exists(filepath):
@@ -260,7 +261,9 @@ class Templates(EndpointResource, Uploader):
             )
         # get all the files related to the template to remove
         filelist = glob.glob(
-            os.path.join(UPLOAD_PATH, user.uuid, fileext.strip("."), filebase + "*")
+            os.path.join(
+                UPLOAD_PATH, user.uuid, "uploads", fileext.strip("."), filebase + "*"
+            )
         )
         for f in filelist:
             os.remove(f)
@@ -275,11 +278,12 @@ class Templates(EndpointResource, Uploader):
         for f in files:
             e = f.rsplit(".", 1)
             # check in the correct folder if the file was already uploaded
+
             subfolder = ""
             if e[-1] == "shp" or e[-1] == "geojson":
-                subfolder = os.path.join(user_uuid, "shp")
+                subfolder = os.path.join(user_uuid, "uploads", "shp")
             if e[-1] == "grib":
-                subfolder = os.path.join(user_uuid, "grib")
+                subfolder = os.path.join(user_uuid, "uploads", "grib")
             if os.path.exists(os.path.join(UPLOAD_PATH, subfolder, f)):
                 raise RestApiException(
                     "File '" + f + "' already exists",

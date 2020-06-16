@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta
 
 import dballe
+import pytest
 from mistral.services.arkimet import BeArkimet as arki
 from restapi.rest.definition import EndpointResource
 from restapi.tests import API_URI, BaseTests
@@ -104,13 +105,19 @@ class TestApp(BaseTests):
             if response_data["items"]:
                 break
 
+        if not response_data["items"]:
+            pytest.fail("No results obtained from DBALLE")
+
         # from the response pick a network and a product
         params_value = {}
         params_value["date_from"] = date_from
         params_value["date_to"] = date_to
         params_value["network"] = response_data["items"]["network"][0]["dballe_p"]
-        params_value["product_1"] = response_data["items"]["product"][0]["dballe_p"]
-        params_value["product_2"] = response_data["items"]["product"][1]["dballe_p"]
+        if len(response_data["items"]["product"]) >= 2:
+            params_value["product_1"] = response_data["items"]["product"][0]["dballe_p"]
+            params_value["product_2"] = response_data["items"]["product"][1]["dballe_p"]
+        else:
+            pytest.fail("Products in DBALLE are less than 2 ")
 
         log.debug("test_params: {}", params_value)
 
