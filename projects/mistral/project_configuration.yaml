@@ -32,6 +32,7 @@ variables:
 
     ALLOW_ACCESS_TOKEN_PARAMETER: True
     ALLOW_PASSWORD_RESET: 'true'
+    UPLOAD_PATH: /data
 
     CELERY_BACKEND: MONGODB
 
