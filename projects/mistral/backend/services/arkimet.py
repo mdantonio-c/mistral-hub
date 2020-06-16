@@ -104,8 +104,9 @@ class BeArkimet:
         log.debug('Launching Arkimet command: {}', args)
 
         proc = subprocess.Popen(args, encoding='utf-8', stdout=subprocess.PIPE)
+        summary = json.loads(proc.stdout.read())
         if proc.wait() == 0:
-            return json.loads(proc.stdout.read())
+            return summary
         else:
             raise AccessToDatasetDenied('Access to dataset denied')
 
