@@ -4,7 +4,7 @@ import {Observable, forkJoin, of} from 'rxjs';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/share';
 import {ApiService} from '@rapydo/services/api';
-import {FIELDS_SUMMARY} from "./data";
+import {COLORS, FIELDS_SUMMARY, VAR_TABLE} from "./data";
 
 export interface ObsFilter {
     product: string;
@@ -43,6 +43,7 @@ export interface Items {
 }
 
 export interface Station {
+    id?: number;
     ident?: string;
     altitude?: string;
     network: string;
@@ -79,6 +80,8 @@ export interface Observation {
     providedIn: 'root'
 })
 export class ObsService {
+    private _min: number;
+    private _max: number;
 
     constructor(private api: ApiService) {
     }
@@ -121,45 +124,66 @@ export class ObsService {
         return this.api.get('observations', '', params);
     }
 
-    getColor(v: number) {
-        if (v < -28) { return "ffcc00"; }
-        else if (v < -26) { return "ff9900"; }
-        else if (v < -24) { return "ff6600"; }
-        else if (v < -22) { return "ff0000"; }
-        else if (v < -20) { return "cc0000"; }
-        else if (v < -18) { return "990000"; }
-        else if (v < -16) { return "660000"; }
-        else if (v < -14) { return "660066"; }
-        else if (v < -12) { return "990099"; }
-        else if (v < -10) { return "cc00cc"; }
-        else if (v < -8) { return "ff00ff"; }
-        else if (v < -6) { return "bf00ff"; }
-        else if (v < -4) { return "7200ff"; }
-        else if (v < -2) { return "0000ff"; }
-        else if (v < 0) { return "0059ff"; }
-        else if (v < 2) { return "008cff"; }
-        else if (v < 4) { return "00bfff"; }
-        else if (v < 6) { return "00ffff"; }
-        else if (v < 8) { return "00e5cc"; }
-        else if (v < 10) { return "00cc7f"; }
-        else if (v < 12) { return "00b200"; }
-        else if (v < 14) { return "7fcc00"; }
-        else if (v < 16) { return "cce500"; }
-        else if (v < 18) { return "ffff00"; }
-        else if (v < 20) { return "ffcc00"; }
-        else if (v < 22) { return "ff9900"; }
-        else if (v < 24) { return "ff6600"; }
-        else if (v < 26) { return "ff0000"; }
-        else if (v < 28) { return "cc0000"; }
-        else if (v < 30) { return "990000"; }
-        else if (v < 32) { return "660000"; }
-        else if (v < 34) { return "660066"; }
-        else if (v < 36) { return "990099"; }
-        else if (v < 38) { return "cc00cc"; }
-        else if (v < 40) { return "ff00ff"; }
-        else if (v < 42) { return "bf00ff"; }
-        else if (v < 44) { return "7200ff"; }
-        else if (v < 46) { return "ffcc00"; }
-        else { return "ff9900"; }
+    private getColorIndex(d, min, max) {
+        let delta = (max - min) / (COLORS.length);
+        return Math.max(0, Math.min(COLORS.length - 1, Math.floor((d - min) / delta)));
+    }
+
+    getColor(d, min, max) {
+        return COLORS[this.getColorIndex(d, min, max)];
+    }
+
+    // @ts-ignore
+    get min(): number {
+        return this._min;
+    }
+    // @ts-ignore
+    set min(value: number) {
+        this._min = value;
+    }
+
+    // @ts-ignore
+    get max(): number {
+        return this._max;
+    }
+    // @ts-ignore
+    set max(value: number) {
+        this._max = value;
+    }
+
+    /**
+     * The "median" is the "middle" value in the list of numbers.
+     *
+     * @param {Array} numbers An array of numbers.
+     * @return {Number} The calculated median value from the specified numbers.
+     */
+    static median(numbers: number[]): number {
+        // median of [3, 5, 4, 4, 1, 1, 2, 3] = 3
+        let median = 0, numsLen = numbers.length;
+        numbers.sort();
+
+        if (
+            numsLen % 2 === 0 // is even
+        ) {
+            // average of two middle numbers
+            median = (numbers[numsLen / 2 - 1] + numbers[numsLen / 2]) / 2;
+        } else { // is odd
+            // middle number only
+            median = numbers[(numsLen - 1) / 2];
+        }
+
+        return median;
+    }
+
+    /**
+     * Show the data applying offset and scale according to its type.
+     * @param val {Number} The value to show
+     * @param type {String} The meaning of the value (e.g. temperature)
+     */
+    static showData(val: number, type: string, precision = 5) {
+        let bcode = VAR_TABLE.find(x => x.bcode === type);
+        const scale = bcode.scale,
+            offset = bcode.offset;
+        return (val*scale+offset).toPrecision(precision).replace(/\.?0+$/,"");
     }
 }

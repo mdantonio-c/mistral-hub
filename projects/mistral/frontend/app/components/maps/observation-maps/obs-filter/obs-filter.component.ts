@@ -38,8 +38,8 @@ export class ObsFilterComponent implements OnInit {
     ) {
         this.filterForm = this.fb.group({
             product: ['B12101', Validators.required],
-            reftime: [this.today, Validators.required],
-            // reftime: [new Date(2020, 4, 22), Validators.required],
+            // reftime: [this.today, Validators.required],
+            reftime: [new Date(2020, 5, 15), Validators.required],
             level: ['103,2000,0,0'],
             timerange: ['254,0,0'],
             boundingBox: [''],
