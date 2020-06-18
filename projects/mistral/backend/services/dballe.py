@@ -507,10 +507,10 @@ class BeDballe():
                         for i in arki_maps_data:
                             if dballe_maps_data:
                                 # if any(d['station']['id'] == i['station']['id'] for d in dballe_maps_data):
-                                if any(d['station']["lat"] == i['station']['lat'] and d['station']["lon"] == i['station']['lon'] and d['station']['rep_memo'] == i['station']['network']for d in dballe_maps_data):
+                                if any(d['station']["lat"] == i['station']['lat'] and d['station']["lon"] == i['station']['lon'] and d['station']['network'] == i['station']['network']for d in dballe_maps_data):
                                     # get the element index
                                     for e in dballe_maps_data:
-                                        if e['station']["lat"] == i['station']['lat'] and e['station']["lon"] == i['station']['lon'] and e['station']['rep_memo'] == i['station']['network']:
+                                        if e['station']["lat"] == i['station']['lat'] and e['station']["lon"] == i['station']['lon'] and e['station']['network'] == i['station']['network']:
                                             el_index = dballe_maps_data.index(e)
                                             break
                                     # append values to the variable
