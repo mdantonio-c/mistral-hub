@@ -16,6 +16,10 @@ class TestApp(BaseTests):
         r = self.mock_celery()
         assert r == 1
 
+        detector.init_services(
+            app=app, project_init=False, project_clean=False,
+        )
+
     celery = detector.get_service_instance("celery")
 
     @patch.object(celery, "data_extract", side_effect=mock_celery)
