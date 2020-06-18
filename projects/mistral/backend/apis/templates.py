@@ -105,12 +105,17 @@ class Templates(EndpointResource, Uploader):
         }
     }
 
+    @staticmethod
+    def get_extension(filepath):
+        _, fileext = os.path.splitext(filepath)
+        return fileext.strip(".")
+
     @decorators.catch_errors()
     @decorators.auth.required()
     def post(self):
         user = self.get_user()
         # allowed formats for uploaded file
-        allowed_ext = self.allowed_exts = [
+        allowed_exts = [
             "shp",
             "shx",
             "geojson",
@@ -118,6 +123,7 @@ class Templates(EndpointResource, Uploader):
             "zip",
             "grib",
         ]
+        self.set_allowed_exts(allowed_exts)
         request_file = request.files["file"]
         f = request_file.filename.rsplit(".", 1)
 
@@ -126,7 +132,7 @@ class Templates(EndpointResource, Uploader):
             with ZipFile(request_file, "r") as zip:
                 uploaded_files = zip.namelist()
                 self.check_files_to_upload(
-                    UPLOAD_PATH, user.uuid, uploaded_files, allowed_ext
+                    UPLOAD_PATH, user.uuid, uploaded_files, allowed_exts
                 )
             request.files["file"].seek(0)
 
@@ -172,10 +178,10 @@ class Templates(EndpointResource, Uploader):
         if f[-1] == "geojson":
             upload_filepath = self.convert_to_shapefile(upload_filepath)
 
-        r = {}
-        filename = self.split_dir_and_extension(upload_filepath)
-        r["filepath"] = upload_filepath
-        r["format"] = filename[1]
+        r = {
+            "filepath": upload_filepath,
+            "format": self.get_extension(upload_filepath),
+        }
         return self.response(r)
 
     @decorators.catch_errors()
@@ -272,7 +278,7 @@ class Templates(EndpointResource, Uploader):
         )
 
     @staticmethod
-    def check_files_to_upload(UPLOAD_PATH, user_uuid, files, allowed_ext):
+    def check_files_to_upload(UPLOAD_PATH, user_uuid, files, allowed_exts):
         # create a dictionary to compare the uploaded files specs
         file_dict = {}
         for f in files:
@@ -315,7 +321,7 @@ class Templates(EndpointResource, Uploader):
         # if the file is not a shapefile, only grib and geojson are allowed
         else:
             for k in file_dict.keys():
-                if k not in allowed_ext:
+                if k not in allowed_exts:
                     raise RestApiException(
                         "Wrong extension: File extension not allowed",
                         status_code=hcodes.HTTP_BAD_REQUEST,

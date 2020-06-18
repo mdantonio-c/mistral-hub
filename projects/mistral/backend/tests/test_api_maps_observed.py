@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import dballe
 import pytest
 from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.dballe import BeDballe
 from restapi.rest.definition import EndpointResource
 from restapi.tests import API_URI, BaseTests
 from restapi.utilities.htmlcodes import hcodes
@@ -17,6 +18,8 @@ port = os.environ.get("ALCHEMY_PORT")
 
 
 class TestApp(BaseTests):
+    BeDballe.LASTDAYS = None
+
     @staticmethod
     def get_params_value(client, headers, db_type):
         # get an existing dataset of observed data
@@ -43,6 +46,11 @@ class TestApp(BaseTests):
                             row["min"],
                         ) + timedelta(hours=1)
                         date_from_dt = date_to_dt - timedelta(hours=1)
+                        today = datetime.now()
+                        last_dballe_date = date_from_dt - timedelta(days=1)
+                        time_delta = today - last_dballe_date
+                        BeDballe.LASTDAYS = time_delta.days
+                        log.debug("lastdays: {}", BeDballe.LASTDAYS)
                         break
             elif db_type == "arkimet":
                 # get a valid reftime for arkimet
@@ -103,6 +111,9 @@ class TestApp(BaseTests):
             r = client.get(endpoint, headers=headers)
             response_data = TestApp.get_content(r)
             if response_data["items"]:
+                log.debug(
+                    "api fields db type {} : response data: {}", db_type, response_data
+                )
                 break
 
         if not response_data["items"]:
@@ -125,6 +136,7 @@ class TestApp(BaseTests):
 
     @staticmethod
     def check_response_content(res, product1, product2):
+        log.debug("check contents : response data: {}", res)
         check_product_1 = False
         check_product_2 = False
         for i in res:
