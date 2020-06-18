@@ -24,86 +24,95 @@ class TestApp(BaseTests):
     def get_params_value(client, headers, db_type):
         # get an existing dataset of observed data
         obs_dataset = arki.get_obs_datasets(None, None)
-
-        # dataset = None
         date_from_dt = None
         date_to_dt = None
         for d in obs_dataset:
-            if db_type == "dballe":
-                db = dballe.DB.connect(
-                    "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
-                        engine=engine, user=user, pw=pw, host=host, port=port
+            network_list = arki.get_observed_dataset_params(d)
+            for net in network_list:
+                if db_type == "dballe":
+                    db = dballe.DB.connect(
+                        "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
+                            engine=engine, user=user, pw=pw, host=host, port=port
+                        )
                     )
-                )
-                # get a valid reftime for dballe
-                with db.transaction() as tr:
-                    for row in tr.query_data({"rep_memo": d}):
+                    # get a valid reftime for dballe
+                    with db.transaction() as tr:
+                        for row in tr.query_data({"rep_memo": net}):
+                            date_to_dt = datetime(
+                                row["year"],
+                                row["month"],
+                                row["day"],
+                                row["hour"],
+                                row["min"],
+                            ) + timedelta(hours=1)
+                            date_from_dt = date_to_dt - timedelta(hours=1)
+                            today = datetime.now()
+                            last_dballe_date = date_from_dt - timedelta(days=1)
+                            time_delta = today - last_dballe_date
+                            BeDballe.LASTDAYS = time_delta.days
+                            log.debug("lastdays: {}", BeDballe.LASTDAYS)
+                            break
+                elif db_type == "arkimet":
+                    # get a valid reftime for arkimet
+                    arki_summary = arki.load_summary(datasets=[d])
+                    if (
+                        "e" in arki_summary["items"]["summarystats"]
+                    ):  # this means that the dataset contains data
+                        summary_to = arki_summary["items"]["summarystats"]["e"]
                         date_to_dt = datetime(
-                            row["year"],
-                            row["month"],
-                            row["day"],
-                            row["hour"],
-                            row["min"],
-                        ) + timedelta(hours=1)
-                        date_from_dt = date_to_dt - timedelta(hours=1)
-                        today = datetime.now()
-                        last_dballe_date = date_from_dt - timedelta(days=1)
-                        time_delta = today - last_dballe_date
-                        BeDballe.LASTDAYS = time_delta.days
-                        log.debug("lastdays: {}", BeDballe.LASTDAYS)
-                        break
-            elif db_type == "arkimet":
-                # get a valid reftime for arkimet
-                arki_summary = arki.load_summary(datasets=[d])
-                if (
-                    "e" in arki_summary["items"]["summarystats"]
-                ):  # this means that the dataset contains data
-                    summary_to = arki_summary["items"]["summarystats"]["e"]
-                    date_to_dt = datetime(
-                        summary_to[0],
-                        summary_to[1],
-                        summary_to[2],
-                        summary_to[3],
-                        summary_to[4],
+                            summary_to[0],
+                            summary_to[1],
+                            summary_to[2],
+                            summary_to[3],
+                            summary_to[4],
+                        )
+                        summary_from = arki_summary["items"]["summarystats"]["b"]
+                        date_from_dt = datetime(
+                            summary_from[0],
+                            summary_from[1],
+                            summary_from[2],
+                            summary_from[3],
+                            summary_from[4],
+                        )
+                elif db_type == "mixed":
+                    db = dballe.DB.connect(
+                        "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
+                            engine=engine, user=user, pw=pw, host=host, port=port
+                        )
                     )
-                    date_from_dt = date_to_dt - timedelta(hours=1)
-            elif db_type == "mixed":
-                db = dballe.DB.connect(
-                    "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
-                        engine=engine, user=user, pw=pw, host=host, port=port
-                    )
-                )
-                # get a valid reftime for dballe
-                with db.transaction() as tr:
-                    for row in tr.query_data({"rep_memo": d}):
-                        date_to_dt = datetime(
-                            row["year"],
-                            row["month"],
-                            row["day"],
-                            row["hour"],
-                            row["min"],
-                        ) + timedelta(hours=1)
-                        break
+                    # get a valid reftime for dballe
+                    with db.transaction() as tr:
+                        for row in tr.query_data({"rep_memo": net}):
+                            date_to_dt = datetime(
+                                row["year"],
+                                row["month"],
+                                row["day"],
+                                row["hour"],
+                                row["min"],
+                            ) + timedelta(hours=1)
+                            break
 
-                # get a valid reftime for arkimet
-                arki_summary = arki.load_summary(datasets=[d])
-                # this means that the dataset contains data
-                if "e" in arki_summary["items"]["summarystats"]:
-                    summary_from = arki_summary["items"]["summarystats"]["e"]
-                    date_from_dt = datetime(
-                        summary_from[0],
-                        summary_from[1],
-                        summary_from[2],
-                        summary_from[3],
-                        summary_from[4],
-                    )
+                    # get a valid reftime for arkimet
+                    arki_summary = arki.load_summary(datasets=[d])
+                    if (
+                        "e" in arki_summary["items"]["summarystats"]
+                    ):  # this means that the dataset contains data
+                        summary_from = arki_summary["items"]["summarystats"]["b"]
+                        date_from_dt = datetime(
+                            summary_from[0],
+                            summary_from[1],
+                            summary_from[2],
+                            summary_from[3],
+                            summary_from[4],
+                        )
 
-            if date_from_dt and date_to_dt:
-                # dataset = d
-                break
+                if date_from_dt and date_to_dt:
+                    date_from = date_from_dt.strftime("%Y-%m-%d %H:%M")
+                    date_to = date_to_dt.strftime("%Y-%m-%d %H:%M")
+                    break
 
-        date_from = date_from_dt.strftime("%Y-%m-%d %H:%M")
-        date_to = date_to_dt.strftime("%Y-%m-%d %H:%M")
+        if not date_from_dt or not date_to_dt:
+            pytest.fail("No valid reftime found")
 
         for d in obs_dataset:
             endpoint = f"{API_URI}/fields?q=reftime:>={date_from},<={date_to}&datasets={d}&SummaryStats=false"
@@ -136,7 +145,7 @@ class TestApp(BaseTests):
 
     @staticmethod
     def check_response_content(res, product1, product2):
-        log.debug("check contents : response data: {}", res)
+        # log.debug('check contents : response data: {}', res)
         check_product_1 = False
         check_product_2 = False
         for i in res:
@@ -153,10 +162,6 @@ class TestApp(BaseTests):
     def test_endpoint_without_login(self, client):
 
         endpoint = API_URI + "/observations"
-        r = client.get(endpoint)
-        assert r.status_code == hcodes.HTTP_BAD_UNAUTHORIZED
-
-        endpoint = API_URI + "/observations/1"
         r = client.get(endpoint)
         assert r.status_code == hcodes.HTTP_BAD_UNAUTHORIZED
 
@@ -188,7 +193,6 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
-        station_id_example = response_data[0]["station"]["id"]
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
         # validate response schema
@@ -211,6 +215,8 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
+        station_lat_example = response_data[0]["station"]["lat"]
+        station_lon_example = response_data[0]["station"]["lon"]
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
         # validate response schema
@@ -337,28 +343,42 @@ class TestApp(BaseTests):
         # check response content
         assert "data" not in response_data[0]
 
-        #### get station data by id ####
+        #### get station details ####
         endpoint = (
             API_URI
-            + "/observations/{station_id}?q=reftime:>={date_from},<={date_to}".format(
-                station_id=station_id_example,
+            + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
                 date_from=q_params["date_from"],
                 date_to=q_params["date_to"],
+                network=q_params["network"],
+                lat=station_lat_example,
+                lon=station_lon_example,
             )
         )
         r = client.get(endpoint, headers=headers)
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
         # check random network
-
         endpoint = (
             API_URI
-            + "/observations/{station_id}?q=reftime:>={date_from},<={date_to}&networks={network}".format(
-                station_id=station_id_example,
+            + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
                 date_from=q_params["date_from"],
                 date_to=q_params["date_to"],
                 network=random_net,
+                lat=station_lat_example,
+                lon=station_lon_example,
             )
         )
         r = client.get(endpoint, headers=headers)
         assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
+        # check missing params
+        endpoint = (
+            API_URI
+            + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&stationDetails=true".format(
+                date_from=q_params["date_from"],
+                date_to=q_params["date_to"],
+                network=q_params["network"],
+            )
+        )
+        r = client.get(endpoint, headers=headers)
+        # check response code
+        assert r.status_code == hcodes.HTTP_BAD_REQUEST

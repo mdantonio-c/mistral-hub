@@ -8,7 +8,6 @@ from restapi.utilities.logs import log
 
 
 class MapsObservations(EndpointResource):
-
     # schema_expose = True
     labels = ["maps-observations"]
     _GET = {
@@ -25,6 +24,9 @@ class MapsObservations(EndpointResource):
                 # },
                 {"name": "networks", "in": "query", "type": "string"},
                 {"name": "q", "in": "query", "type": "string", "default": ""},
+                {"name": "lat", "in": "query", "type": "string"},
+                {"name": "lon", "in": "query", "type": "string"},
+                {"name": "ident", "in": "query", "type": "string"},
                 {
                     "name": "bounding-box",
                     "in": "query",
@@ -33,6 +35,13 @@ class MapsObservations(EndpointResource):
                 },
                 {
                     "name": "onlyStations",
+                    "in": "query",
+                    "type": "boolean",
+                    "default": False,
+                    "allowEmptyValue": True,
+                },
+                {
+                    "name": "stationDetails",
                     "in": "query",
                     "type": "boolean",
                     "default": False,
@@ -47,25 +56,11 @@ class MapsObservations(EndpointResource):
                 "404": {"description": "the query does not give result"},
             },
         },
-        "/observations/<station_id>": {
-            "summary": "Get station information by id",
-            "parameters": [
-                {"name": "networks", "in": "query", "type": "string"},
-                {"name": "q", "in": "query", "type": "string", "default": ""},
-            ],
-            "responses": {
-                "200": {
-                    "description": "List of values successfully retrieved",
-                    "schema": {"$ref": "#/definitions/MapStationData"},
-                },
-                "404": {"description": "station not found"},
-            },
-        },
     }
 
     @decorators.catch_errors()
     @decorators.auth.required()
-    def get(self, station_id=None):
+    def get(self):
         params = self.get_input()
         # ids = params.get('stations')
         # nt = params.get('networks')
@@ -76,6 +71,9 @@ class MapsObservations(EndpointResource):
         bbox = params.get("bounding-box")
         bbox_list = bbox.split(",") if bbox is not None else []
         q = params.get("q")
+        lat = params.get("lat")
+        lon = params.get("lon")
+        ident = params.get("ident")
 
         bounding_box = {}
         if bbox_list:
@@ -96,6 +94,36 @@ class MapsObservations(EndpointResource):
         else:
             only_stations = False
 
+        # check if station details are requested
+        station_details = params.get("stationDetails")
+        if isinstance(station_details, str) and (
+            station_details == "" or station_details.lower() == "false"
+        ):
+            station_details = False
+        elif type(station_details) == bool:
+            # do nothing
+            pass
+        else:
+            station_details = True
+        station_details_q = {}
+        if station_details:
+            # check params for station
+            if not networks:
+                raise RestApiException(
+                    "Parameter networks is missing",
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
+            if not ident:
+                if not lat or not lon:
+                    raise RestApiException(
+                        "Parameters to get station details are missing",
+                        status_code=hcodes.HTTP_BAD_REQUEST,
+                    )
+                else:
+                    station_details_q["lat"] = float(lat)
+                    station_details_q["lon"] = float(lon)
+            else:
+                station_details_q["ident"] = ident
         query = None
         db_type = None
         if q:
@@ -113,7 +141,11 @@ class MapsObservations(EndpointResource):
         try:
             if db_type == "mixed":
                 res = dballe.get_maps_response_for_mixed(
-                    networks, bounding_box, query, only_stations, station_id=station_id
+                    networks,
+                    bounding_box,
+                    query,
+                    only_stations,
+                    station_details_q=station_details_q,
                 )
             else:
                 res = dballe.get_maps_response(
@@ -122,17 +154,16 @@ class MapsObservations(EndpointResource):
                     query,
                     only_stations,
                     db_type=db_type,
-                    station_id=station_id,
+                    station_details_q=station_details_q,
                 )
         except AccessToDatasetDenied:
             raise RestApiException(
                 "Access to dataset denied", status_code=hcodes.HTTP_SERVER_ERROR,
             )
 
-        if not res and station_id:
+        if not res and station_details_q:
             raise RestApiException(
-                f"Station '{station_id}': data not found",
-                status_code=hcodes.HTTP_BAD_NOTFOUND,
+                "Station data not found", status_code=hcodes.HTTP_BAD_NOTFOUND,
             )
 
         return self.response(res)
