@@ -455,7 +455,7 @@ class BeDballe():
                 return param_list_parsed, variables, level_list_parsed
 
     @staticmethod
-    def get_maps_response_for_mixed(networks, bounding_box, query, only_stations, station_id=None):
+    def get_maps_response_for_mixed(networks, bounding_box, query, only_stations, station_details_q=None):
         # get data from the dballe database
         log.debug('mixed dbs: get data from dballe')
         query_for_dballe = {}
@@ -481,7 +481,7 @@ class BeDballe():
             query_for_dballe['datetimemin'] = datetime.combine(instant_now, time(instant_now.hour, 0, 0))
 
         dballe_maps_data = BeDballe.get_maps_response(networks, bounding_box, query_for_dballe, only_stations,
-                                                      db_type='dballe', station_id=station_id)
+                                                      db_type='dballe', station_details_q=station_details_q)
 
         if query:
             if 'datetimemin' not in query:
@@ -496,20 +496,21 @@ class BeDballe():
                 query_for_arki['datetimemin'] = refmin_arki
                 query_for_arki['datetimemax'] = refmax_arki
                 arki_maps_data = BeDballe.get_maps_response(networks, bounding_box, query_for_arki, only_stations,
-                                                            db_type='arkimet', station_id=station_id)
+                                                            db_type='arkimet', station_details_q=station_details_q)
 
                 if not dballe_maps_data and not arki_maps_data:
                     response = []
                     return response
 
                 if arki_maps_data:
-                    if not station_id:
+                    if not station_details_q:
                         for i in arki_maps_data:
                             if dballe_maps_data:
-                                if any(d['station']['id'] == i['station']['id'] for d in dballe_maps_data):
+                                # if any(d['station']['id'] == i['station']['id'] for d in dballe_maps_data):
+                                if any(d['station']["lat"] == i['station']['lat'] and d['station']["lon"] == i['station']['lon'] and d['station']['rep_memo'] == i['station']['network']for d in dballe_maps_data):
                                     # get the element index
                                     for e in dballe_maps_data:
-                                        if e['station']['id'] == i['station']['id']:
+                                        if e['station']["lat"] == i['station']['lat'] and e['station']["lon"] == i['station']['lon'] and e['station']['rep_memo'] == i['station']['network']:
                                             el_index = dballe_maps_data.index(e)
                                             break
                                     # append values to the variable
@@ -547,7 +548,7 @@ class BeDballe():
         return dballe_maps_data
 
     @staticmethod
-    def get_maps_response(networks, bounding_box, query, only_stations, db_type=None, station_id=None):
+    def get_maps_response(networks, bounding_box, query, only_stations, db_type=None, station_details_q=None):
 
         DB = dballe.DB.connect(
             "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host, port=port))
@@ -565,35 +566,40 @@ class BeDballe():
             # TODO choose if the network will be a single or multiple param
             query_station_data['rep_memo'] = networks
         ###############################
-        # append to the query the station id if there is one
-        if station_id:
-            query_station_data['ana_id'] = int(station_id)
+        # append to the query the station details if there are
+        if station_details_q:
+            for key, value in station_details_q.items():
+                query_station_data[key] = value
 
         # managing db_type
         if db_type == 'arkimet':
             station_lat = None
             station_lon = None
-            if station_id:
-                # get station network
-                with DB.transaction() as tr:
-                    count_data = tr.query_stations(query_station_data).remaining
-                    # log.debug('count {}',count_data)
-                    if count_data == 0:
-                        return response
-                    for rec in tr.query_stations(query_station_data):
-                        networks = rec['rep_memo']
-                        station_lat = rec['lat']
-                        station_lon = rec['lon']
+            if station_details_q and 'lat' in station_details_q and 'lon' in station_details_q:
+                station_lat = str(station_details_q['lat'])
+                station_lon = str(station_details_q['lon'])
+
+            # if station_id:
+            #     # get station network
+            #     with DB.transaction() as tr:
+            #         count_data = tr.query_stations(query_station_data).remaining
+            #         # log.debug('count {}',count_data)
+            #         if count_data == 0:
+            #             return response
+            #         for rec in tr.query_stations(query_station_data):
+            #             networks = rec['rep_memo']
+            #             station_lat = rec['lat']
+            #             station_lon = rec['lon']
             # manage bounding box for queries by station id
             if not bounding_box and station_lat and station_lon:
                 lat_decimals = Decimal(station_lat).as_tuple()[-1] * -1
                 lon_decimals = Decimal(station_lon).as_tuple()[-1] * -1
-                lat_add = Decimal(1) / Decimal(10 ** lat_decimals)
-                lon_add = Decimal(1) / Decimal(10 ** lon_decimals)
-                bounding_box['latmin'] = float(station_lat - lat_add)
-                bounding_box['lonmin'] = float(station_lon - lon_add)
-                bounding_box['latmax'] = float(station_lat + lat_add)
-                bounding_box['lonmax'] = float(station_lon + lon_add)
+                lat_add = float(Decimal(1) / Decimal(10 ** lat_decimals))
+                lon_add = float(Decimal(1) / Decimal(10 ** lon_decimals))
+                bounding_box['latmin'] = float(station_lat) - lat_add
+                bounding_box['lonmin'] = float(station_lon) - lon_add
+                bounding_box['latmax'] = float(station_lat) + lat_add
+                bounding_box['lonmax'] = float(station_lon) + lon_add
                 # log.debug('bounding box for station {} : {}',station_id, bounding_box)
 
             # manage reftime for queries in arkimet
@@ -657,27 +663,26 @@ class BeDballe():
         if db_type == 'arkimet':
             memdb = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
 
-        # if not station_id:
-        if not station_id:
+        # if not station details are requested:
+        if not station_details_q:
             if db_type == 'arkimet':
                 # get data
-                response = BeDballe.get_data_for_maps(memdb, query_data, only_stations, original_db=DB)
+                response = BeDballe.get_data_for_maps(memdb, query_data, only_stations)
                 # remove data from temp db
                 memdb.remove_all()
             else:
                 response = BeDballe.get_data_for_maps(DB, query_data, only_stations)
         else:
             if db_type == 'arkimet':
-                response = BeDballe.get_station_data_for_maps(memdb, station_id, query_station_data, query_data,
-                                                              original_db=DB)
+                response = BeDballe.get_station_data_for_maps(memdb, query_station_data, query_data)
                 # remove data from temp db
                 memdb.remove_all()
             else:
-                response = BeDballe.get_station_data_for_maps(DB, station_id, query_station_data, query_data)
+                response = BeDballe.get_station_data_for_maps(DB, query_station_data, query_data)
         return response
 
     @staticmethod
-    def get_data_for_maps(db, query, only_stations, original_db=None):
+    def get_data_for_maps(db, query, only_stations):
         response = []
         log.debug('query data for maps {}', query)
         with db.transaction() as tr:
@@ -694,9 +699,6 @@ class BeDballe():
                 station_data["lon"] = float(rec["lon"])
                 station_data['network'] = rec['rep_memo']
                 station_data["ident"] = "" if rec["ident"] is None else rec["ident"]
-                if not original_db:
-                    # it means we are using the actual station ids
-                    station_data['id'] = rec['ana_id']
 
                 # get data values
                 if not only_stations:
@@ -705,7 +707,7 @@ class BeDballe():
                     var_info = dballe.varinfo(rec['var'])
                     product_data['description'] = var_info.desc
                     product_data['unit'] = var_info.unit
-                    product_data['scale'] = var_info.scale
+                    # product_data['scale'] = var_info.scale
                     product_val = {}
                     product_val['value'] = rec[rec['var']].get()
                     product_val['reftime'] = datetime(rec["year"], rec["month"], rec["day"], rec["hour"], rec["min"],
@@ -741,31 +743,11 @@ class BeDballe():
                         res_element['products'].append(product_data)
                     response.append(res_element)
 
-        if original_db:
-            # get the correct station id from the original dballe
-            with original_db.transaction() as tr:
-                for el in response:
-                    station_query = {}
-                    station_query['lat'] = el['station']['lat']
-                    station_query['lon'] = el['station']['lon']
-                    station_query['ident'] = None if el['station']['ident'] == "" else el['station']['ident']
-                    station_query['rep_memo'] = el['station']['network']
-                    for cur in tr.query_stations(station_query):
-                        el['station']['id'] = cur['ana_id']
         return response
 
     @staticmethod
-    def get_station_data_for_maps(db, station_id, query_station_data, query_data, original_db=None):
-        if original_db:
-            # substitute ana_id in query with lat lon params of that station
-            id_query = {'ana_id': int(station_id)}
-            with original_db.transaction() as tr:
-                for cur in tr.query_stations(id_query):
-                    query_station_data['lat'] = float(cur['lat'])
-                    query_station_data['lon'] = float(cur['lon'])
-                    query_station_data['ident'] = cur['ident']
-                    query_station_data['rep_memo'] = cur['rep_memo']
-            query_station_data.pop('ana_id', None)
+    def get_station_data_for_maps(db, query_station_data, query_data):
+
         log.debug('query station data: {}', query_station_data)
         # get station data
         with db.transaction() as tr:
@@ -813,7 +795,7 @@ class BeDballe():
                 var_info = dballe.varinfo(row['var'])
                 product_data['description'] = var_info.desc
                 product_data['unit'] = var_info.unit
-                product_data['scale'] = var_info.scale
+                # product_data['scale'] = var_info.scale
                 product_val = {}
                 product_val['value'] = row[row['var']].get()
                 product_val['reftime'] = datetime(row["year"], row["month"], row["day"], row["hour"], row["min"],
