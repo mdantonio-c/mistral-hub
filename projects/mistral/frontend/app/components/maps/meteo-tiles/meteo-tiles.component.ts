@@ -9,12 +9,11 @@ import {NotificationService} from '@rapydo/services/notification';
 import {NgxSpinnerService} from 'ngx-spinner';
 
 declare module 'leaflet' {
-    let timeDimension: any;
+    var timeDimension: any;
 }
 
 // const MAP_CENTER = [41.879966, 12.280000];
 const TILES_PATH = environment.production ? 'resources/tiles/00-lm5' : 'app/custom/assets/images/tiles/00-lm5';
-const DEFAULT_PRODUCT = 'Temperature at 2 meters';
 
 @Component({
     selector: 'app-meteo-tiles',
@@ -22,9 +21,10 @@ const DEFAULT_PRODUCT = 'Temperature at 2 meters';
     styleUrls: ['./meteo-tiles.component.css']
 })
 export class MeteoTilesComponent {
+
+    readonly DEFAULT_PRODUCT = 'Temperature at 2 meters';
+
     map: L.Map;
-    tDimension: any;
-    // reftime: string;
 
     LAYER_OSM = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
@@ -44,7 +44,6 @@ export class MeteoTilesComponent {
     });
 
     // Values to bind to Leaflet Directive
-    layers: L.Layer[];
     layersControl = {
         baseLayers: {
             'Openstreet Map': this.LAYER_OSM,
@@ -76,7 +75,7 @@ export class MeteoTilesComponent {
                 private spinner: NgxSpinnerService) {
 
         // set the initial set of displayed layers
-        this.layers = [this.LAYER_MAPBOX_LIGHT];
+        this.options['layers'] = [this.LAYER_MAPBOX_LIGHT];
     }
 
     onMapReady(map: L.Map) {
@@ -88,6 +87,7 @@ export class MeteoTilesComponent {
             // runAvailable.reftime : 2020051100
             console.log('Available Run', runAvailable);
             let reftime = runAvailable.reftime;
+            let refdate = reftime.substr(0, 8);
 
             // set time
             let startTime = moment.utc(reftime, "YYYYMMDDHH").toDate();
@@ -102,12 +102,12 @@ export class MeteoTilesComponent {
             (map as any).timeDimension.setAvailableTimes(newAvailableTimes, 'replace');
             (map as any).timeDimension.setCurrentTime(startTime);
 
-            this.setOverlaysToMap(reftime);
+            this.setOverlaysToMap(refdate);
 
             // add default layer
-            let tm2m: L.Layer = this.layersControl['overlays'][DEFAULT_PRODUCT];
-            this.layers.push(tm2m);
-            
+            let tm2m: L.Layer = this.layersControl['overlays'][this.DEFAULT_PRODUCT];
+            tm2m.addTo(this.map);
+
             // TODO trigger event to add proper legend
             //legend_t2m.addTo(map);
             // new Event('overlayadd', {name: 'Temperature at 2 meters'});
@@ -120,10 +120,10 @@ export class MeteoTilesComponent {
         });
     }
 
-    private setOverlaysToMap(reftime: string) {
+    private setOverlaysToMap(refdate: string) {
         // Temperature 2 meters Time Layer
         let t2m = L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${TILES_PATH}/t2m-t2m/${reftime}/{z}/{x}/{y}.png`, {
+            L.tileLayer(`${TILES_PATH}/t2m-t2m/${refdate}{h}/{z}/{x}/{y}.png`, {
                 minZoom: 3,
                 maxZoom: 5,
                 tms: false,
@@ -132,7 +132,7 @@ export class MeteoTilesComponent {
             }), {}),
             // Total precipitation 3h Time Layer
             prec3tp = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/prec3-tp/${reftime}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${TILES_PATH}/prec3-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 3,
                     maxZoom: 5,
                     tms: false,
@@ -141,7 +141,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Total precipitation 6h Time Layer
             prec6tp = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/prec6-tp/${reftime}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${TILES_PATH}/prec6-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 3,
                     maxZoom: 5,
                     tms: false,
@@ -150,7 +150,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Snowfall 3h Time Layer
             sf3 = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/snow3-snow/${reftime}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${TILES_PATH}/snow3-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 3,
                     maxZoom: 5,
                     tms: false,
@@ -159,7 +159,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Snowfall 6h Time Layer
             sf6 = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/snow6-snow/${reftime}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${TILES_PATH}/snow6-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 3,
                     maxZoom: 5,
                     tms: false,
@@ -168,7 +168,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Relative humidity Time Layer
             rh = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/humidity-r/${reftime}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${TILES_PATH}/humidity-r/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 3,
                     maxZoom: 5,
                     tms: false,
@@ -177,7 +177,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // High Cloud Time Layer
             hcc = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/cloud_hml-hcc/${reftime}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${TILES_PATH}/cloud_hml-hcc/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 3,
                     maxZoom: 5,
                     tms: false,
@@ -186,7 +186,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Medium Cloud Time Layer
             mcc = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/cloud_hml-mcc/${reftime}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${TILES_PATH}/cloud_hml-mcc/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 3,
                     maxZoom: 5,
                     tms: false,
@@ -195,7 +195,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Low Cloud Time Layer
             lcc = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/cloud_hml-lcc/${reftime}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${TILES_PATH}/cloud_hml-lcc/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 3,
                     maxZoom: 5,
                     tms: false,
@@ -227,7 +227,7 @@ export class MeteoTilesComponent {
     }
 
     private initLegends(map: L.Map) {
-        const legend_t2m = new L.Control({position: "bottomright"});
+        const legend_t2m = new L.Control({position: "bottomleft"});
         legend_t2m.onAdd = () => {
             let colors = ["#ffcc00", "#ff9900", "#ff6600", "#ff0000", "#cc0000", "#990000", "#660000", "#660066", "#990099", "#cc00cc", "#ff00ff", "#bf00ff", "#7200ff",
                     "#0000ff", "#0059ff", "#008cff", "#00bfff", "#00ffff", "#00e5cc", "#00cc7f", "#00b200", "#7fcc00", "#cce500", "#ffff00", "#ffcc00", "#ff9900",
