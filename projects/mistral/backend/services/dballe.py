@@ -464,7 +464,7 @@ class BeDballe():
             return True
 
     @staticmethod
-    def get_maps_response_for_mixed(networks, bounding_box, query, only_stations, station_details_q=None, only_reliable=None):
+    def get_maps_response_for_mixed(networks, bounding_box, query, only_stations, station_details_q=None, quality_check=None):
         # get data from the dballe database
         log.debug('mixed dbs: get data from dballe')
         query_for_dballe = {}
@@ -490,7 +490,7 @@ class BeDballe():
             query_for_dballe['datetimemin'] = datetime.combine(instant_now, time(instant_now.hour, 0, 0))
 
         dballe_maps_data = BeDballe.get_maps_response(networks, bounding_box, query_for_dballe, only_stations,
-                                                      db_type='dballe', station_details_q=station_details_q,only_reliable=only_reliable)
+                                                      db_type='dballe', station_details_q=station_details_q,quality_check=quality_check)
 
         if query:
             if 'datetimemin' not in query:
@@ -505,7 +505,7 @@ class BeDballe():
                 query_for_arki['datetimemin'] = refmin_arki
                 query_for_arki['datetimemax'] = refmax_arki
                 arki_maps_data = BeDballe.get_maps_response(networks, bounding_box, query_for_arki, only_stations,
-                                                            db_type='arkimet', station_details_q=station_details_q,only_reliable=only_reliable)
+                                                            db_type='arkimet', station_details_q=station_details_q,quality_check=quality_check)
 
                 if not dballe_maps_data and not arki_maps_data:
                     response = []
@@ -557,7 +557,7 @@ class BeDballe():
         return dballe_maps_data
 
     @staticmethod
-    def get_maps_response(networks, bounding_box, query, only_stations, db_type=None, station_details_q=None, only_reliable=None):
+    def get_maps_response(networks, bounding_box, query, only_stations, db_type=None, station_details_q=None, quality_check=None):
 
         DB = dballe.DB.connect(
             "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host, port=port))
@@ -635,7 +635,7 @@ class BeDballe():
         if query_station_data:
             query_data = {**query_station_data}
 
-        if only_reliable:
+        if quality_check:
             query_data["query"] = "attrs"
 
         if query:

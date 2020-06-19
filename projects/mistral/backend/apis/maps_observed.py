@@ -47,7 +47,7 @@ class MapsObservations(EndpointResource):
                     'allowEmptyValue': True,
                 },
                 {
-                    'name': 'onlyReliable',
+                    'name': 'reliabilityCheck',
                     'in': 'query',
                     'type': 'boolean',
                     'default': False,
@@ -103,17 +103,17 @@ class MapsObservations(EndpointResource):
         else:
             only_stations = True
 
-        # check if only reliable data are requested
-        only_reliable = params.get('onlyReliable')
-        if isinstance(only_stations, str) and (
-                only_reliable == '' or only_reliable.lower() == 'false'
+        # check if reliability check is requested
+        quality_check = params.get('reliabilityCheck')
+        if isinstance(quality_check, str) and (
+                quality_check == '' or quality_check.lower() == 'false'
         ):
-            only_reliable = False
-        elif type(only_reliable) == bool:
+            quality_check = False
+        elif type(quality_check) == bool:
             # do nothing
             pass
         else:
-            only_reliable = True
+            quality_check = True
 
         # check if station details are requested
         station_details = params.get('stationDetails')
@@ -162,10 +162,10 @@ class MapsObservations(EndpointResource):
         try:
             if db_type == 'mixed':
                 res = dballe.get_maps_response_for_mixed(networks, bounding_box, query, only_stations,
-                                                         station_details_q=station_details_q,only_reliable=only_reliable)
+                                                         station_details_q=station_details_q,quality_check=quality_check)
             else:
                 res = dballe.get_maps_response(networks, bounding_box, query, only_stations, db_type=db_type,
-                                               station_details_q=station_details_q,only_reliable=only_reliable)
+                                               station_details_q=station_details_q,quality_check=quality_check)
         except AccessToDatasetDenied:
             raise RestApiException(
                 'Access to dataset denied',
