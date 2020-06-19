@@ -136,13 +136,10 @@ export class ObsMapComponent {
         const markers: L.Marker[] = [];
         let min: number, max: number;
         let obsData: ObsData;
-        data.forEach((s) => {
-            let icon;
-            if (!onlyStations) {
+        if (!onlyStations) {
+            // min and max needed before data marker creation
+            data.forEach((s) => {
                 obsData = s.products.find(x => x.varcode === product);
-                // get the median instead of the mean
-                // let val = obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-                let val = ObsService.median(obsData.values.map(v => v.value));
                 let localMin = Math.min(...obsData.values.map(v => v.value));
                 if (!min || localMin < min) {
                     min = localMin;
@@ -151,6 +148,15 @@ export class ObsMapComponent {
                 if (!max || localMax > max) {
                     max = localMax;
                 }
+            });
+        }
+        data.forEach((s) => {
+            let icon;
+            if (!onlyStations) {
+                obsData = s.products.find(x => x.varcode === product);
+                // get the median instead of the mean
+                // let val = obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
+                let val = ObsService.median(obsData.values.map(v => v.value));
                 icon = L.divIcon({
                     html: `<div class="mstDataIcon"><span>${ObsService.showData(val, product)}</span></div>`,
                     iconSize: [24, 6],
@@ -176,9 +182,6 @@ export class ObsMapComponent {
             markers.push(marker);
         });
 
-        this.markerClusterData = markers;
-        this.markerClusterGroup.addLayers(markers);
-
         if (!onlyStations && data.length > 0) {
             console.log(`min ${min}, max ${max}`);
             this.obsService.min = min;
@@ -187,6 +190,9 @@ export class ObsMapComponent {
         } else {
             this.legend.remove();
         }
+
+        this.markerClusterData = markers;
+        this.markerClusterGroup.addLayers(markers);
 
         this.fitBounds();
     }
