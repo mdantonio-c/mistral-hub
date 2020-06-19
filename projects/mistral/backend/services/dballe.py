@@ -455,7 +455,16 @@ class BeDballe():
                 return param_list_parsed, variables, level_list_parsed
 
     @staticmethod
-    def get_maps_response_for_mixed(networks, bounding_box, query, only_stations, station_details_q=None):
+    def data_qc(attrs):
+        attrs_dict = {v.code: v.get() for v in attrs}
+        # Data already checked and checked as invalid by QC filter or Gross error check failed or Manual invalidation
+        if attrs_dict.get("B33007", 100) == 0 or attrs_dict.get("B33192", 100) == 0 or attrs_dict.get("B33196", 100) == 1:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def get_maps_response_for_mixed(networks, bounding_box, query, only_stations, station_details_q=None, only_reliable=None):
         # get data from the dballe database
         log.debug('mixed dbs: get data from dballe')
         query_for_dballe = {}
@@ -481,7 +490,7 @@ class BeDballe():
             query_for_dballe['datetimemin'] = datetime.combine(instant_now, time(instant_now.hour, 0, 0))
 
         dballe_maps_data = BeDballe.get_maps_response(networks, bounding_box, query_for_dballe, only_stations,
-                                                      db_type='dballe', station_details_q=station_details_q)
+                                                      db_type='dballe', station_details_q=station_details_q,only_reliable=only_reliable)
 
         if query:
             if 'datetimemin' not in query:
@@ -496,7 +505,7 @@ class BeDballe():
                 query_for_arki['datetimemin'] = refmin_arki
                 query_for_arki['datetimemax'] = refmax_arki
                 arki_maps_data = BeDballe.get_maps_response(networks, bounding_box, query_for_arki, only_stations,
-                                                            db_type='arkimet', station_details_q=station_details_q)
+                                                            db_type='arkimet', station_details_q=station_details_q,only_reliable=only_reliable)
 
                 if not dballe_maps_data and not arki_maps_data:
                     response = []
@@ -548,7 +557,7 @@ class BeDballe():
         return dballe_maps_data
 
     @staticmethod
-    def get_maps_response(networks, bounding_box, query, only_stations, db_type=None, station_details_q=None):
+    def get_maps_response(networks, bounding_box, query, only_stations, db_type=None, station_details_q=None, only_reliable=None):
 
         DB = dballe.DB.connect(
             "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw, host=host, port=port))
@@ -579,17 +588,6 @@ class BeDballe():
                 station_lat = str(station_details_q['lat'])
                 station_lon = str(station_details_q['lon'])
 
-            # if station_id:
-            #     # get station network
-            #     with DB.transaction() as tr:
-            #         count_data = tr.query_stations(query_station_data).remaining
-            #         # log.debug('count {}',count_data)
-            #         if count_data == 0:
-            #             return response
-            #         for rec in tr.query_stations(query_station_data):
-            #             networks = rec['rep_memo']
-            #             station_lat = rec['lat']
-            #             station_lon = rec['lon']
             # manage bounding box for queries by station id
             if not bounding_box and station_lat and station_lon:
                 lat_decimals = Decimal(station_lat).as_tuple()[-1] * -1
@@ -636,6 +634,10 @@ class BeDballe():
         query_data = {}
         if query_station_data:
             query_data = {**query_station_data}
+
+        if only_reliable:
+            query_data["query"] = "attrs"
+
         if query:
             # TODO: now query does not support multiple values for a single param
             # adapt the query to the dballe syntax and add the params to the general query
@@ -715,6 +717,14 @@ class BeDballe():
                     product_val['level'] = BeDballe.from_level_object_to_string(rec['level'])
                     product_val['timerange'] = BeDballe.from_trange_object_to_string(rec['trange'])
 
+                    if query:
+                        if 'query' in query:
+                            # add reliable flag
+                            variable = rec["variable"]
+                            attrs = variable.get_attrs()
+                            is_reliable = BeDballe.data_qc(attrs)
+                            product_val['is_reliable'] = is_reliable
+
                 # determine where append the values
                 existent_station = False
                 for i in response:
@@ -784,6 +794,8 @@ class BeDballe():
                 # query_station_data['datetimemin'] = datetime.combine(today, time(0, 0, 0))
             if 'rep_memo' in query_data:
                 query_station_data['rep_memo'] = query_data['rep_memo']
+            if 'query' in query_data:
+                query_station_data['query'] = query_data['query']
 
             log.debug('query for timeseries {}', query_station_data)
             # get values for timeseries
@@ -802,6 +814,13 @@ class BeDballe():
                                                   row["sec"])
                 product_val['level'] = BeDballe.from_level_object_to_string(row['level'])
                 product_val['timerange'] = BeDballe.from_trange_object_to_string(row['trange'])
+
+                if 'query' in query_station_data:
+                    # add reliable flag
+                    variable = row["variable"]
+                    attrs = variable.get_attrs()
+                    is_reliable = BeDballe.data_qc(attrs)
+                    product_val['is_reliable'] = is_reliable
 
                 # check if the product is already in the list
                 existent_product = False

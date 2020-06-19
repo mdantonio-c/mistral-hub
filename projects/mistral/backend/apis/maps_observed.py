@@ -46,6 +46,13 @@ class MapsObservations(EndpointResource):
                     'default': False,
                     'allowEmptyValue': True,
                 },
+                {
+                    'name': 'onlyReliable',
+                    'in': 'query',
+                    'type': 'boolean',
+                    'default': False,
+                    'allowEmptyValue': True,
+                },
 
             ],
             'responses': {
@@ -87,14 +94,26 @@ class MapsObservations(EndpointResource):
         # check if only stations are requested
         only_stations = params.get('onlyStations')
         if isinstance(only_stations, str) and (
-                only_stations == '' or only_stations.lower() == 'true'
+                only_stations == '' or only_stations.lower() == 'false'
         ):
-            only_stations = True
+            only_stations = False
         elif type(only_stations) == bool:
             # do nothing
             pass
         else:
-            only_stations = False
+            only_stations = True
+
+        # check if only reliable data are requested
+        only_reliable = params.get('onlyReliable')
+        if isinstance(only_stations, str) and (
+                only_reliable == '' or only_reliable.lower() == 'false'
+        ):
+            only_reliable = False
+        elif type(only_reliable) == bool:
+            # do nothing
+            pass
+        else:
+            only_reliable = True
 
         # check if station details are requested
         station_details = params.get('stationDetails')
@@ -143,10 +162,10 @@ class MapsObservations(EndpointResource):
         try:
             if db_type == 'mixed':
                 res = dballe.get_maps_response_for_mixed(networks, bounding_box, query, only_stations,
-                                                         station_details_q=station_details_q)
+                                                         station_details_q=station_details_q,only_reliable=only_reliable)
             else:
                 res = dballe.get_maps_response(networks, bounding_box, query, only_stations, db_type=db_type,
-                                               station_details_q=station_details_q)
+                                               station_details_q=station_details_q,only_reliable=only_reliable)
         except AccessToDatasetDenied:
             raise RestApiException(
                 'Access to dataset denied',
