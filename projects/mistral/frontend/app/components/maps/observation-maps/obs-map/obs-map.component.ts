@@ -68,8 +68,14 @@ export class ObsMapComponent {
                         if (!type) {
                             type = obsData.varcode;
                         }
-                        mean += obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-                        medians.push(ObsService.median(obsData.values.map(v => v.value)));
+                        // mean += obsData.values.filter(v => v.is_reliable).map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
+                        let median = ObsService.median(obsData.values.filter(v => v.is_reliable).map(v => v.value));
+                        if (Number.isNaN(median)) {
+                            // do not consider this median in the cluster median
+                            continue;
+                        }
+                        medians.push(median);
+                        // FIXME what about if all medians results in a NaN?
                     }
                     // get the median instead of the mean
                     // let val = mean/childCount;
@@ -140,11 +146,11 @@ export class ObsMapComponent {
             // min and max needed before data marker creation
             data.forEach((s) => {
                 obsData = s.products.find(x => x.varcode === product);
-                let localMin = Math.min(...obsData.values.map(v => v.value));
+                let localMin = Math.min(...obsData.values.filter(v => v.is_reliable).map(v => v.value));
                 if (!min || localMin < min) {
                     min = localMin;
                 }
-                let localMax = Math.max(...obsData.values.map(v => v.value));
+                let localMax = Math.max(...obsData.values.filter(v => v.is_reliable).map(v => v.value));
                 if (!max || localMax > max) {
                     max = localMax;
                 }
@@ -156,7 +162,12 @@ export class ObsMapComponent {
                 obsData = s.products.find(x => x.varcode === product);
                 // get the median instead of the mean
                 // let val = obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-                let val = ObsService.median(obsData.values.map(v => v.value));
+                let val = ObsService.median(obsData.values.filter(v => v.is_reliable).map(v => v.value));
+                if (Number.isNaN(val)) {
+                    // at the moment is all the values are unreliable calculate the median and show it anyway
+                    // TO BE CHECKED
+                    val = ObsService.median(obsData.values.map(v => v.value));
+                }
                 icon = L.divIcon({
                     html: `<div class="mstDataIcon"><span>${ObsService.showData(val, product)}</span></div>`,
                     iconSize: [24, 6],
@@ -224,7 +235,8 @@ export class ObsMapComponent {
             for (let i = 0; i < COLORS.length; i++) {
                 let grade = min + halfDelta * (i*2+1);
                 div.innerHTML += '<i style="background:#' + service.getColor(grade, min, max) + '"></i><span>' +
-                    (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
+                    // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
+                    Math.floor(grade*scale+offset)
                 + '</span><br>';
             }
             return div;

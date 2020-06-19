@@ -50,6 +50,14 @@ export interface Station {
     lat: number;
     lon: number;
 }
+
+export interface ObsValues {
+    level: string;
+    reftime: string;
+    timerange: string;
+    value: number;
+    is_reliable?: boolean;
+}
 /*
     description: "TEMPERATURE/DRY-BULB TEMPERATURE"
     scale: 2
@@ -67,7 +75,7 @@ export interface ObsData {
     description: string;
     scale: number;
     unit: string;
-    values: any[];
+    values: ObsValues[];
     varcode: string;
 }
 
@@ -95,14 +103,20 @@ export class ObsService {
         return this.api.get('observations', '', filter);
     }
 
-    getData(filter: ObsFilter): Observable<Observation[]> {
+    /**
+     * Get observation data.
+     * @param filter
+     * @param reliabilityCheck request for value reliability. Default to true.
+     */
+    getData(filter: ObsFilter, reliabilityCheck = true): Observable<Observation[]> {
         let d = [
             `${filter.reftime.getFullYear()}`,
             `${filter.reftime.getMonth()+1}`.padStart(2, '0'),
             `${filter.reftime.getDate()}`.padStart(2, '0')
             ].join('-');
         let params = {
-            q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`
+            q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
+            reliabilityCheck: reliabilityCheck
         }
         if (filter.onlyStations) {
             params['onlyStations'] = true
