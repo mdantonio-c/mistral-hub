@@ -457,8 +457,8 @@ class BeDballe():
     @staticmethod
     def data_qc(attrs):
         attrs_dict = {v.code: v.get() for v in attrs}
-        # Data already checked and checked as invalid by QC filter or Gross error check failed or Manual invalidation
-        if attrs_dict.get("B33007", 100) == 0 or attrs_dict.get("B33192", 100) == 0 or attrs_dict.get("B33196", 100) == 1:
+        # Data already checked and checked as invalid by QC filter
+        if attrs_dict.get("B33007", 100) == 0:
             return False
         else:
             return True
