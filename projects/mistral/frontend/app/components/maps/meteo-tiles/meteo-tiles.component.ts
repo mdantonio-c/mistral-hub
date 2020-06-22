@@ -7,6 +7,7 @@ import 'leaflet-timedimension/examples/js/extras/leaflet.timedimension.tilelayer
 import {TilesService} from "./services/tiles.service";
 import {NotificationService} from '@rapydo/services/notification';
 import {NgxSpinnerService} from 'ngx-spinner';
+import {LegendConfig, LEGEND_DATA} from "./services/data";
 
 declare module 'leaflet' {
     var timeDimension: any;
@@ -23,6 +24,7 @@ const TILES_PATH = environment.production ? 'resources/tiles/00-lm5' : 'app/cust
 export class MeteoTilesComponent {
 
     readonly DEFAULT_PRODUCT = 'Temperature at 2 meters';
+    readonly LEGEND_POSITION = 'bottomleft';
 
     map: L.Map;
 
@@ -81,7 +83,6 @@ export class MeteoTilesComponent {
     onMapReady(map: L.Map) {
         // console.log('Map ready', map);
         this.map = map;
-        this.initLegends(map);
         this.spinner.show();
         this.tilesService.getLastRun('lm5', '00').subscribe(runAvailable => {
             // runAvailable.reftime : 2020051100
@@ -108,10 +109,7 @@ export class MeteoTilesComponent {
             let tm2m: L.Layer = this.layersControl['overlays'][this.DEFAULT_PRODUCT];
             tm2m.addTo(this.map);
 
-            // TODO trigger event to add proper legend
-            //legend_t2m.addTo(map);
-            // new Event('overlayadd', {name: 'Temperature at 2 meters'});
-            //new CustomEvent('overlayadd', {name: DEFAULT_PRODUCT});
+            this.initLegends(map);
 
         }, error => {
             this.notify.showError(error);
@@ -216,99 +214,45 @@ export class MeteoTilesComponent {
         };
     }
 
-    private static createLegend(title: string, colors: string[], labels: string[]) {
-        let div = L.DomUtil.create("div", "legend");
-        div.style.clear = "unset";
-        div.innerHTML += `<h6>${title}</h6>`;
-        for (let i = 0; i < labels.length; i++) {
-            div.innerHTML += '<i style="background:' + colors[i] + '"></i><span>' + labels[i] + '</span><br>';
+    private createLegendControl(id: string): L.Control {
+        let config: LegendConfig = LEGEND_DATA.find(x => x.id === id);
+        if (!config) {
+            this.notify.showError('Bad legend configuration');
+            return;
         }
-        return div;
+        const legend = new L.Control({position: this.LEGEND_POSITION});
+        legend.onAdd = () => {
+            let div = L.DomUtil.create("div", "legend");
+            div.style.clear = "unset";
+            div.innerHTML += `<h6>${config.title}</h6>`;
+            for (let i = 0; i < config.labels.length; i++) {
+                div.innerHTML += '<i style="background:' + config.colors[i] + '"></i><span>' + config.labels[i] + '</span><br>';
+            }
+            return div;
+        };
+        return legend;
     }
 
     private initLegends(map: L.Map) {
-        const legend_t2m = new L.Control({position: "bottomleft"});
-        legend_t2m.onAdd = () => {
-            let colors = ["#ffcc00", "#ff9900", "#ff6600", "#ff0000", "#cc0000", "#990000", "#660000", "#660066", "#990099", "#cc00cc", "#ff00ff", "#bf00ff", "#7200ff",
-                    "#0000ff", "#0059ff", "#008cff", "#00bfff", "#00ffff", "#00e5cc", "#00cc7f", "#00b200", "#7fcc00", "#cce500", "#ffff00", "#ffcc00", "#ff9900",
-                    "#ff6600", "#ff0000", "#cc0000", "#990000", "#660000", "#660066", "#990099", "#cc00cc", "#ff00ff", "#bf00ff", "#7200ff", "#ffcc00", "#ff9900"],
-                labels = ["-30", " ", "-26", " ", "-22", "", "-18", " ", "-14", " ",
-                    "-10", " ", "-6", " ", "-2", " ", "2", " ", "6", " ", "10", " ", "14", " ", "18",
-                    "", "22", " ", "26", " ", "30", " ", "34", " ", "38", " ", "42", " ", "46"];
-            return MeteoTilesComponent.createLegend('T [°C]', colors, labels);
-        };
-
-        const legend_prec3tp = new L.Control({position: "bottomright"});
-        legend_prec3tp.onAdd = () => {
-            let colors = ["rgba(0,204,255,0.2)", "rgba(0,255,255,0.25)", "rgba(48, 196, 135, 0.30)", "rgba(128, 255, 0, 0.35)", "rgba(225, 227, 22, 0.40)",
-                    "rgba(255,255,128, 0.45)", "rgba(255,255,0, 0.5)", "rgba(255,200,0, 0.55)", "rgba(255,185,67, 0.6)", "rgba(255,115,0, 0.65)",
-                    "rgba(255,0,0, 0.65)", "rgba(204,0,0, 0.7)", "rgba(223,83,121, 0.75)", "rgba(242,166,242,0.8)", "rgba(217,140,217,0.85)",
-                    "rgba(191,128,217,0.9)", "rgba(153,153,255,0.95)", "rgba(0,153,255,1)"],
-                labels = ["1", "2", "3", "4", "5", "6", "8", "10", "15", "20", "25", "30", "40", "50", "75", "100", "200", "300"];
-            return MeteoTilesComponent.createLegend('Prp [mm]', colors, labels);
-        };
-
-        const legend_prec6tp = new L.Control({position: "bottomright"});
-        legend_prec6tp.onAdd = () => {
-            let colors = ["rgba(0,204,255,0.2)", "rgba(0,255,255,0.25)", "rgba(48, 196, 135, 0.30)", "rgba(128, 255, 0, 0.35)", "rgba(225, 227, 22, 0.40)",
-                    "rgba(255,255,128, 0.45)", "rgba(255,255,0, 0.5)", "rgba(255,200,0, 0.55)", "rgba(255,185,67, 0.6)", "rgba(255,115,0, 0.65)",
-                    "rgba(255,0,0, 0.65)", "rgba(204,0,0, 0.7)", "rgba(223,83,121, 0.75)", "rgba(242,166,242,0.8)", "rgba(217,140,217,0.85)",
-                    "rgba(191,128,217,0.9)", "rgba(153,153,255,0.95)", "rgba(0,153,255,1)"],
-                labels = ["0.5", " ", " 2.0", " ", "4.0", " ", "6.0", " ", "10.0", " ",
-                    "20.0", " ", "30.0", " ", "50.0", " ", "100.0", " ", "300.0"];
-            return MeteoTilesComponent.createLegend('Prp [mm]', colors, labels);
-        };
-
-        const legend_sf3 = new L.Control({position: "bottomright"});
-        legend_sf3.onAdd = () => {
-            let colors = ["rgba(0,204,255,0.2)", "rgba(0,255,255,0.25)", "rgba(48, 196, 135, 0.30)", "rgba(128, 255, 0, 0.35)", "rgba(225, 227, 22, 0.40)", "rgba(255,255,128, 0.45)", "rgba(255,255,0, 0.5)", "rgba(255,200,0, 0.55)", "rgba(255,185,67, 0.6)", "rgba(255,115,0, 0.65)", "rgba(255,0,0, 0.65)", "rgba(204,0,0, 0.7)", "rgba(223,83,121, 0.75)", "rgba(242,166,242,0.8)", "rgba(217,140,217,0.85)", "rgba(191,128,217,0.9)", "rgba(153,153,255,0.95)", "rgba(0,153,255,1)"],
-                labels = ["0.1", "0.25", "0.5", "1.0", "1.5", "2.0", "2.5", "3.0", "4.0", "5.0", "7.5", "10.0", "15.0", "20.0", "25.0", "30.0", "40.0", "50.0", "60.0", "80.0"];
-            return MeteoTilesComponent.createLegend('Snow [cm]', colors, labels);
-        };
-
-        const legend_sf6 = legend_sf3;
-
-        const legend_rh = new L.Control({position: "bottomright"});
-        legend_rh.onAdd = () => {
-            let //colors = ["rgba(0,255,255,1)","rgba(51,255,255,0.8)","rgba(102,255,255,0.6)","rgba(153,255,255,0.4)","rgba(204,255,255,0.2)","rgba(255,255,255,0.0)"],
-                colors = ["rgba(255,255,255,0.0)", "rgba(204,255,255,0.2)", "rgba(153,255,255,0.4)", "rgba(102,255,255,0.6)", "rgba(51,255,255,0.8)", "rgba(0,255,255,1)"],
-                labels = ["60", "70", "80", "90", "100", "110"];
-            return MeteoTilesComponent.createLegend('RH [%]', colors, labels);
-        };
-
-        const legend_hcc = new L.Control({position: "bottomright"});
-        legend_hcc.onAdd = () => {
-            let colors = ["rgba(0,188,0,0.0)", "rgba(0,188,0,0.08)", "rgba(0,188,0,0.16)", "rgba(0,188,0,0.24)", "rgba(0,188,0,0.32)", "rgba(0,188,0,0.4)"],
-                labels = ["50", "60", "70", "80", "90", "100"];
-            return MeteoTilesComponent.createLegend('Cloud [%]', colors, labels);
-        };
-
-        const legend_mcc = new L.Control({position: "bottomright"});
-        legend_mcc.onAdd = () => {
-            let colors = ["rgba(0,0,255,0.0)", "rgba(0,0,255,0.08)", "rgba(0,0,255,0.16)", "rgba(0,0,255,0.24)", "rgba(0,0,255,0.32)", "rgba(0,0,255,0.4)"],
-                labels = ["50", "60", "70", "80", "90", "100"];
-            return MeteoTilesComponent.createLegend('Cloud [%]', colors, labels);
-        };
-
-        const legend_lcc = new L.Control({position: "bottomright"});
-        legend_lcc.onAdd = () => {
-            let colors = ["rgba(255,0,0,0.0)", "rgba(255,0,0,0.04)", "rgba(255,0,0,0.08)", "rgba(255,0,0,0.12)", "rgba(255,0,0,0.16)", "rgba(255,0,0,0.2)"],
-                labels = ["50", "60", "70", "80", "90", "100"];
-            return MeteoTilesComponent.createLegend('Cloud [%]', colors, labels);
-        };
+        let layers = this.layersControl['overlays'];
+        const legend_t2m = this.createLegendControl('tm2'),
+            legend_prec3tp = this.createLegendControl('prec3tp'),
+            legend_prec6tp = this.createLegendControl('prec6tp'),
+            legend_sf = this.createLegendControl('sf3'),
+            legend_rh = this.createLegendControl('rh'),
+            legend_hcc = this.createLegendControl('hcc'),
+            legend_mcc = this.createLegendControl('mcc'),
+            legend_lcc = this.createLegendControl('lcc');
 
         map.on('overlayadd', function (event) {
-            console.log(event['name']);
             if (event['name'] === 'Temperature at 2 meters') {
                 legend_t2m.addTo(map);
             } else if (event['name'] === 'Total Precipitation (3h)') {
                 legend_prec3tp.addTo(this);
             } else if (event['name'] === 'Total Precipitation (6h)') {
-                legend_prec3tp.addTo(this);
-            } else if (event['name'] === 'Snowfall (3h)') {
-                legend_sf3.addTo(this);
-            } else if (event['name'] === 'Snowfall (6h)') {
-                legend_sf6.addTo(this);
+                legend_prec6tp.addTo(this);
+            } else if (event['name'] === 'Snowfall (3h)' || event['name'] === 'Snowfall (6h)') {
+                legend_sf.addTo(this);
             } else if (event['name'] === 'Relative Humidity') {
                 legend_rh.addTo(this);
             } else if (event['name'] === 'High Cloud') {
@@ -323,14 +267,14 @@ export class MeteoTilesComponent {
         map.on('overlayremove', function (event) {
             if (event['name'] === 'Temperature at 2 meters') {
                 this.removeControl(legend_t2m);
-            } else if (event['name'] == 'Total Precipitation (3h)') {
+            } else if (event['name'] === 'Total Precipitation (3h)') {
                 this.removeControl(legend_prec3tp);
-            } else if (event['name'] == 'Total Precipitation (6h)') {
+            } else if (event['name'] === 'Total Precipitation (6h)') {
                 this.removeControl(legend_prec6tp);
-            } else if (event['name'] === 'Snowfall (3h)') {
-                this.removeControl(legend_sf3);
-            } else if (event['name'] === 'Snowfall (6h)') {
-                this.removeControl(legend_sf6);
+            } else if (event['name'] === 'Snowfall (3h)' && !map.hasLayer(layers['Snowfall (6h)'])) {
+                this.removeControl(legend_sf);
+            } else if (event['name'] === 'Snowfall (6h)' && !map.hasLayer(layers['Snowfall (3h)'])) {
+                this.removeControl(legend_sf);
             } else if (event['name'] === 'Relative Humidity') {
                 this.removeControl(legend_rh);
             } else if (event['name'] === 'High Cloud') {
@@ -341,5 +285,8 @@ export class MeteoTilesComponent {
                 this.removeControl(legend_lcc);
             }
         });
+
+        // add default legend to the map
+        legend_t2m.addTo(map);
     }
 }
