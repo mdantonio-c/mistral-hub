@@ -180,13 +180,14 @@ class Data(EndpointResource, Uploader):
         # get queue for pushing notifications
         pushing_queue = None
         if push:
-            # TODO build the queue name according to the chosen convention
-            pushing_queue = user.id
-            # rabbit = self.get_service_instance("rabbitmq")
-            self.get_service_instance("rabbitmq")
-            # TODO: check if pushing_queue exists,
-            #  if not raise an error (401? user is not authorized to get push notification)
-            # from Mattia: you may also use 403 FORBIDDEN
+            pushing_queue = user.amqp_queue
+            rabbit = self.get_service_instance("rabbitmq")
+            # check if the queue exists
+            if not rabbit.queue_exists(pushing_queue):
+                raise RestApiException(
+                    "User's queue for push notification does not exists",
+                    status_code=hcodes.HTTP_BAD_FORBIDDEN,
+                )
 
         # run the following steps in a transaction
         db = self.get_service_instance("sqlalchemy")

@@ -283,12 +283,14 @@ class Schedules(EndpointResource):
         # get queue for pushing notifications
         pushing_queue = None
         if push:
-            # TODO build the queue name according to the chosen convention
-            pushing_queue = user.id
-            # rabbit = self.get_service_instance('rabbit')
-            self.get_service_instance("rabbitmq")
-            # TODO: check if pushing_queue exists,
-            #  if not raise an error 401 user is not authorized or 403 forbidden
+            pushing_queue = user.amqp_queue
+            rabbit = self.get_service_instance("rabbitmq")
+            # check if the queue exists
+            if not rabbit.queue_exists(pushing_queue):
+                raise RestApiException(
+                    "User's queue for push notification does not exists",
+                    status_code=hcodes.HTTP_BAD_FORBIDDEN,
+                )
 
         db = self.get_service_instance("sqlalchemy")
         celery = self.get_service_instance("celery")
@@ -681,7 +683,6 @@ class ScheduledRequests(EndpointResource):
             return self.response({"total": counter})
 
         # get all submitted requests or the last for this schedule
-        meta_response = {}
         if last:
             res = RequestManager.get_last_scheduled_request(db, schedule_id)
             if res is None:
@@ -691,10 +692,6 @@ class ScheduledRequests(EndpointResource):
                     ),
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
-            # also return the total
-            meta_response["total"] = RequestManager.count_schedule_requests(
-                db, schedule_id
-            )
         else:
             res = RequestManager.get_schedule_requests(db, schedule_id)
-        return self.response(res, meta=meta_response, code=hcodes.HTTP_OK_BASIC)
+        return self.response(res, code=hcodes.HTTP_OK_BASIC)

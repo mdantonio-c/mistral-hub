@@ -16,6 +16,7 @@ setattr(
 setattr(
     User, "schedules", db.relationship("Schedule", backref="author", lazy="dynamic")
 )
+setattr(User, "amqp_queue", db.Column(db.String(255), nullable=True))
 
 
 class Request(db.Model):

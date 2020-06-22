@@ -22,13 +22,11 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import output_formatting
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
+from restapi.confs import get_backend_url
 from restapi.connectors.celery import CeleryExt
 from restapi.services.mail import send_mail
 from restapi.utilities.logs import log
 from restapi.utilities.templates import get_html_template
-
-# from restapi.confs import get_backend_url
-
 
 celery_app = CeleryExt.celery_app
 
@@ -511,36 +509,40 @@ def data_extract(
             db.session.commit()
             log.info("Terminate task {} with state {}", self.request.id, request.status)
             if not amqp_queue:
-                # user notification via email
-                user_email = (
-                    db.session.query(db.User.email).filter_by(id=user_id).scalar()
-                )
-                body_msg = (
-                    request.error_message
-                    if request.error_message is not None
-                    else "Your data is ready for " "downloading"
-                )
-                body_msg += extra_msg
-                send_result_notication(
-                    user_email, request.name, request.status, body_msg
-                )
+                notificate_by_email(db, user_id, request, extra_msg)
             else:
-                rabbit = celery_app.get_service("rabbitmq")
-                # host = get_backend_url()
-                # url = '{host}/api/data/{filename}'.format(host=host,filename=tar_filename)
-                rabbit_msg = {
-                    "task_id": self.request.id,
-                    "schedule_id": schedule_id,
-                    "status": request.status,
-                }
-                if request.error_message is None:
-                    rabbit_msg["filename"] = tar_filename
-                    # rabbit_msg['url'] = url
-                else:
-                    rabbit_msg["error_message"] = request.error_message
+                try:
+                    rabbit = celery_app.get_service("rabbitmq")
+                    host = get_backend_url()
+                    url = f"{host}/api/data/{tar_filename}"
+                    rabbit_msg = {
+                        "task_id": self.request.id,
+                        "schedule_id": schedule_id,
+                        "status": request.status,
+                    }
+                    if request.error_message is None:
+                        rabbit_msg["filename"] = tar_filename
+                        rabbit_msg["url"] = url
+                    else:
+                        rabbit_msg["error_message"] = request.error_message
 
-                rabbit.write_to_queue(rabbit_msg, amqp_queue)
-                rabbit.disconnect()
+                    rabbit.write_to_queue(rabbit_msg, amqp_queue)
+                    rabbit.disconnect()
+                    log.debug("push notification sent to {}", amqp_queue)
+                except BaseException:
+                    notificate_by_email(db, user_id, request, extra_msg)
+
+
+def notificate_by_email(db, user_id, request, extra_msg):
+    # user notification via email
+    user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
+    body_msg = (
+        request.error_message
+        if request.error_message is not None
+        else "Your data is ready for " "downloading"
+    )
+    body_msg += extra_msg
+    send_result_notication(user_email, request.name, request.status, body_msg)
 
 
 def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
