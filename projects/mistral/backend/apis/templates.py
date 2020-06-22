@@ -153,7 +153,6 @@ class Templates(EndpointResource, Uploader):
             files = []
             with ZipFile(upload_filepath, "r") as zip:
                 files = zip.namelist()
-
                 log.debug("filelist: {}", files)
                 if any(i.endswith("shp") for i in files) or any(
                     i.endswith("geojson") for i in files
@@ -284,7 +283,6 @@ class Templates(EndpointResource, Uploader):
         for f in files:
             e = f.rsplit(".", 1)
             # check in the correct folder if the file was already uploaded
-
             subfolder = ""
             if e[-1] == "shp" or e[-1] == "geojson":
                 subfolder = os.path.join(user_uuid, "uploads", "shp")

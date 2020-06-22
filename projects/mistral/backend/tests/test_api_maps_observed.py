@@ -115,8 +115,12 @@ class TestApp(BaseTests):
             pytest.fail("No valid reftime found")
 
         for d in obs_dataset:
-            endpoint = f"{API_URI}/fields?q=reftime:>={date_from},<={date_to}&datasets={d}&SummaryStats=false"
-
+            endpoint = (
+                API_URI
+                + "/fields?q=reftime:>={date_from},<={date_to}&datasets={dataset}&SummaryStats=false".format(
+                    date_from=date_from, date_to=date_to, dataset=d
+                )
+            )
             r = client.get(endpoint, headers=headers)
             response_data = TestApp.get_content(r)
             if response_data["items"]:
@@ -187,7 +191,7 @@ class TestApp(BaseTests):
 
     def standard_observed_endpoint_testing(self, client, headers, q_params):
 
-        # ### only reftime as argument ####
+        #### only reftime as argument ####
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}".format(
             date_from=q_params["date_from"], date_to=q_params["date_to"]
         )
@@ -204,7 +208,7 @@ class TestApp(BaseTests):
         assert check_product_1 is True
         assert check_product_2 is True
 
-        # ### only network as argument ####
+        #### only network as argument ####
         endpoint = (
             API_URI
             + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}".format(
@@ -258,10 +262,10 @@ class TestApp(BaseTests):
         assert check_product_2 is True
         # check error with random param
         # random bounding-box
-        bbox = "latmin:6.7499,lonmin:36.6199,latmax:18.4802,lonmax:47.1153"
+        random_bbox = "latmin:6.7499,lonmin:36.6199,latmax:18.4802,lonmax:47.1153"
         date_from = q_params["date_from"]
         date_to = q_params["date_to"]
-        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&bounding-box={bbox}"
+        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&bounding-box={random_bbox}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         assert r.status_code == hcodes.HTTP_OK_BASIC
