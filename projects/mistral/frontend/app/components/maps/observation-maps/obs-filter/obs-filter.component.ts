@@ -19,7 +19,7 @@ export class ObsFilterComponent implements OnInit {
     allLevels: CodeDescPair[];
     allProducts: CodeDescPair[];
     allTimeranges: CodeDescPair[];
-    allLicenses: string[] = LICENSES;
+    allLicenses: CodeDescPair[] = LICENSES;
     today: Date = new Date();
     maxDate: NgbDateStruct = {
         year: this.today.getFullYear(),
