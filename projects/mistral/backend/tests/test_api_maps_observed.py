@@ -262,10 +262,10 @@ class TestApp(BaseTests):
         assert check_product_2 is True
         # check error with random param
         # random bounding-box
-        bbox = "latmin:6.7499,lonmin:36.6199,latmax:18.4802,lonmax:47.1153"
+        random_bbox = "latmin:6.7499,lonmin:36.6199,latmax:18.4802,lonmax:47.1153"
         date_from = q_params["date_from"]
         date_to = q_params["date_to"]
-        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&bounding-box={bbox}"
+        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&bounding-box={random_bbox}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         assert r.status_code == hcodes.HTTP_OK_BASIC
