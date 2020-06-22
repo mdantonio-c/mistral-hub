@@ -746,7 +746,20 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 /* Fixed color palette */
-.mst-legend > h6 { font-size: small; }
+.mst-legend {
+  line-height: 14px;
+}
+.mst-legend > h6 {
+  font-size: small;
+  font-weight: bold;
+  text-align: center;
+  margin: 2px 12px 8px;
+  color: #777;
+}
+.mst-legend > span {
+  position: relative;
+  bottom: 3px;
+}
 .marker-cluster.mst-marker-color-3030ff { background-color: rgba(48, 48, 255, 0.7); }
 .mst-marker-color-3030ff div { background-color: rgba(48, 48, 255, 0.6); }
 
