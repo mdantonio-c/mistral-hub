@@ -1,6 +1,6 @@
 import {Component, Output, EventEmitter} from '@angular/core';
 import {ObsData, Observation, ObsFilter, ObsService, Station} from "../services/obs.service";
-import {obsData} from "../services/data";
+import {COLORS, obsData, VAR_TABLE} from "../services/data";
 import {NotificationService} from '@rapydo/services/notification';
 import {NgxSpinnerService} from 'ngx-spinner';
 
@@ -42,15 +42,15 @@ export class ObsMapComponent {
         center: [45.0, 12.0]
     };
 
-    constructor(private meteoService: ObsService,
+    constructor(private obsService: ObsService,
                 private notify: NotificationService,
                 private spinner: NgxSpinnerService) {
         // custom cluster options
         this.markerClusterOptions = {
-            iconCreateFunction: function (cluster, service = meteoService) {
+            iconCreateFunction: function (cluster, srv = obsService) {
                 const childCount = cluster.getChildCount();
                 const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
-                let res: number = childCount;
+                let res: string = ''+childCount;
                 let c = ' marker-cluster-';
                 if (childCount < 10) {
                     c += 'small';
@@ -61,22 +61,29 @@ export class ObsMapComponent {
                 }
                 let type: string;
                 if (childMarkers[0].options['data']) {
-                    let sum = 0;
+                    let mean = 0,
+                        medians: number[] = [];
                     for (const m of childMarkers) {
                         const obsData: ObsData = m.options['data'];
                         if (!type) {
                             type = obsData.varcode;
                         }
-                        sum += obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
+                        // mean += obsData.values.filter(v => v.is_reliable).map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
+                        let median = ObsService.median(obsData.values.filter(v => v.is_reliable).map(v => v.value));
+                        if (Number.isNaN(median)) {
+                            // do not consider this median in the cluster median
+                            continue;
+                        }
+                        medians.push(median);
+                        // FIXME what about if all medians results in a NaN?
                     }
-                    res = sum / childCount;
-                    if (type === 'B12101') {
-                        // convert temperatures from Kelvin to Celsius
-                        res -= 273.15;
-                    }
-                    res = Math.round(res);
+                    // get the median instead of the mean
+                    // let val = mean/childCount;
+                    let val = ObsService.median(medians);
+                    res = ObsService.showData(val, type, 3);
+
                     // custom background color of cluster
-                    c = ' mst-marker-color-' + service.getColor(res);
+                    c = ' mst-marker-color-' + srv.getColor(val, srv.min, srv.max);
                 }
                 return new L.DivIcon({
                     html: '<div><span>' + res + '</span></div>',
@@ -100,7 +107,7 @@ export class ObsMapComponent {
             this.markerClusterGroup.clearLayers();
         }
         setTimeout(() => this.spinner.show(), 0);
-        this.meteoService.getData(filter).subscribe(
+        this.obsService.getData(filter).subscribe(
             (data: Observation[]) => {
                 // console.log(data);
                 this.updateCount.emit(data.length);
@@ -135,34 +142,44 @@ export class ObsMapComponent {
         const markers: L.Marker[] = [];
         let min: number, max: number;
         let obsData: ObsData;
-        data.forEach((s) => {
-            let value: number;
-            if (!onlyStations) {
+        if (!onlyStations) {
+            // min and max needed before data marker creation
+            data.forEach((s) => {
                 obsData = s.products.find(x => x.varcode === product);
-                // const arr: any[] = obj[Object.keys(obj)[0]];
-                // value = Math.round(arr.map(v => v.value).reduce((a, b) => a + b, 0) / arr.length);
-                value = obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-                if (product === 'B12101') {
-                    value -= 273.15;    // convert temperatures from Kelvin to Celsius
-                }
-                let localMin = Math.min(...obsData.values.map(v => v.value));
+                let localMin = Math.min(...obsData.values.filter(v => v.is_reliable).map(v => v.value));
                 if (!min || localMin < min) {
                     min = localMin;
                 }
-                let localMax = Math.max(...obsData.values.map(v => v.value));
+                let localMax = Math.max(...obsData.values.filter(v => v.is_reliable).map(v => v.value));
                 if (!max || localMax > max) {
                     max = localMax;
                 }
-            }
-            const icon = (s.products) ? L.divIcon({
-                html: `<div class="mstDataIcon"><span>${value.toFixed(2)}</span></div>`,
-                iconSize: [24, 6],
-                className: 'leaflet-marker-icon mst-marker-color-' + this.meteoService.getColor(value)
-            }) : L.divIcon({
-                html: '<i class="fa fa-map-marker-alt fa-3x"></i>',
-                iconSize: [20, 20],
-                className: 'mstDivIcon'
             });
+        }
+        data.forEach((s) => {
+            let icon;
+            if (!onlyStations) {
+                obsData = s.products.find(x => x.varcode === product);
+                // get the median instead of the mean
+                // let val = obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
+                let val = ObsService.median(obsData.values.filter(v => v.is_reliable).map(v => v.value));
+                if (Number.isNaN(val)) {
+                    // at the moment is all the values are unreliable calculate the median and show it anyway
+                    // TO BE CHECKED
+                    val = ObsService.median(obsData.values.map(v => v.value));
+                }
+                icon = L.divIcon({
+                    html: `<div class="mstDataIcon"><span>${ObsService.showData(val, product)}</span></div>`,
+                    iconSize: [24, 6],
+                    className: 'leaflet-marker-icon mst-marker-color-' + this.obsService.getColor(val, min, max)
+                });
+            } else {
+                icon = L.divIcon({
+                    html: '<i class="fa fa-map-marker-alt fa-3x"></i>',
+                    iconSize: [20, 20],
+                    className: 'mstDivIcon'
+                });
+            }
             const marker = new L.Marker([s.station.lat, s.station.lon], {
                 icon: icon
             });
@@ -176,20 +193,17 @@ export class ObsMapComponent {
             markers.push(marker);
         });
 
-        this.markerClusterData = markers;
-        this.markerClusterGroup.addLayers(markers);
-
         if (!onlyStations && data.length > 0) {
             console.log(`min ${min}, max ${max}`);
-            if (product === 'B12101') {
-                // convert min and max temperatures from Kelvin to Celsius
-                min -= 273.15;
-                max -= 273.15;
-            }
+            this.obsService.min = min;
+            this.obsService.max = max;
             this.buildLegend(product, min, max);
         } else {
             this.legend.remove();
         }
+
+        this.markerClusterData = markers;
+        this.markerClusterGroup.addLayers(markers);
 
         this.fitBounds();
     }
@@ -199,6 +213,7 @@ export class ObsMapComponent {
         let altitude = station.altitude || '';
         const template = `<ul class="p-1 m-0"><li><b>Network</b>: ${station.network}</li>` +
             ident +
+            station.id +
             `<li><b>Lat</b>: ${station.lat}</li>` +
             `<li><b>Lon</b>: ${station.lon}</li>` +
             altitude +
@@ -207,20 +222,22 @@ export class ObsMapComponent {
     }
 
     private buildLegend(product: string, min: number, max: number) {
-        this.legend.onAdd = function (map) {
+        let srv = this.obsService;
+        this.legend.onAdd = function (map, service = srv) {
             console.log(`add legend for product ${product} (${min.toFixed(2)}, ${max.toFixed(2)})`);
-            let div = L.DomUtil.create('div', 'info legend');
-            const colors = ["#ffcc00", "#ff9900", "#ff6600", "#ff0000", "#cc0000", "#990000", "#660000", "#660066", "#990099", "#cc00cc", "#ff00ff", "#bf00ff", "#7200ff",
-                    "#0000ff", "#0059ff", "#008cff", "#00bfff", "#00ffff", "#00e5cc", "#00cc7f", "#00b200", "#7fcc00", "#cce500", "#ffff00", "#ffcc00", "#ff9900",
-                    "#ff6600", "#ff0000", "#cc0000", "#990000", "#660000", "#660066", "#990099", "#cc00cc", "#ff00ff", "#bf00ff", "#7200ff", "#ffcc00", "#ff9900"],
-            labels = ["-30", " ", "-26", " ", "-22", "", "-18", " ", "-14", " ",
-                "-10", " ", "-6", " ", "-2", " ", "2", " ", "6", " ", "10", " ", "14", " ", "18",
-                "", "22", " ", "26", " ", "30", " ", "34", " ", "38", " ", "42", " ", "46"];
-            let title = "Temp [°C]";
-            div.style.clear = "unset";
-            div.innerHTML += `<h6 style="font-size: small;">${title}</h6>`;
-            for (let i = 0; i < labels.length; i++) {
-                div.innerHTML += '<i style="background:' + colors[i] + '"></i><span>' + labels[i] + '</span><br>';
+            let div = L.DomUtil.create('div', 'info legend mst-legend');
+            let halfDelta = (max - min) / (COLORS.length * 2.);
+            let bcode = VAR_TABLE.find(x => x.bcode === product);
+            const title = `${(bcode.short || bcode.description)} [${bcode.userunit}]`,
+                scale = bcode.scale,
+                offset = bcode.offset;
+            div.innerHTML += `<h6>${title}</h6>`;
+            for (let i = 0; i < COLORS.length; i++) {
+                let grade = min + halfDelta * (i*2+1);
+                div.innerHTML += '<i style="background:#' + service.getColor(grade, min, max) + '"></i><span>' +
+                    // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
+                    Math.floor(grade*scale+offset)
+                + '</span><br>';
             }
             return div;
         };

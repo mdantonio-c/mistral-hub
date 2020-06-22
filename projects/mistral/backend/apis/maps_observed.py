@@ -10,7 +10,7 @@ from restapi.utilities.logs import log
 class MapsObservations(EndpointResource):
     # schema_expose = True
     labels = ["maps-observations"]
-    _GET = {
+    GET = {
         "/observations": {
             "summary": "Get values of observed parameters",
             "parameters": [
@@ -24,15 +24,15 @@ class MapsObservations(EndpointResource):
                 # },
                 {"name": "networks", "in": "query", "type": "string"},
                 {"name": "q", "in": "query", "type": "string", "default": ""},
-                {"name": "lat", "in": "query", "type": "string"},
-                {"name": "lon", "in": "query", "type": "string"},
-                {"name": "ident", "in": "query", "type": "string"},
                 {
                     "name": "bounding-box",
                     "in": "query",
                     "type": "string",
                     "description": "coordinates of a bounding box",
                 },
+                {"name": "lat", "in": "query", "type": "string"},
+                {"name": "lon", "in": "query", "type": "string"},
+                {"name": "ident", "in": "query", "type": "string"},
                 {
                     "name": "onlyStations",
                     "in": "query",
@@ -42,6 +42,13 @@ class MapsObservations(EndpointResource):
                 },
                 {
                     "name": "stationDetails",
+                    "in": "query",
+                    "type": "boolean",
+                    "default": False,
+                    "allowEmptyValue": True,
+                },
+                {
+                    "name": "reliabilityCheck",
                     "in": "query",
                     "type": "boolean",
                     "default": False,
@@ -85,14 +92,26 @@ class MapsObservations(EndpointResource):
         # check if only stations are requested
         only_stations = params.get("onlyStations")
         if isinstance(only_stations, str) and (
-            only_stations == "" or only_stations.lower() == "true"
+            only_stations == "" or only_stations.lower() == "false"
         ):
-            only_stations = True
+            only_stations = False
         elif type(only_stations) == bool:
             # do nothing
             pass
         else:
-            only_stations = False
+            only_stations = True
+
+        # check if reliability check is requested
+        quality_check = params.get("reliabilityCheck")
+        if isinstance(quality_check, str) and (
+            quality_check == "" or quality_check.lower() == "false"
+        ):
+            quality_check = False
+        elif type(quality_check) == bool:
+            # do nothing
+            pass
+        else:
+            quality_check = True
 
         # check if station details are requested
         station_details = params.get("stationDetails")
@@ -146,6 +165,7 @@ class MapsObservations(EndpointResource):
                     query,
                     only_stations,
                     station_details_q=station_details_q,
+                    quality_check=quality_check,
                 )
             else:
                 res = dballe.get_maps_response(
@@ -155,6 +175,7 @@ class MapsObservations(EndpointResource):
                     only_stations,
                     db_type=db_type,
                     station_details_q=station_details_q,
+                    quality_check=quality_check,
                 )
         except AccessToDatasetDenied:
             raise RestApiException(
