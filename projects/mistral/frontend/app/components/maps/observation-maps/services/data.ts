@@ -88,7 +88,12 @@ export const TIME_RANGES: CodeDescPair[] = [
     {code:"205,0,600", desc:"Product with a valid time ranging over 10m at forecast time 0"}
 ];
 
-export const LICENSES = ['CC-BY', 'ODL'];
+export const LICENSES: CodeDescPair[] = [
+    {code: "CC-BY", desc: "CC-BY compliant"},
+    // {code: "ODL", desc: "ODL"}
+];
+
+export const COLORS = ['3030ff','007885','00855D','0D8500','478500','788500','853C00','850000'];
 
 export const FIELDS_SUMMARY: FieldsSummary = {
     items: {
@@ -100,4 +105,210 @@ export const FIELDS_SUMMARY: FieldsSummary = {
 }
 
 export const obsData = [{"station":{"id":891,"ident":null,"lat":45.05492,"lon":9.67965,"network":"urbane"}},{"station":{"id":892,"ident":null,"lat":44.808,"lon":10.33049,"network":"urbane"}},{"station":{"id":893,"ident":null,"lat":44.69781,"lon":10.6337,"network":"urbane"}},{"station":{"id":894,"ident":null,"lat":44.50075,"lon":11.32879,"network":"urbane"}},{"station":{"id":895,"ident":null,"lat":44.8325,"lon":11.62114,"network":"urbane"}},{"station":{"id":896,"ident":null,"lat":44.22039,"lon":12.04182,"network":"urbane"}},{"station":{"id":897,"ident":null,"lat":44.415,"lon":12.20003,"network":"urbane"}},{"station":{"id":898,"ident":null,"lat":44.1382,"lon":12.24364,"network":"urbane"}},{"station":{"id":899,"ident":null,"lat":44.05919,"lon":12.57354,"network":"urbane"}},{"station":{"id":900,"ident":null,"lat":44.65639,"lon":10.91699,"network":"urbane"}}];
+
+export interface Bcode {
+    bcode: string;
+    description: string;
+    short?: string;
+    unit: string;
+    offset: number;
+    scale: number;
+    userunit: string;
+}
+
+export const VAR_TABLE: Bcode[] = [
+    {
+        "bcode": "B12101",
+        "description": "TEMPERATURE/DRY-BULB TEMPERATURE",
+        "short": "Temp",
+        "unit": "K",
+        "offset": -273.15,
+        "scale": 1.0,
+        "userunit": "°C"
+    },
+    {
+        "bcode": "B13003",
+        "description": "RELATIVE HUMIDITY",
+        "unit": "%",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "%"
+    },
+    {
+        "bcode": "B10004",
+        "description": "PRESSURE",
+        "unit": "Pa",
+        "offset": 0.0,
+        "scale": 0.01,
+        "userunit": "hPa"
+    },
+    {
+        "bcode": "B11001",
+        "description": "WIND DIRECTION",
+        "unit": "DEGREE TRUE",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "Degree"
+    },
+    {
+        "bcode": "B11002",
+        "description": "WIND SPEED",
+        "unit": "M/S",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "m/s"
+    },
+    {
+        "bcode": "B13011",
+        "description": "TOTAL PRECIPITATION / TOTAL WATER EQUIVALENT",
+        "unit": "KG/M**2",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "Kg/m**2"
+    },
+    {
+        "bcode": "B15198",
+        "description": "PM2.5 Concentration",
+        "unit": "KG/M**3",
+        "offset": 0.0,
+        "scale": 1000000000.0,
+        "userunit": "ug/m**3"
+    },
+    {
+        "bcode": "B15195",
+        "description": "PM10 Concentration",
+        "unit": "KG/M**3",
+        "offset": 0.0,
+        "scale": 1000000000.0,
+        "userunit": "ug/m**3"
+    },
+    {
+        "bcode": "B15196",
+        "description": "CO Concentration",
+        "unit": "KG/M**3",
+        "offset": 0.0,
+        "scale": 1000000000.0,
+        "userunit": "ug/m**3"
+    },
+    {
+        "bcode": "B15193",
+        "description": "NO2 Concentration",
+        "unit": "KG/M**3",
+        "offset": 0.0,
+        "scale": 1000000000.0,
+        "userunit": "ug/m**3"
+    },
+    {
+        "bcode": "B13013",
+        "description": "TOTAL SNOW DEPTH",
+        "unit": "M",
+        "offset": 0.0,
+        "scale": 0.1,
+        "userunit": "cm"
+    },
+    {
+        "bcode": "20001",
+        "description": "HORIZONTAL VISIBILITY",
+        "unit": "M",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "m"
+    },
+    {
+        "bcode": "B25025",
+        "description": "Battery voltage",
+        "unit": "V",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "V"
+    },
+    {
+        "bcode": "B25192",
+        "description": "Battery charge",
+        "unit": "%",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "%"
+    },
+    {
+        "bcode": "B25193",
+        "description": "Battery current",
+        "unit": "A",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "A"
+    },
+    {
+        "bcode": "B15203",
+        "description": "PM1 Concentration",
+        "unit": "KG/M**3",
+        "offset": 0.0,
+        "scale": 1000000000.0,
+        "userunit": "ug/m**3"
+    },
+    {
+        "bcode": "B49192",
+        "description": "Number of particles with diameter < 0.3 um",
+        "unit": "number/ml",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "number/ml"
+    },
+    {
+        "bcode": "B49193",
+        "description": "Number of particles with diameter > 0.3 < 0.5 um",
+        "unit": "number/ml",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "number/ml"
+    },
+    {
+        "bcode": "B49194",
+        "description": "Number of particles with diameter > 0.5 < 1.0 um",
+        "unit": "number/ml",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "number/ml"
+    },
+    {
+        "bcode": "B49195",
+        "description": "Number of particles with diameter > 1.0 < 2.5 um",
+        "unit": "number/ml",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "number/ml"
+    },
+    {
+        "bcode": "B49196",
+        "description": "Number of particles with diameter > 2.5 < 5.0 um",
+        "unit": "number/ml",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "number/ml"
+    },
+    {
+        "bcode": "B49197",
+        "description": "Number of particles with diameter > 5.0 < 10.0 um",
+        "unit": "number/ml",
+        "offset": 0.0,
+        "scale": 1.0,
+        "userunit": "number/ml"
+    },
+    {
+        "bcode": "B15242",
+        "description": "CO2 Concentration",
+        "unit": "KG/M**3",
+        "offset": 0.0,
+        "scale": 555560.0,
+        "userunit": "ppm"
+    },
+    {
+        "bcode": "B15202",
+        "description": "PM5 Concentration",
+        "unit": "KG/M**3",
+        "offset": 0.0,
+        "scale": 1000000000.0,
+        "userunit": "ug/m**3"
+    }
+];
 

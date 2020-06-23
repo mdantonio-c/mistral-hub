@@ -19,7 +19,7 @@ export class ObsFilterComponent implements OnInit {
     allLevels: CodeDescPair[];
     allProducts: CodeDescPair[];
     allTimeranges: CodeDescPair[];
-    allLicenses: string[] = LICENSES;
+    allLicenses: CodeDescPair[] = LICENSES;
     today: Date = new Date();
     maxDate: NgbDateStruct = {
         year: this.today.getFullYear(),
@@ -39,7 +39,7 @@ export class ObsFilterComponent implements OnInit {
         this.filterForm = this.fb.group({
             product: ['B12101', Validators.required],
             reftime: [this.today, Validators.required],
-            // reftime: [new Date(2020, 4, 22), Validators.required],
+            // reftime: [new Date(2020, 5, 15), Validators.required],
             level: ['103,2000,0,0'],
             timerange: ['254,0,0'],
             boundingBox: [''],
