@@ -1,10 +1,25 @@
+from flask_apispec import MethodResource, use_kwargs
+from marshmallow import fields, validate
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
 from restapi.exceptions import RestApiException
+from restapi.models import InputSchema
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
+
+
+class ObservationsQuery(InputSchema):
+    networks = fields.Str(required=False)
+    q = fields.Str(required=False)
+    bounding_box = fields.Str(required=False)
+    lat = fields.Str(required=False)
+    lon = fields.Str(required=False)
+    ident = fields.Str(required=False)
+    onlyStations = fields.Bool(required=False)
+    stationDetails = fields.Bool(required=False)
+    reliabilityCheck = fields.Bool(required=False)
 
 
 class MapsObservations(EndpointResource):
@@ -13,48 +28,6 @@ class MapsObservations(EndpointResource):
     GET = {
         "/observations": {
             "summary": "Get values of observed parameters",
-            "parameters": [
-                # uncomment if we decide that networks can be multiple
-                # {
-                #     'name': 'networks',
-                #     'in': 'query',
-                #     'type': 'array',
-                #     'uniqueItems': True,
-                #     'items': {'type': 'string'},
-                # },
-                {"name": "networks", "in": "query", "type": "string"},
-                {"name": "q", "in": "query", "type": "string", "default": ""},
-                {
-                    "name": "bounding-box",
-                    "in": "query",
-                    "type": "string",
-                    "description": "coordinates of a bounding box",
-                },
-                {"name": "lat", "in": "query", "type": "string"},
-                {"name": "lon", "in": "query", "type": "string"},
-                {"name": "ident", "in": "query", "type": "string"},
-                {
-                    "name": "onlyStations",
-                    "in": "query",
-                    "type": "boolean",
-                    "default": False,
-                    "allowEmptyValue": True,
-                },
-                {
-                    "name": "stationDetails",
-                    "in": "query",
-                    "type": "boolean",
-                    "default": False,
-                    "allowEmptyValue": True,
-                },
-                {
-                    "name": "reliabilityCheck",
-                    "in": "query",
-                    "type": "boolean",
-                    "default": False,
-                    "allowEmptyValue": True,
-                },
-            ],
             "responses": {
                 "200": {
                     "description": "List of values successfully retrieved",
@@ -67,20 +40,20 @@ class MapsObservations(EndpointResource):
 
     @decorators.catch_errors()
     @decorators.auth.required()
-    def get(self):
-        params = self.get_input()
-        # ids = params.get('stations')
-        # nt = params.get('networks')
-        # stations = ids.split(',') if ids is not None else []
-        # networks = nt.split(',') if nt is not None else []
-        networks = params.get("networks")
-        # log.debug(networks)
-        bbox = params.get("bounding-box")
-        bbox_list = bbox.split(",") if bbox is not None else []
-        q = params.get("q")
-        lat = params.get("lat")
-        lon = params.get("lon")
-        ident = params.get("ident")
+    @use_kwargs(ObservationsQuery)
+    def get(
+        self,
+        networks=None,
+        q="",
+        bounding_box=None,
+        lat=None,
+        lon=None,
+        ident=None,
+        onlyStations=False,
+        stationDetails=False,
+        reliabilityCheck=False,
+    ):
+        bbox_list = bounding_box.split(",") if bounding_box is not None else []
 
         bounding_box = {}
         if bbox_list:
@@ -89,43 +62,8 @@ class MapsObservations(EndpointResource):
                 split = i.split(":")
                 bounding_box[split[0]] = split[1]
 
-        # check if only stations are requested
-        only_stations = params.get("onlyStations")
-        if isinstance(only_stations, str) and (
-            only_stations == "" or only_stations.lower() == "false"
-        ):
-            only_stations = False
-        elif type(only_stations) == bool:
-            # do nothing
-            pass
-        else:
-            only_stations = True
-
-        # check if reliability check is requested
-        quality_check = params.get("reliabilityCheck")
-        if isinstance(quality_check, str) and (
-            quality_check == "" or quality_check.lower() == "false"
-        ):
-            quality_check = False
-        elif type(quality_check) == bool:
-            # do nothing
-            pass
-        else:
-            quality_check = True
-
-        # check if station details are requested
-        station_details = params.get("stationDetails")
-        if isinstance(station_details, str) and (
-            station_details == "" or station_details.lower() == "false"
-        ):
-            station_details = False
-        elif type(station_details) == bool:
-            # do nothing
-            pass
-        else:
-            station_details = True
         station_details_q = {}
-        if station_details:
+        if stationDetails:
             # check params for station
             if not networks:
                 raise RestApiException(
@@ -163,19 +101,19 @@ class MapsObservations(EndpointResource):
                     networks,
                     bounding_box,
                     query,
-                    only_stations,
+                    onlyStations,
                     station_details_q=station_details_q,
-                    quality_check=quality_check,
+                    quality_check=reliabilityCheck,
                 )
             else:
                 res = dballe.get_maps_response(
                     networks,
                     bounding_box,
                     query,
-                    only_stations,
+                    onlyStations,
                     db_type=db_type,
                     station_details_q=station_details_q,
-                    quality_check=quality_check,
+                    quality_check=reliabilityCheck,
                 )
         except AccessToDatasetDenied:
             raise RestApiException(

@@ -246,7 +246,7 @@ class TestApp(BaseTests):
         # Italy bounding-box
         bbox = "latmin:36.6199,lonmin:6.7499,latmax:47.1153,lonmax:18.4802"
         endpoint = (
-            f"{API_URI}/observations?q=reftime:>={dfrom},<={dto}&bounding-box={bbox}"
+            f"{API_URI}/observations?q=reftime:>={dfrom},<={dto}&bounding_box={bbox}"
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -265,7 +265,7 @@ class TestApp(BaseTests):
         random_bbox = "latmin:6.7499,lonmin:36.6199,latmax:18.4802,lonmax:47.1153"
         date_from = q_params["date_from"]
         date_to = q_params["date_to"]
-        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&bounding-box={random_bbox}"
+        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&bounding_box={random_bbox}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         assert r.status_code == hcodes.HTTP_OK_BASIC
@@ -310,7 +310,7 @@ class TestApp(BaseTests):
         # ### all arguments ####
         endpoint = (
             API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to};product:{product}&bounding-box={bbox}&networks={network}".format(
+            + "/observations?q=reftime:>={date_from},<={date_to};product:{product}&bounding_box={bbox}&networks={network}".format(
                 date_from=q_params["date_from"],
                 date_to=q_params["date_to"],
                 product=q_params["product_1"],
