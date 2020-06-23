@@ -485,7 +485,7 @@ class Schedules(EndpointResource):
 
         user = self.get_current_user()
 
-        db = self.get_service_instance("sqlalchemy", global_instance=False)
+        db = self.get_service_instance("sqlalchemy")
         if schedule_id is not None:
             # check for schedule ownership
             self.request_and_owner_check(db, user.id, schedule_id)
@@ -687,7 +687,7 @@ class ScheduledRequests(EndpointResource):
         else:
             last = False
 
-        db = self.get_service_instance("sqlalchemy", global_instance=False)
+        db = self.get_service_instance("sqlalchemy")
 
         # check if the schedule exists
         if not RequestManager.check_request(db, schedule_id=schedule_id):

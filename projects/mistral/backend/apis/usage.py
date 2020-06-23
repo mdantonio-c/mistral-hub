@@ -36,12 +36,6 @@ class Usage(EndpointResource):
         :return:
         """
         user = self.get_current_user()
-
-        # get user disk quota
-        # db = self.get_service_instance('sqlalchemy', global_instance=False)
-        # disk_quota = db.session.query(db.User.disk_quota).filter_by(id=user.id).scalar()
-        # log.debug(disk_quota)
-
         # get current usage
         used_quota = 0
         user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
