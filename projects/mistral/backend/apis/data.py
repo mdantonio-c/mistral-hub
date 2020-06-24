@@ -1,3 +1,5 @@
+from flask_apispec import use_kwargs
+from marshmallow import fields
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 from mistral.tools import grid_interpolation as pp3_1
@@ -23,14 +25,6 @@ class Data(EndpointResource, Uploader):
                     "description": "Criteria for data extraction.",
                     "schema": {"$ref": "#/definitions/DataExtraction"},
                 },
-                {
-                    "name": "push",
-                    "in": "query",
-                    "description": "Enable push notification",
-                    "type": "boolean",
-                    "default": False,
-                    "allowEmptyValue": True,
-                },
             ],
             "responses": {
                 "202": {"description": "Data extraction request queued"},
@@ -46,7 +40,8 @@ class Data(EndpointResource, Uploader):
 
     @decorators.catch_errors()
     @decorators.auth.required()
-    def post(self):
+    @use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
+    def post(self, push=False):
         user = self.get_user()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
         criteria = self.get_input()
@@ -167,15 +162,6 @@ class Data(EndpointResource, Uploader):
                         f"The chosen postprocessor does not support {output_format} output format",
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
-
-        push = criteria.get("push")
-        if isinstance(push, str) and (push.lower() == "true"):
-            push = True
-        elif type(push) == bool:
-            # do nothing
-            pass
-        else:
-            push = False
 
         # get queue for pushing notifications
         pushing_queue = None

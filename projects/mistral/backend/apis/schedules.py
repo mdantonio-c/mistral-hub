@@ -1,5 +1,7 @@
 import datetime
 
+from flask_apispec import use_kwargs
+from marshmallow import fields, validate
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
 from mistral.tools import grid_interpolation as pp3_1
@@ -30,21 +32,6 @@ class Schedules(EndpointResource):
                 "403": {"description": "User not allowed to get the schedule"},
                 "404": {"description": "The schedule does not exists"},
             },
-            "parameters": [
-                {
-                    "name": "sort-order",
-                    "in": "query",
-                    "description": "sort order",
-                    "type": "string",
-                    "enum": ["asc", "desc"],
-                },
-                {
-                    "name": "sort-by",
-                    "in": "query",
-                    "description": "params to sort schedules",
-                    "type": "string",
-                },
-            ],
         },
         "/schedules": {
             "summary": "Get user schedules.",
@@ -61,21 +48,6 @@ class Schedules(EndpointResource):
                 "403": {"description": "User not allowed to get the schedule"},
                 "404": {"description": "The schedule does not exists"},
             },
-            "parameters": [
-                {
-                    "name": "sort-order",
-                    "in": "query",
-                    "description": "sort order",
-                    "type": "string",
-                    "enum": ["asc", "desc"],
-                },
-                {
-                    "name": "sort-by",
-                    "in": "query",
-                    "description": "params to sort schedules",
-                    "type": "string",
-                },
-            ],
         },
     }
     _POST = {
@@ -87,14 +59,6 @@ class Schedules(EndpointResource):
                     "in": "body",
                     "description": "Criteria for scheduled data extraction.",
                     "schema": {"$ref": "#/definitions/DataScheduling"},
-                },
-                {
-                    "name": "push",
-                    "in": "query",
-                    "description": "Enable push notification",
-                    "type": "boolean",
-                    "default": False,
-                    "allowEmptyValue": True,
                 },
             ],
             "responses": {
@@ -147,7 +111,8 @@ class Schedules(EndpointResource):
 
     @decorators.catch_errors()
     @decorators.auth.required()
-    def post(self):
+    @use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
+    def post(self, push=False):
         user = self.get_user()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
         criteria = self.get_input()
@@ -272,14 +237,6 @@ class Schedules(EndpointResource):
                 data_ready = True
             # what if reftime is None?
 
-        push = criteria.get("push")
-        if isinstance(push, str) and (push.lower() == "true"):
-            push = True
-        elif type(push) == bool:
-            # do nothing
-            pass
-        else:
-            push = False
         # get queue for pushing notifications
         pushing_queue = None
         if push:
@@ -451,10 +408,24 @@ class Schedules(EndpointResource):
     @decorators.catch_errors()
     @decorators.get_pagination
     @decorators.auth.required()
-    def get(self, schedule_id=None, get_total=None, page=None, size=None):
-        param = self.get_input()
-        sort = param.get("sort-by")
-        sort_order = param.get("sort-order")
+    @use_kwargs(
+        {
+            "sort_order": fields.Str(
+                validate=validate.OneOf(["asc", "desc"]), required=False
+            ),
+            "sort_by": fields.Str(required=False),
+        },
+        locations=["query"],
+    )
+    def get(
+        self,
+        schedule_id=None,
+        get_total=None,
+        page=None,
+        size=None,
+        sort_order=None,
+        sort_by=None,
+    ):
 
         user = self.get_user()
 
@@ -471,7 +442,7 @@ class Schedules(EndpointResource):
                 return self.response({"total": counter})
             # get user requests list
             res = RequestManager.get_user_schedules(
-                db, user.id, sort_by=sort, sort_order=sort_order
+                db, user.id, sort_by=sort_by, sort_order=sort_order
             )
 
         return self.response(res, code=hcodes.HTTP_OK_BASIC)
@@ -613,22 +584,6 @@ class ScheduledRequests(EndpointResource):
     _GET = {
         "/schedules/<schedule_id>/requests": {
             "summary": "Get requests related to a given schedule.",
-            "parameters": [
-                {
-                    "name": "get_total",
-                    "in": "query",
-                    "description": "Retrieve total number of requests",
-                    "type": "boolean",
-                    "default": False,
-                },
-                {
-                    "name": "last",
-                    "in": "query",
-                    "description": "retrieve only the last submitted request",
-                    "type": "boolean",
-                    "allowEmptyValue": True,
-                },
-            ],
             "responses": {
                 "200": {
                     "description": "List of requests for a given schedule.",
@@ -642,23 +597,17 @@ class ScheduledRequests(EndpointResource):
 
     @decorators.catch_errors()
     @decorators.auth.required()
-    def get(self, schedule_id):
+    @use_kwargs(
+        {"get_total": fields.Bool(required=False), "last": fields.Bool(required=False)},
+        locations=["query"],
+    )
+    def get(self, schedule_id, get_total=False, last=True):
         """
         Get all submitted requests for this schedule
         :param schedule_id:
         :return:
         """
         log.debug("get scheduled requests")
-        param = self.get_input()
-        get_total = param.get("get_total", False)
-        last = param.get("last")
-        if isinstance(last, str) and (last == "" or last.lower() == "true"):
-            last = True
-        elif type(last) == bool:
-            # do nothing
-            pass
-        else:
-            last = False
 
         db = self.get_service_instance("sqlalchemy")
 

@@ -1,5 +1,7 @@
 import json
 
+from flask_apispec import use_kwargs
+from marshmallow import fields, validate
 from mistral.services.requests_manager import RequestManager as repo
 from restapi import decorators
 from restapi.exceptions import RestApiException
@@ -17,21 +19,6 @@ class UserRequests(EndpointResource):
     _GET = {
         "/requests": {
             "summary": "Get requests filtered by uuid.",
-            "parameters": [
-                {
-                    "name": "sort-order",
-                    "in": "query",
-                    "description": "sort order",
-                    "type": "string",
-                    "enum": ["asc", "desc"],
-                },
-                {
-                    "name": "sort-by",
-                    "in": "query",
-                    "description": "params to sort requests",
-                    "type": "string",
-                },
-            ],
             "responses": {
                 "200": {
                     "description": "List of requests of an user",
@@ -58,7 +45,24 @@ class UserRequests(EndpointResource):
     @decorators.catch_errors()
     @decorators.get_pagination
     @decorators.auth.required()
-    def get(self, request_id=None, get_total=None, page=None, size=None):
+    @use_kwargs(
+        {
+            "sort_order": fields.Str(
+                validate=validate.OneOf(["asc", "desc"]), required=False
+            ),
+            "sort_by": fields.Str(required=False),
+        },
+        locations=["query"],
+    )
+    def get(
+        self,
+        request_id=None,
+        get_total=None,
+        page=None,
+        size=None,
+        sort_order=None,
+        sort_by=None,
+    ):
 
         user = self.get_user()
 
@@ -72,7 +76,7 @@ class UserRequests(EndpointResource):
         log.debug("paging: page {0}, size {1}", page, size)
 
         # get user requests list
-        # res = repo.get_user_requests(db, user.id, sort_by=sort, sort_order=sort_order)
+        # res = repo.get_user_requests(db, user.id, sort_by=sort_by, sort_order=sort_order)
         data = []
         requests = (
             db.Request.query.filter_by(user_id=user.id)

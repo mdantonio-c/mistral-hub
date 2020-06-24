@@ -1,9 +1,13 @@
 import copy
 import os
+from collections import OrderedDict
 
 from flask import send_file
+from flask_apispec import use_kwargs
+from marshmallow import fields, validate
 from restapi import decorators
 from restapi.exceptions import RestApiException
+from restapi.models import InputSchema
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -32,114 +36,45 @@ PLATFORMS = ["GALILEO", "MEUCCI"]
 ENVS = ["PROD", "DEV"]
 
 
-def validate_meteo_params(params):
-    if "run" not in params or params["run"] not in RUNS:
-        raise RestApiException(
-            f"Please specify a valid run. Expected one of {RUNS}",
-            status_code=hcodes.HTTP_BAD_REQUEST,
-        )
-    # TODO validate parameters
-
-
-def set_platform_optional(params):
-    for d in params:
-        if d["name"] == "platform":
-            d["required"] = False
-    return params
-
-
 def check_platform_availability(platform):
     return os.access(os.path.join(MEDIA_ROOT, platform), os.X_OK)
 
 
+def get_schema(set_required):
+    attributes = OrderedDict()
+    attributes["run"] = fields.Str(validate=validate.OneOf(RUNS), required=True)
+    attributes["res"] = fields.Str(validate=validate.OneOf(RESOLUTIONS), required=True)
+    attributes["field"] = fields.Str(validate=validate.OneOf(FIELDS), required=True)
+    attributes["area"] = fields.Str(validate=validate.OneOf(AREAS), required=True)
+    attributes["platform"] = fields.Str(
+        validate=validate.OneOf(PLATFORMS), required=set_required
+    )
+    attributes["level_pe"] = fields.Str(
+        validate=validate.OneOf(LEVELS_PE), required=False
+    )
+    attributes["level_pr"] = fields.Str(
+        validate=validate.OneOf(LEVELS_PR), required=False
+    )
+    attributes["env"] = fields.Str(validate=validate.OneOf(ENVS), required=False)
+
+    schema = InputSchema.from_dict(attributes)
+    return schema()
+
+
 class MapEndpoint(EndpointResource):
-
-    __meteo_params__ = [
-        {
-            "name": "run",
-            "in": "query",
-            "required": True,
-            "type": "string",
-            "enum": RUNS,
-            "description": "Execution of the forecast model",
-        },
-        {
-            "name": "res",
-            "in": "query",
-            "required": True,
-            "type": "string",
-            "enum": RESOLUTIONS,
-            "description": "Resolution of the forecast model",
-        },
-        {
-            "name": "field",
-            "in": "query",
-            "required": True,
-            "type": "string",
-            "enum": FIELDS,
-            "description": "Forecast parameter (e.g. temperature, humidity etc.)",
-        },
-        {
-            "name": "level_pe",
-            "in": "query",
-            "required": False,
-            "type": "string",
-            "enum": LEVELS_PE,
-            "description": "Flash flood percentile level (1, 10, 25, 50, 75, 99)",
-        },
-        {
-            "name": "level_pr",
-            "in": "query",
-            "required": False,
-            "type": "string",
-            "enum": LEVELS_PR,
-            "description": "Flash flood probability level (5, 10, 20, 50)",
-        },
-        {
-            "name": "area",
-            "in": "query",
-            "required": True,
-            "type": "string",
-            "enum": AREAS,
-            "description": "Forecast area",
-        },
-        {
-            "name": "platform",
-            "in": "query",
-            "required": True,
-            "type": "string",
-            "enum": PLATFORMS,
-            "description": "HPC cluster",
-        },
-        {
-            "name": "env",
-            "in": "query",
-            "default": "PROD",
-            "type": "string",
-            "enum": ENVS,
-            "description": "Execution environment",
-        },
-    ]
-
     def __init__(self):
         super().__init__()
         self.base_path = None
 
-    def set_base_path(self, params):
+    def set_base_path(self, field, platform, env, run, res):
         # flood fields have a different path
-        if (params["field"] == "percentile") or (params["field"] == "probability"):
+        if (field == "percentile") or (field == "probability"):
             self.base_path = os.path.join(
-                MEDIA_ROOT,
-                params["platform"],
-                params["env"],
-                "PROB-{}-2.2.web".format(params["run"]),
+                MEDIA_ROOT, platform, env, f"PROB-{run}-2.2.web",
             )
         else:
             self.base_path = os.path.join(
-                MEDIA_ROOT,
-                params["platform"],
-                params["env"],
-                "Magics-{}-{}.web".format(params["run"], params["res"]),
+                MEDIA_ROOT, platform, env, f"Magics-{run}-{res}.web",
             )
         log.debug(f"base_path: {self.base_path}")
 
@@ -171,7 +106,6 @@ class MapImage(MapEndpoint):
     _GET = {
         "/maps/<map_offset>": {
             "summary": "Get a forecast map for a specific run.",
-            "parameters": MapEndpoint.__meteo_params__,
             "responses": {
                 "200": {"description": "Map successfully retrieved"},
                 "400": {"description": "Invalid parameters"},
@@ -184,41 +118,51 @@ class MapImage(MapEndpoint):
         super().__init__()
 
     @decorators.catch_errors()
-    def get(self, map_offset):
+    @use_kwargs(get_schema(True), code=200)
+    def get(
+        self,
+        map_offset,
+        run,
+        res,
+        field,
+        area,
+        platform,
+        level_pe=None,
+        level_pr=None,
+        env="PROD",
+    ):
         """Get a forecast map for a specific run."""
-        params = self.get_input()
-        # validate_meteo_params(params)
         # log.debug('Retrieve map image by offset <{}>'.format(map_offset))
 
         # flash flood offset is a bit more complicate
-        if params["field"] == "percentile":
-            map_offset = "_".join((map_offset, params["level_pe"]))
-        elif params["field"] == "probability":
-            map_offset = "_".join((map_offset, params["level_pr"]))
+        if field == "percentile":
+            map_offset = "_".join((map_offset, level_pe))
+        elif field == "probability":
+            map_offset = "_".join((map_offset, level_pr))
 
         log.debug(f"Retrieve map image by offset <{map_offset}>")
 
-        self.set_base_path(params)
+        self.set_base_path(field, platform, env, run, res)
 
         # Check if the images are ready: 2017112900.READY
-        ready_file = self.get_ready_file(params["area"])
+        ready_file = self.get_ready_file(area)
         reftime = ready_file[:10]
 
         # get map image
-        if params["field"] == "percentile":
+        if field == "percentile":
             map_image_file = os.path.join(
                 self.base_path,
-                params["area"],
-                params["field"],
+                area,
+                field,
                 "{field}.{reftime}.{offset}.png".format(
                     field="perc6", reftime=reftime, offset=map_offset
                 ),
             )
-        elif params["field"] == "probability":
+        elif field == "probability":
             map_image_file = os.path.join(
                 self.base_path,
-                params["area"],
-                params["field"],
+                area,
+                field,
                 "{field}.{reftime}.{offset}.png".format(
                     field="prob6", reftime=reftime, offset=map_offset
                 ),
@@ -226,10 +170,10 @@ class MapImage(MapEndpoint):
         else:
             map_image_file = os.path.join(
                 self.base_path,
-                params["area"],
-                params["field"],
+                area,
+                field,
                 "{field}.{reftime}.{offset}.png".format(
-                    field=params["field"], reftime=reftime, offset=map_offset
+                    field=field, reftime=reftime, offset=map_offset
                 ),
             )
 
@@ -247,9 +191,6 @@ class MapSet(MapEndpoint):
     _GET = {
         "/maps/ready": {
             "summary": "Get the last available map set for a specific run returning the reference time as well.",
-            "parameters": set_platform_optional(
-                copy.deepcopy(MapEndpoint.__meteo_params__)
-            ),
             "responses": {
                 "200": {
                     "description": "Map set successfully retrieved",
@@ -265,50 +206,59 @@ class MapSet(MapEndpoint):
         super().__init__()
 
     @decorators.catch_errors()
-    def get(self):
+    @use_kwargs(get_schema(False), code=200)
+    def get(
+        self,
+        run,
+        res,
+        field,
+        area,
+        platform=None,
+        level_pe=None,
+        level_pr=None,
+        env="PROD",
+    ):
         """
         Get the last available map set for a specific run returning the reference time as well.
         """
-        # includes pre-set defaults
-        params = self.get_input()
-        # validate_meteo_params(params)
-        log.debug("Retrieve map set for last run <{}>".format(params["run"]))
+
+        log.debug(f"Retrieve map set for last run <{run}>")
 
         # only admin user can request for a specific platform
-        if params.get("platform") is not None and not self.verify_admin():
-            params["platform"] = None
+        if platform is not None and not self.verify_admin():
+            platform = None
 
         # if PLATFORM is not provided, set as default the first available in the order: GALILEO, MEUCCI
-        if "platform" not in params or params["platform"] is None:
+        if not platform:
             platforms_to_be_check = PLATFORMS
         else:
-            platforms_to_be_check = [params["platform"]]
+            platforms_to_be_check = [platform]
         for platform in platforms_to_be_check:
             if not check_platform_availability(platform):
                 log.warning(f"platform {platform} not available")
                 continue
             else:
-                params["platform"] = platform
+                platform = platform
                 break
         else:
             raise RestApiException(
                 "Map service is currently unavailable", hcodes.HTTP_SERVICE_UNAVAILABLE
             )
 
-        self.set_base_path(params)
+        self.set_base_path(field, platform, env, run, res)
 
         # Check if the images are ready: 2017112900.READY
-        ready_file = self.get_ready_file(params["area"])
+        ready_file = self.get_ready_file(area)
         reftime = ready_file[:10]
 
-        data = {"reftime": reftime, "offsets": [], "platform": params["platform"]}
+        data = {"reftime": reftime, "offsets": [], "platform": platform}
 
         # load image offsets
-        images_path = os.path.join(self.base_path, params["area"], params["field"])
+        images_path = os.path.join(self.base_path, area, field)
 
         list_file = sorted(os.listdir(images_path))
 
-        if params["field"] == "percentile" or params["field"] == "probability":
+        if field == "percentile" or field == "probability":
             # flash flood offset is a bit more complicate
             for f in list_file:
                 if os.path.isfile(os.path.join(images_path, f)):
@@ -318,11 +268,9 @@ class MapSet(MapEndpoint):
                     # log.debug('data offsets: {}, level: {}'.format(offset,level))
                     # log.debug('level_pe: {}, level_pr: {}'.format(params['level_pe'],params['level_pr']))
 
-                    if params["field"] == "percentile" and params["level_pe"] == level:
+                    if field == "percentile" and level_pe == level:
                         data["offsets"].append(offset)
-                    elif (
-                        params["field"] == "probability" and params["level_pr"] == level
-                    ):
+                    elif field == "probability" and level_pr == level:
                         data["offsets"].append(offset)
         else:
             data["offsets"] = [
@@ -341,7 +289,6 @@ class MapLegend(MapEndpoint):
     _GET = {
         "/maps/legend": {
             "summary": "Get a specific forecast map legend.",
-            "parameters": MapEndpoint.__meteo_params__,
             "responses": {
                 "200": {"description": "Legend successfully retrieved"},
                 "400": {"description": "Invalid parameters"},
@@ -354,31 +301,31 @@ class MapLegend(MapEndpoint):
         super().__init__()
 
     @decorators.catch_errors()
-    def get(self):
+    @use_kwargs(get_schema(True), code=200)
+    def get(
+        self, run, res, field, area, platform, level_pe=None, level_pr=None, env="PROD"
+    ):
         """Get a forecast legend for a specific run."""
-        params = self.get_input()
-        # validate_meteo_params(params)
         # NOTE: 'area' param is not strictly necessary here although present among the parameters of the request
         log.debug(
             "Retrieve legend for run <{run}, {res}, {field}>".format(
-                run=params["run"], res=params["res"], field=params["field"]
+                run=run, res=res, field=field
             )
         )
 
-        self.set_base_path(params)
+        self.set_base_path(field, platform, env, run, res)
 
         # Get legend image
         legend_path = os.path.join(self.base_path, "legends")
-        if params["field"] == "percentile":
+        if field == "percentile":
             map_legend_file = os.path.join(legend_path, "perc6" + ".png")
-        elif params["field"] == "probability":
+        elif field == "probability":
             map_legend_file = os.path.join(legend_path, "prob6" + ".png")
         else:
-            map_legend_file = os.path.join(legend_path, params["field"] + ".png")
+            map_legend_file = os.path.join(legend_path, field + ".png")
         log.debug(map_legend_file)
         if not os.path.isfile(map_legend_file):
             raise RestApiException(
-                "Map legend not found for field <{}>".format(params["field"]),
-                hcodes.HTTP_BAD_NOTFOUND,
+                f"Map legend not found for field <{field}>", hcodes.HTTP_BAD_NOTFOUND,
             )
         return send_file(map_legend_file, mimetype="image/png")
