@@ -275,7 +275,7 @@ class MapSet(MapEndpoint):
         log.debug("Retrieve map set for last run <{}>".format(params["run"]))
 
         # only admin user can request for a specific platform
-        if params.get("platform") is not None and not self.auth.verify_admin():
+        if params.get("platform") is not None and not self.verify_admin():
             params["platform"] = None
 
         # if PLATFORM is not provided, set as default the first available in the order: GALILEO, MEUCCI
