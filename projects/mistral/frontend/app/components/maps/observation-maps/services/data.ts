@@ -88,7 +88,10 @@ export const TIME_RANGES: CodeDescPair[] = [
     {code:"205,0,600", desc:"Product with a valid time ranging over 10m at forecast time 0"}
 ];
 
-export const LICENSES = ['CC-BY', 'ODL'];
+export const LICENSES: CodeDescPair[] = [
+    {code: "CC-BY", desc: "CC-BY compliant"},
+    // {code: "ODL", desc: "ODL"}
+];
 
 export const COLORS = ['3030ff','007885','00855D','0D8500','478500','788500','853C00','850000'];
 

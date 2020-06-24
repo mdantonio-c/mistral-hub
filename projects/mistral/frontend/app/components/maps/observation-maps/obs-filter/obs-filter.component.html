@@ -63,9 +63,9 @@
     </div>
     <!-- License -->
     <div class="form-group">
-        <label for="license">License</label>
+        <label for="license">Group of Licenses</label>
         <select id="license" class="form-control" formControlName="license">
-            <option [value]="l" *ngFor="let l of allLicenses">{{l}}</option>
+            <option [value]="l.code" *ngFor="let l of allLicenses">{{l.desc}}</option>
         </select>
     </div>
 

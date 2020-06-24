@@ -6,7 +6,7 @@
     <li class='nav-item' *ngIf="user">
         <a class='nav-link' routerLink='app/requests' routerLinkActive="active">My Requests</a>
     </li>
-    <li class='nav-item' *ngIf="user" ngbDropdown>
+    <li class='nav-item' *ngIf="user; else notLogged" ngbDropdown>
         <a class='nav-link' style="cursor: pointer" ngbDropdownToggle id="navbarDropdownMapsLink"
            role="button">
             Maps
@@ -18,6 +18,11 @@
             <a ngbDropdownItem routerLink='/app/maps/meteotiles' routerLinkActive="active">Multi-layer Map</a>
         </div>
     </li>
+    <ng-template #notLogged>
+       <li class='nav-item'>
+        <a class='nav-link' routerLink='/app/maps/forecasts' routerLinkActive="active">Maps</a>
+       </li>
+    </ng-template>
 	<li class='nav-item' *ngIf="user && (user.isAdmin || user.isGroupAdmin)">
 		<a class='nav-link' routerLink="/app/admin/users" routerLinkActive="active">
 			Users

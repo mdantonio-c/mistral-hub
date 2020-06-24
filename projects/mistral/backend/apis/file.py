@@ -37,7 +37,7 @@ class FileDownload(EndpointResource):
         if not RequestManager.check_fileoutput(db, user, filename, DOWNLOAD_DIR):
             raise NotFound("File not found")
 
-        user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
+        user_dir = os.path.join(DOWNLOAD_DIR, user.uuid, "outputs")
         log.info("directory: {}", user_dir)
         # download the file as a response attachment
         return send_from_directory(user_dir, filename, as_attachment=True)
