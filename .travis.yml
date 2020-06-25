@@ -2,43 +2,42 @@ os: linux
 dist: bionic
 language: python
 python:
-- 3.8
+  - 3.8
 services:
-- docker
+  - docker
 
 install:
-- pip install --upgrade git+https://github.com/rapydo/do.git@0.7.4
-- TESTING=1 rapydo init
+  - pip install --upgrade git+https://github.com/rapydo/do.git@0.7.4
+  - TESTING=1 rapydo init
 
 jobs:
   include:
-
-    - script: wget --quiet $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf &&
-              wget --quiet $DATASET_URL/sample.bufr -O data/arkimet_conf/sample.bufr &&
-              wget --quiet $DATASET_URL/arkimet.zip &&
-              unzip -q arkimet.zip -d data/ &&
-              ls data/arkimet &&              
-              rapydo pull &&
-              rapydo start &&
-              rapydo shell backend --command 'restapi wait' &&
-              echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh &&
-              echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" >> init.sh &&
-              docker cp init.sh mistral_backend_1:/tmp/init.sh &&
-              rapydo shell backend --command 'bash /tmp/init.sh' &&
-              rapydo shell backend --command 'restapi tests --wait' &&
-              docker cp mistral_backend_1:/code/coverage.xml coverage.xml && 
-              bash <(curl -s https://codecov.io/bash)
-
+    - script:
+        wget --quiet $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf &&
+        wget --quiet $DATASET_URL/sample.bufr -O data/arkimet_conf/sample.bufr &&
+        wget --quiet $DATASET_URL/arkimet.zip &&
+        unzip -q arkimet.zip -d data/ &&
+        ls data/arkimet &&
+        rapydo pull &&
+        rapydo start &&
+        rapydo shell backend --command 'restapi wait' &&
+        echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh &&
+        echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" >> init.sh &&
+        docker cp init.sh mistral_backend_1:/tmp/init.sh &&
+        rapydo shell backend --command 'bash /tmp/init.sh' &&
+        rapydo shell backend --command 'restapi tests --wait' &&
+        docker cp mistral_backend_1:/code/coverage.xml coverage.xml &&
+        bash <(curl -s https://codecov.io/bash)
       env:
-      - STAGE=BACKEND
+        - STAGE=BACKEND
 
     - script: rapydo -s frontend pull &&
-              rapydo dump &&
-              docker-compose up --exit-code-from frontend frontend &&
-              cp data/mistral/karma/lcov.info . &&
-              bash <(curl -s https://codecov.io/bash)
+        rapydo dump &&
+        docker-compose up --exit-code-from frontend frontend &&
+        cp data/mistral/karma/lcov.info . &&
+        bash <(curl -s https://codecov.io/bash)
       env:
-      - STAGE=FRONTEND
+        - STAGE=FRONTEND
 
 notifications:
   email: true
