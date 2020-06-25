@@ -2,6 +2,8 @@ import copy
 import os
 
 from flask import send_file
+from flask_apispec import use_kwargs
+from marshmallow import fields, validate
 from restapi import decorators
 from restapi.exceptions import RestApiException
 from restapi.rest.definition import EndpointResource
@@ -19,24 +21,6 @@ class TilesEndpoint(EndpointResource):
     _GET = {
         "/tiles": {
             "summary": "Get the last available tiled map set as a reference time.",
-            "parameters": [
-                {
-                    "name": "run",
-                    "in": "query",
-                    "required": True,
-                    "type": "string",
-                    "enum": RUNS,
-                    "description": "Execution of the forecast model",
-                },
-                {
-                    "name": "res",
-                    "in": "query",
-                    "required": True,
-                    "type": "string",
-                    "enum": RESOLUTIONS,
-                    "description": "Resolution of the forecast model",
-                },
-            ],
             "responses": {
                 "200": {"description": "Tiled map successfully retrieved"},
                 "400": {"description": "Invalid parameters"},
@@ -50,15 +34,20 @@ class TilesEndpoint(EndpointResource):
         self.base_path = None
 
     @decorators.catch_errors()
-    def get(self):
-        params = self.get_input()
+    @use_kwargs(
+        {
+            "run": fields.Str(validate=validate.OneOf(RUNS), required=True),
+            "res": fields.Str(validate=validate.OneOf(RESOLUTIONS), required=True),
+        },
+        locations=["query"],
+    )
+    def get(self, run, res):
         # TODO validate params
         # e.g. Tiles-00-lm2.2.web
-        run = params["run"] if "run" in params else "00"
         self.base_path = os.path.join(
-            MEDIA_ROOT, "GALILEO", "PROD", "Tiles-{}-{}.web".format(run, params["res"])
+            MEDIA_ROOT, "GALILEO", "PROD", f"Tiles-{run}-{res}.web"
         )
-        area = "Italia" if params["res"] == "lm2.2" else "Area_Mediterranea"
+        area = "Italia" if res == "lm2.2" else "Area_Mediterranea"
         ready_file = self._get_ready_file(area)
 
         data = {"reftime": ready_file[:10], "platform": "GALILEO"}

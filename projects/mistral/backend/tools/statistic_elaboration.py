@@ -86,6 +86,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
     if os.path.exists(file_not_for_pp):
         fileouput_to_join.append(file_not_for_pp)
     # postprocess each file coming from the splitted input
+    check_input_for_pp = False
     for tr in trs:
         p = next(
             item
@@ -94,15 +95,32 @@ def pp_statistic_elaboration(params, input, output, fileformat):
         )
         splitted_input = filebase + f"_%d_%d.{fileformat}.tmp" % tr
         tmp_output = filebase + f"_%d_%d_result.{fileformat}.tmp" % tr
-        pp_output = run_statistic_elaboration(
-            params=p, input=splitted_input, output=tmp_output, fileformat=fileformat
-        )
-        fileouput_to_join.append(pp_output)
+        if os.path.exists(splitted_input):
+            pp_output = run_statistic_elaboration(
+                params=p, input=splitted_input, output=tmp_output, fileformat=fileformat
+            )
+            log.debug("output: {}", pp_output)
+            fileouput_to_join.append(pp_output)
+            check_input_for_pp = True
 
     # join all the fileoutput
     cat_cmd = ["cat"]
+    # check if there are some postprocessed files
+    if not check_input_for_pp:
+        message = "Error in post-processing: Timeranges for statistic elaboration not found in the requested data"
+        log.warning(message)
+        raise PostProcessingException(message)
+
+    check_fileoutput_exists = False
     for f in fileouput_to_join:
-        cat_cmd.append(f)
+        if os.path.exists(f):
+            check_fileoutput_exists = True
+            cat_cmd.append(f)
+    if not check_fileoutput_exists:
+        message = "Error in post-processing: no results"
+        log.warning(message)
+        raise PostProcessingException(message)
+
     with open(output, mode="w") as outfile:
         ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
         ext_proc.wait()
@@ -144,6 +162,7 @@ def run_statistic_elaboration(params, input, output, fileformat):
 
         proc = subprocess.Popen(post_proc_cmd)
         # wait for the process to terminate
+        log.debug("post process exit code : {}", proc.wait())
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
         else:

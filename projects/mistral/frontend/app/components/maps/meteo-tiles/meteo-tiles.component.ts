@@ -113,7 +113,8 @@ export class MeteoTilesComponent {
 
         }, error => {
             this.notify.showError(error);
-        }).add(() => {
+	}).add(() => {
+            map.invalidateSize();
             this.spinner.hide();
         });
     }

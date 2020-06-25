@@ -4,13 +4,23 @@ import subprocess
 from zipfile import ZipFile
 
 from flask import request
+from flask_apispec import use_kwargs
+from marshmallow import fields, validate
 from restapi import decorators
 from restapi.confs import UPLOAD_PATH
 from restapi.exceptions import RestApiException
+from restapi.models import InputSchema
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
+
+
+class TemplatesFormatter(InputSchema):
+    format = fields.Str(validate=validate.OneOf(["grib", "shp"]), required=False)
+    perpage = fields.Integer(required=False)
+    currentpage = fields.Integer(required=False)
+    get_total = fields.Bool(required=False)
 
 
 class Templates(EndpointResource, Uploader):
@@ -44,34 +54,6 @@ class Templates(EndpointResource, Uploader):
                     "description": "This endpoint requires a valid authorization token"
                 },
             },
-            "parameters": [
-                {
-                    "name": "format",
-                    "in": "query",
-                    "description": "format to filter the templates",
-                    "type": "string",
-                    "enum": ["grib", "shp"],
-                },
-                {
-                    "name": "perpage",
-                    "in": "query",
-                    "description": "Number of files returned",
-                    "type": "integer",
-                },
-                {
-                    "name": "currentpage",
-                    "in": "query",
-                    "description": "Page number",
-                    "type": "integer",
-                },
-                {
-                    "name": "get_total",
-                    "in": "query",
-                    "description": "Retrieve total number of templates",
-                    "type": "boolean",
-                    "default": False,
-                },
-            ],
         },
     }
     _POST = {
@@ -185,10 +167,16 @@ class Templates(EndpointResource, Uploader):
 
     @decorators.catch_errors()
     @decorators.auth.required()
-    def get(self, template_name=None):
-        param = self.get_input()
-        format_filter = param.get("format")
-        get_total = param.get("get_total", False)
+    @use_kwargs(TemplatesFormatter)
+    def get(
+        self,
+        template_name=None,
+        format=None,
+        perpage=None,
+        currentpage=None,
+        get_total=False,
+    ):
+
         if not get_total:
             page, limit = self.get_paging()
             # offset = (current_page - 1) * limit
@@ -221,9 +209,9 @@ class Templates(EndpointResource, Uploader):
             )
             # get total count for user templates
             if get_total:
-                if format_filter == "grib":
+                if format == "grib":
                     counter = len(grib_templates)
-                elif format_filter == "shp":
+                elif format == "shp":
                     counter = len(shp_templates)
                 else:
                     counter = len(grib_templates) + len(shp_templates)
@@ -239,9 +227,9 @@ class Templates(EndpointResource, Uploader):
             shp_object["files"] = []
             for t in shp_templates:
                 shp_object["files"].append(t)
-            if format_filter == "grib":
+            if format == "grib":
                 res.append(grib_object)
-            elif format_filter == "shp":
+            elif format == "shp":
                 res.append(shp_object)
             else:
                 res.append(grib_object)

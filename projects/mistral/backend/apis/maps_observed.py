@@ -1,5 +1,5 @@
-from flask_apispec import MethodResource, use_kwargs
-from marshmallow import fields, validate
+from flask_apispec import use_kwargs
+from marshmallow import fields
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
@@ -25,7 +25,7 @@ class ObservationsQuery(InputSchema):
 class MapsObservations(EndpointResource):
     # schema_expose = True
     labels = ["maps-observations"]
-    GET = {
+    _GET = {
         "/observations": {
             "summary": "Get values of observed parameters",
             "responses": {
