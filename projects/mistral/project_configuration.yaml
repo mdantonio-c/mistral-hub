@@ -7,7 +7,6 @@ project:
 
 variables:
   env:
-
     # BACKEND_BUILD_MODE: backendcentos
     # PYTHON_PATH: /usr/local/lib/python3.6/dist-packages
     FRONTEND_FRAMEWORK: angular
@@ -22,7 +21,7 @@ variables:
     # ALCHEMY_PASSWORD: chooseapasswordwisely
     ALCHEMY_API_DB: SQL_API
     ALCHEMY_ENGINE: postgresql
-    ALCHEMY_DBS: 'SQL_API DBALLE'
+    ALCHEMY_DBS: "SQL_API DBALLE"
 
     ACTIVATE_MONGODB: 1
     ACTIVATE_RABBIT: 1
@@ -31,7 +30,7 @@ variables:
     ACTIVATE_CELERYBEAT: 1
 
     ALLOW_ACCESS_TOKEN_PARAMETER: True
-    ALLOW_PASSWORD_RESET: 'true'
+    ALLOW_PASSWORD_RESET: "true"
     UPLOAD_PATH: /data
 
     CELERY_BACKEND: MONGODB
@@ -44,6 +43,7 @@ variables:
 
     CORS_ALLOW_ALL_ORIGINS: 1
     SET_CSP_IMG_SRC: https://c.tile.openstreetmap.org
+    SET_CSP_FONT_SRC: https://netdna.bootstrapcdn.com
 
   backend:
     credentials:
