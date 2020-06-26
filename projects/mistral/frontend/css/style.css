@@ -624,20 +624,20 @@ input[type=number]::-webkit-outer-spin-button {
 .carousel-inner .active {
   opacity: 1;
 }
-.legend {
+.legenda {
   padding: 6px 12px;
   font: 12px Arial, Helvetica, sans-serif;
   background: white;
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   border-radius: 5px;
-  line-height: 13px;
+  line-height: 6px;
   color: #555;
 }
 
-.legend i {
+.legenda i {
   width: 16px;
-  height: 12px;
+  height: 6px;
   line-height: 13px;
   float: left;
   margin-right: 8px;
@@ -651,13 +651,13 @@ input[type=number]::-webkit-outer-spin-button {
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   border-radius: 5px;
-  line-height: 12px;
+  line-height: 7px;
   color: #555;
 }
 
 .legend_t2m i {
   width: 16px;
-  height: 12px;
+  height: 6px;
   float: left;
   margin-right: 8px;
   opacity: 0.7;
@@ -669,64 +669,65 @@ input[type=number]::-webkit-outer-spin-button {
     background: rgba(255, 255, 255, 0.8);
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     border-radius: 5px;
-    line-height: 12px;
+    line-height: 14px;
     color: #555;
 }
 
 .legend_prec i {
-  width: 20px;
-    height: 12px;
+  width: 16px;
+    height: 13px;
     float: left;
     margin-right: 8px;
     opacity: 0.7;
 }
 .legend_cc {
   padding: 6px 6px;
-    font: 12px Arial, Helvetica, sans-serif;
-    background: white;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    line-height: 18px;
-    color: #555;
-}
-.legend_cc i {
-  width: 20px;
-    height: 18px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.7;
-}
-.legend_rh {
-  padding: 6px 12px;
     font: 15px Arial, Helvetica, sans-serif;
     background: white;
     background: rgba(255, 255, 255, 0.8);
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     border-radius: 5px;
-    line-height: 20.833px;
+    line-height: 40px;
+    color: #555;
+}
+.legend_cc i {
+  width: 16px;
+    height: 39px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+.legend_rh {
+  padding: 6px 6px;
+    font: 15px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    line-height: 40px;
     color: #555;
 }
 .legend_rh i {
-  width: 20px;
-    height: 20.833px;
+  width: 16px;
+    height: 39px;
     float: left;
     margin-right: 8px;
     opacity: 0.7;
 }
 .legend_sf {
-  padding: 6px 10px;
+  padding: 6px 6px;
     font: 12px Arial, Helvetica, sans-serif;
     background: white;
     background: rgba(255, 255, 255, 0.8);
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     border-radius: 5px;
-    line-height: 6.25px;
+    line-height: 13px;
     color: #555;
 }
+
 .legend_sf i {
-  width: 20px;
-    height: 6.25px;
+  width: 16px;
+    height: 12px;
     float: left;
     margin-right: 8px;
     opacity: 0.7;

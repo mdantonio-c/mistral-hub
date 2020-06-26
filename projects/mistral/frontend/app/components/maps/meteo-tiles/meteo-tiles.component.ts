@@ -216,14 +216,17 @@ export class MeteoTilesComponent {
     }
 
     private createLegendControl(id: string): L.Control {
+      
         let config: LegendConfig = LEGEND_DATA.find(x => x.id === id);
+
         if (!config) {
             this.notify.showError('Bad legend configuration');
             return;
         }
+
         const legend = new L.Control({position: this.LEGEND_POSITION});
         legend.onAdd = () => {
-            let div = L.DomUtil.create("div", "legend");
+            let div = L.DomUtil.create("div", config.legend_type);
             div.style.clear = "unset";
             div.innerHTML += `<h6>${config.title}</h6>`;
             for (let i = 0; i < config.labels.length; i++) {
