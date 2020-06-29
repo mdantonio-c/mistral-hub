@@ -1,16 +1,14 @@
 import itertools
 import os
-import shlex
 import subprocess
 import tempfile
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
+import arkimet as arki
 import dateutil
 import dballe
-from mistral.exceptions import AccessToDatasetDenied
-from mistral.services.arkimet import DATASET_ROOT
-from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.arkimet import BeArkimet as arki_service
 from restapi.utilities.logs import log
 
 user = os.environ.get("ALCHEMY_USER")
@@ -165,7 +163,7 @@ class BeDballe:
             query_for_arki["datetimemax"] = refmax_arki
         else:
             # get retime min and max for arkimet datasets
-            arki_summary = arki.load_summary(datasets)
+            arki_summary = arki_service.load_summary(datasets)
             query_for_arki["datetimemin"] = datetime(
                 *arki_summary["items"]["summarystats"]["b"]
             )
@@ -255,13 +253,13 @@ class BeDballe:
                 if query:
                     if "license" in query.keys():
                         license = query["license"]
-                datasets = arki.get_obs_datasets(arkimet_query, license)
+                datasets = arki_service.get_obs_datasets(arkimet_query, license)
                 if not datasets:
                     # any dataset matches the query
                     return None, None
                 # TODO managing check for unique license: it will be substituted by a dsn management?
 
-            datasize = arki.estimate_data_size(datasets, arkimet_query)
+            datasize = arki_service.estimate_data_size(datasets, arkimet_query)
             if datasize == 0:
                 return None, None
             else:
@@ -370,7 +368,7 @@ class BeDballe:
             if summary_stats:
                 summary["c"] = BeDballe.count_messages(params, query, memdb)
                 if arkimet_query:
-                    arki_summary = arki.load_summary(datasets, arkimet_query)
+                    arki_summary = arki_service.load_summary(datasets, arkimet_query)
                     summary["b"] = arki_summary["items"]["summarystats"]["b"]
                     summary["e"] = arki_summary["items"]["summarystats"]["e"]
                 else:
@@ -723,14 +721,14 @@ class BeDballe:
                 if "license" in query.keys():
                     license = query["license"]
             # get the correct arkimet dataset
-            datasets = arki.get_obs_datasets(query_for_arkimet, license)
+            datasets = arki_service.get_obs_datasets(query_for_arkimet, license)
 
             if not datasets:
                 return response
 
             # check datasets license,
             # TODO se non passa il check il frontend lancerà un messaggio del tipo: 'dati con licenze diverse, prego sceglierne una'
-            # check_license = arki.get_unique_license(
+            # check_license = arki_service.get_unique_license(
             #     datasets
             # )  # the exception raised by this function is enough?
             log.debug("datasets: {}", datasets)
@@ -1230,18 +1228,20 @@ class BeDballe:
     @staticmethod
     def fill_db_from_arkimet(datasets, query):
         db = dballe.DB.connect("mem:")
-        ds = " ".join([DATASET_ROOT + f"{i}" for i in datasets])
-        arki_query_cmd = shlex.split(f"arki-query --data '{query}' {ds}")
-        log.debug("extracting obs data from arkimet: {}", arki_query_cmd)
-        proc = subprocess.Popen(arki_query_cmd, stdout=subprocess.PIPE)
-        if proc.returncode:
-            raise AccessToDatasetDenied("Access to dataset denied")
-        # write the result of the extraction on a temporary file
-        with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
-            tmpf.write(proc.stdout.read())
+        cfg = arki.cfg.Sections.parse(arki_service.arkimet_conf)
+        importer = dballe.Importer("BUFR")
+        with tempfile.SpooledTemporaryFile(mode="a+b", max_size=10000000) as tmpf:
+            for d in datasets:
+                dt_part = cfg.section(d)
+                source = arki.dataset.Reader(dt_part)
+                bin_data = source.query_bytes(query, with_data=True)
+                tmpf.write(bin_data)
             tmpf.seek(0)
-            with db.transaction() as tr:
-                tr.load(tmpf, "BUFR")
+            with dballe.File(tmpf, "BUFR") as f:
+                for binmsg in f:
+                    msgs = importer.from_binary(binmsg)
+                    with db.transaction() as tr:
+                        tr.import_messages(msgs)
         return db
 
     @staticmethod
@@ -1250,7 +1250,7 @@ class BeDballe:
         # get network list from requested datasets
         dataset_nets = []
         for ds in datasets:
-            nets = arki.get_observed_dataset_params(ds)
+            nets = arki_service.get_observed_dataset_params(ds)
             for n in nets:
                 dataset_nets.append(n)
 
