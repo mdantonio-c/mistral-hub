@@ -1,4 +1,4 @@
-import {Component, Output, EventEmitter} from '@angular/core';
+import {Component, Output, EventEmitter, ViewEncapsulation} from '@angular/core';
 import {ObsData, Observation, ObsFilter, ObsService, Station} from "../services/obs.service";
 import {COLORS, obsData, VAR_TABLE} from "../services/data";
 import {NotificationService} from '@rapydo/services/notification';
@@ -10,7 +10,8 @@ import 'leaflet.markercluster';
 @Component({
     selector: 'app-obs-map',
     templateUrl: './obs-map.component.html',
-    styleUrls: ['./obs-map.component.css']
+    styleUrls: ['./obs-map.component.css'],
+    encapsulation: ViewEncapsulation.None
 })
 export class ObsMapComponent {
 
@@ -225,7 +226,7 @@ export class ObsMapComponent {
         let srv = this.obsService;
         this.legend.onAdd = function (map, service = srv) {
             console.log(`add legend for product ${product} (${min.toFixed(2)}, ${max.toFixed(2)})`);
-            let div = L.DomUtil.create('div', 'info legend mst-legend');
+            let div = L.DomUtil.create('div', 'info mst-legend');
             let halfDelta = (max - min) / (COLORS.length * 2.);
             let bcode = VAR_TABLE.find(x => x.bcode === product);
             const title = `${(bcode.short || bcode.description)} [${bcode.userunit}]`,

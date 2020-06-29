@@ -16,3 +16,55 @@
   /* Vertically center the text (icon) */
 }
 
+/* Fixed color palette */
+#observation-maps .map .mst-legend {
+  padding: 6px 8px;
+  font: 12px Arial, Helvetica, sans-serif;
+  background: rgba(255, 255, 255, 0.8);
+  color: #555;
+}
+#observation-maps .map .mst-legend > h6 {
+  font-size: small;
+  font-weight: bold;
+  text-align: center;
+  margin: 2px 12px 8px;
+  color: #777;
+}
+#observation-maps .map .mst-legend > span {
+  position: relative;
+  bottom: 3px;
+}
+#observation-maps .map .mst-legend i {
+  width: 16px;
+  height: 12px;
+  float: left;
+  margin-right: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 0px !important;
+}
+
+.marker-cluster.mst-marker-color-3030ff { background-color: rgba(48, 48, 255, 0.7); }
+.mst-marker-color-3030ff div { background-color: rgba(48, 48, 255, 0.6); }
+
+.marker-cluster.mst-marker-color-007885 { background-color: rgba(0, 120, 133, 0.7); }
+.mst-marker-color-007885 div { background-color: rgba(0, 120, 133, 0.6); }
+
+.marker-cluster.mst-marker-color-00855D { background-color: rgba(0, 133, 93, 0.7); }
+.mst-marker-color-00855D div { background-color: rgba(0, 133, 93, 0.6); }
+
+.marker-cluster.mst-marker-color-0D8500 { background-color: rgba(13, 133, 0, 0.7); }
+.mst-marker-color-0D8500 div { background-color: rgba(13, 133, 0, 0.6); }
+
+.marker-cluster.mst-marker-color-478500 { background-color: rgba(71, 133, 0, 0.7); }
+.mst-marker-color-478500 div { background-color: rgba(71, 133, 0, 0.6); }
+
+.marker-cluster.mst-marker-color-788500 { background-color: rgba(120, 133, 0, 0.7); }
+.mst-marker-color-788500 div { background-color: rgba(120, 133, 0, 0.6); }
+
+.marker-cluster.mst-marker-color-853C00 { background-color: rgba(133, 60, 0, 0.7); }
+.mst-marker-color-853C00 div { background-color: rgba(133, 60, 0, 0.6); }
+
+.marker-cluster.mst-marker-color-850000 { background-color: rgba(133, 0, 0, 0.7); }
+.mst-marker-color-850000 div { background-color: rgba(133, 0, 0, 0.6); }
+
