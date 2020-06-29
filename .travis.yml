@@ -8,7 +8,8 @@ services:
 env:
   - STAGE=BACKEND
   - STAGE=FRONTEND
-  - STAGE=CYPRESS
+  - STAGE=CYPRESS BROWSER=chrome
+  - STAGE=CYPRESS BROWSER=firefox
 
 script:
   - pip install --upgrade git+https://github.com/rapydo/do.git@0.7.4
