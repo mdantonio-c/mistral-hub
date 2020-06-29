@@ -148,12 +148,6 @@ def data_extract(
                     esti_data_size = check_user_quota(
                         user_id, user_dir, datasets, query, db
                     )
-                """
-                $ arki-query [OPZIONI] QUERY DATASET...
-                """
-                ds = " ".join([DATASET_ROOT + f"{i}" for i in datasets])
-                arki_query_cmd = shlex.split(f"arki-query --data '{query}' {ds}")
-                log.debug(arki_query_cmd)
 
             # observed data. in future the if statement will be for data using arkimet and data using dballe
             else:
@@ -181,7 +175,7 @@ def data_extract(
                 tmp_outfile = os.path.join(user_dir, out_filename + ".tmp")
                 # call data extraction
                 if data_type == "FOR":
-                    arkimet_extraction(arki_query_cmd, tmp_outfile)
+                    arki.arkimet_extraction(datasets, query, tmp_outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
                     observed_extraction(datasets, filters, reftime, tmp_outfile)
@@ -424,7 +418,7 @@ def data_extract(
                     #     shutil.rmtree(os.path.join(UPLOAD_PATH,uuid))
             else:
                 if data_type == "FOR":
-                    arkimet_extraction(arki_query_cmd, outfile)
+                    arki.arkimet_extraction(datasets, query, outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
                     observed_extraction(datasets, filters, reftime, outfile)
@@ -578,14 +572,6 @@ def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
             # extra_msg = f'<br/><br/>Schedule "{schedule.name}" temporary disabled for limit quota exceeded.'
         raise DiskQuotaException(message)
     return esti_data_size
-
-
-def arkimet_extraction(arki_query_cmd, outfile):
-    with open(outfile, mode="w") as outfile:
-        ext_proc = subprocess.Popen(arki_query_cmd, stdout=outfile)
-        ext_proc.wait()
-        if ext_proc.wait() != 0:
-            raise Exception("Failure in data extraction")
 
 
 def observed_extraction(datasets, filters, reftime, outfile):
