@@ -16,6 +16,5 @@ describe("Data-extraction test", () => {
     cy.location().should((location) => {
       expect(location.pathname).to.eq("/app/data/datasets");
     });
-    // cy.wait(2000)
   });
 });
