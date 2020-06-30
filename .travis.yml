@@ -15,13 +15,17 @@ script:
   - pip install --upgrade git+https://github.com/rapydo/do.git@0.7.4
   - TESTING=1 rapydo init
   - >
-    if [[ "$STAGE" == "BACKEND" ]]; then
-
+    if [[ "$STAGE" != "FRONTEND" ]]; then
       wget --quiet $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf;
       wget --quiet $DATASET_URL/sample.bufr -O data/arkimet_conf/sample.bufr;
       wget --quiet $DATASET_URL/arkimet.zip;
       unzip -q arkimet.zip -d data/;
       ls data/arkimet;
+    fi
+
+  - >
+    if [[ "$STAGE" == "BACKEND" ]]; then
+
       rapydo pull;
       rapydo start;
       rapydo shell backend --command 'restapi wait';
@@ -60,7 +64,6 @@ script:
       rapydo start;
       rapydo shell backend --detach --command "restapi launch";
       sleep 20;
-      rapydo -s backend logs --tail 10;
       rapydo shell frontend --command "yarn install" || travis_terminate 1;
       rapydo shell frontend --command "yarn run cypress:start:${BROWSER}" || travis_terminate 1;
 
