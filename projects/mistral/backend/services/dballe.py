@@ -1078,7 +1078,7 @@ class BeDballe:
         list_dic = []
         for p in param_list:
             item = {}
-            item["dballe_p"] = p
+            item["code"] = p
             item["desc"] = BeDballe.get_description(p, type)
             list_dic.append(item)
         return list_dic
@@ -1126,7 +1126,7 @@ class BeDballe:
                     if key == "timerange" or key == "level":
                         # transform the timerange or level value in a tuple (required for dballe query)
                         tuple_list = []
-                        for v in e["dballe_p"].split(","):
+                        for v in e["code"].split(","):
                             if key == "level" and v == "0":
                                 val = None
                                 tuple_list.append(val)
@@ -1134,7 +1134,7 @@ class BeDballe:
                                 tuple_list.append(int(v))
                         field_queries.append(tuple(tuple_list))
                     else:
-                        field_queries.append(e["dballe_p"])
+                        field_queries.append(e["code"])
                 queries.append(field_queries)
             else:
                 continue
