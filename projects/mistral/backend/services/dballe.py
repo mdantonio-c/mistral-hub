@@ -270,6 +270,7 @@ class BeDballe:
 
         # perform the queries in database to get the list of possible filters
         fields = {}
+        network_products = []
         networks_list = []
         variables = []
         levels = []
@@ -295,6 +296,9 @@ class BeDballe:
             ######### VARIABLES FIELDS
             # get the list of all the variables of the network
             varlist = explorer.varcodes
+            # append all the products available for that network (not filtered by the query)
+            if varlist:
+                network_products.extend(x for x in varlist if x not in network_products)
 
             #### PRODUCT is in the query filters
             if "product" in query:
@@ -360,6 +364,9 @@ class BeDballe:
             )
             fields["timerange"] = BeDballe.from_list_of_params_to_list_of_dic(
                 tranges, type="timerange"
+            )
+            fields["available products"] = BeDballe.from_list_of_params_to_list_of_dic(
+                network_products, type="product"
             )
 
             # create summary
