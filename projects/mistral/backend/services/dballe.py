@@ -365,7 +365,7 @@ class BeDballe:
             fields["timerange"] = BeDballe.from_list_of_params_to_list_of_dic(
                 tranges, type="timerange"
             )
-            fields["available products"] = BeDballe.from_list_of_params_to_list_of_dic(
+            fields["available_products"] = BeDballe.from_list_of_params_to_list_of_dic(
                 network_products, type="product"
             )
 
