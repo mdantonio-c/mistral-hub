@@ -1,5 +1,5 @@
 from flask_apispec import use_kwargs
-from marshmallow import fields
+from marshmallow import Schema, fields, validate
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
@@ -13,9 +13,12 @@ from restapi.utilities.logs import log
 class ObservationsQuery(InputSchema):
     networks = fields.Str(required=False)
     q = fields.Str(required=False)
-    bounding_box = fields.Str(required=False)
-    lat = fields.Str(required=False)
-    lon = fields.Str(required=False)
+    lonmin = fields.Float(required=False)
+    latmin = fields.Float(required=False)
+    lonmax = fields.Float(required=False)
+    latmax = fields.Float(required=False)
+    lat = fields.Float(required=False)
+    lon = fields.Float(required=False)
     ident = fields.Str(required=False)
     onlyStations = fields.Bool(required=False)
     stationDetails = fields.Bool(required=False)
@@ -45,7 +48,10 @@ class MapsObservations(EndpointResource):
         self,
         networks=None,
         q="",
-        bounding_box=None,
+        lonmin=None,
+        latmin=None,
+        lonmax=None,
+        latmax=None,
         lat=None,
         lon=None,
         ident=None,
@@ -53,14 +59,18 @@ class MapsObservations(EndpointResource):
         stationDetails=False,
         reliabilityCheck=False,
     ):
-        bbox_list = bounding_box.split(",") if bounding_box is not None else []
-
         bounding_box = {}
-        if bbox_list:
-            log.debug(bbox_list)
-            for i in bbox_list:
-                split = i.split(":")
-                bounding_box[split[0]] = split[1]
+        if lonmin or latmin or lonmax or latmax:
+            if not lonmin or not lonmax or not latmin or not latmax:
+                raise RestApiException(
+                    "Coordinates for bounding box are missing",
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
+            else:
+                bounding_box["lonmin"] = lonmin
+                bounding_box["lonmax"] = lonmax
+                bounding_box["latmin"] = latmin
+                bounding_box["latmax"] = latmax
 
         station_details_q = {}
         if stationDetails:
@@ -77,8 +87,8 @@ class MapsObservations(EndpointResource):
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
                 else:
-                    station_details_q["lat"] = float(lat)
-                    station_details_q["lon"] = float(lon)
+                    station_details_q["lat"] = lat
+                    station_details_q["lon"] = lon
             else:
                 station_details_q["ident"] = ident
         query = None

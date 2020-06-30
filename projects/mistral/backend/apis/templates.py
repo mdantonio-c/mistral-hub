@@ -60,14 +60,6 @@ class Templates(EndpointResource, Uploader):
         "/templates": {
             "summary": "Upload of templates for postprocessors",
             "consumes": ["multipart/form-data"],
-            "parameters": [
-                {
-                    "name": "file",
-                    "in": "formData",
-                    "description": "file to upload",
-                    "type": "file",
-                }
-            ],
             "responses": {
                 "202": {
                     "description": "file uploaded",
