@@ -4,7 +4,7 @@ import {FormBuilder, FormGroup, FormArray, FormControl, Validators} from '@angul
 import {NotificationService} from '@rapydo/services/notification';
 import {FormDataService} from "@app/services/formData.service";
 import {ArkimetService} from "@app/services/arkimet.service";
-import {Filters} from "@app/services/data.service";
+import {Dataset, Filters} from "@app/services/data.service";
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {NgxSpinnerService} from "ngx-spinner";
 import * as moment from 'moment';
@@ -20,6 +20,7 @@ export class StepFiltersComponent implements OnInit {
     filterForm: FormGroup;
     filters: Filters;
     disabledDp = false;
+    datasets: Dataset[];
 
     constructor(private fb: FormBuilder,
                 private router: Router,
@@ -54,6 +55,8 @@ export class StepFiltersComponent implements OnInit {
     }
 
     ngOnInit() {
+	this.datasets = this.formDataService.getFormData().datasets;
+	//console.log('ngOnInit: this.datasets=', this.datasets);
         this.loadFilters();
         window.scroll(0, 0);
     }

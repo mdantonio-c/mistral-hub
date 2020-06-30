@@ -50,6 +50,22 @@
                     </ul>
                 </div>
             </div>
+		<!-- My Request -->
+		<div class="card mst--expansion-panel mst--info-panel">
+			<div class="card-header">
+				<h5 class="card-title">My Request</h5>
+			</div>
+			<div class="body">
+			    <dl class="request-summary">
+				<dt>Dataset(s)</dt>
+				<dd>
+				    <ul class="comma-list">
+				        <li *ngFor="let ds of datasets">{{ds.name}}</li>
+				    </ul>
+				</dd>
+			    </dl>
+			</div>
+		</div>
             <!-- Filters -->
             <div formArrayName="filters"
                  *ngFor="let f of filterForm.get('filters')['controls']; let i = index;">
