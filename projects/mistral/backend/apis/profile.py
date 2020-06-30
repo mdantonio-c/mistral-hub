@@ -8,6 +8,7 @@ class CustomProfile:
     @staticmethod
     def manipulate(ref, user, data):
         data["disk_quota"] = user.disk_quota
+        data["amqp_queue"] = user.amqp_queue
 
         return data
 
@@ -21,5 +22,10 @@ class CustomProfile:
                 validate=validate.Range(min=0),
                 label="Disk quota",
                 description="Disk quota in bytes",
-            )
+            ),
+            "amqp_queue": fields.Str(
+                required=False,
+                label="AMQP queue",
+                description="AMQP queue used to notify the user",
+            ),
         }
