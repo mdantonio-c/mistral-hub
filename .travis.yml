@@ -54,6 +54,7 @@ script:
       rapydo -s frontend pull;
       rapydo -s frontend start;
       sleep 5;
+      rapydo -s frontend logs;
       rapydo shell frontend --command "yarn install" || travis_terminate 1;
       rapydo shell frontend --command "yarn run test:single" || travis_terminate 1;
       cp data/mistral/karma/lcov.info .;
@@ -62,6 +63,7 @@ script:
     elif [[ "$STAGE" == "CYPRESS" ]]; then
 
       rapydo shell backend --detach --command "restapi launch";
+      rapydo -s frontend logs;
       rapydo shell frontend --command "yarn install" || travis_terminate 1;
       rapydo shell frontend --command "yarn run cypress:start:${BROWSER}" || travis_terminate 1;
 
