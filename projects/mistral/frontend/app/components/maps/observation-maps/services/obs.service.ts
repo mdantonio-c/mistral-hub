@@ -36,9 +36,10 @@ export interface FieldsSummary {
 }
 
 export interface Items {
+  product: any[];
+  available_products: any[];
   level?: any[];
   network?: any[];
-  product?: any[];
   timerange?: any[];
 }
 
@@ -93,9 +94,31 @@ export class ObsService {
 
   constructor(private api: ApiService) {}
 
-  getFields(): Observable<FieldsSummary> {
-    //return this.api.get('fields', '', {type: 'OBS'});
-    return of(FIELDS_SUMMARY);
+  getFields(filter: ObsFilter): Observable<FieldsSummary> {
+    console.log(filter);
+    let d = [
+      `${filter.reftime.getFullYear()}`,
+      `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),
+      `${filter.reftime.getDate()}`.padStart(2, "0"),
+    ].join("-");
+    let params = {
+      type: 'OBS',
+      q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`
+    };
+    // do NOT narrow resulting filter by timerange and level
+    /*
+    if (filter.timerange && filter.timerange !== "") {
+      params["q"] += `;timerange:${filter.timerange}`;
+    }
+    if (filter.level && filter.level !== "") {
+      params["q"] += `;level:${filter.level}`;
+    }
+     */
+    if (filter.network && filter.network !== "") {
+      params["networks"] = filter.network;
+    }
+    return this.api.get('fields', '', params);
+    //return of(FIELDS_SUMMARY);
   }
 
   getObservations(filter: ObsFilter) {

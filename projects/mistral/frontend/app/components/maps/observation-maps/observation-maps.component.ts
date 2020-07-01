@@ -24,6 +24,10 @@ export class ObservationMapsComponent {
         }, 0);
     }
 
+    changeFilter(filter: ObsFilter) {
+        console.log('devo fare qualcosa qui????');
+    }
+
     changeView(view) {
 		this.currentView = view;
         this.applyFilter();

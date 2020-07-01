@@ -97,7 +97,8 @@ export const COLORS = ['3030ff','007885','00855D','0D8500','478500','788500','85
 
 export const FIELDS_SUMMARY: FieldsSummary = {
     items: {
-        product: PRODUCTS,
+        product: [PRODUCTS[0]],
+        available_products: PRODUCTS,
         level: LEVELS,
         timerange: TIME_RANGES,
         network: NETWORKS
