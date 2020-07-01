@@ -46,6 +46,7 @@ def data_extract(
     request_id=None,
     amqp_queue=None,
     schedule_id=None,
+    data_ready=None,
 ):
 
     with celery_app.app.app_context():
@@ -64,7 +65,7 @@ def data_extract(
                         )
                     )
                 # adapt the request reftime
-                reftime = adapt_reftime(schedule, reftime)
+                reftime = adapt_reftime(schedule, reftime, data_ready)
 
                 # create an entry in request db linked to the scheduled request entry
                 product_name = RequestManager.get_schedule_name(db, schedule_id)
@@ -83,6 +84,7 @@ def data_extract(
                 )
                 # update the entry with celery task id
                 request.task_id = self.request.id
+                request.status = states.STARTED
                 request_id = request.id
                 db.session.commit()
                 log.debug("Schedule at: {}, Request <ID:{}>", schedule_id, request.id)
@@ -608,17 +610,23 @@ def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
     return str(bytes) + units[0] if bytes < 1024 else human_size(bytes >> 10, units[1:])
 
 
-def adapt_reftime(schedule, reftime):
+def adapt_reftime(schedule, reftime, data_ready):
     new_reftime = None
     if reftime is not None:
         new_reftime = {}
-        now = datetime.datetime.utcnow()
-        reftime_to = datetime.datetime.strptime(reftime["to"], "%Y-%m-%dT%H:%M:%S.%fZ")
-        submission_date = schedule.submission_date
-        time_delta_to = submission_date - reftime_to
         time_delta_from = schedule.time_delta
-        new_reftime_to = now - time_delta_to
-        new_reftime_from = new_reftime_to - time_delta_from
-        new_reftime["from"] = new_reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        new_reftime["to"] = new_reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        if not data_ready:
+            now = datetime.datetime.utcnow()
+            reftime_to = datetime.datetime.strptime(
+                reftime["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+            submission_date = schedule.submission_date
+            time_delta_to = submission_date - reftime_to
+            new_reftime_to = now - time_delta_to
+            new_reftime_from = new_reftime_to - time_delta_from
+            new_reftime["from"] = new_reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            new_reftime["to"] = new_reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        else:
+            new_reftime["from"] = reftime["to"] - time_delta_from
+            new_reftime["to"] = reftime["to"]
     return new_reftime

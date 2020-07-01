@@ -225,17 +225,20 @@ class Schedules(EndpointResource):
                     )
 
         # check if the schedule is a 'on-data-ready' one
-        data_ready = False
-        # data ready option is not for observed data
-        if dataset_format == "grib":
-            today = datetime.date.today()
-            yesterday = today - datetime.timedelta(days=1)
-            # if the date of reftime['to'] is today or yesterday
-            # the request can be considered a data-ready one
-            refdate = reftime_to.date()
-            if refdate == today or refdate == yesterday:
-                data_ready = True
-            # what if reftime is None?
+        data_ready = criteria.get("on-data-ready")
+
+        if not data_ready:
+            # for forecast schedules if reftime_to is today or yesterday the data_ready flag is applied by default
+            # data ready option is not for observed data
+            if dataset_format == "grib":
+                today = datetime.date.today()
+                yesterday = today - datetime.timedelta(days=1)
+                # if the date of reftime['to'] is today or yesterday
+                # the request can be considered a data-ready one
+                refdate = reftime_to.date()
+                if refdate == today or refdate == yesterday:
+                    data_ready = True
+                # TODO what if reftime is None?
 
         # get queue for pushing notifications
         pushing_queue = None
