@@ -3,6 +3,7 @@ import {FormBuilder, FormGroup, Validators, FormControl} from '@angular/forms';
 import {KeyValuePair, Fields, Levels_pe, Levels_pr, Runs, Areas, Resolutions, Platforms, Envs} from '../services/data';
 import {MeteoFilter} from "../services/meteo.service";
 import {AuthService} from '@rapydo/services/auth';
+import {environment} from '@rapydo/../environments/environment';
 
 @Component({
     selector: 'app-map-filter',
@@ -10,6 +11,10 @@ import {AuthService} from '@rapydo/services/auth';
     styleUrls: ['./map-filter.component.css']
 })
 export class MapFilterComponent implements OnInit {
+
+    readonly DEFAULT_PLATFORM = environment.ALL['PLATFORM'] || 'GALILEO';
+    readonly DEFAULT_ENV = 'PROD';
+
     filterForm: FormGroup;
     fields: KeyValuePair[] = Fields;
     levels_pe: KeyValuePair[] = Levels_pe;
@@ -39,8 +44,8 @@ export class MapFilterComponent implements OnInit {
     ngOnInit() {
         this.user = this.authService.getUser();
         if (this.user && this.user.isAdmin) {
-            (this.filterForm.controls.platform as FormControl).setValue('GALILEO');
-            (this.filterForm.controls.env as FormControl).setValue('PROD');
+            (this.filterForm.controls.platform as FormControl).setValue(this.DEFAULT_PLATFORM);
+            (this.filterForm.controls.env as FormControl).setValue(this.DEFAULT_ENV);
         }
         // subscribe for form value changes
         this.onChanges();

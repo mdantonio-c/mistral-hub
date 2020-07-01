@@ -14,7 +14,11 @@ MEDIA_ROOT = "/meteo/"
 
 RUNS = ["00", "12"]
 RESOLUTIONS = ["lm2.2", "lm5"]
+PLATFORMS = ["GALILEO", "MEUCCI"]
+DEFAULT_PLATFORM = os.environ.get("PLATFORM", "GALILEO")
 
+def check_platform_availability(platform):
+    return os.access(os.path.join(MEDIA_ROOT, platform), os.X_OK)
 
 class TilesEndpoint(EndpointResource):
     labels = ["tiled map ready"]
@@ -43,14 +47,32 @@ class TilesEndpoint(EndpointResource):
     )
     def get(self, run, res):
         # TODO validate params
+
+        # check the available platform by looking first at the default one
+        log.debug(f"PLATFORMS: {PLATFORMS}")
+        log.debug(f"DEFAULT PLATFORM: {DEFAULT_PLATFORM}")
+        platforms_to_be_check = [DEFAULT_PLATFORM] + list(set(PLATFORMS) - set([DEFAULT_PLATFORM]))
+        log.debug(f"platform to be check {platforms_to_be_check}")
+        for p in platforms_to_be_check:
+            if not check_platform_availability(p):
+                log.warning(f"platform {p} not available")
+                continue
+            else:
+                platform = p
+                break
+        else:
+            raise RestApiException(
+                "Map service is currently unavailable", hcodes.HTTP_SERVICE_UNAVAILABLE
+            )
+
         # e.g. Tiles-00-lm2.2.web
         self.base_path = os.path.join(
-            MEDIA_ROOT, "GALILEO", "PROD", f"Tiles-{run}-{res}.web"
+            MEDIA_ROOT, platform, "PROD", f"Tiles-{run}-{res}.web"
         )
         area = "Italia" if res == "lm2.2" else "Area_Mediterranea"
         ready_file = self._get_ready_file(area)
 
-        data = {"reftime": ready_file[:10], "platform": "GALILEO"}
+        data = {"reftime": ready_file[:10], "platform": platform}
         return self.response(data)
 
     def _get_ready_file(self, area):
