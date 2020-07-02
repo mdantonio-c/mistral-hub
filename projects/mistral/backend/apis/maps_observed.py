@@ -234,24 +234,69 @@ class MapsObservations(EndpointResource):
             db_type = "mixed"
         log.debug("type of database: {}", db_type)
         try:
-            mime = None
-            if output_format == "JSON":
-                mime = "application/json"
-            else:
-                mime = "application/octet-stream"
             if db_type == "mixed":
-                log.debug("mixed to implement")
-                # return Response(
-                #     stream_with_context(dballe.download_mixed_data_from_map(networks,bounding_box,)), mimetype=mime
-                # )
-                # res = dballe.get_maps_response_for_mixed(
-                #     networks,
-                #     bounding_box,
-                #     query,
-                #     onlyStations,
-                #     station_details_q=station_details_q,
-                #     quality_check=reliabilityCheck,
-                # )
+                query_for_dballe = {}
+                query_for_arki = {}
+                # get reftimes for arkimet and dballe
+                if query:
+                    # setup query for dballe
+                    query_for_dballe = {**query}
+                    query_for_arki = {**query}
+                    if "datetimemin" in query and "datetimemax" in query:
+                        (
+                            refmax_dballe,
+                            refmin_dballe,
+                            refmax_arki,
+                            refmin_arki,
+                        ) = dballe.split_reftimes(
+                            query["datetimemin"], query["datetimemax"]
+                        )
+                        # set up queries with the correct reftimes
+                        query_for_dballe["datetimemin"] = refmin_dballe
+                        query_for_dballe["datetimemin"] = refmin_dballe
+                        query_for_arki["datetimemin"] = refmin_arki
+                        query_for_arki["datetimemax"] = refmax_arki
+
+                # get queries and db for dballe extraction (taking advantage of the method already implemented to get data values for maps)
+                log.debug("getting queries and db for dballe")
+                (
+                    dballe_db,
+                    dballe_query_data,
+                    dballe_query_station_data,
+                ) = dballe.get_maps_response(
+                    networks,
+                    bounding_box,
+                    query_for_dballe,
+                    False,
+                    db_type="dballe",
+                    station_details_q=station_details_q,
+                    quality_check=reliabilityCheck,
+                    download=True,
+                )
+                # get queries and db for arkimet extraction
+                log.debug("getting queries and db for arkimet")
+                (
+                    arki_db,
+                    arki_query_data,
+                    arki_query_station_data,
+                ) = dballe.get_maps_response(
+                    networks,
+                    bounding_box,
+                    query_for_arki,
+                    False,
+                    db_type="arkimet",
+                    station_details_q=station_details_q,
+                    quality_check=reliabilityCheck,
+                    download=True,
+                )
+
+                # merge the queries and the db
+                log.debug("merge queries and db for mixed extraction")
+                (db_for_extraction, query_data,) = dballe.merge_db_for_download(
+                    dballe_db, dballe_query_data, arki_db, arki_query_data,
+                )
+                # query station data has no reftime, so the arki_ and the dballe_ ones are exactly the same
+                query_station_data = arki_query_station_data
             else:
                 # take advantage of the method already implemented to get data values for maps in order to get the query and the db to extract the data
                 (
@@ -268,19 +313,26 @@ class MapsObservations(EndpointResource):
                     quality_check=reliabilityCheck,
                     download=True,
                 )
-                # stream data
-                return Response(
-                    stream_with_context(
-                        dballe.download_data_from_map(
-                            db_for_extraction,
-                            singleStation,
-                            output_format,
-                            query_data,
-                            query_station_data,
-                        )
-                    ),
-                    mimetype=mime,
-                )
+
+            mime = None
+            if output_format == "JSON":
+                mime = "application/json"
+            else:
+                mime = "application/octet-stream"
+
+            # stream data
+            return Response(
+                stream_with_context(
+                    dballe.download_data_from_map(
+                        db_for_extraction,
+                        singleStation,
+                        output_format,
+                        query_data,
+                        query_station_data,
+                    )
+                ),
+                mimetype=mime,
+            )
         except AccessToDatasetDenied:
             raise RestApiException(
                 "Access to dataset denied", status_code=hcodes.HTTP_SERVER_ERROR,

@@ -972,6 +972,24 @@ class BeDballe:
         return res_element
 
     @staticmethod
+    def merge_db_for_download(
+        dballe_db, dballe_query_data, arki_db, arki_query_data,
+    ):
+        # merge the dbs
+        log.debug("Filling temp db with data from dballe. query: {}", dballe_query_data)
+        with dballe_db.transaction() as tr:
+            with arki_db.transaction() as temptr:
+                for cur in tr.query_messages(dballe_query_data):
+                    temptr.import_messages(cur.message)
+        # merge the queries for data
+        query_data = {**dballe_query_data}
+        if arki_query_data:
+            if "datetimemin" in arki_query_data:
+                query_data["datetimemin"] = arki_query_data["datetimemin"]
+        # return the arki_db (the tem one) filled also with data from dballe
+        return arki_db, query_data
+
+    @staticmethod
     def download_data_from_map(
         db, singleStation, output_format, query_data, query_station_data
     ):
