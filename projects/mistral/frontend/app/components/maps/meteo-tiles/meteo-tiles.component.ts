@@ -14,7 +14,7 @@ declare module 'leaflet' {
 }
 
 // const MAP_CENTER = [41.879966, 12.280000];
-const TILES_PATH = environment.production ? 'resources/tiles/00-lm5' : 'app/custom/assets/images/tiles/00-lm5';
+const TILES_PATH = environment.production ? 'resources/tiles' : 'app/custom/assets/images/tiles';
 
 @Component({
     selector: 'app-meteo-tiles',
@@ -24,9 +24,11 @@ const TILES_PATH = environment.production ? 'resources/tiles/00-lm5' : 'app/cust
 export class MeteoTilesComponent {
 
     readonly DEFAULT_PRODUCT = 'Temperature at 2 meters';
+    readonly DEFAULT_RESOLUTION = 'lm5'
     readonly LEGEND_POSITION = 'bottomleft';
 
     map: L.Map;
+    resolution: string ;
 
     LAYER_OSM = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
@@ -78,6 +80,7 @@ export class MeteoTilesComponent {
 
         // set the initial set of displayed layers
         this.options['layers'] = [this.LAYER_MAPBOX_LIGHT];
+        this.resolution = this.DEFAULT_RESOLUTION;
     }
 
     onMapReady(map: L.Map) {
@@ -89,6 +92,7 @@ export class MeteoTilesComponent {
             console.log('Available Run', runAvailable);
             let reftime = runAvailable.reftime;
             let refdate = reftime.substr(0, 8);
+            let run = reftime.substr(8, 2);
 
             // set time
             let startTime = moment.utc(reftime, "YYYYMMDDHH").toDate();
@@ -103,7 +107,7 @@ export class MeteoTilesComponent {
             (map as any).timeDimension.setAvailableTimes(newAvailableTimes, 'replace');
             (map as any).timeDimension.setCurrentTime(startTime);
 
-            this.setOverlaysToMap(refdate);
+            this.setOverlaysToMap(refdate, run);
 
             // add default layer
             let tm2m: L.Layer = this.layersControl['overlays'][this.DEFAULT_PRODUCT];
@@ -119,10 +123,11 @@ export class MeteoTilesComponent {
         });
     }
 
-    private setOverlaysToMap(refdate: string) {
+    private setOverlaysToMap(refdate: string, run: string) {
+        let baseUrl = `${TILES_PATH}/${run}-${this.resolution}`
         // Temperature 2 meters Time Layer
         let t2m = L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${TILES_PATH}/t2m-t2m/${refdate}{h}/{z}/{x}/{y}.png`, {
+            L.tileLayer(`${baseUrl}/t2m-t2m/${refdate}{h}/{z}/{x}/{y}.png`, {
                 minZoom: 5,
                 maxZoom: 7,
                 tms: false,
@@ -131,7 +136,7 @@ export class MeteoTilesComponent {
             }), {}),
             // Total precipitation 3h Time Layer
             prec3tp = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/prec3-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/prec3-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -140,7 +145,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Total precipitation 6h Time Layer
             prec6tp = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/prec6-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/prec6-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -149,7 +154,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Snowfall 3h Time Layer
             sf3 = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/snow3-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/snow3-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -158,7 +163,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Snowfall 6h Time Layer
             sf6 = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/snow6-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/snow6-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -167,7 +172,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Relative humidity Time Layer
             rh = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/humidity-r/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/humidity-r/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -176,7 +181,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // High Cloud Time Layer
             hcc = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/cloud_hml-hcc/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/cloud_hml-hcc/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -185,7 +190,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Medium Cloud Time Layer
             mcc = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/cloud_hml-mcc/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/cloud_hml-mcc/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -194,7 +199,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Low Cloud Time Layer
             lcc = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${TILES_PATH}/cloud_hml-lcc/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/cloud_hml-lcc/${refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
