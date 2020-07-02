@@ -97,6 +97,10 @@ class DataReady(EndpointResource):
 
             # if r.get('run') != runhour: fail
 
+            # TODO check if the schedule has some others scheduling params
+            # if r['crontab'] or r['periodic']:
+            #     DataReady.check_schedule_settings(r,db)
+
             log.info("Checking schedule: {}\n{}", name, r)
             # e.g. {
             #     'from': '2019-09-01T00:00:00.000Z',
@@ -128,23 +132,28 @@ class DataReady(EndpointResource):
             filters = r["args"].get("filters")
             processors = r["args"].get("processors")
             output_format = r["args"].get("format")
+            pushing_queue = r["args"].get("pushing_queue")
 
             try:
-                request = RequestManager.create_request_record(
-                    db,
-                    r.get("user_id"),
-                    request_name,
-                    {
-                        "datasets": datasets,
-                        "reftime": reftime,
-                        "filters": filters,
-                        "postprocessors": processors,
-                        "format": output_format,
-                    },
-                )
+                # this operation is done by the data extraction task
+                # request = RequestManager.create_request_record(
+                #     db,
+                #     r.get("user_id"),
+                #     request_name,
+                #     {
+                #         "datasets": datasets,
+                #         "reftime": reftime,
+                #         "filters": filters,
+                #         "postprocessors": processors,
+                #         "format": output_format,
+                #     },
+                # )
 
                 celery = self.get_service_instance("celery")
-                task = celery.data_extract.apply_async(
+                # copied from "submit first request for scheduled ondataready
+                request_to_be_created_id = None
+                data_ready = True
+                celery.data_extract.apply_async(
                     args=[
                         r.get("user_id"),
                         datasets,
@@ -152,18 +161,40 @@ class DataReady(EndpointResource):
                         filters,
                         processors,
                         output_format,
-                        request.id,
+                        request_to_be_created_id,
+                        pushing_queue,
+                        request_id,
+                        data_ready,
                     ],
                     countdown=1,
                 )
 
-                request.task_id = task.id
-                request.status = task.status  # 'PENDING'
-                db.session.commit()
-                log.info("Request successfully saved: <ID:{}>", request.id)
+                # celery.data_extract.apply_async(
+                #     args=[
+                #         r.get("user_id"),
+                #         datasets,
+                #         reftime,
+                #         filters,
+                #         processors,
+                #         output_format,
+                #         request.id,
+                #     ],
+                #     countdown=1,
+                # )
+                #
+                # request.task_id = task.id
+                # request.status = task.status  # 'PENDING'
+                # db.session.commit()
+                # log.info("Request successfully saved: <ID:{}>", request.id)
+                log.info("Request successfully submitted: <ID:{}>", request_id)
             except Exception as error:
                 log.error(error)
-                db.session.rollback()
+                # db.session.rollback()
                 raise SystemError("Unable to submit the request")
 
         return self.response("1", code=hcodes.HTTP_OK_ACCEPTED)
+
+    # @staticmethod
+    # def check_schedule_settings(r, db):
+    #     request = db.Request
+    #     last_schedule_request = RequestManager.get_last_scheduled_request(db, r["id"])

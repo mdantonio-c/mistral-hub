@@ -658,6 +658,7 @@ class BeDballe:
         db_type=None,
         station_details_q=None,
         quality_check=None,
+        download=None,
     ):
 
         DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/DBALLE")
@@ -749,45 +750,21 @@ class BeDballe:
             query_data["query"] = "attrs"
 
         if query:
-            # TODO: now query does not support multiple values for a single param
-            # adapt the query to the dballe syntax and add the params to the general query
-            allowed_keys = [
-                "level",
-                "network",
-                "product",
-                "timerange",
-                "datetimemin",
-                "datetimemax",
-            ]
-            dballe_keys = [
-                "level",
-                "rep_memo",
-                "var",
-                "trange",
-                "datetimemin",
-                "datetimemax",
-            ]
-            for key, value in query.items():
-                if key in allowed_keys:
-                    key_index = allowed_keys.index(key)
-                    if key == "timerange" or key == "level":
-                        tuple_list = []
-                        for v in value[0].split(","):
-                            if key == "level" and v == "0":
-                                val = None
-                                tuple_list.append(val)
-                            else:
-                                tuple_list.append(int(v))
-                        query_data[dballe_keys[key_index]] = tuple(tuple_list)
-                    else:
-                        if not isinstance(value, list):
-                            query_data[dballe_keys[key_index]] = value
-                        else:
-                            query_data[dballe_keys[key_index]] = value[0]
+            parsed_query = BeDballe.parse_query_for_maps(query)
+            for key, value in parsed_query.items():
+                query_data[key] = value
 
         # managing different dbs
         if db_type == "arkimet":
             memdb = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
+
+        # if download param, return the db and the query to download the data
+        if download:
+            if db_type == "arkimet":
+                db_for_download = memdb
+            else:
+                db_for_download = DB
+            return db_for_download, query_data, query_station_data
 
         # if not station details are requested:
         if not station_details_q:
@@ -995,6 +972,30 @@ class BeDballe:
         return res_element
 
     @staticmethod
+    def download_data_from_map(
+        db, singleStation, output_format, query_data, query_station_data
+    ):
+        download_query = {}
+        if singleStation:
+            if query_station_data:
+                download_query = {**query_station_data}
+            if query_data:
+                # TODO da capire se abbiamo bisogno di level e timerange: in quel caso usiamo query_data e giusto ci aggiungiamo il reftime se non c'è
+                if "datetimemin" in query_data.keys():
+                    download_query["datetimemax"] = query_data["datetimemax"]
+                    download_query["datetimemin"] = query_data["datetimemin"]
+                if "query" in query_data:
+                    download_query["query"] = query_data["query"]
+        else:
+            if query_data:
+                download_query = {**query_data}
+
+        with db.transaction() as tr:
+            exporter = dballe.Exporter(output_format)
+            for row in tr.query_messages(download_query):
+                yield exporter.to_binary(row.message)
+
+    @staticmethod
     def from_query_to_dic(q):
         # example of query string: string= "reftime: >=2020-02-01 01:00,<=2020-02-04 15:13;level:1,0,0,0 or 103,2000,0,0;product:B11001 or B13011;timerange:0,0,3600 or 1,0,900;network:fidupo or agrmet"
         params_list = ["reftime", "network", "product", "level", "timerange", "license"]
@@ -1114,6 +1115,46 @@ class BeDballe:
                 description = lev.describe()
 
         return description
+
+    @staticmethod
+    def parse_query_for_maps(query):
+        query_data = {}
+        # TODO: now query does not support multiple values for a single param
+        # adapt the query to the dballe syntax and add the params to the general query
+        allowed_keys = [
+            "level",
+            "network",
+            "product",
+            "timerange",
+            "datetimemin",
+            "datetimemax",
+        ]
+        dballe_keys = [
+            "level",
+            "rep_memo",
+            "var",
+            "trange",
+            "datetimemin",
+            "datetimemax",
+        ]
+        for key, value in query.items():
+            if key in allowed_keys:
+                key_index = allowed_keys.index(key)
+                if key == "timerange" or key == "level":
+                    tuple_list = []
+                    for v in value[0].split(","):
+                        if key == "level" and v == "0":
+                            val = None
+                            tuple_list.append(val)
+                        else:
+                            tuple_list.append(int(v))
+                    query_data[dballe_keys[key_index]] = tuple(tuple_list)
+                else:
+                    if not isinstance(value, list):
+                        query_data[dballe_keys[key_index]] = value
+                    else:
+                        query_data[dballe_keys[key_index]] = value[0]
+        return query_data
 
     @staticmethod
     def from_filters_to_lists(filters):

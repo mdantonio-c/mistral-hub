@@ -33,6 +33,7 @@ LEVELS_PR = ["5", "10", "20", "50"]
 AREAS = ["Italia", "Nord_Italia", "Centro_Italia", "Sud_Italia", "Area_Mediterranea"]
 PLATFORMS = ["GALILEO", "MEUCCI"]
 ENVS = ["PROD", "DEV"]
+DEFAULT_PLATFORM = os.environ.get("PLATFORM", "GALILEO")
 
 
 def check_platform_availability(platform):
@@ -227,9 +228,11 @@ class MapSet(MapEndpoint):
         if platform is not None and not self.verify_admin():
             platform = None
 
-        # if PLATFORM is not provided, set as default the first available in the order: GALILEO, MEUCCI
+        # if PLATFORM is not provided, set as default the first available in the order: DEFAULT_PLATFORM + others
         if not platform:
-            platforms_to_be_check = PLATFORMS
+            log.debug(f"PLATFORMS: {PLATFORMS}")
+            log.debug(f"DEFAULT PLATFORM: {DEFAULT_PLATFORM}")
+            platforms_to_be_check = [DEFAULT_PLATFORM] + list(set(PLATFORMS) - set([DEFAULT_PLATFORM]))
         else:
             platforms_to_be_check = [platform]
         for platform in platforms_to_be_check:
