@@ -1,6 +1,5 @@
 import copy
 import os
-from collections import OrderedDict
 
 from flask import send_file
 from flask_apispec import use_kwargs
@@ -41,7 +40,7 @@ def check_platform_availability(platform):
 
 
 def get_schema(set_required):
-    attributes = OrderedDict()
+    attributes = {}
     attributes["run"] = fields.Str(validate=validate.OneOf(RUNS), required=True)
     attributes["res"] = fields.Str(validate=validate.OneOf(RESOLUTIONS), required=True)
     attributes["field"] = fields.Str(validate=validate.OneOf(FIELDS), required=True)

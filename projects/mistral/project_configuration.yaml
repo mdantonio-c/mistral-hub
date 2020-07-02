@@ -53,11 +53,10 @@ variables:
         internal: staff_user
         admin: admin_root
         default: normal_user
-
-controller:
-  commands:
-    init:
-      description: Init DB-All.e PostgreSQL database
-      command: sh /scripts/init_dballe.sh
-      service: backend
-      user: developer
+# controller:
+#   commands:
+#     init:
+#       description: Init DB-All.e PostgreSQL database
+#       command: sh /scripts/init_dballe.sh
+#       service: backend
+#       user: developer
