@@ -9,5 +9,11 @@
      [leafletOptions]="options"
      [leafletLayersControl]="layersControl"
      (leafletMapReady)="onMapReady($event)">
+    <div class="leaflet-top leaflet-right" style="top:50px;">
+        <div class="leaflet-control leaflet-bar">
+            <a [routerLink]="" (click)="changeRes()" title="Change Resoultion" role="button" aria-label="Change Resolution"><i
+                    class="fas fa-cog"></i></a>
+        </div>
+    </div>
 </div>
 

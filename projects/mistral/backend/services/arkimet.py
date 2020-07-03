@@ -59,6 +59,8 @@ class BeArkimet:
                     ds["format"] = v
                 elif k == "bounding":
                     ds["bounding"] = v
+                elif k == "_attribution":
+                    ds["attribution"] = v
             datasets.append(ds)
         return datasets
 
