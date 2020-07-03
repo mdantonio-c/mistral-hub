@@ -1,3 +1,5 @@
+from flask_apispec import use_kwargs
+from marshmallow import fields
 from mistral.services.arkimet import BeArkimet as arki
 from restapi import decorators
 from restapi.exceptions import RestApiException
@@ -36,7 +38,8 @@ class Datasets(EndpointResource):
 
     @decorators.catch_errors()
     @decorators.auth.required()
-    def get(self, dataset_name=None):
+    @use_kwargs({"licenceSpecs": fields.Bool(required=False)}, locations=["query"])
+    def get(self, dataset_name=None, licenceSpecs=False):
         """ Get all the datasets or a specific one if a name is provided."""
         try:
             datasets = arki.load_datasets()
@@ -57,4 +60,23 @@ class Datasets(EndpointResource):
                     status_code=hcodes.HTTP_BAD_NOTFOUND,
                 )
             return self.response(matched_ds)
+        if licenceSpecs:
+            db = self.get_service_instance("sqlalchemy")
+            for ds in datasets:
+                license_name = ds["license"]
+                license = db.License.query.filter_by(name=license_name).first()
+                ds["license_description"] = license.descr
+                group_license_id = license.group_license_id
+                gp_license = db.GroupLicense.query.filter_by(
+                    id=group_license_id
+                ).first()
+                ds["group_license"] = gp_license.name
+                ds["group_license_description"] = gp_license.descr
+
+                attribution_name = ds["attribution"]
+                attribution = db.Attribution.query.filter_by(
+                    name=attribution_name
+                ).first()
+                ds["attribution_description"] = attribution.descr
+
         return self.response(datasets)
