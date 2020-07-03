@@ -29,6 +29,8 @@ export class MeteoTilesComponent {
 
     map: L.Map;
     resolution: string ;
+    private refdate: string;
+    private run: string;
 
     LAYER_OSM = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
@@ -91,8 +93,8 @@ export class MeteoTilesComponent {
             // runAvailable.reftime : 2020051100
             console.log('Available Run', runAvailable);
             let reftime = runAvailable.reftime;
-            let refdate = reftime.substr(0, 8);
-            let run = reftime.substr(8, 2);
+            this.refdate = reftime.substr(0, 8);
+            this.run = reftime.substr(8, 2);
 
             // set time
             let startTime = moment.utc(reftime, "YYYYMMDDHH").toDate();
@@ -107,7 +109,7 @@ export class MeteoTilesComponent {
             (map as any).timeDimension.setAvailableTimes(newAvailableTimes, 'replace');
             (map as any).timeDimension.setCurrentTime(startTime);
 
-            this.setOverlaysToMap(refdate, run);
+            this.setOverlaysToMap();
 
             // add default layer
             let tm2m: L.Layer = this.layersControl['overlays'][this.DEFAULT_PRODUCT];
@@ -123,11 +125,11 @@ export class MeteoTilesComponent {
         });
     }
 
-    private setOverlaysToMap(refdate: string, run: string) {
-        let baseUrl = `${TILES_PATH}/${run}-${this.resolution}`
+    private setOverlaysToMap() {
+        let baseUrl = `${TILES_PATH}/${this.run}-${this.resolution}`
         // Temperature 2 meters Time Layer
         let t2m = L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/t2m-t2m/${refdate}{h}/{z}/{x}/{y}.png`, {
+            L.tileLayer(`${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`, {
                 minZoom: 5,
                 maxZoom: 7,
                 tms: false,
@@ -136,7 +138,7 @@ export class MeteoTilesComponent {
             }), {}),
             // Total precipitation 3h Time Layer
             prec3tp = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${baseUrl}/prec3-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/prec3-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -145,7 +147,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Total precipitation 6h Time Layer
             prec6tp = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${baseUrl}/prec6-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/prec6-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -154,7 +156,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Snowfall 3h Time Layer
             sf3 = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${baseUrl}/snow3-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -163,7 +165,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Snowfall 6h Time Layer
             sf6 = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${baseUrl}/snow6-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -172,7 +174,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Relative humidity Time Layer
             rh = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${baseUrl}/humidity-r/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -181,7 +183,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // High Cloud Time Layer
             hcc = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${baseUrl}/cloud_hml-hcc/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -190,7 +192,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Medium Cloud Time Layer
             mcc = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${baseUrl}/cloud_hml-mcc/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -199,7 +201,7 @@ export class MeteoTilesComponent {
                 }), {}),
             // Low Cloud Time Layer
             lcc = L.timeDimension.layer.tileLayer.portus(
-                L.tileLayer(`${baseUrl}/cloud_hml-lcc/${refdate}{h}/{z}/{x}/{y}.png`, {
+                L.tileLayer(`${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`, {
                     minZoom: 5,
                     maxZoom: 7,
                     tms: false,
@@ -297,5 +299,34 @@ export class MeteoTilesComponent {
 
         // add default legend to the map
         legend_t2m.addTo(map);
+    }
+
+    changeRes() {
+        let currentRes = this.resolution;
+        (this.resolution === 'lm5') ? this.resolution = 'lm2.2' : this.resolution = 'lm5'
+        console.log(`Changed resolution from ${currentRes} to ${this.resolution}`);
+
+        // remove all current layers
+        let overlays = this.layersControl['overlays'];
+        let currentActiveNames = [];
+        for (let name in overlays) {
+            if (this.map.hasLayer(overlays[name])) {
+                currentActiveNames.push(name);
+                this.map.removeLayer(overlays[name]);
+            }
+        }
+        this.setOverlaysToMap();
+
+        // reload the new list of layers
+        overlays = this.layersControl['overlays'];
+
+        // apply the same list to the map
+        for (let name in overlays) {
+            if (currentActiveNames.includes(name)) {
+                console.log('qui');
+                let tileLayer: L.Layer = overlays[name];
+                tileLayer.addTo(this.map);
+            }
+        }
     }
 }
