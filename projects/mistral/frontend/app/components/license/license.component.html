@@ -1,0 +1,118 @@
+<div class='container-fluid'>
+<div class="row text-justify justify-content-md-center">
+<div class='col-12'>
+
+<ngx-spinner [fullScreen] = "false"></ngx-spinner>
+<!-- no dataset -->
+<div class="row" *ngIf="!loading && !data?.length">
+    <div class="col">
+        <div class="no-results">
+	    <h4>Terms &amp; Conditions</h4>
+            <p>No information available</p>
+        </div>
+    </div>
+</div>
+
+
+<!-- load dataset licenses in the table -->
+<div class="table-responsive" *ngIf="data?.length" #tableWrapper>
+
+    <ngx-datatable
+        #licensesTable
+        class="bootstrap expandable"
+        [rows]="data"
+        [headerHeight]="40"
+        [footerHeight]="40"
+
+        [rowHeight]="'auto'">
+
+        <!-- Column Templates -->
+        
+
+        <!-- Dataset -->
+        <ngx-datatable-column
+                name="Dataset"
+                prop="name"
+		
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="2">
+            <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+            >
+                <strong>{{ value }}</strong>
+            </ng-template>
+        </ngx-datatable-column>
+
+        <!-- Dataset description -->
+        <ngx-datatable-column
+                name="Description"
+                prop="description"
+		
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="2">
+            <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+            >
+                <strong>{{ value }}</strong>
+            </ng-template>
+        </ngx-datatable-column>
+
+        <!-- Dataset attribution -->
+        <ngx-datatable-column
+                name="Attribution"
+                prop="attribution"
+		
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="2">
+            <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+            >
+                <strong>{{ value }}</strong>
+            </ng-template>
+        </ngx-datatable-column>
+
+        <!-- Dataset license -->
+        <ngx-datatable-column
+                name="License"
+                prop="license"
+		
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="2">
+            <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+            >
+                <strong>{{ value }}</strong>
+            </ng-template>
+        </ngx-datatable-column>
+
+    </ngx-datatable>
+    <ng-template #noValue>-</ng-template>
+</div>
+
+<br/><br/>
+
+</div>
+</div>
+</div>
+
+
+
+
+
+

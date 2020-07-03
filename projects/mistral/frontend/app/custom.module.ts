@@ -19,7 +19,11 @@ import {SchedulesComponent} from "@app/components/schedules/schedules.component"
 import {DashboardComponent} from "@app/components/dashboard/dashboard.component";
 import {StorageUsageComponent} from "@app/components/dashboard/storage-usage/storage-usage.component";
 import {NgbTimeStringAdapter} from '@app/adapters/timepicker-adapter';
+
+import {LicenseComponent} from "@app/components/license/license.component";
+
 import {PrivacyComponent} from "@app/components/privacy/privacy.component";
+
 
 import {DisableControlDirective} from "@app/directives/disable-control";
 
@@ -65,6 +69,7 @@ const appRoutes: Routes = [
     {path: 'app/maps/flashflood', component: FlashFloodMapsComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/observations', component: ObservationMapsComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/meteotiles', component: MeteoTilesComponent, canActivate: [AuthGuard]},
+    {path: 'public/license', component: LicenseComponent},
     {path: 'public/privacy', component: PrivacyComponent},
     {path: 'app', redirectTo: '/app/data/datasets', pathMatch: 'full'},
     {path: '', redirectTo: '/app/data/datasets', pathMatch: 'full'},
@@ -104,6 +109,7 @@ const appRoutes: Routes = [
         StorageUsageComponent,
         RequestsComponent,
         SchedulesComponent,
+        LicenseComponent,
         PrivacyComponent,
         FormatDatePipe,
         DisableControlDirective
