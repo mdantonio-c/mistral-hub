@@ -13,7 +13,7 @@ declare module 'leaflet' {
     var timeDimension: any;
 }
 
-// const MAP_CENTER = [41.879966, 12.280000];
+const MAP_CENTER = L.latLng(41.879966, 12.280000);
 const TILES_PATH = environment.production ? 'resources/tiles' : 'app/custom/assets/images/tiles';
 // Product constants
 const TM2  = 'Temperature at 2 meters',
@@ -304,7 +304,15 @@ export class MeteoTilesComponent {
 
     changeRes() {
         let currentRes = this.resolution;
-        (this.resolution === 'lm5') ? this.resolution = 'lm2.2' : this.resolution = 'lm5'
+        if (this.resolution === 'lm5') {
+            this.resolution = 'lm2.2';
+            // this.map.setZoom(6);
+            this.map.setView(MAP_CENTER, 6);
+        } else {
+            this.resolution = 'lm5';
+            // this.map.setZoom(5);
+            this.map.setView(MAP_CENTER, 5);
+        }
         // console.log(`Changed resolution from ${currentRes} to ${this.resolution}`);
 
         // remove all current layers
