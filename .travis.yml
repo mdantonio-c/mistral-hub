@@ -39,6 +39,8 @@ jobs:
               bash <(curl -s https://codecov.io/bash)
       env:
       - STAGE=FRONTEND
+  allow_failures:
+    - env: STAGE=FRONTEND
 
 notifications:
   email: true
