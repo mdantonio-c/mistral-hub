@@ -10,19 +10,31 @@
      [leafletLayersControl]="layersControl"
      (leafletMapReady)="onMapReady($event)">
 
-     <div class="leaflet-top leaflet-left" style="left: 40px;">
-       <div class="leaflet-control" style="height: 20px;">
-         <button style="font-size:12px; border-radius: 25px; padding: 5px; border-style: double;">Model resolution <br>
-         <i class="fas fa-3x"
-         [ngClass]="{'fa-toggle-on': resolution === 'lm5', 'fa-toggle-off': resolution === 'lm2.2'}"
-         (click)="changeRes()"
-         [ngbTooltip]="'Change Resolution'" placement="bottom" container="body"
-         style="cursor: pointer; vertical-align: middle;"></i>
-         &nbsp;
-         <span style="background: #fd9b00;  font: 12px Arial, Helvetica, sans-serif, bold; border-radius: 25px; padding: 5px; border-style: double;">
-           <ng-container *ngIf="resolution === 'lm5'">COSMO 5km</ng-container>
-           <ng-container *ngIf="resolution === 'lm2.2'">COSMO 2.2Km</ng-container>
-         </span></button>
-       </div>
-     </div>
-   </div>
+    <div class="leaflet-top leaflet-left" style="left: 40px;">
+        <div class="leaflet-control" style="height: 20px;">
+            <div style="
+                background: rgba(255, 255, 255, 0.8);
+                font-size:12px;
+                border-radius: 5px;
+                padding: 5px 10px;
+                -webkit-box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+                -moz-box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+                box-shadow: 0 1px 5px rgba(0,0,0,0.65);">
+                <h6 style="text-align: center; color: #555;">Model resolution</h6>
+                <i class="fas fa-3x mr-2"
+                   [ngClass]="{'fa-toggle-on': resolution === 'lm5', 'fa-toggle-off': resolution === 'lm2.2'}"
+                   (click)="changeRes()"
+                   [ngbTooltip]="'Change Resolution'" placement="bottom" container="body"
+                   style="cursor: pointer; vertical-align: middle;"></i>
+                <span style="background: #fd9b00;
+                              font: 12px Arial, Helvetica, sans-serif, bold;
+                              border-radius: 25px;
+                              padding: 5px;
+                              border-style: double;">
+                    <ng-container *ngIf="resolution === 'lm5'">COSMO 5km</ng-container>
+                    <ng-container *ngIf="resolution === 'lm2.2'">COSMO 2.2Km</ng-container>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
