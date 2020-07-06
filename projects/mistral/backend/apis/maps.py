@@ -248,6 +248,11 @@ class MapSet(MapEndpoint):
                 "Map service is currently unavailable", hcodes.HTTP_SERVICE_UNAVAILABLE
             )
 
+        if field == "percentile" or field == "probability":
+            # force GALILEO as platform
+            platform = "GALILEO"
+            log.warning("Forcing platform to {} because field is {}", platform, field)
+
         self.set_base_path(field, platform, env, run, res)
 
         # Check if the images are ready: 2017112900.READY
