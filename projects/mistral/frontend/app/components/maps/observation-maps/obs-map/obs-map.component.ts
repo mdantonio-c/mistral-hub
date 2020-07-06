@@ -214,7 +214,6 @@ export class ObsMapComponent {
         let altitude = station.altitude || '';
         const template = `<ul class="p-1 m-0"><li><b>Network</b>: ${station.network}</li>` +
             ident +
-            station.id +
             `<li><b>Lat</b>: ${station.lat}</li>` +
             `<li><b>Lon</b>: ${station.lon}</li>` +
             altitude +

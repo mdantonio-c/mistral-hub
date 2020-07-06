@@ -100,7 +100,7 @@ export class MeteoTilesComponent {
         // console.log('Map ready', map);
         this.map = map;
         this.spinner.show();
-        this.tilesService.getLastRun('lm5', '00').subscribe(runAvailable => {
+        this.tilesService.getLastRun('lm5').subscribe(runAvailable => {
             // runAvailable.reftime : 2020051100
             console.log('Available Run', runAvailable);
             let reftime = runAvailable.reftime;
