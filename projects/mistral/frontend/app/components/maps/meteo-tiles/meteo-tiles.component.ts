@@ -30,19 +30,19 @@ export class MeteoTilesComponent {
 
     LAYER_OSM = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-        maxZoom: 5,
-        minZoom: 3
+        maxZoom: 7,
+        minZoom: 5
     });
     LAYER_MAPBOX_LIGHT = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
         id: 'mapbox.light',
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-        maxZoom: 5,
-        minZoom: 3
+        maxZoom: 7,
+        minZoom: 5
     });
     LAYER_DARKMATTER = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-        maxZoom: 5,
-        minZoom: 3
+        maxZoom: 7,
+        minZoom: 5
     });
 
     // Values to bind to Leaflet Directive
@@ -113,7 +113,8 @@ export class MeteoTilesComponent {
 
         }, error => {
             this.notify.showError(error);
-        }).add(() => {
+	}).add(() => {
+            map.invalidateSize();
             this.spinner.hide();
         });
     }
@@ -122,8 +123,8 @@ export class MeteoTilesComponent {
         // Temperature 2 meters Time Layer
         let t2m = L.timeDimension.layer.tileLayer.portus(
             L.tileLayer(`${TILES_PATH}/t2m-t2m/${refdate}{h}/{z}/{x}/{y}.png`, {
-                minZoom: 3,
-                maxZoom: 5,
+                minZoom: 5,
+                maxZoom: 7,
                 tms: false,
                 opacity: 0.6,
                 // bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -131,8 +132,8 @@ export class MeteoTilesComponent {
             // Total precipitation 3h Time Layer
             prec3tp = L.timeDimension.layer.tileLayer.portus(
                 L.tileLayer(`${TILES_PATH}/prec3-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
-                    minZoom: 3,
-                    maxZoom: 5,
+                    minZoom: 5,
+                    maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
                     // bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -140,8 +141,8 @@ export class MeteoTilesComponent {
             // Total precipitation 6h Time Layer
             prec6tp = L.timeDimension.layer.tileLayer.portus(
                 L.tileLayer(`${TILES_PATH}/prec6-tp/${refdate}{h}/{z}/{x}/{y}.png`, {
-                    minZoom: 3,
-                    maxZoom: 5,
+                    minZoom: 5,
+                    maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
                     // bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -149,8 +150,8 @@ export class MeteoTilesComponent {
             // Snowfall 3h Time Layer
             sf3 = L.timeDimension.layer.tileLayer.portus(
                 L.tileLayer(`${TILES_PATH}/snow3-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
-                    minZoom: 3,
-                    maxZoom: 5,
+                    minZoom: 5,
+                    maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
                     // bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -158,8 +159,8 @@ export class MeteoTilesComponent {
             // Snowfall 6h Time Layer
             sf6 = L.timeDimension.layer.tileLayer.portus(
                 L.tileLayer(`${TILES_PATH}/snow6-snow/${refdate}{h}/{z}/{x}/{y}.png`, {
-                    minZoom: 3,
-                    maxZoom: 5,
+                    minZoom: 5,
+                    maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
                     // bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -167,8 +168,8 @@ export class MeteoTilesComponent {
             // Relative humidity Time Layer
             rh = L.timeDimension.layer.tileLayer.portus(
                 L.tileLayer(`${TILES_PATH}/humidity-r/${refdate}{h}/{z}/{x}/{y}.png`, {
-                    minZoom: 3,
-                    maxZoom: 5,
+                    minZoom: 5,
+                    maxZoom: 7,
                     tms: false,
                     //opacity: 0.6,
                     bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -176,8 +177,8 @@ export class MeteoTilesComponent {
             // High Cloud Time Layer
             hcc = L.timeDimension.layer.tileLayer.portus(
                 L.tileLayer(`${TILES_PATH}/cloud_hml-hcc/${refdate}{h}/{z}/{x}/{y}.png`, {
-                    minZoom: 3,
-                    maxZoom: 5,
+                    minZoom: 5,
+                    maxZoom: 7,
                     tms: false,
                     //opacity: 0.6,
                     bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -185,8 +186,8 @@ export class MeteoTilesComponent {
             // Medium Cloud Time Layer
             mcc = L.timeDimension.layer.tileLayer.portus(
                 L.tileLayer(`${TILES_PATH}/cloud_hml-mcc/${refdate}{h}/{z}/{x}/{y}.png`, {
-                    minZoom: 3,
-                    maxZoom: 5,
+                    minZoom: 5,
+                    maxZoom: 7,
                     tms: false,
                     //opacity: 0.6,
                     bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -194,8 +195,8 @@ export class MeteoTilesComponent {
             // Low Cloud Time Layer
             lcc = L.timeDimension.layer.tileLayer.portus(
                 L.tileLayer(`${TILES_PATH}/cloud_hml-lcc/${refdate}{h}/{z}/{x}/{y}.png`, {
-                    minZoom: 3,
-                    maxZoom: 5,
+                    minZoom: 5,
+                    maxZoom: 7,
                     tms: false,
                     opacity: 0.9,
                     bounds: [[25.0, -25.0], [50.0, 47.0]],

@@ -19,7 +19,7 @@ $ git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub.git
 ####Init & start
 ```
 $ cd meteo-hub
-$ git checkout 0.2.3
+$ git checkout 0.3.0
 $ rapydo init
 $ rapydo pull
 $ rapydo start
