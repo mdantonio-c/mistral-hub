@@ -228,10 +228,18 @@ export class ObsMapComponent {
             let div = L.DomUtil.create('div', 'info mst-legend');
             let halfDelta = (max - min) / (COLORS.length * 2.);
             let bcode = VAR_TABLE.find(x => x.bcode === product);
-            const title = `${(bcode.short || bcode.description)} [${bcode.userunit}]`,
+            let title = product,
+                scale = 1,
+                offset = 0,
+                userunit = 'n/a';
+            if (bcode) {
+                title = bcode.short || bcode.description;
+                userunit = bcode.userunit;
                 scale = bcode.scale,
                 offset = bcode.offset;
-            div.innerHTML += `<h6>${title}</h6>`;
+            }
+
+            div.innerHTML += `<h6>${title} [${userunit}]</h6>`;
             for (let i = 0; i < COLORS.length; i++) {
                 let grade = min + halfDelta * (i*2+1);
                 div.innerHTML += '<i style="background:#' + service.getColor(grade, min, max) + '"></i><span>' +

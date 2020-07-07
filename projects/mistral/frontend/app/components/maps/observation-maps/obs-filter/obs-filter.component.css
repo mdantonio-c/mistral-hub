@@ -7,7 +7,6 @@
   margin-bottom: 0.5rem;
 }
 
-/*.filter .card-body {*/
-/*  padding-bottom: .5rem !important;*/
-/*  padding-top: .5rem !important;*/
-/*}*/
+.filter select option[value=""] {
+  color: #ccc !important;
+}
