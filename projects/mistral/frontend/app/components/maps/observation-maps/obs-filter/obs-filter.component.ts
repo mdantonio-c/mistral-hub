@@ -45,9 +45,8 @@ export class ObsFilterComponent implements OnInit {
         this.filterForm = this.fb.group({
             product: [this.DEFAULT_PRODUCT, Validators.required],
             reftime: [this.today, Validators.required],
-            // reftime: [new Date(2020, 5, 15), Validators.required],
-            level: [this.DEFAULT_LEVEL],
-            timerange: [this.DEFAULT_TIMERANGE],
+            level: [''],
+            timerange: [''],
             boundingBox: [''],
             network: [''],
             license: ['CC-BY', Validators.required]
@@ -59,7 +58,7 @@ export class ObsFilterComponent implements OnInit {
         // get fields enabling the form
         let startFilter: ObsFilter = {
             product: this.DEFAULT_PRODUCT,
-            reftime: new Date(2020, 5, 15)
+            reftime: this.today
         }
         this.loadFilter(startFilter, true);
 
@@ -71,23 +70,53 @@ export class ObsFilterComponent implements OnInit {
         setTimeout(() => this.spinner.show('filter-spinner'), 0);
         this.obsService.getFields(f).subscribe(
             (data: FieldsSummary) => {
+                // reset the form
+                this.filterForm.reset({
+                    reftime: f.reftime,
+                    product: f.product,
+                    network: f.network || '',
+                    level: '',
+                    timerange: '',
+                    boundingBox: '',
+                    license: 'CC-BY'
+                }, {emitEvent:false});
+
                 let items = data.items;
                 // I need all available products here, regardless of the filter
                 this.allProducts = items.available_products;
                 // set product
-                this.filterForm.controls.product.patchValue(f.product, {emitEvent:false})
+                this.filterForm.controls.product.setValue(f.product, {emitEvent:false})
                 if (items.network) {
-                    // console.log('networks', items.network);
                     this.allNetworks = items.network;
+                    if (f.network) {
+                        this.filterForm.controls.network.setValue(f.network, {emitEvent:false})
+                    }
+                    if (this.allNetworks.length === 1) {
+                        this.filterForm.controls.network.setValue(this.allNetworks[0].code, {emitEvent:false})
+                    }
                 }
                 if (items.level) {
-                    // console.log('levels', items.level);
                     this.allLevels = items.level;
+                    if (this.allLevels.map(x => x.code).includes(f.level)) {
+                        this.filterForm.controls.level.setValue(f.level, {emitEvent:false})
+                    }
+                    if (this.allLevels.length === 1) {
+                        this.filterForm.controls.level.setValue(this.allLevels[0].code, {emitEvent:false})
+                    }
                 }
                 if (items.timerange) {
                     this.allTimeranges = items.timerange;
+                    if (this.allTimeranges.map(x => x.code).includes(f.timerange)) {
+                        this.filterForm.controls.timerange.setValue(f.timerange, {emitEvent:false})
+                    }
+                    if (this.allTimeranges.length === 1) {
+                        this.filterForm.controls.timerange.setValue(this.allTimeranges[0].code, {emitEvent:false})
+                    }
                 }
                 if (initialize) {
+                    // set here default level and timerange
+                    this.filterForm.controls.level.setValue(this.DEFAULT_LEVEL, {emitEvent:false})
+                    this.filterForm.controls.timerange.setValue(this.DEFAULT_TIMERANGE, {emitEvent:false})
                     // emit filter update
                     if (!this.filterForm.invalid) {
                         this.update();
@@ -106,15 +135,11 @@ export class ObsFilterComponent implements OnInit {
 
     private onChanges(): void {
         this.filterForm.valueChanges.subscribe(val => {
-            console.log('filter changed', val);
-            console.log('is form invalid?', this.filterForm.invalid);
+            // console.log('filter changed', val);
+            // console.log('is form invalid?', this.filterForm.invalid);
             this.loadFilter(val);
             this.filterChange.emit(val);
         });
-    }
-
-    resetFiltersToDefault() {
-        // TODO
     }
 
     update() {

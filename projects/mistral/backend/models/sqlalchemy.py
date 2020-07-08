@@ -92,9 +92,11 @@ class License(db.Model):
     group_license_id = db.Column(db.Integer, db.ForeignKey("group_license.id"))
     name = db.Column(db.String, index=True, nullable=False)
     descr = db.Column(db.String, nullable=False)
+    url = db.Column(db.String)
 
 
 class Attribution(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, index=True, nullable=False)
     descr = db.Column(db.String, nullable=False)
+    url = db.Column(db.String)
