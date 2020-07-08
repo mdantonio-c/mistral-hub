@@ -69,7 +69,7 @@ const appRoutes: Routes = [
     {path: 'app/maps/flashflood', component: FlashFloodMapsComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/observations', component: ObservationMapsComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/meteotiles', component: MeteoTilesComponent, canActivate: [AuthGuard]},
-    {path: 'public/license', component: LicenseComponent},
+    {path: 'app/license', component: LicenseComponent, canActivate: [AuthGuard]},
     {path: 'public/privacy', component: PrivacyComponent},
     {path: 'app', redirectTo: '/app/data/datasets', pathMatch: 'full'},
     {path: '', redirectTo: '/app/data/datasets', pathMatch: 'full'},

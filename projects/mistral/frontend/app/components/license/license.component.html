@@ -2,9 +2,15 @@
 <div class="row text-justify justify-content-md-center">
 <div class='col-12'>
 
-<ngx-spinner [fullScreen] = "false"></ngx-spinner>
+	<ngx-spinner
+                bdColor="rgba(255,255,255,0.8)"
+                color="#6c757d"
+                zIndex="1000"
+                [fullScreen]="false" type="ball-clip-rotate-multiple" size="medium">
+        </ngx-spinner>
+
 <!-- no dataset -->
-<div class="row" *ngIf="!loading && !data?.length">
+<div class="row" *ngIf="!data?.length">
     <div class="col">
         <div class="no-results">
 	    <h4>Terms &amp; Conditions</h4>
@@ -20,9 +26,10 @@
     <ngx-datatable
         #licensesTable
         class="bootstrap expandable"
-        [rows]="data"
+	[columnMode]="ColumnMode.flex"
         [headerHeight]="40"
         [footerHeight]="40"
+	[rows]="data"
 
         [rowHeight]="'auto'">
 
@@ -37,13 +44,13 @@
                 [resizeable]="false"
                 [sortable]="false"
                 [draggable]="false"
-                [flexGrow]="2">
+                [flexGrow]="1">
             <ng-template
                     let-value="value"
                     let-row="row"
                     ngx-datatable-cell-template
             >
-                <strong>{{ value }}</strong>
+                {{ value }}
             </ng-template>
         </ngx-datatable-column>
 
@@ -55,13 +62,13 @@
                 [resizeable]="false"
                 [sortable]="false"
                 [draggable]="false"
-                [flexGrow]="2">
+                [flexGrow]="3">
             <ng-template
                     let-value="value"
                     let-row="row"
                     ngx-datatable-cell-template
             >
-                <strong>{{ value }}</strong>
+                {{ value }}
             </ng-template>
         </ngx-datatable-column>
 
@@ -79,7 +86,7 @@
                     let-row="row"
                     ngx-datatable-cell-template
             >
-                <strong>{{ value }}</strong>
+                {{ value }}
             </ng-template>
         </ngx-datatable-column>
 
@@ -97,7 +104,7 @@
                     let-row="row"
                     ngx-datatable-cell-template
             >
-                <strong>{{ value }}</strong>
+                {{ value }}
             </ng-template>
         </ngx-datatable-column>
 

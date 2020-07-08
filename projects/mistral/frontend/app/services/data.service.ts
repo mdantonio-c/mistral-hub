@@ -111,7 +111,12 @@ export class DataService {
         return this.api.get('datasets');
     }
 
-
+    /**
+     * Get all the available datasets with License information.
+     */
+    getDatasetsLicense() {
+        return this.api.get('datasets?licenceSpecs=True');
+    }
 
     /**
      * Get summary fields for a give list of datasets.

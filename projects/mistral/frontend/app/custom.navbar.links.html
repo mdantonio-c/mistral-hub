@@ -18,6 +18,10 @@
             <a ngbDropdownItem routerLink='/app/maps/meteotiles' routerLinkActive="active">Multi-layer Map</a>
         </div>
     </li>
+    <li class='nav-item' *ngIf="user">
+        <a class='nav-link' routerLink='app/license' routerLinkActive="active">Terms &amp; Conditions</a>
+    </li>
+
     <ng-template #notLogged>
        <li class='nav-item'>
         <a class='nav-link' routerLink='/app/maps/forecasts' routerLinkActive="active">Maps</a>
@@ -28,10 +32,6 @@
 			Users
 		</a>
 	</li>
-
-    <li class='nav-item'>
-        <a class='nav-link' routerLink='/public/license' routerLinkActive="active">Terms &amp; Conditions</a>
-    </li>
 
     <li class='nav-item'>
         <a class='nav-link' routerLink='/public/privacy' routerLinkActive="active">Privacy</a>

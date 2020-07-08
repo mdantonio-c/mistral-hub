@@ -1,52 +1,43 @@
-import {Component, Output, EventEmitter, Injector} from '@angular/core';
-
+import {Component, OnInit} from '@angular/core';
+import {NotificationService} from '@rapydo/services/notification';
 import {DataService} from "@app/services/data.service";
-import {environment} from '@rapydo/../environments/environment';
+import {ColumnMode} from '@swimlane/ngx-datatable';
+import {NgxSpinnerService} from 'ngx-spinner';
 
 @Component({
-    selector: 'app-license',
+    selector: 'license',
     templateUrl: './license.component.html'
 })
-export class LicenseComponent {
-    expanded: any = {};
-    @Output() onLoad: EventEmitter<null> = new EventEmitter<null>();
-    loading = false;
+export class LicenseComponent implements OnInit {
+    title = 'titolo';
     data;
+    ColumnMode = ColumnMode;
 
-    constructor(protected injector: Injector, public dataService: DataService) {
-        //this.endpoint = 'license';
-        //this.get(this.endpoint);
-
-
-//export const MockLicenseResponse: any = [
-//    {	
-//	"name": "cosmo-2i",
-//	"descr": "COSMO 2km on Italy area",
-//	"license": [{"name": "CCBY", "descr": "Creative Common BY"}],
-//	"attribution": [{"name": "ARPAE", "descr": "Arpa Emilia-Romagna"]
-//    }
-//];
-
-	this.data = new Array();
-	var dataset1 = {
-		"name":"COSMO-2I", 
-		"description":"COSMO 2.2 km on Italy area",
-		"license": [],
-		"attribution": []
-	};
-	var dataset2 = {
-		"name":"COSMO-5M", 
-		"description":"COSMO 5 km on Mediterranean area",
-		"license": [],
-		"attribution": []
-	};
-	this.data.push(dataset1);
-	this.data.push(dataset2);
-	console.log(`data=`,this.data);
+    constructor(private dataService: DataService,
+                private notify: NotificationService,
+                private spinner: NgxSpinnerService) {
+        
+	console.log('constructor');
     }
 
     ngOnInit() {
-        // init
-        console.log(`ngOnInit`);
+        this.spinner.show();
+
+        this.dataService.getDatasetsLicense().subscribe(
+        //this.dataService.getDatasets().subscribe(
+            response => {
+                this.data = response;
+                console.log('Data loaded', this.data);
+                if (this.data.length === 0) {
+                    this.notify.showWarning("Unexpected result. The list of datasets is empty.");
+                }
+            },
+            error => {
+                this.notify.showError(error);
+            }).add(() => {
+            this.spinner.hide();
+        });
     }
+
 }
+
