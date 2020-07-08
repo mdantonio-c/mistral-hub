@@ -75,7 +75,7 @@
         <!-- Dataset attribution -->
         <ngx-datatable-column
                 name="Attribution"
-                prop="attribution"
+                prop="attribution_description"
 		
                 [resizeable]="false"
                 [sortable]="false"
@@ -92,8 +92,8 @@
 
         <!-- Dataset license -->
         <ngx-datatable-column
-                name="License"
-                prop="license"
+                name="Work distributed under license "
+                prop="license_description"
 		
                 [resizeable]="false"
                 [sortable]="false"
@@ -104,7 +104,7 @@
                     let-row="row"
                     ngx-datatable-cell-template
             >
-                {{ value }}
+                <a href="{{ row.license_url }}" target="_blank">{{ value }}</a>
             </ng-template>
         </ngx-datatable-column>
 
