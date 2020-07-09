@@ -30,7 +30,6 @@ export class MeteoService {
 
     getMapLegend(params: MeteoFilter): Observable<Blob> {
         let options = {
-            'rawResponse': true,
             'conf': {
                 'responseType': 'blob',
             }
@@ -40,7 +39,6 @@ export class MeteoService {
 
     getMapImage(params: MeteoFilter, offset: string): Observable<Blob> {
         let options = {
-            'rawResponse': true,
             'conf': {
                 'responseType': 'blob',
             }

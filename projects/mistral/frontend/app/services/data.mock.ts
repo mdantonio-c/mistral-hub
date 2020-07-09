@@ -3276,6 +3276,17 @@ export const MockRequestsResponse: any = [
     }
 ];
 
+export const MockLicenseNoDataResponse: any = [];
+
+export const MockLicenseResponse: any = [
+    {	
+	"name": "cosmo-2i",
+	"descr": "COSMO 2km on Italy area",
+	"license": [{"name": "CCBY", "descr": "Creative Common BY"}],
+	"attribution": [{"name": "ARPAE", "descr": "Arpa Emilia-Romagna"}]
+    }
+];
+
 export const MockSchedulesTotalResponse: any = {"total": 3};
 
 export const MockSchedulesNoDataResponse: any = [];

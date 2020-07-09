@@ -1,53 +1,60 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
-import { BytesPipe } from '@rapydo/pipes/pipes';
+import { BytesPipe } from "@rapydo/pipes/pipes";
 
 @Injectable()
 export class ProjectOptions {
+  private policy_it: string;
+  private policy_en: string;
 
-    private policy_it: string;
-    private policy_en: string;
-
-	constructor() {
-		this.initTemplates();
+  constructor() {
+    this.initTemplates();
+  }
+  public get_option(opt): any {
+    if (opt == "show_footer") {
+      return true;
     }
-	public get_option(opt):any {
-        if (opt == 'show_footer') {
-        	return true;
-        }
-        if (opt == 'privacy_acceptance') {
-            return this.privacy_acceptance()
-        }
-        if (opt == 'user_page') {
-            return {
-                "custom": [
-                    {name: 'Disk<br>Quota', prop: "disk_quota", flexGrow: 0.3, pipe: new BytesPipe()}
-                ]
-            }
-        }
+    if (opt == "privacy_acceptance") {
+      return this.privacy_acceptance();
+    }
+    if (opt == "user_page") {
+      return {
+        custom: [
+          {
+            name: "Disk<br>Quota",
+            prop: "disk_quota",
+            flexGrow: 0.3,
+            pipe: new BytesPipe(),
+          },
+          { name: "AMQP", prop: "amqp_queue", flexGrow: 0.3 },
+        ],
+      };
+    }
 
-        if (opt == 'cookie_law_text') {
-        	return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page. If you need more information you can read <a target='_blank' href='https://www.cineca.it/privacy/cookies-cineca'>privacy and cookie policy</a>";
-        }
-		return null;
-	}
+    if (opt == "cookie_law_text") {
+      return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page. If you need more information you can read <a target='_blank' href='https://www.cineca.it/privacy/cookies-cineca'>privacy and cookie policy</a>";
+    }
+    return null;
+  }
 
-/*	
+  /*	
 	private registration_options() {
 		return {}
 	}
 */
 
-    private privacy_acceptance() {
+  private privacy_acceptance() {
+    return [
+      //{'label': 'IT', 'text': this.policy_it},
+      {
+        label: "Click here to visualize our Terms of Use",
+        text: this.policy_en,
+      },
+    ];
+  }
 
-        return [
-            //{'label': 'IT', 'text': this.policy_it},
-            {'label': 'Click here to visualize our Terms of Use', 'text': this.policy_en},
-        ];
-    }
-
-	private initTemplates() {
-        this.policy_it = `
+  private initTemplates() {
+    this.policy_it = `
 PERCHÉ QUESTE INFORMAZIONI
 
 La presente informativa, resa ai sensi del Regolamento (UE) 2016/679 (di seguito "Regolamento"), descrive le modalità di trattamento dei dati personali degli utenti che consultano il sito web o accedono alla piattaforma meteo-hub del progetto Mistral (Progetto europeo CEF 2014-2020 AGREEMENT No INEA/CEF/ICT/A2017/1567101) accessibile per via telematica ai seguenti indirizzi web:
@@ -139,7 +146,7 @@ Per esercitare i diritti sopra riportati potrà rivolgersi al Titolare del tratt
 Il Titolare del trattamento è tenuto a fornirle una risposta entro un mese dalla richiesta, estensibili fino a tre mesi in caso di particolare complessità della richiesta. 
 `;
 
-		this.policy_en = `
+    this.policy_en = `
 This information, made pursuant to Regulation (EU) 2016/679 (hereinafter the "Regulation"), describes the methods of processing of personal data of users who consult the Mistral project website or access the meteo-hub platform, accessible electronically to the following web addresses:<br/>
 <ul>
     <li>mistralportal.eu</li>
@@ -219,6 +226,5 @@ To exercise the above rights, you can contact the Holder of data processing  at 
 <br/>
 The Holder of data processing is required to provide a response within one month of the request, extendable up to three months if the request is particularly complex.<br/>
 		`;
-	}
-
+  }
 }

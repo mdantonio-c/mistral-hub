@@ -6,7 +6,7 @@ import {ApiService} from '@rapydo/services/api';
 import {DataService, StorageUsage} from "./data.service";
 import {
     MockDerivedVariables,
-    MockGribTemplateResponse,
+    MockGribTemplateResponse, MockLicenseResponse,
     MockShapeTemplateResponse,
     MockStorageUsageResponse
 } from "./data.mock";
@@ -31,5 +31,9 @@ export class DataServiceStub extends DataService {
         } else if (param == 'shp') {
             return Observable.of(MockShapeTemplateResponse);
         }
+    }
+
+    getDatasetsLicense() {
+        return Observable.of(MockLicenseResponse)
     }
 }

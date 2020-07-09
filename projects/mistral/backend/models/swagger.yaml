@@ -46,16 +46,16 @@ definitions:
         items:
           type: string
           enum:
-            - B12194  # Air density
-            - B13003  # Relative humidity
-            - B11001  # Wind direction
-            - B11002  # Wind speed
-            - B11003  # U-component
-            - B11004  # V-component
-            - B12103  # Dew-point temperature
-            - B13001  # Specific humidity
-            - B13003  # Relative humidity
-            - B13205  # Snowfall (grid-scale + convective)
+            - B12194 # Air density
+            - B13003 # Relative humidity
+            - B11001 # Wind direction
+            - B11002 # Wind speed
+            - B11003 # U-component
+            - B11004 # V-component
+            - B12103 # Dew-point temperature
+            - B13001 # Specific humidity
+            - B13003 # Relative humidity
+            - B13205 # Snowfall (grid-scale + convective)
     required:
       - type
       - variables
@@ -299,8 +299,8 @@ definitions:
       license:
         type: string
         enum:
-          - CCBY  # Creative Commons BY (Attribution) 4.0
-          - ODBL  # Open Database License
+          - CCBY # Creative Commons BY (Attribution) 4.0
+          - ODBL # Open Database License
       category:
         type: string
         enum:
@@ -353,10 +353,10 @@ definitions:
         type: object
         allOf:
           - $ref: "#/definitions/CrontabSettings"
-#      on-data-ready:
-#        description: Activate data extraction when requested data is ready
-#        type: boolean
-#        default: false
+  #      on-data-ready:
+  #        description: Activate data extraction when requested data is ready
+  #        type: boolean
+  #        default: false
 
   CrontabSettings:
     properties:
@@ -393,20 +393,20 @@ definitions:
     minProperties: 1
 
   PeriodSettings:
-      required:
-        - every
-        - period
-      properties:
-        every:
-          type: integer
-        period:
-          type: string
-          enum:
-            - days
-            - hours
-            - minutes
-            - seconds
-            - microseconds
+    required:
+      - every
+      - period
+    properties:
+      every:
+        type: integer
+      period:
+        type: string
+        enum:
+          - days
+          - hours
+          - minutes
+          - seconds
+          - microseconds
   Fileoutput:
     properties:
       fileoutput:
@@ -457,7 +457,7 @@ definitions:
   MapStations:
     type: array
     items:
-     $ref: "#/definitions/MapStationData"
+      $ref: "#/definitions/MapStationData"
 
   MapStationData:
     description: list of data
@@ -521,69 +521,69 @@ definitions:
       items:
         type: object
 
-#  Summary:
-#    required:
-#      - fields
-#      - stats
-#    properties:
-#      fields:
-#        type: array
-#        items:
-#          $ref: "#/definitions/Field"
-#      stats:
-#        $ref: "#/definitions/SummaryStats"
-#  Field:
-#    required:
-#      - type
-#      - values
-#    properties:
-#      type:
-#        type: string
-#      values:
-#        type: array
-#        items: {}
-#  SummaryStats:
-#    required:
-#      - size
-#      - count
-#      - from
-#      - to
-#    properties:
-#      size:
-#        type: integer
-#        minimum: 0
-#      count:
-#        type: integer
-#        minimum: 0
-#      from:
-#        type: string
-#        format: date-time
-#      to:
-#        type: string
-#        format: date-time
+  #  Summary:
+  #    required:
+  #      - fields
+  #      - stats
+  #    properties:
+  #      fields:
+  #        type: array
+  #        items:
+  #          $ref: "#/definitions/Field"
+  #      stats:
+  #        $ref: "#/definitions/SummaryStats"
+  #  Field:
+  #    required:
+  #      - type
+  #      - values
+  #    properties:
+  #      type:
+  #        type: string
+  #      values:
+  #        type: array
+  #        items: {}
+  #  SummaryStats:
+  #    required:
+  #      - size
+  #      - count
+  #      - from
+  #      - to
+  #    properties:
+  #      size:
+  #        type: integer
+  #        minimum: 0
+  #      count:
+  #        type: integer
+  #        minimum: 0
+  #      from:
+  #        type: string
+  #        format: date-time
+  #      to:
+  #        type: string
+  #        format: date-time
 
-#  Observation:
-#    properties:
-#      phenomenonTime:
-#        type: string
-#  Location:
-#    properties:
-#
-#  Procedure:
-#    name:
-#      type: string
-#    description:
-#      type: string
-#    type:
-#      type: string
-#
-#  TimeRange:
-#    pindicator:
-#      type: string
-#    period1:
-#      type: string
-#    period2:
-#      type: string
+  #  Observation:
+  #    properties:
+  #      phenomenonTime:
+  #        type: string
+  #  Location:
+  #    properties:
+  #
+  #  Procedure:
+  #    name:
+  #      type: string
+  #    description:
+  #      type: string
+  #    type:
+  #      type: string
+  #
+  #  TimeRange:
+  #    pindicator:
+  #      type: string
+  #    period1:
+  #      type: string
+  #    period2:
+  #      type: string
   StorageUsage:
     required:
       - quota
@@ -608,7 +608,7 @@ definitions:
       reftime:
         description: Date of the last requested run available
         type: string
-        pattern: '^0[0-3][0-2][0-9](00|12)$'
+        pattern: "^0[0-3][0-2][0-9](00|12)$"
       offsets:
         description: The list of all available maps for that specific run, identified by its offset (e.g. +3h=0003)
         type: array
@@ -622,13 +622,3 @@ definitions:
         enum:
           - GALILEO
           - MEUCCI
-
-FormDataParameters:
-  AdminUsers:
-    - name: disk_quota
-      in: formData
-      type: number
-      required: true
-      description: Disk quota in bytes
-      custom:
-        label: Disk quota

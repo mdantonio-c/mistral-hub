@@ -1,8 +1,15 @@
+<ngx-spinner
+        [name]="'filter-spinner'"
+        bdColor="rgba(255,255,255,0.8)"
+        color="#6c757d"
+        zIndex="1000"
+        [fullScreen]="false" type="ball-clip-rotate-multiple" size="medium">
+</ngx-spinner>
 <form class="filter" [formGroup]="filterForm" (ngSubmit)="update()">
     <div class="form-group">
         <label for="variable">Variable</label>
         <select id="variable" class="form-control" formControlName="product">
-            <option [value]="p.code" *ngFor="let p of allProducts">{{p.desc}}</option>
+            <option [ngValue]="p.code" *ngFor="let p of allProducts">{{p.desc}}</option>
         </select>
     </div>
     <!-- Date -->
@@ -40,16 +47,16 @@
     <div class="form-group">
         <label for="level">Level</label>
         <select id="level" class="form-control" formControlName="level">
-            <option value=""></option>
-            <option [value]="l.code" *ngFor="let l of allLevels">{{l.desc}}</option>
+            <option value="">Any</option>
+            <option [ngValue]="l.code" *ngFor="let l of allLevels">{{l.desc}}</option>
         </select>
     </div>
     <!-- Time range -->
     <div class="form-group">
         <label for="timerange">Time range</label>
         <select id="timerange" class="form-control" formControlName="timerange">
-            <option value=""></option>
-            <option [value]="t.code" *ngFor="let t of allTimeranges">{{t.desc}}</option>
+            <option value="">Any</option>
+            <option [ngValue]="t.code" *ngFor="let t of allTimeranges">{{t.desc}}</option>
         </select>
     </div>
     <!-- Area -->
@@ -57,15 +64,15 @@
     <div class="form-group">
         <label for="network">Network</label>
         <select id="network" class="form-control" formControlName="network">
-            <option value=""></option>
-            <option [value]="n.code" *ngFor="let n of allNetworks">{{n.code}}</option>
+            <option value="">Any</option>
+            <option [ngValue]="n.code" *ngFor="let n of allNetworks">{{n.code}}</option>
         </select>
     </div>
     <!-- License -->
     <div class="form-group">
         <label for="license">Group of Licenses</label>
         <select id="license" class="form-control" formControlName="license">
-            <option [value]="l.code" *ngFor="let l of allLicenses">{{l.desc}}</option>
+            <option [ngValue]="l.code" *ngFor="let l of allLicenses">{{l.desc}}</option>
         </select>
     </div>
 
@@ -81,5 +88,8 @@
             Update
         </button>
     </div>
+    <!--
+    <pre>{{filterForm.value | json}}</pre>
+    -->
 </form>
 

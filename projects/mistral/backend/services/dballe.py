@@ -1,16 +1,14 @@
 import itertools
 import os
-import shlex
 import subprocess
 import tempfile
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
+import arkimet as arki
 import dateutil
 import dballe
-from mistral.exceptions import AccessToDatasetDenied
-from mistral.services.arkimet import DATASET_ROOT
-from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.arkimet import BeArkimet as arki_service
 from restapi.utilities.logs import log
 
 user = os.environ.get("ALCHEMY_USER")
@@ -165,7 +163,7 @@ class BeDballe:
             query_for_arki["datetimemax"] = refmax_arki
         else:
             # get retime min and max for arkimet datasets
-            arki_summary = arki.load_summary(datasets)
+            arki_summary = arki_service.load_summary(datasets)
             query_for_arki["datetimemin"] = datetime(
                 *arki_summary["items"]["summarystats"]["b"]
             )
@@ -255,13 +253,13 @@ class BeDballe:
                 if query:
                     if "license" in query.keys():
                         license = query["license"]
-                datasets = arki.get_obs_datasets(arkimet_query, license)
+                datasets = arki_service.get_obs_datasets(arkimet_query, license)
                 if not datasets:
                     # any dataset matches the query
                     return None, None
                 # TODO managing check for unique license: it will be substituted by a dsn management?
 
-            datasize = arki.estimate_data_size(datasets, arkimet_query)
+            datasize = arki_service.estimate_data_size(datasets, arkimet_query)
             if datasize == 0:
                 return None, None
             else:
@@ -272,6 +270,7 @@ class BeDballe:
 
         # perform the queries in database to get the list of possible filters
         fields = {}
+        network_products = []
         networks_list = []
         variables = []
         levels = []
@@ -297,6 +296,9 @@ class BeDballe:
             ######### VARIABLES FIELDS
             # get the list of all the variables of the network
             varlist = explorer.varcodes
+            # append all the products available for that network (not filtered by the query)
+            if varlist:
+                network_products.extend(x for x in varlist if x not in network_products)
 
             #### PRODUCT is in the query filters
             if "product" in query:
@@ -363,6 +365,9 @@ class BeDballe:
             fields["timerange"] = BeDballe.from_list_of_params_to_list_of_dic(
                 tranges, type="timerange"
             )
+            fields["available_products"] = BeDballe.from_list_of_params_to_list_of_dic(
+                network_products, type="product"
+            )
 
             # create summary
             summary = {}
@@ -370,7 +375,7 @@ class BeDballe:
             if summary_stats:
                 summary["c"] = BeDballe.count_messages(params, query, memdb)
                 if arkimet_query:
-                    arki_summary = arki.load_summary(datasets, arkimet_query)
+                    arki_summary = arki_service.load_summary(datasets, arkimet_query)
                     summary["b"] = arki_summary["items"]["summarystats"]["b"]
                     summary["e"] = arki_summary["items"]["summarystats"]["e"]
                 else:
@@ -653,6 +658,7 @@ class BeDballe:
         db_type=None,
         station_details_q=None,
         quality_check=None,
+        download=None,
     ):
 
         DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/DBALLE")
@@ -698,7 +704,6 @@ class BeDballe:
                 bounding_box["latmax"] = float(station_lat) + lat_add
                 bounding_box["lonmax"] = float(station_lon) + lon_add
                 # log.debug('bounding box for station {} : {}',station_id, bounding_box)
-
             # manage reftime for queries in arkimet
             datemin = None
             datemax = None
@@ -723,14 +728,16 @@ class BeDballe:
                 if "license" in query.keys():
                     license = query["license"]
             # get the correct arkimet dataset
-            datasets = arki.get_obs_datasets(query_for_arkimet, license)
+            datasets = arki_service.get_obs_datasets(query_for_arkimet, license)
 
             if not datasets:
+                if download:
+                    return None, {}, {}
                 return response
 
             # check datasets license,
             # TODO se non passa il check il frontend lancerà un messaggio del tipo: 'dati con licenze diverse, prego sceglierne una'
-            # check_license = arki.get_unique_license(
+            # check_license = arki_service.get_unique_license(
             #     datasets
             # )  # the exception raised by this function is enough?
             log.debug("datasets: {}", datasets)
@@ -744,45 +751,21 @@ class BeDballe:
             query_data["query"] = "attrs"
 
         if query:
-            # TODO: now query does not support multiple values for a single param
-            # adapt the query to the dballe syntax and add the params to the general query
-            allowed_keys = [
-                "level",
-                "network",
-                "product",
-                "timerange",
-                "datetimemin",
-                "datetimemax",
-            ]
-            dballe_keys = [
-                "level",
-                "rep_memo",
-                "var",
-                "trange",
-                "datetimemin",
-                "datetimemax",
-            ]
-            for key, value in query.items():
-                if key in allowed_keys:
-                    key_index = allowed_keys.index(key)
-                    if key == "timerange" or key == "level":
-                        tuple_list = []
-                        for v in value[0].split(","):
-                            if key == "level" and v == "0":
-                                val = None
-                                tuple_list.append(val)
-                            else:
-                                tuple_list.append(int(v))
-                        query_data[dballe_keys[key_index]] = tuple(tuple_list)
-                    else:
-                        if not isinstance(value, list):
-                            query_data[dballe_keys[key_index]] = value
-                        else:
-                            query_data[dballe_keys[key_index]] = value[0]
+            parsed_query = BeDballe.parse_query_for_maps(query)
+            for key, value in parsed_query.items():
+                query_data[key] = value
 
         # managing different dbs
         if db_type == "arkimet":
             memdb = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
+
+        # if download param, return the db and the query to download the data
+        if download:
+            if db_type == "arkimet":
+                db_for_download = memdb
+            else:
+                db_for_download = DB
+            return db_for_download, query_data, query_station_data
 
         # if not station details are requested:
         if not station_details_q:
@@ -990,6 +973,54 @@ class BeDballe:
         return res_element
 
     @staticmethod
+    def merge_db_for_download(
+        dballe_db, dballe_query_data, arki_db, arki_query_data,
+    ):
+        # merge the dbs
+        if arki_db:
+            log.debug(
+                "Filling temp db with data from dballe. query: {}", dballe_query_data
+            )
+            with dballe_db.transaction() as tr:
+                with arki_db.transaction() as temptr:
+                    for cur in tr.query_messages(dballe_query_data):
+                        temptr.import_messages(cur.message)
+        # merge the queries for data
+        query_data = {**dballe_query_data}
+        if arki_query_data:
+            if "datetimemin" in arki_query_data:
+                query_data["datetimemin"] = arki_query_data["datetimemin"]
+        # return the arki_db (the tem one) filled also with data from dballe
+        if arki_db:
+            return arki_db, query_data
+        else:
+            return dballe_db, query_data
+
+    @staticmethod
+    def download_data_from_map(
+        db, singleStation, output_format, query_data, query_station_data
+    ):
+        download_query = {}
+        if singleStation:
+            if query_station_data:
+                download_query = {**query_station_data}
+            if query_data:
+                # TODO da capire se abbiamo bisogno di level e timerange: in quel caso usiamo query_data e giusto ci aggiungiamo il reftime se non c'è
+                if "datetimemin" in query_data.keys():
+                    download_query["datetimemax"] = query_data["datetimemax"]
+                    download_query["datetimemin"] = query_data["datetimemin"]
+                if "query" in query_data:
+                    download_query["query"] = query_data["query"]
+        else:
+            if query_data:
+                download_query = {**query_data}
+
+        with db.transaction() as tr:
+            exporter = dballe.Exporter(output_format)
+            for row in tr.query_messages(download_query):
+                yield exporter.to_binary(row.message)
+
+    @staticmethod
     def from_query_to_dic(q):
         # example of query string: string= "reftime: >=2020-02-01 01:00,<=2020-02-04 15:13;level:1,0,0,0 or 103,2000,0,0;product:B11001 or B13011;timerange:0,0,3600 or 1,0,900;network:fidupo or agrmet"
         params_list = ["reftime", "network", "product", "level", "timerange", "license"]
@@ -1080,7 +1111,7 @@ class BeDballe:
         list_dic = []
         for p in param_list:
             item = {}
-            item["dballe_p"] = p
+            item["code"] = p
             item["desc"] = BeDballe.get_description(p, type)
             list_dic.append(item)
         return list_dic
@@ -1111,6 +1142,46 @@ class BeDballe:
         return description
 
     @staticmethod
+    def parse_query_for_maps(query):
+        query_data = {}
+        # TODO: now query does not support multiple values for a single param
+        # adapt the query to the dballe syntax and add the params to the general query
+        allowed_keys = [
+            "level",
+            "network",
+            "product",
+            "timerange",
+            "datetimemin",
+            "datetimemax",
+        ]
+        dballe_keys = [
+            "level",
+            "rep_memo",
+            "var",
+            "trange",
+            "datetimemin",
+            "datetimemax",
+        ]
+        for key, value in query.items():
+            if key in allowed_keys:
+                key_index = allowed_keys.index(key)
+                if key == "timerange" or key == "level":
+                    tuple_list = []
+                    for v in value[0].split(","):
+                        if key == "level" and v == "0":
+                            val = None
+                            tuple_list.append(val)
+                        else:
+                            tuple_list.append(int(v))
+                    query_data[dballe_keys[key_index]] = tuple(tuple_list)
+                else:
+                    if not isinstance(value, list):
+                        query_data[dballe_keys[key_index]] = value
+                    else:
+                        query_data[dballe_keys[key_index]] = value[0]
+        return query_data
+
+    @staticmethod
     def from_filters_to_lists(filters):
         fields = []
         queries = []
@@ -1128,7 +1199,7 @@ class BeDballe:
                     if key == "timerange" or key == "level":
                         # transform the timerange or level value in a tuple (required for dballe query)
                         tuple_list = []
-                        for v in e["dballe_p"].split(","):
+                        for v in e["code"].split(","):
                             if key == "level" and v == "0":
                                 val = None
                                 tuple_list.append(val)
@@ -1136,7 +1207,7 @@ class BeDballe:
                                 tuple_list.append(int(v))
                         field_queries.append(tuple(tuple_list))
                     else:
-                        field_queries.append(e["dballe_p"])
+                        field_queries.append(e["code"])
                 queries.append(field_queries)
             else:
                 continue
@@ -1230,18 +1301,20 @@ class BeDballe:
     @staticmethod
     def fill_db_from_arkimet(datasets, query):
         db = dballe.DB.connect("mem:")
-        ds = " ".join([DATASET_ROOT + f"{i}" for i in datasets])
-        arki_query_cmd = shlex.split(f"arki-query --data '{query}' {ds}")
-        log.debug("extracting obs data from arkimet: {}", arki_query_cmd)
-        proc = subprocess.Popen(arki_query_cmd, stdout=subprocess.PIPE)
-        if proc.returncode:
-            raise AccessToDatasetDenied("Access to dataset denied")
-        # write the result of the extraction on a temporary file
-        with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
-            tmpf.write(proc.stdout.read())
+        cfg = arki.cfg.Sections.parse(arki_service.arkimet_conf)
+        importer = dballe.Importer("BUFR")
+        with tempfile.SpooledTemporaryFile(mode="a+b", max_size=10000000) as tmpf:
+            for d in datasets:
+                dt_part = cfg.section(d)
+                source = arki.dataset.Reader(dt_part)
+                bin_data = source.query_bytes(query, with_data=True)
+                tmpf.write(bin_data)
             tmpf.seek(0)
-            with db.transaction() as tr:
-                tr.load(tmpf, "BUFR")
+            with dballe.File(tmpf, "BUFR") as f:
+                for binmsg in f:
+                    msgs = importer.from_binary(binmsg)
+                    with db.transaction() as tr:
+                        tr.import_messages(msgs)
         return db
 
     @staticmethod
@@ -1250,7 +1323,7 @@ class BeDballe:
         # get network list from requested datasets
         dataset_nets = []
         for ds in datasets:
-            nets = arki.get_observed_dataset_params(ds)
+            nets = arki_service.get_observed_dataset_params(ds)
             for n in nets:
                 dataset_nets.append(n)
 

@@ -136,10 +136,10 @@ class TestApp(BaseTests):
         params_value = {}
         params_value["date_from"] = date_from
         params_value["date_to"] = date_to
-        params_value["network"] = response_data["items"]["network"][0]["dballe_p"]
+        params_value["network"] = response_data["items"]["network"][0]["code"]
         if len(response_data["items"]["product"]) >= 2:
-            params_value["product_1"] = response_data["items"]["product"][0]["dballe_p"]
-            params_value["product_2"] = response_data["items"]["product"][1]["dballe_p"]
+            params_value["product_1"] = response_data["items"]["product"][0]["code"]
+            params_value["product_2"] = response_data["items"]["product"][1]["code"]
         else:
             pytest.fail("Products in DBALLE are less than 2 ")
 
@@ -244,10 +244,11 @@ class TestApp(BaseTests):
 
         # ### only bounding box as argument ####
         # Italy bounding-box
-        bbox = "latmin:36.6199,lonmin:6.7499,latmax:47.1153,lonmax:18.4802"
-        endpoint = (
-            f"{API_URI}/observations?q=reftime:>={dfrom},<={dto}&bounding_box={bbox}"
-        )
+        lonmin = 6.7499
+        latmin = 36.6199
+        latmax = 47.1153
+        lonmax = 18.4802
+        endpoint = f"{API_URI}/observations?q=reftime:>={dfrom},<={dto}&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         # check response code
@@ -262,10 +263,13 @@ class TestApp(BaseTests):
         assert check_product_2 is True
         # check error with random param
         # random bounding-box
-        random_bbox = "latmin:6.7499,lonmin:36.6199,latmax:18.4802,lonmax:47.1153"
+        rand_latmin = 6.7499
+        rand_lonmin = 36.6199
+        rand_latmax = 18.4802
+        rand_lonmax = 47.1153
         date_from = q_params["date_from"]
         date_to = q_params["date_to"]
-        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&bounding_box={random_bbox}"
+        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&lonmin={rand_lonmin}&lonmax={rand_lonmax}&latmin={rand_latmin}&latmax={rand_latmax}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         assert r.status_code == hcodes.HTTP_OK_BASIC
@@ -310,11 +314,14 @@ class TestApp(BaseTests):
         # ### all arguments ####
         endpoint = (
             API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to};product:{product}&bounding_box={bbox}&networks={network}".format(
+            + "/observations?q=reftime:>={date_from},<={date_to};product:{product}&&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}&networks={network}".format(
                 date_from=q_params["date_from"],
                 date_to=q_params["date_to"],
                 product=q_params["product_1"],
-                bbox=bbox,
+                lonmin=lonmin,
+                lonmax=lonmax,
+                latmin=latmin,
+                latmax=latmax,
                 network=q_params["network"],
             )
         )

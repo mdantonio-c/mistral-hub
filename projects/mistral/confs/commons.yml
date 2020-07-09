@@ -1,5 +1,5 @@
 # Customize this file to include compose configurations common to bluprints
-version: '3'
+version: "3"
 
 services:
   backend:
@@ -19,11 +19,13 @@ services:
 
     environment:
       LASTDAYS: ${LASTDAYS}
+      PLATFORM: ${PLATFORM}
 
   frontend:
     environment:
       INJECT_FRONTEND_DEBUG: ${FRONTEND_DEBUG}
       INJECT_LASTDAYS: ${LASTDAYS}
+      INJECT_PLATFORM: ${PLATFORM}
     volumes:
       - ${VANILLA_DIR}/data/maps:/meteo
 
@@ -37,13 +39,13 @@ services:
       - ${RABBITMQ_PORT}:${RABBITMQ_PORT}
       - ${RABBITMQ_MANAGEMENT_PORT}:${RABBITMQ_MANAGEMENT_PORT}
 
-#  nifi:
-#    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/nifi
-#    image: ${COMPOSE_PROJECT_NAME}/nifi:${RAPYDO_VERSION}
-#    ports:
-#      - 8070:8080
-#    environment:
-#      ACTIVATE: ${ACTIVATE_NIFI}
+  #  nifi:
+  #    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/nifi
+  #    image: ${COMPOSE_PROJECT_NAME}/nifi:${RAPYDO_VERSION}
+  #    ports:
+  #      - 8070:8080
+  #    environment:
+  #      ACTIVATE: ${ACTIVATE_NIFI}
 
   celeryui:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
@@ -68,12 +70,12 @@ services:
       # - ${VANILLA_DIR}/data/uploads:/uploads
     environment:
       LASTDAYS: ${LASTDAYS}
+      PLATFORM: ${PLATFORM}
 
   celery-beat:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
     # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
     image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
-
   # arkimet:
   #   restart: always
   #   build:
@@ -94,7 +96,6 @@ services:
   #     - ${VANILLA_DIR}/data/arkimet:/datasets
   #   environment:
   #     ACTIVATE: 1
-
 # volumes:
 #   -
 

@@ -1,5 +1,9 @@
-
 <ng-container *ngIf="row.key == 'disk_quota'">
-	<th>Disk Quota</th>
-	<td>{{row.value | bytes}}</td>
+  <th>Disk Quota</th>
+  <td>{{row.value | bytes}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'amqp_queue'">
+  <th>AMQP Queue</th>
+  <td>{{row.value || "-"}}</td>
 </ng-container>

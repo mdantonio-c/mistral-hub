@@ -16,7 +16,10 @@ from restapi.utilities.logs import log
 class FieldsQuery(InputSchema):
     datasets = UniqueDelimitedList(fields.Str(), delimiter=",")
     q = fields.Str(required=False)
-    bounding_box = fields.Str(required=False)
+    lonmin = fields.Float(required=False)
+    latmin = fields.Float(required=False)
+    lonmax = fields.Float(required=False)
+    latmax = fields.Float(required=False)
     onlySummaryStats = fields.Bool(required=False)
     SummaryStats = fields.Bool(required=False)
 
@@ -43,20 +46,27 @@ class Fields(EndpointResource):
         self,
         datasets=[],
         q="",
-        bounding_box=None,
+        lonmin=None,
+        latmin=None,
+        lonmax=None,
+        latmax=None,
         onlySummaryStats=False,
         SummaryStats=True,
     ):
         """ Get all fields for given datasets"""
 
-        bbox_list = bounding_box.split(",") if bounding_box is not None else []
-
         bounding_box = {}
-        if bbox_list:
-            log.debug(bbox_list)
-            for i in bbox_list:
-                split = i.split(":")
-                bounding_box[split[0]] = split[1]
+        if lonmin:
+            if not lonmax or not latmin or not latmax:
+                raise RestApiException(
+                    "Coordinates for bounding box are missing",
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
+            else:
+                bounding_box["lonmin"] = lonmin
+                bounding_box["lonmax"] = lonmax
+                bounding_box["latmin"] = latmin
+                bounding_box["latmax"] = latmax
 
         # check for existing dataset(s)
         if datasets:
