@@ -1,23 +1,32 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+
+import {LicenseComponent} from './license.component';
+import {DataService} from "../../services/data.service";
+import {DataServiceStub} from "../../services/data.service.stub";
+
 import {NotificationService} from '@rapydo/services/notification';
-import {LicenseComponent} from './step-datasets.component';
-import {DataService} from "../../../services/data.service";
+import {NgxSpinnerModule} from "ngx-spinner";
+import {NgxDatatableModule} from '@swimlane/ngx-datatable';
+
 
 class NotificationServiceStub {
 }
 
 describe('LicenseComponent', () => {
-    let component: StepDatasetsComponent;
+    let component: LicenseComponent;
     let fixture: ComponentFixture<LicenseComponent>;
-    
+
     beforeEach(async(() => {
         TestBed.configureTestingModule({
             declarations: [LicenseComponent],
             imports: [
-                
+                BrowserAnimationsModule,
+                NgxSpinnerModule,
+                NgxDatatableModule,
             ],
             providers: [
-                {provide: dataService, useClass: dataServiceStub},
+                {provide: DataService, useClass: DataServiceStub},
                 {provide: NotificationService, useClass: NotificationServiceStub}
             ]
         })

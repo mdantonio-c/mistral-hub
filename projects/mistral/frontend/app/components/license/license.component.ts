@@ -16,15 +16,15 @@ export class LicenseComponent implements OnInit {
     constructor(private dataService: DataService,
                 private notify: NotificationService,
                 private spinner: NgxSpinnerService) {
-        
-	console.log('constructor');
+
+        console.log('constructor');
     }
 
     ngOnInit() {
         this.spinner.show();
 
         this.dataService.getDatasetsLicense().subscribe(
-        //this.dataService.getDatasets().subscribe(
+            //this.dataService.getDatasets().subscribe(
             response => {
                 this.data = response;
                 console.log('Data loaded', this.data);
