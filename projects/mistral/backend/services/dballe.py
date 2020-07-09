@@ -704,7 +704,6 @@ class BeDballe:
                 bounding_box["latmax"] = float(station_lat) + lat_add
                 bounding_box["lonmax"] = float(station_lon) + lon_add
                 # log.debug('bounding box for station {} : {}',station_id, bounding_box)
-
             # manage reftime for queries in arkimet
             datemin = None
             datemax = None
@@ -732,6 +731,8 @@ class BeDballe:
             datasets = arki_service.get_obs_datasets(query_for_arkimet, license)
 
             if not datasets:
+                if download:
+                    return None, {}, {}
                 return response
 
             # check datasets license,
@@ -970,6 +971,30 @@ class BeDballe:
 
         res_element["station"]["products available"] = products
         return res_element
+
+    @staticmethod
+    def merge_db_for_download(
+        dballe_db, dballe_query_data, arki_db, arki_query_data,
+    ):
+        # merge the dbs
+        if arki_db:
+            log.debug(
+                "Filling temp db with data from dballe. query: {}", dballe_query_data
+            )
+            with dballe_db.transaction() as tr:
+                with arki_db.transaction() as temptr:
+                    for cur in tr.query_messages(dballe_query_data):
+                        temptr.import_messages(cur.message)
+        # merge the queries for data
+        query_data = {**dballe_query_data}
+        if arki_query_data:
+            if "datetimemin" in arki_query_data:
+                query_data["datetimemin"] = arki_query_data["datetimemin"]
+        # return the arki_db (the tem one) filled also with data from dballe
+        if arki_db:
+            return arki_db, query_data
+        else:
+            return dballe_db, query_data
 
     @staticmethod
     def download_data_from_map(

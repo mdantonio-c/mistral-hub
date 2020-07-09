@@ -78,3 +78,25 @@ class Schedule(db.Model):
         return "<Schedule(name='{}', creation date='{}', enabled='{}')".format(
             self.name, self.submission_date, self.is_enabled
         )
+
+
+class GroupLicense(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, index=True, nullable=False)
+    descr = db.Column(db.String, nullable=False)
+    license = db.relationship("License", backref="group_license", lazy="dynamic")
+
+
+class License(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    group_license_id = db.Column(db.Integer, db.ForeignKey("group_license.id"))
+    name = db.Column(db.String, index=True, nullable=False)
+    descr = db.Column(db.String, nullable=False)
+    url = db.Column(db.String)
+
+
+class Attribution(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, index=True, nullable=False)
+    descr = db.Column(db.String, nullable=False)
+    url = db.Column(db.String)

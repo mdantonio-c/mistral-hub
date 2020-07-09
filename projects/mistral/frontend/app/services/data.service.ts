@@ -111,7 +111,12 @@ export class DataService {
         return this.api.get('datasets');
     }
 
-
+    /**
+     * Get all the available datasets with License information.
+     */
+    getDatasetsLicense() {
+        return this.api.get('datasets?licenceSpecs=True');
+    }
 
     /**
      * Get summary fields for a give list of datasets.
@@ -148,7 +153,9 @@ export class DataService {
     /**
      * Request for data extraction.
      */
-    extractData(name: string, reftime: RefTime, datasets: string[], filters?: Filters[], schedule?: TaskSchedule, postprocessors?: any[], outputformat?: string) {
+    extractData(name: string, reftime: RefTime, datasets: string[],
+                filters?: Filters[], schedule?: TaskSchedule,
+                postprocessors?: any[], outputformat?: string) {
         let data = {
             name: name,
             reftime: reftime,
@@ -197,7 +204,7 @@ export class DataService {
             data['output_format'] = outputformat;
         }
         const endpoint = schedule ? 'schedules' : 'data';
-        return this.api.post(endpoint, data, {"rawResponse": true});
+        return this.api.post(endpoint, data);
     }
 
     /**
@@ -205,7 +212,6 @@ export class DataService {
      */
     downloadData(filename): Observable<any> {
         const options = {
-            rawResponse: true,
             conf: {
                 responseType: 'blob',
                 observe: 'response',
@@ -222,7 +228,7 @@ export class DataService {
     }
 
     getLastScheduledRequest(scheduleId): Observable<any> {
-        return this.api.get(`schedules/${scheduleId}/requests`, '', {last: true}, {"rawResponse": true});
+        return this.api.get(`schedules/${scheduleId}/requests`, '', {last: true});
     }
 
     getVariableDescription(code): string {
