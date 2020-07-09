@@ -47,7 +47,11 @@ class BeArkimet:
         for i in [a for a in cfg.items() if a[0] not in ["error", "duplicates"]]:
             ds = {"id": i[0]}
             for k, v in i[1].items():
-                if k == "_name":
+                if "_name" in i[1]:
+                    name_key = "_name"
+                else:
+                    name_key = "name"
+                if k == name_key:
                     ds["name"] = v
                 elif k == "description":
                     ds["description"] = v
