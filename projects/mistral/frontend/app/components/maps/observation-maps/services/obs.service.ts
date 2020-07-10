@@ -112,7 +112,8 @@ export class ObsService {
         ].join("-");
         let params = {
             type: 'OBS',
-            q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`
+            q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
+            allAvailableProducts: true
         };
         // do NOT narrow resulting filter by timerange and level
         /*
