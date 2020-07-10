@@ -127,7 +127,9 @@ class BeDballe:
         return message_count
 
     @staticmethod
-    def load_filter_for_mixed(datasets, params, summary_stats, query=None):
+    def load_filter_for_mixed(
+        datasets, params, summary_stats, all_products, query=None
+    ):
         # TODO get all dataset filter can be optimized? (for now all the data in arkimet dataset are transfered in a temp dballe)
         # get fields for the dballe database
         log.debug("mixed dbs: get fields from dballe")
@@ -148,6 +150,7 @@ class BeDballe:
             datasets,
             params,
             summary_stats,
+            all_products,
             db_type="dballe",
             query_dic=query_for_dballe,
         )
@@ -172,7 +175,12 @@ class BeDballe:
             )
 
         arki_fields, arki_summary = BeDballe.load_filters(
-            datasets, params, summary_stats, db_type="arkimet", query_dic=query_for_arki
+            datasets,
+            params,
+            summary_stats,
+            all_products,
+            db_type="arkimet",
+            query_dic=query_for_arki,
         )
 
         if not dballe_fields and not arki_fields:
@@ -201,7 +209,9 @@ class BeDballe:
         return dballe_fields, dballe_summary
 
     @staticmethod
-    def load_filters(datasets, params, summary_stats, db_type, query_dic=None):
+    def load_filters(
+        datasets, params, summary_stats, all_products, db_type, query_dic=None
+    ):
 
         query = {}
         if query_dic:
@@ -365,9 +375,12 @@ class BeDballe:
             fields["timerange"] = BeDballe.from_list_of_params_to_list_of_dic(
                 tranges, type="timerange"
             )
-            fields["available_products"] = BeDballe.from_list_of_params_to_list_of_dic(
-                network_products, type="product"
-            )
+            if all_products:
+                fields[
+                    "available_products"
+                ] = BeDballe.from_list_of_params_to_list_of_dic(
+                    network_products, type="product"
+                )
 
             # create summary
             summary = {}
