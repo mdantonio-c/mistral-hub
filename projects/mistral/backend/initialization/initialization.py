@@ -37,6 +37,11 @@ class Initializer:
             if l_group is None:
                 new_l_group = self.sql.GroupLicense(name=el["name"], descr=el["descr"])
                 self.sql.session.add(new_l_group)
+            else:
+                # check if the element has to be updated
+                if l_group.descr != el["descr"]:
+                    l_group.descr = el["descr"]
+                    self.sql.session.add(l_group)
         self.sql.session.commit()
         log.info("GroupLicense succesfully updated")
 
@@ -57,23 +62,35 @@ class Initializer:
         ]
         for el in license_data_to_insert:
             lic = self.sql.License.query.filter_by(name=el["name"]).first()
-            if lic is None:
-                group_lic = self.sql.GroupLicense.query.filter_by(
-                    name=el["group_name"]
-                ).first()
-                if group_lic is None:
-                    log.error(
-                        "{} license group for {} license does not exists: License element cannot be updated",
-                        el["group_name"],
-                        el["name"],
-                    )
-                    continue
-                new_lic = self.sql.License(
-                    name=el["name"], descr=el["descr"], group_license_id=group_lic.id
+            group_lic = self.sql.GroupLicense.query.filter_by(
+                name=el["group_name"]
+            ).first()
+            if group_lic is None:
+                log.error(
+                    "{} license group for {} license does not exists: License element cannot be updated",
+                    el["group_name"],
+                    el["name"],
                 )
-                if "url" in el:
-                    new_lic.url = el["url"]
+                continue
+            if lic is None:
+                new_lic = self.sql.License(
+                    name=el["name"],
+                    descr=el["descr"],
+                    group_license_id=group_lic.id,
+                    url=el["url"],
+                )
                 self.sql.session.add(new_lic)
+            else:
+                # check if licence has to be updated
+                if (
+                    lic.group_license_id != group_lic.id
+                    or lic.descr != el["descr"]
+                    or lic.url != el["url"]
+                ):
+                    lic.group_license_id = group_lic.id
+                    lic.descr = el["descr"]
+                    lic.url = el["url"]
+                    self.sql.session.add(lic)
 
         # add attribution to db
         attribution_data_to_insert = [
@@ -85,49 +102,64 @@ class Initializer:
             {
                 "name": "COSMO-LAMI",
                 "descr": "Accordo COSMO-LAMI tra Servizio meteorologico dell´Aeronautica militare, Servizio IdroMeteoClima di Arpae Emilia-Romagna e di Arpa Piemonte",
+                "url": "",
             },
-            {"name": "DPCN", "descr": "Dipartimento Protezione Civile Nazionale"},
+            {
+                "name": "DPCN",
+                "descr": "Dipartimento Protezione Civile Nazionale",
+                "url": "",
+            },
             {
                 "name": "ECMWF-MISTRAL",
                 "descr": "ECMWF - Progetto europeo CEF - MISTRAL",
+                "url": "",
             },
             {
                 "name": "ARPAP-MISTRAL",
                 "descr": "Arpa Piemonte - Progetto europeo CEF - MISTRAL",
+                "url": "",
             },
             {
                 "name": "ARPAP-DRNA",
                 "descr": "Arpa Piemonte - Dipartimento Rischi Naturali e Ambientali",
+                "url": "",
             },
             {
                 "name": "ARPAL-APPP-CFR",
                 "descr": "Regione Lazio - Arpal - Area Prevenzione pianificazione e Previsione - Centro funzionale regionale",
+                "url": "",
             },
             {
                 "name": "ARPACAMP-CFR",
                 "descr": "Regione Campania - Centro funzionale regionale",
+                "url": "",
             },
             {
                 "name": "ARPACAL-CFR",
                 "descr": "Regione Calabria - Arpacal - Centro regionale  funzionale multirischi sicurezza sul territorio",
+                "url": "",
             },
             {
                 "name": "R-UMBRIA-SIR",
                 "descr": "Regione Umbria -  Servizio Idrografico Regionale",
                 "url": "http://servizioidrografico.regione.umbria.it/",
             },
-            {"name": "R-LIGURIA-ARPAL", "descr": "Regione Liguria - Arpal"},
-            {"name": "MISTRAL", "descr": "Mistral project"},
+            {"name": "R-LIGURIA-ARPAL", "descr": "Regione Liguria - Arpal", "url": ""},
+            {"name": "MISTRAL", "descr": "Mistral project", "url": ""},
         ]
         for el in attribution_data_to_insert:
             attribution = self.sql.Attribution.query.filter_by(name=el["name"]).first()
             if attribution is None:
                 new_attribution = self.sql.Attribution(
-                    name=el["name"], descr=el["descr"]
+                    name=el["name"], descr=el["descr"], url=el["url"],
                 )
-                if "url" in el:
-                    new_attribution.url = el["url"]
                 self.sql.session.add(new_attribution)
+            else:
+                # check if licence has to be updated
+                if attribution.descr != el["descr"] or attribution.url != el["url"]:
+                    attribution.descr = el["descr"]
+                    attribution.url = el["url"]
+                    self.sql.session.add(attribution)
 
         self.sql.session.commit()
         log.info("License and attributions successfully updated")
