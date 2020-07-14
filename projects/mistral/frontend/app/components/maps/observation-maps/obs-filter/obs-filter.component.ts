@@ -1,7 +1,7 @@
 import {Component, OnInit, Output, EventEmitter} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {FieldsSummary, ObsFilter, ObsService} from '../services/obs.service';
-import {NETWORKS, LICENSES, CodeDescPair} from "../services/data";
+import {LICENSES, CodeDescPair} from "../services/data";
 import {NgbDateStruct, NgbCalendar} from '@ng-bootstrap/ng-bootstrap';
 import {NotificationService} from '@rapydo/services/notification';
 import {environment} from '@rapydo/../environments/environment';
@@ -32,6 +32,8 @@ export class ObsFilterComponent implements OnInit {
         day: this.today.getDate()
     }
 
+    isUpdatable = false;
+
     @Output() filterChange: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
     @Output() filterUpdate: EventEmitter<ObsFilter> = new EventEmitter<ObsFilter>();
 
@@ -54,7 +56,6 @@ export class ObsFilterComponent implements OnInit {
     }
 
     ngOnInit() {
-
         // get fields enabling the form
         let startFilter: ObsFilter = {
             product: this.DEFAULT_PRODUCT,
@@ -68,6 +69,7 @@ export class ObsFilterComponent implements OnInit {
 
     private loadFilter(f: ObsFilter, initialize = false) {
         setTimeout(() => this.spinner.show('filter-spinner'), 0);
+        console.log('load filter', f);
         this.obsService.getFields(f).subscribe(
             (data: FieldsSummary) => {
                 // reset the form
@@ -118,11 +120,22 @@ export class ObsFilterComponent implements OnInit {
                     this.filterForm.controls.level.setValue(this.DEFAULT_LEVEL, {emitEvent:false})
                     this.filterForm.controls.timerange.setValue(this.DEFAULT_TIMERANGE, {emitEvent:false})
                     // emit filter update
-                    if (!this.filterForm.invalid) {
-                        this.update();
-                    } else {
-                        this.notify.showError('Invalid filter: no data loaded on the map');
+                    if (this.filterForm.invalid) {
+                        this.notify.showError('Invalid filter: no data loaded on the map.');
+                        return;
                     }
+                    // apply the default filter only if products are available
+                    if (this.allProducts && this.allProducts.length > 0) {
+                        this.update();
+                    }
+                }
+
+                if (!this.allProducts || this.allProducts.length === 0) {
+                    let extraMsg = (f.network !== undefined && f.network !== '') ? ' network or ' : ' ';
+                    this.notify.showWarning(`No data available. Try selecting a different${extraMsg}reference date.`);
+                    this.isUpdatable = false;
+                } else {
+                    this.isUpdatable = true;
                 }
             },
             error => {
@@ -159,5 +172,6 @@ export class ObsFilterComponent implements OnInit {
         }
         console.log('emit update filter', filter);
         this.filterUpdate.emit(filter);
+        this.isUpdatable = false;
     }
 }
