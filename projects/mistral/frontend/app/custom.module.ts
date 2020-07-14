@@ -64,9 +64,9 @@ const appRoutes: Routes = [
             {path: 'submit', component: StepSubmitComponent, canActivate: [WorkflowGuard]}
         ]
     },
-    {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/forecasts', component: ForecastMapsComponent},
-    {path: 'app/maps/flashflood', component: FlashFloodMapsComponent, canActivate: [AuthGuard]},
+    {path: 'app/maps/flashflood', component: FlashFloodMapsComponent},
+    {path: 'app/requests', component: DashboardComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/observations', component: ObservationMapsComponent, canActivate: [AuthGuard]},
     {path: 'app/maps/meteotiles', component: MeteoTilesComponent, canActivate: [AuthGuard]},
     {path: 'app/license', component: LicenseComponent, canActivate: [AuthGuard]},

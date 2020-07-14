@@ -11,8 +11,7 @@
                         <div class="form-group">
                             <ng-container *ngFor="let f of fields">
                                 <label [title]="f.value" class="btn-circle" data-toggle="tooltip"
-                                       [ngClass]="(filterForm.get('field').value === f.key) ? 'btn-info' : 'btn-secondary'"
-                                       *ngIf="!(((f.key === 'percentile' || f.key === 'probability')) && (!user || (filterForm.get('area').value ==='Area_Mediterranea') || (filterForm.get('res').value ==='lm5') || (filterForm.get('run').value ==='12')))">
+                                       [ngClass]="(filterForm.get('field').value === f.key) ? 'btn-info' : 'btn-secondary'">
                                     <input [value]="f.key" formControlName="field" type="radio"
                                            [attr.data-description]="f.value">
                                     <i class="wi"
