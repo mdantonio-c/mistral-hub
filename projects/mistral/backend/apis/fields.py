@@ -22,6 +22,7 @@ class FieldsQuery(InputSchema):
     latmax = fields.Float(required=False)
     onlySummaryStats = fields.Bool(required=False)
     SummaryStats = fields.Bool(required=False)
+    allAvailableProducts = fields.Bool(required=False)
 
 
 class Fields(EndpointResource):
@@ -52,6 +53,7 @@ class Fields(EndpointResource):
         latmax=None,
         onlySummaryStats=False,
         SummaryStats=True,
+        allAvailableProducts=False,
     ):
         """ Get all fields for given datasets"""
 
@@ -124,13 +126,18 @@ class Fields(EndpointResource):
                     try:
                         if db_type == "mixed":
                             fields, summary = dballe.load_filter_for_mixed(
-                                datasets, ds_params, SummaryStats, query=query_dic
+                                datasets,
+                                ds_params,
+                                SummaryStats,
+                                allAvailableProducts,
+                                query=query_dic,
                             )
                         else:
                             fields, summary = dballe.load_filters(
                                 datasets,
                                 ds_params,
                                 SummaryStats,
+                                allAvailableProducts,
                                 db_type=db_type,
                                 query_dic=query_dic,
                             )
@@ -178,13 +185,18 @@ class Fields(EndpointResource):
                 ds_params = []
                 if db_type == "mixed":
                     fields, summary = dballe.load_filter_for_mixed(
-                        datasets, ds_params, SummaryStats, query=query_dic
+                        datasets,
+                        ds_params,
+                        SummaryStats,
+                        allAvailableProducts,
+                        query=query_dic,
                     )
                 else:
                     fields, summary = dballe.load_filters(
                         datasets,
                         ds_params,
                         SummaryStats,
+                        allAvailableProducts,
                         db_type=db_type,
                         query_dic=query_dic,
                     )

@@ -44,6 +44,17 @@
   border-radius: 0px !important;
 }
 
+.dirty-cluster {
+  display: block;
+  position: fixed;
+  top: 0;
+  right: -2px;
+  color: #ffc107;
+}
+
+.marker-cluster.mst-marker-color-undefined { background-color: rgba(0, 0, 0, 0.3); }
+.mst-marker-color-undefined div { background-color: rgba(0, 0, 0, 0.2); }
+
 .marker-cluster.mst-marker-color-3030ff { background-color: rgba(48, 48, 255, 0.7); }
 .mst-marker-color-3030ff div { background-color: rgba(48, 48, 255, 0.6); }
 

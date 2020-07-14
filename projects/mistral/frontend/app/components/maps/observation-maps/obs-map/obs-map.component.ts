@@ -53,6 +53,7 @@ export class ObsMapComponent {
                 const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
                 let res: string = ''+childCount;
                 let c = ' marker-cluster-';
+                let dirtyCluster = false;
                 if (childCount < 10) {
                     c += 'small';
                 } else if (childCount < 100) {
@@ -63,7 +64,8 @@ export class ObsMapComponent {
                 let type: string;
                 if (childMarkers[0].options['data']) {
                     let mean = 0,
-                        medians: number[] = [];
+                        medians: number[] = [],
+                        dirtyMedians: number[] = [];
                     for (const m of childMarkers) {
                         const obsData: ObsData = m.options['data'];
                         if (!type) {
@@ -71,23 +73,30 @@ export class ObsMapComponent {
                         }
                         // mean += obsData.values.filter(v => v.is_reliable).map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
                         let median = ObsService.median(obsData.values.filter(v => v.is_reliable).map(v => v.value));
+                        // calculates the median of all values including unreliable ones
+                        let dirtyMedian = ObsService.median(obsData.values.map(v => v.value));
+                        dirtyMedians.push(dirtyMedian);
                         if (Number.isNaN(median)) {
                             // do not consider this median in the cluster median
                             continue;
                         }
                         medians.push(median);
-                        // FIXME what about if all medians results in a NaN?
                     }
                     // get the median instead of the mean
                     // let val = mean/childCount;
-                    let val = ObsService.median(medians);
+                    let val = (medians.length > 0) ?
+                        ObsService.median(medians) : (dirtyCluster=true, ObsService.median(dirtyMedians));
                     res = ObsService.showData(val, type, 3);
 
                     // custom background color of cluster
                     c = ' mst-marker-color-' + srv.getColor(val, srv.min, srv.max);
                 }
+                let warn = '';
+                if (dirtyCluster) {
+                    warn = '<i class="fas fa-exclamation-triangle fa-lg dirty-cluster"></i>'
+                }
                 return new L.DivIcon({
-                    html: '<div><span>' + res + '</span></div>',
+                    html: '<div>' + warn + '<span>' + res + '</span></div>',
                     className: 'marker-cluster' + c, iconSize: new L.Point(40, 40)
                 });
             }
