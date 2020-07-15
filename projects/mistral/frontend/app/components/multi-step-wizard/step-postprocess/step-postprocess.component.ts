@@ -2,7 +2,12 @@ import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
 import { FormDataService } from "@app/services/formData.service";
-import { DataService } from "@app/services/data.service";
+import {
+    Dataset,
+    Filters,
+    SummaryStats,
+    DataService
+} from "@app/services/data.service";
 import { NotificationService } from '@rapydo/services/notification';
 
 @Component({
@@ -16,6 +21,9 @@ export class StepPostprocessComponent implements OnInit {
     gridInterpolationTemplates = [];
     sparePointsTemplates = [];
     validationResults = [];
+    datasets: Dataset[];
+    summaryStats: SummaryStats = {c: 0, s: 0};
+    filters: Filters[];
     uploadedFileName;
     space_crop_boundings = [
         {
@@ -371,6 +379,18 @@ export class StepPostprocessComponent implements OnInit {
 
     ngOnInit() {
         window.scroll(0, 0);
+	this.datasets = this.formDataService.getFormData().datasets;
+	//console.log('ngOnInit: this.datasets=', this.datasets);
+	
+	this.filters = this.formDataService.getFormData().filters;
+	//console.log('ngOnInit: this.filters=', this.filters);
+
+	this.formDataService.getSummaryStats().subscribe(response => {
+            this.summaryStats = response;
+	    //console.log('ngOnInit: this.summaryStats=', this.summaryStats);
+        });
+	
+
         this.checkDatasetFormat();
         this.dataService.getDerivedVariables().subscribe(
             data => {

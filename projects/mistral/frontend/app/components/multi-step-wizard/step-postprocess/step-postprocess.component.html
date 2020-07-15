@@ -2,6 +2,50 @@
     <div class="tab-pane fade show active mt-4">
         <h4 class="head text-center">{{title}}</h4>
         <br />
+
+            <!-- Summary Stats-->
+            <div class="card mst--expansion-panel mst--info-panel">
+                <div class="card-header">
+                    <h5>Summary Stats</h5>
+                </div>
+                <div class="body">
+                    <ul>
+                        <li *ngIf="summaryStats"><strong>From:</strong> {{summaryStats.b | fmtDate}}</li>
+                        <li *ngIf="summaryStats"><strong>To:</strong> {{summaryStats.e | fmtDate}}</li>
+                        <li *ngIf="summaryStats"><strong>Count:</strong> {{summaryStats.c}}</li>
+                        <li *ngIf="summaryStats"><strong>Size:</strong> {{(summaryStats.s != null) ? (summaryStats.s | bytes:2) : 'n/a'}}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+		<!-- My Request -->
+		<div class="card mst--expansion-panel mst--info-panel">
+			<div class="card-header">
+				<h5 class="card-title">My Request</h5>
+			</div>
+			<div class="body">
+			    <dl class="request-summary">
+				<dt>Dataset(s)</dt>
+				<dd>
+				    <ul class="comma-list">
+				        <li *ngFor="let ds of datasets">{{ds.name}}</li>
+				    </ul>
+				</dd>
+				<hr>
+				<dt>Filter(s)</dt>
+				<dd *ngIf="filters.length">
+				    <dl class="row">
+				        <ng-container *ngFor="let f of filters">
+				            <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
+				            <dd class="col-sm-9"><p *ngFor="let v of f.values">{{v.desc}}</p></dd>
+				        </ng-container>
+				    </dl>
+				</dd>
+				<dd *ngIf="!filters || !filters.length">None</dd>
+			    </dl>
+			</div>
+		</div>
+
         <!-- Derived variables -->
         <div class="card mst--expansion-panel">
             <div class="card-header">
