@@ -36,56 +36,7 @@
             </button>
         </div>
         <div class="body">
-            <dl class="request-summary">
-                <div class="input-group mb-3">
-                    <div class="input-group-append" [ngClass]="{'mst--input-error': emptyName()}">
-                        <ng-template #tipContent>
-                            Please give a name or a short description to your product
-                        </ng-template>
-                        <button class="btn-reset" type="button"
-                                [ngbTooltip]="tipContent"
-                                placement="right">
-                            <i class="material-icons">info</i>
-                        </button>
-                    </div>
-                    <input type="text" class="mst--input col"
-                           [(ngModel)]="formData.name"
-                           [ngClass]="{'mst--input-error': emptyName()}"
-                           placeholder="Product name"
-                           required>
-                    <span class="mst--input-error-msg" *ngIf="emptyName()">Product name is required</span>
-                </div>
-                <dt>Dataset(s)</dt>
-                <dd>
-                    <ul class="comma-list">
-                        <li *ngFor="let ds of formData.datasets">{{ds.name}}</li>
-                    </ul>
-                </dd>
-                <hr>
-                <dt>Filter(s)</dt>
-                <dd *ngIf="formData.filters.length">
-                    <dl class="row">
-                        <ng-container *ngFor="let f of formData.filters">
-                            <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
-                            <dd class="col-sm-9"><p *ngFor="let v of f.values">{{v.desc}}</p></dd>
-                        </ng-container>
-                    </dl>
-                </dd>
-                <dd *ngIf="!formData.filters || !formData.filters.length">None</dd>
-                <hr>
-                <dt>Post-Processing</dt>
-                <dd *ngIf="formData.postprocessors.length">
-                    <dl class="row">
-                        <ng-container *ngFor="let p of formData.postprocessors">
-                            <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}</dt>
-                            <ng-container *ngIf="p.type === 'derived_variables'">
-                                <dd class="col-sm-9"><p *ngFor="let v of p.variables">{{dataService.getVariableDescription(v)}}</p></dd>
-                            </ng-container>
-                        </ng-container>
-                    </dl>
-                </dd>
-                <dd *ngIf="!formData.postprocessors || !formData.postprocessors.length">None</dd>
-            </dl>
+            <mst-my-request-details [onSubmitStep]="true"></mst-my-request-details>
         </div>
     </div>
 </div>

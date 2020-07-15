@@ -1,39 +1,51 @@
-<div class="card mst--expansion-panel mst--info-panel h-100">
-    <div class="card-header">
-        <h5 class="card-title">My Request</h5>
+<dl class="request-summary">
+    <div class="input-group mb-3" *ngIf="onSubmitStep">
+        <div class="input-group-append" [ngClass]="{'mst--input-error': emptyName()}">
+            <ng-template #tipContent>
+                Please give a name or a short description to your product
+            </ng-template>
+            <button class="btn-reset" type="button"
+                    [ngbTooltip]="tipContent"
+                    placement="right">
+                <i class="material-icons">info</i>
+            </button>
+        </div>
+        <input type="text" class="mst--input col"
+               [(ngModel)]="myRequest.name"
+               [ngClass]="{'mst--input-error': emptyName()}"
+               placeholder="Product name"
+               required>
+        <span class="mst--input-error-msg" *ngIf="emptyName()">Product name is required</span>
     </div>
-    <div class="body">
-        <dl class="request-summary">
-            <dt>Dataset(s)</dt>
-            <dd>
-                <ul class="comma-list">
-                    <li *ngFor="let ds of myRequest.datasets">{{ds.name}}</li>
-                </ul>
-            </dd>
-            <hr>
-            <dt>Filter(s)</dt>
-            <dd *ngIf="myRequest.filters.length">
-                <dl class="row">
-                    <ng-container *ngFor="let f of myRequest.filters">
-                        <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
-                        <dd class="col-sm-9"><p *ngFor="let v of f.values">{{v.desc}}</p></dd>
-                    </ng-container>
-                </dl>
-            </dd>
-            <dd *ngIf="!myRequest.filters || !myRequest.filters.length">None</dd>
-            <hr>
-            <dt>Post-Processing</dt>
-            <dd *ngIf="myRequest.postprocessors.length">
-                <dl class="row">
-                    <ng-container *ngFor="let p of myRequest.postprocessors">
-                        <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}</dt>
-                        <ng-container *ngIf="p.type === 'derived_variables'">
-                            <dd class="col-sm-9"><p *ngFor="let v of p.variables">{{dataService.getVariableDescription(v)}}</p></dd>
-                        </ng-container>
-                    </ng-container>
-                </dl>
-            </dd>
-            <dd *ngIf="!myRequest.postprocessors || !myRequest.postprocessors.length">None</dd>
+    <dt>Dataset(s)</dt>
+    <dd>
+        <ul class="comma-list">
+            <li *ngFor="let ds of myRequest.datasets">{{ds.name}}</li>
+        </ul>
+    </dd>
+    <hr>
+    <dt>Filter(s)</dt>
+    <dd *ngIf="myRequest.filters.length">
+        <dl class="row">
+            <ng-container *ngFor="let f of myRequest.filters">
+                <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
+                <dd class="col-sm-9"><p *ngFor="let v of f.values">{{v.desc}}</p></dd>
+            </ng-container>
         </dl>
-    </div>
-</div>
+    </dd>
+    <dd *ngIf="!myRequest.filters || !myRequest.filters.length">None</dd>
+    <hr>
+    <dt>Post-Processing</dt>
+    <dd *ngIf="myRequest.postprocessors.length">
+        <dl class="row">
+            <ng-container *ngFor="let p of myRequest.postprocessors">
+                <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}</dt>
+                <ng-container *ngIf="p.type === 'derived_variables'">
+                    <dd class="col-sm-9"><p *ngFor="let v of p.variables">
+                        {{dataService.getVariableDescription(v)}}</p></dd>
+                </ng-container>
+            </ng-container>
+        </dl>
+    </dd>
+    <dd *ngIf="!myRequest.postprocessors || !myRequest.postprocessors.length">None</dd>
+</dl>
