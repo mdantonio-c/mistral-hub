@@ -106,16 +106,11 @@ export class DataService {
 
     /**
      * Get all the available datasets.
+     * @param licenceSpecs if true add licence information. Default to false.
      */
-    getDatasets() {
-        return this.api.get('datasets');
-    }
-
-    /**
-     * Get all the available datasets with License information.
-     */
-    getDatasetsLicense() {
-        return this.api.get('datasets?licenceSpecs=True');
+    getDatasets(licenceSpecs = false) {
+        let params = (licenceSpecs) ? {licenceSpecs: true} : {};
+        return this.api.get('datasets', '', params);
     }
 
     /**

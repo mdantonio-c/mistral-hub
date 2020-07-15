@@ -55,7 +55,7 @@ export class FormDataService {
     }
 
     getDatasets() {
-        return this.dataService.getDatasets();
+        return this.dataService.getDatasets(true);
     }
 
     setDatasets(data: Dataset[]) {
