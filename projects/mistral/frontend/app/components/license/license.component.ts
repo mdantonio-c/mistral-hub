@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
+import {DataService} from "../../services/data.service";
 import {NotificationService} from '@rapydo/services/notification';
-import {DataService} from "@app/services/data.service";
 import {ColumnMode} from '@swimlane/ngx-datatable';
 import {NgxSpinnerService} from 'ngx-spinner';
+
 
 @Component({
     selector: 'license',
