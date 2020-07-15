@@ -20,7 +20,6 @@ export class StepFiltersComponent implements OnInit {
     filterForm: FormGroup;
     filters: Filters;
     disabledDp = false;
-    datasets: Dataset[];
 
     constructor(private fb: FormBuilder,
                 private router: Router,
@@ -55,8 +54,6 @@ export class StepFiltersComponent implements OnInit {
     }
 
     ngOnInit() {
-	this.datasets = this.formDataService.getFormData().datasets;
-	//console.log('ngOnInit: this.datasets=', this.datasets);
         this.loadFilters();
         window.scroll(0, 0);
     }

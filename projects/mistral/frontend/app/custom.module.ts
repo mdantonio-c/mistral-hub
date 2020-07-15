@@ -29,6 +29,7 @@ import {DisableControlDirective} from "@app/directives/disable-control";
 
 /* Multi-Step Wizard Components */
 import {MultiStepWizardComponent} from '@app/components/multi-step-wizard/multi-step-wizard.component';
+import {MyRequestDetailsComponent} from '@app/components/multi-step-wizard/my-request-details/my-request-details.component';
 import {NavbarComponent} from '@app/components/multi-step-wizard/navbar/navbar.component';
 import {StepDatasetsComponent} from '@app/components/multi-step-wizard/step-datasets/step-datasets.component'
 import {StepFiltersComponent} from '@app/components/multi-step-wizard/step-filters/step-filters.component';
@@ -99,6 +100,7 @@ const appRoutes: Routes = [
         ObsMapComponent,
         MeteoTilesComponent,
         MultiStepWizardComponent,
+        MyRequestDetailsComponent,
         NavbarComponent,
         StepDatasetsComponent,
         StepFiltersComponent,
