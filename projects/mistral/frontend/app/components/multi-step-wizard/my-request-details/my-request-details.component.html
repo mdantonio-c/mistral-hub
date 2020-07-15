@@ -22,9 +22,12 @@
         <ul class="comma-list">
             <li *ngFor="let ds of myRequest.datasets">{{ds.name}}</li>
         </ul>
-        <!--
-        <span>View terms of use</span>
-        -->
+        <!--        <span (click)="open(licenseContent)">View terms of use</span>-->
+        <div class="mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary"
+                    (click)="open(licenseContent)">View terms of use
+            </button>
+        </div>
     </dd>
     <hr>
     <dt>Filter(s)</dt>
@@ -52,3 +55,31 @@
     </dd>
     <dd *ngIf="!myRequest.postprocessors || !myRequest.postprocessors.length">None</dd>
 </dl>
+
+<ng-template #licenseContent let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title">Terms of use</h4>
+        <button type="button" class="btn close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div style="overflow-y: hidden; max-height: calc(100vh - 15rem);">
+            <div class="px-2" style="overflow-y: auto; height: 100%;">
+                <div class="list-group">
+                    <div *ngFor="let ds of myRequest.datasets"
+                         class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ds.name}}</h5>
+                            <small>{{ds.license}}&nbsp;<a [href]="ds.license_url" target=_blank>
+                                <i class="fas fa-external-link-alt"></i></a></small>
+                        </div>
+                        <p class="mb-1">{{ds.description}}</p>
+                        <small><i class="fab fa-creative-commons-by"></i>&nbsp;{{ds.attribution}}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</ng-template>
