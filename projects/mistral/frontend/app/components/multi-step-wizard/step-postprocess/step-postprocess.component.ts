@@ -1,14 +1,14 @@
-import { Component, OnInit, EventEmitter, Output } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
-import { FormDataService } from "@app/services/formData.service";
+import {Component, OnInit, EventEmitter, Output} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {FormBuilder, FormGroup, FormArray, FormControl, Validators} from '@angular/forms';
+import {FormDataService} from "@app/services/formData.service";
 import {
     Dataset,
     Filters,
     SummaryStats,
     DataService
 } from "@app/services/data.service";
-import { NotificationService } from '@rapydo/services/notification';
+import {NotificationService} from '@rapydo/services/notification';
 
 @Component({
     selector: 'step-postprocess',
@@ -21,9 +21,7 @@ export class StepPostprocessComponent implements OnInit {
     gridInterpolationTemplates = [];
     sparePointsTemplates = [];
     validationResults = [];
-    datasets: Dataset[];
     summaryStats: SummaryStats = {c: 0, s: 0};
-    filters: Filters[];
     uploadedFileName;
     space_crop_boundings = [
         {
@@ -111,46 +109,46 @@ export class StepPostprocessComponent implements OnInit {
             ]
         }
     ];
-    
+
     timeRanges = [
-    {
-        code: -1,
-        desc: '-'
-    },
-    {
-        code: 0,
-        desc: 'Average'
-    },
-    {
-        code: 1,
-        desc: 'Accumulation'
-    },
-    {
-        code: 2,
-        desc: 'Maximum'
-    },
-    {
-        code: 3,
-        desc: 'Minimum'
-    },
-    {
-        code: 4,
-        desc: 'Difference'
-    },
-    {
-        code: 6,
-        desc: 'Standard deviation'
-    },
-    {
-        code: 254,
-        desc: 'Immediate'
-    }];
-    
+        {
+            code: -1,
+            desc: '-'
+        },
+        {
+            code: 0,
+            desc: 'Average'
+        },
+        {
+            code: 1,
+            desc: 'Accumulation'
+        },
+        {
+            code: 2,
+            desc: 'Maximum'
+        },
+        {
+            code: 3,
+            desc: 'Minimum'
+        },
+        {
+            code: 4,
+            desc: 'Difference'
+        },
+        {
+            code: 6,
+            desc: 'Standard deviation'
+        },
+        {
+            code: 254,
+            desc: 'Immediate'
+        }];
+
     stepIntervals = ["-", "hours", "days", "months", "years"];
-    
+
     interpolationTypes = ["-", "near", "bilin", "average", "min", "max"];
 
-    cropTypes = [        
+    cropTypes = [
         {
             code: 0,
             desc: 'coord'
@@ -161,7 +159,7 @@ export class StepPostprocessComponent implements OnInit {
         }
     ];
 
-    formatTypes = ['-','json'];    
+    formatTypes = ['-', 'json'];
 
     selectedInputTimeRange;
     selectedOutputTimeRange;
@@ -171,16 +169,16 @@ export class StepPostprocessComponent implements OnInit {
     selectedCropType;
 
     constructor(private formBuilder: FormBuilder,
-        private router: Router,
-        private route: ActivatedRoute,
-        private formDataService: FormDataService,
-        private dataService: DataService,        
-        private notify: NotificationService) {
+                private router: Router,
+                private route: ActivatedRoute,
+                private formDataService: FormDataService,
+                private dataService: DataService,
+                private notify: NotificationService) {
         this.form = this.formBuilder.group({
             derived_variables: new FormArray([]),
             space_type: [],
             space_crop: new FormArray([], [Validators.required]),
-            space_grid: new FormArray([]),            
+            space_grid: new FormArray([]),
             gridInterpolationType: ['template'],
             gridTemplateFile: new FormControl(''),
             interpolationNodes: new FormArray([]),
@@ -207,22 +205,22 @@ export class StepPostprocessComponent implements OnInit {
         });
     }
 
-    private buildTimePostProcess(){
+    private buildTimePostProcess() {
         const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'statistic_elaboration');
-        if (pt && pt.length){
+        if (pt && pt.length) {
             this.form.controls['selectedTimePP'].setValue(true);
             this.selectedStepInterval = pt[0].interval; //'interval': this.selectedStepInterval,
             this.form.controls['timeStep'].setValue(pt[0].step); //'step': this.form.value.timeStep
             this.selectedInputTimeRange = this.timeRanges.filter(t => t.code == pt[0]['input-timerange'])[0];
             this.selectedOutputTimeRange = this.timeRanges.filter(t => t.code == pt[0]['output-timerange'])[0];
-        }else{
+        } else {
             this.selectedStepInterval = "-";
             this.selectedInputTimeRange = {
                 code: -1,
                 desc: '-'
             };
-            
-            this.selectedOutputTimeRange =  {
+
+            this.selectedOutputTimeRange = {
                 code: -1,
                 desc: '-'
             };
@@ -232,17 +230,17 @@ export class StepPostprocessComponent implements OnInit {
 
     private buildSpaceCrop() {
         const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'grid_cropping');
-        if (pt && pt.length){
+        if (pt && pt.length) {
             this.form.controls['selectedSpacePP'].setValue(true);
             this.form.controls['space_type'].setValue('crop');
             this.selectedCropType = this.cropTypes.filter(c => c.desc === pt[0]['sub-type'])[0];
             const boundings = pt[0].boundings;
-            this.space_crop_boundings.map(bound => {                
+            this.space_crop_boundings.map(bound => {
                 const control = this.formBuilder.control(boundings[bound.code], bound.validators);
                 (this.form.controls.space_crop as FormArray).push(control);
-            });    
+            });
 
-        }else{
+        } else {
             this.selectedCropType = {
                 code: 0,
                 desc: 'coord'
@@ -250,18 +248,18 @@ export class StepPostprocessComponent implements OnInit {
             this.space_crop_boundings.map(bound => {
                 const control = this.formBuilder.control(0, bound.validators);
                 (this.form.controls.space_crop as FormArray).push(control);
-            });    
+            });
         }
     }
 
     private buildSpaceGrid() {
         const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'grid_interpolation');
-        if (pt && pt.length){
+        if (pt && pt.length) {
             this.form.controls['selectedSpacePP'].setValue(true);
             this.form.controls['space_type'].setValue('grid');
             this.selectedInterpolationType = this.interpolationTypes.filter(i => i === pt[0]['sub-type'])[0];
             const boundings = pt[0].boundings;
-            if(boundings){
+            if (boundings) {
                 this.form.controls['gridInterpolationType'].setValue('area');
                 this.space_grid_boundings.map(bound => {
                     const control = this.formBuilder.control(boundings[bound.code], bound.validators);
@@ -272,7 +270,7 @@ export class StepPostprocessComponent implements OnInit {
                     const control = this.formBuilder.control(nodes[node.code], node.validators);
                     (this.form.controls.interpolationNodes as FormArray).push(control);
                 })
-            }else{
+            } else {
                 this.form.controls['gridInterpolationType'].setValue('template');
                 const selectedTemplate = this.gridInterpolationTemplates.filter(t => t.filepath === pt[0].template)[0];
                 this.form.controls['selectedGITemplate'].setValue(selectedTemplate.filepath);
@@ -285,8 +283,8 @@ export class StepPostprocessComponent implements OnInit {
                     (this.form.controls.interpolationNodes as FormArray).push(control);
                 });
             }
-        }else{
-            this.selectedInterpolationType = "-";                        
+        } else {
+            this.selectedInterpolationType = "-";
             this.space_grid_boundings.map(bound => {
                 const control = this.formBuilder.control(0, bound.validators);
                 (this.form.controls.space_grid as FormArray).push(control);
@@ -298,31 +296,31 @@ export class StepPostprocessComponent implements OnInit {
         }
     }
 
-    private buildSparePoint(){
+    private buildSparePoint() {
         const pt = this.formDataService.getFormData().postprocessors.filter(p => p.type === 'spare_point_interpolation');
-        if (pt && pt.length){
+        if (pt && pt.length) {
             this.form.controls['selectedSpacePP'].setValue(true);
             this.form.controls['space_type'].setValue('points');
             this.selectedInterpolationType = this.interpolationTypes.filter(i => i === pt[0]['sub-type'])[0];
             const selectedTemplate = this.sparePointsTemplates.filter(t => t.filepath === pt[0]['coord-filepath'])[0];
             this.form.controls['selectedSPTemplate'].setValue(selectedTemplate.filepath);
-        }else{
+        } else {
             this.selectedInterpolationType = "-";
         }
     }
 
-    private buildTemplates(){
+    private buildTemplates() {
         this.gridInterpolationTemplates = [];
         // grid interpolation templates
         this.dataService.getTemplates("grib").subscribe(
             data => {
-                for (let type of data){
-                    for (let file of type.files){
+                for (let type of data) {
+                    for (let file of type.files) {
                         let filepath = file.split('/');
-                        let label = filepath[filepath.length-1];
-                        this.gridInterpolationTemplates.push({'label':label,'filepath': file, 'format':type.type});
-                        if (this.uploadedFileName && label === this.uploadedFileName){
-                            this.form.controls['selectedGITemplate'].setValue(file);                        
+                        let label = filepath[filepath.length - 1];
+                        this.gridInterpolationTemplates.push({'label': label, 'filepath': file, 'format': type.type});
+                        if (this.uploadedFileName && label === this.uploadedFileName) {
+                            this.form.controls['selectedGITemplate'].setValue(file);
                         }
                     }
                 }
@@ -337,21 +335,21 @@ export class StepPostprocessComponent implements OnInit {
         this.sparePointsTemplates = [];
         this.dataService.getTemplates("shp").subscribe(
             data => {
-                for (let type of data){
-                    for (let file of type.files){   
+                for (let type of data) {
+                    for (let file of type.files) {
                         let filepath = file.split('/');
-                        let label = filepath[filepath.length-1];
-                        this.sparePointsTemplates.push({'label':label,'filepath': file, 'format':type.type});                        
-                        if (this.uploadedFileName){
+                        let label = filepath[filepath.length - 1];
+                        this.sparePointsTemplates.push({'label': label, 'filepath': file, 'format': type.type});
+                        if (this.uploadedFileName) {
                             let extractExtensionRegex = new RegExp('(?:\.([^.]+))?$');
                             let fileExtension = extractExtensionRegex.exec(this.uploadedFileName)[1];
-                            if (fileExtension === 'geojson'){
-                                this.uploadedFileName = this.uploadedFileName.replace('geojson','shp');
-                            }else if (fileExtension === 'zip') {
-                                this.uploadedFileName = this.uploadedFileName.replace('zip','shp');
+                            if (fileExtension === 'geojson') {
+                                this.uploadedFileName = this.uploadedFileName.replace('geojson', 'shp');
+                            } else if (fileExtension === 'zip') {
+                                this.uploadedFileName = this.uploadedFileName.replace('zip', 'shp');
                             }
-                            if ( label === this.uploadedFileName)
-                            this.form.controls['selectedSPTemplate'].setValue(file);                        
+                            if (label === this.uploadedFileName)
+                                this.form.controls['selectedSPTemplate'].setValue(file);
                         }
                     }
                 }
@@ -363,33 +361,28 @@ export class StepPostprocessComponent implements OnInit {
         )
     }
 
-    private buildOutputFormat(){
-        if(this.formDataService.getFormData().output_format){
+    private buildOutputFormat() {
+        if (this.formDataService.getFormData().output_format) {
             this.selectedConversionFormat = this.formDataService.getFormData().output_format;
-        }else{
+        } else {
             this.selectedConversionFormat = '-';
         }
     }
 
-    private checkDatasetFormat(){
+    private checkDatasetFormat() {
         const selectedDataset = this.formDataService.getFormData().datasets;
-        this.form.controls['hasBufrDataset'].setValue(selectedDataset.some( d => d.format === 'bufr'));
-        this.form.controls['hasGribDataset'].setValue(selectedDataset.some( d => d.format === 'grib'));
+        this.form.controls['hasBufrDataset'].setValue(selectedDataset.some(d => d.format === 'bufr'));
+        this.form.controls['hasGribDataset'].setValue(selectedDataset.some(d => d.format === 'grib'));
     }
 
     ngOnInit() {
         window.scroll(0, 0);
-	this.datasets = this.formDataService.getFormData().datasets;
-	//console.log('ngOnInit: this.datasets=', this.datasets);
-	
-	this.filters = this.formDataService.getFormData().filters;
-	//console.log('ngOnInit: this.filters=', this.filters);
 
-	this.formDataService.getSummaryStats().subscribe(response => {
+        this.formDataService.getSummaryStats().subscribe(response => {
             this.summaryStats = response;
-	    //console.log('ngOnInit: this.summaryStats=', this.summaryStats);
+            //console.log('ngOnInit: this.summaryStats=', this.summaryStats);
         });
-	
+
 
         this.checkDatasetFormat();
         this.dataService.getDerivedVariables().subscribe(
@@ -402,23 +395,24 @@ export class StepPostprocessComponent implements OnInit {
             }
         )
         this.buildTemplates();
-        this.buildTimePostProcess();   
+        this.buildTimePostProcess();
         this.buildSpaceCrop();
         this.buildOutputFormat();
     }
 
-    loadFile(files: FileList){
-        if (files.length == 1){
-            let file :File = files[0];
+    loadFile(files: FileList) {
+        if (files.length == 1) {
+            let file: File = files[0];
             this.uploadedFileName = file.name;
             this.uploadFile(file);
 
         }
     }
-    uploadFile(file: File){        
+
+    uploadFile(file: File) {
         this.dataService.uploadTemplate(file).subscribe(
             data => {
-                this.buildTemplates();            
+                this.buildTemplates();
             },
             error => {
                 this.notify.showError(error.error);
@@ -443,11 +437,11 @@ export class StepPostprocessComponent implements OnInit {
         }
 
         // Time post processing
-        if (this.form.value.selectedTimePP){            
+        if (this.form.value.selectedTimePP) {
             this.validateTimePostProcessor();
             let timeValidationItem = this.validationResults.filter(v => v.type == 'time')[0];
-            if (!timeValidationItem){
-                selectedProcessors.push(this.calculateTimePostProcessor());    
+            if (!timeValidationItem) {
+                selectedProcessors.push(this.calculateTimePostProcessor());
             }
         }
 
@@ -455,10 +449,10 @@ export class StepPostprocessComponent implements OnInit {
         const selectedSpaceProcessor = this.form.value.space_type;
         if (this.form.value.selectedSpacePP && selectedSpaceProcessor && selectedSpaceProcessor.length) {
             switch (selectedSpaceProcessor) {
-                case 'crop': {                    
+                case 'crop': {
                     this.validateAreaCrop();
                     let areaValidationItem = this.validationResults.filter(v => v.type == 'area')[0];
-                    if (!areaValidationItem){
+                    if (!areaValidationItem) {
                         selectedProcessors.push(this.calculateSpaceCrop());
                     }
                     break;
@@ -466,18 +460,18 @@ export class StepPostprocessComponent implements OnInit {
                 case 'grid': {
                     this.validateGridInterpolation();
                     let gridAreaValidationItem = this.validationResults.filter(v => v.type == 'grid')[0];
-                    if (!gridAreaValidationItem){
+                    if (!gridAreaValidationItem) {
                         selectedProcessors.push(this.calculateSpaceGridCoord());
-                    }                                    
+                    }
                     break;
                 }
 
                 case 'points': {
                     this.validateSparePoints();
                     let sparePointsValidationItem = this.validationResults.filter(v => v.type == 'spare_points')[0];
-                    if (!sparePointsValidationItem){
-                        selectedProcessors.push(this.calculateSparePoints());    
-                    }                    
+                    if (!sparePointsValidationItem) {
+                        selectedProcessors.push(this.calculateSparePoints());
+                    }
                     break;
                 }
             }
@@ -486,27 +480,27 @@ export class StepPostprocessComponent implements OnInit {
 
         this.formDataService.setPostProcessor(selectedProcessors);
         if (this.selectedConversionFormat != null && this.selectedConversionFormat != '-'
-            && (this.form.value.hasBufrDataset || (this.form.value.hasGribDataset && this.form.value.selectedSpacePP && this.form.value.space_type === 'points'))){
+            && (this.form.value.hasBufrDataset || (this.form.value.hasGribDataset && this.form.value.selectedSpacePP && this.form.value.space_type === 'points'))) {
             this.formDataService.setOutputFormat(this.selectedConversionFormat);
-        }else {
+        } else {
             this.formDataService.setOutputFormat("");
         }
 
-        if(this.validationResults.length){
+        if (this.validationResults.length) {
             this.validationResults.forEach(r => {
-                if (r.messages.length){
+                if (r.messages.length) {
                     let errorMessage = "";
                     r.messages.forEach(m => {
                         errorMessage = errorMessage + m;
-                    })                   
+                    })
                     this.notify.showError(errorMessage, r.title);
                 }
             });
             this.validationResults = [];
             return false;
-        }else{
-            return true;    
-        }        
+        } else {
+            return true;
+        }
     }
 
     calculateSpaceCrop() {
@@ -514,7 +508,7 @@ export class StepPostprocessComponent implements OnInit {
         this.form.value.space_crop.map((value, i) => {
             boundings[this.space_crop_boundings[i].code] = value;
         })
-        
+
         return {
             'type': 'grid_cropping',
             'sub-type': this.selectedCropType.desc,
@@ -522,49 +516,47 @@ export class StepPostprocessComponent implements OnInit {
         }
     }
 
-    calculateSpaceGridCoord(){
+    calculateSpaceGridCoord() {
         const boundings = {};
         const nodes = {};
 
-        if (this.form.value.gridInterpolationType =="area")
-        {
-               this.form.value.space_grid.map((value, i) => {
+        if (this.form.value.gridInterpolationType == "area") {
+            this.form.value.space_grid.map((value, i) => {
                 boundings[this.space_grid_boundings[i].code] = value;
             });
             this.form.value.interpolationNodes.map((value, i) => {
                 nodes[this.interpolation_nodes[i].code] = value;
             })
 
-         return {
-             'type': 'grid_interpolation',
-             'sub-type': this.selectedInterpolationType,
-             'boundings': boundings,
-             'nodes': nodes
-            } 
+            return {
+                'type': 'grid_interpolation',
+                'sub-type': this.selectedInterpolationType,
+                'boundings': boundings,
+                'nodes': nodes
+            }
         }
-         if (this.form.value.gridInterpolationType =="template")
-         {
-            
+        if (this.form.value.gridInterpolationType == "template") {
+
             return {
                 'type': 'grid_interpolation',
                 'template': this.form.value.selectedGITemplate,
                 'sub-type': this.selectedInterpolationType,
             }
-         }
-    }
-
-    calculateSparePoints(){
-
-        return {
-            'type' : 'spare_point_interpolation',
-            'coord-filepath': this.form.value.selectedSPTemplate,
-            'format' : this.sparePointsTemplates.find(t => t.filepath == this.form.value.selectedSPTemplate).format,
-            'sub-type': this.selectedInterpolationType,
-            
         }
     }
 
-    calculateTimePostProcessor(){
+    calculateSparePoints() {
+
+        return {
+            'type': 'spare_point_interpolation',
+            'coord-filepath': this.form.value.selectedSPTemplate,
+            'format': this.sparePointsTemplates.find(t => t.filepath == this.form.value.selectedSPTemplate).format,
+            'sub-type': this.selectedInterpolationType,
+
+        }
+    }
+
+    calculateTimePostProcessor() {
         return {
             'type': 'statistic_elaboration',
             'input-timerange': this.selectedInputTimeRange.code,
@@ -574,57 +566,57 @@ export class StepPostprocessComponent implements OnInit {
         }
     }
 
-    validateTimePostProcessor(){
-        
+    validateTimePostProcessor() {
+
         let validationItem = {
             'type': 'time',
             'title': 'Time Post Processing',
             'messages': []
         };
-                
+
         if (this.selectedInputTimeRange.code == null || this.selectedInputTimeRange.code == -1
-        || this.selectedOutputTimeRange.code == null || this.selectedOutputTimeRange.code == -1
-        || this.form.value.timeStep == null
-        || this.selectedStepInterval == null || this.selectedStepInterval == '-'){
-            validationItem.messages.push(" - Missing mandatory fields<br/>");            
+            || this.selectedOutputTimeRange.code == null || this.selectedOutputTimeRange.code == -1
+            || this.form.value.timeStep == null
+            || this.selectedStepInterval == null || this.selectedStepInterval == '-') {
+            validationItem.messages.push(" - Missing mandatory fields<br/>");
         }
 
-        if (this.selectedInputTimeRange.code != this.selectedOutputTimeRange.code){
+        if (this.selectedInputTimeRange.code != this.selectedOutputTimeRange.code) {
             if ((this.selectedInputTimeRange.code == 254 && (this.selectedOutputTimeRange.code == 1 || this.selectedOutputTimeRange.code == 254))
-            || (this.selectedInputTimeRange.code == 0 && this.selectedOutputTimeRange.code != 254)){
+                || (this.selectedInputTimeRange.code == 0 && this.selectedOutputTimeRange.code != 254)) {
                 validationItem.messages.push(" - Inconsistent values<br/>");
             }
         }
 
         let timeStepRegex = new RegExp('^-?[0-9]+$');
-        if(this.form.value.timeStep != null && (this.form.value.timeStep <= 0 || !timeStepRegex.test(this.form.value.timeStep))){
+        if (this.form.value.timeStep != null && (this.form.value.timeStep <= 0 || !timeStepRegex.test(this.form.value.timeStep))) {
             validationItem.messages.push(" - Step value must be a positive integer<br/>");
         }
 
-        if (validationItem.messages.length){
-            this.validationResults.push(validationItem);    
-        }        
+        if (validationItem.messages.length) {
+            this.validationResults.push(validationItem);
+        }
     }
 
-    validateAreaCrop(){
+    validateAreaCrop() {
 
         let validationItem = {
             'type': 'area',
             'title': 'Area crop',
             'messages': []
         };
-        
+
         if (this.form.value.space_crop.filter(s => {
             let regex = new RegExp('-?[1-9]{1,2}\.?[\d]{0,6}$');
             return !regex.test(s);
-        }).length){
+        }).length) {
             validationItem.messages.push(" - Lat/Lon values must be nonzero<br/>");
             this.validationResults.push(validationItem);
         }
-        
+
     }
 
-    validateGridInterpolation(){
+    validateGridInterpolation() {
 
         let validationItem = {
             'type': 'grid',
@@ -632,39 +624,39 @@ export class StepPostprocessComponent implements OnInit {
             'messages': []
         };
 
-        if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
-                        validationItem.messages.push(" - interpolation type required<br/>");
+        if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-') {
+            validationItem.messages.push(" - interpolation type required<br/>");
         }
 
-        if (this.form.value.gridInterpolationType =="area"){ 
+        if (this.form.value.gridInterpolationType == "area") {
             if (this.form.value.space_grid.filter(s => {
                 let regex = new RegExp('-?[1-9]{1,2}\.?[\d]{0,6}$');
                 return !regex.test(s);
-            }).length){
+            }).length) {
                 validationItem.messages.push(" - Lat/Lon values must be nonzero<br/>");
             }
 
             if (this.form.value.interpolationNodes.filter(n => {
                 let regex = new RegExp('^-?[0-9]+$');
                 return !regex.test(n);
-            }).length){
+            }).length) {
                 validationItem.messages.push(" - nx/ny values must be nonzero<br/>");
             }
-            
-        }else {
-            
-            if (!this.form.value.selectedGITemplate){
+
+        } else {
+
+            if (!this.form.value.selectedGITemplate) {
                 validationItem.messages.push(" - at least one template must be selected<br/>");
             }
         }
 
-        if (validationItem.messages.length){
-                this.validationResults.push(validationItem);    
+        if (validationItem.messages.length) {
+            this.validationResults.push(validationItem);
         }
 
     }
 
-    validateSparePoints(){
+    validateSparePoints() {
 
         let validationItem = {
             'type': 'spare_points',
@@ -672,54 +664,54 @@ export class StepPostprocessComponent implements OnInit {
             'messages': []
         };
 
-        if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-'){
-                validationItem.messages.push(" - interpolation type required<br/>");
-            }
-
-            if (!this.form.value.selectedSPTemplate){
-                validationItem.messages.push(" - at least one template must be selected<br/>");
+        if (this.selectedInterpolationType == null || this.selectedInterpolationType == '-') {
+            validationItem.messages.push(" - interpolation type required<br/>");
         }
 
-        if (validationItem.messages.length){
-                this.validationResults.push(validationItem);    
+        if (!this.form.value.selectedSPTemplate) {
+            validationItem.messages.push(" - at least one template must be selected<br/>");
+        }
+
+        if (validationItem.messages.length) {
+            this.validationResults.push(validationItem);
         }
     }
 
     goToPrevious() {
         // Navigate to the dataset page
         this.router.navigate(
-            ['../', 'filters'], { relativeTo: this.route });
+            ['../', 'filters'], {relativeTo: this.route});
     }
 
     goToNext() {
         if (this.save()) {
             // Navigate to the postprocess page
             this.router.navigate(
-                ['../', 'submit'], { relativeTo: this.route });
+                ['../', 'submit'], {relativeTo: this.route});
         }
     }
 
-    setInputRange(inRange){
+    setInputRange(inRange) {
         this.selectedInputTimeRange = inRange;
     }
 
-    setOutputRange(outRange){
+    setOutputRange(outRange) {
         this.selectedOutputTimeRange = outRange;
     }
 
-    setStepInterval(interval){
+    setStepInterval(interval) {
         this.selectedStepInterval = interval;
     }
 
-    setCropType(cropType){
+    setCropType(cropType) {
         this.selectedCropType = cropType;
     }
 
-    setInterpolationType(interpolationType){
+    setInterpolationType(interpolationType) {
         this.selectedInterpolationType = interpolationType;
     }
 
-    setConversionFormat(format){
+    setConversionFormat(format) {
         this.selectedConversionFormat = format;
     }
 

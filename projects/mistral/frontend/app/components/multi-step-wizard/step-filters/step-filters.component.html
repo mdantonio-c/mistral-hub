@@ -20,52 +20,46 @@
             >
                 <p style="font-size: 20px; color: white">Updating Filters...</p>
             </ngx-spinner>
-            <!-- Summary Stats-->
-            <div class="card mst--expansion-panel mst--info-panel" *ngIf="summaryStats">
-                <div class="card-header">
-                    <h5>Summary Stats</h5>
-                    <button type="button" class="btn btn-sm ml-2 p-0 mb-1"
-                            (click)="editReftime(reftimeContent)"
-                            ngbTooltip="Change reftime"
-                            #p="ngbTooltip"
-                            (document:click)="p.close()"
-                            placement="right">
-                        <i class="fa fa-edit"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm ml-2 p-0 mb-1 float-right"
-                            (click)="resetFilters()"
-                            ngbTooltip="Reset filters"
-                            placement="left"
-                    >
-                        <i class="fa fa-undo"></i>
-                    </button>
+
+            <div class="row no-gutters">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <!-- Summary Stats-->
+                    <div class="card mst--expansion-panel mst--info-panel h-100" *ngIf="summaryStats">
+                        <div class="card-header">
+                            <h5>Summary Stats</h5>
+                            <button type="button" class="btn btn-sm ml-2 p-0 mb-1"
+                                    (click)="editReftime(reftimeContent)"
+                                    ngbTooltip="Change reftime"
+                                    triggers="hover"
+                                    placement="right">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm ml-2 p-0 mb-1 float-right"
+                                    (click)="resetFilters()"
+                                    ngbTooltip="Reset filters"
+                                    placement="left"
+                            >
+                                <i class="fa fa-undo"></i>
+                            </button>
+                        </div>
+                        <div class="body">
+                            <ul>
+                                <li><strong>From:</strong> {{summaryStats.b | fmtDate}}</li>
+                                <li><strong>To:</strong> {{summaryStats.e | fmtDate}}</li>
+                                <li><strong>Count:</strong> {{summaryStats.c}}</li>
+                                <li><strong>Size:</strong> {{(summaryStats.s != null) ? (summaryStats.s | bytes:2) :
+                                    'n/a'}}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <div class="body">
-                    <ul>
-                        <li><strong>From:</strong> {{summaryStats.b | fmtDate}}</li>
-                        <li><strong>To:</strong> {{summaryStats.e | fmtDate}}</li>
-                        <li><strong>Count:</strong> {{summaryStats.c}}</li>
-                        <li><strong>Size:</strong> {{(summaryStats.s != null) ? (summaryStats.s | bytes:2) : 'n/a'}}
-                        </li>
-                    </ul>
+                <div class="col-md-6">
+                    <!-- My Request -->
+                    <mst-my-request-details></mst-my-request-details>
                 </div>
             </div>
-		<!-- My Request -->
-		<div class="card mst--expansion-panel mst--info-panel">
-			<div class="card-header">
-				<h5 class="card-title">My Request</h5>
-			</div>
-			<div class="body">
-			    <dl class="request-summary">
-				<dt>Dataset(s)</dt>
-				<dd>
-				    <ul class="comma-list">
-				        <li *ngFor="let ds of datasets">{{ds.name}}</li>
-				    </ul>
-				</dd>
-			    </dl>
-			</div>
-		</div>
+
             <!-- Filters -->
             <div formArrayName="filters"
                  *ngFor="let f of filterForm.get('filters')['controls']; let i = index;">
