@@ -1,39 +1,85 @@
-<div class="card mst--expansion-panel mst--info-panel h-100">
-    <div class="card-header">
-        <h5 class="card-title">My Request</h5>
+<dl class="request-summary">
+    <div class="input-group mb-3" *ngIf="onSubmitStep">
+        <div class="input-group-append" [ngClass]="{'mst--input-error': emptyName()}">
+            <ng-template #tipContent>
+                Please give a name or a short description to your product
+            </ng-template>
+            <button class="btn-reset" type="button"
+                    [ngbTooltip]="tipContent"
+                    placement="right">
+                <i class="material-icons">info</i>
+            </button>
+        </div>
+        <input type="text" class="mst--input col"
+               [(ngModel)]="myRequest.name"
+               [ngClass]="{'mst--input-error': emptyName()}"
+               placeholder="Product name"
+               required>
+        <span class="mst--input-error-msg" *ngIf="emptyName()">Product name is required</span>
     </div>
-    <div class="body">
-        <dl class="request-summary">
-            <dt>Dataset(s)</dt>
-            <dd>
-                <ul class="comma-list">
-                    <li *ngFor="let ds of myRequest.datasets">{{ds.name}}</li>
-                </ul>
-            </dd>
-            <hr>
-            <dt>Filter(s)</dt>
-            <dd *ngIf="myRequest.filters.length">
-                <dl class="row">
-                    <ng-container *ngFor="let f of myRequest.filters">
-                        <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
-                        <dd class="col-sm-9"><p *ngFor="let v of f.values">{{v.desc}}</p></dd>
-                    </ng-container>
-                </dl>
-            </dd>
-            <dd *ngIf="!myRequest.filters || !myRequest.filters.length">None</dd>
-            <hr>
-            <dt>Post-Processing</dt>
-            <dd *ngIf="myRequest.postprocessors.length">
-                <dl class="row">
-                    <ng-container *ngFor="let p of myRequest.postprocessors">
-                        <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}</dt>
-                        <ng-container *ngIf="p.type === 'derived_variables'">
-                            <dd class="col-sm-9"><p *ngFor="let v of p.variables">{{dataService.getVariableDescription(v)}}</p></dd>
-                        </ng-container>
-                    </ng-container>
-                </dl>
-            </dd>
-            <dd *ngIf="!myRequest.postprocessors || !myRequest.postprocessors.length">None</dd>
+    <dt>Dataset(s)</dt>
+    <dd>
+        <ul class="comma-list">
+            <li *ngFor="let ds of myRequest.datasets">{{ds.name}}</li>
+        </ul>
+        <!--        <span (click)="open(licenseContent)">View terms of use</span>-->
+        <div class="mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary"
+                    (click)="open(licenseContent)">View terms of use
+            </button>
+        </div>
+    </dd>
+    <hr>
+    <dt>Filter(s)</dt>
+    <dd *ngIf="myRequest.filters.length">
+        <dl class="row">
+            <ng-container *ngFor="let f of myRequest.filters">
+                <dt class="col-sm-3" style="font-weight: normal;">{{f.name}}</dt>
+                <dd class="col-sm-9"><p *ngFor="let v of f.values">{{v.desc}}</p></dd>
+            </ng-container>
         </dl>
+    </dd>
+    <dd *ngIf="!myRequest.filters || !myRequest.filters.length">None</dd>
+    <hr>
+    <dt>Post-Processing</dt>
+    <dd *ngIf="myRequest.postprocessors.length">
+        <dl class="row">
+            <ng-container *ngFor="let p of myRequest.postprocessors">
+                <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}</dt>
+                <ng-container *ngIf="p.type === 'derived_variables'">
+                    <dd class="col-sm-9"><p *ngFor="let v of p.variables">
+                        {{dataService.getVariableDescription(v)}}</p></dd>
+                </ng-container>
+            </ng-container>
+        </dl>
+    </dd>
+    <dd *ngIf="!myRequest.postprocessors || !myRequest.postprocessors.length">None</dd>
+</dl>
+
+<ng-template #licenseContent let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title">Terms of use</h4>
+        <button type="button" class="btn close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
-</div>
+    <div class="modal-body">
+        <div style="overflow-y: hidden; max-height: calc(100vh - 15rem);">
+            <div class="px-2" style="overflow-y: auto; height: 100%;">
+                <div class="list-group">
+                    <div *ngFor="let ds of myRequest.datasets"
+                         class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ds.name}}</h5>
+                            <small>{{ds.license}}&nbsp;<a [href]="ds.license_url" target=_blank>
+                                <i class="fas fa-external-link-alt"></i></a></small>
+                        </div>
+                        <p class="mb-1">{{ds.description}}</p>
+                        <small><i class="fab fa-creative-commons-by"></i>&nbsp;{{ds.attribution}}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</ng-template>

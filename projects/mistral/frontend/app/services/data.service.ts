@@ -42,13 +42,26 @@ export interface Filters {
     query: string;
 }
 
-export class Dataset {
-    id = '';
-    name = '';
-    category = '';
-    format = '';
-    description ? = '';
-    license ? = '';
+export interface Dataset {
+    id: string;
+    name: string;
+    description?: string;
+    category: string;
+    format: string;
+
+    // attribution
+    attribution?: string;
+    attribution_description?: string;
+    attribution_url?: string;
+
+    // group of license
+    group_license?: string;
+    group_license_description?: string;
+
+    // license
+    license?: string;
+    license_description?: string;
+    license_url?: string;
 }
 
 export interface RefTime {
@@ -106,16 +119,11 @@ export class DataService {
 
     /**
      * Get all the available datasets.
+     * @param licenceSpecs if true add licence information. Default to false.
      */
-    getDatasets() {
-        return this.api.get('datasets');
-    }
-
-    /**
-     * Get all the available datasets with License information.
-     */
-    getDatasetsLicense() {
-        return this.api.get('datasets?licenceSpecs=True');
+    getDatasets(licenceSpecs = false): Observable<Dataset[]> {
+        let params = (licenceSpecs) ? {licenceSpecs: true} : {};
+        return this.api.get('datasets', '', params);
     }
 
     /**

@@ -5,6 +5,7 @@ import * as moment from 'moment';
 import {WorkflowService} from '@app/services/workflow.service';
 import {STEPS} from '@app/services/workflow.model';
 import {DataService, Filters, Dataset, SummaryStats, TaskSchedule, RefTime} from "./data.service";
+import {FieldsSummary} from "../components/maps/observation-maps/services/obs.service";
 
 export class FormData {
     name: string = '';
@@ -54,8 +55,8 @@ export class FormDataService {
     constructor(private workflowService: WorkflowService, private dataService: DataService) {
     }
 
-    getDatasets() {
-        return this.dataService.getDatasets();
+    getDatasets(): Observable<Dataset[]> {
+        return this.dataService.getDatasets(true);
     }
 
     setDatasets(data: Dataset[]) {
