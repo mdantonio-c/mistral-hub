@@ -84,7 +84,8 @@
                                 let-row="row"
                                 ngx-datatable-cell-template
                         >
-                            {{ value }}
+                            {{ value }}&nbsp;<a [href]="row.attribution_url" target=_blank *ngIf="value && row.attribution_url">
+                                <i class="fas fa-external-link-alt"></i></a>
                         </ng-template>
                     </ngx-datatable-column>
 
@@ -102,7 +103,9 @@
                                 let-row="row"
                                 ngx-datatable-cell-template
                         >
-                            <a href="{{ row.license_url }}" target="_blank">{{ value }}</a>
+                            {{ value }}&nbsp;<a [href]="row.license_url" target=_blank *ngIf="value && row.license_url">
+                                <i class="fas fa-external-link-alt"></i></a>
+
                         </ng-template>
                     </ngx-datatable-column>
 
