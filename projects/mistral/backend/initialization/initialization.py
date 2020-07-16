@@ -96,56 +96,71 @@ class Initializer:
         attribution_data_to_insert = [
             {
                 "name": "ARPAE-SIMC",
-                "descr": "Arpae Emilia Romagna Servizio Idro-Meteo-Clima",
-                "url": "https://www.arpae.it/sim/",
+                "descr": "Arpae Emilia-Romagna Idro-Meteo-Clima Service",
+                "url": "https://www.arpae.it/sim/"
             },
             {
                 "name": "COSMO-LAMI",
-                "descr": "Accordo COSMO-LAMI tra Servizio meteorologico dell´Aeronautica militare, Servizio IdroMeteoClima di Arpae Emilia-Romagna e di Arpa Piemonte",
-                "url": "",
+                "descr": "COSMO-LAMI agreement between Italian Air Force Meteorological Service, Arpae Emilia-Romagna Idro-Meteo-Clima Service and Arpa Piemonte",
+                "url": ""
             },
             {
                 "name": "DPCN",
-                "descr": "Dipartimento Protezione Civile Nazionale",
-                "url": "",
+                "descr": "National Civil Protection Department-Presidency of the Council of Ministers",
+                "url": "http://www.protezionecivile.gov.it"
             },
             {
                 "name": "ECMWF-MISTRAL",
-                "descr": "ECMWF - Progetto europeo CEF - MISTRAL",
-                "url": "",
+                "descr": "ECMWF - CEF european project - MISTRAL",
+                "url": ""
             },
             {
                 "name": "ARPAP-MISTRAL",
-                "descr": "Arpa Piemonte - Progetto europeo CEF - MISTRAL",
-                "url": "",
+                "descr": "Arpa Piemonte - CEF european project - MISTRAL",
+                "url": ""
             },
             {
                 "name": "ARPAP-DRNA",
-                "descr": "Arpa Piemonte - Dipartimento Rischi Naturali e Ambientali",
-                "url": "",
+                "descr": "Arpa Piemonte - Department of Natural and Environmental Risks",
+                "url": "https://www.arpa.piemonte.it/chi-siamo/organizzazione/dipartimenti-tematici-arpa#naturali"
             },
             {
                 "name": "ARPAL-APPP-CFR",
-                "descr": "Regione Lazio - Arpal - Area Prevenzione pianificazione e Previsione - Centro funzionale regionale",
-                "url": "",
+                "descr": "Lazio region - Arpal - Prevention planning and forecasting area - Regional functional center",
+                "url": "http://www.regione.lazio.it/rl_protezione_civile/?vw=contenutiDettaglio&id=101"
             },
             {
                 "name": "ARPACAMP-CFR",
-                "descr": "Regione Campania - Centro funzionale regionale",
-                "url": "",
+                "descr": "Campania region - Regional functional center",
+                "url": "http://centrofunzionale.regione.campania.it/#/pages/dashboard"
             },
             {
                 "name": "ARPACAL-CFR",
-                "descr": "Regione Calabria - Arpacal - Centro regionale  funzionale multirischi sicurezza sul territorio",
-                "url": "",
+                "descr": "Calabria region - Arpacal - Regional multi-risk functional center for local security",
+                "url": "http://www.cfd.calabria.it"
             },
             {
                 "name": "R-UMBRIA-SIR",
-                "descr": "Regione Umbria -  Servizio Idrografico Regionale",
-                "url": "http://servizioidrografico.regione.umbria.it/",
+                "descr": "Umbria region -  Regional Hydrographic Service",
+                "url": "http://servizioidrografico.regione.umbria.it/"
             },
-            {"name": "R-LIGURIA-ARPAL", "descr": "Regione Liguria - Arpal", "url": ""},
+            {"name": "R-LIGURIA-ARPAL", "descr": "Liguria region - Arpal", "url": "https://www.arpal.liguria.it"},
             {"name": "MISTRAL", "descr": "Mistral project", "url": ""},
+            {
+                "name": "R-MARCHE-PC",
+                "descr": "Marche region – Civil Protection Service",
+                "url": "https://www.regione.marche.it/Regione-Utile/Protezione-Civile"
+            },
+            {
+                "name": "PROV-BOLZANO",
+                "descr": "Meteorology and Avalanche Prevention Office - Civil Protection Agency - Autonomous Province of Bolzano",
+                "url": "http://www.provincia.bz.it/it/contatti.asp?orga_orgaid=916"
+            },
+            {
+                "name": "R-SARDEGNA-ARPAS-METEO",
+                "descr": "Sardegna region – Arpas - Meteoclimatic Department",
+                "url": "http://www.sar.sardegna.it/"
+            }
         ]
         for el in attribution_data_to_insert:
             attribution = self.sql.Attribution.query.filter_by(name=el["name"]).first()
