@@ -46,6 +46,7 @@ import {MapFlashFloodFilterComponent} from '@app/components/maps/forecast-maps/m
 import {MapSliderComponent} from '@app/components/maps/forecast-maps/map-slider/map-slider.component';
 import {ObservationMapsComponent} from '@app/components/maps/observation-maps/observation-maps.component';
 import {ObsFilterComponent} from '@app/components/maps/observation-maps/obs-filter/obs-filter.component';
+import {ObsDownloadComponent} from '@app/components/maps/observation-maps/obs-download/obs-download.component';
 import {ObsNavbarComponent} from '@app/components/maps/observation-maps/obs-navbar/obs-navbar.component';
 import {ObsMapComponent} from '@app/components/maps/observation-maps/obs-map/obs-map.component';
 import {MeteoTilesComponent} from '@app/components/maps/meteo-tiles/meteo-tiles.component';
@@ -96,6 +97,7 @@ const appRoutes: Routes = [
         MapSliderComponent,
         ObservationMapsComponent,
         ObsFilterComponent,
+        ObsDownloadComponent,
         ObsNavbarComponent,
         ObsMapComponent,
         MeteoTilesComponent,

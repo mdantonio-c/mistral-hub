@@ -560,7 +560,6 @@ div.board + pre {
 .modal-body .modal-v-scrollable {
   overflow-y: hidden;
   height: calc(100vh - 15rem);
-  max-height: calc(100vh - 15rem);
 }
 
 .modal-body .modal-v-scrollable > div:first-child {

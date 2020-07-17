@@ -5,6 +5,7 @@ import "rxjs/add/operator/map";
 import "rxjs/add/operator/share";
 import {ApiService} from "@rapydo/services/api";
 import {COLORS, FIELDS_SUMMARY, VAR_TABLE} from "./data";
+import {environment} from '@rapydo/../environments/environment';
 
 export interface ObsFilter {
     product: string;
@@ -96,7 +97,7 @@ export class ObsService {
     private _min: number;
     private _max: number;
 
-    constructor(private api: ApiService) {
+    constructor(private api: ApiService, private http: HttpClient) {
     }
 
     /**
@@ -172,6 +173,37 @@ export class ObsService {
                 `,latmax:${filter.bbox.latMax},lonmax:${filter.bbox.lonMax}`;
         }
         return this.api.get("observations", "", params);
+    }
+
+    download(filter: ObsFilter, from: Date, to: Date, format: string): Observable<Blob> {
+        let fDate = [
+            `${from.getFullYear()}`,
+            `${from.getMonth() + 1}`.padStart(2, "0"),
+            `${from.getDate()}`.padStart(2, "0"),
+        ].join("-");
+        let tDate = [
+            `${to.getFullYear()}`,
+            `${to.getMonth() + 1}`.padStart(2, "0"),
+            `${to.getDate()}`.padStart(2, "0"),
+        ].join("-");
+        let params = {
+            q: `reftime: >=${fDate} 00:00,<=${tDate} 23:59;product:${filter.product}`,
+            output_format: format
+        };
+        if (filter.timerange && filter.timerange !== "") {
+            params["q"] += `;timerange:${filter.timerange}`;
+        }
+        if (filter.level && filter.level !== "") {
+            params["q"] += `;level:${filter.level}`;
+        }
+        // ONLY network and boundingbox as distinct params
+        if (filter.network && filter.network !== "") {
+            params["networks"] = filter.network;
+        }
+        return this.http.post<Blob>(environment.apiUrl + "/observations", null, {
+            params: params,
+            responseType: 'blob' as 'json'
+        });
     }
 
     private getColorIndex(d, min, max) {

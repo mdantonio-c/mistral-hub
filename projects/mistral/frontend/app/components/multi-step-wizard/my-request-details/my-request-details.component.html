@@ -71,11 +71,13 @@
                          class="list-group-item list-group-item-action flex-column align-items-start">
                         <div class="d-flex w-100 justify-content-between">
                             <h5 class="mb-1">{{ds.name}}</h5>
-                            <small>{{ds.license}}&nbsp;<a [href]="ds.license_url" target=_blank>
+                            <small [ngbTooltip]="'License'" placement="left" container="body">
+                                {{ds.license}}&nbsp;<a [href]="ds.license_url" target=_blank>
                                 <i class="fas fa-external-link-alt"></i></a></small>
                         </div>
                         <p class="mb-1">{{ds.description}}</p>
-                        <small><i class="fab fa-creative-commons-by"></i>&nbsp;{{ds.attribution}}</small>
+                        <small [ngbTooltip]="'Attribution'" placement="right" container="body">
+                            <i class="fab fa-creative-commons-by"></i>&nbsp;{{ds.attribution}}</small>
                     </div>
                 </div>
             </div>
