@@ -33,7 +33,7 @@ export class DataServiceStub extends DataService {
         }
     }
 
-    getDatasetsLicense() {
+    getDatasets(licenceSpecs = false) {
         return Observable.of(MockLicenseResponse)
     }
 }

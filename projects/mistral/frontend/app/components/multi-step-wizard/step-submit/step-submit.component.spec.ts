@@ -1,3 +1,4 @@
+import {Component, Input} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
 import {Router} from '@angular/router';
@@ -18,6 +19,13 @@ import {DataServiceStub} from "../../../services/data.service.stub";
 class NotificationServiceStub {
 }
 
+@Component({
+    selector: 'mst-my-request-details',
+    template: '<div></div>'
+})
+class StubMyRequestDetailsComponent {
+    @Input() onSubmitStep;
+}
 describe('StepSubmitComponent', () => {
     let component: StepSubmitComponent;
     let fixture: ComponentFixture<StepSubmitComponent>;
@@ -27,7 +35,12 @@ describe('StepSubmitComponent', () => {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            declarations: [StepSubmitComponent, FormatDatePipe, BytesPipe],
+            declarations: [
+                StepSubmitComponent,
+                FormatDatePipe,
+                BytesPipe,
+                StubMyRequestDetailsComponent
+            ],
             imports: [
                 FormsModule,
                 ReactiveFormsModule,

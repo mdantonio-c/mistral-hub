@@ -4,13 +4,17 @@ import {Router} from '@angular/router';
 import {ReactiveFormsModule, FormBuilder} from '@angular/forms';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {DebugElement, Input, Component} from '@angular/core';
+import {DatePipe} from '@angular/common';
 
-import {NotificationService} from '@rapydo/services/notification';
 import {StepPostprocessComponent} from './step-postprocess.component';
 import {FormDataService} from "../../../services/formData.service";
 import {FormDataServiceStub} from "../../../services/formData.service.stub";
 import {DataServiceStub} from "../../../services/data.service.stub";
 import {DataService} from "../../../services/data.service";
+import {FormatDatePipe} from "../../../pipes/format-date.pipe";
+
+import {NotificationService} from '@rapydo/services/notification';
+import {BytesPipe} from '@rapydo/pipes/pipes';
 
 class NotificationServiceStub {
 }
@@ -38,13 +42,19 @@ describe('StepPostprocessComponent', () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            declarations: [StepPostprocessComponent, StubStepPostprocessMapComponent],
+            declarations: [
+                StepPostprocessComponent,
+                StubStepPostprocessMapComponent,
+                FormatDatePipe,
+                BytesPipe
+            ],
             imports: [
                 ReactiveFormsModule,
                 RouterTestingModule.withRoutes([]),
                 NgbModule
             ],
             providers: [
+                DatePipe,
                 {provide: FormBuilder, useValue: formBuilder},
                 {provide: FormDataService, useClass: FormDataServiceStub},
                 {provide: DataService, useClass: DataServiceStub},
