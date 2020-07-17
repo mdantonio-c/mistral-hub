@@ -1,7 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgForm, NgControl} from '@angular/forms';
-import {NgbDate, NgbCalendar, NgbDateParserFormatter} from '@ng-bootstrap/ng-bootstrap';
+import {NgbDateStruct, NgbDate, NgbCalendar, NgbDateParserFormatter} from '@ng-bootstrap/ng-bootstrap';
 import {ObsFilter, ObsService} from "../services/obs.service";
 import {NgxSpinnerService} from 'ngx-spinner';
 import {NotificationService} from '@rapydo/services/notification';
@@ -44,7 +44,7 @@ export class ObsDownloadComponent {
     onDateSelection(date: NgbDate) {
         if (!this.fromDate && !this.toDate) {
             this.fromDate = date;
-        } else if (this.fromDate && !this.toDate && date && date.after(this.fromDate)) {
+        } else if (this.fromDate && !this.toDate && date && (date.equals(this.fromDate) || date.after(this.fromDate))) {
             this.toDate = date;
         } else {
             this.toDate = null;
