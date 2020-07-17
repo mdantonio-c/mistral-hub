@@ -8,7 +8,7 @@
                        container="body"
                        #datepicker="ngbDatepicker"
                        [autoClose]="'outside'"
-                       [maxDate]="formatter.format(maxDate)"
+                       [maxDate]="maxDate"
                        (dateSelect)="onDateSelection($event)"
                        [displayMonths]="2"
                        [dayTemplate]="t"

@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, OnChanges} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgForm, NgControl} from '@angular/forms';
 import {NgbDateStruct, NgbDate, NgbCalendar, NgbDateParserFormatter} from '@ng-bootstrap/ng-bootstrap';
@@ -12,11 +12,9 @@ import {saveAs as importedSaveAs} from "file-saver";
     templateUrl: './obs-download.component.html',
     styleUrls: ['./obs-download.component.css']
 })
-export class ObsDownloadComponent {
+export class ObsDownloadComponent implements OnChanges {
 
-    @Input() selectedDate;
     @Input() filter: ObsFilter;
-
     hoveredDate: NgbDate | null = null;
 
     fromDate: NgbDate | null;
@@ -41,6 +39,12 @@ export class ObsDownloadComponent {
         this.toDate = calendar.getNext(calendar.getToday(), 'd', 10);
     }
 
+    ngOnChanges() {
+        if (this.filter && this.filter.reftime) {
+            this.setDateRange(this.filter.reftime);
+        }
+    }
+
     onDateSelection(date: NgbDate) {
         if (!this.fromDate && !this.toDate) {
             this.fromDate = date;
@@ -50,6 +54,12 @@ export class ObsDownloadComponent {
             this.toDate = null;
             this.fromDate = date;
         }
+    }
+
+    private setDateRange(d: Date) {
+        console.log(`selected date: ${d}`);
+        this.fromDate = NgbDate.from({day: d.getDate(), month: d.getMonth() + 1, year: d.getFullYear()});
+        this.toDate = this.fromDate;
     }
 
     isHovered(date: NgbDate) {

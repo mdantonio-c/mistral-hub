@@ -30,14 +30,17 @@
                         </div>
                     </ng-template>
                     <ng-template ngbPanelContent>
-                        <app-obs-download
-                            [filter]="filter"></app-obs-download>
+<!--                        <app-obs-download-->
+<!--                            (filterUpdate)="selectDateRange($event.reftime)"-->
+<!--                            [filter]="filter"></app-obs-download>-->
+                            <app-obs-download
+                                [filter]="filter"></app-obs-download>
                     </ng-template>
                 </ngb-panel>
             </ngb-accordion>
         </div>
         <div class="col-lg-9">
-            <div class="card h-100">
+            <div class="card">
                 <div class="card-header">
                     <app-obs-navbar [displayMode]="currentView"
                             [totalItems]=totalItems (viewChange)="changeView($event)"></app-obs-navbar>
