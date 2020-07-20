@@ -36,19 +36,18 @@ DOWNLOAD_DIR = "/data"
 @celery_app.task(bind=True)
 # @send_errors_by_email
 def data_extract(
-    self,
-    user_id,
-    datasets,
-    reftime=None,
-    filters=None,
-    postprocessors=[],
-    output_format=None,
-    request_id=None,
-    amqp_queue=None,
-    schedule_id=None,
-    data_ready=None,
+        self,
+        user_id,
+        datasets,
+        reftime=None,
+        filters=None,
+        postprocessors=[],
+        output_format=None,
+        request_id=None,
+        amqp_queue=None,
+        schedule_id=None,
+        data_ready=None,
 ):
-
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]", self.request.id, self.name)
         extra_msg = ""
@@ -122,14 +121,7 @@ def data_extract(
             os.makedirs(user_dir, exist_ok=True)
 
             # check that the datasets are all under the same license
-            license = arki.get_unique_license(datasets)
-            log.debug("license: {}", license)
-            # get license file
-            license_file = os.path.join(
-                os.curdir, "mistral", "licenses", f"{license}.txt"
-            )
-            if not os.path.isfile(license_file):
-                raise OSError("License file not found")
+            arki.check_compatible_licenses(db, datasets)
 
             # output filename in the user space
             # max filename len = 64
@@ -268,7 +260,7 @@ def data_extract(
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
                         pp_output = None
                         if any(
-                            d["type"] == "derived_variables" for d in postprocessors
+                                d["type"] == "derived_variables" for d in postprocessors
                         ):
                             p = next(
                                 item
@@ -299,7 +291,7 @@ def data_extract(
                                 if ext_proc.wait() != 0:
                                     raise Exception("Failure in data extraction")
                         if any(
-                            d["type"] == "statistic_elaboration" for d in postprocessors
+                                d["type"] == "statistic_elaboration" for d in postprocessors
                         ):
                             p = []
                             for item in postprocessors:
@@ -349,7 +341,7 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                            d["type"] == "grid_interpolation" for d in postprocessors
+                                d["type"] == "grid_interpolation" for d in postprocessors
                         ):
                             p = next(
                                 item
@@ -374,8 +366,8 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                            d["type"] == "spare_point_interpolation"
-                            for d in postprocessors
+                                d["type"] == "spare_point_interpolation"
+                                for d in postprocessors
                         ):
                             p = next(
                                 item
@@ -390,7 +382,7 @@ def data_extract(
                                 pp_input = tmp_outfile
                             # new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
                             new_tmp_extraction_filename = (
-                                tmp_extraction_basename.split(".")[0] + ".bufr"
+                                    tmp_extraction_basename.split(".")[0] + ".bufr"
                             )
                             out_filename = new_tmp_extraction_filename
                             pp_output = os.path.join(
@@ -446,24 +438,12 @@ def data_extract(
                         human_size(data_size - esti_data_size),
                     )
 
-            utc_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ.%f")
-            # package data and license
-            tar_filename = f"data-{utc_now}.tar.gz"
-            tar_file = os.path.join(user_dir, tar_filename)
-            with tarfile.open(tar_file, "w:gz") as tar:
-                log.debug("--TAR ARCHIVE-------------------------")
-                log.debug("data file: {}", outfile)
-                tar.add(outfile, arcname=os.path.basename(outfile))
-                log.debug("license file: {}", license_file)
-                tar.add(license_file, arcname="LICENSE")
-                log.debug("--------------------------------------")
-
-            # delete out_filename
-            os.remove(outfile)
+            # target result
+            target_filename = os.path.basename(outfile)
 
             # create fileoutput record in db
             RequestManager.create_fileoutput_record(
-                db, user_id, request_id, tar_filename, data_size
+                db, user_id, request_id, target_filename, data_size
             )
             # update request status
             request.status = states.SUCCESS
@@ -630,3 +610,26 @@ def adapt_reftime(schedule, reftime, data_ready):
             new_reftime["from"] = reftime["to"] - time_delta_from
             new_reftime["to"] = reftime["to"]
     return new_reftime
+
+
+def package_data_license(user_dir, out_file, license_file):
+    """
+    Create a tar.gz including output and license files.
+    :param user_dir:
+    :param out_file:
+    :param license_file:
+    :return:
+    """
+    utc_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ.%f")
+    tar_filename = f"data-{utc_now}.tar.gz"
+    tar_file = os.path.join(user_dir, tar_filename)
+    with tarfile.open(tar_file, "w:gz") as tar:
+        log.debug("--TAR ARCHIVE-------------------------")
+        log.debug("data file: {}", out_file)
+        tar.add(out_file, arcname=os.path.basename(out_file))
+        log.debug("license file: {}", license_file)
+        tar.add(license_file, arcname="LICENSE")
+        log.debug("--------------------------------------")
+    # delete out_filename
+    os.remove(out_file)
+    return tar_filename
