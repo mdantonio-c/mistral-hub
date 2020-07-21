@@ -1,412 +1,848 @@
 <form [formGroup]="form" (ngSubmit)="goToNext()">
-    <div class="tab-pane fade show active mt-4">
-        <h4 class="head text-center">{{title}}</h4>
-        <br />
+  <div class="tab-pane fade show active mt-4">
+    <h4 class="head text-center">{{ title }}</h4>
+    <br />
 
-        <div class="row no-gutters">
-            <div class="col-md-6 mb-4 mb-md-0">
-                <!-- Summary Stats-->
-                <div class="card mst--expansion-panel mst--info-panel">
-                    <div class="card-header">
-                        <h5>Summary Stats</h5>
-                    </div>
-                    <div class="body">
-                        <ul>
-                            <li *ngIf="summaryStats"><strong>From:</strong> {{summaryStats.b | fmtDate}}</li>
-                            <li *ngIf="summaryStats"><strong>To:</strong> {{summaryStats.e | fmtDate}}</li>
-                            <li *ngIf="summaryStats"><strong>Count:</strong> {{summaryStats.c}}</li>
-                            <li *ngIf="summaryStats"><strong>Size:</strong> {{(summaryStats.s != null) ? (summaryStats.s
-                                | bytes:2) : 'n/a'}}
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <!-- My Request -->
-                <div class="card mst--expansion-panel mst--info-panel h-100">
-                    <div class="card-header">
-                        <h5 class="card-title">My Request</h5>
-                    </div>
-                    <div class="body">
-                        <mst-my-request-details></mst-my-request-details>
-                    </div>
-                </div>
-            </div>
+    <div class="row no-gutters">
+      <div class="col-md-6 mb-4 mb-md-0">
+        <!-- Summary Stats-->
+        <div class="card mst--expansion-panel mst--info-panel">
+          <div class="card-header">
+            <h5>Summary Stats</h5>
+          </div>
+          <div class="body">
+            <ul>
+              <li *ngIf="summaryStats">
+                <strong>From:</strong> {{ summaryStats.b | fmtDate }}
+              </li>
+              <li *ngIf="summaryStats">
+                <strong>To:</strong> {{ summaryStats.e | fmtDate }}
+              </li>
+              <li *ngIf="summaryStats">
+                <strong>Count:</strong> {{ summaryStats.c }}
+              </li>
+              <li *ngIf="summaryStats">
+                <strong>Size:</strong>
+                {{
+                  summaryStats.s != null ? (summaryStats.s | bytes: 2) : "n/a"
+                }}
+              </li>
+            </ul>
+          </div>
         </div>
-
-        <!-- Derived variables -->
-        <div class="card mst--expansion-panel">
-            <div class="card-header">
-                <h5>1. Derived Variables</h5>
-                <span class="info-help">&nbsp;<i placement="right"
-                        ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
-                        aria-hidden="true"></i></span>
-            </div>
-            <div class="body">
-                <ul class="mst--list-columns">
-                    <li *ngFor="let v of form.get('derived_variables')['controls']; let i=index">
-                        <input class="mst--input-checkbox" type="checkbox" [formControl]="v" [id]="vars[i].code">
-                        <label [for]="vars[i].code" ngbTooltip="{{vars[i].code}}" placement="right"
-                            openDelay="2000">{{vars[i].desc}}</label>
-                    </li>
-                </ul>
-            </div>
+      </div>
+      <div class="col-md-6">
+        <!-- My Request -->
+        <div class="card mst--expansion-panel mst--info-panel h-100">
+          <div class="card-header">
+            <h5 class="card-title">My Request</h5>
+          </div>
+          <div class="body">
+            <mst-my-request-details></mst-my-request-details>
+          </div>
         </div>
-
-        <!-- Time Post Process-->
-        <div class="card mst--expansion-panel">            
-            <div class="card-header" style="padding-left: 13px;">            
-                <input class="mst--input-checkbox" type="checkbox" formControlName="selectedTimePP" id="selectedTimePP">
-                <label for="selectedTimePP" placement="right" openDelay="2000"><h5>2. Time Post Processing</h5></label>
-                <span class="info-help">&nbsp;<i placement="right"
-                        ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
-                        aria-hidden="true"></i></span>
-            </div>
-            <div class="body">                       
-                <div class="card mst--expansion-panel" id="pp-card-area" [hidden]="!form.value.selectedTimePP">
-                    <div class="card-body">
-                        <div class="row py-3">
-                            <div class="col-lg-3">
-                               <label>Input time range</label><label *ngIf="form.value.selectedTimePP" style="padding-left: 5px;">(*)</label>
-                            </div>
-                             <div class="col-lg-3">
-                                <div class="btn-group mr-3" style="width:100%; padding-right:30px;">
-                                    <button type="button" class="btn btn-outline-secondary" >{{selectedInputTimeRange.desc}}</button>
-                                    <div ngbDropdown class="btn-group">
-                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="in-time-range-drop" ngbDropdownToggle></button>
-                                            <div ngbDropdownMenu aria-labelledby="in-time-range-drop">
-                                                <button type="button" ngbDropdownItem *ngFor="let inRange of timeRanges" (click)="setInputRange(inRange)">{{inRange.desc}}</button>
-                                            </div>
-                                    </div>
-                                </div>                        
-                            </div>                            
-                            <div class="col-lg-3">
-                                <label>Output time range</label><label *ngIf="form.value.selectedTimePP" style="padding-left: 5px;">(*)</label> 
-                            </div>                           
-                            <div class="col-lg-3">
-                                <div class="btn-group mr-3" style="width:100%; padding-right:30px;">
-                                    <button type="button" class="btn btn-outline-secondary" >{{selectedOutputTimeRange.desc}}</button>
-                                    <div ngbDropdown class="btn-group">
-                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="out-time-range-drop" ngbDropdownToggle></button>
-                                            <div ngbDropdownMenu aria-labelledby="out-time-range-drop">
-                                                <button type="button" ngbDropdownItem *ngFor="let outRange of timeRanges" (click)="setOutputRange(outRange)">{{outRange.desc}}</button>
-                                            </div>
-                                    </div> 
-                                </div>                       
-                            </div>                                                                
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-3">
-                                <label>Step </label><label *ngIf="form.value.selectedTimePP" style="padding-left: 5px;">(*)</label>
-                            </div>
-                            <div class="col-lg-3">
-                                <input type="number" id="timeStep" formControlName="timeStep" style="text-align: right; width: 85%;">
-                            </div>
-                            <div class="col-lg-3">
-                                <label>Elaboration interval</label><label *ngIf="form.value.selectedTimePP" style="padding-left: 5px;">(*)</label>
-                            </div>    
-                            <div class="col-lg-3">
-                                <div class="btn-group mr-3" style="width:100%; padding-right:30px;">  
-                                    <button type="button" class="btn btn-outline-secondary" >{{selectedStepInterval}}</button>                     
-                                    <div ngbDropdown class="btn-group">
-                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="step-interval" ngbDropdownToggle></button>
-                                            <div ngbDropdownMenu aria-labelledby="step-interval">
-                                                <button type="button" ngbDropdownItem *ngFor="let interval of stepIntervals" (click)="setStepInterval(interval)">{{interval}}</button>
-                                            </div>
-                                    </div>                        
-                                </div>
-                            </div>    
-                        </div>
-                    </div>
-                </div>            
-            </div>
-        </div>
-
-        <!-- Space Post Process-->
-        <div class="card mst--expansion-panel" [hidden]="!form.value.hasGribDataset">
-            <div class="card-header" style="padding-left: 13px;">
-                <input class="mst--input-checkbox" type="checkbox" formControlName="selectedSpacePP" id="selectedSpacePP">
-                <label for="selectedSpacePP" placement="right" openDelay="2000"><h5>3. Space Post Process</h5></label>
-                <span class="info-help">&nbsp;<i placement="right"
-                        ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
-                        aria-hidden="true"></i></span>
-            </div>
-            <div class="body" [hidden]="!form.value.selectedSpacePP">
-                <ul class="mst--list-columns">
-                    <fieldset>
-                        <label class="mst--radio-label" placement="right" openDelay="2000">
-                            <input type="radio" formControlName="space_type" value="crop" >
-                            Area Crop
-                            <span class="checkradio"></span>
-                        </label>
-                        <label class="mst--radio-label" placement="right" openDelay="2000">
-                            <input type="radio" formControlName="space_type" value="grid" >
-                            Grid Interpolation
-                            <span class="checkradio"></span>
-                        </label>
-                        <label class="mst--radio-label" placement="right" openDelay="2000">
-                            <input type="radio" formControlName="space_type" value="points" >
-                            Sparse Points
-                            <span class="checkradio"></span>
-                        </label>
-                    </fieldset>
-                </ul>                
-                <!-- AREA CROP PP -->
-                <div *ngIf="form.value.space_type === 'crop'" class="card mst--expansion-panel" id="pp-card-area">
-                    <div class="card-header">
-                        <h5>Area crop</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div id="pp-space-area-map" class="d-none d-lg-block col-lg-8">
-                                <step-postprocess-map [formGroup]="form"
-                                    [ilonControl]="form.get('space_crop')['controls'][0]"
-                                    [ilatControl]="form.get('space_crop')['controls'][1]"
-                                    [flonControl]="form.get('space_crop')['controls'][2]"
-                                    [flatControl]="form.get('space_crop')['controls'][3]"></step-postprocess-map>
-                            </div>
-                            <div id="pp-space-area-fields" class="col">
-                                <div class="py-3">
-                                    <span>Draw a rectangle on the map or insert lat/lon to crop data</span>
-                                </div>
-                                <ul class="mst--list-columns">
-                                    <li *ngFor="let b of form.get('space_crop')['controls']; let i=index" class="py-1">
-                                        <div class="row">
-                                            <label [for]="space_crop_boundings[i].code" ngbTooltip="{{space_crop_boundings[i].code}}" placement="right" class="col"
-                                                openDelay="2000">{{space_crop_boundings[i].desc}} <span *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</span></label>
-                                            <input type="number" [required]="form.value.space_type === 'crop' && form.value.selectedSpacePP" [formControl]="b" [id]="space_crop_boundings[i].code" class="col" style="text-align: right; width: 50%">    
-                                            
-                                        </div>
-                                    </li>
-                                    <li class="py-1"> 
-                                        <div class="row">
-                                            <div class="col" style="padding-right:0px;">
-                                                <label placement="right" openDelay="2000" style="padding-right: 0px;"> Crop type</label>    
-                                                <label *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</label>
-                                            </div>                                      
-                                            <div class="col" style="padding-left:0px;">
-                                                <div class="btn-group mr-3" style="width:100%; padding-right:30px;">
-                                                    <button type="button" class="btn btn-outline-secondary" >{{selectedCropType.desc}}</button>                     
-                                                    <div ngbDropdown class="btn-group" style="padding-left:0px;">
-                                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="crop-type" ngbDropdownToggle></button>
-                                                        <div ngbDropdownMenu aria-labelledby="crop-type">
-                                                            <button type="button" ngbDropdownItem *ngFor="let cropType of cropTypes" (click)="setCropType(cropType)">{{cropType.desc}}</button>
-                                                        </div>
-                                                    </div>                                            
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </li> 
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- GRID INTERPOLATION PP -->
-                <div *ngIf="form.value.space_type === 'grid'" class="card mst--expansion-panel" id="pp-card-grid">
-                    <div class="card-header">
-                        <h5>Grid Interpolation</h5>
-                    </div>
-                    <div class="card-body">                        
-                        <ul class="mst--list-columns">
-                            <fieldset>        
-                                <label class="mst--radio-label" placement="right" openDelay="2000">
-                                    <input type="radio" formControlName="gridInterpolationType" value="template">
-                                    By GRIB Template
-                                    <span class="checkradio"></span>
-                                </label>
-                                <label class="mst--radio-label" placement="right" openDelay="2000">
-                                    <input type="radio" formControlName="gridInterpolationType" value="area">
-                                    By Coordinates
-                                    <span class="checkradio"></span>
-                                </label>                                
-                            </fieldset>
-                        </ul>                                 
-                        <div class="card mst--expansion-panel">
-                            <div class="card-body">                                                  
-                                <div class="d-none d-lg-block col-lg-12 py-3">
-                                    <div class="row">
-                                        <div class="col-lg-3">
-                                            <label class="px-2"> Interpolation type <span *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</span></label>
-                                        </div>
-                                        <div class="col-lg-3">
-                                            
-                                            <div class="btn-group mr-3" style="width:100%;">
-                                                <button type="button" class="btn btn-outline-secondary">{{selectedInterpolationType}}</button>                     
-                                                <div ngbDropdown class="btn-group">
-                                                    <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="interpolation-type" ngbDropdownToggle></button>
-                                                    <div ngbDropdownMenu aria-labelledby="interpolation-type">
-                                                        <button type="button" ngbDropdownItem *ngFor="let interpolationType of interpolationTypes" (click)="setInterpolationType(interpolationType)">{{interpolationType}}</button>
-                                                    </div>
-                                                </div>                                    
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div *ngIf="form.value.gridInterpolationType === 'template'" class="d-none d-lg-block col-lg-12 py-2">
-                                    <div class="input-group">
-                                       <div class="card mst--expansion-panel" style="margin-left: 0px; margin-top: 0px;">                                     
-                                            <div class="card-header">
-                                                    <h5>Choose existing template from your personal area</h5>                                                 
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="card-body mst--list-filter">
-                                                    <ul class="mst--list-columns">                                        
-                                                        <li *ngFor="let v of gridInterpolationTemplates; let i=index">
-                                                            <label class="mst--radio-label" placement="right" openDelay="2000">
-                                                                <input type="radio" formControlName="selectedGITemplate" value="{{v.filepath}}">
-                                                                {{v.label}}
-                                                                <span class="checkradio"></span>
-                                                            </label>
-                                                        </li>    
-                                                    </ul> 
-                                                </div>
-                                                <hr/>                                            
-                                                <div>
-                                                    <h5>Add new template to your personal area</h5>                                                 
-                                                </div>
-                                                <div class="custom-file">
-                                                    <input type="file" class="custom-file-input" id="input-grid-template"
-                                                    aria-describedby="inputGroupFileAddon01" (change)="loadFile($event.target.files)">
-                                                    <label class="custom-file-label" for="inputGroupFile01">Select file to upload</label>
-                                                </div> 
-                                            </div>
-                                        </div>
-                                    </div>      
-                                </div>
-                                <div *ngIf="form.value.gridInterpolationType === 'area'" class="row">
-                                    <div id="pp-space-area-map" class="d-none d-lg-block col-lg-8">
-                                        <step-postprocess-map [formGroup]="form"
-                                            [ilonControl]="form.get('space_grid')['controls'][0]"
-                                            [ilatControl]="form.get('space_grid')['controls'][1]"
-                                            [flonControl]="form.get('space_grid')['controls'][2]"
-                                            [flatControl]="form.get('space_grid')['controls'][3]"></step-postprocess-map>
-                                    </div>
-                                    <div id="pp-space-area-fields" class="col">
-                                        <div class="py-3">
-                                            <span>Draw a rectangle on the map or insert lat/lon to regrid data</span>
-                                        </div>
-                                        <ul class="mst--list-columns" style="padding-left: 0%;">
-                                            <li *ngFor="let b of form.get('space_grid')['controls']; let i=index" class="py-1">
-                                                <div class="row">
-                                                    <label [for]="space_grid_boundings[i].code" ngbTooltip="{{space_grid_boundings[i].code}}" placement="right" class="col"
-                                                        openDelay="2000">{{space_grid_boundings[i].desc}} <span *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</span></label>   
-                                                    <input type="number" [required]="form.value.space_type === 'grid' && form.value.gridInterpolationType === 'area' && form.value.selectedSpacePP" [formControl]="b" [id]="space_grid_boundings[i].code" class="col" style="text-align: right; width: 50%">                                                                  
-                                                </div>
-                                            </li>                                    
-                                        </ul>
-                                        <hr class="my-4">
-                                        <ul class="mst--list-columns" style="padding-left: 0%;">
-                                            <li *ngFor="let b of form.get('interpolationNodes')['controls']; let i=index" class="py-1">         
-                                                <div class="row">                               
-                                                    <label [for]="interpolation_nodes[i].code" ngbTooltip="{{interpolation_nodes[i].code}}" placement="right" class="col"
-                                                    openDelay="2000">{{interpolation_nodes[i].desc}} <span *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</span></label>
-                                                    <input type="number" [required]="form.value.space_type === 'grid' && form.value.gridInterpolationType === 'area' && form.value.selectedSpacePP" [formControl]="b" [id]="interpolation_nodes[i].code" class="col" style="text-align: right; max-height: 33px;">
-                                                </div>                                                
-                                            </li> 
-                                        </ul>
-                                    </div>
-                                </div>                            
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SPARSE POINTS PP -->
-                <div *ngIf="form.value.space_type === 'points'" class="card mst--expansion-panel" id="pp-card-sparse">
-                    <div class="card-header">
-                        <h6>Get data on your points</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-none d-lg-block col-lg-12 py-3 px-3">
-                            <div class="row">
-                                <div class="col-lg-3">
-                                    <label class="px-2"> Interpolation type <span *ngIf="form.value.selectedSpacePP" style="padding-left: 5px;">(*)</span></label>
-                                </div>
-                                <div class="col-lg-3">
-                                    <div class="btn-group mr-3" style="width:100%;">
-                                        <button type="button" class="btn btn-outline-secondary">{{selectedInterpolationType}}</button> 
-                                        <div ngbDropdown class="btn-group">
-                                            <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="interpolation-type" ngbDropdownToggle></button>
-                                            <div ngbDropdownMenu aria-labelledby="interpolation-type">
-                                                <button type="button" ngbDropdownItem *ngFor="let interpolationType of interpolationTypes" (click)="setInterpolationType(interpolationType)">{{interpolationType}}</button>
-                                            </div>
-                                        </div> 
-                                    </div>
-                                </div>
-                            </div>                          
-                        </div>
-                        <div class="d-none d-lg-block col-lg-12 py-2">
-                            <div class="input-group">
-                                <div class="card mst--expansion-panel" style="margin-left: 0px; margin-top: 0px;">                                     
-                                    <div class="card-header">
-                                        <h5>Choose existing shape file from your personal area</h5>                                                 
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="card-body mst--list-filter" style="margin-left: 15px;">
-                                            <ul class="mst--list-columns">                                        
-                                                <li *ngFor="let v of sparePointsTemplates; let i=index">
-                                                    <label class="mst--radio-label" placement="right" openDelay="2000">
-                                                        <input type="radio" formControlName="selectedSPTemplate" value="{{v.filepath}}">
-                                                        {{v.label}}
-                                                        <span class="checkradio"></span>
-                                                    </label>
-                                                </li>    
-                                            </ul> 
-                                        </div>
-                                        <hr/>
-                                        <div>
-                                            <h5>Add new shape or geoJson file to your personal area. If you upload geoJson this will be converted into a shape file</h5>                                                 
-                                        </div>
-                                        <div class="custom-file">
-                                            <input type="file" class="custom-file-input" id="input-grid-template"
-                                            aria-describedby="inputGroupFileAddon01" (change)="loadFile($event.target.files)">
-                                            <label class="custom-file-label" for="inputGroupFile01">Select file to upload</label>
-                                        </div> 
-                                    </div>
-                                </div>
-                            </div>      
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card mst--expansion-panel" [hidden]="!form.value.hasBufrDataset && ( (form.value.hasGribDataset && !form.value.selectedSpacePP) || (form.value.hasGribDataset && form.value.selectedSpacePP && form.value.space_type != 'points'))">
-            <div class="card-header">
-                <h5>4. Format conversion</h5>
-                <span class="info-help">&nbsp;<i placement="right"
-                        ngbTooltip="Add helpful info about this post-processing" class="fa fa-question-circle"
-                        aria-hidden="true"></i></span>
-            </div>
-            <div class="body">
-                <div class="d-none d-lg-block col-lg-8 py-3 px-3">
-                    <div class="row">
-                        <div class="col-lg-2">
-                            <label class="px-4">Format: </label>
-                        </div>
-                        <div class="col-lg-3">
-                            <div class="btn-group mr-3" style="width:100%;">
-                                <button type="button" class="btn btn-outline-secondary">{{selectedConversionFormat}}</button>
-                                <div class="btn-group" ngbDropdown role="group">
-                                    <button type="button" class="btn btn-outline-secondary dropdown-toggle-split" id="interpolation-type" ngbDropdownToggle></button>
-                                    <div ngbDropdownMenu  class="dropdown-menu" aria-labelledby="interpolation-type">
-                                        <button type="button" ngbDropdownItem *ngFor="let format of formatTypes" (click)="setConversionFormat(format)">{{format}}</button>
-                                    </div>
-                                </div>
-                            </div>  
-                        </div>
-                    </div>     
-                </div>
-            </div>
-        </div>
-        <div class="form-group text-center space-20">
-            <button class="btn btn-outline-secondary mr-2" type="button" (click)="goToPrevious()"><i
-                    class="fa fa-arrow-left" aria-hidden="true"></i> Previous
-            </button>
-            <button class="btn btn-info" type="submit" [disabled]="!form.valid"> Next <i class="fa fa-arrow-right"
-                    aria-hidden="true"></i></button>
-        </div>
+      </div>
     </div>
+
+    <!-- Derived variables -->
+    <div class="card mst--expansion-panel">
+      <div class="card-header">
+        <h5>1. Derived Variables</h5>
+        <span class="info-help"
+          >&nbsp;<i
+            placement="right"
+            ngbTooltip="Add helpful info about this post-processing"
+            class="fa fa-question-circle"
+            aria-hidden="true"
+          ></i
+        ></span>
+      </div>
+      <div class="body">
+        <ul class="mst--list-columns">
+          <li
+            *ngFor="
+              let v of form.get('derived_variables')['controls'];
+              let i = index
+            "
+          >
+            <input
+              class="mst--input-checkbox"
+              type="checkbox"
+              [formControl]="v"
+              [id]="vars[i].code"
+            />
+            <label
+              [for]="vars[i].code"
+              ngbTooltip="{{ vars[i].code }}"
+              placement="right"
+              openDelay="2000"
+              >{{ vars[i].desc }}</label
+            >
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Time Post Process-->
+    <div class="card mst--expansion-panel">
+      <div class="card-header" style="padding-left: 13px;">
+        <input
+          class="mst--input-checkbox"
+          type="checkbox"
+          formControlName="selectedTimePP"
+          id="selectedTimePP"
+        />
+        <label for="selectedTimePP" placement="right" openDelay="2000"
+          ><h5>2. Time Post Processing</h5></label
+        >
+        <span class="info-help"
+          >&nbsp;<i
+            placement="right"
+            ngbTooltip="Add helpful info about this post-processing"
+            class="fa fa-question-circle"
+            aria-hidden="true"
+          ></i
+        ></span>
+      </div>
+      <div class="body">
+        <div
+          class="card mst--expansion-panel"
+          id="pp-card-area"
+          [hidden]="!form.value.selectedTimePP"
+        >
+          <div class="card-body">
+            <div class="row py-3">
+              <div class="col-lg-3">
+                <label>Input time range</label
+                ><label
+                  *ngIf="form.value.selectedTimePP"
+                  style="padding-left: 5px;"
+                  >(*)</label
+                >
+              </div>
+              <div class="col-lg-3">
+                <div
+                  class="btn-group mr-3"
+                  style="width: 100%; padding-right: 30px;"
+                >
+                  <button type="button" class="btn btn-outline-secondary">
+                    {{ selectedInputTimeRange.desc }}
+                  </button>
+                  <div ngbDropdown class="btn-group">
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary dropdown-toggle-split"
+                      id="in-time-range-drop"
+                      ngbDropdownToggle
+                    ></button>
+                    <div ngbDropdownMenu aria-labelledby="in-time-range-drop">
+                      <button
+                        type="button"
+                        ngbDropdownItem
+                        *ngFor="let inRange of timeRanges"
+                        (click)="setInputRange(inRange)"
+                      >
+                        {{ inRange.desc }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3">
+                <label>Output time range</label
+                ><label
+                  *ngIf="form.value.selectedTimePP"
+                  style="padding-left: 5px;"
+                  >(*)</label
+                >
+              </div>
+              <div class="col-lg-3">
+                <div
+                  class="btn-group mr-3"
+                  style="width: 100%; padding-right: 30px;"
+                >
+                  <button type="button" class="btn btn-outline-secondary">
+                    {{ selectedOutputTimeRange.desc }}
+                  </button>
+                  <div ngbDropdown class="btn-group">
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary dropdown-toggle-split"
+                      id="out-time-range-drop"
+                      ngbDropdownToggle
+                    ></button>
+                    <div ngbDropdownMenu aria-labelledby="out-time-range-drop">
+                      <button
+                        type="button"
+                        ngbDropdownItem
+                        *ngFor="let outRange of timeRanges"
+                        (click)="setOutputRange(outRange)"
+                      >
+                        {{ outRange.desc }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-lg-3">
+                <label>Step </label
+                ><label
+                  *ngIf="form.value.selectedTimePP"
+                  style="padding-left: 5px;"
+                  >(*)</label
+                >
+              </div>
+              <div class="col-lg-3">
+                <input
+                  type="number"
+                  id="timeStep"
+                  formControlName="timeStep"
+                  style="text-align: right; width: 85%;"
+                />
+              </div>
+              <div class="col-lg-3">
+                <label>Elaboration interval</label
+                ><label
+                  *ngIf="form.value.selectedTimePP"
+                  style="padding-left: 5px;"
+                  >(*)</label
+                >
+              </div>
+              <div class="col-lg-3">
+                <div
+                  class="btn-group mr-3"
+                  style="width: 100%; padding-right: 30px;"
+                >
+                  <button type="button" class="btn btn-outline-secondary">
+                    {{ selectedStepInterval }}
+                  </button>
+                  <div ngbDropdown class="btn-group">
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary dropdown-toggle-split"
+                      id="step-interval"
+                      ngbDropdownToggle
+                    ></button>
+                    <div ngbDropdownMenu aria-labelledby="step-interval">
+                      <button
+                        type="button"
+                        ngbDropdownItem
+                        *ngFor="let interval of stepIntervals"
+                        (click)="setStepInterval(interval)"
+                      >
+                        {{ interval }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Space Post Process-->
+    <div
+      class="card mst--expansion-panel"
+      [hidden]="!form.value.hasGribDataset"
+    >
+      <div class="card-header" style="padding-left: 13px;">
+        <input
+          class="mst--input-checkbox"
+          type="checkbox"
+          formControlName="selectedSpacePP"
+          id="selectedSpacePP"
+        />
+        <label for="selectedSpacePP" placement="right" openDelay="2000"
+          ><h5>3. Space Post Process</h5></label
+        >
+        <span class="info-help"
+          >&nbsp;<i
+            placement="right"
+            ngbTooltip="Add helpful info about this post-processing"
+            class="fa fa-question-circle"
+            aria-hidden="true"
+          ></i
+        ></span>
+      </div>
+      <div class="body" [hidden]="!form.value.selectedSpacePP">
+        <ul class="mst--list-columns">
+          <fieldset>
+            <label class="mst--radio-label" placement="right" openDelay="2000">
+              <input type="radio" formControlName="space_type" value="crop" />
+              Area Crop
+              <span class="checkradio"></span>
+            </label>
+            <label class="mst--radio-label" placement="right" openDelay="2000">
+              <input type="radio" formControlName="space_type" value="grid" />
+              Grid Interpolation
+              <span class="checkradio"></span>
+            </label>
+            <label class="mst--radio-label" placement="right" openDelay="2000">
+              <input type="radio" formControlName="space_type" value="points" />
+              Sparse Points
+              <span class="checkradio"></span>
+            </label>
+          </fieldset>
+        </ul>
+        <!-- AREA CROP PP -->
+        <div
+          *ngIf="form.value.space_type === 'crop'"
+          class="card mst--expansion-panel"
+          id="pp-card-area"
+        >
+          <div class="card-header">
+            <h5>Area crop</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div id="pp-space-area-map" class="d-none d-lg-block col-lg-8">
+                <step-postprocess-map
+                  [formGroup]="form"
+                  [ilonControl]="form.get('space_crop')['controls'][0]"
+                  [ilatControl]="form.get('space_crop')['controls'][1]"
+                  [flonControl]="form.get('space_crop')['controls'][2]"
+                  [flatControl]="form.get('space_crop')['controls'][3]"
+                ></step-postprocess-map>
+              </div>
+              <div id="pp-space-area-fields" class="col">
+                <div class="py-3">
+                  <span
+                    >Draw a rectangle on the map or insert lat/lon to crop
+                    data</span
+                  >
+                </div>
+                <ul class="mst--list-columns">
+                  <li
+                    *ngFor="
+                      let b of form.get('space_crop')['controls'];
+                      let i = index
+                    "
+                    class="py-1"
+                  >
+                    <div class="row">
+                      <label
+                        [for]="space_crop_boundings[i].code"
+                        ngbTooltip="{{ space_crop_boundings[i].code }}"
+                        placement="right"
+                        class="col"
+                        openDelay="2000"
+                        >{{ space_crop_boundings[i].desc }}
+                        <span
+                          *ngIf="form.value.selectedSpacePP"
+                          style="padding-left: 5px;"
+                          >(*)</span
+                        ></label
+                      >
+                      <input
+                        type="number"
+                        [required]="
+                          form.value.space_type === 'crop' &&
+                          form.value.selectedSpacePP
+                        "
+                        [formControl]="b"
+                        [id]="space_crop_boundings[i].code"
+                        class="col"
+                        style="text-align: right; width: 50%;"
+                      />
+                    </div>
+                  </li>
+                  <li class="py-1">
+                    <div class="row">
+                      <div class="col" style="padding-right: 0px;">
+                        <label
+                          placement="right"
+                          openDelay="2000"
+                          style="padding-right: 0px;"
+                        >
+                          Crop type</label
+                        >
+                        <label
+                          *ngIf="form.value.selectedSpacePP"
+                          style="padding-left: 5px;"
+                          >(*)</label
+                        >
+                      </div>
+                      <div class="col" style="padding-left: 0px;">
+                        <div
+                          class="btn-group mr-3"
+                          style="width: 100%; padding-right: 30px;"
+                        >
+                          <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                          >
+                            {{ selectedCropType.desc }}
+                          </button>
+                          <div
+                            ngbDropdown
+                            class="btn-group"
+                            style="padding-left: 0px;"
+                          >
+                            <button
+                              type="button"
+                              class="btn btn-outline-secondary dropdown-toggle-split"
+                              id="crop-type"
+                              ngbDropdownToggle
+                            ></button>
+                            <div ngbDropdownMenu aria-labelledby="crop-type">
+                              <button
+                                type="button"
+                                ngbDropdownItem
+                                *ngFor="let cropType of cropTypes"
+                                (click)="setCropType(cropType)"
+                              >
+                                {{ cropType.desc }}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRID INTERPOLATION PP -->
+        <div
+          *ngIf="form.value.space_type === 'grid'"
+          class="card mst--expansion-panel"
+          id="pp-card-grid"
+        >
+          <div class="card-header">
+            <h5>Grid Interpolation</h5>
+          </div>
+          <div class="card-body">
+            <ul class="mst--list-columns">
+              <fieldset>
+                <label
+                  class="mst--radio-label"
+                  placement="right"
+                  openDelay="2000"
+                >
+                  <input
+                    type="radio"
+                    formControlName="gridInterpolationType"
+                    value="template"
+                  />
+                  By GRIB Template
+                  <span class="checkradio"></span>
+                </label>
+                <label
+                  class="mst--radio-label"
+                  placement="right"
+                  openDelay="2000"
+                >
+                  <input
+                    type="radio"
+                    formControlName="gridInterpolationType"
+                    value="area"
+                  />
+                  By Coordinates
+                  <span class="checkradio"></span>
+                </label>
+              </fieldset>
+            </ul>
+            <div class="card mst--expansion-panel">
+              <div class="card-body">
+                <div class="d-none d-lg-block col-lg-12 py-3">
+                  <div class="row">
+                    <div class="col-lg-3">
+                      <label class="px-2">
+                        Interpolation type
+                        <span
+                          *ngIf="form.value.selectedSpacePP"
+                          style="padding-left: 5px;"
+                          >(*)</span
+                        ></label
+                      >
+                    </div>
+                    <div class="col-lg-3">
+                      <div class="btn-group mr-3" style="width: 100%;">
+                        <button type="button" class="btn btn-outline-secondary">
+                          {{ selectedInterpolationType }}
+                        </button>
+                        <div ngbDropdown class="btn-group">
+                          <button
+                            type="button"
+                            class="btn btn-outline-secondary dropdown-toggle-split"
+                            id="interpolation-type"
+                            ngbDropdownToggle
+                          ></button>
+                          <div
+                            ngbDropdownMenu
+                            aria-labelledby="interpolation-type"
+                          >
+                            <button
+                              type="button"
+                              ngbDropdownItem
+                              *ngFor="
+                                let interpolationType of interpolationTypes
+                              "
+                              (click)="setInterpolationType(interpolationType)"
+                            >
+                              {{ interpolationType }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  *ngIf="form.value.gridInterpolationType === 'template'"
+                  class="d-none d-lg-block col-lg-12 py-2"
+                >
+                  <div class="input-group">
+                    <div
+                      class="card mst--expansion-panel"
+                      style="margin-left: 0px; margin-top: 0px;"
+                    >
+                      <div class="card-header">
+                        <h5>
+                          Choose existing template from your personal area
+                        </h5>
+                      </div>
+                      <div class="card-body">
+                        <div class="card-body mst--list-filter">
+                          <ul class="mst--list-columns">
+                            <li
+                              *ngFor="
+                                let v of gridInterpolationTemplates;
+                                let i = index
+                              "
+                            >
+                              <label
+                                class="mst--radio-label"
+                                placement="right"
+                                openDelay="2000"
+                              >
+                                <input
+                                  type="radio"
+                                  formControlName="selectedGITemplate"
+                                  value="{{ v.filepath }}"
+                                />
+                                {{ v.label }}
+                                <span class="checkradio"></span>
+                              </label>
+                            </li>
+                          </ul>
+                        </div>
+                        <hr />
+                        <div>
+                          <h5>Add new template to your personal area</h5>
+                        </div>
+                        <div class="custom-file">
+                          <input
+                            type="file"
+                            class="custom-file-input"
+                            id="input-grid-template"
+                            aria-describedby="inputGroupFileAddon01"
+                            (change)="loadFile($event.target.files)"
+                          />
+                          <label
+                            class="custom-file-label"
+                            for="inputGroupFile01"
+                            >Select file to upload</label
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  *ngIf="form.value.gridInterpolationType === 'area'"
+                  class="row"
+                >
+                  <div
+                    id="pp-space-area-map"
+                    class="d-none d-lg-block col-lg-8"
+                  >
+                    <step-postprocess-map
+                      [formGroup]="form"
+                      [ilonControl]="form.get('space_grid')['controls'][0]"
+                      [ilatControl]="form.get('space_grid')['controls'][1]"
+                      [flonControl]="form.get('space_grid')['controls'][2]"
+                      [flatControl]="form.get('space_grid')['controls'][3]"
+                    ></step-postprocess-map>
+                  </div>
+                  <div id="pp-space-area-fields" class="col">
+                    <div class="py-3">
+                      <span
+                        >Draw a rectangle on the map or insert lat/lon to regrid
+                        data</span
+                      >
+                    </div>
+                    <ul class="mst--list-columns" style="padding-left: 0%;">
+                      <li
+                        *ngFor="
+                          let b of form.get('space_grid')['controls'];
+                          let i = index
+                        "
+                        class="py-1"
+                      >
+                        <div class="row">
+                          <label
+                            [for]="space_grid_boundings[i].code"
+                            ngbTooltip="{{ space_grid_boundings[i].code }}"
+                            placement="right"
+                            class="col"
+                            openDelay="2000"
+                            >{{ space_grid_boundings[i].desc }}
+                            <span
+                              *ngIf="form.value.selectedSpacePP"
+                              style="padding-left: 5px;"
+                              >(*)</span
+                            ></label
+                          >
+                          <input
+                            type="number"
+                            [required]="
+                              form.value.space_type === 'grid' &&
+                              form.value.gridInterpolationType === 'area' &&
+                              form.value.selectedSpacePP
+                            "
+                            [formControl]="b"
+                            [id]="space_grid_boundings[i].code"
+                            class="col"
+                            style="text-align: right; width: 50%;"
+                          />
+                        </div>
+                      </li>
+                    </ul>
+                    <hr class="my-4" />
+                    <ul class="mst--list-columns" style="padding-left: 0%;">
+                      <li
+                        *ngFor="
+                          let b of form.get('interpolationNodes')['controls'];
+                          let i = index
+                        "
+                        class="py-1"
+                      >
+                        <div class="row">
+                          <label
+                            [for]="interpolation_nodes[i].code"
+                            ngbTooltip="{{ interpolation_nodes[i].code }}"
+                            placement="right"
+                            class="col"
+                            openDelay="2000"
+                            >{{ interpolation_nodes[i].desc }}
+                            <span
+                              *ngIf="form.value.selectedSpacePP"
+                              style="padding-left: 5px;"
+                              >(*)</span
+                            ></label
+                          >
+                          <input
+                            type="number"
+                            [required]="
+                              form.value.space_type === 'grid' &&
+                              form.value.gridInterpolationType === 'area' &&
+                              form.value.selectedSpacePP
+                            "
+                            [formControl]="b"
+                            [id]="interpolation_nodes[i].code"
+                            class="col"
+                            style="text-align: right; max-height: 33px;"
+                          />
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SPARSE POINTS PP -->
+        <div
+          *ngIf="form.value.space_type === 'points'"
+          class="card mst--expansion-panel"
+          id="pp-card-sparse"
+        >
+          <div class="card-header">
+            <h6>Get data on your points</h6>
+          </div>
+          <div class="card-body">
+            <div class="d-none d-lg-block col-lg-12 py-3 px-3">
+              <div class="row">
+                <div class="col-lg-3">
+                  <label class="px-2">
+                    Interpolation type
+                    <span
+                      *ngIf="form.value.selectedSpacePP"
+                      style="padding-left: 5px;"
+                      >(*)</span
+                    ></label
+                  >
+                </div>
+                <div class="col-lg-3">
+                  <div class="btn-group mr-3" style="width: 100%;">
+                    <button type="button" class="btn btn-outline-secondary">
+                      {{ selectedInterpolationType }}
+                    </button>
+                    <div ngbDropdown class="btn-group">
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary dropdown-toggle-split"
+                        id="interpolation-type"
+                        ngbDropdownToggle
+                      ></button>
+                      <div ngbDropdownMenu aria-labelledby="interpolation-type">
+                        <button
+                          type="button"
+                          ngbDropdownItem
+                          *ngFor="let interpolationType of interpolationTypes"
+                          (click)="setInterpolationType(interpolationType)"
+                        >
+                          {{ interpolationType }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="d-none d-lg-block col-lg-12 py-2">
+              <div class="input-group">
+                <div
+                  class="card mst--expansion-panel"
+                  style="margin-left: 0px; margin-top: 0px;"
+                >
+                  <div class="card-header">
+                    <h5>Choose existing shape file from your personal area</h5>
+                  </div>
+                  <div class="card-body">
+                    <div
+                      class="card-body mst--list-filter"
+                      style="margin-left: 15px;"
+                    >
+                      <ul class="mst--list-columns">
+                        <li
+                          *ngFor="let v of sparePointsTemplates; let i = index"
+                        >
+                          <label
+                            class="mst--radio-label"
+                            placement="right"
+                            openDelay="2000"
+                          >
+                            <input
+                              type="radio"
+                              formControlName="selectedSPTemplate"
+                              value="{{ v.filepath }}"
+                            />
+                            {{ v.label }}
+                            <span class="checkradio"></span>
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                    <hr />
+                    <div>
+                      <h5>
+                        Add new shape or geoJson file to your personal area. If
+                        you upload geoJson this will be converted into a shape
+                        file
+                      </h5>
+                    </div>
+                    <div class="custom-file">
+                      <input
+                        type="file"
+                        class="custom-file-input"
+                        id="input-grid-template"
+                        aria-describedby="inputGroupFileAddon01"
+                        (change)="loadFile($event.target.files)"
+                      />
+                      <label class="custom-file-label" for="inputGroupFile01"
+                        >Select file to upload</label
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="card mst--expansion-panel"
+      [hidden]="
+        !form.value.hasBufrDataset &&
+        ((form.value.hasGribDataset && !form.value.selectedSpacePP) ||
+          (form.value.hasGribDataset &&
+            form.value.selectedSpacePP &&
+            form.value.space_type != 'points'))
+      "
+    >
+      <div class="card-header">
+        <h5>4. Format conversion</h5>
+        <span class="info-help"
+          >&nbsp;<i
+            placement="right"
+            ngbTooltip="Add helpful info about this post-processing"
+            class="fa fa-question-circle"
+            aria-hidden="true"
+          ></i
+        ></span>
+      </div>
+      <div class="body">
+        <div class="d-none d-lg-block col-lg-8 py-3 px-3">
+          <div class="row">
+            <div class="col-lg-2">
+              <label class="px-4">Format: </label>
+            </div>
+            <div class="col-lg-3">
+              <div class="btn-group mr-3" style="width: 100%;">
+                <button type="button" class="btn btn-outline-secondary">
+                  {{ selectedConversionFormat }}
+                </button>
+                <div class="btn-group" ngbDropdown role="group">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary dropdown-toggle-split"
+                    id="interpolation-type"
+                    ngbDropdownToggle
+                  ></button>
+                  <div
+                    ngbDropdownMenu
+                    class="dropdown-menu"
+                    aria-labelledby="interpolation-type"
+                  >
+                    <button
+                      type="button"
+                      ngbDropdownItem
+                      *ngFor="let format of formatTypes"
+                      (click)="setConversionFormat(format)"
+                    >
+                      {{ format }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group text-center space-20">
+      <button
+        class="btn btn-outline-secondary mr-2"
+        type="button"
+        (click)="goToPrevious()"
+      >
+        <i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
+      </button>
+      <button class="btn btn-info" type="submit" [disabled]="!form.valid">
+        Next <i class="fa fa-arrow-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
 </form>

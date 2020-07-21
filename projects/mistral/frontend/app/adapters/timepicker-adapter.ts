@@ -1,21 +1,20 @@
-import {Injectable} from '@angular/core';
-import {NgbTimeStruct, NgbTimeAdapter} from '@ng-bootstrap/ng-bootstrap';
+import { Injectable } from "@angular/core";
+import { NgbTimeStruct, NgbTimeAdapter } from "@ng-bootstrap/ng-bootstrap";
 
 /**
  * String Time adapter
  */
 @Injectable()
 export class NgbTimeStringAdapter extends NgbTimeAdapter<string> {
-
   fromModel(value: string): NgbTimeStruct {
     if (!value) {
       return null;
     }
-    const split = value.toString().split(':');
+    const split = value.toString().split(":");
     return {
       hour: parseInt(split[0], 10),
       minute: parseInt(split[1], 10),
-      second: parseInt(split[2], 10)
+      second: parseInt(split[2], 10),
     };
   }
 

@@ -1,90 +1,128 @@
 <ngx-spinner
-        [name]="'filter-spinner'"
-        bdColor="rgba(255,255,255,0.8)"
-        color="#6c757d"
-        zIndex="1000"
-        [fullScreen]="false" type="ball-clip-rotate-multiple" size="medium">
+  [name]="'filter-spinner'"
+  bdColor="rgba(255,255,255,0.8)"
+  color="#6c757d"
+  zIndex="1000"
+  [fullScreen]="false"
+  type="ball-clip-rotate-multiple"
+  size="medium"
+>
 </ngx-spinner>
 <form class="filter" [formGroup]="filterForm" (ngSubmit)="update()">
-    <div class="form-group">
-        <label for="variable">Variable</label>
-        <select id="variable" class="form-control" formControlName="product">
-            <option [ngValue]="p.code" *ngFor="let p of allProducts">{{p.desc}}</option>
-        </select>
-    </div>
-    <!-- Date -->
-    <div class="form-row">
-        <div class="col-md-8">
-            <label for="date">Date</label>
-            <div class="input-group">
-                <input class="form-control" id="date" placeholder="dd/mm/yyyy"
-                       formControlName="reftime"
-                       [maxDate]="maxDate"
-                       [footerTemplate]="footerTemplate"
-                       [ngClass]="{'is-invalid': filterForm.controls.reftime.invalid}"
-                       ngbDatepicker #d="ngbDatepicker">
-                <ng-template #footerTemplate>
-                  <hr class="my-0">
-                  <button class="btn btn-primary btn-sm m-2 float-left" (click)="filterForm.controls.reftime.setValue(today); d.close()">Today</button>
-                  <button class="btn btn-secondary btn-sm m-2 float-right" (click)="d.close()">Close</button>
-                </ng-template>
-                <div class="input-group-append">
-                    <button class="btn btn-outline-secondary" (click)="d.toggle()" type="button">
-                        <i class="fa fa-calendar"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="invalid-feedback" *ngIf="filterForm.controls.reftime.invalid">
-              Please choose a date.
-            </div>
+  <div class="form-group">
+    <label for="variable">Variable</label>
+    <select id="variable" class="form-control" formControlName="product">
+      <option [ngValue]="p.code" *ngFor="let p of allProducts">{{
+        p.desc
+      }}</option>
+    </select>
+  </div>
+  <!-- Date -->
+  <div class="form-row">
+    <div class="col-md-8">
+      <label for="date">Date</label>
+      <div class="input-group">
+        <input
+          class="form-control"
+          id="date"
+          placeholder="dd/mm/yyyy"
+          formControlName="reftime"
+          [maxDate]="maxDate"
+          [footerTemplate]="footerTemplate"
+          [ngClass]="{ 'is-invalid': filterForm.controls.reftime.invalid }"
+          ngbDatepicker
+          #d="ngbDatepicker"
+        />
+        <ng-template #footerTemplate>
+          <hr class="my-0" />
+          <button
+            class="btn btn-primary btn-sm m-2 float-left"
+            (click)="filterForm.controls.reftime.setValue(today); d.close()"
+          >
+            Today
+          </button>
+          <button
+            class="btn btn-secondary btn-sm m-2 float-right"
+            (click)="d.close()"
+          >
+            Close
+          </button>
+        </ng-template>
+        <div class="input-group-append">
+          <button
+            class="btn btn-outline-secondary"
+            (click)="d.toggle()"
+            type="button"
+          >
+            <i class="fa fa-calendar"></i>
+          </button>
         </div>
-        <div class="col-md-4">
-            <label for="hour">Hour</label>
-            <input type="text" class="form-control" id="hour" disabled>
-        </div>
+      </div>
+      <div class="invalid-feedback" *ngIf="filterForm.controls.reftime.invalid">
+        Please choose a date.
+      </div>
     </div>
-    <!-- Level -->
-    <div class="form-group">
-        <label for="level">Level</label>
-        <select id="level" class="form-control" formControlName="level">
-            <option value="" *ngIf="allLevels && allLevels.length > 0">Any</option>
-            <option [ngValue]="l.code" *ngFor="let l of allLevels">{{l.desc}}</option>
-        </select>
+    <div class="col-md-4">
+      <label for="hour">Hour</label>
+      <input type="text" class="form-control" id="hour" disabled />
     </div>
-    <!-- Time range -->
-    <div class="form-group">
-        <label for="timerange">Time range</label>
-        <select id="timerange" class="form-control" formControlName="timerange">
-            <option value="" *ngIf="allTimeranges && allTimeranges.length > 0">Any</option>
-            <option [ngValue]="t.code" *ngFor="let t of allTimeranges">{{t.desc}}</option>
-        </select>
-    </div>
-    <!-- Area -->
-    <!-- Network -->
-    <div class="form-group">
-        <label for="network">Network</label>
-        <select id="network" class="form-control" formControlName="network">
-            <option value="" *ngIf="allNetworks && allNetworks.length > 0">Any</option>
-            <option [ngValue]="n.code" *ngFor="let n of allNetworks">{{n.code}}</option>
-        </select>
-    </div>
-    <!-- License -->
-    <div class="form-group">
-        <label for="license">Group of Licenses</label>
-        <select id="license" class="form-control" formControlName="license">
-            <option [ngValue]="l.code" *ngFor="let l of allLicenses">{{l.desc}}</option>
-        </select>
-    </div>
+  </div>
+  <!-- Level -->
+  <div class="form-group">
+    <label for="level">Level</label>
+    <select id="level" class="form-control" formControlName="level">
+      <option value="" *ngIf="allLevels && allLevels.length > 0">Any</option>
+      <option [ngValue]="l.code" *ngFor="let l of allLevels">{{
+        l.desc
+      }}</option>
+    </select>
+  </div>
+  <!-- Time range -->
+  <div class="form-group">
+    <label for="timerange">Time range</label>
+    <select id="timerange" class="form-control" formControlName="timerange">
+      <option value="" *ngIf="allTimeranges && allTimeranges.length > 0"
+        >Any</option
+      >
+      <option [ngValue]="t.code" *ngFor="let t of allTimeranges">{{
+        t.desc
+      }}</option>
+    </select>
+  </div>
+  <!-- Area -->
+  <!-- Network -->
+  <div class="form-group">
+    <label for="network">Network</label>
+    <select id="network" class="form-control" formControlName="network">
+      <option value="" *ngIf="allNetworks && allNetworks.length > 0"
+        >Any</option
+      >
+      <option [ngValue]="n.code" *ngFor="let n of allNetworks">{{
+        n.code
+      }}</option>
+    </select>
+  </div>
+  <!-- License -->
+  <div class="form-group">
+    <label for="license">Group of Licenses</label>
+    <select id="license" class="form-control" formControlName="license">
+      <option [ngValue]="l.code" *ngFor="let l of allLicenses">{{
+        l.desc
+      }}</option>
+    </select>
+  </div>
 
-    <div class="text-center mt-4">
-        <button type="submit" class="btn btn-primary no-rounded ml-2"
-                [disabled]="filterForm.invalid || !isUpdatable">
-            <i class="fas fa-filter"></i>
-            Update
-        </button>
-    </div>
-    <!--
+  <div class="text-center mt-4">
+    <button
+      type="submit"
+      class="btn btn-primary no-rounded ml-2"
+      [disabled]="filterForm.invalid || !isUpdatable"
+    >
+      <i class="fas fa-filter"></i>
+      Update
+    </button>
+  </div>
+  <!--
     <pre>{{filterForm.value | json}}</pre>
     -->
 </form>
-

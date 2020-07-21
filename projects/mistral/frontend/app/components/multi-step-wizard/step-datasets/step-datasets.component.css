@@ -5,5 +5,5 @@ h5 > img {
 
 .vertical-list {
   max-height: 400px;
-  overflow: auto
+  overflow: auto;
 }

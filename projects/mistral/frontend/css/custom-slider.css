@@ -13,7 +13,7 @@
 }
 
 #mst-slider .slider-handle {
-  background: #F8F8F8;
+  background: #f8f8f8;
   border: 1px solid;
   cursor: pointer;
   width: 1.45em;
@@ -24,7 +24,7 @@
   border-radius: 0;
   line-height: 2.2em;
   text-align: center;
-  border-color: #4AA4CE !important;
+  border-color: #4aa4ce !important;
   outline: 0 !important;
 }
 
@@ -39,31 +39,34 @@
   height: 8px;
   border: 1px solid;
   border-width: 0 1px;
-  border-color: inherit
+  border-color: inherit;
 }
 
 #mst-slider .slider-handle:after {
   left: 10px;
-  border-width: 0 1px 0 0
+  border-width: 0 1px 0 0;
 }
 
 #mst-slider .slider-handle:hover {
-  background-color: #FFF
+  background-color: #fff;
 }
 
 #mst-slider .slider-handle:active,
 #mst-slider .slider-handle:focus,
 #mst-slider .slider-handle:hover {
   outline: 0;
-  -webkit-box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3);
-  box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3)
+  -webkit-box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, 0.3);
 }
 
 #mst-slider .slider-tick {
   display: none;
 }
 
-#mst-slider .slider.slider-horizontal .slider-tick-label-container .slider-tick-label {
+#mst-slider
+  .slider.slider-horizontal
+  .slider-tick-label-container
+  .slider-tick-label {
   white-space: nowrap;
   text-align: center;
   font-size: 9px;
@@ -73,13 +76,15 @@
 
 /*#mst-slider .slider.slider-horizontal .tooltip.tooltip-min*/
 /*#mst-slider .slider.slider-horizontal .tooltip.tooltip-max,*/
-#mst-slider .slider.slider-horizontal .tooltip.tooltip-main
-{
+#mst-slider .slider.slider-horizontal .tooltip.tooltip-main {
   opacity: 1 !important;
 }
 
-#mst-slider .slider.slider-horizontal .tooltip.tooltip-main.top .tooltip-arrow:after {
-  content: '';
+#mst-slider
+  .slider.slider-horizontal
+  .tooltip.tooltip-main.top
+  .tooltip-arrow:after {
+  content: "";
   width: 0;
   height: 0;
   position: absolute;
@@ -89,7 +94,10 @@
   border-top: #000 5px solid;
 }
 
-#mst-slider .slider.slider-horizontal .tooltip.tooltip-main.top .tooltip-arrow:after {
+#mst-slider
+  .slider.slider-horizontal
+  .tooltip.tooltip-main.top
+  .tooltip-arrow:after {
   left: 40%;
   border-top: #17a2b8 5px solid;
 }

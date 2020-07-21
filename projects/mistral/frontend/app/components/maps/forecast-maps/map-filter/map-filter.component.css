@@ -4,16 +4,17 @@
   }
 }
 
-.card-footer, .card-header {
+.card-footer,
+.card-header {
   padding-top: 0.2rem;
   padding-bottom: 0.2rem;
 }
 
 .card-body {
-  padding: 0.50rem;
+  padding: 0.5rem;
 }
 
-[type='radio'] {
+[type="radio"] {
   display: none;
 }
 
@@ -28,7 +29,7 @@
   /* padding-bottom: 1px; */
   margin: 2px 2px;
   font-size: 25px;
-  line-height: 2.00;
+  line-height: 2;
   border-radius: 30px;
   cursor: pointer;
 }
@@ -41,12 +42,12 @@
   /* padding-bottom: 1px; */
   margin: 2px 2px;
   font-size: 15px;
-  line-height: 2.00;
+  line-height: 2;
   cursor: pointer;
   border-radius: 8px;
 }
 
-@media (max-width: 801px)  {
+@media (max-width: 801px) {
   .btn-circle {
     width: 75px;
     height: 75px;
@@ -54,7 +55,7 @@
     /* padding-bottom: 1px; */
     margin: 2px 2px;
     font-size: 45px;
-    line-height: 1.70;
+    line-height: 1.7;
     border-radius: 40px;
     cursor: pointer;
   }
@@ -65,7 +66,7 @@
     /* padding-bottom: 1px; */
     margin: 2px 2px;
     font-size: 20px;
-    line-height: 1.70;
+    line-height: 1.7;
     cursor: pointer;
     border-radius: 8px;
   }

@@ -1,15 +1,18 @@
-import { TestBed, inject } from '@angular/core/testing';
+import { TestBed, inject } from "@angular/core/testing";
 
-import { ArkimetService } from './arkimet.service';
+import { ArkimetService } from "./arkimet.service";
 
-describe('ArkimetService', () => {
+describe("ArkimetService", () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [ArkimetService]
+      providers: [ArkimetService],
     });
   });
 
-  it('should be created', inject([ArkimetService], (service: ArkimetService) => {
-    expect(service).toBeTruthy();
-  }));
+  it("should be created", inject(
+    [ArkimetService],
+    (service: ArkimetService) => {
+      expect(service).toBeTruthy();
+    }
+  ));
 });

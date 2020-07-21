@@ -122,9 +122,7 @@ class BeArkimet:
             # get the license group
             license_ = db.License.query.filter_by(name=license_name).first()
             group_license_id = license_.group_license_id
-            gp_license = db.GroupLicense.query.filter_by(
-                id=group_license_id
-            ).first()
+            gp_license = db.GroupLicense.query.filter_by(id=group_license_id).first()
             groups_of_licenses.add(gp_license)
         return (
             list(groups_of_licenses)[0]
@@ -133,7 +131,6 @@ class BeArkimet:
                 f"Datasets do not share the same license group. {groups_of_licenses}"
             )
         )
-
 
     @staticmethod
     def load_summary(datasets=[], query=""):
