@@ -101,7 +101,7 @@
         </div>
         <div class="form-group text-center">
             <button class="btn btn-success btn-info" type="submit"
-                    [disabled]="!form.valid"> Next <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
+                    [disabled]="!form.valid || selectedCategories.length > 1"> Next <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
         </div>
     </div>
 </form>

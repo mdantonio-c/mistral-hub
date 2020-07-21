@@ -16,6 +16,7 @@ export class StepDatasetsComponent implements OnInit {
     title = 'Please select one or more datasets';
     datasets: Dataset[];
     form: FormGroup;
+    selectedCategories: string[] = []
 
     constructor(private formBuilder: FormBuilder,
                 private router: Router,
@@ -46,6 +47,21 @@ export class StepDatasetsComponent implements OnInit {
                 this.notify.showError(error);
             }).add(() => {
             this.spinner.hide();
+        });
+
+        this.onChanges();
+    }
+
+    private onChanges(): void {
+        this.form.get('datasets').valueChanges.subscribe(val => {
+            let categories = val
+                .map((v, i) => v ? this.datasets[i].category : null)
+                .filter(v => v !== null);
+            this.selectedCategories = categories.filter((v,i) => categories.indexOf(v) === i);
+            if (this.selectedCategories.length > 1) {
+                this.notify.showWarning(`It is not currently possible to mix different types of datasets.
+                Please select datasets under the same category.`);
+            }
         });
     }
 
