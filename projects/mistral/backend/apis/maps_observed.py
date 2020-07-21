@@ -1,11 +1,9 @@
 from flask import Response, stream_with_context
-from flask_apispec import use_kwargs
-from marshmallow import fields, validate
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
 from restapi.exceptions import RestApiException
-from restapi.models import InputSchema
+from restapi.models import InputSchema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -73,9 +71,8 @@ class MapsObservations(EndpointResource):
         },
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
-    @use_kwargs(ObservationsQuery)
+    @decorators.auth.require()
+    @decorators.use_kwargs(ObservationsQuery)
     def get(
         self,
         networks=None,
@@ -169,9 +166,8 @@ class MapsObservations(EndpointResource):
 
         return self.response(res)
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
-    @use_kwargs(ObservationsDownloader)
+    @decorators.auth.require()
+    @decorators.use_kwargs(ObservationsDownloader)
     def post(
         self,
         output_format,

@@ -17,8 +17,7 @@ class DataReady(EndpointResource):
         }
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
+    @decorators.auth.require()
     def post(self):
 
         data = self.get_input()

@@ -28,8 +28,7 @@ class Usage(EndpointResource):
         }
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
+    @decorators.auth.require()
     def get(self):
         """
         Get actual user disk quota and current usage

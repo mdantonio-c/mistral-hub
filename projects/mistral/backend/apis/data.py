@@ -1,5 +1,3 @@
-from flask_apispec import use_kwargs
-from marshmallow import fields
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 from mistral.tools import grid_interpolation as pp3_1
@@ -7,6 +5,7 @@ from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi import decorators
 from restapi.exceptions import RestApiException
+from restapi.models import fields
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
 from restapi.utilities.htmlcodes import hcodes
@@ -38,9 +37,8 @@ class Data(EndpointResource, Uploader):
         }
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
-    @use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
+    @decorators.auth.require()
+    @decorators.use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
     def post(self, push=False):
         user = self.get_user()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")

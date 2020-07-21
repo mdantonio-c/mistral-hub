@@ -1,7 +1,5 @@
 import datetime
 
-from flask_apispec import use_kwargs
-from marshmallow import fields, validate
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
 from mistral.tools import grid_interpolation as pp3_1
@@ -9,6 +7,7 @@ from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi import decorators
 from restapi.exceptions import RestApiException
+from restapi.models import fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -109,9 +108,8 @@ class Schedules(EndpointResource):
         }
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
-    @use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
+    @decorators.auth.require()
+    @decorators.use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
     def post(self, push=False):
         user = self.get_user()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
@@ -228,7 +226,8 @@ class Schedules(EndpointResource):
         data_ready = criteria.get("on-data-ready")
 
         if not data_ready:
-            # for forecast schedules if reftime_to is today or yesterday the data_ready flag is applied by default
+            # with forecast schedules the data_ready flag is applied by default
+            # if reftime_to is today or yesterday
             # data ready option is not for observed data
             if dataset_format == "grib":
                 today = datetime.date.today()
@@ -408,10 +407,9 @@ class Schedules(EndpointResource):
         else:
             return on_data_ready
 
-    @decorators.catch_errors()
+    @decorators.auth.require()
     @decorators.get_pagination
-    @decorators.auth.required()
-    @use_kwargs(
+    @decorators.use_kwargs(
         {
             "sort_order": fields.Str(
                 validate=validate.OneOf(["asc", "desc"]), required=False
@@ -450,8 +448,7 @@ class Schedules(EndpointResource):
 
         return self.response(res, code=hcodes.HTTP_OK_BASIC)
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
+    @decorators.auth.require()
     def patch(self, schedule_id):
         param = self.get_input()
         is_active = param.get("is_active")
@@ -545,8 +542,7 @@ class Schedules(EndpointResource):
             {"id": schedule_id, "enabled": is_active}, code=hcodes.HTTP_OK_BASIC
         )
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
+    @decorators.auth.require()
     def delete(self, schedule_id):
         user = self.get_user()
 
@@ -598,9 +594,8 @@ class ScheduledRequests(EndpointResource):
         }
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
-    @use_kwargs(
+    @decorators.auth.require()
+    @decorators.use_kwargs(
         {"get_total": fields.Bool(required=False), "last": fields.Bool(required=False)},
         locations=["query"],
     )

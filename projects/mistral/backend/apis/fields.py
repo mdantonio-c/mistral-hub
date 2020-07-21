@@ -1,13 +1,11 @@
 from datetime import datetime
 
-from flask_apispec import use_kwargs
-from marshmallow import fields
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
 from restapi.exceptions import RestApiException
-from restapi.models import InputSchema, UniqueDelimitedList
+from restapi.models import InputSchema, UniqueDelimitedList, fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -40,9 +38,8 @@ class Fields(EndpointResource):
         }
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
-    @use_kwargs(FieldsQuery)
+    @decorators.auth.require()
+    @decorators.use_kwargs(FieldsQuery)
     def get(
         self,
         datasets=[],

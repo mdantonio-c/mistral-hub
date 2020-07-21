@@ -1,31 +1,32 @@
-Mistral Meteo-hub
-===================
+# Mistral Meteo-hub
 
-HOWTO Get started
------------------
+## HOWTO Get started
 
-Install rapydo framework last version 0.7.4
+Install rapydo framework last version 0.7.5
 
-`$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@0.7.4`
+`$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@0.7.5`
 
-or ugprade to rapydo 0.7.4  
-`$ rapydo install 0.7.4`
+or ugprade to rapydo 0.7.5  
+`$ rapydo install 0.7.5`
 
 ####Clone the project
+
 ```
 $ git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub.git
 ```
 
 ####Init & start
+
 ```
 $ cd meteo-hub
-$ git checkout 0.3.1
+$ git checkout 0.3.2
 $ rapydo init
 $ rapydo pull
 $ rapydo start
 ```
 
-First time it takes a while as it builds some docker images. Finally you should see:  
+First time it takes a while as it builds some docker images. Finally you should see:
+
 ```
 ...
 Creating mistral_frontend_1 ... done
@@ -41,7 +42,8 @@ In dev mode you need to start api service by hand. Open a terminal and run
 `$ rapydo shell backend --command "restapi launch"`
 
 Now open your browser and type http://localhost in the address bar.  
-You can enter the app with the following username and password  
+You can enter the app with the following username and password
+
 ```
 user@nomail.org
 test
@@ -56,13 +58,16 @@ Edit you .projectrc file and add the folowing lines:
 ```
 services: frontend
 ```
+
 in the main section
 
 and:
+
 ```
    BACKEND_URI: https://remote.host.url
    BACKEND_API_PORT: 443
 ```
+
 in the project_configuration>variables>env section
 
 Your .projectrc will be something like:
@@ -80,4 +85,3 @@ project_configuration:
 ```
 
 Use rapydo command as usual
-

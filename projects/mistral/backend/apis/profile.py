@@ -1,4 +1,4 @@
-from marshmallow import fields, validate
+from restapi.models import fields, validate
 
 
 class CustomProfile:
@@ -12,12 +12,14 @@ class CustomProfile:
 
         return data
 
-    # strip_required is True when the model is invoked by put endpoints
     @staticmethod
-    def get_custom_fields(strip_required=False):
+    def get_custom_fields(request):
+
+        required = request and request.method == "POST"
+
         return {
             "disk_quota": fields.Int(
-                required=not strip_required,
+                required=required,
                 # validate=validate.Range(min=0, max=???),
                 validate=validate.Range(min=0),
                 label="Disk quota",

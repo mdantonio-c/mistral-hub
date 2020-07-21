@@ -12,7 +12,7 @@ env:
   # - STAGE=CYPRESS BROWSER=firefox
 
 script:
-  - pip install --upgrade git+https://github.com/rapydo/do.git@0.7.4
+  - pip install --upgrade git+https://github.com/rapydo/do.git@0.7.5
   - export COMMIT_INFO_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
   - export COMMIT_INFO_MESSAGE="$(git show -s --pretty=%B)"
   - export COMMIT_INFO_SUBJECT="$(git show -s --pretty=%s)"

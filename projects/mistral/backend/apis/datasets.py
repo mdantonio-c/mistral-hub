@@ -1,8 +1,7 @@
-from flask_apispec import use_kwargs
-from marshmallow import fields
 from mistral.services.arkimet import BeArkimet as arki
 from restapi import decorators
 from restapi.exceptions import RestApiException
+from restapi.models import fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -36,9 +35,10 @@ class Datasets(EndpointResource):
         },
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
-    @use_kwargs({"licenceSpecs": fields.Bool(required=False)}, locations=["query"])
+    @decorators.auth.require()
+    @decorators.use_kwargs(
+        {"licenceSpecs": fields.Bool(required=False)}, locations=["query"]
+    )
     def get(self, dataset_name=None, licenceSpecs=False):
         """ Get all the datasets or a specific one if a name is provided."""
         try:

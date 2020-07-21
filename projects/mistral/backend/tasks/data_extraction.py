@@ -1,7 +1,6 @@
 import datetime
 import glob
 import os
-import shlex
 import subprocess
 import tarfile
 
@@ -12,7 +11,6 @@ from mistral.exceptions import (
     DiskQuotaException,
     PostProcessingException,
 )
-from mistral.services.arkimet import DATASET_ROOT
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from mistral.services.requests_manager import RequestManager
@@ -24,7 +22,6 @@ from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi.confs import get_backend_url
 from restapi.connectors.celery import CeleryExt
-from restapi.services.mail import send_mail
 from restapi.utilities.logs import log
 from restapi.utilities.templates import get_html_template
 
@@ -36,17 +33,17 @@ DOWNLOAD_DIR = "/data"
 @celery_app.task(bind=True)
 # @send_errors_by_email
 def data_extract(
-        self,
-        user_id,
-        datasets,
-        reftime=None,
-        filters=None,
-        postprocessors=[],
-        output_format=None,
-        request_id=None,
-        amqp_queue=None,
-        schedule_id=None,
-        data_ready=None,
+    self,
+    user_id,
+    datasets,
+    reftime=None,
+    filters=None,
+    postprocessors=[],
+    output_format=None,
+    request_id=None,
+    amqp_queue=None,
+    schedule_id=None,
+    data_ready=None,
 ):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]", self.request.id, self.name)
@@ -260,7 +257,7 @@ def data_extract(
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
                         pp_output = None
                         if any(
-                                d["type"] == "derived_variables" for d in postprocessors
+                            d["type"] == "derived_variables" for d in postprocessors
                         ):
                             p = next(
                                 item
@@ -291,7 +288,7 @@ def data_extract(
                                 if ext_proc.wait() != 0:
                                     raise Exception("Failure in data extraction")
                         if any(
-                                d["type"] == "statistic_elaboration" for d in postprocessors
+                            d["type"] == "statistic_elaboration" for d in postprocessors
                         ):
                             p = []
                             for item in postprocessors:
@@ -341,7 +338,7 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                                d["type"] == "grid_interpolation" for d in postprocessors
+                            d["type"] == "grid_interpolation" for d in postprocessors
                         ):
                             p = next(
                                 item
@@ -366,8 +363,8 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                                d["type"] == "spare_point_interpolation"
-                                for d in postprocessors
+                            d["type"] == "spare_point_interpolation"
+                            for d in postprocessors
                         ):
                             p = next(
                                 item
@@ -382,7 +379,7 @@ def data_extract(
                                 pp_input = tmp_outfile
                             # new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
                             new_tmp_extraction_filename = (
-                                    tmp_extraction_basename.split(".")[0] + ".bufr"
+                                tmp_extraction_basename.split(".")[0] + ".bufr"
                             )
                             out_filename = new_tmp_extraction_filename
                             pp_output = os.path.join(
@@ -490,14 +487,14 @@ def data_extract(
                 try:
                     rabbit = celery_app.get_service("rabbitmq")
                     host = get_backend_url()
-                    url = f"{host}/api/data/{tar_filename}"
+                    url = f"{host}/api/data/{target_filename}"
                     rabbit_msg = {
                         "task_id": self.request.id,
                         "schedule_id": schedule_id,
                         "status": request.status,
                     }
                     if request.error_message is None:
-                        rabbit_msg["filename"] = tar_filename
+                        rabbit_msg["filename"] = target_filename
                         rabbit_msg["url"] = url
                     else:
                         rabbit_msg["error_message"] = request.error_message
@@ -507,18 +504,6 @@ def data_extract(
                     log.debug("push notification sent to {}", amqp_queue)
                 except BaseException:
                     notificate_by_email(db, user_id, request, extra_msg)
-
-
-def notificate_by_email(db, user_id, request, extra_msg):
-    # user notification via email
-    user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
-    body_msg = (
-        request.error_message
-        if request.error_message is not None
-        else "Your data is ready for " "downloading"
-    )
-    body_msg += extra_msg
-    send_result_notication(user_email, request.name, request.status, body_msg)
 
 
 def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
@@ -576,11 +561,16 @@ def observed_extraction(datasets, filters, reftime, outfile):
         dballe.extract_data(datasets, fields, queries, outfile, db_type)
 
 
-def send_result_notication(recipient, title, status, message):
+def notificate_by_email(db, user_id, request, extra_msg):
     """Send email notification. """
-    replaces = {"title": title, "status": status, "message": message}
+    user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
+    body_msg = request.error_message or "Your data is ready for downloading"
+    body_msg += extra_msg
+
+    replaces = {"title": request.name, "status": request.status, "message": body_msg}
     body = get_html_template("data_extraction_result.html", replaces)
-    send_mail(body, "MeteoHub: data extraction completed", recipient, plain_body=body)
+    smtp = celery_app.get_service("smtp")
+    smtp.send(body, "MeteoHub: data extraction completed", user_email, plain_body=body)
 
 
 def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
