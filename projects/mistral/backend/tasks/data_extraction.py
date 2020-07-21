@@ -36,17 +36,17 @@ DOWNLOAD_DIR = "/data"
 @celery_app.task(bind=True)
 # @send_errors_by_email
 def data_extract(
-        self,
-        user_id,
-        datasets,
-        reftime=None,
-        filters=None,
-        postprocessors=[],
-        output_format=None,
-        request_id=None,
-        amqp_queue=None,
-        schedule_id=None,
-        data_ready=None,
+    self,
+    user_id,
+    datasets,
+    reftime=None,
+    filters=None,
+    postprocessors=[],
+    output_format=None,
+    request_id=None,
+    amqp_queue=None,
+    schedule_id=None,
+    data_ready=None,
 ):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]", self.request.id, self.name)
@@ -260,7 +260,7 @@ def data_extract(
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
                         pp_output = None
                         if any(
-                                d["type"] == "derived_variables" for d in postprocessors
+                            d["type"] == "derived_variables" for d in postprocessors
                         ):
                             p = next(
                                 item
@@ -291,7 +291,7 @@ def data_extract(
                                 if ext_proc.wait() != 0:
                                     raise Exception("Failure in data extraction")
                         if any(
-                                d["type"] == "statistic_elaboration" for d in postprocessors
+                            d["type"] == "statistic_elaboration" for d in postprocessors
                         ):
                             p = []
                             for item in postprocessors:
@@ -341,7 +341,7 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                                d["type"] == "grid_interpolation" for d in postprocessors
+                            d["type"] == "grid_interpolation" for d in postprocessors
                         ):
                             p = next(
                                 item
@@ -366,8 +366,8 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                                d["type"] == "spare_point_interpolation"
-                                for d in postprocessors
+                            d["type"] == "spare_point_interpolation"
+                            for d in postprocessors
                         ):
                             p = next(
                                 item
@@ -382,7 +382,7 @@ def data_extract(
                                 pp_input = tmp_outfile
                             # new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
                             new_tmp_extraction_filename = (
-                                    tmp_extraction_basename.split(".")[0] + ".bufr"
+                                tmp_extraction_basename.split(".")[0] + ".bufr"
                             )
                             out_filename = new_tmp_extraction_filename
                             pp_output = os.path.join(
@@ -490,14 +490,14 @@ def data_extract(
                 try:
                     rabbit = celery_app.get_service("rabbitmq")
                     host = get_backend_url()
-                    url = f"{host}/api/data/{tar_filename}"
+                    url = f"{host}/api/data/{target_filename}"
                     rabbit_msg = {
                         "task_id": self.request.id,
                         "schedule_id": schedule_id,
                         "status": request.status,
                     }
                     if request.error_message is None:
-                        rabbit_msg["filename"] = tar_filename
+                        rabbit_msg["filename"] = target_filename
                         rabbit_msg["url"] = url
                     else:
                         rabbit_msg["error_message"] = request.error_message
