@@ -2,7 +2,8 @@ from datetime import datetime
 
 from mistral.services.requests_manager import RequestManager
 from restapi import decorators
-from restapi.exceptions import RestApiException
+from restapi.exceptions import BadRequest, RestApiException
+from restapi.models import fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -18,25 +19,14 @@ class DataReady(EndpointResource):
     }
 
     @decorators.auth.require()
-    def post(self):
-
-        data = self.get_input()
-
-        cluster = data.get("Cluster")
-        model = data.get("Model")
-        rundate = data.get("rundate")
-
-        if len(rundate) != 10:
-            raise RestApiException("Unexpected rundate, valid format is: yyyymmddhh")
-
-        try:
-            runyear = int(rundate[0:4])
-            runmonth = int(rundate[4:6])
-            runday = int(rundate[6:8])
-            runhour = int(rundate[8:10])
-        except ValueError as e:
-            log.error(e)
-            raise RestApiException("Invalid rundate, valid format is: yyyymmddhh")
+    @decorators.use_kwargs(
+        {
+            "cluster": fields.String(required=True, data_key="Cluster"),
+            "model": fields.String(required=True, data_key="Model"),
+            "rundate": fields.DateTime(required=True, format="%Y%m%d%H"),
+        }
+    )
+    def post(self, cluster, model, rundate):
 
         log.info("Cluster = {}\tModel = {}\trundate = {}", cluster, model, rundate)
 
@@ -118,15 +108,7 @@ class DataReady(EndpointResource):
             # quindi modificare reftime ricevuto per impostare la corsa successiva
             # == rundate at 00 || rundate at 12
 
-            # e.g. {'from': '2020-01-13T11:00:00.000Z','to': '2020-01-14T12:57:24.791Z'}
-            # reftime = r['args'].get('reftime')
-            try:
-                d = datetime(year=runyear, month=runmonth, day=runday, hour=runhour)
-            except ValueError as e:
-                log.error(e)
-                raise RestApiException("Invalid rundate, valid format is: yyyymmddhh")
-
-            reftime = {"from": d.isoformat(), "to": d.isoformat()}
+            reftime = {"from": rundate.isoformat(), "to": rundate.isoformat()}
 
             filters = r["args"].get("filters")
             processors = r["args"].get("processors")
