@@ -26,13 +26,13 @@ const LM2_BOUNDS = {
 }
 /*
 "lm5":{
-  "lat": [27.8, 49.9],
-  "lon": [-5.9, 47.0]
+  "lat": [25.8, 55.5],
+  "lon": [-30.9, 47.0]
 }
  */
 const LM5_BOUNDS = {
-    southWest: L.latLng(27.8, -5.9),
-    northEast: L.latLng(49.9, 47.0)
+    southWest: L.latLng(25.8, -30.9),
+    northEast: L.latLng(55.5, 47.0)
 }
 const TILES_PATH = environment.production ? 'resources/tiles' : 'app/custom/assets/images/tiles';
 // Product constants
