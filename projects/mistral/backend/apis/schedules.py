@@ -72,23 +72,6 @@ class Schedules(EndpointResource):
     _PATCH = {
         "/schedules/<schedule_id>": {
             "summary": "enable or disable a schedule",
-            "parameters": [
-                {
-                    "name": "action",
-                    "in": "body",
-                    "description": "action to do on schedule (enabling or disabling)",
-                    "schema": {
-                        "type": "object",
-                        "required": ["is_active"],
-                        "properties": {
-                            "is_active": {
-                                "type": "boolean",
-                                "description": "requested value for is active property",
-                            }
-                        },
-                    },
-                },
-            ],
             "responses": {
                 "200": {"description": "schedule is succesfully disable/enable"},
                 "404": {"description": "schedule not found"},
@@ -449,9 +432,14 @@ class Schedules(EndpointResource):
         return self.response(res, code=hcodes.HTTP_OK_BASIC)
 
     @decorators.auth.require()
-    def patch(self, schedule_id):
-        param = self.get_input()
-        is_active = param.get("is_active")
+    @decorators.use_kwargs(
+        {
+            "is_active": fields.Bool(
+                required=True, description="Enable or disable the schedule"
+            )
+        }
+    )
+    def patch(self, schedule_id, is_active):
         user = self.get_user()
 
         db = self.get_service_instance("sqlalchemy")
