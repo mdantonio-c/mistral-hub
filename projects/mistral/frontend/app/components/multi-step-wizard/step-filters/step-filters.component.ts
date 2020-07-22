@@ -71,7 +71,7 @@ export class StepFiltersComponent implements OnInit {
         // init values
         values.map(o => {
             // pre-set actual values from formData
-            const control = new FormControl(this.formDataService.isFilterSelected(o));
+            const control = new FormControl(this.formDataService.isFilterSelected(o, name));
             (filter.controls.values as FormArray).push(control);
         });
         return filter;

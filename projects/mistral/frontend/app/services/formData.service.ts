@@ -142,9 +142,14 @@ export class FormDataService {
         this.workflowService.validateStep(STEPS.filter);
     }
 
-    isFilterSelected(filter) {
+    /**
+     * Check if a filter returned from api/fields is currently selected in the form data.
+     * @param filter the filter  model return as response containing the desc field
+     * @param type filter type (e.g. level, area, product, etc.)
+     */
+    isFilterSelected(filter, type) {
         for (let f of this.formData.filters) {
-            if (f.name === filter.t &&
+            if (f.name === type &&
                 f.values.filter(i => i.desc === filter.desc).length) {
                 return true;
             }
