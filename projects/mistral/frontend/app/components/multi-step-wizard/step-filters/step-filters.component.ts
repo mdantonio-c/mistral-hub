@@ -80,7 +80,7 @@ export class StepFiltersComponent implements OnInit {
     onFilterChange() {
         this.spinner.show('sp2');
         let selectedFilters = this.getSelectedFilters();
-        console.log('selected filter(s)', selectedFilters);
+        // console.log('selected filter(s)', selectedFilters);
         let selectedFilterNames = selectedFilters.map(f => f.name);
         this.formDataService.getFilters(selectedFilters).subscribe(
             response => {
@@ -250,7 +250,7 @@ export class StepFiltersComponent implements OnInit {
                 res.query = this.arkimetService.getQuery(res);
                 // dballe query
                 if (res.query === '' || res.query.split(':')[1] === '') {
-                    res.query += res.values.map(v => v.dballe_p).join(' or ')
+                    res.query += res.values.map(v => v.code).join(' or ')
                 }
                 selectedFilters.push(res);
             }
