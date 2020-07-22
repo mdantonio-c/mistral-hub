@@ -14,6 +14,26 @@ declare module 'leaflet' {
 }
 
 const MAP_CENTER = L.latLng(41.879966, 12.280000);
+/*
+"lm2.2": {
+  "lat": [34.5, 48.0],
+  "lon": [7.0, 21.2]
+}
+ */
+const LM2_BOUNDS = {
+    southWest: L.latLng(34.5, 7.0),
+    northEast: L.latLng(48.0, 21.2)
+}
+/*
+"lm5":{
+  "lat": [27.8, 49.9],
+  "lon": [-5.9, 47.0]
+}
+ */
+const LM5_BOUNDS = {
+    southWest: L.latLng(27.8, -5.9),
+    northEast: L.latLng(49.9, 47.0)
+}
 const TILES_PATH = environment.production ? 'resources/tiles' : 'app/custom/assets/images/tiles';
 // Product constants
 const TM2  = 'Temperature at 2 meters',
@@ -138,6 +158,9 @@ export class MeteoTilesComponent {
 
     private setOverlaysToMap() {
         let baseUrl = `${TILES_PATH}/${this.run}-${this.resolution}`
+        let bounds = (this.resolution === 'lm5') ?
+            L.latLngBounds(LM5_BOUNDS['southWest'], LM5_BOUNDS['northEast']) :
+            L.latLngBounds(LM2_BOUNDS['southWest'], LM2_BOUNDS['northEast'])
         this.layersControl['overlays'] = {
             // Temperature 2 meters Time Layer
             [TM2]: L.timeDimension.layer.tileLayer.portus(
@@ -146,7 +169,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    bounds: bounds
                 }), {}),
             // Total precipitation 3h Time Layer
             [PREC3P]: L.timeDimension.layer.tileLayer.portus(
@@ -155,7 +178,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    bounds: bounds
                 }), {}),
             // Total precipitation 6h Time Layer
             [PREC6P]: L.timeDimension.layer.tileLayer.portus(
@@ -164,7 +187,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    bounds: bounds
                 }), {}),
             // Snowfall 3h Time Layer
             [SF3]: L.timeDimension.layer.tileLayer.portus(
@@ -173,7 +196,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    bounds: bounds
                 }), {}),
             // Snowfall 6h Time Layer
             [SF6]: L.timeDimension.layer.tileLayer.portus(
@@ -182,7 +205,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    bounds: bounds
                 }), {}),
             // Relative humidity Time Layer
             [RH]: L.timeDimension.layer.tileLayer.portus(
@@ -191,7 +214,8 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     //opacity: 0.6,
-                    bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    bounds: bounds
                 }), {}),
             // High Cloud Time Layer
             [HCC]: L.timeDimension.layer.tileLayer.portus(
@@ -200,7 +224,8 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     //opacity: 0.6,
-                    bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    bounds: bounds
                 }), {}),
             // Medium Cloud Time Layer
             [MCC]: L.timeDimension.layer.tileLayer.portus(
@@ -209,7 +234,8 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     //opacity: 0.6,
-                    bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    bounds: bounds
                 }), {}),
             // Low Cloud Time Layer
             [LCC]: L.timeDimension.layer.tileLayer.portus(
@@ -218,7 +244,8 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.9,
-                    bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                    bounds: bounds
                 }), {})
         };
     }
