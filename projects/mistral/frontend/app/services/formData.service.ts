@@ -1,9 +1,9 @@
-import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
+import {Injectable} from "@angular/core";
+import {Observable} from "rxjs";
 import * as moment from "moment";
 
-import { WorkflowService } from "@app/services/workflow.service";
-import { STEPS } from "@app/services/workflow.model";
+import {WorkflowService} from "@app/services/workflow.service";
+import {STEPS} from "@app/services/workflow.model";
 import {
   DataService,
   Filters,
@@ -12,7 +12,7 @@ import {
   TaskSchedule,
   RefTime,
 } from "./data.service";
-import { FieldsSummary } from "../components/maps/observation-maps/services/obs.service";
+import {FieldsSummary} from "../components/maps/observation-maps/services/obs.service";
 
 export class FormData {
   name: string = "";
@@ -46,7 +46,7 @@ export class FormData {
       from: moment
         .utc()
         .subtract(3, "days")
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+        .set({hour: 0, minute: 0, second: 0, millisecond: 0})
         .toDate(),
       to: moment.utc().toDate(),
     };
@@ -57,15 +57,14 @@ export class FormData {
   providedIn: "root",
 })
 export class FormDataService {
+
   private formData: FormData = new FormData();
   private isDatasetFormValid: boolean = false;
   private isFilterFormValid: boolean = false;
   private isPostprocessFormValid: boolean = false;
 
-  constructor(
-    private workflowService: WorkflowService,
-    private dataService: DataService
-  ) {}
+  constructor(private workflowService: WorkflowService, private dataService: DataService) {
+  }
 
   getDatasets(): Observable<Dataset[]> {
     return this.dataService.getDatasets(true);
@@ -80,7 +79,7 @@ export class FormDataService {
   }
 
   isDatasetSelected(datasetId: string): boolean {
-    return this.formData.datasets.some((x) => x.id === datasetId);
+    return this.formData.datasets.some(x => x.id === datasetId);
   }
 
   /**
@@ -91,18 +90,15 @@ export class FormDataService {
   getFilters(filters?: Filters[]) {
     let q = null;
     if (filters) {
-      q = filters.map((f) => f.query).join(";");
+      q = filters.map(f => f.query).join(';');
     }
     let reftime = this.parseRefTime();
     if (reftime) {
       // prepend the reftime
-      q = q !== "" ? [reftime, q].join(";") : reftime;
+      q = (q !== '') ? [reftime, q].join(';') : reftime;
     }
     console.log(`query for summary: ${q}`);
-    return this.dataService.getSummary(
-      this.formData.datasets.map((x) => x.id),
-      q
-    );
+    return this.dataService.getSummary(this.formData.datasets.map(x => x.id), q);
   }
 
   /**
@@ -113,16 +109,12 @@ export class FormDataService {
     if (this.formData.reftime) {
       let arr = [];
       if (this.formData.reftime.from) {
-        arr.push(
-          `>=${moment(this.formData.reftime.from).format("YYYY-MM-DD HH:mm")}`
-        );
+        arr.push(`>=${moment(this.formData.reftime.from).format("YYYY-MM-DD HH:mm")}`);
       }
       if (this.formData.reftime.to) {
-        arr.push(
-          `<=${moment(this.formData.reftime.to).format("YYYY-MM-DD HH:mm")}`
-        );
+        arr.push(`<=${moment(this.formData.reftime.to).format("YYYY-MM-DD HH:mm")}`);
       }
-      query = `reftime: ${arr.join(",")}`;
+      query = `reftime: ${arr.join(',')}`;
       console.log(query);
     }
     return query;
@@ -146,18 +138,15 @@ export class FormDataService {
   }
 
   getSummaryStats(): Observable<SummaryStats> {
-    let q = this.formData.filters.map((f) => f.query).join(";");
+    let q = this.formData.filters.map(f => f.query).join(';');
     let reftime = this.parseRefTime();
     if (reftime) {
       // prepend the reftime
-      q = q !== "" ? [reftime, q].join(";") : reftime;
+      q = (q !== '') ? [reftime, q].join(';') : reftime;
     }
     console.log(`query for summary stats ${q}`);
     return this.dataService.getSummary(
-      this.formData.datasets.map((x) => x.id),
-      q,
-      true
-    );
+      this.formData.datasets.map(x => x.id), q, true);
   }
 
   setFilters(data: any) {
@@ -168,12 +157,15 @@ export class FormDataService {
     this.workflowService.validateStep(STEPS.filter);
   }
 
-  isFilterSelected(filter) {
+  /**
+   * Check if a filter returned from api/fields is currently selected in the form data.
+   * @param filter the filter  model return as response containing the desc field
+   * @param type filter type (e.g. level, area, product, etc.)
+   */
+  isFilterSelected(filter, type) {
     for (let f of this.formData.filters) {
-      if (
-        f.name === filter.t &&
-        f.values.filter((i) => i.desc === filter.desc).length
-      ) {
+      if (f.name === type &&
+        f.values.filter(i => i.desc === filter.desc).length) {
         return true;
       }
     }
@@ -204,14 +196,13 @@ export class FormDataService {
 
   isFormValid() {
     // Return true if all forms had been validated successfully; otherwise, return false
-    return (
-      this.isDatasetFormValid &&
+    return this.isDatasetFormValid &&
       this.isFilterFormValid &&
-      this.isPostprocessFormValid
-    );
+      this.isPostprocessFormValid;
   }
 
   setOutputFormat(data: any) {
     this.formData.output_format = data;
   }
+
 }

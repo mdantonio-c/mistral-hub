@@ -1,5 +1,5 @@
-import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
+import {Component, OnInit} from "@angular/core";
+import {ActivatedRoute, Router} from "@angular/router";
 import {
   FormBuilder,
   FormGroup,
@@ -7,12 +7,12 @@ import {
   FormControl,
   Validators,
 } from "@angular/forms";
-import { NotificationService } from "@rapydo/services/notification";
-import { FormDataService } from "@app/services/formData.service";
-import { ArkimetService } from "@app/services/arkimet.service";
-import { Dataset, Filters } from "@app/services/data.service";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import { NgxSpinnerService } from "ngx-spinner";
+import {NotificationService} from "@rapydo/services/notification";
+import {FormDataService} from "@app/services/formData.service";
+import {ArkimetService} from "@app/services/arkimet.service";
+import {Dataset, Filters} from "@app/services/data.service";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {NgxSpinnerService} from "ngx-spinner";
 import * as moment from "moment";
 import * as _ from "lodash";
 
@@ -22,7 +22,7 @@ import * as _ from "lodash";
 })
 export class StepFiltersComponent implements OnInit {
   title = "Filter your data";
-  summaryStats = { b: null, e: null, c: null, s: null };
+  summaryStats = {b: null, e: null, c: null, s: null};
   filterForm: FormGroup;
   filters: Filters;
   disabledDp = false;
@@ -72,71 +72,66 @@ export class StepFiltersComponent implements OnInit {
 
   today() {
     const today = moment.utc();
-    return { year: today.year(), month: today.month() + 1, day: today.date() };
+    return {year: today.year(), month: today.month() + 1, day: today.date()};
   }
 
   private getFilterGroup(name: string, values: any): FormGroup {
     let filter = this.fb.group({
       name: [name, Validators.required],
-      values: new FormArray([]),
+      values: new FormArray([])
     });
     // init values
-    values.map((o) => {
+    values.map(o => {
       // pre-set actual values from formData
-      const control = new FormControl(this.formDataService.isFilterSelected(o));
+      const control = new FormControl(this.formDataService.isFilterSelected(o, name));
       (filter.controls.values as FormArray).push(control);
     });
     return filter;
   }
 
   onFilterChange() {
-    this.spinner.show("sp2");
+    this.spinner.show('sp2');
     let selectedFilters = this.getSelectedFilters();
-    console.log("selected filter(s)", selectedFilters);
-    let selectedFilterNames = selectedFilters.map((f) => f.name);
-    this.formDataService
-      .getFilters(selectedFilters)
-      .subscribe(
-        (response) => {
-          let results = response.items;
-          // console.log(results);
-          // compare the current filters with the selection results
-          // in order to disable the missing ones
-          Object.entries(this.filters).forEach((f) => {
-            // if (!selectedFilterNames.includes(f[0])) {
-            if (f[0] !== "summarystats") {
-              // ["name", [{...},{...}]]
-              // console.log(f[0]);
-              // console.log('....OLD....', f[1]);
-              let m = Object.entries(results).filter((e) => e[0] === f[0])[0];
-              if (selectedFilterNames.includes(m[0])) {
-                if (selectedFilterNames.length === 1) {
-                  // active them all
-                  for (const obj of <Array<any>>f[1]) {
-                    obj["active"] = true;
-                  }
-                }
-              } else {
+    // console.log('selected filter(s)', selectedFilters);
+    let selectedFilterNames = selectedFilters.map(f => f.name);
+    this.formDataService.getFilters(selectedFilters).subscribe(
+      response => {
+        let results = response.items;
+        // console.log(results);
+        // compare the current filters with the selection results
+        // in order to disable the missing ones
+        Object.entries(this.filters).forEach(f => {
+          // if (!selectedFilterNames.includes(f[0])) {
+          if (f[0] !== 'summarystats') {
+            // ["name", [{...},{...}]]
+            // console.log(f[0]);
+            // console.log('....OLD....', f[1]);
+            let m = Object.entries(results)
+              .filter(e => e[0] === f[0])[0];
+            if (selectedFilterNames.includes(m[0])) {
+              if (selectedFilterNames.length === 1) {
+                // active them all
                 for (const obj of <Array<any>>f[1]) {
-                  // equal by desc
-                  obj["active"] = _.some(
-                    <Array<any>>m[1],
-                    (o, i) => o.desc === obj.desc
-                  );
+                  obj['active'] = true;
                 }
               }
-              // console.log('....NEW....', m[1]);
+            } else {
+              for (const obj of <Array<any>>f[1]) {
+                // equal by desc
+                obj['active'] = _.some(<Array<any>>m[1],
+                  (o, i) => o.desc === obj.desc);
+              }
             }
-          });
-          this.updateSummaryStats(response.items.summarystats);
-        },
-        (error) => {
-          this.notify.showError(`Unable to get summary fields`);
-        }
-      )
-      .add(() => {
-        this.spinner.hide("sp2");
-      });
+            // console.log('....NEW....', m[1]);
+          }
+        });
+        this.updateSummaryStats(response.items.summarystats);
+      },
+      error => {
+        this.notify.showError(`Unable to get summary fields`);
+      }).add(() => {
+      this.spinner.hide('sp2');
+    });
   }
 
   loadFilters() {
@@ -204,7 +199,7 @@ export class StepFiltersComponent implements OnInit {
       (this.filterForm.controls.validRefTime as FormControl).setValue(false);
       this.notify.showWarning(
         "The applied reference time does not produce any result. " +
-          "Please choose a different reference time range."
+        "Please choose a different reference time range."
       );
     } else {
       (this.filterForm.controls.validRefTime as FormControl).setValue(true);
@@ -280,39 +275,35 @@ export class StepFiltersComponent implements OnInit {
 
   private getSelectedFilters() {
     const selectedFilters = [];
-    (this.filterForm.controls.filters as FormArray).controls.forEach(
-      (f: FormGroup) => {
-        let res = {
-          name: f.controls.name.value,
-          values: (f.controls.values as FormArray).controls
-            .map((v, j) =>
-              v.value ? this.filters[f.controls.name.value][j] : null
-            )
-            .filter((v) => v !== null),
-          query: "",
-        };
-        if (res.values.length) {
-          res.query = this.arkimetService.getQuery(res);
-          // dballe query
-          if (res.query === "" || res.query.split(":")[1] === "") {
-            res.query += res.values.map((v) => v.dballe_p).join(" or ");
-          }
-          selectedFilters.push(res);
+    (this.filterForm.controls.filters as FormArray).controls.forEach((f: FormGroup) => {
+      let res = {
+        name: f.controls.name.value,
+        values: (f.controls.values as FormArray).controls
+          .map((v, j) => v.value ? this.filters[f.controls.name.value][j] : null)
+          .filter(v => v !== null),
+        query: ''
+      };
+      if (res.values.length) {
+        res.query = this.arkimetService.getQuery(res);
+        // dballe query
+        if (res.query === '' || res.query.split(':')[1] === '') {
+          res.query += res.values.map(v => v.code).join(' or ')
         }
+        selectedFilters.push(res);
       }
-    );
+    });
     return selectedFilters;
   }
 
   goToPrevious() {
     // Navigate to the dataset page
-    this.router.navigate(["../", "datasets"], { relativeTo: this.route });
+    this.router.navigate(["../", "datasets"], {relativeTo: this.route});
   }
 
   goToNext() {
     if (this.save()) {
       // Navigate to the postprocess page
-      this.router.navigate(["../", "postprocess"], { relativeTo: this.route });
+      this.router.navigate(["../", "postprocess"], {relativeTo: this.route});
     }
   }
 

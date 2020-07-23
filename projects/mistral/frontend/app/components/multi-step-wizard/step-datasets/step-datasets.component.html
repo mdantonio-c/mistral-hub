@@ -94,17 +94,15 @@
                 />
                 <label
                   for="FOR-{{ datasets[i].id }}"
-                  [ngbTooltip]="tipOBSContent"
+                  [ngbTooltip]="tipFORContent"
                   >{{ datasets[i].description }}</label
                 >
-                <ng-template #tipOBSContent>
+                <ng-template #tipFORContent>
                   <ul class="pl-0 text-left">
                     <li>
-                      <!--                                            <i class="fas" [ngClass]="(datasets[i].license === 'CCBY4.0') ? 'fa-closed-captioning' : 'fa-copyright'"></i>-->
                       <span class="pl-1">{{ datasets[i].license }}</span>
                     </li>
                     <li>
-                      <!--                                            <i class="fab fa-creative-commons-by"></i>-->
                       <span class="pl-1">{{ datasets[i].attribution }}</span>
                     </li>
                   </ul>
@@ -147,11 +145,9 @@
                 <ng-template #tipRADContent>
                   <ul class="pl-0 text-left">
                     <li>
-                      <!--                                            <i class="fas" [ngClass]="(datasets[i].license === 'CCBY4.0') ? 'fa-closed-captioning' : 'fa-copyright'"></i>-->
                       <span class="pl-1">{{ datasets[i].license }}</span>
                     </li>
                     <li>
-                      <!--                                            <i class="fab fa-creative-commons-by"></i>-->
                       <span class="pl-1">{{ datasets[i].attribution }}</span>
                     </li>
                   </ul>
@@ -166,7 +162,7 @@
       <button
         class="btn btn-success btn-info"
         type="submit"
-        [disabled]="!form.valid"
+        [disabled]="!form.valid || selectedCategories.length > 1"
       >
         Next <i class="fa fa-arrow-right" aria-hidden="true"></i>
       </button>
