@@ -1,3 +1,4 @@
+from marshmallow import ValidationError
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 from mistral.tools import grid_interpolation as pp3_1
@@ -5,11 +6,83 @@ from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi import decorators
 from restapi.exceptions import RestApiException
-from restapi.models import fields
+from restapi.models import InputSchema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
+
+OUTPUT_FORMATS = ["json", "bufr", "grib"]
+DERIVED_VARIABLES = [
+    "B12194",  # Air density
+    "B13003",  # Relative humidity
+    "B11001",  # Wind direction
+    "B11002",  # Wind speed
+    "B11003",  # U-component
+    "B11004",  # V-component
+    "B12103",  # Dew-point temperature
+    "B13001",  # Specific humidity
+    "B13003",  # Relative humidity
+    "B13205",  # Snowfall (grid-scale + convective)
+]
+
+
+class Postprocessors(fields.Field):
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return ""
+        return "".join(str(d) for d in value)
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        try:
+            valid_data = AVProcessor().load(value, unknown=self.unknown, partial=None)
+        except ValidationError as error:
+            raise ValidationError(
+                error.messages, valid_data=error.valid_data
+            ) from error
+        return valid_data
+
+
+class AVProcessor(InputSchema):
+    # Derived variables post-processing
+    processor_type = fields.Str(required=True)
+    # "derived_variables"
+    variables = fields.List(
+        fields.Str(validate=validate.OneOf(DERIVED_VARIABLES), required=True)
+    )
+
+
+# class SEProcessor(InputSchema)
+
+
+class Reftime(InputSchema):
+    date_from = fields.DateTime(required=True, data_key="from")
+    date_to = fields.DateTime(required=True, data_key="to")
+
+
+class Filters(InputSchema):
+    area = fields.List(fields.Dict())
+    level = fields.List(fields.Dict())
+    origin = fields.List(fields.Dict())
+    proddef = fields.List(fields.Dict())
+    product = fields.List(fields.Dict())
+    quantity = fields.List(fields.Dict())
+    run = fields.List(fields.Dict())
+    task = fields.List(fields.Dict())
+    timerange = fields.List(fields.Dict())
+    network = fields.List(fields.Dict())
+
+
+class DataExtraction(InputSchema):
+    name = fields.Str(required=True)
+    reftime = fields.Nested(Reftime)
+    datasets = fields.List(
+        fields.Str(required=True, description="Dataset name"),
+        description="Data belong to the datasets of the list.",
+    )
+    filters = fields.Nested(Filters, description="Apply different filtering criteria.")
+    output_format = fields.Str(validate=validate.OneOf(OUTPUT_FORMATS))
+    postprocessors = fields.List(Postprocessors())
 
 
 class Data(EndpointResource, Uploader):
@@ -39,10 +112,21 @@ class Data(EndpointResource, Uploader):
 
     @decorators.auth.require()
     @decorators.use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
-    def post(self, push=False):
+    @decorators.use_kwargs(DataExtraction)
+    def post(
+        self,
+        name,
+        datasets,
+        reftime=None,
+        filters=None,
+        output_format=None,
+        postprocessors=None,
+        push=False,
+    ):
         user = self.get_user()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
         criteria = self.get_input()
+        log.debug([name, datasets, reftime, filters, output_format, postprocessors])
 
         self.validate_input(criteria, "DataExtraction")
         product_name = criteria.get("name")
