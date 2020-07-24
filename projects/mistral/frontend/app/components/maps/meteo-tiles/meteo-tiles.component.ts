@@ -14,26 +14,6 @@ declare module 'leaflet' {
 }
 
 const MAP_CENTER = L.latLng(41.879966, 12.280000);
-/*
-"lm2.2": {
-  "lat": [34.5, 48.0],
-  "lon": [7.0, 21.2]
-}
- */
-const LM2_BOUNDS = {
-    southWest: L.latLng(34.5, 7.0),
-    northEast: L.latLng(48.0, 21.2)
-}
-/*
-"lm5":{
-  "lat": [25.8, 55.5],
-  "lon": [-30.9, 47.0]
-}
- */
-const LM5_BOUNDS = {
-    southWest: L.latLng(25.8, -30.9),
-    northEast: L.latLng(55.5, 47.0)
-}
 const TILES_PATH = environment.production ? 'resources/tiles' : 'app/custom/assets/images/tiles';
 // Product constants
 const TM2  = 'Temperature at 2 meters',
@@ -64,18 +44,18 @@ export class MeteoTilesComponent {
     private legends: { [key: string]: L.Control } = {};
 
     LAYER_OSM = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC-BY N.D. 4.0</a>',
         maxZoom: 7,
         minZoom: 5
     });
     LAYER_MAPBOX_LIGHT = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
         id: 'mapbox.light',
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC-BY N.D. 4.0</a>',
         maxZoom: 7,
         minZoom: 5
     });
     LAYER_DARKMATTER = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC-BY N.D. 4.0</a>',
         maxZoom: 7,
         minZoom: 5
     });
@@ -158,9 +138,6 @@ export class MeteoTilesComponent {
 
     private setOverlaysToMap() {
         let baseUrl = `${TILES_PATH}/${this.run}-${this.resolution}`
-        let bounds = (this.resolution === 'lm5') ?
-            L.latLngBounds(LM5_BOUNDS['southWest'], LM5_BOUNDS['northEast']) :
-            L.latLngBounds(LM2_BOUNDS['southWest'], LM2_BOUNDS['northEast'])
         this.layersControl['overlays'] = {
             // Temperature 2 meters Time Layer
             [TM2]: L.timeDimension.layer.tileLayer.portus(
@@ -169,7 +146,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    bounds: bounds
+                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {}),
             // Total precipitation 3h Time Layer
             [PREC3P]: L.timeDimension.layer.tileLayer.portus(
@@ -178,7 +155,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    bounds: bounds
+                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {}),
             // Total precipitation 6h Time Layer
             [PREC6P]: L.timeDimension.layer.tileLayer.portus(
@@ -187,7 +164,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    bounds: bounds
+                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {}),
             // Snowfall 3h Time Layer
             [SF3]: L.timeDimension.layer.tileLayer.portus(
@@ -196,7 +173,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    bounds: bounds
+                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {}),
             // Snowfall 6h Time Layer
             [SF6]: L.timeDimension.layer.tileLayer.portus(
@@ -205,7 +182,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.6,
-                    bounds: bounds
+                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {}),
             // Relative humidity Time Layer
             [RH]: L.timeDimension.layer.tileLayer.portus(
@@ -214,8 +191,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     //opacity: 0.6,
-                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                    bounds: bounds
+                    bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {}),
             // High Cloud Time Layer
             [HCC]: L.timeDimension.layer.tileLayer.portus(
@@ -224,8 +200,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     //opacity: 0.6,
-                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                    bounds: bounds
+                    bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {}),
             // Medium Cloud Time Layer
             [MCC]: L.timeDimension.layer.tileLayer.portus(
@@ -234,8 +209,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     //opacity: 0.6,
-                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                    bounds: bounds
+                    bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {}),
             // Low Cloud Time Layer
             [LCC]: L.timeDimension.layer.tileLayer.portus(
@@ -244,8 +218,7 @@ export class MeteoTilesComponent {
                     maxZoom: 7,
                     tms: false,
                     opacity: 0.9,
-                    // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                    bounds: bounds
+                    bounds: [[25.0, -25.0], [50.0, 47.0]],
                 }), {})
         };
     }
