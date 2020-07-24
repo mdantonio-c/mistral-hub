@@ -21,7 +21,7 @@ const MAP_CENTER = L.latLng(41.879966, 12.28);
 }
  */
 const LM2_BOUNDS = {
-  southWest: L.latLng(34.5, 7.0),
+  southWest: L.latLng(34.5, 5.0),
   northEast: L.latLng(48.0, 21.2),
 };
 /*
