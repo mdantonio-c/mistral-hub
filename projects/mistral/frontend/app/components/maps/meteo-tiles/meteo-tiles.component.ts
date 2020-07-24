@@ -1,29 +1,29 @@
-import {Component} from "@angular/core";
-import {environment} from "@rapydo/../environments/environment";
+import { Component } from "@angular/core";
+import { environment } from "@rapydo/../environments/environment";
 import * as moment from "moment";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
 import "leaflet-timedimension/examples/js/extras/leaflet.timedimension.tilelayer.portus.js";
-import {TilesService} from "./services/tiles.service";
-import {NotificationService} from "@rapydo/services/notification";
-import {NgxSpinnerService} from "ngx-spinner";
-import {LegendConfig, LEGEND_DATA} from "./services/data";
+import { TilesService } from "./services/tiles.service";
+import { NotificationService } from "@rapydo/services/notification";
+import { NgxSpinnerService } from "ngx-spinner";
+import { LegendConfig, LEGEND_DATA } from "./services/data";
 
 declare module "leaflet" {
   var timeDimension: any;
 }
 
-const MAP_CENTER = L.latLng(41.879966, 12.280000);
+const MAP_CENTER = L.latLng(41.879966, 12.28);
 /*
 "lm2.2": {
   "lat": [34.5, 48.0],
-  "lon": [7.0, 21.2]
+  "lon": [5.0, 21.2]
 }
  */
 const LM2_BOUNDS = {
-  southWest: L.latLng(34.5, 7.0),
-  northEast: L.latLng(48.0, 21.2)
-}
+  southWest: L.latLng(34.5, 5.0),
+  northEast: L.latLng(48.0, 21.2),
+};
 /*
 "lm5":{
   "lat": [25.8, 55.5],
@@ -32,9 +32,11 @@ const LM2_BOUNDS = {
  */
 const LM5_BOUNDS = {
   southWest: L.latLng(25.8, -30.9),
-  northEast: L.latLng(55.5, 47.0)
-}
-const TILES_PATH = environment.production ? 'resources/tiles' : 'app/custom/assets/images/tiles';
+  northEast: L.latLng(55.5, 47.0),
+};
+const TILES_PATH = environment.production
+  ? "resources/tiles"
+  : "app/custom/assets/images/tiles";
 // Product constants
 const TM2 = "Temperature at 2 meters",
   PREC3P = "Total Precipitation (3h)",
@@ -64,7 +66,7 @@ export class MeteoTilesComponent {
 
   LAYER_OSM = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
-      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC-BY N.D. 4.0</a>',
     maxZoom: 7,
     minZoom: 5,
   });
@@ -73,7 +75,7 @@ export class MeteoTilesComponent {
     {
       id: "mapbox.light",
       attribution:
-        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC-BY N.D. 4.0</a>',
       maxZoom: 7,
       minZoom: 5,
     }
@@ -82,7 +84,7 @@ export class MeteoTilesComponent {
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png",
     {
       attribution:
-        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC-BY N.D. 4.0</a>',
       maxZoom: 7,
       minZoom: 5,
     }
@@ -167,7 +169,7 @@ export class MeteoTilesComponent {
           // add default layer
           let tm2m: L.Layer = this.layersControl["overlays"][
             this.DEFAULT_PRODUCT
-            ];
+          ];
           tm2m.addTo(this.map);
 
           this.initLegends(map);
@@ -183,11 +185,12 @@ export class MeteoTilesComponent {
   }
 
   private setOverlaysToMap() {
-    let baseUrl = `${TILES_PATH}/${this.run}-${this.resolution}`
-    let bounds = (this.resolution === 'lm5') ?
-      L.latLngBounds(LM5_BOUNDS['southWest'], LM5_BOUNDS['northEast']) :
-      L.latLngBounds(LM2_BOUNDS['southWest'], LM2_BOUNDS['northEast'])
-    this.layersControl['overlays'] = {
+    let baseUrl = `${TILES_PATH}/${this.run}-${this.resolution}`;
+    let bounds =
+      this.resolution === "lm5"
+        ? L.latLngBounds(LM5_BOUNDS["southWest"], LM5_BOUNDS["northEast"])
+        : L.latLngBounds(LM2_BOUNDS["southWest"], LM2_BOUNDS["northEast"]);
+    this.layersControl["overlays"] = {
       // Temperature 2 meters Time Layer
       [TM2]: L.timeDimension.layer.tileLayer.portus(
         L.tileLayer(`${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`, {
@@ -195,8 +198,10 @@ export class MeteoTilesComponent {
           maxZoom: 7,
           tms: false,
           opacity: 0.6,
-          bounds: bounds
-        }), {}),
+          bounds: bounds,
+        }),
+        {}
+      ),
       // Total precipitation 3h Time Layer
       [PREC3P]: L.timeDimension.layer.tileLayer.portus(
         L.tileLayer(`${baseUrl}/prec3-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
@@ -204,8 +209,10 @@ export class MeteoTilesComponent {
           maxZoom: 7,
           tms: false,
           opacity: 0.6,
-          bounds: bounds
-        }), {}),
+          bounds: bounds,
+        }),
+        {}
+      ),
       // Total precipitation 6h Time Layer
       [PREC6P]: L.timeDimension.layer.tileLayer.portus(
         L.tileLayer(`${baseUrl}/prec6-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
@@ -213,66 +220,98 @@ export class MeteoTilesComponent {
           maxZoom: 7,
           tms: false,
           opacity: 0.6,
-          bounds: bounds
-        }), {}),
+          bounds: bounds,
+        }),
+        {}
+      ),
       // Snowfall 3h Time Layer
       [SF3]: L.timeDimension.layer.tileLayer.portus(
-        L.tileLayer(`${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-          minZoom: 5,
-          maxZoom: 7,
-          tms: false,
-          opacity: 0.6,
-          bounds: bounds
-        }), {}),
+        L.tileLayer(
+          `${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
+          {
+            minZoom: 5,
+            maxZoom: 7,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }
+        ),
+        {}
+      ),
       // Snowfall 6h Time Layer
       [SF6]: L.timeDimension.layer.tileLayer.portus(
-        L.tileLayer(`${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-          minZoom: 5,
-          maxZoom: 7,
-          tms: false,
-          opacity: 0.6,
-          bounds: bounds
-        }), {}),
+        L.tileLayer(
+          `${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
+          {
+            minZoom: 5,
+            maxZoom: 7,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }
+        ),
+        {}
+      ),
       // Relative humidity Time Layer
       [RH]: L.timeDimension.layer.tileLayer.portus(
-        L.tileLayer(`${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-          minZoom: 5,
-          maxZoom: 7,
-          tms: false,
-          //opacity: 0.6,
-          // bounds: [[25.0, -25.0], [50.0, 47.0]],
-          bounds: bounds
-        }), {}),
+        L.tileLayer(
+          `${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`,
+          {
+            minZoom: 5,
+            maxZoom: 7,
+            tms: false,
+            //opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }
+        ),
+        {}
+      ),
       // High Cloud Time Layer
       [HCC]: L.timeDimension.layer.tileLayer.portus(
-        L.tileLayer(`${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-          minZoom: 5,
-          maxZoom: 7,
-          tms: false,
-          //opacity: 0.6,
-          // bounds: [[25.0, -25.0], [50.0, 47.0]],
-          bounds: bounds
-        }), {}),
+        L.tileLayer(
+          `${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
+          {
+            minZoom: 5,
+            maxZoom: 7,
+            tms: false,
+            //opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }
+        ),
+        {}
+      ),
       // Medium Cloud Time Layer
       [MCC]: L.timeDimension.layer.tileLayer.portus(
-        L.tileLayer(`${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-          minZoom: 5,
-          maxZoom: 7,
-          tms: false,
-          //opacity: 0.6,
-          // bounds: [[25.0, -25.0], [50.0, 47.0]],
-          bounds: bounds
-        }), {}),
+        L.tileLayer(
+          `${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
+          {
+            minZoom: 5,
+            maxZoom: 7,
+            tms: false,
+            //opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }
+        ),
+        {}
+      ),
       // Low Cloud Time Layer
       [LCC]: L.timeDimension.layer.tileLayer.portus(
-        L.tileLayer(`${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-          minZoom: 5,
-          maxZoom: 7,
-          tms: false,
-          opacity: 0.9,
-          // bounds: [[25.0, -25.0], [50.0, 47.0]],
-          bounds: bounds
-        }), {})
+        L.tileLayer(
+          `${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
+          {
+            minZoom: 5,
+            maxZoom: 7,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }
+        ),
+        {}
+      ),
     };
   }
 
@@ -283,7 +322,7 @@ export class MeteoTilesComponent {
       return;
     }
 
-    const legend = new L.Control({position: this.LEGEND_POSITION});
+    const legend = new L.Control({ position: this.LEGEND_POSITION });
     legend.onAdd = () => {
       let div = L.DomUtil.create("div", config.legend_type);
       div.style.clear = "unset";
