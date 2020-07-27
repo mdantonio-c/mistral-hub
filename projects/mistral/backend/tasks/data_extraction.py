@@ -64,11 +64,11 @@ def data_extract(
                 reftime = adapt_reftime(schedule, reftime, data_ready)
 
                 # create an entry in request db linked to the scheduled request entry
-                product_name = RequestManager.get_schedule_name(db, schedule_id)
+                request_name = RequestManager.get_schedule_name(db, schedule_id)
                 request = RequestManager.create_request_record(
                     db,
                     user_id,
-                    product_name,
+                    request_name,
                     {
                         "datasets": datasets,
                         "reftime": reftime,
@@ -104,7 +104,7 @@ def data_extract(
                 if filters is not None:
                     query = arki.parse_matchers(filters)
                     log.debug("Arkimet query: {}", query)
-                if reftime is not None:
+                if reftime:
                     reftime_query = arki.parse_reftime(reftime["from"], reftime["to"])
                     query = (
                         ";".join([reftime_query, query])
@@ -149,7 +149,7 @@ def data_extract(
                 log.debug(postprocessors)
                 # check if requested postprocessors are enabled
                 for p in postprocessors:
-                    pp_type = p.get("type")
+                    pp_type = p.get("processor_type")
                     enabled_postprocessors = (
                         "derived_variables",
                         "grid_interpolation",
@@ -175,7 +175,7 @@ def data_extract(
                 if len(postprocessors) == 1:
                     try:
                         p = postprocessors[0]
-                        pp_type = p.get("type")
+                        pp_type = p.get("processor_type")
 
                         if pp_type == "derived_variables":
                             pp1_output = pp1.pp_derived_variables(
@@ -239,30 +239,18 @@ def data_extract(
 
                 # case of multiple postprocessor
                 else:
-                    # check if there is only one geographical postprocessor
-                    pp_list = []
-                    for p in postprocessors:
-                        pp_list.append(p["type"])
-                    pp3_list = [
-                        "grid_cropping",
-                        "grid_interpolation",
-                        "spare_point_interpolation",
-                    ]
-                    if len(set(pp_list).intersection(set(pp3_list))) > 1:
-                        raise PostProcessingException(
-                            "Only one geographical postprocessing at a time can be executed"
-                        )
                     try:
 
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
                         pp_output = None
                         if any(
-                            d["type"] == "derived_variables" for d in postprocessors
+                            d["processor_type"] == "derived_variables"
+                            for d in postprocessors
                         ):
                             p = next(
                                 item
                                 for item in postprocessors
-                                if item["type"] == "derived_variables"
+                                if item["processor_type"] == "derived_variables"
                             )
                             pp1_output = pp1.pp_derived_variables(
                                 datasets=datasets,
@@ -288,11 +276,12 @@ def data_extract(
                                 if ext_proc.wait() != 0:
                                     raise Exception("Failure in data extraction")
                         if any(
-                            d["type"] == "statistic_elaboration" for d in postprocessors
+                            d["processor_type"] == "statistic_elaboration"
+                            for d in postprocessors
                         ):
                             p = []
                             for item in postprocessors:
-                                if item["type"] == "statistic_elaboration":
+                                if item["processor_type"] == "statistic_elaboration":
                                     p.append(item)
                             # check if the input has to be the previous postprocess output
                             pp_input = ""
@@ -314,11 +303,14 @@ def data_extract(
                                 output=pp_output,
                                 fileformat=dataset_format,
                             )
-                        if any(d["type"] == "grid_cropping" for d in postprocessors):
+                        if any(
+                            d["processor_type"] == "grid_cropping"
+                            for d in postprocessors
+                        ):
                             p = next(
                                 item
                                 for item in postprocessors
-                                if item["type"] == "grid_cropping"
+                                if item["processor_type"] == "grid_cropping"
                             )
                             # check if the input has to be the previous postprocess output
                             pp_input = ""
@@ -338,12 +330,13 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                            d["type"] == "grid_interpolation" for d in postprocessors
+                            d["processor_type"] == "grid_interpolation"
+                            for d in postprocessors
                         ):
                             p = next(
                                 item
                                 for item in postprocessors
-                                if item["type"] == "grid_interpolation"
+                                if item["processor_type"] == "grid_interpolation"
                             )
                             # check if the input has to be the previous postprocess output
                             pp_input = ""
@@ -363,13 +356,13 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                            d["type"] == "spare_point_interpolation"
+                            d["processor_type"] == "spare_point_interpolation"
                             for d in postprocessors
                         ):
                             p = next(
                                 item
                                 for item in postprocessors
-                                if item["type"] == "spare_point_interpolation"
+                                if item["processor_type"] == "spare_point_interpolation"
                             )
                             # check if the input has to be the previous postprocess output
                             pp_input = ""
@@ -546,7 +539,7 @@ def observed_extraction(datasets, filters, reftime, outfile):
     fields, queries = dballe.parse_query_for_data_extraction(datasets, filters, reftime)
 
     # get db type
-    if reftime is not None:
+    if reftime:
         db_type = dballe.get_db_type(
             date_min=queries[fields.index("datetimemin")][0],
             date_max=queries[fields.index("datetimemax")][0],

@@ -12,8 +12,8 @@ def pp_grid_cropping(params, input, output):
         post_proc_cmd.append(
             "--trans-mode=s"
         )  # parametro opzionale per limitare l'uso della memoria elaborando un messaggio alla volta
-        post_proc_cmd.append("--trans-type={}".format(params.get("trans-type")))
-        post_proc_cmd.append("--sub-type={}".format(params.get("sub-type")))
+        post_proc_cmd.append("--trans-type={}".format(params.get("trans_type")))
+        post_proc_cmd.append("--sub-type={}".format(params.get("sub_type")))
 
         if "ilon" in params["boundings"]:
             post_proc_cmd.append("--ilon={}".format(params["boundings"]["ilon"]))

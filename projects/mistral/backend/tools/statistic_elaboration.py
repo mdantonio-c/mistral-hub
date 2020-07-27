@@ -3,45 +3,10 @@ import subprocess
 
 import eccodes
 from mistral.exceptions import PostProcessingException
-from restapi.exceptions import RestApiException
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 # conversion from grib1 to grib2 style
 ed1to2 = {3: 0, 4: 1, 5: 4, 0: 254}
-
-
-def validate_statistic_elaboration_params(params):
-    input = params["input-timerange"]
-    output = params["output-timerange"]
-    if input != output:
-        if input == 254:
-            if output == 1:
-                raise RestApiException(
-                    "Parameters for statistic elaboration are not correct",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
-            else:
-                return
-        if input == 0:
-            if output != 254:
-                raise RestApiException(
-                    "Parameters for statistic elaboration are not correct",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
-            else:
-                return
-        else:
-            raise RestApiException(
-                "Parameters for statistic elaboration are not correct",
-                status_code=hcodes.HTTP_BAD_REQUEST,
-            )
-    if input == output:
-        if input == 254:
-            raise RestApiException(
-                "Parameters for statistic elaboration are not correct",
-                status_code=hcodes.HTTP_BAD_REQUEST,
-            )
 
 
 def pp_statistic_elaboration(params, input, output, fileformat):
@@ -50,7 +15,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
     # get timeranges tuples
     trs = []
     for i in params:
-        timerange = (i.get("input-timerange"), i.get("output-timerange"))
+        timerange = (i.get("input_timerange"), i.get("output_timerange"))
         trs.append(timerange)
     log.debug("timeranges: {}", trs)
 
@@ -91,7 +56,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
         p = next(
             item
             for item in params
-            if item["input-timerange"] == tr[0] and item["output-timerange"] == tr[1]
+            if item["input_timerange"] == tr[0] and item["output_timerange"] == tr[1]
         )
         splitted_input = filebase + f"_%d_%d.{fileformat}.tmp" % tr
         tmp_output = filebase + f"_%d_%d_result.{fileformat}.tmp" % tr
@@ -152,7 +117,7 @@ def run_statistic_elaboration(params, input, output, fileformat):
         post_proc_cmd.append(libsim_tool)
         post_proc_cmd.append(
             "--comp-stat-proc={}:{}".format(
-                params.get("input-timerange"), params.get("output-timerange")
+                params.get("input_timerange"), params.get("output_timerange")
             )
         )
         post_proc_cmd.append(f"--comp-step={step}")
