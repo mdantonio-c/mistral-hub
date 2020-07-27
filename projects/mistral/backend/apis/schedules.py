@@ -19,7 +19,6 @@ class Schedules(EndpointResource):
         "/schedules/<schedule_id>": {
             "summary": "Get user schedules.",
             "description": "Returns a single schedule by ID",
-            "tags": ["schedule"],
             "responses": {
                 "200": {
                     "description": "List of user schedules.",
@@ -35,7 +34,6 @@ class Schedules(EndpointResource):
         "/schedules": {
             "summary": "Get user schedules.",
             "description": "Returns a single schedule by ID",
-            "tags": ["schedule"],
             "responses": {
                 "200": {
                     "description": "List of user schedules.",

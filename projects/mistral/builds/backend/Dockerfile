@@ -24,6 +24,7 @@ RUN apt-get update \
       libreadline6-dev \
       libpng16-16 \
       libjasper-dev \
+      libx11-6 \
       gdal-bin \
       python3-eccodes \
  && apt-get autoremove --yes \

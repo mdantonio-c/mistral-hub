@@ -27,7 +27,6 @@ class Templates(EndpointResource, Uploader):
         "/templates/<template_name>": {
             "summary": "Get a template filepath",
             "description": "Returns a single template by name",
-            "tags": ["templates"],
             "responses": {
                 "200": {
                     "description": "template filepath.",
@@ -42,7 +41,6 @@ class Templates(EndpointResource, Uploader):
         "/templates": {
             "summary": "Get templates",
             "description": "Returns the user templates list",
-            "tags": ["templates"],
             "responses": {
                 "200": {
                     "description": "List of user templates",
