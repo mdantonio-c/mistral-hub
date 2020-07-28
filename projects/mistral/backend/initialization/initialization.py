@@ -59,6 +59,13 @@ class Initializer:
                 "descr": "CC BY-SA 4.0",
                 "url": "https://creativecommons.org/licenses/by-sa/4.0/",
             },
+            {
+                "group_name": "CCBY-SA_COMPLIANT",
+                "name": "CCBY-NC-SA 3.0",
+                "descr": "CC BY-NC-SA 3.0",
+                "url": "https://creativecommons.org/licenses/by-nc-sa/3.0/",
+            },
+
         ]
         for el in license_data_to_insert:
             lic = self.sql.License.query.filter_by(name=el["name"]).first()
