@@ -1,11 +1,8 @@
-import os
-
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager as repo
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
-from mistral.tools import statistic_elaboration as pp2
 from restapi import decorators
 from restapi.exceptions import BadRequest, Forbidden, NotFound, RestApiException
 from restapi.models import AdvancedList, InputSchema, fields, validate
@@ -312,14 +309,15 @@ class Data(EndpointResource, Uploader):
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
         # clean up filters from unknown values
-        filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
+        if filters:
+            filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
 
         parsed_reftime = {}
         if reftime:
             dt_from = reftime.get("date_from")
             dt_to = reftime.get("date_to")
-            parsed_reftime["from"] = dt_from.strftime("%Y-%m-%dT%H:%M:%S")
-            parsed_reftime["to"] = dt_to.strftime("%Y-%m-%dT%H:%M:%S")
+            parsed_reftime["from"] = dt_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            parsed_reftime["to"] = dt_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         # clean up processors from unknown values
         # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
