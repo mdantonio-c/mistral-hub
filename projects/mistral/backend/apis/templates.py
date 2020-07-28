@@ -32,9 +32,6 @@ class Templates(EndpointResource, Uploader):
                     "description": "template filepath.",
                     "schema": {"$ref": "#/definitions/TemplateFile"},
                 },
-                "401": {
-                    "description": "This endpoint requires a valid authorization token"
-                },
                 "404": {"description": "template not found"},
             },
         },
@@ -45,9 +42,6 @@ class Templates(EndpointResource, Uploader):
                 "200": {
                     "description": "List of user templates",
                     "schema": {"$ref": "#/definitions/TemplateList"},
-                },
-                "401": {
-                    "description": "This endpoint requires a valid authorization token"
                 },
             },
         },

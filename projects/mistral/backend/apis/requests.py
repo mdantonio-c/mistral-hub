@@ -24,7 +24,6 @@ class UserRequests(EndpointResource):
                     "schema": {"$ref": "#/definitions/Requests"},
                 },
                 "404": {"description": "User has no requests"},
-                "401": {"description": "Current user is not allowed"},
             },
         }
     }
@@ -34,9 +33,6 @@ class UserRequests(EndpointResource):
             "responses": {
                 "200": {"description": "Request deleted successfully."},
                 "404": {"description": "Request does not exist."},
-                "401": {
-                    "description": "The user is not authorized to delete this request."
-                },
             },
         }
     }

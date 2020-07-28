@@ -328,9 +328,6 @@ class Schedules(EndpointResource):
                     "description": "List of user schedules.",
                     "schema": {"$ref": "#/definitions/Requests"},
                 },
-                "401": {
-                    "description": "This endpoint requires a valid authorization token"
-                },
                 "403": {"description": "User not allowed to get the schedule"},
                 "404": {"description": "The schedule does not exists"},
             },
@@ -342,9 +339,6 @@ class Schedules(EndpointResource):
                 "200": {
                     "description": "List of user schedules.",
                     "schema": {"$ref": "#/definitions/Requests"},
-                },
-                "401": {
-                    "description": "This endpoint requires a valid authorization token"
                 },
                 "403": {"description": "User not allowed to get the schedule"},
                 "404": {"description": "The schedule does not exists"},
@@ -370,7 +364,6 @@ class Schedules(EndpointResource):
                 "200": {"description": "schedule is succesfully disable/enable"},
                 "404": {"description": "schedule not found"},
                 "400": {"description": "schedule is already enabled/disabled"},
-                "401": {"description": "Current user is not allowed"},
             },
         }
     }
@@ -380,7 +373,6 @@ class Schedules(EndpointResource):
             "responses": {
                 "200": {"description": "schedule is succesfully disable/enable"},
                 "404": {"description": "schedule not found"},
-                "401": {"description": "Current user is not allowed"},
             },
         }
     }

@@ -23,7 +23,6 @@ class Usage(EndpointResource):
                     "description": "Disk usage information",
                     "schema": {"$ref": "#/definitions/StorageUsage"},
                 },
-                "401": {"description": "Authentication required"},
             },
         }
     }
