@@ -6,7 +6,6 @@ from datetime import datetime
 from restapi.connectors.sqlalchemy.models import User, db
 
 # Add (inject) attributes to User
-setattr(User, "my_custom_field", db.Column(db.String(255)))
 setattr(User, "disk_quota", db.Column(db.BigInteger, default=1073741824))  # 1 GB
 
 setattr(User, "requests", db.relationship("Request", backref="author", lazy="dynamic"))
@@ -17,6 +16,9 @@ setattr(
     User, "schedules", db.relationship("Schedule", backref="author", lazy="dynamic")
 )
 setattr(User, "amqp_queue", db.Column(db.String(255), nullable=True))
+# In days, 0 to disable.
+# Used by requests autocleaning to determine old requests to be deleted
+setattr(User, "requests_expiration_days", db.Column(db.Integer, default=0))
 
 
 class Request(db.Model):
