@@ -24,7 +24,6 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
 
     this.server_side_pagination = true;
     this.endpoint = "schedules";
-    this.counter_endpoint = "schedules";
     this.initPaging(20);
     this.list();
   }

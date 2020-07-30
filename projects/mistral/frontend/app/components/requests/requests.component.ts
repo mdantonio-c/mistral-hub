@@ -21,7 +21,6 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
 
     this.server_side_pagination = true;
     this.endpoint = "requests";
-    this.counter_endpoint = "requests";
     this.initPaging(20);
     this.list();
   }

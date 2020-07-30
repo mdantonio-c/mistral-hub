@@ -12,6 +12,7 @@ from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 OUTPUT_FORMATS = ["json", "bufr", "grib"]
+
 DERIVED_VARIABLES = [
     "B12194",  # Air density
     "B13003",  # Relative humidity
@@ -24,6 +25,16 @@ DERIVED_VARIABLES = [
     "B13003",  # Relative humidity
     "B13205",  # Snowfall (grid-scale + convective)
 ]
+
+SUBTYPES = [
+    "near",
+    "bilin",
+    "average",
+    "min",
+    "max",
+]
+
+TIMERANGES = [0, 1, 2, 3, 4, 6, 254]
 
 
 class AVProcessor(InputSchema):
@@ -40,15 +51,6 @@ class AVProcessor(InputSchema):
         min_items=1,
         required=True,
     )
-
-
-SUBTYPES = [
-    "near",
-    "bilin",
-    "average",
-    "min",
-    "max",
-]
 
 
 class SPIProcessor(InputSchema):
@@ -71,9 +73,6 @@ class SPIProcessor(InputSchema):
     sub_type = fields.Str(
         required=True, data_key="sub-type", validate=validate.OneOf(SUBTYPES)
     )
-
-
-TIMERANGES = [0, 1, 2, 3, 4, 6, 254]
 
 
 class SEProcessor(InputSchema):
