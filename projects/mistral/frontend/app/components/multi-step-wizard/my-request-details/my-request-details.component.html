@@ -72,6 +72,26 @@
             </p>
           </dd>
         </ng-container>
+        <ng-container *ngIf="p.type === 'grid_cropping'">
+          <dd class="col-sm-9">
+            <p>
+              {{ p["sub-type"] }} = {{ p.boundings.ilon | number: "1.3-3" }},
+              {{ p.boundings.ilat | number: "1.3-3" }},
+              {{ p.boundings.flon | number: "1.3-3" }},
+              {{ p.boundings.flat | number: "1.3-3" }}
+              <a
+                href="http://openstreetmap.org/?minlon={{
+                  p.boundings.ilon
+                }}&minlat={{ p.boundings.ilat }}&maxlon={{
+                  p.boundings.flon
+                }}&maxlat={{ p.boundings.flat }}"
+                target="_blank"
+              >
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </p>
+          </dd>
+        </ng-container>
       </ng-container>
     </dl>
   </dd>
