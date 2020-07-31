@@ -55,95 +55,92 @@ export class ProjectOptions {
 
   private initTemplates() {
     this.policy_it = `
-PERCHÉ QUESTE INFORMAZIONI
+<h5>PERCHÉ QUESTE INFORMAZIONI</h5>
 
-La presente informativa, resa ai sensi del Regolamento (UE) 2016/679 (di seguito "Regolamento"), descrive le modalità di trattamento dei dati personali degli utenti che consultano il sito web o accedono alla piattaforma meteo-hub del progetto Mistral (Progetto europeo CEF 2014-2020 AGREEMENT No INEA/CEF/ICT/A2017/1567101) accessibile per via telematica ai seguenti indirizzi web:
+La presente informativa, resa ai sensi del Regolamento (UE) 2016/679 (di seguito "Regolamento"), descrive le modalità di trattamento dei dati personali degli utenti che consultano il sito web o accedono alla piattaforma meteo-hub del progetto Mistral (Progetto europeo CEF 2014-2020 AGREEMENT No INEA/CEF/ICT/A2017/1567101) accessibile per via telematica ai seguenti indirizzi web:<br/>
+<ul>
+    <li>mistralportal.eu</li>
+    <li>mistralportal.it</li>
+    <li>meteo-hub.hpc.cineca.it</li>
+</ul>
+La presente informativa è resa unicamente per coloro che accedono ed interagiscono con i siti sopra riportati e non per tutti gli altri siti web eventualmente consultati dall'utente tramite i collegamenti ipertestuali presenti nel sito, per cui Cineca non è responsabile.<br/>
+<br/>
 
-mistralportal.eu
-mistralportal.it
-meteo-hub.hpc.cineca.it
+<h5>TITOLARE DEL TRATTAMENTO</h5> 
+Il "Titolare" del trattamento dei dati personali trattati a seguito della consultazione del nostro sito e di ogni altro dato inserito volontariamente dall'utente nella compilazione di form di richiesta di informazioni o utilizzo dei nostri servizi, è il "CINECA – Consorzio Interuniversitario – Via Magnanelli nr. 6/3 cap. 40033 Casalecchio di Reno (BO) – Tel. Centralino 051 6171411" e-mail: privacy@cineca.it <br/>
+<br/>
+<br/>
 
-La presente informativa è resa unicamente per coloro che accedono ed interagiscono con i siti sopra riportati e non per tutti gli altri siti web eventualmente consultati dall'utente tramite i collegamenti ipertestuali presenti nel sito, per cui Cineca non è responsabile.
+<h5>RESPONSABILE DELLA PROTEZIONE DEI DATI</h5>
+Il Responsabile della Protezione dei Dati (RPD) è raggiungibile al seguente indirizzo: Cineca Consorzio Interuniversitario – via Magnanelli 6/3 email: privacy@cineca.it<br/>
+<br/>
 
-Le forniamo quindi le seguenti informazioni: 
-
-IL TITOLARE DEL TRATTAMENTO 
-
-Il "Titolare" del trattamento dei dati personali trattati a seguito della consultazione del nostro sito e di ogni altro dato inserito volontariamente dall'utente nella compilazione di form di richiesta di informazioni o utilizzo dei nostri servizi, è il "CINECA – Consorzio Interuniversitario – Via Magnanelli nr. 6/3 cap. 40033 Casalecchio di Reno (BO) – Tel. Centralino 051 6171411" e-mail: privacy@cineca.it 
-
-
-Può rivolgersi al Titolare del trattamento scrivendo all’indirizzo sopra riportato o inviando una e-mail al seguente indirizzo di posta elettronica: privacy@cineca.it
-
-RESPONSABILE DELLA PROTEZIONE DEI DATI
-
-The Data Protection Officer (DPO) is present at Cineca, appointed pursuant to art. 37 of EU Regulation 2016/679. The data protection officer can be contacted at the following e-mail address: dpo@cineca.it
-
-
-BASE GIURIDICA DEL TRATTAMENTO
-
-La base giuridica del trattamento è rappresentata dal perseguimento del legittimo interesse del Cineca in quanto partner coordinatore del progetto Mistral, ai sensi dell’articolo 6 comma f) del Regolamento, alla pubblicazione su web del sito informativo di progetto volto alla diffusione delle attività ed iniziative di dissemination del progetto stesso.
-Il conferimento dei dati personali forniti volontariamente nella compilazione della form accessibile nella pagina CONTATTI del sito di Mistral o tramite l’invio di email o per la registrazione delle proprie credenziali di accesso,  è facoltativo.  L'eventuale rifiuto di conferirli può comportare l'impossibilità di fruire dei Servizi richiesti. I dati richiesti sono quelli strettamente necessari per rispondere alle richieste dell’utente (dati di contatto). 
+<h5>BASE GIURIDICA DEL TRATTAMENTO</h5>
+La base giuridica del trattamento è rappresentata dal perseguimento del legittimo interesse  del Titolare al corretto funzionamento dei sistemi informatici connessi alla funzionalità del sito, ovvero ai fini di rispondere alle richieste avanzate dagli utenti.
+<br/>
+Il conferimento dei dati personali forniti volontariamente nella compilazione del form accessibile nella pagina CONTATTI del sito di Mistral o tramite l’invio di email o per la registrazione delle proprie credenziali di accesso,  è facoltativo.  L'eventuale rifiuto di conferirli può comportare l'impossibilità di fruire dei Servizi richiesti. I dati richiesti sono quelli strettamente necessari per rispondere alle richieste dell’utente (dati di contatto).<br/> 
+<br/> 
 
  
 
-FINALITA' DEL TRATTAMENTO E TIPOLOGIA DI DATI TRATTATI 
+<h5>FINALITA' DEL TRATTAMENTO E TIPOLOGIA DI DATI TRATTATI</h5> 
 
-DATI INSERITI VOLONTARIAMENTE DALL'UTENTE 
+<h5>DATI INSERITI VOLONTARIAMENTE DALL'UTENTE</h5> 
 
 I dati personali forniti direttamente dagli utenti tramite la compilazione di form web based per l’invio di commenti o per  la registrazione al sito  al fine di ricevere  informazioni,o per l'autenticazione alla piattaforma digitale Meteo-hub,   verranno utilizzati per consentire l'invio del materiale informativo richiesto (newsletter, risposte a richieste di informazioni, invio di pubblicazioni “Mistral")e/o per consentire l'accesso alla piattaforma meteo-hub e la fruizione dei  servizi offerti e saranno eventualmente  comunicati unicamente agli altri enti partner del progetto.
+<br/>
+Nel caso in cui, per accedere ad eventuali servizi on line sia necessaria la registrazione dell’utente per l’accesso al servizio, i dati personali degli utenti (es. indirizzo di posta elettronica del mittente e altri dati personali inseriti nel form), effettuata la scelta del servizio, verranno trattati per le finalità connesse e/o funzionali al servizio prescelto. Specifiche informative di sintesi saranno riportate nelle pagine del sito predisposte per particolari servizi a richiesta.
+<br/> 
+<br/>
 
+<h5>DATI DI NAVIGAZIONE</h5> 
+I sistemi informatici e le procedure software, preposte al funzionamento di questo sito web, acquisiscono, nel corso del loro normale esercizio, alcuni dati la cui trasmissione è insita nell'uso dei protocolli di comunicazione di Internet. Si tratta di informazioni che non sono raccolte per essere associate a interessati identificati, ma che per loro stessa natura potrebbero, attraverso elaborazioni ed associazioni con dati detenuti da terzi, permettere di identificare gli utenti. In questa categoria di dati rientrano gli indirizzi IP o i nomi a dominio dei computer utilizzati dagli utenti che si connettono al sito, gli indirizzi in notazione URI (Uniform Resource Identifier: è una stringa che identifica univocamente una risorsa generica che può essere un indirizzo web, un documento, un file ecc. ) delle risorse richieste, l'orario della richiesta, il metodo utilizzato nel sottoporre la richiesta al server, la dimensione del file ottenuto in risposta, il codice numerico indicante lo stato della risposta data dal server (buon fine, errore, ecc.) ed altri parametri relativi al sistema operativo e all'ambiente informatico dell'utente (browser utilizzato dall'utente).<br/> 
+<br/>
+Il sistema non consente invece di raccogliere l'identità dell'utente che si collega. <br/> 
+<br/>
+Tali dati sono utilizzati unicamente su base aggregata e mai personalizzata, per analizzare statisticamente il comportamento dell'utenza al fine di comprendere come i visitatori utilizzano il sito e per misurare l'interesse riscontrato per le diverse pagine che compongono il sito. Ciò consente di migliorare il contenuto del sito e di semplificare e rendere più efficiente la consultazione. 
+<br/>
+Questi dati vengono utilizzati al solo fine di ricavare informazioni statistiche anonime sull'uso del sito e per controllarne il corretto funzionamento e sono conservati per il periodo necessario alle finalità definite nella presente informativa. I dati in questione potrebbero essere utilizzati per l'accertamento di responsabilità in caso di eventuali reati informatici ai danni del nostro sito, nel rispetto delle garanzie imposte dalla legge. Si precisa che l'utilizzo dei dati di navigazione e dei cookies non è in alcun modo finalizzato alla "profilazione dell'utente" e cioè una tecnica volta alla raccolta di informazioni sui consumatori per meglio indirizzare campagne promozionali e offerte di vendita.<br/> 
+<br/>
 
-DATI DI NAVIGAZIONE 
-
-I sistemi informatici e le procedure software, preposte al funzionamento di questo sito web, acquisiscono, nel corso del loro normale esercizio, alcuni dati la cui trasmissione è insita nell'uso dei protocolli di comunicazione di Internet. Si tratta di informazioni che non sono raccolte per essere associate a interessati identificati, ma che per loro stessa natura potrebbero, attraverso elaborazioni ed associazioni con dati detenuti da terzi, permettere di identificare gli utenti. In questa categoria di dati rientrano gli indirizzi IP o i nomi a dominio dei computer utilizzati dagli utenti che si connettono al sito, gli indirizzi in notazione URI (Uniform Resource Identifier: è una stringa che identifica univocamente una risorsa generica che può essere un indirizzo web, un documento, un file ecc. ) delle risorse richieste, l'orario della richiesta, il metodo utilizzato nel sottoporre la richiesta al server, la dimensione del file ottenuto in risposta, il codice numerico indicante lo stato della risposta data dal server (buon fine, errore, ecc.) ed altri parametri relativi al sistema operativo e all'ambiente informatico dell'utente (browser utilizzato dall'utente). 
-
-Il sistema non consente invece di raccogliere l'identità dell'utente che si collega. 
-
-Tali dati sono utilizzati unicamente su base aggregata e mai personalizzata, per analizzare statisticamente il comportamento dell'utenza al fine di comprendere come i visitatori utilizzano il sito e per misurare l'interesse riscontrato per le diverse pagine che compongono il sito. Ciò consente di migliorare il contenuto del sito e semplificarne e di rendere più efficiente la consultazione.
-
-Questi dati vengono utilizzati al solo fine di ricavare informazioni statistiche anonime sull'uso del sito e per controllarne il corretto funzionamento e sono conservati per il periodo necessario alle finalità definite nella presente informativa. I dati in questione potrebbero essere utilizzati per l'accertamento di responsabilità in caso di eventuali reati informatici ai danni del nostro sito, nel rispetto delle garanzie imposte dalla legge. Si precisa che l'utilizzo dei dati di navigazione e dei cookies non è in alcun modo finalizzato alla "profilazione dell'utente" e cioè una tecnica volta alla raccolta di informazioni sui consumatori per meglio indirizzare campagne promozionali e offerte di vendita.
-
-CONFIGURAZIONE DEI LOG DEL WEB SERVER DEL CINECA 
-
+<h5>CONFIGURAZIONE DEI LOG DEL WEB SERVER DEL CINECA </h5>
 Durante la navigazione il browser di ogni utente comunica al web server del Cineca l'indirizzo IP del navigatore. L'indirizzo IP è un numero assegnato automaticamente ad ogni computer durante la navigazione sul web.
-
+<br/>
 Il web server del Cineca è configurato in maniera tale da non consentire l'identificazione dell'utente (nome utente) associato all'indirizzo IP o altre informazioni di identità personale pertanto l'utente resta anonimo durante la visita del sito.
-
-L'UTILIZZO DI COOKIES E ALTRI SISTEMI DI TRACCIAMENTO
-
+<br/> 
+<br/>
+<h5>L'UTILIZZO DI COOKIES E ALTRI SISTEMI DI TRACCIAMENTO</h5>
 Si veda l'informativa disponibile al seguente URL:
-https://www.cineca.it/privacy/cookies-cineca
+https://www.cineca.it/privacy/cookies-cineca<br/> 
+<br/>
 
+<h5>DESTINATARI DEI DATI</h5>
+I destinatari dei dati raccolti a seguito della compilazione di form o invio di e-mail o sottoscrizione al sito sono gli eventuali Responsabili del trattamento nominati dal Titolare, nonché le persone fisiche all’interno del Cineca autorizzate al trattamento dei dati per le finalità sopra riportate.
+<br/>
+I dati della navigazione (indirizzo IP, sito di provenienza, browser utilizzati, S.O utilizzato, pagine visitate, tempo di permanenza nelle singole pagine ecc. ) alle pagine del sito mistralportal.eu e mistralportal.it sono unicamente trasmessi alla società Google che fornisce al Cineca il servizio denominato Google Analytics  (http://www.google.com/analytics/): si tratta di un servizio di elaborazione statistica degli accessi al sito, che vengono utilizzati unicamente all’interno del progetto Mistral,  per analizzare l'utilizzo del sito da parte degli utenti in un'ottica di miglioramento del servizio offerto e per rendere più rapido e facilmente accessibile l'utilizzo del sito.<br/> 
+<br/>
+Tali dati non vengono in alcun modo trattati per definire il profilo o la personalità dell'interessato, o per analizzare abitudini o scelte di consumo a fini commerciali.
+<br/> 
+I suoi dati personali non saranno soggetti a diffusione. <br/> 
+<br/>
 
+<h5>CONSERVAZIONE DEI DATI</h5>
+I dati di navigazione e i cookies devono saranno conservati per un massimo di sette giorni, salvo espressa richiesta dell’Autorità giudiziaria per l’accertamento di reati. I dati forniti volontariamente dagli utenti saranno conservati fino a quando necessario rispetto alle legittime finalità per le quali sono stati raccolti.<br/> 
+<br/>
 
-
-DESTINATARI DEI DATI
-
-I destinatari dei dati raccolti a seguito della compilazione di form o invio di e-mail o sottoscrizione al sito sono il Titolare del trattamento (Cineca) e gli eventuali Responsabili del trattamento nominati dal Titolare, nonché le persone fisiche all’interno del Cineca autorizzate al trattamento dei dati per le finalità sopra riportate. 
-
-I dati della navigazione (indirizzo IP, sito di provenienza, browser utilizzati, S.O utilizzato, pagine visitate, tempo di permanenza nelle singole pagine ecc. ) alle pagine del sito mistralportal.eu e mistralportal.it sono unicamente trasmessi alla società Google che fornisce al Cineca il servizio denominato Google Analytics  (http://www.google.com/analytics/): si tratta di un servizio di elaborazione statistica degli accessi al sito, che vengono utilizzati unicamente all’interno del progetto Mistral,  per analizzare l'utilizzo del sito da parte degli utenti in un'ottica di miglioramento del servizio offerto e per rendere più rapido e facilmente accessibile l'utilizzo del sito.
-
-Tali dati non vengono in alcun modo trattati per definire il profilo o la personalità dell'interessato, o per analizzare abitudini o scelte di consumo a fini commerciali. 
-
-I suoi dati personali non saranno soggetti a diffusione. 
-
-CONSERVAZIONE DEI DATI
-
-Salvo il caso in cui l’interessato non esprima la richiesta di cancellazione dei propri dati personali, i dati raccolti saranno conservati fino a che saranno necessari rispetto alle legittime finalità per le quali sono stati raccolti.
-
- 
-
-DIRITTI DELL’INTERESSATO E MODALITA’ DI ESERCIZIO 
-
-Si precisa che in riferimento ai suoi dati personali conferiti, è detentore dei seguenti diritti:
-
-1.	di accesso ai suoi dati personali;
-2.	di ottenere la rettifica o la cancellazione degli stessi o la limitazione del trattamento che lo riguardano;
-3.	di opporsi al trattamento;
-4.	di proporre reclamo all'autorità di controllo (Garante per la protezione dei dati personali)
-Per esercitare i diritti sopra riportati potrà rivolgersi al Titolare del trattamento al seguente indirizzo: Cineca Consorzio Interuniversitario – via Magnanelli 6/3, 40033 Casalecchio di Reno (BO) oppure all’indirizzo di posta elettronica: privacy@cineca.it all’attenzione del “Responsabile della protezione dei dati personali”.  Al fine di agevolare il rispetto dei termini di legge, si consiglia di riportare nella richiesta la dicitura "Esercizio diritti ex art. 15 e ss. del Regolamento Europeo n. 679 /2016".
-
-Il Titolare del trattamento è tenuto a fornirle una risposta entro un mese dalla richiesta, estensibili fino a tre mesi in caso di particolare complessità della richiesta. 
+<h5>DIRITTI DELL’INTERESSATO E MODALITA’ DI ESERCIZIO</h5> 
+Si precisa che in riferimento ai suoi dati personali conferiti, è detentore dei seguenti diritti:<br/> 
+<br/>
+<ol>
+<li>di accesso ai suoi dati personali;</li>
+<li>di ottenere la rettifica o la cancellazione degli stessi o la limitazione del trattamento che li riguarda;</li>
+<li>di opporsi al trattamento;</li>
+<li>di proporre reclamo all'autorità di controllo (Garante per la protezione dei dati personali)</li>
+</ol>
+Per esercitare i diritti sopra riportati potrà rivolgersi al Titolare del trattamento al seguente indirizzo: Cineca Consorzio Interuniversitario – via Magnanelli 6/3, 40033 Casalecchio di Reno (BO) oppure all’indirizzo di posta elettronica: privacy@cineca.it all’attenzione del “Responsabile della protezione dei dati personali”.  Al fine di agevolare il rispetto dei termini di legge, si consiglia di riportare nella richiesta la dicitura "Esercizio diritti ex art. 15 e ss. del Regolamento Europeo n. 679 /2016".<br/>
+<br/>
+Il Titolare del trattamento è tenuto a fornirle una risposta entro un mese dalla richiesta, estensibili fino a tre mesi in caso di particolare complessità della richiesta.<br/>
+<br/>
 `;
 
     this.policy_en = `
@@ -180,7 +177,7 @@ The personal data provided directly by users through the compilation of web base
 <br/>
 In the event that, in order to access any online services users registration is required, the personal data of the users (e.g. the sender's e-mail address and other personal data entered in the form), once the service has been chosen, will be processed for the purposes connected and/or functional to the chosen service. Specific summary policies will be reported on the pages of the site prepared for particular services.
 <br/>
-
+<br/>
 <h5>BROWSING DATA</h5>
 The computer systems and software procedures, responsible for the functioning of this website, acquire, during their normal operation, some data whose transmission is inherent in the use of Internet communication protocols. This information is not collected to be associated with identified interested parties, but by their very nature could, through processing and association with data held by third parties, allow users to be identified. This category of data includes IP addresses or domain names of computers used by users who connect to the site, URI (Uniform Resource Identifier: addresses) is a string that uniquely identifies a generic resource that can be a web address, a document, a file etc. of the requested resources, the time of the request, the method used in submitting the request to the server, the size of the file obtained in response, the numeric code indicating the status of the response given by the server (successful , error, etc.) and other parameters relating to the operating system and the user's computer environment (browser used by the user).<br/>
 <br/>
@@ -203,7 +200,7 @@ https://www.cineca.it/privacy/cookies-cineca<br/>
 <br/>
 
 <h5>DATA RECIPIENTS</h5>
-The recipients of the data collected after completing the form or sending an e-mail or subscription to the site are any Data Processors appointed by the Data Controller, as well as the physical persons within the Cineca authorized to process the data for the purposes indicated above<br/>.
+The recipients of the data collected after completing the form or sending an e-mail or subscription to the site are any Data Processors appointed by the Data Controller, as well as the physical persons within the Cineca authorized to process the data for the purposes indicated above.<br/>
 <br/>
 The browsing data (IP address, site of origin, browser used, OS used, pages visited, time spent on individual pages, etc.) on the pages of the website mistralportal.eu and mistralportal.it are only transmitted to the Google company that provides the Cineca the service called Google Analytics (http://www.google.com/analytics/): it is a service of statistical processing of site accesses, which are used only within the mistral project, to analyze usage of the site by users in order to improve the service offered and to make the use of the site quicker and easier to access.<br/>
 These data are not processed in any way to define the profile or personality of the person concerned, or to analyze habits or consumption choices for commercial purposes.<br/>
@@ -212,7 +209,7 @@ Your personal data will not be subject to disclosure.<br/>
 
 <h5>DATA STORAGE</h5>
 Browsing data and cookies must be kept for a maximum of seven days, unless expressly requested by the judicial authority for the detection of crimes.
-The data voluntarily provided by users will be kept as long as necessary with respect to the legitimate purposes for which they were collected
+The data voluntarily provided by users will be kept as long as necessary with respect to the legitimate purposes for which they were collected.
 <br/>
 <br/>
 
