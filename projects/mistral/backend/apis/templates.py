@@ -156,13 +156,6 @@ class Templates(EndpointResource, Uploader):
         currentpage=None,
         get_total=False,
     ):
-
-        if not get_total:
-            page, limit = self.get_paging()
-            # offset = (current_page - 1) * limit
-            log.debug("paging: page {0}, limit {1}", page, limit)
-        # come uso page e limit? nell'altro endpoint usa un metodo apposta per il db
-
         user = self.get_user()
 
         if template_name is not None:
