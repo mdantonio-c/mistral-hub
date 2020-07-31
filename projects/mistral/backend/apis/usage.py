@@ -23,13 +23,11 @@ class Usage(EndpointResource):
                     "description": "Disk usage information",
                     "schema": {"$ref": "#/definitions/StorageUsage"},
                 },
-                "401": {"description": "Authentication required"},
             },
         }
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
+    @decorators.auth.require()
     def get(self):
         """
         Get actual user disk quota and current usage

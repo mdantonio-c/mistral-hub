@@ -68,6 +68,7 @@ export class ObsMapComponent {
         const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
         let res: string = "" + childCount;
         let c = " marker-cluster-";
+        let dirtyCluster = false;
         if (childCount < 10) {
           c += "small";
         } else if (childCount < 100) {
@@ -78,33 +79,46 @@ export class ObsMapComponent {
         let type: string;
         if (childMarkers[0].options["data"]) {
           let mean = 0,
-            medians: number[] = [];
+            medians: number[] = [],
+            dirtyMedians: number[] = [];
           for (const m of childMarkers) {
             const obsData: ObsData = m.options["data"];
-            //console.log("test ",m.options['data']['value'])
             if (!type) {
               type = obsData.varcode;
             }
             // mean += obsData.values.filter(v => v.is_reliable).map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-            // let median = ObsService.median(obsData.values.filter(v => v.is_reliable).map(v => v.value));
-            //let median = ObsService.median(obsData.filter(v => v.is_reliable).map(v => v.value));
-            // if (Number.isNaN(median)) {
-            //     // do not consider this median in the cluster median
-            //     continue;
-            // }
-            medians.push(obsData.values.value);
-            // FIXME what about if all medians results in a NaN?
+            let median = ObsService.median(
+              obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
+            );
+            // calculates the median of all values including unreliable ones
+            let dirtyMedian = ObsService.median(
+              obsData.values.map((v) => v.value)
+            );
+            dirtyMedians.push(dirtyMedian);
+            if (Number.isNaN(median)) {
+              // do not consider this median in the cluster median
+              continue;
+            }
+            medians.push(median);
           }
           // get the median instead of the mean
           // let val = mean/childCount;
-          let val = ObsService.median(medians);
+          let val =
+            medians.length > 0
+              ? ObsService.median(medians)
+              : ((dirtyCluster = true), ObsService.median(dirtyMedians));
           res = ObsService.showData(val, type, 3);
 
           // custom background color of cluster
           c = " mst-marker-color-" + srv.getColor(val, srv.min, srv.max);
         }
+        let warn = "";
+        if (dirtyCluster) {
+          warn =
+            '<i class="fas fa-exclamation-triangle fa-lg dirty-cluster"></i>';
+        }
         return new L.DivIcon({
-          html: "<div><span>" + res + "</span></div>",
+          html: "<div>" + warn + "<span>" + res + "</span></div>",
           className: "marker-cluster" + c,
           iconSize: new L.Point(40, 40),
         });
@@ -113,16 +127,7 @@ export class ObsMapComponent {
   }
 
   onMapReady(map: L.Map) {
-    console.log("ready");
     this.map = map;
-    /*        var popup = new L.Popup({closeButton: false, offset: new L.Point(0.5, -24)});
-                var oms = new OverlappingMarkerSpiderfier(this.map);
-                oms.addListener('click', function(marker) {
-                    console.log('click!')
-                popup.setContent('pippo');
-                popup.setLatLng(marker.getLatLng());
-                map.openPopup(popup);
-              });*/
   }
 
   markerClusterReady(group: L.MarkerClusterGroup) {
@@ -179,23 +184,18 @@ export class ObsMapComponent {
     const markers: L.Marker[] = [];
     let min: number, max: number;
     let obsData: ObsData;
-    let obsData_for_max: ObsData;
     if (!onlyStations) {
       // min and max needed before data marker creation
       data.forEach((s) => {
-        obsData_for_max = s.products.find((x) => x.varcode === product);
+        obsData = s.products.find((x) => x.varcode === product);
         let localMin = Math.min(
-          ...obsData_for_max.values
-            .filter((v) => v.is_reliable)
-            .map((v) => v.value)
+          ...obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
         );
         if (!min || localMin < min) {
           min = localMin;
         }
         let localMax = Math.max(
-          ...obsData_for_max.values
-            .filter((v) => v.is_reliable)
-            .map((v) => v.value)
+          ...obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
         );
         if (!max || localMax > max) {
           max = localMax;
@@ -205,23 +205,12 @@ export class ObsMapComponent {
     data.forEach((s) => {
       let icon;
       if (!onlyStations) {
-        //let obsData = s.products.values[0]
-        //obsData['data'] = product_data.values[0]
-        //obsData.varcode = s.products.varcode
-        let general_obsData: ObsData;
-        general_obsData = s.products.find((x) => x.varcode === product);
         obsData = s.products.find((x) => x.varcode === product);
-
-        //obsData.varcode = obsData_for_max.varcode
-        obsData.values = general_obsData.values[0];
-        //console.log('create obsdata', obsData)
-
-        //obsData = s.products.find(x => x.varcode === product);
         // get the median instead of the mean
         // let val = obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-        // let val = ObsService.median(obsData.values.filter(v => v.is_reliable).map(v => v.value));
-        //let val = ObsService.median(obsData.values.filter(v => v.is_reliable).map(v => v.value));
-        let val = obsData.values.value;
+        let val = ObsService.median(
+          obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
+        );
         if (Number.isNaN(val)) {
           // at the moment is all the values are unreliable calculate the median and show it anyway
           // TO BE CHECKED
@@ -250,38 +239,13 @@ export class ObsMapComponent {
       marker.options["station"] = s.station;
       if (s.products) {
         marker.options["data"] = obsData;
-        //console.log('***** ',obsData)
       }
 
       marker.bindTooltip(this.buildTooltipTemplate(s.station), {
         direction: "top",
         offset: [3, -8],
       });
-      // marker.on('click',(event) => {console.log('ciao',event)})
-      marker.on("click", (event) =>
-        this.markerClick(event, s.station.lat, s.station.lon)
-      );
       markers.push(marker);
-
-      ///////// tests
-      //obsData.values = obsData_for_max.values[1]
-      //console.log("again ",  obsData)
-      let fake_val: number = obsData.values.value;
-      let second_icon = L.divIcon({
-        html: `<div class="mstDataIcon"><span>${ObsService.showData(
-          fake_val,
-          product
-        )}</span></div>`,
-        iconSize: [24, 6],
-        className:
-          "leaflet-marker-icon mst-marker-color-" +
-          this.obsService.getColor(fake_val, min, max),
-      });
-      const second_marker = new L.Marker([s.station.lat, s.station.lon], {
-        icon: second_icon,
-      });
-      second_marker.options["data"] = obsData;
-      markers.push(second_marker);
     });
 
     if (!onlyStations && data.length > 0) {
@@ -297,20 +261,6 @@ export class ObsMapComponent {
     this.markerClusterGroup.addLayers(markers);
 
     this.fitBounds();
-  }
-
-  markerClick(event, lat, lon) {
-    console.log("marker click");
-    /*let icon;
-        icon = L.divIcon({
-            html: '<i class="fa fa-map-marker-alt fa-3x"></i>',
-            iconSize: [20, 20],
-            className: 'mstDivIcon'
-        });
-        const marker = new L.Marker([lat, lon], {
-            icon: icon
-        });
-        this.markerClusterGroup.addLayers(marker)*/
   }
 
   private buildTooltipTemplate(station: Station) {

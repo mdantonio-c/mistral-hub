@@ -25,6 +25,7 @@ projects/mistral/frontend/assets/images/tiles
 ############################################
 
 .env
+.rapydo
 
 ###################################
 ##  Temporary and miscellaneous  ##

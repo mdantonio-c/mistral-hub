@@ -1,16 +1,23 @@
+import os
 import subprocess
 
 from mistral.exceptions import PostProcessingException
+from restapi.exceptions import BadRequest
 from restapi.utilities.logs import log
+
+
+def check_template_filepath(template_file):
+    if not os.path.exists(template_file):
+        raise BadRequest("the template file does not exists")
 
 
 def get_trans_type(params):
     # get trans-type according to the sub-type coming from the request
-    sub_type = params["sub-type"]
+    sub_type = params["sub_type"]
     if sub_type in ("near", "bilin"):
-        params["trans-type"] = "inter"
+        params["trans_type"] = "inter"
     if sub_type in ("average", "min", "max"):
-        params["trans-type"] = "boxinter"
+        params["trans_type"] = "boxinter"
 
 
 def pp_grid_interpolation(params, input, output):
@@ -18,8 +25,8 @@ def pp_grid_interpolation(params, input, output):
     try:
         post_proc_cmd = []
         post_proc_cmd.append("vg6d_transform")
-        post_proc_cmd.append("--trans-type={}".format(params.get("trans-type")))
-        post_proc_cmd.append("--sub-type={}".format(params.get("sub-type")))
+        post_proc_cmd.append("--trans-type={}".format(params.get("trans_type")))
+        post_proc_cmd.append("--sub-type={}".format(params.get("sub_type")))
 
         # check if there is a grib file template. If not, looks for others interpolation params
         if "template" in params:
@@ -29,21 +36,21 @@ def pp_grid_interpolation(params, input, output):
         else:
             # vg6d_transform automatically provides defaults for missing optional params
             if "boundings" in params:
-                if "x-min" in params["boundings"]:
+                if "x_min" in params["boundings"]:
                     post_proc_cmd.append(
-                        "--x-min={}".format(params["boundings"]["x-min"])
+                        "--x-min={}".format(params["boundings"]["x_min"])
                     )
-                if "x-max" in params["boundings"]:
+                if "x_max" in params["boundings"]:
                     post_proc_cmd.append(
-                        "--x-max={}".format(params["boundings"]["x-max"])
+                        "--x-max={}".format(params["boundings"]["x_max"])
                     )
-                if "y-min" in params["boundings"]:
+                if "y_min" in params["boundings"]:
                     post_proc_cmd.append(
-                        "--y-min={}".format(params["boundings"]["y-min"])
+                        "--y-min={}".format(params["boundings"]["y_min"])
                     )
-                if "y-max" in params["boundings"]:
+                if "y_max" in params["boundings"]:
                     post_proc_cmd.append(
-                        "--y-max={}".format(params["boundings"]["y-max"])
+                        "--y-max={}".format(params["boundings"]["y_max"])
                     )
             if "nodes" in params:
                 if "nx" in params["nodes"]:

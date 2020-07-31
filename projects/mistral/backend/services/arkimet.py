@@ -29,9 +29,7 @@ class BeArkimet:
     )
 
     allowed_processors = ("additional_variables",)
-
-    allowed_licenses = ("CCBY",)
-
+    allowed_licenses = ("CCBY4.0", "CCBY-SA4.0")
     arkimet_conf = "/arkimet/config/arkimet.conf"
 
     @staticmethod
@@ -82,16 +80,16 @@ class BeArkimet:
         cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
         licenses = set()
         for ds in [a for a in cfg.items() if a[0] in datasets]:
-            id = ds[0]
+            id_ = ds[0]
             val = ds[1].get("_license")
             if not val:
-                raise InvalidLicenseException(f"Missing license for dataset {id}")
+                raise InvalidLicenseException(f"Missing license for dataset {id_}")
             val = val.upper()
             if val not in BeArkimet.allowed_licenses:
                 raise InvalidLicenseException(
                     "Unexpected license <{}> for dataset {}. "
                     "Allowed licenses are {}".format(
-                        val, id, list(BeArkimet.allowed_licenses)
+                        val, id_, list(BeArkimet.allowed_licenses)
                     )
                 )
             licenses.add(val)
@@ -100,6 +98,37 @@ class BeArkimet:
             if len(licenses) == 1
             else InvalidLicenseException(
                 f"Datasets do not share the same license. {licenses}"
+            )
+        )
+
+    @staticmethod
+    def check_compatible_licenses(db, datasets):
+        """
+        Check that the datasets belong to compatible licenses.
+        :param db: database instance service
+        :param datasets: list of datasets
+        :return: shared license group
+        """
+        if not datasets:
+            raise ValueError("Unexpected empty datasets list")
+        cfg_sections = Sections()
+        cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
+        groups_of_licenses = set()
+        for ds in [a for a in cfg.items() if a[0] in datasets]:
+            id = ds[0]
+            license_name = ds[1].get("_license")
+            if not license_name:
+                raise InvalidLicenseException(f"Missing license for dataset {id}")
+            # get the license group
+            license_ = db.License.query.filter_by(name=license_name).first()
+            group_license_id = license_.group_license_id
+            gp_license = db.GroupLicense.query.filter_by(id=group_license_id).first()
+            groups_of_licenses.add(gp_license)
+        return (
+            list(groups_of_licenses)[0]
+            if len(groups_of_licenses) == 1
+            else InvalidLicenseException(
+                f"Datasets do not share the same license group. {groups_of_licenses}"
             )
         )
 

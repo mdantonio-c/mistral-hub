@@ -1,13 +1,12 @@
-import { Component } from '@angular/core';
-import * as moment from 'moment';
-import { environment } from '@rapydo/../environments/environment'
+import { Component } from "@angular/core";
+import * as moment from "moment";
+import { environment } from "@rapydo/../environments/environment";
 
 @Component({
-  selector: 'customfooter',
-  templateUrl: './custom.footer.html',
+  selector: "customfooter",
+  templateUrl: "./custom.footer.html",
 })
 export class CustomFooterComponent {
-
   public project: string;
   public version: string;
   public from_year: number = 2019;
@@ -20,5 +19,4 @@ export class CustomFooterComponent {
     this.project = t;
     this.version = environment.projectVersion;
   }
-
 }

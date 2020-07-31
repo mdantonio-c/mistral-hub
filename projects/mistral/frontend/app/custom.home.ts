@@ -1,11 +1,9 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input } from "@angular/core";
 
 @Component({
-  selector: 'home',
-  templateUrl: './custom.home.html',
+  selector: "home",
+  templateUrl: "./custom.home.html",
 })
 export class HomeComponent {
-
-	constructor() { }
-
+  constructor() {}
 }

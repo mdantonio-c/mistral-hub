@@ -1,7 +1,6 @@
 import datetime
 import glob
 import os
-import shlex
 import subprocess
 import tarfile
 
@@ -12,7 +11,6 @@ from mistral.exceptions import (
     DiskQuotaException,
     PostProcessingException,
 )
-from mistral.services.arkimet import DATASET_ROOT
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from mistral.services.requests_manager import RequestManager
@@ -24,7 +22,6 @@ from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi.confs import get_backend_url
 from restapi.connectors.celery import CeleryExt
-from restapi.services.mail import send_mail
 from restapi.utilities.logs import log
 from restapi.utilities.templates import get_html_template
 
@@ -48,7 +45,6 @@ def data_extract(
     schedule_id=None,
     data_ready=None,
 ):
-
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]", self.request.id, self.name)
         extra_msg = ""
@@ -68,11 +64,11 @@ def data_extract(
                 reftime = adapt_reftime(schedule, reftime, data_ready)
 
                 # create an entry in request db linked to the scheduled request entry
-                product_name = RequestManager.get_schedule_name(db, schedule_id)
+                request_name = RequestManager.get_schedule_name(db, schedule_id)
                 request = RequestManager.create_request_record(
                     db,
                     user_id,
-                    product_name,
+                    request_name,
                     {
                         "datasets": datasets,
                         "reftime": reftime,
@@ -108,7 +104,7 @@ def data_extract(
                 if filters is not None:
                     query = arki.parse_matchers(filters)
                     log.debug("Arkimet query: {}", query)
-                if reftime is not None:
+                if reftime:
                     reftime_query = arki.parse_reftime(reftime["from"], reftime["to"])
                     query = (
                         ";".join([reftime_query, query])
@@ -122,14 +118,7 @@ def data_extract(
             os.makedirs(user_dir, exist_ok=True)
 
             # check that the datasets are all under the same license
-            license = arki.get_unique_license(datasets)
-            log.debug("license: {}", license)
-            # get license file
-            license_file = os.path.join(
-                os.curdir, "mistral", "licenses", f"{license}.txt"
-            )
-            if not os.path.isfile(license_file):
-                raise OSError("License file not found")
+            arki.check_compatible_licenses(db, datasets)
 
             # output filename in the user space
             # max filename len = 64
@@ -160,7 +149,7 @@ def data_extract(
                 log.debug(postprocessors)
                 # check if requested postprocessors are enabled
                 for p in postprocessors:
-                    pp_type = p.get("type")
+                    pp_type = p.get("processor_type")
                     enabled_postprocessors = (
                         "derived_variables",
                         "grid_interpolation",
@@ -186,7 +175,7 @@ def data_extract(
                 if len(postprocessors) == 1:
                     try:
                         p = postprocessors[0]
-                        pp_type = p.get("type")
+                        pp_type = p.get("processor_type")
 
                         if pp_type == "derived_variables":
                             pp1_output = pp1.pp_derived_variables(
@@ -250,30 +239,18 @@ def data_extract(
 
                 # case of multiple postprocessor
                 else:
-                    # check if there is only one geographical postprocessor
-                    pp_list = []
-                    for p in postprocessors:
-                        pp_list.append(p["type"])
-                    pp3_list = [
-                        "grid_cropping",
-                        "grid_interpolation",
-                        "spare_point_interpolation",
-                    ]
-                    if len(set(pp_list).intersection(set(pp3_list))) > 1:
-                        raise PostProcessingException(
-                            "Only one geographical postprocessing at a time can be executed"
-                        )
                     try:
 
                         tmp_extraction_basename = os.path.basename(tmp_outfile)
                         pp_output = None
                         if any(
-                            d["type"] == "derived_variables" for d in postprocessors
+                            d["processor_type"] == "derived_variables"
+                            for d in postprocessors
                         ):
                             p = next(
                                 item
                                 for item in postprocessors
-                                if item["type"] == "derived_variables"
+                                if item["processor_type"] == "derived_variables"
                             )
                             pp1_output = pp1.pp_derived_variables(
                                 datasets=datasets,
@@ -299,11 +276,12 @@ def data_extract(
                                 if ext_proc.wait() != 0:
                                     raise Exception("Failure in data extraction")
                         if any(
-                            d["type"] == "statistic_elaboration" for d in postprocessors
+                            d["processor_type"] == "statistic_elaboration"
+                            for d in postprocessors
                         ):
                             p = []
                             for item in postprocessors:
-                                if item["type"] == "statistic_elaboration":
+                                if item["processor_type"] == "statistic_elaboration":
                                     p.append(item)
                             # check if the input has to be the previous postprocess output
                             pp_input = ""
@@ -325,11 +303,14 @@ def data_extract(
                                 output=pp_output,
                                 fileformat=dataset_format,
                             )
-                        if any(d["type"] == "grid_cropping" for d in postprocessors):
+                        if any(
+                            d["processor_type"] == "grid_cropping"
+                            for d in postprocessors
+                        ):
                             p = next(
                                 item
                                 for item in postprocessors
-                                if item["type"] == "grid_cropping"
+                                if item["processor_type"] == "grid_cropping"
                             )
                             # check if the input has to be the previous postprocess output
                             pp_input = ""
@@ -349,12 +330,13 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                            d["type"] == "grid_interpolation" for d in postprocessors
+                            d["processor_type"] == "grid_interpolation"
+                            for d in postprocessors
                         ):
                             p = next(
                                 item
                                 for item in postprocessors
-                                if item["type"] == "grid_interpolation"
+                                if item["processor_type"] == "grid_interpolation"
                             )
                             # check if the input has to be the previous postprocess output
                             pp_input = ""
@@ -374,13 +356,13 @@ def data_extract(
                                 params=p, input=pp_input, output=pp_output
                             )
                         if any(
-                            d["type"] == "spare_point_interpolation"
+                            d["processor_type"] == "spare_point_interpolation"
                             for d in postprocessors
                         ):
                             p = next(
                                 item
                                 for item in postprocessors
-                                if item["type"] == "spare_point_interpolation"
+                                if item["processor_type"] == "spare_point_interpolation"
                             )
                             # check if the input has to be the previous postprocess output
                             pp_input = ""
@@ -446,24 +428,12 @@ def data_extract(
                         human_size(data_size - esti_data_size),
                     )
 
-            utc_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ.%f")
-            # package data and license
-            tar_filename = f"data-{utc_now}.tar.gz"
-            tar_file = os.path.join(user_dir, tar_filename)
-            with tarfile.open(tar_file, "w:gz") as tar:
-                log.debug("--TAR ARCHIVE-------------------------")
-                log.debug("data file: {}", outfile)
-                tar.add(outfile, arcname=os.path.basename(outfile))
-                log.debug("license file: {}", license_file)
-                tar.add(license_file, arcname="LICENSE")
-                log.debug("--------------------------------------")
-
-            # delete out_filename
-            os.remove(outfile)
+            # target result
+            target_filename = os.path.basename(outfile)
 
             # create fileoutput record in db
             RequestManager.create_fileoutput_record(
-                db, user_id, request_id, tar_filename, data_size
+                db, user_id, request_id, target_filename, data_size
             )
             # update request status
             request.status = states.SUCCESS
@@ -510,14 +480,14 @@ def data_extract(
                 try:
                     rabbit = celery_app.get_service("rabbitmq")
                     host = get_backend_url()
-                    url = f"{host}/api/data/{tar_filename}"
+                    url = f"{host}/api/data/{target_filename}"
                     rabbit_msg = {
                         "task_id": self.request.id,
                         "schedule_id": schedule_id,
                         "status": request.status,
                     }
                     if request.error_message is None:
-                        rabbit_msg["filename"] = tar_filename
+                        rabbit_msg["filename"] = target_filename
                         rabbit_msg["url"] = url
                     else:
                         rabbit_msg["error_message"] = request.error_message
@@ -527,18 +497,6 @@ def data_extract(
                     log.debug("push notification sent to {}", amqp_queue)
                 except BaseException:
                     notificate_by_email(db, user_id, request, extra_msg)
-
-
-def notificate_by_email(db, user_id, request, extra_msg):
-    # user notification via email
-    user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
-    body_msg = (
-        request.error_message
-        if request.error_message is not None
-        else "Your data is ready for " "downloading"
-    )
-    body_msg += extra_msg
-    send_result_notication(user_email, request.name, request.status, body_msg)
 
 
 def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
@@ -581,7 +539,7 @@ def observed_extraction(datasets, filters, reftime, outfile):
     fields, queries = dballe.parse_query_for_data_extraction(datasets, filters, reftime)
 
     # get db type
-    if reftime is not None:
+    if reftime:
         db_type = dballe.get_db_type(
             date_min=queries[fields.index("datetimemin")][0],
             date_max=queries[fields.index("datetimemax")][0],
@@ -596,11 +554,16 @@ def observed_extraction(datasets, filters, reftime, outfile):
         dballe.extract_data(datasets, fields, queries, outfile, db_type)
 
 
-def send_result_notication(recipient, title, status, message):
+def notificate_by_email(db, user_id, request, extra_msg):
     """Send email notification. """
-    replaces = {"title": title, "status": status, "message": message}
+    user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
+    body_msg = request.error_message or "Your data is ready for downloading"
+    body_msg += extra_msg
+
+    replaces = {"title": request.name, "status": request.status, "message": body_msg}
     body = get_html_template("data_extraction_result.html", replaces)
-    send_mail(body, "MeteoHub: data extraction completed", recipient, plain_body=body)
+    smtp = celery_app.get_service("smtp")
+    smtp.send(body, "MeteoHub: data extraction completed", user_email, plain_body=body)
 
 
 def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
@@ -630,3 +593,26 @@ def adapt_reftime(schedule, reftime, data_ready):
             new_reftime["from"] = reftime["to"] - time_delta_from
             new_reftime["to"] = reftime["to"]
     return new_reftime
+
+
+def package_data_license(user_dir, out_file, license_file):
+    """
+    Create a tar.gz including output and license files.
+    :param user_dir:
+    :param out_file:
+    :param license_file:
+    :return:
+    """
+    utc_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ.%f")
+    tar_filename = f"data-{utc_now}.tar.gz"
+    tar_file = os.path.join(user_dir, tar_filename)
+    with tarfile.open(tar_file, "w:gz") as tar:
+        log.debug("--TAR ARCHIVE-------------------------")
+        log.debug("data file: {}", out_file)
+        tar.add(out_file, arcname=os.path.basename(out_file))
+        log.debug("license file: {}", license_file)
+        tar.add(license_file, arcname="LICENSE")
+        log.debug("--------------------------------------")
+    # delete out_filename
+    os.remove(out_file)
+    return tar_filename

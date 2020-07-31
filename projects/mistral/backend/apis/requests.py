@@ -1,10 +1,9 @@
 import json
 
-from flask_apispec import use_kwargs
-from marshmallow import fields, validate
 from mistral.services.requests_manager import RequestManager as repo
 from restapi import decorators
 from restapi.exceptions import RestApiException
+from restapi.models import fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -25,7 +24,6 @@ class UserRequests(EndpointResource):
                     "schema": {"$ref": "#/definitions/Requests"},
                 },
                 "404": {"description": "User has no requests"},
-                "401": {"description": "Current user is not allowed"},
             },
         }
     }
@@ -35,17 +33,13 @@ class UserRequests(EndpointResource):
             "responses": {
                 "200": {"description": "Request deleted successfully."},
                 "404": {"description": "Request does not exist."},
-                "401": {
-                    "description": "The user is not authorized to delete this request."
-                },
             },
         }
     }
 
-    @decorators.catch_errors()
+    @decorators.auth.require()
     @decorators.get_pagination
-    @decorators.auth.required()
-    @use_kwargs(
+    @decorators.use_kwargs(
         {
             "sort_order": fields.Str(
                 validate=validate.OneOf(["asc", "desc"]), required=False
@@ -109,8 +103,7 @@ class UserRequests(EndpointResource):
 
         return self.response(data, code=hcodes.HTTP_OK_BASIC)
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
+    @decorators.auth.require()
     def delete(self, request_id):
         log.debug("delete request {}", request_id)
 

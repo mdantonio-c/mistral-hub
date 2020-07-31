@@ -14,10 +14,5 @@
     "@asymmetrik/ngx-leaflet-draw": "6.0.1",
     "@asymmetrik/ngx-leaflet-markercluster": "4.0.0"
   },
-
-  "devDependencies": {
-    "@types/leaflet": "1.5.12",
-    "@types/leaflet-draw": "1.0.2"
-  }
+  "devDependencies": {}
 }
-

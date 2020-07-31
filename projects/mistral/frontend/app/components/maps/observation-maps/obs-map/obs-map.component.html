@@ -1,17 +1,24 @@
 <div class="fill p-2">
-    <div class="map"
-         leaflet
-         (leafletMapReady)="onMapReady($event)"
-         [leafletOptions]="options"
-
-         [leafletMarkerCluster]="markerClusterData"
-         [leafletMarkerClusterOptions]="markerClusterOptions"
-         (leafletMarkerClusterReady)="markerClusterReady($event)">
-        <div class="leaflet-top leaflet-right">
-            <div class="leaflet-control leaflet-bar">
-                <a [routerLink]="" (click)="fitBounds()" title="Fit bounds" role="button" aria-label="Fit bounds"><i
-                        class="fas fa-compress-arrows-alt"></i></a>
-            </div>
-        </div>
+  <div
+    class="map"
+    leaflet
+    (leafletMapReady)="onMapReady($event)"
+    [leafletOptions]="options"
+    [leafletMarkerCluster]="markerClusterData"
+    [leafletMarkerClusterOptions]="markerClusterOptions"
+    (leafletMarkerClusterReady)="markerClusterReady($event)"
+  >
+    <div class="leaflet-top leaflet-right">
+      <div class="leaflet-control leaflet-bar">
+        <a
+          [routerLink]=""
+          (click)="fitBounds()"
+          title="Fit bounds"
+          role="button"
+          aria-label="Fit bounds"
+          ><i class="fas fa-compress-arrows-alt"></i
+        ></a>
+      </div>
     </div>
+  </div>
 </div>

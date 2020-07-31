@@ -26,16 +26,16 @@
   letter-spacing: 2px;
   position: absolute;
   bottom: 0;
-  transition: opacity .25s;
+  transition: opacity 0.25s;
 }
 .btn-toggle:before {
-  content: 'Off';
+  content: "Off";
   left: -4rem;
 }
 .btn-toggle:after {
-  content: 'On';
+  content: "On";
   right: -4rem;
-  opacity: .5;
+  opacity: 0.5;
 }
 .btn-toggle > .handle {
   position: absolute;
@@ -45,17 +45,17 @@
   height: 1.125rem;
   border-radius: 1.125rem;
   background: #fff;
-  transition: left .25s;
+  transition: left 0.25s;
 }
 .btn-toggle.active {
   transition: background-color 0.25s;
 }
 .btn-toggle.active > .handle {
   left: 1.6875rem;
-  transition: left .25s;
+  transition: left 0.25s;
 }
 .btn-toggle.active:before {
-  opacity: .5;
+  opacity: 0.5;
 }
 .btn-toggle.active:after {
   opacity: 1;
@@ -64,7 +64,7 @@
 .btn-toggle.btn-sm:after {
   line-height: -0.5rem;
   color: #fff;
-  letter-spacing: .75px;
+  letter-spacing: 0.75px;
   left: 0.4125rem;
   width: 2.325rem;
 }
@@ -118,16 +118,16 @@
   letter-spacing: 2px;
   position: absolute;
   bottom: 0;
-  transition: opacity .25s;
+  transition: opacity 0.25s;
 }
 .btn-toggle.btn-lg:before {
-  content: 'Off';
+  content: "Off";
   left: -5rem;
 }
 .btn-toggle.btn-lg:after {
-  content: 'On';
+  content: "On";
   right: -5rem;
-  opacity: .5;
+  opacity: 0.5;
 }
 .btn-toggle.btn-lg > .handle {
   position: absolute;
@@ -137,17 +137,17 @@
   height: 1.875rem;
   border-radius: 1.875rem;
   background: #fff;
-  transition: left .25s;
+  transition: left 0.25s;
 }
 .btn-toggle.btn-lg.active {
   transition: background-color 0.25s;
 }
 .btn-toggle.btn-lg.active > .handle {
   left: 2.8125rem;
-  transition: left .25s;
+  transition: left 0.25s;
 }
 .btn-toggle.btn-lg.active:before {
-  opacity: .5;
+  opacity: 0.5;
 }
 .btn-toggle.btn-lg.active:after {
   opacity: 1;
@@ -156,7 +156,7 @@
 .btn-toggle.btn-lg.btn-sm:after {
   line-height: 0.5rem;
   color: #fff;
-  letter-spacing: .75px;
+  letter-spacing: 0.75px;
   left: 0.6875rem;
   width: 3.875rem;
 }
@@ -203,16 +203,16 @@
   letter-spacing: 2px;
   position: absolute;
   bottom: 0;
-  transition: opacity .25s;
+  transition: opacity 0.25s;
 }
 .btn-toggle.btn-sm:before {
-  content: 'Off';
+  content: "Off";
   left: -0.5rem;
 }
 .btn-toggle.btn-sm:after {
-  content: 'On';
+  content: "On";
   right: -0.5rem;
-  opacity: .5;
+  opacity: 0.5;
 }
 .btn-toggle.btn-sm > .handle {
   position: absolute;
@@ -222,17 +222,17 @@
   height: 1.125rem;
   border-radius: 1.125rem;
   background: #fff;
-  transition: left .25s;
+  transition: left 0.25s;
 }
 .btn-toggle.btn-sm.active {
   transition: background-color 0.25s;
 }
 .btn-toggle.btn-sm.active > .handle {
   left: 1.6875rem;
-  transition: left .25s;
+  transition: left 0.25s;
 }
 .btn-toggle.btn-sm.active:before {
-  opacity: .5;
+  opacity: 0.5;
 }
 .btn-toggle.btn-sm.active:after {
   opacity: 1;
@@ -241,7 +241,7 @@
 .btn-toggle.btn-sm.btn-sm:after {
   line-height: -0.5rem;
   color: #fff;
-  letter-spacing: .75px;
+  letter-spacing: 0.75px;
   left: 0.4125rem;
   width: 2.325rem;
 }
@@ -288,16 +288,16 @@
   letter-spacing: 2px;
   position: absolute;
   bottom: 0;
-  transition: opacity .25s;
+  transition: opacity 0.25s;
 }
 .btn-toggle.btn-xs:before {
-  content: 'Off';
+  content: "Off";
   left: 0;
 }
 .btn-toggle.btn-xs:after {
-  content: 'On';
+  content: "On";
   right: 0;
-  opacity: .5;
+  opacity: 0.5;
 }
 .btn-toggle.btn-xs > .handle {
   position: absolute;
@@ -307,17 +307,17 @@
   height: 0.75rem;
   border-radius: 0.75rem;
   background: #fff;
-  transition: left .25s;
+  transition: left 0.25s;
 }
 .btn-toggle.btn-xs.active {
   transition: background-color 0.25s;
 }
 .btn-toggle.btn-xs.active > .handle {
   left: 1.125rem;
-  transition: left .25s;
+  transition: left 0.25s;
 }
 .btn-toggle.btn-xs.active:before {
-  opacity: .5;
+  opacity: 0.5;
 }
 .btn-toggle.btn-xs.active:after {
   opacity: 1;
@@ -326,7 +326,7 @@
 .btn-toggle.btn-xs.btn-sm:after {
   line-height: -1rem;
   color: #fff;
-  letter-spacing: .75px;
+  letter-spacing: 0.75px;
   left: 0.275rem;
   width: 1.55rem;
 }

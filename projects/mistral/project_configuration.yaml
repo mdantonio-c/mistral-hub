@@ -2,13 +2,11 @@
 project:
   title: Meteo-Hub
   description: "Mistral Meteo Hub"
-  version: "0.3.1"
-  rapydo: 0.7.4
+  version: "0.3.2"
+  rapydo: 0.7.5
 
 variables:
   env:
-    # BACKEND_BUILD_MODE: backendcentos
-    # PYTHON_PATH: /usr/local/lib/python3.6/dist-packages
     FRONTEND_FRAMEWORK: angular
     ENABLE_FOOTER: true
     RUN_SCHEMATHESIS: 0
@@ -18,7 +16,6 @@ variables:
     ACTIVATE_ALCHEMY: 1
     ACTIVATE_POSTGRES: 1
     ALCHEMY_USER: sqluser
-    # ALCHEMY_PASSWORD: chooseapasswordwisely
     ALCHEMY_API_DB: SQL_API
     ALCHEMY_ENGINE: postgresql
     ALCHEMY_DBS: "SQL_API DBALLE"
@@ -31,6 +28,7 @@ variables:
 
     ALLOW_ACCESS_TOKEN_PARAMETER: True
     ALLOW_PASSWORD_RESET: "true"
+    ALLOW_TERMS_OF_USE: "true"
     UPLOAD_PATH: /data
 
     CELERY_BACKEND: MONGODB
@@ -53,11 +51,10 @@ variables:
         internal: staff_user
         admin: admin_root
         default: normal_user
-
-controller:
-  commands:
-    init:
-      description: Init DB-All.e PostgreSQL database
-      command: sh /scripts/init_dballe.sh
-      service: backend
-      user: developer
+# controller:
+#   commands:
+#     init:
+#       description: Init DB-All.e PostgreSQL database
+#       command: sh /scripts/init_dballe.sh
+#       service: backend
+#       user: developer

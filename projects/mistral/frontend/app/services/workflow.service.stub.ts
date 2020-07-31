@@ -1,3 +1,1 @@
-export class WorkflowServiceStub {
-
-}
+export class WorkflowServiceStub {}

@@ -1,17 +1,16 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {FormDataService} from "../../services/formData.service";
+import { Component, Input, OnInit } from "@angular/core";
+import { FormDataService } from "../../services/formData.service";
 
 @Component({
-    selector: 'multi-step-wizard',
-    templateUrl: './multi-step-wizard.component.html'
+  selector: "multi-step-wizard",
+  templateUrl: "./multi-step-wizard.component.html",
 })
 export class MultiStepWizardComponent implements OnInit {
-    @Input() formData;
+  @Input() formData;
 
-    constructor(private formDataService: FormDataService) {
-    }
+  constructor(private formDataService: FormDataService) {}
 
-    ngOnInit(): void {
-        this.formData = this.formDataService.getFormData();
-    }
+  ngOnInit(): void {
+    this.formData = this.formDataService.getFormData();
+  }
 }

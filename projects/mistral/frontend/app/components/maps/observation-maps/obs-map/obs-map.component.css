@@ -44,27 +44,73 @@
   border-radius: 0px !important;
 }
 
-.marker-cluster.mst-marker-color-3030ff { background-color: rgba(48, 48, 255, 0.7); }
-.mst-marker-color-3030ff div { background-color: rgba(48, 48, 255, 0.6); }
+.dirty-cluster {
+  display: block;
+  position: fixed;
+  top: 0;
+  right: -2px;
+  color: #ffc107;
+}
 
-.marker-cluster.mst-marker-color-007885 { background-color: rgba(0, 120, 133, 0.7); }
-.mst-marker-color-007885 div { background-color: rgba(0, 120, 133, 0.6); }
+.marker-cluster.mst-marker-color-undefined {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.mst-marker-color-undefined div {
+  background-color: rgba(0, 0, 0, 0.2);
+}
 
-.marker-cluster.mst-marker-color-00855D { background-color: rgba(0, 133, 93, 0.7); }
-.mst-marker-color-00855D div { background-color: rgba(0, 133, 93, 0.6); }
+.marker-cluster.mst-marker-color-3030ff {
+  background-color: rgba(48, 48, 255, 0.7);
+}
+.mst-marker-color-3030ff div {
+  background-color: rgba(48, 48, 255, 0.6);
+}
 
-.marker-cluster.mst-marker-color-0D8500 { background-color: rgba(13, 133, 0, 0.7); }
-.mst-marker-color-0D8500 div { background-color: rgba(13, 133, 0, 0.6); }
+.marker-cluster.mst-marker-color-007885 {
+  background-color: rgba(0, 120, 133, 0.7);
+}
+.mst-marker-color-007885 div {
+  background-color: rgba(0, 120, 133, 0.6);
+}
 
-.marker-cluster.mst-marker-color-478500 { background-color: rgba(71, 133, 0, 0.7); }
-.mst-marker-color-478500 div { background-color: rgba(71, 133, 0, 0.6); }
+.marker-cluster.mst-marker-color-00855D {
+  background-color: rgba(0, 133, 93, 0.7);
+}
+.mst-marker-color-00855D div {
+  background-color: rgba(0, 133, 93, 0.6);
+}
 
-.marker-cluster.mst-marker-color-788500 { background-color: rgba(120, 133, 0, 0.7); }
-.mst-marker-color-788500 div { background-color: rgba(120, 133, 0, 0.6); }
+.marker-cluster.mst-marker-color-0D8500 {
+  background-color: rgba(13, 133, 0, 0.7);
+}
+.mst-marker-color-0D8500 div {
+  background-color: rgba(13, 133, 0, 0.6);
+}
 
-.marker-cluster.mst-marker-color-853C00 { background-color: rgba(133, 60, 0, 0.7); }
-.mst-marker-color-853C00 div { background-color: rgba(133, 60, 0, 0.6); }
+.marker-cluster.mst-marker-color-478500 {
+  background-color: rgba(71, 133, 0, 0.7);
+}
+.mst-marker-color-478500 div {
+  background-color: rgba(71, 133, 0, 0.6);
+}
 
-.marker-cluster.mst-marker-color-850000 { background-color: rgba(133, 0, 0, 0.7); }
-.mst-marker-color-850000 div { background-color: rgba(133, 0, 0, 0.6); }
+.marker-cluster.mst-marker-color-788500 {
+  background-color: rgba(120, 133, 0, 0.7);
+}
+.mst-marker-color-788500 div {
+  background-color: rgba(120, 133, 0, 0.6);
+}
 
+.marker-cluster.mst-marker-color-853C00 {
+  background-color: rgba(133, 60, 0, 0.7);
+}
+.mst-marker-color-853C00 div {
+  background-color: rgba(133, 60, 0, 0.6);
+}
+
+.marker-cluster.mst-marker-color-850000 {
+  background-color: rgba(133, 0, 0, 0.7);
+}
+.mst-marker-color-850000 div {
+  background-color: rgba(133, 0, 0, 0.6);
+}

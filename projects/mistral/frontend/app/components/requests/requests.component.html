@@ -1,34 +1,31 @@
-<ngx-spinner [fullScreen] = "false"></ngx-spinner>
+<ngx-spinner [fullScreen]="false"></ngx-spinner>
 <!-- no data -->
 <div class="row" *ngIf="!loading && !data?.length">
-    <div class="col">
-        <div class="no-results">
-            <h2>No Data</h2>
-            <p>You have not submitted any requests yet</p>
-        </div>
+  <div class="col">
+    <div class="no-results">
+      <h2>No Data</h2>
+      <p>You have not submitted any requests yet</p>
     </div>
+  </div>
 </div>
 <!-- load requests in the table -->
-<div class="table-responsive" *ngIf="data?.length" #tableWrapper>
-
-    <ngx-datatable
-        #myRequestsTable
-        class="bootstrap expandable"
-        [rows]="data"
-        [columns]="columns"
-        [columnMode]="ColumnMode.flex"
-        [headerHeight]="40"
-        [footerHeight]="40"
-
-        [externalPaging]="true"
-        [count]="paging.dataLength"
-        [limit]="paging.itemsPerPage"
-        [offset]="paging.page"
-        (page)="serverSidePagination($event)"
-
-        [rowHeight]="'auto'">
-
-<!--     <ngx-datatable
+<div class="table-responsive mb-2" *ngIf="data?.length" #tableWrapper>
+  <ngx-datatable
+    #myRequestsTable
+    class="bootstrap expandable"
+    [rows]="data"
+    [columns]="columns"
+    [columnMode]="ColumnMode.flex"
+    [headerHeight]="40"
+    [footerHeight]="40"
+    [externalPaging]="true"
+    [count]="paging.dataLength"
+    [limit]="paging.itemsPerPage"
+    [offset]="paging.page"
+    (page)="serverSidePagination($event)"
+    [rowHeight]="'auto'"
+  >
+    <!--     <ngx-datatable
             #myRequestsTable
             class="expandable"
             [rows]="rows"
@@ -36,226 +33,285 @@
             [loadingIndicator]='true'
             [footerHeight]="50"
             [limit]="paging.itemsPerPage"> -->
-        <!-- Row Detail Template -->
-        <ngx-datatable-row-detail
-                [rowHeight]="'100%'"
-        >
-            <ng-template
-                    let-row="row"
-                    let-expanded="expanded"
-                    ngx-datatable-row-detail-template
-            >
-                <div>
-                    <div><strong>Request Details</strong></div>
-                    <div>Task ID: {{ row.task_id }}</div>
-                    <ng-container *ngIf="row.args">
-                        <div class="my-2"></div>
-                        <dl class="mb-0">
-                            <dt>Dataset(s)</dt>
-                            <dd>
-                                <ul class="comma-list">
-                                    <li *ngFor="let ds of row.args.datasets">{{ds}}</li>
-                                </ul>
-                            </dd>
-                        </dl>
-                        <div class="my-2"></div>
-                        <dl class="mb-0" *ngIf="row.args.reftime">
-                            <dt>Reference time</dt>
-                            <dd>{{row.args.reftime.from | amFromUtc | amDateFormat: 'YYYY-MM-DD HH:mm'}} -
-                                {{row.args.reftime.to | amFromUtc | amDateFormat: 'YYYY-MM-DD HH:mm'}}
-                            </dd>
-                        </dl>
-                        <div class="my-2"></div>
-                        <dl class="mb-0" *ngIf="row.args.filters">
-                            <dt>Filter(s)</dt>
-                            <dd>
-                                <dl class="row no-gutters mb-0 px-0 request-summary"
-                                    *ngIf="((row.args.filters | keyvalue) || []).length else noFilters">
-                                    <ng-container *ngFor="let f of row.args.filters | keyvalue">
-                                        <dt class="col-sm-3" style="font-weight: normal;">
-                                            {{f.key}}
-                                        </dt>
-                                        <dd class="col-sm-9"><p *ngFor="let v of f.value"
-                                                                class="mb-0"
-                                                                style="white-space: normal">
-                                            {{v.desc}}</p></dd>
-                                    </ng-container>
-                                </dl>
-                                <ng-template #noFilters>No filter selected</ng-template>
-                            </dd>
-                        </dl>
-                        <div class="my-2"></div>
-                        <dl class="mb-0" *ngIf="row.args.postprocessors">
-                            <dt>Post-Processing</dt>
-                            <dd>
-                                <dl class="row no-gutters mb-0 px-0 request-summary"
-                                >
-                                    <ng-container *ngFor="let p of row.args.postprocessors">
-                                        <dt class="col-sm-3" style="font-weight: normal;">{{p.type.replace('_', ' ')}}
-                                        </dt>
-                                        <ng-container *ngIf="p.type === 'derived_variables'">
-                                            <dd class="col-sm-9"><p *ngFor="let v of p.variables">
-                                                {{dataService.getVariableDescription(v)}}</p></dd>
-                                        </ng-container>
-                                    </ng-container>
-                                </dl>
-                            </dd>
-                            <dd *ngIf="!row.args.postprocessors || !row.args.postprocessors.length">None</dd>
-                        </dl>
+    <!-- Row Detail Template -->
+    <ngx-datatable-row-detail [rowHeight]="'100%'">
+      <ng-template
+        let-row="row"
+        let-expanded="expanded"
+        ngx-datatable-row-detail-template
+      >
+        <div>
+          <div><strong>Request Details</strong></div>
+          <div>Task ID: {{ row.task_id }}</div>
+          <ng-container *ngIf="row.args">
+            <div class="my-2"></div>
+            <dl class="mb-0">
+              <dt>Dataset(s)</dt>
+              <dd>
+                <ul class="comma-list">
+                  <li *ngFor="let ds of row.args.datasets">{{ ds }}</li>
+                </ul>
+              </dd>
+            </dl>
+            <div class="my-2"></div>
+            <dl class="mb-0" *ngIf="row.args.reftime">
+              <dt>Reference time</dt>
+              <dd>
+                {{
+                  row.args.reftime.from
+                    | amFromUtc
+                    | amDateFormat: "YYYY-MM-DD HH:mm"
+                }}
+                -
+                {{
+                  row.args.reftime.to
+                    | amFromUtc
+                    | amDateFormat: "YYYY-MM-DD HH:mm"
+                }}
+              </dd>
+            </dl>
+            <div class="my-2"></div>
+            <dl class="mb-0" *ngIf="row.args.filters">
+              <dt>Filter(s)</dt>
+              <dd>
+                <dl
+                  class="row no-gutters mb-0 px-0 request-summary"
+                  *ngIf="
+                    ((row.args.filters | keyvalue) || []).length;
+                    else noFilters
+                  "
+                >
+                  <ng-container *ngFor="let f of row.args.filters | keyvalue">
+                    <dt class="col-sm-3" style="font-weight: normal;">
+                      {{ f.key }}
+                    </dt>
+                    <dd class="col-sm-9">
+                      <p
+                        *ngFor="let v of f.value"
+                        class="mb-0"
+                        style="white-space: normal;"
+                      >
+                        {{ v.desc }}
+                      </p>
+                    </dd>
+                  </ng-container>
+                </dl>
+                <ng-template #noFilters>No filter selected</ng-template>
+              </dd>
+            </dl>
+            <div class="my-2"></div>
+            <dl class="mb-0" *ngIf="row.args.postprocessors">
+              <dt>Post-Processing</dt>
+              <dd>
+                <dl class="row no-gutters mb-0 px-0 request-summary">
+                  <ng-container *ngFor="let p of row.args.postprocessors">
+                    <dt class="col-sm-3" style="font-weight: normal;">
+                      {{ p.processor_type.replace("_", " ") }}
+                    </dt>
+                    <ng-container
+                      *ngIf="p.processor_type === 'derived_variables'"
+                    >
+                      <dd class="col-sm-9">
+                        <p *ngFor="let v of p.variables">
+                          {{ dataService.getVariableDescription(v) }}
+                        </p>
+                      </dd>
                     </ng-container>
-                </div>
-            </ng-template>
-        </ngx-datatable-row-detail>
+                    <ng-container *ngIf="p.processor_type === 'grid_cropping'">
+                      <dd class="col-sm-9">
+                        <p>
+                          {{ p.sub_type }} =
+                          {{ p.boundings.ilon | number: "1.3-3" }},
+                          {{ p.boundings.ilat | number: "1.3-3" }},
+                          {{ p.boundings.flon | number: "1.3-3" }},
+                          {{ p.boundings.flat | number: "1.3-3" }}
+                          <a
+                            href="http://openstreetmap.org/?minlon={{
+                              p.boundings.ilon
+                            }}&minlat={{ p.boundings.ilat }}&maxlon={{
+                              p.boundings.flon
+                            }}&maxlat={{ p.boundings.flat }}"
+                            target="_blank"
+                          >
+                            <i class="fas fa-external-link-alt"></i>
+                          </a>
+                        </p>
+                      </dd>
+                    </ng-container>
+                  </ng-container>
+                </dl>
+              </dd>
+              <dd
+                *ngIf="
+                  !row.args.postprocessors || !row.args.postprocessors.length
+                "
+              >
+                None
+              </dd>
+            </dl>
+          </ng-container>
+        </div>
+      </ng-template>
+    </ngx-datatable-row-detail>
 
-        <!-- Column Templates -->
-        <!-- show details -->
-        <ngx-datatable-column
-                [width]="30"
-                [resizeable]="false"
-                [sortable]="false"
-                [draggable]="false"
-                [canAutoResize]="false"
+    <!-- Column Templates -->
+    <!-- show details -->
+    <ngx-datatable-column
+      [width]="30"
+      [resizeable]="false"
+      [sortable]="false"
+      [draggable]="false"
+      [canAutoResize]="false"
+    >
+      <ng-template let-column="column" ngx-datatable-header-template>
+        <span
+          ><i
+            class="fa fa-sync click-event"
+            aria-hidden="true"
+            (click)="list()"
+          ></i
+        ></span>
+      </ng-template>
+      <ng-template
+        let-row="row"
+        let-expanded="expanded"
+        ngx-datatable-cell-template
+      >
+        <button
+          class="btn p-0"
+          *ngIf="!expanded"
+          title="Show/Hide Details"
+          (click)="toggleExpandRow(row)"
         >
-            <ng-template let-column="column" ngx-datatable-header-template>
-                <span><i class="fa fa-sync click-event" aria-hidden="true" (click)="list()"></i></span>
-            </ng-template>
-            <ng-template
-                    let-row="row"
-                    let-expanded="expanded"
-                    ngx-datatable-cell-template
+          <i class="fa fa-angle-right"></i>
+        </button>
+        <button
+          class="btn p-0"
+          *ngIf="expanded"
+          title="Show/Hide Details"
+          (click)="toggleExpandRow(row)"
+        >
+          <i class="fa fa-angle-down"></i>
+        </button>
+      </ng-template>
+    </ngx-datatable-column>
+    <!-- Product -->
+    <ngx-datatable-column
+      name="Product"
+      prop="name"
+      [resizeable]="false"
+      [sortable]="false"
+      [draggable]="false"
+      [flexGrow]="2"
+    >
+      <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+        <strong>{{ value }}</strong>
+      </ng-template>
+    </ngx-datatable-column>
+    <!-- Submission date -->
+    <ngx-datatable-column
+      name="Submission date"
+      prop="submission_date"
+      [resizeable]="false"
+      [sortable]="false"
+      [draggable]="false"
+      [flexGrow]="1.6"
+      [minWidth]="160"
+    >
+      <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+        <span>{{ value | amFromUtc | date: "yyyy-MM-dd HH:mm:ss" }}</span
+        ><i class="fa fa-calendar ml-2" *ngIf="row.schedule_id"></i>
+      </ng-template>
+    </ngx-datatable-column>
+    <!-- End date -->
+    <ngx-datatable-column
+      name="End date"
+      prop="end_date"
+      [resizeable]="false"
+      [sortable]="false"
+      [draggable]="false"
+      [flexGrow]="1.6"
+      [minWidth]="160"
+    >
+      <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+        <span *ngIf="value; else noValue">{{
+          value | amFromUtc | date: "yyyy-MM-dd HH:mm:ss"
+        }}</span>
+      </ng-template>
+    </ngx-datatable-column>
+    <!-- Size -->
+    <ngx-datatable-column
+      name="Size"
+      prop="filesize"
+      [resizeable]="false"
+      [sortable]="false"
+      [draggable]="false"
+      [flexGrow]="0.5"
+      [minWidth]="66"
+    >
+      <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+        <span *ngIf="value; else noValue">{{ value | bytes }}</span>
+      </ng-template>
+    </ngx-datatable-column>
+    <!-- Status -->
+    <ngx-datatable-column
+      name="Status"
+      [resizeable]="false"
+      [sortable]="false"
+      [draggable]="false"
+      [flexGrow]="0.5"
+      [minWidth]="66"
+    >
+      <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+        <span
+          class="badge badge-secondary"
+          [ngClass]="{
+            'badge-success': row.status == 'SUCCESS',
+            'badge-danger': row.status == 'FAILURE',
+            'badge-info': row.status == 'PENDING'
+          }"
+          [ngbTooltip]="row.status == 'FAILURE' ? tipContent : ''"
+          placement="left"
+        >
+          {{ value }}
+        </span>
+        <ng-template #tipContent>
+          {{ row.error_message || "no error message" }}
+        </ng-template>
+      </ng-template>
+    </ngx-datatable-column>
+    <!-- Controls -->
+    <ngx-datatable-column
+      width="60"
+      [resizeable]="false"
+      [sortable]="false"
+      [draggable]="false"
+      [canAutoResize]="false"
+    >
+      <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+        <div class="btn-toolbar justify-content-end" role="toolbar">
+          <div class="btn-group mr-1" role="group">
+            <button
+              class="btn p-0 mr-1"
+              *ngIf="row.status == 'SUCCESS'"
+              (click)="downloadByUrl(row.fileoutput)"
             >
-                <button class="btn p-0" *ngIf="!expanded"
-                        title="Show/Hide Details"
-                        (click)='toggleExpandRow(row)'><i class="fa fa-angle-right"></i></button>
-                <button class="btn p-0" *ngIf="expanded"
-                        title="Show/Hide Details"
-                        (click)='toggleExpandRow(row)'><i class="fa fa-angle-down"></i></button>
-            </ng-template>
-        </ngx-datatable-column>
-        <!-- Product -->
-        <ngx-datatable-column
-                name="Product"
-                prop="name"
-                [resizeable]="false"
-                [sortable]="false"
-                [draggable]="false"
-                [flexGrow]="2">
-            <ng-template
-                    let-value="value"
-                    let-row="row"
-                    ngx-datatable-cell-template
+              <i class="fa fa-download"></i>
+            </button>
+            <button
+              class="btn p-0"
+              mwlConfirmationPopover
+              [popoverTitle]="deleteConfirmation.title"
+              [popoverMessage]="getDeleteConfirmation('request').message"
+              placement="left"
+              (confirm)="remove(row.id)"
             >
-                <strong>{{ value }}</strong>
-            </ng-template>
-        </ngx-datatable-column>
-        <!-- Submission date -->
-        <ngx-datatable-column
-                name="Submission date"
-                prop="submission_date"
-                [resizeable]="false"
-                [sortable]="false"
-                [draggable]="false"
-                [flexGrow]="1.6"
-                [minWidth]="160">
-            <ng-template
-                    let-value="value"
-                    let-row="row"
-                    ngx-datatable-cell-template
-            >
-                <span>{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span><i class="fa fa-calendar ml-2"
-                                                                                   *ngIf="row.schedule_id"></i>
-            </ng-template>
-        </ngx-datatable-column>
-        <!-- End date -->
-        <ngx-datatable-column
-                name="End date"
-                prop="end_date"
-                [resizeable]="false"
-                [sortable]="false"
-                [draggable]="false"
-                [flexGrow]="1.6"
-                [minWidth]="160">
-            <ng-template
-                    let-value="value"
-                    let-row="row"
-                    ngx-datatable-cell-template
-            >
-                <span *ngIf="value else noValue">{{value | amFromUtc | date: 'yyyy-MM-dd HH:mm:ss'}}</span>
-            </ng-template>
-        </ngx-datatable-column>
-        <!-- Size -->
-        <ngx-datatable-column
-                name="Size"
-                prop="filesize"
-                [resizeable]="false"
-                [sortable]="false"
-                [draggable]="false"
-                [flexGrow]="0.5"
-                [minWidth]="66">
-            <ng-template
-                    let-value="value"
-                    let-row="row"
-                    ngx-datatable-cell-template
-            >
-                <span *ngIf="value else noValue">{{value | bytes}}</span>
-            </ng-template>
-        </ngx-datatable-column>
-        <!-- Status -->
-        <ngx-datatable-column
-                name="Status"
-                [resizeable]="false"
-                [sortable]="false"
-                [draggable]="false"
-                [flexGrow]="0.5"
-                [minWidth]="66">
-            <ng-template
-                    let-value="value"
-                    let-row="row"
-                    ngx-datatable-cell-template
-            >
-                                    <span class='badge badge-secondary'
-                                          [ngClass]="{
-                                            'badge-success': row.status == 'SUCCESS',
-                                            'badge-danger': row.status == 'FAILURE',
-                                            'badge-info': row.status == 'PENDING'
-                                          }"
-                                          [ngbTooltip]="(row.status == 'FAILURE') ? tipContent : ''"
-                                          placement="left">
-                                        {{value}}
-                                    </span>
-                <ng-template #tipContent>
-                    {{row.error_message || 'no error message'}}
-                </ng-template>
-            </ng-template>
-        </ngx-datatable-column>
-        <!-- Controls -->
-        <ngx-datatable-column
-                width="60"
-                [resizeable]="false"
-                [sortable]="false"
-                [draggable]="false"
-                [canAutoResize]="false">
-            <ng-template
-                    let-value="value"
-                    let-row="row"
-                    ngx-datatable-cell-template
-            >
-                <div class="btn-toolbar justify-content-end" role="toolbar">
-                    <div class="btn-group mr-1" role="group">
-                        <button class="btn p-0 mr-1" *ngIf="row.status == 'SUCCESS'"
-                                (click)='downloadByUrl(row.fileoutput)'><i class="fa fa-download"></i>
-                        </button>
-                        <button class="btn p-0"
-                                mwlConfirmationPopover
-                                [popoverTitle]="deleteConfirmation.title"
-                                [popoverMessage]="getDeleteConfirmation('request').message"
-                                placement="left"
-                                (confirm)="remove(row.id)">
-                            <i class="fa fa-trash" style='color:red;'></i></button>
-                    </div>
-                </div>
-            </ng-template>
-        </ngx-datatable-column>
-    </ngx-datatable>
-    <ng-template #noValue>-</ng-template>
+              <i class="fa fa-trash" style="color: red;"></i>
+            </button>
+          </div>
+        </div>
+      </ng-template>
+    </ngx-datatable-column>
+  </ngx-datatable>
+  <ng-template #noValue>-</ng-template>
 </div>

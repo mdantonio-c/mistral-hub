@@ -1,149 +1,238 @@
 <form [formGroup]="filterForm" (ngSubmit)="goToNext()">
-    <div class="tab-pane fade show active mt-4">
-        <h4 class="head text-center">{{title}}</h4>
-        <br/>
-        <ngx-spinner
-                name="sp1"
-                bdColor="rgba(255,255,255,0.8)"
-                color="#6c757d"
-                zIndex="1000"
-                [fullScreen]="false" type="ball-clip-rotate-multiple" size="medium">
-        </ngx-spinner>
-        <div *ngIf="filters">
-            <ngx-spinner
-                    name="sp2"
-                    bdColor="rgba(51,51,51,0.8)"
-                    size="medium"
-                    color="#fff"
-                    zIndex="1000"
-                    type="ball-scale-multiple"
-            >
-                <p style="font-size: 20px; color: white">Updating Filters...</p>
-            </ngx-spinner>
-            <!-- Summary Stats-->
-            <div class="card mst--expansion-panel mst--info-panel" *ngIf="summaryStats">
-                <div class="card-header">
-                    <h5>Summary Stats</h5>
-                    <button type="button" class="btn btn-sm ml-2 p-0 mb-1"
-                            (click)="editReftime(reftimeContent)"
-                            ngbTooltip="Change reftime"
-                            #p="ngbTooltip"
-                            (document:click)="p.close()"
-                            placement="right">
-                        <i class="fa fa-edit"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm ml-2 p-0 mb-1 float-right"
-                            (click)="resetFilters()"
-                            ngbTooltip="Reset filters"
-                            placement="left"
-                    >
-                        <i class="fa fa-undo"></i>
-                    </button>
-                </div>
-                <div class="body">
-                    <ul>
-                        <li><strong>From:</strong> {{summaryStats.b | fmtDate}}</li>
-                        <li><strong>To:</strong> {{summaryStats.e | fmtDate}}</li>
-                        <li><strong>Count:</strong> {{summaryStats.c}}</li>
-                        <li><strong>Size:</strong> {{(summaryStats.s != null) ? (summaryStats.s | bytes:2) : 'n/a'}}
-                        </li>
-                    </ul>
-                </div>
+  <div class="tab-pane fade show active mt-4">
+    <h4 class="head text-center">{{ title }}</h4>
+    <br />
+    <ngx-spinner
+      name="sp1"
+      bdColor="rgba(255,255,255,0.8)"
+      color="#6c757d"
+      zIndex="1000"
+      [fullScreen]="false"
+      type="ball-clip-rotate-multiple"
+      size="medium"
+    >
+    </ngx-spinner>
+    <div *ngIf="filters">
+      <ngx-spinner
+        name="sp2"
+        bdColor="rgba(51,51,51,0.8)"
+        size="medium"
+        color="#fff"
+        zIndex="1000"
+        type="ball-scale-multiple"
+      >
+        <p style="font-size: 20px; color: white;">Updating Filters...</p>
+      </ngx-spinner>
+
+      <div class="row no-gutters">
+        <div class="col-md-6 mb-4 mb-md-0">
+          <!-- Summary Stats-->
+          <div
+            class="card mst--expansion-panel mst--info-panel h-100"
+            *ngIf="summaryStats"
+          >
+            <div class="card-header">
+              <h5>Summary Stats</h5>
+              <button
+                type="button"
+                class="btn btn-sm ml-2 p-0 mb-1"
+                (click)="editReftime(reftimeContent)"
+                ngbTooltip="Change reftime"
+                triggers="hover"
+                placement="right"
+              >
+                <i class="fa fa-edit"></i>
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm ml-2 p-0 mb-1 float-right"
+                (click)="resetFilters()"
+                ngbTooltip="Reset filters"
+                placement="left"
+              >
+                <i class="fa fa-undo"></i>
+              </button>
             </div>
-            <!-- Filters -->
-            <div formArrayName="filters"
-                 *ngFor="let f of filterForm.get('filters')['controls']; let i = index;">
-                <div class="card mst--expansion-panel" [formGroupName]="i">
-                    <div class="card-header">
-                        <h5>{{f.value.name}}</h5>
-                        <span class="info-help">&nbsp;<i placement="right"
-                                                         [ngbTooltip]="getFilterTooltip(f.value.name)"
-                                                         tooltipClass="info-fulltext"
-                                                         class="fa fa-question-circle"
-                                                         aria-hidden="true"></i></span>
-                    </div>
-                    <div class="card-body mst--list-filter ">
-                        <ul class="row no-gutters">
-                            <li formArrayName="values" *ngFor="let v of f.controls.values.controls; let j = index"
-                                class="col-sm-12 col-md-6">
-                                <input class="mst--input-checkbox" type="checkbox" [formControlName]="j"
-                                       id="{{f.value.name+'-'+j}}"
-                                       [disableControl]="!filters[f.value.name][j].active"
-                                       (change)="onFilterChange()">
-                                <label for="{{f.value.name+'-'+j}}">{{filters[f.value.name][j].desc}}</label>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+            <div class="body">
+              <ul>
+                <li><strong>From:</strong> {{ summaryStats.b | fmtDate }}</li>
+                <li><strong>To:</strong> {{ summaryStats.e | fmtDate }}</li>
+                <li><strong>Count:</strong> {{ summaryStats.c }}</li>
+                <li>
+                  <strong>Size:</strong>
+                  {{
+                    summaryStats.s != null ? (summaryStats.s | bytes: 2) : "n/a"
+                  }}
+                </li>
+              </ul>
             </div>
-            <div class="form-group text-center space-20">
-                <button class="btn btn-outline-secondary mr-2" type="button"
-                        (click)="goToPrevious()"><i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
-                </button>
-                <button class="btn btn-info" type="submit"
-                        [disabled]="!filterForm.valid"> Next <i class="fa fa-arrow-right" aria-hidden="true"></i>
-                </button>
-            </div>
+          </div>
         </div>
+        <div class="col-md-6">
+          <!-- My Request -->
+          <div class="card mst--expansion-panel mst--info-panel h-100">
+            <div class="card-header">
+              <h5 class="card-title">My Request</h5>
+            </div>
+            <div class="body">
+              <mst-my-request-details></mst-my-request-details>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div
+        formArrayName="filters"
+        *ngFor="let f of filterForm.get('filters')['controls']; let i = index"
+      >
+        <div class="card mst--expansion-panel" [formGroupName]="i">
+          <div class="card-header">
+            <h5>{{ f.value.name }}</h5>
+            <span class="info-help"
+              >&nbsp;<i
+                placement="right"
+                [ngbTooltip]="getFilterTooltip(f.value.name)"
+                tooltipClass="info-fulltext"
+                class="fa fa-question-circle"
+                aria-hidden="true"
+              ></i
+            ></span>
+          </div>
+          <div class="card-body mst--list-filter">
+            <ul class="row no-gutters">
+              <li
+                formArrayName="values"
+                *ngFor="let v of f.controls.values.controls; let j = index"
+                class="col-sm-12 col-md-6"
+              >
+                <input
+                  class="mst--input-checkbox"
+                  type="checkbox"
+                  [formControlName]="j"
+                  id="{{ f.value.name + '-' + j }}"
+                  [disableControl]="!filters[f.value.name][j].active"
+                  (change)="onFilterChange()"
+                />
+                <label for="{{ f.value.name + '-' + j }}">{{
+                  filters[f.value.name][j].desc
+                }}</label>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="form-group text-center space-20">
+        <button
+          class="btn btn-outline-secondary mr-2"
+          type="button"
+          (click)="goToPrevious()"
+        >
+          <i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
+        </button>
+        <button
+          class="btn btn-info"
+          type="submit"
+          [disabled]="!filterForm.valid"
+        >
+          Next <i class="fa fa-arrow-right" aria-hidden="true"></i>
+        </button>
+      </div>
     </div>
+  </div>
 
-    <!-- Reftime Modal -->
-    <ng-template #reftimeContent let-modal>
-        <div class="modal-header">
-            <h4 class="modal-title">Change Reftime</h4>
-            <button type="button" class="btn close" aria-label="Close" (click)="modal.dismiss()">
-                <span aria-hidden="true">&times;</span>
+  <!-- Reftime Modal -->
+  <ng-template #reftimeContent let-modal>
+    <div class="modal-header">
+      <h4 class="modal-title">Change Reftime</h4>
+      <button
+        type="button"
+        class="btn close"
+        aria-label="Close"
+        (click)="modal.dismiss()"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group row" style="align-items: center;">
+        <label for="fromDate" class="col-sm-2 col-form-label">From:</label>
+        <div class="input-group col-sm-5">
+          <input
+            id="fromDate"
+            class="form-control"
+            placeholder="yyyy-mm-dd"
+            [formControl]="filterForm.controls.fromDate"
+            [attr.disabled]="disabledDp"
+            [maxDate]="today()"
+            ngbDatepicker
+            #from="ngbDatepicker"
+          />
+          <div class="input-group-append">
+            <button
+              class="btn btn-outline-secondary"
+              (click)="from.toggle()"
+              type="button"
+            >
+              <i class="fa fa-calendar"></i>
             </button>
+          </div>
         </div>
-        <div class="modal-body">
-            <div class="form-group row" style="align-items: center;">
-                <label for="fromDate" class="col-sm-2 col-form-label">From:</label>
-                <div class="input-group col-sm-5">
-                    <input id="fromDate" class="form-control" placeholder="yyyy-mm-dd"
-                           [formControl]="filterForm.controls.fromDate"
-                           [attr.disabled]="disabledDp"
-                           [maxDate]="today()"
-                           ngbDatepicker #from="ngbDatepicker">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" (click)="from.toggle()" type="button">
-                            <i class="fa fa-calendar"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="input-group col-sm-5">
-                    <ngb-timepicker formControlName="fromTime" name="fromTime"
-                                    [attr.disabled]="disabledDp"></ngb-timepicker>
-                </div>
-            </div>
-            <div class="form-group row" style="align-items: center;">
-                <label for="toDate" class="col-sm-2 col-form-label">To:</label>
-                <div class="input-group col-sm-5">
-                    <input id="toDate" class="form-control" placeholder="yyyy-mm-dd"
-                           formControlName="toDate"
-                           [attr.disabled]="disabledDp"
-                           [maxDate]="today()"
-                           ngbDatepicker #to="ngbDatepicker">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" (click)="to.toggle()" type="button">
-                            <i class="fa fa-calendar"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="input-group col-sm-5">
-                    <ngb-timepicker formControlName="toTime" name="toTime"
-                                    [attr.disabled]="disabledDp"></ngb-timepicker>
-                </div>
-            </div>
-            <hr>
-            <div>
-                <input class="mst--input-checkbox" type="checkbox" formControlName="fullDataset" id="full_ds"
-                       (click)="toggleFullDataset()">
-                <label for="full_ds">Full Dataset</label>
-            </div>
+        <div class="input-group col-sm-5">
+          <ngb-timepicker
+            formControlName="fromTime"
+            name="fromTime"
+            [attr.disabled]="disabledDp"
+          ></ngb-timepicker>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-info" (click)="modal.close('save')">Save</button>
+      </div>
+      <div class="form-group row" style="align-items: center;">
+        <label for="toDate" class="col-sm-2 col-form-label">To:</label>
+        <div class="input-group col-sm-5">
+          <input
+            id="toDate"
+            class="form-control"
+            placeholder="yyyy-mm-dd"
+            formControlName="toDate"
+            [attr.disabled]="disabledDp"
+            [maxDate]="today()"
+            ngbDatepicker
+            #to="ngbDatepicker"
+          />
+          <div class="input-group-append">
+            <button
+              class="btn btn-outline-secondary"
+              (click)="to.toggle()"
+              type="button"
+            >
+              <i class="fa fa-calendar"></i>
+            </button>
+          </div>
         </div>
-    </ng-template>
+        <div class="input-group col-sm-5">
+          <ngb-timepicker
+            formControlName="toTime"
+            name="toTime"
+            [attr.disabled]="disabledDp"
+          ></ngb-timepicker>
+        </div>
+      </div>
+      <hr />
+      <div>
+        <input
+          class="mst--input-checkbox"
+          type="checkbox"
+          formControlName="fullDataset"
+          id="full_ds"
+          (click)="toggleFullDataset()"
+        />
+        <label for="full_ds">Full Dataset</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-info" (click)="modal.close('save')">
+        Save
+      </button>
+    </div>
+  </ng-template>
 </form>
-

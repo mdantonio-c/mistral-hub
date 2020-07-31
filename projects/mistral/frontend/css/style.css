@@ -1,25 +1,31 @@
 /* add the bootstrap-slider style css */
-@import url('bootstrap-slider/dist/css/bootstrap-slider.min.css');
-@import url('custom-slider.css');
+@import url("bootstrap-slider/dist/css/bootstrap-slider.min.css");
+@import url("custom-slider.css");
 
 /* add leaflet and leaflet-draw css */
-@import url('leaflet/dist/leaflet.css');
-@import url('leaflet-draw/dist/leaflet.draw.css');
-@import url('leaflet.markercluster/dist/MarkerCluster.Default.css');
-@import url('leaflet-timedimension/dist/leaflet.timedimension.control.css');
+@import url("leaflet/dist/leaflet.css");
+@import url("leaflet-draw/dist/leaflet.draw.css");
+@import url("leaflet.markercluster/dist/MarkerCluster.Default.css");
+@import url("leaflet-timedimension/dist/leaflet.timedimension.control.css");
 
-@import url('button-toggle.css');
-@import url('weather-icons.css');
+@import url("button-toggle.css");
+@import url("weather-icons.css");
 
 /* customize container width */
 @media (min-width: 1200px) {
-  .container, .container-lg, .container-md, .container-sm, .container-xl {
+  .container,
+  .container-lg,
+  .container-md,
+  .container-sm,
+  .container-xl {
     max-width: 1400px;
   }
 }
 
 @media (max-width: 991.98px) {
-  .container, .container-md, .container-sm {
+  .container,
+  .container-md,
+  .container-sm {
     max-width: none;
   }
 }
@@ -45,7 +51,7 @@
 
 .navbar .navbar-brand .project-title {
   /*font-family: 'Manjari Bold';*/
-  font-family: 'Roboto Condensed';
+  font-family: "Roboto Condensed";
   top: 9px;
   position: relative;
   font-size: large;
@@ -93,17 +99,19 @@
   overflow: hidden;
   font-size: 0;
   border-width: 1px 0 0 0;
-  border-top: 1px solid #E3E3E3;
+  border-top: 1px solid #e3e3e3;
   margin: 12px 0;
-  border-top-color: rgba(0, 0, 0, .11)
+  border-top-color: rgba(0, 0, 0, 0.11);
 }
 
-.hr.dotted, .hr-dotted {
-  border-style: dotted
+.hr.dotted,
+.hr-dotted {
+  border-style: dotted;
 }
 
-.hr-24, .hr24 {
-  margin: 24px 0
+.hr-24,
+.hr24 {
+  margin: 24px 0;
 }
 
 .click-event {
@@ -115,9 +123,11 @@
   font-size: small;
 }
 
-.btn:focus, .btn:active,
+.btn:focus,
+.btn:active,
 .form-control:focus,
-.btn-reset:focus, .btn-reset:active {
+.btn-reset:focus,
+.btn-reset:active {
   outline: none !important;
   box-shadow: none;
 }
@@ -203,7 +213,7 @@ dl.request-summary p {
 
 dl.request-summary p:before {
   content: "\f00c"; /* FontAwesome Unicode */
-  font-family: 'Font Awesome\ 5 Free';
+  font-family: "Font Awesome\ 5 Free";
   display: inline-block;
   margin-left: -1.3em;
   width: 1.3em;
@@ -240,7 +250,7 @@ dl.request-summary p:not(:last-child) {
 
 .mst--data-attribution {
   font-size: 11px;
-  background: rgba(255, 255, 255, .7);
+  background: rgba(255, 255, 255, 0.7);
   margin: 0;
   padding: 0 5px;
   color: #333;
@@ -364,7 +374,7 @@ input[type="radio"]:checked + .mst--radio-label:before {
 }
 
 input[type="radio"]:checked + .mst--radio-label:after {
-  background: #53b8e2 !important;;
+  background: #53b8e2 !important;
 }
 
 .mst--input-checkbox {
@@ -380,7 +390,7 @@ input[type="radio"]:checked + .mst--radio-label:after {
 }
 
 .mst--input-checkbox + label:before {
-  content: '';
+  content: "";
   margin-right: 10px;
   display: inline-block;
   width: 20px;
@@ -401,19 +411,20 @@ input[type="radio"]:checked + .mst--radio-label:after {
 }
 
 .mst--input-checkbox:disabled + label {
-  color: #A9A9A9;
+  color: #a9a9a9;
   cursor: auto;
 }
 
 .mst--input-checkbox:checked + label:after {
-  content: '';
+  content: "";
   position: absolute;
   left: 5px;
   top: 11px;
   background: white;
   width: 2px;
   height: 2px;
-  box-shadow: 2px 0 0 white, 4px 0 0 white, 4px -2px 0 white, 4px -4px 0 white, 4px -6px 0 white, 4px -8px 0 white;
+  box-shadow: 2px 0 0 white, 4px 0 0 white, 4px -2px 0 white, 4px -4px 0 white,
+    4px -6px 0 white, 4px -8px 0 white;
   transform: rotate(45deg);
 }
 
@@ -464,7 +475,8 @@ input[type="radio"]:checked + .mst--radio-label:after {
   width: 100%;
 }
 
-.mst--expansion-panel .card-header .btn-link:hover, .imc--expansion-panel .card-header .btn-link:focus {
+.mst--expansion-panel .card-header .btn-link:hover,
+.imc--expansion-panel .card-header .btn-link:focus {
   text-decoration: none;
   outline: none;
   border: 0;
@@ -504,7 +516,6 @@ input[type="radio"]:checked + .mst--radio-label:after {
   -webkit-columns: 400px 2;
   -moz-columns: 400px 2;
 }
-
 
 .btn-default {
   border-color: #ccc;
@@ -557,6 +568,16 @@ div.board + pre {
   background: #ddd;
 }
 
+.modal-body .modal-v-scrollable {
+  overflow-y: hidden;
+  height: calc(100vh - 15rem);
+}
+
+.modal-body .modal-v-scrollable > div:first-child {
+  overflow-y: auto;
+  height: 100%;
+}
+
 /* Custom ngx-datatable styles */
 /* --------------------------- */
 .ngx-datatable .datatable-body .datatable-row-detail {
@@ -587,7 +608,7 @@ div.board + pre {
 
 .sidenav .nav-tabs .nav-link:hover,
 .sidenav .nav-pills .nav-link:hover {
-  background-color: rgba(0, 0, 0, .04);
+  background-color: rgba(0, 0, 0, 0.04);
 }
 
 .sidenav .nav-tabs .nav-link.active,
@@ -596,8 +617,8 @@ div.board + pre {
   color: #1967d2;
 }
 
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -664,73 +685,73 @@ input[type=number]::-webkit-outer-spin-button {
 }
 .legend_prec {
   padding: 6px 12px;
-    font: 12px Arial, Helvetica, sans-serif;
-    background: white;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    line-height: 14px;
-    color: #555;
+  font: 12px Arial, Helvetica, sans-serif;
+  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  line-height: 14px;
+  color: #555;
 }
 
 .legend_prec i {
   width: 16px;
-    height: 13px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.7;
+  height: 13px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.7;
 }
 .legend_cc {
   padding: 6px 6px;
-    font: 15px Arial, Helvetica, sans-serif;
-    background: white;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    line-height: 40px;
-    color: #555;
+  font: 15px Arial, Helvetica, sans-serif;
+  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  line-height: 40px;
+  color: #555;
 }
 .legend_cc i {
   width: 16px;
-    height: 39px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.7;
+  height: 39px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.7;
 }
 .legend_rh {
   padding: 6px 6px;
-    font: 15px Arial, Helvetica, sans-serif;
-    background: white;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    line-height: 40px;
-    color: #555;
+  font: 15px Arial, Helvetica, sans-serif;
+  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  line-height: 40px;
+  color: #555;
 }
 .legend_rh i {
   width: 16px;
-    height: 39px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.7;
+  height: 39px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.7;
 }
 .legend_sf {
   padding: 6px 6px;
-    font: 12px Arial, Helvetica, sans-serif;
-    background: white;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    line-height: 13px;
-    color: #555;
+  font: 12px Arial, Helvetica, sans-serif;
+  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  line-height: 13px;
+  color: #555;
 }
 
 .legend_sf i {
   width: 16px;
-    height: 12px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.7;
+  height: 12px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.7;
 }
 
 /* leaflet markers */
@@ -745,4 +766,8 @@ input[type=number]::-webkit-outer-spin-button {
   border-style: double;
   white-space: nowrap;
   padding: 0px 2px;
+}
+
+.ngb-dp-day.disabled {
+  color: #cccccc;
 }

@@ -4,12 +4,10 @@ import subprocess
 from zipfile import ZipFile
 
 from flask import request
-from flask_apispec import use_kwargs
-from marshmallow import fields, validate
 from restapi import decorators
 from restapi.confs import UPLOAD_PATH
 from restapi.exceptions import RestApiException
-from restapi.models import InputSchema
+from restapi.models import InputSchema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
 from restapi.utilities.htmlcodes import hcodes
@@ -29,14 +27,10 @@ class Templates(EndpointResource, Uploader):
         "/templates/<template_name>": {
             "summary": "Get a template filepath",
             "description": "Returns a single template by name",
-            "tags": ["templates"],
             "responses": {
                 "200": {
                     "description": "template filepath.",
                     "schema": {"$ref": "#/definitions/TemplateFile"},
-                },
-                "401": {
-                    "description": "This endpoint requires a valid authorization token"
                 },
                 "404": {"description": "template not found"},
             },
@@ -44,14 +38,10 @@ class Templates(EndpointResource, Uploader):
         "/templates": {
             "summary": "Get templates",
             "description": "Returns the user templates list",
-            "tags": ["templates"],
             "responses": {
                 "200": {
                     "description": "List of user templates",
                     "schema": {"$ref": "#/definitions/TemplateList"},
-                },
-                "401": {
-                    "description": "This endpoint requires a valid authorization token"
                 },
             },
         },
@@ -84,8 +74,7 @@ class Templates(EndpointResource, Uploader):
         _, fileext = os.path.splitext(filepath)
         return fileext.strip(".")
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
+    @decorators.auth.require()
     def post(self):
         user = self.get_user()
         # allowed formats for uploaded file
@@ -157,9 +146,8 @@ class Templates(EndpointResource, Uploader):
         }
         return self.response(r)
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
-    @use_kwargs(TemplatesFormatter)
+    @decorators.auth.require()
+    @decorators.use_kwargs(TemplatesFormatter)
     def get(
         self,
         template_name=None,
@@ -168,13 +156,6 @@ class Templates(EndpointResource, Uploader):
         currentpage=None,
         get_total=False,
     ):
-
-        if not get_total:
-            page, limit = self.get_paging()
-            # offset = (current_page - 1) * limit
-            log.debug("paging: page {0}, limit {1}", page, limit)
-        # come uso page e limit? nell'altro endpoint usa un metodo apposta per il db
-
         user = self.get_user()
 
         if template_name is not None:
@@ -229,8 +210,7 @@ class Templates(EndpointResource, Uploader):
 
         return self.response(res, code=hcodes.HTTP_OK_BASIC)
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
+    @decorators.auth.require()
     def delete(self, template_name):
         user = self.get_user()
         # get the template extension to determine the folder where to find it

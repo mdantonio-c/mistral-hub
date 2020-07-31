@@ -1,13 +1,9 @@
-import copy
 import os
-from collections import OrderedDict
 
 from flask import send_file
-from flask_apispec import use_kwargs
-from marshmallow import fields, validate
 from restapi import decorators
 from restapi.exceptions import RestApiException
-from restapi.models import InputSchema
+from restapi.models import InputSchema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -42,7 +38,7 @@ def check_platform_availability(platform):
 
 
 def get_schema(set_required):
-    attributes = OrderedDict()
+    attributes = {}
     attributes["run"] = fields.Str(validate=validate.OneOf(RUNS), required=True)
     attributes["res"] = fields.Str(validate=validate.OneOf(RESOLUTIONS), required=True)
     attributes["field"] = fields.Str(validate=validate.OneOf(FIELDS), required=True)
@@ -58,8 +54,9 @@ def get_schema(set_required):
     )
     attributes["env"] = fields.Str(validate=validate.OneOf(ENVS), required=False)
 
-    schema = InputSchema.from_dict(attributes)
-    return schema()
+    return InputSchema.from_dict(attributes)
+    # schema = InputSchema.from_dict(attributes)
+    # return schema()
 
 
 class MapEndpoint(EndpointResource):
@@ -118,8 +115,7 @@ class MapImage(MapEndpoint):
     def __init__(self):
         super().__init__()
 
-    @decorators.catch_errors()
-    @use_kwargs(get_schema(True), code=200)
+    @decorators.use_kwargs(get_schema(True))
     def get(
         self,
         map_offset,
@@ -206,8 +202,7 @@ class MapSet(MapEndpoint):
     def __init__(self):
         super().__init__()
 
-    @decorators.catch_errors()
-    @use_kwargs(get_schema(False), code=200)
+    @decorators.use_kwargs(get_schema(False))
     def get(
         self,
         run,
@@ -233,7 +228,9 @@ class MapSet(MapEndpoint):
         if not platform:
             log.debug(f"PLATFORMS: {PLATFORMS}")
             log.debug(f"DEFAULT PLATFORM: {DEFAULT_PLATFORM}")
-            platforms_to_be_check = [DEFAULT_PLATFORM] + list(set(PLATFORMS) - set([DEFAULT_PLATFORM]))
+            platforms_to_be_check = [DEFAULT_PLATFORM] + list(
+                set(PLATFORMS) - {DEFAULT_PLATFORM}
+            )
         else:
             platforms_to_be_check = [platform]
         for platform in platforms_to_be_check:
@@ -308,8 +305,7 @@ class MapLegend(MapEndpoint):
     def __init__(self):
         super().__init__()
 
-    @decorators.catch_errors()
-    @use_kwargs(get_schema(True), code=200)
+    @decorators.use_kwargs(get_schema(True))
     def get(
         self, run, res, field, area, platform, level_pe=None, level_pr=None, env="PROD"
     ):

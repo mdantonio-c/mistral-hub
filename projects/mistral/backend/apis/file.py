@@ -26,8 +26,7 @@ class FileDownload(EndpointResource):
         }
     }
 
-    @decorators.catch_errors()
-    @decorators.auth.required()
+    @decorators.auth.require()
     def get(self, filename):
 
         user = self.get_user()
