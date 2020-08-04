@@ -39,6 +39,7 @@ variables:
 
     RABBITMQ_ENABLE_MANAGEMENT_PLUGIN: 1
     # RABBITMQ_ENABLE_SHOVEL_PLUGIN: 1
+    SET_UNSAFE_EVAL: "unsafe-eval"
 
     CORS_ALLOW_ALL_ORIGINS: 1
     SET_CSP_IMG_SRC: "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://api.tiles.mapbox.com"
