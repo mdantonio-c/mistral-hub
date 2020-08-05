@@ -164,7 +164,7 @@
             placeholder="yyyy-mm-dd"
             [formControl]="filterForm.controls.fromDate"
             [attr.disabled]="disabledDp"
-            [maxDate]="today()"
+            [maxDate]="fromMaxDate"
             ngbDatepicker
             #from="ngbDatepicker"
           />
@@ -195,6 +195,7 @@
             placeholder="yyyy-mm-dd"
             formControlName="toDate"
             [attr.disabled]="disabledDp"
+            [minDate]="toMinDate"
             [maxDate]="today()"
             ngbDatepicker
             #to="ngbDatepicker"
@@ -217,6 +218,17 @@
           ></ngb-timepicker>
         </div>
       </div>
+      <div
+        *ngIf="
+          !filterForm.controls.fullDataset.value &&
+          filterForm.errors?.timeRangeInconsistency &&
+          (filterForm.touched || filterForm.dirty)
+        "
+        class="cross-validation-error-message alert alert-danger"
+      >
+        Time inconsistency: From time value cannot be greater than To time
+        value.
+      </div>
       <hr />
       <div>
         <input
@@ -230,7 +242,15 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-info" (click)="modal.close('save')">
+      <button
+        type="button"
+        class="btn btn-info"
+        (click)="modal.close('save')"
+        [disabled]="
+          !filterForm.controls.fullDataset.value &&
+          filterForm.errors?.timeRangeInconsistency
+        "
+      >
         Save
       </button>
     </div>
