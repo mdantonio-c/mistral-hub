@@ -64,9 +64,12 @@ export class ObsMapComponent {
     private spinner: NgxSpinnerService
   ) {
     // custom cluster options
-
     this.markerClusterOptions = {
-      iconCreateFunction: function (cluster, srv = obsService) {
+      iconCreateFunction: function (
+        cluster,
+        srv = obsService,
+        buildTooltipTemplate
+      ) {
         const childCount = cluster.getChildCount();
         const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
         let res: string = "" + childCount;
@@ -81,7 +84,6 @@ export class ObsMapComponent {
         }
         let type: string;
         if (childMarkers[0].options["data"]) {
-          //console.log("costruisco ",childMarkers)
           let mean = 0,
             medians: number[] = [],
             dirtyMedians: number[] = [];
@@ -102,7 +104,7 @@ export class ObsMapComponent {
                         if (Number.isNaN(median)) {
                             // do not consider this median in the cluster median
                             continue;
-                        }
+                        }childmarkers.length
                         medians.push(median);*/
             const singleobsData: SingleObsData = m.options["data"];
             if (!type) {
@@ -141,16 +143,42 @@ export class ObsMapComponent {
 
           // custom background color of cluster
           c = " mst-marker-color-" + srv.getColor(val, srv.min, srv.max);
+
+          // if the cluster contains data for a single station, bind a tooltip
+          let is_single_station = false;
+          let station_lng = null;
+          let station_lat = null;
+          for (var i = 0; i < childMarkers.length; i++) {
+            let latlng = childMarkers[i].getLatLng();
+            if (!station_lng) {
+              station_lat = latlng.lat;
+              station_lng = latlng.lng;
+              is_single_station = true;
+            } else if (
+              latlng.lat !== station_lat &&
+              latlng.lng !== station_lng
+            ) {
+              is_single_station = false;
+              break;
+            }
+          }
+          if (is_single_station) {
+            cluster.bindTooltip(
+              ObsMapComponent.buildTooltipTemplate(
+                childMarkers[0].options["station"]
+              ),
+              {
+                direction: "top",
+                offset: [3, -8],
+              }
+            );
+          }
         }
         let warn = "";
         if (dirtyCluster) {
           warn =
             '<i class="fas fa-exclamation-triangle fa-lg dirty-cluster"></i>';
         }
-        /*  L.marker.bindTooltip("singleObsData.value.reftime", {
-                              direction: "top",
-                              offset: [3, -8],
-                          });*/
         //console.log("marker ",marker)
 
         return new L.DivIcon({
@@ -159,47 +187,14 @@ export class ObsMapComponent {
           iconSize: new L.Point(40, 40),
         });
       },
-      spiderLegPolylineOptions: { weight: 1, color: "#ffff", opacity: 0.5 },
-      spiderfyDistanceMultiplier: 1.2,
-      spiderfyLinear: false,
-      spiderfyShapePositions: function (count, centerPt) {
-        var distanceFromCenter = 30,
-          markerDistance = 45,
-          lineLength = markerDistance * (count - 1),
-          lineStart = centerPt.y - lineLength / 2,
-          res = [],
-          i;
-
-        res.length = count;
-
-        for (i = count - 1; i >= 0; i--) {
-          res[i] = new L.Point(
-            centerPt.x + distanceFromCenter,
-            lineStart + markerDistance * i
-          );
-        }
-
-        return res;
+      spiderLegPolylineOptions: {
+        weight: 1,
+        color: "#222",
+        opacity: 0.5,
+        dashArray: "10 10",
       },
-      /*spiderfyShapePositions: function(count, centerPt) {
-                console.log("here")
-                var distanceFromCenter = 35,
-                    markerDistance = 45,
-                    lineLength = markerDistance * (count - 1),
-                    lineStart = centerPt.y - lineLength / 2,
-                    res = [],
-                    i;
-
-                res.length = count;
-
-                for (i = count - 1; i >= 0; i--) {
-                    res[i] = new L.Point(centerPt.x + distanceFromCenter, lineStart + markerDistance * i);
-                }
-                console.log("res ",res)
-                return res;
-            }*/
+      spiderfyDistanceMultiplier: 1.2,
     };
-    console.log("options ", this.markerClusterOptions.spiderfyShapePositions);
   }
 
   onMapReady(map: L.Map) {
@@ -208,26 +203,6 @@ export class ObsMapComponent {
 
   markerClusterReady(group: L.MarkerClusterGroup, obsData: ObsData) {
     this.markerClusterGroup = group;
-    /*                        markers.on('clustermouseover', function (a) {
-            // a.layer is actually a cluster
-            console.log('cluster ' + a.layer.getAllChildMarkers().length);
-        });*/
-    this.markerClusterGroup.on("clustermouseover", function (a) {
-      let childmarkers = a.layer.getAllChildMarkers();
-
-      const obsData = childmarkers[0];
-      // a.layer is actually a cluster
-      console.log("lenght " + childmarkers.length);
-      console.log("data " + obsData.data);
-    });
-    /*// add a tooltip to the cluster ---> it works!
-        this.markerClusterGroup.on('clustermouseover', function(ev) {
-        ev.propagatedFrom.bindTooltip('tooltip text', {sticky: true}).openTooltip();
-    }).on('clustermouseout', function(ev) {
-        ev.propagatedFrom.unbindTooltip();
-    });*/
-
-    //console.log("gruppo ",this.markerClusterGroup)
   }
 
   updateMap(filter: ObsFilter) {
@@ -303,24 +278,12 @@ export class ObsMapComponent {
       let icon;
       if (!onlyStations) {
         obsData = s.products.find((x) => x.varcode === product);
-        // get the median instead of the mean
-        // let val = obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
 
-        // median of all values
-        /*        let val = ObsService.median(
-                          obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
-                        );
-                        if (Number.isNaN(val)) {
-                          // at the moment is all the values are unreliable calculate the median and show it anyway
-                          // TO BE CHECKED
-                          val = ObsService.median(obsData.values.map((v) => v.value));
-                        }*/
         for (var i = 0; i < obsData.values.length; i++) {
-          //console.log(obsData.values[i].value)
+          // create an object for each value of obsData
           singleObsData = JSON.parse(JSON.stringify(obsData));
           delete singleObsData["values"];
           singleObsData.value = obsData.values[i];
-          //console.log("original ",obsData, " single ",singleObsData)
           let val = singleObsData.value.value;
           icon = L.divIcon({
             html: `<div class="mstDataIcon"><span>${ObsService.showData(
@@ -339,7 +302,7 @@ export class ObsMapComponent {
           if (s.products) {
             marker.options["data"] = singleObsData;
             marker.bindTooltip(
-              this.buildDataTooltip(singleObsData.value.reftime),
+              ObsMapComponent.buildDataTooltip(singleObsData.value.reftime),
               {
                 direction: "top",
                 offset: [3, -8],
@@ -362,7 +325,7 @@ export class ObsMapComponent {
           marker.options["data"] = obsData;
         }
 
-        marker.bindTooltip(this.buildTooltipTemplate(s.station), {
+        marker.bindTooltip(ObsMapComponent.buildTooltipTemplate(s.station), {
           direction: "top",
           offset: [3, -8],
         });
@@ -385,7 +348,7 @@ export class ObsMapComponent {
     this.fitBounds();
   }
 
-  private buildTooltipTemplate(station: Station) {
+  private static buildTooltipTemplate(station: Station) {
     let ident = station.ident || "";
     let altitude = station.altitude || "";
     const template =
@@ -398,10 +361,10 @@ export class ObsMapComponent {
     return template;
   }
 
-  private buildDataTooltip(reftime: string) {
+  private static buildDataTooltip(reftime: string) {
     const template =
       `<ul class="p-1 m-0">
-                <li>${reftime}</li>` + `</ul>`;
+                <li><b>Reftime: </b>${reftime}</li>` + `</ul>`;
     return template;
   }
 
