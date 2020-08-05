@@ -85,6 +85,14 @@ export interface ObsData {
   varcode: string;
 }
 
+export interface SingleObsData {
+  description: string;
+  scale: number;
+  unit: string;
+  value: ObsValues;
+  varcode: string;
+}
+
 export interface Observation {
   station: Station;
   products?: ObsData[];

@@ -9,6 +9,12 @@
   min-height: 74vh;
 }
 
+.mstDataIcon {
+  border-color: #4a4949;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
 .mstDivIcon {
   text-align: center;
   /* Horizontally center the text (icon) */

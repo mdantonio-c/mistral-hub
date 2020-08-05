@@ -9,6 +9,7 @@ import {
   Observation,
   ObsFilter,
   ObsService,
+  SingleObsData,
   Station,
 } from "../services/obs.service";
 import { COLORS, obsData, VAR_TABLE } from "../services/data";
@@ -17,6 +18,7 @@ import { NgxSpinnerService } from "ngx-spinner";
 
 import * as L from "leaflet";
 import "leaflet.markercluster";
+import { marker } from "leaflet";
 
 @Component({
   selector: "app-obs-map",
@@ -63,7 +65,11 @@ export class ObsMapComponent {
   ) {
     // custom cluster options
     this.markerClusterOptions = {
-      iconCreateFunction: function (cluster, srv = obsService) {
+      iconCreateFunction: function (
+        cluster,
+        srv = obsService,
+        buildTooltipTemplate
+      ) {
         const childCount = cluster.getChildCount();
         const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
         let res: string = "" + childCount;
@@ -82,25 +88,51 @@ export class ObsMapComponent {
             medians: number[] = [],
             dirtyMedians: number[] = [];
           for (const m of childMarkers) {
-            const obsData: ObsData = m.options["data"];
+            /*const obsData: ObsData = m.options["data"];
+                        if (!type) {
+                            type = obsData.varcode;
+                        }
+                        // mean += obsData.values.filter(v => v.is_reliable).map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
+                        let median = ObsService.median(
+                            obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
+                        );
+                        // calculates the median of all values including unreliable ones
+                        let dirtyMedian = ObsService.median(
+                            obsData.values.map((v) => v.value)
+                        );
+                        dirtyMedians.push(dirtyMedian);
+                        if (Number.isNaN(median)) {
+                            // do not consider this median in the cluster median
+                            continue;
+                        }childmarkers.length
+                        medians.push(median);*/
+            const singleobsData: SingleObsData = m.options["data"];
             if (!type) {
-              type = obsData.varcode;
+              type = singleobsData.varcode;
             }
             // mean += obsData.values.filter(v => v.is_reliable).map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-            let median = ObsService.median(
-              obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
-            );
-            // calculates the median of all values including unreliable ones
-            let dirtyMedian = ObsService.median(
-              obsData.values.map((v) => v.value)
-            );
-            dirtyMedians.push(dirtyMedian);
-            if (Number.isNaN(median)) {
-              // do not consider this median in the cluster median
-              continue;
+            /* let median = ObsService.median(
+                             obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
+                         );*/
+            //console.log ("here ",singleobsData)
+            if (singleobsData.value.is_reliable) {
+              let val = singleobsData.value.value;
+              medians.push(val);
+            } else {
+              let dirtyVal = singleobsData.value.value;
+              dirtyMedians.push(dirtyVal);
             }
-            medians.push(median);
+            /*                       // calculates the median of all values including unreliable ones
+                                               let dirtyMedian = ObsService.median(
+                                                   obsData.values.map((v) => v.value)
+                                               );
+                                               dirtyMedians.push(dirtyMedian);*/
+            /*                        if (Number.isNaN(val)) {
+                                                    // do not consider this median in the cluster median
+                                                    continue;
+                                                }*/
           }
+          //console.log(medians)
           // get the median instead of the mean
           // let val = mean/childCount;
           let val =
@@ -111,18 +143,57 @@ export class ObsMapComponent {
 
           // custom background color of cluster
           c = " mst-marker-color-" + srv.getColor(val, srv.min, srv.max);
+
+          // if the cluster contains data for a single station, bind a tooltip
+          let is_single_station = false;
+          let station_lng = null;
+          let station_lat = null;
+          for (var i = 0; i < childMarkers.length; i++) {
+            let latlng = childMarkers[i].getLatLng();
+            if (!station_lng) {
+              station_lat = latlng.lat;
+              station_lng = latlng.lng;
+              is_single_station = true;
+            } else if (
+              latlng.lat !== station_lat &&
+              latlng.lng !== station_lng
+            ) {
+              is_single_station = false;
+              break;
+            }
+          }
+          if (is_single_station) {
+            cluster.bindTooltip(
+              ObsMapComponent.buildTooltipTemplate(
+                childMarkers[0].options["station"]
+              ),
+              {
+                direction: "top",
+                offset: [3, -8],
+              }
+            );
+          }
         }
         let warn = "";
         if (dirtyCluster) {
           warn =
             '<i class="fas fa-exclamation-triangle fa-lg dirty-cluster"></i>';
         }
+        //console.log("marker ",marker)
+
         return new L.DivIcon({
           html: "<div>" + warn + "<span>" + res + "</span></div>",
           className: "marker-cluster" + c,
           iconSize: new L.Point(40, 40),
         });
       },
+      spiderLegPolylineOptions: {
+        weight: 1,
+        color: "#222",
+        opacity: 0.5,
+        dashArray: "10 10",
+      },
+      spiderfyDistanceMultiplier: 1.2,
     };
   }
 
@@ -130,7 +201,7 @@ export class ObsMapComponent {
     this.map = map;
   }
 
-  markerClusterReady(group: L.MarkerClusterGroup) {
+  markerClusterReady(group: L.MarkerClusterGroup, obsData: ObsData) {
     this.markerClusterGroup = group;
   }
 
@@ -184,6 +255,7 @@ export class ObsMapComponent {
     const markers: L.Marker[] = [];
     let min: number, max: number;
     let obsData: ObsData;
+    let singleObsData: SingleObsData;
     if (!onlyStations) {
       // min and max needed before data marker creation
       data.forEach((s) => {
@@ -206,46 +278,59 @@ export class ObsMapComponent {
       let icon;
       if (!onlyStations) {
         obsData = s.products.find((x) => x.varcode === product);
-        // get the median instead of the mean
-        // let val = obsData.values.map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-        let val = ObsService.median(
-          obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
-        );
-        if (Number.isNaN(val)) {
-          // at the moment is all the values are unreliable calculate the median and show it anyway
-          // TO BE CHECKED
-          val = ObsService.median(obsData.values.map((v) => v.value));
+
+        for (var i = 0; i < obsData.values.length; i++) {
+          // create an object for each value of obsData
+          singleObsData = JSON.parse(JSON.stringify(obsData));
+          delete singleObsData["values"];
+          singleObsData.value = obsData.values[i];
+          let val = singleObsData.value.value;
+          icon = L.divIcon({
+            html: `<div class="mstDataIcon"><span>${ObsService.showData(
+              val,
+              product
+            )}</span></div>`,
+            iconSize: [24, 6],
+            className:
+              "leaflet-marker-icon mst-marker-color-" +
+              this.obsService.getColor(val, min, max),
+          });
+          const marker = new L.Marker([s.station.lat, s.station.lon], {
+            icon: icon,
+          });
+          marker.options["station"] = s.station;
+          if (s.products) {
+            marker.options["data"] = singleObsData;
+            marker.bindTooltip(
+              ObsMapComponent.buildDataTooltip(singleObsData.value.reftime),
+              {
+                direction: "top",
+                offset: [3, -8],
+              }
+            );
+          }
+          markers.push(marker);
         }
-        icon = L.divIcon({
-          html: `<div class="mstDataIcon"><span>${ObsService.showData(
-            val,
-            product
-          )}</span></div>`,
-          iconSize: [24, 6],
-          className:
-            "leaflet-marker-icon mst-marker-color-" +
-            this.obsService.getColor(val, min, max),
-        });
       } else {
         icon = L.divIcon({
           html: '<i class="fa fa-map-marker-alt fa-3x"></i>',
           iconSize: [20, 20],
           className: "mstDivIcon",
         });
-      }
-      const marker = new L.Marker([s.station.lat, s.station.lon], {
-        icon: icon,
-      });
-      marker.options["station"] = s.station;
-      if (s.products) {
-        marker.options["data"] = obsData;
-      }
+        const marker = new L.Marker([s.station.lat, s.station.lon], {
+          icon: icon,
+        });
+        marker.options["station"] = s.station;
+        if (s.products) {
+          marker.options["data"] = obsData;
+        }
 
-      marker.bindTooltip(this.buildTooltipTemplate(s.station), {
-        direction: "top",
-        offset: [3, -8],
-      });
-      markers.push(marker);
+        marker.bindTooltip(ObsMapComponent.buildTooltipTemplate(s.station), {
+          direction: "top",
+          offset: [3, -8],
+        });
+        markers.push(marker);
+      }
     });
 
     if (!onlyStations && data.length > 0) {
@@ -263,7 +348,7 @@ export class ObsMapComponent {
     this.fitBounds();
   }
 
-  private buildTooltipTemplate(station: Station) {
+  private static buildTooltipTemplate(station: Station) {
     let ident = station.ident || "";
     let altitude = station.altitude || "";
     const template =
@@ -273,6 +358,13 @@ export class ObsMapComponent {
       `<li><b>Lon</b>: ${station.lon}</li>` +
       altitude +
       `</ul>`;
+    return template;
+  }
+
+  private static buildDataTooltip(reftime: string) {
+    const template =
+      `<ul class="p-1 m-0">
+                <li><b>Reftime: </b>${reftime}</li>` + `</ul>`;
     return template;
   }
 
