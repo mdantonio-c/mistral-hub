@@ -65,11 +65,7 @@ export class ObsMapComponent {
   ) {
     // custom cluster options
     this.markerClusterOptions = {
-      iconCreateFunction: function (
-        cluster,
-        srv = obsService,
-        buildTooltipTemplate
-      ) {
+      iconCreateFunction: function (cluster, srv = obsService) {
         const childCount = cluster.getChildCount();
         const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
         let res: string = "" + childCount;
@@ -88,33 +84,10 @@ export class ObsMapComponent {
             medians: number[] = [],
             dirtyMedians: number[] = [];
           for (const m of childMarkers) {
-            /*const obsData: ObsData = m.options["data"];
-                        if (!type) {
-                            type = obsData.varcode;
-                        }
-                        // mean += obsData.values.filter(v => v.is_reliable).map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-                        let median = ObsService.median(
-                            obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
-                        );
-                        // calculates the median of all values including unreliable ones
-                        let dirtyMedian = ObsService.median(
-                            obsData.values.map((v) => v.value)
-                        );
-                        dirtyMedians.push(dirtyMedian);
-                        if (Number.isNaN(median)) {
-                            // do not consider this median in the cluster median
-                            continue;
-                        }childmarkers.length
-                        medians.push(median);*/
             const singleobsData: SingleObsData = m.options["data"];
             if (!type) {
               type = singleobsData.varcode;
             }
-            // mean += obsData.values.filter(v => v.is_reliable).map(v => v.value).reduce((a, b) => a + b, 0) / obsData.values.length;
-            /* let median = ObsService.median(
-                             obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
-                         );*/
-            //console.log ("here ",singleobsData)
             if (singleobsData.value.is_reliable) {
               let val = singleobsData.value.value;
               medians.push(val);
@@ -122,15 +95,6 @@ export class ObsMapComponent {
               let dirtyVal = singleobsData.value.value;
               dirtyMedians.push(dirtyVal);
             }
-            /*                       // calculates the median of all values including unreliable ones
-                                               let dirtyMedian = ObsService.median(
-                                                   obsData.values.map((v) => v.value)
-                                               );
-                                               dirtyMedians.push(dirtyMedian);*/
-            /*                        if (Number.isNaN(val)) {
-                                                    // do not consider this median in the cluster median
-                                                    continue;
-                                                }*/
           }
           //console.log(medians)
           // get the median instead of the mean
@@ -201,7 +165,7 @@ export class ObsMapComponent {
     this.map = map;
   }
 
-  markerClusterReady(group: L.MarkerClusterGroup, obsData: ObsData) {
+  markerClusterReady(group: L.MarkerClusterGroup) {
     this.markerClusterGroup = group;
   }
 
