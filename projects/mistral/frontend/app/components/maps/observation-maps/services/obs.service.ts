@@ -119,7 +119,6 @@ export class ObsService {
       `${filter.reftime.getDate()}`.padStart(2, "0"),
     ].join("-");
     let params = {
-      type: "OBS",
       q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
       allAvailableProducts: true,
     };
@@ -133,10 +132,9 @@ export class ObsService {
         }
          */
     if (filter.network && filter.network !== "") {
-      params["networks"] = filter.network;
+      params["q"] += `;network:${filter.network}`;
     }
     return this.api.get("fields", "", params);
-    //return of(FIELDS_SUMMARY);
   }
 
   getObservations(filter: ObsFilter) {
