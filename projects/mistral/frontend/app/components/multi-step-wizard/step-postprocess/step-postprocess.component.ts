@@ -7,7 +7,10 @@ import {
   FormControl,
   Validators,
 } from "@angular/forms";
-import { FormDataService } from "@app/services/formData.service";
+import {
+  FormDataService,
+  PP_TIME_RANGES,
+} from "@app/services/formData.service";
 import {
   Dataset,
   Filters,
@@ -88,40 +91,7 @@ export class StepPostprocessComponent implements OnInit {
     },
   ];
 
-  timeRanges = [
-    {
-      code: -1,
-      desc: "-",
-    },
-    {
-      code: 0,
-      desc: "Average",
-    },
-    {
-      code: 1,
-      desc: "Accumulation",
-    },
-    {
-      code: 2,
-      desc: "Maximum",
-    },
-    {
-      code: 3,
-      desc: "Minimum",
-    },
-    {
-      code: 4,
-      desc: "Difference",
-    },
-    {
-      code: 6,
-      desc: "Standard deviation",
-    },
-    {
-      code: 254,
-      desc: "Immediate",
-    },
-  ];
+  timeRanges = PP_TIME_RANGES;
 
   stepIntervals = ["-", "hours", "days", "months", "years"];
 
