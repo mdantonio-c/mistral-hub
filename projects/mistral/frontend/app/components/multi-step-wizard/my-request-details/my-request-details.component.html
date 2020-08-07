@@ -72,6 +72,17 @@
             </p>
           </dd>
         </ng-container>
+        <ng-container *ngIf="p.type === 'statistic_elaboration'">
+          <dd class="col-sm-9">
+            <p>
+              timerange: <i>in</i>:{{
+                decode(p["input-timerange"], PP_TIME_RANGES)
+              }}, <i>out</i>:{{
+                decode(p["output-timerange"], PP_TIME_RANGES)
+              }}, <i>interval</i>:{{ p.step }} {{ p.interval }}
+            </p>
+          </dd>
+        </ng-container>
         <ng-container *ngIf="p.type === 'grid_cropping'">
           <dd class="col-sm-9">
             <p>

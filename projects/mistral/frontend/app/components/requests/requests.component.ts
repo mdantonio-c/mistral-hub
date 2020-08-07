@@ -3,6 +3,7 @@ import { saveAs as importedSaveAs } from "file-saver";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 
 import { DataService } from "@app/services/data.service";
+import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { environment } from "@rapydo/../environments/environment";
 
 export interface Request {}
@@ -14,6 +15,9 @@ export interface Request {}
 export class RequestsComponent extends BasePaginationComponent<Request> {
   expanded: any = {};
   @Output() onLoad: EventEmitter<null> = new EventEmitter<null>();
+
+  PP_TIME_RANGES = PP_TIME_RANGES;
+  decode = decode;
 
   constructor(protected injector: Injector, public dataService: DataService) {
     super(injector);
