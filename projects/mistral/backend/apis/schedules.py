@@ -654,23 +654,15 @@ class Schedules(EndpointResource):
 
     @decorators.auth.require()
     @decorators.get_pagination
-    @decorators.use_kwargs(
-        {
-            "sort_order": fields.Str(
-                validate=validate.OneOf(["asc", "desc"]), required=False
-            ),
-            "sort_by": fields.Str(required=False),
-        },
-        locations=["query"],
-    )
     def get(
         self,
+        get_total,
+        page,
+        size,
+        sort_order,
+        sort_by,
+        input_filter,
         schedule_id=None,
-        get_total=None,
-        page=None,
-        size=None,
-        sort_order=None,
-        sort_by=None,
     ):
 
         user = self.get_user()
