@@ -1,9 +1,6 @@
 import { Component, Input, OnInit } from "@angular/core";
-import {
-  FormDataService,
-  FormData,
-  PP_TIME_RANGES,
-} from "@app/services/formData.service";
+import { FormDataService, FormData } from "@app/services/formData.service";
+import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { DataService } from "@app/services/data.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 
@@ -15,6 +12,9 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 export class MyRequestDetailsComponent implements OnInit {
   myRequest: FormData;
   @Input() onSubmitStep = false;
+
+  PP_TIME_RANGES = PP_TIME_RANGES;
+  decode = decode;
 
   constructor(
     private formDataService: FormDataService,
@@ -28,11 +28,6 @@ export class MyRequestDetailsComponent implements OnInit {
 
   emptyName() {
     return !this.myRequest.name || this.myRequest.name.trim().length === 0;
-  }
-
-  decodeTimeranges(code) {
-    let t = PP_TIME_RANGES.find((x) => x.code === code);
-    return t !== undefined ? t.desc : code;
   }
 
   open(content) {

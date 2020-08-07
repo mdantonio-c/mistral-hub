@@ -14,17 +14,6 @@ import {
 } from "./data.service";
 import { FieldsSummary } from "../components/maps/observation-maps/services/obs.service";
 
-export const PP_TIME_RANGES = [
-  { code: -1, desc: "-" },
-  { code: 0, desc: "Average" },
-  { code: 1, desc: "Accumulation" },
-  { code: 2, desc: "Maximum" },
-  { code: 3, desc: "Minimum" },
-  { code: 4, desc: "Difference" },
-  { code: 6, desc: "Standard deviation" },
-  { code: 254, desc: "Immediate" },
-];
-
 export class FormData {
   name: string = "";
   reftime: RefTime = this.defaultRefTime();

@@ -75,9 +75,11 @@
         <ng-container *ngIf="p.type === 'statistic_elaboration'">
           <dd class="col-sm-9">
             <p>
-              timerange: <i>in</i>:{{ decodeTimeranges(p["input-timerange"]) }},
-              <i>out</i>:{{ decodeTimeranges(p["output-timerange"]) }},
-              <i>interval</i>:{{ p.step }} {{ p.interval }}
+              timerange: <i>in</i>:{{
+                decode(p["input-timerange"], PP_TIME_RANGES)
+              }}, <i>out</i>:{{
+                decode(p["output-timerange"], PP_TIME_RANGES)
+              }}, <i>interval</i>:{{ p.step }} {{ p.interval }}
             </p>
           </dd>
         </ng-container>

@@ -7,10 +7,8 @@ import {
   FormControl,
   Validators,
 } from "@angular/forms";
-import {
-  FormDataService,
-  PP_TIME_RANGES,
-} from "@app/services/formData.service";
+import { FormDataService } from "@app/services/formData.service";
+import { PP_TIME_RANGES } from "@app/services/data";
 import {
   Dataset,
   Filters,
