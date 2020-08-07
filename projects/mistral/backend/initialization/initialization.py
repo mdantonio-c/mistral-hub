@@ -105,13 +105,13 @@ class Initializer:
                 "url": "https://www.arpae.it/sim/",
             },
             {
-                "name": "COSMO-LAMI",
-                "descr": "COSMO-LAMI agreement between Italian Air Force Meteorological Service, Arpae Emilia-Romagna Idro-Meteo-Clima Service and Arpa Piemonte",
+                "name": "AM ARPAE ARPAP",
+                "descr": "LAMI agreement between Italian Air Force Meteorological Service, Arpae Emilia-Romagna Idro-Meteo-Clima Service and Arpa Piemonte",
                 "url": "",
             },
             {
                 "name": "DPCN",
-                "descr": "National Civil Protection Department-Presidency of the Council of Ministers",
+                "descr": "Department of Civil Protection - Presidency of the Council of Ministers",
                 "url": "http://www.protezionecivile.gov.it",
             },
             {
@@ -127,12 +127,12 @@ class Initializer:
             {
                 "name": "ARPAP-DRNA",
                 "descr": "Arpa Piemonte - Department of Natural and Environmental Risks",
-                "url": "https://www.arpa.piemonte.it/chi-siamo/organizzazione/dipartimenti-tematici-arpa#naturali",
+                "url": "http://www.arpa.piemonte.it/rischinaturali/",
             },
             {
                 "name": "ARPAL-APPP-CFR",
-                "descr": "Lazio region - Arpal - Prevention planning and forecasting area - Regional functional center",
-                "url": "http://www.regione.lazio.it/rl_protezione_civile/?vw=contenutiDettaglio&id=101",
+                "descr": "Lazio region - Arpalazio - Prevention planning and forecasting area - Regional functional center",
+                "url": "http://www.arpalazio.gov.it/",
             },
             {
                 "name": "ARPACAMP-CFR",
@@ -152,22 +152,26 @@ class Initializer:
             {
                 "name": "R-LIGURIA-ARPAL",
                 "descr": "Liguria region - Arpal",
-                "url": "https://www.arpal.liguria.it",
+                "url": "https://www.arpal.liguria.it/homepage/meteo.html",
             },
-            {"name": "MISTRAL", "descr": "Mistral project", "url": ""},
+            {
+                "name": "MISTRAL",
+                "descr": "Mistral project",
+                "url": "https://www.mistralportal.it",
+            },
             {
                 "name": "R-MARCHE-PC",
                 "descr": "Marche region – Civil Protection Service",
-                "url": "https://www.regione.marche.it/Regione-Utile/Protezione-Civile",
+                "url": "https://www.regione.marche.it/Regione-Utile/Protezione-Civile/Strutture-Operative/Centro-Funzionale-Multirischi",
             },
             {
-                "name": "PROV-BOLZANO",
-                "descr": "Meteorology and Avalanche Prevention Office - Civil Protection Agency - Autonomous Province of Bolzano",
-                "url": "http://www.provincia.bz.it/it/contatti.asp?orga_orgaid=916",
+                "name": "P-BOLZANO-PC",
+                "descr": "Autonomous Province of Bolzano - Civil Protection Agency - Meteorology and Avalanche Prevention Office",
+                "url": "https://appc.provincia.bz.it",
             },
             {
-                "name": "R-SARDEGNA-ARPAS-METEO",
-                "descr": "Sardegna region – Arpas - Meteoclimatic Department",
+                "name": "ARPAS-METEO",
+                "descr": "Sardinia Region - ARPAS - Meteoclimatic Department",
                 "url": "http://www.sar.sardegna.it/",
             },
         ]
