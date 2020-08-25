@@ -30,7 +30,7 @@ DERIVED_VARIABLES = [
 
 class AVProcessor(InputSchema):
     # Derived variables post-processing
-    processor_type = fields.Str(required=True, data_key="type")
+    processor_type = fields.Str(required=True)
     # "derived_variables"
 
     variables = AdvancedList(
@@ -56,7 +56,7 @@ SUBTYPES = [
 class SPIProcessor(InputSchema):
     # Spare points interpolation postprocessor
     processor_type = fields.Str(
-        required=True, data_key="type", description="description of the postprocessor"
+        required=True, description="description of the postprocessor"
     )
     # "spare_point_interpolation"
     coord_filepath = fields.Url(
@@ -64,15 +64,12 @@ class SPIProcessor(InputSchema):
         relative=True,
         require_tls=False,
         schems=None,
-        data_key="coord-filepath",
         description="file to define the target spare points",
     )
     file_format = fields.Str(
         required=True, data_key="format", validate=validate.OneOf(["shp", "geojson"])
     )
-    sub_type = fields.Str(
-        required=True, data_key="sub-type", validate=validate.OneOf(SUBTYPES)
-    )
+    sub_type = fields.Str(required=True, validate=validate.OneOf(SUBTYPES))
 
 
 TIMERANGES = [0, 1, 2, 3, 4, 6, 254]
@@ -81,14 +78,12 @@ TIMERANGES = [0, 1, 2, 3, 4, 6, 254]
 class SEProcessor(InputSchema):
     # Statistic Elaboration post-processing
     processor_type = fields.Str(
-        required=True, data_key="type", description="description of the postprocessor"
+        required=True, description="description of the postprocessor"
     )
     # "statistic_elaboration"
-    input_timerange = fields.Integer(
-        required=True, data_key="input-timerange", validate=validate.OneOf(TIMERANGES)
-    )
+    input_timerange = fields.Integer(required=True, validate=validate.OneOf(TIMERANGES))
     output_timerange = fields.Integer(
-        required=True, data_key="output-timerange", validate=validate.OneOf(TIMERANGES)
+        required=True, validate=validate.OneOf(TIMERANGES)
     )
     interval = fields.Str(
         required=True,
@@ -99,8 +94,8 @@ class SEProcessor(InputSchema):
 
     @pre_load
     def timeranges_validation(self, data, **kwargs):
-        tr_input = data.get("input-timerange")
-        tr_output = data.get("output-timerange")
+        tr_input = data.get("input_timerange")
+        tr_output = data.get("output_timerange")
         if tr_input != tr_output:
             if tr_input == 254:
                 if tr_output == 1:
@@ -125,15 +120,13 @@ class CropBoundings(InputSchema):
 class GCProcessor(InputSchema):
     #  Grid cropping post processor
     processor_type = fields.Str(
-        required=True, data_key="type", description="description of the postprocessor"
+        required=True, description="description of the postprocessor"
     )
     # "grid_cropping"
     boundings = fields.Nested(
         CropBoundings, description="boundings of the cropped grid"
     )
-    sub_type = fields.Str(
-        required=True, data_key="sub-type", validate=validate.OneOf(["coord", "bbox"])
-    )
+    sub_type = fields.Str(required=True, validate=validate.OneOf(["coord", "bbox"]))
 
 
 class InterpolBoundings(InputSchema):
@@ -151,7 +144,7 @@ class Nodes(InputSchema):
 class GIProcessor(InputSchema):
     # Grid interpolation post processor to interpolate data on a new grid
     processor_type = fields.Str(
-        required=True, data_key="type", description="description of the postprocessor"
+        required=True, description="description of the postprocessor"
     )
     # "grid_interpolation"
     boundings = fields.Nested(
@@ -164,9 +157,7 @@ class GIProcessor(InputSchema):
         schems=None,
         description="grib template for interpolation",
     )
-    sub_type = fields.Str(
-        required=True, data_key="sub-type", validate=validate.OneOf(SUBTYPES)
-    )
+    sub_type = fields.Str(required=True, validate=validate.OneOf(SUBTYPES))
 
 
 class Postprocessors(fields.Field):
@@ -185,9 +176,9 @@ class Postprocessors(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
-            if value.get("type") not in self.postprocessors:
+            if value.get("processor_type") not in self.postprocessors:
                 raise ValidationError("unknown postprocessor")
-            postprocessor_schema = self.postprocessors.get(value.get("type"))
+            postprocessor_schema = self.postprocessors.get(value.get("processor_type"))
             valid_data = postprocessor_schema().load(value, unknown=None, partial=None)
 
         except ValidationError as error:
@@ -232,21 +223,15 @@ class PeriodSettings(InputSchema):
 
 
 class CrontabSettings(InputSchema):
-    minute = fields.Integer(
-        validate=validate.Range(min=0, max=59, min_inclusive=False, max_inclusive=False)
-    )
-    hour = fields.Integer(
-        validate=validate.Range(min=0, max=23, min_inclusive=False, max_inclusive=False)
-    )
+    minute = fields.Integer(validate=validate.Range(min=0, max=59))
+    hour = fields.Integer(validate=validate.Range(min=0, max=23))
     day_of_week = fields.Integer(
         validate=validate.Range(min=0, max=7, min_inclusive=False, max_inclusive=False)
     )
     day_of_month = fields.Integer(
         validate=validate.Range(min=0, max=31, min_inclusive=False, max_inclusive=False)
     )
-    month_of_year = fields.Integer(
-        validate=validate.Range(min=1, max=12, min_inclusive=False, max_inclusive=False)
-    )
+    month_of_year = fields.Integer(validate=validate.Range(min=1, max=12))
 
     @pre_load
     def crontab_min_item(self, data, **kwargs):
@@ -258,14 +243,13 @@ class CrontabSettings(InputSchema):
 
 
 class ScheduledDataExtraction(InputSchema):
-    request_name = fields.Str(required=True, data_key="name")
+    request_name = fields.Str(required=True)
     reftime = fields.Nested(Reftime, allow_none=True)
     dataset_names = AdvancedList(
         fields.Str(description="Dataset name"),
         unique=True,
         min_items=1,
         required=True,
-        data_key="datasets",
         description="Data belong to the datasets of the list.",
     )
     filters = fields.Nested(Filters, description="Apply different filtering criteria.")
@@ -297,7 +281,7 @@ class ScheduledDataExtraction(InputSchema):
             postprocessor_types = []
             # check if postprocessor types are unique
             for p in data.get("postprocessors"):
-                postprocessor_types.append(p.get("type"))
+                postprocessor_types.append(p.get("processor_type"))
             if len(postprocessor_types) != len(set(postprocessor_types)):
                 raise ValidationError("Postprocessors list contains duplicates")
 
@@ -399,6 +383,7 @@ class Schedules(EndpointResource):
         time_delta = None
         reftime_to = None
         parsed_reftime = {}
+        log.debug(f"reftime: {reftime}")
         if reftime:
             reftime_to = reftime.get("date_to")
             reftime_from = reftime.get("date_from")
@@ -482,13 +467,16 @@ class Schedules(EndpointResource):
             # data ready option is not for observed data
             if dataset_format == "grib":
                 today = datetime.date.today()
+                log.debug(f"today: {today}")
                 yesterday = today - datetime.timedelta(days=1)
                 # if the date of reftime['to'] is today or yesterday
                 # the request can be considered a data-ready one
+                if reftime_to is None:
+                    # FIXME what if reftime is None?
+                    raise BadRequest("Cannot schedule a full dataset request")
                 refdate = reftime_to.date()
                 if refdate == today or refdate == yesterday:
                     data_ready = True
-                # TODO what if reftime is None?
 
         # get queue for pushing notifications
         pushing_queue = None
@@ -801,7 +789,7 @@ class Schedules(EndpointResource):
         RequestManager.delete_schedule(db, schedule_id)
 
         return self.response(
-            f"Schedule {schedule_id} succesfully deleted", code=hcodes.HTTP_OK_BASIC,
+            f"Schedule {schedule_id} successfully deleted", code=hcodes.HTTP_OK_BASIC,
         )
 
     @staticmethod
@@ -854,7 +842,7 @@ class ScheduledRequests(EndpointResource):
         # check if the schedule exists
         if not RequestManager.check_request(db, schedule_id=schedule_id):
             raise RestApiException(
-                f"The schedule ID {schedule_id} doesn't exist",
+                f"The schedule ID {schedule_id} does not exist",
                 status_code=hcodes.HTTP_BAD_NOTFOUND,
             )
 

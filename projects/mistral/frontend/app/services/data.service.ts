@@ -154,11 +154,20 @@ export class DataService {
       return this.api.get("templates");
     }
   }
+
   /**
    * Request for data extraction.
+   *
+   * @param request_name
+   * @param reftime
+   * @param datasets
+   * @param filters
+   * @param schedule
+   * @param postprocessors
+   * @param outputformat
    */
   extractData(
-    name: string,
+    request_name: string,
     reftime: RefTime,
     datasets: string[],
     filters?: Filters[],
@@ -167,9 +176,9 @@ export class DataService {
     outputformat?: string
   ) {
     let data = {
-      name: name,
+      request_name: request_name,
       reftime: reftime,
-      datasets: datasets,
+      dataset_names: datasets,
     };
     if (filters && filters.length) {
       data["filters"] = {};

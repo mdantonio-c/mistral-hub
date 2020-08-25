@@ -27,7 +27,10 @@ export class MyRequestDetailsComponent implements OnInit {
   }
 
   emptyName() {
-    return !this.myRequest.name || this.myRequest.name.trim().length === 0;
+    return (
+      !this.myRequest.request_name ||
+      this.myRequest.request_name.trim().length === 0
+    );
   }
 
   open(content) {

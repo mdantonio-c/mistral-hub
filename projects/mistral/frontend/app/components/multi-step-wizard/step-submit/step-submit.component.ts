@@ -54,13 +54,16 @@ export class StepSubmitComponent implements OnInit {
         );
       }
     });
-    // default product name
+    // default request name
     // this.formData.defaultName();
     window.scroll(0, 0);
   }
 
   emptyName() {
-    return !this.formData.name || this.formData.name.trim().length === 0;
+    return (
+      !this.formData.request_name ||
+      this.formData.request_name.trim().length === 0
+    );
   }
 
   showSchedule(content) {
@@ -149,7 +152,7 @@ export class StepSubmitComponent implements OnInit {
     console.log("submit request for data extraction");
     this.dataService
       .extractData(
-        this.formData.name,
+        this.formData.request_name,
         this.formData.reftime,
         this.formData.datasets.map((x) => x.id),
         this.formData.filters,
@@ -166,7 +169,7 @@ export class StepSubmitComponent implements OnInit {
           this.router.navigate(["app/requests"]);
         },
         (error) => {
-          this.notify.showError(error.error);
+          this.notify.showError(error);
         }
       );
   }

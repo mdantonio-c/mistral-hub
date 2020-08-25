@@ -15,7 +15,7 @@ import {
 import { FieldsSummary } from "../components/maps/observation-maps/services/obs.service";
 
 export class FormData {
-  name: string = "";
+  request_name: string = "";
   reftime: RefTime = this.defaultRefTime();
   datasets: Dataset[] = [];
   filters: Filters[] = [];
@@ -24,7 +24,7 @@ export class FormData {
   output_format = "";
 
   clear() {
-    this.name = "";
+    this.request_name = "";
     this.datasets = [];
     this.filters = [];
     this.postprocessors = [];
@@ -38,7 +38,7 @@ export class FormData {
   }
 
   defaultName() {
-    this.name = this.datasets.join(" ").trim();
+    this.request_name = this.datasets.join(" ").trim();
   }
 
   defaultRefTime(): RefTime {
