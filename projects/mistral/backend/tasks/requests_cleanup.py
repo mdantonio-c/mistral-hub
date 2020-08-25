@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 
@@ -8,13 +10,30 @@ celery_app = CeleryExt.celery_app
 def automatic_cleanup(self):
     with celery_app.app.app_context():
 
-        # db = celery_app.get_service("sqlalchemy")
+        log.info("Autocleaning task started!")
 
-        # 1. get all requests
-        # 2. retrieve user from request
-        # 3. if user.requests_expiration_days == 0: continue
-        # 4. if now - request.created < requests_expiration_days: continue
-        # 5. delete request
-        log.info("Task started!")
+        db = celery_app.get_service("sqlalchemy")
+        users_settings = {}
+        for u in db.User.query.all():
+            users_settings[u.uuid] = u.requests_expiration_days
 
-        return "Task executed!"
+        now = datetime.now()
+        requests = db.Request.query.all()
+        for r in requests:
+            log.info("{} {}: {}", r.id, r.user_id, r.submission_date.isoformat())
+            exp = users_settings.get(r.user_id, 0)
+            if not exp:
+                log.info("User {} disabled requests autocleaning", r.user_id)
+                continue
+
+            exp = timedelta(days=exp)
+
+            if r.submission_date < now - exp:
+                log.warning(
+                    "Request {} (submitted {}) should be deleted",
+                    r.id,
+                    r.submission_date.isoformat(),
+                )
+                # repo.delete_request_record(db, user, request_id, DOWNLOAD_DIR)
+
+        return "Autocleaning task executed!"
