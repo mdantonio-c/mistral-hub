@@ -29,20 +29,15 @@ import { marker } from "leaflet";
 export class ObsMapComponent {
   @Output() updateCount: EventEmitter<number> = new EventEmitter<number>();
 
-  // base layers
+  // base layer
   streetMaps = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
       detectRetina: true,
       attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
     }
   );
-  wMaps = L.tileLayer("http://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png", {
-    detectRetina: true,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  });
 
   // Marker cluster stuff
   markerClusterGroup: L.MarkerClusterGroup;
