@@ -20,7 +20,7 @@ def automatic_cleanup(self):
         now = datetime.now()
         requests = db.Request.query.all()
         for r in requests:
-            log.info("{} {}: {}", r.id, r.user_id, r.submission_date.isoformat())
+            log.info("{} {}: {}", r.id, r.user_id, r.end_date.isoformat())
             exp = users_settings.get(r.user_id, 0)
             if not exp:
                 log.info("User {} disabled requests autocleaning", r.user_id)
@@ -28,11 +28,11 @@ def automatic_cleanup(self):
 
             exp = timedelta(days=exp)
 
-            if r.submission_date < now - exp:
+            if r.end_date < now - exp:
                 log.warning(
-                    "Request {} (submitted {}) should be deleted",
+                    "Request {} (completed on {}) should be deleted",
                     r.id,
-                    r.submission_date.isoformat(),
+                    r.end_date.isoformat(),
                 )
                 # repo.delete_request_record(db, user, request_id, DOWNLOAD_DIR)
 
