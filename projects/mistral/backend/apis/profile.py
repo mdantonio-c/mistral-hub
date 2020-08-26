@@ -9,6 +9,7 @@ class CustomProfile:
     def manipulate(ref, user, data):
         data["disk_quota"] = user.disk_quota
         data["amqp_queue"] = user.amqp_queue
+        data["requests_expiration_days"] = user.requests_expiration_days
 
         return data
 
@@ -29,5 +30,11 @@ class CustomProfile:
                 required=False,
                 label="AMQP queue",
                 description="AMQP queue used to notify the user",
+            ),
+            "requests_expiration_days": fields.Str(
+                required=False,
+                missing=0,
+                label="Requests expirations",
+                description="Number of days after which requests will be cleaned",
             ),
         }

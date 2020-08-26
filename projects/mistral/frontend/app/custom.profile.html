@@ -7,3 +7,8 @@
   <th>AMQP Queue</th>
   <td>{{row.value || "-"}}</td>
 </ng-container>
+
+<ng-container *ngIf="row.key == 'requests_expiration_days'">
+  <th>Requests expiration</th>
+  <td>{{row.value || "0"}} days</td>
+</ng-container>

@@ -27,6 +27,7 @@ export class ProjectOptions {
             pipe: new BytesPipe(),
           },
           { name: "AMQP", prop: "amqp_queue", flexGrow: 0.3 },
+          { name: "Req.Exp.", prop: "requests_expiration_days", flexGrow: 0.3 },
         ],
       };
     }
