@@ -10,5 +10,6 @@
 
 <ng-container *ngIf="row.key == 'requests_expiration_days'">
   <th>Requests expiration</th>
-  <td>{{row.value || "0"}} days</td>
+  <td *ngIf="row.value >= 1">{{row.value || "0"}} days</td>
+  <td *ngIf="row.value == 0 or row='value == ''">N/A</td>
 </ng-container>
