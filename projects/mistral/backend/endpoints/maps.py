@@ -101,21 +101,20 @@ class MapEndpoint(EndpointResource):
 
 class MapImage(MapEndpoint):
     labels = ["map image"]
-    _GET = {
-        "/maps/<map_offset>": {
-            "summary": "Get a forecast map for a specific run.",
-            "responses": {
-                "200": {"description": "Map successfully retrieved"},
-                "400": {"description": "Invalid parameters"},
-                "404": {"description": "Map does not exists"},
-            },
-        }
-    }
 
     def __init__(self):
         super().__init__()
 
     @decorators.use_kwargs(get_schema(True))
+    @decorators.endpoint(
+        path="/maps/<map_offset>",
+        summary="Get a forecast map for a specific run.",
+        responses={
+            200: "Map successfully retrieved",
+            400: "Invalid parameters",
+            404: "Map does not exists",
+        },
+    )
     def get(
         self,
         map_offset,
@@ -185,24 +184,21 @@ class MapImage(MapEndpoint):
 
 class MapSet(MapEndpoint):
     labels = ["map set"]
-    _GET = {
-        "/maps/ready": {
-            "summary": "Get the last available map set for a specific run returning the reference time as well.",
-            "responses": {
-                "200": {
-                    "description": "Map set successfully retrieved",
-                    "schema": {"$ref": "#/definitions/Mapset"},
-                },
-                "400": {"description": "Invalid parameters"},
-                "404": {"description": "Map set does not exists"},
-            },
-        }
-    }
 
     def __init__(self):
         super().__init__()
 
     @decorators.use_kwargs(get_schema(False))
+    @decorators.endpoint(
+        path="/maps/ready",
+        summary="Get the last available map set for a specific run returning the reference time as well.",
+        responses={
+            200: "Map set successfully retrieved",
+            400: "Invalid parameters",
+            404: "Map set does not exists",
+        },
+    )
+    # 200: {'schema': {'$ref': '#/definitions/Mapset'}}
     def get(
         self,
         run,
@@ -291,21 +287,20 @@ class MapSet(MapEndpoint):
 
 class MapLegend(MapEndpoint):
     labels = ["legend"]
-    _GET = {
-        "/maps/legend": {
-            "summary": "Get a specific forecast map legend.",
-            "responses": {
-                "200": {"description": "Legend successfully retrieved"},
-                "400": {"description": "Invalid parameters"},
-                "404": {"description": "Legend does not exists"},
-            },
-        }
-    }
 
     def __init__(self):
         super().__init__()
 
     @decorators.use_kwargs(get_schema(True))
+    @decorators.endpoint(
+        path="/maps/legend",
+        summary="Get a specific forecast map legend.",
+        responses={
+            200: "Legend successfully retrieved",
+            400: "Invalid parameters",
+            404: "Legend does not exists",
+        },
+    )
     def get(
         self, run, res, field, area, platform, level_pe=None, level_pr=None, env="PROD"
     ):

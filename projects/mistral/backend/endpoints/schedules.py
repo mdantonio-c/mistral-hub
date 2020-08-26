@@ -303,67 +303,19 @@ class ScheduledDataExtraction(InputSchema):
 
 class Schedules(EndpointResource):
     labels = ["schedule"]
-    _GET = {
-        "/schedules/<schedule_id>": {
-            "summary": "Get user schedules.",
-            "description": "Returns a single schedule by ID",
-            "responses": {
-                "200": {
-                    "description": "List of user schedules.",
-                    "schema": {"$ref": "#/definitions/Requests"},
-                },
-                "403": {"description": "User not allowed to get the schedule"},
-                "404": {"description": "The schedule does not exists"},
-            },
-        },
-        "/schedules": {
-            "summary": "Get user schedules.",
-            "description": "Returns a single schedule by ID",
-            "responses": {
-                "200": {
-                    "description": "List of user schedules.",
-                    "schema": {"$ref": "#/definitions/Requests"},
-                },
-                "403": {"description": "User not allowed to get the schedule"},
-                "404": {"description": "The schedule does not exists"},
-            },
-        },
-    }
-    _POST = {
-        "/schedules": {
-            "summary": "Request for scheduling a data extraction.",
-            "responses": {
-                "201": {"description": "scheduled request successfully created"},
-                "400": {"description": "invalid scheduled request"},
-                "404": {
-                    "description": "Cannot schedule the request: dataset not found"
-                },
-            },
-        }
-    }
-    _PATCH = {
-        "/schedules/<schedule_id>": {
-            "summary": "enable or disable a schedule",
-            "responses": {
-                "200": {"description": "schedule is succesfully disable/enable"},
-                "404": {"description": "schedule not found"},
-                "400": {"description": "schedule is already enabled/disabled"},
-            },
-        }
-    }
-    _DELETE = {
-        "/schedules/<schedule_id>": {
-            "summary": "delete a schedule",
-            "responses": {
-                "200": {"description": "schedule is succesfully disable/enable"},
-                "404": {"description": "schedule not found"},
-            },
-        }
-    }
 
     @decorators.auth.require()
     @decorators.use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
     @decorators.use_kwargs(ScheduledDataExtraction)
+    @decorators.endpoint(
+        path="/schedules",
+        summary="Request for scheduling a data extraction.",
+        responses={
+            201: "Scheduled request successfully created",
+            400: "Invalid scheduled request",
+            404: "Cannot schedule the request: dataset not found",
+        },
+    )
     def post(
         self,
         request_name,
@@ -642,6 +594,27 @@ class Schedules(EndpointResource):
 
     @decorators.auth.require()
     @decorators.get_pagination
+    @decorators.endpoint(
+        path="/schedules/<schedule_id>",
+        summary="Get user schedules.",
+        description="Returns a single schedule by id",
+        responses={
+            200: "List of user schedules.",
+            403: "User not allowed to get the schedule",
+            404: "The schedule does not exists",
+        },
+    )
+    @decorators.endpoint(
+        path="/schedules",
+        summary="Get user schedules.",
+        description="Returns a single schedule by id",
+        responses={
+            200: "List of user schedules.",
+            403: "User not allowed to get the schedule",
+            404: "The schedule does not exists",
+        },
+    )
+    # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(
         self,
         get_total,
@@ -680,6 +653,15 @@ class Schedules(EndpointResource):
                 required=True, description="Enable or disable the schedule"
             )
         }
+    )
+    @decorators.endpoint(
+        path="/schedules/<schedule_id>",
+        summary="Enable or disable a schedule",
+        responses={
+            200: "Schedule is succesfully disable/enable",
+            404: "Schedule not found",
+            400: "Schedule is already enabled/disabled",
+        },
     )
     def patch(self, schedule_id, is_active):
         user = self.get_user()
@@ -773,6 +755,14 @@ class Schedules(EndpointResource):
         )
 
     @decorators.auth.require()
+    @decorators.endpoint(
+        path="/schedules/<schedule_id>",
+        summary="Delete a schedule",
+        responses={
+            200: "Schedule is succesfully disable/enable",
+            404: "Schedule not found",
+        },
+    )
     def delete(self, schedule_id):
         user = self.get_user()
 
@@ -810,25 +800,22 @@ class Schedules(EndpointResource):
 
 class ScheduledRequests(EndpointResource):
     labels = ["scheduled_requests"]
-    _GET = {
-        "/schedules/<schedule_id>/requests": {
-            "summary": "Get requests related to a given schedule.",
-            "responses": {
-                "200": {
-                    "description": "List of requests for a given schedule.",
-                    "schema": {"$ref": "#/definitions/Requests"},
-                },
-                "404": {"description": "Schedule not found."},
-                "403": {"description": "Cannot access a schedule not belonging to you"},
-            },
-        }
-    }
 
     @decorators.auth.require()
     @decorators.use_kwargs(
         {"get_total": fields.Bool(required=False), "last": fields.Bool(required=False)},
         locations=["query"],
     )
+    @decorators.endpoint(
+        path="/schedules/<schedule_id>/requests",
+        summary="Get requests related to a given schedule.",
+        responses={
+            200: "List of requests for a given schedule.",
+            404: "Schedule not found.",
+            403: "Cannot access a schedule not belonging to you",
+        },
+    )
+    # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(self, schedule_id, get_total=False, last=True):
         """
         Get all submitted requests for this schedule

@@ -44,35 +44,19 @@ class ObservationsDownloader(InputSchema):
 class MapsObservations(EndpointResource):
     # schema_expose = True
     labels = ["maps-observations"]
-    _GET = {
-        "/observations": {
-            "summary": "Get values of observed parameters",
-            "responses": {
-                "200": {
-                    "description": "List of values successfully retrieved",
-                    "schema": {"$ref": "#/definitions/MapStations"},
-                },
-                "400": {"description": "missing params"},
-                "404": {"description": "the query does not give result"},
-            },
-        },
-    }
-    _POST = {
-        "/observations": {
-            "summary": "Download the observed data displayed on the map",
-            "responses": {
-                "200": {
-                    "description": "File of observed data",
-                    "schema": {"$ref": "#/definitions/Fileoutput"},
-                },
-                "400": {"description": "missing params"},
-                "404": {"description": "the query does not give result"},
-            },
-        },
-    }
 
     @decorators.auth.require()
     @decorators.use_kwargs(ObservationsQuery)
+    @decorators.endpoint(
+        path="/observations",
+        summary="Get values of observed parameters",
+        responses={
+            200: "List of values successfully retrieved",
+            400: "Missing params",
+            404: "The query does not give result",
+        },
+    )
+    # 200: {'schema': {'$ref': '#/definitions/MapStations'}}
     def get(
         self,
         networks=None,
@@ -168,6 +152,16 @@ class MapsObservations(EndpointResource):
 
     @decorators.auth.require()
     @decorators.use_kwargs(ObservationsDownloader)
+    @decorators.endpoint(
+        path="/observations",
+        summary="Download the observed data displayed on the map",
+        responses={
+            200: "File of observed data",
+            400: "Missing params",
+            404: "The query does not give result",
+        },
+    )
+    # 200: {'schema': {'$ref': '#/definitions/Fileoutput'}}
     def post(
         self,
         output_format,

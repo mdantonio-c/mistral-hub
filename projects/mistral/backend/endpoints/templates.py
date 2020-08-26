@@ -23,51 +23,6 @@ class TemplatesFormatter(InputSchema):
 
 class Templates(EndpointResource, Uploader):
     labels = ["templates"]
-    _GET = {
-        "/templates/<template_name>": {
-            "summary": "Get a template filepath",
-            "description": "Returns a single template by name",
-            "responses": {
-                "200": {
-                    "description": "template filepath.",
-                    "schema": {"$ref": "#/definitions/TemplateFile"},
-                },
-                "404": {"description": "template not found"},
-            },
-        },
-        "/templates": {
-            "summary": "Get templates",
-            "description": "Returns the user templates list",
-            "responses": {
-                "200": {
-                    "description": "List of user templates",
-                    "schema": {"$ref": "#/definitions/TemplateList"},
-                },
-            },
-        },
-    }
-    _POST = {
-        "/templates": {
-            "summary": "Upload of templates for postprocessors",
-            "consumes": ["multipart/form-data"],
-            "responses": {
-                "202": {
-                    "description": "file uploaded",
-                    "schema": {"$ref": "#/definitions/TemplateFile"},
-                },
-                "400": {"description": "file cannot be uploaded"},
-            },
-        }
-    }
-    _DELETE = {
-        "/templates/<template_name>": {
-            "summary": "delete a template",
-            "responses": {
-                "200": {"description": "template is succesfully deleted"},
-                "404": {"description": "template not found"},
-            },
-        }
-    }
 
     @staticmethod
     def get_extension(filepath):
@@ -75,6 +30,12 @@ class Templates(EndpointResource, Uploader):
         return fileext.strip(".")
 
     @decorators.auth.require()
+    @decorators.endpoint(
+        path="/templates",
+        summary="Upload of templates for postprocessors",
+        responses={202: "File uploaded", 400: "File cannot be uploaded"},
+    )
+    # 202: {'schema': {'$ref': '#/definitions/TemplateFile'}}
     def post(self):
         user = self.get_user()
         # allowed formats for uploaded file
@@ -148,6 +109,19 @@ class Templates(EndpointResource, Uploader):
 
     @decorators.auth.require()
     @decorators.use_kwargs(TemplatesFormatter)
+    @decorators.endpoint(
+        path="/templates/<template_name>",
+        summary="Get a template filepath",
+        description="Returns a single template by name",
+        responses={200: "Template filepath.", 404: "Template not found"},
+    )
+    @decorators.endpoint(
+        path="/templates",
+        summary="Get templates",
+        description="Returns the user templates list",
+        responses={200: "List of user templates"},
+    )
+    # 200: {'schema': {'$ref': '#/definitions/TemplateFile'}}
     def get(
         self,
         template_name=None,
@@ -211,6 +185,11 @@ class Templates(EndpointResource, Uploader):
         return self.response(res, code=hcodes.HTTP_OK_BASIC)
 
     @decorators.auth.require()
+    @decorators.endpoint(
+        path="/templates/<template_name>",
+        summary="Delete a template",
+        responses={200: "Template is succesfully deleted", 404: "Template not found"},
+    )
     def delete(self, template_name):
         user = self.get_user()
         # get the template extension to determine the folder where to find it

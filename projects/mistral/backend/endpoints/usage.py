@@ -15,19 +15,14 @@ DOWNLOAD_DIR = "/data"
 class Usage(EndpointResource):
 
     labels = ["usage"]
-    _GET = {
-        "/usage": {
-            "summary": "Get user disk usage.",
-            "responses": {
-                "200": {
-                    "description": "Disk usage information",
-                    "schema": {"$ref": "#/definitions/StorageUsage"},
-                },
-            },
-        }
-    }
 
     @decorators.auth.require()
+    @decorators.endpoint(
+        path="/usage",
+        summary="Get user disk usage.",
+        responses={200: "Disk usage information"},
+    )
+    # 200: {'schema': {'$ref': '#/definitions/StorageUsage'}}
     def get(self):
         """
         Get actual user disk quota and current usage

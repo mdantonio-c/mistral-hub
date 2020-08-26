@@ -250,24 +250,19 @@ class DataExtraction(InputSchema):
 
 class Data(EndpointResource, Uploader):
     labels = ["data"]
-    _POST = {
-        "/data": {
-            "summary": "Request for data extraction.",
-            "responses": {
-                "202": {"description": "Data extraction request queued"},
-                "400": {
-                    "description": "Parameters for post processing are not correct"
-                },
-                "500": {
-                    "description": "File for spare point interpolation post processor is corrupted"
-                },
-            },
-        }
-    }
 
     @decorators.auth.require()
     @decorators.use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
     @decorators.use_kwargs(DataExtraction)
+    @decorators.endpoint(
+        path="/data",
+        summary="Request for data extraction.",
+        responses={
+            202: "Data extraction request queued",
+            400: "Parameters for post processing are not correct",
+            500: "File for spare point interpolation post processor is corrupted",
+        },
+    )
     def post(
         self,
         request_name,
