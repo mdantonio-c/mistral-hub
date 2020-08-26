@@ -34,6 +34,7 @@ class CustomProfile:
             "requests_expiration_days": fields.Str(
                 required=False,
                 missing=0,
+                validate=validate.Range(min=0, max=365),
                 label="Requests expirations",
                 description="Number of days after which requests will be cleaned",
             ),
