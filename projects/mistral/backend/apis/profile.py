@@ -31,7 +31,7 @@ class CustomProfile:
                 label="AMQP queue",
                 description="AMQP queue used to notify the user",
             ),
-            "requests_expiration_days": fields.Str(
+            "requests_expiration_days": fields.Int(
                 required=False,
                 missing=0,
                 validate=validate.Range(min=0, max=365),
