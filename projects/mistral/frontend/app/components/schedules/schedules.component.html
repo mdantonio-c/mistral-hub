@@ -129,6 +129,10 @@
                     None
                   </dd>
                 </dl>
+                <ng-container *ngIf="row.args.output_format">
+                  <dt>Output Format</dt>
+                  <dd>{{ row.args.output_format | uppercase }}</dd>
+                </ng-container>
               </ng-container>
             </div>
             <div class="col-4 pl-3" style="border-left: 1px solid #ddd;">
