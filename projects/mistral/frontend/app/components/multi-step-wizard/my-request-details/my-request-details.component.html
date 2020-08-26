@@ -108,6 +108,10 @@
   <dd *ngIf="!myRequest.postprocessors || !myRequest.postprocessors.length">
     None
   </dd>
+  <ng-container *ngIf="myRequest.output_format">
+    <dt>Output Format</dt>
+    <dd>{{ myRequest.output_format | uppercase }}</dd>
+  </ng-container>
 </dl>
 
 <ng-template #licenseContent let-modal>
