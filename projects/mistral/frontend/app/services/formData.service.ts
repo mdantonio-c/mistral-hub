@@ -45,8 +45,8 @@ export class FormData {
     return {
       from: moment
         .utc()
-        .subtract(3, "days")
         .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+        .subtract(3, "days")
         .toDate(),
       to: moment.utc().toDate(),
     };
@@ -114,12 +114,14 @@ export class FormDataService {
       let arr = [];
       if (this.formData.reftime.from) {
         arr.push(
-          `>=${moment(this.formData.reftime.from).format("YYYY-MM-DD HH:mm")}`
+          `>=${moment
+            .utc(this.formData.reftime.from)
+            .format("YYYY-MM-DD HH:mm")}`
         );
       }
       if (this.formData.reftime.to) {
         arr.push(
-          `<=${moment(this.formData.reftime.to).format("YYYY-MM-DD HH:mm")}`
+          `<=${moment.utc(this.formData.reftime.to).format("YYYY-MM-DD HH:mm")}`
         );
       }
       query = `reftime: ${arr.join(",")}`;

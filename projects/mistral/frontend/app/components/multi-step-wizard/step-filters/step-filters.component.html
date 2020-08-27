@@ -61,7 +61,10 @@
                 <li>
                   <strong>Size:</strong>
                   {{
-                    summaryStats.s != null ? (summaryStats.s | bytes: 2) : "n/a"
+                    summaryStats.s === null ||
+                    (summaryStats.s === 0 && summaryStats.c > 0)
+                      ? "n/a"
+                      : (summaryStats.s | bytes: 2)
                   }}
                 </li>
               </ul>
@@ -229,6 +232,12 @@
         Time inconsistency: From time value cannot be greater than To time
         value.
       </div>
+      <button
+        class="btn btn-sm btn-outline-primary mr-2"
+        (click)="selectToday()"
+      >
+        Select Today
+      </button>
       <hr />
       <div>
         <input
