@@ -16,7 +16,7 @@ def automatic_cleanup(self):
         users_settings = {}
         for u in db.User.query.all():
             if exp := u.requests_expiration_days:
-                users_settings[u.uuid] = timedelta(days=exp)
+                users_settings[u.id] = timedelta(days=exp)
 
         now = datetime.now()
         requests = db.Request.query.all()
