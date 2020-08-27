@@ -247,7 +247,18 @@ export class DataService {
   }
 
   getLastScheduledRequest(scheduleId): Observable<any> {
-    return this.api.get(`schedules/${scheduleId}/requests`, "", { last: true });
+    return this.api.get(
+      `schedules/${scheduleId}/requests`,
+      "",
+      { last: true },
+      { rawError: true }
+    );
+  }
+
+  countScheduledRequests(scheduleId): Observable<any> {
+    return this.api.get(`schedules/${scheduleId}/requests`, "", {
+      get_total: true,
+    });
   }
 
   getVariableDescription(code): string {
