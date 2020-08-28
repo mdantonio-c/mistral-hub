@@ -53,7 +53,7 @@ export class StepFiltersComponent implements OnInit {
           disabled: true,
         }),
         fromTime: new FormControl({
-          value: refTime ? moment(refTime.from).format("HH:mm") : "00:00",
+          value: refTime ? moment.utc(refTime.from).format("HH:mm") : "00:00",
           disabled: true,
         }),
         toDate: new FormControl({
@@ -63,7 +63,7 @@ export class StepFiltersComponent implements OnInit {
           disabled: true,
         }),
         toTime: new FormControl({
-          value: refTime ? moment(refTime.to).format("HH:mm") : "00:00",
+          value: refTime ? moment.utc(refTime.to).format("HH:mm") : "00:00",
           disabled: true,
         }),
         fullDataset: [false],
@@ -102,6 +102,12 @@ export class StepFiltersComponent implements OnInit {
   today(): NgbDateStruct {
     const today = moment.utc();
     return { year: today.year(), month: today.month() + 1, day: today.date() };
+  }
+
+  selectToday() {
+    let d = moment().utc().toDate();
+    (this.filterForm.controls.fromDate as FormControl).setValue(d);
+    (this.filterForm.controls.toDate as FormControl).setValue(d);
   }
 
   private getFilterGroup(name: string, values: any): FormGroup {
@@ -210,25 +216,25 @@ export class StepFiltersComponent implements OnInit {
   private updateSummaryStats(summaryStats) {
     this.summaryStats = summaryStats;
     if (!this.summaryStats.hasOwnProperty("b")) {
-      let from = moment(this.formDataService.getReftime().from);
+      let from = moment(this.formDataService.getReftime().from).utc();
       this.summaryStats["b"] = [
         from.year(),
         from.month() + 1,
         from.date(),
         from.hour(),
         from.minute(),
-        from.second(),
+        0,
       ];
     }
     if (!this.summaryStats.hasOwnProperty("e")) {
-      let to = moment(this.formDataService.getReftime().to);
+      let to = moment(this.formDataService.getReftime().to).utc();
       this.summaryStats["e"] = [
         to.year(),
         to.month() + 1,
         to.date(),
         to.hour(),
         to.minute(),
-        to.second(),
+        0,
       ];
     }
     if (this.summaryStats["c"] === 0) {
@@ -284,10 +290,18 @@ export class StepFiltersComponent implements OnInit {
         } else {
           let fromDate: Date = this.filterForm.get("fromDate").value;
           const fromTime = this.filterForm.get("fromTime").value.split(":");
-          fromDate.setHours(parseInt(fromTime[0]), parseInt(fromTime[1]));
+          fromDate = moment(fromDate)
+            .utc()
+            .hours(parseInt(fromTime[0]))
+            .minutes(parseInt(fromTime[1]))
+            .toDate();
           let toDate: Date = this.filterForm.get("toDate").value;
           const toTime = this.filterForm.get("toTime").value.split(":");
-          toDate.setHours(parseInt(toTime[0]), parseInt(toTime[1]));
+          toDate = moment(toDate)
+            .utc()
+            .hours(parseInt(toTime[0]))
+            .minutes(parseInt(toTime[1]))
+            .toDate();
           this.formDataService.setReftime({
             from: fromDate,
             to: toDate,
