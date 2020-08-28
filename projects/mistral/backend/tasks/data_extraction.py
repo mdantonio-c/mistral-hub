@@ -6,6 +6,7 @@ import tarfile
 
 from celery import states
 from celery.exceptions import Ignore
+from mistral.endpoints import DOWNLOAD_DIR
 from mistral.exceptions import (
     AccessToDatasetDenied,
     DiskQuotaException,
@@ -26,8 +27,6 @@ from restapi.utilities.logs import log
 from restapi.utilities.templates import get_html_template
 
 celery_app = CeleryExt.celery_app
-
-DOWNLOAD_DIR = "/data"
 
 
 @celery_app.task(bind=True)

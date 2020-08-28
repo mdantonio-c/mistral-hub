@@ -1,5 +1,6 @@
 import json
 
+from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.requests_manager import RequestManager as repo
 from restapi import decorators
 from restapi.exceptions import RestApiException
@@ -7,8 +8,6 @@ from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 from sqlalchemy.orm import joinedload
-
-DOWNLOAD_DIR = "/data"
 
 
 class UserRequests(EndpointResource):
