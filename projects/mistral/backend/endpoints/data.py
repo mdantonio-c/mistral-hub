@@ -252,7 +252,7 @@ class Data(EndpointResource, Uploader):
     labels = ["data"]
 
     @decorators.auth.require()
-    @decorators.use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
+    @decorators.use_kwargs({"push": fields.Bool(required=False)}, location="query")
     @decorators.use_kwargs(DataExtraction)
     @decorators.endpoint(
         path="/data",

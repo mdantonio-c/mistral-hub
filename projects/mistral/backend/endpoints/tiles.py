@@ -32,7 +32,7 @@ class TilesEndpoint(EndpointResource):
             "res": fields.Str(validate=validate.OneOf(RESOLUTIONS), required=True),
             "run": fields.Str(validate=validate.OneOf(RUNS)),
         },
-        locations=["query"],
+        location="query",
     )
     @decorators.endpoint(
         path="/tiles",

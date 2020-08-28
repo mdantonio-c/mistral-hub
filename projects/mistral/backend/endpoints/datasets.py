@@ -13,7 +13,7 @@ class Datasets(EndpointResource):
 
     @decorators.auth.require()
     @decorators.use_kwargs(
-        {"licenceSpecs": fields.Bool(required=False)}, locations=["query"]
+        {"licenceSpecs": fields.Bool(required=False)}, location="query"
     )
     @decorators.endpoint(
         path="/datasets",

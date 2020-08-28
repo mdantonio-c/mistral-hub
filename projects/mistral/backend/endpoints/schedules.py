@@ -305,7 +305,7 @@ class Schedules(EndpointResource):
     labels = ["schedule"]
 
     @decorators.auth.require()
-    @decorators.use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
+    @decorators.use_kwargs({"push": fields.Bool(required=False)}, location="query")
     @decorators.use_kwargs(ScheduledDataExtraction)
     @decorators.endpoint(
         path="/schedules",
@@ -804,7 +804,7 @@ class ScheduledRequests(EndpointResource):
     @decorators.auth.require()
     @decorators.use_kwargs(
         {"get_total": fields.Bool(required=False), "last": fields.Bool(required=False)},
-        locations=["query"],
+        location="query",
     )
     @decorators.endpoint(
         path="/schedules/<schedule_id>/requests",
