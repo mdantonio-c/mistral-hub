@@ -1,15 +1,10 @@
 import os
 import subprocess
 
+from mistral.endpoints import DOWNLOAD_DIR
 from restapi import decorators
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
-
-# from restapi.utilities.logs import log
-
-# from sqlalchemy.orm import load_only
-
-DOWNLOAD_DIR = "/data"
 
 
 class Usage(EndpointResource):

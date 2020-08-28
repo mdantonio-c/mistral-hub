@@ -1,13 +1,12 @@
 import os
 
 from flask import send_from_directory
+from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.requests_manager import RequestManager
 from restapi import decorators
 from restapi.exceptions import NotFound
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
-
-DOWNLOAD_DIR = "/data"
 
 
 class FileDownload(EndpointResource):

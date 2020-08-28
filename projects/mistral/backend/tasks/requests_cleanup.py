@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+from mistral.endpoints import DOWNLOAD_DIR
+from mistral.services.requests_manager import RequestManager as repo
 from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 
@@ -14,9 +16,11 @@ def automatic_cleanup(self):
 
         db = celery_app.get_service("sqlalchemy")
         users_settings = {}
+        users = {}
         for u in db.User.query.all():
             if exp := u.requests_expiration_days:
                 users_settings[u.id] = timedelta(days=exp)
+                users[u.id] = u
 
         now = datetime.now()
         requests = db.Request.query.all()
@@ -38,6 +42,10 @@ def automatic_cleanup(self):
                 r.id,
                 r.end_date.isoformat(),
             )
-            # repo.delete_request_record(db, user, request_id, DOWNLOAD_DIR)
+            user = users.get(r.user_id)
+            repo.delete_request_record(db, user, r.id, DOWNLOAD_DIR)
+
+            # Debug code. prevent too many deletions
+            break
 
         return "Autocleaning task executed!"
