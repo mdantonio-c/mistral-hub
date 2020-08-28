@@ -185,7 +185,7 @@
           ><i
             class="fa fa-sync click-event"
             aria-hidden="true"
-            (click)="list()"
+            (click)="list(true)"
           ></i
         ></span>
       </ng-template>
@@ -300,11 +300,26 @@
     <!-- Controls -->
     <ngx-datatable-column
       width="60"
+      headerClass="px-0"
       [resizeable]="false"
       [sortable]="false"
       [draggable]="false"
       [canAutoResize]="false"
     >
+      <ng-template let-column="column" ngx-datatable-header-template>
+        <button
+          type="button"
+          class="btn btn-sm btn-toggle"
+          data-toggle="button"
+          [ngClass]="{ active: autoSync }"
+          (click)="toggleAutoSync()"
+          ngbTooltip="auto sync every {{ intervalStep }} seconds"
+          placement="left"
+          container="body"
+        >
+          <div class="handle"></div>
+        </button>
+      </ng-template>
       <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
         <div class="btn-toolbar justify-content-end" role="toolbar">
           <div class="btn-group mr-1" role="group">
