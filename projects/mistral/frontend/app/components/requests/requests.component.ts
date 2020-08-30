@@ -18,6 +18,9 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
 
   PP_TIME_RANGES = PP_TIME_RANGES;
   decode = decode;
+  autoSync = true;
+  interval: any;
+  readonly intervalStep = 20; // seconds
 
   constructor(protected injector: Injector, public dataService: DataService) {
     super(injector);
@@ -32,9 +35,20 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   ngOnInit() {
     // make sure the derived variables have been loaded
     this.dataService.getDerivedVariables().subscribe();
+
+    this.activateAutoSync();
   }
 
-  list() {
+  ngOnDestroy() {
+    clearInterval(this.interval);
+  }
+
+  list(click = false) {
+    if (click) {
+      // reset timer
+      clearInterval(this.interval);
+      this.activateAutoSync();
+    }
     this.get(this.endpoint);
     this.onLoad.emit();
   }
@@ -75,5 +89,17 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
 
   toggleExpandRow(row) {
     this.table.rowDetail.toggleExpandRow(row);
+  }
+
+  toggleAutoSync() {
+    this.autoSync = !this.autoSync;
+  }
+
+  private activateAutoSync() {
+    this.interval = setInterval(() => {
+      if (this.autoSync) {
+        this.list();
+      }
+    }, this.intervalStep * 1000);
   }
 }
