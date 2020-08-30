@@ -45,7 +45,4 @@ def automatic_cleanup(self):
             user = users.get(r.user_id)
             repo.delete_request_record(db, user, r.id, DOWNLOAD_DIR)
 
-            # Debug code. prevent too many deletions
-            break
-
         return "Autocleaning task executed!"
