@@ -26,7 +26,7 @@ import {
 
 @Component({
   selector: "loading",
-  template: "<div class='loader'></div>",
+  template: "<div></div>",
 })
 class StubLoadingComponent {}
 
