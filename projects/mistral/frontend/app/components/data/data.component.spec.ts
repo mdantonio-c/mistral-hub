@@ -8,7 +8,7 @@ import { DataComponent } from "./data.component";
 
 @Component({
   selector: "loading",
-  template: "<div class='loader'></div>",
+  template: "<div></div>",
 })
 class StubLoadingComponent {}
 

@@ -3,6 +3,7 @@ import { saveAs as importedSaveAs } from "file-saver";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 
 import { DataService } from "@app/services/data.service";
+import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { environment } from "@rapydo/../environments/environment";
 
 export interface Request {}
@@ -15,13 +16,18 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   expanded: any = {};
   @Output() onLoad: EventEmitter<null> = new EventEmitter<null>();
 
+  PP_TIME_RANGES = PP_TIME_RANGES;
+  decode = decode;
+  autoSync = true;
+  interval: any;
+  readonly intervalStep = 20; // seconds
+
   constructor(protected injector: Injector, public dataService: DataService) {
     super(injector);
     this.init("request");
 
     this.server_side_pagination = true;
     this.endpoint = "requests";
-    this.counter_endpoint = "requests";
     this.initPaging(20);
     this.list();
   }
@@ -29,9 +35,20 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   ngOnInit() {
     // make sure the derived variables have been loaded
     this.dataService.getDerivedVariables().subscribe();
+
+    this.activateAutoSync();
   }
 
-  list() {
+  ngOnDestroy() {
+    clearInterval(this.interval);
+  }
+
+  list(click = false) {
+    if (click) {
+      // reset timer
+      clearInterval(this.interval);
+      this.activateAutoSync();
+    }
     this.get(this.endpoint);
     this.onLoad.emit();
   }
@@ -72,5 +89,17 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
 
   toggleExpandRow(row) {
     this.table.rowDetail.toggleExpandRow(row);
+  }
+
+  toggleAutoSync() {
+    this.autoSync = !this.autoSync;
+  }
+
+  private activateAutoSync() {
+    this.interval = setInterval(() => {
+      if (this.autoSync) {
+        this.list();
+      }
+    }, this.intervalStep * 1000);
   }
 }

@@ -1,7 +1,8 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { FormDataService, FormData } from "@app/services/formData.service";
+import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { DataService } from "@app/services/data.service";
-import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: "mst-my-request-details",
@@ -11,6 +12,9 @@ import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
 export class MyRequestDetailsComponent implements OnInit {
   myRequest: FormData;
   @Input() onSubmitStep = false;
+
+  PP_TIME_RANGES = PP_TIME_RANGES;
+  decode = decode;
 
   constructor(
     private formDataService: FormDataService,
@@ -23,7 +27,10 @@ export class MyRequestDetailsComponent implements OnInit {
   }
 
   emptyName() {
-    return !this.myRequest.name || this.myRequest.name.trim().length === 0;
+    return (
+      !this.myRequest.request_name ||
+      this.myRequest.request_name.trim().length === 0
+    );
   }
 
   open(content) {

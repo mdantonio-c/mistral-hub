@@ -1,6 +1,6 @@
 FROM arpaesimc/centos:7 AS arpaesimc
 
-FROM rapydo/backend:0.7.5
+FROM rapydo/backend:0.7.6
 
 ARG CURRENT_UID
 RUN test -n "$CURRENT_UID"
@@ -12,7 +12,7 @@ RUN usermod -u $CURRENT_UID $APIUSER
 RUN apt-get update \
  && apt-get install --yes software-properties-common \
  && add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" \
- && pip3 install eccodes-python \
+ && pip3 install --use-feature=2020-resolver eccodes-python \
  && apt-get install --yes \
       libhdf5-serial-dev \
       libpq-dev \
@@ -31,8 +31,6 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && python3 -m eccodes selfcheck
-
-# RUN pip3 install eccodes-python && apt-get install -y python3-eccodes && python3 -m eccodes selfcheck
 
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/hdf5/serial"
 ENV PATH="$PATH:/usr/bin/centos"

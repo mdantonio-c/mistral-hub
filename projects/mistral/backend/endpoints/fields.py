@@ -26,20 +26,15 @@ class FieldsQuery(InputSchema):
 class Fields(EndpointResource):
 
     labels = ["field"]
-    _GET = {
-        "/fields": {
-            "summary": "Get summary fields for given dataset(s).",
-            "responses": {
-                "200": {
-                    "description": "List of fields successfully retrieved",
-                    "schema": {"$ref": "#/definitions/Summary"},
-                }
-            },
-        }
-    }
 
     @decorators.auth.require()
-    @decorators.use_kwargs(FieldsQuery)
+    @decorators.use_kwargs(FieldsQuery, location="query")
+    @decorators.endpoint(
+        path="/fields",
+        summary="Get summary fields for given dataset(s).",
+        responses={200: "List of fields successfully retrieved"},
+    )
+    # 200: {'schema': {'$ref': '#/definitions/Summary'}}
     def get(
         self,
         datasets=[],

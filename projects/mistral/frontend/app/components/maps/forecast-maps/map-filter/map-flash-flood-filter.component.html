@@ -177,22 +177,8 @@
             <label class="col-form-label"><strong>AREA:</strong></label>
             <select id="areaGroup" formControlName="area" class="form-control">
               <ng-container *ngFor="let area of areas">
-                <!--
-                                                               <option [value]="area.key" *ngIf="!(area.key === 'Area_Mediterranea' && filterForm.get('res').value ==='lm2.2')">{{area.value}}</option>
-
-                                -->
                 <option
-                  [value]="area.key"
-                  *ngIf="
-                    !(
-                      (area.key === 'Area_Mediterranea' &&
-                        filterForm.get('res').value === 'lm2.2') ||
-                      (!(area.key === 'Italia') &&
-                        (filterForm.get('field').value === 'percentile' ||
-                          filterForm.get('field').value === 'probability'))
-                    )
-                  "
-                >
+                  [value]="area.key">
                   {{ area.value }}
                 </option>
               </ng-container>

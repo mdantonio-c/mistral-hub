@@ -1,8 +1,5 @@
-from datetime import datetime
-
 from mistral.services.requests_manager import RequestManager
 from restapi import decorators
-from restapi.exceptions import BadRequest, RestApiException
 from restapi.models import fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
@@ -10,14 +7,6 @@ from restapi.utilities.logs import log
 
 
 class DataReady(EndpointResource):
-
-    _POST = {
-        "/data/ready": {
-            "summary": "Notify that a dataset is ready",
-            "responses": {"202": {"description": "Notification received"}},
-        }
-    }
-
     @decorators.auth.require()
     @decorators.use_kwargs(
         {
@@ -25,6 +14,11 @@ class DataReady(EndpointResource):
             "model": fields.String(required=True, data_key="Model"),
             "rundate": fields.DateTime(required=True, format="%Y%m%d%H"),
         }
+    )
+    @decorators.endpoint(
+        path="/data/ready",
+        summary="Notify that a dataset is ready",
+        responses={202: "Notification received"},
     )
     def post(self, cluster, model, rundate):
 

@@ -8,12 +8,8 @@ import {
   Validators,
 } from "@angular/forms";
 import { FormDataService } from "@app/services/formData.service";
-import {
-  Dataset,
-  Filters,
-  SummaryStats,
-  DataService,
-} from "@app/services/data.service";
+import { PP_TIME_RANGES } from "@app/services/data";
+import { SummaryStats, DataService } from "@app/services/data.service";
 import { NotificationService } from "@rapydo/services/notification";
 
 @Component({
@@ -88,43 +84,8 @@ export class StepPostprocessComponent implements OnInit {
     },
   ];
 
-  timeRanges = [
-    {
-      code: -1,
-      desc: "-",
-    },
-    {
-      code: 0,
-      desc: "Average",
-    },
-    {
-      code: 1,
-      desc: "Accumulation",
-    },
-    {
-      code: 2,
-      desc: "Maximum",
-    },
-    {
-      code: 3,
-      desc: "Minimum",
-    },
-    {
-      code: 4,
-      desc: "Difference",
-    },
-    {
-      code: 6,
-      desc: "Standard deviation",
-    },
-    {
-      code: 254,
-      desc: "Immediate",
-    },
-  ];
-
+  timeRanges = PP_TIME_RANGES;
   stepIntervals = ["-", "hours", "days", "months", "years"];
-
   interpolationTypes = ["-", "near", "bilin", "average", "min", "max"];
 
   cropTypes = [
@@ -177,7 +138,7 @@ export class StepPostprocessComponent implements OnInit {
   private buildDerivedVariables() {
     const av = this.formDataService
       .getFormData()
-      .postprocessors.filter((p) => p.type === "derived_variables");
+      .postprocessors.filter((p) => p.processor_type === "derived_variables");
     let presetVariables = [];
     if (av && av.length) {
       presetVariables = av[0].variables;
@@ -193,16 +154,18 @@ export class StepPostprocessComponent implements OnInit {
   private buildTimePostProcess() {
     const pt = this.formDataService
       .getFormData()
-      .postprocessors.filter((p) => p.type === "statistic_elaboration");
+      .postprocessors.filter(
+        (p) => p.processor_type === "statistic_elaboration"
+      );
     if (pt && pt.length) {
       this.form.controls["selectedTimePP"].setValue(true);
       this.selectedStepInterval = pt[0].interval; //'interval': this.selectedStepInterval,
       this.form.controls["timeStep"].setValue(pt[0].step); //'step': this.form.value.timeStep
       this.selectedInputTimeRange = this.timeRanges.filter(
-        (t) => t.code == pt[0]["input-timerange"]
+        (t) => t.code == pt[0]["input_timerange"]
       )[0];
       this.selectedOutputTimeRange = this.timeRanges.filter(
-        (t) => t.code == pt[0]["output-timerange"]
+        (t) => t.code == pt[0]["output_timerange"]
       )[0];
     } else {
       this.selectedStepInterval = "-";
@@ -221,12 +184,12 @@ export class StepPostprocessComponent implements OnInit {
   private buildSpaceCrop() {
     const pt = this.formDataService
       .getFormData()
-      .postprocessors.filter((p) => p.type === "grid_cropping");
+      .postprocessors.filter((p) => p.processor_type === "grid_cropping");
     if (pt && pt.length) {
       this.form.controls["selectedSpacePP"].setValue(true);
       this.form.controls["space_type"].setValue("crop");
       this.selectedCropType = this.cropTypes.filter(
-        (c) => c.desc === pt[0]["sub-type"]
+        (c) => c.desc === pt[0]["sub_type"]
       )[0];
       const boundings = pt[0].boundings;
       this.space_crop_boundings.map((bound) => {
@@ -251,12 +214,12 @@ export class StepPostprocessComponent implements OnInit {
   private buildSpaceGrid() {
     const pt = this.formDataService
       .getFormData()
-      .postprocessors.filter((p) => p.type === "grid_interpolation");
+      .postprocessors.filter((p) => p.processor_type === "grid_interpolation");
     if (pt && pt.length) {
       this.form.controls["selectedSpacePP"].setValue(true);
       this.form.controls["space_type"].setValue("grid");
       this.selectedInterpolationType = this.interpolationTypes.filter(
-        (i) => i === pt[0]["sub-type"]
+        (i) => i === pt[0]["sub_type"]
       )[0];
       const boundings = pt[0].boundings;
       if (boundings) {
@@ -309,15 +272,17 @@ export class StepPostprocessComponent implements OnInit {
   private buildSparePoint() {
     const pt = this.formDataService
       .getFormData()
-      .postprocessors.filter((p) => p.type === "spare_point_interpolation");
+      .postprocessors.filter(
+        (p) => p.processor_type === "spare_point_interpolation"
+      );
     if (pt && pt.length) {
       this.form.controls["selectedSpacePP"].setValue(true);
       this.form.controls["space_type"].setValue("points");
       this.selectedInterpolationType = this.interpolationTypes.filter(
-        (i) => i === pt[0]["sub-type"]
+        (i) => i === pt[0]["sub_type"]
       )[0];
       const selectedTemplate = this.sparePointsTemplates.filter(
-        (t) => t.filepath === pt[0]["coord-filepath"]
+        (t) => t.filepath === pt[0]["coord_filepath"]
       )[0];
       this.form.controls["selectedSPTemplate"].setValue(
         selectedTemplate.filepath
@@ -467,7 +432,7 @@ export class StepPostprocessComponent implements OnInit {
       .filter((v) => v !== null);
     if (selectedDerivedVariables && selectedDerivedVariables.length) {
       selectedProcessors.push({
-        type: "derived_variables",
+        processor_type: "derived_variables",
         variables: selectedDerivedVariables,
       });
     }
@@ -563,8 +528,8 @@ export class StepPostprocessComponent implements OnInit {
     });
 
     return {
-      type: "grid_cropping",
-      "sub-type": this.selectedCropType.desc,
+      processor_type: "grid_cropping",
+      sub_type: this.selectedCropType.desc,
       boundings: boundings,
     };
   }
@@ -582,37 +547,37 @@ export class StepPostprocessComponent implements OnInit {
       });
 
       return {
-        type: "grid_interpolation",
-        "sub-type": this.selectedInterpolationType,
+        processor_type: "grid_interpolation",
+        sub_type: this.selectedInterpolationType,
         boundings: boundings,
         nodes: nodes,
       };
     }
     if (this.form.value.gridInterpolationType == "template") {
       return {
-        type: "grid_interpolation",
+        processor_type: "grid_interpolation",
         template: this.form.value.selectedGITemplate,
-        "sub-type": this.selectedInterpolationType,
+        sub_type: this.selectedInterpolationType,
       };
     }
   }
 
   calculateSparePoints() {
     return {
-      type: "spare_point_interpolation",
-      "coord-filepath": this.form.value.selectedSPTemplate,
+      processor_type: "spare_point_interpolation",
+      coord_filepath: this.form.value.selectedSPTemplate,
       format: this.sparePointsTemplates.find(
         (t) => t.filepath == this.form.value.selectedSPTemplate
       ).format,
-      "sub-type": this.selectedInterpolationType,
+      sub_type: this.selectedInterpolationType,
     };
   }
 
   calculateTimePostProcessor() {
     return {
-      type: "statistic_elaboration",
-      "input-timerange": this.selectedInputTimeRange.code,
-      "output-timerange": this.selectedOutputTimeRange.code,
+      processor_type: "statistic_elaboration",
+      input_timerange: this.selectedInputTimeRange.code,
+      output_timerange: this.selectedOutputTimeRange.code,
       interval: this.selectedStepInterval,
       step: this.form.value.timeStep,
     };

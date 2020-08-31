@@ -10,35 +10,30 @@ from restapi.utilities.logs import log
 class Datasets(EndpointResource):
 
     labels = ["dataset"]
-    _GET = {
-        "/datasets": {
-            "summary": "Get a dataset.",
-            "responses": {
-                "200": {
-                    "description": "Dataset successfully retrieved",
-                    "schema": {"$ref": "#/definitions/Dataset"},
-                },
-                "404": {"description": "Dataset does not exists"},
-            },
-            "description": "Return a single dataset filtered by name",
-        },
-        "/datasets/<dataset_name>": {
-            "summary": "Get a dataset.",
-            "responses": {
-                "200": {
-                    "description": "Dataset successfully retrieved",
-                    "schema": {"$ref": "#/definitions/Dataset"},
-                },
-                "404": {"description": "Dataset does not exists"},
-            },
-            "description": "Return a single dataset filtered by name",
-        },
-    }
 
     @decorators.auth.require()
     @decorators.use_kwargs(
-        {"licenceSpecs": fields.Bool(required=False)}, locations=["query"]
+        {"licenceSpecs": fields.Bool(required=False)}, location="query"
     )
+    @decorators.endpoint(
+        path="/datasets",
+        summary="Get a dataset.",
+        description="Return a single dataset filtered by name",
+        responses={
+            200: "Dataset successfully retrieved",
+            404: "Dataset does not exists",
+        },
+    )
+    @decorators.endpoint(
+        path="/datasets/<dataset_name>",
+        summary="Get a dataset.",
+        description="Return a single dataset filtered by name",
+        responses={
+            200: "Dataset successfully retrieved",
+            404: "Dataset does not exists",
+        },
+    )
+    # 200: {'schema': {'$ref': '#/definitions/Dataset'}}
     def get(self, dataset_name=None, licenceSpecs=False):
         """ Get all the datasets or a specific one if a name is provided."""
         try:

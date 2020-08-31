@@ -12,6 +12,7 @@ from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 OUTPUT_FORMATS = ["json", "bufr", "grib"]
+
 DERIVED_VARIABLES = [
     "B12194",  # Air density
     "B13003",  # Relative humidity
@@ -25,10 +26,20 @@ DERIVED_VARIABLES = [
     "B13205",  # Snowfall (grid-scale + convective)
 ]
 
+SUBTYPES = [
+    "near",
+    "bilin",
+    "average",
+    "min",
+    "max",
+]
+
+TIMERANGES = [0, 1, 2, 3, 4, 6, 254]
+
 
 class AVProcessor(InputSchema):
     # Derived variables post-processing
-    processor_type = fields.Str(required=True, data_key="type")
+    processor_type = fields.Str(required=True)
     # "derived_variables"
 
     variables = AdvancedList(
@@ -42,19 +53,10 @@ class AVProcessor(InputSchema):
     )
 
 
-SUBTYPES = [
-    "near",
-    "bilin",
-    "average",
-    "min",
-    "max",
-]
-
-
 class SPIProcessor(InputSchema):
     # Spare points interpolation postprocessor
     processor_type = fields.Str(
-        required=True, data_key="type", description="description of the postprocessor"
+        required=True, description="description of the postprocessor"
     )
     # "spare_point_interpolation"
     coord_filepath = fields.Url(
@@ -62,31 +64,23 @@ class SPIProcessor(InputSchema):
         relative=True,
         require_tls=False,
         schems=None,
-        data_key="coord-filepath",
         description="file to define the target spare points",
     )
     file_format = fields.Str(
         required=True, data_key="format", validate=validate.OneOf(["shp", "geojson"])
     )
-    sub_type = fields.Str(
-        required=True, data_key="sub-type", validate=validate.OneOf(SUBTYPES)
-    )
-
-
-TIMERANGES = [0, 1, 2, 3, 4, 6, 254]
+    sub_type = fields.Str(required=True, validate=validate.OneOf(SUBTYPES))
 
 
 class SEProcessor(InputSchema):
     # Statistic Elaboration post-processing
     processor_type = fields.Str(
-        required=True, data_key="type", description="description of the postprocessor"
+        required=True, description="description of the postprocessor"
     )
     # "statistic_elaboration"
-    input_timerange = fields.Integer(
-        required=True, data_key="input-timerange", validate=validate.OneOf(TIMERANGES)
-    )
+    input_timerange = fields.Integer(required=True, validate=validate.OneOf(TIMERANGES))
     output_timerange = fields.Integer(
-        required=True, data_key="output-timerange", validate=validate.OneOf(TIMERANGES)
+        required=True, validate=validate.OneOf(TIMERANGES)
     )
     interval = fields.Str(
         required=True,
@@ -97,8 +91,8 @@ class SEProcessor(InputSchema):
 
     @pre_load
     def timeranges_validation(self, data, **kwargs):
-        tr_input = data.get("input-timerange")
-        tr_output = data.get("output-timerange")
+        tr_input = data.get("input_timerange")
+        tr_output = data.get("output_timerange")
         if tr_input != tr_output:
             if tr_input == 254:
                 if tr_output == 1:
@@ -123,15 +117,13 @@ class CropBoundings(InputSchema):
 class GCProcessor(InputSchema):
     #  Grid cropping post processor
     processor_type = fields.Str(
-        required=True, data_key="type", description="description of the postprocessor"
+        required=True, description="description of the postprocessor"
     )
     # "grid_cropping"
     boundings = fields.Nested(
         CropBoundings, description="boundings of the cropped grid"
     )
-    sub_type = fields.Str(
-        required=True, data_key="sub-type", validate=validate.OneOf(["coord", "bbox"])
-    )
+    sub_type = fields.Str(required=True, validate=validate.OneOf(["coord", "bbox"]))
 
 
 class InterpolBoundings(InputSchema):
@@ -149,7 +141,7 @@ class Nodes(InputSchema):
 class GIProcessor(InputSchema):
     # Grid interpolation post processor to interpolate data on a new grid
     processor_type = fields.Str(
-        required=True, data_key="type", description="description of the postprocessor"
+        required=True, description="description of the postprocessor"
     )
     # "grid_interpolation"
     boundings = fields.Nested(
@@ -162,9 +154,7 @@ class GIProcessor(InputSchema):
         schems=None,
         description="grib template for interpolation",
     )
-    sub_type = fields.Str(
-        required=True, data_key="sub-type", validate=validate.OneOf(SUBTYPES)
-    )
+    sub_type = fields.Str(required=True, validate=validate.OneOf(SUBTYPES))
 
 
 class Postprocessors(fields.Field):
@@ -183,9 +173,9 @@ class Postprocessors(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
-            if value.get("type") not in self.postprocessors:
+            if value.get("processor_type") not in self.postprocessors:
                 raise ValidationError("unknown postprocessor")
-            postprocessor_schema = self.postprocessors.get(value.get("type"))
+            postprocessor_schema = self.postprocessors.get(value.get("processor_type"))
             valid_data = postprocessor_schema().load(value, unknown=None, partial=None)
 
         except ValidationError as error:
@@ -220,14 +210,13 @@ class Filters(InputSchema):
 
 
 class DataExtraction(InputSchema):
-    request_name = fields.Str(required=True, data_key="name")
+    request_name = fields.Str(required=True)
     reftime = fields.Nested(Reftime, allow_none=True)
     dataset_names = AdvancedList(
         fields.Str(description="Dataset name"),
         unique=True,
         min_items=1,
         required=True,
-        data_key="datasets",
         description="Data belong to the datasets of the list.",
     )
     filters = fields.Nested(Filters, description="Apply different filtering criteria.")
@@ -243,7 +232,7 @@ class DataExtraction(InputSchema):
         if data.get("postprocessors"):
             postprocessor_types = []
             for p in data.get("postprocessors"):
-                postprocessor_types.append(p.get("type"))
+                postprocessor_types.append(p.get("processor_type"))
             if len(postprocessor_types) != len(set(postprocessor_types)):
                 raise ValidationError("Postprocessors list contains duplicates")
 
@@ -261,24 +250,19 @@ class DataExtraction(InputSchema):
 
 class Data(EndpointResource, Uploader):
     labels = ["data"]
-    _POST = {
-        "/data": {
-            "summary": "Request for data extraction.",
-            "responses": {
-                "202": {"description": "Data extraction request queued"},
-                "400": {
-                    "description": "Parameters for post processing are not correct"
-                },
-                "500": {
-                    "description": "File for spare point interpolation post processor is corrupted"
-                },
-            },
-        }
-    }
 
     @decorators.auth.require()
-    @decorators.use_kwargs({"push": fields.Bool(required=False)}, locations=["query"])
+    @decorators.use_kwargs({"push": fields.Bool(required=False)}, location="query")
     @decorators.use_kwargs(DataExtraction)
+    @decorators.endpoint(
+        path="/data",
+        summary="Request for data extraction.",
+        responses={
+            202: "Data extraction request queued",
+            400: "Parameters for post processing are not correct",
+            500: "File for spare point interpolation post processor is corrupted",
+        },
+    )
     def post(
         self,
         request_name,

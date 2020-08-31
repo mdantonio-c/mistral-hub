@@ -4,24 +4,24 @@ from restapi.utilities.logs import log
 class Initializer:
     def __init__(self, services, app=None):
 
-        self.sql = services["sqlalchemy"]
+        sql = services["sqlalchemy"]
 
-        admin = self.sql.Role.query.filter_by(name="admin_root").first()
+        admin = sql.Role.query.filter_by(name="admin_root").first()
         if admin is None:
             log.warning("Admin role does not exist")
         else:
             admin.description = "Administrator"
-            self.sql.session.add(admin)
+            sql.session.add(admin)
 
-        user = self.sql.Role.query.filter_by(name="normal_user").first()
+        user = sql.Role.query.filter_by(name="normal_user").first()
         if user is None:
             log.warning("User role does not exist")
         else:
             user.description = "User"
 
-            self.sql.session.add(user)
+            sql.session.add(user)
 
-        self.sql.session.commit()
+        sql.session.commit()
         log.info("Roles successfully updated")
 
         # add license groups to db
@@ -33,16 +33,16 @@ class Initializer:
             },
         ]
         for el in license_group_data_to_insert:
-            l_group = self.sql.GroupLicense.query.filter_by(name=el["name"]).first()
+            l_group = sql.GroupLicense.query.filter_by(name=el["name"]).first()
             if l_group is None:
-                new_l_group = self.sql.GroupLicense(name=el["name"], descr=el["descr"])
-                self.sql.session.add(new_l_group)
+                new_l_group = sql.GroupLicense(name=el["name"], descr=el["descr"])
+                sql.session.add(new_l_group)
             else:
                 # check if the element has to be updated
                 if l_group.descr != el["descr"]:
                     l_group.descr = el["descr"]
-                    self.sql.session.add(l_group)
-        self.sql.session.commit()
+                    sql.session.add(l_group)
+        sql.session.commit()
         log.info("GroupLicense succesfully updated")
 
         # add license to db
@@ -59,27 +59,32 @@ class Initializer:
                 "descr": "CC BY-SA 4.0",
                 "url": "https://creativecommons.org/licenses/by-sa/4.0/",
             },
+            {
+                "group_name": "CCBY-SA_COMPLIANT",
+                "name": "CCBY-NC-SA 3.0",
+                "descr": "CC BY-NC-SA 3.0",
+                "url": "https://creativecommons.org/licenses/by-nc-sa/3.0/",
+            },
         ]
+
         for el in license_data_to_insert:
-            lic = self.sql.License.query.filter_by(name=el["name"]).first()
-            group_lic = self.sql.GroupLicense.query.filter_by(
-                name=el["group_name"]
-            ).first()
+            lic = sql.License.query.filter_by(name=el["name"]).first()
+            group_lic = sql.GroupLicense.query.filter_by(name=el["group_name"]).first()
             if group_lic is None:
                 log.error(
-                    "{} license group for {} license does not exists: License element cannot be updated",
+                    "Licence {} cannot be updated: license group {} does not exists",
                     el["group_name"],
                     el["name"],
                 )
                 continue
             if lic is None:
-                new_lic = self.sql.License(
+                new_lic = sql.License(
                     name=el["name"],
                     descr=el["descr"],
                     group_license_id=group_lic.id,
                     url=el["url"],
                 )
-                self.sql.session.add(new_lic)
+                sql.session.add(new_lic)
             else:
                 # check if licence has to be updated
                 if (
@@ -90,7 +95,7 @@ class Initializer:
                     lic.group_license_id = group_lic.id
                     lic.descr = el["descr"]
                     lic.url = el["url"]
-                    self.sql.session.add(lic)
+                    sql.session.add(lic)
 
         # add attribution to db
         attribution_data_to_insert = [
@@ -100,13 +105,13 @@ class Initializer:
                 "url": "https://www.arpae.it/sim/",
             },
             {
-                "name": "COSMO-LAMI",
-                "descr": "COSMO-LAMI agreement between Italian Air Force Meteorological Service, Arpae Emilia-Romagna Idro-Meteo-Clima Service and Arpa Piemonte",
+                "name": "AM ARPAE ARPAP",
+                "descr": "LAMI agreement between Italian Air Force Meteorological Service, Arpae Emilia-Romagna Idro-Meteo-Clima Service and Arpa Piemonte",
                 "url": "",
             },
             {
                 "name": "DPCN",
-                "descr": "National Civil Protection Department-Presidency of the Council of Ministers",
+                "descr": "Department of Civil Protection - Presidency of the Council of Ministers",
                 "url": "http://www.protezionecivile.gov.it",
             },
             {
@@ -122,12 +127,12 @@ class Initializer:
             {
                 "name": "ARPAP-DRNA",
                 "descr": "Arpa Piemonte - Department of Natural and Environmental Risks",
-                "url": "https://www.arpa.piemonte.it/chi-siamo/organizzazione/dipartimenti-tematici-arpa#naturali",
+                "url": "http://www.arpa.piemonte.it/rischinaturali/",
             },
             {
                 "name": "ARPAL-APPP-CFR",
-                "descr": "Lazio region - Arpal - Prevention planning and forecasting area - Regional functional center",
-                "url": "http://www.regione.lazio.it/rl_protezione_civile/?vw=contenutiDettaglio&id=101",
+                "descr": "Lazio region - Arpalazio - Prevention planning and forecasting area - Regional functional center",
+                "url": "http://www.arpalazio.gov.it/",
             },
             {
                 "name": "ARPACAMP-CFR",
@@ -147,41 +152,74 @@ class Initializer:
             {
                 "name": "R-LIGURIA-ARPAL",
                 "descr": "Liguria region - Arpal",
-                "url": "https://www.arpal.liguria.it",
+                "url": "https://www.arpal.liguria.it/homepage/meteo.html",
             },
-            {"name": "MISTRAL", "descr": "Mistral project", "url": ""},
+            {
+                "name": "MISTRAL",
+                "descr": "Mistral project",
+                "url": "https://www.mistralportal.it",
+            },
             {
                 "name": "R-MARCHE-PC",
                 "descr": "Marche region – Civil Protection Service",
-                "url": "https://www.regione.marche.it/Regione-Utile/Protezione-Civile",
+                "url": "https://www.regione.marche.it/Regione-Utile/Protezione-Civile/Strutture-Operative/Centro-Funzionale-Multirischi",
             },
             {
-                "name": "PROV-BOLZANO",
-                "descr": "Meteorology and Avalanche Prevention Office - Civil Protection Agency - Autonomous Province of Bolzano",
-                "url": "http://www.provincia.bz.it/it/contatti.asp?orga_orgaid=916",
+                "name": "P-BOLZANO-PC",
+                "descr": "Autonomous Province of Bolzano - Civil Protection Agency - Meteorology and Avalanche Prevention Office",
+                "url": "https://appc.provincia.bz.it",
             },
             {
-                "name": "R-SARDEGNA-ARPAS-METEO",
-                "descr": "Sardegna region – Arpas - Meteoclimatic Department",
+                "name": "ARPAS-METEO",
+                "descr": "Sardinia Region - ARPAS - Meteoclimatic Department",
                 "url": "http://www.sar.sardegna.it/",
             },
         ]
         for el in attribution_data_to_insert:
-            attribution = self.sql.Attribution.query.filter_by(name=el["name"]).first()
+            attribution = sql.Attribution.query.filter_by(name=el["name"]).first()
             if attribution is None:
-                new_attribution = self.sql.Attribution(
+                new_attribution = sql.Attribution(
                     name=el["name"], descr=el["descr"], url=el["url"],
                 )
-                self.sql.session.add(new_attribution)
+                sql.session.add(new_attribution)
             else:
                 # check if licence has to be updated
                 if attribution.descr != el["descr"] or attribution.url != el["url"]:
                     attribution.descr = el["descr"]
                     attribution.url = el["url"]
-                    self.sql.session.add(attribution)
+                    sql.session.add(attribution)
 
-        self.sql.session.commit()
+        sql.session.commit()
         log.info("License and attributions successfully updated")
+
+        celery = services["celery"]
+        UNIQUE_NAME = "requests_cleanup"
+
+        task = celery.get_periodic_task(name=UNIQUE_NAME)
+
+        if task:
+            log.info("Automatic_cleanup task already installed, deleting...")
+            res = celery.delete_periodic_task(name=UNIQUE_NAME)
+            log.info("Automatic_cleanup task deleted = {}", res)
+
+        # EVERY = "5"
+        # celery.create_periodic_task(
+        #     name=UNIQUE_NAME,
+        #     task="mistral.tasks.requests_cleanup.automatic_cleanup",
+        #     every=EVERY,
+        # )
+        # log.info("Automa,tic_cleanup task installed every {} seconds", EVERY)
+        HOUR = "3"
+        MINUTE = "45"
+        celery.create_crontab_task(
+            name=UNIQUE_NAME,
+            task="mistral.tasks.requests_cleanup.automatic_cleanup",
+            hour=HOUR,
+            minute=MINUTE,
+            args=[],
+        )
+
+        log.info("Automatic_cleanup task installed every day at {}:{}", HOUR, MINUTE)
 
 
 class Customizer:

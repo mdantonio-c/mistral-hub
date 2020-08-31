@@ -13,15 +13,15 @@
         [ngbTooltip]="tipContent"
         placement="right"
       >
-        <i class="material-icons">info</i>
+        <i class="fas fa-info-circle"></i>
       </button>
     </div>
     <input
       type="text"
       class="mst--input col"
-      [(ngModel)]="myRequest.name"
+      [(ngModel)]="myRequest.request_name"
       [ngClass]="{ 'mst--input-error': emptyName() }"
-      placeholder="Product name"
+      placeholder="Request name"
       required
     />
     <span class="mst--input-error-msg" *ngIf="emptyName()"
@@ -63,12 +63,42 @@
     <dl class="row">
       <ng-container *ngFor="let p of myRequest.postprocessors">
         <dt class="col-sm-3" style="font-weight: normal;">
-          {{ p.type.replace("_", " ") }}
+          {{ p.processor_type.replace("_", " ") }}
         </dt>
-        <ng-container *ngIf="p.type === 'derived_variables'">
+        <ng-container *ngIf="p.processor_type === 'derived_variables'">
           <dd class="col-sm-9">
             <p *ngFor="let v of p.variables">
               {{ dataService.getVariableDescription(v) }}
+            </p>
+          </dd>
+        </ng-container>
+        <ng-container *ngIf="p.processor_type === 'statistic_elaboration'">
+          <dd class="col-sm-9">
+            <p>
+              timerange: <i>in</i>:{{
+                decode(p.input_timerange, PP_TIME_RANGES)
+              }}, <i>out</i>:{{ decode(p.output_timerange, PP_TIME_RANGES) }},
+              <i>interval</i>:{{ p.step }} {{ p.interval }}
+            </p>
+          </dd>
+        </ng-container>
+        <ng-container *ngIf="p.processor_type === 'grid_cropping'">
+          <dd class="col-sm-9">
+            <p>
+              {{ p["sub-type"] }} = {{ p.boundings.ilon | number: "1.3-3" }},
+              {{ p.boundings.ilat | number: "1.3-3" }},
+              {{ p.boundings.flon | number: "1.3-3" }},
+              {{ p.boundings.flat | number: "1.3-3" }}
+              <a
+                href="http://openstreetmap.org/?minlon={{
+                  p.boundings.ilon
+                }}&minlat={{ p.boundings.ilat }}&maxlon={{
+                  p.boundings.flon
+                }}&maxlat={{ p.boundings.flat }}"
+                target="_blank"
+              >
+                <i class="fas fa-external-link-alt"></i>
+              </a>
             </p>
           </dd>
         </ng-container>
@@ -78,6 +108,10 @@
   <dd *ngIf="!myRequest.postprocessors || !myRequest.postprocessors.length">
     None
   </dd>
+  <ng-container *ngIf="myRequest.output_format">
+    <dt>Output Format</dt>
+    <dd>{{ myRequest.output_format | uppercase }}</dd>
+  </ng-container>
 </dl>
 
 <ng-template #licenseContent let-modal>

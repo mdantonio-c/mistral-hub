@@ -1,34 +1,23 @@
 import os
 import subprocess
 
+from mistral.endpoints import DOWNLOAD_DIR
 from restapi import decorators
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
-
-# from restapi.utilities.logs import log
-
-# from sqlalchemy.orm import load_only
-
-DOWNLOAD_DIR = "/data"
 
 
 class Usage(EndpointResource):
 
     labels = ["usage"]
-    _GET = {
-        "/usage": {
-            "summary": "Get user disk usage.",
-            "responses": {
-                "200": {
-                    "description": "Disk usage information",
-                    "schema": {"$ref": "#/definitions/StorageUsage"},
-                },
-                "401": {"description": "Authentication required"},
-            },
-        }
-    }
 
     @decorators.auth.require()
+    @decorators.endpoint(
+        path="/usage",
+        summary="Get user disk usage.",
+        responses={200: "Disk usage information"},
+    )
+    # 200: {'schema': {'$ref': '#/definitions/StorageUsage'}}
     def get(self):
         """
         Get actual user disk quota and current usage

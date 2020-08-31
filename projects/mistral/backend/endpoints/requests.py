@@ -1,65 +1,29 @@
 import json
 
+from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.requests_manager import RequestManager as repo
 from restapi import decorators
 from restapi.exceptions import RestApiException
-from restapi.models import fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 from sqlalchemy.orm import joinedload
 
-DOWNLOAD_DIR = "/data"
-
 
 class UserRequests(EndpointResource):
 
     labels = ["requests"]
-    _GET = {
-        "/requests": {
-            "summary": "Get requests filtered by uuid.",
-            "responses": {
-                "200": {
-                    "description": "List of requests of an user",
-                    "schema": {"$ref": "#/definitions/Requests"},
-                },
-                "404": {"description": "User has no requests"},
-                "401": {"description": "Current user is not allowed"},
-            },
-        }
-    }
-    _DELETE = {
-        "/requests/<request_id>": {
-            "summary": "Delete a request",
-            "responses": {
-                "200": {"description": "Request deleted successfully."},
-                "404": {"description": "Request does not exist."},
-                "401": {
-                    "description": "The user is not authorized to delete this request."
-                },
-            },
-        }
-    }
 
     @decorators.auth.require()
     @decorators.get_pagination
-    @decorators.use_kwargs(
-        {
-            "sort_order": fields.Str(
-                validate=validate.OneOf(["asc", "desc"]), required=False
-            ),
-            "sort_by": fields.Str(required=False),
-        },
-        locations=["query"],
+    @decorators.endpoint(
+        path="/requests",
+        summary="Get requests filtered by uuid.",
+        responses={200: "List of requests of an user", 404: "User has no requests"},
     )
+    # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(
-        self,
-        request_id=None,
-        get_total=None,
-        page=None,
-        size=None,
-        sort_order=None,
-        sort_by=None,
+        self, get_total, page, size, sort_order, sort_by, input_filter, request_id=None,
     ):
 
         user = self.get_user()
@@ -108,6 +72,14 @@ class UserRequests(EndpointResource):
         return self.response(data, code=hcodes.HTTP_OK_BASIC)
 
     @decorators.auth.require()
+    @decorators.endpoint(
+        path="/requests/<request_id>",
+        summary="Delete a request",
+        responses={
+            200: "Request deleted successfully.",
+            404: "Request does not exist.",
+        },
+    )
     def delete(self, request_id):
         log.debug("delete request {}", request_id)
 

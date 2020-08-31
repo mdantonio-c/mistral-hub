@@ -3,6 +3,7 @@ import { saveAs as importedSaveAs } from "file-saver";
 
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 import { DataService } from "@app/services/data.service";
+import { concatMap, tap } from "rxjs/operators";
 
 export interface Schedule {}
 
@@ -24,7 +25,6 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
 
     this.server_side_pagination = true;
     this.endpoint = "schedules";
-    this.counter_endpoint = "schedules";
     this.initPaging(20);
     this.list();
   }
@@ -44,10 +44,11 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
     this.dataService
       .getLastScheduledRequest(row.id)
       .subscribe(
-        (response) => {
-          row.last = response;
-          // what about the requests count? should be updated
-          row.requests_count = response.length;
+        (scheduledRequest) => {
+          row.last = scheduledRequest;
+          this.dataService.countScheduledRequests(row.id).subscribe((res) => {
+            row.requests_count = res.total;
+          });
         },
         (error) => {
           if (error.status === 404) {
@@ -56,7 +57,7 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
           } else {
             this.notify.showError("Unable to load the last submission");
             // show reason
-            this.notify.showError(error.error);
+            this.notify.showError(error);
           }
         }
       )

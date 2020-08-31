@@ -22,16 +22,6 @@ def check_platform_availability(platform):
 
 class TilesEndpoint(EndpointResource):
     labels = ["tiled map ready"]
-    _GET = {
-        "/tiles": {
-            "summary": "Get the last available tiled map set as a reference time.",
-            "responses": {
-                "200": {"description": "Tiled map successfully retrieved"},
-                "400": {"description": "Invalid parameters"},
-                "404": {"description": "Tiled map does not exists"},
-            },
-        }
-    }
 
     def __init__(self):
         super().__init__()
@@ -42,7 +32,16 @@ class TilesEndpoint(EndpointResource):
             "res": fields.Str(validate=validate.OneOf(RESOLUTIONS), required=True),
             "run": fields.Str(validate=validate.OneOf(RUNS)),
         },
-        locations=["query"],
+        location="query",
+    )
+    @decorators.endpoint(
+        path="/tiles",
+        summary="Get the last available tiled map set as a reference time.",
+        responses={
+            200: "Tiled map successfully retrieved",
+            400: "Invalid parameters",
+            404: "Tiled map does not exists",
+        },
     )
     def get(self, res, run=None):
         ready_file = None
