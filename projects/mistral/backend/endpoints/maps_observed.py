@@ -46,7 +46,7 @@ class MapsObservations(EndpointResource):
     labels = ["maps-observations"]
 
     @decorators.auth.require()
-    @decorators.use_kwargs(ObservationsQuery)
+    @decorators.use_kwargs(ObservationsQuery, location="query")
     @decorators.endpoint(
         path="/observations",
         summary="Get values of observed parameters",

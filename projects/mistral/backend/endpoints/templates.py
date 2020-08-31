@@ -108,7 +108,7 @@ class Templates(EndpointResource, Uploader):
         return self.response(r)
 
     @decorators.auth.require()
-    @decorators.use_kwargs(TemplatesFormatter)
+    @decorators.use_kwargs(TemplatesFormatter, location="query")
     @decorators.endpoint(
         path="/templates/<template_name>",
         summary="Get a template filepath",

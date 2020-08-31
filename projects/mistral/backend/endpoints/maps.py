@@ -105,7 +105,7 @@ class MapImage(MapEndpoint):
     def __init__(self):
         super().__init__()
 
-    @decorators.use_kwargs(get_schema(True))
+    @decorators.use_kwargs(get_schema(True), location="query")
     @decorators.endpoint(
         path="/maps/<map_offset>",
         summary="Get a forecast map for a specific run.",
@@ -188,7 +188,7 @@ class MapSet(MapEndpoint):
     def __init__(self):
         super().__init__()
 
-    @decorators.use_kwargs(get_schema(False))
+    @decorators.use_kwargs(get_schema(False), location="query")
     @decorators.endpoint(
         path="/maps/ready",
         summary="Get the last available map set for a specific run returning the reference time as well.",
@@ -291,7 +291,7 @@ class MapLegend(MapEndpoint):
     def __init__(self):
         super().__init__()
 
-    @decorators.use_kwargs(get_schema(True))
+    @decorators.use_kwargs(get_schema(True), location="query")
     @decorators.endpoint(
         path="/maps/legend",
         summary="Get a specific forecast map legend.",
