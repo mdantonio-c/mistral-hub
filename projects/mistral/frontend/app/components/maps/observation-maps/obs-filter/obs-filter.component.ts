@@ -180,7 +180,7 @@ export class ObsFilterComponent implements OnInit {
         }
       )
       .add(() => {
-        this.spinner.hide("filter-spinner");
+        setTimeout(() => this.spinner.hide("filter-spinner"), 0);
       });
   }
 

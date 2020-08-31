@@ -28,7 +28,7 @@ class Fields(EndpointResource):
     labels = ["field"]
 
     @decorators.auth.require()
-    @decorators.use_kwargs(FieldsQuery)
+    @decorators.use_kwargs(FieldsQuery, location="query")
     @decorators.endpoint(
         path="/fields",
         summary="Get summary fields for given dataset(s).",
