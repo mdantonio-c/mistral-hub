@@ -14,6 +14,13 @@ class CustomProfile:
         return data
 
     @staticmethod
+    def get_user_editable_fields(request):
+        fields = CustomProfile.get_custom_fields(request)
+
+        f = "requests_expiration_days"
+        return {f: fields[f]}
+
+    @staticmethod
     def get_custom_fields(request):
 
         required = request and request.method == "POST"
