@@ -45,4 +45,5 @@ def automatic_cleanup(self):
                 "Request {} (completed on {}) deleted", r.id, r.end_date.isoformat(),
             )
 
-        return "Autocleaning task executed!"
+        log.info("Autocleaning task completed")
+        return "Autocleaning task completed"

@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 
-import { BytesPipe } from "@rapydo/pipes/pipes";
+import { BytesPipe } from "@rapydo/pipes/bytes";
 
 @Injectable()
 export class ProjectOptions {

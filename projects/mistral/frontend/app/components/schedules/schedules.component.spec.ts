@@ -10,7 +10,7 @@ import { HttpClient } from "@angular/common/http";
 import { ToastrModule } from "ngx-toastr";
 
 import { SchedulesComponent } from "./schedules.component";
-import { BytesPipe } from "@rapydo/pipes/pipes";
+import { BytesPipe } from "@rapydo/pipes/bytes";
 import { AuthService } from "@rapydo/services/auth";
 import { NotificationService } from "@rapydo/services/notification";
 import { ProjectOptions } from "@app/custom.project.options";

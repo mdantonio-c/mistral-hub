@@ -12,7 +12,7 @@ import { StepSubmitComponent } from "./step-submit.component";
 import { FormatDatePipe } from "../../../pipes/format-date.pipe";
 import { FormDataService } from "../../../services/formData.service";
 import { FormDataServiceStub } from "../../../services/formData.service.stub";
-import { BytesPipe } from "@rapydo/pipes/pipes";
+import { BytesPipe } from "@rapydo/pipes/bytes";
 import { DataService } from "../../../services/data.service";
 import { DataServiceStub } from "../../../services/data.service.stub";
 
