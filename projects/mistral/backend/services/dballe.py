@@ -124,7 +124,8 @@ class BeDballe:
                 dballe_query[k] = v
             dballe_query["query"] = "details"
             # count the items for each query
-            for cur in explorer.query_summary_all(dballe_query):
+            explorer.set_filter(dballe_query)
+            for cur in explorer.query_summary(dballe_query):
                 # count the items for each query
                 message_count += cur["count"]
                 datetimemin = datetime(
@@ -167,21 +168,31 @@ class BeDballe:
         # create the summary
         summary = {}
         summary["c"] = message_count
+        if "datetimemin" in fields:
+            dtmin_index = fields.index("datetimemin")
+            dtmin_for_summary = queries[dtmin_index][0]
+        else:
+            dtmin_for_summary = min_date
         summary["b"] = [
-            min_date.year,
-            min_date.month,
-            min_date.day,
-            min_date.hour,
-            min_date.minute,
-            min_date.second,
+            dtmin_for_summary.year,
+            dtmin_for_summary.month,
+            dtmin_for_summary.day,
+            dtmin_for_summary.hour,
+            dtmin_for_summary.minute,
+            dtmin_for_summary.second,
         ]
+        if "datetimemax" in fields:
+            dtmax_index = fields.index("datetimemax")
+            dtmax_for_summary = queries[dtmax_index][0]
+        else:
+            dtmax_for_summary = max_date
         summary["e"] = [
-            max_date.year,
-            max_date.month,
-            max_date.day,
-            max_date.hour,
-            max_date.minute,
-            max_date.second,
+            dtmax_for_summary.year,
+            dtmax_for_summary.month,
+            dtmax_for_summary.day,
+            dtmax_for_summary.hour,
+            dtmax_for_summary.minute,
+            dtmax_for_summary.second,
         ]
 
         return summary
