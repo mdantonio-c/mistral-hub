@@ -186,6 +186,9 @@ export class MeteoTilesComponent {
 
   private setOverlaysToMap() {
     let baseUrl = `${TILES_PATH}/${this.run}-${this.resolution}`;
+    if (environment.production) {
+      baseUrl += this.resolution === "lm2.2" ? "/Italia" : "/Area_Mediterranea";
+    }
     let bounds =
       this.resolution === "lm5"
         ? L.latLngBounds(LM5_BOUNDS["southWest"], LM5_BOUNDS["northEast"])

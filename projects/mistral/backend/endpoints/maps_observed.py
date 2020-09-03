@@ -151,7 +151,7 @@ class MapsObservations(EndpointResource):
         return self.response(res)
 
     @decorators.auth.require()
-    @decorators.use_kwargs(ObservationsDownloader)
+    @decorators.use_kwargs(ObservationsDownloader, location="query")
     @decorators.endpoint(
         path="/observations",
         summary="Download the observed data displayed on the map",
