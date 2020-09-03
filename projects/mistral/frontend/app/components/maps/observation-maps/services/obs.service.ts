@@ -1,10 +1,9 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, forkJoin, of } from "rxjs";
-import "rxjs/add/operator/map";
-import "rxjs/add/operator/share";
+import { Observable } from "rxjs";
+import { catchError } from "rxjs/operators";
 import { ApiService } from "@rapydo/services/api";
-import { COLORS, FIELDS_SUMMARY, VAR_TABLE } from "./data";
+import { COLORS, VAR_TABLE } from "./data";
 import { environment } from "@rapydo/../environments/environment";
 
 export interface ObsFilter {
@@ -142,6 +141,34 @@ export class ObsService {
   }
 
   /**
+   * Get station specifics and data for timeseries.
+   *
+   * required filter:
+   * networks, lat and lon for static stations, ident for mobile stations(if reftime is not specified there will be a
+   * default one)
+   *
+   * possible filters : reftime (can be useful also level and timerange?) if level, timerange or product are in query,
+   * they are at the moment ignored in this case
+   *
+   * The param stationDetails has to be true.
+   */
+  getStationTimeSeries(filter: ObsFilter, station: Station): Observable<any> {
+    let d = [
+      `${filter.reftime.getFullYear()}`,
+      `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),
+      `${filter.reftime.getDate()}`.padStart(2, "0"),
+    ].join("-");
+    let params = {
+      q: `reftime: >=${d} 00:00,<=${d} 23:59`,
+      lat: station.lat,
+      lon: station.lon,
+      networks: station.network,
+      stationDetails: true,
+    };
+    return this.api.get("observations", "", params);
+  }
+
+  /**
    * Get observation data.
    * @param filter
    * @param reliabilityCheck request for value reliability. Default to true.
@@ -210,10 +237,12 @@ export class ObsService {
     if (filter.network && filter.network !== "") {
       params["networks"] = filter.network;
     }
-    return this.http.post<Blob>(environment.apiUrl + "/observations", null, {
-      params: params,
-      responseType: "blob" as "json",
-    });
+    return this.http
+      .post<Blob>(environment.apiUrl + "/observations", null, {
+        params: params,
+        responseType: "blob" as "json",
+      })
+      .pipe(catchError(this.api.parseErrorBlob));
   }
 
   private getColorIndex(d, min, max) {
