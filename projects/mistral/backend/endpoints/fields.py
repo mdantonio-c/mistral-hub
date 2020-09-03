@@ -92,7 +92,6 @@ class Fields(EndpointResource):
             log.debug(f"Dataset(s) for observed data: {datasets}")
 
             resulting_fields = {"summarystats": {"c": 0, "s": 0}}
-            requested_nets = []
             # check db type
             query_dic = {}
             if q:
@@ -108,96 +107,33 @@ class Fields(EndpointResource):
                 db_type = "mixed"
             log.debug("db type: {}", db_type)
 
+            # TODO check unique license
+            ds_params = []
             if datasets:
                 # get dataset pars to filter dballe according to the requested dataset
                 for ds in datasets:
                     ds_params = arki.get_observed_dataset_params(ds)
-                    for net in ds_params:
-                        requested_nets.append(net)
                     log.info(f"dataset: {ds}, networks: {ds_params}")
-                    try:
-                        if db_type == "mixed":
-                            fields, summary = dballe.load_filter_for_mixed(
-                                datasets,
-                                ds_params,
-                                SummaryStats,
-                                allAvailableProducts,
-                                query=query_dic,
-                            )
-                        else:
-                            fields, summary = dballe.load_filters(
-                                datasets,
-                                ds_params,
-                                SummaryStats,
-                                allAvailableProducts,
-                                db_type=db_type,
-                                query_dic=query_dic,
-                            )
-                    except AccessToDatasetDenied:
-                        raise RestApiException(
-                            "Access to dataset denied",
-                            status_code=hcodes.HTTP_SERVER_ERROR,
-                        )
-                    if not fields:
-                        continue
-                    else:
-                        for key in fields:
-                            # check and integrate the filter dic
-                            if key not in resulting_fields:
-                                resulting_fields[key] = fields[key]
-                            else:
-                                # merge the two lists
-                                resulting_fields[key].extend(
-                                    x
-                                    for x in fields[key]
-                                    if x not in resulting_fields[key]
-                                )
-                        # update the summary
-                        if SummaryStats:
-                            resulting_fields["summarystats"]["c"] += summary["c"]
-                            if "e" not in resulting_fields["summarystats"]:
-                                resulting_fields["summarystats"]["e"] = summary["e"]
-                            else:
-                                summary_date = datetime(
-                                    *resulting_fields["summarystats"]["e"]
-                                )
-                                new_date = datetime(*summary["e"])
-                                if new_date > summary_date:
-                                    resulting_fields["summarystats"]["e"] = summary["e"]
-                            if "b" not in resulting_fields["summarystats"]:
-                                resulting_fields["summarystats"]["b"] = summary["b"]
-                            else:
-                                summary_date = datetime(
-                                    *resulting_fields["summarystats"]["b"]
-                                )
-                                new_date = datetime(*summary["b"])
-                                if new_date < summary_date:
-                                    resulting_fields["summarystats"]["b"] = summary["b"]
-            else:
-                ds_params = []
-                if db_type == "mixed":
-                    fields, summary = dballe.load_filter_for_mixed(
-                        datasets,
-                        ds_params,
-                        SummaryStats,
-                        allAvailableProducts,
-                        query=query_dic,
-                    )
-                else:
-                    fields, summary = dballe.load_filters(
-                        datasets,
-                        ds_params,
-                        SummaryStats,
-                        allAvailableProducts,
-                        db_type=db_type,
-                        query_dic=query_dic,
-                    )
-                if fields:
-                    for key in fields:
-                        resulting_fields[key] = fields[key]
-                    if SummaryStats:
-                        for key in summary:
-                            resulting_fields["summarystats"][key] = summary[key]
+            try:
+                fields, summary = dballe.load_filters(
+                    ds_params,
+                    SummaryStats,
+                    allAvailableProducts,
+                    db_type=db_type,
+                    query_dic=query_dic,
+                )
+            except AccessToDatasetDenied:
+                raise RestApiException(
+                    "Access to dataset denied", status_code=hcodes.HTTP_SERVER_ERROR,
+                )
+
+            if fields:
+                for key in fields:
+                    resulting_fields[key] = fields[key]
+                if SummaryStats:
+                    for key in summary:
+                        resulting_fields["summarystats"][key] = summary[key]
+
             summary = {"items": resulting_fields}
 
         # ######### ARKIMET ###########

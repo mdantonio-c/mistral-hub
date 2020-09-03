@@ -27,6 +27,9 @@ class BeDballe:
         "LASTDAYS"
     )  # number of days after which data pass in Arkimet
 
+    # path to json file where metadata of observed data in arkimet are stored
+    JSON_SUMMARY_PATH = "/arkimet/config/arkimet_summary.json"
+
     @staticmethod
     def get_db_type(date_min, date_max):
         date_min_compar = datetime.utcnow() - date_min
@@ -84,142 +87,110 @@ class BeDballe:
         return arkimet_query
 
     @staticmethod
-    def build_explorer(memdb=None):
-        if memdb:
-            DB = memdb
-        else:
-            DB = dballe.DB.connect(
-                "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
-                    engine=engine, user=user, pw=pw, host=host, port=port
-                )
+    def build_explorer(db_type):
+
+        DB = dballe.DB.connect(
+            "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
+                engine=engine, user=user, pw=pw, host=host, port=port
             )
+        )
+
         explorer = dballe.DBExplorer()
-        with explorer.rebuild() as update:
-            with DB.transaction() as tr:
-                update.add_db(tr)
+        with explorer.update() as updater:
+            if db_type == "dballe" or db_type == "mixed":
+                with DB.transaction() as tr:
+                    updater.add_db(tr)
+            if db_type == "arkimet" or db_type == "mixed":
+                if os.path.exists(BeDballe.JSON_SUMMARY_PATH):
+                    with open(BeDballe.JSON_SUMMARY_PATH) as fd:
+                        updater.add_json(fd.read())
         return explorer
 
     @staticmethod
-    def count_messages(params, query=None, memdb=None):
+    def get_summary(params, explorer, query=None):
         if params and "network" not in query:
             query["network"] = params
         fields, queries = BeDballe.from_query_to_lists(query)
         log.debug("Counting messages: fields: {}, queries: {}", fields, queries)
 
-        if memdb:
-            DB = memdb
-        else:
-            DB = dballe.DB.connect(
-                "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
-                    engine=engine, user=user, pw=pw, host=host, port=port
-                )
-            )
         # get all the possible combinations of queries to count the messages
         all_queries = list(itertools.product(*queries))
         message_count = 0
+        min_date = None
+        max_date = None
         for q in all_queries:
             dballe_query = {}
             for k, v in zip(fields, q):
                 dballe_query[k] = v
+            dballe_query["query"] = "details"
             # count the items for each query
-            with DB.transaction() as tr:
-                message_count += tr.query_data(dballe_query).remaining
-        return message_count
+            for cur in explorer.query_summary_all(dballe_query):
+                # count the items for each query
+                message_count += cur["count"]
+                datetimemin = datetime(
+                    cur["yearmin"],
+                    cur["monthmin"],
+                    cur["daymin"],
+                    cur["hourmin"],
+                    cur["minumin"],
+                    cur["secmin"],
+                )
+                datetimemax = datetime(
+                    cur["yearmax"],
+                    cur["monthmax"],
+                    cur["daymax"],
+                    cur["hourmax"],
+                    cur["minumax"],
+                    cur["secmax"],
+                )
+                # these notations still cause segfault
+                # datetimemin = cur["datetimemin"]
+                # datetimemin = cur["datetimemax"]
+                if min_date:
+                    if datetimemin < min_date:
+                        min_date = datetimemin
+                else:
+                    min_date = datetimemin
+                if max_date:
+                    if datetimemax > max_date:
+                        max_date = datetimemax
+                else:
+                    max_date = datetimemax
+            # log.debug(
+            #     "query: {}, count: {},min date: {}, max date: {}",
+            #     dballe_query,
+            #     explorer.query_summary(dballe_query).remaining,
+            #     min_date,
+            #     max_date,
+            # )
+        # log.debug("min date: {}, max date: {}",min_date,max_date)
+        # create the summary
+        summary = {}
+        summary["c"] = message_count
+        summary["b"] = [
+            min_date.year,
+            min_date.month,
+            min_date.day,
+            min_date.hour,
+            min_date.minute,
+            min_date.second,
+        ]
+        summary["e"] = [
+            max_date.year,
+            max_date.month,
+            max_date.day,
+            max_date.hour,
+            max_date.minute,
+            max_date.second,
+        ]
+
+        return summary
 
     @staticmethod
-    def load_filter_for_mixed(
-        datasets, params, summary_stats, all_products, query=None
-    ):
-        # TODO get all dataset filter can be optimized? (for now all the data in arkimet dataset are transfered in a temp dballe)
-        # get fields for the dballe database
-        log.debug("mixed dbs: get fields from dballe")
-        query_for_dballe = {}
-        if query:
-            query_for_dballe = {**query}
-        if "datetimemin" in query:
-            (
-                refmax_dballe,
-                refmin_dballe,
-                refmax_arki,
-                refmin_arki,
-            ) = BeDballe.split_reftimes(query["datetimemin"], query["datetimemax"])
-            # set up query for dballe with the correct reftimes
-            query_for_dballe["datetimemin"] = refmin_dballe
-
-        dballe_fields, dballe_summary = BeDballe.load_filters(
-            datasets,
-            params,
-            summary_stats,
-            all_products,
-            db_type="dballe",
-            query_dic=query_for_dballe,
-        )
-
-        # get fields for the arkimet database
-        log.debug("mixed dbs: get fields from arkimet")
-        query_for_arki = {}
-        if query:
-            query_for_arki = {**query}
-        if "datetimemin" in query:
-            # set up query for arkimet with the correct reftimes
-            query_for_arki["datetimemin"] = refmin_arki
-            query_for_arki["datetimemax"] = refmax_arki
-        else:
-            # get retime min and max for arkimet datasets
-            arki_summary = arki_service.load_summary(datasets)
-            query_for_arki["datetimemin"] = datetime(
-                *arki_summary["items"]["summarystats"]["b"]
-            )
-            query_for_arki["datetimemax"] = datetime(
-                *arki_summary["items"]["summarystats"]["e"]
-            )
-
-        arki_fields, arki_summary = BeDballe.load_filters(
-            datasets,
-            params,
-            summary_stats,
-            all_products,
-            db_type="arkimet",
-            query_dic=query_for_arki,
-        )
-
-        if not dballe_fields and not arki_fields:
-            return None, None
-        # integrate the dballe dic with the arki one
-        if arki_fields:
-            for key in arki_fields:
-                if not dballe_fields:
-                    dballe_fields = {}
-                    dballe_fields[key] = arki_fields[key]
-                elif key not in dballe_fields:
-                    dballe_fields[key] = arki_fields[key]
-                else:
-                    # merge the two lists
-                    dballe_fields[key].extend(
-                        x for x in arki_fields[key] if x not in dballe_fields[key]
-                    )
-
-            # update summary
-            if dballe_summary or arki_summary:
-                if not dballe_summary:
-                    dballe_summary = arki_summary
-                else:
-                    dballe_summary["b"] = arki_summary["b"]
-                    dballe_summary["c"] += arki_summary["c"]
-        return dballe_fields, dballe_summary
-
-    @staticmethod
-    def load_filters(
-        datasets, params, summary_stats, all_products, db_type, query_dic=None
-    ):
-
+    def load_filters(params, summary_stats, all_products, db_type, query_dic=None):
         query = {}
         if query_dic:
             query = {**query_dic}
-
-        # if not BeDballe.explorer:
-        # BeDballe.explorer = BeDballe.build_explorer()
-        # explorer = BeDballe.explorer
 
         log.info("Loading filters dataset: {}, query: {}", params, query)
 
@@ -245,38 +216,8 @@ class BeDballe:
             if key in bbox_keys:
                 bbox[key] = value
 
-        memdb = None
-        arkimet_query = None
-
-        if db_type == "arkimet":
-            # redirect the query to arkimet to check if the data exists
-            network = None
-            if "network" in query:
-                network = query["network"]
-            datemin = query["datetimemin"].strftime("%Y-%m-%d %H:%M")
-            datemax = query["datetimemax"].strftime("%Y-%m-%d %H:%M")
-            arkimet_query = BeDballe.build_arkimet_query(
-                datemin=datemin, datemax=datemax, network=network, bounding_box=bbox
-            )
-            if not datasets:
-                license = None
-                if query:
-                    if "license" in query.keys():
-                        license = query["license"]
-                datasets = arki_service.get_obs_datasets(arkimet_query, license)
-                if not datasets:
-                    # any dataset matches the query
-                    return None, None
-                # TODO managing check for unique license: it will be substituted by a dsn management?
-
-            datasize = arki_service.estimate_data_size(datasets, arkimet_query)
-            if datasize == 0:
-                return None, None
-            else:
-                memdb = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
-
         # create and update the explorer object
-        explorer = BeDballe.build_explorer(memdb)
+        explorer = BeDballe.build_explorer(db_type)
 
         # perform the queries in database to get the list of possible filters
         fields = {}
@@ -383,28 +324,9 @@ class BeDballe:
                 )
 
             # create summary
-            summary = {}
             # if summary is required
             if summary_stats:
-                summary["c"] = BeDballe.count_messages(params, query, memdb)
-                if arkimet_query:
-                    arki_summary = arki_service.load_summary(datasets, arkimet_query)
-                    summary["b"] = arki_summary["items"]["summarystats"]["b"]
-                    summary["e"] = arki_summary["items"]["summarystats"]["e"]
-                else:
-                    if "datetimemin" in query:
-                        summary["b"] = BeDballe.from_datetime_to_list(
-                            query["datetimemin"]
-                        )
-                        summary["e"] = BeDballe.from_datetime_to_list(
-                            query["datetimemax"]
-                        )
-                    else:  # case of query of all dataset
-                        datemin_dballe = datetime.utcnow() - timedelta(
-                            days=int(BeDballe.LASTDAYS)
-                        )
-                        summary["b"] = BeDballe.from_datetime_to_list(datemin_dballe)
-                        summary["e"] = BeDballe.from_datetime_to_list(datetime.utcnow())
+                summary = BeDballe.get_summary(params, explorer, query)
             return fields, summary
         else:
             return None, None
@@ -427,18 +349,19 @@ class BeDballe:
         # parse the dballe object
         param_list_parsed = []
         for e in param_list:
-            if param == "level":
-                p = BeDballe.from_level_object_to_string(e)
-            elif param == "timerange":
-                p = BeDballe.from_trange_object_to_string(e)
-            param_list_parsed.append(p)
-
+            if e is not None:
+                if param == "level":
+                    p = BeDballe.from_level_object_to_string(e)
+                elif param == "timerange":
+                    p = BeDballe.from_trange_object_to_string(e)
+                param_list_parsed.append(p)
         if level_list:
             level_list_parsed = []
             # parse the level list
             for lev in level_list:
-                level = BeDballe.from_level_object_to_string(lev)
-                level_list_parsed.append(level)
+                if lev is not None:
+                    level = BeDballe.from_level_object_to_string(lev)
+                    level_list_parsed.append(level)
 
         #### the param is in the query filters
         if param in query:
@@ -673,7 +596,6 @@ class BeDballe:
         quality_check=None,
         download=None,
     ):
-
         DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/DBALLE")
 
         # TODO va fatto un check licenze compatibili qui all'inizio (by dataset)? oppure a seconda della licenza lo si manda su un dballe o un altro?
@@ -889,7 +811,6 @@ class BeDballe:
 
     @staticmethod
     def get_station_data_for_maps(db, query_station_data, query_data):
-
         log.debug("query station data: {}", query_station_data)
         # get station data
         with db.transaction() as tr:
@@ -1332,7 +1253,6 @@ class BeDballe:
 
     @staticmethod
     def parse_query_for_data_extraction(datasets, filters=None, reftime=None):
-
         # get network list from requested datasets
         dataset_nets = []
         for ds in datasets:
@@ -1373,7 +1293,6 @@ class BeDballe:
 
     @staticmethod
     def extract_data_for_mixed(datasets, fields, queries, outfile):
-
         # extract data from the dballe database
         log.debug("mixed dbs: extract data from dballe")
         dballe_queries = []
@@ -1443,7 +1362,6 @@ class BeDballe:
 
     @staticmethod
     def extract_data(datasets, fields, queries, outfile, db_type):
-
         # choose the db
         if db_type == "arkimet":
             # create arkimet query
