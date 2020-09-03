@@ -14,7 +14,7 @@ import { DataService } from "../../../services/data.service";
 import { FormatDatePipe } from "../../../pipes/format-date.pipe";
 
 import { NotificationService } from "@rapydo/services/notification";
-import { BytesPipe } from "@rapydo/pipes/pipes";
+import { BytesPipe } from "@rapydo/pipes/bytes";
 
 class NotificationServiceStub {}
 

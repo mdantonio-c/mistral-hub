@@ -15,7 +15,7 @@ import { FormDataServiceStub } from "../../../services/formData.service.stub";
 import { FormatDatePipe } from "../../../pipes/format-date.pipe";
 import { DisableControlDirective } from "@app/directives/disable-control";
 
-import { BytesPipe } from "@rapydo/pipes/pipes";
+import { BytesPipe } from "@rapydo/pipes/bytes";
 import { ArkimetService } from "../../../services/arkimet.service";
 
 class NotificationServiceStub {}

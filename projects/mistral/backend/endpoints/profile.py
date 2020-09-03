@@ -42,7 +42,7 @@ class CustomProfile:
                 required=False,
                 missing=0,
                 validate=validate.Range(min=0, max=365),
-                label="Requests expirations",
+                label="Requests expirations (in days, 0 to disable)",
                 description="Number of days after which requests will be cleaned",
             ),
         }
