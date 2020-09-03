@@ -124,8 +124,9 @@ class BeDballe:
                 dballe_query[k] = v
             dballe_query["query"] = "details"
             # count the items for each query
-            message_count += explorer.query_summary_all(dballe_query).remaining
             for cur in explorer.query_summary_all(dballe_query):
+                # count the items for each query
+                message_count += cur["count"]
                 datetimemin = datetime(
                     cur["yearmin"],
                     cur["monthmin"],
