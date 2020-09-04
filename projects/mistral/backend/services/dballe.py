@@ -124,7 +124,6 @@ class BeDballe:
                 dballe_query[k] = v
             dballe_query["query"] = "details"
             # count the items for each query
-            explorer.set_filter(dballe_query)
             for cur in explorer.query_summary(dballe_query):
                 # count the items for each query
                 message_count += cur["count"]
