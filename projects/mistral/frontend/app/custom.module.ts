@@ -52,6 +52,7 @@ import { ObsFilterComponent } from "@app/components/maps/observation-maps/obs-fi
 import { ObsDownloadComponent } from "@app/components/maps/observation-maps/obs-download/obs-download.component";
 import { ObsNavbarComponent } from "@app/components/maps/observation-maps/obs-navbar/obs-navbar.component";
 import { ObsMapComponent } from "@app/components/maps/observation-maps/obs-map/obs-map.component";
+import { ObsStationReportComponent } from "@app/components/maps/observation-maps/obs-station-report/obs-station-report.component";
 import { MeteoTilesComponent } from "@app/components/maps/meteo-tiles/meteo-tiles.component";
 
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
@@ -133,6 +134,7 @@ const appRoutes: Routes = [
     ObsDownloadComponent,
     ObsNavbarComponent,
     ObsMapComponent,
+    ObsStationReportComponent,
     MeteoTilesComponent,
     MultiStepWizardComponent,
     MyRequestDetailsComponent,

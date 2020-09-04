@@ -12,13 +12,14 @@ import {
   SingleObsData,
   Station,
 } from "../services/obs.service";
+import { ObsStationReportComponent } from "../obs-station-report/obs-station-report.component";
 import { COLORS, obsData, VAR_TABLE } from "../services/data";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
+import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
 
 import * as L from "leaflet";
 import "leaflet.markercluster";
-import { marker } from "leaflet";
 
 @Component({
   selector: "app-obs-map",
@@ -53,10 +54,13 @@ export class ObsMapComponent {
     center: [45.0, 12.0],
   };
 
+  private filter: ObsFilter;
+
   constructor(
     private obsService: ObsService,
     private notify: NotificationService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
+    private modalService: NgbModal
   ) {
     // custom cluster options
     this.markerClusterOptions = {
@@ -79,15 +83,15 @@ export class ObsMapComponent {
             medians: number[] = [],
             dirtyMedians: number[] = [];
           for (const m of childMarkers) {
-            const singleobsData: SingleObsData = m.options["data"];
+            const singleObsData: SingleObsData = m.options["data"];
             if (!type) {
-              type = singleobsData.varcode;
+              type = singleObsData.varcode;
             }
-            if (singleobsData.value.is_reliable) {
-              let val = singleobsData.value.value;
+            if (singleObsData.value.is_reliable) {
+              let val = singleObsData.value.value;
               medians.push(val);
             } else {
-              let dirtyVal = singleobsData.value.value;
+              let dirtyVal = singleObsData.value.value;
               dirtyMedians.push(dirtyVal);
             }
           }
@@ -107,7 +111,7 @@ export class ObsMapComponent {
           let is_single_station = false;
           let station_lng = null;
           let station_lat = null;
-          for (var i = 0; i < childMarkers.length; i++) {
+          for (let i = 0; i < childMarkers.length; i++) {
             let latlng = childMarkers[i].getLatLng();
             if (!station_lng) {
               station_lat = latlng.lat;
@@ -165,6 +169,7 @@ export class ObsMapComponent {
   }
 
   updateMap(filter: ObsFilter) {
+    this.filter = filter;
     // get data
     if (this.markerClusterGroup) {
       this.markerClusterGroup.clearLayers();
@@ -188,7 +193,7 @@ export class ObsMapComponent {
         }
       )
       .add(() => {
-        this.spinner.hide();
+        setTimeout(() => this.spinner.hide(), 0);
       });
   }
 
@@ -238,7 +243,7 @@ export class ObsMapComponent {
       if (!onlyStations) {
         obsData = s.products.find((x) => x.varcode === product);
 
-        for (var i = 0; i < obsData.values.length; i++) {
+        for (let i = 0; i < obsData.values.length; i++) {
           // create an object for each value of obsData
           singleObsData = JSON.parse(JSON.stringify(obsData));
           delete singleObsData["values"];
@@ -267,6 +272,10 @@ export class ObsMapComponent {
                 offset: [3, -8],
               }
             );
+            // marker.bindPopup(
+            //   '<p>Hello world!<br />This is a nice popup.</p>'
+            // );
+            marker.on("click", this.openStationReport.bind(this, s.station));
           }
           markers.push(marker);
         }
@@ -305,6 +314,17 @@ export class ObsMapComponent {
     this.markerClusterGroup.addLayers(markers);
 
     this.fitBounds();
+  }
+
+  private openStationReport(station: Station) {
+    const modalRef = this.modalService.open(ObsStationReportComponent, {
+      size: "xl",
+      centered: true,
+    });
+    modalRef.componentInstance.station = station;
+    modalRef.componentInstance.filter = this.filter;
+    // need to trigger resize event
+    window.dispatchEvent(new Event("resize"));
   }
 
   private static buildTooltipTemplate(station: Station) {

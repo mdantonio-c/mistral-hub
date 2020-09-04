@@ -69,28 +69,24 @@ class TilesEndpoint(EndpointResource):
         # check for run param: if not provided get the "last" run available
         if not run:
             log.debug("No run param provided: look for the last run available")
-            # here now is a UTC time
-            now = datetime.utcnow()
-            log.debug("now = {}", now)
-            # if it is past 12 UTC check the availability of run 12 otherwise get run 00
-            todayAt12 = datetime.utcnow().replace(
-                hour=12, minute=0, second=0, microsecond=0
-            )
-            log.debug("today at 12 = {}", todayAt12)
-            # use default run in case run at 12 is not available
-            run = "00"
-            if now > todayAt12:
-                log.debug("12:00 o'clock has passed")
-                try:
-                    ready_file = self._get_ready_file(platform, area, "12", res)
-                except FileNotFoundError:
-                    log.debug("Run at 12:00 is not yet available")
-
-        if not ready_file:
+            ready_files = [
+                x
+                for x in (
+                    self._get_ready_file(platform, area, r, res) for r in ["00", "12"]
+                )
+                if x is not None
+            ]
             try:
-                ready_file = self._get_ready_file(platform, area, run, res)
-            except FileNotFoundError as e:
-                raise RestApiException(str(e), status_code=hcodes.HTTP_BAD_NOTFOUND)
+                ready_file = max(ready_files)
+            except ValueError:
+                log.warning("No Run is available: .READY file not found")
+        else:
+            ready_file = self._get_ready_file(platform, area, run, res)
+            if not ready_file:
+                raise RestApiException(
+                    f"No .READY file found for RUN at {run}:00",
+                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+                )
 
         data = {"reftime": ready_file[:10], "platform": platform}
         return self.response(data)
@@ -115,6 +111,4 @@ class TilesEndpoint(EndpointResource):
         log.debug(f"Looking for .READY files in: {ready_path}")
         if len(ready_files) > 0:
             log.debug(f".READY files found: {ready_files}")
-        else:
-            raise FileNotFoundError("no .READY files found")
-        return ready_files[0]
+            return ready_files[0]
