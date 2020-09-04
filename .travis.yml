@@ -47,7 +47,7 @@ script:
 
       rapydo shell backend --command 'restapi tests --wait';
       docker cp mistral_backend_1:/code/coverage.xml coverage.xml;
-      bash <(curl -s https://codecov.io/bash);
+      travis_retry bash <(curl -s https://codecov.io/bash);
 
     elif [[ "$STAGE" == "FRONTEND" ]]; then
 
@@ -58,7 +58,7 @@ script:
       rapydo shell frontend --command "yarn install" || travis_terminate 1;
       rapydo shell frontend --command "yarn run test:single" || travis_terminate 1;
       cp data/mistral/karma/lcov.info .;
-      bash <(curl -s https://codecov.io/bash);
+      travis_retry bash <(curl -s https://codecov.io/bash);
 
     elif [[ "$STAGE" == "CYPRESS" ]]; then
 
