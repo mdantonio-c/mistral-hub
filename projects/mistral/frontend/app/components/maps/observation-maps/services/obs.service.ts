@@ -47,12 +47,18 @@ export interface Items {
 }
 
 export interface Station {
-  id?: number;
   ident?: string;
   altitude?: string;
   network: string;
   lat: number;
   lon: number;
+  details?: StationDetail[];
+}
+
+export interface StationDetail {
+  code: string;
+  value: string;
+  description: string;
 }
 
 export interface ObsValues {
@@ -151,8 +157,13 @@ export class ObsService {
    * they are at the moment ignored in this case
    *
    * The param stationDetails has to be true.
+   *
+   * @return expected a single element array
    */
-  getStationTimeSeries(filter: ObsFilter, station: Station): Observable<any> {
+  getStationTimeSeries(
+    filter: ObsFilter,
+    station: Station
+  ): Observable<Observation[]> {
     let d = [
       `${filter.reftime.getFullYear()}`,
       `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),

@@ -193,12 +193,13 @@ export class MeteoTilesComponent {
       this.resolution === "lm5"
         ? L.latLngBounds(LM5_BOUNDS["southWest"], LM5_BOUNDS["northEast"])
         : L.latLngBounds(LM2_BOUNDS["southWest"], LM2_BOUNDS["northEast"]);
+    let maxZoom = this.resolution === "lm5" ? 7 : 8;
     this.layersControl["overlays"] = {
       // Temperature 2 meters Time Layer
       [TM2]: L.timeDimension.layer.tileLayer.portus(
         L.tileLayer(`${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`, {
           minZoom: 5,
-          maxZoom: 7,
+          maxZoom: maxZoom,
           tms: false,
           opacity: 0.6,
           bounds: bounds,
@@ -209,7 +210,7 @@ export class MeteoTilesComponent {
       [PREC3P]: L.timeDimension.layer.tileLayer.portus(
         L.tileLayer(`${baseUrl}/prec3-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
           minZoom: 5,
-          maxZoom: 7,
+          maxZoom: maxZoom,
           tms: false,
           opacity: 0.6,
           bounds: bounds,
@@ -220,7 +221,7 @@ export class MeteoTilesComponent {
       [PREC6P]: L.timeDimension.layer.tileLayer.portus(
         L.tileLayer(`${baseUrl}/prec6-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
           minZoom: 5,
-          maxZoom: 7,
+          maxZoom: maxZoom,
           tms: false,
           opacity: 0.6,
           bounds: bounds,
@@ -233,7 +234,7 @@ export class MeteoTilesComponent {
           `${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
           {
             minZoom: 5,
-            maxZoom: 7,
+            maxZoom: maxZoom,
             tms: false,
             opacity: 0.6,
             bounds: bounds,
@@ -247,7 +248,7 @@ export class MeteoTilesComponent {
           `${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
           {
             minZoom: 5,
-            maxZoom: 7,
+            maxZoom: maxZoom,
             tms: false,
             opacity: 0.6,
             bounds: bounds,
@@ -261,7 +262,7 @@ export class MeteoTilesComponent {
           `${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`,
           {
             minZoom: 5,
-            maxZoom: 7,
+            maxZoom: maxZoom,
             tms: false,
             //opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -276,7 +277,7 @@ export class MeteoTilesComponent {
           `${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
           {
             minZoom: 5,
-            maxZoom: 7,
+            maxZoom: maxZoom,
             tms: false,
             //opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -291,7 +292,7 @@ export class MeteoTilesComponent {
           `${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
           {
             minZoom: 5,
-            maxZoom: 7,
+            maxZoom: maxZoom,
             tms: false,
             //opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
@@ -306,7 +307,7 @@ export class MeteoTilesComponent {
           `${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
           {
             minZoom: 5,
-            maxZoom: 7,
+            maxZoom: maxZoom,
             tms: false,
             opacity: 0.9,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
