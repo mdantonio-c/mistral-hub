@@ -11,12 +11,14 @@ import {
 
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
+import { VAR_TABLE } from "../services/data";
 
 const STATION_NAME_CODE = "B01019";
 
 export interface DataSeries {
   name: string;
   code: string;
+  unit: string;
   series: SeriesItem[];
 }
 export interface SeriesItem {
@@ -38,7 +40,6 @@ export class ObsStationReportComponent implements OnInit {
   active = 0;
 
   multi: any[];
-  // view: any[] = [700, 300];
 
   // chart options
   showLabels = true;
@@ -97,24 +98,6 @@ export class ObsStationReportComponent implements OnInit {
     }
   }
 
-  private timeSeries(productCode: string) {
-    /* [{
-        "name": "$variable description",
-        "series": [
-          { "reftime": "1990", "value": 62 },
-          { "reftime": "1990", "value": 62 },
-          { "reftime": "1990", "value": 62 }
-        ]
-      }]
-     */
-    let res = [];
-    if (this.report) {
-      let product = this.report.products.find((x) => x.varcode === productCode);
-      console.log(product);
-    }
-    return res;
-  }
-
   download() {
     console.log("download");
   }
@@ -143,12 +126,13 @@ export class ObsStationReportComponent implements OnInit {
       let s: DataSeries = {
         name: v.description,
         code: v.varcode,
+        unit: v.unit,
         series: [],
       };
       v.values.forEach((obs) => {
         s.series.push({
           name: obs.reftime,
-          value: obs.value,
+          value: ObsService.showData(obs.value, v.varcode),
         });
       });
       res.push(s);
