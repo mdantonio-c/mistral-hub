@@ -277,7 +277,7 @@ class MapsObservations(EndpointResource):
                         )
                         # set up queries with the correct reftimes
                         dballe_reftime_in_query["datetimemin"] = refmin_dballe
-                        dballe_reftime_in_query["datetimemin"] = refmin_dballe
+                        dballe_reftime_in_query["datetimemax"] = refmax_dballe
                         arki_reftime_in_query["datetimemin"] = refmin_arki
                         arki_reftime_in_query["datetimemax"] = refmax_arki
 
@@ -315,8 +315,8 @@ class MapsObservations(EndpointResource):
                 )
                 # get queries and db for arkimet extraction
                 arki_db = None
-                arki_query_data = None
-                arki_query_station_data = None
+                arki_query_data = {}
+                arki_query_station_data = {}
                 if arki_reftime_in_query:
                     for key, value in arki_reftime_in_query:
                         query_data_for_arki[key] = value

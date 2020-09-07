@@ -699,14 +699,6 @@ class BeDballe:
         if db_type == "arkimet":
             memdb = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
 
-        # if download param, return the db and the query to download the data
-        if download:
-            if db_type == "arkimet":
-                db_for_download = memdb
-            else:
-                db_for_download = DB
-            return db_for_download, query_data, query_station_data
-
         # if db_type == "arkimet":
         #     # get data
         #     response = BeDballe.get_data_for_maps(memdb, query, only_stations)
@@ -718,6 +710,10 @@ class BeDballe:
             db = memdb
         else:
             db = DB
+
+        # if download param, return the db and the query to download the data
+        if download:
+            return db, query_data, query_station_data
 
         log.debug("query data for maps {}", query)
         with db.transaction() as tr:
@@ -834,7 +830,7 @@ class BeDballe:
         if arki_query_data:
             if "datetimemin" in arki_query_data:
                 query_data["datetimemin"] = arki_query_data["datetimemin"]
-        # return the arki_db (the tem one) filled also with data from dballe
+        # return the arki_db (the temp one) filled also with data from dballe
         if arki_db:
             return arki_db, query_data
         else:
@@ -1015,7 +1011,7 @@ class BeDballe:
                         query_data[dballe_keys[key_index]] = value
                     else:
                         query_data[dballe_keys[key_index]] = value[0]
-            elif key in allowed_keys:
+            elif key in allowed_keys or key in dballe_keys:
                 query_data[key] = value
         return query_data
 
