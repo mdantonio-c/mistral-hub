@@ -11,10 +11,10 @@ import { SharedModule } from "@rapydo/shared.module";
 import { AuthGuard } from "@rapydo/app.auth.guard";
 
 import { NgxBootstrapSliderModule } from "ngx-bootstrap-slider";
-
 import { LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { LeafletDrawModule } from "@asymmetrik/ngx-leaflet-draw";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
+import { NgxChartsModule } from "@swimlane/ngx-charts";
 
 import { HomeComponent } from "@app/custom.home";
 import { DataComponent } from "@app/components/data/data.component";
@@ -56,6 +56,7 @@ import { ObsStationReportComponent } from "@app/components/maps/observation-maps
 import { MeteoTilesComponent } from "@app/components/maps/meteo-tiles/meteo-tiles.component";
 
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
+import { ReplacePipe } from "@app/pipes/replace.pipe";
 import { WorkflowGuard } from "@app/services/workflow-guard.service";
 
 const appRoutes: Routes = [
@@ -119,6 +120,7 @@ const appRoutes: Routes = [
     LeafletModule,
     LeafletDrawModule,
     LeafletMarkerClusterModule,
+    NgxChartsModule,
   ],
   declarations: [
     HomeComponent,
@@ -151,6 +153,7 @@ const appRoutes: Routes = [
     LicenseComponent,
     PrivacyComponent,
     FormatDatePipe,
+    ReplacePipe,
     DisableControlDirective,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
