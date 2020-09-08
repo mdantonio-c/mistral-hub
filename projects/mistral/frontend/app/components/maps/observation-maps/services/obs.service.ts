@@ -334,4 +334,19 @@ export class ObsService {
     }
     return (val * scale + offset).toPrecision(precision).replace(/\.?0+$/, "");
   }
+
+  /**
+   *
+   * @param type {String} The meaning of the value (e.g. temperature)
+   */
+  static showUserUnit(type: string): string | null {
+    let bcode = VAR_TABLE.find((x) => x.bcode === type);
+    if (!bcode) {
+      console.warn(
+        `Bcode not available for product ${type}. No userunit available!`
+      );
+      return null;
+    }
+    return bcode.userunit;
+  }
 }

@@ -76,32 +76,34 @@
               ngbNav
               #nav="ngbNav"
               [(activeId)]="active"
+              (navChange)="onNavChange($event)"
               class="nav-pills"
               orientation="horizontal"
               style="font-size: small;"
             >
-              <ng-container *ngFor="let p of report.products; index as i">
-                <li [ngbNavItem]="i">
+              <ng-container *ngFor="let p of report.products">
+                <li [ngbNavItem]="p.varcode">
                   <a ngbNavLink>{{ p.description | uppercase }}</a>
-                  <ng-template ngbNavContent>
-                    <div #containerRef>
-                      <ngx-charts-line-chart
-                        [view]="[containerRef.offsetWidth, 400]"
-                        [animations]="animations"
-                        [scheme]="colorScheme"
-                        [xAxis]="xAxis"
-                        [yAxis]="yAxis"
-                        [timeline]="timeline"
-                        [results]="getGraphData(p.varcode)"
-                      >
-                      </ngx-charts-line-chart>
-                    </div>
-                  </ng-template>
+                  <ng-template ngbNavContent></ng-template>
                 </li>
               </ng-container>
             </ul>
 
             <div [ngbNavOutlet]="nav" class="mt-4"></div>
+            <div #containerRef>
+              <ngx-charts-line-chart
+                [view]="[containerRef.offsetWidth, 400]"
+                [animations]="true"
+                [scheme]="colorScheme"
+                [xAxis]="true"
+                [yAxis]="true"
+                [showYAxisLabel]="true"
+                [yAxisLabel]="getUserUnit(active) || 'n/a'"
+                [timeline]="false"
+                [results]="single"
+              >
+              </ngx-charts-line-chart>
+            </div>
           </div>
         </div>
       </div>

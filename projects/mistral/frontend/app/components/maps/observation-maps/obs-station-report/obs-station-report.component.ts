@@ -1,5 +1,9 @@
 import { Component, Input, OnInit, Output, EventEmitter } from "@angular/core";
-import { NgbActiveModal, NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import {
+  NgbActiveModal,
+  NgbModal,
+  NgbNavChangeEvent,
+} from "@ng-bootstrap/ng-bootstrap";
 import {
   Observation,
   ObsFilter,
@@ -11,14 +15,13 @@ import {
 
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
-import { VAR_TABLE } from "../services/data";
 
 const STATION_NAME_CODE = "B01019";
 
 export interface DataSeries {
   name: string;
   code: string;
-  unit: string;
+  unit?: string;
   series: SeriesItem[];
 }
 export interface SeriesItem {
@@ -37,19 +40,12 @@ export class ObsStationReportComponent implements OnInit {
 
   name: string;
   report: Observation;
-  active = 0;
+  active;
 
-  multi: any[];
+  multi: DataSeries[];
+  single: DataSeries[];
 
   // chart options
-  showLabels = true;
-  animations = false;
-  xAxis = true;
-  yAxis = true;
-  // xAxisLabel = 'Date';
-  // yAxisLabel = 'Value';
-  timeline = true;
-
   colorScheme = {
     domain: ["#5AA454", "#E44D25", "#CFC0BB", "#7aa3e5", "#a8385d", "#aae3f5"],
   };
@@ -66,6 +62,11 @@ export class ObsStationReportComponent implements OnInit {
     this.loadReport();
   }
 
+  onNavChange(changeEvent: NgbNavChangeEvent) {
+    // console.log(`nav changed to varcode: ${changeEvent.nextId}`);
+    this.updateGraphData(changeEvent.nextId);
+  }
+
   private loadReport() {
     setTimeout(() => this.spinner.show("timeseries-spinner"), 0);
     this.obsService
@@ -77,6 +78,8 @@ export class ObsStationReportComponent implements OnInit {
           let multi = this.normalize(data[0]);
           Object.assign(this, { multi });
           // console.log(JSON.stringify(this.multi));
+          this.single = [multi[0]];
+          this.active = this.single[0].code;
         },
         (error) => {
           this.notify.showError(error);
@@ -98,26 +101,16 @@ export class ObsStationReportComponent implements OnInit {
     }
   }
 
+  getUserUnit(varcode: string) {
+    return ObsService.showUserUnit(varcode);
+  }
+
   download() {
     console.log("download");
   }
 
-  /*
-  onSelect(data): void {
-    console.log('Item clicked', JSON.parse(JSON.stringify(data)));
-  }
-
-  onActivate(data): void {
-    console.log('Activate', JSON.parse(JSON.stringify(data)));
-  }
-
-  onDeactivate(data): void {
-    console.log('Deactivate', JSON.parse(JSON.stringify(data)));
-  }
-   */
-
-  getGraphData(varcode: string) {
-    return this.multi.filter((x: DataSeries) => x.code === varcode);
+  private updateGraphData(varcode: string) {
+    this.single = this.multi.filter((x: DataSeries) => x.code === varcode);
   }
 
   private normalize(data: Observation): DataSeries[] {
