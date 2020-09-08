@@ -726,24 +726,29 @@ class BeDballe:
                 res_element = {}
                 # get data about the station
                 station_data = {}
+                query_for_details = {}
                 station_data["lat"] = float(rec["lat"])
+                query_for_details["lat"] = float(rec["lat"])
                 station_data["lon"] = float(rec["lon"])
+                query_for_details["lon"] = float(rec["lon"])
                 station_data["network"] = rec["rep_memo"]
+                query_for_details["rep_memo"] = rec["rep_memo"]
                 station_data["ident"] = "" if rec["ident"] is None else rec["ident"]
-                if query_station_data:
-                    details = []
-                    # add station details
-                    for el in tr.query_station_data(query):
-                        detail_el = {}
-                        var = el["variable"]
-                        code = var.code
-                        var_info = dballe.varinfo(code)
-                        desc = var_info.desc
-                        detail_el["code"] = code
-                        detail_el["value"] = var.get()
-                        detail_el["description"] = desc
-                        details.append(detail_el)
-                    station_data["details"] = details
+                if station_data["ident"]:
+                    query_for_details["ident"] = station_data["ident"]
+                details = []
+                # add station details
+                for el in tr.query_station_data(query_for_details):
+                    detail_el = {}
+                    var = el["variable"]
+                    code = var.code
+                    var_info = dballe.varinfo(code)
+                    desc = var_info.desc
+                    detail_el["code"] = code
+                    detail_el["value"] = var.get()
+                    detail_el["description"] = desc
+                    details.append(detail_el)
+                station_data["details"] = details
 
                 # get data values
                 if not only_stations:
