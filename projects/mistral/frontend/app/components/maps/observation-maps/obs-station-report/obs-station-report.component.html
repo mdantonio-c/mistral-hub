@@ -57,6 +57,7 @@
             </ul>
           </div>
         </div>
+        <!--
         <div class="text-center mt-4">
           <button
             type="button"
@@ -68,6 +69,7 @@
             Download
           </button>
         </div>
+        -->
       </div>
       <div class="col-lg-9">
         <div class="card text-center">
@@ -97,8 +99,11 @@
                 [scheme]="colorScheme"
                 [xAxis]="true"
                 [yAxis]="true"
+                [showXAxisLabel]="true"
                 [showYAxisLabel]="true"
+                [xAxisLabel]="xAxisLabelFormatting()"
                 [yAxisLabel]="getUserUnit(active) || 'n/a'"
+                [xAxisTickFormatting]="xAxisTickFormattingFn"
                 [timeline]="false"
                 [results]="single"
               >

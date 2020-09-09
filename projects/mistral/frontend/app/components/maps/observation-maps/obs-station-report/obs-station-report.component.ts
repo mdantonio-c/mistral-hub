@@ -11,10 +11,10 @@ import {
   Station,
   StationDetail,
 } from "../services/obs.service";
-// import { multi } from './data';
 
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
+import * as moment from "moment";
 
 const STATION_NAME_CODE = "B01019";
 
@@ -103,6 +103,17 @@ export class ObsStationReportComponent implements OnInit {
 
   getUserUnit(varcode: string) {
     return ObsService.showUserUnit(varcode);
+  }
+
+  xAxisLabelFormatting() {
+    return moment(this.filter.reftime).format("MMMM Do YYYY");
+  }
+
+  xAxisTickFormattingFn = this.xAxisTickFormatting.bind(this);
+
+  private xAxisTickFormatting(val) {
+    // val: 2020-09-07T04:00:00
+    return moment(val).format("HH:mm");
   }
 
   download() {
