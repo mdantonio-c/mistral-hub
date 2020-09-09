@@ -242,7 +242,11 @@ export class ObsMapComponent {
       let icon;
       if (!onlyStations) {
         obsData = s.products.find((x) => x.varcode === product);
-
+        let single_observation = false
+        let count = obsData.values.length
+        if(count === 1){
+          single_observation = true
+        }
         for (let i = 0; i < obsData.values.length; i++) {
           // create an object for each value of obsData
           singleObsData = JSON.parse(JSON.stringify(obsData));
@@ -266,7 +270,10 @@ export class ObsMapComponent {
           if (s.products) {
             marker.options["data"] = singleObsData;
             marker.bindTooltip(
-              ObsMapComponent.buildDataTooltip(singleObsData.value.reftime),
+              (!single_observation
+                ? ObsMapComponent.buildDataTooltip(singleObsData.value.reftime,singleObsData.value.level,singleObsData.value.timerange)
+                : ObsMapComponent.buildTooltipTemplate(s.station,singleObsData.value.reftime,singleObsData.value.level,singleObsData.value.timerange))
+              ,
               {
                 direction: "top",
                 offset: [3, -8],
@@ -327,11 +334,12 @@ export class ObsMapComponent {
     window.dispatchEvent(new Event("resize"));
   }
 
-  private static buildTooltipTemplate(station: Station) {
+  private static buildTooltipTemplate(station: Station,reftime?: string,level?: string,timerange?: string) {
     let ident = station.ident || "";
     let station_name = station.details.find((x) => x.code === "B01019") || "";
     const template =
       `<ul class="p-1 m-0">` +
+      `<li><b>Station:</b></li>`+
       (typeof station_name === "object"
         ? `<li><b>Name</b>: ` + station_name.value + `</li>`
         : "") +
@@ -339,14 +347,25 @@ export class ObsMapComponent {
       (ident !== "" ? `<li><b>Ident</b>: ` + ident + `</li>` : "") +
       `<li><b>Lat</b>: ${station.lat}</li>` +
       `<li><b>Lon</b>: ${station.lon}</li>` +
+      (reftime
+        ? `<br><li><b>Data:</b></li><li><b>Reftime</b>: ` + reftime + `</li>`
+        : "") +
+        (level
+          ? `<li><b>Level</b>: ` + level + `</li>`
+          : "") +
+          (timerange
+            ? `<li><b>Timerange</b>: ` + timerange + `</li>`
+            : "") +
       `</ul>`;
     return template;
   }
 
-  private static buildDataTooltip(reftime: string) {
+  private static buildDataTooltip(reftime: string,level: string,timerange: string) {
     const template =
       `<ul class="p-1 m-0">
-                <li><b>Reftime: </b>${reftime}</li>` + `</ul>`;
+                <li><b>Data:</b></li><li><b>Reftime: </b>${reftime}</li>` +
+                `<li><b>Level: </b>${level}</li>` +
+                `<li><b>Timerange: </b>${timerange}</li>` + `</ul>`;
     return template;
   }
 

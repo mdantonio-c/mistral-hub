@@ -7,6 +7,8 @@ project:
 
 variables:
   env:
+    BACKEND_URI: https://meteohub-dev.hpc.cineca.it
+    BACKEND_API_PORT: 443
     FRONTEND_FRAMEWORK: angular
     ENABLE_FOOTER: true
     RUN_SCHEMATHESIS: 0
