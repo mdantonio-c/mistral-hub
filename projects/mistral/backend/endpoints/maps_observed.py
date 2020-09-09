@@ -1,3 +1,5 @@
+from datetime import datetime, time
+
 from flask import Response, stream_with_context
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.dballe import BeDballe as dballe
@@ -72,7 +74,7 @@ class MapsObservations(EndpointResource):
         stationDetails=False,
         reliabilityCheck=False,
     ):
-        bounding_box = {}
+        query = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
                 raise RestApiException(
@@ -80,12 +82,33 @@ class MapsObservations(EndpointResource):
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
             else:
-                bounding_box["lonmin"] = lonmin
-                bounding_box["lonmax"] = lonmax
-                bounding_box["latmin"] = latmin
-                bounding_box["latmax"] = latmax
+                # append bounding box params to the query
+                query["lonmin"] = lonmin
+                query["lonmax"] = lonmax
+                query["latmin"] = latmin
+                query["latmax"] = latmax
 
-        station_details_q = {}
+        if networks:
+            query["rep_memo"] = networks
+        if reliabilityCheck:
+            query["query"] = "attrs"
+
+        if q:
+            # parse the query
+            parsed_query = dballe.from_query_to_dic(q)
+            for key, value in parsed_query.items():
+                query[key] = value
+
+            # get db type
+            if "datetimemin" in query:
+                db_type = dballe.get_db_type(query["datetimemin"], query["datetimemax"])
+            else:
+                db_type = "mixed"
+        else:
+            db_type = "mixed"
+        log.debug("type of database: {}", db_type)
+
+        query_station_data = {}
         if stationDetails:
             # check params for station
             if not networks:
@@ -100,50 +123,36 @@ class MapsObservations(EndpointResource):
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
                 else:
-                    station_details_q["lat"] = lat
-                    station_details_q["lon"] = lon
+                    query_station_data["lat"] = lat
+                    query_station_data["lon"] = lon
             else:
-                station_details_q["ident"] = ident
-        query = None
-        db_type = None
-        if q:
-            # parse the query
-            query = dballe.from_query_to_dic(q)
+                query_station_data["ident"] = ident
 
-            # get db type
-            if "datetimemin" in query:
-                db_type = dballe.get_db_type(query["datetimemin"], query["datetimemax"])
-            else:
-                db_type = "mixed"
-        else:
-            db_type = "mixed"
-        log.debug("type of database: {}", db_type)
+            query_station_data["rep_memo"] = networks
+            if reliabilityCheck:
+                query_station_data["query"] = "attrs"
+            if query and "datetimemin" in query:
+                query_station_data["datetimemin"] = query["datetimemin"]
+                query_station_data["datetimemax"] = query["datetimemax"]
+
         try:
             if db_type == "mixed":
                 res = dballe.get_maps_response_for_mixed(
-                    networks,
-                    bounding_box,
-                    query,
-                    onlyStations,
-                    station_details_q=station_details_q,
-                    quality_check=reliabilityCheck,
+                    query, onlyStations, query_station_data=query_station_data,
                 )
             else:
                 res = dballe.get_maps_response(
-                    networks,
-                    bounding_box,
                     query,
                     onlyStations,
                     db_type=db_type,
-                    station_details_q=station_details_q,
-                    quality_check=reliabilityCheck,
+                    query_station_data=query_station_data,
                 )
         except AccessToDatasetDenied:
             raise RestApiException(
                 "Access to dataset denied", status_code=hcodes.HTTP_SERVER_ERROR,
             )
 
-        if not res and station_details_q:
+        if not res and stationDetails:
             raise RestApiException(
                 "Station data not found", status_code=hcodes.HTTP_BAD_NOTFOUND,
             )
@@ -177,7 +186,7 @@ class MapsObservations(EndpointResource):
         singleStation=False,
         reliabilityCheck=False,
     ):
-        bounding_box = {}
+        query_data = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
                 raise RestApiException(
@@ -185,12 +194,35 @@ class MapsObservations(EndpointResource):
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
             else:
-                bounding_box["lonmin"] = lonmin
-                bounding_box["lonmax"] = lonmax
-                bounding_box["latmin"] = latmin
-                bounding_box["latmax"] = latmax
+                # append bounding box params to the query
+                query_data["lonmin"] = lonmin
+                query_data["lonmax"] = lonmax
+                query_data["latmin"] = latmin
+                query_data["latmax"] = latmax
 
-        station_details_q = {}
+        if networks:
+            query_data["rep_memo"] = networks
+        if reliabilityCheck:
+            query_data["query"] = "attrs"
+
+        if q:
+            # parse the query
+            parsed_query = dballe.from_query_to_dic(q)
+            for key, value in parsed_query.items():
+                query_data[key] = value
+
+            # get db type
+            if "datetimemin" in query_data:
+                db_type = dballe.get_db_type(
+                    query_data["datetimemin"], query_data["datetimemax"]
+                )
+            else:
+                db_type = "mixed"
+        else:
+            db_type = "mixed"
+        log.debug("type of database: {}", db_type)
+
+        query_station_data = {}
         if singleStation:
             # check params for station
             if not networks:
@@ -205,102 +237,131 @@ class MapsObservations(EndpointResource):
                         status_code=hcodes.HTTP_BAD_REQUEST,
                     )
                 else:
-                    station_details_q["lat"] = lat
-                    station_details_q["lon"] = lon
+                    query_station_data["lat"] = lat
+                    query_station_data["lon"] = lon
             else:
-                station_details_q["ident"] = ident
-        query = None
-        db_type = None
-        if q:
-            # parse the query
-            query = dballe.from_query_to_dic(q)
+                query_station_data["ident"] = ident
 
-            # get db type
-            if "datetimemin" in query:
-                db_type = dballe.get_db_type(query["datetimemin"], query["datetimemax"])
-            else:
-                db_type = "mixed"
-        else:
-            db_type = "mixed"
-        log.debug("type of database: {}", db_type)
+            query_station_data["rep_memo"] = networks
+            if reliabilityCheck:
+                query_station_data["query"] = "attrs"
+            if query_data and "datetimemin" in query_data:
+                query_station_data["datetimemin"] = query_data["datetimemin"]
+                query_station_data["datetimemax"] = query_data["datetimemax"]
+
         try:
             if db_type == "mixed":
-                query_for_dballe = {}
-                query_for_arki = {}
+                query_data_for_dballe = {}
+                query_data_for_arki = {}
+                query_station_data_for_dballe = {}
+                query_station_data_for_arki = {}
+                if query_station_data:
+                    query_station_data_for_dballe = {**query_station_data}
+                    query_station_data_for_arki = {**query_station_data}
+                if query_data:
+                    query_data_for_dballe = {**query_data}
+                    query_data_for_arki = {**query_data}
+
                 # get reftimes for arkimet and dballe
-                if query:
-                    # setup query for dballe
-                    query_for_dballe = {**query}
-                    query_for_arki = {**query}
-                    if "datetimemin" in query and "datetimemax" in query:
+                dballe_reftime_in_query = {}
+                arki_reftime_in_query = {}
+                if query_data:
+                    if "datetimemin" in query_data and "datetimemax" in query_data:
                         (
                             refmax_dballe,
                             refmin_dballe,
                             refmax_arki,
                             refmin_arki,
                         ) = dballe.split_reftimes(
-                            query["datetimemin"], query["datetimemax"]
+                            query_data["datetimemin"], query_data["datetimemax"]
                         )
                         # set up queries with the correct reftimes
-                        query_for_dballe["datetimemin"] = refmin_dballe
-                        query_for_dballe["datetimemin"] = refmin_dballe
-                        query_for_arki["datetimemin"] = refmin_arki
-                        query_for_arki["datetimemax"] = refmax_arki
+                        dballe_reftime_in_query["datetimemin"] = refmin_dballe
+                        dballe_reftime_in_query["datetimemax"] = refmax_dballe
+                        arki_reftime_in_query["datetimemin"] = refmin_arki
+                        arki_reftime_in_query["datetimemax"] = refmax_arki
+
+                if not dballe_reftime_in_query:
+                    # if there is no reftime i'll get the data of the last hour
+                    # TODO last hour or last day as default?
+                    # for production
+                    instant_now = datetime.now()
+                    # for local tests
+                    # today = date(2015, 12, 31)
+                    # time_now = datetime.now().time()
+                    # instant_now = datetime.combine(today, time_now)
+
+                    dballe_reftime_in_query["datetimemax"] = instant_now
+                    dballe_reftime_in_query["datetimemin"] = datetime.combine(
+                        instant_now, time(instant_now.hour, 0, 0)
+                    )
 
                 # get queries and db for dballe extraction (taking advantage of the method already implemented to get data values for maps)
                 log.debug("getting queries and db for dballe")
+                for key, value in dballe_reftime_in_query:
+                    query_data_for_dballe[key] = value
+                    if query_station_data_for_dballe:
+                        query_station_data_for_dballe[key] = value
                 (
                     dballe_db,
                     dballe_query_data,
                     dballe_query_station_data,
                 ) = dballe.get_maps_response(
-                    networks,
-                    bounding_box,
-                    query_for_dballe,
+                    query_data_for_dballe,
                     False,
                     db_type="dballe",
-                    station_details_q=station_details_q,
-                    quality_check=reliabilityCheck,
+                    query_station_data=query_station_data_for_dballe,
                     download=True,
                 )
                 # get queries and db for arkimet extraction
-                log.debug("getting queries and db for arkimet")
-                (
-                    arki_db,
-                    arki_query_data,
-                    arki_query_station_data,
-                ) = dballe.get_maps_response(
-                    networks,
-                    bounding_box,
-                    query_for_arki,
-                    False,
-                    db_type="arkimet",
-                    station_details_q=station_details_q,
-                    quality_check=reliabilityCheck,
-                    download=True,
-                )
+                arki_db = None
+                arki_query_data = {}
+                arki_query_station_data = {}
+                if arki_reftime_in_query:
+                    for key, value in arki_reftime_in_query:
+                        query_data_for_arki[key] = value
+                        if query_station_data_for_arki:
+                            query_station_data_for_arki[key] = value
+                    log.debug("getting queries and db for arkimet")
+                    (
+                        arki_db,
+                        arki_query_data,
+                        arki_query_station_data,
+                    ) = dballe.get_maps_response(
+                        query_data_for_arki,
+                        False,
+                        db_type="arkimet",
+                        query_station_data=query_station_data_for_arki,
+                        download=True,
+                    )
 
                 # merge the queries and the db
                 log.debug("merge queries and db for mixed extraction")
-                (db_for_extraction, query_data,) = dballe.merge_db_for_download(
+                (
+                    db_for_extraction,
+                    download_query_data,
+                ) = dballe.merge_db_for_download(
                     dballe_db, dballe_query_data, arki_db, arki_query_data,
                 )
-                # query station data has no reftime, so the arki_ and the dballe_ ones are exactly the same
-                query_station_data = arki_query_station_data
+                # if there is a query station data, merge the two queries
+                if query_station_data:
+                    download_query_station_data = {**dballe_query_station_data}
+                    if arki_query_station_data:
+                        if "datetimemin" in arki_query_station_data:
+                            download_query_station_data[
+                                "datetimemin"
+                            ] = arki_query_station_data["datetimemin"]
             else:
                 # take advantage of the method already implemented to get data values for maps in order to get the query and the db to extract the data
                 (
                     db_for_extraction,
-                    query_data,
-                    query_station_data,
+                    download_query_data,
+                    download_query_station_data,
                 ) = dballe.get_maps_response(
-                    networks,
-                    bounding_box,
-                    query,
+                    query_data,
                     False,
                     db_type=db_type,
-                    station_details_q=station_details_q,
-                    quality_check=reliabilityCheck,
+                    query_station_data=query_station_data,
                     download=True,
                 )
 
@@ -315,10 +376,9 @@ class MapsObservations(EndpointResource):
                 stream_with_context(
                     dballe.download_data_from_map(
                         db_for_extraction,
-                        singleStation,
                         output_format,
-                        query_data,
-                        query_station_data,
+                        download_query_data,
+                        download_query_station_data,
                     )
                 ),
                 mimetype=mime,

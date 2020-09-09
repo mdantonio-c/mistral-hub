@@ -329,13 +329,16 @@ export class ObsMapComponent {
 
   private static buildTooltipTemplate(station: Station) {
     let ident = station.ident || "";
-    let altitude = station.altitude || "";
+    let station_name = station.details.find((x) => x.code === "B01019") || "";
     const template =
-      `<ul class="p-1 m-0"><li><b>Network</b>: ${station.network}</li>` +
-      ident +
+      `<ul class="p-1 m-0">` +
+      (typeof station_name === "object"
+        ? `<li><b>Name</b>: ` + station_name.value + `</li>`
+        : "") +
+      `<li><b>Network</b>: ${station.network}</li>` +
+      (ident !== "" ? `<li><b>Ident</b>: ` + ident + `</li>` : "") +
       `<li><b>Lat</b>: ${station.lat}</li>` +
       `<li><b>Lon</b>: ${station.lon}</li>` +
-      altitude +
       `</ul>`;
     return template;
   }

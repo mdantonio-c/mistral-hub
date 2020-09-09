@@ -12,7 +12,9 @@
     "iso8601-js-period": "0.2.1",
     "@asymmetrik/ngx-leaflet": "7.0.1",
     "@asymmetrik/ngx-leaflet-draw": "6.0.1",
-    "@asymmetrik/ngx-leaflet-markercluster": "4.0.0"
+    "@asymmetrik/ngx-leaflet-markercluster": "4.0.0",
+    "@swimlane/ngx-charts": "16.0.0",
+    "@angular/cdk": ">=10.0.0"
   },
   "devDependencies": {}
 }

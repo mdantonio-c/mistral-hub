@@ -8,81 +8,116 @@
   size="medium"
 >
 </ngx-spinner>
-<div class="modal-header">
-  <h4 class="modal-title">Station: {{ name }}</h4>
-  <button
-    type="button"
-    class="btn close"
-    aria-label="Close"
-    (click)="activeModal.dismiss('Cross click')"
-  >
-    <span aria-hidden="true">&times;</span>
-  </button>
-</div>
-<div class="modal-body">
-  <div class="row .no-gutters">
-    <div class="col-lg-3 mb-2">
-      <div class="card mb-3" style="max-width: 18rem;">
-        <div class="card-header">
-          <i class="fas fa-info-circle mr-1"></i>Station details
-        </div>
-        <div class="card-body text-dark">
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item" *ngIf="station.altitude">
-              Altitude: {{ station.altitude }}
-            </li>
-            <li class="list-group-item">Lat: {{ station.lat }}</li>
-            <li class="list-group-item">Log: {{ station.lon }}</li>
-            <li class="list-group-item">Network: {{ station.network }}</li>
-          </ul>
-        </div>
-      </div>
-      <div class="text-center mt-4">
-        <button
-          type="button"
-          class="btn btn-primary no-rounded ml-2"
-          (click)="download()"
-        >
-          <i class="fas fa-download"></i>
-          Download
-        </button>
-      </div>
-    </div>
-    <div class="col-lg-9">
-      <div class="card text-center">
-        <div class="card-header">
-          <ul class="nav nav-tabs card-header-tabs">
-            <li class="nav-item">
-              <a class="nav-link active" href="#">Active</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item">
-              <a
-                class="nav-link disabled"
-                href="#"
-                tabindex="-1"
-                aria-disabled="true"
-                >Disabled</a
+<div *ngIf="report">
+  <div class="modal-header">
+    <h4 class="modal-title">Station: {{ getName() || "n/a" }}</h4>
+    <button
+      type="button"
+      class="btn close"
+      aria-label="Close"
+      (click)="activeModal.dismiss('Cross click')"
+    >
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="row .no-gutters">
+      <div class="col-lg-3 mb-2">
+        <div class="card mb-3" style="max-width: 18rem;">
+          <div class="card-header">
+            <i class="fas fa-info-circle mr-1"></i>Station details
+          </div>
+          <div class="card-body text-dark px-3 py-1">
+            <ul class="list-group list-group-flush">
+              <!--
+              <li class="list-group-item px-0 py-1">
+                <p class="h6 my-0">Latitude</p>
+                <small>{{ station.lat }}</small>
+              </li>
+              <li class="list-group-item  px-0 py-1">
+                <p class="h6 my-0">Longitude</p>
+                <small>{{ station.lon }}</small>
+              </li>
+              <li class="list-group-item  px-0 py-1">
+                <p class="h6 my-0">Network</p>
+                <small>{{ station.network }}</small>
+              </li>
+              -->
+              <li
+                class="list-group-item px-0 py-1"
+                *ngFor="let d of report.station?.details"
               >
-            </li>
-          </ul>
+                <p class="h6 my-0">
+                  {{
+                    d.description | titlecase | replace: "\\(([^\\)]+)\\)":""
+                  }}
+                </p>
+                <small>{{ d.value }}</small>
+              </li>
+            </ul>
+          </div>
         </div>
-        <div class="card-body">
-          <h5 class="card-title">Special title treatment</h5>
-          {{ filter | json }}
+        <div class="text-center mt-4">
+          <button
+            type="button"
+            class="btn btn-primary no-rounded ml-2"
+            (click)="download()"
+            [disabled]="true"
+          >
+            <i class="fas fa-download"></i>
+            Download
+          </button>
+        </div>
+      </div>
+      <div class="col-lg-9">
+        <div class="card text-center">
+          <div class="card-body">
+            <ul
+              ngbNav
+              #nav="ngbNav"
+              [(activeId)]="active"
+              (navChange)="onNavChange($event)"
+              class="nav-pills"
+              orientation="horizontal"
+              style="font-size: small;"
+            >
+              <ng-container *ngFor="let p of report.products">
+                <li [ngbNavItem]="p.varcode">
+                  <a ngbNavLink>{{ p.description | uppercase }}</a>
+                  <ng-template ngbNavContent></ng-template>
+                </li>
+              </ng-container>
+            </ul>
+
+            <div [ngbNavOutlet]="nav" class="mt-4"></div>
+            <div #containerRef>
+              <ngx-charts-line-chart
+                [view]="[containerRef.offsetWidth, 400]"
+                [animations]="true"
+                [scheme]="colorScheme"
+                [xAxis]="true"
+                [yAxis]="true"
+                [showYAxisLabel]="true"
+                [yAxisLabel]="getUserUnit(active) || 'n/a'"
+                [timeline]="false"
+                [results]="single"
+              >
+              </ngx-charts-line-chart>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-<div class="modal-footer">
-  <button
-    type="button"
-    class="btn btn-outline-dark"
-    (click)="activeModal.close('Close click')"
-  >
-    Close
-  </button>
+  <!--
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-outline-dark"
+      (click)="activeModal.close('Close click')"
+    >
+      Close
+    </button>
+  </div>
+  -->
 </div>
