@@ -11,3 +11,7 @@ services:
       - /meteotiles/PROD/Tiles-00-lm5.web:/resources/tiles/00-lm5
       - /meteotiles/PROD/Tiles-12-lm2.2.web:/resources/tiles/12-lm2.2
       - /meteotiles/PROD/Tiles-12-lm5.web:/resources/tiles/12-lm5
+
+  backend:
+    volumes:
+      - /meteotiles/PROD:/meteo/PROD
