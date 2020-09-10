@@ -22,6 +22,8 @@ export interface DataSeries {
   name: string;
   code: string;
   unit?: string;
+  timerange?: string;
+  level?: string;
   series: SeriesItem[];
 }
 export interface SeriesItem {

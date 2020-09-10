@@ -29,20 +29,6 @@
           </div>
           <div class="card-body text-dark px-3 py-1">
             <ul class="list-group list-group-flush">
-              <!--
-              <li class="list-group-item px-0 py-1">
-                <p class="h6 my-0">Latitude</p>
-                <small>{{ station.lat }}</small>
-              </li>
-              <li class="list-group-item  px-0 py-1">
-                <p class="h6 my-0">Longitude</p>
-                <small>{{ station.lon }}</small>
-              </li>
-              <li class="list-group-item  px-0 py-1">
-                <p class="h6 my-0">Network</p>
-                <small>{{ station.network }}</small>
-              </li>
-              -->
               <li
                 class="list-group-item px-0 py-1"
                 *ngFor="let d of report.station?.details"
@@ -106,6 +92,7 @@
                 [xAxisTickFormatting]="xAxisTickFormattingFn"
                 [timeline]="false"
                 [results]="single"
+                [autoScale]="true"
               >
               </ngx-charts-line-chart>
             </div>
