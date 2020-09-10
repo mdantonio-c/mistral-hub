@@ -63,8 +63,10 @@ export interface StationDetail {
 
 export interface ObsValues {
   level: string;
+  level_desc: string;
   reftime: string;
   timerange: string;
+  timerange_desc: string;
   value: number;
   is_reliable?: boolean;
 }

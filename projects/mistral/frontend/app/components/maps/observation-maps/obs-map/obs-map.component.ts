@@ -242,10 +242,10 @@ export class ObsMapComponent {
       let icon;
       if (!onlyStations) {
         obsData = s.products.find((x) => x.varcode === product);
-        let single_observation = false
-        let count = obsData.values.length
-        if(count === 1){
-          single_observation = true
+        let single_observation = false;
+        let count = obsData.values.length;
+        if (count === 1) {
+          single_observation = true;
         }
         for (let i = 0; i < obsData.values.length; i++) {
           // create an object for each value of obsData
@@ -270,10 +270,18 @@ export class ObsMapComponent {
           if (s.products) {
             marker.options["data"] = singleObsData;
             marker.bindTooltip(
-              (!single_observation
-                ? ObsMapComponent.buildDataTooltip(singleObsData.value.reftime,singleObsData.value.level,singleObsData.value.timerange)
-                : ObsMapComponent.buildTooltipTemplate(s.station,singleObsData.value.reftime,singleObsData.value.level,singleObsData.value.timerange))
-              ,
+              !single_observation
+                ? ObsMapComponent.buildDataTooltip(
+                    singleObsData.value.reftime,
+                    singleObsData.value.level_desc,
+                    singleObsData.value.timerange_desc
+                  )
+                : ObsMapComponent.buildTooltipTemplate(
+                    s.station,
+                    singleObsData.value.reftime,
+                    singleObsData.value.level_desc,
+                    singleObsData.value.timerange_desc
+                  ),
               {
                 direction: "top",
                 offset: [3, -8],
@@ -334,12 +342,17 @@ export class ObsMapComponent {
     window.dispatchEvent(new Event("resize"));
   }
 
-  private static buildTooltipTemplate(station: Station,reftime?: string,level?: string,timerange?: string) {
+  private static buildTooltipTemplate(
+    station: Station,
+    reftime?: string,
+    level?: string,
+    timerange?: string
+  ) {
     let ident = station.ident || "";
     let station_name = station.details.find((x) => x.code === "B01019") || "";
     const template =
       `<ul class="p-1 m-0">` +
-      `<li><b>Station:</b></li>`+
+      `<li><b><u>Station</u></b></li>` +
       (typeof station_name === "object"
         ? `<li><b>Name</b>: ` + station_name.value + `</li>`
         : "") +
@@ -348,24 +361,27 @@ export class ObsMapComponent {
       `<li><b>Lat</b>: ${station.lat}</li>` +
       `<li><b>Lon</b>: ${station.lon}</li>` +
       (reftime
-        ? `<br><li><b>Data:</b></li><li><b>Reftime</b>: ` + reftime + `</li>`
+        ? `<br><li><b><u>Data</u></b></li><li><b>Reftime</b>: ` +
+          reftime +
+          `</li>`
         : "") +
-        (level
-          ? `<li><b>Level</b>: ` + level + `</li>`
-          : "") +
-          (timerange
-            ? `<li><b>Timerange</b>: ` + timerange + `</li>`
-            : "") +
+      (level ? `<li><b>Level</b>: ` + level + `</li>` : "") +
+      (timerange ? `<li><b>Timerange</b>: ` + timerange + `</li>` : "") +
       `</ul>`;
     return template;
   }
 
-  private static buildDataTooltip(reftime: string,level: string,timerange: string) {
+  private static buildDataTooltip(
+    reftime: string,
+    level: string,
+    timerange: string
+  ) {
     const template =
       `<ul class="p-1 m-0">
-                <li><b>Data:</b></li><li><b>Reftime: </b>${reftime}</li>` +
-                `<li><b>Level: </b>${level}</li>` +
-                `<li><b>Timerange: </b>${timerange}</li>` + `</ul>`;
+                <li><b><u>Data</u></b></li><li><b>Reftime: </b>${reftime}</li>` +
+      `<li><b>Level: </b>${level}</li>` +
+      `<li><b>Timerange: </b>${timerange}</li>` +
+      `</ul>`;
     return template;
   }
 

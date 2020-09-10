@@ -772,8 +772,14 @@ class BeDballe:
                     product_val["level"] = BeDballe.from_level_object_to_string(
                         rec["level"]
                     )
+                    product_val["level_desc"] = BeDballe.get_description(
+                        product_val["level"], "level"
+                    )
                     product_val["timerange"] = BeDballe.from_trange_object_to_string(
                         rec["trange"]
+                    )
+                    product_val["timerange_desc"] = BeDballe.get_description(
+                        product_val["timerange"], "timerange"
                     )
 
                     if query:
