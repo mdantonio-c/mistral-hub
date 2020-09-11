@@ -266,7 +266,7 @@ export class ObsMapComponent {
             });
           } else {
             icon = L.divIcon({
-              html: `<div><span>${ObsService.showData(
+              html: `<div style="width:31px;height:31px"><span>${ObsService.showData(
                 val,
                 product
               )}</span></div>`,
