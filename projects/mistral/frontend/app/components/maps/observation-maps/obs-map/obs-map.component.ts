@@ -253,16 +253,30 @@ export class ObsMapComponent {
           delete singleObsData["values"];
           singleObsData.value = obsData.values[i];
           let val = singleObsData.value.value;
-          icon = L.divIcon({
-            html: `<div class="mstDataIcon"><span>${ObsService.showData(
-              val,
-              product
-            )}</span></div>`,
-            iconSize: [24, 6],
-            className:
-              "leaflet-marker-icon mst-marker-color-" +
-              this.obsService.getColor(val, min, max),
-          });
+          if (!single_observation) {
+            icon = L.divIcon({
+              html: `<div class="mstDataIcon"><span>${ObsService.showData(
+                val,
+                product
+              )}</span></div>`,
+              iconSize: [24, 6],
+              className:
+                "leaflet-marker-icon mst-marker-color-" +
+                this.obsService.getColor(val, min, max),
+            });
+          } else {
+            icon = L.divIcon({
+              html: `<div><span>${ObsService.showData(
+                val,
+                product
+              )}</span></div>`,
+              iconSize: [40, 40],
+              className:
+                "leaflet-marker-icon mst-marker-color-" +
+                this.obsService.getColor(val, min, max) +
+                " marker-cluster",
+            });
+          }
           const marker = new L.Marker([s.station.lat, s.station.lon], {
             icon: icon,
           });
