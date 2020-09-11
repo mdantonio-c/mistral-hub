@@ -44,8 +44,8 @@
         </ngb-panel>
       </ngb-accordion>
     </div>
-    <div class="col-lg-9">
-      <div class="card">
+    <div class="col-lg-9 pl-lg-0">
+      <div class="card h-100">
         <div class="card-header">
           <app-obs-navbar
             [displayMode]="currentView"
@@ -54,7 +54,13 @@
           ></app-obs-navbar>
         </div>
         <div class="card-body p-0">
-          <app-obs-map (updateCount)="totalItems = $event"></app-obs-map>
+          <app-obs-map
+            (updateCount)="totalItems = $event"
+            *ngIf="currentView !== 'Meteograms'; else meteograms"
+          ></app-obs-map>
+          <ng-template #meteograms>
+            <app-obs-meteograms [filter]="filter"></app-obs-meteograms>
+          </ng-template>
         </div>
       </div>
     </div>

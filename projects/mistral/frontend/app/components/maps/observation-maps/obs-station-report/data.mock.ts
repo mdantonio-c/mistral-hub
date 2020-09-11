@@ -368,3 +368,5 @@ export const MockStationTimeSeries: DataSeries[] = [
     ],
   },
 ];
+
+export const MockProductTimeSeries: DataSeries[] = [];

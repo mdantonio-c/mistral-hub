@@ -1,0 +1,41 @@
+<ngx-spinner
+  [name]="'timeseries-spinner'"
+  bdColor="rgba(255,255,255,0.8)"
+  color="#6c757d"
+  zIndex="1000"
+  [fullScreen]="false"
+  type="ball-clip-rotate-multiple"
+  size="medium"
+>
+</ngx-spinner>
+<div *ngIf="report; else noData">
+  <div #containerRef>
+    <ngx-charts-line-chart
+      [view]="[containerRef.offsetWidth, 400]"
+      [animations]="true"
+      [scheme]="colorScheme"
+      [xAxis]="true"
+      [yAxis]="true"
+      [showXAxisLabel]="true"
+      [showYAxisLabel]="false"
+      [xAxisLabel]="xAxisLabelFormatting()"
+      [xAxisTickFormatting]="xAxisTickFormattingFn"
+      [timeline]="false"
+      [results]="multi"
+      [autoScale]="true"
+      [legend]="true"
+      [legendTitle]="'Stations'"
+    >
+    </ngx-charts-line-chart>
+  </div>
+</div>
+<ng-template #noData>
+  <div class="row mt-4">
+    <div class="col">
+      <div class="no-results">
+        <h2>No Data</h2>
+        <p>Try to apply a different filter</p>
+      </div>
+    </div>
+  </div>
+</ng-template>
