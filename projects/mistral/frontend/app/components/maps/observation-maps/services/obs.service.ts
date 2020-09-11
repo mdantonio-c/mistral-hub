@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
-import { catchError } from "rxjs/operators";
+import { Observable, of, never } from "rxjs";
+import { catchError, map, switchMap } from "rxjs/operators";
 import { ApiService } from "@rapydo/services/api";
 import { COLORS, VAR_TABLE } from "./data";
 import { environment } from "@rapydo/../environments/environment";
@@ -71,19 +71,6 @@ export interface ObsValues {
   is_reliable?: boolean;
 }
 
-/*
-    description: "TEMPERATURE/DRY-BULB TEMPERATURE"
-    scale: 2
-    unit: "K"
-    values: [
-        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 00:00:00 GMT", timerange: "254,0,0", value: 287.75}
-        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 05:00:00 GMT", timerange: "254,0,0", value: 287.75}
-        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 06:00:00 GMT", timerange: "254,0,0", value: 290.75}
-        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 07:00:00 GMT", timerange: "254,0,0", value: 292.65}
-        {level: "103,2000,0,0", reftime: "Fri, 22 May 2020 08:00:00 GMT", timerange: "254,0,0", value: 294.65}
-    ]
-    varcode: "B12101"
- */
 export interface ObsData {
   description: string;
   scale: number;
@@ -111,6 +98,7 @@ export interface Observation {
 export class ObsService {
   private _min: number;
   private _max: number;
+  private _data: Observation[] = [];
 
   constructor(private api: ApiService, private http: HttpClient) {}
 
@@ -144,9 +132,9 @@ export class ObsService {
     return this.api.get("fields", "", params);
   }
 
-  getObservations(filter: ObsFilter) {
-    return this.api.get("observations", "", filter);
-  }
+  // getObservations(filter: ObsFilter) {
+  //   return this.api.get("observations", "", filter);
+  // }
 
   /**
    * Get station specifics and data for timeseries.
@@ -182,14 +170,32 @@ export class ObsService {
   }
 
   /**
+   * Get data to view. Keep them in cache or update them if required.
+   * @param filter
+   * @param update
+   */
+  getData(filter: ObsFilter, update = false): Observable<Observation[]> {
+    return of(this._data).pipe(
+      switchMap((data) => {
+        if (!update && data.length !== 0) {
+          return of(data);
+        } else {
+          return this.loadObservations(filter);
+        }
+      })
+    );
+  }
+
+  /**
    * Get observation data.
    * @param filter
    * @param reliabilityCheck request for value reliability. Default to true.
    */
-  getData(
+  private loadObservations(
     filter: ObsFilter,
     reliabilityCheck = true
   ): Observable<Observation[]> {
+    this._data = [];
     let d = [
       `${filter.reftime.getFullYear()}`,
       `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),
@@ -199,9 +205,10 @@ export class ObsService {
       q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
       reliabilityCheck: reliabilityCheck,
     };
-    if (filter.onlyStations) {
-      params["onlyStations"] = true;
-    }
+    // ignore only station filter
+    // if (filter.onlyStations) {
+    //   params["onlyStations"] = true;
+    // }
     if (filter.timerange && filter.timerange !== "") {
       params["q"] += `;timerange:${filter.timerange}`;
     }
@@ -217,7 +224,9 @@ export class ObsService {
         `latmin:${filter.bbox.latMin},lonmin:${filter.bbox.lonMin}` +
         `,latmax:${filter.bbox.latMax},lonmax:${filter.bbox.lonMax}`;
     }
-    return this.api.get("observations", "", params);
+    return this.api
+      .get("observations", "", params)
+      .pipe(map((data: Observation[]) => (this._data = data)));
   }
 
   download(

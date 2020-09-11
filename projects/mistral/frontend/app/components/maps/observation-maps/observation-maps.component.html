@@ -19,7 +19,7 @@
           </ng-template>
           <ng-template ngbPanelContent let-opened="opened">
             <app-obs-filter
-              (filterUpdate)="applyFilter($event)"
+              (filterUpdate)="applyFilter($event, true)"
             ></app-obs-filter>
           </ng-template>
         </ngb-panel>

@@ -9,6 +9,17 @@
 >
 </ngx-spinner>
 <div *ngIf="report; else noData">
+  <div class="mx-5 my-2 text-justify">
+    <h3 class="text-center">
+      {{ filter.product }}
+      <ng-container *ngIf="filter.level">
+        <br /><small>{{ filter.level }}</small>
+      </ng-container>
+      <ng-container *ngIf="filter.timerange">
+        <br /><small>{{ filter.timerange }}</small>
+      </ng-container>
+    </h3>
+  </div>
   <div #containerRef>
     <ngx-charts-line-chart
       [view]="[containerRef.offsetWidth, 400]"
@@ -29,10 +40,11 @@
     </ngx-charts-line-chart>
   </div>
 </div>
+
 <ng-template #noData>
   <div class="row mt-4">
     <div class="col">
-      <div class="no-results">
+      <div class="no-results" *ngIf="!loading">
         <h2>No Data</h2>
         <p>Try to apply a different filter</p>
       </div>

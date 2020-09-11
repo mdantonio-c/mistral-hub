@@ -26,7 +26,7 @@ export class ObsMeteogramsComponent {
 
   multi: DataSeries[];
   report: Observation[];
-  header: {};
+  loading = false;
 
   // chart options
   colorScheme = {
@@ -65,7 +65,9 @@ export class ObsMeteogramsComponent {
     }
   }
 
-  private loadReport() {
+  updateChart(filter: ObsFilter, update) {
+    this.filter = filter;
+    this.loading = true;
     setTimeout(() => this.spinner.show("timeseries-spinner"), 0);
     this.obsService
       .getData(this.filter)
@@ -82,12 +84,8 @@ export class ObsMeteogramsComponent {
       )
       .add(() => {
         setTimeout(() => this.spinner.hide("timeseries-spinner"), 0);
+        this.loading = false;
       });
-  }
-
-  updateChart(filter: ObsFilter) {
-    this.filter = filter;
-    this.loadReport();
   }
 
   private normalize(data: Observation[]): DataSeries[] {

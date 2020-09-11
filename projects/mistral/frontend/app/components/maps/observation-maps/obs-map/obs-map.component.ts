@@ -17,6 +17,7 @@ import { COLORS, obsData, VAR_TABLE } from "../services/data";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
+import { switchMap, map } from "rxjs/operators";
 
 import * as L from "leaflet";
 import "leaflet.markercluster";
@@ -168,7 +169,7 @@ export class ObsMapComponent {
     this.markerClusterGroup = group;
   }
 
-  updateMap(filter: ObsFilter) {
+  updateMap(filter: ObsFilter, update = false) {
     this.filter = filter;
     // get data
     if (this.markerClusterGroup) {
@@ -176,10 +177,9 @@ export class ObsMapComponent {
     }
     setTimeout(() => this.spinner.show(), 0);
     this.obsService
-      .getData(filter)
+      .getData(filter, update)
       .subscribe(
         (data: Observation[]) => {
-          // console.log(data);
           this.updateCount.emit(data.length);
           this.loadMarkers(data, filter.product, filter.onlyStations);
           if (data.length === 0) {

@@ -17,7 +17,7 @@ export class ObservationMapsComponent {
   @ViewChild(ObsMapComponent) map: ObsMapComponent;
   @ViewChild(ObsMeteogramsComponent) chart: ObsMeteogramsComponent;
 
-  applyFilter(filter?: ObsFilter) {
+  applyFilter(filter?: ObsFilter, update = false) {
     if (filter) {
       this.filter = filter;
     }
@@ -25,8 +25,8 @@ export class ObservationMapsComponent {
       this.filter.onlyStations = this.currentView === "Stations";
       setTimeout(() => {
         this.currentView !== "Meteograms"
-          ? this.map.updateMap(this.filter)
-          : this.chart.updateChart(this.filter);
+          ? this.map.updateMap(this.filter, update)
+          : this.chart.updateChart(this.filter, update);
       }, 0);
     }
   }
