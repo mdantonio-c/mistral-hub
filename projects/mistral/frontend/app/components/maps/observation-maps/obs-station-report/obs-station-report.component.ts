@@ -41,6 +41,8 @@ export class ObsStationReportComponent implements OnInit {
   @Input() filter: ObsFilter;
 
   name: string;
+  level: string;
+  timerange: string;
   report: Observation;
   active;
 
@@ -77,6 +79,12 @@ export class ObsStationReportComponent implements OnInit {
         (data: Observation[]) => {
           // console.log(data);
           this.report = data[0];
+          if (this.filter.level) {
+            this.level = this.report.products[0].values[0].level_desc;
+          }
+          if (this.filter.timerange) {
+            this.timerange = this.report.products[0].values[0].timerange_desc;
+          }
           let multi = this.normalize(data[0]);
           Object.assign(this, { multi });
           // console.log(JSON.stringify(this.multi));

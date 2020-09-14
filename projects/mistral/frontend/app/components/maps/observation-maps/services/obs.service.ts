@@ -166,6 +166,12 @@ export class ObsService {
       networks: station.network,
       stationDetails: true,
     };
+    if (filter.timerange && filter.timerange !== "") {
+      params["q"] += `;timerange:${filter.timerange}`;
+    }
+    if (filter.level && filter.level !== "") {
+      params["q"] += `;level:${filter.level}`;
+    }
     return this.api.get("observations", "", params);
   }
 
