@@ -694,10 +694,11 @@ class BeDballe:
         # choose the right query for the right situation(station details response or default one)
         query = {}
         if query_station_data:
-            query = {**query_station_data}
+            parsed_query = BeDballe.parse_query_for_maps(query_station_data)
         elif query_data:
             parsed_query = BeDballe.parse_query_for_maps(query_data)
-            query = {**parsed_query}
+
+        query = {**parsed_query}
 
         # managing different dbs
         if db_type == "arkimet":

@@ -133,7 +133,7 @@ class MapsObservations(EndpointResource):
             # since timerange and level are mandatory, add to the query for meteograms
             if query:
                 if "timerange" in query:
-                    query_station_data["trange"] = query["timerange"]
+                    query_station_data["timerange"] = query["timerange"]
                 if "level" in query:
                     query_station_data["level"] = query["level"]
 
