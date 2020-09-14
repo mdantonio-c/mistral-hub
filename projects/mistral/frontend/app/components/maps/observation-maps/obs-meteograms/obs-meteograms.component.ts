@@ -69,7 +69,6 @@ export class ObsMeteogramsComponent implements OnInit {
   }
 
   updateChart(filter: ObsFilter, update = false) {
-    console.log(`update (ms)... ${Date.now() - this.start}`);
     this.filter = filter;
     this.loading = true;
     setTimeout(() => this.spinner.show(), 0);
