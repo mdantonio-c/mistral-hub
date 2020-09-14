@@ -57,7 +57,7 @@ class BeDballe:
 
     @staticmethod
     def build_arkimet_query(
-        datemin=None, datemax=None, network=None, bounding_box=None
+        datemin=None, datemax=None, network=None, bounding_box=None, dballe_query=None
     ):
         if isinstance(datemin, datetime):
             datemin_str = datemin.strftime("%Y-%m-%d %H:%M:%S")
@@ -72,18 +72,51 @@ class BeDballe:
             arkimet_query = "reftime: >={datemin},<={datemax};".format(
                 datemin=datemin, datemax=datemax
             )
-        if bounding_box:
-            arkimet_query += "area: bbox intersects POLYGON(({lonmin} {latmin},{lonmin} {latmax},{lonmax} {latmax}, {lonmax} {latmin}, {lonmin} {latmin}));".format(
-                lonmin=bounding_box["lonmin"],
-                latmin=bounding_box["latmin"],
-                lonmax=bounding_box["lonmax"],
-                latmax=bounding_box["latmax"],
-            )
         if network:
             arkimet_query += "product: BUFR:t = {}".format(network[0])
             if len(network) > 1:
                 for i in network[1:]:
                     arkimet_query += f" or  BUFR:t = {i}"
+            arkimet_query += ";"
+
+        if dballe_query:
+            # improve the query adding stations
+            explorer = BeDballe.build_explorer("arkimet")
+            # create a list of station datails
+            station_list = []
+            for cur in explorer.query_summary_all(dballe_query):
+                el = {}
+                el["lat"] = cur["lat"]
+                el["lon"] = cur["lon"]
+                station_list.append(el)
+            if station_list:
+                arkimet_query += "area:GRIB:lat={}, lon={}".format(
+                    str(station_list[0]["lat"]).replace(".", ""),
+                    str(station_list[0]["lon"]).replace(".", ""),
+                )
+                if len(station_list) > 1:
+                    for e in station_list[1:]:
+                        query_to_add = " or GRIB:lat={}, lon={}".format(
+                            str(e["lat"]).replace(".", ""),
+                            str(e["lon"]).replace(".", ""),
+                        )
+                        if query_to_add not in arkimet_query:
+                            arkimet_query += query_to_add
+            else:
+                # if there is no station list it means there are no data for this query
+                return None
+        if bounding_box:
+            if "area: " not in arkimet_query:
+                arkimet_query += "area: "
+            else:
+                arkimet_query += " or "
+
+            arkimet_query += "bbox intersects POLYGON(({lonmin} {latmin},{lonmin} {latmax},{lonmax} {latmax}, {lonmax} {latmin}, {lonmin} {latmin}))".format(
+                lonmin=bounding_box["lonmin"],
+                latmin=bounding_box["latmin"],
+                lonmax=bounding_box["lonmax"],
+                latmax=bounding_box["latmax"],
+            )
         return arkimet_query
 
     @staticmethod
@@ -624,19 +657,17 @@ class BeDballe:
         # TODO va fatto un check licenze compatibili qui all'inizio (by dataset)? oppure a seconda della licenza lo si manda su un dballe o un altro?
 
         response = []
+        # choose the right query for the right situation(station details response or default one)
+        query = {}
+        if query_station_data:
+            parsed_query = BeDballe.parse_query_for_maps(query_station_data)
+        elif query_data:
+            parsed_query = BeDballe.parse_query_for_maps(query_data)
+
+        query = {**parsed_query}
 
         # managing db_type
         if db_type == "arkimet":
-            station_lat = None
-            station_lon = None
-            if (
-                query_station_data
-                and "lat" in query_station_data
-                and "lon" in query_station_data
-            ):
-                station_lat = str(query_station_data["lat"])
-                station_lon = str(query_station_data["lon"])
-
             # manage bounding box for queries by station id
             bbox_for_arki = {}
             if query_data and "latmin" in query_data:
@@ -644,16 +675,6 @@ class BeDballe:
                 bbox_for_arki["lonmin"] = query_data["lonmin"]
                 bbox_for_arki["latmax"] = query_data["latmax"]
                 bbox_for_arki["lonmax"] = query_data["lonmax"]
-            if not bbox_for_arki and station_lat and station_lon:
-                lat_decimals = Decimal(station_lat).as_tuple()[-1] * -1
-                lon_decimals = Decimal(station_lon).as_tuple()[-1] * -1
-                lat_add = float(Decimal(1) / Decimal(10 ** lat_decimals))
-                lon_add = float(Decimal(1) / Decimal(10 ** lon_decimals))
-                bbox_for_arki["latmin"] = float(station_lat) - lat_add
-                bbox_for_arki["lonmin"] = float(station_lon) - lon_add
-                bbox_for_arki["latmax"] = float(station_lat) + lat_add
-                bbox_for_arki["lonmax"] = float(station_lon) + lon_add
-                # log.debug('bounding box for station {} : {}',station_id, bounding_box)
             # manage reftime for queries in arkimet
             datemin = None
             datemax = None
@@ -671,7 +692,11 @@ class BeDballe:
                 datemax=datemax,
                 network=networks_as_list,
                 bounding_box=bbox_for_arki,
+                dballe_query=query,
             )
+            if query and not query_for_arkimet:
+                # means that there aren't data in arkimet for this dballe query
+                return response
             # check if there is a queried license
             license = None
             if query_data:
@@ -692,26 +717,10 @@ class BeDballe:
             # )  # the exception raised by this function is enough?
             log.debug("datasets: {}", datasets)
 
-        # choose the right query for the right situation(station details response or default one)
-        query = {}
-        if query_station_data:
-            parsed_query = BeDballe.parse_query_for_maps(query_station_data)
-        elif query_data:
-            parsed_query = BeDballe.parse_query_for_maps(query_data)
-
-        query = {**parsed_query}
-
         # managing different dbs
         if db_type == "arkimet":
             memdb = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
 
-        # if db_type == "arkimet":
-        #     # get data
-        #     response = BeDballe.get_data_for_maps(memdb, query, only_stations)
-        #     # remove data from temp db
-        #     memdb.remove_all()
-        # else:
-        #     response = BeDballe.get_data_for_maps(DB, query, only_stations)
         if db_type == "arkimet":
             db = memdb
         else:
