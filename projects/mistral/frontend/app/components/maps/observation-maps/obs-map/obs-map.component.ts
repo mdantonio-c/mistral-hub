@@ -342,7 +342,11 @@ export class ObsMapComponent {
     this.markerClusterData = markers;
     this.markerClusterGroup.addLayers(markers);
 
-    this.fitBounds();
+    // need to trigger resize event
+    window.dispatchEvent(new Event("resize"));
+    setTimeout(() => {
+      this.fitBounds();
+    }, 0);
   }
 
   private openStationReport(station: Station) {

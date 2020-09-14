@@ -59,7 +59,7 @@
             *ngIf="currentView !== 'Meteograms'; else meteograms"
           ></app-obs-map>
           <ng-template #meteograms>
-            <app-obs-meteograms [filter]="filter"></app-obs-meteograms>
+            <app-obs-meteograms></app-obs-meteograms>
           </ng-template>
         </div>
       </div>

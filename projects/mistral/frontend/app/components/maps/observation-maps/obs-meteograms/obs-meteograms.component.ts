@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 import {
   ObsData,
   Observation,
@@ -21,12 +21,11 @@ const STATION_NAME_CODE = "B01019";
   templateUrl: "./obs-meteograms.component.html",
   styleUrls: ["./obs-meteograms.component.css"],
 })
-export class ObsMeteogramsComponent {
-  @Input() filter: ObsFilter;
-
+export class ObsMeteogramsComponent implements OnInit {
+  filter: ObsFilter;
   multi: DataSeries[];
   report: Observation[];
-  loading = false;
+  loading: boolean = false;
 
   // chart options
   colorScheme = {
@@ -38,6 +37,10 @@ export class ObsMeteogramsComponent {
     private notify: NotificationService,
     private spinner: NgxSpinnerService
   ) {}
+
+  ngOnInit(): void {
+    this.loading = true;
+  }
 
   getUserUnit(varcode: string) {
     return ObsService.showUserUnit(varcode);
@@ -65,12 +68,13 @@ export class ObsMeteogramsComponent {
     }
   }
 
-  updateChart(filter: ObsFilter, update) {
+  updateChart(filter: ObsFilter, update = false) {
+    console.log(`update (ms)... ${Date.now() - this.start}`);
     this.filter = filter;
     this.loading = true;
-    setTimeout(() => this.spinner.show("timeseries-spinner"), 0);
+    setTimeout(() => this.spinner.show(), 0);
     this.obsService
-      .getData(this.filter)
+      .getData(this.filter, update)
       .subscribe(
         (data: Observation[]) => {
           this.report = data;
@@ -83,7 +87,7 @@ export class ObsMeteogramsComponent {
         }
       )
       .add(() => {
-        setTimeout(() => this.spinner.hide("timeseries-spinner"), 0);
+        setTimeout(() => this.spinner.hide(), 0);
         this.loading = false;
       });
   }
