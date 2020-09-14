@@ -76,8 +76,15 @@
                 </li>
               </ng-container>
             </ul>
-
-            <div [ngbNavOutlet]="nav" class="mt-4"></div>
+            <div [ngbNavOutlet]="nav"></div>
+            <p class="text-justify">
+              <ng-container *ngIf="filter.level">
+                <br /><small>{{ level }}</small>
+              </ng-container>
+              <ng-container *ngIf="filter.timerange">
+                <br /><small>{{ timerange }}</small>
+              </ng-container>
+            </p>
             <div #containerRef>
               <ngx-charts-line-chart
                 [view]="[containerRef.offsetWidth, 400]"

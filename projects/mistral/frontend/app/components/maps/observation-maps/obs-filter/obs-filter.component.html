@@ -71,7 +71,7 @@
   <div class="form-group">
     <label for="level">Level</label>
     <select id="level" class="form-control" formControlName="level">
-      <option value="" *ngIf="allLevels && allLevels.length > 0">Any</option>
+      <!--      <option value="" *ngIf="allLevels && allLevels.length > 0">Any</option>-->
       <option [ngValue]="l.code" *ngFor="let l of allLevels">{{
         l.desc
       }}</option>
@@ -81,9 +81,11 @@
   <div class="form-group">
     <label for="timerange">Time range</label>
     <select id="timerange" class="form-control" formControlName="timerange">
+      <!--
       <option value="" *ngIf="allTimeranges && allTimeranges.length > 0"
         >Any</option
       >
+      -->
       <option [ngValue]="t.code" *ngFor="let t of allTimeranges">{{
         t.desc
       }}</option>
