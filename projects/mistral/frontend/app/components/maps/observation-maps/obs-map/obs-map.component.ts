@@ -11,6 +11,7 @@ import {
   ObsService,
   SingleObsData,
   Station,
+  StationDetail,
 } from "../services/obs.service";
 import { ObsStationReportComponent } from "../obs-station-report/obs-station-report.component";
 import { COLORS, obsData, VAR_TABLE } from "../services/data";
@@ -322,10 +323,13 @@ export class ObsMapComponent {
           marker.options["data"] = obsData;
         }
 
-        marker.bindTooltip(ObsMapComponent.buildTooltipTemplate(s.station), {
-          direction: "top",
-          offset: [3, -8],
-        });
+        marker.bindTooltip(
+          ObsMapComponent.buildStationTooltip(s.station.details),
+          {
+            direction: "top",
+            offset: [3, -8],
+          }
+        );
         markers.push(marker);
       }
     });
@@ -386,6 +390,23 @@ export class ObsMapComponent {
       (level ? `<li><b>Level</b>: ` + level + `</li>` : "") +
       (timerange ? `<li><b>Timerange</b>: ` + timerange + `</li>` : "") +
       `</ul>`;
+    return template;
+  }
+  private static buildStationTooltip(station_details: StationDetail[]) {
+    let detail_list = "";
+    station_details.forEach(function (d) {
+      detail_list +=
+        `<li><b>` +
+        d.description
+          .replace(/\w\S*/g, function (txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+          })
+          .replace(/ *\([^)]*\) */g, "") +
+        `</b>: ` +
+        d.value +
+        `</li>`;
+    });
+    const template = `<ul class="p-1 m-0">` + detail_list + `</ul>`;
     return template;
   }
 
