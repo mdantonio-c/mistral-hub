@@ -123,8 +123,13 @@
       <i class="fas fa-filter"></i>
       Update
     </button>
+    <button
+      type="button"
+      class="btn btn-border-classic no-rounded ml-1"
+      [disabled]="!allProducts || allProducts.length === 0"
+      (click)="download()"
+    >
+      <i class="fa fa-download"></i>
+    </button>
   </div>
-  <!--
-    <pre>{{filterForm.value | json}}</pre>
-    -->
 </form>

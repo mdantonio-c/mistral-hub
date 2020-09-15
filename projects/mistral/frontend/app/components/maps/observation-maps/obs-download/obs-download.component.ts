@@ -1,8 +1,6 @@
-import { Component, Input, OnChanges } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { NgForm, NgControl } from "@angular/forms";
+import { Component, Input, OnInit } from "@angular/core";
 import {
-  NgbDateStruct,
+  NgbActiveModal,
   NgbDate,
   NgbCalendar,
   NgbDateParserFormatter,
@@ -17,7 +15,7 @@ import { saveAs as importedSaveAs } from "file-saver";
   templateUrl: "./obs-download.component.html",
   styleUrls: ["./obs-download.component.css"],
 })
-export class ObsDownloadComponent implements OnChanges {
+export class ObsDownloadComponent implements OnInit {
   @Input() filter: ObsFilter;
   hoveredDate: NgbDate | null = null;
 
@@ -33,6 +31,7 @@ export class ObsDownloadComponent implements OnChanges {
   };
 
   constructor(
+    public activeModal: NgbActiveModal,
     private obsService: ObsService,
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
@@ -44,7 +43,7 @@ export class ObsDownloadComponent implements OnChanges {
     this.toDate = calendar.getNext(calendar.getToday(), "d", 10);
   }
 
-  ngOnChanges() {
+  ngOnInit() {
     if (this.filter && this.filter.reftime) {
       this.setDateRange(this.filter.reftime);
     }
@@ -117,8 +116,6 @@ export class ObsDownloadComponent implements OnChanges {
       this.toDate.month - 1,
       this.toDate.day
     );
-    console.log("Download data", this.model);
-    console.log("Download with filter", this.filter);
     this.spinner.show();
     let fileExtension = "";
     switch (this.model.format) {
@@ -144,11 +141,13 @@ export class ObsDownloadComponent implements OnChanges {
           importedSaveAs(blob, `${basename}${fileExtension}`);
         },
         (error) => {
-          this.notify.showError(error);
+          console.error(error);
+          this.notify.showError("Unable to download data");
         }
       )
       .add(() => {
         this.spinner.hide();
+        this.activeModal.close();
       });
   }
 }

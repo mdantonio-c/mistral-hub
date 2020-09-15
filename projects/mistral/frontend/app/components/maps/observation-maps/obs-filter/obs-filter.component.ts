@@ -40,6 +40,9 @@ export class ObsFilterComponent implements OnInit {
   @Output() filterUpdate: EventEmitter<ObsFilter> = new EventEmitter<
     ObsFilter
   >();
+  @Output() filterDownload: EventEmitter<ObsFilter> = new EventEmitter<
+    ObsFilter
+  >();
 
   constructor(
     private fb: FormBuilder,
@@ -93,12 +96,13 @@ export class ObsFilterComponent implements OnInit {
           );
 
           let items = data.items;
+
           // I need all available products here, regardless of the filter
           this.allProducts = items.available_products;
-          // set product
           this.filterForm.controls.product.setValue(f.product, {
             emitEvent: false,
           });
+
           if (items.network) {
             this.allNetworks = items.network;
             if (f.network) {
@@ -193,7 +197,7 @@ export class ObsFilterComponent implements OnInit {
     });
   }
 
-  update() {
+  private toObsFilter(): ObsFilter {
     let form = this.filterForm.value;
     let filter: ObsFilter = {
       product: form.product,
@@ -208,8 +212,17 @@ export class ObsFilterComponent implements OnInit {
     if (form.level) {
       filter.level = form.level;
     }
+    return filter;
+  }
+
+  update() {
+    let filter: ObsFilter = this.toObsFilter();
     console.log("emit update filter", filter);
     this.filterUpdate.emit(filter);
     this.isUpdatable = false;
+  }
+
+  download() {
+    this.filterDownload.emit(this.toObsFilter());
   }
 }
