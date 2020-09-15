@@ -884,14 +884,15 @@ class BeDballe:
     @staticmethod
     def download_data_from_map(db, output_format, query_data, query_station_data=None):
         download_query = {}
-
         if query_station_data:
-            download_query = {**query_station_data}
+            parsed_query = BeDballe.parse_query_for_maps(query_station_data)
         elif query_data:
-            download_query = {**query_data}
+            parsed_query = BeDballe.parse_query_for_maps(query_data)
+        download_query = {**parsed_query}
 
         with db.transaction() as tr:
             exporter = dballe.Exporter(output_format)
+            log.debug("download query: {}", download_query)
             for row in tr.query_messages(download_query):
                 yield exporter.to_binary(row.message)
 
