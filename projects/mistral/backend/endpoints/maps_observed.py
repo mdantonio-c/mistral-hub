@@ -306,7 +306,7 @@ class MapsObservations(EndpointResource):
 
                 # get queries and db for dballe extraction (taking advantage of the method already implemented to get data values for maps)
                 log.debug("getting queries and db for dballe")
-                for key, value in dballe_reftime_in_query:
+                for key, value in dballe_reftime_in_query.items():
                     query_data_for_dballe[key] = value
                     if query_station_data_for_dballe:
                         query_station_data_for_dballe[key] = value
@@ -326,7 +326,7 @@ class MapsObservations(EndpointResource):
                 arki_query_data = {}
                 arki_query_station_data = {}
                 if arki_reftime_in_query:
-                    for key, value in arki_reftime_in_query:
+                    for key, value in arki_reftime_in_query.items():
                         query_data_for_arki[key] = value
                         if query_station_data_for_arki:
                             query_station_data_for_arki[key] = value
@@ -352,8 +352,11 @@ class MapsObservations(EndpointResource):
                     dballe_db, dballe_query_data, arki_db, arki_query_data,
                 )
                 # if there is a query station data, merge the two queries
+                download_query_station_data = {}
                 if query_station_data:
-                    download_query_station_data = {**dballe_query_station_data}
+                    download_query_station_data = dballe.parse_query_for_maps(
+                        dballe_query_station_data
+                    )
                     if arki_query_station_data:
                         if "datetimemin" in arki_query_station_data:
                             download_query_station_data[

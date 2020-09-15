@@ -865,16 +865,14 @@ class BeDballe:
         dballe_db, dballe_query_data, arki_db=None, arki_query_data=None,
     ):
         # merge the dbs
+        query_data = BeDballe.parse_query_for_maps(dballe_query_data)
         if arki_db:
-            log.debug(
-                "Filling temp db with data from dballe. query: {}", dballe_query_data
-            )
+            log.debug("Filling temp db with data from dballe. query: {}", query_data)
             with dballe_db.transaction() as tr:
                 with arki_db.transaction() as temptr:
-                    for cur in tr.query_messages(dballe_query_data):
+                    for cur in tr.query_messages(query_data):
                         temptr.import_messages(cur.message)
         # merge the queries for data
-        query_data = {**dballe_query_data}
         if arki_query_data:
             if "datetimemin" in arki_query_data:
                 query_data["datetimemin"] = arki_query_data["datetimemin"]
@@ -1056,7 +1054,11 @@ class BeDballe:
         for key, value in query.items():
             if key in to_parse:
                 key_index = to_parse.index(key)
-                if key == "timerange" or key == "level":
+                if (
+                    key == "timerange"
+                    or key == "level"
+                    and not isinstance(value, tuple)
+                ):
                     tuple_list = []
                     for v in value[0].split(","):
                         if key == "level" and v == "0":
