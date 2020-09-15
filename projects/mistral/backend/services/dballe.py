@@ -177,39 +177,40 @@ class BeDballe:
             dballe_query["query"] = "details"
             # count the items for each query
 
-            # commented out since causes segfault
-            # for cur in explorer.query_summary(dballe_query):
-            #     # count the items for each query
-            #     message_count += cur["count"]
-            #     datetimemin = datetime(
-            #         cur["yearmin"],
-            #         cur["monthmin"],
-            #         cur["daymin"],
-            #         cur["hourmin"],
-            #         cur["minumin"],
-            #         cur["secmin"],
-            #     )
-            #     datetimemax = datetime(
-            #         cur["yearmax"],
-            #         cur["monthmax"],
-            #         cur["daymax"],
-            #         cur["hourmax"],
-            #         cur["minumax"],
-            #         cur["secmax"],
-            #     )
-            #     # these notations still cause segfault
-            #     # datetimemin = cur["datetimemin"]
-            #     # datetimemin = cur["datetimemax"]
-            #     if min_date:
-            #         if datetimemin < min_date:
-            #             min_date = datetimemin
-            #     else:
-            #         min_date = datetimemin
-            #     if max_date:
-            #         if datetimemax > max_date:
-            #             max_date = datetimemax
-            #     else:
-            #         max_date = datetimemax
+            for cur in explorer.query_summary(dballe_query):
+                # commented out since causes segfault
+                # count the items for each query
+                # message_count += cur["count"]
+
+                datetimemin = datetime(
+                    cur["yearmin"],
+                    cur["monthmin"],
+                    cur["daymin"],
+                    cur["hourmin"],
+                    cur["minumin"],
+                    cur["secmin"],
+                )
+                datetimemax = datetime(
+                    cur["yearmax"],
+                    cur["monthmax"],
+                    cur["daymax"],
+                    cur["hourmax"],
+                    cur["minumax"],
+                    cur["secmax"],
+                )
+                # these notations still cause segfault
+                # datetimemin = cur["datetimemin"]
+                # datetimemin = cur["datetimemax"]
+                if min_date:
+                    if datetimemin < min_date:
+                        min_date = datetimemin
+                else:
+                    min_date = datetimemin
+                if max_date:
+                    if datetimemax > max_date:
+                        max_date = datetimemax
+                else:
+                    max_date = datetimemax
 
             # bug fixing while the correct one raises the segfault
             message_count += explorer.query_summary(dballe_query).remaining
@@ -715,6 +716,8 @@ class BeDballe:
             )
             if query and not query_for_arkimet:
                 # means that there aren't data in arkimet for this dballe query
+                if download:
+                    return None, {}, {}
                 return response
             # check if there is a queried license
             license = None
@@ -1038,7 +1041,17 @@ class BeDballe:
             "datetimemin",
             "datetimemax",
         ]
-        allowed_keys = ["lonmin", "lonmax", "latmin", "latmax", "query"]
+        allowed_keys = [
+            "lonmin",
+            "lonmax",
+            "latmin",
+            "latmax",
+            "query",
+            "lat",
+            "lon",
+            "ident",
+            "rep_memo",
+        ]
 
         for key, value in query.items():
             if key in to_parse:

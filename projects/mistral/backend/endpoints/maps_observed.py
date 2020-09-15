@@ -380,17 +380,20 @@ class MapsObservations(EndpointResource):
                 mime = "application/octet-stream"
 
             # stream data
-            return Response(
-                stream_with_context(
-                    dballe.download_data_from_map(
-                        db_for_extraction,
-                        output_format,
-                        download_query_data,
-                        download_query_station_data,
-                    )
-                ),
-                mimetype=mime,
-            )
+            if db_for_extraction:
+                return Response(
+                    stream_with_context(
+                        dballe.download_data_from_map(
+                            db_for_extraction,
+                            output_format,
+                            download_query_data,
+                            download_query_station_data,
+                        )
+                    ),
+                    mimetype=mime,
+                )
+            else:
+                return []
         except AccessToDatasetDenied:
             raise RestApiException(
                 "Access to dataset denied", status_code=hcodes.HTTP_SERVER_ERROR,
