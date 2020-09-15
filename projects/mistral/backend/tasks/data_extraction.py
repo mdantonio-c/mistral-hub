@@ -561,8 +561,10 @@ def notificate_by_email(db, user_id, request, extra_msg):
 
     replaces = {"title": request.name, "status": request.status, "message": body_msg}
     body = get_html_template("data_extraction_result.html", replaces)
-    smtp = celery_app.get_service("smtp")
-    smtp.send(body, "MeteoHub: data extraction completed", user_email, plain_body=body)
+    with celery_app.get_service("smtp") as smtp:
+        smtp.send(
+            body, "MeteoHub: data extraction completed", user_email, plain_body=body
+        )
 
 
 def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
