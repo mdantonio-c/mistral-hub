@@ -57,7 +57,13 @@ class BeDballe:
 
     @staticmethod
     def build_arkimet_query(
-        datemin=None, datemax=None, network=None, bounding_box=None, dballe_query=None
+        datemin=None,
+        datemax=None,
+        network=None,
+        bounding_box=None,
+        dballe_query=None,
+        all_dballe_queries=None,
+        fields=None,
     ):
         if isinstance(datemin, datetime):
             datemin_str = datemin.strftime("%Y-%m-%d %H:%M:%S")
@@ -79,16 +85,29 @@ class BeDballe:
                     arkimet_query += f" or  BUFR:t = {i}"
             arkimet_query += ";"
 
-        if dballe_query:
+        if dballe_query or all_dballe_queries:
             # improve the query adding stations
             explorer = BeDballe.build_explorer("arkimet")
             # create a list of station datails
             station_list = []
-            for cur in explorer.query_summary_all(dballe_query):
-                el = {}
-                el["lat"] = cur["lat"]
-                el["lon"] = cur["lon"]
-                station_list.append(el)
+            # populate the station list.
+            # If there is all_dballe_queries do an iteration to populate the list
+            if dballe_query:
+                for cur in explorer.query_summary_all(dballe_query):
+                    el = {}
+                    el["lat"] = cur["lat"]
+                    el["lon"] = cur["lon"]
+                    station_list.append(el)
+            elif all_dballe_queries:
+                for q in all_dballe_queries:
+                    dballe_query = {}
+                    for k, v in zip(fields, q):
+                        dballe_query[k] = v
+                    for cur in explorer.query_summary_all(dballe_query):
+                        el = {}
+                        el["lat"] = cur["lat"]
+                        el["lon"] = cur["lon"]
+                        station_list.append(el)
             if station_list:
                 arkimet_query += "area:GRIB:lat={}, lon={}".format(
                     str(station_list[0]["lat"]).replace(".", ""),
@@ -1289,6 +1308,7 @@ class BeDballe:
     @staticmethod
     def extract_data(datasets, fields, queries, outfile, db_type):
         # choose the db
+        arkimet_query = None
         if db_type == "arkimet":
             # create arkimet query
             network = None
@@ -1305,10 +1325,17 @@ class BeDballe:
                     "%Y-%m-%d %H:%M"
                 )
 
+            # get all the possible combinations of queries
+            all_queries = list(itertools.product(*queries))
             arkimet_query = BeDballe.build_arkimet_query(
-                datemin=datemin, datemax=datemax, network=network
+                datemin=datemin,
+                datemax=datemax,
+                network=network,
+                all_dballe_queries=all_queries,
+                fields=fields,
             )
 
+        if arkimet_query:
             # fill the temp db and choose it as the db for extraction
             DB = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
         else:
