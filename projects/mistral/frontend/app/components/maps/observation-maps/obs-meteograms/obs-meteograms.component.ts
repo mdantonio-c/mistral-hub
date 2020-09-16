@@ -120,12 +120,14 @@ export class ObsMeteogramsComponent implements OnInit {
         unit: p.unit,
         series: [],
       };
-      p.values.forEach((obs) => {
-        s.series.push({
-          name: obs.reftime,
-          value: ObsService.showData(obs.value, p.varcode),
+      s.series = p.values
+        .filter((obs) => obs.is_reliable === true)
+        .map((obs) => {
+          return {
+            name: obs.reftime,
+            value: ObsService.showData(obs.value, p.varcode),
+          };
         });
-      });
       res.push(s);
     });
     return res;
