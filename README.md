@@ -39,7 +39,7 @@ Creating mistral_celery_1   ... done
 ```
 
 In dev mode you need to start api service by hand. Open a terminal and run  
-`$ rapydo shell backend --command "restapi launch"`
+`$ rapydo shell backend "restapi launch"`
 
 Now open your browser and type http://localhost in the address bar.  
 You can enter the app with the following username and password

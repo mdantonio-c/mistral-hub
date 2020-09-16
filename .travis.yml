@@ -34,18 +34,18 @@ script:
 
       rapydo pull;
       rapydo start;
-      rapydo shell backend --command 'restapi wait';
+      rapydo shell backend 'restapi wait';
       echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh;
       echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" >> init.sh;
       docker cp init.sh mistral_backend_1:/tmp/init.sh;
-      rapydo shell backend --command 'bash /tmp/init.sh';
+      rapydo shell backend 'bash /tmp/init.sh';
 
     fi
 
   - >
     if [[ "$STAGE" == "BACKEND" ]]; then
 
-      rapydo shell backend --command 'restapi tests --wait';
+      rapydo shell backend 'restapi tests --wait';
       docker cp mistral_backend_1:/code/coverage.xml coverage.xml;
       travis_retry bash <(curl -s https://codecov.io/bash);
 
@@ -55,18 +55,18 @@ script:
       rapydo -s frontend start;
       sleep 5;
       rapydo -s frontend logs;
-      rapydo shell frontend --command "yarn install" || travis_terminate 1;
-      rapydo shell frontend --command "yarn run test:single" || travis_terminate 1;
+      rapydo shell frontend "yarn install" || travis_terminate 1;
+      rapydo shell frontend "yarn run test:single" || travis_terminate 1;
       cp data/mistral/karma/lcov.info .;
       travis_retry bash <(curl -s https://codecov.io/bash);
 
     elif [[ "$STAGE" == "CYPRESS" ]]; then
 
-      rapydo shell backend --command 'restapi wait';
-      rapydo shell backend --detach --command "restapi launch";
+      rapydo shell backend 'restapi wait';
+      rapydo shell backend --detach "restapi launch";
       rapydo -s frontend logs;
-      rapydo shell frontend --command "yarn install" || travis_terminate 1;
-      rapydo shell frontend --command "yarn run cypress:start:${BROWSER}" || travis_terminate 1;
+      rapydo shell frontend "yarn install" || travis_terminate 1;
+      rapydo shell frontend "yarn run cypress:start" || travis_terminate 1;
 
     fi
 
