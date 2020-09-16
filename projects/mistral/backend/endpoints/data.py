@@ -5,7 +5,7 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
 from restapi.exceptions import BadRequest, Forbidden, NotFound, RestApiException
-from restapi.models import AdvancedList, InputSchema, fields, validate
+from restapi.models import AdvancedList, Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
 from restapi.utilities.htmlcodes import hcodes
@@ -37,7 +37,7 @@ SUBTYPES = [
 TIMERANGES = [0, 1, 2, 3, 4, 6, 254]
 
 
-class AVProcessor(InputSchema):
+class AVProcessor(Schema):
     # Derived variables post-processing
     processor_type = fields.Str(required=True)
     # "derived_variables"
@@ -53,7 +53,7 @@ class AVProcessor(InputSchema):
     )
 
 
-class SPIProcessor(InputSchema):
+class SPIProcessor(Schema):
     # Spare points interpolation postprocessor
     processor_type = fields.Str(
         required=True, description="description of the postprocessor"
@@ -72,7 +72,7 @@ class SPIProcessor(InputSchema):
     sub_type = fields.Str(required=True, validate=validate.OneOf(SUBTYPES))
 
 
-class SEProcessor(InputSchema):
+class SEProcessor(Schema):
     # Statistic Elaboration post-processing
     processor_type = fields.Str(
         required=True, description="description of the postprocessor"
@@ -107,14 +107,14 @@ class SEProcessor(InputSchema):
         return data
 
 
-class CropBoundings(InputSchema):
+class CropBoundings(Schema):
     ilon = fields.Number()
     ilat = fields.Number()
     flon = fields.Number()
     flat = fields.Number()
 
 
-class GCProcessor(InputSchema):
+class GCProcessor(Schema):
     #  Grid cropping post processor
     processor_type = fields.Str(
         required=True, description="description of the postprocessor"
@@ -126,19 +126,19 @@ class GCProcessor(InputSchema):
     sub_type = fields.Str(required=True, validate=validate.OneOf(["coord", "bbox"]))
 
 
-class InterpolBoundings(InputSchema):
+class InterpolBoundings(Schema):
     x_min = fields.Number(data_key="x-min")
     x_max = fields.Number(data_key="x-max")
     y_min = fields.Number(data_key="y-min")
     y_max = fields.Number(data_key="y-max")
 
 
-class Nodes(InputSchema):
+class Nodes(Schema):
     nx = fields.Integer()
     ny = fields.Integer()
 
 
-class GIProcessor(InputSchema):
+class GIProcessor(Schema):
     # Grid interpolation post processor to interpolate data on a new grid
     processor_type = fields.Str(
         required=True, description="description of the postprocessor"
@@ -185,7 +185,7 @@ class Postprocessors(fields.Field):
         return valid_data
 
 
-class Reftime(InputSchema):
+class Reftime(Schema):
     date_from = fields.DateTime(required=True, data_key="from")
     date_to = fields.DateTime(required=True, data_key="to")
 
@@ -196,7 +196,7 @@ class Reftime(InputSchema):
         return data
 
 
-class Filters(InputSchema):
+class Filters(Schema):
     area = fields.List(fields.Dict())
     level = fields.List(fields.Dict())
     origin = fields.List(fields.Dict())
@@ -209,7 +209,7 @@ class Filters(InputSchema):
     network = fields.List(fields.Dict())
 
 
-class DataExtraction(InputSchema):
+class DataExtraction(Schema):
     request_name = fields.Str(required=True)
     reftime = fields.Nested(Reftime, allow_none=True)
     dataset_names = AdvancedList(
@@ -413,6 +413,7 @@ class Data(EndpointResource, Uploader):
 
         else:
             raise RestApiException(
-                "Unable to submit the request", status_code=hcodes.HTTP_SERVER_ERROR,
+                "Unable to submit the request",
+                status_code=hcodes.HTTP_SERVER_ERROR,
             )
         return self.response(r, code=hcodes.HTTP_OK_ACCEPTED)

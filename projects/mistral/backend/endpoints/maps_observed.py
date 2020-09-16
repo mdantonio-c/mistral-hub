@@ -5,7 +5,7 @@ from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
 from restapi.exceptions import RestApiException
-from restapi.models import InputSchema, fields, validate
+from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -13,7 +13,7 @@ from restapi.utilities.logs import log
 FILEFORMATS = ["BUFR", "JSON"]
 
 
-class ObservationsQuery(InputSchema):
+class ObservationsQuery(Schema):
     networks = fields.Str(required=False)
     q = fields.Str(required=False)
     lonmin = fields.Float(required=False)
@@ -28,7 +28,7 @@ class ObservationsQuery(InputSchema):
     reliabilityCheck = fields.Bool(required=False)
 
 
-class ObservationsDownloader(InputSchema):
+class ObservationsDownloader(Schema):
     output_format = fields.Str(validate=validate.OneOf(FILEFORMATS), required=True)
     networks = fields.Str(required=False)
     q = fields.Str(required=False)
@@ -146,7 +146,9 @@ class MapsObservations(EndpointResource):
         try:
             if db_type == "mixed":
                 res = dballe.get_maps_response_for_mixed(
-                    query, onlyStations, query_station_data=query_station_data,
+                    query,
+                    onlyStations,
+                    query_station_data=query_station_data,
                 )
             else:
                 res = dballe.get_maps_response(
@@ -157,12 +159,14 @@ class MapsObservations(EndpointResource):
                 )
         except AccessToDatasetDenied:
             raise RestApiException(
-                "Access to dataset denied", status_code=hcodes.HTTP_SERVER_ERROR,
+                "Access to dataset denied",
+                status_code=hcodes.HTTP_SERVER_ERROR,
             )
 
         if not res and stationDetails:
             raise RestApiException(
-                "Station data not found", status_code=hcodes.HTTP_BAD_NOTFOUND,
+                "Station data not found",
+                status_code=hcodes.HTTP_BAD_NOTFOUND,
             )
 
         return self.response(res)
@@ -349,7 +353,10 @@ class MapsObservations(EndpointResource):
                     db_for_extraction,
                     download_query_data,
                 ) = dballe.merge_db_for_download(
-                    dballe_db, dballe_query_data, arki_db, arki_query_data,
+                    dballe_db,
+                    dballe_query_data,
+                    arki_db,
+                    arki_query_data,
                 )
                 # if there is a query station data, merge the two queries
                 download_query_station_data = {}
@@ -399,5 +406,6 @@ class MapsObservations(EndpointResource):
                 return []
         except AccessToDatasetDenied:
             raise RestApiException(
-                "Access to dataset denied", status_code=hcodes.HTTP_SERVER_ERROR,
+                "Access to dataset denied",
+                status_code=hcodes.HTTP_SERVER_ERROR,
             )

@@ -3,7 +3,7 @@ import os
 from flask import send_file
 from restapi import decorators
 from restapi.exceptions import RestApiException
-from restapi.models import InputSchema, fields, validate
+from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -54,8 +54,8 @@ def get_schema(set_required):
     )
     attributes["env"] = fields.Str(validate=validate.OneOf(ENVS), required=False)
 
-    return InputSchema.from_dict(attributes)
-    # schema = InputSchema.from_dict(attributes)
+    return Schema.from_dict(attributes)
+    # schema = Schema.from_dict(attributes)
     # return schema()
 
 
@@ -68,11 +68,17 @@ class MapEndpoint(EndpointResource):
         # flood fields have a different path
         if (field == "percentile") or (field == "probability"):
             self.base_path = os.path.join(
-                MEDIA_ROOT, platform, env, f"PROB-{run}-2.2.web",
+                MEDIA_ROOT,
+                platform,
+                env,
+                f"PROB-{run}-2.2.web",
             )
         else:
             self.base_path = os.path.join(
-                MEDIA_ROOT, platform, env, f"Magics-{run}-{res}.web",
+                MEDIA_ROOT,
+                platform,
+                env,
+                f"Magics-{run}-{res}.web",
             )
         log.debug(f"base_path: {self.base_path}")
 
@@ -325,6 +331,7 @@ class MapLegend(MapEndpoint):
         log.debug(map_legend_file)
         if not os.path.isfile(map_legend_file):
             raise RestApiException(
-                f"Map legend not found for field <{field}>", hcodes.HTTP_BAD_NOTFOUND,
+                f"Map legend not found for field <{field}>",
+                hcodes.HTTP_BAD_NOTFOUND,
             )
         return send_file(map_legend_file, mimetype="image/png")

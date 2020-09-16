@@ -8,7 +8,7 @@ from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi import decorators
 from restapi.exceptions import BadRequest, Forbidden, NotFound, RestApiException
-from restapi.models import AdvancedList, InputSchema, fields, validate
+from restapi.models import AdvancedList, Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -28,7 +28,7 @@ DERIVED_VARIABLES = [
 ]
 
 
-class AVProcessor(InputSchema):
+class AVProcessor(Schema):
     # Derived variables post-processing
     processor_type = fields.Str(required=True)
     # "derived_variables"
@@ -53,7 +53,7 @@ SUBTYPES = [
 ]
 
 
-class SPIProcessor(InputSchema):
+class SPIProcessor(Schema):
     # Spare points interpolation postprocessor
     processor_type = fields.Str(
         required=True, description="description of the postprocessor"
@@ -75,7 +75,7 @@ class SPIProcessor(InputSchema):
 TIMERANGES = [0, 1, 2, 3, 4, 6, 254]
 
 
-class SEProcessor(InputSchema):
+class SEProcessor(Schema):
     # Statistic Elaboration post-processing
     processor_type = fields.Str(
         required=True, description="description of the postprocessor"
@@ -110,14 +110,14 @@ class SEProcessor(InputSchema):
         return data
 
 
-class CropBoundings(InputSchema):
+class CropBoundings(Schema):
     ilon = fields.Number()
     ilat = fields.Number()
     flon = fields.Number()
     flat = fields.Number()
 
 
-class GCProcessor(InputSchema):
+class GCProcessor(Schema):
     #  Grid cropping post processor
     processor_type = fields.Str(
         required=True, description="description of the postprocessor"
@@ -129,19 +129,19 @@ class GCProcessor(InputSchema):
     sub_type = fields.Str(required=True, validate=validate.OneOf(["coord", "bbox"]))
 
 
-class InterpolBoundings(InputSchema):
+class InterpolBoundings(Schema):
     x_min = fields.Number(data_key="x-min")
     x_max = fields.Number(data_key="x-max")
     y_min = fields.Number(data_key="y-min")
     y_max = fields.Number(data_key="y-max")
 
 
-class Nodes(InputSchema):
+class Nodes(Schema):
     nx = fields.Integer()
     ny = fields.Integer()
 
 
-class GIProcessor(InputSchema):
+class GIProcessor(Schema):
     # Grid interpolation post processor to interpolate data on a new grid
     processor_type = fields.Str(
         required=True, description="description of the postprocessor"
@@ -188,7 +188,7 @@ class Postprocessors(fields.Field):
         return valid_data
 
 
-class Reftime(InputSchema):
+class Reftime(Schema):
     date_from = fields.DateTime(required=True, data_key="from")
     date_to = fields.DateTime(required=True, data_key="to")
 
@@ -199,7 +199,7 @@ class Reftime(InputSchema):
         return data
 
 
-class Filters(InputSchema):
+class Filters(Schema):
     area = fields.List(fields.Dict())
     level = fields.List(fields.Dict())
     origin = fields.List(fields.Dict())
@@ -212,7 +212,7 @@ class Filters(InputSchema):
     network = fields.List(fields.Dict())
 
 
-class PeriodSettings(InputSchema):
+class PeriodSettings(Schema):
     every = fields.Integer(required=True)
     period = fields.Str(
         required=True,
@@ -222,7 +222,7 @@ class PeriodSettings(InputSchema):
     )
 
 
-class CrontabSettings(InputSchema):
+class CrontabSettings(Schema):
     minute = fields.Integer(validate=validate.Range(min=0, max=59))
     hour = fields.Integer(validate=validate.Range(min=0, max=23))
     day_of_week = fields.Integer(
@@ -242,7 +242,7 @@ class CrontabSettings(InputSchema):
         return data
 
 
-class ScheduledDataExtraction(InputSchema):
+class ScheduledDataExtraction(Schema):
     request_name = fields.Str(required=True)
     reftime = fields.Nested(Reftime, allow_none=True)
     dataset_names = AdvancedList(
@@ -588,7 +588,8 @@ class Schedules(EndpointResource):
             r = {"schedule_id": name}
         else:
             raise RestApiException(
-                "Unable to submit the request", status_code=hcodes.HTTP_SERVER_ERROR,
+                "Unable to submit the request",
+                status_code=hcodes.HTTP_SERVER_ERROR,
             )
         return self.response(r, code=hcodes.HTTP_OK_ACCEPTED)
 
@@ -779,7 +780,8 @@ class Schedules(EndpointResource):
         RequestManager.delete_schedule(db, schedule_id)
 
         return self.response(
-            f"Schedule {schedule_id} successfully deleted", code=hcodes.HTTP_OK_BASIC,
+            f"Schedule {schedule_id} successfully deleted",
+            code=hcodes.HTTP_OK_BASIC,
         )
 
     @staticmethod

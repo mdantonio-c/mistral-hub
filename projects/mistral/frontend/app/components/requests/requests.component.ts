@@ -1,4 +1,5 @@
 import { Component, Output, EventEmitter, Injector } from "@angular/core";
+import { Subscription } from "rxjs";
 import { saveAs as importedSaveAs } from "file-saver";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 
@@ -24,11 +25,8 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
 
   constructor(protected injector: Injector, public dataService: DataService) {
     super(injector);
-    this.init("request");
-
-    this.server_side_pagination = true;
-    this.endpoint = "requests";
-    this.initPaging(20);
+    this.init("request", "requests");
+    this.initPaging(20, true);
     this.list();
   }
 
@@ -43,19 +41,21 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     clearInterval(this.interval);
   }
 
-  list(click = false) {
-    if (click) {
-      // reset timer
-      clearInterval(this.interval);
-      this.activateAutoSync();
-    }
-    this.get(this.endpoint);
+  list_and_clear() {
+    // reset timer
+    clearInterval(this.interval);
+    this.activateAutoSync();
+    this.list();
+  }
+  list(): Subscription {
+    const ret = super.list();
     this.onLoad.emit();
+    return ret;
   }
 
   remove(requestID) {
     console.log(`remove this request ${requestID}`);
-    return this.delete("requests", requestID);
+    return super.remove(requestID);
   }
 
   download(filename) {

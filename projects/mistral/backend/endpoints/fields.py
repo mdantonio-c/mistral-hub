@@ -1,17 +1,15 @@
-from datetime import datetime
-
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
 from restapi.exceptions import RestApiException
-from restapi.models import InputSchema, UniqueDelimitedList, fields
+from restapi.models import Schema, UniqueDelimitedList, fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 
-class FieldsQuery(InputSchema):
+class FieldsQuery(Schema):
     datasets = UniqueDelimitedList(fields.Str(), delimiter=",")
     q = fields.Str(required=False)
     lonmin = fields.Float(required=False)
@@ -124,7 +122,8 @@ class Fields(EndpointResource):
                 )
             except AccessToDatasetDenied:
                 raise RestApiException(
-                    "Access to dataset denied", status_code=hcodes.HTTP_SERVER_ERROR,
+                    "Access to dataset denied",
+                    status_code=hcodes.HTTP_SERVER_ERROR,
                 )
 
             if fields:
@@ -142,7 +141,8 @@ class Fields(EndpointResource):
                 summary = arki.load_summary(datasets, q)
             except AccessToDatasetDenied:
                 raise RestApiException(
-                    "Access to dataset denied", status_code=hcodes.HTTP_SERVER_ERROR,
+                    "Access to dataset denied",
+                    status_code=hcodes.HTTP_SERVER_ERROR,
                 )
 
         # ######### ONLY ARKIMET SUMMARY ###########

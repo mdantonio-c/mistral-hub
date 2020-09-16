@@ -1,8 +1,9 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable, of } from "rxjs";
-import "rxjs/add/operator/map";
-import "rxjs/add/operator/share";
+import { map, share } from "rxjs/operators";
+// import "rxjs/add/operator/map";
+// import "rxjs/add/operator/share";
 import { ApiService } from "@rapydo/services/api";
 import { environment } from "@rapydo/../environments/environment";
 
@@ -278,17 +279,19 @@ export class DataService {
   getDerivedVariables(): Observable<DerivedVariables[]> {
     if (this._derivedVariables) {
       return of(this._derivedVariables);
-    } else {
-      return this.http
-        .get("/app/custom/assets/config/derived_variables.csv", {
-          responseType: "text",
-        })
-        .map((response) => {
+    }
+
+    return this.http
+      .get<string>("/app/custom/assets/config/derived_variables.csv", {
+        responseType: "text" as "json",
+      })
+      .pipe(
+        map((response) => {
           this._derivedVariables = this.extractConfig(response);
           return this._derivedVariables;
-        })
-        .share();
-    }
+        }),
+        share()
+      );
   }
 
   private extractConfig(csvData: string): DerivedVariables[] {

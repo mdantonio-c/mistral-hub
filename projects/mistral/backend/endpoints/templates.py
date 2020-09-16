@@ -7,14 +7,14 @@ from flask import request
 from restapi import decorators
 from restapi.confs import UPLOAD_PATH
 from restapi.exceptions import RestApiException
-from restapi.models import InputSchema, fields, validate
+from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 
-class TemplatesFormatter(InputSchema):
+class TemplatesFormatter(Schema):
     format = fields.Str(validate=validate.OneOf(["grib", "shp"]), required=False)
     perpage = fields.Integer(required=False)
     currentpage = fields.Integer(required=False)
@@ -212,7 +212,8 @@ class Templates(EndpointResource, Uploader):
         for f in filelist:
             os.remove(f)
         return self.response(
-            f"File {template_name} succesfully deleted", code=hcodes.HTTP_OK_BASIC,
+            f"File {template_name} succesfully deleted",
+            code=hcodes.HTTP_OK_BASIC,
         )
 
     @staticmethod

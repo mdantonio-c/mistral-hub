@@ -21,21 +21,14 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
     private el: ElementRef
   ) {
     super(injector);
-    this.init("schedule");
-
-    this.server_side_pagination = true;
-    this.endpoint = "schedules";
-    this.initPaging(20);
+    this.init("schedule", "schedules");
+    this.initPaging(20, true);
     this.list();
   }
 
   ngOnInit() {
     // make sure the derived variables have been loaded
     this.dataService.getDerivedVariables().subscribe();
-  }
-
-  list() {
-    return this.get(this.endpoint);
   }
 
   loadLastSubmission(row) {
@@ -78,7 +71,7 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
 
   remove(scheduleID) {
     console.log(`remove this schedule ${scheduleID}`);
-    return this.delete("schedules", scheduleID);
+    return super.remove(scheduleID);
   }
 
   download(filename) {

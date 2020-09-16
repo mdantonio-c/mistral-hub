@@ -2,12 +2,12 @@
 
 ## HOWTO Get started
 
-Install rapydo framework last version 0.7.6
+Install rapydo framework last version 0.8
 
-`$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@0.7.6`
+`$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@0.8`
 
-or ugprade to rapydo 0.7.6  
-`$ rapydo install 0.7.6`
+or ugprade to rapydo 0.8  
+`$ rapydo install 0.8`
 
 ####Clone the project
 
