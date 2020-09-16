@@ -761,32 +761,48 @@ class BeDballe:
             if count_data == 0:
                 return response
             for rec in tr.query_data(query):
-                res_element = {}
-                # get data about the station
-                station_data = {}
-                query_for_details = {}
-                station_data["lat"] = float(rec["lat"])
-                query_for_details["lat"] = float(rec["lat"])
-                station_data["lon"] = float(rec["lon"])
-                query_for_details["lon"] = float(rec["lon"])
-                station_data["network"] = rec["rep_memo"]
-                query_for_details["rep_memo"] = rec["rep_memo"]
-                station_data["ident"] = "" if rec["ident"] is None else rec["ident"]
-                if station_data["ident"]:
-                    query_for_details["ident"] = station_data["ident"]
-                details = []
-                # add station details
-                for el in tr.query_station_data(query_for_details):
-                    detail_el = {}
-                    var = el["variable"]
-                    code = var.code
-                    var_info = dballe.varinfo(code)
-                    desc = var_info.desc
-                    detail_el["code"] = code
-                    detail_el["value"] = var.get()
-                    detail_el["description"] = desc
-                    details.append(detail_el)
-                station_data["details"] = details
+                existent_station = False
+                station_index = None
+                for i in response:
+                    # check if station is already on the response
+                    if (
+                        float(rec["lat"]) == i["station"]["lat"]
+                        and float(rec["lon"]) == i["station"]["lon"]
+                        and rec["rep_memo"] == i["station"]["network"]
+                    ):
+                        existent_station = True
+                        station_index = response.index(i)
+                        break
+                if not existent_station:
+                    station_data = {}
+                    # get data about the station
+                    query_for_details = {}
+                    station_data["lat"] = float(rec["lat"])
+                    query_for_details["lat"] = float(rec["lat"])
+                    station_data["lon"] = float(rec["lon"])
+                    query_for_details["lon"] = float(rec["lon"])
+                    station_data["network"] = rec["rep_memo"]
+                    query_for_details["rep_memo"] = rec["rep_memo"]
+                    station_data["ident"] = "" if rec["ident"] is None else rec["ident"]
+                    if station_data["ident"]:
+                        query_for_details["ident"] = station_data["ident"]
+                    details = []
+
+                    # add station details
+                    for el in tr.query_station_data(query_for_details):
+                        detail_el = {}
+                        var = el["variable"]
+                        code = var.code
+                        var_info = dballe.varinfo(code)
+                        desc = var_info.desc
+                        detail_el["code"] = code
+                        detail_el["value"] = var.get()
+                        detail_el["description"] = desc
+                        details.append(detail_el)
+                    station_data["details"] = details
+                else:
+                    if only_stations:
+                        continue
 
                 # get data values
                 if not only_stations:
@@ -829,27 +845,20 @@ class BeDballe:
                             product_val["is_reliable"] = is_reliable
 
                 # determine where append the values
-                existent_station = False
-                for i in response:
-                    # check if station is already on the response
-                    if (
-                        float(rec["lat"]) == i["station"]["lat"]
-                        and float(rec["lon"]) == i["station"]["lon"]
-                        and rec["rep_memo"] == i["station"]["network"]
-                    ):
-                        existent_station = True
-                        if not only_stations:
-                            # check if the element has already the given product
-                            existent_product = False
-                            for e in i["products"]:
-                                if e["varcode"] == rec["var"]:
-                                    existent_product = True
-                                    e["values"].append(product_val)
-                            if not existent_product:
-                                product_data["values"] = []
-                                product_data["values"].append(product_val)
-                                i["products"].append(product_data)
-                if not existent_station:
+                if existent_station:
+                    station_to_append = response[station_index]
+                    # check if the element has already the given product
+                    existent_product = False
+                    for e in station_to_append["products"]:
+                        if e["varcode"] == rec["var"]:
+                            existent_product = True
+                            e["values"].append(product_val)
+                    if not existent_product:
+                        product_data["values"] = []
+                        product_data["values"].append(product_val)
+                        station_to_append["products"].append(product_data)
+                else:
+                    res_element = {}
                     # create a new record
                     res_element["station"] = station_data
                     if not only_stations:
