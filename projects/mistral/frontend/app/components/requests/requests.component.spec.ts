@@ -5,7 +5,7 @@ import { NgxDatatableModule } from "@swimlane/ngx-datatable";
 import { MomentModule } from "ngx-moment";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { ConfirmationPopoverModule } from "angular-confirmation-popover";
-import { Observable } from "rxjs/Rx";
+import { Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ToastrModule } from "ngx-toastr";
 
