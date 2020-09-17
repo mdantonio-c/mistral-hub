@@ -5,7 +5,7 @@ import { NgxDatatableModule } from "@swimlane/ngx-datatable";
 import { MomentModule } from "ngx-moment";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { ConfirmationPopoverModule } from "angular-confirmation-popover";
-import { Observable } from "rxjs";
+import { of } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ToastrModule } from "ngx-toastr";
 
@@ -38,9 +38,9 @@ class ApiServiceStub extends ApiService {
 
   get(endpoint: string, id = "", data = {}, options = {}) {
     if (data["get_total"] === true) {
-      return Observable.of(MockRequestsTotalResponse);
+      return of(MockRequestsTotalResponse);
     } else {
-      return Observable.of(MockRequestsResponse);
+      return of(MockRequestsResponse);
     }
   }
 }

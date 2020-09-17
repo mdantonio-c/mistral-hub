@@ -1,4 +1,4 @@
-import { Observable } from "rxjs";
+import { Observable, of } from "rxjs";
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
@@ -19,22 +19,22 @@ export class DataServiceStub extends DataService {
   }
 
   getStorageUsage(): Observable<StorageUsage> {
-    return Observable.of(MockStorageUsageResponse);
+    return of(MockStorageUsageResponse);
   }
 
   getDerivedVariables(): Observable<any> {
-    return Observable.of(MockDerivedVariables);
+    return of(MockDerivedVariables);
   }
 
   getTemplates(param): Observable<any> {
     if (param == "grib") {
-      return Observable.of(MockGribTemplateResponse);
+      return of(MockGribTemplateResponse);
     } else if (param == "shp") {
-      return Observable.of(MockShapeTemplateResponse);
+      return of(MockShapeTemplateResponse);
     }
   }
 
   getDatasets(licenceSpecs = false) {
-    return Observable.of(MockLicenseResponse);
+    return of(MockLicenseResponse);
   }
 }
