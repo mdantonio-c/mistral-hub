@@ -18,7 +18,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
 
   PP_TIME_RANGES = PP_TIME_RANGES;
   decode = decode;
-  autoSync = true;
+  autoSync = false;
   interval: any;
   readonly intervalStep = 20; // seconds
 
@@ -58,6 +58,26 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     return this.delete("requests", requestID);
   }
 
+  copyToClipboard(jsonBody) {
+    const selBox = document.createElement("textarea");
+    selBox.style.position = "fixed";
+    selBox.style.left = "0";
+    selBox.style.top = "0";
+    selBox.style.opacity = "0";
+    selBox.value = JSON.stringify(jsonBody);
+    document.body.appendChild(selBox);
+    selBox.focus();
+    selBox.select();
+    document.execCommand("copy");
+    document.body.removeChild(selBox);
+    this.notify.showSuccess("Copied to Clipboard");
+  }
+
+  downloadJSON(jsonBody) {
+    const blob = new Blob([JSON.stringify(jsonBody)], { type: "text/plain" });
+    importedSaveAs(blob, "query.json");
+  }
+
   download(filename) {
     this.dataService.downloadData(filename).subscribe(
       (resp) => {
@@ -80,7 +100,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
 
   downloadByUrl(filename) {
     const downloadUrl = this.getFileURL(filename);
-    var link = document.createElement("a");
+    let link = document.createElement("a");
     link.href = downloadUrl;
     link.download = filename;
     link.style.visibility = "hidden";

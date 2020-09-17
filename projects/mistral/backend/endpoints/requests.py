@@ -47,12 +47,17 @@ class UserRequests(EndpointResource):
             .paginate(page, size, False)
             .items
         )
-        log.debug(requests)
+        # log.debug(requests)
         for r in requests:
+            args = json.loads(r.args)
+            # filter the dictionary None elements as well as rename the dataset key to make it compatible with the
+            # input data extraction request
+            filtered_args = {k: v for k, v in args.items() if v is not None}
+            filtered_args["dataset_names"] = filtered_args.pop("datasets")
             item = {
                 "id": r.id,
                 "name": r.name,
-                "args": json.loads(r.args),
+                "args": filtered_args,
                 "submission_date": r.submission_date.isoformat(),
                 "status": r.status,
                 "task_id": r.task_id,
