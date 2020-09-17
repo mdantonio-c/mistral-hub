@@ -11,7 +11,8 @@ env:
   - STAGE=CYPRESS
 
 script:
-  - pip install --upgrade git+https://github.com/rapydo/do.git@0.8
+  - export RAPYDO_VERSION=0.8
+  - pip install --upgrade git+https://github.com/rapydo/do.git@${RAPYDO_VERSION}
   - export COMMIT_INFO_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
   - export COMMIT_INFO_MESSAGE="$(git show -s --pretty=%B)"
   - export COMMIT_INFO_SUBJECT="$(git show -s --pretty=%s)"
@@ -32,6 +33,7 @@ script:
       ls data/arkimet;
 
       rapydo pull;
+      rapydo build --force;
       rapydo start;
       rapydo shell backend 'restapi wait';
       echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh;
