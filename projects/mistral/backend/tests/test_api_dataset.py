@@ -8,7 +8,7 @@ __author__ = "Beatrice Chiavarini (b.chiavarini@cineca.it)"
 
 
 class TestApp(BaseTests):
-    def test_endpoint_without_login(self, client):
+    def test_endpoint_without_login(self, client, faker):
         endpoint = API_URI + "/datasets"
         r = client.get(endpoint)
         assert r.status_code == hcodes.HTTP_BAD_UNAUTHORIZED
@@ -18,12 +18,11 @@ class TestApp(BaseTests):
         assert r.status_code == hcodes.HTTP_BAD_UNAUTHORIZED
 
         # trying a dataset that doesn't exists
-        random_name = self.randomString()
-        endpoint = API_URI + "/datasets/" + random_name
+        endpoint = API_URI + "/datasets/" + faker.pystr()
         r = client.get(endpoint)
         assert r.status_code == hcodes.HTTP_BAD_UNAUTHORIZED
 
-    def test_endpoint_with_login(self, client):
+    def test_endpoint_with_login(self, client, faker):
 
         headers, _ = self.do_login(client, None, None)
         self.save("auth_header", headers)
@@ -37,8 +36,7 @@ class TestApp(BaseTests):
         assert r.status_code == hcodes.HTTP_OK_BASIC
 
         # trying a dataset that doesn't exists
-        random_name = self.randomString()
-        endpoint = API_URI + "/datasets/" + random_name
+        endpoint = API_URI + "/datasets/" + faker.pystr()
         r = client.get(endpoint, headers=self.get("auth_header"))
         assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
 

@@ -38,13 +38,16 @@ class TestApp(BaseTests):
                     # get a valid reftime for dballe
                     with db.transaction() as tr:
                         for row in tr.query_data({"rep_memo": net}):
-                            date_to_dt = datetime(
-                                row["year"],
-                                row["month"],
-                                row["day"],
-                                row["hour"],
-                                row["min"],
-                            ) + timedelta(hours=1)
+                            date_to_dt = (
+                                datetime(
+                                    row["year"],
+                                    row["month"],
+                                    row["day"],
+                                    row["hour"],
+                                    row["min"],
+                                )
+                                + timedelta(hours=1)
+                            )
                             date_from_dt = date_to_dt - timedelta(hours=1)
                             today = datetime.now()
                             last_dballe_date = date_from_dt - timedelta(days=1)
@@ -83,13 +86,16 @@ class TestApp(BaseTests):
                     # get a valid reftime for dballe
                     with db.transaction() as tr:
                         for row in tr.query_data({"rep_memo": net}):
-                            date_to_dt = datetime(
-                                row["year"],
-                                row["month"],
-                                row["day"],
-                                row["hour"],
-                                row["min"],
-                            ) + timedelta(hours=1)
+                            date_to_dt = (
+                                datetime(
+                                    row["year"],
+                                    row["month"],
+                                    row["day"],
+                                    row["hour"],
+                                    row["min"],
+                                )
+                                + timedelta(hours=1)
+                            )
                             break
 
                     # get a valid reftime for arkimet
@@ -169,29 +175,29 @@ class TestApp(BaseTests):
         r = client.get(endpoint)
         assert r.status_code == hcodes.HTTP_BAD_UNAUTHORIZED
 
-    def test_for_dballe_dbtype(self, client):
+    def test_for_dballe_dbtype(self, client, faker):
         headers, _ = self.do_login(client, None, None)
         self.save("auth_header", headers)
         headers = self.get("auth_header")
 
         q_params = self.get_params_value(client, headers, "dballe")
-        self.standard_observed_endpoint_testing(client, headers, q_params)
+        self.standard_observed_endpoint_testing(client, faker, headers, q_params)
 
-    def test_for_arkimet_dbtype(self, client):
+    def test_for_arkimet_dbtype(self, client, faker):
         headers = self.get("auth_header")
 
         q_params = self.get_params_value(client, headers, "arkimet")
-        self.standard_observed_endpoint_testing(client, headers, q_params)
+        self.standard_observed_endpoint_testing(client, faker, headers, q_params)
 
-    def test_for_mixed_dbtype(self, client):
+    def test_for_mixed_dbtype(self, client, faker):
         headers = self.get("auth_header")
 
         q_params = self.get_params_value(client, headers, "mixed")
-        self.standard_observed_endpoint_testing(client, headers, q_params)
+        self.standard_observed_endpoint_testing(client, faker, headers, q_params)
 
-    def standard_observed_endpoint_testing(self, client, headers, q_params):
+    def standard_observed_endpoint_testing(self, client, faker, headers, q_params):
 
-        #### only reftime as argument ####
+        # only reftime as argument
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}".format(
             date_from=q_params["date_from"], date_to=q_params["date_to"]
         )
@@ -208,14 +214,11 @@ class TestApp(BaseTests):
         assert check_product_1 is True
         assert check_product_2 is True
 
-        #### only network as argument ####
-        endpoint = (
-            API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}".format(
-                date_from=q_params["date_from"],
-                date_to=q_params["date_to"],
-                network=q_params["network"],
-            )
+        # only network as argument
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}".format(
+            date_from=q_params["date_from"],
+            date_to=q_params["date_to"],
+            network=q_params["network"],
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -232,11 +235,12 @@ class TestApp(BaseTests):
         assert check_product_1 is True
         assert check_product_2 is True
         # check error with random net param
-        random_net = self.randomString()
+        random_net = faker.pystr()
         dfrom = q_params["date_from"]
         dto = q_params["date_to"]
-        net = random_net
-        endpoint = f"{API_URI}/observations?q=reftime:>={dfrom},<={dto}&networks={net}"
+        endpoint = (
+            f"{API_URI}/observations?q=reftime:>={dfrom},<={dto}&networks={random_net}"
+        )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         assert r.status_code == hcodes.HTTP_OK_BASIC
@@ -276,13 +280,10 @@ class TestApp(BaseTests):
         assert not response_data
 
         # ### only product as argument ####
-        endpoint = (
-            API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to};product:{product}".format(
-                date_from=q_params["date_from"],
-                date_to=q_params["date_to"],
-                product=q_params["product_1"],
-            )
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product}".format(
+            date_from=q_params["date_from"],
+            date_to=q_params["date_to"],
+            product=q_params["product_1"],
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -298,13 +299,10 @@ class TestApp(BaseTests):
         assert check_product_2 is False
         # check error with random param
         fake_product = "B11111"
-        endpoint = (
-            API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to};product:{product}".format(
-                date_from=q_params["date_from"],
-                date_to=q_params["date_to"],
-                product=fake_product,
-            )
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product}".format(
+            date_from=q_params["date_from"],
+            date_to=q_params["date_to"],
+            product=fake_product,
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -312,18 +310,15 @@ class TestApp(BaseTests):
         assert not response_data
 
         # ### all arguments ####
-        endpoint = (
-            API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to};product:{product}&&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}&networks={network}".format(
-                date_from=q_params["date_from"],
-                date_to=q_params["date_to"],
-                product=q_params["product_1"],
-                lonmin=lonmin,
-                lonmax=lonmax,
-                latmin=latmin,
-                latmax=latmax,
-                network=q_params["network"],
-            )
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product}&&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}&networks={network}".format(
+            date_from=q_params["date_from"],
+            date_to=q_params["date_to"],
+            product=q_params["product_1"],
+            lonmin=lonmin,
+            lonmax=lonmax,
+            latmin=latmin,
+            latmax=latmax,
+            network=q_params["network"],
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -355,40 +350,31 @@ class TestApp(BaseTests):
         assert "data" not in response_data[0]
 
         #### get station details ####
-        endpoint = (
-            API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
-                date_from=q_params["date_from"],
-                date_to=q_params["date_to"],
-                network=q_params["network"],
-                lat=station_lat_example,
-                lon=station_lon_example,
-            )
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
+            date_from=q_params["date_from"],
+            date_to=q_params["date_to"],
+            network=q_params["network"],
+            lat=station_lat_example,
+            lon=station_lon_example,
         )
         r = client.get(endpoint, headers=headers)
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
         # check random network
-        endpoint = (
-            API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
-                date_from=q_params["date_from"],
-                date_to=q_params["date_to"],
-                network=random_net,
-                lat=station_lat_example,
-                lon=station_lon_example,
-            )
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
+            date_from=q_params["date_from"],
+            date_to=q_params["date_to"],
+            network=random_net,
+            lat=station_lat_example,
+            lon=station_lon_example,
         )
         r = client.get(endpoint, headers=headers)
         assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
         # check missing params
-        endpoint = (
-            API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&stationDetails=true".format(
-                date_from=q_params["date_from"],
-                date_to=q_params["date_to"],
-                network=q_params["network"],
-            )
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&stationDetails=true".format(
+            date_from=q_params["date_from"],
+            date_to=q_params["date_to"],
+            network=q_params["network"],
         )
         r = client.get(endpoint, headers=headers)
         # check response code
