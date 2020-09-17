@@ -8,8 +8,7 @@ services:
 env:
   - STAGE=BACKEND
   - STAGE=FRONTEND
-  - STAGE=CYPRESS BROWSER=chrome
-  # - STAGE=CYPRESS BROWSER=firefox
+  - STAGE=CYPRESS
 
 script:
   - pip install --upgrade git+https://github.com/rapydo/do.git@0.8
@@ -48,6 +47,9 @@ script:
       rapydo shell backend 'restapi tests --wait';
       docker cp mistral_backend_1:/code/coverage.xml coverage.xml;
       travis_retry bash <(curl -s https://codecov.io/bash);
+
+      docker login --username "${DOCKER_USERNAME}" --password "${DOCKER_PASSWORD}";
+      docker push meteohub/backend:${RAPYDO_VERSION};
 
     elif [[ "$STAGE" == "FRONTEND" ]]; then
 

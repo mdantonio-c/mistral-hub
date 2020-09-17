@@ -4,8 +4,7 @@ version: "3"
 services:
   backend:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
-    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    image: meteohub/backend:${RAPYDO_VERSION}
 
     volumes:
       - ${VANILLA_DIR}/data/user_repo:/data
@@ -41,7 +40,7 @@ services:
 
   #  nifi:
   #    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/nifi
-  #    image: ${COMPOSE_PROJECT_NAME}/nifi:${RAPYDO_VERSION}
+  #    image: meteohub/nifi:${RAPYDO_VERSION}
   #    ports:
   #      - 8070:8080
   #    environment:
@@ -50,7 +49,7 @@ services:
   celeryui:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
     # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
-    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    image: meteohub/backend:${RAPYDO_VERSION}
     volumes:
       - ${VANILLA_DIR}/data/user_repo:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
@@ -60,7 +59,7 @@ services:
   celery:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
     # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
-    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    image: meteohub/backend:${RAPYDO_VERSION}
     volumes:
       - ${VANILLA_DIR}/data/user_repo:/data
       - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
@@ -75,7 +74,7 @@ services:
   celery-beat:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
     # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
-    image: ${COMPOSE_PROJECT_NAME}/backend:${RAPYDO_VERSION}
+    image: meteohub/backend:${RAPYDO_VERSION}
   # arkimet:
   #   restart: always
   #   build:
