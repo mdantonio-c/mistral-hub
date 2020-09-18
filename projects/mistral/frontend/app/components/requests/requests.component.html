@@ -46,25 +46,26 @@
             <div
               class="btn-group btn-group-sm float-right"
               role="group"
-              *ngIf="row.args"
+              *ngIf="row.args | json as prettierJSON"
             >
               <button
                 type="button"
                 class="btn btn-secondary"
-                (click)="copyToClipboard(row.args)"
+                ngxClipboard
+                [cbContent]="prettierJSON"
+                (cbOnSuccess)="copiedToClipboard($event)"
                 placement="bottom"
-                container="body"
-                [ngbTooltip]="'Copy to Clipboard'"
+                ngbTooltip="Copy to Clipboard"
               >
                 <i class="fas fa-paste"></i>
               </button>
               <button
                 type="button"
                 class="btn btn-secondary"
-                (click)="downloadJSON(row.args)"
+                (click)="downloadJSON(prettierJSON)"
                 placement="bottom"
                 container="body"
-                [ngbTooltip]="tt"
+                [ngbTooltip]="tipContent"
               >
                 <i class="fas fa-file-download"></i>
               </button>
@@ -374,5 +375,5 @@
     </ngx-datatable-column>
   </ngx-datatable>
   <ng-template #noValue>-</ng-template>
-  <ng-template #tt>Download<br />JSON</ng-template>
+  <ng-template #tipContent>Download<br />JSON</ng-template>
 </div>
