@@ -4,6 +4,7 @@ from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.requests_manager import RequestManager as repo
 from restapi import decorators
 from restapi.exceptions import RestApiException
+from restapi.models import TotalSchema
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -16,14 +17,19 @@ class UserRequests(EndpointResource):
 
     @decorators.auth.require()
     @decorators.get_pagination
+    @decorators.marshal_with(TotalSchema, code=206)
     @decorators.endpoint(
         path="/requests",
         summary="Get requests filtered by uuid.",
-        responses={200: "List of requests of an user", 404: "User has no requests"},
+        responses={
+            200: "List of requests of an user",
+            206: "Total number of elements is returned",
+            404: "User has no requests",
+        },
     )
     # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(
-        self, get_total, page, size, sort_order, sort_by, input_filter, request_id=None,
+        self, get_total, page, size, sort_order, sort_by, input_filter, request_id=None
     ):
 
         user = self.get_user()
@@ -31,7 +37,7 @@ class UserRequests(EndpointResource):
         db = self.get_service_instance("sqlalchemy")
         if get_total:
             counter = repo.count_user_requests(db, user.id)
-            return self.response({"total": counter})
+            return self.pagination_total(counter)
 
         # offset = (page - 1) * size
 
@@ -74,7 +80,7 @@ class UserRequests(EndpointResource):
                 item["filesize"] = r.fileoutput.size
             data.append(item)
 
-        return self.response(data, code=hcodes.HTTP_OK_BASIC)
+        return self.response(data)
 
     @decorators.auth.require()
     @decorators.endpoint(

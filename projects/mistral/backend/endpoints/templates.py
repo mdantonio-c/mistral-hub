@@ -182,7 +182,7 @@ class Templates(EndpointResource, Uploader):
                 res.append(grib_object)
                 res.append(shp_object)
 
-        return self.response(res, code=hcodes.HTTP_OK_BASIC)
+        return self.response(res)
 
     @decorators.auth.require()
     @decorators.endpoint(
@@ -213,7 +213,6 @@ class Templates(EndpointResource, Uploader):
             os.remove(f)
         return self.response(
             f"File {template_name} succesfully deleted",
-            code=hcodes.HTTP_OK_BASIC,
         )
 
     @staticmethod

@@ -5,10 +5,9 @@ from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.requests_manager import RequestManager
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
-from mistral.tools import statistic_elaboration as pp2
 from restapi import decorators
 from restapi.exceptions import BadRequest, Forbidden, NotFound, RestApiException
-from restapi.models import AdvancedList, Schema, fields, validate
+from restapi.models import AdvancedList, Schema, TotalSchema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -348,10 +347,7 @@ class Schedules(EndpointResource):
         for ds_name in dataset_names:
             found = next((ds for ds in datasets if ds.get("id", "") == ds_name), None)
             if not found:
-                raise RestApiException(
-                    f"Dataset '{ds_name}' not found",
-                    status_code=hcodes.HTTP_BAD_NOTFOUND,
-                )
+                raise NotFound(f"Dataset '{ds_name}' not found")
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
         # clean up filters from unknown values
@@ -595,12 +591,14 @@ class Schedules(EndpointResource):
 
     @decorators.auth.require()
     @decorators.get_pagination
+    @decorators.marshal_with(TotalSchema, code=206)
     @decorators.endpoint(
         path="/schedules/<schedule_id>",
         summary="Get user schedules.",
         description="Returns a single schedule by id",
         responses={
             200: "List of user schedules.",
+            206: "Total number of elements is returned",
             403: "User not allowed to get the schedule",
             404: "The schedule does not exists",
         },
@@ -611,20 +609,14 @@ class Schedules(EndpointResource):
         description="Returns a single schedule by id",
         responses={
             200: "List of user schedules.",
+            206: "Total number of elements is returned",
             403: "User not allowed to get the schedule",
             404: "The schedule does not exists",
         },
     )
     # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(
-        self,
-        get_total,
-        page,
-        size,
-        sort_order,
-        sort_by,
-        input_filter,
-        schedule_id=None,
+        self, get_total, page, size, sort_order, sort_by, input_filter, schedule_id=None
     ):
 
         user = self.get_user()
@@ -639,13 +631,13 @@ class Schedules(EndpointResource):
             # get total count for user schedules
             if get_total:
                 counter = RequestManager.count_user_schedules(db, user.id)
-                return self.response({"total": counter})
+                return self.pagination_total(counter)
             # get user requests list
             res = RequestManager.get_user_schedules(
                 db, user.id, sort_by=sort_by, sort_order=sort_order
             )
 
-        return self.response(res, code=hcodes.HTTP_OK_BASIC)
+        return self.response(res)
 
     @decorators.auth.require()
     @decorators.use_kwargs(
@@ -751,9 +743,7 @@ class Schedules(EndpointResource):
         # update schedule status in database
         RequestManager.update_schedule_status(db, schedule_id, is_active)
 
-        return self.response(
-            {"id": schedule_id, "enabled": is_active}, code=hcodes.HTTP_OK_BASIC
-        )
+        return self.response({"id": schedule_id, "enabled": is_active})
 
     @decorators.auth.require()
     @decorators.endpoint(
@@ -781,16 +771,13 @@ class Schedules(EndpointResource):
 
         return self.response(
             f"Schedule {schedule_id} successfully deleted",
-            code=hcodes.HTTP_OK_BASIC,
         )
 
     @staticmethod
     def request_and_owner_check(db, user_id, schedule_id):
         # check if the schedule exists
         if not RequestManager.check_request(db, schedule_id=schedule_id):
-            raise RestApiException(
-                "The request doesn't exist", status_code=hcodes.HTTP_BAD_NOTFOUND
-            )
+            raise NotFound("The request doesn't exist")
 
         # check if the current user is the owner of the request
         if not RequestManager.check_owner(db, user_id, schedule_id=schedule_id):
@@ -830,10 +817,7 @@ class ScheduledRequests(EndpointResource):
 
         # check if the schedule exists
         if not RequestManager.check_request(db, schedule_id=schedule_id):
-            raise RestApiException(
-                f"The schedule ID {schedule_id} does not exist",
-                status_code=hcodes.HTTP_BAD_NOTFOUND,
-            )
+            raise NotFound(f"The schedule ID {schedule_id} does not exist")
 
         # check for schedule ownership
         user = self.get_user()
@@ -852,12 +836,11 @@ class ScheduledRequests(EndpointResource):
         if last:
             res = RequestManager.get_last_scheduled_request(db, schedule_id)
             if res is None:
-                raise RestApiException(
+                raise NotFound(
                     "No successful request is available for schedule ID {} yet".format(
                         schedule_id
-                    ),
-                    status_code=hcodes.HTTP_BAD_NOTFOUND,
+                    )
                 )
         else:
             res = RequestManager.get_schedule_requests(db, schedule_id)
-        return self.response(res, code=hcodes.HTTP_OK_BASIC)
+        return self.response(res)
