@@ -58,23 +58,14 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     return super.remove(requestID);
   }
 
-  copyToClipboard(jsonBody) {
-    const selBox = document.createElement("textarea");
-    selBox.style.position = "fixed";
-    selBox.style.left = "0";
-    selBox.style.top = "0";
-    selBox.style.opacity = "0";
-    selBox.value = JSON.stringify(jsonBody);
-    document.body.appendChild(selBox);
-    selBox.focus();
-    selBox.select();
-    document.execCommand("copy");
-    document.body.removeChild(selBox);
-    this.notify.showSuccess("Copied to Clipboard");
+  copiedToClipboard($event) {
+    if ($event["isSuccess"]) {
+      this.notify.showSuccess("Copied to Clipboard");
+    }
   }
 
   downloadJSON(jsonBody) {
-    const blob = new Blob([JSON.stringify(jsonBody)], { type: "text/plain" });
+    const blob = new Blob([jsonBody], { type: "text/plain" });
     importedSaveAs(blob, "query.json");
   }
 
