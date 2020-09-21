@@ -84,7 +84,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   }
 
   private getFileURL(filename) {
-    const source_url = `${environment.apiUrl}/data/${filename}`;
+    const source_url = `${environment.backendURI}/api/data/${filename}`;
     let token = this.auth.getToken();
     return source_url + "?access_token=" + token;
   }

@@ -266,7 +266,7 @@ export class ObsService {
       params["networks"] = filter.network;
     }
     return this.http
-      .post<Blob>(environment.apiUrl + "/observations", null, {
+      .post<Blob>(environment.backendURI + "/api/observations", null, {
         params: params,
         responseType: "blob" as "json",
       })

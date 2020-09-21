@@ -143,7 +143,7 @@ export class DataService {
     let formData: FormData = new FormData();
     formData.append("file", file);
     let data = { file: formData };
-    let ep = environment.apiUrl + "/" + "templates";
+    let ep = environment.backendURI + "/api/" + "templates";
     return this.http.post(ep, formData);
     //return this.api.post('templates', formData);
   }
