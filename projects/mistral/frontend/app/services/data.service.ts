@@ -2,10 +2,28 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable, of } from "rxjs";
 import { map, share } from "rxjs/operators";
-// import "rxjs/add/operator/map";
-// import "rxjs/add/operator/share";
 import { ApiService } from "@rapydo/services/api";
 import { environment } from "@rapydo/../environments/environment";
+
+export interface FieldsSummary {
+  items: Items | GenericItems;
+}
+
+export interface GenericItems {
+  // @ts-ignore
+  summarystats: SummaryStats;
+  // some more fixed keys.
+  [key: string]: any[];
+}
+
+export interface Items {
+  product: any[];
+  available_products: any[];
+  level?: any[];
+  network?: any[];
+  timerange?: any[];
+  summarystats: SummaryStats;
+}
 
 export interface SummaryStats {
   b?: number[];
@@ -107,6 +125,18 @@ export interface TimeSchedule {
   minute: number;
 }
 
+export interface OnOffSchedule {
+  /** Current status of the schedule */
+  enabled: boolean;
+  /** Schedule ID */
+  id: number;
+}
+
+export interface Templates {
+  files: string[];
+  type: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -124,11 +154,30 @@ export class DataService {
     return this.api.get("datasets", "", params);
   }
 
+  getSummary(
+    datasets: string[],
+    onlyStats?: boolean,
+    query?: string
+  ): Observable<FieldsSummary>;
+  getSummary(
+    datasets: string[],
+    onlyStats: false,
+    query?: string
+  ): Observable<FieldsSummary>;
+  getSummary(
+    datasets: string[],
+    onlyStats: true,
+    query?: string
+  ): Observable<SummaryStats>;
   /**
    * Get summary fields for a give list of datasets.
    * @param datasets
    */
-  getSummary(datasets: string[], query?: string, onlyStats?: boolean) {
+  getSummary(
+    datasets: string[],
+    onlyStats?: boolean,
+    query?: string
+  ): Observable<FieldsSummary | SummaryStats> {
     let params = { datasets: datasets.join() };
     if (query) {
       params["q"] = query;
@@ -148,12 +197,9 @@ export class DataService {
     //return this.api.post('templates', formData);
   }
 
-  getTemplates(param: string) {
-    if (param) {
-      return this.api.get("templates?format=" + param);
-    } else {
-      return this.api.get("templates");
-    }
+  getTemplates(format?: string): Observable<Templates[]> {
+    const param = format ? `?format=${format}` : "";
+    return this.api.get(`templates${param}`);
   }
 
   /**
@@ -240,7 +286,10 @@ export class DataService {
     return this.api.get("data", filename, {}, options);
   }
 
-  toggleScheduleActiveState(scheduleId, toState: boolean) {
+  toggleScheduleActiveState(
+    scheduleId,
+    toState: boolean
+  ): Observable<OnOffSchedule> {
     const data = {
       is_active: toState,
     };

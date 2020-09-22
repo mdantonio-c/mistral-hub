@@ -1,8 +1,5 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
 import { Observable, forkJoin, of } from "rxjs";
-// import "rxjs/add/operator/map";
-// import "rxjs/add/operator/share";
 import { ApiService } from "@rapydo/services/api";
 
 export interface MeteoFilter {
@@ -16,13 +13,19 @@ export interface MeteoFilter {
   area: string;
 }
 
+export interface MeteoMapset {
+  offsets: string[];
+  platform: string;
+  reftime: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
 export class MeteoService {
   constructor(private api: ApiService) {}
 
-  getMapset(params: MeteoFilter) {
+  getMapset(params: MeteoFilter): Observable<MeteoMapset> {
     return this.api.get("maps/ready", "", params);
   }
 

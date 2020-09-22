@@ -11,8 +11,8 @@ import {
   SummaryStats,
   TaskSchedule,
   RefTime,
+  FieldsSummary,
 } from "./data.service";
-import { FieldsSummary } from "../components/maps/observation-maps/services/obs.service";
 
 export class FormData {
   request_name: string = "";
@@ -88,7 +88,7 @@ export class FormDataService {
    * Optionally the dataset coverage can be restricted with respect to the reference time.
    * If reftime is omitted the whole historical dataset will be considered.
    */
-  getFilters(filters?: Filters[]) {
+  getFilters(filters?: Filters[]): Observable<FieldsSummary> {
     let q = null;
     if (filters) {
       q = filters.map((f) => f.query).join(";");
@@ -101,6 +101,7 @@ export class FormDataService {
     console.log(`query for summary: ${q}`);
     return this.dataService.getSummary(
       this.formData.datasets.map((x) => x.id),
+      false,
       q
     );
   }
@@ -157,8 +158,8 @@ export class FormDataService {
     console.log(`query for summary stats ${q}`);
     return this.dataService.getSummary(
       this.formData.datasets.map((x) => x.id),
-      q,
-      true
+      true,
+      q
     );
   }
 

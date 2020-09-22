@@ -7,7 +7,7 @@ import {
   FormControl,
   Validators,
 } from "@angular/forms";
-import { RefTime } from "../../../services/data.service";
+import { GenericItems, RefTime } from "@app/services/data.service";
 import { timeRangeInconsistencyValidator } from "../../../validators/time-range-inconsistency.validator";
 import { NotificationService } from "@rapydo/services/notification";
 import { FormDataService } from "@app/services/formData.service";
@@ -27,7 +27,8 @@ export class StepFiltersComponent implements OnInit {
   title = "Filter your data";
   summaryStats = { b: null, e: null, c: null, s: null };
   filterForm: FormGroup;
-  filters: Filters;
+  // filters: Filters;
+  filters: GenericItems;
   disabledDp = false;
   fromMaxDate: NgbDateStruct = this.today();
   toMinDate: NgbDateStruct;
@@ -184,7 +185,8 @@ export class StepFiltersComponent implements OnInit {
       .getFilters()
       .subscribe(
         (response) => {
-          this.filters = response.items;
+          console.log(response);
+          this.filters = response.items as GenericItems;
           let toBeExcluded = ["summarystats", "network"];
           Object.entries(this.filters).forEach((entry) => {
             if (!toBeExcluded.includes(entry[0])) {

@@ -1,4 +1,4 @@
-import { FieldsSummary, Network, Product } from "./obs.service";
+import { FieldsSummary } from "@app/services/data.service";
 
 export interface CodeDescPair {
   code: string;
@@ -124,6 +124,10 @@ export const FIELDS_SUMMARY: FieldsSummary = {
     level: LEVELS,
     timerange: TIME_RANGES,
     network: NETWORKS,
+    summarystats: {
+      c: 70, // fake value
+      s: 0,
+    },
   },
 };
 

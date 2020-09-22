@@ -18,7 +18,6 @@ import { COLORS, obsData, VAR_TABLE } from "../services/data";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
-import { switchMap, map } from "rxjs/operators";
 
 import * as L from "leaflet";
 import "leaflet.markercluster";

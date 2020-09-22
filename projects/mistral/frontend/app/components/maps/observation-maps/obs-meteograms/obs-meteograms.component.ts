@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import {
   ObsData,
   Observation,
@@ -8,7 +8,6 @@ import {
   StationDetail,
 } from "../services/obs.service";
 import { DataSeries } from "../obs-station-report/obs-station-report.component";
-import { MockProductTimeSeries } from "../obs-station-report/data.mock";
 
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";

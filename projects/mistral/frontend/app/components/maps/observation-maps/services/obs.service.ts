@@ -1,10 +1,11 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, of, never } from "rxjs";
+import { Observable, of } from "rxjs";
 import { catchError, map, switchMap } from "rxjs/operators";
 import { ApiService } from "@rapydo/services/api";
 import { COLORS, VAR_TABLE } from "./data";
 import { environment } from "@rapydo/../environments/environment";
+import { FieldsSummary } from "@app/services/data.service";
 
 export interface ObsFilter {
   product: string;
@@ -32,18 +33,6 @@ export interface BoundingBox {
   lonMin: number;
   latMax: number;
   lonMax: number;
-}
-
-export interface FieldsSummary {
-  items: Items;
-}
-
-export interface Items {
-  product: any[];
-  available_products: any[];
-  level?: any[];
-  network?: any[];
-  timerange?: any[];
 }
 
 export interface Station {
@@ -340,14 +329,14 @@ export class ObsService {
   static showData(val: number, type: string, precision = 5) {
     let scale = 1,
       offset = 0;
-    let bcode = VAR_TABLE.find((x) => x.bcode === type);
-    if (!bcode) {
+    let bCode = VAR_TABLE.find((x) => x.bcode === type);
+    if (!bCode) {
       console.warn(
         `Bcode not available for product ${type}. No offset or scale applied!`
       );
     } else {
-      scale = bcode.scale;
-      offset = bcode.offset;
+      scale = bCode.scale;
+      offset = bCode.offset;
     }
     return (val * scale + offset).toPrecision(precision).replace(/\.?0+$/, "");
   }
