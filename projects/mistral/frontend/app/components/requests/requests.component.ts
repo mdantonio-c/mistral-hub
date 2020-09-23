@@ -25,7 +25,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
 
   constructor(protected injector: Injector, public dataService: DataService) {
     super(injector);
-    this.init("request", "requests");
+    this.init("request", "requests", null);
     this.initPaging(20, true);
     this.list();
   }
