@@ -1,35 +1,18 @@
-import { Component, Input, OnInit, Output, EventEmitter } from "@angular/core";
-import {
-  NgbActiveModal,
-  NgbModal,
-  NgbNavChangeEvent,
-} from "@ng-bootstrap/ng-bootstrap";
+import { Component, Input, OnInit } from "@angular/core";
+import { NgbActiveModal, NgbNavChangeEvent } from "@ng-bootstrap/ng-bootstrap";
 import {
   Observation,
   ObsFilter,
-  ObsService,
   Station,
   StationDetail,
-} from "../services/obs.service";
-
+  DataSeries,
+} from "@app/types";
+import { ObsService } from "../services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
 
 const STATION_NAME_CODE = "B01019";
-
-export interface DataSeries {
-  name: string;
-  code: string;
-  unit?: string;
-  timerange?: string;
-  level?: string;
-  series: SeriesItem[];
-}
-export interface SeriesItem {
-  name: string; // reftime ISO 8601 e.g. 2020-09-07T00:00:00
-  value: any;
-}
 
 @Component({
   selector: "app-obs-station-report",

@@ -7,12 +7,11 @@ import {
   FormControl,
   Validators,
 } from "@angular/forms";
-import { GenericItems, RefTime } from "@app/services/data.service";
+import { GenericItems, RefTime, Filters } from "@app/types";
 import { timeRangeInconsistencyValidator } from "../../../validators/time-range-inconsistency.validator";
 import { NotificationService } from "@rapydo/services/notification";
 import { FormDataService } from "@app/services/formData.service";
 import { ArkimetService } from "@app/services/arkimet.service";
-import { Filters } from "@app/services/data.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgbDateStruct } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";

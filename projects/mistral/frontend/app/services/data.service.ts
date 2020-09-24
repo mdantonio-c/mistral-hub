@@ -4,138 +4,20 @@ import { Observable, of } from "rxjs";
 import { map, share } from "rxjs/operators";
 import { ApiService } from "@rapydo/services/api";
 import { environment } from "@rapydo/../environments/environment";
-
-export interface FieldsSummary {
-  items: Items | GenericItems;
-}
-
-export interface GenericItems {
-  // @ts-ignore
-  summarystats: SummaryStats;
-  // some more fixed keys.
-  [key: string]: any[];
-}
-
-export interface Items {
-  product: any[];
-  available_products: any[];
-  level?: any[];
-  network?: any[];
-  timerange?: any[];
-  summarystats: SummaryStats;
-}
-
-export interface SummaryStats {
-  b?: number[];
-  e?: number[];
-  c: number;
-  s: number;
-}
-
-export interface StorageUsage {
-  quota: number;
-  used: number;
-}
-
-export interface DerivedVariables {
-  code: string;
-  desc: string;
-}
-
-/**
- * Expected filter names:
- *
- * area
- * level
- * origin
- * proddef
- * product
- * quantity
- * run
- * task
- * timerange
- */
-export interface Filters {
-  name: string;
-  values: any[];
-  query: string;
-}
-
-export interface Dataset {
-  id: string;
-  name: string;
-  description?: string;
-  category: string;
-  format: string;
-
-  // attribution
-  attribution?: string;
-  attribution_description?: string;
-  attribution_url?: string;
-
-  // group of license
-  group_license?: string;
-  group_license_description?: string;
-
-  // license
-  license?: string;
-  license_description?: string;
-  license_url?: string;
-}
-
-export interface RefTime {
-  from: Date;
-  to: Date;
-}
-
-export interface TaskSchedule {
-  type: ScheduleType;
-  time?: string; // hh:mm
-  every?: number;
-  repeat?: RepeatEvery;
-}
-
-export enum RepeatEvery {
-  MINUTE = "minute",
-  HOUR = "hour",
-  DAY = "day",
-  WEEK = "week",
-  MONTH = "month",
-}
-
-export enum ScheduleType {
-  CRONTAB = "crontab",
-  PERIOD = "period",
-  DATA_READY = "data-ready",
-}
-
-export interface DateSchedule {
-  /** The year, for example 2019 */
-  year: number;
-  /** The month, for example 1=Jan ... 12=Dec */
-  month: number;
-  /** The day of month, starting at 1 */
-  day: number;
-}
-
-export interface TimeSchedule {
-  /** The hour in the `[0, 23]` range. */
-  hour: number;
-  /** The minute in the `[0, 59]` range. */
-  minute: number;
-}
-
-export interface OnOffSchedule {
-  /** Current status of the schedule */
-  enabled: boolean;
-  /** Schedule ID */
-  id: number;
-}
-
-export interface Templates {
-  files: string[];
-  type: string;
-}
+import {
+  DerivedVariables,
+  Dataset,
+  FieldsSummary,
+  SummaryStats,
+  Templates,
+  RefTime,
+  Filters,
+  TaskSchedule,
+  ScheduleType,
+  RepeatEvery,
+  OnOffSchedule,
+  StorageUsage,
+} from "@app/types";
 
 @Injectable({
   providedIn: "root",

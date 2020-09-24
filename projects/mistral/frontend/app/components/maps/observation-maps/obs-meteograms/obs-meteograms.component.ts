@@ -3,11 +3,11 @@ import {
   ObsData,
   Observation,
   ObsFilter,
-  ObsService,
   Station,
   StationDetail,
-} from "../services/obs.service";
-import { DataSeries } from "../obs-station-report/obs-station-report.component";
+  DataSeries,
+} from "@app/types";
+import { ObsService } from "../services/obs.service";
 
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";

@@ -1,9 +1,4 @@
-import { FieldsSummary } from "@app/services/data.service";
-
-export interface CodeDescPair {
-  code: string;
-  desc?: string;
-}
+import { FieldsSummary, CodeDescPair, Bcode } from "@app/types";
 
 export const NETWORKS: CodeDescPair[] = [
   { code: "agrmet" },
@@ -223,16 +218,6 @@ export const obsData = [
     },
   },
 ];
-
-export interface Bcode {
-  bcode: string;
-  description: string;
-  short?: string;
-  unit: string;
-  offset: number;
-  scale: number;
-  userunit: string;
-}
 
 export const VAR_TABLE: Bcode[] = [
   {

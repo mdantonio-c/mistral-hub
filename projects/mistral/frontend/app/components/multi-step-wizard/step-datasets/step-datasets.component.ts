@@ -1,5 +1,5 @@
-import {Component, OnInit} from "@angular/core";
-import {ActivatedRoute, Router} from "@angular/router";
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
 import {
   FormBuilder,
   FormGroup,
@@ -8,10 +8,10 @@ import {
   ValidatorFn,
 } from "@angular/forms";
 
-import {NotificationService} from "@rapydo/services/notification";
-import {FormDataService} from "@app/services/formData.service";
-import {Dataset} from "@app/services/data.service";
-import {NgxSpinnerService} from "ngx-spinner";
+import { NotificationService } from "@rapydo/services/notification";
+import { FormDataService } from "@app/services/formData.service";
+import { Dataset } from "@app/types";
+import { NgxSpinnerService } from "ngx-spinner";
 
 @Component({
   selector: "step-datasets",
@@ -19,53 +19,66 @@ import {NgxSpinnerService} from "ngx-spinner";
   styleUrls: ["./step-datasets.component.css"],
 })
 export class StepDatasetsComponent implements OnInit {
-  title = 'Please select one or more datasets';
+  title = "Please select one or more datasets";
   datasets: Dataset[];
   form: FormGroup;
-  selectedCategories: string[] = []
+  selectedCategories: string[] = [];
 
-  constructor(private formBuilder: FormBuilder,
-              private router: Router,
-              private route: ActivatedRoute,
-              private formDataService: FormDataService,
-              private notify: NotificationService,
-              private spinner: NgxSpinnerService) {
+  constructor(
+    private formBuilder: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute,
+    private formDataService: FormDataService,
+    private notify: NotificationService,
+    private spinner: NgxSpinnerService
+  ) {
     this.form = this.formBuilder.group({
-      datasets: new FormArray([], minSelectedCheckboxes(1))
+      datasets: new FormArray([], minSelectedCheckboxes(1)),
     });
   }
 
   ngOnInit() {
     this.spinner.show();
-    this.formDataService.getDatasets().subscribe(
-      response => {
-        this.datasets = response;
-        // console.log('Dataset(s) loaded', this.datasets);
-        if (this.datasets.length === 0) {
-          this.notify.showWarning("Unexpected result. The list of datasets is empty.");
+    this.formDataService
+      .getDatasets()
+      .subscribe(
+        (response) => {
+          this.datasets = response;
+          // console.log('Dataset(s) loaded', this.datasets);
+          if (this.datasets.length === 0) {
+            this.notify.showWarning(
+              "Unexpected result. The list of datasets is empty."
+            );
+          }
+          this.datasets.map((o, i) => {
+            const control = new FormControl(
+              this.formDataService.isDatasetSelected(o.id)
+            );
+            (this.form.controls.datasets as FormArray).push(control);
+          });
+        },
+        (error) => {
+          this.notify.showError(error);
         }
-        this.datasets.map((o, i) => {
-          const control = new FormControl(this.formDataService.isDatasetSelected(o.id));
-          (this.form.controls.datasets as FormArray).push(control);
-        });
-      },
-      error => {
-        this.notify.showError(error);
-      }).add(() => {
-      this.spinner.hide();
-    });
+      )
+      .add(() => {
+        this.spinner.hide();
+      });
 
     this.onChanges();
   }
 
   private onChanges(): void {
-    this.form.get('datasets').valueChanges.subscribe(val => {
+    this.form.get("datasets").valueChanges.subscribe((val) => {
       let categories = val
-        .map((v, i) => v ? this.datasets[i].category : null)
-        .filter(v => v !== null);
-      this.selectedCategories = categories.filter((v, i) => categories.indexOf(v) === i);
+        .map((v, i) => (v ? this.datasets[i].category : null))
+        .filter((v) => v !== null);
+      this.selectedCategories = categories.filter(
+        (v, i) => categories.indexOf(v) === i
+      );
       if (this.selectedCategories.length > 1) {
-        this.notify.showWarning(`It is not currently possible to mix different types of datasets.
+        this.notify
+          .showWarning(`It is not currently possible to mix different types of datasets.
                 Please select datasets under the same category.`);
       }
     });
@@ -89,7 +102,7 @@ export class StepDatasetsComponent implements OnInit {
     console.log(selectedDatasetsIds);
     if (this.save(selectedDatasetsIds)) {
       // Navigate to the filter page
-      this.router.navigate(["../", "filters"], {relativeTo: this.route});
+      this.router.navigate(["../", "filters"], { relativeTo: this.route });
     }
   }
 }
@@ -103,7 +116,7 @@ function minSelectedCheckboxes(min = 1) {
       .reduce((prev, next) => (next ? prev + next : prev), 0);
 
     // if the total is not greater than the minimum, return the error message
-    return totalSelected >= min ? null : {required: true};
+    return totalSelected >= min ? null : { required: true };
   };
 
   return validator;
