@@ -1,50 +1,19 @@
 import { Injectable } from "@angular/core";
-
+import { FormlyFieldConfig } from "@ngx-formly/core";
+import { BaseProjectOptions } from "@rapydo/base.project.options";
 import { BytesPipe } from "@rapydo/pipes/bytes";
 
 @Injectable()
-export class ProjectOptions {
+export class ProjectOptions extends BaseProjectOptions {
   private policy_it: string;
   private policy_en: string;
 
   constructor() {
+    super();
     this.initTemplates();
   }
-  public get_option(opt): any {
-    if (opt == "show_footer") {
-      return true;
-    }
-    if (opt == "privacy_acceptance") {
-      return this.privacy_acceptance();
-    }
-    if (opt == "user_page") {
-      return {
-        custom: [
-          {
-            name: "Disk<br>Quota",
-            prop: "disk_quota",
-            flexGrow: 0.3,
-            pipe: new BytesPipe(),
-          },
-          { name: "AMQP", prop: "amqp_queue", flexGrow: 0.3 },
-          { name: "Req.Exp.", prop: "requests_expiration_days", flexGrow: 0.3 },
-        ],
-      };
-    }
 
-    if (opt == "cookie_law_text") {
-      return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page. If you need more information you can read <a target='_blank' href='https://www.cineca.it/privacy/cookies-cineca'>privacy and cookie policy</a>";
-    }
-    return null;
-  }
-
-  /*	
-	private registration_options() {
-		return {}
-	}
-*/
-
-  private privacy_acceptance() {
+  privacy_statements() {
     return [
       //{'label': 'IT', 'text': this.policy_it},
       {
@@ -52,6 +21,40 @@ export class ProjectOptions {
         text: this.policy_en,
       },
     ];
+  }
+
+  show_groups(): boolean {
+    return false;
+  }
+
+  custom_user_data(): any[] {
+    return [
+      {
+        name: "Disk<br>Quota",
+        prop: "disk_quota",
+        flexGrow: 0.3,
+        pipe: new BytesPipe(),
+      },
+      { name: "AMQP", prop: "amqp_queue", flexGrow: 0.3 },
+      { name: "Req.Exp.", prop: "requests_expiration_days", flexGrow: 0.3 },
+    ];
+  }
+
+  cookie_law_text(): string {
+    return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page. If you need more information you can read <a target='_blank' href='https://www.cineca.it/privacy/cookies-cineca'>privacy and cookie policy</a>";
+  }
+
+  cookie_law_button(): string {
+    // return null to enable default text
+    return null;
+  }
+
+  registration_disclaimer(): string {
+    return null;
+  }
+
+  custom_registration_options(): FormlyFieldConfig[] {
+    return null;
   }
 
   private initTemplates() {
