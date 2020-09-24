@@ -103,7 +103,8 @@ export class ObsMapComponent {
             medians.length > 0
               ? ObsService.median(medians)
               : ((dirtyCluster = true), ObsService.median(dirtyMedians));
-          res = ObsService.showData(val, type, 3);
+          //res = ObsService.showData(val, type, 3);
+          res = ObsService.showData(val, type); // default precision is 5
 
           // custom background color of cluster
           c = " mst-marker-color-" + srv.getColor(val, srv.min, srv.max);
