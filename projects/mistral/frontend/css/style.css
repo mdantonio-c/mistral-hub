@@ -771,3 +771,14 @@ input[type="number"]::-webkit-outer-spin-button {
 .ngb-dp-day.disabled {
   color: #cccccc;
 }
+
+/* to fix the display, of number with more than 3 figures, over the marker */
+
+.marker-cluster div {
+  width: 32px;
+  margin-left: 4px;
+  font: 10px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+
+
+
