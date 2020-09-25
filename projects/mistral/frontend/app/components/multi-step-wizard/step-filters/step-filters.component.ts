@@ -17,12 +17,13 @@ import { NgbDateStruct } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
 import * as _ from "lodash";
+import { StepComponent } from "../step.component";
 
 @Component({
   selector: "step-filters",
   templateUrl: "./step-filters.component.html",
 })
-export class StepFiltersComponent implements OnInit {
+export class StepFiltersComponent extends StepComponent implements OnInit {
   title = "Filter your data";
   summaryStats = { b: null, e: null, c: null, s: null };
   filterForm: FormGroup;
@@ -34,14 +35,15 @@ export class StepFiltersComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router,
-    private route: ActivatedRoute,
-    private formDataService: FormDataService,
+    protected router: Router,
+    protected route: ActivatedRoute,
+    protected formDataService: FormDataService,
     private arkimetService: ArkimetService,
     private modalService: NgbModal,
     private notify: NotificationService,
     private spinner: NgxSpinnerService
   ) {
+    super(formDataService, router, route);
     const refTime: RefTime = this.formDataService.getReftime();
     this.filterForm = this.fb.group(
       {

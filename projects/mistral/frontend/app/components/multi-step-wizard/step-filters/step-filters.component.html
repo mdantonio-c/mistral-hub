@@ -21,7 +21,7 @@
         zIndex="1000"
         type="ball-scale-multiple"
       >
-        <p style="font-size: 20px; color: white;">Updating Filters...</p>
+        <p style="font-size: 20px; color: white">Updating Filters...</p>
       </ngx-spinner>
 
       <div class="row no-gutters">
@@ -76,6 +76,20 @@
           <div class="card mst--expansion-panel mst--info-panel h-100">
             <div class="card-header">
               <h5 class="card-title">My Request</h5>
+              <div class="btn-group btn-group-sm float-right" role="group">
+                <button
+                  type="button"
+                  class="btn btn-danger"
+                  mwlConfirmationPopover
+                  popoverTitle="Cancel this request"
+                  [popoverMessage]="getConfirmation('request').message"
+                  placement="left"
+                  ngbTooltip="Cancel this request"
+                  (confirm)="cancel()"
+                >
+                  <i class="fas fa-window-close"></i>
+                </button>
+              </div>
             </div>
             <div class="body">
               <mst-my-request-details></mst-my-request-details>
@@ -158,7 +172,7 @@
       </button>
     </div>
     <div class="modal-body">
-      <div class="form-group row" style="align-items: center;">
+      <div class="form-group row" style="align-items: center">
         <label for="fromDate" class="col-sm-2 col-form-label">From:</label>
         <div class="input-group col-sm-5">
           <input
@@ -189,7 +203,7 @@
           ></ngb-timepicker>
         </div>
       </div>
-      <div class="form-group row" style="align-items: center;">
+      <div class="form-group row" style="align-items: center">
         <label for="toDate" class="col-sm-2 col-form-label">To:</label>
         <div class="input-group col-sm-5">
           <input

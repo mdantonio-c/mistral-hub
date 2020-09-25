@@ -40,12 +40,26 @@
           >
         </ng-template>
       </h5>
-      <button
-        class="btn btn-info btn-sm float-right"
-        (click)="showSchedule(content)"
-      >
-        <i class="fa fa-calendar mr-2"></i>Schedule
-      </button>
+      <div class="btn-group btn-group-sm float-right" role="group">
+        <button
+          class="btn btn-info btn-sm float-right"
+          (click)="showSchedule(content)"
+        >
+          <i class="fa fa-calendar mr-2"></i>Schedule
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          mwlConfirmationPopover
+          popoverTitle="Cancel this request"
+          [popoverMessage]="getConfirmation('request').message"
+          placement="left"
+          ngbTooltip="Cancel this request"
+          (confirm)="cancel()"
+        >
+          <i class="fas fa-window-close"></i>
+        </button>
+      </div>
     </div>
     <div class="body">
       <mst-my-request-details [onSubmitStep]="true"></mst-my-request-details>
@@ -145,7 +159,7 @@
             formControlName="every"
             min="1"
             class="form-control ml-2"
-            style="width: 80px;"
+            style="width: 80px"
             required
           />
           <select formControlName="period" class="custom-select mx-2">

@@ -12,12 +12,13 @@ import { PP_TIME_RANGES } from "@app/services/data";
 import { DataService } from "@app/services/data.service";
 import { SummaryStats } from "@app/types";
 import { NotificationService } from "@rapydo/services/notification";
+import { StepComponent } from "../step.component";
 
 @Component({
   selector: "step-postprocess",
   templateUrl: "./step-postprocess.component.html",
 })
-export class StepPostprocessComponent implements OnInit {
+export class StepPostprocessComponent extends StepComponent implements OnInit {
   title = "Choose a post-processing";
   form: FormGroup;
   vars = [];
@@ -111,12 +112,13 @@ export class StepPostprocessComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private router: Router,
-    private route: ActivatedRoute,
-    private formDataService: FormDataService,
+    protected router: Router,
+    protected route: ActivatedRoute,
+    protected formDataService: FormDataService,
     private dataService: DataService,
     private notify: NotificationService
   ) {
+    super(formDataService, router, route);
     this.form = this.formBuilder.group({
       derived_variables: new FormArray([]),
       space_type: [],
