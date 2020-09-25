@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
-import { DataService, StorageUsage } from "@app/services/data.service";
+import { StorageUsage } from "@app/types";
+import { DataService } from "@app/services/data.service";
 import { NotificationService } from "@rapydo/services/notification";
 
 @Component({

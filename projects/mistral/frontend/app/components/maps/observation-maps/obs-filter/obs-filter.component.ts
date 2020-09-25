@@ -1,8 +1,8 @@
 import { Component, OnInit, Output, EventEmitter } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { ObsFilter, ObsService } from "../services/obs.service";
-import { FieldsSummary } from "@app/services/data.service";
-import { LICENSES, CodeDescPair } from "../services/data";
+import { ObsFilter, CodeDescPair, FieldsSummary } from "@app/types";
+import { ObsService } from "../services/obs.service";
+import { LICENSES } from "../services/data";
 import { NgbDateStruct, NgbCalendar } from "@ng-bootstrap/ng-bootstrap";
 import { NotificationService } from "@rapydo/services/notification";
 import { environment } from "@rapydo/../environments/environment";

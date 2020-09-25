@@ -1,5 +1,5 @@
 import { Component, ViewChild, ViewEncapsulation } from "@angular/core";
-import { ObsFilter } from "./services/obs.service";
+import { ObsFilter } from "@app/types";
 import { ObsMapComponent } from "./obs-map/obs-map.component";
 import { ObsMeteogramsComponent } from "./obs-meteograms/obs-meteograms.component";
 

@@ -5,7 +5,8 @@ import {
   NgbCalendar,
   NgbDateParserFormatter,
 } from "@ng-bootstrap/ng-bootstrap";
-import { ObsFilter, ObsService } from "../services/obs.service";
+import { ObsFilter } from "@app/types";
+import { ObsService } from "../services/obs.service";
 import { NgxSpinnerService } from "ngx-spinner";
 import { NotificationService } from "@rapydo/services/notification";
 import { saveAs as importedSaveAs } from "file-saver";

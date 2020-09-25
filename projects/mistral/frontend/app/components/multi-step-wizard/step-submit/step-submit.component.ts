@@ -3,12 +3,12 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { FormData, FormDataService } from "@app/services/formData.service";
 import {
-  DataService,
   ScheduleType,
   RepeatEvery,
   SummaryStats,
   TaskSchedule,
-} from "@app/services/data.service";
+} from "@app/types";
+import { DataService } from "@app/services/data.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 

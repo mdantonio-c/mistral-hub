@@ -5,14 +5,14 @@ import * as moment from "moment";
 import { WorkflowService } from "@app/services/workflow.service";
 import { STEPS } from "@app/services/workflow.model";
 import {
-  DataService,
   Filters,
   Dataset,
   SummaryStats,
   TaskSchedule,
   RefTime,
   FieldsSummary,
-} from "./data.service";
+} from "@app/types";
+import { DataService } from "./data.service";
 
 export class FormData {
   request_name: string = "";

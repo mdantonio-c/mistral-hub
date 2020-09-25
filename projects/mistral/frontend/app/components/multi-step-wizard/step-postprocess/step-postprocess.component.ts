@@ -9,7 +9,8 @@ import {
 } from "@angular/forms";
 import { FormDataService } from "@app/services/formData.service";
 import { PP_TIME_RANGES } from "@app/services/data";
-import { SummaryStats, DataService } from "@app/services/data.service";
+import { DataService } from "@app/services/data.service";
+import { SummaryStats } from "@app/types";
 import { NotificationService } from "@rapydo/services/notification";
 
 @Component({

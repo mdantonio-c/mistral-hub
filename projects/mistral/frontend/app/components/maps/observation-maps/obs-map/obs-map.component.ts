@@ -8,16 +8,16 @@ import {
   ObsData,
   Observation,
   ObsFilter,
-  ObsService,
   SingleObsData,
   Station,
   StationDetail,
-} from "../services/obs.service";
+} from "@app/types";
+import { ObsService } from "../services/obs.service";
 import { ObsStationReportComponent } from "../obs-station-report/obs-station-report.component";
 import { COLORS, obsData, VAR_TABLE } from "../services/data";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
-import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 
 import * as L from "leaflet";
 import "leaflet.markercluster";
