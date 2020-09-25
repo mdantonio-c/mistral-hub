@@ -175,83 +175,57 @@ class BeDballe:
             for k, v in zip(fields, q):
                 dballe_query[k] = v
             dballe_query["query"] = "details"
+            explorer.set_filter(dballe_query)
             # count the items for each query
+            log.debug("counting query: {}", dballe_query)
+            for cur in explorer.query_summary(dballe_query):
+                # count the items for each query
+                message_count += cur["count"]
 
-            # # commented out since causes segfault
-            # for cur in explorer.query_summary(dballe_query):
-            #     # count the items for each query
-            #     # message_count += cur["count"]
-            #
-            #     datetimemin = datetime(
-            #         cur["yearmin"],
-            #         cur["monthmin"],
-            #         cur["daymin"],
-            #         cur["hourmin"],
-            #         cur["minumin"],
-            #         cur["secmin"],
-            #     )
-            #     datetimemax = datetime(
-            #         cur["yearmax"],
-            #         cur["monthmax"],
-            #         cur["daymax"],
-            #         cur["hourmax"],
-            #         cur["minumax"],
-            #         cur["secmax"],
-            #     )
-            #     # these notations still cause segfault
-            #     # datetimemin = cur["datetimemin"]
-            #     # datetimemin = cur["datetimemax"]
-            #     if min_date:
-            #         if datetimemin < min_date:
-            #             min_date = datetimemin
-            #     else:
-            #         min_date = datetimemin
-            #     if max_date:
-            #         if datetimemax > max_date:
-            #             max_date = datetimemax
-            #     else:
-            #         max_date = datetimemax
-
-            # bug fixing while the correct one raises the segfault
-            message_count += explorer.query_summary(dballe_query).remaining
-            # log.debug(
-            #     "query: {}, count: {},min date: {}, max date: {}",
-            #     dballe_query,
-            #     explorer.query_summary(dballe_query).remaining,
-            #     min_date,
-            #     max_date,
-            # )
-        # log.debug("min date: {}, max date: {}",min_date,max_date)
+                datetimemin = datetime(
+                    cur["yearmin"],
+                    cur["monthmin"],
+                    cur["daymin"],
+                    cur["hourmin"],
+                    cur["minumin"],
+                    cur["secmin"],
+                )
+                datetimemax = datetime(
+                    cur["yearmax"],
+                    cur["monthmax"],
+                    cur["daymax"],
+                    cur["hourmax"],
+                    cur["minumax"],
+                    cur["secmax"],
+                )
+                # log.debug(datetimemax)
+                # log.debug(datetimemin)
+                # these notations still cause segfault
+                # datetimemin = cur["datetimemin"]
+                # datetimemin = cur["datetimemax"]
+                if min_date:
+                    if datetimemin < min_date:
+                        min_date = datetimemin
+                else:
+                    min_date = datetimemin
+                if max_date:
+                    if datetimemax > max_date:
+                        max_date = datetimemax
+                else:
+                    max_date = datetimemax
         # create the summary
         summary = {}
         summary["c"] = message_count
-
-        if "datetimemin" in fields:
-            dtmin_index = fields.index("datetimemin")
-            dtmin_for_summary = queries[dtmin_index][0]
+        summary["b"] = BeDballe.from_datetime_to_list(min_date)
+        if fields and "datetimemax" in fields:
+            q_dtmax_index = fields.index("datetimemax")
+            q_dtmax = queries[q_dtmax_index][0]
+            if max_date < q_dtmax:
+                summary["e"] = BeDballe.from_datetime_to_list(max_date)
+            else:
+                summary["e"] = BeDballe.from_datetime_to_list(q_dtmax)
         else:
-            dtmin_for_summary = min_date
-        summary["b"] = [
-            dtmin_for_summary.year,
-            dtmin_for_summary.month,
-            dtmin_for_summary.day,
-            dtmin_for_summary.hour,
-            dtmin_for_summary.minute,
-            dtmin_for_summary.second,
-        ]
-        if "datetimemax" in fields:
-            dtmax_index = fields.index("datetimemax")
-            dtmax_for_summary = queries[dtmax_index][0]
-        else:
-            dtmax_for_summary = max_date
-        summary["e"] = [
-            dtmax_for_summary.year,
-            dtmax_for_summary.month,
-            dtmax_for_summary.day,
-            dtmax_for_summary.hour,
-            dtmax_for_summary.minute,
-            dtmax_for_summary.second,
-        ]
+            summary["e"] = BeDballe.from_datetime_to_list(max_date)
 
         return summary
 
@@ -520,7 +494,9 @@ class BeDballe:
 
     @staticmethod
     def get_maps_response_for_mixed(
-        query_data=None, only_stations=False, query_station_data=None,
+        query_data=None,
+        only_stations=False,
+        query_station_data=None,
     ):
         # get data from the dballe database
         log.debug("mixed dbs: get data from dballe")
@@ -872,7 +848,10 @@ class BeDballe:
 
     @staticmethod
     def merge_db_for_download(
-        dballe_db, dballe_query_data, arki_db=None, arki_query_data=None,
+        dballe_db,
+        dballe_query_data,
+        arki_db=None,
+        arki_query_data=None,
     ):
         # merge the dbs
         query_data = BeDballe.parse_query_for_maps(dballe_query_data)
