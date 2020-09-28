@@ -49,7 +49,7 @@
   <dd *ngIf="myRequest.filters.length">
     <dl class="row">
       <ng-container *ngFor="let f of myRequest.filters">
-        <dt class="col-sm-3" style="font-weight: normal;">{{ f.name }}</dt>
+        <dt class="col-sm-3" style="font-weight: normal">{{ f.name }}</dt>
         <dd class="col-sm-9">
           <p *ngFor="let v of f.values">{{ v.desc }}</p>
         </dd>
@@ -62,7 +62,7 @@
   <dd *ngIf="myRequest.postprocessors.length">
     <dl class="row">
       <ng-container *ngFor="let p of myRequest.postprocessors">
-        <dt class="col-sm-3" style="font-weight: normal;">
+        <dt class="col-sm-3" style="font-weight: normal">
           {{ p.processor_type.replace("_", " ") }}
         </dt>
         <ng-container *ngIf="p.processor_type === 'derived_variables'">
@@ -113,6 +113,19 @@
     <dd>{{ myRequest.output_format | uppercase }}</dd>
   </ng-container>
 </dl>
+<div class="btn-group btn-group-sm float-right mr-4" role="group">
+  <button
+    type="button"
+    class="btn btn-danger"
+    mwlConfirmationPopover
+    popoverTitle="Cancel this request"
+    [popoverMessage]="getConfirmation('request').message"
+    placement="left"
+    (confirm)="cancel()"
+  >
+    Cancel
+  </button>
+</div>
 
 <ng-template #licenseContent let-modal>
   <div class="modal-header">

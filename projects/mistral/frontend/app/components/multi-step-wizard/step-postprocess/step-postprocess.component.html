@@ -36,23 +36,11 @@
         <div class="card mst--expansion-panel mst--info-panel h-100">
           <div class="card-header">
             <h5 class="card-title">My Request</h5>
-            <div class="btn-group btn-group-sm float-right" role="group">
-              <button
-                type="button"
-                class="btn btn-danger"
-                mwlConfirmationPopover
-                popoverTitle="Cancel this request"
-                [popoverMessage]="getConfirmation('request').message"
-                placement="left"
-                ngbTooltip="Cancel this request"
-                (confirm)="cancel()"
-              >
-                <i class="fas fa-window-close"></i>
-              </button>
-            </div>
           </div>
           <div class="body">
-            <mst-my-request-details></mst-my-request-details>
+            <mst-my-request-details
+              (onCancel)="cancel()"
+            ></mst-my-request-details>
           </div>
         </div>
       </div>

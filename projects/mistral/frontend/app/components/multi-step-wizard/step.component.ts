@@ -20,19 +20,4 @@ export class StepComponent {
     console.log("request canceled");
     this.router.navigate(["../", "datasets"], { relativeTo: this.route });
   }
-
-  getConfirmation(name) {
-    return {
-      title: "Confirmation required",
-      message:
-        `<div class='card text-center'>
-          <div class='card-body'>
-          <h4 class='card-title'>Are you really sure you want to cancel this ` +
-        name +
-        `?</h4>
-          <p class='card-text'>This operation cannot be undone.</p>
-          </div>
-          </div>`,
-    };
-  }
 }

@@ -47,22 +47,11 @@
         >
           <i class="fa fa-calendar mr-2"></i>Schedule
         </button>
-        <button
-          type="button"
-          class="btn btn-danger"
-          mwlConfirmationPopover
-          popoverTitle="Cancel this request"
-          [popoverMessage]="getConfirmation('request').message"
-          placement="left"
-          ngbTooltip="Cancel this request"
-          (confirm)="cancel()"
-        >
-          <i class="fas fa-window-close"></i>
-        </button>
       </div>
     </div>
-    <div class="body">
-      <mst-my-request-details [onSubmitStep]="true"></mst-my-request-details>
+    <div class="body mb-2">
+      <mst-my-request-details [onSubmitStep]="true" (onCancel)="cancel()">
+      </mst-my-request-details>
     </div>
   </div>
 </div>
