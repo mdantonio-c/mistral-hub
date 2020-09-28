@@ -216,7 +216,16 @@ class BeDballe:
         # create the summary
         summary = {}
         summary["c"] = message_count
-        summary["b"] = BeDballe.from_datetime_to_list(min_date)
+        if fields and "datetimemin" in fields:
+            q_dtmin_index = fields.index("datetimemin")
+            q_dtmin = queries[q_dtmin_index][0]
+            if min_date > q_dtmin:
+                summary["b"] = BeDballe.from_datetime_to_list(min_date)
+            else:
+                summary["b"] = BeDballe.from_datetime_to_list(q_dtmin)
+        else:
+            summary["b"] = BeDballe.from_datetime_to_list(min_date)
+
         if fields and "datetimemax" in fields:
             q_dtmax_index = fields.index("datetimemax")
             q_dtmax = queries[q_dtmax_index][0]
