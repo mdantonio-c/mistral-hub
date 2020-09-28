@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, Output, EventEmitter } from "@angular/core";
 import { FormDataService, FormData } from "@app/services/formData.service";
 import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { DataService } from "@app/services/data.service";
@@ -12,6 +12,7 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 export class MyRequestDetailsComponent implements OnInit {
   myRequest: FormData;
   @Input() onSubmitStep = false;
+  @Output() onCancel: EventEmitter<null> = new EventEmitter<null>();
 
   PP_TIME_RANGES = PP_TIME_RANGES;
   decode = decode;
@@ -42,5 +43,24 @@ export class MyRequestDetailsComponent implements OnInit {
         // do nothing
       }
     );
+  }
+
+  cancel() {
+    this.onCancel.emit();
+  }
+
+  getConfirmation(name) {
+    return {
+      title: "Confirmation required",
+      message:
+        `<div class='card text-center'>
+          <div class='card-body'>
+          <h4 class='card-title'>Are you really sure you want to cancel this ` +
+        name +
+        `?</h4>
+          <p class='card-text'>This operation cannot be undone. This takes you back to the initial step for selecting a new dataset.</p>
+          </div>
+          </div>`,
+    };
   }
 }
