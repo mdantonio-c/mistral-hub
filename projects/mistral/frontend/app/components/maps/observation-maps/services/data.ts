@@ -223,7 +223,7 @@ export const VAR_TABLE: Bcode[] = [
   {
     bcode: "B12101",
     description: "TEMPERATURE/DRY-BULB TEMPERATURE",
-    short: "Temp",
+    short: "T",
     unit: "K",
     offset: -273.15,
     scale: 1.0,
@@ -232,6 +232,7 @@ export const VAR_TABLE: Bcode[] = [
   {
     bcode: "B13003",
     description: "RELATIVE HUMIDITY",
+    short: "RH",
     unit: "%",
     offset: 0.0,
     scale: 1.0,
@@ -240,6 +241,7 @@ export const VAR_TABLE: Bcode[] = [
   {
     bcode: "B10004",
     description: "PRESSURE",
+    short: "P",
     unit: "Pa",
     offset: 0.0,
     scale: 0.01,
@@ -264,6 +266,7 @@ export const VAR_TABLE: Bcode[] = [
   {
     bcode: "B13011",
     description: "TOTAL PRECIPITATION / TOTAL WATER EQUIVALENT",
+    short: "Prp",
     unit: "KG/M**2",
     offset: 0.0,
     scale: 1.0,
@@ -304,6 +307,7 @@ export const VAR_TABLE: Bcode[] = [
   {
     bcode: "B13013",
     description: "TOTAL SNOW DEPTH",
+    short: "Snow",
     unit: "M",
     offset: 0.0,
     scale: 0.1,

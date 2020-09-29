@@ -11,12 +11,13 @@ import {
 import { DataService } from "@app/services/data.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { StepComponent } from "../step.component";
 
 @Component({
   selector: "step-submit",
   templateUrl: "./step-submit.component.html",
 })
-export class StepSubmitComponent implements OnInit {
+export class StepSubmitComponent extends StepComponent implements OnInit {
   title = "Submit my request";
   summaryStats: SummaryStats = { c: 0, s: 0 };
   @Input() formData: FormData;
@@ -25,14 +26,15 @@ export class StepSubmitComponent implements OnInit {
   schedule: TaskSchedule = null;
 
   constructor(
-    private router: Router,
-    private route: ActivatedRoute,
+    protected router: Router,
+    protected route: ActivatedRoute,
     private formBuilder: FormBuilder,
     public dataService: DataService,
-    private formDataService: FormDataService,
+    protected formDataService: FormDataService,
     private modalService: NgbModal,
     private notify: NotificationService
   ) {
+    super(formDataService, router, route);
     this.scheduleForm = this.formBuilder.group({
       repeatType: [ScheduleType.CRONTAB, Validators.required],
       cPeriod: [RepeatEvery.DAY],

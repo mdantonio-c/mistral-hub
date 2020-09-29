@@ -38,7 +38,9 @@
             <h5 class="card-title">My Request</h5>
           </div>
           <div class="body">
-            <mst-my-request-details></mst-my-request-details>
+            <mst-my-request-details
+              (onCancel)="cancel()"
+            ></mst-my-request-details>
           </div>
         </div>
       </div>
@@ -85,7 +87,7 @@
 
     <!-- Time Post Process-->
     <div class="card mst--expansion-panel">
-      <div class="card-header" style="padding-left: 13px;">
+      <div class="card-header" style="padding-left: 13px">
         <input
           class="mst--input-checkbox"
           type="checkbox"
@@ -116,14 +118,14 @@
                 <label>Input time range</label
                 ><label
                   *ngIf="form.value.selectedTimePP"
-                  style="padding-left: 5px;"
+                  style="padding-left: 5px"
                   >(*)</label
                 >
               </div>
               <div class="col-lg-3">
                 <div
                   class="btn-group mr-3"
-                  style="width: 100%; padding-right: 30px;"
+                  style="width: 100%; padding-right: 30px"
                 >
                   <button type="button" class="btn btn-outline-secondary">
                     {{ selectedInputTimeRange.desc }}
@@ -152,14 +154,14 @@
                 <label>Output time range</label
                 ><label
                   *ngIf="form.value.selectedTimePP"
-                  style="padding-left: 5px;"
+                  style="padding-left: 5px"
                   >(*)</label
                 >
               </div>
               <div class="col-lg-3">
                 <div
                   class="btn-group mr-3"
-                  style="width: 100%; padding-right: 30px;"
+                  style="width: 100%; padding-right: 30px"
                 >
                   <button type="button" class="btn btn-outline-secondary">
                     {{ selectedOutputTimeRange.desc }}
@@ -190,7 +192,7 @@
                 <label>Step </label
                 ><label
                   *ngIf="form.value.selectedTimePP"
-                  style="padding-left: 5px;"
+                  style="padding-left: 5px"
                   >(*)</label
                 >
               </div>
@@ -199,21 +201,21 @@
                   type="number"
                   id="timeStep"
                   formControlName="timeStep"
-                  style="text-align: right; width: 85%;"
+                  style="text-align: right; width: 85%"
                 />
               </div>
               <div class="col-lg-3">
                 <label>Elaboration interval</label
                 ><label
                   *ngIf="form.value.selectedTimePP"
-                  style="padding-left: 5px;"
+                  style="padding-left: 5px"
                   >(*)</label
                 >
               </div>
               <div class="col-lg-3">
                 <div
                   class="btn-group mr-3"
-                  style="width: 100%; padding-right: 30px;"
+                  style="width: 100%; padding-right: 30px"
                 >
                   <button type="button" class="btn btn-outline-secondary">
                     {{ selectedStepInterval }}
@@ -249,7 +251,7 @@
       class="card mst--expansion-panel"
       [hidden]="!form.value.hasGribDataset"
     >
-      <div class="card-header" style="padding-left: 13px;">
+      <div class="card-header" style="padding-left: 13px">
         <input
           class="mst--input-checkbox"
           type="checkbox"
@@ -333,7 +335,7 @@
                         >{{ space_crop_boundings[i].desc }}
                         <span
                           *ngIf="form.value.selectedSpacePP"
-                          style="padding-left: 5px;"
+                          style="padding-left: 5px"
                           >(*)</span
                         ></label
                       >
@@ -346,30 +348,30 @@
                         [formControl]="b"
                         [id]="space_crop_boundings[i].code"
                         class="col"
-                        style="text-align: right; width: 50%;"
+                        style="text-align: right; width: 50%"
                       />
                     </div>
                   </li>
                   <li class="py-1">
                     <div class="row">
-                      <div class="col" style="padding-right: 0px;">
+                      <div class="col" style="padding-right: 0px">
                         <label
                           placement="right"
                           openDelay="2000"
-                          style="padding-right: 0px;"
+                          style="padding-right: 0px"
                         >
                           Crop type</label
                         >
                         <label
                           *ngIf="form.value.selectedSpacePP"
-                          style="padding-left: 5px;"
+                          style="padding-left: 5px"
                           >(*)</label
                         >
                       </div>
-                      <div class="col" style="padding-left: 0px;">
+                      <div class="col" style="padding-left: 0px">
                         <div
                           class="btn-group mr-3"
-                          style="width: 100%; padding-right: 30px;"
+                          style="width: 100%; padding-right: 30px"
                         >
                           <button
                             type="button"
@@ -380,7 +382,7 @@
                           <div
                             ngbDropdown
                             class="btn-group"
-                            style="padding-left: 0px;"
+                            style="padding-left: 0px"
                           >
                             <button
                               type="button"
@@ -458,13 +460,13 @@
                         Interpolation type
                         <span
                           *ngIf="form.value.selectedSpacePP"
-                          style="padding-left: 5px;"
+                          style="padding-left: 5px"
                           >(*)</span
                         ></label
                       >
                     </div>
                     <div class="col-lg-3">
-                      <div class="btn-group mr-3" style="width: 100%;">
+                      <div class="btn-group mr-3" style="width: 100%">
                         <button type="button" class="btn btn-outline-secondary">
                           {{ selectedInterpolationType }}
                         </button>
@@ -502,7 +504,7 @@
                   <div class="input-group">
                     <div
                       class="card mst--expansion-panel"
-                      style="margin-left: 0px; margin-top: 0px;"
+                      style="margin-left: 0px; margin-top: 0px"
                     >
                       <div class="card-header">
                         <h5>
@@ -579,7 +581,7 @@
                         data</span
                       >
                     </div>
-                    <ul class="mst--list-columns" style="padding-left: 0%;">
+                    <ul class="mst--list-columns" style="padding-left: 0%">
                       <li
                         *ngFor="
                           let b of form.get('space_grid')['controls'];
@@ -597,7 +599,7 @@
                             >{{ space_grid_boundings[i].desc }}
                             <span
                               *ngIf="form.value.selectedSpacePP"
-                              style="padding-left: 5px;"
+                              style="padding-left: 5px"
                               >(*)</span
                             ></label
                           >
@@ -611,13 +613,13 @@
                             [formControl]="b"
                             [id]="space_grid_boundings[i].code"
                             class="col"
-                            style="text-align: right; width: 50%;"
+                            style="text-align: right; width: 50%"
                           />
                         </div>
                       </li>
                     </ul>
                     <hr class="my-4" />
-                    <ul class="mst--list-columns" style="padding-left: 0%;">
+                    <ul class="mst--list-columns" style="padding-left: 0%">
                       <li
                         *ngFor="
                           let b of form.get('interpolationNodes')['controls'];
@@ -635,7 +637,7 @@
                             >{{ interpolation_nodes[i].desc }}
                             <span
                               *ngIf="form.value.selectedSpacePP"
-                              style="padding-left: 5px;"
+                              style="padding-left: 5px"
                               >(*)</span
                             ></label
                           >
@@ -649,7 +651,7 @@
                             [formControl]="b"
                             [id]="interpolation_nodes[i].code"
                             class="col"
-                            style="text-align: right; max-height: 33px;"
+                            style="text-align: right; max-height: 33px"
                           />
                         </div>
                       </li>
@@ -678,13 +680,13 @@
                     Interpolation type
                     <span
                       *ngIf="form.value.selectedSpacePP"
-                      style="padding-left: 5px;"
+                      style="padding-left: 5px"
                       >(*)</span
                     ></label
                   >
                 </div>
                 <div class="col-lg-3">
-                  <div class="btn-group mr-3" style="width: 100%;">
+                  <div class="btn-group mr-3" style="width: 100%">
                     <button type="button" class="btn btn-outline-secondary">
                       {{ selectedInterpolationType }}
                     </button>
@@ -714,7 +716,7 @@
               <div class="input-group">
                 <div
                   class="card mst--expansion-panel"
-                  style="margin-left: 0px; margin-top: 0px;"
+                  style="margin-left: 0px; margin-top: 0px"
                 >
                   <div class="card-header">
                     <h5>Choose existing shape file from your personal area</h5>
@@ -722,7 +724,7 @@
                   <div class="card-body">
                     <div
                       class="card-body mst--list-filter"
-                      style="margin-left: 15px;"
+                      style="margin-left: 15px"
                     >
                       <ul class="mst--list-columns">
                         <li
@@ -800,7 +802,7 @@
               <label class="px-4">Format: </label>
             </div>
             <div class="col-lg-3">
-              <div class="btn-group mr-3" style="width: 100%;">
+              <div class="btn-group mr-3" style="width: 100%">
                 <button type="button" class="btn btn-outline-secondary">
                   {{ selectedConversionFormat }}
                 </button>

@@ -7,18 +7,18 @@ import {
   FormControl,
   ValidatorFn,
 } from "@angular/forms";
-
 import { NotificationService } from "@rapydo/services/notification";
 import { FormDataService } from "@app/services/formData.service";
 import { Dataset } from "@app/types";
 import { NgxSpinnerService } from "ngx-spinner";
+import { StepComponent } from "../step.component";
 
 @Component({
   selector: "step-datasets",
   templateUrl: "./step-datasets.component.html",
   styleUrls: ["./step-datasets.component.css"],
 })
-export class StepDatasetsComponent implements OnInit {
+export class StepDatasetsComponent extends StepComponent implements OnInit {
   title = "Please select one or more datasets";
   datasets: Dataset[];
   form: FormGroup;
@@ -26,12 +26,13 @@ export class StepDatasetsComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private router: Router,
-    private route: ActivatedRoute,
-    private formDataService: FormDataService,
+    protected router: Router,
+    protected route: ActivatedRoute,
+    protected formDataService: FormDataService,
     private notify: NotificationService,
     private spinner: NgxSpinnerService
   ) {
+    super(formDataService, router, route);
     this.form = this.formBuilder.group({
       datasets: new FormArray([], minSelectedCheckboxes(1)),
     });

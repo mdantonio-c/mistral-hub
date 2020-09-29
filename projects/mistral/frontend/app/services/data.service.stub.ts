@@ -3,7 +3,8 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
 import { ApiService } from "@rapydo/services/api";
-import { DataService, StorageUsage } from "./data.service";
+import { DataService } from "./data.service";
+import { StorageUsage } from "@app/types";
 import {
   MockDerivedVariables,
   MockGribTemplateResponse,

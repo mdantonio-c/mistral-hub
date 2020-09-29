@@ -1,4 +1,4 @@
-import { DerivedVariables, StorageUsage, SummaryStats } from "./data.service";
+import { DerivedVariables, StorageUsage, SummaryStats } from "@app/types";
 
 export const MockStorageUsageResponse: StorageUsage = {
   quota: 5368709120,

@@ -3,7 +3,8 @@ import { Injectable } from "@angular/core";
 
 import { FormDataService } from "./formData.service";
 import { WorkflowService } from "./workflow.service";
-import { DataService, SummaryStats, Filters } from "./data.service";
+import { DataService } from "./data.service";
+import { SummaryStats, Filters } from "@app/types";
 import {
   MockDatasetsResponse,
   MockFiltersResponse,

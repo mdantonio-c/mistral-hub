@@ -40,15 +40,18 @@
           >
         </ng-template>
       </h5>
-      <button
-        class="btn btn-info btn-sm float-right"
-        (click)="showSchedule(content)"
-      >
-        <i class="fa fa-calendar mr-2"></i>Schedule
-      </button>
+      <div class="btn-group btn-group-sm float-right" role="group">
+        <button
+          class="btn btn-info btn-sm float-right"
+          (click)="showSchedule(content)"
+        >
+          <i class="fa fa-calendar mr-2"></i>Schedule
+        </button>
+      </div>
     </div>
-    <div class="body">
-      <mst-my-request-details [onSubmitStep]="true"></mst-my-request-details>
+    <div class="body mb-2">
+      <mst-my-request-details [onSubmitStep]="true" (onCancel)="cancel()">
+      </mst-my-request-details>
     </div>
   </div>
 </div>
@@ -145,7 +148,7 @@
             formControlName="every"
             min="1"
             class="form-control ml-2"
-            style="width: 80px;"
+            style="width: 80px"
             required
           />
           <select formControlName="period" class="custom-select mx-2">

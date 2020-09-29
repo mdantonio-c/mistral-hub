@@ -175,83 +175,66 @@ class BeDballe:
             for k, v in zip(fields, q):
                 dballe_query[k] = v
             dballe_query["query"] = "details"
+            explorer.set_filter(dballe_query)
             # count the items for each query
+            log.debug("counting query: {}", dballe_query)
+            for cur in explorer.query_summary(dballe_query):
+                # count the items for each query
+                message_count += cur["count"]
 
-            # # commented out since causes segfault
-            # for cur in explorer.query_summary(dballe_query):
-            #     # count the items for each query
-            #     # message_count += cur["count"]
-            #
-            #     datetimemin = datetime(
-            #         cur["yearmin"],
-            #         cur["monthmin"],
-            #         cur["daymin"],
-            #         cur["hourmin"],
-            #         cur["minumin"],
-            #         cur["secmin"],
-            #     )
-            #     datetimemax = datetime(
-            #         cur["yearmax"],
-            #         cur["monthmax"],
-            #         cur["daymax"],
-            #         cur["hourmax"],
-            #         cur["minumax"],
-            #         cur["secmax"],
-            #     )
-            #     # these notations still cause segfault
-            #     # datetimemin = cur["datetimemin"]
-            #     # datetimemin = cur["datetimemax"]
-            #     if min_date:
-            #         if datetimemin < min_date:
-            #             min_date = datetimemin
-            #     else:
-            #         min_date = datetimemin
-            #     if max_date:
-            #         if datetimemax > max_date:
-            #             max_date = datetimemax
-            #     else:
-            #         max_date = datetimemax
-
-            # bug fixing while the correct one raises the segfault
-            message_count += explorer.query_summary(dballe_query).remaining
-            # log.debug(
-            #     "query: {}, count: {},min date: {}, max date: {}",
-            #     dballe_query,
-            #     explorer.query_summary(dballe_query).remaining,
-            #     min_date,
-            #     max_date,
-            # )
-        # log.debug("min date: {}, max date: {}",min_date,max_date)
+                datetimemin = datetime(
+                    cur["yearmin"],
+                    cur["monthmin"],
+                    cur["daymin"],
+                    cur["hourmin"],
+                    cur["minumin"],
+                    cur["secmin"],
+                )
+                datetimemax = datetime(
+                    cur["yearmax"],
+                    cur["monthmax"],
+                    cur["daymax"],
+                    cur["hourmax"],
+                    cur["minumax"],
+                    cur["secmax"],
+                )
+                # log.debug(datetimemax)
+                # log.debug(datetimemin)
+                # these notations still cause segfault
+                # datetimemin = cur["datetimemin"]
+                # datetimemin = cur["datetimemax"]
+                if min_date:
+                    if datetimemin < min_date:
+                        min_date = datetimemin
+                else:
+                    min_date = datetimemin
+                if max_date:
+                    if datetimemax > max_date:
+                        max_date = datetimemax
+                else:
+                    max_date = datetimemax
         # create the summary
         summary = {}
         summary["c"] = message_count
+        if fields and "datetimemin" in fields:
+            q_dtmin_index = fields.index("datetimemin")
+            q_dtmin = queries[q_dtmin_index][0]
+            if min_date > q_dtmin:
+                summary["b"] = BeDballe.from_datetime_to_list(min_date)
+            else:
+                summary["b"] = BeDballe.from_datetime_to_list(q_dtmin)
+        else:
+            summary["b"] = BeDballe.from_datetime_to_list(min_date)
 
-        if "datetimemin" in fields:
-            dtmin_index = fields.index("datetimemin")
-            dtmin_for_summary = queries[dtmin_index][0]
+        if fields and "datetimemax" in fields:
+            q_dtmax_index = fields.index("datetimemax")
+            q_dtmax = queries[q_dtmax_index][0]
+            if max_date < q_dtmax:
+                summary["e"] = BeDballe.from_datetime_to_list(max_date)
+            else:
+                summary["e"] = BeDballe.from_datetime_to_list(q_dtmax)
         else:
-            dtmin_for_summary = min_date
-        summary["b"] = [
-            dtmin_for_summary.year,
-            dtmin_for_summary.month,
-            dtmin_for_summary.day,
-            dtmin_for_summary.hour,
-            dtmin_for_summary.minute,
-            dtmin_for_summary.second,
-        ]
-        if "datetimemax" in fields:
-            dtmax_index = fields.index("datetimemax")
-            dtmax_for_summary = queries[dtmax_index][0]
-        else:
-            dtmax_for_summary = max_date
-        summary["e"] = [
-            dtmax_for_summary.year,
-            dtmax_for_summary.month,
-            dtmax_for_summary.day,
-            dtmax_for_summary.hour,
-            dtmax_for_summary.minute,
-            dtmax_for_summary.second,
-        ]
+            summary["e"] = BeDballe.from_datetime_to_list(max_date)
 
         return summary
 
@@ -295,80 +278,120 @@ class BeDballe:
         variables = []
         levels = []
         tranges = []
-        if not query_networks_list:
-            query_networks_list = explorer.all_reports
-            log.debug("all networks: {}", query_networks_list)
-        for n in query_networks_list:
-            # filter the dballe database by network
-            filters_for_explorer = {"report": n}
-            if bbox:
-                for key, value in bbox.items():
-                    filters_for_explorer[key] = value
-            if "datetimemin" in query:
-                filters_for_explorer["datetimemin"] = query["datetimemin"]
-                filters_for_explorer["datetimemax"] = query["datetimemax"]
+        filters_for_explorer = {}
+        if bbox:
+            for key, value in bbox.items():
+                filters_for_explorer[key] = value
+        if "datetimemin" in query:
+            filters_for_explorer["datetimemin"] = query["datetimemin"]
+            filters_for_explorer["datetimemax"] = query["datetimemax"]
 
+        if not query_networks_list:
+            # if there isn't a query network list, it's observed maps case (the data extraction is always managed using datasets)
+            explorer.set_filter(filters_for_explorer)
+            # list of the variables of the query without level and timerange costraints (used in "all available products" case)
+            network_products = explorer.varcodes
+            # add all values of the query to the filter for explorer (N.B. i can do that only beacuse i am in the maps case and i am sure that queries are all single param)
+            if query:
+                parsed_query = BeDballe.parse_query_for_maps(query)
+                for key, value in parsed_query.items():
+                    filters_for_explorer[key] = value
             explorer.set_filter(filters_for_explorer)
 
-            # list of the variables of this network
-            net_variables = []
-
             ######### VARIABLES FIELDS
-            # get the list of all the variables of the network
-            varlist = explorer.varcodes
-            # append all the products available for that network (not filtered by the query)
-            if varlist:
-                network_products.extend(x for x in varlist if x not in network_products)
-
-            #### PRODUCT is in the query filters
-            if "product" in query:
-                # check if the requested variables are in the network
-                for e in query["product"]:
-                    if e in varlist:
-                        # if there is append it to the temporary list of matching variables
-                        net_variables.append(e)
-                if not net_variables:
-                    # if at the end of the cycle the temporary list of matching variables is still empty go to the next network
-                    continue
-            else:
-                # if product is not in the query filter append all the variable of the network o the final list of the fields
-                net_variables = varlist
+            # get the list of the variables coming from the query
+            variables = explorer.varcodes
 
             ######### LEVELS FIELDS
-            level_fields, net_variables_temp = BeDballe.get_fields(
-                explorer, filters_for_explorer, net_variables, query, param="level"
-            )
-            if not level_fields:
-                continue
-            # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
-            if not all(elem in net_variables_temp for elem in net_variables):
-                net_variables = net_variables_temp
-
+            level_fields = explorer.levels
+            if level_fields:
+                for el in level_fields:
+                    levels.append(BeDballe.from_level_object_to_string(el))
             ######### TIMERANGES FIELDS
-            trange_fields, net_variables_temp, level_fields_temp = BeDballe.get_fields(
-                explorer, filters_for_explorer, net_variables, query, param="timerange"
-            )
-            if not trange_fields:
-                continue
-            # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
-            if not all(elem in net_variables_temp for elem in net_variables):
-                net_variables = net_variables_temp
+            trange_fields = explorer.tranges
+            if trange_fields:
+                for el in trange_fields:
+                    tranges.append(BeDballe.from_trange_object_to_string(el))
+            ######### NETWORKS FIELDS
+            networks_list = explorer.reports
 
-            # check if the temporary list of levels is not more little of the general one. If it is, replace the general list
-            if not all(elem in level_fields_temp for elem in level_fields):
-                level_fields = level_fields_temp
+        else:
+            # get the fields network by network for the requested networks
+            for n in query_networks_list:
+                # filter the dballe database by network
+                filters_for_explorer["report"] = n
 
-            # append in the final list the timeranges retrieved
-            tranges.extend(x for x in trange_fields if x not in tranges)
+                explorer.set_filter(filters_for_explorer)
 
-            # append in the final list the levels retrieved
-            levels.extend(x for x in level_fields if x not in levels)
+                # list of the variables of this network
+                net_variables = []
 
-            # append all the network variables in the final field list
-            variables.extend(x for x in net_variables if x not in variables)
+                ######### VARIABLES FIELDS
+                # get the list of all the variables of the network
+                varlist = explorer.varcodes
+                # append all the products available for that network (not filtered by the query)
+                if varlist:
+                    network_products.extend(
+                        x for x in varlist if x not in network_products
+                    )
 
-            # if there are results, this network can be in the final fields
-            networks_list.append(n)
+                #### PRODUCT is in the query filters
+                if "product" in query:
+                    # check if the requested variables are in the network
+                    for e in query["product"]:
+                        if e in varlist:
+                            # if there is append it to the temporary list of matching variables
+                            net_variables.append(e)
+                    if not net_variables:
+                        # if at the end of the cycle the temporary list of matching variables is still empty go to the next network
+                        continue
+                else:
+                    # if product is not in the query filter append all the variable of the network o the final list of the fields
+                    net_variables = varlist
+
+                ######### LEVELS FIELDS
+                level_fields, net_variables_temp = BeDballe.get_fields(
+                    explorer, filters_for_explorer, net_variables, query, param="level"
+                )
+                if not level_fields:
+                    continue
+                # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
+                if not all(elem in net_variables_temp for elem in net_variables):
+                    net_variables = net_variables_temp
+
+                ######### TIMERANGES FIELDS
+                (
+                    trange_fields,
+                    net_variables_temp,
+                    level_fields_temp,
+                ) = BeDballe.get_fields(
+                    explorer,
+                    filters_for_explorer,
+                    net_variables,
+                    query,
+                    param="timerange",
+                )
+                if not trange_fields:
+                    continue
+                # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
+                if not all(elem in net_variables_temp for elem in net_variables):
+                    net_variables = net_variables_temp
+
+                # check if the temporary list of levels is not more little of the general one. If it is, replace the general list
+                if not all(elem in level_fields_temp for elem in level_fields):
+                    level_fields = level_fields_temp
+
+                # append in the final list the timeranges retrieved
+                tranges.extend(x for x in trange_fields if x not in tranges)
+
+                # append in the final list the levels retrieved
+                levels.extend(x for x in level_fields if x not in levels)
+
+                # append all the network variables in the final field list
+                variables.extend(x for x in net_variables if x not in variables)
+
+                # if there are results, this network can be in the final fields
+                networks_list.append(n)
 
         # if matching fields were found network list can't be empty
         if networks_list:
@@ -481,21 +504,19 @@ class BeDballe:
                     if param == "timerange" and "level" not in query:
                         # for each variable check if the level matches
                         for level in level_list_parsed:
-                            for v in variables:
-                                filters_w_var = {**filters_for_explorer, "var": v}
-                                # discard from the query the query params i don't need
-                                filters_w_var.pop("report", None)
-                                explorer.set_filter(filters_w_var)
+                            # discard from the query the query params i don't need
+                            filters_w_varlist.pop("report", None)
+                            explorer.set_filter(filters_w_varlist)
 
-                                var_level = explorer.levels
-                                var_level_parsed = []
-                                # parse the dballe.Level object
-                                for e in var_level:
-                                    lev = BeDballe.from_level_object_to_string(e)
-                                    var_level_parsed.append(lev)
-                                # if the level matches append the level in a temporary list
-                                if level in var_level_parsed:
-                                    levels_by_trange.append(level)
+                            var_level = explorer.levels
+                            var_level_parsed = []
+                            # parse the dballe.Level object
+                            for e in var_level:
+                                lev = BeDballe.from_level_object_to_string(e)
+                                var_level_parsed.append(lev)
+                            # if the level matches append the level in a temporary list
+                            if level in var_level_parsed:
+                                levels_by_trange.append(level)
                         # the temporary list of levels matching the resulted variables become the list of levels to return
                         level_list_parsed = levels_by_trange
                 if param == "level":
@@ -520,7 +541,9 @@ class BeDballe:
 
     @staticmethod
     def get_maps_response_for_mixed(
-        query_data=None, only_stations=False, query_station_data=None,
+        query_data=None,
+        only_stations=False,
+        query_station_data=None,
     ):
         # get data from the dballe database
         log.debug("mixed dbs: get data from dballe")
@@ -872,7 +895,10 @@ class BeDballe:
 
     @staticmethod
     def merge_db_for_download(
-        dballe_db, dballe_query_data, arki_db=None, arki_query_data=None,
+        dballe_db,
+        dballe_query_data,
+        arki_db=None,
+        arki_query_data=None,
     ):
         # merge the dbs
         query_data = BeDballe.parse_query_for_maps(dballe_query_data)
