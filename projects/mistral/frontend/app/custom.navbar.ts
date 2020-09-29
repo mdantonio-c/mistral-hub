@@ -1,5 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy } from "@angular/core";
 
+import { User } from "@rapydo/types";
 import { environment } from "@rapydo/../environments/environment";
 
 @Component({
@@ -8,7 +9,7 @@ import { environment } from "@rapydo/../environments/environment";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomNavbarComponent {
-  @Input() user: any;
+  @Input() user: User;
 
   constructor() {}
 }

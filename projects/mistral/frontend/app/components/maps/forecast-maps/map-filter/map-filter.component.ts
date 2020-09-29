@@ -26,7 +26,7 @@ import { environment } from "@rapydo/../environments/environment";
   styleUrls: ["./map-filter.component.css"],
 })
 export class MapFilterComponent implements OnInit {
-  readonly DEFAULT_PLATFORM = environment.ALL["PLATFORM"] || "GALILEO";
+  readonly DEFAULT_PLATFORM = environment.CUSTOM.PLATFORM || "GALILEO";
   readonly DEFAULT_ENV = "PROD";
 
   filterForm: FormGroup;

@@ -8,7 +8,7 @@ import { NotificationService } from "@rapydo/services/notification";
 import { environment } from "@rapydo/../environments/environment";
 import { NgxSpinnerService } from "ngx-spinner";
 
-const LAST_DAYS = +environment.ALL["LASTDAYS"] || 10;
+const LAST_DAYS = +environment.CUSTOM.LASTDAYS || 10;
 
 @Component({
   selector: "app-obs-filter",
