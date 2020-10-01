@@ -257,7 +257,7 @@ export const LEGEND_DATA: LegendConfig[] = [
   {
     id: "hcc",
     legend_type: "legend_cc",
-    title: "Cloud [%]",
+    title: "High Cloud [%]",
     colors: [
       "rgba(0,188,0,0.4)",
 "rgba(0,188,0,0.32)",
@@ -276,7 +276,7 @@ export const LEGEND_DATA: LegendConfig[] = [
   {
     id: "mcc",
     legend_type: "legend_cc",
-    title: "Cloud [%]",
+    title: "Medium Cloud [%]",
     colors: [
       "rgba(0,0,255,0.4)",
       "rgba(0,0,255,0.32)",
@@ -295,7 +295,7 @@ export const LEGEND_DATA: LegendConfig[] = [
   {
     id: "lcc",
     legend_type: "legend_cc",
-    title: "Cloud [%]",
+    title: "Low Cloud [%]",
     colors: [
       "rgba(255,0,0,0.2)",
       "rgba(255,0,0,0.16)",
