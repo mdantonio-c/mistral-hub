@@ -8,7 +8,7 @@
           <label class="col-form-label"><strong>FIELDS:</strong></label>
           <div id="fieldGroup">
             <ng-container *ngFor="let f of fields">
-              <div style="display: inline;">
+              <div style="display: inline">
                 <label
                   [title]="f.value"
                   class="btn-circle"
@@ -166,31 +166,25 @@
           </div>
         </fieldset>
         <!-- PLATFORM -->
-        <div
-          class="form-group"
-          *ngIf="user && (user.isAdmin || user.isGroupAdmin)"
-        >
+        <div class="form-group" *ngIf="user && user.isAdmin">
           <label class="col-form-label"><strong>PLATFORM:</strong></label>
           <select
             id="platformGroup"
             formControlName="platform"
             class="form-control"
           >
-            <option *ngFor="let p of platforms" [value]="p.key">{{
-              p.value
-            }}</option>
+            <option *ngFor="let p of platforms" [value]="p.key">
+              {{ p.value }}
+            </option>
           </select>
         </div>
         <!-- ENV -->
-        <div
-          class="form-group"
-          *ngIf="user && (user.isAdmin || user.isGroupAdmin)"
-        >
+        <div class="form-group" *ngIf="user && user.isAdmin">
           <label class="col-form-label"><strong>ENVIRONMENT:</strong></label>
           <select id="envGroup" formControlName="env" class="form-control">
-            <option *ngFor="let env of envs" [value]="env.key">{{
-              env.value
-            }}</option>
+            <option *ngFor="let env of envs" [value]="env.key">
+              {{ env.value }}
+            </option>
           </select>
         </div>
       </form>

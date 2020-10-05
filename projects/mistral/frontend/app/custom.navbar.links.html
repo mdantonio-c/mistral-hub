@@ -12,7 +12,7 @@
   <li class="nav-item" ngbDropdown>
     <a
       class="nav-link"
-      style="cursor: pointer;"
+      style="cursor: pointer"
       ngbDropdownToggle
       id="navbarDropdownMapsLink"
       role="button"
@@ -59,7 +59,7 @@
     >
   </li>
 
-  <li class="nav-item" *ngIf="user && (user.isAdmin || user.isGroupAdmin)">
+  <li class="nav-item" *ngIf="user && user.isAdmin">
     <a class="nav-link" routerLink="/app/admin/users" routerLinkActive="active">
       Users
     </a>
