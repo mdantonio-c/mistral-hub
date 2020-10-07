@@ -66,10 +66,10 @@ export class ObsMeteogramsComponent implements OnInit {
   private getName(station: Station) {
     if (station.details) {
       let nameDetail: StationDetail = station.details.find(
-        (x) => x.code === STATION_NAME_CODE
+        (x) => x.var === STATION_NAME_CODE
       );
       if (nameDetail) {
-        return nameDetail.value;
+        return nameDetail.val;
       }
     }
   }
@@ -83,18 +83,18 @@ export class ObsMeteogramsComponent implements OnInit {
       .subscribe(
         (data: Observation[]) => {
           this.report = data;
-          // console.log(this.report);
           // get product info
           if (data.length !== 0) {
             let obs = data[0];
-            this.product = obs.products[0].description;
-            this.varcode = obs.products[0].varcode;
-            if (filter.level) {
+            //this.product = obs.prod[0].description;
+            this.product = obs.prod[0].var;
+            this.varcode = obs.prod[0].var;
+            /*if (filter.level) {
               this.level = obs.products[0].values[0].level_desc;
             }
             if (filter.timerange) {
               this.timerange = obs.products[0].values[0].timerange_desc;
-            }
+            }*/
           }
           let multi = this.normalize(data);
           Object.assign(this, { multi });
@@ -112,19 +112,19 @@ export class ObsMeteogramsComponent implements OnInit {
   private normalize(data: Observation[]): DataSeries[] {
     let res: DataSeries[] = [];
     data.forEach((obs) => {
-      let p: ObsData = obs.products[0];
+      let p: ObsData = obs.prod[0];
       let s: DataSeries = {
-        name: this.getName(obs.station) || "n/a",
-        code: p.varcode,
-        unit: p.unit,
+        name: this.getName(obs.stat) || "n/a",
+        code: p.var,
+        //unit: p.unit,
         series: [],
       };
       s.series = p.values
-        .filter((obs) => obs.is_reliable === true)
+        .filter((obs) => obs.rel === 1)
         .map((obs) => {
           return {
-            name: obs.reftime,
-            value: ObsService.showData(obs.value, p.varcode),
+            name: obs.ref,
+            value: ObsService.showData(obs.values, p.varcode),
           };
         });
       res.push(s);

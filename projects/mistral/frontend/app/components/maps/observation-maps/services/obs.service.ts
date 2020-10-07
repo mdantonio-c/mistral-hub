@@ -5,7 +5,13 @@ import { catchError, map, switchMap } from "rxjs/operators";
 import { ApiService } from "@rapydo/services/api";
 import { COLORS, VAR_TABLE } from "./data";
 import { environment } from "@rapydo/../environments/environment";
-import { FieldsSummary, Observation, ObsFilter, Station } from "@app/types";
+import {
+  FieldsSummary,
+  Observation,
+  ObsFilter,
+  Station,
+  ObservationResponse,
+} from "@app/types";
 
 @Injectable({
   providedIn: "root",
@@ -68,7 +74,8 @@ export class ObsService {
   getStationTimeSeries(
     filter: ObsFilter,
     station: Station
-  ): Observable<Observation[]> {
+  ): Observable<ObservationResponse> {
+    this._data = [];
     let d = [
       `${filter.reftime.getFullYear()}`,
       `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),
@@ -78,7 +85,7 @@ export class ObsService {
       q: `reftime: >=${d} 00:00,<=${d} 23:59`,
       lat: station.lat,
       lon: station.lon,
-      networks: station.network,
+      networks: station.net,
       stationDetails: true,
     };
     if (filter.timerange && filter.timerange !== "") {
@@ -88,6 +95,7 @@ export class ObsService {
       params["q"] += `;level:${filter.level}`;
     }
     return this.api.get("observations", "", params);
+    //.pipe(map((data: Observation[], descriptions: Descriptions[]) => (data.data, data.descr)));
   }
 
   /**
@@ -147,7 +155,7 @@ export class ObsService {
     }
     return this.api
       .get("observations", "", params)
-      .pipe(map((data: Observation[]) => (this._data = data)));
+      .pipe(map((data: Observation[]) => (this._data = data.data)));
   }
 
   download(

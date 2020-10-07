@@ -535,9 +535,9 @@ class BeDballe:
         attrs_dict = {v.code: v.get() for v in attrs}
         # Data already checked and checked as invalid by QC filter
         if attrs_dict.get("B33007", 100) == 0:
-            return False
+            return 0
         else:
-            return True
+            return 1
 
     @staticmethod
     def get_maps_response_for_mixed(
@@ -695,12 +695,17 @@ class BeDballe:
         db_type=None,
         query_station_data=None,
         download=None,
+        previous_res=None,
     ):
         DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/DBALLE")
 
         # TODO va fatto un check licenze compatibili qui all'inizio (by dataset)? oppure a seconda della licenza lo si manda su un dballe o un altro?
 
-        response = []
+        if previous_res:
+            # integrate the already existent response
+            response = previous_res
+        else:
+            response = {}
         # choose the right query for the right situation(station details response or default one)
         query = {}
         if query_station_data:
@@ -742,7 +747,7 @@ class BeDballe:
                 # means that there aren't data in arkimet for this dballe query
                 if download:
                     return None, {}, {}
-                return response
+                return []
             # check if there is a queried license
             license = None
             if query_data:
@@ -754,7 +759,7 @@ class BeDballe:
             if not datasets:
                 if download:
                     return None, {}, {}
-                return response
+                return []
 
             # check datasets license,
             # TODO se non passa il check il frontend lancerà un messaggio del tipo: 'dati con licenze diverse, prego sceglierne una'
@@ -782,61 +787,49 @@ class BeDballe:
             count_data = tr.query_data(query).remaining
             # log.debug('count {}',count_data)
             if count_data == 0:
-                return response
+                return []
             for rec in tr.query_data(query):
-                existent_station = False
-                station_index = None
-                for i in response:
-                    # check if station is already on the response
-                    if (
-                        float(rec["lat"]) == i["station"]["lat"]
-                        and float(rec["lon"]) == i["station"]["lon"]
-                        and rec["rep_memo"] == i["station"]["network"]
-                    ):
-                        existent_station = True
-                        station_index = response.index(i)
-                        break
-                if not existent_station:
-                    station_data = {}
+                if rec["ident"]:
+                    station_tuple = (rec["ident"], rec["rep_memo"])
+                else:
+                    station_tuple = (
+                        float(rec["lat"]),
+                        float(rec["lon"]),
+                        rec["rep_memo"],
+                    )
+
+                if station_tuple not in response.keys():
+                    response[station_tuple] = {}
+                if query_station_data:
                     # get data about the station
                     query_for_details = {}
-                    station_data["lat"] = float(rec["lat"])
-                    query_for_details["lat"] = float(rec["lat"])
-                    station_data["lon"] = float(rec["lon"])
-                    query_for_details["lon"] = float(rec["lon"])
-                    station_data["network"] = rec["rep_memo"]
+                    if rec["ident"]:
+                        query_for_details["ident"] = rec["ident"]
+                    else:
+                        query_for_details["lat"] = float(rec["lat"])
+                        query_for_details["lon"] = float(rec["lon"])
                     query_for_details["rep_memo"] = rec["rep_memo"]
-                    station_data["ident"] = "" if rec["ident"] is None else rec["ident"]
-                    if station_data["ident"]:
-                        query_for_details["ident"] = station_data["ident"]
-                    details = []
 
+                    details = []
                     # add station details
                     for el in tr.query_station_data(query_for_details):
                         detail_el = {}
                         var = el["variable"]
                         code = var.code
-                        var_info = dballe.varinfo(code)
-                        desc = var_info.desc
-                        detail_el["code"] = code
-                        detail_el["value"] = var.get()
-                        detail_el["description"] = desc
+                        detail_el["var"] = code
+                        detail_el["val"] = var.get()
                         details.append(detail_el)
-                    station_data["details"] = details
-                else:
-                    if only_stations:
-                        continue
+                    response[station_tuple]["details"] = details
 
                 # get data values
                 if not only_stations:
-                    product_data = {}
-                    product_data["varcode"] = rec["var"]
-                    var_info = dballe.varinfo(rec["var"])
-                    product_data["description"] = var_info.desc
-                    product_data["unit"] = var_info.unit
-                    # product_data['scale'] = var_info.scale
+                    if (
+                        not query_station_data
+                        and not rec["var"] in response[station_tuple].keys()
+                    ):
+                        response[station_tuple][rec["var"]] = []
                     product_val = {}
-                    product_val["value"] = rec[rec["var"]].get()
+                    product_val["val"] = rec[rec["var"]].get()
                     reftime = datetime(
                         rec["year"],
                         rec["month"],
@@ -845,19 +838,7 @@ class BeDballe:
                         rec["min"],
                         rec["sec"],
                     )
-                    product_val["reftime"] = reftime.isoformat()
-                    product_val["level"] = BeDballe.from_level_object_to_string(
-                        rec["level"]
-                    )
-                    product_val["level_desc"] = BeDballe.get_description(
-                        product_val["level"], "level"
-                    )
-                    product_val["timerange"] = BeDballe.from_trange_object_to_string(
-                        rec["trange"]
-                    )
-                    product_val["timerange_desc"] = BeDballe.get_description(
-                        product_val["timerange"], "timerange"
-                    )
+                    product_val["ref"] = reftime.isoformat()
 
                     if query:
                         if "query" in query:
@@ -865,31 +846,92 @@ class BeDballe:
                             variable = rec["variable"]
                             attrs = variable.get_attrs()
                             is_reliable = BeDballe.data_qc(attrs)
-                            product_val["is_reliable"] = is_reliable
+                            product_val["rel"] = is_reliable
 
-                # determine where append the values
-                if existent_station:
-                    station_to_append = response[station_index]
-                    # check if the element has already the given product
-                    existent_product = False
-                    for e in station_to_append["products"]:
-                        if e["varcode"] == rec["var"]:
-                            existent_product = True
-                            e["values"].append(product_val)
-                    if not existent_product:
-                        product_data["values"] = []
-                        product_data["values"].append(product_val)
-                        station_to_append["products"].append(product_data)
+                    if query_station_data:
+                        level = BeDballe.from_level_object_to_string(rec["level"])
+                        timerange = BeDballe.from_trange_object_to_string(rec["trange"])
+                        product_tuple = (rec["var"], level, timerange)
+                        if product_tuple not in response[station_tuple].keys():
+                            response[station_tuple][product_tuple] = []
+                        response[station_tuple][product_tuple].append(product_val)
+                    else:
+                        # append the value
+                        response[station_tuple][rec["var"]].append(product_val)
+
+        return response
+
+    @staticmethod
+    def parse_obs_maps_response(raw_res):
+        response = {}
+        response_data = []
+        if raw_res:
+            product_varcodes = []
+            station_varcodes = []
+            levels = []
+            timeranges = []
+            for key, value in raw_res.items():
+                res_el = {}
+                station_el = {}
+                products_list = []
+                if len(key) == 2:
+                    station_el["ident"] = key[0]
+                    station_el["net"] = key[1]
                 else:
-                    res_element = {}
-                    # create a new record
-                    res_element["station"] = station_data
-                    if not only_stations:
-                        res_element["products"] = []
-                        product_data["values"] = []
-                        product_data["values"].append(product_val)
-                        res_element["products"].append(product_data)
-                    response.append(res_element)
+                    station_el["lat"] = key[0]
+                    station_el["lon"] = key[1]
+                    station_el["net"] = key[2]
+                for prod_key, prod_value in value.items():
+                    if prod_key != "details":
+                        product_el = {}
+                        if type(prod_key) != tuple:
+                            product_el["var"] = prod_key
+                            product_el["val"] = prod_value
+                            if prod_key not in product_varcodes:
+                                product_varcodes.append(prod_key)
+                        else:
+                            product_el["var"] = prod_key[0]
+                            product_el["lev"] = prod_key[1]
+                            product_el["trange"] = prod_key[2]
+                            product_el["val"] = prod_value
+                            if product_el["var"] not in product_varcodes:
+                                product_varcodes.append(product_el["var"])
+                            if product_el["lev"] not in levels:
+                                levels.append(product_el["lev"])
+                            if product_el["trange"] not in timeranges:
+                                timeranges.append(product_el["trange"])
+                        products_list.append(product_el)
+                    else:
+                        station_el["details"] = prod_value
+                        for i in prod_value:
+                            if i["var"] not in station_varcodes:
+                                station_varcodes.append(i["var"])
+                res_el["stat"] = station_el
+                res_el["prod"] = products_list
+                response_data.append(res_el)
+
+            descriptions_dic = {}
+            for el in product_varcodes:
+                descr_el = {}
+                var_info = dballe.varinfo(el)
+                descr_el["desc"] = var_info.desc
+                descr_el["unit"] = var_info.unit
+                descriptions_dic[el] = descr_el
+            for el in station_varcodes:
+                descr_el = {}
+                var_info = dballe.varinfo(el)
+                descr_el["desc"] = var_info.desc
+                descriptions_dic[el] = descr_el
+            for el in levels:
+                descr_el = {}
+                descr_el["desc"] = BeDballe.get_description(el, "level")
+                descriptions_dic[el] = descr_el
+            for el in timeranges:
+                descr_el = {}
+                descr_el["desc"] = BeDballe.get_description(el, "timerange")
+                descriptions_dic[el] = descr_el
+            response["descr"] = descriptions_dic
+            response["data"] = response_data
 
         return response
 

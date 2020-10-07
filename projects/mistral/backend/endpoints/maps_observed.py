@@ -145,13 +145,13 @@ class MapsObservations(EndpointResource):
 
         try:
             if db_type == "mixed":
-                res = dballe.get_maps_response_for_mixed(
+                raw_res = dballe.get_maps_response_for_mixed(
                     query,
                     onlyStations,
                     query_station_data=query_station_data,
                 )
             else:
-                res = dballe.get_maps_response(
+                raw_res = dballe.get_maps_response(
                     query,
                     onlyStations,
                     db_type=db_type,
@@ -162,6 +162,8 @@ class MapsObservations(EndpointResource):
                 "Access to dataset denied",
                 status_code=hcodes.HTTP_SERVER_ERROR,
             )
+        # parse the response
+        res = dballe.parse_obs_maps_response(raw_res)
 
         if not res and stationDetails:
             raise RestApiException(

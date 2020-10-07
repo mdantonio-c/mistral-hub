@@ -224,9 +224,23 @@ export interface SingleObsData {
   varcode: string;
 }
 
+export interface DescriptionDict {
+  code: string;
+  descrDict: DescrObj;
+}
+export interface DescrObj {
+  description: string;
+  unit?: string;
+}
+
 export interface Observation {
   station: Station;
   products?: ObsData[];
+}
+
+export interface ObservationResponse {
+  data: Observation[];
+  descriptions: DescriptionDict;
 }
 
 export interface DataSeries {
