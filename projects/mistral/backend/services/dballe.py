@@ -968,7 +968,7 @@ class BeDballe:
 
                     # parsing all other parameters
                     else:
-                        val_list = [x.strip() for x in val.split("or")]
+                        val_list = [x.strip() for x in val.split(" or ")]
                         query_dic[p] = val_list
         return query_dic
 
