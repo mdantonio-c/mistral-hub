@@ -134,7 +134,7 @@ export class ObsMeteogramsComponent implements OnInit {
             value: ObsService.showData(obs.val, p.var),
           };
         });
-      //console.log("series: ",s.series)
+      console.log("series: ", s.series);
       //console.log("obs: ",obs)
       res.push(s);
     });

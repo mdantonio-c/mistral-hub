@@ -615,12 +615,14 @@ class BeDballe:
                         query_station_data=query_for_arki,
                         only_stations=only_stations,
                         db_type="arkimet",
+                        previous_res=dballe_maps_data,
                     )
                 else:
                     arki_maps_data = BeDballe.get_maps_response(
                         query_data=query_for_arki,
                         only_stations=only_stations,
                         db_type="arkimet",
+                        previous_res=dballe_maps_data,
                     )
 
                 if not dballe_maps_data and not arki_maps_data:
@@ -628,63 +630,7 @@ class BeDballe:
                     return response
 
                 if arki_maps_data:
-                    if not query_station_data:
-                        for i in arki_maps_data:
-                            if dballe_maps_data:
-                                # if any(d['station']['id'] == i['station']['id'] for d in dballe_maps_data):
-                                if any(
-                                    d["station"]["lat"] == i["station"]["lat"]
-                                    and d["station"]["lon"] == i["station"]["lon"]
-                                    and d["station"]["network"]
-                                    == i["station"]["network"]
-                                    for d in dballe_maps_data
-                                ):
-                                    # get the element index
-                                    for e in dballe_maps_data:
-                                        if (
-                                            e["station"]["lat"] == i["station"]["lat"]
-                                            and e["station"]["lon"]
-                                            == i["station"]["lon"]
-                                            and e["station"]["network"]
-                                            == i["station"]["network"]
-                                        ):
-                                            el_index = dballe_maps_data.index(e)
-                                            break
-                                    # append values to the variable
-                                    if not only_stations:
-                                        for e in i["products"]:
-                                            varcode = e["varcode"]
-                                            existent_product = False
-                                            for el in dballe_maps_data[el_index][
-                                                "products"
-                                            ]:
-                                                if el["varcode"] == varcode:
-                                                    existent_product = True
-                                                    for v in e["values"]:
-                                                        el["values"].append(v)
-                                            if not existent_product:
-                                                dballe_maps_data[el_index][
-                                                    "products"
-                                                ].append(e)
-                                else:
-                                    dballe_maps_data.append(i)
-                            else:
-                                dballe_maps_data.append(i)
-                    else:
-                        # only one station in the response: add arkimet values to dballe response
-                        if dballe_maps_data:
-                            for e in arki_maps_data["products"]:
-                                varcode = e["varcode"]
-                                existent_product = False
-                                for el in dballe_maps_data["products"]:
-                                    if el["varcode"] == varcode:
-                                        existent_product = True
-                                        for v in e["values"]:
-                                            el["values"].append(v)
-                                if not existent_product:
-                                    dballe_maps_data["products"].append(e)
-                        else:
-                            dballe_maps_data = arki_maps_data
+                    return arki_maps_data
 
         return dballe_maps_data
 
