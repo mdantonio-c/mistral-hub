@@ -66,6 +66,7 @@ export class ObsStationReportComponent implements OnInit {
         (response: ObservationResponse) => {
           let data = response.data;
           this.descriptions = response.descr;
+          console.log(data);
           //console.log("reponse ",response," data",data," descr ",descriptions)
           // console.log(data);
           this.report = data[0];
@@ -86,6 +87,7 @@ export class ObsStationReportComponent implements OnInit {
           //console.log(JSON.stringify(this.multi));
           this.single = [multi[0]];
           this.active = this.single[0].code;
+          console.log("single: ", this.single, "multi: ", multi);
         },
         (error) => {
           this.notify.showError(error);
@@ -143,7 +145,7 @@ export class ObsStationReportComponent implements OnInit {
       v.val.forEach((obs) => {
         s.series.push({
           name: obs.ref,
-          value: ObsService.showData(obs.val, v.var),
+          value: +ObsService.showData(obs.val, v.var),
         });
       });
       res.push(s);

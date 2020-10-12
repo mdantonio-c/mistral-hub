@@ -180,7 +180,8 @@ export class ObsMapComponent {
     this.obsService
       .getData(filter, update)
       .subscribe(
-        (data: Observation[]) => {
+        (response: ObservationResponse) => {
+          let data = response.data;
           this.updateCount.emit(data.length);
           this.loadMarkers(data, filter.product, filter.onlyStations);
           if (data.length === 0) {
@@ -407,8 +408,8 @@ export class ObsMapComponent {
 
   private static buildDataTooltip(
     reftime: string,
-    level: string,
-    timerange: string
+    level?: string,
+    timerange?: string
   ) {
     const template =
       `<ul class="p-1 m-0">

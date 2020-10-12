@@ -103,7 +103,7 @@ export class ObsService {
    * @param filter
    * @param update
    */
-  getData(filter: ObsFilter, update = false): Observable<Observation[]> {
+  getData(filter: ObsFilter, update = false): Observable<ObservationResponse> {
     return of(this._data).pipe(
       switchMap((data) => {
         if (!update && data.length !== 0) {
@@ -123,7 +123,7 @@ export class ObsService {
   private loadObservations(
     filter: ObsFilter,
     reliabilityCheck = true
-  ): Observable<Observation[]> {
+  ): Observable<ObservationResponse> {
     this._data = [];
     let d = [
       `${filter.reftime.getFullYear()}`,
@@ -153,9 +153,8 @@ export class ObsService {
         `latmin:${filter.bbox.latMin},lonmin:${filter.bbox.lonMin}` +
         `,latmax:${filter.bbox.latMax},lonmax:${filter.bbox.lonMax}`;
     }
-    return this.api
-      .get("observations", "", params)
-      .pipe(map((data: Observation[]) => (this._data = data.data)));
+    return this.api.get("observations", "", params);
+    //.pipe(map((data: Observation[]) => (this._data = data.data)));
   }
 
   download(

@@ -6,6 +6,8 @@ import {
   Station,
   StationDetail,
   DataSeries,
+  ObservationResponse,
+  DescriptionDict,
 } from "@app/types";
 import { ObsService } from "../services/obs.service";
 
@@ -24,6 +26,7 @@ export class ObsMeteogramsComponent implements OnInit {
   filter: ObsFilter;
   multi: DataSeries[];
   report: Observation[];
+  descriptions: DescriptionDict;
   loading: boolean = false;
 
   // product info
@@ -81,13 +84,16 @@ export class ObsMeteogramsComponent implements OnInit {
     this.obsService
       .getData(this.filter, update)
       .subscribe(
-        (data: Observation[]) => {
+        (response: ObservationResponse) => {
+          let data = response.data;
+          this.descriptions = response.descr;
+          console.log("descrizioni: ", this.descriptions);
           this.report = data;
           // get product info
           if (data.length !== 0) {
             let obs = data[0];
             //this.product = obs.prod[0].description;
-            this.product = obs.prod[0].var;
+            this.product = response.descr[obs.prod[0].var].desc;
             this.varcode = obs.prod[0].var;
             /*if (filter.level) {
               this.level = obs.products[0].values[0].level_desc;
@@ -98,6 +104,7 @@ export class ObsMeteogramsComponent implements OnInit {
           }
           let multi = this.normalize(data);
           Object.assign(this, { multi });
+          console.log(multi);
         },
         (error) => {
           this.notify.showError(error);
@@ -119,16 +126,19 @@ export class ObsMeteogramsComponent implements OnInit {
         //unit: p.unit,
         series: [],
       };
-      s.series = p.values
+      s.series = p.val
         .filter((obs) => obs.rel === 1)
         .map((obs) => {
           return {
             name: obs.ref,
-            value: ObsService.showData(obs.values, p.varcode),
+            value: ObsService.showData(obs.val, p.var),
           };
         });
+      //console.log("series: ",s.series)
+      //console.log("obs: ",obs)
       res.push(s);
     });
+    //console.log("normalized ",res)
     return res;
   }
 }
