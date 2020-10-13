@@ -69,10 +69,10 @@ export class ObsMeteogramsComponent implements OnInit {
   private getName(station: Station) {
     if (station.details) {
       let nameDetail: StationDetail = station.details.find(
-        (x) => x.var === STATION_NAME_CODE
+        (x) => x.code === STATION_NAME_CODE
       );
       if (nameDetail) {
-        return nameDetail.val;
+        return nameDetail.value;
       }
     }
   }
@@ -85,9 +85,9 @@ export class ObsMeteogramsComponent implements OnInit {
       .getData(this.filter, update)
       .subscribe(
         (response: ObservationResponse) => {
-          let data = response.data;
+          let data: Observation[] = response.data;
           this.descriptions = response.descr;
-          console.log("descrizioni: ", this.descriptions);
+          console.log("descriptions: ", this.descriptions);
           this.report = data;
           // get product info
           if (data.length !== 0) {

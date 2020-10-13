@@ -8,7 +8,7 @@ import {
   DataSeries,
   ObservationResponse,
   DescriptionDict,
-} from "@app/types";
+} from "../../../../types";
 import { ObsService } from "../services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
@@ -77,10 +77,12 @@ export class ObsStationReportComponent implements OnInit {
             this.timerange = this.report.prod[0].val[0].timerange_desc;
           }*/
           if (this.filter.level) {
-            this.level = this.descriptions[this.report.prod[0].lev].desc;
+            // FIXME
+            // this.level = this.descriptions[this.report.prod[0].lev].desc;
           }
           if (this.filter.timerange) {
-            this.timerange = this.descriptions[this.report.prod[0].trange].desc;
+            // FIXME
+            // this.timerange = this.descriptions[this.report.prod[0].trange].desc;
           }
           let multi = this.normalize(data[0]);
           Object.assign(this, { multi });
@@ -101,10 +103,10 @@ export class ObsStationReportComponent implements OnInit {
   getName() {
     if (this.report && this.report.stat.details) {
       let nameDetail: StationDetail = this.report.stat.details.find(
-        (x) => x.var === STATION_NAME_CODE
+        (x) => x.code === STATION_NAME_CODE
       );
       if (nameDetail) {
-        return nameDetail.val;
+        return nameDetail.value;
       }
     }
   }
@@ -130,7 +132,7 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   private updateGraphData(varcode: string) {
-    this.single = this.multi.filter((x: DataSeries) => x.var === varcode);
+    this.single = this.multi.filter((x: DataSeries) => x.code === varcode);
   }
 
   private normalize(data: Observation): DataSeries[] {
@@ -138,6 +140,7 @@ export class ObsStationReportComponent implements OnInit {
     data.prod.forEach((v) => {
       let s: DataSeries = {
         // name: v.description,
+        name: "",
         code: v.var,
         // unit: v.unit,
         series: [],
@@ -145,7 +148,7 @@ export class ObsStationReportComponent implements OnInit {
       v.val.forEach((obs) => {
         s.series.push({
           name: obs.ref,
-          value: +ObsService.showData(obs.val, v.var),
+          value: ObsService.showData(obs.val, v.var),
         });
       });
       res.push(s);

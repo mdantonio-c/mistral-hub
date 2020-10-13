@@ -10,6 +10,7 @@ import {
   ObsFilter,
   SingleObsData,
   Station,
+  ObservationResponse,
   StationDetail,
 } from "@app/types";
 import { ObsService } from "../services/obs.service";
@@ -181,6 +182,7 @@ export class ObsMapComponent {
       .getData(filter, update)
       .subscribe(
         (response: ObservationResponse) => {
+          console.log(response);
           let data = response.data;
           this.updateCount.emit(data.length);
           this.loadMarkers(data, filter.product, filter.onlyStations);
@@ -324,12 +326,10 @@ export class ObsMapComponent {
           marker.options["data"] = obsData;
         }
 
-        marker.bindTooltip(
-          marker.bindTooltip(ObsMapComponent.buildTooltipTemplate(s.stat), {
-            direction: "top",
-            offset: [3, -8],
-          })
-        );
+        marker.bindTooltip(ObsMapComponent.buildTooltipTemplate(s.stat), {
+          direction: "top",
+          offset: [3, -8],
+        });
         markers.push(marker);
       }
     });

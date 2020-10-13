@@ -186,7 +186,7 @@ export interface BoundingBox {
 export interface Station {
   ident?: string;
   altitude?: string;
-  network: string;
+  net: string;
   lat: number;
   lon: number;
   details?: StationDetail[];
@@ -199,29 +199,27 @@ export interface StationDetail {
 }
 
 export interface ObsValues {
-  level: string;
-  level_desc: string;
-  reftime: string;
-  timerange: string;
-  timerange_desc: string;
-  value: number;
-  is_reliable?: boolean;
+  // level: string;
+  ref: string;
+  // timerange: string;
+  val: number;
+  rel?: number; // 1 or 0
 }
 
 export interface ObsData {
-  description: string;
-  scale: number;
-  unit: string;
-  values: ObsValues[];
-  varcode: string;
+  // description: string;
+  // scale: number;
+  // unit: string;
+  val: ObsValues[];
+  var: string;
 }
 
 export interface SingleObsData {
   description: string;
   scale: number;
   unit: string;
-  value: ObsValues;
-  varcode: string;
+  val: ObsValues;
+  var: string;
 }
 
 export interface DescriptionDict {
@@ -234,13 +232,13 @@ export interface DescrObj {
 }
 
 export interface Observation {
-  station: Station;
-  products?: ObsData[];
+  stat: Station;
+  prod?: ObsData[];
 }
 
 export interface ObservationResponse {
   data: Observation[];
-  descriptions: DescriptionDict;
+  descr: DescriptionDict;
 }
 
 export interface DataSeries {
