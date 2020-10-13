@@ -860,21 +860,21 @@ class BeDballe:
             for el in product_varcodes:
                 descr_el = {}
                 var_info = dballe.varinfo(el)
-                descr_el["desc"] = var_info.desc
+                descr_el["descr"] = var_info.desc
                 descr_el["unit"] = var_info.unit
                 descriptions_dic[el] = descr_el
             for el in station_varcodes:
                 descr_el = {}
                 var_info = dballe.varinfo(el)
-                descr_el["desc"] = var_info.desc
+                descr_el["descr"] = var_info.desc
                 descriptions_dic[el] = descr_el
             for el in levels:
                 descr_el = {}
-                descr_el["desc"] = BeDballe.get_description(el, "level")
+                descr_el["descr"] = BeDballe.get_description(el, "level")
                 descriptions_dic[el] = descr_el
             for el in timeranges:
                 descr_el = {}
-                descr_el["desc"] = BeDballe.get_description(el, "timerange")
+                descr_el["descr"] = BeDballe.get_description(el, "timerange")
                 descriptions_dic[el] = descr_el
         response["descr"] = descriptions_dic
         response["data"] = response_data

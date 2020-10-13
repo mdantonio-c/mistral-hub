@@ -40,7 +40,7 @@
                 </p>-->
                 <p class="h6 my-0">
                   {{
-                    descriptions[d.var].desc
+                    descriptions[d.var].descr
                       | titlecase
                       | replace: "\\(([^\\)]+)\\)":""
                   }}
@@ -77,9 +77,9 @@
               style="font-size: small"
             >
               <ng-container *ngFor="let p of report.prod">
-                <li [ngbNavItem]="descriptions[p.var].desc">
+                <li [ngbNavItem]="descriptions[p.var].descr">
                   <!--                  <a ngbNavLink>{{ p.description | uppercase }}</a>-->
-                  <a ngbNavLink>{{ descriptions[p.var].desc | uppercase }}</a>
+                  <a ngbNavLink>{{ descriptions[p.var].descr | uppercase }}</a>
                   <ng-template ngbNavContent></ng-template>
                 </li>
               </ng-container>
