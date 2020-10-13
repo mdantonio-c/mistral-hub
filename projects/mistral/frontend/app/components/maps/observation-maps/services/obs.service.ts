@@ -5,7 +5,13 @@ import { catchError, map, switchMap } from "rxjs/operators";
 import { ApiService } from "@rapydo/services/api";
 import { COLORS, VAR_TABLE } from "./data";
 import { environment } from "@rapydo/../environments/environment";
-import { FieldsSummary, Observation, ObsFilter, Station } from "@app/types";
+import {
+  FieldsSummary,
+  Observation,
+  ObsFilter,
+  Station,
+  ObservationResponse,
+} from "@app/types";
 
 @Injectable({
   providedIn: "root",
@@ -13,7 +19,7 @@ import { FieldsSummary, Observation, ObsFilter, Station } from "@app/types";
 export class ObsService {
   private _min: number;
   private _max: number;
-  private _data: Observation[] = [];
+  private _data: ObservationResponse;
 
   constructor(private api: ApiService, private http: HttpClient) {}
 
@@ -68,7 +74,8 @@ export class ObsService {
   getStationTimeSeries(
     filter: ObsFilter,
     station: Station
-  ): Observable<Observation[]> {
+  ): Observable<ObservationResponse> {
+    // this._data = [];
     let d = [
       `${filter.reftime.getFullYear()}`,
       `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),
@@ -78,7 +85,7 @@ export class ObsService {
       q: `reftime: >=${d} 00:00,<=${d} 23:59`,
       lat: station.lat,
       lon: station.lon,
-      networks: station.network,
+      networks: station.net,
       stationDetails: true,
     };
     if (filter.timerange && filter.timerange !== "") {
@@ -88,6 +95,7 @@ export class ObsService {
       params["q"] += `;level:${filter.level}`;
     }
     return this.api.get("observations", "", params);
+    //.pipe(map((data: Observation[], descriptions: Descriptions[]) => (data.data, data.descr)));
   }
 
   /**
@@ -95,10 +103,10 @@ export class ObsService {
    * @param filter
    * @param update
    */
-  getData(filter: ObsFilter, update = false): Observable<Observation[]> {
+  getData(filter: ObsFilter, update = false): Observable<ObservationResponse> {
     return of(this._data).pipe(
       switchMap((data) => {
-        if (!update && data.length !== 0) {
+        if (!update && data) {
           return of(data);
         } else {
           return this.loadObservations(filter);
@@ -115,8 +123,8 @@ export class ObsService {
   private loadObservations(
     filter: ObsFilter,
     reliabilityCheck = true
-  ): Observable<Observation[]> {
-    this._data = [];
+  ): Observable<ObservationResponse> {
+    this._data = null;
     let d = [
       `${filter.reftime.getFullYear()}`,
       `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),
@@ -147,7 +155,7 @@ export class ObsService {
     }
     return this.api
       .get("observations", "", params)
-      .pipe(map((data: Observation[]) => (this._data = data)));
+      .pipe(map((data: ObservationResponse) => (this._data = data)));
   }
 
   download(

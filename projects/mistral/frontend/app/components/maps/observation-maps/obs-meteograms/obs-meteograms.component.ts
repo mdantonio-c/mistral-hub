@@ -6,6 +6,8 @@ import {
   Station,
   StationDetail,
   DataSeries,
+  ObservationResponse,
+  DescriptionDict,
 } from "@app/types";
 import { ObsService } from "../services/obs.service";
 
@@ -24,6 +26,7 @@ export class ObsMeteogramsComponent implements OnInit {
   filter: ObsFilter;
   multi: DataSeries[];
   report: Observation[];
+  descriptions: DescriptionDict;
   loading: boolean = false;
 
   // product info
@@ -81,23 +84,27 @@ export class ObsMeteogramsComponent implements OnInit {
     this.obsService
       .getData(this.filter, update)
       .subscribe(
-        (data: Observation[]) => {
+        (response: ObservationResponse) => {
+          let data: Observation[] = response.data;
+          this.descriptions = response.descr;
+          console.log("descriptions: ", this.descriptions);
           this.report = data;
-          // console.log(this.report);
           // get product info
           if (data.length !== 0) {
             let obs = data[0];
-            this.product = obs.products[0].description;
-            this.varcode = obs.products[0].varcode;
-            if (filter.level) {
+            //this.product = obs.prod[0].description;
+            this.product = response.descr[obs.prod[0].var].desc;
+            this.varcode = obs.prod[0].var;
+            /*if (filter.level) {
               this.level = obs.products[0].values[0].level_desc;
             }
             if (filter.timerange) {
               this.timerange = obs.products[0].values[0].timerange_desc;
-            }
+            }*/
           }
           let multi = this.normalize(data);
           Object.assign(this, { multi });
+          console.log(multi);
         },
         (error) => {
           this.notify.showError(error);
@@ -112,23 +119,26 @@ export class ObsMeteogramsComponent implements OnInit {
   private normalize(data: Observation[]): DataSeries[] {
     let res: DataSeries[] = [];
     data.forEach((obs) => {
-      let p: ObsData = obs.products[0];
+      let p: ObsData = obs.prod[0];
       let s: DataSeries = {
-        name: this.getName(obs.station) || "n/a",
-        code: p.varcode,
-        unit: p.unit,
+        name: this.getName(obs.stat) || "n/a",
+        code: p.var,
+        //unit: p.unit,
         series: [],
       };
-      s.series = p.values
-        .filter((obs) => obs.is_reliable === true)
+      s.series = p.val
+        .filter((obs) => obs.rel === 1)
         .map((obs) => {
           return {
-            name: obs.reftime,
-            value: ObsService.showData(obs.value, p.varcode),
+            name: obs.ref,
+            value: ObsService.showData(obs.val, p.var),
           };
         });
+      console.log("series: ", s.series);
+      //console.log("obs: ",obs)
       res.push(s);
     });
+    //console.log("normalized ",res)
     return res;
   }
 }

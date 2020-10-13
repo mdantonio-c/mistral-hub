@@ -10,6 +10,7 @@ import {
   ObsFilter,
   SingleObsData,
   Station,
+  ObservationResponse,
   StationDetail,
 } from "@app/types";
 import { ObsService } from "../services/obs.service";
@@ -86,13 +87,13 @@ export class ObsMapComponent {
           for (const m of childMarkers) {
             const singleObsData: SingleObsData = m.options["data"];
             if (!type) {
-              type = singleObsData.varcode;
+              type = singleObsData.var;
             }
-            if (singleObsData.value.is_reliable) {
-              let val = singleObsData.value.value;
+            if (singleObsData.val.rel === 1) {
+              let val = singleObsData.val.val;
               medians.push(val);
             } else {
-              let dirtyVal = singleObsData.value.value;
+              let dirtyVal = singleObsData.val.val;
               dirtyMedians.push(dirtyVal);
             }
           }
@@ -180,7 +181,9 @@ export class ObsMapComponent {
     this.obsService
       .getData(filter, update)
       .subscribe(
-        (data: Observation[]) => {
+        (response: ObservationResponse) => {
+          console.log(response);
+          let data = response.data;
           this.updateCount.emit(data.length);
           this.loadMarkers(data, filter.product, filter.onlyStations);
           if (data.length === 0) {
@@ -224,15 +227,15 @@ export class ObsMapComponent {
     if (!onlyStations) {
       // min and max needed before data marker creation
       data.forEach((s) => {
-        obsData = s.products.find((x) => x.varcode === product);
+        obsData = s.prod.find((x) => x.var === product);
         let localMin = Math.min(
-          ...obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
+          ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val)
         );
         if (!min || localMin < min) {
           min = localMin;
         }
         let localMax = Math.max(
-          ...obsData.values.filter((v) => v.is_reliable).map((v) => v.value)
+          ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val)
         );
         if (!max || localMax > max) {
           max = localMax;
@@ -242,18 +245,18 @@ export class ObsMapComponent {
     data.forEach((s) => {
       let icon;
       if (!onlyStations) {
-        obsData = s.products.find((x) => x.varcode === product);
+        obsData = s.prod.find((x) => x.var === product);
         let single_observation = false;
-        let count = obsData.values.length;
+        let count = obsData.val.length;
         if (count === 1) {
           single_observation = true;
         }
-        for (let i = 0; i < obsData.values.length; i++) {
+        for (let i = 0; i < obsData.val.length; i++) {
           // create an object for each value of obsData
           singleObsData = JSON.parse(JSON.stringify(obsData));
-          delete singleObsData["values"];
-          singleObsData.value = obsData.values[i];
-          let val = singleObsData.value.value;
+          delete singleObsData["val"];
+          singleObsData.val = obsData.val[i];
+          let val = singleObsData.val.val;
           if (!single_observation) {
             icon = L.divIcon({
               html: `<div class="mstDataIcon"><span>${ObsService.showData(
@@ -278,24 +281,24 @@ export class ObsMapComponent {
                 " marker-cluster",
             });
           }
-          const marker = new L.Marker([s.station.lat, s.station.lon], {
+          const marker = new L.Marker([s.stat.lat, s.stat.lon], {
             icon: icon,
           });
-          marker.options["station"] = s.station;
-          if (s.products) {
+          marker.options["station"] = s.stat;
+          if (s.prod) {
             marker.options["data"] = singleObsData;
             marker.bindTooltip(
               !single_observation
                 ? ObsMapComponent.buildDataTooltip(
-                    singleObsData.value.reftime,
-                    singleObsData.value.level_desc,
-                    singleObsData.value.timerange_desc
+                    singleObsData.val.ref
+                    // singleObsData.value.level_desc,
+                    // singleObsData.value.timerange_desc
                   )
                 : ObsMapComponent.buildTooltipTemplate(
-                    s.station,
-                    singleObsData.value.reftime,
-                    singleObsData.value.level_desc,
-                    singleObsData.value.timerange_desc
+                    s.stat,
+                    singleObsData.val.ref
+                    // singleObsData.value.level_desc,
+                    // singleObsData.value.timerange_desc
                   ),
               {
                 direction: "top",
@@ -305,7 +308,7 @@ export class ObsMapComponent {
             // marker.bindPopup(
             //   '<p>Hello world!<br />This is a nice popup.</p>'
             // );
-            marker.on("click", this.openStationReport.bind(this, s.station));
+            marker.on("click", this.openStationReport.bind(this, s.stat));
           }
           markers.push(marker);
         }
@@ -315,21 +318,18 @@ export class ObsMapComponent {
           iconSize: [20, 20],
           className: "mstDivIcon",
         });
-        const marker = new L.Marker([s.station.lat, s.station.lon], {
+        const marker = new L.Marker([s.stat.lat, s.stat.lon], {
           icon: icon,
         });
-        marker.options["station"] = s.station;
-        if (s.products) {
+        marker.options["station"] = s.stat;
+        if (s.prod) {
           marker.options["data"] = obsData;
         }
 
-        marker.bindTooltip(
-          ObsMapComponent.buildStationTooltip(s.station.details),
-          {
-            direction: "top",
-            offset: [3, -8],
-          }
-        );
+        marker.bindTooltip(ObsMapComponent.buildTooltipTemplate(s.stat), {
+          direction: "top",
+          offset: [3, -8],
+        });
         markers.push(marker);
       }
     });
@@ -371,14 +371,10 @@ export class ObsMapComponent {
     timerange?: string
   ) {
     let ident = station.ident || "";
-    let station_name = station.details.find((x) => x.code === "B01019") || "";
     const template =
       `<ul class="p-1 m-0">` +
       `<li><b><u>Station</u></b></li>` +
-      (typeof station_name === "object"
-        ? `<li><b>Name</b>: ` + station_name.value + `</li>`
-        : "") +
-      `<li><b>Network</b>: ${station.network}</li>` +
+      `<li><b>Network</b>: ${station.net}</li>` +
       (ident !== "" ? `<li><b>Ident</b>: ` + ident + `</li>` : "") +
       `<li><b>Lat</b>: ${station.lat}</li>` +
       `<li><b>Lon</b>: ${station.lon}</li>` +
@@ -392,34 +388,34 @@ export class ObsMapComponent {
       `</ul>`;
     return template;
   }
-  private static buildStationTooltip(station_details: StationDetail[]) {
+  /*private static buildStationTooltip(station_details: StationDetail[]) {
     let detail_list = "";
     station_details.forEach(function (d) {
       detail_list +=
         `<li><b>` +
         d.description
-          .replace(/\w\S*/g, function (txt) {
+          .replace(/\w\S*!/g, function (txt) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
           })
-          .replace(/ *\([^)]*\) */g, "") +
+          .replace(/ *\([^)]*\) *!/g, "") +
         `</b>: ` +
         d.value +
         `</li>`;
     });
     const template = `<ul class="p-1 m-0">` + detail_list + `</ul>`;
     return template;
-  }
+  }*/
 
   private static buildDataTooltip(
     reftime: string,
-    level: string,
-    timerange: string
+    level?: string,
+    timerange?: string
   ) {
     const template =
       `<ul class="p-1 m-0">
-                <li><b><u>Data</u></b></li><li><b>Reftime: </b>${reftime}</li>` +
-      `<li><b>Level: </b>${level}</li>` +
-      `<li><b>Timerange: </b>${timerange}</li>` +
+                <!--<li><b><u>Data</u></b></li>--><li><b>Reftime: </b>${reftime}</li>` +
+      /*        (level ? `<li><b>Level</b>${level}</li>` : "") +
+        (timerange ? `<li><b>Timerange: </b>${timerange}</li>`:"") +*/
       `</ul>`;
     return template;
   }

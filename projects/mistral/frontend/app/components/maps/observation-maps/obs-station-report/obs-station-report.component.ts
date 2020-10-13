@@ -6,7 +6,9 @@ import {
   Station,
   StationDetail,
   DataSeries,
-} from "@app/types";
+  ObservationResponse,
+  DescriptionDict,
+} from "../../../../types";
 import { ObsService } from "../services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
@@ -27,6 +29,7 @@ export class ObsStationReportComponent implements OnInit {
   level: string;
   timerange: string;
   report: Observation;
+  descriptions: DescriptionDict;
   active;
 
   multi: DataSeries[];
@@ -59,20 +62,34 @@ export class ObsStationReportComponent implements OnInit {
     this.obsService
       .getStationTimeSeries(this.filter, this.station)
       .subscribe(
-        (data: Observation[]) => {
+        //(data: Observation[], descriptions: Descriptions[]) => {
+        (response: ObservationResponse) => {
+          let data = response.data;
+          this.descriptions = response.descr;
+          console.log(data);
+          //console.log("reponse ",response," data",data," descr ",descriptions)
           // console.log(data);
           this.report = data[0];
-          if (this.filter.level) {
-            this.level = this.report.products[0].values[0].level_desc;
+          /*          if (this.filter.level) {
+            this.level = this.report.prod[0].val[0].level_desc;
           }
           if (this.filter.timerange) {
-            this.timerange = this.report.products[0].values[0].timerange_desc;
+            this.timerange = this.report.prod[0].val[0].timerange_desc;
+          }*/
+          if (this.filter.level) {
+            // FIXME
+            // this.level = this.descriptions[this.report.prod[0].lev].desc;
+          }
+          if (this.filter.timerange) {
+            // FIXME
+            // this.timerange = this.descriptions[this.report.prod[0].trange].desc;
           }
           let multi = this.normalize(data[0]);
           Object.assign(this, { multi });
-          // console.log(JSON.stringify(this.multi));
+          //console.log(JSON.stringify(this.multi));
           this.single = [multi[0]];
           this.active = this.single[0].code;
+          console.log("single: ", this.single, "multi: ", multi);
         },
         (error) => {
           this.notify.showError(error);
@@ -84,8 +101,8 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   getName() {
-    if (this.report && this.report.station.details) {
-      let nameDetail: StationDetail = this.report.station.details.find(
+    if (this.report && this.report.stat.details) {
+      let nameDetail: StationDetail = this.report.stat.details.find(
         (x) => x.code === STATION_NAME_CODE
       );
       if (nameDetail) {
@@ -120,17 +137,18 @@ export class ObsStationReportComponent implements OnInit {
 
   private normalize(data: Observation): DataSeries[] {
     let res: DataSeries[] = [];
-    data.products.forEach((v) => {
+    data.prod.forEach((v) => {
       let s: DataSeries = {
-        name: v.description,
-        code: v.varcode,
-        unit: v.unit,
+        // name: v.description,
+        name: "",
+        code: v.var,
+        // unit: v.unit,
         series: [],
       };
-      v.values.forEach((obs) => {
+      v.val.forEach((obs) => {
         s.series.push({
-          name: obs.reftime,
-          value: ObsService.showData(obs.value, v.varcode),
+          name: obs.ref,
+          value: ObsService.showData(obs.val, v.var),
         });
       });
       res.push(s);
