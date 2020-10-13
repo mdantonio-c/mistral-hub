@@ -223,11 +223,11 @@ export interface SingleObsData {
 }
 
 export interface DescriptionDict {
-  code: string;
-  descrDict: DescrObj;
+  [key: string]: DescrItem;
 }
-export interface DescrObj {
-  description: string;
+
+export interface DescrItem {
+  descr: string;
   unit?: string;
 }
 
