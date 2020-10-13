@@ -811,6 +811,7 @@ class BeDballe:
     def parse_obs_maps_response(raw_res):
         response = {}
         response_data = []
+        descriptions_dic = {}
         if raw_res:
             product_varcodes = []
             station_varcodes = []
@@ -856,7 +857,6 @@ class BeDballe:
                 res_el["prod"] = products_list
                 response_data.append(res_el)
 
-            descriptions_dic = {}
             for el in product_varcodes:
                 descr_el = {}
                 var_info = dballe.varinfo(el)
@@ -876,8 +876,8 @@ class BeDballe:
                 descr_el = {}
                 descr_el["desc"] = BeDballe.get_description(el, "timerange")
                 descriptions_dic[el] = descr_el
-            response["descr"] = descriptions_dic
-            response["data"] = response_data
+        response["descr"] = descriptions_dic
+        response["data"] = response_data
 
         return response
 
