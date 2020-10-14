@@ -66,11 +66,25 @@ class Templates(EndpointResource, Uploader):
         else:
             subfolder = os.path.join(user.uuid, "uploads", "shp")
         log.debug("uploading in {}", subfolder)
-        upload_response = self.upload(subfolder=subfolder)
-
-        upload_filename = upload_response.get_json()["filename"]
-        upload_filepath = os.path.join(UPLOAD_PATH, subfolder, upload_filename)
-        log.debug("File uploaded. Filepath : {}", upload_filepath)
+        try:
+            upload_res = self.upload(subfolder=subfolder)
+            if type(upload_res) == tuple:
+                upload_response = upload_res[0]
+            else:
+                upload_response = upload_res
+            log.debug("upload response: {}", upload_response)
+            upload_filename = upload_response["filename"]
+            upload_filepath = os.path.join(UPLOAD_PATH, subfolder, upload_filename)
+            log.debug("File uploaded. Filepath : {}", upload_filepath)
+        except Exception as error:
+            log.error(error)
+            # delete all geojson or zip files in the directory in order to clean it (geojson and zip files if the process doesn't rise an exception are always deleted. if there are such ind of files in the directory means they were uploaded but the exception was risen)
+            subfolder_path = os.path.join(UPLOAD_PATH, subfolder)
+            for i in os.listdir(subfolder_path):
+                if i.endswith(".zip") or i.endswith(".geojson"):
+                    file_to_remove = os.path.join(UPLOAD_PATH, subfolder, i)
+                    os.remove(file_to_remove)
+            raise SystemError("Unable to upload the template file")
 
         # if the file is a zip file extract the content in the upload folder
         if f[-1] == "zip":

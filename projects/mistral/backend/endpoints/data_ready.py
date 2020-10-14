@@ -106,7 +106,7 @@ class DataReady(EndpointResource):
 
             filters = r["args"].get("filters")
             processors = r["args"].get("processors")
-            output_format = r["args"].get("format")
+            output_format = r["args"].get("output_format")
             pushing_queue = r["args"].get("pushing_queue")
 
             try:
