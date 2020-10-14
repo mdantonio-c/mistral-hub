@@ -257,6 +257,14 @@ class MapsObservations(EndpointResource):
                 query_station_data["ident"] = ident
 
             query_station_data["rep_memo"] = networks
+
+            # since timerange and level are mandatory, add to the query for meteograms
+            if query_data:
+                if "timerange" in query_data:
+                    query_station_data["timerange"] = query_data["timerange"]
+                if "level" in query_data:
+                    query_station_data["level"] = query_data["level"]
+
             if reliabilityCheck:
                 query_station_data["query"] = "attrs"
             if query_data and "datetimemin" in query_data:

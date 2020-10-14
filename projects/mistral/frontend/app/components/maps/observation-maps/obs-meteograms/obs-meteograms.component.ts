@@ -93,7 +93,7 @@ export class ObsMeteogramsComponent implements OnInit {
           if (data.length !== 0) {
             let obs = data[0];
             //this.product = obs.prod[0].description;
-            this.product = response.descr[obs.prod[0].var].desc;
+            this.product = response.descr[obs.prod[0].var].descr;
             this.varcode = obs.prod[0].var;
             /*if (filter.level) {
               this.level = obs.products[0].values[0].level_desc;

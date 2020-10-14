@@ -735,37 +735,36 @@ class BeDballe:
             if count_data == 0:
                 return []
             for rec in tr.query_data(query):
+                query_for_details = {}
                 if rec["ident"]:
                     station_tuple = (rec["ident"], rec["rep_memo"])
+                    query_for_details["ident"] = rec["ident"]
                 else:
                     station_tuple = (
                         float(rec["lat"]),
                         float(rec["lon"]),
                         rec["rep_memo"],
                     )
+                    query_for_details["lat"] = float(rec["lat"])
+                    query_for_details["lon"] = float(rec["lon"])
+                query_for_details["rep_memo"] = rec["rep_memo"]
 
                 if station_tuple not in response.keys():
                     response[station_tuple] = {}
-                if query_station_data:
-                    # get data about the station
-                    query_for_details = {}
-                    if rec["ident"]:
-                        query_for_details["ident"] = rec["ident"]
-                    else:
-                        query_for_details["lat"] = float(rec["lat"])
-                        query_for_details["lon"] = float(rec["lon"])
-                    query_for_details["rep_memo"] = rec["rep_memo"]
+                details = []
+                if not query_station_data:
+                    # append the variable of station name to the query for details
+                    query_for_details["var"] = "B01019"
+                # add station details
+                for el in tr.query_station_data(query_for_details):
+                    detail_el = {}
+                    var = el["variable"]
+                    code = var.code
+                    detail_el["var"] = code
+                    detail_el["val"] = var.get()
+                    details.append(detail_el)
 
-                    details = []
-                    # add station details
-                    for el in tr.query_station_data(query_for_details):
-                        detail_el = {}
-                        var = el["variable"]
-                        code = var.code
-                        detail_el["var"] = code
-                        detail_el["val"] = var.get()
-                        details.append(detail_el)
-                    response[station_tuple]["details"] = details
+                response[station_tuple]["details"] = details
 
                 # get data values
                 if not only_stations:
@@ -811,6 +810,7 @@ class BeDballe:
     def parse_obs_maps_response(raw_res):
         response = {}
         response_data = []
+        descriptions_dic = {}
         if raw_res:
             product_varcodes = []
             station_varcodes = []
@@ -856,28 +856,27 @@ class BeDballe:
                 res_el["prod"] = products_list
                 response_data.append(res_el)
 
-            descriptions_dic = {}
             for el in product_varcodes:
                 descr_el = {}
                 var_info = dballe.varinfo(el)
-                descr_el["desc"] = var_info.desc
+                descr_el["descr"] = var_info.desc
                 descr_el["unit"] = var_info.unit
                 descriptions_dic[el] = descr_el
             for el in station_varcodes:
                 descr_el = {}
                 var_info = dballe.varinfo(el)
-                descr_el["desc"] = var_info.desc
+                descr_el["descr"] = var_info.desc
                 descriptions_dic[el] = descr_el
             for el in levels:
                 descr_el = {}
-                descr_el["desc"] = BeDballe.get_description(el, "level")
+                descr_el["descr"] = BeDballe.get_description(el, "level")
                 descriptions_dic[el] = descr_el
             for el in timeranges:
                 descr_el = {}
-                descr_el["desc"] = BeDballe.get_description(el, "timerange")
+                descr_el["descr"] = BeDballe.get_description(el, "timerange")
                 descriptions_dic[el] = descr_el
-            response["descr"] = descriptions_dic
-            response["data"] = response_data
+        response["descr"] = descriptions_dic
+        response["data"] = response_data
 
         return response
 
