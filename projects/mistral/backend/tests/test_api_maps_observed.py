@@ -158,11 +158,11 @@ class TestApp(BaseTests):
         # log.debug('check contents : response data: {}', res)
         check_product_1 = False
         check_product_2 = False
-        for i in res:
-            for e in i["products"]:
-                if e["varcode"] == product1:
+        for i in res["data"]:
+            for e in i["prod"]:
+                if e["var"] == product1:
                     check_product_1 = True
-                if e["varcode"] == product2:
+                if e["var"] == product2:
                     check_product_2 = True
 
             if check_product_1 and check_product_2:
@@ -205,8 +205,6 @@ class TestApp(BaseTests):
         response_data = self.get_content(r)
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
-        # validate response schema
-        EndpointResource.validate_input(response_data, "MapStations")
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -222,12 +220,10 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
-        station_lat_example = response_data[0]["station"]["lat"]
-        station_lon_example = response_data[0]["station"]["lon"]
+        station_lat_example = response_data["data"][0]["stat"]["lat"]
+        station_lon_example = response_data["data"][0]["stat"]["lon"]
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
-        # validate response schema
-        EndpointResource.validate_input(response_data, "MapStations")
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -244,7 +240,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         assert r.status_code == hcodes.HTTP_OK_BASIC
-        assert not response_data
+        assert not response_data["data"]
 
         # ### only bounding box as argument ####
         # Italy bounding-box
@@ -257,8 +253,6 @@ class TestApp(BaseTests):
         response_data = self.get_content(r)
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
-        # validate response schema
-        EndpointResource.validate_input(response_data, "MapStations")
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -277,7 +271,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         assert r.status_code == hcodes.HTTP_OK_BASIC
-        assert not response_data
+        assert not response_data["data"]
 
         # ### only product as argument ####
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product}".format(
@@ -289,8 +283,6 @@ class TestApp(BaseTests):
         response_data = self.get_content(r)
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
-        # validate response schema
-        EndpointResource.validate_input(response_data, "MapStations")
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -307,7 +299,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         assert r.status_code == hcodes.HTTP_OK_BASIC
-        assert not response_data
+        assert not response_data["data"]
 
         # ### all arguments ####
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product}&&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}&networks={network}".format(
@@ -324,8 +316,6 @@ class TestApp(BaseTests):
         response_data = self.get_content(r)
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
-        # validate response schema
-        EndpointResource.validate_input(response_data, "MapStations")
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -344,10 +334,8 @@ class TestApp(BaseTests):
         response_data = self.get_content(r)
         # check response code
         assert r.status_code == hcodes.HTTP_OK_BASIC
-        # validate response schema
-        EndpointResource.validate_input(response_data, "MapStations")
         # check response content
-        assert "data" not in response_data[0]
+        assert not response_data["data"][0]["prod"]
 
         #### get station details ####
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
@@ -369,7 +357,8 @@ class TestApp(BaseTests):
             lon=station_lon_example,
         )
         r = client.get(endpoint, headers=headers)
-        assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
+        response_data = self.get_content(r)
+        assert not response_data["data"]
         # check missing params
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&stationDetails=true".format(
             date_from=q_params["date_from"],

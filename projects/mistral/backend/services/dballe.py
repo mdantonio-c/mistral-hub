@@ -109,7 +109,7 @@ class BeDballe:
                         el["lon"] = cur["lon"]
                         station_list.append(el)
             if station_list:
-                arkimet_query += "area:GRIB:lat={}, lon={}".format(
+                arkimet_query += "area: GRIB:lat={}, lon={}".format(
                     str(station_list[0]["lat"]).replace(".", ""),
                     str(station_list[0]["lon"]).replace(".", ""),
                 )
@@ -125,11 +125,13 @@ class BeDballe:
                 # if there is no station list it means there are no data for this query
                 return None
         if bounding_box:
-            if "area: " not in arkimet_query:
-                arkimet_query += "area: "
+            if arkimet_query:
+                if "area:" not in arkimet_query:
+                    arkimet_query += "area: "
+                else:
+                    arkimet_query += " or "
             else:
-                arkimet_query += " or "
-
+                arkimet_query = "area: "
             arkimet_query += "bbox intersects POLYGON(({lonmin} {latmin},{lonmin} {latmax},{lonmax} {latmax}, {lonmax} {latmin}, {lonmin} {latmin}))".format(
                 lonmin=bounding_box["lonmin"],
                 latmin=bounding_box["latmin"],
@@ -417,6 +419,7 @@ class BeDballe:
 
             # create summary
             # if summary is required
+            summary = {}
             if summary_stats:
                 summary = BeDballe.get_summary(params, explorer, query)
             return fields, summary
@@ -1218,6 +1221,7 @@ class BeDballe:
 
     @staticmethod
     def fill_db_from_arkimet(datasets, query):
+        log.debug("filling dballe with data from arkimet")
         db = dballe.DB.connect("mem:")
         cfg = arki.cfg.Sections.parse(arki_service.arkimet_conf)
         importer = dballe.Importer("BUFR")
