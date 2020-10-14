@@ -46,7 +46,7 @@ script:
   - >
     if [[ "$STAGE" == "BACKEND" ]]; then
 
-      rapydo shell backend 'restapi tests --wait';
+      rapydo shell backend 'restapi tests --wait' || travis_terminate 1;
       docker cp mistral_backend_1:/code/coverage.xml coverage.xml;
       travis_retry bash <(curl -s https://codecov.io/bash);
 
