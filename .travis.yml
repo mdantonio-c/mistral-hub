@@ -34,6 +34,15 @@ script:
 
       rapydo pull;
       rapydo build --force;
+
+      if [[ "$STAGE" == "BACKEND" ]]; then
+        rapydo volatile backend "arki-scan \-\-help" || travis_terminate 1;
+        rapydo volatile backend "arki-query \-\-help" || travis_terminate 1;
+        rapydo volatile backend "dbadb \-\-help" || travis_terminate 1;
+        rapydo volatile backend "vg6d_transform \-\-help" || travis_terminate 1;
+        rapydo volatile backend "v7d_transform \-\-help" || travis_terminate 1;
+      fi
+
       rapydo start;
       rapydo shell backend 'restapi wait';
       echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh;
@@ -45,12 +54,6 @@ script:
 
   - >
     if [[ "$STAGE" == "BACKEND" ]]; then
-
-      rapydo volatile backend "arki-scan --help" || travis_terminate 1;
-      rapydo volatile backend "arki-query --help" || travis_terminate 1;
-      rapydo volatile backend "dbadb --help" || travis_terminate 1;
-      rapydo volatile backend "vg6d_transform --help" || travis_terminate 1;
-      rapydo volatile backend "v7d_transform --help" || travis_terminate 1;
 
       rapydo shell backend 'restapi tests --wait' || travis_terminate 1;
       docker cp mistral_backend_1:/code/coverage.xml coverage.xml;
