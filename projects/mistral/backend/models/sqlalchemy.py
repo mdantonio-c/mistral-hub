@@ -90,15 +90,49 @@ class GroupLicense(db.Model):
 
 
 class License(db.Model):
+    __tablename__ = "attribution"
     id = db.Column(db.Integer, primary_key=True)
     group_license_id = db.Column(db.Integer, db.ForeignKey("group_license.id"))
     name = db.Column(db.String, index=True, nullable=False)
     descr = db.Column(db.String, nullable=False)
     url = db.Column(db.String)
+    datasets = db.relationship("Datasets", backref="dataset_license", lazy="dynamic")
 
 
 class Attribution(db.Model):
+    __tablename__ = "license"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, index=True, nullable=False)
     descr = db.Column(db.String, nullable=False)
     url = db.Column(db.String)
+    datasets = db.relationship(
+        "Datasets", backref="dataset_attribution", lazy="dynamic"
+    )
+
+
+class DatasetCategories(enum.Enum):
+    FOR = 1
+    OBS = 2
+    RAD = 3
+
+
+dataset_user_association_table = db.Table(
+    "auth_association",
+    db.Column("dataset_id", db.Integer, db.ForeignKey("datasets.id")),
+    db.Column("user_id", db.Integer, db.ForeignKey("user.id")),
+)
+
+
+class Datasets(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, index=True, nullable=False)
+    description = db.Column(db.String, nullable=False)
+    license_id = db.Column(db.Integer, db.ForeignKey("license.id"))
+    attribution_id = db.Column(db.Integer, db.ForeignKey("attribution.id"))
+    category = db.Column(db.Enum(DatasetCategories))
+    users = db.relationship(
+        "User",
+        secondary=dataset_user_association_table,
+        backref="datasets",
+        lazy="dynamic",
+    )
