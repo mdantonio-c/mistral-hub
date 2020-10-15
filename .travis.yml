@@ -36,11 +36,11 @@ script:
       rapydo build --force;
 
       if [[ "$STAGE" == "BACKEND" ]]; then
-        rapydo volatile backend "arki-scan \-\-help" || travis_terminate 1;
-        rapydo volatile backend "arki-query \-\-help" || travis_terminate 1;
-        rapydo volatile backend "dbadb \-\-help" || travis_terminate 1;
-        rapydo volatile backend "vg6d_transform \-\-help" || travis_terminate 1;
-        rapydo volatile backend "v7d_transform \-\-help" || travis_terminate 1;
+        rapydo volatile backend \"arki-scan --help\" || travis_terminate 1;
+        rapydo volatile backend \"arki-query --help\" || travis_terminate 1;
+        rapydo volatile backend \"dbadb --help\" || travis_terminate 1;
+        rapydo volatile backend \"vg6d_transform --help\" || travis_terminate 1;
+        rapydo volatile backend \"v7d_transform --help\" || travis_terminate 1;
       fi
 
       rapydo start;
