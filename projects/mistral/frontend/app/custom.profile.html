@@ -22,17 +22,17 @@
   <th>Allowed datasets</th>
   <td>
     <ng-container *ngIf="row.value.length > 0; else noExpiration">
-      {{ row.value }}
+      {{ row.value | json }}
     </ng-container>
     <ng-template #noExpiration> - </ng-template>
   </td>
 </ng-container>
 
-<ng-container *ngIf="row.key == 'licences'">
+<ng-container *ngIf="row.key == 'group_license'">
   <th>Allowed licences</th>
   <td>
     <ng-container *ngIf="row.value.length > 0; else noExpiration">
-      {{ row.value }}
+      {{ row.value | json }}
     </ng-container>
     <ng-template #noExpiration> - </ng-template>
   </td>

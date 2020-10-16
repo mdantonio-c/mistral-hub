@@ -230,15 +230,25 @@ class Customizer(BaseCustomizer):
     @staticmethod
     def custom_user_properties_pre(properties):
         extra_properties = {}
-        for p in ("datasets", "licences"):
+        for p in ("datasets", "group_license"):
             if p in properties:
                 extra_properties[p] = properties.pop(p, None)
         return properties, extra_properties
 
     @staticmethod
     def custom_user_properties_post(user, properties, extra_properties, db):
-        log.critical(extra_properties)
-        pass
+
+        licences = []
+        for licence_id in extra_properties.get("group_license", []):
+            lic = db.GroupLicense.query.filter_by(id=int(licence_id)).first()
+            licences.append(lic)
+        user.group_license = licences
+
+        datasets = []
+        for dataset_id in extra_properties.get("datasets", []):
+            dat = db.GroupLicense.query.filter_by(id=int(dataset_id)).first()
+            datasets.append(dat)
+        user.datasets = datasets
 
     @staticmethod
     def manipulate_profile(ref, user, data):
@@ -246,7 +256,7 @@ class Customizer(BaseCustomizer):
         data["amqp_queue"] = user.amqp_queue
         data["requests_expiration_days"] = user.requests_expiration_days
         data["datasets"] = user.datasets
-        # data["licences"] = user.licences
+        data["group_license"] = user.group_license
 
         return data
 
@@ -302,7 +312,7 @@ class Customizer(BaseCustomizer):
                 description="",
                 multiple=True,
             ),
-            "licences": AdvancedList(
+            "group_license": AdvancedList(
                 fields.Str(
                     validate=validate.OneOf(
                         choices=[str(v.id) for v in licences],
