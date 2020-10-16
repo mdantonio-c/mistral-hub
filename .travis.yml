@@ -23,7 +23,7 @@ script:
   - export COMMIT_INFO_TIMESTAMP="$(git show -s --pretty=%ct)"
   - export COMMIT_INFO_REMOTE="$(git config --get remote.origin.url)"
   - export CYPRESS_GROUP="$(git show -s --pretty=%H)"
-  - TESTING=1 rapydo init
+  - rapydo --testing init
   - >
     if [[ "$STAGE" != "FRONTEND" ]]; then
       wget --quiet $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf;

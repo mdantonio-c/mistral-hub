@@ -5,6 +5,8 @@ export interface CustomUser {
    */
   amqp_queue: string;
   requests_expiration_days: number;
+  datasets: string[];
+  // licences: string[];
 }
 
 export interface CodeDescPair {

@@ -245,6 +245,8 @@ class Customizer(BaseCustomizer):
         data["disk_quota"] = user.disk_quota
         data["amqp_queue"] = user.amqp_queue
         data["requests_expiration_days"] = user.requests_expiration_days
+        data["datasets"] = user.datasets
+        # data["licences"] = user.licences
 
         return data
 
@@ -257,6 +259,14 @@ class Customizer(BaseCustomizer):
 
     @staticmethod
     def get_custom_fields(request):
+
+        # Do not import it outside this function
+        from restapi.services.detect import detector
+
+        db = detector.get_service_instance("sqlalchemy")
+
+        datasets = db.Datasets.query.all()
+        licences = db.GroupLicense.query.all()
 
         required = request and request.method == "POST"
 
@@ -281,14 +291,24 @@ class Customizer(BaseCustomizer):
                 description="Number of days after which requests will be cleaned",
             ),
             "datasets": AdvancedList(
-                fields.Str(validate=validate.OneOf(("a", "b", "c"))),
+                fields.Str(
+                    validate=validate.OneOf(
+                        choices=[str(v.id) for v in datasets],
+                        labels=[v.name for v in datasets],
+                    )
+                ),
                 required=False,
                 label="List of allowed datasets",
                 description="",
                 multiple=True,
             ),
             "licences": AdvancedList(
-                fields.Str(validate=validate.OneOf(("a", "b", "c"))),
+                fields.Str(
+                    validate=validate.OneOf(
+                        choices=[str(v.id) for v in licences],
+                        labels=[v.name for v in licences],
+                    )
+                ),
                 required=False,
                 label="List of allowed licences",
                 description="",

@@ -37,6 +37,8 @@ export class ProjectOptions extends BaseProjectOptions {
       },
       { name: "AMQP", prop: "amqp_queue", flexGrow: 0.3 },
       { name: "Req.Exp.", prop: "requests_expiration_days", flexGrow: 0.3 },
+      { name: "Datasets", prop: "datasets", flexGrow: 0.3 },
+      { name: "Licences", prop: "licences", flexGrow: 0.3 },
     ];
   }
 
