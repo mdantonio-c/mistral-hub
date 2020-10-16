@@ -82,11 +82,25 @@ class Schedule(db.Model):
         )
 
 
+grp_licence_user_association_table = db.Table(
+    "grp_licence_association",
+    db.Column("grp_licence_id", db.Integer, db.ForeignKey("group_license.id")),
+    db.Column("user_id", db.Integer, db.ForeignKey("user.id")),
+)
+
+
 class GroupLicense(db.Model):
+    __tablename__ = "group_license"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, index=True, nullable=False)
     descr = db.Column(db.String, nullable=False)
     license = db.relationship("License", backref="group_license", lazy="dynamic")
+    users = db.relationship(
+        "User",
+        secondary=grp_licence_user_association_table,
+        backref="group_license",
+        lazy="dynamic",
+    )
 
 
 class License(db.Model):
