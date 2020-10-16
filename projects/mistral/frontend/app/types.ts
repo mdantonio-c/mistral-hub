@@ -5,8 +5,8 @@ export interface CustomUser {
    */
   amqp_queue: string;
   requests_expiration_days: number;
-  datasets: string[];
-  group_license: string[];
+  datasets: SimpleDataset[];
+  group_license: SimpleGroupLicence[];
 }
 
 export interface CodeDescPair {
@@ -80,6 +80,16 @@ export interface Filters {
   name: string;
   values: any[];
   query: string;
+}
+
+export interface SimpleDataset {
+  id: string;
+  name: string;
+}
+
+export interface SimpleGroupLicence {
+  id: string;
+  name: string;
 }
 
 export interface Dataset {

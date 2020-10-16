@@ -1,5 +1,5 @@
 from restapi.customizer import BaseCustomizer
-from restapi.models import AdvancedList, fields, validate
+from restapi.models import AdvancedList, Schema, fields, validate
 from restapi.utilities.logs import log
 
 
@@ -226,6 +226,16 @@ class Initializer:
         log.info("Automatic_cleanup task installed every day at {}:{}", HOUR, MINUTE)
 
 
+class GroupLicence(Schema):
+    id = fields.Str()
+    name = fields.Str()
+
+
+class Datasets(Schema):
+    id = fields.Str()
+    name = fields.Str()
+
+
 class Customizer(BaseCustomizer):
     @staticmethod
     def custom_user_properties_pre(properties):
@@ -262,13 +272,13 @@ class Customizer(BaseCustomizer):
 
     @staticmethod
     def get_user_editable_fields(request):
-        fields = Customizer.get_custom_fields(request)
+        fields = Customizer.get_custom_input_fields(request)
 
         f = "requests_expiration_days"
         return {f: fields[f]}
 
     @staticmethod
-    def get_custom_fields(request):
+    def get_custom_input_fields(request):
 
         # Do not import it outside this function
         from restapi.services.detect import detector
@@ -325,3 +335,12 @@ class Customizer(BaseCustomizer):
                 multiple=True,
             ),
         }
+
+    @staticmethod
+    def get_custom_output_fields(request):
+        custom_fields = Customizer.get_custom_input_fields(request)
+
+        custom_fields["datasets"] = fields.Nested(Datasets(many=True))
+        custom_fields["group_license"] = fields.Nested(GroupLicence(many=True))
+
+        return custom_fields

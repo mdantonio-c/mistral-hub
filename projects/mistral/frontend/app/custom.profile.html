@@ -21,19 +21,23 @@
 <ng-container *ngIf="row.key == 'datasets'">
   <th>Allowed datasets</th>
   <td>
-    <ng-container *ngIf="row.value.length > 0; else noExpiration">
-      {{ row.value | json }}
+    <ng-container *ngIf="row.value.length > 0; else noValues">
+      <span class="badge badge-info role-badge" *ngFor="let v of row.value">
+        {{ v.name }}
+      </span>
     </ng-container>
-    <ng-template #noExpiration> - </ng-template>
+    <ng-template #noValues> - </ng-template>
   </td>
 </ng-container>
 
 <ng-container *ngIf="row.key == 'group_license'">
   <th>Allowed licences</th>
   <td>
-    <ng-container *ngIf="row.value.length > 0; else noExpiration">
-      {{ row.value | json }}
+    <ng-container *ngIf="row.value.length > 0; else noValues">
+      <span class="badge badge-info role-badge" *ngFor="let v of row.value">
+        {{ v.name }}
+      </span>
     </ng-container>
-    <ng-template #noExpiration> - </ng-template>
+    <ng-template #noValues> - </ng-template>
   </td>
 </ng-container>
