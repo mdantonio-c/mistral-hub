@@ -1,3 +1,5 @@
+from restapi.customizer import BaseCustomizer
+from restapi.models import AdvancedList, fields, validate
 from restapi.utilities.logs import log
 
 
@@ -179,7 +181,9 @@ class Initializer:
             attribution = sql.Attribution.query.filter_by(name=el["name"]).first()
             if attribution is None:
                 new_attribution = sql.Attribution(
-                    name=el["name"], descr=el["descr"], url=el["url"],
+                    name=el["name"],
+                    descr=el["descr"],
+                    url=el["url"],
                 )
                 sql.session.add(new_attribution)
             else:
@@ -222,19 +226,72 @@ class Initializer:
         log.info("Automatic_cleanup task installed every day at {}:{}", HOUR, MINUTE)
 
 
-class Customizer:
-    """
-    This class is used to manipulate user information
-    - custom_user_properties is executed just before user creation
-                             use this to removed or manipulate input properties
-                             before sending to the database
-    - custom_post_handle_user_input is used just after user registration
-                                    use this to perform setup operations,
-                                    such as verify default settings
-    """
+class Customizer(BaseCustomizer):
+    @staticmethod
+    def custom_user_properties_pre(properties):
+        extra_properties = {}
+        for p in ("datasets", "licences"):
+            if p in properties:
+                extra_properties[p] = properties.pop(p, None)
+        return properties, extra_properties
 
-    def custom_user_properties(self, properties):
-        return properties
+    @staticmethod
+    def custom_user_properties_post(user, properties, extra_properties, db):
+        log.critical(extra_properties)
+        pass
 
-    def custom_post_handle_user_input(self, auth, user_node, properties):
-        return True
+    @staticmethod
+    def manipulate_profile(ref, user, data):
+        data["disk_quota"] = user.disk_quota
+        data["amqp_queue"] = user.amqp_queue
+        data["requests_expiration_days"] = user.requests_expiration_days
+
+        return data
+
+    @staticmethod
+    def get_user_editable_fields(request):
+        fields = Customizer.get_custom_fields(request)
+
+        f = "requests_expiration_days"
+        return {f: fields[f]}
+
+    @staticmethod
+    def get_custom_fields(request):
+
+        required = request and request.method == "POST"
+
+        return {
+            "disk_quota": fields.Int(
+                required=required,
+                # validate=validate.Range(min=0, max=???),
+                validate=validate.Range(min=0),
+                label="Disk quota",
+                description="Disk quota in bytes",
+            ),
+            "amqp_queue": fields.Str(
+                required=False,
+                label="AMQP queue",
+                description="AMQP queue used to notify the user",
+            ),
+            "requests_expiration_days": fields.Int(
+                required=False,
+                missing=0,
+                validate=validate.Range(min=0, max=365),
+                label="Requests expirations (in days, 0 to disable)",
+                description="Number of days after which requests will be cleaned",
+            ),
+            "datasets": AdvancedList(
+                fields.Str(validate=validate.OneOf(("a", "b", "c"))),
+                required=False,
+                label="List of allowed datasets",
+                description="",
+                multiple=True,
+            ),
+            "licences": AdvancedList(
+                fields.Str(validate=validate.OneOf(("a", "b", "c"))),
+                required=False,
+                label="List of allowed licences",
+                description="",
+                multiple=True,
+            ),
+        }
