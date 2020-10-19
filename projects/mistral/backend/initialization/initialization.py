@@ -318,8 +318,9 @@ class Customizer(BaseCustomizer):
                     )
                 ),
                 required=False,
-                label="List of allowed datasets",
-                description="",
+                label="Allowed datasets",
+                description="List of allowed datasets",
+                unique=True,
                 multiple=True,
             ),
             "group_license": AdvancedList(
@@ -330,8 +331,9 @@ class Customizer(BaseCustomizer):
                     )
                 ),
                 required=False,
-                label="List of allowed licences",
-                description="",
+                label="Allowed licences",
+                description="List of allowed licences",
+                unique=True,
                 multiple=True,
             ),
         }
