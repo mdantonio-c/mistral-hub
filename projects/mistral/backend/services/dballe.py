@@ -754,20 +754,20 @@ class BeDballe:
 
                 if station_tuple not in response.keys():
                     response[station_tuple] = {}
-                details = []
-                if not query_station_data:
-                    # append the variable of station name to the query for details
-                    query_for_details["var"] = "B01019"
-                # add station details
-                for el in tr.query_station_data(query_for_details):
-                    detail_el = {}
-                    var = el["variable"]
-                    code = var.code
-                    detail_el["var"] = code
-                    detail_el["val"] = var.get()
-                    details.append(detail_el)
+                    details = []
+                    if not query_station_data:
+                        # append the variable of station name to the query for details
+                        query_for_details["var"] = "B01019"
+                    # add station details
+                    for el in tr.query_station_data(query_for_details):
+                        detail_el = {}
+                        var = el["variable"]
+                        code = var.code
+                        detail_el["var"] = code
+                        detail_el["val"] = var.get()
+                        details.append(detail_el)
 
-                response[station_tuple]["details"] = details
+                    response[station_tuple]["details"] = details
 
                 # get data values
                 if not only_stations:
