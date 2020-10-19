@@ -730,7 +730,7 @@ class BeDballe:
         if download:
             return db, query_data, query_station_data
 
-        log.debug("query data for maps {}", query)
+        log.debug("start retrieving data: query data for maps {}", query)
         with db.transaction() as tr:
             # check if query gives back a result
             count_data = tr.query_data(query).remaining
@@ -811,6 +811,7 @@ class BeDballe:
 
     @staticmethod
     def parse_obs_maps_response(raw_res):
+        log.debug("start parsing response for maps")
         response = {}
         response_data = []
         descriptions_dic = {}
