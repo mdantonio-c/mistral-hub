@@ -58,26 +58,20 @@ class Datasets(EndpointResource):
         if licenceSpecs:
             db = self.get_service_instance("sqlalchemy")
             for ds in datasets:
-                if "license" in ds:
-                    license_name = ds["license"]
-                    license = db.License.query.filter_by(name=license_name).first()
-                    if license:
-                        ds["license_description"] = license.descr
-                        ds["license_url"] = license.url
-                        group_license_id = license.group_license_id
-                        gp_license = db.GroupLicense.query.filter_by(
-                            id=group_license_id
-                        ).first()
-                        ds["group_license"] = gp_license.name
-                        ds["group_license_description"] = gp_license.descr
-
-                if "attribution" in ds:
-                    attribution_name = ds["attribution"]
-                    attribution = db.Attribution.query.filter_by(
-                        name=attribution_name
-                    ).first()
-                    if attribution:
-                        ds["attribution_description"] = attribution.descr
-                        ds["attribution_url"] = attribution.url
+                # get the dataset entry
+                ds_entry = db.Datasets.query.filter_by(name=ds["name"]).first()
+                license = db.License.query.filter_by(id=ds_entry.license_id).first()
+                attribution = db.Attribution.query.filter_by(
+                    id=ds_entry.attribution_id
+                ).first()
+                ds["license_description"] = license.descr
+                ds["license_url"] = license.url
+                group_license = db.GroupLicense.query.filter_by(
+                    id=license.group_license_id
+                ).first()
+                ds["group_license"] = group_license.name
+                ds["group_license_description"] = group_license.descr
+                ds["attribution_description"] = attribution.descr
+                ds["attribution_url"] = attribution.url
 
         return self.response(datasets)
