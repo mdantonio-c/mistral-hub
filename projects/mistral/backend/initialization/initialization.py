@@ -280,13 +280,17 @@ class Customizer(BaseCustomizer):
     @staticmethod
     def get_custom_input_fields(request):
 
-        # Do not import it outside this function
-        from restapi.services.detect import detector
+        # prevent queries at server startup
+        if request:
+            # Do not import it outside this function
+            from restapi.services.detect import detector
 
-        db = detector.get_service_instance("sqlalchemy")
-
-        datasets = db.Datasets.query.all()
-        licences = db.GroupLicense.query.all()
+            db = detector.get_service_instance("sqlalchemy")
+            datasets = db.Datasets.query.all()
+            licences = db.GroupLicense.query.all()
+        else:
+            datasets = []
+            licences = []
 
         required = request and request.method == "POST"
 
