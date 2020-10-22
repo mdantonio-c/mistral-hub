@@ -1,3 +1,4 @@
+from mistral.services.arkimet import BeArkimet as arki
 from restapi.customizer import BaseCustomizer
 from restapi.models import AdvancedList, Schema, fields, validate
 from restapi.utilities.logs import log
@@ -192,9 +193,65 @@ class Initializer:
                     attribution.descr = el["descr"]
                     attribution.url = el["url"]
                     sql.session.add(attribution)
-
         sql.session.commit()
         log.info("License and attributions successfully updated")
+
+        # update dataset table
+        datasets = arki.load_datasets()
+        for ds in datasets:
+            required_fields = [
+                "name",
+                "description",
+                "license",
+                "attribution",
+                "category",
+            ]
+            if not all(fields in ds for fields in required_fields):
+                log.error("Config for dataset {} is not complete", ds["name"])
+                continue
+            ds_entry = sql.Datasets.query.filter_by(name=ds["name"]).first()
+            ds_attribution = sql.Attribution.query.filter_by(
+                name=ds["attribution"]
+            ).first()
+            ds_license = sql.License.query.filter_by(name=ds["license"]).first()
+            if ds_attribution is None:
+                log.error(
+                    "Dataset {} cannot be updated: attribution {} does not exist",
+                    ds["name"],
+                    ds["attribution"],
+                )
+                continue
+            if ds_license is None:
+                log.error(
+                    "Dataset {} cannot be updated: license {} does not exist",
+                    ds["name"],
+                    ds["license"],
+                )
+                continue
+            if ds_entry is None:
+                new_ds = sql.Datasets(
+                    name=ds["name"],
+                    description=ds["description"],
+                    license_id=ds_license.id,
+                    attribution_id=ds_attribution.id,
+                    category=ds["category"],
+                )
+                sql.session.add(new_ds)
+            else:
+                # check if the dataset entry has to be updated
+                if (
+                    ds_entry.description != ds["description"]
+                    or ds_entry.license_id != ds_license.id
+                    or ds_entry.attribution_id != ds_attribution.id
+                    or ds_entry.category != ds["category"]
+                ):
+                    ds_entry.description = ds["description"]
+                    ds_entry.license_id = ds_license.id
+                    ds_entry.attribution_id = ds_attribution.id
+                    ds_entry.category = ds["category"]
+                    sql.session.add(ds_entry)
+        sql.session.commit()
+        log.info("Datasets successfully updated")
 
         celery = services["celery"]
         UNIQUE_NAME = "requests_cleanup"
@@ -280,13 +337,17 @@ class Customizer(BaseCustomizer):
     @staticmethod
     def get_custom_input_fields(request):
 
-        # Do not import it outside this function
-        from restapi.services.detect import detector
+        # prevent queries at server startup
+        if request:
+            # Do not import it outside this function
+            from restapi.services.detect import detector
 
-        db = detector.get_service_instance("sqlalchemy")
-
-        datasets = db.Datasets.query.all()
-        licences = db.GroupLicense.query.all()
+            db = detector.get_service_instance("sqlalchemy")
+            datasets = db.Datasets.query.all()
+            licences = db.GroupLicense.query.all()
+        else:
+            datasets = []
+            licences = []
 
         required = request and request.method == "POST"
 
@@ -319,7 +380,7 @@ class Customizer(BaseCustomizer):
                 ),
                 required=False,
                 label="Allowed datasets",
-                description="List of allowed datasets",
+                description="",
                 unique=True,
                 multiple=True,
             ),
@@ -332,7 +393,7 @@ class Customizer(BaseCustomizer):
                 ),
                 required=False,
                 label="Allowed licences",
-                description="List of allowed licences",
+                description="",
                 unique=True,
                 multiple=True,
             ),
