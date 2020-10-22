@@ -69,10 +69,10 @@ export class ObsMeteogramsComponent implements OnInit {
   private getName(station: Station) {
     if (station.details) {
       let nameDetail: StationDetail = station.details.find(
-        (x) => x.code === STATION_NAME_CODE
+        (x) => x.var === STATION_NAME_CODE
       );
       if (nameDetail) {
-        return nameDetail.value;
+        return nameDetail.val;
       }
     }
   }
@@ -87,7 +87,6 @@ export class ObsMeteogramsComponent implements OnInit {
         (response: ObservationResponse) => {
           let data: Observation[] = response.data;
           this.descriptions = response.descr;
-          console.log("descriptions: ", this.descriptions);
           this.report = data;
           // get product info
           if (data.length !== 0) {
@@ -104,7 +103,7 @@ export class ObsMeteogramsComponent implements OnInit {
           }
           let multi = this.normalize(data);
           Object.assign(this, { multi });
-          console.log(multi);
+          // console.log(multi);
         },
         (error) => {
           this.notify.showError(error);
@@ -123,7 +122,6 @@ export class ObsMeteogramsComponent implements OnInit {
       let s: DataSeries = {
         name: this.getName(obs.stat) || "n/a",
         code: p.var,
-        //unit: p.unit,
         series: [],
       };
       s.series = p.val
@@ -134,11 +132,8 @@ export class ObsMeteogramsComponent implements OnInit {
             value: ObsService.showData(obs.val, p.var),
           };
         });
-      console.log("series: ", s.series);
-      //console.log("obs: ",obs)
       res.push(s);
     });
-    //console.log("normalized ",res)
     return res;
   }
 }

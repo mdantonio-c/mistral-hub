@@ -182,7 +182,6 @@ export class ObsMapComponent {
       .getData(filter, update)
       .subscribe(
         (response: ObservationResponse) => {
-          console.log(response);
           let data = response.data;
           this.updateCount.emit(data.length);
           this.loadMarkers(data, filter.product, filter.onlyStations);
@@ -371,9 +370,14 @@ export class ObsMapComponent {
     timerange?: string
   ) {
     let ident = station.ident || "";
+    let name =
+      station.details && station.details.length
+        ? station.details.find((e) => e.var === "B01019")
+        : undefined;
     const template =
       `<ul class="p-1 m-0">` +
       `<li><b><u>Station</u></b></li>` +
+      (name ? `<li><b>Name</b>: ${name.val}</li>` : "") +
       `<li><b>Network</b>: ${station.net}</li>` +
       (ident !== "" ? `<li><b>Ident</b>: ` + ident + `</li>` : "") +
       `<li><b>Lat</b>: ${station.lat}</li>` +

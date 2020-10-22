@@ -33,11 +33,6 @@
                 class="list-group-item px-0 py-1"
                 *ngFor="let d of report.stat?.details"
               >
-                <!--<p class="h6 my-0">
-                  {{
-                    d.description | titlecase | replace: "\\(([^\\)]+)\\)":""
-                  }}
-                </p>-->
                 <p class="h6 my-0">
                   {{
                     descriptions[d.var].descr
@@ -77,8 +72,7 @@
               style="font-size: small"
             >
               <ng-container *ngFor="let p of report.prod">
-                <li [ngbNavItem]="descriptions[p.var].descr">
-                  <!--                  <a ngbNavLink>{{ p.description | uppercase }}</a>-->
+                <li [ngbNavItem]="p.var">
                   <a ngbNavLink>{{ descriptions[p.var].descr | uppercase }}</a>
                   <ng-template ngbNavContent></ng-template>
                 </li>

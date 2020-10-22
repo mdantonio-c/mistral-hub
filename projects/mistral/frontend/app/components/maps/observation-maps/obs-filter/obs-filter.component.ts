@@ -68,6 +68,7 @@ export class ObsFilterComponent implements OnInit {
     let startFilter: ObsFilter = {
       product: this.DEFAULT_PRODUCT,
       reftime: this.today,
+      network: "agrmet",
     };
     this.loadFilter(startFilter, true);
 

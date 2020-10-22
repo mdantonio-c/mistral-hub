@@ -8,7 +8,7 @@ import {
   DataSeries,
   ObservationResponse,
   DescriptionDict,
-} from "../../../../types";
+} from "@app/types";
 import { ObsService } from "../services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
@@ -66,30 +66,19 @@ export class ObsStationReportComponent implements OnInit {
         (response: ObservationResponse) => {
           let data = response.data;
           this.descriptions = response.descr;
-          console.log(data);
-          //console.log("reponse ",response," data",data," descr ",descriptions)
-          // console.log(data);
           this.report = data[0];
-          /*          if (this.filter.level) {
-            this.level = this.report.prod[0].val[0].level_desc;
-          }
-          if (this.filter.timerange) {
-            this.timerange = this.report.prod[0].val[0].timerange_desc;
-          }*/
-          if (this.filter.level) {
-            // FIXME
-            // this.level = this.descriptions[this.report.prod[0].lev].desc;
-          }
-          if (this.filter.timerange) {
-            // FIXME
-            // this.timerange = this.descriptions[this.report.prod[0].trange].desc;
-          }
+          // if (this.filter.level) {
+          //   this.level = this.descriptions[this.report.prod[0].lev].desc;
+          // }
+          // if (this.filter.timerange) {
+          //   this.timerange = this.descriptions[this.report.prod[0].trange].desc;
+          // }
           let multi = this.normalize(data[0]);
           Object.assign(this, { multi });
           //console.log(JSON.stringify(this.multi));
           this.single = [multi[0]];
           this.active = this.single[0].code;
-          console.log("single: ", this.single, "multi: ", multi);
+          // console.log("single: ", this.single, "multi: ", multi);
         },
         (error) => {
           this.notify.showError(error);
@@ -103,10 +92,10 @@ export class ObsStationReportComponent implements OnInit {
   getName() {
     if (this.report && this.report.stat.details) {
       let nameDetail: StationDetail = this.report.stat.details.find(
-        (x) => x.code === STATION_NAME_CODE
+        (x) => x.var === STATION_NAME_CODE
       );
       if (nameDetail) {
-        return nameDetail.value;
+        return nameDetail.val;
       }
     }
   }

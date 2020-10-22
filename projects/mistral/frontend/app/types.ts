@@ -205,9 +205,8 @@ export interface Station {
 }
 
 export interface StationDetail {
-  code: string;
-  value: string;
-  description: string;
+  var: string;
+  val: string;
 }
 
 export interface ObsValues {
@@ -219,9 +218,6 @@ export interface ObsValues {
 }
 
 export interface ObsData {
-  // description: string;
-  // scale: number;
-  // unit: string;
   val: ObsValues[];
   var: string;
 }
