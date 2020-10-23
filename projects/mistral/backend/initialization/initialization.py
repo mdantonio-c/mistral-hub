@@ -236,6 +236,10 @@ class Initializer:
                     attribution_id=ds_attribution.id,
                     category=ds["category"],
                 )
+                if "format" in ds:
+                    new_ds.fileformat = ds["format"]
+                if "bounding" in ds:
+                    new_ds.bounding = ds["bounding"]
                 sql.session.add(new_ds)
             else:
                 # check if the dataset entry has to be updated
@@ -250,6 +254,10 @@ class Initializer:
                     ds_entry.attribution_id = ds_attribution.id
                     ds_entry.category = ds["category"]
                     sql.session.add(ds_entry)
+                if "format" in ds and ds_entry.fileformat != ds["format"]:
+                    ds_entry.fileformat = ds["format"]
+                if "bounding" in ds and ds_entry.bounding != ds["bounding"]:
+                    ds_entry.bounding = ds["bounding"]
         sql.session.commit()
         log.info("Datasets successfully updated")
 

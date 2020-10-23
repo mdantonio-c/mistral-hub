@@ -428,6 +428,8 @@ class SqlApiDbManager:
             dataset_el["name"] = ds.name
             dataset_el["description"] = ds.description
             dataset_el["category"] = ds.category.name
+            dataset_el["format"] = ds.fileformat
+            dataset_el["bounding"] = ds.bounding
 
             if licenceSpecs:
                 attribution = db.Attribution.query.filter_by(

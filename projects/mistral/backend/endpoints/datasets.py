@@ -1,4 +1,3 @@
-from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.exceptions import NotFound, ServiceUnavailable

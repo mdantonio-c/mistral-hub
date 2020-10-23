@@ -144,6 +144,8 @@ class Datasets(db.Model):
     license_id = db.Column(db.Integer, db.ForeignKey("license.id"))
     attribution_id = db.Column(db.Integer, db.ForeignKey("attribution.id"))
     category = db.Column(db.Enum(DatasetCategories))
+    fileformat = db.Column(db.String)
+    bounding = db.Column(db.String)
     users = db.relationship(
         "User",
         secondary=dataset_user_association_table,
