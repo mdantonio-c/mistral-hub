@@ -1,9 +1,8 @@
 from mistral.services.arkimet import BeArkimet as arki
 from restapi import decorators
-from restapi.exceptions import RestApiException
+from restapi.exceptions import NotFound, ServiceUnavailable
 from restapi.models import fields
 from restapi.rest.definition import EndpointResource
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 
@@ -40,9 +39,7 @@ class Datasets(EndpointResource):
             datasets = arki.load_datasets()
         except Exception as e:
             log.error(e)
-            raise RestApiException(
-                "Error loading the datasets", status_code=hcodes.HTTP_SERVER_ERROR
-            )
+            raise ServiceUnavailable("Error loading the datasets")
 
         db = self.get_service_instance("sqlalchemy")
         user = self.get_user()
@@ -82,10 +79,7 @@ class Datasets(EndpointResource):
                 (ds for ds in datasets if ds.get("id", "") == dataset_name), None
             )
             if not matched_ds:
-                raise RestApiException(
-                    f"Dataset not found for name: {dataset_name}",
-                    status_code=hcodes.HTTP_BAD_NOTFOUND,
-                )
+                raise NotFound(f"Dataset not found for name: {dataset_name}")
             return self.response(matched_ds)
 
         return self.response(datasets)
