@@ -4,6 +4,7 @@ export interface CustomUser {
    * @nullable
    */
   amqp_queue: string;
+  /** @nullable */
   requests_expiration_days: number;
   datasets: SimpleDataset[];
   group_license: SimpleGroupLicence[];
