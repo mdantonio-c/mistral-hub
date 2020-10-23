@@ -16,16 +16,15 @@ class Datasets(EndpointResource):
     )
     @decorators.endpoint(
         path="/datasets",
-        summary="Get a dataset.",
-        description="Return a single dataset filtered by name",
+        summary="Get datasets",
+        description="Return all available datasets",
         responses={
-            200: "Dataset successfully retrieved",
-            404: "Dataset does not exists",
+            200: "Datasets successfully retrieved",
         },
     )
     @decorators.endpoint(
         path="/datasets/<dataset_name>",
-        summary="Get a dataset.",
+        summary="Get a dataset filtered by name",
         description="Return a single dataset filtered by name",
         responses={
             200: "Dataset successfully retrieved",

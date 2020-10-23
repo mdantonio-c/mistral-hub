@@ -371,19 +371,6 @@ class Customizer(BaseCustomizer):
                 label="Requests expirations (in days, 0 to disable)",
                 description="Number of days after which requests will be cleaned",
             ),
-            "datasets": AdvancedList(
-                fields.Str(
-                    validate=validate.OneOf(
-                        choices=[str(v.id) for v in datasets],
-                        labels=[v.name for v in datasets],
-                    )
-                ),
-                required=False,
-                label="Allowed datasets",
-                description="",
-                unique=True,
-                multiple=True,
-            ),
             "group_license": AdvancedList(
                 fields.Str(
                     validate=validate.OneOf(
@@ -393,6 +380,19 @@ class Customizer(BaseCustomizer):
                 ),
                 required=False,
                 label="Allowed licences",
+                description="",
+                unique=True,
+                multiple=True,
+            ),
+            "datasets": AdvancedList(
+                fields.Str(
+                    validate=validate.OneOf(
+                        choices=[str(v.id) for v in datasets],
+                        labels=[v.name for v in datasets],
+                    )
+                ),
+                required=False,
+                label="Allowed datasets",
                 description="",
                 unique=True,
                 multiple=True,
