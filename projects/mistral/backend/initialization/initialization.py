@@ -1,5 +1,6 @@
 from mistral.services.arkimet import BeArkimet as arki
 from restapi.customizer import BaseCustomizer
+from restapi.exceptions import NotFound
 from restapi.models import AdvancedList, Schema, fields, validate
 from restapi.utilities.logs import log
 
@@ -320,13 +321,21 @@ class Customizer(BaseCustomizer):
         licences = []
         for licence_id in extra_properties.get("group_license", []):
             lic = db.GroupLicense.query.filter_by(id=int(licence_id)).first()
+            if not lic:
+                raise NotFound(f"GroupLicense {licence_id} not found")
+
             licences.append(lic)
         user.group_license = licences
 
         datasets = []
         for dataset_id in extra_properties.get("datasets", []):
-            dat = db.GroupLicense.query.filter_by(id=int(dataset_id)).first()
+            dat = db.Datasets.query.filter_by(id=int(dataset_id)).first()
+            if not dat:
+                raise NotFound(f"Dataset {dataset_id} not found")
+
             datasets.append(dat)
+
+        log.critical(datasets)
         user.datasets = datasets
 
     @staticmethod
