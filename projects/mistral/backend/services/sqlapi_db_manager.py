@@ -425,6 +425,7 @@ class SqlApiDbManager:
                 if ds.name not in user_datasets_auth:
                     continue
             dataset_el = {}
+            dataset_el["id"] = ds.arkimet_id
             dataset_el["name"] = ds.name
             dataset_el["description"] = ds.description
             dataset_el["category"] = ds.category.name
