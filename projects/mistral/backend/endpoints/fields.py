@@ -1,6 +1,7 @@
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.exceptions import RestApiException
 from restapi.models import Schema, UniqueDelimitedList, fields
@@ -61,15 +62,21 @@ class Fields(EndpointResource):
                 bounding_box["latmax"] = latmax
 
         # check for existing dataset(s)
+        user = self.get_user()
+        db = self.get_service_instance("sqlalchemy")
         if datasets:
             for ds_name in datasets:
                 found = next(
-                    (ds for ds in arki.load_datasets() if ds.get("id", "") == ds_name),
+                    (
+                        ds
+                        for ds in SqlApiDbManager.get_datasets(db, user)
+                        if ds.get("id", "") == ds_name
+                    ),
                     None,
                 )
                 if not found:
                     raise RestApiException(
-                        f"Dataset '{ds_name}' not found",
+                        f"Dataset '{ds_name}' not found: check for dataset name of for your authorizations",
                         status_code=hcodes.HTTP_BAD_NOTFOUND,
                     )
 
@@ -80,6 +87,7 @@ class Fields(EndpointResource):
                     status_code=hcodes.HTTP_BAD_REQUEST,
                 )
         else:
+            # maps case: TODO: manage user authorizations
             # if data_type is forecast always dataset has to be specified.
             # If dataset is not in query data_type can't be 'FOR'
             data_type = "OBS"
