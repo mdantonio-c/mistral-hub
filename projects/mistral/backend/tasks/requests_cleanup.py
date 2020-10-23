@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from mistral.endpoints import DOWNLOAD_DIR
-from mistral.services.requests_manager import RequestManager as repo
+from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 
@@ -42,7 +42,9 @@ def automatic_cleanup(self):
             user = users.get(r.user_id)
             repo.delete_request_record(db, user, r.id, DOWNLOAD_DIR)
             log.warning(
-                "Request {} (completed on {}) deleted", r.id, r.end_date.isoformat(),
+                "Request {} (completed on {}) deleted",
+                r.id,
+                r.end_date.isoformat(),
             )
 
         log.info("Autocleaning task completed")

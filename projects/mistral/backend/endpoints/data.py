@@ -1,6 +1,6 @@
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
-from mistral.services.requests_manager import RequestManager as repo
+from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators

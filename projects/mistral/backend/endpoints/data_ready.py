@@ -1,4 +1,4 @@
-from mistral.services.requests_manager import RequestManager
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.models import fields
 from restapi.rest.definition import EndpointResource
@@ -28,7 +28,7 @@ class DataReady(EndpointResource):
 
         schedules_list = db.Schedule.query.all()
         for row in schedules_list:
-            r = RequestManager._get_schedule_response(row)
+            r = SqlApiDbManager._get_schedule_response(row)
 
             # e.g. 13
             request_id = r["id"]
@@ -111,7 +111,7 @@ class DataReady(EndpointResource):
 
             try:
                 # this operation is done by the data extraction task
-                # request = RequestManager.create_request_record(
+                # request = SqlApiDbManager.create_request_record(
                 #     db,
                 #     r.get("user_id"),
                 #     request_name,
@@ -172,4 +172,4 @@ class DataReady(EndpointResource):
     # @staticmethod
     # def check_schedule_settings(r, db):
     #     request = db.Request
-    #     last_schedule_request = RequestManager.get_last_scheduled_request(db, r["id"])
+    #     last_schedule_request = SqlApiDbManager.get_last_scheduled_request(db, r["id"])

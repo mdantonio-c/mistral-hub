@@ -5,7 +5,7 @@ from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 
 
-class RequestManager:
+class SqlApiDbManager:
     @staticmethod
     def check_fileoutput(db, user, filename, download_dir):
         fileoutput = db.FileOutput
@@ -14,7 +14,7 @@ class RequestManager:
         # check if the requested file is in the database
         if f_to_download is not None:
             # check if the user owns the file
-            if RequestManager.check_owner(db, user.id, file_id=f_to_download.id):
+            if SqlApiDbManager.check_owner(db, user.id, file_id=f_to_download.id):
                 # check if the requested file is in the user folder
                 path = os.path.join(
                     download_dir, user.uuid, "outputs", f_to_download.filename
@@ -141,7 +141,9 @@ class RequestManager:
         request = db.Request.query.get(request_id)
         out_file = request.fileoutput
         if out_file is not None:
-            RequestManager.delete_fileoutput(user.uuid, download_dir, out_file.filename)
+            SqlApiDbManager.delete_fileoutput(
+                user.uuid, download_dir, out_file.filename
+            )
         db.session.delete(request)
         db.session.commit()
 
@@ -173,12 +175,12 @@ class RequestManager:
             .order_by(db.Request.submission_date.desc())
             .first()
         )
-        return RequestManager._get_request_response(r) if r else None
+        return SqlApiDbManager._get_request_response(r) if r else None
 
     @staticmethod
     def get_schedule_by_id(db, schedule_id):
         schedule = db.Schedule.query.get(schedule_id)
-        return RequestManager._get_schedule_response(schedule)
+        return SqlApiDbManager._get_schedule_response(schedule)
 
     @staticmethod
     def get_schedule_name(db, schedule_id):
@@ -202,7 +204,7 @@ class RequestManager:
             db.Request.submission_date.desc()
         )
         for row in requests_list:
-            scheduled_requests.append(RequestManager._get_request_response(row))
+            scheduled_requests.append(SqlApiDbManager._get_request_response(row))
         return scheduled_requests
 
     @staticmethod
@@ -255,11 +257,11 @@ class RequestManager:
         # update celery status for the requests coming from the database query
         # for row in requests_list:
         #    if row.task_id is not None:
-        #        RequestManager.update_task_status(db, row.task_id)
+        #        SqlApiDbManager.update_task_status(db, row.task_id)
         #    # handle the case rabbit was down when the request was posted and the request has not a task id
         #    else:
         #        message = "Service was temporarily unavailable when data extraction request was posted"
-        #        RequestManager.save_message_error(db, row.id, message)
+        #        SqlApiDbManager.save_message_error(db, row.id, message)
 
         # create the response schema for not scheduled requests
         user_list = []
@@ -324,7 +326,7 @@ class RequestManager:
 
         # create the response schema
         for schedule in schedules_list:
-            user_schedules = RequestManager._get_schedule_response(schedule)
+            user_schedules = SqlApiDbManager._get_schedule_response(schedule)
             user_list.append(user_schedules)
 
         if sort_by == "date":
@@ -401,3 +403,44 @@ class RequestManager:
             resp["every"] = schedule.every
             resp["period"] = schedule.period.name
         return resp
+
+    @staticmethod
+    def get_datasets(db, user, licenceSpecs=False):
+        # get user authorized licence group
+        user_license_groups = [lg.name for lg in user.group_license]
+        user_datasets_auth = [ds.name for ds in user.datasets]
+        # get all datasets
+        ds_objects = db.Datasets.query.filter_by().all()
+        datasets = []
+        for ds in ds_objects:
+            # get license
+            license = db.License.query.filter_by(id=ds.license_id).first()
+            # get license group
+            group_license = db.GroupLicense.query.filter_by(
+                id=license.group_license_id
+            ).first()
+            # check the licence group authorization for the user
+            if group_license.name not in user_license_groups:
+                # looking for exception: check the authorized datasets
+                if ds.name not in user_datasets_auth:
+                    continue
+            dataset_el = {}
+            dataset_el["name"] = ds.name
+            dataset_el["description"] = ds.description
+            dataset_el["category"] = ds.category.name
+
+            if licenceSpecs:
+                attribution = db.Attribution.query.filter_by(
+                    id=ds.attribution_id
+                ).first()
+                dataset_el["license"] = license.name
+                dataset_el["license_description"] = license.descr
+                dataset_el["license_url"] = license.url
+                dataset_el["group_license"] = group_license.name
+                dataset_el["group_license_description"] = group_license.descr
+                dataset_el["attribution"] = attribution.name
+                dataset_el["attribution_description"] = attribution.descr
+                dataset_el["attribution_url"] = attribution.url
+            datasets.append(dataset_el)
+
+        return datasets

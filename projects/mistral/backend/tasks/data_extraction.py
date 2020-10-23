@@ -14,7 +14,7 @@ from mistral.exceptions import (
 )
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
-from mistral.services.requests_manager import RequestManager
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from mistral.tools import derived_variables as pp1
 from mistral.tools import grid_cropping as pp3_2
 from mistral.tools import grid_interpolation as pp3_1
@@ -63,8 +63,8 @@ def data_extract(
                 reftime = adapt_reftime(schedule, reftime, data_ready)
 
                 # create an entry in request db linked to the scheduled request entry
-                request_name = RequestManager.get_schedule_name(db, schedule_id)
-                request = RequestManager.create_request_record(
+                request_name = SqlApiDbManager.get_schedule_name(db, schedule_id)
+                request = SqlApiDbManager.create_request_record(
                     db,
                     user_id,
                     request_name,
@@ -112,7 +112,7 @@ def data_extract(
                     )
 
             # create download user dir if it doesn't exist
-            uuid = RequestManager.get_uuid(db, user_id)
+            uuid = SqlApiDbManager.get_uuid(db, user_id)
             user_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
             os.makedirs(user_dir, exist_ok=True)
 
@@ -431,7 +431,7 @@ def data_extract(
             target_filename = os.path.basename(outfile)
 
             # create fileoutput record in db
-            RequestManager.create_fileoutput_record(
+            SqlApiDbManager.create_fileoutput_record(
                 db, user_id, request_id, target_filename, data_size
             )
             # update request status
@@ -527,7 +527,7 @@ def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
                     raise Exception(
                         f"Cannot delete periodic task for schedule {schedule_id}"
                     )
-            RequestManager.update_schedule_status(db, schedule_id, False)
+            SqlApiDbManager.update_schedule_status(db, schedule_id, False)
             # extra_msg = f'<br/><br/>Schedule "{schedule.name}" temporary disabled for limit quota exceeded.'
         raise DiskQuotaException(message)
     return esti_data_size
@@ -568,7 +568,7 @@ def notificate_by_email(db, user_id, request, extra_msg):
 
 
 def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
-    """ Returns a human readable string reprentation of bytes
+    """Returns a human readable string reprentation of bytes
     :rtype: string
     """
     return str(bytes) + units[0] if bytes < 1024 else human_size(bytes >> 10, units[1:])
