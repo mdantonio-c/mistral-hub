@@ -274,14 +274,17 @@ class Data(EndpointResource, Uploader):
         push=False,
     ):
         user = self.get_user()
+        db = self.get_service_instance("sqlalchemy")
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
 
         # check for existing dataset(s)
-        datasets = arki.load_datasets()
+        datasets = repo.get_datasets(db, user)
         for ds_name in dataset_names:
             found = next((ds for ds in datasets if ds.get("id", "") == ds_name), None)
             if not found:
-                raise NotFound(f"Dataset '{ds_name}' not found")
+                raise NotFound(
+                    f"Dataset '{ds_name}' not found: check for dataset name of for your authorizations "
+                )
 
         # get the format of the datasets
         dataset_format = arki.get_datasets_format(dataset_names)
@@ -369,7 +372,6 @@ class Data(EndpointResource, Uploader):
                 raise Forbidden("User's queue for push notification does not exists")
 
         # run the following steps in a transaction
-        db = self.get_service_instance("sqlalchemy")
         task = None
         try:
             request = repo.create_request_record(

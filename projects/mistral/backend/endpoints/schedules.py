@@ -342,12 +342,16 @@ class Schedules(EndpointResource):
             parsed_reftime["from"] = reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             parsed_reftime["to"] = reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
+        db = self.get_service_instance("sqlalchemy")
         # check for existing dataset(s)
-        datasets = arki.load_datasets()
+        # check for existing dataset(s)
+        datasets = SqlApiDbManager.get_datasets(db, user)
         for ds_name in dataset_names:
             found = next((ds for ds in datasets if ds.get("id", "") == ds_name), None)
             if not found:
-                raise NotFound(f"Dataset '{ds_name}' not found")
+                raise NotFound(
+                    f"Dataset '{ds_name}' not found: check for dataset name of for your authorizations "
+                )
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
         # clean up filters from unknown values
@@ -435,7 +439,6 @@ class Schedules(EndpointResource):
             if not rabbit.queue_exists(pushing_queue):
                 raise Forbidden("User's queue for push notification does not exists")
 
-        db = self.get_service_instance("sqlalchemy")
         celery = self.get_service_instance("celery")
 
         name = None
