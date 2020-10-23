@@ -2,7 +2,7 @@ import datetime
 
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
-from mistral.services.requests_manager import RequestManager
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
@@ -447,7 +447,7 @@ class Schedules(EndpointResource):
 
                 # get schedule id in postgres database
                 # as scheduled request name for mongodb
-                name_int = RequestManager.create_schedule_record(
+                name_int = SqlApiDbManager.create_schedule_record(
                     db,
                     user,
                     request_name,
@@ -495,7 +495,7 @@ class Schedules(EndpointResource):
                 log.info("Crontab settings {}", crontab_settings)
                 # get scheduled request id in postgres database
                 # as scheduled request name for mongodb
-                name_int = RequestManager.create_schedule_record(
+                name_int = SqlApiDbManager.create_schedule_record(
                     db,
                     user,
                     request_name,
@@ -541,7 +541,7 @@ class Schedules(EndpointResource):
                 # if it is only a data-ready schedule, save the schedule in db
                 log.info("Save a data ready schedule without additional settings")
                 # get scheduled request id in postgres database
-                name_int = RequestManager.create_schedule_record(
+                name_int = SqlApiDbManager.create_schedule_record(
                     db,
                     user,
                     request_name,
@@ -626,14 +626,14 @@ class Schedules(EndpointResource):
             # check for schedule ownership
             self.request_and_owner_check(db, user.id, schedule_id)
             # get schedule by id
-            res = RequestManager.get_schedule_by_id(db, schedule_id)
+            res = SqlApiDbManager.get_schedule_by_id(db, schedule_id)
         else:
             # get total count for user schedules
             if get_total:
-                counter = RequestManager.count_user_schedules(db, user.id)
+                counter = SqlApiDbManager.count_user_schedules(db, user.id)
                 return self.pagination_total(counter)
             # get user requests list
-            res = RequestManager.get_user_schedules(
+            res = SqlApiDbManager.get_user_schedules(
                 db, user.id, sort_by=sort_by, sort_order=sort_order
             )
 
@@ -687,7 +687,7 @@ class Schedules(EndpointResource):
                     )
 
                 # recreate the schedule in mongo retrieving the schedule from postgres
-                schedule_response = RequestManager.get_schedule_by_id(db, schedule_id)
+                schedule_response = SqlApiDbManager.get_schedule_by_id(db, schedule_id)
                 log.debug("schedule response: {}", schedule_response)
 
                 # recreate the schedule in mongo retrieving the schedule from postgres
@@ -741,7 +741,7 @@ class Schedules(EndpointResource):
                     raise SystemError("Unable to enable the request")
 
         # update schedule status in database
-        RequestManager.update_schedule_status(db, schedule_id, is_active)
+        SqlApiDbManager.update_schedule_status(db, schedule_id, is_active)
 
         return self.response({"id": schedule_id, "enabled": is_active})
 
@@ -767,7 +767,7 @@ class Schedules(EndpointResource):
         celery.delete_periodic_task(name=schedule_id)
 
         # delete schedule status in database
-        RequestManager.delete_schedule(db, schedule_id)
+        SqlApiDbManager.delete_schedule(db, schedule_id)
 
         return self.response(
             f"Schedule {schedule_id} successfully deleted",
@@ -776,11 +776,11 @@ class Schedules(EndpointResource):
     @staticmethod
     def request_and_owner_check(db, user_id, schedule_id):
         # check if the schedule exists
-        if not RequestManager.check_request(db, schedule_id=schedule_id):
+        if not SqlApiDbManager.check_request(db, schedule_id=schedule_id):
             raise NotFound("The request doesn't exist")
 
         # check if the current user is the owner of the request
-        if not RequestManager.check_owner(db, user_id, schedule_id=schedule_id):
+        if not SqlApiDbManager.check_owner(db, user_id, schedule_id=schedule_id):
             raise RestApiException(
                 "This request doesn't come from the request's owner",
                 status_code=hcodes.HTTP_BAD_FORBIDDEN,
@@ -816,12 +816,12 @@ class ScheduledRequests(EndpointResource):
         db = self.get_service_instance("sqlalchemy")
 
         # check if the schedule exists
-        if not RequestManager.check_request(db, schedule_id=schedule_id):
+        if not SqlApiDbManager.check_request(db, schedule_id=schedule_id):
             raise NotFound(f"The schedule ID {schedule_id} does not exist")
 
         # check for schedule ownership
         user = self.get_user()
-        if not RequestManager.check_owner(db, user.id, schedule_id=schedule_id):
+        if not SqlApiDbManager.check_owner(db, user.id, schedule_id=schedule_id):
             raise RestApiException(
                 "This request doesn't come from the schedule's owner",
                 status_code=hcodes.HTTP_BAD_FORBIDDEN,
@@ -829,12 +829,12 @@ class ScheduledRequests(EndpointResource):
 
         if get_total:
             # get total count for user schedules
-            counter = RequestManager.count_schedule_requests(db, schedule_id)
+            counter = SqlApiDbManager.count_schedule_requests(db, schedule_id)
             return self.response({"total": counter})
 
         # get all submitted requests or the last for this schedule
         if last:
-            res = RequestManager.get_last_scheduled_request(db, schedule_id)
+            res = SqlApiDbManager.get_last_scheduled_request(db, schedule_id)
             if res is None:
                 raise NotFound(
                     "No successful request is available for schedule ID {} yet".format(
@@ -842,5 +842,5 @@ class ScheduledRequests(EndpointResource):
                     )
                 )
         else:
-            res = RequestManager.get_schedule_requests(db, schedule_id)
+            res = SqlApiDbManager.get_schedule_requests(db, schedule_id)
         return self.response(res)

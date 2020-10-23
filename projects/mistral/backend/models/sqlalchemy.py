@@ -139,11 +139,14 @@ dataset_user_association_table = db.Table(
 
 class Datasets(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, index=True, nullable=False)
+    arkimet_id = db.Column(db.String, index=True, unique=True)
+    name = db.Column(db.String, index=True, nullable=False, unique=True)
     description = db.Column(db.String, nullable=False)
     license_id = db.Column(db.Integer, db.ForeignKey("license.id"))
     attribution_id = db.Column(db.Integer, db.ForeignKey("attribution.id"))
     category = db.Column(db.Enum(DatasetCategories))
+    fileformat = db.Column(db.String)
+    bounding = db.Column(db.String)
     users = db.relationship(
         "User",
         secondary=dataset_user_association_table,

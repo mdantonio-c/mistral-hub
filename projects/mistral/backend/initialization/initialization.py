@@ -200,6 +200,7 @@ class Initializer:
         datasets = arki.load_datasets()
         for ds in datasets:
             required_fields = [
+                "id",
                 "name",
                 "description",
                 "license",
@@ -209,7 +210,7 @@ class Initializer:
             if not all(fields in ds for fields in required_fields):
                 log.error("Config for dataset {} is not complete", ds["name"])
                 continue
-            ds_entry = sql.Datasets.query.filter_by(name=ds["name"]).first()
+            ds_entry = sql.Datasets.query.filter_by(arkimet_id=ds["id"]).first()
             ds_attribution = sql.Attribution.query.filter_by(
                 name=ds["attribution"]
             ).first()
@@ -230,26 +231,37 @@ class Initializer:
                 continue
             if ds_entry is None:
                 new_ds = sql.Datasets(
+                    arkimet_id=ds["id"],
                     name=ds["name"],
                     description=ds["description"],
                     license_id=ds_license.id,
                     attribution_id=ds_attribution.id,
                     category=ds["category"],
                 )
+                if "format" in ds:
+                    new_ds.fileformat = ds["format"]
+                if "bounding" in ds:
+                    new_ds.bounding = ds["bounding"]
                 sql.session.add(new_ds)
             else:
                 # check if the dataset entry has to be updated
                 if (
-                    ds_entry.description != ds["description"]
+                    ds_entry.name != ds["name"]
+                    or ds_entry.description != ds["description"]
                     or ds_entry.license_id != ds_license.id
                     or ds_entry.attribution_id != ds_attribution.id
                     or ds_entry.category != ds["category"]
                 ):
+                    ds_entry.name = ds["name"]
                     ds_entry.description = ds["description"]
                     ds_entry.license_id = ds_license.id
                     ds_entry.attribution_id = ds_attribution.id
                     ds_entry.category = ds["category"]
                     sql.session.add(ds_entry)
+                if "format" in ds and ds_entry.fileformat != ds["format"]:
+                    ds_entry.fileformat = ds["format"]
+                if "bounding" in ds and ds_entry.bounding != ds["bounding"]:
+                    ds_entry.bounding = ds["bounding"]
         sql.session.commit()
         log.info("Datasets successfully updated")
 

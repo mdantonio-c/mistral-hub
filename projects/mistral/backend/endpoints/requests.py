@@ -1,7 +1,7 @@
 import json
 
 from mistral.endpoints import DOWNLOAD_DIR
-from mistral.services.requests_manager import RequestManager as repo
+from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi import decorators
 from restapi.exceptions import RestApiException
 from restapi.models import TotalSchema
