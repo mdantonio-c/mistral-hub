@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime, timedelta
 
@@ -6,6 +7,7 @@ import pytest
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe
 from restapi.rest.definition import EndpointResource
+from restapi.services.detect import detector
 from restapi.tests import API_URI, BaseTests
 from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
@@ -128,6 +130,9 @@ class TestApp(BaseTests):
                 )
             )
             r = client.get(endpoint, headers=headers)
+
+            assert r.status_code == 200
+
             response_data = TestApp.get_content(r)
             if response_data["items"]:
                 log.debug(
@@ -169,6 +174,34 @@ class TestApp(BaseTests):
                 break
         return check_product_1, check_product_2
 
+    def create_fake_user(self, client):
+        # create a fake user
+        admin_headers, _ = self.do_login(client, None, None)
+        self.save("admin_header", admin_headers)
+        schema = self.getDynamicInputSchema(client, "admin/users", admin_headers)
+        data = self.buildData(schema)
+        # get the group license id for user authorization
+        obj = detector.get_debug_instance("sqlalchemy")
+        group_lic_to_auth = obj.GroupLicense.query.filter_by(
+            name="CCBY_COMPLIANT"
+        ).first()
+        data["is_active"] = True
+        data["group_license"] = [str(group_lic_to_auth.id)]
+        data["group_license"] = json.dumps(data["group_license"])
+        r = client.post(f"{API_URI}/admin/users", data=data, headers=admin_headers)
+        assert r.status_code == 200
+
+        self.save("fake_uuid", self.get_content(r))
+        user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
+
+        self.save("auth_header", user_header)
+
+    def delete_fake_user(self, client):
+        headers = self.get("admin_header")
+        uuid = self.get("fake_uuid")
+        r = client.delete(f"{API_URI}/admin/users/{uuid}", headers=headers)
+        assert r.status_code == 204
+
     def test_endpoint_without_login(self, client):
 
         endpoint = API_URI + "/observations"
@@ -176,8 +209,9 @@ class TestApp(BaseTests):
         assert r.status_code == hcodes.HTTP_BAD_UNAUTHORIZED
 
     def test_for_dballe_dbtype(self, client, faker):
-        headers, _ = self.do_login(client, None, None)
-        self.save("auth_header", headers)
+        self.create_fake_user(client)
+        # headers, _ = self.do_login(client, None, None)
+        # self.save("auth_header", headers)
         headers = self.get("auth_header")
 
         q_params = self.get_params_value(client, headers, "dballe")
@@ -194,6 +228,7 @@ class TestApp(BaseTests):
 
         q_params = self.get_params_value(client, headers, "mixed")
         self.standard_observed_endpoint_testing(client, faker, headers, q_params)
+        self.delete_fake_user(client)
 
     def standard_observed_endpoint_testing(self, client, faker, headers, q_params):
 
