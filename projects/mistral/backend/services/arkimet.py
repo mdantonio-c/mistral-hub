@@ -226,7 +226,7 @@ class BeArkimet:
             elif k == "quantity":
                 q = " or ".join([BeArkimet.__decode_quantity(i) for i in values])
             elif k == "run":
-                q = " or ".join([BeArkimet.__decode_run(i) for i in values])
+                q = " or ".join([BeArkimet.decode_run(i) for i in values])
             elif k == "task":
                 q = " or ".join([BeArkimet.__decode_task(i) for i in values])
             elif k == "timerange":
@@ -508,7 +508,7 @@ class BeArkimet:
         return ",".join([str(k) for k in i.get("va", [])])
 
     @staticmethod
-    def __decode_run(i):
+    def decode_run(i):
         if not isinstance(i, dict):
             raise TypeError("Unexpected input type for <{}>".format(type(i).__name__))
         style = i.get("s")

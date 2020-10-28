@@ -60,7 +60,8 @@ def data_extract(
                         )
                     )
                 # adapt the request reftime
-                reftime = adapt_reftime(schedule, reftime, data_ready)
+                if not data_ready:
+                    reftime = adapt_reftime(schedule, reftime)
 
                 # create an entry in request db linked to the scheduled request entry
                 request_name = SqlApiDbManager.get_schedule_name(db, schedule_id)
@@ -579,20 +580,14 @@ def adapt_reftime(schedule, reftime, data_ready):
     if reftime is not None:
         new_reftime = {}
         time_delta_from = schedule.time_delta
-        if not data_ready:
-            now = datetime.datetime.utcnow()
-            reftime_to = datetime.datetime.strptime(
-                reftime["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
-            )
-            submission_date = schedule.submission_date
-            time_delta_to = submission_date - reftime_to
-            new_reftime_to = now - time_delta_to
-            new_reftime_from = new_reftime_to - time_delta_from
-            new_reftime["from"] = new_reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-            new_reftime["to"] = new_reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        else:
-            new_reftime["from"] = reftime["to"] - time_delta_from
-            new_reftime["to"] = reftime["to"]
+        now = datetime.datetime.utcnow()
+        reftime_to = datetime.datetime.strptime(reftime["to"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        submission_date = schedule.submission_date
+        time_delta_to = submission_date - reftime_to
+        new_reftime_to = now - time_delta_to
+        new_reftime_from = new_reftime_to - time_delta_from
+        new_reftime["from"] = new_reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        new_reftime["to"] = new_reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     return new_reftime
 
 
