@@ -10,7 +10,6 @@ class Datasets(EndpointResource):
 
     labels = ["dataset"]
 
-    @decorators.auth.require()
     @decorators.use_kwargs(
         {"licenceSpecs": fields.Bool(required=False)}, location="query"
     )

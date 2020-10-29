@@ -406,22 +406,22 @@ class SqlApiDbManager:
 
     @staticmethod
     def get_datasets(db, user, licenceSpecs=False, authSpecs=False):
-        # get user authorized licence group
-        user_license_groups = [lg.name for lg in user.group_license]
-        user_datasets_auth = [ds.name for ds in user.datasets]
         # get all datasets
         ds_objects = db.Datasets.query.filter_by().all()
         datasets = []
         for ds in ds_objects:
             dataset_el = {}
+            # get license
+            license = db.License.query.filter_by(id=ds.license_id).first()
+            # get license group
+            group_license = db.GroupLicense.query.filter_by(
+                id=license.group_license_id
+            ).first()
             if user:
+                # get user authorized licence group
+                user_license_groups = [lg.name for lg in user.group_license]
+                user_datasets_auth = [ds.name for ds in user.datasets]
                 # check the authorization
-                # get license
-                license = db.License.query.filter_by(id=ds.license_id).first()
-                # get license group
-                group_license = db.GroupLicense.query.filter_by(
-                    id=license.group_license_id
-                ).first()
                 # check the licence group authorization for the user
                 if group_license.name not in user_license_groups:
                     # looking for exception: check the authorized datasets
