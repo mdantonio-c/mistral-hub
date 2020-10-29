@@ -34,11 +34,8 @@ class Datasets(EndpointResource):
     def get(self, dataset_name=None, licenceSpecs=False):
         """ Get all the datasets or a specific one if a name is provided."""
         db = self.get_service_instance("sqlalchemy")
-        user = self.get_user()
-        if user:
-            authSpecs = True
-        else:
-            authSpecs = False
+        user = self.get_user_if_logged()
+        authSpecs = True if user else False
         try:
             datasets = SqlApiDbManager.get_datasets(
                 db, user, licenceSpecs=licenceSpecs, authSpecs=authSpecs
