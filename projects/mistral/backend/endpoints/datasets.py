@@ -35,9 +35,13 @@ class Datasets(EndpointResource):
         """ Get all the datasets or a specific one if a name is provided."""
         db = self.get_service_instance("sqlalchemy")
         user = self.get_user()
+        if user:
+            authSpecs = True
+        else:
+            authSpecs = False
         try:
             datasets = SqlApiDbManager.get_datasets(
-                db, user, licenceSpecs, authSpecs=True
+                db, user, licenceSpecs=licenceSpecs, authSpecs=authSpecs
             )
         except Exception as e:
             log.error(e)
