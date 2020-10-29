@@ -37,7 +37,9 @@ class Datasets(EndpointResource):
         db = self.get_service_instance("sqlalchemy")
         user = self.get_user()
         try:
-            datasets = SqlApiDbManager.get_datasets(db, user, licenceSpecs)
+            datasets = SqlApiDbManager.get_datasets(
+                db, user, licenceSpecs, authSpecs=True
+            )
         except Exception as e:
             log.error(e)
             raise ServiceUnavailable("Error loading the datasets")
