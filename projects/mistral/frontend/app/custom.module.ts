@@ -25,8 +25,9 @@ import { StorageUsageComponent } from "@app/components/dashboard/storage-usage/s
 import { NgbTimeStringAdapter } from "@app/adapters/timepicker-adapter";
 
 import { LicenseComponent } from "@app/components/license/license.component";
-
 import { PrivacyComponent } from "@app/components/privacy/privacy.component";
+import { DatasetsComponent } from "./components/datasets/datasets.component";
+import { DatasetDetailsComponent } from "./components/dataset-details/dataset-details.component";
 
 import { DisableControlDirective } from "@app/directives/disable-control";
 
@@ -87,6 +88,7 @@ const appRoutes: Routes = [
       },
     ],
   },
+  { path: "app/datasets", component: DatasetsComponent },
   { path: "app/maps/forecasts", component: ForecastMapsComponent },
   { path: "app/maps/flashflood", component: FlashFloodMapsComponent },
   {
@@ -110,8 +112,8 @@ const appRoutes: Routes = [
     canActivate: [AuthGuard],
   },
   { path: "public/privacy", component: PrivacyComponent },
-  { path: "app", redirectTo: "/app/data/datasets", pathMatch: "full" },
-  { path: "", redirectTo: "/app/data/datasets", pathMatch: "full" },
+  { path: "app", redirectTo: "/app/datasets", pathMatch: "full" },
+  { path: "", redirectTo: "/app/datasets", pathMatch: "full" },
 ];
 
 @NgModule({
@@ -156,6 +158,8 @@ const appRoutes: Routes = [
     SchedulesComponent,
     LicenseComponent,
     PrivacyComponent,
+    DatasetsComponent,
+    DatasetDetailsComponent,
     FormatDatePipe,
     ReplacePipe,
     DisableControlDirective,

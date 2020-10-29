@@ -1,0 +1,89 @@
+.ds-item {
+  border: 1px solid #ddd;
+  margin-top: -1px;
+  padding: 12px 12px 12px 12px;
+  -webkit-transition: border 0.1s ease-in-out 0s;
+  -o-transition: border 0.1s ease-in-out 0s;
+  transition: border 0.1s ease-in-out 0s;
+  position: relative;
+}
+
+.ds-item:hover {
+  border-color: #343a40;
+  z-index: 1;
+}
+
+.ds-item .ds-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  width: 20%;
+  min-width: 100px;
+  max-width: 150px;
+  padding: 16px 9px;
+}
+
+.ds-item .ds-actions::before {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 16px;
+  width: 1px;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.ds-item:hover .ds-actions {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.ds-item.disabled:hover .ds-actions {
+  background-color: #f6f6f6;
+}
+
+.ds-item .ds-picture > img,
+.ds-item .ds-picture > .img {
+  width: 60px;
+  height: 60px;
+  float: left;
+  border: 2px solid #fff;
+  vertical-align: middle;
+  position: absolute;
+  display: block;
+  z-index: 1;
+  cursor: auto;
+}
+
+.ds-item .ds-picture {
+  padding-right: 10px;
+}
+
+.ds-heading {
+  display: inline;
+}
+
+.ds-body {
+  margin-left: 76px;
+}
+
+.ds-body .text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 72px;
+  transition: 0.5s all;
+  transition-delay: 5s;
+}
+
+.ds-body .text:hover {
+  /*overflow: visible;*/
+  height: auto;
+  transition-delay: 1s;
+}
+
+.popover.ds-popover {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}

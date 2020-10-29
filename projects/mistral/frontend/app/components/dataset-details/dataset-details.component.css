@@ -1,0 +1,22 @@
+.ds-picture > img {
+  border: 2px solid #fff;
+  position: absolute;
+  display: block;
+  z-index: 1;
+}
+
+.ds-body {
+  margin-left: 76px;
+}
+
+.fixed-col {
+  -ms-flex: 0 0 30px;
+  flex: 0 0 30px;
+}
+
+.navbar-custom .nav-item .nav-link.active {
+  border-color: #495057 #495057 #fff;
+}
+.navbar-custom {
+  border-bottom: 1px solid #495057;
+}

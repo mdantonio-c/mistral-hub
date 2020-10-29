@@ -1,0 +1,57 @@
+<div class="modal-body">
+  <div class="row">
+    <div class="col">
+      <div class="ds-picture" [ngSwitch]="dataset.category">
+        <img
+          *ngSwitchCase="'OBS'"
+          src="/app/custom/assets/images/icon_obs_sm.png"
+        />
+        <img
+          *ngSwitchCase="'RAD'"
+          src="/app/custom/assets/images/icon_rad_sm.png"
+        />
+        <img
+          *ngSwitchCase="'FOR'"
+          src="/app/custom/assets/images/icon_for_sm.png"
+        />
+      </div>
+      <div class="ds-body">
+        <div>
+          <h5>{{ dataset.name }}</h5>
+          <p>{{ dataset.description }}</p>
+          <!--      <small class="d-block">Product type: {{dataset.category}}</small>-->
+          <small class="d-block">Attribution: {{ dataset.attribution }}</small>
+          <small class="d-block">License: {{ dataset.license }}</small>
+        </div>
+      </div>
+    </div>
+    <div class="fixed-col mx-2">
+      <button
+        type="button"
+        class="btn close"
+        aria-label="Close"
+        (click)="activeModal.dismiss()"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col">
+      <ul
+        ngbNav
+        #nav="ngbNav"
+        [(activeId)]="active"
+        class="nav-tabs navbar-custom"
+      >
+        <li [ngbNavItem]="1">
+          <a ngbNavLink>Download open data</a>
+          <ng-template ngbNavContent>
+            <p>No Data</p>
+          </ng-template>
+        </li>
+      </ul>
+      <div [ngbNavOutlet]="nav" class="mt-2"></div>
+    </div>
+  </div>
+</div>

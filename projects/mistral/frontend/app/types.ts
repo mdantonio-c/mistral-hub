@@ -99,6 +99,7 @@ export interface Dataset {
   description?: string;
   category: string;
   format: string;
+  bounding?: string;
 
   // attribution
   attribution?: string;

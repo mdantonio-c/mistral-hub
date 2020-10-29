@@ -1,0 +1,137 @@
+<ngx-spinner
+  bdColor="rgba(255,255,255,0.8)"
+  color="#6c757d"
+  zIndex="1000"
+  [fullScreen]="false"
+  type="ball-clip-rotate-multiple"
+  size="medium"
+></ngx-spinner>
+<div class="row no-gutters">
+  <div class="col-md-9 offset-md-3 py-2">
+    <h3>{{ title }}</h3>
+  </div>
+</div>
+<div class="row no-gutters px-2 my-1">
+  <div class="col-md-2 px-2">
+    <form [formGroup]="filterForm">
+      <h5>Product Type</h5>
+      <ul class="vertical-list px-0">
+        <li
+          formArrayName="types"
+          *ngFor="let t of typesFormArray.controls; let i = index"
+        >
+          <input
+            class="mst--input-checkbox"
+            type="checkbox"
+            [formControlName]="i"
+            id="type-{{ i }}"
+            (change)="onFilterChange()"
+          />
+          <label for="type-{{ i }}">{{ typesData[i] }}</label>
+        </li>
+      </ul>
+      <h5>Product License</h5>
+      <ul class="vertical-list px-0">
+        <li
+          formArrayName="licenses"
+          *ngFor="let license of licensesFormArray.controls; let i = index"
+        >
+          <input
+            class="mst--input-checkbox"
+            type="checkbox"
+            [formControlName]="i"
+            id="license-{{ i }}"
+            (change)="onFilterChange()"
+          />
+          <label for="license-{{ i }}">{{ licensesData[i] }}</label>
+        </li>
+      </ul>
+      <h5>Attribution</h5>
+      <ul class="vertical-list px-0">
+        <li
+          formArrayName="attributions"
+          *ngFor="
+            let attribution of attributionsFormArray.controls;
+            let i = index
+          "
+        >
+          <input
+            class="mst--input-checkbox"
+            type="checkbox"
+            [formControlName]="i"
+            id="attribution-{{ i }}"
+            (change)="onFilterChange()"
+          />
+          <label for="attribution-{{ i }}">{{ attributionsData[i] }}</label>
+        </li>
+      </ul>
+    </form>
+  </div>
+  <div class="col-md-10">
+    <ng-container *ngIf="!loading && datasets.length">
+      <div *ngFor="let ds of datasets" class="ds-item">
+        <div class="ds-picture" [ngSwitch]="ds.category">
+          <img
+            *ngSwitchCase="'OBS'"
+            src="/app/custom/assets/images/icon_obs_sm.png"
+          />
+          <img
+            *ngSwitchCase="'RAD'"
+            src="/app/custom/assets/images/icon_rad_sm.png"
+          />
+          <img
+            *ngSwitchCase="'FOR'"
+            src="/app/custom/assets/images/icon_for_sm.png"
+          />
+        </div>
+        <div class="ds-body">
+          <div>
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="ds-heading click-event" (click)="openDataset(ds)">
+                {{ ds.name }}
+              </h5>
+              <small
+                ><i
+                  class="fas fa-ellipsis-h click-event"
+                  [ngbPopover]="optionsContent"
+                  placement="bottom-right"
+                  container="body"
+                ></i
+              ></small>
+              <ng-template #optionsContent>
+                <ul id="ds-menu-options" class="nav flex-column">
+                  <li class="nav-item">
+                    <a
+                      class="nav-link click-event p-0 text-secondary"
+                      [routerLink]=""
+                      (click)="openDataset(ds)"
+                      ><i class="fas fa-share-square"></i> Open Dataset</a
+                    >
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      class="nav-link click-event p-0 text-secondary"
+                      [routerLink]=""
+                      (click)="openDataset(ds)"
+                    >
+                      <i class="fas fa-info-circle"></i> Documentation</a
+                    >
+                  </li>
+                </ul>
+              </ng-template>
+            </div>
+            <p class="text">{{ ds.description }}</p>
+            <small class="d-block">Product type: {{ ds.category }}</small>
+            <small class="d-block">License: {{ ds.license }}</small>
+            <small class="d-block">Attribution: {{ ds.attribution }}</small>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+    <!-- no datasets -->
+    <div class="no-results" *ngIf="!loading && datasets.length === 0">
+      <h2>No Datasets</h2>
+      <p>Your filter returned no results</p>
+    </div>
+  </div>
+</div>
