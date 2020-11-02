@@ -446,16 +446,18 @@ export class ObsMapComponent {
       }
 
       div.innerHTML += `<h6>${title} [${userunit}]</h6>`;
+      let legendTemp = "";
       for (let i = 0; i < COLORS.length; i++) {
         let grade = min + halfDelta * (i * 2 + 1);
-        div.innerHTML +=
-          '<i style="background:#' +
+        legendTemp = '<i style="background:#' +
           service.getColor(grade, min, max) +
           '"></i><span>' +
           // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
           Math.floor(grade * scale + offset) +
-          "</span><br>";
+          "</span><br>" +
+          legendTemp;
       }
+      div.innerHTML += legendTemp;
       return div;
     };
     this.legend.addTo(this.map);
