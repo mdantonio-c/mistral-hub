@@ -412,23 +412,25 @@ class Schedules(EndpointResource):
                         f"The chosen postprocessor does not support {output_format} output format",
                     )
 
-        # check if the schedule is a 'on-data-ready' one
-        if not data_ready:
-            # with forecast schedules the data_ready flag is applied by default
-            # if reftime_to is today or yesterday
-            # data ready option is not for observed data
-            if dataset_format == "grib":
-                today = datetime.date.today()
-                log.debug(f"today: {today}")
-                yesterday = today - datetime.timedelta(days=1)
-                # if the date of reftime['to'] is today or yesterday
-                # the request can be considered a data-ready one
-                if reftime_to is None:
-                    # FIXME what if reftime is None?
-                    raise BadRequest("Cannot schedule a full dataset request")
-                refdate = reftime_to.date()
-                if refdate == today or refdate == yesterday:
-                    data_ready = True
+        # WE NEED THIS APPROXIMATION OF ON DATA READY OR WE WILL USE ONLY THE DATA-READY FLAG OF THE FRONTEND?
+
+        # # check if the schedule is a 'on-data-ready' one
+        # if not data_ready:
+        #     # with forecast schedules the data_ready flag is applied by default
+        #     # if reftime_to is today or yesterday
+        #     # data ready option is not for observed data
+        #     if dataset_format == "grib":
+        #         today = datetime.date.today()
+        #         log.debug(f"today: {today}")
+        #         yesterday = today - datetime.timedelta(days=1)
+        #         # if the date of reftime['to'] is today or yesterday
+        #         # the request can be considered a data-ready one
+        #         if reftime_to is None:
+        #             # FIXME what if reftime is None?
+        #             raise BadRequest("Cannot schedule a full dataset request")
+        #         refdate = reftime_to.date()
+        #         if refdate == today or refdate == yesterday:
+        #             data_ready = True
 
         # get queue for pushing notifications
         pushing_queue = None

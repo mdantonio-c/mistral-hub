@@ -118,7 +118,8 @@ class Fields(EndpointResource):
             if datasets:
                 # get dataset pars to filter dballe according to the requested dataset
                 for ds in datasets:
-                    ds_params = arki.get_observed_dataset_params(ds)
+                    for el in arki.get_observed_dataset_params(ds):
+                        ds_params.append(el)
                     log.info(f"dataset: {ds}, networks: {ds_params}")
             try:
                 fields, summary = dballe.load_filters(

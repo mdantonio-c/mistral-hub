@@ -10,7 +10,6 @@ class Datasets(EndpointResource):
 
     labels = ["dataset"]
 
-    @decorators.auth.require()
     @decorators.use_kwargs(
         {"licenceSpecs": fields.Bool(required=False)}, location="query"
     )
@@ -35,9 +34,12 @@ class Datasets(EndpointResource):
     def get(self, dataset_name=None, licenceSpecs=False):
         """ Get all the datasets or a specific one if a name is provided."""
         db = self.get_service_instance("sqlalchemy")
-        user = self.get_user()
+        user = self.get_user_if_logged()
+        authSpecs = True if user else False
         try:
-            datasets = SqlApiDbManager.get_datasets(db, user, licenceSpecs)
+            datasets = SqlApiDbManager.get_datasets(
+                db, user, licenceSpecs=licenceSpecs, authSpecs=authSpecs
+            )
         except Exception as e:
             log.error(e)
             raise ServiceUnavailable("Error loading the datasets")

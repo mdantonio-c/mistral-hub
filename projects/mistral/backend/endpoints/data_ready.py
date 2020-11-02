@@ -1,3 +1,6 @@
+import datetime
+
+from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.models import fields
@@ -76,9 +79,23 @@ class DataReady(EndpointResource):
                 )
                 continue
 
-            # TO DO check if schedule is requesting runhour...
-
-            # if r.get('run') != runhour: fail
+            # check if schedule is requesting a runhour
+            filters = r["args"]["filters"]
+            if filters and "run" in filters:
+                requested_runs = []
+                for e in filters["run"]:
+                    run_arg = arki.decode_run(e)
+                    splitted_run = run_arg.split(",")
+                    requested_runs.append(splitted_run[1])
+                log.debug("runs: {}", requested_runs)
+                runhour = str(rundate.time())[0:5]
+                if runhour not in requested_runs:
+                    log.debug(
+                        "Skipping {}: schedule is requesting {} runhour",
+                        name,
+                        requested_runs,
+                    )
+                    continue
 
             # TODO check if the schedule has some others scheduling params
             # if r['crontab'] or r['periodic']:

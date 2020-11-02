@@ -1,4 +1,7 @@
 # import time
+import json
+
+from restapi.services.detect import detector
 from restapi.tests import API_URI, BaseTests
 from restapi.utilities.htmlcodes import hcodes
 
@@ -24,49 +27,79 @@ class TestApp(BaseTests):
 
     def test_endpoint_with_login(self, client, faker):
 
-        headers, _ = self.do_login(client, None, None)
-        self.save("auth_header", headers)
+        # create a fake user
+        admin_headers, _ = self.do_login(client, None, None)
+        schema = self.getDynamicInputSchema(client, "admin/users", admin_headers)
+        data = self.buildData(schema)
+        # get the group license id for user authorization
+        obj = detector.get_debug_instance("sqlalchemy")
+        group_lic_to_auth = obj.GroupLicense.query.filter_by(
+            name="CCBY_COMPLIANT"
+        ).first()
+        # get the special dataset id for user authorization
+        dataset_to_auth = obj.Datasets.query.filter_by(
+            name="sa_dataset_special"
+        ).first()
+
+        data["is_active"] = True
+        data["group_license"] = [str(group_lic_to_auth.id)]
+        data["group_license"] = json.dumps(data["group_license"])
+        data["datasets"] = [str(dataset_to_auth.id)]
+        data["datasets"] = json.dumps(data["datasets"])
+
+        r = client.post(f"{API_URI}/admin/users", data=data, headers=admin_headers)
+        assert r.status_code == 200
+
+        uuid = self.get_content(r)
+
+        # login of the new user
+        user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
+
+        self.save("auth_header", user_header)
 
         endpoint = API_URI + "/datasets"
         r = client.get(endpoint, headers=self.get("auth_header"))
         assert r.status_code == hcodes.HTTP_OK_BASIC
 
-        endpoint = API_URI + "/datasets/lm5"
-        r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == hcodes.HTTP_OK_BASIC
-
-        # trying a dataset that doesn't exists
-        endpoint = API_URI + "/datasets/" + faker.pystr()
-        r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
-
-    def test_api_response_type(self, client):
-        endpoint = API_URI + "/datasets"
-        r = client.get(endpoint, headers=self.get("auth_header"))
+        # check response type
         response_data = self.get_content(r)
         # print("________all dataset response______ "+str(data))
         assert type(response_data) == list
 
         endpoint = API_URI + "/datasets/lm5"
         r = client.get(endpoint, headers=self.get("auth_header"))
+        assert r.status_code == hcodes.HTTP_OK_BASIC
+
+        # check response type
         response_data = self.get_content(r)
         # print("________single dataset response______ " + str(data))
         assert type(response_data) == dict
 
-    def test_error_duplicates_datasets(self, client):
+        # trying a dataset that doesn't exists
+        endpoint = API_URI + "/datasets/" + faker.pystr()
+        r = client.get(endpoint, headers=self.get("auth_header"))
+        assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
+
+        # trying a dataset in an unauthorized license group
+        endpoint = API_URI + "/datasets/sa_dataset"
+        r = client.get(endpoint, headers=self.get("auth_header"))
+        assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
+
+        # trying an authorized dataset in an unauthorized license group
+        endpoint = API_URI + "/datasets/sa_dataset_special"
+        r = client.get(endpoint, headers=self.get("auth_header"))
+        assert r.status_code == hcodes.HTTP_OK_BASIC
+
+        # trying error dataset
         endpoint = API_URI + "/datasets/error"
         r = client.get(endpoint, headers=self.get("auth_header"))
         assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
 
+        # trying duplicates dataset
         endpoint = API_URI + "/datasets/duplicates"
         r = client.get(endpoint, headers=self.get("auth_header"))
         assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
 
-    # ##### TO DO: correct this method that at the moment raises an error
-    # def test_schema (self,client):
-    #     endpoint = API_URI + '/datasets'
-    # r_schema = self.getInputSchema(
-    #     client, endpoint, headers=self.get("auth_header"))
-    #     #print("________schema______ " + str(r_schema))
-    #     validation=self.validate_input(r_schema, 'Datasets')
-    #     assert validation==True
+        # delete the fake user
+        r = client.delete(f"{API_URI}/admin/users/{uuid}", headers=admin_headers)
+        assert r.status_code == 204
