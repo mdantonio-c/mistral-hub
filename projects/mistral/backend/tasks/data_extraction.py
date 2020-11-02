@@ -575,7 +575,7 @@ def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
     return str(bytes) + units[0] if bytes < 1024 else human_size(bytes >> 10, units[1:])
 
 
-def adapt_reftime(schedule, reftime, data_ready):
+def adapt_reftime(schedule, reftime):
     new_reftime = None
     if reftime is not None:
         new_reftime = {}

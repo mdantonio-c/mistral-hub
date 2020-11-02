@@ -392,6 +392,9 @@ class SqlApiDbManager:
             "requests_count": schedule.submitted_request.count(),
             "enabled": schedule.is_enabled,
             "on_data_ready": schedule.on_data_ready,
+            "period": schedule.period,
+            "every": schedule.every,
+            "crontab_set": schedule.crontab_settings,
         }
         if schedule.is_crontab:
             resp["crontab"] = True
