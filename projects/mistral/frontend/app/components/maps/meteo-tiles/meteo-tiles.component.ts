@@ -46,7 +46,17 @@ const TM2 = "Temperature at 2 meters",
   RH = "Relative Humidity",
   HCC = "High Cloud",
   MCC = "Medium Cloud",
-  LCC = "Low Cloud";
+  LCC = "Low Cloud",
+  TP_PERC1 = "Precipitation percentiles 1%",
+  TP_PERC10 = "Precipitation percentile 10%",
+  TP_PERC25 = "Precipitation percentile 25%",
+  TP_PERC50 = "Precipitation percentile 50%",
+  TP_PERC75 = "Precipitation percentile 75%",
+  TP_PERC99 = "Precipitation percentile 99%",
+  TP_PROB5 = "Precipitation probability 1%",
+  TP_PROB10 = "Precipitation probability 10%",
+  TP_PROB20 = "Precipitation probability 20%",
+  TP_PROB50 = "Precipitation probability 50%";
 
 @Component({
   selector: "app-meteo-tiles",
@@ -316,6 +326,149 @@ export class MeteoTilesComponent {
         ),
         {}
       ),
+      //
+[TP_PERC1]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
+[TP_PERC10]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/tp_percentile-10/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
+[TP_PERC25]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/tp_percentile-25/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
+[TP_PERC50]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/tp_percentile-50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
+[TP_PERC75]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/tp_percentile-75/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
+[TP_PERC99]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/tp_percentile-99/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
+
+[TP_PROB5]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/tp_probability-5/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
+[TP_PROB10]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/tp_probability-10${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
+[TP_PROB20]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/tp_probability-20/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
+[TP_PROB50]: L.timeDimension.layer.tileLayer.portus(
+  L.tileLayer(
+    `${baseUrl}/tp_probability-50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+    {
+      minZoom: 5,
+      maxZoom: maxZoom,
+      tms: false,
+      opacity: 0.9,
+      // bounds: [[25.0, -25.0], [50.0, 47.0]],
+      bounds: bounds,
+    }
+  ),
+  {}
+),
     };
   }
 
@@ -355,6 +508,16 @@ export class MeteoTilesComponent {
       [HCC]: this.createLegendControl("hcc"),
       [MCC]: this.createLegendControl("mcc"),
       [LCC]: this.createLegendControl("lcc"),
+      [TP_PERC1]: this.createLegendControl("tp_perc"),
+      [TP_PERC10]: this.createLegendControl("tp_perc"),
+      [TP_PERC25]: this.createLegendControl("tp_perc"),
+      [TP_PERC75]: this.createLegendControl("tp_perc"),
+      [TP_PERC50]: this.createLegendControl("tp_perc"),
+      [TP_PERC99]: this.createLegendControl("tp_perc"),
+      [TP_PROB5]: this.createLegendControl("tp_prob"),
+      [TP_PROB20]: this.createLegendControl("tp_prob"),
+      [TP_PROB10]: this.createLegendControl("tp_prob"),
+      [TP_PROB50]: this.createLegendControl("tp_prob"),
     };
     let legends = this.legends;
     map.on("overlayadd", function (event) {
@@ -374,6 +537,12 @@ export class MeteoTilesComponent {
         legends[MCC].addTo(this);
       } else if (event["name"] === LCC) {
         legends[LCC].addTo(this);
+      } else if (event["name"] === TP_PERC1 || event["name"] === TP_PERC10 || event["name"] === TP_PERC25 || event["name"] === TP_PERC50 || event["name"] === TP_PERC75 || event["name"] === TP_PERC99)
+      {
+        legends[TP_PERC1].addTo(this);
+      } else if (event["name"] === TP_PROB5 || event["name"] === TP_PROB10 || event["name"] === TP_PROB20 || event["name"] === TP_PROB50)
+      {
+        legends[TP_PROB5].addTo(this);
       }
     });
 
@@ -396,9 +565,17 @@ export class MeteoTilesComponent {
         this.removeControl(legends[MCC]);
       } else if (event["name"] === LCC) {
         this.removeControl(legends[LCC]);
+      } else if (event["name"] === TP_PERC1 && !map.hasLayer(layers[TP_PERC10]) && !map.hasLayer(layers[TP_PERC25])
+      && !map.hasLayer(layers[TP_PERC50]) && !map.hasLayer(layers[TP_PERC75]) && !map.hasLayer(layers[TP_PERC99]))
+      {
+        this.removeControl(legends[TP_PERC1]);
+      }
+      else if (event["name"] === TP_PROB5 && !map.hasLayer(layers[TP_PROB10])
+      && !map.hasLayer(layers[TP_PROB20]) && !map.hasLayer(layers[TP_PROB50]))
+      {
+        this.removeControl(legends[TP_PROB5]);
       }
     });
-
     // add default legend to the map
     this.legends[TM2].addTo(map);
   }
