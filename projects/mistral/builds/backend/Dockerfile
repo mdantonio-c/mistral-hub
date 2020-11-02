@@ -11,7 +11,6 @@ RUN usermod -u $CURRENT_UID $APIUSER
 RUN apt-get update \
  && apt-get install --yes software-properties-common \
  && add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" \
- && pip3 install --use-feature=2020-resolver eccodes-python \
  && apt-get install --yes \
       libssl1.0.0 \
       libssl-dev \
@@ -20,15 +19,32 @@ RUN apt-get update \
       libx11-6 \
       libzip5 \
       gdal-bin \
-      python3-eccodes \
+      cmake \
+      gfortran \
  && apt-get autoremove --yes \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
- && python3 -m eccodes selfcheck
+ && rm -rf /var/lib/apt/lists/*
 
-# ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/hdf5/serial"
 ENV PATH="$PATH:/usr/bin/centos"
+
+ENV ECCODES_VERSION="2.19.0"
+ENV ECCODES_DIR="/usr/share/eccodes-build"
 ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes/definitions/"
+
+RUN wget "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz?api=v2" -O /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && tar -xzf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && mkdir /tmp/eccodes-build \
+  && cd /tmp/eccodes-build \
+  && cmake -DCMAKE_INSTALL_PREFIX=/usr/share/eccodes-build /tmp/eccodes-${ECCODES_VERSION}-Source \
+  && make \
+  && ctest \
+  && make install \
+  && cd /usr/share/eccodes-build \
+  && ln -sf lib lib64 \
+  && pip3 install eccodes \
+  && rm -rf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && rm -rf /tmp/eccodes-build
+
 ENV DATASET_ROOT="/arkimet/datasets/"
 
 COPY --from=arpaesimc /usr/bin /usr/bin/centos
