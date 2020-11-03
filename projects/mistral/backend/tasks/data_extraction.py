@@ -96,6 +96,16 @@ def data_extract(
             dataset_format = arki.get_datasets_format(datasets)
             # get the category of the datasets
             data_type = arki.get_datasets_category(datasets)
+            # check user authorization for the requested datasets
+            user = db.User.query.filter_by(id=user_id).first()
+            auth_datasets = SqlApiDbManager.get_datasets(db, user)
+            auth_datasets_names = []
+            for ds in auth_datasets:
+                auth_datasets_names.append(ds["name"])
+            if not all(elem in auth_datasets_names for elem in datasets):
+                raise AccessToDatasetDenied(
+                    "user is not allowed to access the requested datasets"
+                )
 
             # TODO and if are observation data in arkimet and not in dballe?
             # create a query for arkimet
