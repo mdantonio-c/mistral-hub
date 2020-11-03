@@ -564,7 +564,7 @@ export class MeteoTilesComponent {
         this.removeControl(legends[RH]);
       } else if (event["name"] === HCC) {
         this.removeControl(legends[HCC]);
-      } else if (event["name"] === MCC) {
+      } else if (event["name"] === MCC) { 
         this.removeControl(legends[MCC]);
       } else if (event["name"] === LCC) {
         this.removeControl(legends[LCC]);

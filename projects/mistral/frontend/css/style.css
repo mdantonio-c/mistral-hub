@@ -114,6 +114,10 @@
   margin: 24px 0;
 }
 
+.click-event {
+  cursor: pointer;
+}
+
 .info-fulltext .tooltip-inner {
   text-align: left;
   font-size: small;
@@ -777,7 +781,7 @@ input[type="number"]::-webkit-outer-spin-button {
   line-height: 13px;
   color: #555;
 }
-
+ 
 .legend_tp_perc i {
   width: 16px;
   height: 6px;
