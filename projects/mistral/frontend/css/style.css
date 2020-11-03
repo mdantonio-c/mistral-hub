@@ -114,10 +114,6 @@
   margin: 24px 0;
 }
 
-.click-event {
-  cursor: pointer;
-}
-
 .info-fulltext .tooltip-inner {
   text-align: left;
   font-size: small;

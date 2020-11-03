@@ -97,9 +97,55 @@ class DataReady(EndpointResource):
                     )
                     continue
 
-            # TODO check if the schedule has some others scheduling params
-            # if r['crontab'] or r['periodic']:
-            #     DataReady.check_schedule_settings(r,db)
+            # check if there are others schedule params
+            if r["period"] or r["crontab_set"]:
+                req_date = datetime.datetime.strptime(
+                    rundate.isoformat(), "%Y-%m-%dT%H:%M:%S"
+                )
+                # get the last request
+                last_req = SqlApiDbManager.get_last_scheduled_request(db, r["id"])
+                if last_req:
+                    submission_date = datetime.datetime.strptime(
+                        last_req["submission_date"], "%Y-%m-%dT%H:%M:%S.%f"
+                    ).date()
+                else:
+                    # if there aren't any previous requests consider the submission date of the schedule itself
+                    submission_date = datetime.datetime.strptime(
+                        r["creation_date"], "%Y-%m-%dT%H:%M:%S.%f"
+                    ).date()
+                # periodic schedules
+                if r["period"] == "days":
+                    day_interval = r["every"]
+                    timedelta = datetime.timedelta(days=day_interval)
+                    next_submission = submission_date + timedelta
+                    if req_date.date() != next_submission:
+                        log.debug(
+                            "Skipping {}: scheduling period does not coincide",
+                            name,
+                        )
+                        continue
+                # crontab schedules
+                elif r["crontab_set"]:
+                    crontab_dic = eval(r["crontab_set"])
+                    if "day_of_month" in crontab_dic and "month_of_year" in crontab_dic:
+                        if (
+                            req_date.day != crontab_dic["day_of_month"]
+                            or req_date.month != crontab_dic["month_of_year"]
+                        ):
+                            log.debug(
+                                "Skipping {}: scheduling is for {}/{}",
+                                name,
+                                crontab_dic["month_of_year"],
+                                crontab_dic["day_of_month"],
+                            )
+                            continue
+                    elif "day_of_week" in crontab_dic:
+                        if req_date.weekday() != crontab_dic["day_of_week"]:
+                            log.debug(
+                                "Skipping {}: scheduling is for an other day of the week",
+                                name,
+                            )
+                            continue
 
             log.info("Checking schedule: {}\n{}", name, r)
             # e.g. {

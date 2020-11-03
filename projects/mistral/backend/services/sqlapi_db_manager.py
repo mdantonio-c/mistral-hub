@@ -392,6 +392,9 @@ class SqlApiDbManager:
             "requests_count": schedule.submitted_request.count(),
             "enabled": schedule.is_enabled,
             "on_data_ready": schedule.on_data_ready,
+            "period": schedule.period,
+            "every": schedule.every,
+            "crontab_set": schedule.crontab_settings,
         }
         if schedule.is_crontab:
             resp["crontab"] = True
@@ -419,11 +422,19 @@ class SqlApiDbManager:
             ).first()
             if user:
                 # get user authorized licence group
-                user_license_groups = [lg.name for lg in user.group_license]
+                # user_license_groups = [lg.name for lg in user.group_license]
                 user_datasets_auth = [ds.name for ds in user.datasets]
                 # check the authorization
                 # check the licence group authorization for the user
-                if group_license.name not in user_license_groups:
+                # if group_license.name not in user_license_groups:
+                #     # looking for exception: check the authorized datasets
+                #     if ds.name not in user_datasets_auth:
+                #         if authSpecs:
+                #             dataset_el["authorized"] = False
+                #         else:
+                #             continue
+                # check the user authorization
+                if not group_license.is_public:
                     # looking for exception: check the authorized datasets
                     if ds.name not in user_datasets_auth:
                         if authSpecs:
@@ -439,6 +450,7 @@ class SqlApiDbManager:
             dataset_el["category"] = ds.category.name
             dataset_el["format"] = ds.fileformat
             dataset_el["bounding"] = ds.bounding
+            dataset_el["is_public"] = group_license.is_public
 
             if licenceSpecs:
                 attribution = db.Attribution.query.filter_by(
