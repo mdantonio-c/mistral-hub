@@ -47,7 +47,82 @@
         <li [ngbNavItem]="1">
           <a ngbNavLink>Download open data</a>
           <ng-template ngbNavContent>
-            <p>No Data</p>
+            <ngx-spinner [fullScreen]="false"></ngx-spinner>
+            <!-- no data -->
+            <div *ngIf="!loading && !data?.length">
+              <div class="no-results">
+                <h2>No Data</h2>
+              </div>
+            </div>
+            <!-- load opendata in the table -->
+            <div
+              class="table-responsive mb-2"
+              *ngIf="data?.length"
+              #tableWrapper
+            >
+              <ngx-datatable
+                #openDataTable
+                class="bootstrap expandable"
+                [rows]="data"
+                [columnMode]="ColumnMode.flex"
+                [headerHeight]="50"
+                [footerHeight]="50"
+                rowHeight="auto"
+              >
+                <!-- Date -->
+                <ngx-datatable-column
+                  name="date"
+                  [resizeable]="false"
+                  [sortable]="true"
+                  [draggable]="false"
+                  [flexGrow]="1.6"
+                  [minWidth]="120"
+                >
+                  <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+                  >
+                    <span>{{ value | amFromUtc | date: "yyyy-MM-dd" }}</span>
+                  </ng-template>
+                </ngx-datatable-column>
+                <!-- Run -->
+                <ngx-datatable-column
+                  prop="run"
+                  [resizeable]="false"
+                  [sortable]="false"
+                  [draggable]="false"
+                  [flexGrow]="0.5"
+                  [minWidth]="66"
+                >
+                  <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+                  >
+                    <span>{{ value }}</span>
+                  </ng-template>
+                </ngx-datatable-column>
+                <!-- Download -->
+                <ngx-datatable-column
+                  name="Download"
+                  [resizeable]="false"
+                  [sortable]="false"
+                  [draggable]="false"
+                  [canAutoResize]="false"
+                >
+                  <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+                  >
+                    <button class="btn p-0" (click)="download(row.filename)">
+                      GRIB data <i class="fa fa-download ml-2"></i>
+                    </button>
+                  </ng-template>
+                </ngx-datatable-column>
+              </ngx-datatable>
+            </div>
           </ng-template>
         </li>
       </ul>

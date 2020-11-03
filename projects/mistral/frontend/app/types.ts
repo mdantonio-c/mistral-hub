@@ -264,3 +264,30 @@ export interface SeriesItem {
   name: string; // reftime ISO 8601 e.g. 2020-09-07T00:00:00
   value: any;
 }
+
+export interface DataExtractionRequest {
+  id: number;
+  task_id: string;
+  name: string;
+  submission_date: string;
+  end_date: string;
+  status: string;
+  fileoutput?: string;
+  filesize?: number;
+  args: RequestArgs;
+}
+
+export interface RequestArgs {
+  dataset_names: string[];
+  filters?: FiltersArg;
+  reftime?: ReftimeArg;
+}
+
+export interface FiltersArg {
+  [key: string]: any[];
+}
+
+export interface ReftimeArg {
+  from: string;
+  to: string;
+}

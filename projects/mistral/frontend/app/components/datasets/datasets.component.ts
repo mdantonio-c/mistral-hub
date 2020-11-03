@@ -65,15 +65,12 @@ export class DatasetsComponent implements OnInit {
         (data) => {
           this._datasets = data;
           // once the data is available the filter can be create
-          // @ts-ignore
           this.typesData = [
             ...new Set(this._datasets.map((ds) => ds.category)),
           ];
-          // @ts-ignore
           this.licensesData = [
             ...new Set(this._datasets.map((ds) => ds.license)),
           ];
-          // @ts-ignore
           this.attributionsData = [
             ...new Set(this._datasets.map((ds) => ds.attribution)),
           ];

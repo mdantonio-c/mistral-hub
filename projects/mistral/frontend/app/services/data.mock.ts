@@ -1,4 +1,9 @@
-import { DerivedVariables, StorageUsage, SummaryStats } from "@app/types";
+import {
+  DerivedVariables,
+  StorageUsage,
+  SummaryStats,
+  DataExtractionRequest,
+} from "@app/types";
 
 export const MockStorageUsageResponse: StorageUsage = {
   quota: 5368709120,
@@ -4152,5 +4157,36 @@ export const MockSchedulesResponse: any = [
     id: 1,
     name: "lm5",
     requests_count: 0,
+  },
+];
+
+export const MockOpenDataResponse: DataExtractionRequest[] = [
+  {
+    args: {
+      dataset_names: ["vlm2.2"],
+      filters: {
+        run: [
+          {
+            active: true,
+            desc: "MINUTE(00:00)",
+            s: "MINUTE",
+            va: 0,
+          },
+        ],
+      },
+      reftime: {
+        from: "2019-09-10T00:00:00.000000Z",
+        to: "2019-09-10T23:59:00.000000Z",
+      },
+    },
+    end_date: "2020-11-02T13:42:05.192832",
+    fileoutput:
+      "data-20201102T134203Z-50f1cfe8-d8cd-4b1c-8730-2df4930d0a2f.grib",
+    filesize: 160786788,
+    id: 2059,
+    name: "cosmo-2I run 00 - 10-sep-2020",
+    status: "SUCCESS",
+    submission_date: "2020-11-02T13:42:00.934131",
+    task_id: "50f1cfe8-d8cd-4b1c-8730-2df4930d0a2f",
   },
 ];

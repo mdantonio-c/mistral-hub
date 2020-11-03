@@ -18,6 +18,8 @@ import {
   OnOffSchedule,
   StorageUsage,
 } from "@app/types";
+import { MockOpenDataResponse } from "./data.mock";
+import { DataExtractionRequest } from "../types";
 
 @Injectable({
   providedIn: "root",
@@ -32,8 +34,23 @@ export class DataService {
    * @param licenceSpecs if true add licence information. Default to false.
    */
   getDatasets(licenceSpecs = false): Observable<Dataset[]> {
-    let params = licenceSpecs ? { licenceSpecs: true } : {};
+    const params = licenceSpecs ? { licenceSpecs: true } : {};
     return this.api.get("datasets", "", params);
+  }
+
+  /**
+   * Get a dataset with a given ID.
+   * @param datasetId
+   * @param licenceSpecs
+   */
+  getDataset(datasetId: string, licenceSpecs = false): Observable<Dataset> {
+    const params = licenceSpecs ? { licenceSpecs: true } : {};
+    return this.api.get("datasets", datasetId, params);
+  }
+
+  getOpenData(datasetId): Observable<DataExtractionRequest[]> {
+    // return this.api.get(`datasets/${datasetId}/opendata`);
+    return of(MockOpenDataResponse);
   }
 
   getSummary(
