@@ -27,12 +27,20 @@ RUN apt-get update \
 
 ENV PATH="$PATH:/usr/bin/centos"
 
+ENV DATASET_ROOT="/arkimet/datasets/"
+
 ENV ECCODES_VERSION="2.19.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
-ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes/definitions/"
 
-RUN wget "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz?api=v2" -O /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
-  && tar -xzf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
+# With both definitions from arpaesimc
+# ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes/definitions/"
+
+# Only eccodes-simc from arpaesimc
+ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes-build/share/eccodes/definitions/"
+
+RUN wget --no-check-certificate "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz?api=v2" -O /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && cd /tmp \
+  && tar -xzf eccodes-${ECCODES_VERSION}-Source.tar.gz \
   && mkdir /tmp/eccodes-build \
   && cd /tmp/eccodes-build \
   && cmake -DCMAKE_INSTALL_PREFIX=/usr/share/eccodes-build /tmp/eccodes-${ECCODES_VERSION}-Source \
@@ -45,14 +53,12 @@ RUN wget "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${E
   && rm -rf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
   && rm -rf /tmp/eccodes-build
 
-ENV DATASET_ROOT="/arkimet/datasets/"
-
 COPY --from=arpaesimc /usr/bin /usr/bin/centos
 
 COPY --from=arpaesimc /etc/arkimet /etc/arkimet
-COPY --from=arpaesimc /usr/share/eccodes /usr/share/
+# COPY --from=arpaesimc /usr/share/eccodes /usr/share/
 COPY --from=arpaesimc /usr/share/eccodes-simc/definitions/ /usr/share/eccodes-simc/definitions/
-COPY --from=arpaesimc /usr/share/eccodes/definitions/ /usr/share/eccodes/definitions/
+# COPY --from=arpaesimc /usr/share/eccodes/definitions/ /usr/share/eccodes/definitions/
 COPY --from=arpaesimc /usr/share/libsim/ /usr/share/libsim/
 COPY --from=arpaesimc /usr/share/wreport/ /usr/share/wreport/
 
@@ -99,6 +105,7 @@ COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter /usr/local/l
 
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter-0.0.2-py3.6.egg-info /usr/local/lib/python3.8/dist-packages/dba_qcfilter-0.0.2-py3.6.egg-info/
 
-RUN ln -sf /usr/bin/python3.8 /usr/bin/python3.6
+# numpy have to be (re)installed here to prevent issues with shared libraries
+RUN ln -sf /usr/bin/python3.8 /usr/bin/python3.6 && pip3 install --upgrade numpy
 
 WORKDIR /code
