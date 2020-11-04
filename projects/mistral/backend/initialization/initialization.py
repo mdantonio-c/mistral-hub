@@ -30,20 +30,28 @@ class Initializer:
 
         # add license groups to db
         license_group_data_to_insert = [
-            {"name": "CCBY_COMPLIANT", "descr": "Group of licenses CC BY compliant"},
+            {
+                "name": "CCBY_COMPLIANT",
+                "descr": "Group of licenses CC BY compliant",
+                "is_public": True,
+            },
             {
                 "name": "CCBY-SA_COMPLIANT",
                 "descr": "Group of licenses CC BY-SA compliant",
+                "is_public": True,
             },
         ]
         for el in license_group_data_to_insert:
             l_group = sql.GroupLicense.query.filter_by(name=el["name"]).first()
             if l_group is None:
-                new_l_group = sql.GroupLicense(name=el["name"], descr=el["descr"])
+                new_l_group = sql.GroupLicense(
+                    name=el["name"], descr=el["descr"], is_public=el["is_public"]
+                )
                 sql.session.add(new_l_group)
             else:
                 # check if the element has to be updated
-                if l_group.descr != el["descr"]:
+                if l_group.descr != el["descr"] or l_group.is_public != el["is_public"]:
+                    l_group.is_public = el["is_public"]
                     l_group.descr = el["descr"]
                     sql.session.add(l_group)
         sql.session.commit()

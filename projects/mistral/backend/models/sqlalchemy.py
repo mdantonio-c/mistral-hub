@@ -101,6 +101,7 @@ class GroupLicense(db.Model):
         backref="group_license",
         lazy="dynamic",
     )
+    is_public = db.Column(db.Boolean)
 
 
 class License(db.Model):

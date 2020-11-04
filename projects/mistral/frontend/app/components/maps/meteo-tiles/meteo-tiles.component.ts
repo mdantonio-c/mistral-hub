@@ -47,16 +47,16 @@ const TM2 = "Temperature at 2 meters",
   HCC = "High Cloud",
   MCC = "Medium Cloud",
   LCC = "Low Cloud",
-  TP_PERC1 = "Precipitation percentiles 1%",
-  TP_PERC10 = "Precipitation percentile 10%",
-  TP_PERC25 = "Precipitation percentile 25%",
-  TP_PERC50 = "Precipitation percentile 50%",
-  TP_PERC75 = "Precipitation percentile 75%",
-  TP_PERC99 = "Precipitation percentile 99%",
-  TP_PROB5 = "Precipitation probability 1%",
-  TP_PROB10 = "Precipitation probability 10%",
-  TP_PROB20 = "Precipitation probability 20%",
-  TP_PROB50 = "Precipitation probability 50%";
+  TPPERC1 = "Precipitation percentiles 1%",
+  TPPERC10 = "Precipitation percentile 10%",
+  TPPERC25 = "Precipitation percentile 25%",
+  TPPERC50 = "Precipitation percentile 50%",
+  TPPERC75 = "Precipitation percentile 75%",
+  TPPERC99 = "Precipitation percentile 99%",
+  TPPROB5 = "Precipitation probability 5%",
+  TPPROB10 = "Precipitation probability 10%",
+  TPPROB20 = "Precipitation probability 20%",
+  TPPROB50 = "Precipitation probability 50%";
 
 @Component({
   selector: "app-meteo-tiles",
@@ -327,7 +327,7 @@ export class MeteoTilesComponent {
         {}
       ),
       //
-[TP_PERC1]: L.timeDimension.layer.tileLayer.portus(
+[TPPERC1]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`,
     // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
@@ -342,7 +342,7 @@ export class MeteoTilesComponent {
   ),
   {}
 ),
-[TP_PERC10]: L.timeDimension.layer.tileLayer.portus(
+[TPPERC10]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/tp_percentile-10/${this.refdate}{h}/{z}/{x}/{y}.png`,
     {
@@ -356,7 +356,7 @@ export class MeteoTilesComponent {
   ),
   {}
 ),
-[TP_PERC25]: L.timeDimension.layer.tileLayer.portus(
+[TPPERC25]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/tp_percentile-25/${this.refdate}{h}/{z}/{x}/{y}.png`,
     {
@@ -370,7 +370,7 @@ export class MeteoTilesComponent {
   ),
   {}
 ),
-[TP_PERC50]: L.timeDimension.layer.tileLayer.portus(
+[TPPERC50]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/tp_percentile-50/${this.refdate}{h}/{z}/{x}/{y}.png`,
     {
@@ -384,7 +384,7 @@ export class MeteoTilesComponent {
   ),
   {}
 ),
-[TP_PERC75]: L.timeDimension.layer.tileLayer.portus(
+[TPPERC75]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/tp_percentile-75/${this.refdate}{h}/{z}/{x}/{y}.png`,
     {
@@ -398,7 +398,7 @@ export class MeteoTilesComponent {
   ),
   {}
 ),
-[TP_PERC99]: L.timeDimension.layer.tileLayer.portus(
+[TPPERC99]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/tp_percentile-99/${this.refdate}{h}/{z}/{x}/{y}.png`,
     {
@@ -413,7 +413,7 @@ export class MeteoTilesComponent {
   {}
 ),
 
-[TP_PROB5]: L.timeDimension.layer.tileLayer.portus(
+[TPPROB5]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/tp_probability-5/${this.refdate}{h}/{z}/{x}/{y}.png`,
     {
@@ -427,7 +427,7 @@ export class MeteoTilesComponent {
   ),
   {}
 ),
-[TP_PROB10]: L.timeDimension.layer.tileLayer.portus(
+[TPPROB10]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/tp_probability-10${this.refdate}{h}/{z}/{x}/{y}.png`,
     {
@@ -441,7 +441,7 @@ export class MeteoTilesComponent {
   ),
   {}
 ),
-[TP_PROB20]: L.timeDimension.layer.tileLayer.portus(
+[TPPROB20]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/tp_probability-20/${this.refdate}{h}/{z}/{x}/{y}.png`,
     {
@@ -455,7 +455,7 @@ export class MeteoTilesComponent {
   ),
   {}
 ),
-[TP_PROB50]: L.timeDimension.layer.tileLayer.portus(
+[TPPROB50]: L.timeDimension.layer.tileLayer.portus(
   L.tileLayer(
     `${baseUrl}/tp_probability-50/${this.refdate}{h}/{z}/{x}/{y}.png`,
     {
@@ -508,16 +508,16 @@ export class MeteoTilesComponent {
       [HCC]: this.createLegendControl("hcc"),
       [MCC]: this.createLegendControl("mcc"),
       [LCC]: this.createLegendControl("lcc"),
-      [TP_PERC1]: this.createLegendControl("tp_perc"),
-      [TP_PERC10]: this.createLegendControl("tp_perc"),
-      [TP_PERC25]: this.createLegendControl("tp_perc"),
-      [TP_PERC75]: this.createLegendControl("tp_perc"),
-      [TP_PERC50]: this.createLegendControl("tp_perc"),
-      [TP_PERC99]: this.createLegendControl("tp_perc"),
-      [TP_PROB5]: this.createLegendControl("tp_prob"),
-      [TP_PROB20]: this.createLegendControl("tp_prob"),
-      [TP_PROB10]: this.createLegendControl("tp_prob"),
-      [TP_PROB50]: this.createLegendControl("tp_prob"),
+      [TPPERC1]: this.createLegendControl("tpperc"),
+      [TPPERC10]: this.createLegendControl("tpperc"),
+      [TPPERC25]: this.createLegendControl("tpperc"),
+      [TPPERC75]: this.createLegendControl("tpperc"),
+      [TPPERC50]: this.createLegendControl("tpperc"),
+      [TPPERC99]: this.createLegendControl("tpperc"),
+      [TPPROB5]: this.createLegendControl("tpprob"),
+      [TPPROB20]: this.createLegendControl("tpprob"),
+      [TPPROB10]: this.createLegendControl("tpprob"),
+      [TPPROB50]: this.createLegendControl("tpprob"),
     };
     let legends = this.legends;
     map.on("overlayadd", function (event) {
@@ -537,12 +537,15 @@ export class MeteoTilesComponent {
         legends[MCC].addTo(this);
       } else if (event["name"] === LCC) {
         legends[LCC].addTo(this);
-      } else if (event["name"] === TP_PERC1 || event["name"] === TP_PERC10 || event["name"] === TP_PERC25 || event["name"] === TP_PERC50 || event["name"] === TP_PERC75 || event["name"] === TP_PERC99)
+      }
+      else if (event["name"] === TPPERC1 || event["name"] === TPPERC10 || event["name"] === TPPERC25
+      || event["name"] === TPPERC50 || event["name"] === TPPERC75 || event["name"] === TPPERC99)
       {
-        legends[TP_PERC1].addTo(this);
-      } else if (event["name"] === TP_PROB5 || event["name"] === TP_PROB10 || event["name"] === TP_PROB20 || event["name"] === TP_PROB50)
+        legends[TPPERC1].addTo(this);
+      }
+      else if (event["name"] === TPPROB5 || event["name"] === TPPROB10 || event["name"] === TPPROB20 || event["name"] === TPPROB50)
       {
-        legends[TP_PROB5].addTo(this);
+        legends[TPPROB5].addTo(this);
       }
     });
 
@@ -565,17 +568,17 @@ export class MeteoTilesComponent {
         this.removeControl(legends[MCC]);
       } else if (event["name"] === LCC) {
         this.removeControl(legends[LCC]);
-      } else if (event["name"] === TP_PERC1 && !map.hasLayer(layers[TP_PERC10]) && !map.hasLayer(layers[TP_PERC25])
-      && !map.hasLayer(layers[TP_PERC50]) && !map.hasLayer(layers[TP_PERC75]) && !map.hasLayer(layers[TP_PERC99]))
+      } else if (event["name"] === TPPERC1 && !map.hasLayer(layers[TPPERC10]) && !map.hasLayer(layers[TPPERC25])
+      && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC75]) && !map.hasLayer(layers[TPPERC99]))
       {
-        this.removeControl(legends[TP_PERC1]);
-      }
-      else if (event["name"] === TP_PROB5 && !map.hasLayer(layers[TP_PROB10])
-      && !map.hasLayer(layers[TP_PROB20]) && !map.hasLayer(layers[TP_PROB50]))
+        this.removeControl(legends[TPPERC1]);
+      } else if (event["name"] === TPPROB5 && !map.hasLayer(layers[TPPROB10])
+      && !map.hasLayer(layers[TPPROB20]) && !map.hasLayer(layers[TPPROB50]))
       {
-        this.removeControl(legends[TP_PROB5]);
+        this.removeControl(legends[TPPROB5]);
       }
     });
+
     // add default legend to the map
     this.legends[TM2].addTo(map);
   }
