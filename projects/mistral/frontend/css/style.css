@@ -133,6 +133,10 @@
   margin-top: 0;
 }
 
+.click-event {
+  cursor: pointer;
+}
+
 /* Buttons */
 .btn.no-rounded {
   border-radius: 0 !important;

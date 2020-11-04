@@ -1,3 +1,34 @@
+.page-with-sidebar {
+  padding-left: 220px;
+}
+
+.page-with-sidebar > h3 {
+  margin-left: 220px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #bbb;
+  padding-bottom: 10px;
+}
+
+.sidenav {
+  width: 200px;
+  position: fixed;
+  z-index: 1;
+  left: 10px;
+  overflow-x: hidden;
+  padding: 8px 0;
+}
+
+.main {
+  margin-left: 220px; /* Same width as the sidebar + left position in px */
+  font-size: 28px; /* Increased text to enable scrolling */
+  padding: 0px 10px;
+}
+
+.scrollDiv {
+  max-height: calc(100vh - 164px);
+  overflow: auto;
+}
+
 .ds-item {
   border: 1px solid #ddd;
   margin-top: -1px;
@@ -11,37 +42,6 @@
 .ds-item:hover {
   border-color: #343a40;
   z-index: 1;
-}
-
-.ds-item .ds-actions {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  height: 100%;
-  width: 20%;
-  min-width: 100px;
-  max-width: 150px;
-  padding: 16px 9px;
-}
-
-.ds-item .ds-actions::before {
-  content: "";
-  display: block;
-  position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 16px;
-  width: 1px;
-  background-color: rgba(0, 0, 0, 0.03);
-}
-
-.ds-item:hover .ds-actions {
-  background-color: rgba(0, 0, 0, 0.03);
-}
-
-.ds-item.disabled:hover .ds-actions {
-  background-color: #f6f6f6;
 }
 
 .ds-item .ds-picture > img,
@@ -66,7 +66,7 @@
 }
 
 .ds-body {
-  margin-left: 76px;
+  margin-left: 15px;
 }
 
 .ds-body .text {
@@ -86,4 +86,24 @@
 .popover.ds-popover {
   border-color: #dc3545;
   box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.container-checkbox {
+  align-items: center;
+  display: flex;
+  position: relative;
+
+  -ms-flex: 0 0 84px;
+  flex: 0 0 84px;
+}
+
+.box-checkbox {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+.container-picture {
+  -ms-flex: 0 0 60px;
+  flex: 0 0 60px;
 }

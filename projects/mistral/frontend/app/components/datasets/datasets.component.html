@@ -6,13 +6,8 @@
   type="ball-clip-rotate-multiple"
   size="medium"
 ></ngx-spinner>
-<div class="row no-gutters">
-  <div class="col-md-9 offset-md-3 py-2">
-    <h3>{{ title }}</h3>
-  </div>
-</div>
-<div class="row no-gutters px-2 my-1">
-  <div class="col-md-2 px-2">
+<div class="container-fluid">
+  <div class="sidenav mt-5">
     <form [formGroup]="filterForm">
       <h5>Product Type</h5>
       <ul class="vertical-list px-0">
@@ -67,71 +62,115 @@
       </ul>
     </form>
   </div>
-  <div class="col-md-10">
-    <ng-container *ngIf="!loading && datasets.length">
-      <div *ngFor="let ds of datasets" class="ds-item">
-        <div class="ds-picture" [ngSwitch]="ds.category">
-          <img
-            *ngSwitchCase="'OBS'"
-            src="/app/custom/assets/images/icon_obs_sm.png"
-          />
-          <img
-            *ngSwitchCase="'RAD'"
-            src="/app/custom/assets/images/icon_rad_sm.png"
-          />
-          <img
-            *ngSwitchCase="'FOR'"
-            src="/app/custom/assets/images/icon_for_sm.png"
-          />
-        </div>
-        <div class="ds-body">
-          <div>
-            <div class="d-flex w-100 justify-content-between">
-              <h5 class="ds-heading click-event" (click)="openDataset(ds)">
-                {{ ds.name }}
-              </h5>
-              <small
-                ><i
-                  class="fas fa-ellipsis-h click-event"
-                  [ngbPopover]="optionsContent"
-                  placement="bottom-right"
-                  container="body"
-                ></i
-              ></small>
-              <ng-template #optionsContent>
-                <ul id="ds-menu-options" class="nav flex-column">
-                  <li class="nav-item">
-                    <a
-                      class="nav-link click-event p-0 text-secondary"
-                      [routerLink]=""
-                      (click)="openDataset(ds)"
-                      ><i class="fas fa-share-square"></i> Open Dataset</a
-                    >
-                  </li>
-                  <li class="nav-item">
-                    <a
-                      class="nav-link click-event p-0 text-secondary"
-                      [routerLink]=""
-                      (click)="openDataset(ds)"
-                    >
-                      <i class="fas fa-info-circle"></i> Documentation</a
-                    >
-                  </li>
-                </ul>
-              </ng-template>
+  <div class="row justify-content-md-center page-with-sidebar">
+    <div class="col-12">
+      <h3>{{ title }}</h3>
+      <div *ngIf="!loading && datasets.length" class="scrollDiv py-1">
+        <div *ngFor="let ds of datasets" class="row no-gutters ds-item">
+          <div class="col container-checkbox" *ngIf="multiSelection">
+            <!-- Checkbox for multiple selection -->
+            <div class="box-checkbox">
+              <input
+                class="mst--input-checkbox"
+                [id]="ds.id"
+                type="checkbox"
+                [value]="ds.id"
+                (click)="selectDataset($event)"
+              />
+              <label [for]="ds.id"></label>
             </div>
-            <p class="text">{{ ds.description }}</p>
-            <small class="d-block">Product type: {{ ds.category }}</small>
-            <small class="d-block">License: {{ ds.license }}</small>
-            <small class="d-block">Attribution: {{ ds.attribution }}</small>
+          </div>
+
+          <div class="col container-picture">
+            <div class="ds-picture" [ngSwitch]="ds.category">
+              <img
+                *ngSwitchCase="'OBS'"
+                src="/app/custom/assets/images/icon_obs_sm.png"
+              />
+              <img
+                *ngSwitchCase="'RAD'"
+                src="/app/custom/assets/images/icon_rad_sm.png"
+              />
+              <img
+                *ngSwitchCase="'FOR'"
+                src="/app/custom/assets/images/icon_for_sm.png"
+              />
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="ds-body">
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="ds-heading click-event" (click)="openDataset(ds)">
+                  {{ ds.name }}
+                </h5>
+                <small
+                  ><i
+                    class="fas fa-share-square click-event"
+                    (click)="openDataset(ds)"
+                  ></i
+                ></small>
+                <!--
+                <small
+                  ><i
+                    class="fas fa-ellipsis-h click-event"
+                    [ngbPopover]="optionsContent"
+                    placement="bottom-right"
+                    container="body"
+                  ></i
+                ></small>
+                <ng-template #optionsContent>
+                  <ul id="ds-menu-options" class="nav flex-column">
+                    <li class="nav-item">
+                      <a
+                        class="nav-link click-event p-0 text-secondary"
+                        [routerLink]=""
+                        (click)="openDataset(ds)"
+                        ><i class="fas fa-share-square"></i> Open Dataset</a
+                      >
+                    </li>
+                    <li class="nav-item">
+                      <a
+                        class="nav-link click-event p-0 text-secondary"
+                        [routerLink]=""
+                        (click)="openDataset(ds)"
+                      >
+                        <i class="fas fa-info-circle"></i> Documentation</a
+                      >
+                    </li>
+                  </ul>
+                </ng-template>
+                -->
+              </div>
+              <p class="text">{{ ds.description }}</p>
+              <small class="d-block">Product type: {{ ds.category }}</small>
+              <small class="d-block">License: {{ ds.license }}</small>
+              <small class="d-block">Attribution: {{ ds.attribution }}</small>
+            </div>
           </div>
         </div>
       </div>
-    </ng-container>
-    <!-- no datasets -->
-    <div class="no-results" *ngIf="!loading && datasets.length === 0">
-      <h2>No Datasets</h2>
-      <p>Your filter returned no results</p>
+      <!-- no datasets -->
+      <div class="no-results" *ngIf="!loading && datasets.length === 0">
+        <h2>No Datasets</h2>
+        <p>Your filter returned no results</p>
+      </div>
     </div>
   </div>
 </div>
+<!--
+<div class="row no-gutters">
+  <div class="col-md-9 offset-md-3 py-2">
+    <h3>{{ title }}</h3>
+  </div>
+</div>
+
+<div class="row no-gutters px-2 my-1">
+  <div class="col-md-2 px-2">
+
+  </div>
+  <div class="col-md-10">
+
+  </div>
+</div>
+-->

@@ -26,6 +26,7 @@ export class DatasetsComponent implements OnInit {
   datasets: Dataset[] = [];
   filterForm: FormGroup;
   loading: boolean = false;
+  multiSelection: boolean = true;
 
   typesData: string[] = [];
   licensesData: string[] = [];
@@ -138,6 +139,10 @@ export class DatasetsComponent implements OnInit {
         selectedAttributionIds.includes(ds.attribution)
       );
     }
+  }
+
+  selectDataset($event) {
+    console.log($event);
   }
 
   // @ts-ignore
