@@ -161,7 +161,7 @@
   opacity: 0.7;
 } */
 
-.legend_tp_perc {
+/* .legend_tp_perc {
   padding: 6px 8px;
   font: 12px Arial, Helvetica, sans-serif;
   background: white;
@@ -172,7 +172,7 @@
   color: #555;
 }
 
-.legend_tp_perc i { 
+.legend_tp_perc i {
   width: 16px;
   height: 6px;
   float: left;
@@ -197,4 +197,4 @@
   float: left;
   margin-right: 8px;
   opacity: 0.7;
-}
+} */

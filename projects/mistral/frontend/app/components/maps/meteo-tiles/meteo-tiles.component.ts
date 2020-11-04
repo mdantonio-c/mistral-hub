@@ -508,16 +508,16 @@ export class MeteoTilesComponent {
       [HCC]: this.createLegendControl("hcc"),
       [MCC]: this.createLegendControl("mcc"),
       [LCC]: this.createLegendControl("lcc"),
-      [TPPERC1]: this.createLegendControl("tp_perc"),
-      [TPPERC10]: this.createLegendControl("tp_perc"),
-      [TPPERC25]: this.createLegendControl("tp_perc"),
-      [TPPERC75]: this.createLegendControl("tp_perc"),
-      [TPPERC50]: this.createLegendControl("tp_perc"),
-      [TPPERC99]: this.createLegendControl("tp_perc"),
-      [TPPROB5]: this.createLegendControl("tp_prob"),
-      [TPPROB20]: this.createLegendControl("tp_prob"),
-      [TPPROB10]: this.createLegendControl("tp_prob"),
-      [TPPROB50]: this.createLegendControl("tp_prob"),
+      [TPPERC1]: this.createLegendControl("tpperc"),
+      [TPPERC10]: this.createLegendControl("tpperc"),
+      [TPPERC25]: this.createLegendControl("tpperc"),
+      [TPPERC75]: this.createLegendControl("tpperc"),
+      [TPPERC50]: this.createLegendControl("tpperc"),
+      [TPPERC99]: this.createLegendControl("tpperc"),
+      [TPPROB5]: this.createLegendControl("tpprob"),
+      [TPPROB20]: this.createLegendControl("tpprob"),
+      [TPPROB10]: this.createLegendControl("tpprob"),
+      [TPPROB50]: this.createLegendControl("tpprob"),
     };
     let legends = this.legends;
     map.on("overlayadd", function (event) {
@@ -564,7 +564,7 @@ export class MeteoTilesComponent {
         this.removeControl(legends[RH]);
       } else if (event["name"] === HCC) {
         this.removeControl(legends[HCC]);
-      } else if (event["name"] === MCC) { 
+      } else if (event["name"] === MCC) {
         this.removeControl(legends[MCC]);
       } else if (event["name"] === LCC) {
         this.removeControl(legends[LCC]);
