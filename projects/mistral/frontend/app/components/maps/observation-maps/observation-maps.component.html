@@ -19,6 +19,7 @@
           </ng-template>
           <ng-template ngbPanelContent let-opened="opened">
             <app-obs-filter
+              [network]="preset"
               (filterUpdate)="applyFilter($event, true)"
               (filterDownload)="openDownload($event)"
             ></app-obs-filter>

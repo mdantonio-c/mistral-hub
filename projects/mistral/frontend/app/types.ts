@@ -114,6 +114,9 @@ export interface Dataset {
   license?: string;
   license_description?: string;
   license_url?: string;
+
+  is_public: boolean;
+  authorized: boolean;
 }
 
 export interface RefTime {

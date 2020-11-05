@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from "@angular/core";
+import { Component, OnInit, Output, EventEmitter, Input } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ObsFilter, CodeDescPair, FieldsSummary } from "@app/types";
 import { ObsService } from "../services/obs.service";
@@ -19,6 +19,7 @@ export class ObsFilterComponent implements OnInit {
   readonly DEFAULT_PRODUCT = "B12101";
   readonly DEFAULT_LEVEL = "103,2000,0,0";
   readonly DEFAULT_TIMERANGE = "254,0,0";
+  @Input() network: string;
 
   filterForm: FormGroup;
   allNetworks: CodeDescPair[];
@@ -69,6 +70,9 @@ export class ObsFilterComponent implements OnInit {
       product: this.DEFAULT_PRODUCT,
       reftime: this.today,
     };
+    if (this.network) {
+      startFilter.network = this.network;
+    }
     this.loadFilter(startFilter, true);
 
     // subscribe form value changes

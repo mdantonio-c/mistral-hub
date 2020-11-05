@@ -1,13 +1,13 @@
-import { Component, OnInit } from "@angular/core";
-// import {of} from "rxjs";
+import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { Dataset } from "../../types";
-// import {MockDatasetsResponse} from "./data.mock";
 import { NotificationService } from "@rapydo/services/notification";
+import { AuthService } from "@rapydo/services/auth";
 import { NgxSpinnerService } from "ngx-spinner";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { DatasetDetailsComponent } from "../dataset-details/dataset-details.component";
 import { FormBuilder, FormGroup, FormArray, FormControl } from "@angular/forms";
 import { DataService } from "../../services/data.service";
+import { User } from "@rapydo/types";
 
 interface DatasetFilter {
   productType: string;
@@ -22,24 +22,26 @@ interface DatasetFilter {
 })
 export class DatasetsComponent implements OnInit {
   readonly title = "Datasets";
-  // filter: DatasetFilter;
   datasets: Dataset[] = [];
   filterForm: FormGroup;
   loading: boolean = false;
-  multiSelection: boolean = true;
+  multiSelection: boolean = false;
 
   typesData: string[] = [];
   licensesData: string[] = [];
   attributionsData: string[] = [];
 
   private _datasets: Dataset[] = [];
+  user: User;
 
   constructor(
     private dataService: DataService,
+    private authService: AuthService,
     private fb: FormBuilder,
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private ref: ChangeDetectorRef
   ) {
     this.filterForm = this.fb.group({
       types: new FormArray([]),
@@ -49,13 +51,20 @@ export class DatasetsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authService.isAuthenticated().subscribe((isAuth) => {
+      this.user = isAuth ? this.authService.getUser() : null;
+    });
+    this.authService.userChanged.subscribe((user) => {
+      if (user === this.authService.LOGGED_OUT) {
+        this.user = null;
+        this.ref.detectChanges();
+      } else if (user === this.authService.LOGGED_IN) {
+        this.user = this.authService.getUser();
+      }
+    });
+
     this.load();
   }
-
-  // changeFilter(newFilter: DatasetFilter) {
-  //   this.filter = newFilter;
-  //   this.load();
-  // }
 
   private load() {
     this.loading = true;
@@ -100,6 +109,9 @@ export class DatasetsComponent implements OnInit {
   }
 
   openDataset(ds: Dataset) {
+    if (!ds.is_public) {
+      return;
+    }
     const modalRef = this.modalService.open(DatasetDetailsComponent, {
       size: "lg",
       centered: true,

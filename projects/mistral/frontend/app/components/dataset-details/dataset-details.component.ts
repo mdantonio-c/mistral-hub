@@ -4,6 +4,7 @@ import { DataExtractionRequest, Dataset } from "../../types";
 import { DataService } from "../../services/data.service";
 import { NgxSpinnerService } from "ngx-spinner";
 import { environment } from "@rapydo/../environments/environment";
+import { Router } from "@angular/router";
 
 // === @swimlane/ngx-datatable/src/types/column-mode.type
 enum ColumnMode {
@@ -29,12 +30,12 @@ export class DatasetDetailsComponent implements OnInit {
   data: OpenData[] = [];
   loading: boolean = false;
 
-  // columns = [{prop: 'date'}, {name: 'run'}, {name: 'Download', sortable: false}];
   ColumnMode = ColumnMode;
 
   constructor(
     private dataService: DataService,
     public activeModal: NgbActiveModal,
+    private router: Router,
     private spinner: NgxSpinnerService
   ) {}
 
@@ -71,11 +72,18 @@ export class DatasetDetailsComponent implements OnInit {
     return openData;
   }
 
-  download(filename) {
+  download(filename: string) {
     let link = document.createElement("a");
-    link.href = `${environment.backendURI}/api/data/${filename}`;
+    link.href = `${environment.backendURI}/api/opendata/${filename}`;
     link.download = filename;
     link.style.visibility = "hidden";
     link.click();
+  }
+
+  goTo(route: string) {
+    this.activeModal.dismiss();
+    this.router.navigate([route], {
+      queryParams: { network: this.dataset.id },
+    });
   }
 }

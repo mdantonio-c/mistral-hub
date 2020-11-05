@@ -65,9 +65,12 @@
   <div class="row justify-content-md-center page-with-sidebar">
     <div class="col-12">
       <h3>{{ title }}</h3>
-      <div *ngIf="!loading && datasets.length" class="scrollDiv py-1">
+      <div *ngIf="!loading && datasets.length" class="scrollDiv py-1 mb-2">
         <div *ngFor="let ds of datasets" class="row no-gutters ds-item">
-          <div class="col container-checkbox" *ngIf="multiSelection">
+          <div
+            class="col container-checkbox"
+            *ngIf="user && multiSelection && ds.authorized"
+          >
             <!-- Checkbox for multiple selection -->
             <div class="box-checkbox">
               <input
@@ -101,10 +104,14 @@
           <div class="col">
             <div class="ds-body">
               <div class="d-flex w-100 justify-content-between">
-                <h5 class="ds-heading click-event" (click)="openDataset(ds)">
+                <h5
+                  class="ds-heading"
+                  [ngClass]="{ 'click-event': ds.is_public }"
+                  (click)="openDataset(ds)"
+                >
                   {{ ds.name }}
                 </h5>
-                <small
+                <small *ngIf="ds.is_public"
                   ><i
                     class="fas fa-share-square click-event"
                     (click)="openDataset(ds)"
@@ -158,19 +165,3 @@
     </div>
   </div>
 </div>
-<!--
-<div class="row no-gutters">
-  <div class="col-md-9 offset-md-3 py-2">
-    <h3>{{ title }}</h3>
-  </div>
-</div>
-
-<div class="row no-gutters px-2 my-1">
-  <div class="col-md-2 px-2">
-
-  </div>
-  <div class="col-md-10">
-
-  </div>
-</div>
--->

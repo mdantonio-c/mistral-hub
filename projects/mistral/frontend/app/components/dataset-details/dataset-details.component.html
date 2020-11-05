@@ -46,83 +46,100 @@
       >
         <li [ngbNavItem]="1">
           <a ngbNavLink>Download open data</a>
-          <ng-template ngbNavContent>
-            <ngx-spinner [fullScreen]="false"></ngx-spinner>
-            <!-- no data -->
-            <div *ngIf="!loading && !data?.length">
-              <div class="no-results">
-                <h2>No Data</h2>
+          <ng-template ngbNavContent [ngSwitch]="dataset.category">
+            <ng-container *ngSwitchCase="'FOR'">
+              <ngx-spinner [fullScreen]="false"></ngx-spinner>
+              <!-- no data -->
+              <div *ngIf="!loading && !data?.length">
+                <div class="no-results">
+                  <h2>No Data</h2>
+                </div>
               </div>
-            </div>
-            <!-- load opendata in the table -->
-            <div
-              class="table-responsive mb-2"
-              *ngIf="data?.length"
-              #tableWrapper
-            >
-              <ngx-datatable
-                #openDataTable
-                class="bootstrap expandable"
-                [rows]="data"
-                [columnMode]="ColumnMode.flex"
-                [headerHeight]="50"
-                [footerHeight]="50"
-                rowHeight="auto"
+              <!-- load opendata in the table -->
+              <div
+                class="table-responsive mb-2"
+                *ngIf="data?.length"
+                #tableWrapper
               >
-                <!-- Date -->
-                <ngx-datatable-column
-                  name="date"
-                  [resizeable]="false"
-                  [sortable]="true"
-                  [draggable]="false"
-                  [flexGrow]="1.6"
-                  [minWidth]="120"
+                <ngx-datatable
+                  #openDataTable
+                  class="bootstrap expandable"
+                  [rows]="data"
+                  [columnMode]="ColumnMode.flex"
+                  [headerHeight]="50"
+                  [footerHeight]="50"
+                  rowHeight="auto"
                 >
-                  <ng-template
-                    let-value="value"
-                    let-row="row"
-                    ngx-datatable-cell-template
+                  <!-- Date -->
+                  <ngx-datatable-column
+                    name="date"
+                    [resizeable]="false"
+                    [sortable]="true"
+                    [draggable]="false"
+                    [flexGrow]="1.6"
+                    [minWidth]="120"
                   >
-                    <span>{{ value | amFromUtc | date: "yyyy-MM-dd" }}</span>
-                  </ng-template>
-                </ngx-datatable-column>
-                <!-- Run -->
-                <ngx-datatable-column
-                  prop="run"
-                  [resizeable]="false"
-                  [sortable]="false"
-                  [draggable]="false"
-                  [flexGrow]="0.5"
-                  [minWidth]="66"
-                >
-                  <ng-template
-                    let-value="value"
-                    let-row="row"
-                    ngx-datatable-cell-template
+                    <ng-template
+                      let-value="value"
+                      let-row="row"
+                      ngx-datatable-cell-template
+                    >
+                      <span>{{ value | amFromUtc | date: "yyyy-MM-dd" }}</span>
+                    </ng-template>
+                  </ngx-datatable-column>
+                  <!-- Run -->
+                  <ngx-datatable-column
+                    prop="run"
+                    [resizeable]="false"
+                    [sortable]="false"
+                    [draggable]="false"
+                    [flexGrow]="0.5"
+                    [minWidth]="66"
                   >
-                    <span>{{ value }}</span>
-                  </ng-template>
-                </ngx-datatable-column>
-                <!-- Download -->
-                <ngx-datatable-column
-                  name="Download"
-                  [resizeable]="false"
-                  [sortable]="false"
-                  [draggable]="false"
-                  [canAutoResize]="false"
-                >
-                  <ng-template
-                    let-value="value"
-                    let-row="row"
-                    ngx-datatable-cell-template
+                    <ng-template
+                      let-value="value"
+                      let-row="row"
+                      ngx-datatable-cell-template
+                    >
+                      <span>{{ value }}</span>
+                    </ng-template>
+                  </ngx-datatable-column>
+                  <!-- Download -->
+                  <ngx-datatable-column
+                    name="Download"
+                    [resizeable]="false"
+                    [sortable]="false"
+                    [draggable]="false"
+                    [canAutoResize]="false"
                   >
-                    <button class="btn p-0" (click)="download(row.filename)">
-                      GRIB data <i class="fa fa-download ml-2"></i>
-                    </button>
-                  </ng-template>
-                </ngx-datatable-column>
-              </ngx-datatable>
-            </div>
+                    <ng-template
+                      let-value="value"
+                      let-row="row"
+                      ngx-datatable-cell-template
+                    >
+                      <button class="btn p-0" (click)="download(row.filename)">
+                        GRIB data <i class="fa fa-download ml-2"></i>
+                      </button>
+                    </ng-template>
+                  </ngx-datatable-column>
+                </ngx-datatable>
+              </div>
+            </ng-container>
+            <ng-container *ngSwitchCase="'OBS'">
+              <p class="p-2">
+                Open Data for observations are available through the map. User
+                can select a filter and customize a bunch of data to download.
+              </p>
+              <a
+                class="font-weight-bold p-2"
+                routerLink=""
+                (click)="goTo('/app/maps/observations')"
+                >Go to map <i class="fas fa-arrow-alt-circle-right"></i
+              ></a>
+            </ng-container>
+            <ng-container *ngSwitchCase="'RAD'">
+              <!-- TODO -->
+            </ng-container>
           </ng-template>
         </li>
       </ul>

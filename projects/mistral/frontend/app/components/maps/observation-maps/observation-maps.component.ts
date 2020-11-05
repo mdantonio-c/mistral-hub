@@ -1,5 +1,13 @@
-import { Component, ViewChild, ViewEncapsulation } from "@angular/core";
-import { ObsFilter } from "@app/types";
+import {
+  Component,
+  OnInit,
+  Output,
+  ViewChild,
+  ViewEncapsulation,
+  EventEmitter,
+} from "@angular/core";
+import { ActivatedRoute, Router, Params } from "@angular/router";
+import { ObsFilter } from "../../../types";
 import { ObsMapComponent } from "./obs-map/obs-map.component";
 import { ObsMeteogramsComponent } from "./obs-meteograms/obs-meteograms.component";
 
@@ -13,19 +21,46 @@ import { ObsDownloadComponent } from "./obs-download/obs-download.component";
   styleUrls: ["./observation-maps.component.css"],
   encapsulation: ViewEncapsulation.None,
 })
-export class ObservationMapsComponent {
+export class ObservationMapsComponent implements OnInit {
   totalItems: number = 0;
   currentView: string = "Data";
   filter: ObsFilter;
 
-  constructor(private modalService: NgbModal) {}
+  /** keep network preset value on init */
+  // @Output() preset: EventEmitter<string> = new EventEmitter<string>();
+  preset: string;
+
+  constructor(
+    private modalService: NgbModal,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   @ViewChild(ObsMapComponent) map: ObsMapComponent;
   @ViewChild(ObsMeteogramsComponent) chart: ObsMeteogramsComponent;
 
+  ngOnInit() {
+    this.route.queryParams.subscribe((params: Params) => {
+      if (params["network"]) {
+        // console.log(`apply network ${params["network"]} to the filter`);
+        // this.preset.emit(params["network"]);
+        this.preset = params["network"];
+        // clean the url from the query parameter
+        this.router.navigate([], {
+          queryParams: { network: null },
+          queryParamsHandling: "merge",
+        });
+      }
+    });
+  }
+
   applyFilter(filter?: ObsFilter, update = false) {
     if (filter) {
       this.filter = filter;
+      // if (this.preset) {
+      //   this.filter.network = this.preset;
+      //   this.preset = null;
+      // }
     }
     if (this.filter) {
       this.filter.onlyStations = this.currentView === "Stations";
