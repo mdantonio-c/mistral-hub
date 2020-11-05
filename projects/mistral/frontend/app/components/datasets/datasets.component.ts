@@ -9,12 +9,6 @@ import { FormBuilder, FormGroup, FormArray, FormControl } from "@angular/forms";
 import { DataService } from "../../services/data.service";
 import { User } from "@rapydo/types";
 
-interface DatasetFilter {
-  productType: string;
-  productLicense: string;
-  attribution: string;
-}
-
 @Component({
   selector: "app-datasets",
   templateUrl: "./datasets.component.html",
@@ -154,6 +148,7 @@ export class DatasetsComponent implements OnInit {
   }
 
   selectDataset($event) {
+    // TODO
     console.log($event);
   }
 

@@ -52,7 +52,7 @@
               <!-- no data -->
               <div *ngIf="!loading && !data?.length">
                 <div class="no-results">
-                  <h2>No Data</h2>
+                  <h5>No Data</h5>
                 </div>
               </div>
               <!-- load opendata in the table -->
@@ -118,7 +118,8 @@
                       ngx-datatable-cell-template
                     >
                       <button class="btn p-0" (click)="download(row.filename)">
-                        GRIB data <i class="fa fa-download ml-2"></i>
+                        {{ getFileType(row.filename) | uppercase }} data
+                        <i class="fa fa-download ml-2"></i>
                       </button>
                     </ng-template>
                   </ngx-datatable-column>

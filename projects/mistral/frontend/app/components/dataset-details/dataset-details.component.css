@@ -20,3 +20,8 @@
 .navbar-custom {
   border-bottom: 1px solid #495057;
 }
+
+::ng-deep .ngx-datatable .datatable-body {
+  max-height: 300px !important;
+  overflow: hidden auto;
+}

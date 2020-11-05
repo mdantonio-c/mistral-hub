@@ -1,9 +1,10 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
-import { DataExtractionRequest, Dataset } from "../../types";
+import { DataExtractionRequest, Dataset, OpenData } from "../../types";
 import { DataService } from "../../services/data.service";
 import { NgxSpinnerService } from "ngx-spinner";
 import { environment } from "@rapydo/../environments/environment";
+import { NotificationService } from "@rapydo/services/notification";
 import { Router } from "@angular/router";
 
 // === @swimlane/ngx-datatable/src/types/column-mode.type
@@ -11,12 +12,6 @@ enum ColumnMode {
   standard = "standard",
   flex = "flex",
   force = "force",
-}
-
-interface OpenData {
-  date: string;
-  run: string;
-  filename: string;
 }
 
 @Component({
@@ -36,28 +31,35 @@ export class DatasetDetailsComponent implements OnInit {
     private dataService: DataService,
     public activeModal: NgbActiveModal,
     private router: Router,
+    private notify: NotificationService,
     private spinner: NgxSpinnerService
   ) {}
 
   ngOnInit() {
-    this.spinner.show();
-    this.loading = true;
-    this.dataService
-      .getOpenData(this.dataset.id)
-      .subscribe(
-        (response) => {
-          this.data = this.normalize(response);
-          console.log(this.data);
-        },
-        (error) => {
-          // TODO
-          console.error(error);
-        }
-      )
-      .add(() => {
-        this.loading = false;
-        this.spinner.hide();
-      });
+    if (this.dataset.category === "FOR") {
+      this.spinner.show();
+      this.loading = true;
+      this.dataService
+        .getOpenData(this.dataset.name)
+        .subscribe(
+          (response) => {
+            // this.data = this.normalize(response);
+            this.data = response;
+            // console.log(this.data);
+          },
+          (error) => {
+            this.notify.showError(error);
+          }
+        )
+        .add(() => {
+          this.loading = false;
+          this.spinner.hide();
+        });
+    }
+  }
+
+  getFileType(filename) {
+    return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
   }
 
   private normalize(data: DataExtractionRequest[]): OpenData[] {

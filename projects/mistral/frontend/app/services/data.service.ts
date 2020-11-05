@@ -17,9 +17,8 @@ import {
   RepeatEvery,
   OnOffSchedule,
   StorageUsage,
+  OpenData,
 } from "@app/types";
-import { MockOpenDataResponse } from "./data.mock";
-import { DataExtractionRequest } from "../types";
 
 @Injectable({
   providedIn: "root",
@@ -48,9 +47,10 @@ export class DataService {
     return this.api.get("datasets", datasetId, params);
   }
 
-  getOpenData(datasetId): Observable<DataExtractionRequest[]> {
-    // return this.api.get(`datasets/${datasetId}/opendata`);
-    return of(MockOpenDataResponse);
+  getOpenData(datasetId): Observable<OpenData[]> {
+    //Observable<DataExtractionRequest[]> {
+    return this.api.get(`datasets/${datasetId}/opendata`);
+    // return of(MockOpenDataResponse);
   }
 
   getSummary(

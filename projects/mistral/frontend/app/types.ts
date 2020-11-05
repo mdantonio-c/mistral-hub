@@ -294,3 +294,9 @@ export interface ReftimeArg {
   from: string;
   to: string;
 }
+
+export interface OpenData {
+  date: string;
+  run: string;
+  filename: string;
+}
