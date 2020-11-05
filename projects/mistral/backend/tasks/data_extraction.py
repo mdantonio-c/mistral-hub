@@ -1,6 +1,8 @@
 import datetime
 import glob
+import json
 import os
+import shutil
 import subprocess
 import tarfile
 
@@ -96,6 +98,16 @@ def data_extract(
             dataset_format = arki.get_datasets_format(datasets)
             # get the category of the datasets
             data_type = arki.get_datasets_category(datasets)
+            # check user authorization for the requested datasets
+            user = db.User.query.filter_by(id=user_id).first()
+            auth_datasets = SqlApiDbManager.get_datasets(db, user)
+            auth_datasets_names = []
+            for ds in auth_datasets:
+                auth_datasets_names.append(ds["name"])
+            if not all(elem in auth_datasets_names for elem in datasets):
+                raise AccessToDatasetDenied(
+                    "user is not allowed to access the requested datasets"
+                )
 
             # TODO and if are observation data in arkimet and not in dballe?
             # create a query for arkimet
@@ -114,8 +126,12 @@ def data_extract(
 
             # create download user dir if it doesn't exist
             uuid = SqlApiDbManager.get_uuid(db, user_id)
-            user_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
-            os.makedirs(user_dir, exist_ok=True)
+            if not amqp_queue:
+                output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
+            else:
+                # create a temporary outfile directory
+                output_dir = os.path.join("/data/tmp_outfiles", uuid)
+            os.makedirs(output_dir, exist_ok=True)
 
             # check that the datasets are all under the same license
             arki.check_compatible_licenses(db, datasets)
@@ -128,22 +144,23 @@ def data_extract(
                 fileformat=dataset_format,
             )
             # final result
-            outfile = os.path.join(user_dir, out_filename)
+            outfile = os.path.join(output_dir, out_filename)
 
-            if data_type != "OBS":
-                if schedule:
-                    esti_data_size = check_user_quota(
-                        user_id, user_dir, datasets, query, db, schedule_id
-                    )
+            if not amqp_queue:
+                if data_type != "OBS":
+                    if schedule:
+                        esti_data_size = check_user_quota(
+                            user_id, output_dir, datasets, query, db, schedule_id
+                        )
+                    else:
+                        esti_data_size = check_user_quota(
+                            user_id, output_dir, datasets, query, db
+                        )
+
+                # observed data. in future the if statement will be for data using arkimet and data using dballe
                 else:
-                    esti_data_size = check_user_quota(
-                        user_id, user_dir, datasets, query, db
-                    )
-
-            # observed data. in future the if statement will be for data using arkimet and data using dballe
-            else:
-                # TODO how can i check user quota using dballe??
-                log.debug("observation in dballe")
+                    # TODO how can i check user quota using dballe??
+                    log.debug("observation in dballe")
 
             if postprocessors:
                 log.debug(postprocessors)
@@ -163,7 +180,7 @@ def data_extract(
                     log.debug("Data extraction with post-processing <{}>", pp_type)
 
                 # temporarily save the data extraction output
-                tmp_outfile = os.path.join(user_dir, out_filename + ".tmp")
+                tmp_outfile = os.path.join(output_dir, out_filename + ".tmp")
                 # call data extraction
                 if data_type != "OBS":
                     arki.arkimet_extraction(datasets, query, tmp_outfile)
@@ -182,7 +199,7 @@ def data_extract(
                                 datasets=datasets,
                                 params=p,
                                 tmp_extraction=tmp_outfile,
-                                user_dir=user_dir,
+                                user_dir=output_dir,
                                 fileformat=dataset_format,
                             )
                             # join pp1_output and tmp_extraction in output file
@@ -217,7 +234,7 @@ def data_extract(
                             # change output extension from .grib to .BUFR
                             outfile_name, outfile_ext = os.path.splitext(out_filename)
                             out_filename = outfile_name + ".BUFR"
-                            outfile = os.path.join(user_dir, out_filename)
+                            outfile = os.path.join(output_dir, out_filename)
                             # bufr_outfile = outfile_name+'.BUFR'
                             # pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
                             pp3_3.pp_sp_interpolation(
@@ -229,7 +246,7 @@ def data_extract(
 
                     finally:
                         # always remove tmp file
-                        tmp_filelist = glob.glob(os.path.join(user_dir, "*.tmp"))
+                        tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
                         for f in tmp_filelist:
                             os.remove(f)
                         # if pp_type == 'spare_point_interpolation':
@@ -256,7 +273,7 @@ def data_extract(
                                 datasets=datasets,
                                 params=p,
                                 tmp_extraction=tmp_outfile,
-                                user_dir=user_dir,
+                                user_dir=output_dir,
                                 fileformat=dataset_format,
                             )
                             # join pp1_output and tmp_extraction in output file
@@ -268,7 +285,7 @@ def data_extract(
                                 fileformat=dataset_format
                             )
                             pp_output = os.path.join(
-                                user_dir, new_tmp_extraction_filename
+                                output_dir, new_tmp_extraction_filename
                             )
                             with open(pp_output, mode="w") as pp1_outfile:
                                 ext_proc = subprocess.Popen(cat_cmd, stdout=pp1_outfile)
@@ -295,7 +312,7 @@ def data_extract(
                                 fileformat=dataset_format
                             )
                             pp_output = os.path.join(
-                                user_dir, new_tmp_extraction_filename
+                                output_dir, new_tmp_extraction_filename
                             )
                             pp2.pp_statistic_elaboration(
                                 params=p,
@@ -324,7 +341,7 @@ def data_extract(
                                 fileformat=dataset_format
                             )
                             pp_output = os.path.join(
-                                user_dir, new_tmp_extraction_filename
+                                output_dir, new_tmp_extraction_filename
                             )
                             pp3_2.pp_grid_cropping(
                                 params=p, input=pp_input, output=pp_output
@@ -350,7 +367,7 @@ def data_extract(
                                 fileformat=dataset_format
                             )
                             pp_output = os.path.join(
-                                user_dir, new_tmp_extraction_filename
+                                output_dir, new_tmp_extraction_filename
                             )
                             pp3_1.pp_grid_interpolation(
                                 params=p, input=pp_input, output=pp_output
@@ -376,7 +393,7 @@ def data_extract(
                             )
                             out_filename = new_tmp_extraction_filename
                             pp_output = os.path.join(
-                                user_dir, new_tmp_extraction_filename
+                                output_dir, new_tmp_extraction_filename
                             )
                             pp3_3.pp_sp_interpolation(
                                 params=p,
@@ -394,7 +411,7 @@ def data_extract(
                     finally:
                         log.debug("end of multiple postprocessors")
                     #     # remove all tmp file
-                    #     tmp_filelist = glob.glob(os.path.join(user_dir, "*.tmp"))
+                    #     tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
                     #     for f in tmp_filelist:
                     #         os.remove(f)
                     # if there is, remove the temporary folder where the files for the sp_interpolation were uploaded
@@ -409,17 +426,17 @@ def data_extract(
 
             if output_format:
                 filebase, fileext = os.path.splitext(out_filename)
-                input = os.path.join(user_dir, out_filename)
-                output = os.path.join(user_dir, filebase + "." + output_format)
+                input = os.path.join(output_dir, out_filename)
+                output = os.path.join(output_dir, filebase + "." + output_format)
                 out_filepath = output_formatting.pp_output_formatting(
                     output_format, input, output
                 )
                 out_filename = os.path.basename(out_filepath)
                 # rename outfile correctly
-                outfile = os.path.join(user_dir, out_filename)
+                outfile = os.path.join(output_dir, out_filename)
 
             # get the actual data size
-            data_size = os.path.getsize(os.path.join(user_dir, out_filename))
+            data_size = os.path.getsize(os.path.join(output_dir, out_filename))
             log.debug(f"Actual resulting data size: {data_size}")
             if data_type != "OBS":
                 if data_size > esti_data_size:
@@ -432,9 +449,10 @@ def data_extract(
             target_filename = os.path.basename(outfile)
 
             # create fileoutput record in db
-            SqlApiDbManager.create_fileoutput_record(
-                db, user_id, request_id, target_filename, data_size
-            )
+            if not amqp_queue:
+                SqlApiDbManager.create_fileoutput_record(
+                    db, user_id, request_id, target_filename, data_size
+                )
             # update request status
             request.status = states.SUCCESS
 
@@ -467,36 +485,51 @@ def data_extract(
             raise exc
         finally:
             # remove tmp file
-            tmp_filelist = glob.glob(os.path.join(user_dir, "*.tmp"))
+            tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
             for f in tmp_filelist:
                 os.remove(f)
 
             request.end_date = datetime.datetime.utcnow()
             db.session.commit()
             log.info("Terminate task {} with state {}", self.request.id, request.status)
-            if not amqp_queue:
-                notificate_by_email(db, user_id, request, extra_msg)
-            else:
+            if amqp_queue:
+                # send a message in the queue
                 try:
-                    rabbit = celery_app.get_service("rabbitmq")
-                    host = get_backend_url()
-                    url = f"{host}/api/data/{target_filename}"
-                    rabbit_msg = {
-                        "task_id": self.request.id,
-                        "schedule_id": schedule_id,
-                        "status": request.status,
-                    }
-                    if request.error_message is None:
-                        rabbit_msg["filename"] = target_filename
-                        rabbit_msg["url"] = url
-                    else:
-                        rabbit_msg["error_message"] = request.error_message
+                    with celery_app.get_service("rabbitmq") as rabbit:
+                        rabbit_msg = {
+                            "task_id": self.request.id,
+                            "schedule_id": schedule_id,
+                            "status": request.status,
+                        }
+                        # case 1 if output send the file
+                        if os.path.exists(outfile):
+                            # TODO: servono le info di stato della richiesta?
+                            # test1: mando il file json
+                            filebase, fileext = os.path.splitext(outfile)
+                            if fileext == ".json":
+                                with open(outfile) as f:
+                                    jsondata = json.dumps(f.read())
+                                    rabbit_msg["data"] = json.loads(jsondata)
+                            else:
+                                rabbit_msg["data"] = "to implement for binary data"
+                            log.debug("sending fileoutput to {}", amqp_queue)
+                        # case 2 no output --> notifica di failure e se c'è un message error gli mandi quello
+                        else:
+                            rabbit_msg["error_message"] = request.error_message
+                            log.debug(
+                                "no output: sending error message to {}", amqp_queue
+                            )
 
-                    rabbit.write_to_queue(rabbit_msg, amqp_queue)
-                    rabbit.disconnect()
-                    log.debug("push notification sent to {}", amqp_queue)
+                        rabbit.write_to_queue(rabbit_msg, amqp_queue)
+                        rabbit.disconnect()
                 except BaseException:
-                    notificate_by_email(db, user_id, request, extra_msg)
+                    extra_msg = f"failed communication with {amqp_queue} amqp queue"
+                finally:
+                    if os.path.exists(output_dir):
+                        # to be sure it is the tmp dir
+                        if "/data/tmp_outfiles" in output_dir:
+                            shutil.rmtree(output_dir)
+                notificate_by_email(db, user_id, request, extra_msg)
 
 
 def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
