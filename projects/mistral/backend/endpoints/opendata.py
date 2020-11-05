@@ -1,6 +1,7 @@
 import datetime
 import os
 
+from flask import send_from_directory
 from restapi import decorators
 from restapi.exceptions import BadRequest, NotFound
 from restapi.models import fields
@@ -62,3 +63,24 @@ class OpendataFileList(EndpointResource):
             reverse=True,
         )
         return self.response(res)
+
+
+class OpendataDownload(EndpointResource):
+
+    labels = ["opendata_download"]
+
+    @decorators.endpoint(
+        path="/opendata/<filename>",
+        summary="Download the opendata file",
+        responses={
+            200: "Found the file to download",
+            404: "File not found",
+        },
+    )
+    def get(self, filename):
+        # check if the requested file exists
+        if not os.path.exists(os.path.join(OPENDATA_DIR, filename)):
+            raise NotFound("File not found")
+
+        # download the file as a response attachment
+        return send_from_directory(OPENDATA_DIR, filename, as_attachment=True)
