@@ -496,26 +496,20 @@ def data_extract(
                 # send a message in the queue
                 try:
                     with celery_app.get_service("rabbitmq") as rabbit:
-                        rabbit_msg = {
-                            "task_id": self.request.id,
-                            "schedule_id": schedule_id,
-                            "status": request.status,
-                        }
                         # case 1 if output send the file
                         if os.path.exists(outfile):
-                            # TODO: servono le info di stato della richiesta?
-                            # test1: mando il file json
+                            # test1: pushing the json file
                             filebase, fileext = os.path.splitext(outfile)
                             if fileext == ".json":
                                 with open(outfile) as f:
                                     jsondata = json.dumps(f.read())
-                                    rabbit_msg["data"] = json.loads(jsondata)
+                                    rabbit_msg = json.loads(jsondata)
                             else:
-                                rabbit_msg["data"] = "to implement for binary data"
+                                rabbit_msg = "to implement for binary data"
                             log.debug("sending fileoutput to {}", amqp_queue)
                         # case 2 no output --> notifica di failure e se c'è un message error gli mandi quello
                         else:
-                            rabbit_msg["error_message"] = request.error_message
+                            rabbit_msg = request.error_message
                             log.debug(
                                 "no output: sending error message to {}", amqp_queue
                             )
