@@ -36,6 +36,7 @@ export class ObsService {
     ].join("-");
     let params = {
       q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
+      SummaryStats: false,
       allAvailableProducts: true,
     };
     // do NOT narrow resulting filter by timerange and level
