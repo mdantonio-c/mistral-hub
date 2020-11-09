@@ -46,8 +46,12 @@
       >
         <li [ngbNavItem]="1">
           <a ngbNavLink>Download open data</a>
-          <ng-template ngbNavContent [ngSwitch]="dataset.category">
-            <ng-container *ngSwitchCase="'FOR'">
+          <ng-template ngbNavContent [ngSwitch]="true">
+            <ng-container
+              *ngSwitchCase="
+                dataset.category === 'FOR' || dataset.category === 'RAD'
+              "
+            >
               <ngx-spinner [fullScreen]="false"></ngx-spinner>
               <!-- no data -->
               <div *ngIf="!loading && !data?.length">
@@ -126,7 +130,7 @@
                 </ngx-datatable>
               </div>
             </ng-container>
-            <ng-container *ngSwitchCase="'OBS'">
+            <ng-container *ngSwitchCase="dataset.category === 'OBS'">
               <p class="p-2">
                 Open Data for observations are available through the map. User
                 can select a filter and customize a bunch of data to download.
