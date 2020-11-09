@@ -104,7 +104,6 @@ const appRoutes: Routes = [
   {
     path: "app/maps/meteotiles",
     component: MeteoTilesComponent,
-    canActivate: [AuthGuard],
   },
   {
     path: "app/license",
