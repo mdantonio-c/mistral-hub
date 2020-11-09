@@ -111,7 +111,7 @@ def data_extract(
 
             # TODO and if are observation data in arkimet and not in dballe?
             # create a query for arkimet
-            if data_type != "OBS":
+            if data_type != "OBS" and "multim-forecast" not in datasets:
                 query = ""  # default to no matchers
                 if filters is not None:
                     query = arki.parse_matchers(filters)
@@ -147,7 +147,7 @@ def data_extract(
             outfile = os.path.join(output_dir, out_filename)
 
             if not amqp_queue:
-                if data_type != "OBS":
+                if data_type != "OBS" and "multim-forecast" not in datasets:
                     if schedule:
                         esti_data_size = check_user_quota(
                             user_id, output_dir, datasets, query, db, schedule_id
@@ -182,7 +182,7 @@ def data_extract(
                 # temporarily save the data extraction output
                 tmp_outfile = os.path.join(output_dir, out_filename + ".tmp")
                 # call data extraction
-                if data_type != "OBS":
+                if data_type != "OBS" and "multim-forecast" not in datasets:
                     arki.arkimet_extraction(datasets, query, tmp_outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
@@ -418,7 +418,7 @@ def data_extract(
                     # if os.path.isdir(os.path.join(UPLOAD_PATH,uuid)):
                     #     shutil.rmtree(os.path.join(UPLOAD_PATH,uuid))
             else:
-                if data_type != "OBS":
+                if data_type != "OBS" and "multim-forecast" not in datasets:
                     arki.arkimet_extraction(datasets, query, outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
@@ -438,7 +438,7 @@ def data_extract(
             # get the actual data size
             data_size = os.path.getsize(os.path.join(output_dir, out_filename))
             log.debug(f"Actual resulting data size: {data_size}")
-            if data_type != "OBS":
+            if data_type != "OBS" and "multim-forecast" not in datasets:
                 if data_size > esti_data_size:
                     log.warning(
                         "Actual resulting data exceeds estimation of {}",

@@ -80,6 +80,12 @@ class Fields(EndpointResource):
                         status_code=hcodes.HTTP_BAD_NOTFOUND,
                     )
 
+            if len(datasets) > 1 and "multim-forecast" in datasets:
+                raise RestApiException(
+                    "selection multi-dataset for multimodel forecast is not supported yet",
+                    status_code=hcodes.HTTP_BAD_REQUEST,
+                )
+
             data_type = arki.get_datasets_category(datasets)
             if not data_type:
                 raise RestApiException(
@@ -93,7 +99,7 @@ class Fields(EndpointResource):
             data_type = "OBS"
 
         # ######### OBSERVED DATA ###########
-        if data_type == "OBS":
+        if data_type == "OBS" or "multim-forecast" in datasets:
             summary = None
             log.debug(f"Dataset(s) for observed data: {datasets}")
 
