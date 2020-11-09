@@ -57,6 +57,19 @@ class Initializer:
         sql.session.commit()
         log.info("GroupLicense succesfully updated")
 
+        l_groups_in_db = sql.GroupLicense.query.filter_by().all()
+        for l_group_in_db in l_groups_in_db:
+            is_in_script = False
+            for l_group in license_group_data_to_insert:
+                if l_group["name"] == l_group_in_db.name:
+                    is_in_script = True
+                    break
+            if not is_in_script:
+                log.warning(
+                    "License group {} has an entry in db but is not in the inizializing schema",
+                    l_group_in_db.name,
+                )
+
         # add license to db
         license_data_to_insert = [
             {
@@ -205,6 +218,32 @@ class Initializer:
         sql.session.commit()
         log.info("License and attributions successfully updated")
 
+        license_in_db = sql.License.query.filter_by().all()
+        for lic_in_db in license_in_db:
+            is_in_script = False
+            for lic in license_data_to_insert:
+                if lic["name"] == lic_in_db.name:
+                    is_in_script = True
+                    break
+            if not is_in_script:
+                log.warning(
+                    "License {} has an entry in db but is not in the inizializing schema",
+                    lic_in_db.name,
+                )
+
+        attribution_in_db = sql.Attribution.query.filter_by().all()
+        for attr_in_db in attribution_in_db:
+            is_in_script = False
+            for attr in attribution_data_to_insert:
+                if attr["name"] == attr_in_db.name:
+                    is_in_script = True
+                    break
+            if not is_in_script:
+                log.warning(
+                    "Attribution {} has an entry in db but is not in the inizializing schema",
+                    attr_in_db.name,
+                )
+
         # update dataset table
         datasets = arki.load_datasets()
         for ds in datasets:
@@ -272,6 +311,19 @@ class Initializer:
                 if "bounding" in ds and ds_entry.bounding != ds["bounding"]:
                     ds_entry.bounding = ds["bounding"]
         sql.session.commit()
+        dataset_in_db = sql.Datasets.query.filter_by().all()
+        for ds_in_db in dataset_in_db:
+            is_in_config = False
+            for ds in datasets:
+                if ds["name"] == ds_in_db.name:
+                    is_in_config = True
+                    break
+            if not is_in_config:
+                log.warning(
+                    "Dataset {} has an entry in db but is not in the arkimet config",
+                    ds_in_db.name,
+                )
+
         log.info("Datasets successfully updated")
 
         celery = services["celery"]
