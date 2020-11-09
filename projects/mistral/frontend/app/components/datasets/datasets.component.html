@@ -42,7 +42,7 @@
         </li>
       </ul>
       <h5>Attribution</h5>
-      <ul class="vertical-list px-0">
+      <ul class="vertical-list px-0 overflow-auto" style="max-height: 240px">
         <li
           formArrayName="attributions"
           *ngFor="
@@ -117,21 +117,21 @@
               <div class="d-flex w-100 justify-content-between">
                 <h5
                   class="ds-heading"
-                  [ngClass]="{ 'click-event': ds.is_public }"
+                  [ngClass]="{ clickable: ds.is_public }"
                   (click)="openDataset(ds)"
                 >
                   {{ ds.name }}
                 </h5>
                 <small *ngIf="ds.is_public"
                   ><i
-                    class="fas fa-share-square click-event"
+                    class="fas fa-share-square clickable"
                     (click)="openDataset(ds)"
                   ></i
                 ></small>
                 <!--
                 <small
                   ><i
-                    class="fas fa-ellipsis-h click-event"
+                    class="fas fa-ellipsis-h clickable"
                     [ngbPopover]="optionsContent"
                     placement="bottom-right"
                     container="body"
@@ -141,7 +141,7 @@
                   <ul id="ds-menu-options" class="nav flex-column">
                     <li class="nav-item">
                       <a
-                        class="nav-link click-event p-0 text-secondary"
+                        class="nav-link clickable p-0 text-secondary"
                         [routerLink]=""
                         (click)="openDataset(ds)"
                         ><i class="fas fa-share-square"></i> Open Dataset</a
@@ -149,7 +149,7 @@
                     </li>
                     <li class="nav-item">
                       <a
-                        class="nav-link click-event p-0 text-secondary"
+                        class="nav-link clickable p-0 text-secondary"
                         [routerLink]=""
                         (click)="openDataset(ds)"
                       >
