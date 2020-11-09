@@ -112,6 +112,28 @@
     <dt>Output Format</dt>
     <dd>{{ myRequest.output_format | uppercase }}</dd>
   </ng-container>
+  <ng-container
+    *ngIf="
+      onSubmitStep &&
+      user &&
+      user.amqp_queue &&
+      myRequest?.output_format === 'json'
+    "
+  >
+    <hr />
+    <dt>Data Pushing</dt>
+    <dd>
+      <button
+        type="button"
+        class="btn btn-sm btn-toggle"
+        data-toggle="button"
+        [ngClass]="{ active: myRequest.push }"
+        (click)="toggleDataPush()"
+      >
+        <div class="handle"></div>
+      </button>
+    </dd>
+  </ng-container>
 </dl>
 <div class="btn-group btn-group-sm float-right mr-4" role="group">
   <button
