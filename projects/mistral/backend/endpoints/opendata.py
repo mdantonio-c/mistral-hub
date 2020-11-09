@@ -46,17 +46,34 @@ class OpendataFileList(EndpointResource):
 
         res = []
         for f in opendata_files:
-            # filter the files by requested dataset
-            filebase, fileext = os.path.splitext(f)
-            file_metadata = filebase.split("_")
-            if file_metadata[0] != dataset_name:
-                continue
-            # create the model for the response
-            el = {}
-            el["date"] = file_metadata[1]
-            el["run"] = file_metadata[2]
-            el["filename"] = f
-            res.append(el)
+            if not f.startswith("."):
+                # filter the files by requested dataset
+                filebase, fileext = os.path.splitext(f)
+                file_metadata = filebase.split("_")
+                lenght_metadata = len(file_metadata)
+                date = file_metadata[0]
+                run = (
+                    file_metadata[1][3:] if file_metadata[1].startswith("run") else None
+                )
+                if run:
+                    if lenght_metadata > 3:
+                        dataset = "_".join(file_metadata[2:lenght_metadata])
+                    else:
+                        dataset = file_metadata[2]
+                else:
+                    if lenght_metadata > 2:
+                        dataset = "_".join(file_metadata[1:lenght_metadata])
+                    else:
+                        dataset = file_metadata[1]
+
+                if dataset != dataset_name:
+                    continue
+                # create the model for the response
+                el = {}
+                el["date"] = date
+                el["run"] = run
+                el["filename"] = f
+                res.append(el)
         # sort the elements by date
         res.sort(
             key=lambda x: datetime.datetime.strptime(x["date"], "%Y-%m-%d"),
