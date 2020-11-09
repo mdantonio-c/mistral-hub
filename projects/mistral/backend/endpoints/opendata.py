@@ -49,20 +49,21 @@ class OpendataFileList(EndpointResource):
             if not f.startswith("."):
                 # filter the files by requested dataset
                 filebase, fileext = os.path.splitext(f)
-                file_metadata = filebase.split("_")
+                file_metadata = filebase.split("_")[::-1]
                 lenght_metadata = len(file_metadata)
-                date = file_metadata[0]
                 run = (
-                    file_metadata[1][3:] if file_metadata[1].startswith("run") else None
+                    file_metadata[0][3:] if file_metadata[0].startswith("run") else None
                 )
                 if run:
+                    date = file_metadata[1]
                     if lenght_metadata > 3:
-                        dataset = "_".join(file_metadata[2:lenght_metadata])
+                        dataset = "_".join(file_metadata[2:lenght_metadata][::-1])
                     else:
                         dataset = file_metadata[2]
                 else:
+                    date = file_metadata[0]
                     if lenght_metadata > 2:
-                        dataset = "_".join(file_metadata[1:lenght_metadata])
+                        dataset = "_".join(file_metadata[1:lenght_metadata][::-1])
                     else:
                         dataset = file_metadata[1]
 
