@@ -23,6 +23,7 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import output_formatting
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
+from restapi.connectors import rabbitmq, sqlalchemy
 from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 from restapi.utilities.templates import get_html_template
@@ -49,8 +50,10 @@ def data_extract(
         log.info("Start task [{}:{}]", self.request.id, self.name)
         extra_msg = ""
         try:
-            db = celery_app.get_service("sqlalchemy")
+            db = sqlalchemy.get_instance()
             schedule = None
+            output_dir = None
+            outfile = None
             if schedule_id is not None:
                 # load schedule for this request
                 schedule = db.Schedule.query.get(schedule_id)
@@ -455,6 +458,13 @@ def data_extract(
             # update request status
             request.status = states.SUCCESS
 
+        except ReferenceError as exc:
+            request.status = states.FAILURE
+            request.error_message = str(exc)
+            log.warning(exc)
+            # manually update the task state
+            self.update_state(state=states.FAILURE, meta=str(exc))
+            raise Ignore()
         except DiskQuotaException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
@@ -483,48 +493,18 @@ def data_extract(
             log.exception("Failed to extract data: {}", repr(exc))
             raise exc
         finally:
-            # remove tmp file
-            tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
-            for f in tmp_filelist:
-                os.remove(f)
+            if output_dir:
+                # remove tmp file
+                tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
+                for f in tmp_filelist:
+                    os.remove(f)
 
             request.end_date = datetime.datetime.utcnow()
             db.session.commit()
             log.info("Terminate task {} with state {}", self.request.id, request.status)
             if amqp_queue:
-                # send a message in the queue
-                try:
-                    with celery_app.get_service("rabbitmq") as rabbit:
-                        # case 1 if output send the file
-                        if os.path.exists(outfile):
-                            # test1: pushing the json file
-                            filebase, fileext = os.path.splitext(outfile)
-                            if fileext == ".json":
-                                with open(outfile) as f:
-                                    jsondata = json.dumps(f.read())
-                                    rabbit_msg = json.loads(jsondata)
-                            else:
-                                rabbit_msg = "to implement for binary data"
-                            log.debug("sending fileoutput to {}", amqp_queue)
-                        # case 2 no output --> notifica di failure e se c'è un message error gli mandi quello
-                        else:
-                            rabbit_msg = request.error_message
-                            log.debug(
-                                "no output: sending error message to {}", amqp_queue
-                            )
-
-                        rabbit.send_json(
-                            rabbit_msg, routing_key=amqp_queue, exchange="data-output"
-                        )
-                        rabbit.disconnect()
-                except BaseException:
-                    extra_msg = f"failed communication with {amqp_queue} amqp queue"
-                finally:
-                    if os.path.exists(output_dir):
-                        # to be sure it is the tmp dir
-                        if "/data/tmp_outfiles" in output_dir:
-                            shutil.rmtree(output_dir)
-                notificate_by_email(db, user_id, request, extra_msg)
+                extra_msg = push_data_to_queue(amqp_queue, outfile, output_dir, request)
+            notificate_by_email(db, user_id, request, extra_msg, amqp_queue)
 
 
 def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
@@ -582,10 +562,13 @@ def observed_extraction(datasets, filters, reftime, outfile):
         dballe.extract_data(datasets, fields, queries, outfile, db_type)
 
 
-def notificate_by_email(db, user_id, request, extra_msg):
+def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
     """Send email notification. """
     user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
-    body_msg = request.error_message or "Your data is ready for downloading"
+    if amqp_queue:
+        body_msg = request.error_message or f"Your data has been pushed to {amqp_queue}"
+    else:
+        body_msg = request.error_message or "Your data is ready for downloading"
     body_msg += extra_msg
 
     replaces = {"title": request.name, "status": request.status, "message": body_msg}
@@ -594,6 +577,47 @@ def notificate_by_email(db, user_id, request, extra_msg):
         smtp.send(
             body, "MeteoHub: data extraction completed", user_email, plain_body=body
         )
+
+
+def push_data_to_queue(amqp_queue, outfile, output_dir, request):
+    # send a message in the queue
+    extra_msg = ''
+    try:
+        with rabbitmq.get_instance() as rabbit:
+            # case 1 if output send the file
+            if os.path.exists(outfile):
+                filebase, fileext = os.path.splitext(outfile)
+                if fileext == ".json":
+                    with open(outfile) as f:
+                        jsondata = json.dumps(f.read())
+                        rabbit_msg = json.loads(jsondata)
+                    rabbit.send_json(
+                        rabbit_msg, routing_key=amqp_queue,
+                    )
+                else:
+                    with open(outfile, "rb") as f:
+                        rabbit_msg = f.read()
+                    rabbit.send(rabbit_msg, routing_key=amqp_queue, )
+                log.debug("sending fileoutput to {}", amqp_queue)
+            # case 2 no output --> notify failure and error message
+            else:
+                rabbit_msg = request.error_message
+                log.debug(
+                    "no output: sending error message to {}", amqp_queue
+                )
+                rabbit.send_json(
+                    rabbit_msg, routing_key=amqp_queue,
+                )
+
+            rabbit.disconnect()
+    except BaseException:
+        extra_msg = f"failed communication with {amqp_queue} amqp queue"
+    finally:
+        if os.path.exists(output_dir):
+            # to be sure it is the tmp dir
+            if "/data/tmp_outfiles" in output_dir:
+                shutil.rmtree(output_dir)
+        return extra_msg
 
 
 def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
