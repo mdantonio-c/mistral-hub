@@ -1,11 +1,9 @@
 import os
-from datetime import datetime
 
 from restapi import decorators
-from restapi.exceptions import RestApiException
+from restapi.exceptions import NotFound
 from restapi.models import fields, validate
 from restapi.rest.definition import EndpointResource
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 MEDIA_ROOT = "/meteo/"
@@ -62,9 +60,7 @@ class TilesEndpoint(EndpointResource):
         else:
             ready_file = self._get_ready_file(area, run, res)
         if not ready_file:
-            raise RestApiException(
-                "No .READY file found", status_code=hcodes.HTTP_BAD_NOTFOUND,
-            )
+            raise NotFound("No .READY file found")
 
         data = {"reftime": ready_file[:10], "platform": None}
         return self.response(data)

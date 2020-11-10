@@ -1,10 +1,8 @@
-# import time
 import json
 
+from restapi.connectors import sqlalchemy
 from restapi.services.detect import detector
 from restapi.tests import API_URI, BaseTests
-from restapi.utilities.htmlcodes import hcodes
-from restapi.utilities.logs import log
 
 __author__ = "Beatrice Chiavarini (b.chiavarini@cineca.it)"
 
@@ -13,28 +11,30 @@ class TestApp(BaseTests):
     def test_endpoint_without_login(self, client, faker):
         endpoint = API_URI + "/datasets"
         r = client.get(endpoint)
-        assert r.status_code == hcodes.HTTP_OK_BASIC
+        assert r.status_code == 200
         # check that there aren't authorization specs
         data = self.get_content(r)
         assert "authorized" not in data[0]
 
         endpoint = API_URI + "/datasets/lm5"
         r = client.get(endpoint)
-        assert r.status_code == hcodes.HTTP_OK_BASIC
+        assert r.status_code == 200
 
         # trying a dataset that doesn't exists
         endpoint = API_URI + "/datasets/" + faker.pystr()
         r = client.get(endpoint)
-        assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
+        assert r.status_code == 404
 
-    def test_endpoint_with_login(self, client, faker):
+    def test_endpoint_with_login(self, client, app, faker):
 
         # create a fake user
         admin_headers, _ = self.do_login(client, None, None)
         schema = self.getDynamicInputSchema(client, "admin/users", admin_headers)
         data = self.buildData(schema)
-        # get the group license id for user authorization
-        obj = detector.get_debug_instance("sqlalchemy")
+
+        detector.init_services(app=app)
+        obj = sqlalchemy.get_instance()
+
         # get the special dataset id for user authorization
         dataset_to_auth = obj.Datasets.query.filter_by(
             name="sa_dataset_special"
@@ -78,7 +78,7 @@ class TestApp(BaseTests):
 
         endpoint = API_URI + "/datasets"
         r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == hcodes.HTTP_OK_BASIC
+        assert r.status_code == 200
 
         # check response type
         response_data = self.get_content(r)
@@ -87,7 +87,7 @@ class TestApp(BaseTests):
 
         endpoint = API_URI + "/datasets/lm5"
         r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == hcodes.HTTP_OK_BASIC
+        assert r.status_code == 200
 
         # check response type
         response_data = self.get_content(r)
@@ -97,12 +97,12 @@ class TestApp(BaseTests):
         # trying a dataset that doesn't exists
         endpoint = API_URI + "/datasets/" + faker.pystr()
         r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
+        assert r.status_code == 404
 
         # trying a dataset in an unauthorized license group
         endpoint = API_URI + "/datasets/sa_dataset"
         r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == hcodes.HTTP_OK_BASIC
+        assert r.status_code == 200
         response_data = self.get_content(r)
         # the dataset is not public
         assert response_data["is_public"] is False
@@ -112,7 +112,7 @@ class TestApp(BaseTests):
         # trying an authorized dataset in an unauthorized license group
         endpoint = API_URI + "/datasets/sa_dataset_special"
         r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == hcodes.HTTP_OK_BASIC
+        assert r.status_code == 200
         response_data = self.get_content(r)
         # the dataset is not public
         assert response_data["is_public"] is False
@@ -122,12 +122,12 @@ class TestApp(BaseTests):
         # trying error dataset
         endpoint = API_URI + "/datasets/error"
         r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
+        assert r.status_code == 404
 
         # trying duplicates dataset
         endpoint = API_URI + "/datasets/duplicates"
         r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == hcodes.HTTP_BAD_NOTFOUND
+        assert r.status_code == 404
 
         # delete the fake user
         r = client.delete(f"{API_URI}/admin/users/{uuid}", headers=admin_headers)

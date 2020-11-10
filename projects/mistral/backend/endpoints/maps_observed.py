@@ -4,10 +4,9 @@ from flask import Response, stream_with_context
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
-from restapi.exceptions import RestApiException
+from restapi.exceptions import BadRequest, NotFound, ServerError
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 FILEFORMATS = ["BUFR", "JSON"]
@@ -77,10 +76,7 @@ class MapsObservations(EndpointResource):
         query = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
-                raise RestApiException(
-                    "Coordinates for bounding box are missing",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
+                raise BadRequest("Coordinates for bounding box are missing")
             else:
                 # append bounding box params to the query
                 query["lonmin"] = lonmin
@@ -112,16 +108,10 @@ class MapsObservations(EndpointResource):
         if stationDetails:
             # check params for station
             if not networks:
-                raise RestApiException(
-                    "Parameter networks is missing",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
+                raise BadRequest("Parameter networks is missing")
             if not ident:
                 if not lat or not lon:
-                    raise RestApiException(
-                        "Parameters to get station details are missing",
-                        status_code=hcodes.HTTP_BAD_REQUEST,
-                    )
+                    raise BadRequest("Parameters to get station details are missing")
                 else:
                     query_station_data["lat"] = lat
                     query_station_data["lon"] = lon
@@ -158,18 +148,12 @@ class MapsObservations(EndpointResource):
                     query_station_data=query_station_data,
                 )
         except AccessToDatasetDenied:
-            raise RestApiException(
-                "Access to dataset denied",
-                status_code=hcodes.HTTP_SERVER_ERROR,
-            )
+            raise ServerError("Access to dataset denied")
         # parse the response
         res = dballe.parse_obs_maps_response(raw_res)
 
         if not res and stationDetails:
-            raise RestApiException(
-                "Station data not found",
-                status_code=hcodes.HTTP_BAD_NOTFOUND,
-            )
+            raise NotFound("Station data not found")
 
         return self.response(res)
 
@@ -203,10 +187,7 @@ class MapsObservations(EndpointResource):
         query_data = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
-                raise RestApiException(
-                    "Coordinates for bounding box are missing",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
+                raise BadRequest("Coordinates for bounding box are missing")
             else:
                 # append bounding box params to the query
                 query_data["lonmin"] = lonmin
@@ -240,16 +221,10 @@ class MapsObservations(EndpointResource):
         if singleStation:
             # check params for station
             if not networks:
-                raise RestApiException(
-                    "Parameter networks is missing",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
+                raise BadRequest("Parameter networks is missing")
             if not ident:
                 if not lat or not lon:
-                    raise RestApiException(
-                        "Parameters to get station details are missing",
-                        status_code=hcodes.HTTP_BAD_REQUEST,
-                    )
+                    raise BadRequest("Parameters to get station details are missing")
                 else:
                     query_station_data["lat"] = lat
                     query_station_data["lon"] = lon
@@ -415,7 +390,4 @@ class MapsObservations(EndpointResource):
             else:
                 return []
         except AccessToDatasetDenied:
-            raise RestApiException(
-                "Access to dataset denied",
-                status_code=hcodes.HTTP_SERVER_ERROR,
-            )
+            raise ServerError("Access to dataset denied")

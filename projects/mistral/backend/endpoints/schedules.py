@@ -1,15 +1,13 @@
-import datetime
-
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
-from restapi.exceptions import BadRequest, Forbidden, NotFound, RestApiException
+from restapi.connectors import celery, rabbitmq, sqlalchemy
+from restapi.exceptions import BadRequest, Conflict, Forbidden, NotFound, ServerError
 from restapi.models import AdvancedList, Schema, TotalSchema, fields, validate
 from restapi.rest.definition import EndpointResource
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 OUTPUT_FORMATS = ["json", "bufr", "grib"]
@@ -342,7 +340,7 @@ class Schedules(EndpointResource):
             parsed_reftime["from"] = reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             parsed_reftime["to"] = reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
-        db = self.get_service_instance("sqlalchemy")
+        db = sqlalchemy.get_instance()
         # check for existing dataset(s)
         # check for existing dataset(s)
         datasets = SqlApiDbManager.get_datasets(db, user)
@@ -350,7 +348,8 @@ class Schedules(EndpointResource):
             found = next((ds for ds in datasets if ds.get("id", "") == ds_name), None)
             if not found:
                 raise NotFound(
-                    f"Dataset '{ds_name}' not found: check for dataset name of for your authorizations "
+                    f"Dataset '{ds_name}' not found: "
+                    "check for dataset name of for your authorizations "
                 )
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
@@ -393,15 +392,17 @@ class Schedules(EndpointResource):
             if postprocessors:
                 postprocessors_list = [i.get("processor_type") for i in postprocessors]
             if dataset_format != output_format:
-                if dataset_format == "grib":
-                    # spare point interpolation has bufr as output format
-                    if "spare_point_interpolation" not in postprocessors_list:
-                        raise BadRequest(
-                            f"The chosen datasets does not support {output_format} output format"
-                        )
+                # spare point interpolation has only bufr as output format
+                if (
+                    dataset_format == "grib"
+                    and "spare_point_interpolation" not in postprocessors_list
+                ):
+                    raise BadRequest(
+                        f"This dataset does not support {output_format} output format"
+                    )
                 if dataset_format == "bufr" and output_format == "grib":
                     raise BadRequest(
-                        f"The chosen datasets does not support {output_format} output format"
+                        f"This dataset does not support {output_format} output format"
                     )
             else:
                 if (
@@ -409,10 +410,11 @@ class Schedules(EndpointResource):
                     and "spare_point_interpolation" in postprocessors_list
                 ):
                     raise BadRequest(
-                        f"The chosen postprocessor does not support {output_format} output format",
+                        f"This postprocessor does not support {output_format} output format",
                     )
 
-        # WE NEED THIS APPROXIMATION OF ON DATA READY OR WE WILL USE ONLY THE DATA-READY FLAG OF THE FRONTEND?
+        # WE NEED THIS APPROXIMATION OF ON DATA READY
+        # OR WE WILL USE ONLY THE DATA-READY FLAG OF THE FRONTEND?
 
         # # check if the schedule is a 'on-data-ready' one
         # if not data_ready:
@@ -436,12 +438,12 @@ class Schedules(EndpointResource):
         pushing_queue = None
         if push:
             pushing_queue = user.amqp_queue
-            rabbit = self.get_service_instance("rabbitmq")
+            rabbit = rabbitmq.get_instance()
             # check if the queue exists
             if not rabbit.queue_exists(pushing_queue):
                 raise Forbidden("User's queue for push notification does not exists")
 
-        celery = self.get_service_instance("celery")
+        celery_app = celery.get_instance()
 
         name = None
         try:
@@ -473,11 +475,11 @@ class Schedules(EndpointResource):
 
                 if data_ready is False:
                     # remove previous task
-                    res = celery.delete_periodic_task(name=name)
+                    res = celery_app.delete_periodic_task(name=name)
                     log.debug("Previous task deleted = {}", res)
 
                     request_id = None
-                    celery.create_periodic_task(
+                    celery_app.create_periodic_task(
                         name=name,
                         task="mistral.tasks.data_extraction.data_extract",
                         every=every,
@@ -525,7 +527,7 @@ class Schedules(EndpointResource):
                         crontab_settings[i] = str_val
 
                     request_id = None
-                    celery.create_crontab_task(
+                    celery_app.create_crontab_task(
                         name=name,
                         task="mistral.tasks.data_extraction.data_extract",
                         **crontab_settings,
@@ -566,7 +568,7 @@ class Schedules(EndpointResource):
             if data_ready:
                 # submit the first request
                 request_id = None
-                celery.data_extract.apply_async(
+                celery_app.data_extract.apply_async(
                     args=[
                         user.id,
                         dataset_names,
@@ -585,14 +587,12 @@ class Schedules(EndpointResource):
             log.error(error)
             db.session.rollback()
             raise SystemError("Unable to submit the request")
-        if name:
-            r = {"schedule_id": name}
-        else:
-            raise RestApiException(
-                "Unable to submit the request",
-                status_code=hcodes.HTTP_SERVER_ERROR,
-            )
-        return self.response(r, code=hcodes.HTTP_OK_ACCEPTED)
+
+        if not name:
+            raise ServerError("Unable to submit the request")
+
+        r = {"schedule_id": name}
+        return self.response(r, code=202)
 
     @decorators.auth.require()
     @decorators.get_pagination
@@ -626,7 +626,7 @@ class Schedules(EndpointResource):
 
         user = self.get_user()
 
-        db = self.get_service_instance("sqlalchemy")
+        db = sqlalchemy.get_instance()
         if schedule_id is not None:
             # check for schedule ownership
             self.request_and_owner_check(db, user.id, schedule_id)
@@ -664,8 +664,8 @@ class Schedules(EndpointResource):
     def patch(self, schedule_id, is_active):
         user = self.get_user()
 
-        db = self.get_service_instance("sqlalchemy")
-        celery = self.get_service_instance("celery")
+        db = sqlalchemy.get_instance()
+        celery_app = celery.get_instance()
 
         # check if the schedule exist and is owned by the current user
         self.request_and_owner_check(db, user.id, schedule_id)
@@ -673,23 +673,17 @@ class Schedules(EndpointResource):
         schedule = db.Schedule.query.get(schedule_id)
         if schedule.on_data_ready is False:
             # retrieving mongodb task
-            task = celery.get_periodic_task(name=schedule_id)
+            task = celery_app.get_periodic_task(name=schedule_id)
             log.debug("Periodic task - {}", task)
             # disable the schedule deleting it from mongodb
             if is_active is False:
                 if task is None:
-                    raise RestApiException(
-                        "Scheduled task is already disabled",
-                        status_code=hcodes.HTTP_BAD_CONFLICT,
-                    )
-                celery.delete_periodic_task(name=schedule_id)
+                    raise Conflict("Scheduled task is already disabled")
+                celery_app.delete_periodic_task(name=schedule_id)
             # enable the schedule
             if is_active is True:
                 if task:
-                    raise RestApiException(
-                        "Scheduled task is already enabled",
-                        status_code=hcodes.HTTP_BAD_CONFLICT,
-                    )
+                    raise Conflict("Scheduled task is already enabled")
 
                 # recreate the schedule in mongo retrieving the schedule from postgres
                 schedule_response = SqlApiDbManager.get_schedule_by_id(db, schedule_id)
@@ -699,7 +693,7 @@ class Schedules(EndpointResource):
                 try:
                     request_id = None
                     if "periodic" in schedule_response:
-                        celery.create_periodic_task(
+                        celery_app.create_periodic_task(
                             name=str(schedule_id),
                             task="mistral.tasks.data_extraction.data_extract",
                             every=schedule_response["every"],
@@ -725,7 +719,7 @@ class Schedules(EndpointResource):
                             val = schedule_response["crontab_settings"].get(i)
                             str_val = str(val)
                             crontab_settings[i] = str_val
-                        celery.create_crontab_task(
+                        celery_app.create_crontab_task(
                             name=str(schedule_id),
                             task="mistral.tasks.data_extraction.data_extract",
                             **crontab_settings,
@@ -762,14 +756,14 @@ class Schedules(EndpointResource):
     def delete(self, schedule_id):
         user = self.get_user()
 
-        db = self.get_service_instance("sqlalchemy")
-        celery = self.get_service_instance("celery")
+        db = sqlalchemy.get_instance()
+        celery_app = celery.get_instance()
 
         # check if the schedule exist and is owned by the current user
         self.request_and_owner_check(db, user.id, schedule_id)
 
         # delete schedule in mongodb
-        celery.delete_periodic_task(name=schedule_id)
+        celery_app.delete_periodic_task(name=schedule_id)
 
         # delete schedule status in database
         SqlApiDbManager.delete_schedule(db, schedule_id)
@@ -786,10 +780,7 @@ class Schedules(EndpointResource):
 
         # check if the current user is the owner of the request
         if not SqlApiDbManager.check_owner(db, user_id, schedule_id=schedule_id):
-            raise RestApiException(
-                "This request doesn't come from the request's owner",
-                status_code=hcodes.HTTP_BAD_FORBIDDEN,
-            )
+            raise Forbidden("This request doesn't come from the request's owner")
 
 
 class ScheduledRequests(EndpointResource):
@@ -818,7 +809,7 @@ class ScheduledRequests(EndpointResource):
         """
         log.debug("get scheduled requests")
 
-        db = self.get_service_instance("sqlalchemy")
+        db = sqlalchemy.get_instance()
 
         # check if the schedule exists
         if not SqlApiDbManager.check_request(db, schedule_id=schedule_id):
@@ -827,10 +818,7 @@ class ScheduledRequests(EndpointResource):
         # check for schedule ownership
         user = self.get_user()
         if not SqlApiDbManager.check_owner(db, user.id, schedule_id=schedule_id):
-            raise RestApiException(
-                "This request doesn't come from the schedule's owner",
-                status_code=hcodes.HTTP_BAD_FORBIDDEN,
-            )
+            raise Forbidden("This request doesn't come from the schedule's owner")
 
         if get_total:
             # get total count for user schedules

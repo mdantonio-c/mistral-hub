@@ -4,7 +4,6 @@ import subprocess
 from mistral.endpoints import DOWNLOAD_DIR
 from restapi import decorators
 from restapi.rest.definition import EndpointResource
-from restapi.utilities.htmlcodes import hcodes
 
 
 class Usage(EndpointResource):
@@ -21,15 +20,8 @@ class Usage(EndpointResource):
     def get(self):
         """
         Get actual user disk quota and current usage
-        :return:
         """
         user = self.get_user()
-
-        # get user disk quota
-        # db = self.get_service_instance('sqlalchemy')
-        # disk_quota = db.session.query(
-        #     db.User.disk_quota).filter_by(id=user.id).scalar()
-        # log.debug(disk_quota)
 
         # get current usage
         used_quota = 0

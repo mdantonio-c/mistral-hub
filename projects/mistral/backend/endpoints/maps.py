@@ -2,10 +2,9 @@ import os
 
 from flask import send_file
 from restapi import decorators
-from restapi.exceptions import RestApiException
+from restapi.exceptions import NotFound, ServiceUnavailable
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 MEDIA_ROOT = "/meteo/"
@@ -99,9 +98,7 @@ class MapEndpoint(EndpointResource):
         if len(ready_files) > 0:
             log.debug(f".READY files found: {ready_files}")
         else:
-            raise RestApiException(
-                "no .READY files found", status_code=hcodes.HTTP_BAD_NOTFOUND
-            )
+            raise NotFound("no .READY files found")
         return ready_files[0]
 
 
@@ -182,9 +179,7 @@ class MapImage(MapEndpoint):
         log.debug(f"map_image_file: {map_image_file}")
 
         if not os.path.isfile(map_image_file):
-            raise RestApiException(
-                f"Map image not found for offset {map_offset}", hcodes.HTTP_BAD_NOTFOUND
-            )
+            raise NotFound(f"Map image not found for offset {map_offset}")
         return send_file(map_image_file, mimetype="image/png")
 
 
@@ -197,7 +192,7 @@ class MapSet(MapEndpoint):
     @decorators.use_kwargs(get_schema(False), location="query")
     @decorators.endpoint(
         path="/maps/ready",
-        summary="Get the last available map set for a specific run returning the reference time as well.",
+        summary="Get the last available map set for a specific run returning the reference time as well",
         responses={
             200: "Map set successfully retrieved",
             400: "Invalid parameters",
@@ -217,7 +212,8 @@ class MapSet(MapEndpoint):
         env="PROD",
     ):
         """
-        Get the last available map set for a specific run returning the reference time as well.
+        Get the last available map set for a specific run
+        and return the reference time as well
         """
 
         log.debug(f"Retrieve map set for last run <{run}>")
@@ -226,7 +222,8 @@ class MapSet(MapEndpoint):
         if platform is not None and not self.verify_admin():
             platform = None
 
-        # if PLATFORM is not provided, set as default the first available in the order: DEFAULT_PLATFORM + others
+        # if PLATFORM is not provided, set as default the first available
+        # in the order: DEFAULT_PLATFORM + others
         if not platform:
             log.debug(f"PLATFORMS: {PLATFORMS}")
             log.debug(f"DEFAULT PLATFORM: {DEFAULT_PLATFORM}")
@@ -243,9 +240,7 @@ class MapSet(MapEndpoint):
                 platform = platform
                 break
         else:
-            raise RestApiException(
-                "Map service is currently unavailable", hcodes.HTTP_SERVICE_UNAVAILABLE
-            )
+            raise ServiceUnavailable("Map service is currently unavailable")
 
         if field == "percentile" or field == "probability":
             # force GALILEO as platform
@@ -272,9 +267,12 @@ class MapSet(MapEndpoint):
                     offset = f.split(".")[-2]
                     # offset is like this now: 0006_10
                     offset, level = offset.split("_")
-                    # log.debug('data offsets: {}, level: {}'.format(offset,level))
-                    # log.debug('level_pe: {}, level_pr: {}'.format(params['level_pe'],params['level_pr']))
-
+                    # log.debug('data offsets: {}, level: {}', offset,level)
+                    # log.debug(
+                    #     'level_pe: {}, level_pr: {}',
+                    #     params['level_pe'],
+                    #     params['level_pr']
+                    # )
                     if field == "percentile" and level_pe == level:
                         data["offsets"].append(offset)
                     elif field == "probability" and level_pr == level:
@@ -311,7 +309,8 @@ class MapLegend(MapEndpoint):
         self, run, res, field, area, platform, level_pe=None, level_pr=None, env="PROD"
     ):
         """Get a forecast legend for a specific run."""
-        # NOTE: 'area' param is not strictly necessary here although present among the parameters of the request
+        # NOTE: 'area' param is not strictly necessary here
+        # although present among the parameters of the request
         log.debug(
             "Retrieve legend for run <{run}, {res}, {field}>".format(
                 run=run, res=res, field=field
@@ -330,8 +329,5 @@ class MapLegend(MapEndpoint):
             map_legend_file = os.path.join(legend_path, field + ".png")
         log.debug(map_legend_file)
         if not os.path.isfile(map_legend_file):
-            raise RestApiException(
-                f"Map legend not found for field <{field}>",
-                hcodes.HTTP_BAD_NOTFOUND,
-            )
+            raise NotFound(f"Map legend not found for field <{field}>")
         return send_file(map_legend_file, mimetype="image/png")
