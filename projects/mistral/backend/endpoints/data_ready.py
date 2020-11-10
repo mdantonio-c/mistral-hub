@@ -3,9 +3,9 @@ import datetime
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
-from restapi.connectors import celery, sqlalchemy
 from restapi.models import fields
 from restapi.rest.definition import EndpointResource
+from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 
@@ -27,7 +27,7 @@ class DataReady(EndpointResource):
 
         log.info("Cluster = {}\tModel = {}\trundate = {}", cluster, model, rundate)
 
-        db = sqlalchemy.get_instance()
+        db = self.get_service_instance("sqlalchemy")
 
         schedules_list = db.Schedule.query.all()
         for row in schedules_list:
@@ -66,9 +66,8 @@ class DataReady(EndpointResource):
                 continue
 
             if len(datasets) >= 2:
-                # Still unsupported
                 log.warning(
-                    "Schedule {} requires more than a dataset: {}, skipping",
+                    "Schedule {} requires more than a dataset: {}. This is still unsupported, skipping",
                     name,
                     datasets,
                 )
@@ -110,8 +109,7 @@ class DataReady(EndpointResource):
                         last_req["submission_date"], "%Y-%m-%dT%H:%M:%S.%f"
                     ).date()
                 else:
-                    # if there aren't any previous requests consider
-                    # the submission date of the schedule itself
+                    # if there aren't any previous requests consider the submission date of the schedule itself
                     submission_date = datetime.datetime.strptime(
                         r["creation_date"], "%Y-%m-%dT%H:%M:%S.%f"
                     ).date()
@@ -144,12 +142,28 @@ class DataReady(EndpointResource):
                     elif "day_of_week" in crontab_dic:
                         if req_date.weekday() != crontab_dic["day_of_week"]:
                             log.debug(
-                                "Skipping {}: schedule is for an other day of the week",
+                                "Skipping {}: scheduling is for an other day of the week",
                                 name,
                             )
                             continue
 
             log.info("Checking schedule: {}\n{}", name, r)
+            # e.g. {
+            #     'from': '2019-09-01T00:00:00.000Z',
+            #     'to': '2019-09-30T12:02:00.000Z'
+            # }
+            # reftime = r['args']['reftime']
+
+            # e.g. {'level': [{'desc': 'sfc Surface (of the Earth, which includes sea surface) 0 0', 'lt': 1, 's': 'GRIB1'}], 'product': [{'desc': 'P Pressure Pa', 'or': 80, 'pr': 1, 's': 'GRIB1', 'ta': 2}, {'desc': 'T Temperature K', 'or': 80, 'pr': 11, 's': 'GRIB1', 'ta': 2}, {'desc': 'Q Specific humidity kg kg^-1', 'or': 80, 'pr': 51, 's': 'GRIB1', 'ta': 2}], 'timerange': [{'desc': 'Forecast product valid at reference time + P1 (P1>0) - p1 0 time unit second', 'p1': 0, 'p2': 0, 's': 'GRIB1', 'ty': 0, 'un': 1}, {'desc': 'Forecast product valid at reference time + P1 (P1>0) - p1 3600 time unit second', 'p1': 1, 'p2': 0, 's': 'GRIB1', 'ty': 0, 'un': 1}, {'desc': 'Forecast product valid at reference time + P1 (P1>0) - p1 7200 time unit second', 'p1': 2, 'p2': 0, 's': 'GRIB1', 'ty': 0, 'un': 1}, {'desc': 'Forecast product valid at reference time + P1 (P1>0) - p1 10800 time unit second', 'p1': 3, 'p2': 0, 's': 'GRIB1', 'ty': 0, 'un': 1}, {'desc': 'Forecast product valid at reference time + P1 (P1>0) - p1 14400 time unit second', 'p1': 4, 'p2': 0, 's': 'GRIB1', 'ty': 0, 'un': 1}, {'desc': 'Forecast product valid at reference time + P1 (P1>0) - p1 18000 time unit second', 'p1': 5, 'p2': 0, 's': 'GRIB1', 'ty': 0, 'un': 1}]}
+            # filters = r['args']['filters']
+
+            # e.g. []
+            # postprocessors = r['args']['postprocessors']
+
+            # se tra gli args manca run significa che chiede sia 00 sia 12
+            # reftime == 00 || reftime == 12,
+            # quindi modificare reftime ricevuto per impostare la corsa successiva
+            # == rundate at 00 || rundate at 12
 
             reftime = {"from": rundate.isoformat(), "to": rundate.isoformat()}
 
@@ -173,11 +187,11 @@ class DataReady(EndpointResource):
                 #     },
                 # )
 
-                celery_app = celery.get_instance()
+                celery = self.get_service_instance("celery")
                 # copied from "submit first request for scheduled ondataready
                 request_to_be_created_id = None
                 data_ready = True
-                celery_app.data_extract.apply_async(
+                celery.data_extract.apply_async(
                     args=[
                         r.get("user_id"),
                         datasets,
@@ -193,7 +207,7 @@ class DataReady(EndpointResource):
                     countdown=1,
                 )
 
-                # celery_app.data_extract.apply_async(
+                # celery.data_extract.apply_async(
                 #     args=[
                 #         r.get("user_id"),
                 #         datasets,
@@ -216,4 +230,9 @@ class DataReady(EndpointResource):
                 # db.session.rollback()
                 raise SystemError("Unable to submit the request")
 
-        return self.response("1", code=202)
+        return self.response("1", code=hcodes.HTTP_OK_ACCEPTED)
+
+    # @staticmethod
+    # def check_schedule_settings(r, db):
+    #     request = db.Request
+    #     last_schedule_request = SqlApiDbManager.get_last_scheduled_request(db, r["id"])

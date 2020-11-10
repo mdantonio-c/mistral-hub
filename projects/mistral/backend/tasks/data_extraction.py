@@ -23,6 +23,7 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import output_formatting
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
+from restapi.confs import get_backend_url
 from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 from restapi.utilities.templates import get_html_template
@@ -513,9 +514,7 @@ def data_extract(
                                 "no output: sending error message to {}", amqp_queue
                             )
 
-                        rabbit.send_json(
-                            rabbit_msg, routing_key=amqp_queue, exchange="data-output"
-                        )
+                        rabbit.write_to_queue(rabbit_msg, amqp_queue)
                         rabbit.disconnect()
                 except BaseException:
                     extra_msg = f"failed communication with {amqp_queue} amqp queue"

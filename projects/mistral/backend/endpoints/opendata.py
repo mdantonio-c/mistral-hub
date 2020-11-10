@@ -3,8 +3,8 @@ import os
 
 from flask import send_from_directory
 from restapi import decorators
-from restapi.connectors import sqlalchemy
 from restapi.exceptions import BadRequest, NotFound
+from restapi.models import fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 
@@ -29,7 +29,7 @@ class OpendataFileList(EndpointResource):
         """ Get all the opendata filenames and metadata for that dataset"""
         log.debug("requested for {}", dataset_name)
         # check if the dataset exists
-        db = sqlalchemy.get_instance()
+        db = self.get_service_instance("sqlalchemy")
         ds_entry = db.Datasets.query.filter_by(name=dataset_name).first()
         if not ds_entry:
             raise NotFound(f"Dataset not found for name: {dataset_name}")

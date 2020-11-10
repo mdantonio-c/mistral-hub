@@ -24,6 +24,10 @@ export class ProjectOptions extends BaseProjectOptions {
     ];
   }
 
+  show_groups(): boolean {
+    return false;
+  }
+
   custom_user_data(): any[] {
     return [
       {
@@ -49,6 +53,10 @@ export class ProjectOptions extends BaseProjectOptions {
   }
 
   registration_disclaimer(): string {
+    return null;
+  }
+
+  custom_registration_options(): FormlyFieldConfig[] {
     return null;
   }
 

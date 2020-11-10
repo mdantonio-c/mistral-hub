@@ -5,6 +5,7 @@ from pathlib import Path
 
 from mistral.exceptions import PostProcessingException
 from restapi.exceptions import BadRequest
+from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 

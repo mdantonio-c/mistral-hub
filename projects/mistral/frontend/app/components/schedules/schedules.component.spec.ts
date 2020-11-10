@@ -13,7 +13,7 @@ import { SchedulesComponent } from "./schedules.component";
 import { BytesPipe } from "@rapydo/pipes/bytes";
 import { AuthService } from "@rapydo/services/auth";
 import { NotificationService } from "@rapydo/services/notification";
-import { ProjectOptions } from "@app/customization";
+import { ProjectOptions } from "@app/custom.project.options";
 import { FormlyService } from "@rapydo/services/formly";
 import { ApiService } from "@rapydo/services/api";
 import { DataService } from "../../services/data.service";

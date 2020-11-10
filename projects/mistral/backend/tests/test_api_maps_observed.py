@@ -6,9 +6,10 @@ import dballe
 import pytest
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe
-from restapi.connectors import sqlalchemy
+from restapi.rest.definition import EndpointResource
 from restapi.services.detect import detector
 from restapi.tests import API_URI, BaseTests
+from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 user = os.environ.get("ALCHEMY_USER")
@@ -173,17 +174,14 @@ class TestApp(BaseTests):
                 break
         return check_product_1, check_product_2
 
-    def create_fake_user(self, client, app):
+    def create_fake_user(self, client):
         # create a fake user
         admin_headers, _ = self.do_login(client, None, None)
         self.save("admin_header", admin_headers)
         schema = self.getDynamicInputSchema(client, "admin/users", admin_headers)
         data = self.buildData(schema)
-
-        detector.init_services(app=app)
-        obj = sqlalchemy.get_instance()
-
         # get the group license id for user authorization
+        obj = detector.get_debug_instance("sqlalchemy")
         group_lic_to_auth = obj.GroupLicense.query.filter_by(
             name="CCBY_COMPLIANT"
         ).first()
@@ -208,7 +206,7 @@ class TestApp(BaseTests):
 
         endpoint = API_URI + "/observations"
         r = client.get(endpoint)
-        assert r.status_code == 401
+        assert r.status_code == hcodes.HTTP_BAD_UNAUTHORIZED
 
     def test_for_dballe_dbtype(self, client, faker):
         self.create_fake_user(client)
@@ -241,7 +239,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         # check response code
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -260,7 +258,7 @@ class TestApp(BaseTests):
         station_lat_example = response_data["data"][0]["stat"]["lat"]
         station_lon_example = response_data["data"][0]["stat"]["lon"]
         # check response code
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -276,7 +274,7 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         assert not response_data["data"]
 
         # ### only bounding box as argument ####
@@ -289,7 +287,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         # check response code
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -307,7 +305,7 @@ class TestApp(BaseTests):
         endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&lonmin={rand_lonmin}&lonmax={rand_lonmax}&latmin={rand_latmin}&latmax={rand_latmax}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         assert not response_data["data"]
 
         # ### only product as argument ####
@@ -319,7 +317,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         # check response code
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -335,7 +333,7 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         assert not response_data["data"]
 
         # ### all arguments ####
@@ -352,7 +350,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         # check response code
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         # check response content
         check_product_1, check_product_2 = self.check_response_content(
             response_data, q_params["product_1"], q_params["product_2"]
@@ -370,7 +368,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         # check response code
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         # check response content
         assert not response_data["data"][0]["prod"]
 
@@ -384,7 +382,7 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         # check response code
-        assert r.status_code == 200
+        assert r.status_code == hcodes.HTTP_OK_BASIC
         # check random network
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
             date_from=q_params["date_from"],
@@ -404,4 +402,4 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         # check response code
-        assert r.status_code == 400
+        assert r.status_code == hcodes.HTTP_BAD_REQUEST
