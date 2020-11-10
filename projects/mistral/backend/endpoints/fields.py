@@ -3,10 +3,10 @@ from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
-from restapi.exceptions import RestApiException
+from restapi.connectors import sqlalchemy
+from restapi.exceptions import BadRequest, NotFound, ServerError
 from restapi.models import Schema, UniqueDelimitedList, fields
 from restapi.rest.definition import EndpointResource
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 
@@ -51,10 +51,7 @@ class Fields(EndpointResource):
         bounding_box = {}
         if lonmin:
             if not lonmax or not latmin or not latmax:
-                raise RestApiException(
-                    "Coordinates for bounding box are missing",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
+                raise BadRequest("Coordinates for bounding box are missing")
             else:
                 bounding_box["lonmin"] = lonmin
                 bounding_box["lonmax"] = lonmax
@@ -63,7 +60,7 @@ class Fields(EndpointResource):
 
         # check for existing dataset(s)
         user = self.get_user()
-        db = self.get_service_instance("sqlalchemy")
+        db = sqlalchemy.get_instance()
         if datasets:
             for ds_name in datasets:
                 found = next(
@@ -75,22 +72,19 @@ class Fields(EndpointResource):
                     None,
                 )
                 if not found:
-                    raise RestApiException(
-                        f"Dataset '{ds_name}' not found: check for dataset name of for your authorizations",
-                        status_code=hcodes.HTTP_BAD_NOTFOUND,
+                    raise NotFound(
+                        f"Dataset '{ds_name}' not found: check for dataset name of for your authorizations"
                     )
 
             if len(datasets) > 1 and "multim-forecast" in datasets:
-                raise RestApiException(
-                    "selection multi-dataset for multimodel forecast is not supported yet",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
+                raise BadRequest(
+                    "selection multi-dataset for multimodel forecast is not supported yet"
                 )
 
             data_type = arki.get_datasets_category(datasets)
             if not data_type:
-                raise RestApiException(
-                    "Invalid set of datasets : datasets categories are different",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
+                raise BadRequest(
+                    "Invalid set of datasets : datasets categories are different"
                 )
         else:
             # maps case: TODO: manage user authorizations
@@ -136,10 +130,7 @@ class Fields(EndpointResource):
                     query_dic=query_dic,
                 )
             except AccessToDatasetDenied:
-                raise RestApiException(
-                    "Access to dataset denied",
-                    status_code=hcodes.HTTP_SERVER_ERROR,
-                )
+                raise ServerError("Access to dataset denied")
 
             if fields:
                 for key in fields:
@@ -155,10 +146,7 @@ class Fields(EndpointResource):
             try:
                 summary = arki.load_summary(datasets, q)
             except AccessToDatasetDenied:
-                raise RestApiException(
-                    "Access to dataset denied",
-                    status_code=hcodes.HTTP_SERVER_ERROR,
-                )
+                raise ServerError("Access to dataset denied")
 
         # ######### ONLY ARKIMET SUMMARY ###########
         if onlySummaryStats:

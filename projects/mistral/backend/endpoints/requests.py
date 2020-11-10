@@ -3,10 +3,10 @@ import json
 from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi import decorators
-from restapi.exceptions import RestApiException
+from restapi.connectors import sqlalchemy
+from restapi.exceptions import NotFound, Unauthorized
 from restapi.models import TotalSchema
 from restapi.rest.definition import EndpointResource
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 from sqlalchemy.orm import joinedload
 
@@ -34,7 +34,7 @@ class UserRequests(EndpointResource):
 
         user = self.get_user()
 
-        db = self.get_service_instance("sqlalchemy")
+        db = sqlalchemy.get_instance()
         if get_total:
             counter = repo.count_user_requests(db, user.id)
             return self.pagination_total(counter)
@@ -44,7 +44,9 @@ class UserRequests(EndpointResource):
         log.debug("paging: page {0}, size {1}", page, size)
 
         # get user requests list
-        # res = repo.get_user_requests(db, user.id, sort_by=sort_by, sort_order=sort_order)
+        # res = repo.get_user_requests(
+        #     db, user.id, sort_by=sort_by, sort_order=sort_order
+        # )
         data = []
         requests = (
             db.Request.query.filter_by(user_id=user.id)
@@ -56,7 +58,8 @@ class UserRequests(EndpointResource):
         # log.debug(requests)
         for r in requests:
             args = json.loads(r.args)
-            # filter the dictionary None elements as well as rename the dataset key to make it compatible with the
+            # filter the dictionary None elements
+            # and rename the dataset key to make it compatible with the
             # input data extraction request
             filtered_args = {k: v for k, v in args.items() if v is not None}
             filtered_args["dataset_names"] = filtered_args.pop("datasets")
@@ -96,12 +99,10 @@ class UserRequests(EndpointResource):
 
         user = self.get_user()
 
-        db = self.get_service_instance("sqlalchemy")
+        db = sqlalchemy.get_instance()
         # check if the request exists
         if not repo.check_request(db, request_id=request_id):
-            raise RestApiException(
-                "The request doesn't exist", status_code=hcodes.HTTP_BAD_NOTFOUND
-            )
+            raise NotFound("The request doesn't exist")
 
         # check if the current user is the owner of the request
         if repo.check_owner(db, user.id, request_id=request_id):
@@ -112,7 +113,5 @@ class UserRequests(EndpointResource):
 
             return self.response(f"Removed request {request_id}")
         else:
-            raise RestApiException(
-                "This request doesn't come from the request's owner",
-                status_code=hcodes.HTTP_BAD_UNAUTHORIZED,
-            )
+            # should be Forbidden...
+            raise Unauthorized("This request doesn't come from the request's owner")

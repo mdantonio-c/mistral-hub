@@ -4,11 +4,11 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
-from restapi.exceptions import BadRequest, Forbidden, NotFound, RestApiException
+from restapi.connectors import celery, rabbitmq, sqlalchemy
+from restapi.exceptions import BadRequest, Forbidden, NotFound, ServiceUnavailable
 from restapi.models import AdvancedList, Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 OUTPUT_FORMATS = ["json", "bufr", "grib"]
@@ -274,7 +274,7 @@ class Data(EndpointResource, Uploader):
         push=False,
     ):
         user = self.get_user()
-        db = self.get_service_instance("sqlalchemy")
+        db = sqlalchemy.get_instance()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
 
         # check for existing dataset(s)
@@ -366,7 +366,7 @@ class Data(EndpointResource, Uploader):
         pushing_queue = None
         if push:
             pushing_queue = user.amqp_queue
-            rabbit = self.get_service_instance("rabbitmq")
+            rabbit = rabbitmq.get_instance()
             # check if the queue exists
             if not rabbit.queue_exists(pushing_queue):
                 raise Forbidden("User's queue for push notification does not exists")
@@ -388,8 +388,8 @@ class Data(EndpointResource, Uploader):
                 },
             )
 
-            celery = self.get_service_instance("celery")
-            task = celery.data_extract.apply_async(
+            celery_app = celery.get_instance()
+            task = celery_app.data_extract.apply_async(
                 args=[
                     user.id,
                     dataset_names,
@@ -410,12 +410,11 @@ class Data(EndpointResource, Uploader):
         except Exception:
             db.session.rollback()
             raise SystemError("Unable to submit the request")
-        if task:
-            r = {"task_id": task.id}
 
-        else:
-            raise RestApiException(
+        if not task:
+            raise ServiceUnavailable(
                 "Unable to submit the request",
-                status_code=hcodes.HTTP_SERVER_ERROR,
             )
-        return self.response(r, code=hcodes.HTTP_OK_ACCEPTED)
+
+        r = {"task_id": task.id}
+        return self.response(r, code=202)

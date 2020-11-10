@@ -1,5 +1,6 @@
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
+from restapi.connectors import sqlalchemy
 from restapi.exceptions import NotFound, ServiceUnavailable
 from restapi.models import fields
 from restapi.rest.definition import EndpointResource
@@ -33,7 +34,7 @@ class Datasets(EndpointResource):
     # 200: {'schema': {'$ref': '#/definitions/Dataset'}}
     def get(self, dataset_name=None, licenceSpecs=False):
         """ Get all the datasets or a specific one if a name is provided."""
-        db = self.get_service_instance("sqlalchemy")
+        db = sqlalchemy.get_instance()
         user = self.get_user_if_logged()
         authSpecs = True if user else False
         try:

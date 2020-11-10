@@ -5,12 +5,11 @@ from zipfile import ZipFile
 
 from flask import request
 from restapi import decorators
-from restapi.confs import UPLOAD_PATH
-from restapi.exceptions import RestApiException
+from restapi.config import UPLOAD_PATH
+from restapi.exceptions import BadRequest, NotFound, ServerError
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
-from restapi.utilities.htmlcodes import hcodes
 from restapi.utilities.logs import log
 
 
@@ -78,7 +77,10 @@ class Templates(EndpointResource, Uploader):
             log.debug("File uploaded. Filepath : {}", upload_filepath)
         except Exception as error:
             log.error(error)
-            # delete all geojson or zip files in the directory in order to clean it (geojson and zip files if the process doesn't rise an exception are always deleted. if there are such ind of files in the directory means they were uploaded but the exception was risen)
+            # delete all geojson or zip files in the directory in order to clean it
+            # geojson and zip files are always deleted if the process doesn't
+            # rise an exception. If there are such ind of files in the directory
+            # means they were uploaded but the exception was risen
             subfolder_path = os.path.join(UPLOAD_PATH, subfolder)
             for i in os.listdir(subfolder_path):
                 if i.endswith(".zip") or i.endswith(".geojson"):
@@ -155,9 +157,7 @@ class Templates(EndpointResource, Uploader):
             )
             # check if the template exists
             if not os.path.exists(filepath):
-                raise RestApiException(
-                    "The template doesn't exist", status_code=hcodes.HTTP_BAD_NOTFOUND
-                )
+                raise NotFound("The template doesn't exist")
             res = {}
             res["filepath"] = filepath
             res["format"] = fileext.strip(".")
@@ -214,9 +214,7 @@ class Templates(EndpointResource, Uploader):
         )
         # check if the template exists
         if not os.path.exists(filepath):
-            raise RestApiException(
-                "The template doesn't exist", status_code=hcodes.HTTP_BAD_NOTFOUND
-            )
+            raise NotFound("The template doesn't exist")
         # get all the files related to the template to remove
         filelist = glob.glob(
             os.path.join(
@@ -242,41 +240,26 @@ class Templates(EndpointResource, Uploader):
             if e[-1] == "grib":
                 subfolder = os.path.join(user_uuid, "uploads", "grib")
             if os.path.exists(os.path.join(UPLOAD_PATH, subfolder, f)):
-                raise RestApiException(
-                    "File '" + f + "' already exists",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
+                # should be Conflict...
+                raise BadRequest(f"File '{f}' already exists")
 
             file_dict[e[1]] = e[0]
         if "shp" in file_dict:
             # check if there is a file .shx and a file .dbf
             if "shx" not in file_dict:
-                raise RestApiException(
-                    "file .shx is missing", status_code=hcodes.HTTP_BAD_REQUEST
-                )
+                raise BadRequest("file .shx is missing")
             if "dbf" not in file_dict:
-                raise RestApiException(
-                    "file .dbf is missing", status_code=hcodes.HTTP_BAD_REQUEST
-                )
+                raise BadRequest("file .dbf is missing")
             # check if the file .shx and the file .dbf are for the .shp file
             if file_dict["shp"] != file_dict["shx"]:
-                raise RestApiException(
-                    "file .shx and file .shp does not match",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
+                raise BadRequest("file .shx and file .shp does not match")
             if file_dict["shp"] != file_dict["dbf"]:
-                raise RestApiException(
-                    "file .dbf and file .shp does not match",
-                    status_code=hcodes.HTTP_BAD_REQUEST,
-                )
+                raise BadRequest("file .dbf and file .shp does not match")
         # if the file is not a shapefile, only grib and geojson are allowed
         else:
             for k in file_dict.keys():
                 if k not in allowed_exts:
-                    raise RestApiException(
-                        "Wrong extension: File extension not allowed",
-                        status_code=hcodes.HTTP_BAD_REQUEST,
-                    )
+                    raise BadRequest("Wrong extension: File extension not allowed")
 
     @staticmethod
     def convert_to_shapefile(filepath):
@@ -287,10 +270,7 @@ class Templates(EndpointResource, Uploader):
             proc = subprocess.Popen(cmd)
             # wait for the process to terminate
             if proc.wait() != 0:
-                raise RestApiException(
-                    "Errors in converting the uploaded file",
-                    status_code=hcodes.HTTP_SERVER_ERROR,
-                )
+                raise ServerError("Errors in converting the uploaded file")
             else:
                 return output_file
         finally:

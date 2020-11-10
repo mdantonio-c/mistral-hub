@@ -44,7 +44,7 @@ export class MeteoService {
         responseType: "blob",
       },
     };
-    return this.api.get("maps", offset, params, options);
+    return this.api.get("maps/" + offset, "", params, options);
   }
 
   getAllMapImages(params: MeteoFilter, offsets: string[]): Observable<any[]> {

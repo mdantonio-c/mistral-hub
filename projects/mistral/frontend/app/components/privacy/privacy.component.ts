@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { ProjectOptions } from "@app/custom.project.options";
+import { ProjectOptions } from "@app/customization";
 
 @Component({
   selector: "privacy",
