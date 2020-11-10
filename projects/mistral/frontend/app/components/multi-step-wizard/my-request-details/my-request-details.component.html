@@ -116,8 +116,7 @@
     *ngIf="
       onSubmitStep &&
       user &&
-      user.amqp_queue &&
-      myRequest?.output_format === 'json'
+      user.amqp_queue
     "
   >
     <hr />
