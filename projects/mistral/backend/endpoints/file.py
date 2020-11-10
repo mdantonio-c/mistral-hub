@@ -4,7 +4,6 @@ from flask import send_from_directory
 from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
-from restapi.connectors import sqlalchemy
 from restapi.exceptions import NotFound
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
@@ -24,7 +23,7 @@ class FileDownload(EndpointResource):
     def get(self, filename):
 
         user = self.get_user()
-        db = sqlalchemy.get_instance()
+        db = self.get_service_instance("sqlalchemy")
 
         # check for file existence, ownership and location
         if not SqlApiDbManager.check_fileoutput(db, user, filename, DOWNLOAD_DIR):

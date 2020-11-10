@@ -2,6 +2,7 @@
 
 # from restapi.connectors.celery import CeleryExt
 from restapi.tests import API_URI, BaseTests
+from restapi.utilities.htmlcodes import hcodes
 
 
 class TestApp(BaseTests):
@@ -16,7 +17,14 @@ class TestApp(BaseTests):
 
     # def test_endpoint_without_login(self, app, mock_celery, client):
     def test_endpoint_without_login(self, client):
+        # detector.init_services(
+        #     app=app, project_init=False, project_clean=False,
+        # )
+
+        # celery = detector.get_service_instance("celery")
+
+        # patch.object(celery, "data_extract", side_effect=mock_celery)
 
         endpoint = f"{API_URI}/data"
         r = client.post(endpoint)
-        assert r.status_code == 401
+        assert r.status_code == hcodes.HTTP_BAD_UNAUTHORIZED

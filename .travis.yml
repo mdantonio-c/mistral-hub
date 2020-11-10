@@ -11,7 +11,7 @@ env:
   - STAGE=CYPRESS
 
 script:
-  - export RAPYDO_VERSION=0.9
+  - export RAPYDO_VERSION=0.8
   - pip install --upgrade git+https://github.com/rapydo/do.git@${RAPYDO_VERSION}
   - export COMMIT_INFO_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
   - export COMMIT_INFO_MESSAGE="$(git show -s --pretty=%B)"

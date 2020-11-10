@@ -44,7 +44,7 @@ export class DataService {
    */
   getDataset(datasetId: string, licenceSpecs = false): Observable<Dataset> {
     const params = licenceSpecs ? { licenceSpecs: true } : {};
-    return this.api.get(`datasets/${datasetId}`, "", params);
+    return this.api.get("datasets", datasetId, params);
   }
 
   getOpenData(datasetId): Observable<OpenData[]> {
@@ -186,7 +186,7 @@ export class DataService {
         observe: "response",
       },
     };
-    return this.api.get(`data/${filename}`, "", {}, options);
+    return this.api.get("data", filename, {}, options);
   }
 
   toggleScheduleActiveState(

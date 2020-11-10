@@ -26,7 +26,9 @@ def automatic_cleanup(self):
         requests = db.Request.query.all()
         for r in requests:
             if not (exp := users_settings.get(r.user_id)):
-                log.debug("{}: user {} disabled requests autocleaning", r.id, r.user_id)
+                log.verbose(
+                    "{}: user {} disabled requests autocleaning", r.id, r.user_id
+                )
                 continue
 
             if not r.end_date:
