@@ -3,6 +3,8 @@ import { FormDataService, FormData } from "@app/services/formData.service";
 import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { DataService } from "@app/services/data.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { AuthService } from "@rapydo/services/auth";
+import { User } from "@rapydo/types";
 
 @Component({
   selector: "mst-my-request-details",
@@ -16,14 +18,17 @@ export class MyRequestDetailsComponent implements OnInit {
 
   PP_TIME_RANGES = PP_TIME_RANGES;
   decode = decode;
+  user: User;
 
   constructor(
     private formDataService: FormDataService,
     public dataService: DataService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this.user = this.authService.getUser();
     this.myRequest = this.formDataService.getFormData();
   }
 
@@ -62,5 +67,9 @@ export class MyRequestDetailsComponent implements OnInit {
           </div>
           </div>`,
     };
+  }
+
+  toggleDataPush() {
+    this.myRequest.push = !this.myRequest.push;
   }
 }

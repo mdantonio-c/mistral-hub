@@ -22,6 +22,7 @@ export class FormData {
   postprocessors: any[] = [];
   schedule: TaskSchedule;
   output_format = "";
+  push: boolean = false;
 
   clear() {
     this.request_name = "";
@@ -31,6 +32,7 @@ export class FormData {
     this.output_format = "";
     this.schedule = null;
     this.reftime = this.defaultRefTime();
+    this.push = false;
   }
 
   setSchedule(schedule: TaskSchedule) {

@@ -119,7 +119,8 @@ export class DataService {
     filters?: Filters[],
     schedule?: TaskSchedule,
     postprocessors?: any[],
-    outputformat?: string
+    outputformat?: string,
+    push?: boolean
   ) {
     let data = {
       request_name: request_name,
@@ -168,7 +169,10 @@ export class DataService {
     if (outputformat) {
       data["output_format"] = outputformat;
     }
-    const endpoint = schedule ? "schedules" : "data";
+    let endpoint = schedule ? "schedules" : "data";
+    if (push) {
+      endpoint += "?push=true";
+    }
     return this.api.post(endpoint, data);
   }
 

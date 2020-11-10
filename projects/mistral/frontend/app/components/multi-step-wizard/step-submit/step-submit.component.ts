@@ -160,7 +160,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
         this.formData.filters,
         this.formData.schedule,
         this.formData.postprocessors,
-        this.formData.output_format
+        this.formData.output_format,
+        this.formData.push
       )
       .subscribe(
         (resp) => {

@@ -16,6 +16,8 @@
   left: 10px;
   overflow-x: hidden;
   padding: 8px 0;
+  max-height: calc(100vh - 180px) !important;
+  overflow-y: hidden;
 }
 
 .main {
