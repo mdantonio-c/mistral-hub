@@ -103,7 +103,7 @@ def data_extract(
             auth_datasets = SqlApiDbManager.get_datasets(db, user)
             auth_datasets_names = []
             for ds in auth_datasets:
-                auth_datasets_names.append(ds["name"])
+                auth_datasets_names.append(ds["id"])
             if not all(elem in auth_datasets_names for elem in datasets):
                 raise AccessToDatasetDenied(
                     "user is not allowed to access the requested datasets"
