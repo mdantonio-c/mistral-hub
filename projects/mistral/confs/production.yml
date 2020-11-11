@@ -9,8 +9,10 @@ services:
       # - ${VANILLA_DIR}/data/maps/${PLATFORM}/PROD/Tiles-12-lm5.web/Area_Mediterranea:/resources/tiles/12-lm5
       - /meteotiles/PROD/Tiles-00-lm2.2.web:/resources/tiles/00-lm2.2
       - /meteotiles/PROD/Tiles-00-lm5.web:/resources/tiles/00-lm5
+      - /meteotiles/PROD/Tiles-00-iff.web:/resources/tiles/00-IFF
       - /meteotiles/PROD/Tiles-12-lm2.2.web:/resources/tiles/12-lm2.2
       - /meteotiles/PROD/Tiles-12-lm5.web:/resources/tiles/12-lm5
+      - /meteotiles/PROD/Tiles-12-iff.web:/resources/tiles/12-IFF
 
   backend:
     volumes:
