@@ -17,6 +17,8 @@ host = os.environ.get("ALCHEMY_HOST")
 engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
 
+MAPS_NETWORK_FILTER = ["multim-forecast"]
+
 
 # DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
 
@@ -738,6 +740,9 @@ class BeDballe:
             if count_data == 0:
                 return []
             for rec in tr.query_data(query):
+                # discard data from excluded networks
+                if rec["rep_memo"] in MAPS_NETWORK_FILTER:
+                    continue
                 query_for_details = {}
                 if rec["ident"]:
                     station_tuple = (rec["ident"], rec["rep_memo"])
