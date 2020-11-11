@@ -23,7 +23,7 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import output_formatting
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
-from restapi.connectors import rabbitmq, sqlalchemy
+from restapi.connectors import rabbitmq, smtp, sqlalchemy
 from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 from restapi.utilities.templates import get_html_template
@@ -573,15 +573,15 @@ def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
 
     replaces = {"title": request.name, "status": request.status, "message": body_msg}
     body = get_html_template("data_extraction_result.html", replaces)
-    with celery_app.get_service("smtp") as smtp:
-        smtp.send(
+    with smtp.get_instance() as smtp_client:
+        smtp_client.send(
             body, "MeteoHub: data extraction completed", user_email, plain_body=body
         )
 
 
 def push_data_to_queue(amqp_queue, outfile, output_dir, request):
     # send a message in the queue
-    extra_msg = ''
+    extra_msg = ""
     try:
         with rabbitmq.get_instance() as rabbit:
             # case 1 if output send the file
@@ -592,21 +592,24 @@ def push_data_to_queue(amqp_queue, outfile, output_dir, request):
                         jsondata = json.dumps(f.read())
                         rabbit_msg = json.loads(jsondata)
                     rabbit.send_json(
-                        rabbit_msg, routing_key=amqp_queue,
+                        rabbit_msg,
+                        routing_key=amqp_queue,
                     )
                 else:
                     with open(outfile, "rb") as f:
                         rabbit_msg = f.read()
-                    rabbit.send(rabbit_msg, routing_key=amqp_queue, )
+                    rabbit.send(
+                        rabbit_msg,
+                        routing_key=amqp_queue,
+                    )
                 log.debug("sending fileoutput to {}", amqp_queue)
             # case 2 no output --> notify failure and error message
             else:
                 rabbit_msg = request.error_message
-                log.debug(
-                    "no output: sending error message to {}", amqp_queue
-                )
+                log.debug("no output: sending error message to {}", amqp_queue)
                 rabbit.send_json(
-                    rabbit_msg, routing_key=amqp_queue,
+                    rabbit_msg,
+                    routing_key=amqp_queue,
                 )
 
             rabbit.disconnect()
