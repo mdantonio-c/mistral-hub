@@ -64,7 +64,8 @@ const TM2 = "Temperature at 2 meters",
   styleUrls: ["./meteo-tiles.component.css"],
 })
 export class MeteoTilesComponent {
-  readonly DEFAULT_PRODUCT = "Temperature at 2 meters";
+  readonly DEFAULT_PRODUCT_COSMO = "Temperature at 2 meters";
+  readonly DEFAULT_PRODUCT_IFF = "Precipitation percentiles 1%";
   readonly DEFAULT_RESOLUTION = "lm5";
   readonly LEGEND_POSITION = "bottomleft";
 
@@ -99,11 +100,8 @@ export class MeteoTilesComponent {
       minZoom: 5,
     }
   );
-  // TM2 = L.tileLayer("");
-
 
   // Values to bind to Leaflet Directive
-  // var cities = L.layerGroup([TM2, PREC3P, PREC6P]);
   layersControl = {
     baseLayers: {
       "Openstreet Map": this.LAYER_OSM,
@@ -180,10 +178,11 @@ export class MeteoTilesComponent {
           this.setOverlaysToMap();
 
           // add default layer
-          // let tm2m: L.Layer = this.layersControl["overlays"][
-          //   this.DEFAULT_PRODUCT
-          // ];
-          // tm2m.addTo(this.map);
+
+          let tm2m: L.Layer = this.layersControl["overlays"][
+  this.DEFAULT_PRODUCT_COSMO
+];
+tm2m.addTo(this.map);
 
           this.initLegends(map);
         },
@@ -212,7 +211,7 @@ export class MeteoTilesComponent {
       this.layersControl["overlays"] = {
         [TPPERC1]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/percentile-perc1/${this.refdate}{h}/{z}/{x}/{y}.png`,
       // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
@@ -227,7 +226,7 @@ export class MeteoTilesComponent {
   ),
   [TPPERC10]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/tp_percentile-10/${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/percentile-perc10/${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
         maxZoom: maxZoom,
@@ -241,7 +240,7 @@ export class MeteoTilesComponent {
   ),
   [TPPERC25]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/tp_percentile-25/${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/percentile-perc25/${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
         maxZoom: maxZoom,
@@ -255,7 +254,7 @@ export class MeteoTilesComponent {
   ),
   [TPPERC50]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/tp_percentile-50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/percentile-perc50/${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
         maxZoom: maxZoom,
@@ -269,7 +268,7 @@ export class MeteoTilesComponent {
   ),
   [TPPERC75]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/tp_percentile-75/${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/percentile-perc75/${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
         maxZoom: maxZoom,
@@ -283,7 +282,7 @@ export class MeteoTilesComponent {
   ),
   [TPPERC99]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/tp_percentile-99/${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/percentile-perc99/${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
         maxZoom: maxZoom,
@@ -298,7 +297,7 @@ export class MeteoTilesComponent {
 
   [TPPROB5]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/tp_probability-5/${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/probability-prob5/${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
         maxZoom: maxZoom,
@@ -312,7 +311,7 @@ export class MeteoTilesComponent {
   ),
   [TPPROB10]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/tp_probability-10${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/probability-prob10${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
         maxZoom: maxZoom,
@@ -326,7 +325,7 @@ export class MeteoTilesComponent {
   ),
   [TPPROB20]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/tp_probability-20/${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/probability-prob20/${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
         maxZoom: maxZoom,
@@ -340,7 +339,7 @@ export class MeteoTilesComponent {
   ),
   [TPPROB50]: L.timeDimension.layer.tileLayer.portus(
     L.tileLayer(
-      `${baseUrl}/tp_probability-50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+      `${TILES_PATH}/00-iff/Italia/probability-prob50/${this.refdate}{h}/{z}/{x}/{y}.png`,
       {
         minZoom: 5,
         maxZoom: maxZoom,
@@ -353,6 +352,8 @@ export class MeteoTilesComponent {
     {}
   ),
 };
+let tp1prec: L.Layer = this.layersControl["overlays"][this.DEFAULT_PRODUCT_IFF];
+tp1prec.addTo(this.map);
       } else {
         this.layersControl["overlays"] = {
           [TM2]: L.timeDimension.layer.tileLayer.portus(
@@ -477,6 +478,7 @@ export class MeteoTilesComponent {
             ),
       };
     }
+
   }
 
   private createLegendControl(id: string): L.Control {
@@ -625,16 +627,21 @@ export class MeteoTilesComponent {
     });
 
     // add default legend to the map
-    // this.legends[TM2].addTo(map);
+    if (this.resolution ==='IFF') {this.legends[TPPERC1].addTo(map);}
+    else {
+      this.legends[TM2].addTo(map);
+    }
   }
 
   changeRes(newRes) {
-    console.log(newRes);
     this.resolution = newRes;
     if (this.resolution === "lm5" ) {
       this.map.setView(MAP_CENTER, 5);
     }
-    else if (this.resolution === "IFF" || 'lm2.2' ) {
+    else if (this.resolution === 'lm2.2' ) {
+      this.map.setView(MAP_CENTER, 6);
+    }
+    else if (this.resolution === "IFF" ) {
       this.map.setView(MAP_CENTER, 6);
     }
     else {
@@ -647,7 +654,6 @@ export class MeteoTilesComponent {
     let currentActiveNames = [];
     for (let name in overlays) {
       if (this.map.hasLayer(overlays[name])) {
-        console.log(overlays);
         currentActiveNames.push(name);
         this.map.removeLayer(overlays[name]);
       }
@@ -665,5 +671,15 @@ export class MeteoTilesComponent {
         this.legends[name].addTo(this.map);
       }
     }
+      if (this.resolution === "IFF") {
+        let tp1prec: L.Layer = this.layersControl["overlays"][this.DEFAULT_PRODUCT_IFF];
+        tp1prec.addTo(this.map);
+        this.legends[TPPERC1].addTo(this.map);
+      }
+      else {
+        let tm2m: L.Layer = this.layersControl["overlays"][this.DEFAULT_PRODUCT_COSMO];
+        tm2m.addTo(this.map);
+        this.legends[TM2].addTo(this.map);
+      }
   }
 }
