@@ -1,18 +1,25 @@
 <ul class="navbar-nav">
   <li class="nav-item" *ngIf="user">
-    <a class="nav-link" routerLink="/app/data" routerLinkActive="active"
+    <a
+      class="nav-link"
+      routerLink="/app/data"
+      routerLinkActive="active"
+      (click)="collapse()"
       >Data</a
     >
   </li>
   <li class="nav-item" *ngIf="user">
-    <a class="nav-link" routerLink="app/requests" routerLinkActive="active"
+    <a
+      class="nav-link"
+      routerLink="app/requests"
+      routerLinkActive="active"
+      (click)="collapse()"
       >My Requests</a
     >
   </li>
   <li class="nav-item" ngbDropdown>
     <a
-      class="nav-link"
-      style="cursor: pointer"
+      class="nav-link clickable"
       ngbDropdownToggle
       id="navbarDropdownMapsLink"
       role="button"
@@ -28,44 +35,57 @@
         ngbDropdownItem
         routerLink="/app/maps/forecasts"
         routerLinkActive="active"
+        (click)="collapse()"
         >Forecasts</a
       >
       <a
         ngbDropdownItem
         routerLink="/app/maps/flashflood"
         routerLinkActive="active"
+        (click)="collapse()"
         >Italy Flash Flood</a
       >
       <a
         ngbDropdownItem
         routerLink="/app/maps/observations"
         routerLinkActive="active"
+        (click)="collapse()"
         *ngIf="user"
         >Observations</a
       >
-      <a
-        ngbDropdownItem
-        routerLink="/app/maps/meteotiles"
-        routerLinkActive="active"
+      <a ngbDropdownItem routerLink="/app/maps/meteotiles" (click)="collapse()"
         >Multi-layer Map</a
       >
     </div>
   </li>
 
   <li class="nav-item" *ngIf="user">
-    <a class="nav-link" routerLink="app/license" routerLinkActive="active"
+    <a
+      class="nav-link"
+      routerLink="app/license"
+      routerLinkActive="active"
+      (click)="collapse()"
       >Terms &amp; Conditions</a
     >
   </li>
 
   <li class="nav-item" *ngIf="user && user.isAdmin">
-    <a class="nav-link" routerLink="/app/admin/users" routerLinkActive="active">
+    <a
+      class="nav-link"
+      routerLink="/app/admin/users"
+      routerLinkActive="active"
+      (click)="collapse()"
+    >
       Users
     </a>
   </li>
 
   <li class="nav-item">
-    <a class="nav-link" routerLink="/public/privacy" routerLinkActive="active"
+    <a
+      class="nav-link"
+      routerLink="/public/privacy"
+      routerLinkActive="active"
+      (click)="collapse()"
       >Privacy</a
     >
   </li>
