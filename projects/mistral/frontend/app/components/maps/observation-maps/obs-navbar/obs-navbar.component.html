@@ -1,5 +1,5 @@
 <div class="map-nav row mx-1">
-  <div class="mr-auto">
+  <div class="col-md-6 px-0">
     <div id="toggle-result-format" class="btn-group" role="group">
       <button
         type="button"
@@ -27,17 +27,20 @@
       </button>
     </div>
   </div>
-  <div class="ml-auto my-auto">
-    <b *ngIf="displayMode === 'Stations'">
+  <div class="col-md-6 px-0">
+    <p
+      *ngIf="displayMode === 'Stations'"
+      class="text-md-right font-weight-bold m-0 mt-2"
+    >
       <span *ngIf="!loading">{{ totalItems }}</span>
       <span *ngIf="loading">
         <i
           class="fa fa-spinner fa-spin"
           aria-hidden="true"
-          style="font-size: 12px;"
+          style="font-size: 12px"
         ></i>
       </span>
-      stations</b
-    >
+      stations
+    </p>
   </div>
 </div>
