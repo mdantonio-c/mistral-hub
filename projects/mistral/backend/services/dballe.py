@@ -741,11 +741,12 @@ class BeDballe:
                 return []
             for rec in tr.query_data(query):
                 # discard data from excluded networks
-                if (
-                    rec["rep_memo"] in MAPS_NETWORK_FILTER
-                    and rec["rep_memo"] not in query["rep_memo"]
-                ):
-                    continue
+                if rec["rep_memo"] in MAPS_NETWORK_FILTER:
+                    if "rep_memo" not in query:
+                        continue
+                    else:
+                        if rec["rep_memo"] not in query["rep_memo"]:
+                            continue
                 query_for_details = {}
                 if rec["ident"]:
                     station_tuple = (rec["ident"], rec["rep_memo"])
@@ -804,13 +805,16 @@ class BeDballe:
                             is_reliable = BeDballe.data_qc(attrs)
                             product_val["rel"] = is_reliable
 
-                    if query_station_data:
-                        level = BeDballe.from_level_object_to_string(rec["level"])
-                        timerange = BeDballe.from_trange_object_to_string(rec["trange"])
-                        product_tuple = (rec["var"], level, timerange)
-                        if product_tuple not in response[station_tuple].keys():
-                            response[station_tuple][product_tuple] = []
-                        response[station_tuple][product_tuple].append(product_val)
+                    if query_station_data or query:
+                        if query_station_data or "level" and "trange" not in query:
+                            level = BeDballe.from_level_object_to_string(rec["level"])
+                            timerange = BeDballe.from_trange_object_to_string(
+                                rec["trange"]
+                            )
+                            product_tuple = (rec["var"], level, timerange)
+                            if product_tuple not in response[station_tuple].keys():
+                                response[station_tuple][product_tuple] = []
+                            response[station_tuple][product_tuple].append(product_val)
                     else:
                         # append the value
                         response[station_tuple][rec["var"]].append(product_val)
