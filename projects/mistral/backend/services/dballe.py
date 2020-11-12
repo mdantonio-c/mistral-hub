@@ -741,7 +741,10 @@ class BeDballe:
                 return []
             for rec in tr.query_data(query):
                 # discard data from excluded networks
-                if rec["rep_memo"] in MAPS_NETWORK_FILTER:
+                if (
+                    rec["rep_memo"] in MAPS_NETWORK_FILTER
+                    and rec["rep_memo"] not in query["rep_memo"]
+                ):
                     continue
                 query_for_details = {}
                 if rec["ident"]:
