@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, AfterViewInit } from "@angular/core";
 import {
   ObsData,
   Observation,
@@ -22,12 +22,12 @@ const STATION_NAME_CODE = "B01019";
   templateUrl: "./obs-meteograms.component.html",
   styleUrls: ["./obs-meteograms.component.css"],
 })
-export class ObsMeteogramsComponent implements OnInit {
+export class ObsMeteogramsComponent implements AfterViewInit {
   filter: ObsFilter;
   multi: DataSeries[];
   report: Observation[];
   descriptions: DescriptionDict;
-  loading: boolean = false;
+  loading: boolean = true;
 
   // product info
   varcode: string;
@@ -47,8 +47,8 @@ export class ObsMeteogramsComponent implements OnInit {
     private spinner: NgxSpinnerService
   ) {}
 
-  ngOnInit(): void {
-    this.loading = true;
+  ngAfterViewInit(): void {
+    this.loading = false;
   }
 
   getUserUnit(varcode: string) {
