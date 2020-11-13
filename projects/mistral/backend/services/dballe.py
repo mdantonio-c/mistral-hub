@@ -17,20 +17,21 @@ host = os.environ.get("ALCHEMY_HOST")
 engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
 
-MAPS_NETWORK_FILTER = ["multim-forecast"]
-
 
 # DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
 
 
 class BeDballe:
+    MAPS_NETWORK_FILTER = ["multim-forecast"]
     explorer = None
     LASTDAYS = os.environ.get(
         "LASTDAYS"
     )  # number of days after which data pass in Arkimet
 
     # path to json file where metadata of observed data in arkimet are stored
-    JSON_SUMMARY_PATH = "/arkimet/config/arkimet_summary.json"
+    ARKI_JSON_SUMMARY_PATH = "/arkimet/config/arkimet_summary.json"
+    DBALLE_JSON_SUMMARY_PATH = "/arkimet/config/dballe_summary.json"
+    DBALLE_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/dballe_summary_filtered.json"
 
     @staticmethod
     def get_db_type(date_min, date_max):
@@ -90,7 +91,7 @@ class BeDballe:
         if dballe_query or all_dballe_queries:
             # improve the query adding stations
             explorer = BeDballe.build_explorer("arkimet")
-            # create a list of station datails
+            # create a list of station details
             station_list = []
             # populate the station list.
             # If there is all_dballe_queries do an iteration to populate the list
@@ -143,19 +144,33 @@ class BeDballe:
         return arkimet_query
 
     @staticmethod
-    def build_explorer(db_type):
-
-        DB = dballe.DB.connect(
-            "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
-                engine=engine, user=user, pw=pw, host=host, port=port
+    def build_explorer(db_type, query=None):
+        need_filtered = False
+        if query and "network" in query:
+            match_nets = next(
+                (
+                    net
+                    for net in query["network"]
+                    if net in BeDballe.MAPS_NETWORK_FILTER
+                ),
+                None,
             )
-        )
-
+            if match_nets:
+                # at the moment we haven't a filtered json for arkimet data
+                if db_type == "dballe":
+                    need_filtered = True
+        log.debug("filtered {}", need_filtered)
         explorer = dballe.DBExplorer()
         with explorer.update() as updater:
             if db_type == "dballe" or db_type == "mixed":
-                with DB.transaction() as tr:
-                    updater.add_db(tr)
+                if need_filtered:
+                    json_summary_file = BeDballe.DBALLE_JSON_SUMMARY_PATH_FILTERED
+                else:
+                    json_summary_file = BeDballe.DBALLE_JSON_SUMMARY_PATH
+                log.debug("summary {}", json_summary_file)
+                if os.path.exists(json_summary_file):
+                    with open(json_summary_file) as fd:
+                        updater.add_json(fd.read())
             if db_type == "arkimet" or db_type == "mixed":
                 if os.path.exists(BeDballe.JSON_SUMMARY_PATH):
                     with open(BeDballe.JSON_SUMMARY_PATH) as fd:
@@ -273,7 +288,7 @@ class BeDballe:
                 bbox[key] = value
 
         # create and update the explorer object
-        explorer = BeDballe.build_explorer(db_type)
+        explorer = BeDballe.build_explorer(db_type, query)
 
         # perform the queries in database to get the list of possible filters
         fields = {}
@@ -747,7 +762,7 @@ class BeDballe:
 
             for rec in tr.query_data(query):
                 # discard data from excluded networks
-                if rec["rep_memo"] in MAPS_NETWORK_FILTER:
+                if rec["rep_memo"] in BeDballe.MAPS_NETWORK_FILTER:
                     if "rep_memo" not in query:
                         continue
                     else:
