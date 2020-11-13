@@ -1,0 +1,2 @@
+15 2 * * * /scripts/start_dballe2arkimet.sh >> /var/log/cron.log 2>&1
+

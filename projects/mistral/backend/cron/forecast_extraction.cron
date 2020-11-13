@@ -1,0 +1,2 @@
+0 1 * * * python3 /scripts/forecast_extraction.py --run=00 --delta=1 >> /var/log/cron.log 2>&1
+
