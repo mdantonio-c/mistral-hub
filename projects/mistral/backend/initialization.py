@@ -196,6 +196,11 @@ class Initializer:
                 "descr": "Sardinia Region - ARPAS - Meteoclimatic Department",
                 "url": "http://www.sar.sardegna.it/",
             },
+            {
+                "name": "P-TRENTO-SPR",
+                "descr": "Autonomous Province of Trento - Prevention and Risks Service",
+                "url": "https://dati.trentino.it/dataset/meteo-data",
+            },
         ]
         for el in attribution_data_to_insert:
             attribution = sql.Attribution.query.filter_by(name=el["name"]).first()
