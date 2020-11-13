@@ -144,22 +144,18 @@ class BeDballe:
         return arkimet_query
 
     @staticmethod
-    def build_explorer(db_type, query=None):
-        need_filtered = False
-        if query and "network" in query:
+    def build_explorer(db_type, network_list=None):
+        need_filtered = True
+        if network_list:
             match_nets = next(
-                (
-                    net
-                    for net in query["network"]
-                    if net in BeDballe.MAPS_NETWORK_FILTER
-                ),
+                (net for net in network_list if net in BeDballe.MAPS_NETWORK_FILTER),
                 None,
             )
             if match_nets:
                 # at the moment we haven't a filtered json for arkimet data
                 if db_type == "dballe":
-                    need_filtered = True
-        log.debug("filtered {}", need_filtered)
+                    need_filtered = False
+        # log.debug("filtered {}", need_filtered)
         explorer = dballe.DBExplorer()
         with explorer.update() as updater:
             if db_type == "dballe" or db_type == "mixed":
@@ -167,13 +163,13 @@ class BeDballe:
                     json_summary_file = BeDballe.DBALLE_JSON_SUMMARY_PATH_FILTERED
                 else:
                     json_summary_file = BeDballe.DBALLE_JSON_SUMMARY_PATH
-                log.debug("summary {}", json_summary_file)
+                # log.debug("dballe summary file{}", json_summary_file)
                 if os.path.exists(json_summary_file):
                     with open(json_summary_file) as fd:
                         updater.add_json(fd.read())
             if db_type == "arkimet" or db_type == "mixed":
-                if os.path.exists(BeDballe.JSON_SUMMARY_PATH):
-                    with open(BeDballe.JSON_SUMMARY_PATH) as fd:
+                if os.path.exists(BeDballe.ARKI_JSON_SUMMARY_PATH):
+                    with open(BeDballe.ARKI_JSON_SUMMARY_PATH) as fd:
                         updater.add_json(fd.read())
         return explorer
 
@@ -288,7 +284,7 @@ class BeDballe:
                 bbox[key] = value
 
         # create and update the explorer object
-        explorer = BeDballe.build_explorer(db_type, query)
+        explorer = BeDballe.build_explorer(db_type, query_networks_list)
 
         # perform the queries in database to get the list of possible filters
         fields = {}
