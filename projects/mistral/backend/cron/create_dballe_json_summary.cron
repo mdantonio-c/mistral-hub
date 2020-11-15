@@ -1,2 +1,2 @@
-*/10 * * * * python3 /scripts/create_dballe_summary.py >> /var/log/cron.log 2>&1
+*/10 * * * * PYTHONPATH=/code python3 /scripts/create_dballe_summary.py >> /var/log/cron.log 2>&1
 
