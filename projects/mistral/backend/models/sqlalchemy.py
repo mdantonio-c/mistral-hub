@@ -19,6 +19,7 @@ setattr(User, "amqp_queue", db.Column(db.String(255), nullable=True))
 # In days, 0 to disable.
 # Used by requests autocleaning to determine old requests to be deleted
 setattr(User, "requests_expiration_days", db.Column(db.Integer, default=0))
+setattr(User, "open_dataset", db.Column(db.Boolean))
 
 
 class Request(db.Model):
@@ -82,25 +83,12 @@ class Schedule(db.Model):
         )
 
 
-grp_licence_user_association_table = db.Table(
-    "grp_licence_association",
-    db.Column("grp_licence_id", db.Integer, db.ForeignKey("group_license.id")),
-    db.Column("user_id", db.Integer, db.ForeignKey("user.id")),
-)
-
-
 class GroupLicense(db.Model):
     __tablename__ = "group_license"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, index=True, nullable=False)
     descr = db.Column(db.String, nullable=False)
     license = db.relationship("License", backref="group_license", lazy="dynamic")
-    users = db.relationship(
-        "User",
-        secondary=grp_licence_user_association_table,
-        backref="group_license",
-        lazy="dynamic",
-    )
     is_public = db.Column(db.Boolean)
 
 

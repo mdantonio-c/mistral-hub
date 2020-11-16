@@ -53,7 +53,6 @@ class Customizer(BaseCustomizer):
         data["amqp_queue"] = user.amqp_queue
         data["requests_expiration_days"] = user.requests_expiration_days
         data["datasets"] = user.datasets
-        data["group_license"] = user.group_license
 
         return data
 
