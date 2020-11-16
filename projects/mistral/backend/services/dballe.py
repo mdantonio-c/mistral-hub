@@ -30,6 +30,7 @@ class BeDballe:
 
     # path to json file where metadata of observed data in arkimet are stored
     ARKI_JSON_SUMMARY_PATH = "/arkimet/config/arkimet_summary.json"
+    ARKI_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/arkimet_summary_filtered.json"
     DBALLE_JSON_SUMMARY_PATH = "/arkimet/config/dballe_summary.json"
     DBALLE_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/dballe_summary_filtered.json"
 
@@ -152,9 +153,7 @@ class BeDballe:
                 None,
             )
             if match_nets:
-                # at the moment we haven't a filtered json for arkimet data
-                if db_type == "dballe":
-                    need_filtered = False
+                need_filtered = False
         # log.debug("filtered {}", need_filtered)
         explorer = dballe.DBExplorer()
         with explorer.update() as updater:
@@ -168,8 +167,12 @@ class BeDballe:
                     with open(json_summary_file) as fd:
                         updater.add_json(fd.read())
             if db_type == "arkimet" or db_type == "mixed":
-                if os.path.exists(BeDballe.ARKI_JSON_SUMMARY_PATH):
-                    with open(BeDballe.ARKI_JSON_SUMMARY_PATH) as fd:
+                if need_filtered:
+                    json_summary_file = BeDballe.ARKI_JSON_SUMMARY_PATH_FILTERED
+                else:
+                    json_summary_file = BeDballe.ARKI_JSON_SUMMARY_PATH
+                if os.path.exists(json_summary_file):
+                    with open(json_summary_file) as fd:
                         updater.add_json(fd.read())
         return explorer
 

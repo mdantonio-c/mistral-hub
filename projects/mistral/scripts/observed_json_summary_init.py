@@ -10,28 +10,31 @@ from restapi.utilities.logs import log
 datasets = arki_service.get_obs_datasets(None, None)
 
 # path to json_summary_file
-json_summary = "/arkimet/config/arkimet_summary.json"
+json_summary = dballe_service.ARKI_JSON_SUMMARY_PATH
+json_summary_filtered = dballe_service.ARKI_JSON_SUMMARY_PATH_FILTERED
 
 total_count = 0
 # fill a temporary dballe with all observed data coming from arkimet
 for d in datasets:
-    e = dballe.DBExplorer()
+    complete_explorer = dballe.DBExplorer()
+    filtered_explorer = dballe.DBExplorer()
     d_as_a_list = [d]
     temp_db = dballe_service.fill_db_from_arkimet(d_as_a_list, "")
     log.info(f"importing data from {d} dataset")
-    with e.update() as updater:
+    log.info("###### Importing in complete json summary ######")
+    with complete_explorer.update() as updater:
         # Load existing json summary
         data_in_json_count = 0
         if os.path.exists(json_summary):
             with open(json_summary) as fd:
                 updater.add_json(fd.read())
-            for cur in e.query_summary_all({}):
+            for cur in complete_explorer.query_summary_all({}):
                 data_in_json_count += cur["count"]
         with temp_db.transaction() as tr:
             db_data_count = tr.query_data().remaining
             updater.add_db(tr)
     explorer_data_count = 0
-    for cur in e.query_summary_all({}):
+    for cur in complete_explorer.query_summary_all({}):
         explorer_data_count += cur["count"]
     log.info(
         f"Data coming from arkimet: {db_data_count}, Data already in json: {data_in_json_count}, Data in explorer at the end of operation: {explorer_data_count}"
@@ -44,7 +47,20 @@ for d in datasets:
     # Write out
     log.info("Exporting in JSON ...")
     with open(json_summary, "wt") as fd:
-        fd.write(e.to_json())
+        fd.write(complete_explorer.to_json())
+
+    if d not in dballe_service.MAPS_NETWORK_FILTER:
+        log.info("###### Importing in filtered json summary ######")
+        with filtered_explorer.update() as updater:
+            # Load existing json summary
+            if os.path.exists(json_summary_filtered):
+                with open(json_summary_filtered) as fd:
+                    updater.add_json(fd.read())
+            with temp_db.transaction() as tr:
+                updater.add_db(tr)
+        with open(json_summary_filtered, "wt") as fd:
+            fd.write(filtered_explorer.to_json())
+
     log.info("#####################################")
 
 check_explorer = dballe.DBExplorer()
