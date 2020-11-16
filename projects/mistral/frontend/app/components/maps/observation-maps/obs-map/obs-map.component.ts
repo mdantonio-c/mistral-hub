@@ -38,7 +38,7 @@ export class ObsMapComponent {
     {
       detectRetina: true,
       attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>',
     }
   );
 
@@ -449,7 +449,8 @@ export class ObsMapComponent {
       let legendTemp = "";
       for (let i = 0; i < COLORS.length; i++) {
         let grade = min + halfDelta * (i * 2 + 1);
-        legendTemp = '<i style="background:#' +
+        legendTemp =
+          '<i style="background:#' +
           service.getColor(grade, min, max) +
           '"></i><span>' +
           // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
