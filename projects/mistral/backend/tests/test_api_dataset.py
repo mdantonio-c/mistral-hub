@@ -123,9 +123,11 @@ class TestApp(BaseTests):
 
         # test use case of user who doesn't want to see open datasets
         # change fake user preferences
-        data["open_dataset"] = False
+        new_data = {}
+        new_data["open_dataset"] = False
+        new_data["datasets"] = data["datasets"]
         r = client.put(
-            f"{API_URI}/admin/users/{uuid}", headers=admin_headers, data=data
+            f"{API_URI}/admin/users/{uuid}", headers=admin_headers, data=new_data
         )
         assert r.status_code == 204
 
