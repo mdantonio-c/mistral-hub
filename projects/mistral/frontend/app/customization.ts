@@ -3,6 +3,7 @@ import { JsonPipe } from "@angular/common";
 import { FormlyFieldConfig } from "@ngx-formly/core";
 import { BaseProjectOptions } from "@rapydo/base.project.options";
 import { BytesPipe } from "@rapydo/pipes/bytes";
+import { YesNoPipe } from "@rapydo/pipes/yes_or_no";
 
 @Injectable()
 export class ProjectOptions extends BaseProjectOptions {
@@ -34,7 +35,13 @@ export class ProjectOptions extends BaseProjectOptions {
       },
       { name: "AMQP", prop: "amqp_queue", flexGrow: 0.3 },
       { name: "Req.Exp.", prop: "requests_expiration_days", flexGrow: 0.3 },
-      { name: "OpenDatasets", prop: "open_datasets", flexGrow: 0.1 },
+      {
+        name: "OpenDatasets",
+        prop: "open_dataset",
+        flexGrow: 0.1,
+
+        pipe: new YesNoPipe(),
+      },
       { name: "Datasets", prop: "datasets.length", flexGrow: 0.3 },
     ];
   }

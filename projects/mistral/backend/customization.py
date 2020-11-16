@@ -79,6 +79,7 @@ class Customizer(BaseCustomizer):
                     label="Enable access to Open Datasets",
                     required=False,
                     missing=True,
+                    allow_none=True,
                 ),
                 "datasets": AdvancedList(
                     fields.Str(
