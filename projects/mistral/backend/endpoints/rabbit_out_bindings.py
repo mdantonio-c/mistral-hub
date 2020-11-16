@@ -1,8 +1,10 @@
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
-from restapi.connectors import rabbitmq
+from restapi.connectors import rabbitmq, sqlalchemy
 from restapi.models import Schema, fields
 from restapi.rest.definition import EndpointResource
 from restapi.services.authentication import Role
+from restapi.utilities.logs import log
 
 EXCHANGE = "obs-data-output"
 
@@ -30,20 +32,27 @@ class OutputBindings(EndpointResource):
     )
     def get(self):
 
+        db = sqlalchemy.get_instance()
         rabbit = rabbitmq.get_instance()
 
         if not rabbit.exchange_exists(EXCHANGE):
             rabbit.create_exchange(EXCHANGE)
 
-        bindings = rabbit.get_bindings(EXCHANGE)
+        data = {"exchange": EXCHANGE, "bindings": {}}
 
-        data = {}
+        datasets = SqlApiDbManager.get_datasets(db, user=None)
+        for d in datasets:
+            data["bindings"].setdefault(d.get("id"), [])
+
+        bindings = rabbit.get_bindings(EXCHANGE)
         for row in bindings:
-            data["exchange"] = row["exchange"]
             network = row["routing_key"]
             queue = row["queue"]
-            data.setdefault("bindings", {})
-            data["bindings"].setdefault(network, [])
+
+            if network not in data["bindings"]:
+                log.warning("Unknown network {} associated to {}", network, EXCHANGE)
+                continue
+
             data["bindings"][network].append(queue)
 
         return self.response(data)
