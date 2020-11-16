@@ -38,7 +38,7 @@ export class ProjectOptions extends BaseProjectOptions {
       {
         name: "OpenDatasets",
         prop: "open_dataset",
-        flexGrow: 0.1,
+        flexGrow: 0.3,
 
         pipe: new YesNoPipe(),
       },
