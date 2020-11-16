@@ -300,3 +300,8 @@ export interface OpenData {
   run: string;
   filename: string;
 }
+
+export interface ExchangeBindings {
+  exchange: string;
+  bindings: Record<string, string[]>;
+}

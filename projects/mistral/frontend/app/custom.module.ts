@@ -57,6 +57,7 @@ import { ObsMapComponent } from "@app/components/maps/observation-maps/obs-map/o
 import { ObsMeteogramsComponent } from "@app/components/maps/observation-maps/obs-meteograms/obs-meteograms.component";
 import { ObsStationReportComponent } from "@app/components/maps/observation-maps/obs-station-report/obs-station-report.component";
 import { MeteoTilesComponent } from "@app/components/maps/meteo-tiles/meteo-tiles.component";
+import { BindingsComponent } from "@app/components/bindings/bindings";
 
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
 import { ReplacePipe } from "@app/pipes/replace.pipe";
@@ -110,6 +111,14 @@ const appRoutes: Routes = [
     component: LicenseComponent,
     canActivate: [AuthGuard],
   },
+  {
+    path: "app/admin/bindings",
+    component: BindingsComponent,
+    canActivate: [AuthGuard],
+    runGuardsAndResolvers: "always",
+    data: { roles: ["admin_root"] },
+  },
+
   { path: "public/privacy", component: PrivacyComponent },
   { path: "app", redirectTo: "/app/datasets", pathMatch: "full" },
   { path: "", redirectTo: "/app/datasets", pathMatch: "full" },
@@ -159,6 +168,7 @@ const appRoutes: Routes = [
     PrivacyComponent,
     DatasetsComponent,
     DatasetDetailsComponent,
+    BindingsComponent,
     FormatDatePipe,
     ReplacePipe,
     DisableControlDirective,
