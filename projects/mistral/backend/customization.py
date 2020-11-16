@@ -14,7 +14,7 @@ class Customizer(BaseCustomizer):
     @staticmethod
     def custom_user_properties_pre(properties):
         extra_properties = {}
-        for p in "datasets":
+        for p in ("datasets",):
             if p in properties:
                 extra_properties[p] = properties.pop(p, None)
         return properties, extra_properties
