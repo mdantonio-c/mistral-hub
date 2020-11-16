@@ -7,6 +7,8 @@ export interface CustomUser {
   /** @nullable */
   requests_expiration_days: number;
   datasets: SimpleDataset[];
+  /** @nullable */
+  open_dataset: boolean;
 }
 
 export interface CodeDescPair {

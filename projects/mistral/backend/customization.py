@@ -5,11 +5,6 @@ from restapi.models import AdvancedList, Schema, fields, validate
 from restapi.utilities.logs import log
 
 
-class GroupLicence(Schema):
-    id = fields.Str()
-    name = fields.Str()
-
-
 class Datasets(Schema):
     id = fields.Str()
     name = fields.Str()
@@ -19,22 +14,13 @@ class Customizer(BaseCustomizer):
     @staticmethod
     def custom_user_properties_pre(properties):
         extra_properties = {}
-        for p in ("datasets", "group_license"):
+        for p in "datasets":
             if p in properties:
                 extra_properties[p] = properties.pop(p, None)
         return properties, extra_properties
 
     @staticmethod
     def custom_user_properties_post(user, properties, extra_properties, db):
-
-        licences = []
-        for licence_id in extra_properties.get("group_license", []):
-            lic = db.GroupLicense.query.filter_by(id=int(licence_id)).first()
-            if not lic:
-                raise NotFound(f"GroupLicense {licence_id} not found")
-
-            licences.append(lic)
-        user.group_license = licences
 
         datasets = []
         for dataset_id in extra_properties.get("datasets", []):
@@ -44,7 +30,7 @@ class Customizer(BaseCustomizer):
 
             datasets.append(dat)
 
-        log.critical(datasets)
+        # log.critical(datasets)
         user.datasets = datasets
 
     @staticmethod
@@ -63,10 +49,8 @@ class Customizer(BaseCustomizer):
         if request:
             db = sqlalchemy.get_instance()
             datasets = db.Datasets.query.all()
-            licences = db.GroupLicense.query.all()
         else:
             datasets = []
-            licences = []
 
         required = request and request.method == "POST"
 
@@ -91,18 +75,10 @@ class Customizer(BaseCustomizer):
                     label="Requests expirations (in days, 0 to disable)",
                     description="Number of days after which requests will be cleaned",
                 ),
-                "group_license": AdvancedList(
-                    fields.Str(
-                        validate=validate.OneOf(
-                            choices=[str(v.id) for v in licences],
-                            labels=[v.name for v in licences],
-                        )
-                    ),
+                "open_dataset": fields.Boolean(
+                    label="Enable access to Open Datasets",
                     required=False,
-                    label="Allowed licences",
-                    description="",
-                    unique=True,
-                    multiple=True,
+                    missing=True,
                 ),
                 "datasets": AdvancedList(
                     fields.Str(
@@ -112,7 +88,7 @@ class Customizer(BaseCustomizer):
                         )
                     ),
                     required=False,
-                    label="Allowed datasets",
+                    label="Allowed additional datasets",
                     description="",
                     unique=True,
                     multiple=True,
@@ -142,6 +118,5 @@ class Customizer(BaseCustomizer):
         )
 
         custom_fields["datasets"] = fields.Nested(Datasets(many=True))
-        custom_fields["group_license"] = fields.Nested(GroupLicence(many=True))
 
         return custom_fields
