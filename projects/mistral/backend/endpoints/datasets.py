@@ -36,11 +36,9 @@ class Datasets(EndpointResource):
         """ Get all the datasets or a specific one if a name is provided."""
         db = sqlalchemy.get_instance()
         user = self.get_user_if_logged()
-        authSpecs = True if user else False
+        # TODO: it's okay that if logged you'll see less dataset than anonymous users?
         try:
-            datasets = SqlApiDbManager.get_datasets(
-                db, user, licenceSpecs=licenceSpecs, authSpecs=authSpecs
-            )
+            datasets = SqlApiDbManager.get_datasets(db, user, licenceSpecs=licenceSpecs)
         except Exception as e:
             log.error(e)
             raise ServiceUnavailable("Error loading the datasets")

@@ -408,7 +408,7 @@ class SqlApiDbManager:
         return resp
 
     @staticmethod
-    def get_datasets(db, user, licenceSpecs=False, authSpecs=False):
+    def get_datasets(db, user, licenceSpecs=False):
         # get all datasets
         ds_objects = db.Datasets.query.filter_by().all()
         datasets = []
@@ -421,28 +421,18 @@ class SqlApiDbManager:
                 id=license.group_license_id
             ).first()
             if user:
-                # get user authorized licence group
-                # user_license_groups = [lg.name for lg in user.group_license]
+                # get user authorized datasets
                 user_datasets_auth = [ds.name for ds in user.datasets]
+                open_dataset = user.open_dataset
                 # check the authorization
-                # check the licence group authorization for the user
-                # if group_license.name not in user_license_groups:
-                #     # looking for exception: check the authorized datasets
-                #     if ds.name not in user_datasets_auth:
-                #         if authSpecs:
-                #             dataset_el["authorized"] = False
-                #         else:
-                #             continue
-                # check the user authorization
                 if not group_license.is_public:
                     # looking for exception: check the authorized datasets
                     if ds.name not in user_datasets_auth:
-                        if authSpecs:
-                            dataset_el["authorized"] = False
-                        else:
-                            continue
-            if authSpecs and "authorized" not in dataset_el:
-                dataset_el["authorized"] = True
+                        continue
+                # check if the user want to see also open dataset
+                else:
+                    if not open_dataset:
+                        continue
 
             dataset_el["id"] = ds.arkimet_id
             dataset_el["name"] = ds.name

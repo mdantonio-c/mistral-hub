@@ -12,9 +12,9 @@ class TestApp(BaseTests):
         endpoint = API_URI + "/datasets"
         r = client.get(endpoint)
         assert r.status_code == 200
-        # check that there aren't authorization specs
-        data = self.get_content(r)
-        assert "authorized" not in data[0]
+        # # check that there aren't authorization specs
+        # data = self.get_content(r)
+        # assert "authorized" not in data[0]
 
         endpoint = API_URI + "/datasets/lm5"
         r = client.get(endpoint)
@@ -65,6 +65,7 @@ class TestApp(BaseTests):
         data["is_active"] = True
         data["datasets"] = [str(dataset_to_auth.id)]
         data["datasets"] = json.dumps(data["datasets"])
+        data["open_dataset"] = True
 
         r = client.post(f"{API_URI}/admin/users", data=data, headers=admin_headers)
         assert r.status_code == 200
@@ -102,12 +103,13 @@ class TestApp(BaseTests):
         # trying a dataset in an unauthorized license group
         endpoint = API_URI + "/datasets/sa_dataset"
         r = client.get(endpoint, headers=self.get("auth_header"))
-        assert r.status_code == 200
-        response_data = self.get_content(r)
-        # the dataset is not public
-        assert response_data["is_public"] is False
-        # the user cannot access
-        assert response_data["authorized"] is False
+        assert r.status_code == 404
+
+        # response_data = self.get_content(r)
+        # # the dataset is not public
+        # assert response_data["is_public"] is False
+        # # the user cannot access
+        # assert response_data["authorized"] is False
 
         # trying an authorized dataset in an unauthorized license group
         endpoint = API_URI + "/datasets/sa_dataset_special"
@@ -116,8 +118,25 @@ class TestApp(BaseTests):
         response_data = self.get_content(r)
         # the dataset is not public
         assert response_data["is_public"] is False
-        # the user can access
-        assert response_data["authorized"] is True
+        # # the user can access
+        # assert response_data["authorized"] is True
+
+        # test use case of user who doesn't want to see open datasets
+        # change fake user preferences
+        data["open_dataset"] = False
+        r = client.put(
+            f"{API_URI}/admin/users/{uuid}", headers=admin_headers, data=data
+        )
+        assert r.status_code == 204
+
+        # request for an open dataset
+        endpoint = API_URI + "/datasets/lm5"
+        r = client.get(endpoint, headers=self.get("auth_header"))
+        assert r.status_code == 404
+        # request for the authorized dataset
+        endpoint = API_URI + "/datasets/sa_dataset_special"
+        r = client.get(endpoint, headers=self.get("auth_header"))
+        assert r.status_code == 200
 
         # trying error dataset
         endpoint = API_URI + "/datasets/error"

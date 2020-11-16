@@ -7,7 +7,6 @@ export interface CustomUser {
   /** @nullable */
   requests_expiration_days: number;
   datasets: SimpleDataset[];
-  group_license: SimpleGroupLicence[];
 }
 
 export interface CodeDescPair {
