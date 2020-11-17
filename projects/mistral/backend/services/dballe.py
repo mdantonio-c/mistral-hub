@@ -813,8 +813,9 @@ class BeDballe:
                     query_for_details["lon"] = float(rec["lon"])
                 query_for_details["rep_memo"] = rec["rep_memo"]
 
-                if query["var"] == "B12101" and station_tuple in station_to_filter:
-                    continue
+                if query and "var" in query:
+                    if query["var"] == "B12101" and station_tuple in station_to_filter:
+                        continue
 
                 if station_tuple not in response.keys():
                     response[station_tuple] = {}
