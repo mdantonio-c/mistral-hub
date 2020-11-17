@@ -3,7 +3,7 @@ import os
 import subprocess
 import tempfile
 from datetime import datetime, time, timedelta
-from decimal import Decimal
+from functools import lru_cache
 
 import arkimet as arki
 import dateutil
@@ -557,6 +557,35 @@ class BeDballe:
             return 0
         else:
             return 1
+
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def get_obs_data(
+        cache_time,
+        datetimemin=None,
+        datetimemax=None,
+        db_type=None,
+        product=None,
+        level=None,
+        timerange=None,
+        license=None,
+        rep_memo=None,
+        query=None,
+        lonmin=None,
+        lonmax=None,
+        latmin=None,
+        latmax=None,
+    ):
+        params = locals()
+        query_data = {}
+        for k, v in params.items():
+            if v:
+                # restore the list params
+                if k == "product" or k == "level" or k == "timerange":
+                    query_data[k] = [v]
+                else:
+                    query_data[k] = v
+        return BeDballe.get_maps_response(query_data=query_data, db_type=db_type)
 
     @staticmethod
     def get_maps_response_for_mixed(
