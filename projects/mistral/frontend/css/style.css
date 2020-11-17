@@ -133,6 +133,25 @@
   margin-top: 0;
 }
 
+/* Tooltips */
+.tooltip.delayed > div {
+  font-size: x-small;
+  animation-name: delayedFadeIn;
+  animation-duration: 1.5s; /* Adjust this duration */
+}
+
+@keyframes delayedFadeIn {
+  0% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 0;
+  } /* Set this to 99% for no fade-in. */
+  100% {
+    opacity: 1;
+  }
+}
+
 /* Buttons */
 .btn.no-rounded {
   border-radius: 0 !important;
@@ -142,6 +161,16 @@
   -webkit-border-radius: 0 !important;
   -moz-border-radius: 0 !important;
   border-radius: 0 !important;
+}
+
+.btn.btn-sm.btn-icon {
+  width: 30px !important;
+}
+
+.btn-icon:focus,
+.btn-icon:active {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .btn-border-classic,
@@ -396,6 +425,11 @@ input[type="radio"]:checked + .mst--radio-label:after {
   vertical-align: sub;
 }
 
+.mst--input-checkbox-sm + label:before {
+  width: 15px;
+  height: 15px;
+}
+
 .mst--input-checkbox:hover + label:before {
   background: #fff;
 }
@@ -422,6 +456,11 @@ input[type="radio"]:checked + .mst--radio-label:after {
   box-shadow: 2px 0 0 white, 4px 0 0 white, 4px -2px 0 white, 4px -4px 0 white,
     4px -6px 0 white, 4px -8px 0 white;
   transform: rotate(45deg);
+}
+
+.mst--input-checkbox-sm:checked + label:after {
+  left: 3px;
+  top: 8px;
 }
 
 .mst--input-checkbox:checked + label:before {
@@ -790,6 +829,22 @@ input[type="number"]::-webkit-outer-spin-button {
   display: flex;
 }
 
+/*
+.leaflet-div-icon {
+  width: auto !important;
+  height: auto !important;
+  border: none;
+  border-radius: 1em;
+  border: 1px solid #ddd;
+} */
+
+.mst-marker-icon {
+  width: auto !important;
+  height: auto !important;
+  border: 1px solid #ddd;
+  border-radius: 1em;
+}
+
 .mstDataIcon {
   text-align: center;
   height: 25px;
@@ -797,6 +852,21 @@ input[type="number"]::-webkit-outer-spin-button {
   border-style: double;
   white-space: nowrap;
   padding: 0px 2px;
+}
+
+.mstObsIcon {
+  text-align: center;
+  white-space: nowrap;
+  padding: 0px 4px;
+  font-size: 11px;
+  min-width: 25px;
+}
+
+.mst-obs-tooltip {
+  line-height: 1.2;
+  /*background: #ddd;*/
+  font-size: 11px;
+  /*border-color: #ddd;*/
 }
 
 .ngb-dp-day.disabled {
@@ -809,4 +879,32 @@ input[type="number"]::-webkit-outer-spin-button {
   width: 32px;
   margin-left: 4px;
   font: 10px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+
+.mst-obs-marker-color-undefined {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.mst-obs-marker-color-3030ff {
+  background-color: rgba(48, 48, 255, 0.6);
+}
+.mst-obs-marker-color-007885 {
+  background-color: rgba(0, 120, 133, 0.6);
+}
+.mst-obs-marker-color-00855D {
+  background-color: rgba(0, 133, 93, 0.6);
+}
+.mst-obs-marker-color-0D8500 {
+  background-color: rgba(13, 133, 0, 0.6);
+}
+.mst-obs-marker-color-478500 {
+  background-color: rgba(71, 133, 0, 0.6);
+}
+.mst-obs-marker-color-788500 {
+  background-color: rgba(120, 133, 0, 0.6);
+}
+.mst-obs-marker-color-853C00 {
+  background-color: rgba(133, 60, 0, 0.6);
+}
+.mst-obs-marker-color-850000 {
+  background-color: rgba(133, 0, 0, 0.6);
 }

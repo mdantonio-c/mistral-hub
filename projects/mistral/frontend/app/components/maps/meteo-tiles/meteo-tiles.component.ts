@@ -1,13 +1,22 @@
 import { Component } from "@angular/core";
 import { environment } from "@rapydo/../environments/environment";
 import * as moment from "moment";
+import * as globalMercator from "global-mercator";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
 import "leaflet-timedimension/examples/js/extras/leaflet.timedimension.tilelayer.portus.js";
 import { TilesService } from "./services/tiles.service";
+import { ObsService } from "../observation-maps/services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import { LegendConfig, LEGEND_DATA } from "./services/data";
+import {
+  Observation,
+  ObsData,
+  ObsFilter,
+  ObservationResponse,
+  Station,
+} from "../../../types";
 
 declare module "leaflet" {
   var timeDimension: any;
@@ -58,6 +67,14 @@ const TM2 = "Temperature at 2 meters",
   TPPROB20 = "Precipitation probability 20%",
   TPPROB50 = "Precipitation probability 50%";
 
+enum MultiModelProduct {
+  RH = "B13003",
+  TM = "B12101",
+}
+
+const MAX_ZOOM = 8;
+const MIN_ZOOM = 5;
+
 @Component({
   selector: "app-meteo-tiles",
   templateUrl: "./meteo-tiles.component.html",
@@ -70,7 +87,7 @@ export class MeteoTilesComponent {
   readonly LEGEND_POSITION = "bottomleft";
 
   map: L.Map;
-  resolution: string;
+  dataset: string;
   private refdate: string;
   private run: string;
   private legends: { [key: string]: L.Control } = {};
@@ -78,8 +95,8 @@ export class MeteoTilesComponent {
   LAYER_OSM = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
       '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
-    maxZoom: 8,
-    minZoom: 5,
+    maxZoom: MAX_ZOOM,
+    minZoom: MIN_ZOOM,
   });
   LAYER_MAPBOX_LIGHT = L.tileLayer(
     "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw",
@@ -87,8 +104,8 @@ export class MeteoTilesComponent {
       id: "mapbox.light",
       attribution:
         '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
-      maxZoom: 8,
-      minZoom: 5,
+      maxZoom: MAX_ZOOM,
+      minZoom: MIN_ZOOM,
     }
   );
   LAYER_DARKMATTER = L.tileLayer(
@@ -96,8 +113,8 @@ export class MeteoTilesComponent {
     {
       attribution:
         '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
-      maxZoom: 8,
-      minZoom: 5,
+      maxZoom: MAX_ZOOM,
+      minZoom: MIN_ZOOM,
     }
   );
 
@@ -110,7 +127,7 @@ export class MeteoTilesComponent {
     },
   };
   options = {
-    zoom: 5,
+    zoom: MIN_ZOOM,
     center: L.latLng([46.879966, 11.726909]),
     timeDimension: true,
     timeDimensionControl: true,
@@ -128,14 +145,22 @@ export class MeteoTilesComponent {
     },
   };
 
+  showed: boolean = true;
+  mmProduct = MultiModelProduct.TM;
+  MultiModelProduct = MultiModelProduct;
+  markers: L.Marker[] = [];
+  allMarkers: L.Marker[] = [];
+  private markersGroup: any;
+
   constructor(
     private tilesService: TilesService,
+    private obsService: ObsService,
     private notify: NotificationService,
     private spinner: NgxSpinnerService
   ) {
     // set the initial set of displayed layers
     this.options["layers"] = [this.LAYER_MAPBOX_LIGHT];
-    this.resolution = this.DEFAULT_RESOLUTION;
+    this.dataset = this.DEFAULT_RESOLUTION;
   }
 
   onMapReady(map: L.Map) {
@@ -180,9 +205,9 @@ export class MeteoTilesComponent {
           // add default layer
 
           let tm2m: L.Layer = this.layersControl["overlays"][
-  this.DEFAULT_PRODUCT_COSMO
-];
-tm2m.addTo(this.map);
+            this.DEFAULT_PRODUCT_COSMO
+          ];
+          tm2m.addTo(this.map);
 
           this.initLegends(map);
         },
@@ -194,291 +219,320 @@ tm2m.addTo(this.map);
         map.invalidateSize();
         this.spinner.hide();
       });
+
+    let filter: ObsFilter = {
+      product: this.mmProduct,
+      // reftime: new Date(2020, 10, 9),
+      reftime: new Date(), // FIXME
+      network: "multim-forecast",
+      timerange: "254,97200,0",
+    };
+    this.obsService.getData(filter).subscribe(
+      (resp: ObservationResponse) => {
+        let data = resp.data;
+        this.loadMarkers(data, filter.product);
+        if (data.length === 0) {
+          this.notify.showWarning("No Multi-Model data found.");
+        }
+      },
+      (error) => {
+        this.notify.showError(error);
+      }
+    );
   }
 
   private setOverlaysToMap() {
-    let baseUrl = `${TILES_PATH}/${this.run}-${this.resolution}`;
+    let baseUrl = `${TILES_PATH}/${this.run}-${this.dataset}`;
     if (environment.production) {
-      baseUrl += this.resolution === "lm2.2" ? "/Italia" : "/Area_Mediterranea";
+      baseUrl += this.dataset === "lm2.2" ? "/Italia" : "/Area_Mediterranea";
     }
     let bounds =
-      this.resolution === "lm5"
+      this.dataset === "lm5"
         ? L.latLngBounds(LM5_BOUNDS["southWest"], LM5_BOUNDS["northEast"])
         : L.latLngBounds(LM2_BOUNDS["southWest"], LM2_BOUNDS["northEast"]);
-    let maxZoom = this.resolution === "lm5" ? 7 : 8;
+    let maxZoom = this.dataset === "lm5" ? 7 : 8;
 
-    if (this.resolution === 'IFF') {
+    if (this.dataset === "IFF") {
       this.layersControl["overlays"] = {
+        // let overlays = {
         [TPPERC1]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc1/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC10]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc10/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC25]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc25/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC50]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc50/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC75]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc75/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC99]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc99/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc1/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC10]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc10/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC25]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc25/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC50]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC75]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc75/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC99]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc99/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
 
-  [TPPROB5]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/probability-prob5/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPROB10]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/probability-prob10${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPROB20]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/probability-prob20/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPROB50]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/probability-prob50/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-};
-let tp1prec: L.Layer = this.layersControl["overlays"][this.DEFAULT_PRODUCT_IFF];
-tp1prec.addTo(this.map);
-      } else {
-        this.layersControl["overlays"] = {
-          [TM2]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(`${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-                minZoom: 5,
-                maxZoom: maxZoom,
-                tms: false,
-                opacity: 0.6,
-                bounds: bounds,
-              }),
-              {}
-            ),
-            // Total precipitation 3h Time Layer
-            [PREC3P]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(`${baseUrl}/prec3-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-                minZoom: 5,
-                maxZoom: maxZoom,
-                tms: false,
-                opacity: 0.6,
-                bounds: bounds,
-              }),
-              {}
-            ),
-            // Total precipitation 6h Time Layer
-            [PREC6P]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(`${baseUrl}/prec6-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-                minZoom: 5,
-                maxZoom: maxZoom,
-                tms: false,
-                opacity: 0.6,
-                bounds: bounds,
-              }),
-              {}
-            ),
-            // Snowfall 3h Time Layer
-            [SF3]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  opacity: 0.6,
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // Snowfall 6h Time Layer
-            [SF6]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  opacity: 0.6,
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // Relative humidity Time Layer
-            [RH]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  //opacity: 0.6,
-                  // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // High Cloud Time Layer
-            [HCC]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  //opacity: 0.6,
-                  // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // Medium Cloud Time Layer
-            [MCC]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  //opacity: 0.6,
-                  // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // Low Cloud Time Layer
-            [LCC]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  opacity: 0.9,
-                  // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
+        [TPPROB5]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/probability-prob5/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPROB10]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/probability-prob10${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPROB20]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/probability-prob20/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPROB50]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/probability-prob50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+      };
+      // L.control.layers(overlays,null,{collapsed:false}).addTo(this.map);
+      let tp1prec: L.Layer = this.layersControl["overlays"][
+        this.DEFAULT_PRODUCT_IFF
+      ];
+      tp1prec.addTo(this.map);
+    } else {
+      this.layersControl["overlays"] = {
+        [TM2]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Total precipitation 3h Time Layer
+        [PREC3P]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/prec3-tp/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Total precipitation 6h Time Layer
+        [PREC6P]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/prec6-tp/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Snowfall 3h Time Layer
+        [SF3]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Snowfall 6h Time Layer
+        [SF6]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Relative humidity Time Layer
+        [RH]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              //opacity: 0.6,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // High Cloud Time Layer
+        [HCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              //opacity: 0.6,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Medium Cloud Time Layer
+        [MCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              //opacity: 0.6,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Low Cloud Time Layer
+        [LCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
       };
     }
-
   }
 
   private createLegendControl(id: string): L.Control {
@@ -508,27 +562,26 @@ tp1prec.addTo(this.map);
 
   private initLegends(map: L.Map) {
     let layers = this.layersControl["overlays"];
-      this.legends = {
-        [TM2]: this.createLegendControl("tm2"),
-              [PREC3P]: this.createLegendControl("prec3tp"),
-              [PREC6P]: this.createLegendControl("prec6tp"),
-              [SF3]: this.createLegendControl("sf3"),
-              [RH]: this.createLegendControl("rh"),
-              [HCC]: this.createLegendControl("hcc"),
-              [MCC]: this.createLegendControl("mcc"),
-              [LCC]: this.createLegendControl("lcc"),
-              [TPPERC1]: this.createLegendControl("tpperc"),
-              [TPPERC10]: this.createLegendControl("tpperc"),
-              [TPPERC25]: this.createLegendControl("tpperc"),
-              [TPPERC75]: this.createLegendControl("tpperc"),
-              [TPPERC50]: this.createLegendControl("tpperc"),
-              [TPPERC99]: this.createLegendControl("tpperc"),
-              [TPPROB5]: this.createLegendControl("tpprob"),
-              [TPPROB20]: this.createLegendControl("tpprob"),
-              [TPPROB10]: this.createLegendControl("tpprob"),
-              [TPPROB50]: this.createLegendControl("tpprob"),
-      };
-    // }
+    this.legends = {
+      [TM2]: this.createLegendControl("tm2"),
+      [PREC3P]: this.createLegendControl("prec3tp"),
+      [PREC6P]: this.createLegendControl("prec6tp"),
+      [SF3]: this.createLegendControl("sf3"),
+      [RH]: this.createLegendControl("rh"),
+      [HCC]: this.createLegendControl("hcc"),
+      [MCC]: this.createLegendControl("mcc"),
+      [LCC]: this.createLegendControl("lcc"),
+      [TPPERC1]: this.createLegendControl("tpperc"),
+      [TPPERC10]: this.createLegendControl("tpperc"),
+      [TPPERC25]: this.createLegendControl("tpperc"),
+      [TPPERC75]: this.createLegendControl("tpperc"),
+      [TPPERC50]: this.createLegendControl("tpperc"),
+      [TPPERC99]: this.createLegendControl("tpperc"),
+      [TPPROB5]: this.createLegendControl("tpprob"),
+      [TPPROB20]: this.createLegendControl("tpprob"),
+      [TPPROB10]: this.createLegendControl("tpprob"),
+      [TPPROB50]: this.createLegendControl("tpprob"),
+    };
     let legends = this.legends;
     map.on("overlayadd", function (event) {
       console.log(event["name"]);
@@ -548,14 +601,21 @@ tp1prec.addTo(this.map);
         legends[MCC].addTo(this);
       } else if (event["name"] === LCC) {
         legends[LCC].addTo(this);
-      }
-      else if (event["name"] === TPPERC1 || event["name"] === TPPERC10 || event["name"] === TPPERC25
-      || event["name"] === TPPERC50 || event["name"] === TPPERC75 || event["name"] === TPPERC99)
-      {
+      } else if (
+        event["name"] === TPPERC1 ||
+        event["name"] === TPPERC10 ||
+        event["name"] === TPPERC25 ||
+        event["name"] === TPPERC50 ||
+        event["name"] === TPPERC75 ||
+        event["name"] === TPPERC99
+      ) {
         legends[TPPERC1].addTo(this);
-      }
-      else if (event["name"] === TPPROB5 || event["name"] === TPPROB10 || event["name"] === TPPROB20 || event["name"] === TPPROB50)
-      {
+      } else if (
+        event["name"] === TPPROB5 ||
+        event["name"] === TPPROB10 ||
+        event["name"] === TPPROB20 ||
+        event["name"] === TPPROB50
+      ) {
         legends[TPPROB5].addTo(this);
       }
     });
@@ -579,75 +639,111 @@ tp1prec.addTo(this.map);
         this.removeControl(legends[MCC]);
       } else if (event["name"] === LCC) {
         this.removeControl(legends[LCC]);
-      } else if (event["name"] === TPPERC1 && !map.hasLayer(layers[TPPERC10]) && !map.hasLayer(layers[TPPERC25])
-      && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC75]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC1 &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC75]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC1]);
-      } else if (event["name"] === TPPERC10 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC25])
-      && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC75]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC10 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC75]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC1]);
-      } else if (event["name"] === TPPERC25 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC10])
-      && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC75]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC25 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC75]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC50]);
-      } else if (event["name"] === TPPERC50 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC10])
-      && !map.hasLayer(layers[TPPERC25]) && !map.hasLayer(layers[TPPERC75]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC50 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC75]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC75]);
-      } else if (event["name"] === TPPERC75 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC10])
-      && !map.hasLayer(layers[TPPERC25]) && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC75 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC99]);
-      } else if (event["name"] === TPPERC99 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC10])
-      && !map.hasLayer(layers[TPPERC25]) && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC75]))
-      {
+      } else if (
+        event["name"] === TPPERC99 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC75])
+      ) {
         this.removeControl(legends[TPPERC1]);
-      }
-      else if (event["name"] === TPPROB5 && !map.hasLayer(layers[TPPROB10])
-      && !map.hasLayer(layers[TPPROB20]) && !map.hasLayer(layers[TPPROB50]))
-      {
+      } else if (
+        event["name"] === TPPROB5 &&
+        !map.hasLayer(layers[TPPROB10]) &&
+        !map.hasLayer(layers[TPPROB20]) &&
+        !map.hasLayer(layers[TPPROB50])
+      ) {
         this.removeControl(legends[TPPROB5]);
-      }
-      else if (event["name"] === TPPROB10 && !map.hasLayer(layers[TPPROB5])
-      && !map.hasLayer(layers[TPPROB20]) && !map.hasLayer(layers[TPPROB50]))
-      {
+      } else if (
+        event["name"] === TPPROB10 &&
+        !map.hasLayer(layers[TPPROB5]) &&
+        !map.hasLayer(layers[TPPROB20]) &&
+        !map.hasLayer(layers[TPPROB50])
+      ) {
         this.removeControl(legends[TPPROB5]);
-      }
-      else if (event["name"] === TPPROB20 && !map.hasLayer(layers[TPPROB5])
-      && !map.hasLayer(layers[TPPROB10]) && !map.hasLayer(layers[TPPROB50]))
-      {
+      } else if (
+        event["name"] === TPPROB20 &&
+        !map.hasLayer(layers[TPPROB5]) &&
+        !map.hasLayer(layers[TPPROB10]) &&
+        !map.hasLayer(layers[TPPROB50])
+      ) {
         this.removeControl(legends[TPPROB5]);
-      }
-      else if (event["name"] === TPPROB50 && !map.hasLayer(layers[TPPROB5])
-      && !map.hasLayer(layers[TPPROB10]) && !map.hasLayer(layers[TPPROB20]))
-      {
+      } else if (
+        event["name"] === TPPROB50 &&
+        !map.hasLayer(layers[TPPROB5]) &&
+        !map.hasLayer(layers[TPPROB10]) &&
+        !map.hasLayer(layers[TPPROB20])
+      ) {
         this.removeControl(legends[TPPROB5]);
       }
     });
 
     // add default legend to the map
-    if (this.resolution ==='IFF') {this.legends[TPPERC1].addTo(map);}
-    else {
+    if (this.dataset === "IFF") {
+      this.legends[TPPERC1].addTo(map);
+    } else {
       this.legends[TM2].addTo(map);
     }
   }
 
-  changeRes(newRes) {
-    this.resolution = newRes;
-    if (this.resolution === "lm5" ) {
+  changeDataset(newDs) {
+    this.dataset = newDs;
+    if (this.dataset === "lm5") {
       this.map.setView(MAP_CENTER, 5);
-    }
-    else if (this.resolution === 'lm2.2' ) {
+    } else if (this.dataset === "lm2.2") {
       this.map.setView(MAP_CENTER, 6);
-    }
-    else if (this.resolution === "IFF" ) {
+    } else if (this.dataset === "IFF") {
       this.map.setView(MAP_CENTER, 6);
+    } else {
+      console.error("No dataset available");
     }
-    else {
-      console.error('No resolution available');
-    }
-    // console.log(`Changed resolution from ${currentRes} to ${this.resolution}`);
+    // console.log(`Changed dataset from ${currentRes} to ${this.dataset}`);
 
     // remove all current layers
     let overlays = this.layersControl["overlays"];
@@ -671,15 +767,172 @@ tp1prec.addTo(this.map);
         this.legends[name].addTo(this.map);
       }
     }
-      if (this.resolution === "IFF") {
-        let tp1prec: L.Layer = this.layersControl["overlays"][this.DEFAULT_PRODUCT_IFF];
-        tp1prec.addTo(this.map);
-        this.legends[TPPERC1].addTo(this.map);
+    if (this.dataset === "IFF") {
+      let tp1prec: L.Layer = this.layersControl["overlays"][
+        this.DEFAULT_PRODUCT_IFF
+      ];
+      tp1prec.addTo(this.map);
+      this.legends[TPPERC1].addTo(this.map);
+    } else {
+      let tm2m: L.Layer = this.layersControl["overlays"][
+        this.DEFAULT_PRODUCT_COSMO
+      ];
+      tm2m.addTo(this.map);
+      this.legends[TM2].addTo(this.map);
+    }
+  }
+
+  /**
+   * Choose a Multi-Model product.
+   * @param choice
+   */
+  toggle(choice: MultiModelProduct) {
+    if (choice === this.mmProduct) {
+      return;
+    }
+    this.mmProduct = choice;
+  }
+
+  onMapZoomEnd($event) {
+    // console.log(`Map Zoom: ${this.map.getZoom()}`);
+    if (this.showed) {
+      this.map.removeLayer(this.markersGroup);
+      this.markers = this.reduceOverlapping(this.allMarkers);
+      this.markersGroup = L.layerGroup(this.markers);
+      this.markersGroup.addTo(this.map);
+    }
+  }
+
+  private loadMarkers(data: Observation[], product: string) {
+    let obsData: ObsData;
+    const unit = product === "B12101" ? "<i>°</i>" : "";
+    let min: number, max: number;
+    data.forEach((s) => {
+      obsData = s.prod.find((x) => x.var === product);
+      let localMin = Math.min(
+        ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val)
+      );
+      if (!min || localMin < min) {
+        min = localMin;
       }
-      else {
-        let tm2m: L.Layer = this.layersControl["overlays"][this.DEFAULT_PRODUCT_COSMO];
-        tm2m.addTo(this.map);
-        this.legends[TM2].addTo(this.map);
+      let localMax = Math.max(
+        ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val)
+      );
+      if (!max || localMax > max) {
+        max = localMax;
       }
+    });
+    data.forEach((s) => {
+      obsData = s.prod.find((x) => x.var === product);
+      // console.log(obsData);
+      if (obsData.val.length !== 0) {
+        let icon = L.divIcon({
+          html:
+            `<div class="mstObsIcon"><span>${ObsService.showData(
+              obsData.val[0].val,
+              product
+            )}` +
+            unit +
+            "</span></div>",
+          iconSize: [24, 6],
+          className: `mst-marker-icon 
+            mst-obs-marker-color-${this.obsService.getColor(
+              obsData.val[0].val,
+              min,
+              max
+            )}`,
+        });
+        const m = new L.Marker([s.stat.lat, s.stat.lon], {
+          icon: icon,
+        });
+        m.options["station"] = s.stat;
+        m.options["data"] = obsData;
+        const coords: L.LatLng = m.getLatLng();
+        m.options["position"] = globalMercator.lngLatToMeters([
+          coords.lat,
+          coords.lng,
+        ]);
+        m.bindTooltip(
+          MeteoTilesComponent.buildTooltipTemplate(s.stat, obsData.val[0].ref),
+          {
+            direction: "top",
+            offset: [4, -2],
+            opacity: 0.75,
+            className: "leaflet-tooltip mst-obs-tooltip",
+          }
+        );
+        this.allMarkers.push(m);
+      }
+    });
+    // reduce overlapping
+    this.markers = this.reduceOverlapping(this.allMarkers);
+    // console.info(`Number of markers: ${this.markers.length}`);
+
+    this.markersGroup = L.layerGroup(this.markers);
+    this.markersGroup.addTo(this.map);
+  }
+
+  private static buildTooltipTemplate(station: Station, reftime?: string) {
+    let ident = station.ident || "";
+    let name =
+      station.details && station.details.length
+        ? station.details.find((e) => e.var === "B01019")
+        : undefined;
+    const template =
+      `<ul class="p-1 m-0"><li>` +
+      (name ? `<b>${name.val}</b>` : "n/a") +
+      `</li><li><b>Lat</b>: ${station.lat}, <b>Lon</b>: ${station.lon}</li>` +
+      `<hr class="m-1"/><li>` +
+      (reftime ? `${reftime}` : "n/a") +
+      `</li></ul>`;
+    return template;
+  }
+
+  private reduceOverlapping(markers: L.Marker[]) {
+    let n: L.Marker[] = [];
+    if (this.map.getZoom() === MAX_ZOOM) {
+      return markers;
+    }
+    const radius = 10000 * Math.pow(2, 8 - this.map.getZoom());
+    // console.log(`radius: ${radius}`);
+    for (let i = 0; i < markers.length; i++) {
+      let overlapped: boolean = false;
+      if (n.length > 0) {
+        let point1 = markers[i]["options"]["position"];
+        for (let j = 0; j < n.length; j++) {
+          let point2 = n[j]["options"]["position"];
+          let distance = Math.sqrt(
+            Math.pow(Math.round(point1[0] - point2[0]), 2) +
+              Math.pow(Math.round(point1[1] - point2[1]), 2)
+          );
+          // console.log(distance);
+          if (distance < radius) {
+            overlapped = true;
+            break;
+          }
+        }
+        if (!overlapped) {
+          n.push(markers[i]);
+        }
+      } else {
+        n.push(markers[i]);
+      }
+    }
+    // console.log(`number of markers reduced to ${n.length}`);
+    return n;
+  }
+
+  /**
+   *
+   */
+  showHideMultiModel() {
+    this.showed = !this.showed;
+    if (!this.showed) {
+      this.map.removeLayer(this.markersGroup);
+    } else {
+      this.markers = this.reduceOverlapping(this.allMarkers);
+      this.markersGroup = L.layerGroup(this.markers);
+      this.markersGroup.addTo(this.map);
+    }
   }
 }

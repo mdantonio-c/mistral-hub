@@ -13,9 +13,10 @@
   [leafletOptions]="options"
   [leafletLayersControl]="layersControl"
   (leafletMapReady)="onMapReady($event)"
+  (leafletMapZoomEnd)="onMapZoomEnd($event)"
 >
-  <div class="leaflet-top leaflet-left" style="left: 40px;">
-    <div class="leaflet-control" style="height: 20px;">
+  <div class="leaflet-top leaflet-left" style="left: 40px">
+    <div class="leaflet-control" style="height: 20px">
       <div
         style="
           background: rgba(255, 255, 255, 0.8);
@@ -27,32 +28,84 @@
           box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
         "
       >
-        <h6 style="text-align: center; color: #555;">Input Dataset</h6>
+        <h6 style="text-align: center; color: #555">Input Dataset</h6>
         <div id="toggle-result-format" class="btn-group" role="group">
           <button
             type="button"
             class="btn btn-icon-border-classic no-rounded"
-            (click)="changeRes('lm5')"
-            [ngClass]="{ 'active btn-primary': resolution === 'lm5' }"
+            (click)="changeDataset('lm5')"
+            [ngClass]="{ 'active btn-primary': dataset === 'lm5' }"
           >
             COSMO 5km
           </button>
           <button
             type="button"
             class="btn btn-icon-border-classic no-rounded"
-            (click)="changeRes('lm2.2')"
-            [ngClass]="{ 'active btn-primary': resolution === 'lm2.2' }"
+            (click)="changeDataset('lm2.2')"
+            [ngClass]="{ 'active btn-primary': dataset === 'lm2.2' }"
           >
             COSMO 2km
           </button>
           <button
             type="button"
             class="btn btn-icon-border-classic no-rounded"
-            (click)="changeRes('IFF')"
-            [ngClass]="{ 'active btn-primary': resolution === 'IFF' }"
+            (click)="changeDataset('IFF')"
+            [ngClass]="{ 'active btn-primary': dataset === 'IFF' }"
           >
             IFF
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="leaflet-bottom leaflet-right" style="bottom: 10px">
+    <div class="leaflet-control leaflet-bar leaflet-bar-horizontal">
+      <div
+        class="p-1"
+        style="
+          background: rgba(255, 255, 255, 0.8);
+          font-size: 12px;
+          border-radius: 5px;
+          -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+          -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+          box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+        "
+      >
+        <div class="btn-group mr-1" role="group">
+          <button
+            type="button"
+            class="btn btn-sm btn-icon btn-icon-border-classic"
+            [ngClass]="{ 'active btn-secondary': mmProduct === 'B12101' }"
+            (click)="toggle(MultiModelProduct.TM)"
+            placement="top-right"
+            ngbTooltip="Temperature"
+            tooltipClass="delayed"
+          >
+            <i class="fas fa-thermometer-three-quarters"></i>
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-icon btn-icon-border-classic"
+            [ngClass]="{ 'active btn-secondary': mmProduct === 'B13003' }"
+            (click)="toggle(MultiModelProduct.RH)"
+            placement="top-right"
+            ngbTooltip="Relative Humidity"
+            tooltipClass="delayed"
+          >
+            <i class="fas fa-tint"></i>
+          </button>
+        </div>
+        <small class="text-muted font-weight-bold">Multi-Model Ensemble</small>
+        <div class="box-checkbox d-inline">
+          <input
+            class="mst--input-checkbox mst--input-checkbox-sm"
+            id="show-mm-ensemble"
+            type="checkbox"
+            [(ngModel)]="showed"
+            (click)="showHideMultiModel()"
+          />
+          <label for="show-mm-ensemble"></label>
         </div>
       </div>
     </div>
