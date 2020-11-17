@@ -17,6 +17,9 @@ host = os.environ.get("ALCHEMY_HOST")
 engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
 
+# temporary fix to discard Lugo station from maps
+station_to_filter = [(44.4177, 11.91331, "cro")]
+
 
 # DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
 
@@ -809,6 +812,9 @@ class BeDballe:
                     query_for_details["lat"] = float(rec["lat"])
                     query_for_details["lon"] = float(rec["lon"])
                 query_for_details["rep_memo"] = rec["rep_memo"]
+
+                if query["var"] == "B12101" and station_tuple in station_to_filter:
+                    continue
 
                 if station_tuple not in response.keys():
                     response[station_tuple] = {}
