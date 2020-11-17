@@ -8,6 +8,7 @@ from restapi.utilities.logs import log
 
 # get all observed datasets
 datasets = arki_service.get_obs_datasets(None, None)
+datasets.append("multim-forecast")
 
 # path to json_summary_file
 json_summary = dballe_service.ARKI_JSON_SUMMARY_PATH
