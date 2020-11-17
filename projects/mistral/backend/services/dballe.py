@@ -18,7 +18,7 @@ engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
 
 # temporary fix to discard Lugo station from maps
-station_to_filter = [(44.4177, 11.91331, "cro")]
+station_to_filter = [(44.4177, 11.91331, "cro"), (44.68953, 10.51062, "agrmet")]
 
 
 # DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
