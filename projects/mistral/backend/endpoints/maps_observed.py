@@ -1,4 +1,5 @@
-from datetime import datetime, time
+import datetime
+import time
 
 from flask import Response, stream_with_context
 from mistral.exceptions import AccessToDatasetDenied
@@ -141,12 +142,30 @@ class MapsObservations(EndpointResource):
                     query_station_data=query_station_data,
                 )
             else:
-                raw_res = dballe.get_maps_response(
-                    query,
-                    onlyStations,
-                    db_type=db_type,
-                    query_station_data=query_station_data,
-                )
+                if not onlyStations and not query_station_data:
+                    # parse the list params
+                    for key, value in query.items():
+                        if isinstance(value, list):
+                            query[key] = value[0]
+                    today = datetime.datetime.now().date()
+                    if query["datetimemax"].date() < today:
+                        seconds = 600
+                    else:
+                        # for past days caching time is longer
+                        seconds = 3600
+                    query["cache_time"] = round(time.time() / seconds)
+
+                    # call the wrapper. this response will be cached
+                    params = {**query}
+                    params["db_type"] = db_type
+                    raw_res = dballe.get_obs_data(**params)
+                else:
+                    raw_res = dballe.get_maps_response(
+                        query,
+                        onlyStations,
+                        db_type=db_type,
+                        query_station_data=query_station_data,
+                    )
         except AccessToDatasetDenied:
             raise ServerError("Access to dataset denied")
         # parse the response
@@ -282,15 +301,15 @@ class MapsObservations(EndpointResource):
                     # if there is no reftime i'll get the data of the last hour
                     # TODO last hour or last day as default?
                     # for production
-                    instant_now = datetime.now()
+                    instant_now = datetime.datetime.now()
                     # for local tests
                     # today = date(2015, 12, 31)
-                    # time_now = datetime.now().time()
-                    # instant_now = datetime.combine(today, time_now)
+                    # time_now = datetime.datetime.now().time()
+                    # instant_now = datetime.datetime.combine(today, time_now)
 
                     dballe_reftime_in_query["datetimemax"] = instant_now
-                    dballe_reftime_in_query["datetimemin"] = datetime.combine(
-                        instant_now, time(instant_now.hour, 0, 0)
+                    dballe_reftime_in_query["datetimemin"] = datetime.datetime.combine(
+                        instant_now, datetime.time(instant_now.hour, 0, 0)
                     )
 
                 # get queries and db for dballe extraction (taking advantage of the method already implemented to get data values for maps)

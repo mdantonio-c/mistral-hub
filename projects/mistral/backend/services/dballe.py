@@ -3,7 +3,7 @@ import os
 import subprocess
 import tempfile
 from datetime import datetime, time, timedelta
-from decimal import Decimal
+from functools import lru_cache
 
 import arkimet as arki
 import dateutil
@@ -16,6 +16,9 @@ pw = os.environ.get("ALCHEMY_PASSWORD")
 host = os.environ.get("ALCHEMY_HOST")
 engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
+
+# temporary fix to discard Lugo station from maps
+station_to_filter = [(44.4177, 11.91331, "cro"), (44.68953, 10.51062, "agrmet")]
 
 
 # DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
@@ -559,6 +562,35 @@ class BeDballe:
             return 1
 
     @staticmethod
+    @lru_cache(maxsize=128)
+    def get_obs_data(
+        cache_time,
+        datetimemin=None,
+        datetimemax=None,
+        db_type=None,
+        product=None,
+        level=None,
+        timerange=None,
+        license=None,
+        rep_memo=None,
+        query=None,
+        lonmin=None,
+        lonmax=None,
+        latmin=None,
+        latmax=None,
+    ):
+        params = locals()
+        query_data = {}
+        for k, v in params.items():
+            if v:
+                # restore the list params
+                if k == "product" or k == "level" or k == "timerange":
+                    query_data[k] = [v]
+                else:
+                    query_data[k] = v
+        return BeDballe.get_maps_response(query_data=query_data, db_type=db_type)
+
+    @staticmethod
     def get_maps_response_for_mixed(
         query_data=None,
         only_stations=False,
@@ -780,6 +812,10 @@ class BeDballe:
                     query_for_details["lat"] = float(rec["lat"])
                     query_for_details["lon"] = float(rec["lon"])
                 query_for_details["rep_memo"] = rec["rep_memo"]
+
+                if query and "var" in query:
+                    if query["var"] == "B12101" and station_tuple in station_to_filter:
+                        continue
 
                 if station_tuple not in response.keys():
                     response[station_tuple] = {}
