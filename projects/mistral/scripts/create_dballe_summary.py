@@ -12,6 +12,7 @@ port = os.environ.get("ALCHEMY_PORT")
 
 DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/DBALLE")
 
+log.info("Extracting dballe summary...")
 
 # path to json_summary_file
 complete_json_summary = dballe_service.DBALLE_JSON_SUMMARY_PATH
