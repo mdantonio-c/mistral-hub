@@ -18,7 +18,11 @@ engine = os.environ.get("ALCHEMY_DBTYPE")
 port = os.environ.get("ALCHEMY_PORT")
 
 # temporary fix to discard Lugo station from maps
-station_to_filter = [(44.4177, 11.91331, "cro"), (44.68953, 10.51062, "agrmet")]
+station_to_filter = [
+    (44.4177, 11.91331, "cro"),
+    (44.68953, 10.51062, "agrmet"),
+    (44.68944, 10.51056, "dpcn-emiliaromag"),
+]
 
 
 # DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
@@ -813,10 +817,6 @@ class BeDballe:
                     query_for_details["lon"] = float(rec["lon"])
                 query_for_details["rep_memo"] = rec["rep_memo"]
 
-                if query and "var" in query:
-                    if query["var"] == "B12101" and station_tuple in station_to_filter:
-                        continue
-
                 if station_tuple not in response.keys():
                     response[station_tuple] = {}
                     details = []
@@ -861,6 +861,13 @@ class BeDballe:
                             attrs = variable.get_attrs()
                             is_reliable = BeDballe.data_qc(attrs)
                             product_val["rel"] = is_reliable
+                            # temporary fix: make null data from stations with mistaken data
+                            if "var" in query:
+                                if (
+                                    query["var"] == "B12101"
+                                    and station_tuple in station_to_filter
+                                ):
+                                    product_val["rel"] = 0
 
                     if query_station_data or extend_res:
                         level = BeDballe.from_level_object_to_string(rec["level"])
