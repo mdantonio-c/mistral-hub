@@ -1,3 +1,3 @@
 SHELL=/bin/bash
 
-*/10 * * * * source /etc/rapydo-environment && python3 /scripts/create_dballe_summary.py >> /var/log/cron.log 2>&1
+*/10 * * * * source /etc/rapydo-environment && PYTHONPATH=/code python3 /scripts/create_dballe_summary.py >> /var/log/cron.log 2>&1
