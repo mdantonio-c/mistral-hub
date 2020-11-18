@@ -201,6 +201,11 @@ class Initializer:
                 "descr": "Autonomous Province of Trento - Prevention and Risks Service",
                 "url": "https://dati.trentino.it/dataset/meteo-data",
             },
+            {
+                "name": "MeteoNetwork",
+                "descr": "MeteoNetwork Association OdV",
+                "url": "https://www.meteonetwork.it/",
+            },
         ]
         for el in attribution_data_to_insert:
             attribution = sql.Attribution.query.filter_by(name=el["name"]).first()
