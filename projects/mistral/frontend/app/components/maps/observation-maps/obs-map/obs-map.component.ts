@@ -67,6 +67,7 @@ export class ObsMapComponent {
   ) {
     // custom cluster options
     this.markerClusterOptions = {
+      maxClusterRadius: 50,
       iconCreateFunction: function (cluster, srv = obsService) {
         const childCount = cluster.getChildCount();
         const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
