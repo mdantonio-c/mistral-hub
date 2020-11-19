@@ -1,11 +1,8 @@
 import { Injectable } from "@angular/core";
 import { ApiService } from "@rapydo/services/api";
 import { Observable, forkJoin, of } from "rxjs";
+import { RunAvailable } from "@app/types";
 
-export interface RunAvailable {
-  reftime: string;
-  platform?: string;
-}
 @Injectable({
   providedIn: "root",
 })
@@ -24,6 +21,8 @@ export class TilesService {
     if (run) {
       params["run"] = run;
     }
-    return this.api.get("tiles", "", params);
+    return this.api.get("tiles", "", params, {
+      validationSchema: "RunAvailable",
+    });
   }
 }

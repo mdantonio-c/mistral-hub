@@ -306,3 +306,11 @@ export interface ExchangeBindings {
   exchange: string;
   bindings: Record<string, string[]>;
 }
+
+export interface RunAvailable {
+  reftime: string;
+  platform?: string;
+  area: string;
+  offset: number;
+  step: number;
+}
