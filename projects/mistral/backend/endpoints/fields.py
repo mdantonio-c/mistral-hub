@@ -4,7 +4,7 @@ from mistral.services.dballe import BeDballe as dballe
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import sqlalchemy
-from restapi.exceptions import BadRequest, NotFound, ServerError
+from restapi.exceptions import BadRequest, NotFound, ServerError, Unauthorized
 from restapi.models import Schema, UniqueDelimitedList, fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
@@ -26,7 +26,6 @@ class Fields(EndpointResource):
 
     labels = ["field"]
 
-    @decorators.auth.require()
     @decorators.use_kwargs(FieldsQuery, location="query")
     @decorators.endpoint(
         path="/fields",
@@ -47,7 +46,6 @@ class Fields(EndpointResource):
         allAvailableProducts=False,
     ):
         """ Get all fields for given datasets"""
-
         bounding_box = {}
         if lonmin:
             if not lonmax or not latmin or not latmax:
@@ -59,9 +57,14 @@ class Fields(EndpointResource):
                 bounding_box["latmax"] = latmax
 
         # check for existing dataset(s)
-        user = self.get_user()
+        user = self.get_user_if_logged()
         db = sqlalchemy.get_instance()
         if datasets:
+            if not user:
+                # case of data extraction: endpoint needs authorization
+                raise Unauthorized(
+                    "to access this functionality the user has to be logged"
+                )
             for ds_name in datasets:
                 found = next(
                     (
@@ -109,8 +112,17 @@ class Fields(EndpointResource):
                 db_type = dballe.get_db_type(
                     query_dic["datetimemin"], query_dic["datetimemax"]
                 )
+                if db_type != "dballe" and not user:
+                    raise Unauthorized(
+                        "to access archived data the user has to be logged"
+                    )
             else:
-                db_type = "mixed"
+                if not user:
+                    raise Unauthorized(
+                        "to access archived data the user has to be logged"
+                    )
+                else:
+                    db_type = "mixed"
             log.debug("db type: {}", db_type)
 
             # TODO check unique license
