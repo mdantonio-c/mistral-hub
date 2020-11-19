@@ -180,8 +180,7 @@ export class MeteoTilesComponent {
           let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
             startTime,
             endTime,
-            // `PT${runAvailable.step}H`
-            "PT1H"
+            `PT${runAvailable.step}H`
           );
           (this.map as any).timeDimension.setAvailableTimes(
             newAvailableTimes,
