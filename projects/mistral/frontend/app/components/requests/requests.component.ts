@@ -53,11 +53,6 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     return ret;
   }
 
-  remove(requestID) {
-    console.log(`remove this request ${requestID}`);
-    return super.remove(requestID);
-  }
-
   copiedToClipboard($event) {
     if ($event["isSuccess"]) {
       this.notify.showSuccess("Copied to Clipboard");

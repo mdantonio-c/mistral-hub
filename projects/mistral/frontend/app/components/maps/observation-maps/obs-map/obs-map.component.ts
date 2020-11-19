@@ -54,6 +54,7 @@ export class ObsMapComponent {
     layers: [this.streetMaps],
     zoom: 5,
     center: [45.0, 12.0],
+    preferCanvas: true,
   };
 
   private filter: ObsFilter;
@@ -66,6 +67,7 @@ export class ObsMapComponent {
   ) {
     // custom cluster options
     this.markerClusterOptions = {
+      maxClusterRadius: 50,
       iconCreateFunction: function (cluster, srv = obsService) {
         const childCount = cluster.getChildCount();
         const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
@@ -89,13 +91,9 @@ export class ObsMapComponent {
             if (!type) {
               type = singleObsData.var;
             }
-            if (singleObsData.val.rel === 1) {
-              let val = singleObsData.val.val;
-              medians.push(val);
-            } else {
-              let dirtyVal = singleObsData.val.val;
-              dirtyMedians.push(dirtyVal);
-            }
+            singleObsData.val.rel === 1
+              ? medians.push(singleObsData.val.val)
+              : dirtyMedians.push(singleObsData.val.val);
           }
           //console.log(medians)
           // get the median instead of the mean
@@ -172,6 +170,7 @@ export class ObsMapComponent {
   }
 
   updateMap(filter: ObsFilter, update = false) {
+    // const startTime = new Date().getTime();
     this.filter = filter;
     // get data
     if (this.markerClusterGroup) {
@@ -182,6 +181,7 @@ export class ObsMapComponent {
       .getData(filter, update)
       .subscribe(
         (response: ObservationResponse) => {
+          // console.log(`---Getting Data elapsed time: ${(new Date().getTime() - startTime)/1000}s`);
           let data = response.data;
           this.updateCount.emit(data.length);
           this.loadMarkers(data, filter.product, filter.onlyStations);
@@ -197,6 +197,7 @@ export class ObsMapComponent {
       )
       .add(() => {
         setTimeout(() => this.spinner.hide(), 0);
+        // console.log(`Total Elapsed time: ${(new Date().getTime() - startTime)/1000}s`);
       });
   }
 
@@ -223,6 +224,7 @@ export class ObsMapComponent {
     let min: number, max: number;
     let obsData: ObsData;
     let singleObsData: SingleObsData;
+    // const startTime_1 = new Date().getTime();
     if (!onlyStations) {
       // min and max needed before data marker creation
       data.forEach((s) => {
@@ -241,6 +243,8 @@ export class ObsMapComponent {
         }
       });
     }
+    // console.log(`---Min/Max elapsed time: ${(new Date().getTime() - startTime_1)/1000}s`);
+    // const startTime_2 = new Date().getTime();
     data.forEach((s) => {
       let icon;
       if (!onlyStations) {
@@ -252,10 +256,11 @@ export class ObsMapComponent {
         }
         for (let i = 0; i < obsData.val.length; i++) {
           // create an object for each value of obsData
-          singleObsData = JSON.parse(JSON.stringify(obsData));
-          delete singleObsData["val"];
-          singleObsData.val = obsData.val[i];
-          let val = singleObsData.val.val;
+          singleObsData = {
+            var: product,
+            val: obsData.val[i],
+          };
+          const val = singleObsData.val.val;
           if (!single_observation) {
             icon = L.divIcon({
               html: `<div class="mstDataIcon"><span>${ObsService.showData(
@@ -304,9 +309,6 @@ export class ObsMapComponent {
                 offset: [3, -8],
               }
             );
-            // marker.bindPopup(
-            //   '<p>Hello world!<br />This is a nice popup.</p>'
-            // );
             marker.on("click", this.openStationReport.bind(this, s.stat));
           }
           markers.push(marker);
@@ -332,8 +334,10 @@ export class ObsMapComponent {
         markers.push(marker);
       }
     });
+    // console.log(`---Markers creation elapsed time: ${(new Date().getTime() - startTime_2)/1000}s`);
 
     if (!onlyStations && data.length > 0) {
+      const startTime_3 = new Date().getTime();
       console.log(`min ${min}, max ${max}`);
       this.obsService.min = min;
       this.obsService.max = max;

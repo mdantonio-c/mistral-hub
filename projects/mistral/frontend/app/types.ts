@@ -215,7 +215,7 @@ export interface StationDetail {
   val: string;
 }
 
-export interface ObsValues {
+export interface ObsValue {
   // level: string;
   ref: string;
   // timerange: string;
@@ -224,15 +224,15 @@ export interface ObsValues {
 }
 
 export interface ObsData {
-  val: ObsValues[];
+  val: ObsValue[];
   var: string;
 }
 
 export interface SingleObsData {
-  description: string;
-  scale: number;
-  unit: string;
-  val: ObsValues;
+  // description: string;
+  // scale: number;
+  // unit: string;
+  val: ObsValue;
   var: string;
 }
 

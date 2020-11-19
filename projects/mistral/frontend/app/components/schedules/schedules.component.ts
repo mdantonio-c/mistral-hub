@@ -69,11 +69,6 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
     this.table.rowDetail.toggleExpandRow(row);
   }
 
-  remove(scheduleID) {
-    console.log(`remove this schedule ${scheduleID}`);
-    return super.remove(scheduleID);
-  }
-
   download(filename) {
     this.dataService.downloadData(filename).subscribe(
       (resp) => {

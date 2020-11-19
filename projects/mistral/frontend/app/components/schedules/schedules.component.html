@@ -303,14 +303,7 @@
             >
               <div class="handle"></div>
             </button>
-            <button
-              class="btn p-0"
-              mwlConfirmationPopover
-              [popoverTitle]="deleteConfirmation.title"
-              [popoverMessage]="getDeleteConfirmation('schedule').message"
-              placement="left"
-              (confirm)="remove(row.id)"
-            >
+            <button class="btn p-0" (click)="delete(row.id)">
               <i class="fa fa-trash red"></i>
             </button>
           </div>
