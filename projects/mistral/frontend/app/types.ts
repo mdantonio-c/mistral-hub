@@ -315,6 +315,7 @@ export interface LatLon {
 export interface RunAvailable {
   dataset: string;
   reftime: string;
+  /** @nullable */
   platform?: string;
   area: string;
   start_offset: number;
