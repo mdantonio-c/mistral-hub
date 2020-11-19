@@ -9,7 +9,23 @@ from restapi.utilities.logs import log
 MEDIA_ROOT = "/meteo/"
 
 RUNS = ["00", "12"]
-DATASETS = ["lm2.2", "lm5", "iff"]
+DATASETS = {
+    "lm2.2": {
+        "area": "Italia",
+        "offset": 0,
+        "step": 1,
+    },
+    "lm5": {
+        "area": "Area_Mediterranea",
+        "offset": 0,
+        "step": 1,
+    },
+    "iff": {
+        "area": "Italia",
+        "offset": 6,
+        "step": 3,
+    },
+}
 # PLATFORMS = ["GALILEO", "MEUCCI"]
 # DEFAULT_PLATFORM = os.environ.get("PLATFORM", "GALILEO")
 
@@ -29,7 +45,7 @@ class TilesEndpoint(EndpointResource):
         {
             # Fix the parameter on the frontend to remove the data_key here
             "dataset": fields.Str(
-                data_key="res", required=True, validate=validate.OneOf(DATASETS)
+                data_key="res", required=True, validate=validate.OneOf(DATASETS.keys())
             ),
             "run": fields.Str(validate=validate.OneOf(RUNS)),
         },
@@ -46,7 +62,10 @@ class TilesEndpoint(EndpointResource):
     )
     def get(self, dataset, run=None):
         ready_file = None
-        area = "Area_Mediterranea" if dataset == "lm5" else "Italia"
+        info = DATASETS.get(dataset)
+        area = info.get("area")
+        offset = info.get("offset")
+        step = info.get("step")
 
         # check for run param: if not provided get the "last" run available
         if not run:
@@ -62,10 +81,18 @@ class TilesEndpoint(EndpointResource):
                 log.warning("No Run is available: .READY file not found")
         else:
             ready_file = self._get_ready_file(area, run, dataset)
+        ready_file = "2020111900"
+
         if not ready_file:
             raise NotFound("No .READY file found")
 
-        data = {"reftime": ready_file[:10], "platform": None}
+        data = {
+            "reftime": ready_file[:10],
+            "area": area,
+            "offset": offset,
+            "step": step,
+            "platform": None,
+        }
         return self.response(data)
 
     def _get_ready_file(self, area, run, dataset):
