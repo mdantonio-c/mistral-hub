@@ -4,7 +4,6 @@ import { async, ComponentFixture, TestBed } from "@angular/core/testing";
 import { NgxDatatableModule } from "@swimlane/ngx-datatable";
 import { MomentModule } from "ngx-moment";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
-import { ConfirmationPopoverModule } from "angular-confirmation-popover";
 import { of } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ToastrModule } from "ngx-toastr";
@@ -58,13 +57,6 @@ describe("RequestsComponent", () => {
         NgxDatatableModule,
         MomentModule,
         NgbModule,
-        ConfirmationPopoverModule.forRoot(
-          // set defaults here
-          {
-            confirmButtonType: "danger",
-            appendToBody: true,
-          }
-        ),
         ToastrModule.forRoot({
           maxOpened: 5,
           preventDuplicates: true,

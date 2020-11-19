@@ -4,7 +4,8 @@ import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { DataService } from "@app/services/data.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { AuthService } from "@rapydo/services/auth";
-import { User } from "@rapydo/types";
+import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
+import { User, ConfirmationModalOptions } from "@rapydo/types";
 
 @Component({
   selector: "mst-my-request-details",
@@ -24,6 +25,7 @@ export class MyRequestDetailsComponent implements OnInit {
     private formDataService: FormDataService,
     public dataService: DataService,
     private modalService: NgbModal,
+    private confirmationModals: ConfirmationModals,
     private authService: AuthService
   ) {}
 
@@ -51,7 +53,21 @@ export class MyRequestDetailsComponent implements OnInit {
   }
 
   cancel() {
-    this.onCancel.emit();
+    const options: ConfirmationModalOptions = {
+      title: "Cancel this request",
+      text: "Are you really sure you want to cancel this request?",
+      subText:
+        "This operation cannot be undone. This takes you back to the initial step for selecting a new dataset.",
+      cancelButton: "Undo",
+      confirmButton: "Confirm",
+    };
+
+    this.confirmationModals.open(options).then(
+      (result) => {
+        this.onCancel.emit();
+      },
+      (reason) => {}
+    );
   }
 
   getConfirmation(name) {

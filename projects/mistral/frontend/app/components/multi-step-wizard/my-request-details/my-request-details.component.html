@@ -112,13 +112,7 @@
     <dt>Output Format</dt>
     <dd>{{ myRequest.output_format | uppercase }}</dd>
   </ng-container>
-  <ng-container
-    *ngIf="
-      onSubmitStep &&
-      user &&
-      user.amqp_queue
-    "
-  >
+  <ng-container *ngIf="onSubmitStep && user && user.amqp_queue">
     <hr />
     <dt>Data Pushing</dt>
     <dd>
@@ -135,15 +129,7 @@
   </ng-container>
 </dl>
 <div class="btn-group btn-group-sm float-right mr-4" role="group">
-  <button
-    type="button"
-    class="btn btn-danger"
-    mwlConfirmationPopover
-    popoverTitle="Cancel this request"
-    [popoverMessage]="getConfirmation('request').message"
-    placement="left"
-    (confirm)="cancel()"
-  >
+  <button type="button" class="btn btn-danger" (click)="cancel()">
     Cancel
   </button>
 </div>
