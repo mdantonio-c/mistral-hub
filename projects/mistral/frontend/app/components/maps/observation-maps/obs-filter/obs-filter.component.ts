@@ -1,4 +1,11 @@
-import { Component, OnInit, Output, EventEmitter, Input } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  Output,
+  EventEmitter,
+  Input,
+  ChangeDetectorRef,
+} from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ObsFilter, CodeDescPair, FieldsSummary } from "@app/types";
 import { ObsService } from "../services/obs.service";
@@ -6,7 +13,10 @@ import { LICENSES } from "../services/data";
 import { NgbDateStruct, NgbCalendar } from "@ng-bootstrap/ng-bootstrap";
 import { NotificationService } from "@rapydo/services/notification";
 import { environment } from "@rapydo/../environments/environment";
+import { User } from "@rapydo/types";
+import { AuthService } from "@rapydo/services/auth";
 import { NgxSpinnerService } from "ngx-spinner";
+import * as moment from "moment";
 
 const LAST_DAYS = +environment.CUSTOM.LASTDAYS || 10;
 
@@ -33,8 +43,10 @@ export class ObsFilterComponent implements OnInit {
     month: this.today.getMonth() + 1,
     day: this.today.getDate(),
   };
+  minDate: NgbDateStruct | null;
+  user: User;
 
-  isUpdatable = false;
+  isUpdatable: boolean = false;
 
   @Output() filterChange: EventEmitter<ObsFilter> = new EventEmitter<
     ObsFilter
@@ -51,7 +63,9 @@ export class ObsFilterComponent implements OnInit {
     private calendar: NgbCalendar,
     private obsService: ObsService,
     private notify: NotificationService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
+    private authService: AuthService,
+    private ref: ChangeDetectorRef
   ) {
     this.filterForm = this.fb.group({
       product: [this.DEFAULT_PRODUCT, Validators.required],
@@ -77,6 +91,31 @@ export class ObsFilterComponent implements OnInit {
 
     // subscribe form value changes
     this.onChanges();
+
+    this.authService.isAuthenticated().subscribe((isAuth) => {
+      this.user = isAuth ? this.authService.getUser() : null;
+      if (!this.user) {
+        this.applyMinDate();
+      }
+    });
+    this.authService.userChanged.subscribe((user) => {
+      if (user === this.authService.LOGGED_OUT) {
+        this.user = null;
+        this.ref.detectChanges();
+        this.minDate = null;
+      } else if (user === this.authService.LOGGED_IN) {
+        this.user = this.authService.getUser();
+      }
+    });
+  }
+
+  private applyMinDate() {
+    let d = moment.utc().subtract(LAST_DAYS, "days");
+    this.minDate = {
+      year: d.year(),
+      month: d.month() + 1,
+      day: d.date(),
+    };
   }
 
   private loadFilter(f: ObsFilter, initialize = false) {

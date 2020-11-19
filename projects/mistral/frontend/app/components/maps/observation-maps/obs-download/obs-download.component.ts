@@ -2,14 +2,21 @@ import { Component, Input, OnInit } from "@angular/core";
 import {
   NgbActiveModal,
   NgbDate,
+  NgbDateStruct,
   NgbCalendar,
   NgbDateParserFormatter,
 } from "@ng-bootstrap/ng-bootstrap";
 import { ObsFilter } from "@app/types";
+import { User } from "@rapydo/types";
 import { ObsService } from "../services/obs.service";
 import { NgxSpinnerService } from "ngx-spinner";
 import { NotificationService } from "@rapydo/services/notification";
+import { AuthService } from "@rapydo/services/auth";
+import { environment } from "@rapydo/../environments/environment";
 import { saveAs as importedSaveAs } from "file-saver";
+import * as moment from "moment";
+
+const LAST_DAYS = +environment.CUSTOM.LASTDAYS || 10;
 
 @Component({
   selector: "app-obs-download",
@@ -23,6 +30,7 @@ export class ObsDownloadComponent implements OnInit {
   fromDate: NgbDate | null;
   toDate: NgbDate | null;
   maxDate: NgbDate | null;
+  minDate: NgbDateStruct | null;
 
   allFormats: string[] = ["JSON", "BUFR"];
   model: any = {
@@ -30,8 +38,10 @@ export class ObsDownloadComponent implements OnInit {
     fromDate: null,
     toDate: null,
   };
+  private user: User | null;
 
   constructor(
+    private authService: AuthService,
     public activeModal: NgbActiveModal,
     private obsService: ObsService,
     private notify: NotificationService,
@@ -47,6 +57,10 @@ export class ObsDownloadComponent implements OnInit {
   ngOnInit() {
     if (this.filter && this.filter.reftime) {
       this.setDateRange(this.filter.reftime);
+    }
+    this.user = this.authService.getUser();
+    if (!this.user) {
+      this.applyMinDate();
     }
   }
 
@@ -150,5 +164,14 @@ export class ObsDownloadComponent implements OnInit {
         this.spinner.hide();
         this.activeModal.close();
       });
+  }
+
+  private applyMinDate() {
+    let d = moment.utc().subtract(LAST_DAYS, "days");
+    this.minDate = {
+      year: d.year(),
+      month: d.month() + 1,
+      day: d.date(),
+    };
   }
 }
