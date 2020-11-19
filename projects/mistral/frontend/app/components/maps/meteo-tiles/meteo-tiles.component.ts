@@ -3,7 +3,8 @@ import { environment } from "@rapydo/../environments/environment";
 import * as moment from "moment";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
-import "leaflet-timedimension/examples/js/extras/leaflet.timedimension.tilelayer.portus.js";
+// import "leaflet-timedimension/examples/js/extras/leaflet.timedimension.tilelayer.portus.js";
+import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import { TilesService } from "./services/tiles.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
@@ -73,7 +74,6 @@ export class MeteoTilesComponent {
 
   map: L.Map;
   resolution: string;
-  private refdate: string;
   private run: string;
   private legends: { [key: string]: L.Control } = {};
 
@@ -158,7 +158,6 @@ export class MeteoTilesComponent {
           console.log("Available Run", runAvailable);
           let reftime = runAvailable.reftime;
           console.log("reftime", reftime);
-          this.refdate = reftime.substr(0, 8);
           this.run = reftime.substr(8, 2);
 
           // set time
@@ -192,10 +191,25 @@ export class MeteoTilesComponent {
 
           // add default layer
 
-          let tm2m: L.Layer = this.layersControl["overlays"][
-            this.DEFAULT_PRODUCT_COSMO
-          ];
-          tm2m.addTo(this.map);
+          // let tm2m: L.Layer = this.layersControl["overlays"][
+          //   this.DEFAULT_PRODUCT_COSMO
+          // ];
+          // tm2m.addTo(this.map);
+          this.resolution = runAvailable.dataset;
+
+          if (this.resolution === "iff") {
+            let tp1prec: L.Layer = this.layersControl["overlays"][
+              this.DEFAULT_PRODUCT_IFF
+            ];
+            tp1prec.addTo(this.map);
+            this.legends[TPPERC1].addTo(this.map);
+          } else {
+            let tm2m: L.Layer = this.layersControl["overlays"][
+              this.DEFAULT_PRODUCT_COSMO
+            ];
+            tm2m.addTo(this.map);
+            this.legends[TM2].addTo(this.map);
+          }
         },
         (error) => {
           this.notify.showError(error);
@@ -222,8 +236,8 @@ export class MeteoTilesComponent {
       this.layersControl["overlays"] = {
         [TPPERC1]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc1/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc1/{d}{h}/{z}/{x}/{y}.png`,
+            // `${baseUrl}/tp_percentile-1/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -237,7 +251,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC10]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc10/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc10/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -251,7 +265,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC25]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc25/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc25/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -265,7 +279,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC50]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc50/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -279,7 +293,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC75]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc75/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc75/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -293,7 +307,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC99]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc99/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc99/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -308,7 +322,7 @@ export class MeteoTilesComponent {
 
         [TPPROB5]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob5/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/probability-prob5/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -322,7 +336,7 @@ export class MeteoTilesComponent {
         ),
         [TPPROB10]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob10${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/probability-prob10{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -336,7 +350,7 @@ export class MeteoTilesComponent {
         ),
         [TPPROB20]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob20/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/probability-prob20/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -350,7 +364,7 @@ export class MeteoTilesComponent {
         ),
         [TPPROB50]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/probability-prob50/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -370,7 +384,7 @@ export class MeteoTilesComponent {
     } else {
       this.layersControl["overlays"] = {
         [TM2]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`, {
+          L.tileLayer(`${baseUrl}/t2m-t2m/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
@@ -381,118 +395,94 @@ export class MeteoTilesComponent {
         ),
         // Total precipitation 3h Time Layer
         [PREC3P]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/prec3-tp/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/prec3-tp/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
           {}
         ),
         // Total precipitation 6h Time Layer
         [PREC6P]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/prec6-tp/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/prec6-tp/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
           {}
         ),
         // Snowfall 3h Time Layer
         [SF3]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/snow3-snow/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
           {}
         ),
         // Snowfall 6h Time Layer
         [SF6]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/snow6-snow/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
           {}
         ),
         // Relative humidity Time Layer
         [RH]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              //opacity: 0.6,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/humidity-r/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            //opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         // High Cloud Time Layer
         [HCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              //opacity: 0.6,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/cloud_hml-hcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            //opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         // Medium Cloud Time Layer
         [MCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              //opacity: 0.6,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            //opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         // Low Cloud Time Layer
         [LCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
       };
