@@ -192,10 +192,25 @@ export class MeteoTilesComponent {
 
           // add default layer
 
-          let tm2m: L.Layer = this.layersControl["overlays"][
-            this.DEFAULT_PRODUCT_COSMO
-          ];
-          tm2m.addTo(this.map);
+          // let tm2m: L.Layer = this.layersControl["overlays"][
+          //   this.DEFAULT_PRODUCT_COSMO
+          // ];
+          // tm2m.addTo(this.map);
+          this.resolution = runAvailable.dataset;
+
+          if (this.resolution === "iff") {
+            let tp1prec: L.Layer = this.layersControl["overlays"][
+              this.DEFAULT_PRODUCT_IFF
+            ];
+            tp1prec.addTo(this.map);
+            this.legends[TPPERC1].addTo(this.map);
+          } else {
+            let tm2m: L.Layer = this.layersControl["overlays"][
+              this.DEFAULT_PRODUCT_COSMO
+            ];
+            tm2m.addTo(this.map);
+            this.legends[TM2].addTo(this.map);
+          }
         },
         (error) => {
           this.notify.showError(error);
