@@ -8,6 +8,7 @@ import { TilesService } from "./services/tiles.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import { LegendConfig, LEGEND_DATA } from "./services/data";
+import { RunAvailable } from "../../../types";
 
 declare module "leaflet" {
   var timeDimension: any;
@@ -66,8 +67,9 @@ const TM2 = "Temperature at 2 meters",
 export class MeteoTilesComponent {
   readonly DEFAULT_PRODUCT_COSMO = "Temperature at 2 meters";
   readonly DEFAULT_PRODUCT_IFF = "Precipitation percentiles 1%";
-  readonly DEFAULT_RESOLUTION = "lm5";
+  // readonly DEFAULT_RESOLUTION = "lm5";
   readonly LEGEND_POSITION = "bottomleft";
+  readonly DEFAULT_DATASET = "lm5";
 
   map: L.Map;
   resolution: string;
@@ -127,6 +129,7 @@ export class MeteoTilesComponent {
       },
     },
   };
+  private runAvailable: RunAvailable;
 
   constructor(
     private tilesService: TilesService,
@@ -135,45 +138,56 @@ export class MeteoTilesComponent {
   ) {
     // set the initial set of displayed layers
     this.options["layers"] = [this.LAYER_MAPBOX_LIGHT];
-    this.resolution = this.DEFAULT_RESOLUTION;
+    this.resolution = this.DEFAULT_DATASET;
   }
 
   onMapReady(map: L.Map) {
-    // console.log('Map ready', map);
     this.map = map;
+    this.loadRunAvailable(this.DEFAULT_DATASET);
+    this.initLegends(this.map);
+  }
+
+  private loadRunAvailable(dataset: string) {
     this.spinner.show();
     this.tilesService
-      .getLastRun("lm5")
+      .getLastRun(dataset)
       .subscribe(
-        (runAvailable) => {
+        (runAvailable: RunAvailable) => {
           // runAvailable.reftime : 2020051100
+          this.runAvailable = runAvailable;
           console.log("Available Run", runAvailable);
           let reftime = runAvailable.reftime;
+          console.log("reftime", reftime);
           this.refdate = reftime.substr(0, 8);
           this.run = reftime.substr(8, 2);
 
           // set time
-          let startTime = moment.utc(reftime, "YYYYMMDDHH").toDate();
+          let startTime = moment
+            .utc(reftime, "YYYYMMDDHH")
+            .add(runAvailable.start_offset, "hours")
+            .toDate();
+          console.log(`startTime: ${startTime}`);
           // let startTime = new Date(Date.UTC(2020, 4, 11));
-          startTime.setUTCHours(0, 0, 0, 0);
+          // startTime.setUTCHours(0, 0, 0, 0);
           // let endTime = 'PT72H';
           let endTime = moment
             .utc(reftime, "YYYYMMDDHH")
-            .add(3, "days")
+            .add(runAvailable.end_offset, "hours")
             .toDate();
-          console.log(endTime);
+          console.log(`endTime ${endTime}`);
 
           // add time dimension
           let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
             startTime,
             endTime,
+            // `PT${runAvailable.step}H`
             "PT1H"
           );
-          (map as any).timeDimension.setAvailableTimes(
+          (this.map as any).timeDimension.setAvailableTimes(
             newAvailableTimes,
             "replace"
           );
-          (map as any).timeDimension.setCurrentTime(startTime);
+          (this.map as any).timeDimension.setCurrentTime(startTime);
 
           this.setOverlaysToMap();
 
@@ -183,15 +197,13 @@ export class MeteoTilesComponent {
             this.DEFAULT_PRODUCT_COSMO
           ];
           tm2m.addTo(this.map);
-
-          this.initLegends(map);
         },
         (error) => {
           this.notify.showError(error);
         }
       )
       .add(() => {
-        map.invalidateSize();
+        this.map.invalidateSize();
         this.spinner.hide();
       });
   }
@@ -207,7 +219,7 @@ export class MeteoTilesComponent {
         : L.latLngBounds(LM2_BOUNDS["southWest"], LM2_BOUNDS["northEast"]);
     let maxZoom = this.resolution === "lm5" ? 7 : 8;
 
-    if (this.resolution === "IFF") {
+    if (this.resolution === "iff") {
       this.layersControl["overlays"] = {
         [TPPERC1]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
@@ -679,26 +691,39 @@ export class MeteoTilesComponent {
     });
 
     // add default legend to the map
-    if (this.resolution === "IFF") {
+    if (this.resolution === "iff") {
       this.legends[TPPERC1].addTo(map);
     } else {
       this.legends[TM2].addTo(map);
     }
   }
 
-  changeRes(newRes) {
+  changeDataset(newRes) {
+    // remove all current layers
+    let overlays = this.layersControl["overlays"];
+    let currentActiveNames = [];
+    for (let name in overlays) {
+      if (this.map.hasLayer(overlays[name])) {
+        currentActiveNames.push(name);
+        this.map.removeLayer(overlays[name]);
+      }
+    }
+
+    this.loadRunAvailable(newRes);
+
     this.resolution = newRes;
     if (this.resolution === "lm5") {
       this.map.setView(MAP_CENTER, 5);
     } else if (this.resolution === "lm2.2") {
       this.map.setView(MAP_CENTER, 6);
-    } else if (this.resolution === "IFF") {
+    } else if (this.resolution === "iff") {
       this.map.setView(MAP_CENTER, 6);
     } else {
       console.error("No resolution available");
     }
     // console.log(`Changed resolution from ${currentRes} to ${this.resolution}`);
 
+    /*
     // remove all current layers
     let overlays = this.layersControl["overlays"];
     let currentActiveNames = [];
@@ -721,7 +746,8 @@ export class MeteoTilesComponent {
         this.legends[name].addTo(this.map);
       }
     }
-    if (this.resolution === "IFF") {
+
+    if (this.resolution === "iff") {
       let tp1prec: L.Layer = this.layersControl["overlays"][
         this.DEFAULT_PRODUCT_IFF
       ];
@@ -734,5 +760,6 @@ export class MeteoTilesComponent {
       tm2m.addTo(this.map);
       this.legends[TM2].addTo(this.map);
     }
+    */
   }
 }
