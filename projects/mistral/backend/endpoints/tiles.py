@@ -81,7 +81,6 @@ class TilesEndpoint(EndpointResource):
                 log.warning("No Run is available: .READY file not found")
         else:
             ready_file = self._get_ready_file(area, run, dataset)
-        ready_file = "2020111900"
 
         if not ready_file:
             raise NotFound("No .READY file found")
