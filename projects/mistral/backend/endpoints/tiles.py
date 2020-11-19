@@ -9,7 +9,7 @@ from restapi.utilities.logs import log
 MEDIA_ROOT = "/meteo/"
 
 RUNS = ["00", "12"]
-RESOLUTIONS = ["lm2.2", "lm5"]
+DATASETS = ["lm2.2", "lm5", "iff"]
 # PLATFORMS = ["GALILEO", "MEUCCI"]
 # DEFAULT_PLATFORM = os.environ.get("PLATFORM", "GALILEO")
 
@@ -27,7 +27,10 @@ class TilesEndpoint(EndpointResource):
 
     @decorators.use_kwargs(
         {
-            "res": fields.Str(validate=validate.OneOf(RESOLUTIONS), required=True),
+            # Fix the parameter on the frontend to remove the data_key here
+            "dataset": fields.Str(
+                data_key="res", required=True, validate=validate.OneOf(DATASETS)
+            ),
             "run": fields.Str(validate=validate.OneOf(RUNS)),
         },
         location="query",
@@ -41,16 +44,16 @@ class TilesEndpoint(EndpointResource):
             404: "Tiled map does not exists",
         },
     )
-    def get(self, res, run=None):
+    def get(self, dataset, run=None):
         ready_file = None
-        area = "Italia" if res == "lm2.2" else "Area_Mediterranea"
+        area = "Area_Mediterranea" if dataset == "lm5" else "Italia"
 
         # check for run param: if not provided get the "last" run available
         if not run:
             log.debug("No run param provided: look for the last run available")
             ready_files = [
                 x
-                for x in (self._get_ready_file(area, r, res) for r in ["00", "12"])
+                for x in (self._get_ready_file(area, r, dataset) for r in ["00", "12"])
                 if x is not None
             ]
             try:
@@ -58,16 +61,16 @@ class TilesEndpoint(EndpointResource):
             except ValueError:
                 log.warning("No Run is available: .READY file not found")
         else:
-            ready_file = self._get_ready_file(area, run, res)
+            ready_file = self._get_ready_file(area, run, dataset)
         if not ready_file:
             raise NotFound("No .READY file found")
 
         data = {"reftime": ready_file[:10], "platform": None}
         return self.response(data)
 
-    def _get_ready_file(self, area, run, res):
+    def _get_ready_file(self, area, run, dataset):
         # e.g. Tiles-00-lm2.2.web
-        self.base_path = os.path.join(MEDIA_ROOT, "PROD", f"Tiles-{run}-{res}.web")
+        self.base_path = os.path.join(MEDIA_ROOT, "PROD", f"Tiles-{run}-{dataset}.web")
         ready_path = os.path.join(self.base_path, area)
         log.debug("ready_path: {}", ready_path)
 
