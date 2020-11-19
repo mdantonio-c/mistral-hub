@@ -10,19 +10,22 @@ MEDIA_ROOT = "/meteo/"
 
 RUNS = ["00", "12"]
 DATASETS = {
-    "lm2.2": {
-        "area": "Italia",
-        "offset": 0,
-        "step": 1,
-    },
     "lm5": {
         "area": "Area_Mediterranea",
-        "offset": 0,
+        "start_offset": 0,
+        "end_offset": 72,
+        "step": 1,
+    },
+    "lm2.2": {
+        "area": "Italia",
+        "start_offset": 0,
+        "end_offset": 48,
         "step": 1,
     },
     "iff": {
         "area": "Italia",
-        "offset": 6,
+        "start_offset": 6,
+        "end_offset": 48,
         "step": 3,
     },
 }
@@ -63,7 +66,8 @@ class TilesEndpoint(EndpointResource):
         ready_file = None
         info = DATASETS.get(dataset)
         area = info.get("area")
-        offset = info.get("offset")
+        start_offset = info.get("start_offset")
+        end_offset = info.get("end_offset")
         step = info.get("step")
 
         # check for run param: if not provided get the "last" run available
@@ -87,7 +91,8 @@ class TilesEndpoint(EndpointResource):
         data = {
             "reftime": ready_file[:10],
             "area": area,
-            "offset": offset,
+            "start_offset": start_offset,
+            "end_offset": end_offset,
             "step": step,
             "platform": None,
         }

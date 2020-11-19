@@ -180,9 +180,9 @@ export class MeteoTilesComponent {
           // add default layer
 
           let tm2m: L.Layer = this.layersControl["overlays"][
-  this.DEFAULT_PRODUCT_COSMO
-];
-tm2m.addTo(this.map);
+            this.DEFAULT_PRODUCT_COSMO
+          ];
+          tm2m.addTo(this.map);
 
           this.initLegends(map);
         },
@@ -207,278 +207,285 @@ tm2m.addTo(this.map);
         : L.latLngBounds(LM2_BOUNDS["southWest"], LM2_BOUNDS["northEast"]);
     let maxZoom = this.resolution === "lm5" ? 7 : 8;
 
-    if (this.resolution === 'IFF') {
+    if (this.resolution === "IFF") {
       this.layersControl["overlays"] = {
         [TPPERC1]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc1/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC10]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc10/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC25]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc25/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC50]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc50/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC75]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc75/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPERC99]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/percentile-perc99/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc1/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC10]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc10/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC25]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc25/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC50]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC75]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc75/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPERC99]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/percentile-perc99/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
 
-  [TPPROB5]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/probability-prob5/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPROB10]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/probability-prob10${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPROB20]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/probability-prob20/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-  [TPPROB50]: L.timeDimension.layer.tileLayer.portus(
-    L.tileLayer(
-      `${TILES_PATH}/00-iff/Italia/probability-prob50/${this.refdate}{h}/{z}/{x}/{y}.png`,
-      {
-        minZoom: 5,
-        maxZoom: maxZoom,
-        tms: false,
-        opacity: 0.9,
-        // bounds: [[25.0, -25.0], [50.0, 47.0]],
-        bounds: bounds,
-      }
-    ),
-    {}
-  ),
-};
-let tp1prec: L.Layer = this.layersControl["overlays"][this.DEFAULT_PRODUCT_IFF];
-tp1prec.addTo(this.map);
-      } else {
-        this.layersControl["overlays"] = {
-          [TM2]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(`${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-                minZoom: 5,
-                maxZoom: maxZoom,
-                tms: false,
-                opacity: 0.6,
-                bounds: bounds,
-              }),
-              {}
-            ),
-            // Total precipitation 3h Time Layer
-            [PREC3P]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(`${baseUrl}/prec3-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-                minZoom: 5,
-                maxZoom: maxZoom,
-                tms: false,
-                opacity: 0.6,
-                bounds: bounds,
-              }),
-              {}
-            ),
-            // Total precipitation 6h Time Layer
-            [PREC6P]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(`${baseUrl}/prec6-tp/${this.refdate}{h}/{z}/{x}/{y}.png`, {
-                minZoom: 5,
-                maxZoom: maxZoom,
-                tms: false,
-                opacity: 0.6,
-                bounds: bounds,
-              }),
-              {}
-            ),
-            // Snowfall 3h Time Layer
-            [SF3]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  opacity: 0.6,
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // Snowfall 6h Time Layer
-            [SF6]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  opacity: 0.6,
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // Relative humidity Time Layer
-            [RH]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  //opacity: 0.6,
-                  // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // High Cloud Time Layer
-            [HCC]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  //opacity: 0.6,
-                  // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // Medium Cloud Time Layer
-            [MCC]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  //opacity: 0.6,
-                  // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
-            // Low Cloud Time Layer
-            [LCC]: L.timeDimension.layer.tileLayer.portus(
-              L.tileLayer(
-                `${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-                {
-                  minZoom: 5,
-                  maxZoom: maxZoom,
-                  tms: false,
-                  opacity: 0.9,
-                  // bounds: [[25.0, -25.0], [50.0, 47.0]],
-                  bounds: bounds,
-                }
-              ),
-              {}
-            ),
+        [TPPROB5]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/probability-prob5/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPROB10]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/probability-prob10${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPROB20]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/probability-prob20/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        [TPPROB50]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${TILES_PATH}/00-iff/Italia/probability-prob50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+      };
+      let tp1prec: L.Layer = this.layersControl["overlays"][
+        this.DEFAULT_PRODUCT_IFF
+      ];
+      tp1prec.addTo(this.map);
+    } else {
+      this.layersControl["overlays"] = {
+        [TM2]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Total precipitation 3h Time Layer
+        [PREC3P]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/prec3-tp/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Total precipitation 6h Time Layer
+        [PREC6P]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/prec6-tp/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Snowfall 3h Time Layer
+        [SF3]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Snowfall 6h Time Layer
+        [SF6]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Relative humidity Time Layer
+        [RH]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              //opacity: 0.6,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // High Cloud Time Layer
+        [HCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              //opacity: 0.6,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Medium Cloud Time Layer
+        [MCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              //opacity: 0.6,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
+        // Low Cloud Time Layer
+        [LCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(
+            `${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }
+          ),
+          {}
+        ),
       };
     }
-
   }
 
   private createLegendControl(id: string): L.Control {
@@ -508,26 +515,26 @@ tp1prec.addTo(this.map);
 
   private initLegends(map: L.Map) {
     let layers = this.layersControl["overlays"];
-      this.legends = {
-        [TM2]: this.createLegendControl("tm2"),
-              [PREC3P]: this.createLegendControl("prec3tp"),
-              [PREC6P]: this.createLegendControl("prec6tp"),
-              [SF3]: this.createLegendControl("sf3"),
-              [RH]: this.createLegendControl("rh"),
-              [HCC]: this.createLegendControl("hcc"),
-              [MCC]: this.createLegendControl("mcc"),
-              [LCC]: this.createLegendControl("lcc"),
-              [TPPERC1]: this.createLegendControl("tpperc"),
-              [TPPERC10]: this.createLegendControl("tpperc"),
-              [TPPERC25]: this.createLegendControl("tpperc"),
-              [TPPERC75]: this.createLegendControl("tpperc"),
-              [TPPERC50]: this.createLegendControl("tpperc"),
-              [TPPERC99]: this.createLegendControl("tpperc"),
-              [TPPROB5]: this.createLegendControl("tpprob"),
-              [TPPROB20]: this.createLegendControl("tpprob"),
-              [TPPROB10]: this.createLegendControl("tpprob"),
-              [TPPROB50]: this.createLegendControl("tpprob"),
-      };
+    this.legends = {
+      [TM2]: this.createLegendControl("tm2"),
+      [PREC3P]: this.createLegendControl("prec3tp"),
+      [PREC6P]: this.createLegendControl("prec6tp"),
+      [SF3]: this.createLegendControl("sf3"),
+      [RH]: this.createLegendControl("rh"),
+      [HCC]: this.createLegendControl("hcc"),
+      [MCC]: this.createLegendControl("mcc"),
+      [LCC]: this.createLegendControl("lcc"),
+      [TPPERC1]: this.createLegendControl("tpperc"),
+      [TPPERC10]: this.createLegendControl("tpperc"),
+      [TPPERC25]: this.createLegendControl("tpperc"),
+      [TPPERC75]: this.createLegendControl("tpperc"),
+      [TPPERC50]: this.createLegendControl("tpperc"),
+      [TPPERC99]: this.createLegendControl("tpperc"),
+      [TPPROB5]: this.createLegendControl("tpprob"),
+      [TPPROB20]: this.createLegendControl("tpprob"),
+      [TPPROB10]: this.createLegendControl("tpprob"),
+      [TPPROB50]: this.createLegendControl("tpprob"),
+    };
     // }
     let legends = this.legends;
     map.on("overlayadd", function (event) {
@@ -548,14 +555,21 @@ tp1prec.addTo(this.map);
         legends[MCC].addTo(this);
       } else if (event["name"] === LCC) {
         legends[LCC].addTo(this);
-      }
-      else if (event["name"] === TPPERC1 || event["name"] === TPPERC10 || event["name"] === TPPERC25
-      || event["name"] === TPPERC50 || event["name"] === TPPERC75 || event["name"] === TPPERC99)
-      {
+      } else if (
+        event["name"] === TPPERC1 ||
+        event["name"] === TPPERC10 ||
+        event["name"] === TPPERC25 ||
+        event["name"] === TPPERC50 ||
+        event["name"] === TPPERC75 ||
+        event["name"] === TPPERC99
+      ) {
         legends[TPPERC1].addTo(this);
-      }
-      else if (event["name"] === TPPROB5 || event["name"] === TPPROB10 || event["name"] === TPPROB20 || event["name"] === TPPROB50)
-      {
+      } else if (
+        event["name"] === TPPROB5 ||
+        event["name"] === TPPROB10 ||
+        event["name"] === TPPROB20 ||
+        event["name"] === TPPROB50
+      ) {
         legends[TPPROB5].addTo(this);
       }
     });
@@ -579,73 +593,109 @@ tp1prec.addTo(this.map);
         this.removeControl(legends[MCC]);
       } else if (event["name"] === LCC) {
         this.removeControl(legends[LCC]);
-      } else if (event["name"] === TPPERC1 && !map.hasLayer(layers[TPPERC10]) && !map.hasLayer(layers[TPPERC25])
-      && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC75]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC1 &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC75]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC1]);
-      } else if (event["name"] === TPPERC10 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC25])
-      && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC75]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC10 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC75]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC1]);
-      } else if (event["name"] === TPPERC25 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC10])
-      && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC75]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC25 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC75]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC50]);
-      } else if (event["name"] === TPPERC50 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC10])
-      && !map.hasLayer(layers[TPPERC25]) && !map.hasLayer(layers[TPPERC75]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC50 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC75]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC75]);
-      } else if (event["name"] === TPPERC75 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC10])
-      && !map.hasLayer(layers[TPPERC25]) && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC99]))
-      {
+      } else if (
+        event["name"] === TPPERC75 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC99])
+      ) {
         this.removeControl(legends[TPPERC99]);
-      } else if (event["name"] === TPPERC99 && !map.hasLayer(layers[TPPERC1]) && !map.hasLayer(layers[TPPERC10])
-      && !map.hasLayer(layers[TPPERC25]) && !map.hasLayer(layers[TPPERC50]) && !map.hasLayer(layers[TPPERC75]))
-      {
+      } else if (
+        event["name"] === TPPERC99 &&
+        !map.hasLayer(layers[TPPERC1]) &&
+        !map.hasLayer(layers[TPPERC10]) &&
+        !map.hasLayer(layers[TPPERC25]) &&
+        !map.hasLayer(layers[TPPERC50]) &&
+        !map.hasLayer(layers[TPPERC75])
+      ) {
         this.removeControl(legends[TPPERC1]);
-      }
-      else if (event["name"] === TPPROB5 && !map.hasLayer(layers[TPPROB10])
-      && !map.hasLayer(layers[TPPROB20]) && !map.hasLayer(layers[TPPROB50]))
-      {
+      } else if (
+        event["name"] === TPPROB5 &&
+        !map.hasLayer(layers[TPPROB10]) &&
+        !map.hasLayer(layers[TPPROB20]) &&
+        !map.hasLayer(layers[TPPROB50])
+      ) {
         this.removeControl(legends[TPPROB5]);
-      }
-      else if (event["name"] === TPPROB10 && !map.hasLayer(layers[TPPROB5])
-      && !map.hasLayer(layers[TPPROB20]) && !map.hasLayer(layers[TPPROB50]))
-      {
+      } else if (
+        event["name"] === TPPROB10 &&
+        !map.hasLayer(layers[TPPROB5]) &&
+        !map.hasLayer(layers[TPPROB20]) &&
+        !map.hasLayer(layers[TPPROB50])
+      ) {
         this.removeControl(legends[TPPROB5]);
-      }
-      else if (event["name"] === TPPROB20 && !map.hasLayer(layers[TPPROB5])
-      && !map.hasLayer(layers[TPPROB10]) && !map.hasLayer(layers[TPPROB50]))
-      {
+      } else if (
+        event["name"] === TPPROB20 &&
+        !map.hasLayer(layers[TPPROB5]) &&
+        !map.hasLayer(layers[TPPROB10]) &&
+        !map.hasLayer(layers[TPPROB50])
+      ) {
         this.removeControl(legends[TPPROB5]);
-      }
-      else if (event["name"] === TPPROB50 && !map.hasLayer(layers[TPPROB5])
-      && !map.hasLayer(layers[TPPROB10]) && !map.hasLayer(layers[TPPROB20]))
-      {
+      } else if (
+        event["name"] === TPPROB50 &&
+        !map.hasLayer(layers[TPPROB5]) &&
+        !map.hasLayer(layers[TPPROB10]) &&
+        !map.hasLayer(layers[TPPROB20])
+      ) {
         this.removeControl(legends[TPPROB5]);
       }
     });
 
     // add default legend to the map
-    if (this.resolution ==='IFF') {this.legends[TPPERC1].addTo(map);}
-    else {
+    if (this.resolution === "IFF") {
+      this.legends[TPPERC1].addTo(map);
+    } else {
       this.legends[TM2].addTo(map);
     }
   }
 
   changeRes(newRes) {
     this.resolution = newRes;
-    if (this.resolution === "lm5" ) {
+    if (this.resolution === "lm5") {
       this.map.setView(MAP_CENTER, 5);
-    }
-    else if (this.resolution === 'lm2.2' ) {
+    } else if (this.resolution === "lm2.2") {
       this.map.setView(MAP_CENTER, 6);
-    }
-    else if (this.resolution === "IFF" ) {
+    } else if (this.resolution === "IFF") {
       this.map.setView(MAP_CENTER, 6);
-    }
-    else {
-      console.error('No resolution available');
+    } else {
+      console.error("No resolution available");
     }
     // console.log(`Changed resolution from ${currentRes} to ${this.resolution}`);
 
@@ -671,15 +721,18 @@ tp1prec.addTo(this.map);
         this.legends[name].addTo(this.map);
       }
     }
-      if (this.resolution === "IFF") {
-        let tp1prec: L.Layer = this.layersControl["overlays"][this.DEFAULT_PRODUCT_IFF];
-        tp1prec.addTo(this.map);
-        this.legends[TPPERC1].addTo(this.map);
-      }
-      else {
-        let tm2m: L.Layer = this.layersControl["overlays"][this.DEFAULT_PRODUCT_COSMO];
-        tm2m.addTo(this.map);
-        this.legends[TM2].addTo(this.map);
-      }
+    if (this.resolution === "IFF") {
+      let tp1prec: L.Layer = this.layersControl["overlays"][
+        this.DEFAULT_PRODUCT_IFF
+      ];
+      tp1prec.addTo(this.map);
+      this.legends[TPPERC1].addTo(this.map);
+    } else {
+      let tm2m: L.Layer = this.layersControl["overlays"][
+        this.DEFAULT_PRODUCT_COSMO
+      ];
+      tm2m.addTo(this.map);
+      this.legends[TM2].addTo(this.map);
+    }
   }
 }

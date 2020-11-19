@@ -311,6 +311,7 @@ export interface RunAvailable {
   reftime: string;
   platform?: string;
   area: string;
-  offset: number;
+  start_offset: number;
+  end_offset: number;
   step: number;
 }
