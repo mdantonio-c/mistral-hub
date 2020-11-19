@@ -5,7 +5,7 @@ from flask import Response, stream_with_context
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
-from restapi.exceptions import BadRequest, NotFound, ServerError
+from restapi.exceptions import BadRequest, NotFound, ServerError, Unauthorized
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
@@ -47,7 +47,6 @@ class MapsObservations(EndpointResource):
     # schema_expose = True
     labels = ["maps-observations"]
 
-    @decorators.auth.require()
     @decorators.use_kwargs(ObservationsQuery, location="query")
     @decorators.endpoint(
         path="/observations",
@@ -74,6 +73,7 @@ class MapsObservations(EndpointResource):
         stationDetails=False,
         reliabilityCheck=False,
     ):
+        user = self.get_user_if_logged()
         query = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
@@ -99,10 +99,22 @@ class MapsObservations(EndpointResource):
             # get db type
             if "datetimemin" in query:
                 db_type = dballe.get_db_type(query["datetimemin"], query["datetimemax"])
+                if db_type != "dballe" and not user:
+                    raise Unauthorized(
+                        "to access archived data the user has to be logged"
+                    )
+            else:
+                if not user:
+                    raise Unauthorized(
+                        "to access archived data the user has to be logged"
+                    )
+                else:
+                    db_type = "mixed"
+        else:
+            if not user:
+                raise Unauthorized("to access archived data the user has to be logged")
             else:
                 db_type = "mixed"
-        else:
-            db_type = "mixed"
         log.debug("type of database: {}", db_type)
 
         query_station_data = {}
@@ -176,7 +188,6 @@ class MapsObservations(EndpointResource):
 
         return self.response(res)
 
-    @decorators.auth.require()
     @decorators.use_kwargs(ObservationsDownloader, location="query")
     @decorators.endpoint(
         path="/observations",
@@ -203,6 +214,7 @@ class MapsObservations(EndpointResource):
         singleStation=False,
         reliabilityCheck=False,
     ):
+        user = self.get_user_if_logged()
         query_data = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
@@ -230,10 +242,22 @@ class MapsObservations(EndpointResource):
                 db_type = dballe.get_db_type(
                     query_data["datetimemin"], query_data["datetimemax"]
                 )
+                if db_type != "dballe" and not user:
+                    raise Unauthorized(
+                        "to access archived data the user has to be logged"
+                    )
+            else:
+                if not user:
+                    raise Unauthorized(
+                        "to access archived data the user has to be logged"
+                    )
+                else:
+                    db_type = "mixed"
+        else:
+            if not user:
+                raise Unauthorized("to access archived data the user has to be logged")
             else:
                 db_type = "mixed"
-        else:
-            db_type = "mixed"
         log.debug("type of database: {}", db_type)
 
         query_station_data = {}

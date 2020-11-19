@@ -100,7 +100,7 @@ const appRoutes: Routes = [
   {
     path: "app/maps/observations",
     component: ObservationMapsComponent,
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
   {
     path: "app/maps/meteotiles",

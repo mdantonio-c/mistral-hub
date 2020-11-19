@@ -28,6 +28,7 @@
           placeholder="dd/mm/yyyy"
           formControlName="reftime"
           [maxDate]="maxDate"
+          [minDate]="minDate"
           [footerTemplate]="footerTemplate"
           [ngClass]="{ 'is-invalid': filterForm.controls.reftime.invalid }"
           ngbDatepicker
