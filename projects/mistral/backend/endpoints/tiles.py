@@ -15,18 +15,48 @@ DATASETS = {
         "start_offset": 0,
         "end_offset": 72,
         "step": 1,
+        "boundaries": {
+            "SW": (
+                25.8,
+                -30.9,
+            ),
+            "NE": (
+                55.5,
+                47.0,
+            ),
+        },
     },
     "lm2.2": {
         "area": "Italia",
         "start_offset": 0,
         "end_offset": 48,
         "step": 1,
+        "boundaries": {
+            "SW": (
+                34.5,
+                5.0,
+            ),
+            "NE": (
+                48.0,
+                21.2,
+            ),
+        },
     },
     "iff": {
         "area": "Italia",
         "start_offset": 6,
         "end_offset": 48,
         "step": 3,
+        "boundaries": {
+            "SW": (
+                34.5,
+                5.0,
+            ),
+            "NE": (
+                48.0,
+                21.2,
+            ),
+        },
     },
 }
 # PLATFORMS = ["GALILEO", "MEUCCI"]
@@ -66,9 +96,6 @@ class TilesEndpoint(EndpointResource):
         ready_file = None
         info = DATASETS.get(dataset)
         area = info.get("area")
-        start_offset = info.get("start_offset")
-        end_offset = info.get("end_offset")
-        step = info.get("step")
 
         # check for run param: if not provided get the "last" run available
         if not run:
@@ -84,19 +111,15 @@ class TilesEndpoint(EndpointResource):
                 log.warning("No Run is available: .READY file not found")
         else:
             ready_file = self._get_ready_file(area, run, dataset)
+        ready_file = "..."
 
         if not ready_file:
             raise NotFound("No .READY file found")
 
-        data = {
-            "reftime": ready_file[:10],
-            "area": area,
-            "start_offset": start_offset,
-            "end_offset": end_offset,
-            "step": step,
-            "platform": None,
-        }
-        return self.response(data)
+        info["dataset"] = dataset
+        info["reftime"] = ready_file[:10]
+        info["platform"] = None
+        return self.response(info)
 
     def _get_ready_file(self, area, run, dataset):
         # e.g. Tiles-00-lm2.2.web

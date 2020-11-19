@@ -307,11 +307,18 @@ export interface ExchangeBindings {
   bindings: Record<string, string[]>;
 }
 
+export interface LatLon {
+  SW: number[];
+  NE: number[];
+}
+
 export interface RunAvailable {
+  dataset: string;
   reftime: string;
   platform?: string;
   area: string;
   start_offset: number;
   end_offset: number;
   step: number;
+  boundaries: LatLon;
 }
