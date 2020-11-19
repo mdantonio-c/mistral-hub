@@ -11,12 +11,12 @@ export class TilesService {
 
   /**
    * Check and retrieve the last available run for a given resolution.
-   * @param res resolution at 2.2. km or 5 km
+   * @param dataset name (lm2.2, lm5, iff)
    * @param run optionally a specific run between 00 and 12 cam be passed.
    */
-  getLastRun(res: string, run?: string): Observable<RunAvailable> {
+  getLastRun(dataset: string, run?: string): Observable<RunAvailable> {
     let params = {
-      res: res,
+      dataset: dataset,
     };
     if (run) {
       params["run"] = run;

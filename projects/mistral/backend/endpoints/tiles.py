@@ -43,9 +43,8 @@ class TilesEndpoint(EndpointResource):
 
     @decorators.use_kwargs(
         {
-            # Fix the parameter on the frontend to remove the data_key here
             "dataset": fields.Str(
-                data_key="res", required=True, validate=validate.OneOf(DATASETS.keys())
+                required=True, validate=validate.OneOf(DATASETS.keys())
             ),
             "run": fields.Str(validate=validate.OneOf(RUNS)),
         },
