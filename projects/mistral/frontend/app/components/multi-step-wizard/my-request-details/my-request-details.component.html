@@ -160,6 +160,7 @@
                 {{ ds.license }}&nbsp;<a
                   [href]="ds.license_url"
                   target="_blank"
+                  *ngIf="ds.license_url"
                 >
                   <i class="fas fa-external-link-alt"></i></a
               ></small>
