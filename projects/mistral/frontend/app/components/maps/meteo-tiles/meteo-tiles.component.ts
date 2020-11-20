@@ -4,7 +4,8 @@ import * as moment from "moment";
 import * as globalMercator from "global-mercator";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
-import "leaflet-timedimension/examples/js/extras/leaflet.timedimension.tilelayer.portus.js";
+// import "leaflet-timedimension/examples/js/extras/leaflet.timedimension.tilelayer.portus.js";
+import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import { TilesService } from "./services/tiles.service";
 import { ObsService } from "../observation-maps/services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
@@ -16,6 +17,7 @@ import {
   ObsFilter,
   ObservationResponse,
   Station,
+  RunAvailable,
 } from "../../../types";
 
 declare module "leaflet" {
@@ -83,27 +85,30 @@ const MIN_ZOOM = 5;
 export class MeteoTilesComponent {
   readonly DEFAULT_PRODUCT_COSMO = "Temperature at 2 meters";
   readonly DEFAULT_PRODUCT_IFF = "Precipitation percentiles 1%";
-  readonly DEFAULT_RESOLUTION = "lm5";
+  // readonly DEFAULT_RESOLUTION = "lm5";
   readonly LEGEND_POSITION = "bottomleft";
+  readonly DEFAULT_DATASET = "lm5";
 
   map: L.Map;
   dataset: string;
-  private refdate: string;
   private run: string;
   private legends: { [key: string]: L.Control } = {};
 
-  LAYER_OSM = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution:
-      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
-    maxZoom: MAX_ZOOM,
-    minZoom: MIN_ZOOM,
-  });
+  LAYER_OSM = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
+      maxZoom: 8,
+      minZoom: 5,
+    }
+  );
   LAYER_MAPBOX_LIGHT = L.tileLayer(
     "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw",
     {
       id: "mapbox.light",
       attribution:
-        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="https://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
       maxZoom: MAX_ZOOM,
       minZoom: MIN_ZOOM,
     }
@@ -112,7 +117,7 @@ export class MeteoTilesComponent {
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png",
     {
       attribution:
-        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="https://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
       maxZoom: MAX_ZOOM,
       minZoom: MIN_ZOOM,
     }
@@ -144,6 +149,7 @@ export class MeteoTilesComponent {
       },
     },
   };
+  private runAvailable: RunAvailable;
 
   showed: boolean = true;
   mmProduct = MultiModelProduct.TM;
@@ -160,63 +166,84 @@ export class MeteoTilesComponent {
   ) {
     // set the initial set of displayed layers
     this.options["layers"] = [this.LAYER_MAPBOX_LIGHT];
-    this.dataset = this.DEFAULT_RESOLUTION;
+    this.dataset = this.DEFAULT_DATASET;
   }
 
   onMapReady(map: L.Map) {
-    // console.log('Map ready', map);
     this.map = map;
+    this.loadRunAvailable(this.DEFAULT_DATASET);
+    this.initLegends(this.map);
+  }
+
+  private loadRunAvailable(dataset: string) {
     this.spinner.show();
     this.tilesService
-      .getLastRun("lm5")
+      .getLastRun(dataset)
       .subscribe(
-        (runAvailable) => {
+        (runAvailable: RunAvailable) => {
           // runAvailable.reftime : 2020051100
+          this.runAvailable = runAvailable;
           console.log("Available Run", runAvailable);
           let reftime = runAvailable.reftime;
-          this.refdate = reftime.substr(0, 8);
+          console.log("reftime", reftime);
           this.run = reftime.substr(8, 2);
 
           // set time
-          let startTime = moment.utc(reftime, "YYYYMMDDHH").toDate();
+          let startTime = moment
+            .utc(reftime, "YYYYMMDDHH")
+            .add(runAvailable.start_offset, "hours")
+            .toDate();
+          console.log(`startTime: ${startTime}`);
           // let startTime = new Date(Date.UTC(2020, 4, 11));
-          startTime.setUTCHours(0, 0, 0, 0);
+          // startTime.setUTCHours(0, 0, 0, 0);
           // let endTime = 'PT72H';
           let endTime = moment
             .utc(reftime, "YYYYMMDDHH")
-            .add(3, "days")
+            .add(runAvailable.end_offset, "hours")
             .toDate();
-          console.log(endTime);
+          console.log(`endTime ${endTime}`);
 
           // add time dimension
           let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
             startTime,
             endTime,
-            "PT1H"
+            `PT${runAvailable.step}H`
           );
-          (map as any).timeDimension.setAvailableTimes(
+          (this.map as any).timeDimension.setAvailableTimes(
             newAvailableTimes,
             "replace"
           );
-          (map as any).timeDimension.setCurrentTime(startTime);
+          (this.map as any).timeDimension.setCurrentTime(startTime);
 
           this.setOverlaysToMap();
 
           // add default layer
+          // let tm2m: L.Layer = this.layersControl["overlays"][
+          //   this.DEFAULT_PRODUCT_COSMO
+          // ];
+          // tm2m.addTo(this.map);
+          this.dataset = runAvailable.dataset;
 
-          let tm2m: L.Layer = this.layersControl["overlays"][
-            this.DEFAULT_PRODUCT_COSMO
-          ];
-          tm2m.addTo(this.map);
-
-          this.initLegends(map);
+          if (this.dataset === "iff") {
+            let tp1prec: L.Layer = this.layersControl["overlays"][
+              this.DEFAULT_PRODUCT_IFF
+            ];
+            tp1prec.addTo(this.map);
+            this.legends[TPPERC1].addTo(this.map);
+          } else {
+            let tm2m: L.Layer = this.layersControl["overlays"][
+              this.DEFAULT_PRODUCT_COSMO
+            ];
+            tm2m.addTo(this.map);
+            this.legends[TM2].addTo(this.map);
+          }
         },
         (error) => {
           this.notify.showError(error);
         }
       )
       .add(() => {
-        map.invalidateSize();
+        this.map.invalidateSize();
         this.spinner.hide();
       });
 
@@ -252,12 +279,12 @@ export class MeteoTilesComponent {
         : L.latLngBounds(LM2_BOUNDS["southWest"], LM2_BOUNDS["northEast"]);
     let maxZoom = this.dataset === "lm5" ? 7 : 8;
 
-    if (this.dataset === "IFF") {
+    if (this.dataset === "iff") {
       this.layersControl["overlays"] = {
         // let overlays = {
         [TPPERC1]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc1/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc1/{d}{h}/{z}/{x}/{y}.png`,
             // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
@@ -272,7 +299,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC10]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc10/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc10/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -286,7 +313,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC25]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc25/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc25/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -300,7 +327,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC50]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc50/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -314,7 +341,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC75]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc75/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc75/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -328,7 +355,7 @@ export class MeteoTilesComponent {
         ),
         [TPPERC99]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc99/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/percentile-perc99/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -340,10 +367,9 @@ export class MeteoTilesComponent {
           ),
           {}
         ),
-
         [TPPROB5]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob5/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/probability-prob5/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -357,7 +383,7 @@ export class MeteoTilesComponent {
         ),
         [TPPROB10]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob10${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/probability-prob10{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -371,7 +397,7 @@ export class MeteoTilesComponent {
         ),
         [TPPROB20]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob20/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/probability-prob20/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -385,7 +411,7 @@ export class MeteoTilesComponent {
         ),
         [TPPROB50]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob50/${this.refdate}{h}/{z}/{x}/{y}.png`,
+            `${TILES_PATH}/00-iff/Italia/probability-prob50/{d}{h}/{z}/{x}/{y}.png`,
             {
               minZoom: 5,
               maxZoom: maxZoom,
@@ -398,7 +424,6 @@ export class MeteoTilesComponent {
           {}
         ),
       };
-      // L.control.layers(overlays,null,{collapsed:false}).addTo(this.map);
       let tp1prec: L.Layer = this.layersControl["overlays"][
         this.DEFAULT_PRODUCT_IFF
       ];
@@ -406,7 +431,7 @@ export class MeteoTilesComponent {
     } else {
       this.layersControl["overlays"] = {
         [TM2]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/t2m-t2m/${this.refdate}{h}/{z}/{x}/{y}.png`, {
+          L.tileLayer(`${baseUrl}/t2m-t2m/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
@@ -417,118 +442,94 @@ export class MeteoTilesComponent {
         ),
         // Total precipitation 3h Time Layer
         [PREC3P]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/prec3-tp/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/prec3-tp/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
           {}
         ),
         // Total precipitation 6h Time Layer
         [PREC6P]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/prec6-tp/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/prec6-tp/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
           {}
         ),
         // Snowfall 3h Time Layer
         [SF3]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/snow3-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/snow3-snow/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
           {}
         ),
         // Snowfall 6h Time Layer
         [SF6]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/snow6-snow/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/snow6-snow/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
           {}
         ),
         // Relative humidity Time Layer
         [RH]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/humidity-r/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              //opacity: 0.6,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/humidity-r/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            //opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         // High Cloud Time Layer
         [HCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/cloud_hml-hcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              //opacity: 0.6,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/cloud_hml-hcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            //opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         // Medium Cloud Time Layer
         [MCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/cloud_hml-mcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              //opacity: 0.6,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            //opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         // Low Cloud Time Layer
         [LCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${baseUrl}/cloud_hml-lcc/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
       };
@@ -582,6 +583,7 @@ export class MeteoTilesComponent {
       [TPPROB10]: this.createLegendControl("tpprob"),
       [TPPROB50]: this.createLegendControl("tpprob"),
     };
+
     let legends = this.legends;
     map.on("overlayadd", function (event) {
       console.log(event["name"]);
@@ -725,7 +727,7 @@ export class MeteoTilesComponent {
     });
 
     // add default legend to the map
-    if (this.dataset === "IFF") {
+    if (this.dataset === "iff") {
       this.legends[TPPERC1].addTo(map);
     } else {
       this.legends[TM2].addTo(map);
@@ -733,18 +735,30 @@ export class MeteoTilesComponent {
   }
 
   changeDataset(newDs) {
+    // remove all current layers
+    let overlays = this.layersControl["overlays"];
+    let currentActiveNames = [];
+    for (let name in overlays) {
+      if (this.map.hasLayer(overlays[name])) {
+        currentActiveNames.push(name);
+        this.map.removeLayer(overlays[name]);
+      }
+    }
+
+    this.loadRunAvailable(newDs);
+
     this.dataset = newDs;
     if (this.dataset === "lm5") {
       this.map.setView(MAP_CENTER, 5);
     } else if (this.dataset === "lm2.2") {
       this.map.setView(MAP_CENTER, 6);
-    } else if (this.dataset === "IFF") {
+    } else if (this.dataset === "iff") {
       this.map.setView(MAP_CENTER, 6);
     } else {
-      console.error("No dataset available");
+      console.error(`Unknown dataset ${newDs}`);
     }
-    // console.log(`Changed dataset from ${currentRes} to ${this.dataset}`);
 
+    /*
     // remove all current layers
     let overlays = this.layersControl["overlays"];
     let currentActiveNames = [];
@@ -767,7 +781,7 @@ export class MeteoTilesComponent {
         this.legends[name].addTo(this.map);
       }
     }
-    if (this.dataset === "IFF") {
+    if (this.dataset === "iff") {
       let tp1prec: L.Layer = this.layersControl["overlays"][
         this.DEFAULT_PRODUCT_IFF
       ];
@@ -780,6 +794,7 @@ export class MeteoTilesComponent {
       tm2m.addTo(this.map);
       this.legends[TM2].addTo(this.map);
     }
+     */
   }
 
   /**

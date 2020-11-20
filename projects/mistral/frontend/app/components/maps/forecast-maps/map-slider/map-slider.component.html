@@ -52,11 +52,8 @@
               }}</span>
             </h4>
             <div
-              *ngIf="
-                filter.field == 'percentile' || filter.field == 'probability'
-              "
-              style="font-size: 90%; margin: 5px;"
-            >
+              *ngIf="filter.field == 'percentile' || filter.field == 'probability'"
+              style="font-size: 90%; margin: 5px;">
               From 0 to 48h: blending of ecPoint-Rainfall and COSMO-2I-EPS
               post-processed
               <br />
@@ -133,16 +130,45 @@
               class="mx-auto d-block carousel-img"
               *ngIf="image"
             />
-            <div class="mst--data-attribution">
+            <div
+              *ngIf="filter.field == 'prec3' || filter.field == 't2m'"
+              style="font-size: 90%; margin: 5px;">
+              <div class="mst--data-attribution">
+                Work distributed under License
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  href="https://creativecommons.org/licenses/by-nd/4.0/legalcode"
+                  title="CC BY-ND 4.0"
+                  >CC BY-ND 4.0</a
+                >
+              </div>
+            </div>
+            <div
+              *ngIf="filter.field == 'percentile' || filter.field == 'probability'"
+              style="font-size: 90%; margin: 5px;">
+              <div class="mst--data-attribution">
+                Work distributed under License
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  href="https://creativecommons.org/licenses/by/4.0/legalcode"
+                  title="CC BY 4.0"
+                  >CC BY 4.0</a
+                >
+              </div>
+            </div>
+
+            <!-- <div class="mst--data-attribution">
               Work distributed under License
               <a
                 target="_blank"
                 rel="noopener"
                 href="https://creativecommons.org/licenses/by-nd/4.0/legalcode"
                 title="CC BY-ND 4.0"
-                >CC BY-ND 4.0</a
+                >CC BY-ND Iff 4.0</a
               >
-            </div>
+            </div> -->
           </div>
         </ng-template>
       </ngb-carousel>
