@@ -197,7 +197,7 @@ class Initializer:
                 "url": "http://www.sar.sardegna.it/",
             },
             {
-                "name": "ARPAV",
+                "name": "R-VENETO-ARPAV",
                 "descr": "Veneto Region - ARPAV - Regional Agency for Environmental Protection",
                 "url": "https://www.arpa.veneto.it/",
             },
