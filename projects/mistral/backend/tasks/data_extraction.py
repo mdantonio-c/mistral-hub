@@ -537,7 +537,7 @@ def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
                         f"Cannot delete periodic task for schedule {schedule_id}"
                     )
             SqlApiDbManager.update_schedule_status(db, schedule_id, False)
-            # extra_msg = f'<br/><br/>Schedule "{schedule.name}" temporary disabled for limit quota exceeded.'
+            message += f' <br/><br/>Schedule "{schedule.name}" was temporary disabled for limit quota exceeded.'
         raise DiskQuotaException(message)
     return esti_data_size
 
