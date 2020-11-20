@@ -1,2 +1,4 @@
-0 1 * * * python3 /scripts/forecast_extraction.py --run=00 --delta=1 >> /var/log/cron.log 2>&1
+SHELL=/bin/bash
+
+0 1 * * * set -a && source /etc/rapydo-environment && python3 /scripts/forecast_extraction.py --run=00 --delta=1 >> /var/log/cron.log 2>&1
 

@@ -101,7 +101,7 @@ export class MeteoTilesComponent {
   LAYER_DARKMATTER = L.tileLayer(
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png",
     {
-      attribution: this.license_cosmo,
+      attribution: this.license,
       maxZoom: 8,
       minZoom: 5,
     }

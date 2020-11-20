@@ -197,6 +197,16 @@ class Initializer:
                 "url": "http://www.sar.sardegna.it/",
             },
             {
+                "name": "R-VENETO-ARPAV",
+                "descr": "Veneto Region - ARPAV - Regional Agency for Environmental Protection",
+                "url": "https://www.arpa.veneto.it/",
+            },
+            {
+                "name": "R-SICILIA-ARPA",
+                "descr": "Sicilia Region - ARPA Sicilia - Hydraulic and Hydrogeological Risk Service",
+                "url": "https://www.arpa.sicilia.it/",
+            },
+            {
                 "name": "P-TRENTO-SPR",
                 "descr": "Autonomous Province of Trento - Prevention and Risks Service",
                 "url": "https://dati.trentino.it/dataset/meteo-data",
