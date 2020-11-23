@@ -32,11 +32,11 @@ jobs:
       - name: Install backend and datasets
         if: ${{ matrix.stage == 'BACKEND' || matrix.stage == 'CYPRESS' }}
         run: |
-          export DATASET_URL="https://github.com/mdantonio-c/mistral-hub/tree/datasets/data/arkimet"
-          wget --quiet ${DATASET_URL}/arkimet.conf -O data/arkimet_conf/arkimet.conf;
-          wget --quiet ${DATASET_URL}/arkimet_summary.json -O data/arkimet_conf/arkimet_summary.json;
-          wget --quiet ${DATASET_URL}/sample.bufr -O data/arkimet_conf/sample.bufr;
-          wget --quiet ${DATASET_URL}/arkimet.zip;
+
+          wget --quiet ${{ secrets.DATASET_URL }}/arkimet.conf -O data/arkimet_conf/arkimet.conf;
+          wget --quiet ${{ secrets.DATASET_URL }}/arkimet_summary.json -O data/arkimet_conf/arkimet_summary.json;
+          wget --quiet ${{ secrets.DATASET_URL }}/sample.bufr -O data/arkimet_conf/sample.bufr;
+          wget --quiet ${{ secrets.DATASET_URL }}/arkimet.zip;
           unzip -q arkimet.zip -d data/;
           ls data/arkimet;
 
@@ -50,7 +50,7 @@ jobs:
           docker cp init.sh mistral_backend_1:/tmp/init.sh;
           rapydo shell --no-tty backend 'bash /tmp/init.sh';
 
-      - name: Run Karma
+      - name: Run Pytest
         if: ${{ matrix.stage == 'BACKEND' }}
         run: |
           rapydo volatile backend "bash /code/tests/custom/test_arpaesimc.sh"
@@ -70,7 +70,7 @@ jobs:
           cp data/mistral/karma/lcov.info .
           bash <(curl -s https://codecov.io/bash)
 
-      - name: Run Karma
+      - name: Run Cypress
         if: ${{ matrix.stage == 'CYPRESS' }}
         env:
           CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
