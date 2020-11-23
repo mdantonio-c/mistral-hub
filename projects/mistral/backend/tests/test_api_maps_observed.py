@@ -1,4 +1,3 @@
-import json
 import os
 from datetime import datetime, timedelta
 
@@ -6,7 +5,6 @@ import dballe
 import pytest
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe
-from restapi.connectors import sqlalchemy
 from restapi.services.detect import detector
 from restapi.tests import API_URI, BaseTests
 from restapi.utilities.logs import log
@@ -181,15 +179,15 @@ class TestApp(BaseTests):
         data = self.buildData(schema)
 
         detector.init_services(app=app)
-        obj = sqlalchemy.get_instance()
+        # obj = sqlalchemy.get_instance()
 
         # get the group license id for user authorization
-        group_lic_to_auth = obj.GroupLicense.query.filter_by(
-            name="CCBY_COMPLIANT"
-        ).first()
+        # group_lic_to_auth = obj.GroupLicense.query.filter_by(
+        #     name="CCBY_COMPLIANT"
+        # ).first()
         data["is_active"] = True
-        data["group_license"] = [str(group_lic_to_auth.id)]
-        data["group_license"] = json.dumps(data["group_license"])
+        # data["group_license"] = [str(group_lic_to_auth.id)]
+        # data["group_license"] = json.dumps(data["group_license"])
         r = client.post(f"{API_URI}/admin/users", data=data, headers=admin_headers)
         assert r.status_code == 200
 
