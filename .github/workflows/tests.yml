@@ -39,8 +39,8 @@ jobs:
           wget --quiet ${{ secrets.DATASET_URL }}/sample.bufr -O data/arkimet_conf/sample.bufr;
           wget --quiet ${{ secrets.DATASET_URL }}/arkimet.zip;
           unzip -q arkimet.zip -d data/;
-          ls data/arkimet;
-          ls data/arkimet_conf;
+          ls -l data/arkimet;
+          ls -l data/arkimet_conf;
 
           rapydo pull;
           rapydo build --force;
