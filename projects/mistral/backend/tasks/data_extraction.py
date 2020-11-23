@@ -111,7 +111,6 @@ def data_extract(
                     "user is not allowed to access the requested datasets"
                 )
 
-            # TODO and if are observation data in arkimet and not in dballe?
             # create a query for arkimet
             if data_type != "OBS" and "multim-forecast" not in datasets:
                 query = ""  # default to no matchers
@@ -150,18 +149,16 @@ def data_extract(
 
             if not amqp_queue:
                 if data_type != "OBS" and "multim-forecast" not in datasets:
-                    if schedule:
-                        esti_data_size = check_user_quota(
-                            user_id, output_dir, datasets, query, db, schedule_id
-                        )
-                    else:
-                        esti_data_size = check_user_quota(
-                            user_id, output_dir, datasets, query, db
-                        )
-
+                    esti_data_size = check_user_quota(
+                        user_id,
+                        output_dir,
+                        db,
+                        datasets=datasets,
+                        query=query,
+                        schedule_id=schedule_id,
+                    )
                 # observed data. in future the if statement will be for data using arkimet and data using dballe
                 else:
-                    # TODO how can i check user quota using dballe??
                     log.debug("observation in dballe")
 
             if postprocessors:
@@ -188,7 +185,17 @@ def data_extract(
                     arki.arkimet_extraction(datasets, query, tmp_outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
-                    observed_extraction(datasets, filters, reftime, tmp_outfile)
+                    observed_extraction(
+                        user_id,
+                        output_dir,
+                        db,
+                        datasets,
+                        filters,
+                        reftime,
+                        tmp_outfile,
+                        amqp_queue=amqp_queue,
+                        schedule_id=schedule_id,
+                    )
 
                 # case of single postprocessor
                 if len(postprocessors) == 1:
@@ -424,7 +431,17 @@ def data_extract(
                     arki.arkimet_extraction(datasets, query, outfile)
                 else:
                     # dballe_extraction(datasets, filters, reftime, outfile)
-                    observed_extraction(datasets, filters, reftime, outfile)
+                    observed_extraction(
+                        user_id,
+                        output_dir,
+                        db,
+                        datasets,
+                        filters,
+                        reftime,
+                        outfile,
+                        amqp_queue=amqp_queue,
+                        schedule_id=schedule_id,
+                    )
 
             if output_format:
                 filebase, fileext = os.path.splitext(out_filename)
@@ -437,14 +454,24 @@ def data_extract(
                 # rename outfile correctly
                 outfile = os.path.join(output_dir, out_filename)
 
-            # get the actual data size
-            data_size = os.path.getsize(os.path.join(output_dir, out_filename))
-            log.debug(f"Actual resulting data size: {data_size}")
-            if data_type != "OBS" and "multim-forecast" not in datasets:
-                if data_size > esti_data_size:
-                    log.warning(
-                        "Actual resulting data exceeds estimation of {}",
-                        human_size(data_size - esti_data_size),
+            if not amqp_queue:
+                # get the actual data size
+                data_size = os.path.getsize(os.path.join(output_dir, out_filename))
+                log.debug(f"Actual resulting data size: {data_size}")
+                if data_type != "OBS" and "multim-forecast" not in datasets:
+                    if data_size > esti_data_size:
+                        log.warning(
+                            "Actual resulting data exceeds estimation of {}",
+                            human_size(data_size - esti_data_size),
+                        )
+                else:
+                    # check if the user space is not exceeded (for the observations we can't calculate the esti_data_size so this check is done after the extraction)
+                    check_user_quota(
+                        user_id,
+                        output_dir,
+                        db,
+                        output_filename=out_filename,
+                        schedule_id=schedule_id,
                     )
 
             # target result
@@ -507,9 +534,21 @@ def data_extract(
             notificate_by_email(db, user_id, request, extra_msg, amqp_queue)
 
 
-def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
-    # check the output size
-    esti_data_size = arki.estimate_data_size(datasets, query)
+def check_user_quota(
+    user_id,
+    user_dir,
+    db,
+    datasets=None,
+    query=None,
+    output_filename=None,
+    schedule_id=None,
+):
+    if datasets:
+        # check the output size
+        esti_data_size = arki.estimate_data_size(datasets, query)
+    elif output_filename:
+        esti_data_size = os.path.getsize(os.path.join(user_dir, output_filename))
+
     log.debug(
         "Resulting output size: {} ({})", esti_data_size, human_size(esti_data_size)
     )
@@ -538,11 +577,26 @@ def check_user_quota(user_id, user_dir, datasets, query, db, schedule_id=None):
                     )
             SqlApiDbManager.update_schedule_status(db, schedule_id, False)
             message += f' <br/><br/>Schedule "{schedule.name}" was temporary disabled for limit quota exceeded.'
+        # for already extracted observed data, delete the file
+        if output_filename:
+            fileoutput = os.path.join(user_dir, output_filename)
+            os.remove(fileoutput)
+
         raise DiskQuotaException(message)
     return esti_data_size
 
 
-def observed_extraction(datasets, filters, reftime, outfile):
+def observed_extraction(
+    user_id,
+    user_dir,
+    db,
+    datasets,
+    filters,
+    reftime,
+    outfile,
+    amqp_queue=None,
+    schedule_id=None,
+):
     # parsing the query
     fields, queries = dballe.parse_query_for_data_extraction(datasets, filters, reftime)
 
@@ -554,6 +608,20 @@ def observed_extraction(datasets, filters, reftime, outfile):
         )
     else:
         db_type = "mixed"
+
+    if db_type == "arkimet" and not amqp_queue:
+        # check using arkimet if the estimated filesize does not exceed the disk quota
+        query = ""
+        if reftime:
+            query = arki.parse_reftime(reftime["from"], reftime["to"])
+        check_user_quota(
+            user_id,
+            user_dir,
+            db,
+            datasets=datasets,
+            query=query,
+            schedule_id=schedule_id,
+        )
 
     # extract the data
     if db_type == "mixed":
