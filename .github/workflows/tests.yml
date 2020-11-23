@@ -53,10 +53,12 @@ jobs:
       - name: Run Pytest
         if: ${{ matrix.stage == 'BACKEND' }}
         run: |
-          rapydo volatile backend "bash /code/tests/custom/test_arpaesimc.sh"
           rapydo shell --no-tty backend 'restapi tests --wait'
           docker cp mistral_backend_1:/code/coverage.xml coverage.xml
           bash <(curl -s https://codecov.io/bash)
+
+          rapydo remove
+          rapydo volatile backend "bash /code/tests/custom/test_arpaesimc.sh"
 
       - name: Run Karma
         if: ${{ matrix.stage == 'FRONTEND' }}
