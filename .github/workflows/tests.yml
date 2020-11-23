@@ -42,6 +42,7 @@ jobs:
 
           rapydo pull;
           rapydo build --force;
+          rapydo add task test_task;
           rapydo start;
           rapydo shell --no-tty backend 'restapi wait';
 
