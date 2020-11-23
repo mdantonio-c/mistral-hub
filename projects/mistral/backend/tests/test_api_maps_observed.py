@@ -210,8 +210,8 @@ class TestApp(BaseTests):
         r = client.get(endpoint)
         assert r.status_code == 401
 
-    def test_for_dballe_dbtype(self, client, faker):
-        self.create_fake_user(client)
+    def test_for_dballe_dbtype(self, client, app, faker):
+        self.create_fake_user(client, app)
         # headers, _ = self.do_login(client, None, None)
         # self.save("auth_header", headers)
         headers = self.get("auth_header")
