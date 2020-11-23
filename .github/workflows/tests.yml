@@ -32,10 +32,10 @@ jobs:
       - name: Install backend and datasets
         if: ${{ matrix.stage == 'BACKEND' || matrix.stage == 'CYPRESS' }}
         run: |
-          wget --quiet $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf;
-          wget --quiet $DATASET_URL/arkimet_summary.json -O data/arkimet_conf/arkimet_summary.json;
-          wget --quiet $DATASET_URL/sample.bufr -O data/arkimet_conf/sample.bufr;
-          wget --quiet $DATASET_URL/arkimet.zip;
+          wget --quiet ${{ secrets.DATASET_URL }}/arkimet.conf -O data/arkimet_conf/arkimet.conf;
+          wget --quiet ${{ secrets.DATASET_URL }}/arkimet_summary.json -O data/arkimet_conf/arkimet_summary.json;
+          wget --quiet ${{ secrets.DATASET_URL }}/sample.bufr -O data/arkimet_conf/sample.bufr;
+          wget --quiet ${{ secrets.DATASET_URL }}/arkimet.zip;
           unzip -q arkimet.zip -d data/;
           ls data/arkimet;
 
