@@ -12,6 +12,7 @@ import { SchedulesComponent } from "./schedules.component";
 import { BytesPipe } from "@rapydo/pipes/bytes";
 import { AuthService } from "@rapydo/services/auth";
 import { NotificationService } from "@rapydo/services/notification";
+import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { ProjectOptions } from "@app/customization";
 import { FormlyService } from "@rapydo/services/formly";
 import { ApiService } from "@rapydo/services/api";
@@ -72,6 +73,7 @@ describe("SchedulesComponent", () => {
       providers: [
         NotificationService,
         ProjectOptions,
+        ConfirmationModals,
         { provide: DataService, useClass: DataServiceStub },
         { provide: ApiService, useClass: ApiServiceStub },
         { provide: AuthService, useClass: AuthServiceStub },
