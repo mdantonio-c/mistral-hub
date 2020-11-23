@@ -1,0 +1,229 @@
+name: Test
+
+on:
+  push:
+  schedule:
+    - cron: "0 5 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        stage: [BACKEND, FRONTEND, CYPRESS]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          export RAPYDO_VERSION=0.9
+          # Make the environment variable available to next steps
+          echo "RAPYDO_VERSION=${RAPYDO_VERSION}" >> $GITHUB_ENV
+          pip install --upgrade --no-cache-dir git+https://github.com/rapydo/do.git@${RAPYDO_VERSION}
+          rapydo --testing init
+
+      - name: Install backend and datasets
+        if: ${{ matrix.stage == 'BACKEND' || matrix.stage == 'CYPRESS' }}
+        run: |
+          wget --quiet $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf;
+          wget --quiet $DATASET_URL/arkimet_summary.json -O data/arkimet_conf/arkimet_summary.json;
+          wget --quiet $DATASET_URL/sample.bufr -O data/arkimet_conf/sample.bufr;
+          wget --quiet $DATASET_URL/arkimet.zip;
+          unzip -q arkimet.zip -d data/;
+          ls data/arkimet;
+
+          rapydo pull;
+          rapydo build --force;
+
+          rapydo start;
+          rapydo shell --no-tty backend 'restapi wait';
+          echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh;
+          echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" >> init.sh;
+          docker cp init.sh mistral_backend_1:/tmp/init.sh;
+          rapydo shell --no-tty backend 'bash /tmp/init.sh';
+
+      - name: Run Karma
+        if: ${{ matrix.stage == 'BACKEND' }}
+        run: |
+          rapydo volatile backend "bash /code/tests/custom/test_arpaesimc.sh"
+          rapydo shell backend 'restapi tests --wait'
+          docker cp mistral_backend_1:/code/coverage.xml coverage.xml
+          bash <(curl -s https://codecov.io/bash)
+
+      - name: Run Karma
+        if: ${{ matrix.stage == 'FRONTEND' }}
+        run: |
+          rapydo -s frontend pull
+          rapydo -s frontend start
+          sleep 5
+          rapydo -s frontend logs
+          rapydo shell frontend "yarn install"
+          rapydo shell frontend "yarn run test:single"
+          cp data/mistral/karma/lcov.info .
+          bash <(curl -s https://codecov.io/bash)
+
+      - name: Run Karma
+        if: ${{ matrix.stage == 'CYPRESS' }}
+        env:
+          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        run: |
+          # Without this, envs will not be available to python... uhm... ugly!
+          export CYPRESS_PROJECT_ID=${CYPRESS_PROJECT_ID}
+          export CYPRESS_RECORD_KEY=${CYPRESS_RECORD_KEY}
+
+          # Extra variables needed by Cypress
+          export COMMIT_INFO_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+          export COMMIT_INFO_MESSAGE="$(git show -s --pretty=%B)"
+          export COMMIT_INFO_SUBJECT="$(git show -s --pretty=%s)"
+          export COMMIT_INFO_BODY="$(git show -s --pretty=%b)"
+          export COMMIT_INFO_EMAIL="$(git show -s --pretty=%ae)"
+          export COMMIT_INFO_AUTHOR="$(git show -s --pretty=%an)"
+          export COMMIT_INFO_SHA="$(git show -s --pretty=%H)"
+          export COMMIT_INFO_TIMESTAMP="$(git show -s --pretty=%ct)"
+          export COMMIT_INFO_REMOTE="$(git config --get remote.origin.url)"
+          export CYPRESS_GROUP="$(git show -s --pretty=%H)"
+
+          rapydo shell backend --detach "restapi launch"
+          rapydo -s frontend logs
+          rapydo shell frontend "yarn install"
+          rapydo shell frontend "yarn run cypress:start"
+
+          cp data/prj/karma/lcov.info .
+          bash <(curl -s https://codecov.io/bash)
+
+      - name: Run Prod Tests
+        if: ${{ matrix.stage == 'prod' }}
+        run: |
+          cd rapydo_tests
+          rapydo --prod init
+
+          rapydo add --force component sink
+
+          rapydo pull
+          rapydo -s frontend,proxy start
+          rapydo dump
+          rapydo -s frontend logs --follow
+          docker-compose logs --tail 2 frontend 2>&1 | grep "files have been compressed."
+          docker-compose logs --tail 20 proxy
+          curl --insecure -X GET https://localhost
+          npm install -g seespee cypress
+          seespee --level 1 --validate https://localhost
+
+          opt="--silent --head --insecure -X GET https://localhost"
+
+          # A lot of urls serve the index.html, so that the expected response is:
+          # 200 OK, content-type html, no-cache and CSP enabled
+
+          echo -e "\n**** Testing index.html HTTP response ****"
+          curl $opt | grep -E "^HTTP/.+ 200"
+          curl $opt/ | grep -E "^HTTP/.+ 200"
+          curl $opt/index.html | grep -E "^HTTP/.+ 200"
+          curl $opt/app | grep -E "^HTTP/.+ 200"
+          curl $opt/app/ | grep -E "^HTTP/.+ 200"
+          curl $opt/app/index.html | grep -E "^HTTP/.+ 200"
+          curl $opt/app/anything | grep -E "^HTTP/.+ 200"
+          curl $opt/public | grep -E "^HTTP/.+ 200"
+          curl $opt/public/ | grep -E "^HTTP/.+ 200"
+          curl $opt/public/index.html | grep -E "^HTTP/.+ 200"
+          curl $opt/public/anything | grep -E "^HTTP/.+ 200"
+
+          echo -e "\n**** Testing index.html cache-control ****"
+          curl $opt | grep "cache-control: no-store"
+          curl $opt/ | grep "cache-control: no-store"
+          curl $opt/index.html | grep "cache-control: no-store"
+          curl $opt/app | grep "cache-control: no-store"
+          curl $opt/app/ | grep "cache-control: no-store"
+          curl $opt/app/index.html | grep "cache-control: no-store"
+          curl $opt/app/anything | grep "cache-control: no-store"
+          curl $opt/public | grep "cache-control: no-store"
+          curl $opt/public/ | grep "cache-control: no-store"
+          curl $opt/public/index.html | grep "cache-control: no-store"
+          curl $opt/public/anything | grep "cache-control: no-store"
+
+          echo -e "\n**** Testing index.html CSP header ****"
+          curl $opt | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/ | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/index.html | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/app | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/app/ | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/app/index.html | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/app/anything | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/public | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/public/ | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/public/index.html | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/public/anything | grep -i "Content-Security-Policy: frame-ancestors"
+
+          echo -e "\n**** Testing index.html Content-Type ****"
+          curl $opt | grep -i "Content-Type: text/html"
+          curl $opt/ | grep -i "Content-Type: text/html"
+          curl $opt/index.html | grep -i "Content-Type: text/html"
+          curl $opt/app | grep -i "Content-Type: text/html"
+          curl $opt/app/ | grep -i "Content-Type: text/html"
+          curl $opt/app/index.html | grep -i "Content-Type: text/html"
+          curl $opt/app/anything | grep -i "Content-Type: text/html"
+          curl $opt/public | grep -i "Content-Type: text/html"
+          curl $opt/public/ | grep -i "Content-Type: text/html"
+          curl $opt/public/index.html | grep -i "Content-Type: text/html"
+          curl $opt/public/anything | grep -i "Content-Type: text/html"
+
+          echo -e "\n**** Testing index.html gzip encoding ****"
+          curl $opt --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/ --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/index.html --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/app --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/app/ --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/app/index.html --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/app/anything --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/public --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/public/ --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/public/index.html --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+          curl $opt/public/anything --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+
+          # unrecognized patterns have to respond with a 404
+          echo -e "\n**** Testing invalid path ****"
+          curl $opt/anything | grep -E "^HTTP/.+ 404"
+
+          # favicon is expected to be found with content-type image/x-icon and CSP Enabled
+          # cache is expected to be set a 1 month (2592000)
+          echo -e "\n**** Testing favicon.ico ****"
+          curl $opt/app/custom/assets/favicon/favicon.ico | grep -E "^HTTP/.+ 200"
+          curl $opt/app/custom/assets/favicon/favicon.ico | grep "cache-control: max-age=2592000"
+          curl $opt/app/custom/assets/favicon/favicon.ico | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/app/custom/assets/favicon/favicon.ico | grep -i "Content-Type: image/x-icon"
+          curl $opt/app/custom/assets/favicon/favicon.ico  --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+
+          # asset names are dinamically generated at build type... extract it from the index.html..
+          asset=`curl --silent --insecure -X GET https://localhost | grep -o "styles\..*.css"`
+
+          echo -e "\n**** Testing ${asset} ****"
+          # assets are expected to be found with proper content-type and CSP Enabled
+          # cache is expected to be set a 1 year (31557600)
+          curl $opt/$asset | grep -E "^HTTP/.+ 200"
+          curl $opt/$asset | grep "cache-control: max-age=31557600"
+          curl $opt/$asset | grep -i "Content-Security-Policy: frame-ancestors"
+          curl $opt/$asset | grep -i "Content-Type: text/css"
+          curl $opt/$asset --header 'accept-encoding: gzip' | grep "content-encoding: gzip"
+
+          echo -e "\n"
+
+          echo "{}" > cypress.json
+          cypress run --browser chrome --config integrationFolder=. --spec submodules/rapydo-angular/cypress/prod-test.js
+
+      - name: Login to DockerHub
+        if: ${{ matrix.stage == 'BACKEND' }}
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Docker Push
+        if: ${{ matrix.stage == 'BACKEND' }}
+        run: docker push rapydo/${{ matrix.service }}:${{ env.RAPYDO_VERSION }}
