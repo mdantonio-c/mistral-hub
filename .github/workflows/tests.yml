@@ -54,7 +54,7 @@ jobs:
         if: ${{ matrix.stage == 'BACKEND' }}
         run: |
           rapydo volatile backend "bash /code/tests/custom/test_arpaesimc.sh"
-          rapydo shell backend 'restapi tests --wait'
+          rapydo shell --no-tty backend 'restapi tests --wait'
           docker cp mistral_backend_1:/code/coverage.xml coverage.xml
           bash <(curl -s https://codecov.io/bash)
 
@@ -65,8 +65,8 @@ jobs:
           rapydo -s frontend start
           sleep 5
           rapydo -s frontend logs
-          rapydo shell frontend "yarn install"
-          rapydo shell frontend "yarn run test:single"
+          rapydo shell --no-tty frontend "yarn install"
+          rapydo shell --no-tty frontend "yarn run test:single"
           cp data/mistral/karma/lcov.info .
           bash <(curl -s https://codecov.io/bash)
 
@@ -92,10 +92,10 @@ jobs:
           export COMMIT_INFO_REMOTE="$(git config --get remote.origin.url)"
           export CYPRESS_GROUP="$(git show -s --pretty=%H)"
 
-          rapydo shell backend --detach "restapi launch"
+          rapydo shell --no-tty backend --detach "restapi launch"
           rapydo -s frontend logs
-          rapydo shell frontend "yarn install"
-          rapydo shell frontend "yarn run cypress:start"
+          rapydo shell --no-tty frontend "yarn install"
+          rapydo shell --no-tty frontend "yarn run cypress:start"
 
           cp data/prj/karma/lcov.info .
           bash <(curl -s https://codecov.io/bash)
