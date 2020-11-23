@@ -66,6 +66,7 @@ jobs:
           sleep 5
           rapydo -s frontend logs
           rapydo shell --no-tty frontend "yarn install"
+          rapydo shell --no-tty frontend "reload-types"
           rapydo shell --no-tty frontend "yarn run test:single"
           cp data/mistral/karma/lcov.info .
           bash <(curl -s https://codecov.io/bash)
@@ -95,6 +96,7 @@ jobs:
           rapydo shell --no-tty backend --detach "restapi launch"
           rapydo -s frontend logs
           rapydo shell --no-tty frontend "yarn install"
+          rapydo shell --no-tty frontend "reload-types"
           rapydo shell --no-tty frontend "yarn run cypress:start"
 
           cp data/prj/karma/lcov.info .
