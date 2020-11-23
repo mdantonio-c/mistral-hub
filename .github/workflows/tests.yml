@@ -34,10 +34,10 @@ jobs:
         env:
           DATASET_URL: ${{ secrets.DATASET_URL }}
         run: |
-          wget --quiet $DATASET_URL/arkimet.conf -O data/arkimet_conf/arkimet.conf;
-          wget --quiet $DATASET_URL/arkimet_summary.json -O data/arkimet_conf/arkimet_summary.json;
-          wget --quiet $DATASET_URL/sample.bufr -O data/arkimet_conf/sample.bufr;
-          wget --quiet $DATASET_URL/arkimet.zip;
+          wget --quiet ${DATASET_URL}/arkimet.conf -O data/arkimet_conf/arkimet.conf;
+          wget --quiet ${DATASET_URL}/arkimet_summary.json -O data/arkimet_conf/arkimet_summary.json;
+          wget --quiet ${DATASET_URL}/sample.bufr -O data/arkimet_conf/sample.bufr;
+          wget --quiet ${DATASET_URL}/arkimet.zip;
           unzip -q arkimet.zip -d data/;
           ls data/arkimet;
 
