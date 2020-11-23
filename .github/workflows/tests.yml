@@ -40,6 +40,7 @@ jobs:
           wget --quiet ${{ secrets.DATASET_URL }}/arkimet.zip;
           unzip -q arkimet.zip -d data/;
           ls data/arkimet;
+          ls data/arkimet_conf;
 
           rapydo pull;
           rapydo build --force;
