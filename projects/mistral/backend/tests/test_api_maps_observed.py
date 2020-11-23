@@ -186,6 +186,7 @@ class TestApp(BaseTests):
         #     name="CCBY_COMPLIANT"
         # ).first()
         data["is_active"] = True
+        data["open_dataset"] = True
         # data["group_license"] = [str(group_lic_to_auth.id)]
         # data["group_license"] = json.dumps(data["group_license"])
         r = client.post(f"{API_URI}/admin/users", data=data, headers=admin_headers)
