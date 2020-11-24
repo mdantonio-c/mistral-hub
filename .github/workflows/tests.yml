@@ -34,7 +34,7 @@ jobs:
         run: |
 
           wget --quiet ${{ secrets.DATASET_URL }}/arkimet.conf -O data/arkimet_conf/arkimet.conf;
-          wget --quiet ${{ secrets.DATASET_URL }}/arkimet_summary.json -O data/arkimet_conf/arkimet_summary.json;
+          wget --quiet ${{ secrets.DATASET_URL }}/arkimet_summary.json -O data/arkimet_conf/arkimet_summary_filtered.json;
           wget --quiet ${{ secrets.DATASET_URL }}/dballe_summary_filtered.json -O data/arkimet_conf/dballe_summary_filtered.json;
           wget --quiet ${{ secrets.DATASET_URL }}/sample.bufr -O data/arkimet_conf/sample.bufr;
           wget --quiet ${{ secrets.DATASET_URL }}/arkimet.zip;

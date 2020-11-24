@@ -21,7 +21,7 @@ import {
 } from "../../../types";
 
 declare module "leaflet" {
-  var timeDimension: any;
+  let timeDimension: any;
 }
 
 const MAP_CENTER = L.latLng(41.879966, 12.28);
@@ -246,11 +246,16 @@ export class MeteoTilesComponent {
         this.map.invalidateSize();
         this.spinner.hide();
       });
+  }
 
+  private loadMMProduct() {
+    let reftime: Date = this.runAvailable
+      ? moment(this.runAvailable.reftime.substr(0, 6), "YYYYMMDD").toDate()
+      : new Date();
     let filter: ObsFilter = {
       product: this.mmProduct,
       // reftime: new Date(2020, 10, 9),
-      reftime: new Date(), // FIXME
+      reftime: reftime,
       network: "multim-forecast",
       timerange: "254,97200,0",
     };
@@ -271,7 +276,7 @@ export class MeteoTilesComponent {
   private setOverlaysToMap() {
     let baseUrl = `${TILES_PATH}/${this.run}-${this.dataset}`;
     if (environment.production) {
-      baseUrl += this.dataset === "lm2.2" ? "/Italia" : "/Area_Mediterranea";
+      baseUrl += this.runAvailable.area;
     }
     let bounds =
       this.dataset === "lm5"
@@ -283,144 +288,113 @@ export class MeteoTilesComponent {
       this.layersControl["overlays"] = {
         // let overlays = {
         [TPPERC1]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc1/{d}{h}/{z}/{x}/{y}.png`,
-            // `${baseUrl}/tp_percentile-1/${this.refdate}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/percentile-perc1/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         [TPPERC10]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc10/{d}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/percentile-perc10/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         [TPPERC25]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc25/{d}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/percentile-perc25/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         [TPPERC50]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc50/{d}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/percentile-perc50/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         [TPPERC75]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc75/{d}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/percentile-perc75/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         [TPPERC99]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/percentile-perc99/{d}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/percentile-perc99/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         [TPPROB5]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob5/{d}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/probability-prob5/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         [TPPROB10]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob10{d}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/probability-prob10{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         [TPPROB20]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob20/{d}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/probability-prob20/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
         [TPPROB50]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(
-            `${TILES_PATH}/00-iff/Italia/probability-prob50/{d}{h}/{z}/{x}/{y}.png`,
-            {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }
-          ),
+          L.tileLayer(`${baseUrl}/probability-prob50/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
           {}
         ),
       };
@@ -798,19 +772,18 @@ export class MeteoTilesComponent {
   }
 
   /**
-   * Choose a Multi-Model product.
+   * Change the Multi-Model product.
    * @param choice
    */
-  toggle(choice: MultiModelProduct) {
-    if (choice === this.mmProduct) {
-      return;
+  changeMMProduct(choice: MultiModelProduct) {
+    if (choice !== this.mmProduct) {
+      this.mmProduct = choice;
     }
-    this.mmProduct = choice;
   }
 
   onMapZoomEnd($event) {
     // console.log(`Map Zoom: ${this.map.getZoom()}`);
-    if (this.showed) {
+    if (this.showed && this.markersGroup) {
       this.map.removeLayer(this.markersGroup);
       this.markers = this.reduceOverlapping(this.allMarkers);
       this.markersGroup = L.layerGroup(this.markers);
