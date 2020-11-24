@@ -1,5 +1,8 @@
 name: Tests
 
+env:
+  PROJECT: mistral
+
 on:
   push:
   schedule:
@@ -23,7 +26,7 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          export RAPYDO_VERSION=0.9
+          export RAPYDO_VERSION=$(grep "  rapydo:" projects/${PROJECT}/project_configuration.yaml | sed 's/  rapydo: //' | tr -d '"')
           # Make the environment variable available to next steps
           echo "RAPYDO_VERSION=${RAPYDO_VERSION}" >> $GITHUB_ENV
           pip install --upgrade --no-cache-dir git+https://github.com/rapydo/do.git@${RAPYDO_VERSION}
@@ -65,14 +68,14 @@ jobs:
 
           echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh;
           echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" >> init.sh;
-          docker cp init.sh mistral_backend_1:/tmp/init.sh;
+          docker cp init.sh ${PROJECT}_backend_1:/tmp/init.sh;
           rapydo shell --no-tty backend 'bash /tmp/init.sh';
 
       - name: Run Pytest
         if: ${{ matrix.stage == 'BACKEND' }}
         run: |
           rapydo shell --no-tty backend 'restapi tests --wait'
-          docker cp mistral_backend_1:/code/coverage.xml coverage.xml
+          docker cp ${PROJECT}_backend_1:/code/coverage.xml coverage.xml
           bash <(curl -s https://codecov.io/bash)
 
           rapydo remove
@@ -88,7 +91,7 @@ jobs:
           rapydo shell --no-tty frontend "yarn install"
           rapydo shell --no-tty frontend "reload-types"
           rapydo shell --no-tty frontend "yarn run test:single"
-          cp data/mistral/karma/lcov.info .
+          cp data/${PROJECT}/karma/lcov.info .
           bash <(curl -s https://codecov.io/bash)
 
       - name: Run Cypress
