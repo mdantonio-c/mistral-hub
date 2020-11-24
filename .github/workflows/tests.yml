@@ -106,9 +106,6 @@ jobs:
           rapydo shell --no-tty frontend "reload-types"
           rapydo shell --no-tty frontend "yarn run cypress:start"
 
-          cp data/prj/karma/lcov.info .
-          bash <(curl -s https://codecov.io/bash)
-
       - name: Login to DockerHub
         if: ${{ matrix.stage == 'BACKEND' }}
         uses: docker/login-action@v1
@@ -118,4 +115,4 @@ jobs:
 
       - name: Docker Push
         if: ${{ matrix.stage == 'BACKEND' }}
-        run: docker push rapydo/${{ matrix.service }}:${{ env.RAPYDO_VERSION }}
+        run: docker push meteohub/backend:${{ env.RAPYDO_VERSION }}
