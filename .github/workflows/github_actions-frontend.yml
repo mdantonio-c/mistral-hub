@@ -1,0 +1,35 @@
+name: Frontend
+
+env:
+  PROJECT: mistral
+
+on:
+  push:
+  schedule:
+    - cron: "0 5 * * *"
+
+jobs:
+  frontend-tests::
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - uses: rapydo/actions/install@v1
+        with:
+          project: ${PROJECT}
+
+      - name: Run Karma
+        run: |
+          rapydo -s frontend pull
+          rapydo -s frontend start
+          sleep 5
+          rapydo -s frontend logs
+          rapydo shell --no-tty frontend "yarn install"
+          rapydo shell --no-tty frontend "reload-types"
+          rapydo shell --no-tty frontend "yarn run test:single"
+          cp data/${PROJECT}/karma/lcov.info .
+          bash <(curl -s https://codecov.io/bash)
