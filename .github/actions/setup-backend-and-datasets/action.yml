@@ -1,0 +1,29 @@
+inputs:
+  project:
+    description: "Project name"
+  dataset_url:
+    description: "URL of the dataset to be installed"
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        wget --quiet ${{ inputs.dataset_url }}/arkimet.conf -O data/arkimet_conf/arkimet.conf;
+        wget --quiet ${{ inputs.dataset_url }}/arkimet_summary.json -O data/arkimet_conf/arkimet_summary_filtered.json;
+        wget --quiet ${{ inputs.dataset_url }}/dballe_summary_filtered.json -O data/arkimet_conf/dballe_summary_filtered.json;
+        wget --quiet ${{ inputs.dataset_url }}/sample.bufr -O data/arkimet_conf/sample.bufr;
+        wget --quiet ${{ inputs.dataset_url }}/arkimet.zip;
+        unzip -q arkimet.zip -d data/;
+        ls -l data/arkimet;
+        ls -l data/arkimet_conf;
+
+        rapydo pull;
+        rapydo build --force;
+        rapydo add task test_task;
+        rapydo start;
+        rapydo shell --no-tty backend 'restapi wait';
+
+        echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh;
+        echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" >> init.sh;
+        docker cp init.sh ${{ inputs.project }}_backend_1:/tmp/init.sh;
+        rapydo shell --no-tty backend 'bash /tmp/init.sh';
+      shell: bash

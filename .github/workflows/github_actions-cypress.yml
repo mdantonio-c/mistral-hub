@@ -28,27 +28,10 @@ jobs:
           key: ${{ secrets.CYPRESS_RECORD_KEY }}
 
       - name: Install backend and datasets
-        run: |
-
-          wget --quiet ${{ secrets.DATASET_URL }}/arkimet.conf -O data/arkimet_conf/arkimet.conf;
-          wget --quiet ${{ secrets.DATASET_URL }}/arkimet_summary.json -O data/arkimet_conf/arkimet_summary_filtered.json;
-          wget --quiet ${{ secrets.DATASET_URL }}/dballe_summary_filtered.json -O data/arkimet_conf/dballe_summary_filtered.json;
-          wget --quiet ${{ secrets.DATASET_URL }}/sample.bufr -O data/arkimet_conf/sample.bufr;
-          wget --quiet ${{ secrets.DATASET_URL }}/arkimet.zip;
-          unzip -q arkimet.zip -d data/;
-          ls -l data/arkimet;
-          ls -l data/arkimet_conf;
-
-          rapydo pull;
-          rapydo build --force;
-          rapydo add task test_task;
-          rapydo start;
-          rapydo shell --no-tty backend 'restapi wait';
-
-          echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh;
-          echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" >> init.sh;
-          docker cp init.sh ${PROJECT}_backend_1:/tmp/init.sh;
-          rapydo shell --no-tty backend 'bash /tmp/init.sh';
+        uses: ./.github/actions/setup-backend-and-datasets
+        with:
+          project: ${PROJECT}
+          dataset_url: ${{ secrets.DATASET_URL }}
 
       - name: Run Cypress
         run: |
