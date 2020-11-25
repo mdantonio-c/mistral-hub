@@ -9,7 +9,7 @@ on:
     - cron: "0 5 * * *"
 
 jobs:
-  frontend-tests::
+  frontend-tests:
     runs-on: ubuntu-20.04
 
     steps:
