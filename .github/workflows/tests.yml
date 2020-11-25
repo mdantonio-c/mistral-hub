@@ -23,6 +23,11 @@ jobs:
         with:
           python-version: 3.8
 
+      - name: Test
+        uses: rapydo/do/install
+        with:
+          project: ${PROJECT}
+
       - name: Install
         run: |
           python -m pip install --upgrade pip
