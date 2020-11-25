@@ -1,6 +1,7 @@
 import os
 import subprocess
 
+import dballe
 import eccodes
 from mistral.exceptions import PostProcessingException
 from restapi.utilities.logs import log
@@ -23,30 +24,91 @@ def pp_statistic_elaboration(params, input, output, fileformat):
     filebase, fileext = os.path.splitext(output)
     # split the input file according to the input timeranges
     file_not_for_pp = filebase + f"_others.{fileformat}.tmp"
-    with open(input, mode="r") as filein:
-        fd = {}
-        fdother = None
-        while True:
-            gid = eccodes.codes_grib_new_from_file(filein)
-            if gid is None:
-                break
-            match = False
-            for tr in trs:
-                if match_timerange(gid, tr[0]):
-                    if fd.get(tr, None) is None:  # better way?
-                        # create name for the temporary output
-                        file_for_pp = filebase + f"_%d_%d.{fileformat}.tmp" % tr
-                        fd[tr] = open(file_for_pp, "wb")
-                    match = True
-                    # write to file/pipe for tr
-                    eccodes.codes_write(gid, fd[tr])
+    if fileformat == "grib":
+        with open(input, mode="r") as filein:
+            fd = {}
+            fdother = None
+            while True:
+                gid = eccodes.codes_grib_new_from_file(filein)
+                if gid is None:
+                    break
+                match = False
+                for tr in trs:
+                    if match_timerange(gid, tr[0]):
+                        if fd.get(tr, None) is None:  # better way?
+                            # create name for the temporary output
+                            file_for_pp = filebase + f"_%d_%d.{fileformat}.tmp" % tr
+                            fd[tr] = open(file_for_pp, "wb")
+                        match = True
+                        # write to file/pipe for tr
+                        eccodes.codes_write(gid, fd[tr])
 
-            if not match:
-                if fdother is None:
-                    fdother = open(file_not_for_pp, "wb")
-                # write to file "other"
-                eccodes.codes_write(gid, fdother)
-            eccodes.codes_release(gid)
+                if not match:
+                    if fdother is None:
+                        fdother = open(file_not_for_pp, "wb")
+                    # write to file "other"
+                    eccodes.codes_write(gid, fdother)
+                eccodes.codes_release(gid)
+    else:
+        with open(input, "rb") as input_file:
+            importer = dballe.Importer("BUFR")
+            exporter = dballe.Exporter("BUFR")
+
+            with importer.from_file(input_file) as fp:
+                for tr in trs:
+                    for msgs in fp:
+                        for msg in msgs:
+                            count_vars = 0
+                            count_vars_nm = 0
+                            new_msg = dballe.Message("generic")
+
+                            new_msg.set_named("year", msg.get_named("year"))
+                            new_msg.set_named("month", msg.get_named("month"))
+                            new_msg.set_named("day", msg.get_named("day"))
+                            new_msg.set_named("hour", msg.get_named("hour"))
+                            new_msg.set_named("minute", msg.get_named("minute"))
+                            new_msg.set_named("second", msg.get_named("second"))
+                            new_msg.set_named("rep_memo", msg.report)
+                            new_msg.set_named("longitude", int(msg.coords[0] * 10 ** 5))
+                            new_msg.set_named("latitude", int(msg.coords[1] * 10 ** 5))
+                            if msg.ident:
+                                new_msg.set_named("ident", msg.ident)
+
+                            new_msg_nm = new_msg
+                            for data in msg.query_data({"query": "attrs"}):
+                                variable = data["variable"]
+                                attrs = variable.get_attrs()
+                                v = dballe.var(
+                                    data["variable"].code, data["variable"].get()
+                                )
+                                for a in attrs:
+                                    v.seta(a)
+
+                                if data["trange"].pind == tr[0]:
+                                    new_msg.set(data["level"], data["trange"], v)
+                                    count_vars += 1
+                                else:
+                                    new_msg_nm.set(data["level"], data["trange"], v)
+                                    count_vars_nm += 1
+
+                            for data in msg.query_station_data({"query": "attrs"}):
+                                variable = data["variable"]
+                                attrs = variable.get_attrs()
+                                v = dballe.var(
+                                    data["variable"].code, data["variable"].get()
+                                )
+                                for a in attrs:
+                                    v.seta(a)
+
+                                new_msg.set(dballe.Level(), dballe.Trange(), v)
+                                new_msg_nm.set(dballe.Level(), dballe.Trange(), v)
+                            if count_vars > 0:
+                                file_for_pp = filebase + f"_%d_%d.{fileformat}.tmp" % tr
+                                with open(file_for_pp, "wb") as match_file:
+                                    match_file.write(exporter.to_binary(new_msg))
+                            if count_vars_nm > 0:
+                                with open(file_not_for_pp, "wb") as no_match_file:
+                                    no_match_file.write(exporter.to_binary(new_msg_nm))
 
     if os.path.exists(file_not_for_pp):
         fileouput_to_join.append(file_not_for_pp)
