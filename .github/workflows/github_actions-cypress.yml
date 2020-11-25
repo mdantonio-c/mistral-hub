@@ -12,33 +12,17 @@ jobs:
   build:
     runs-on: ubuntu-20.04
 
-    strategy:
-      matrix:
-        stage: [BACKEND, FRONTEND, CYPRESS]
-
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
-      - name: Test
-        uses: rapydo/actions/install@v1
+      - uses: rapydo/actions/install@v1
         with:
           project: ${PROJECT}
 
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          export RAPYDO_VERSION=$(grep "  rapydo:" projects/${PROJECT}/project_configuration.yaml | sed 's/  rapydo: //' | tr -d '"')
-          # Make the environment variable available to next steps
-          echo "RAPYDO_VERSION=${RAPYDO_VERSION}" >> $GITHUB_ENV
-          pip install --upgrade --no-cache-dir git+https://github.com/rapydo/do.git@${RAPYDO_VERSION}
-          rapydo --testing init
-
       - name: Install backend and datasets
-        if: ${{ matrix.stage == 'BACKEND' || matrix.stage == 'CYPRESS' }}
         run: |
 
           wget --quiet ${{ secrets.DATASET_URL }}/arkimet.conf -O data/arkimet_conf/arkimet.conf;
@@ -76,31 +60,7 @@ jobs:
           docker cp init.sh ${PROJECT}_backend_1:/tmp/init.sh;
           rapydo shell --no-tty backend 'bash /tmp/init.sh';
 
-      - name: Run Pytest
-        if: ${{ matrix.stage == 'BACKEND' }}
-        run: |
-          rapydo shell --no-tty backend 'restapi tests --wait'
-          docker cp ${PROJECT}_backend_1:/code/coverage.xml coverage.xml
-          bash <(curl -s https://codecov.io/bash)
-
-          rapydo remove
-          rapydo volatile backend "bash /code/tests/custom/test_arpaesimc.sh"
-
-      - name: Run Karma
-        if: ${{ matrix.stage == 'FRONTEND' }}
-        run: |
-          rapydo -s frontend pull
-          rapydo -s frontend start
-          sleep 5
-          rapydo -s frontend logs
-          rapydo shell --no-tty frontend "yarn install"
-          rapydo shell --no-tty frontend "reload-types"
-          rapydo shell --no-tty frontend "yarn run test:single"
-          cp data/${PROJECT}/karma/lcov.info .
-          bash <(curl -s https://codecov.io/bash)
-
       - name: Run Cypress
-        if: ${{ matrix.stage == 'CYPRESS' }}
         run: |
           sleep 20
           rapydo logs
@@ -109,14 +69,3 @@ jobs:
           rapydo shell --no-tty frontend "yarn install"
           rapydo shell --no-tty frontend "reload-types"
           rapydo shell --no-tty frontend "yarn run cypress:start"
-
-      - name: Login to DockerHub
-        if: ${{ matrix.stage == 'BACKEND' }}
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Docker Push
-        if: ${{ matrix.stage == 'BACKEND' }}
-        run: docker push meteohub/backend:${{ env.RAPYDO_VERSION }}
