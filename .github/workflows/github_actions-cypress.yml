@@ -1,4 +1,4 @@
-name: Tests
+name: Cypress
 
 env:
   PROJECT: mistral
@@ -9,7 +9,7 @@ on:
     - cron: "0 5 * * *"
 
 jobs:
-  build:
+  integration-tests:
     runs-on: ubuntu-20.04
 
     steps:
@@ -22,6 +22,8 @@ jobs:
         with:
           project: ${PROJECT}
 
+      - uses: rapydo/actions/setup-cypress@v1
+
       - name: Install backend and datasets
         run: |
 
@@ -33,21 +35,6 @@ jobs:
           unzip -q arkimet.zip -d data/;
           ls -l data/arkimet;
           ls -l data/arkimet_conf;
-
-          export CYPRESS_PROJECT_ID=${{ secrets.CYPRESS_PROJECT_ID }}
-          export CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}
-
-          # Extra variables needed by Cypress
-          export COMMIT_INFO_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-          export COMMIT_INFO_MESSAGE="$(git show -s --pretty=%B)"
-          export COMMIT_INFO_SUBJECT="$(git show -s --pretty=%s)"
-          export COMMIT_INFO_BODY="$(git show -s --pretty=%b)"
-          export COMMIT_INFO_EMAIL="$(git show -s --pretty=%ae)"
-          export COMMIT_INFO_AUTHOR="$(git show -s --pretty=%an)"
-          export COMMIT_INFO_SHA="$(git show -s --pretty=%H)"
-          export COMMIT_INFO_TIMESTAMP="$(git show -s --pretty=%ct)"
-          export COMMIT_INFO_REMOTE="$(git config --get remote.origin.url)"
-          export CYPRESS_GROUP="$(git show -s --pretty=%H)"
 
           rapydo pull;
           rapydo build --force;
