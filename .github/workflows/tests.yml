@@ -24,7 +24,7 @@ jobs:
           python-version: 3.8
 
       - name: Test
-        uses: rapydo/do/install
+        uses: rapydo/actions/install@v1
         with:
           project: ${PROJECT}
 
