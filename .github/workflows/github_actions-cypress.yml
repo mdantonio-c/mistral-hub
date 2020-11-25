@@ -23,6 +23,9 @@ jobs:
           project: ${PROJECT}
 
       - uses: rapydo/actions/setup-cypress@v1
+        with:
+          id: ${{ secrets.CYPRESS_PROJECT_ID }}
+          key: ${{ secrets.CYPRESS_RECORD_KEY }}
 
       - name: Install backend and datasets
         run: |
