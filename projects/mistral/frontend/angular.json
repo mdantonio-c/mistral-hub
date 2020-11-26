@@ -13,8 +13,7 @@
             ],
             "scripts": [
               "node_modules/bootstrap-slider/dist/bootstrap-slider.min.js",
-              "node_modules/iso8601-js-period/iso8601.js",
-              "node_modules/global-mercator/global-mercator.js"
+              "node_modules/iso8601-js-period/iso8601.js"
             ]
           }
         }

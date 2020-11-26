@@ -1,10 +1,8 @@
 import { Component } from "@angular/core";
 import { environment } from "@rapydo/../environments/environment";
 import * as moment from "moment";
-import * as globalMercator from "global-mercator";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
-// import "leaflet-timedimension/examples/js/extras/leaflet.timedimension.tilelayer.portus.js";
 import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import { TilesService } from "./services/tiles.service";
 import { ObsService } from "../observation-maps/services/obs.service";
@@ -173,6 +171,8 @@ export class MeteoTilesComponent {
     this.map = map;
     this.loadRunAvailable(this.DEFAULT_DATASET);
     this.initLegends(this.map);
+
+    this.loadMMProduct();
   }
 
   private loadRunAvailable(dataset: string) {
@@ -249,12 +249,13 @@ export class MeteoTilesComponent {
   }
 
   private loadMMProduct() {
+    console.log("loading multi-model ensemble");
     let reftime: Date = this.runAvailable
       ? moment(this.runAvailable.reftime.substr(0, 6), "YYYYMMDD").toDate()
       : new Date();
     let filter: ObsFilter = {
       product: this.mmProduct,
-      // reftime: new Date(2020, 10, 9),
+      // reftime: new Date(2020, 10, 26),
       reftime: reftime,
       network: "multim-forecast",
       timerange: "254,97200,0",
@@ -835,11 +836,6 @@ export class MeteoTilesComponent {
         });
         m.options["station"] = s.stat;
         m.options["data"] = obsData;
-        const coords: L.LatLng = m.getLatLng();
-        m.options["position"] = globalMercator.lngLatToMeters([
-          coords.lat,
-          coords.lng,
-        ]);
         m.bindTooltip(
           MeteoTilesComponent.buildTooltipTemplate(s.stat, obsData.val[0].ref),
           {
@@ -881,19 +877,15 @@ export class MeteoTilesComponent {
     if (this.map.getZoom() === MAX_ZOOM) {
       return markers;
     }
-    const radius = 10000 * Math.pow(2, 8 - this.map.getZoom());
+    const radius = 10 * Math.pow(2, 8 - this.map.getZoom());
     // console.log(`radius: ${radius}`);
     for (let i = 0; i < markers.length; i++) {
       let overlapped: boolean = false;
       if (n.length > 0) {
-        let point1 = markers[i]["options"]["position"];
+        let p1 = markers[i].getLatLng();
         for (let j = 0; j < n.length; j++) {
-          let point2 = n[j]["options"]["position"];
-          let distance = Math.sqrt(
-            Math.pow(Math.round(point1[0] - point2[0]), 2) +
-              Math.pow(Math.round(point1[1] - point2[1]), 2)
-          );
-          // console.log(distance);
+          let p2 = n[j].getLatLng();
+          let distance = this.distance(p1.lat, p1.lng, p2.lat, p2.lng, "K");
           if (distance < radius) {
             overlapped = true;
             break;
@@ -921,6 +913,55 @@ export class MeteoTilesComponent {
       this.markers = this.reduceOverlapping(this.allMarkers);
       this.markersGroup = L.layerGroup(this.markers);
       this.markersGroup.addTo(this.map);
+    }
+  }
+
+  /**
+   * This routine calculates the distance between two points (given the
+   * latitude/longitude of those points).
+   *
+   * Definitions:
+   * South latitudes are negative, east longitudes are positive
+   *
+   * @param lat1
+   *   Latitude of point 1 (in decimal degrees)
+   * @param lon1
+   *   Longitude of point 1 (in decimal degrees)
+   * @param lat2
+   *   Latitude of point 2 (in decimal degrees)
+   * @param lon2
+   *   Longitude of point 2 (in decimal degrees)
+   * @param unit
+   *    the unit you desire for results. Allowed values:
+   *    'M' is statute miles (default)
+   *    'K' is kilometers
+   *    'N' is nautical miles
+   * @private
+   */
+  private distance(lat1, lon1, lat2, lon2, unit) {
+    if (lat1 == lat2 && lon1 == lon2) {
+      return 0;
+    } else {
+      const radlat1 = (Math.PI * lat1) / 180;
+      const radlat2 = (Math.PI * lat2) / 180;
+      const theta = lon1 - lon2;
+      const radtheta = (Math.PI * theta) / 180;
+      let dist =
+        Math.sin(radlat1) * Math.sin(radlat2) +
+        Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+      if (dist > 1) {
+        dist = 1;
+      }
+      dist = Math.acos(dist);
+      dist = (dist * 180) / Math.PI;
+      dist = dist * 60 * 1.1515;
+      if (unit == "K") {
+        dist = dist * 1.609344;
+      }
+      if (unit == "N") {
+        dist = dist * 0.8684;
+      }
+      return dist;
     }
   }
 }
