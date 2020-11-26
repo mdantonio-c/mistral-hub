@@ -50,6 +50,7 @@ def pp_sp_interpolation(params, input, output, fileformat):
         else:
             post_proc_cmd.append("v7d_transform")
             post_proc_cmd.append("--pre-trans-type={}".format(params.get("trans_type")))
+            post_proc_cmd.append("--input-format=BUFR")
 
         post_proc_cmd.append("--sub-type={}".format(params.get("sub_type")))
         post_proc_cmd.append("--coord-format={}".format(params.get("file_format")))

@@ -1,4 +1,5 @@
 import os
+import shlex
 import subprocess
 
 import dballe
@@ -183,6 +184,9 @@ def run_statistic_elaboration(params, input, output, fileformat):
             )
         )
         post_proc_cmd.append(f"--comp-step={step}")
+        if not fileformat.startswith("grib"):
+            post_proc_cmd.append("--input-format=BUFR")
+            post_proc_cmd.append("--output-format=BUFR")
         post_proc_cmd.append(input)
         post_proc_cmd.append(output)
         log.debug("Post process command: {}>", post_proc_cmd)
