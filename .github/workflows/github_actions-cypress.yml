@@ -42,3 +42,7 @@ jobs:
           rapydo shell --no-tty frontend "yarn install"
           rapydo shell --no-tty frontend "reload-types"
           rapydo shell --no-tty frontend "yarn run cypress:start"
+
+          rapydo shell --no-tty frontend "npx nyc --all report --reporter=lcov --report-dir /coverage"
+          cp data/${PROJECT}/karma/lcov.info .
+          bash <(curl -s https://codecov.io/bash)
