@@ -66,6 +66,11 @@ export class ObsMeteogramsComponent implements AfterViewInit {
     return moment(val).format("HH:mm");
   }
 
+  private TooltipDateFormat(val) {
+    // val: 2020-09-07T04:00:00
+    return moment(val).format("YYYY-MM-DD HH:mm");
+  }
+
   private getName(station: Station) {
     if (station.details) {
       let nameDetail: StationDetail = station.details.find(
@@ -128,7 +133,7 @@ export class ObsMeteogramsComponent implements AfterViewInit {
         .filter((obs) => obs.rel === 1)
         .map((obs) => {
           return {
-            name: obs.ref,
+            name: new Date(obs.ref),
             value: ObsService.showData(obs.val, p.var),
           };
         });
