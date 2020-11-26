@@ -1,5 +1,6 @@
 import { Component } from "@angular/core";
 import { environment } from "@rapydo/../environments/environment";
+import { Observable, forkJoin } from "rxjs";
 import * as moment from "moment";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
@@ -68,8 +69,8 @@ const TM2 = "Temperature at 2 meters",
   TPPROB50 = "Precipitation probability 50%";
 
 enum MultiModelProduct {
-  RH = "B13003",
   TM = "B12101",
+  RH = "B13003",
 }
 
 const MAX_ZOOM = 8;
@@ -149,12 +150,13 @@ export class MeteoTilesComponent {
   };
   private runAvailable: RunAvailable;
 
-  showed: boolean = true;
-  mmProduct = MultiModelProduct.TM;
-  MultiModelProduct = MultiModelProduct;
-  markers: L.Marker[] = [];
-  allMarkers: L.Marker[] = [];
+  public showed: boolean = true;
+  public mmProduct = MultiModelProduct.TM;
+  public MultiModelProduct = MultiModelProduct;
+  private markers: L.Marker[] = [];
+  private allMarkers: L.Marker[] = [];
   private markersGroup: any;
+  private mmProductsData: any[] = new Array(2);
 
   constructor(
     private tilesService: TilesService,
@@ -172,7 +174,7 @@ export class MeteoTilesComponent {
     this.loadRunAvailable(this.DEFAULT_DATASET);
     this.initLegends(this.map);
 
-    this.loadMMProduct();
+    this.getMMProducts();
   }
 
   private loadRunAvailable(dataset: string) {
@@ -248,23 +250,37 @@ export class MeteoTilesComponent {
       });
   }
 
-  private loadMMProduct() {
-    console.log("loading multi-model ensemble");
+  private getMMProducts() {
+    console.log("loading multi-model ensemble products");
     let reftime: Date = this.runAvailable
       ? moment(this.runAvailable.reftime.substr(0, 6), "YYYYMMDD").toDate()
       : new Date();
-    let filter: ObsFilter = {
-      product: this.mmProduct,
+    let filterTM: ObsFilter = {
+      product: MultiModelProduct.TM,
       // reftime: new Date(2020, 10, 26),
       reftime: reftime,
       network: "multim-forecast",
       timerange: "254,97200,0",
     };
-    this.obsService.getData(filter).subscribe(
-      (resp: ObservationResponse) => {
-        let data = resp.data;
-        this.loadMarkers(data, filter.product);
-        if (data.length === 0) {
+    let filterRH: ObsFilter = {
+      product: MultiModelProduct.RH,
+      // reftime: new Date(2020, 10, 26),
+      reftime: reftime,
+      network: "multim-forecast",
+      timerange: "254,97200,0",
+    };
+    let productTM = this.obsService.getData(filterTM);
+    let productRH = this.obsService.getData(filterRH);
+    forkJoin([productTM, productRH]).subscribe(
+      (results) => {
+        this.mmProductsData[0] = results[0].data;
+        this.mmProductsData[1] = results[1].data;
+        // this.loadMarkers(this.mmProductsData[idx], this.mmProduct);
+        this.loadMarkers();
+        if (
+          this.mmProductsData[0].length === 0 &&
+          this.mmProductsData[1].length === 0
+        ) {
           this.notify.showWarning("No Multi-Model data found.");
         }
       },
@@ -779,6 +795,10 @@ export class MeteoTilesComponent {
   changeMMProduct(choice: MultiModelProduct) {
     if (choice !== this.mmProduct) {
       this.mmProduct = choice;
+      if (this.showed && this.markersGroup) {
+        this.map.removeLayer(this.markersGroup);
+        this.loadMarkers();
+      }
     }
   }
 
@@ -792,12 +812,15 @@ export class MeteoTilesComponent {
     }
   }
 
-  private loadMarkers(data: Observation[], product: string) {
+  private loadMarkers() {
+    this.allMarkers = [];
     let obsData: ObsData;
-    const unit = product === "B12101" ? "<i>°</i>" : "";
+    const idx = this.mmProduct === MultiModelProduct.TM ? 0 : 1;
+    const unit: string =
+      this.mmProduct === MultiModelProduct.TM ? "<i>°</i>" : "";
     let min: number, max: number;
-    data.forEach((s) => {
-      obsData = s.prod.find((x) => x.var === product);
+    this.mmProductsData[idx].forEach((s) => {
+      obsData = s.prod.find((x) => x.var === this.mmProduct);
       let localMin = Math.min(
         ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val)
       );
@@ -811,15 +834,15 @@ export class MeteoTilesComponent {
         max = localMax;
       }
     });
-    data.forEach((s) => {
-      obsData = s.prod.find((x) => x.var === product);
+    this.mmProductsData[idx].forEach((s) => {
+      obsData = s.prod.find((x) => x.var === this.mmProduct);
       // console.log(obsData);
       if (obsData.val.length !== 0) {
         let icon = L.divIcon({
           html:
             `<div class="mstObsIcon"><span>${ObsService.showData(
               obsData.val[0].val,
-              product
+              this.mmProduct
             )}` +
             unit +
             "</span></div>",
