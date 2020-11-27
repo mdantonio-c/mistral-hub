@@ -133,7 +133,8 @@ export class ObsMeteogramsComponent implements AfterViewInit {
         .filter((obs) => obs.rel === 1)
         .map((obs) => {
           return {
-            name: new Date(obs.ref),
+            name: obs.ref,
+            //name: new Date(obs.ref),
             value: ObsService.showData(obs.val, p.var),
           };
         });
