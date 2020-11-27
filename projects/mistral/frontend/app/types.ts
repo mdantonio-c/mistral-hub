@@ -264,6 +264,20 @@ export interface DataSeries {
   series: SeriesItem[];
 }
 
+export interface MultiStationDataSeries {
+  name: string;
+  code: string;
+  unit?: string;
+  timerange?: string;
+  level?: string;
+  series: MultiStationSeriesItem[];
+}
+
+export interface MultiStationSeriesItem {
+  name: Date;
+  value: any;
+}
+
 export interface SeriesItem {
   name: string; // reftime ISO 8601 e.g. 2020-09-07T00:00:00
   value: any;

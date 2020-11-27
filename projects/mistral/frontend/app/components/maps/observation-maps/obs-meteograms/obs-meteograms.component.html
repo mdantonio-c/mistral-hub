@@ -29,12 +29,10 @@
         [legend]="true"
         [legendTitle]="'Stations'"
       >
-        <!--<ng-template #tooltipTemplate let-model="model">
-          <h9>
-            {{ model.series }} &bull; {{ TooltipDateFormat(model.name) }}
-          </h9>
+        <ng-template #tooltipTemplate let-model="model">
+          {{ model.series }} &bull; {{ TooltipDateFormat(model.name) }}
           <h5>{{ model.value }}</h5>
-        </ng-template>-->
+        </ng-template>
       </ngx-charts-line-chart>
     </div>
   </div>
