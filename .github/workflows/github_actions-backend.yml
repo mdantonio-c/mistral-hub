@@ -6,11 +6,13 @@ env:
 on:
   push:
   schedule:
-    - cron: "0 5 * * *"
+    - cron: "0 4 * * *"
+  workflow_dispatch:
 
 jobs:
   backend-tests:
     runs-on: ubuntu-20.04
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v2
