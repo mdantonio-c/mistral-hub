@@ -1,0 +1,49 @@
+name: Backend
+
+env:
+  PROJECT: mistral
+
+on:
+  push:
+  # schedule:
+  #   - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - uses: rapydo/actions/install@v1
+        with:
+          project: ${PROJECT}
+
+      - name: Install backend and datasets
+        uses: ./.github/actions/setup-backend-and-datasets
+        with:
+          project: ${PROJECT}
+          dataset_url: ${{ secrets.DATASET_URL }}
+
+      - name: Run Pytest
+        run: |
+          rapydo shell --no-tty backend 'restapi tests --wait'
+          docker cp ${PROJECT}_backend_1:/code/coverage.xml coverage.xml
+          bash <(curl -s https://codecov.io/bash)
+
+          rapydo remove
+          rapydo volatile backend "bash /code/tests/custom/test_arpaesimc.sh"
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Docker Push
+        run: docker push meteohub/backend:${{ env.RAPYDO_VERSION }}
