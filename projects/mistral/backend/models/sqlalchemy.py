@@ -4,6 +4,7 @@ import enum
 from datetime import datetime
 
 from restapi.connectors.sqlalchemy.models import User, db
+from sqlalchemy.dialects.postgresql import JSONB
 
 # Add (inject) attributes to User
 setattr(User, "disk_quota", db.Column(db.BigInteger, default=1073741824))  # 1 GB
@@ -26,7 +27,7 @@ class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     name = db.Column(db.String, index=True, nullable=False)
-    args = db.Column(db.String, nullable=False)
+    args = db.Column(JSONB, nullable=False)
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     end_date = db.Column(db.DateTime)
     status = db.Column(db.String(64))
@@ -36,6 +37,7 @@ class Request(db.Model):
     fileoutput = db.relationship(
         "FileOutput", backref="request", cascade="delete", uselist=False
     )
+    opendata = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return "<Request(name='{}', submission date='{}', status='{}')".format(
@@ -67,7 +69,7 @@ class Schedule(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
     name = db.Column(db.String, index=True, nullable=False)
-    args = db.Column(db.String)
+    args = db.Column(JSONB)
     is_crontab = db.Column(db.Boolean)
     period = db.Column(db.Enum(PeriodEnum))
     every = db.Column(db.Integer)

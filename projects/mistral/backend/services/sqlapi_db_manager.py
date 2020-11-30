@@ -74,9 +74,17 @@ class SqlApiDbManager:
         return db.Request.query.filter_by(schedule_id=schedule_id).count()
 
     @staticmethod
-    def create_request_record(db, user_id, product_name, filters, schedule_id=None):
-        args = json.dumps(filters)
-        r = db.Request(user_id=user_id, name=product_name, args=args, status="CREATED")
+    def create_request_record(
+        db, user_id, product_name, filters, schedule_id=None, opendata=False
+    ):
+        args = filters
+        r = db.Request(
+            user_id=user_id,
+            name=product_name,
+            args=args,
+            status="CREATED",
+            opendata=opendata,
+        )
         if schedule_id is not None:
             # scheduled_request = db.Schedule
             r.schedule_id = schedule_id
@@ -97,9 +105,7 @@ class SqlApiDbManager:
         )
         on_data_ready = schedule_settings["on_data_ready"] if "on_data_ready" else False
 
-        s = db.Schedule(
-            user_id=user.id, name=product_name, args=json.dumps(args), is_crontab=False
-        )
+        s = db.Schedule(user_id=user.id, name=product_name, args=args, is_crontab=False)
         # check if the request is periodic
         if (every or period) is not None:
             s.every = every
@@ -389,7 +395,7 @@ class SqlApiDbManager:
             "user_id": schedule.user_id,
             "name": schedule.name,
             "creation_date": schedule.submission_date.isoformat(),
-            "args": json.loads(schedule.args),
+            "args": schedule.args,
             "requests_count": schedule.submitted_request.count(),
             "enabled": schedule.is_enabled,
             "on_data_ready": schedule.on_data_ready,

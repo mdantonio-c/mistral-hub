@@ -82,6 +82,7 @@ def data_extract(
                         "output_format": output_format,
                     },
                     schedule_id=schedule_id,
+                    opendata=opendata,
                 )
                 # update the entry with celery task id
                 request.task_id = self.request.id

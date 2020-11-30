@@ -57,7 +57,7 @@ class UserRequests(EndpointResource):
         )
         # log.debug(requests)
         for r in requests:
-            args = json.loads(r.args)
+            args = r.args
             # filter the dictionary None elements
             # and rename the dataset key to make it compatible with the
             # input data extraction request
