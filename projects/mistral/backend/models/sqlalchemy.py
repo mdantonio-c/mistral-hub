@@ -76,6 +76,7 @@ class Schedule(db.Model):
     time_delta = db.Column(db.Interval)
     is_enabled = db.Column(db.Boolean)
     submitted_request = db.relationship("Request", backref="schedule", lazy="dynamic")
+    opendata = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return "<Schedule(name='{}', creation date='{}', enabled='{}')".format(

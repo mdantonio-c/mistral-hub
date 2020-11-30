@@ -44,7 +44,8 @@ def data_extract(
     request_id=None,
     amqp_queue=None,
     schedule_id=None,
-    data_ready=None,
+    data_ready=False,
+    opendata=False,
 ):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]", self.request.id, self.name)
@@ -64,7 +65,7 @@ def data_extract(
                         )
                     )
                 # adapt the request reftime
-                if not data_ready:
+                if reftime and not data_ready:
                     reftime = adapt_reftime(schedule, reftime)
 
                 # create an entry in request db linked to the scheduled request entry
@@ -137,15 +138,41 @@ def data_extract(
             # check that the datasets are all under the same license
             arki.check_compatible_licenses(db, datasets)
 
-            # output filename in the user space
-            # max filename len = 64
-            out_filename = "data-{utc_now}-{id}.{fileformat}".format(
-                utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
-                id=self.request.id,
-                fileformat=dataset_format,
-            )
+            if not opendata:
+                # output filename in the user space
+                # max filename len = 64
+                out_filename = "data-{utc_now}-{id}.{fileformat}".format(
+                    utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
+                    id=self.request.id,
+                    fileformat=dataset_format,
+                )
+            else:
+                # get opendata folder as output dir
+                output_dir = "/opendata"
+                # output file in opendata folder
+                # TODO. once the ar will be json the outfilename with metadata will be not necessary
+                # se non c'è run toglilo dal name
+                run = None
+                if filters and "run" in filters:
+                    values = filters["run"]
+                    if not isinstance(values, list):
+                        values = [values]
+                    parsed_values = []
+                    for v in values:
+                        decoded = arki.decode_run(v)
+                        splitted = decoded.split(",")
+                        parsed_values.append(splitted[1])
+                    run = ",".join(parsed_values)
+                out_filename = "{dataset}_{date}{run}.{fileformat}".format(
+                    dataset=datasets[0],
+                    date=datetime.datetime.utcnow().strftime("%Y-%m-%d"),
+                    run=f"_run{run}" if run else "",
+                    fileformat=dataset_format,
+                )
+
             # final result
             outfile = os.path.join(output_dir, out_filename)
+            log.debug("outfile: {}", outfile)
 
             if not amqp_queue:
                 if data_type != "OBS" and "multim-forecast" not in datasets:
@@ -479,11 +506,20 @@ def data_extract(
 
             # create fileoutput record in db
             if not amqp_queue:
-                SqlApiDbManager.create_fileoutput_record(
-                    db, user_id, request_id, target_filename, data_size
-                )
-            # update request status
-            request.status = states.SUCCESS
+                if not opendata or data_size > 0:
+                    SqlApiDbManager.create_fileoutput_record(
+                        db, user_id, request_id, target_filename, data_size
+                    )
+                    request.status = states.SUCCESS
+                else:
+                    # remove the empty output file
+                    if os.path.exists(outfile):
+                        os.remove(outfile)
+                    request.status = states.FAILURE
+                    request.error_message = "The resulting output file was empty"
+            else:
+                # update request status
+                request.status = states.SUCCESS
 
         except ReferenceError as exc:
             request.status = states.FAILURE

@@ -110,6 +110,7 @@ class SqlApiDbManager:
             s.crontab_settings = json.dumps(crontab_settings)
         s.is_enabled = True
         s.on_data_ready = on_data_ready
+        s.opendata = schedule_settings["opendata"]
         s.time_delta = schedule_settings["time_delta"]
 
         db.session.add(s)
@@ -395,6 +396,7 @@ class SqlApiDbManager:
             "period": schedule.period,
             "every": schedule.every,
             "crontab_set": schedule.crontab_settings,
+            "opendata": schedule.opendata,
         }
         if schedule.is_crontab:
             resp["crontab"] = True
