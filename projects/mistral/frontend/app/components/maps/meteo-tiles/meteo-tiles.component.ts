@@ -293,7 +293,7 @@ export class MeteoTilesComponent {
   private setOverlaysToMap() {
     let baseUrl = `${TILES_PATH}/${this.run}-${this.dataset}`;
     if (environment.production) {
-      baseUrl += this.runAvailable.area;
+      baseUrl += `/${this.runAvailable.area}`;
     }
     let bounds =
       this.dataset === "lm5"
