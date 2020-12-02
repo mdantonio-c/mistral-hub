@@ -109,7 +109,7 @@ class UserRequests(EndpointResource):
 
             # delete request and fileoutput entry from database.
             # Delete fileoutput from user folder
-            repo.delete_request_record(db, user, request_id, DOWNLOAD_DIR)
+            repo.delete_request_record(db, user, request_id)
 
             return self.response(f"Removed request {request_id}")
         else:

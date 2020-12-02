@@ -1,13 +1,15 @@
 import json
 import os
 
+from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from restapi.connectors.celery import CeleryExt
+from restapi.exceptions import NotFound
 from restapi.utilities.logs import log
 
 
 class SqlApiDbManager:
     @staticmethod
-    def check_fileoutput(db, user, filename, download_dir):
+    def check_fileoutput(db, user, filename):
         fileoutput = db.FileOutput
         # query for the requested file in database
         f_to_download = fileoutput.query.filter(fileoutput.filename == filename).first()
@@ -15,18 +17,22 @@ class SqlApiDbManager:
         if f_to_download is not None:
             # check if the user owns the file
             if SqlApiDbManager.check_owner(db, user.id, file_id=f_to_download.id):
-                # check if the requested file is in the user folder
-                path = os.path.join(
-                    download_dir, user.uuid, "outputs", f_to_download.filename
-                )
-                if os.path.exists(path):
-                    return True
+                # check if the file is an opendata or not
+                if f_to_download.request.opendata:
+                    file_dir = OPENDATA_DIR
                 else:
-                    log.info("file path: {} does not exists", path)
+                    file_dir = os.path.join(DOWNLOAD_DIR, user.uuid, "outputs")
+
+                # check if the requested file is in the user folder
+                path = os.path.join(file_dir, f_to_download.filename)
+                if os.path.exists(path):
+                    return file_dir
+                else:
+                    raise NotFound(f"File path: {path} does not exists")
             else:
-                log.info("user is not the file owner")
+                raise NotFound("User is not the file owner")
         else:
-            log.info("file: {} is not in database", filename)
+            raise NotFound(f"file: {filename} is not in database")
 
     @staticmethod
     def check_owner(db, user_id, schedule_id=None, request_id=None, file_id=None):
@@ -135,22 +141,21 @@ class SqlApiDbManager:
         log.info("fileoutput for request ID <{}>", request_id)
 
     @staticmethod
-    def delete_fileoutput(uuid, download_dir, filename):
-        try:
-            filepath = os.path.join(download_dir, uuid, "outputs", filename)
-            os.remove(filepath)
-        except FileNotFoundError as error:
-            # silently pass when file is not found
-            log.warning(error)
-
-    @staticmethod
-    def delete_request_record(db, user, request_id, download_dir):
+    def delete_request_record(db, user, request_id):
         request = db.Request.query.get(request_id)
         out_file = request.fileoutput
         if out_file is not None:
-            SqlApiDbManager.delete_fileoutput(
-                user.uuid, download_dir, out_file.filename
-            )
+            if out_file.request.opendata:
+                file_dir = OPENDATA_DIR
+            else:
+                file_dir = os.path.join(DOWNLOAD_DIR, user.uuid, "outputs")
+            # delete the file output
+            try:
+                filepath = os.path.join(file_dir, out_file.filename)
+                os.remove(filepath)
+            except FileNotFoundError as error:
+                # silently pass when file is not found
+                log.warning(error)
         db.session.delete(request)
         db.session.commit()
 
