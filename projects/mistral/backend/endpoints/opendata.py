@@ -44,6 +44,7 @@ class OpendataFileList(EndpointResource):
             raise BadRequest(f"Dataset {dataset_name} is not public")
 
         query = {}
+        reftime = {}
         # add dataset to query
         query["datasets"] = [dataset_name]
         if q:
@@ -54,11 +55,33 @@ class OpendataFileList(EndpointResource):
                 # add the run param
                 if e.startswith("run"):
                     val = e.split("run:")[1]
-                    val.replace(",", "(")
-                    query["filters"] = {"run": [{"desc": f"{val})"}]}
-                # TODO: add the reftime param
-            # query={'reftime': {'to': '2019-06-22T00:39:00.000000Z', 'from': '2019-06-20T00:00:00.000000Z'}, 'filters': {'run': [{'desc': 'MINUTE(00:00)'}]}, 'datasets': ['vlm5']}
+                    query["filters"] = {
+                        "run": [{"desc": "{})".format(val.replace(",", "("))}]
+                    }
+                # parse the reftime
+                if e.startswith("reftime"):
+                    val = e.split("reftime:")[1]
+                    reftimes = [x.strip() for x in val.split(",")]
+                    for r in reftimes:
+                        if r.startswith(">"):
+                            date_min = r.strip(">=")
+                            reftime["from"] = datetime.datetime.strptime(
+                                date_min, "%Y-%m-%d %H:%M"
+                            ).date()
+                        if r.startswith("<"):
+                            date_max = r.strip("<=")
+                            reftime["to"] = datetime.datetime.strptime(
+                                date_max, "%Y-%m-%d %H:%M"
+                            ).date()
+                        if r.startswith("="):
+                            date = r.strip("=")
+                            reftime["from"] = reftime[
+                                "to"
+                            ] = datetime.datetime.strptime(
+                                date, "%Y-%m-%d %H:%M"
+                            ).date()
 
+        log.debug("opendata query {}", query)
         # get the available opendata requests
         opendata_req = db.Request.query.filter(
             db.Request.args.contains(query), db.Request.opendata == True
@@ -75,6 +98,11 @@ class OpendataFileList(EndpointResource):
             reftime_to = datetime.datetime.strptime(
                 r.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
             ).date()
+            # check if there is a requested reftime
+            if reftime:
+                if reftime_from < reftime["from"] or reftime_to > reftime["to"]:
+                    continue
+
             if reftime_from == reftime_to:
                 date = reftime_from.strftime("%Y-%m-%d")
             else:
