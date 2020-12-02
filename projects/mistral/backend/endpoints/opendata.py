@@ -2,19 +2,21 @@ import datetime
 import os
 
 from flask import send_from_directory
+from mistral.endpoints import OPENDATA_DIR
+from mistral.services.arkimet import BeArkimet as arki
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import BadRequest, NotFound
+from restapi.models import fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
-
-OPENDATA_DIR = "/opendata"
 
 
 class OpendataFileList(EndpointResource):
 
     labels = ["opendata_filelist"]
 
+    @decorators.use_kwargs({"q": fields.Str(required=False)}, location="query")
     @decorators.endpoint(
         path="/datasets/<dataset_name>/opendata",
         summary="Get opendata filename and metadata",
@@ -25,7 +27,7 @@ class OpendataFileList(EndpointResource):
             404: "Requested dataset not found",
         },
     )
-    def get(self, dataset_name):
+    def get(self, dataset_name, q=""):
         """ Get all the opendata filenames and metadata for that dataset"""
         log.debug("requested for {}", dataset_name)
         # check if the dataset exists
@@ -41,45 +43,70 @@ class OpendataFileList(EndpointResource):
         if not group_license.is_public:
             raise BadRequest(f"Dataset {dataset_name} is not public")
 
-        # get the list of the name of files in the opendata folder
-        opendata_files = os.listdir(OPENDATA_DIR)
+        query = {}
+        # add dataset to query
+        query["datasets"] = [dataset_name]
+        if q:
+            # q=reftime: >=2019-06-21 00:00,<=2019-06-22 15:46;run:MINUTE,00:00
+            # parse the query
+            query_list = q.split(";")
+            for e in query_list:
+                # add the run param
+                if e.startswith("run"):
+                    val = e.split("run:")[1]
+                    val.replace(",", "(")
+                    query["filters"] = {"run": [{"desc": f"{val})"}]}
+                # TODO: add the reftime param
+            # query={'reftime': {'to': '2019-06-22T00:39:00.000000Z', 'from': '2019-06-20T00:00:00.000000Z'}, 'filters': {'run': [{'desc': 'MINUTE(00:00)'}]}, 'datasets': ['vlm5']}
+
+        # get the available opendata requests
+        opendata_req = db.Request.query.filter(
+            db.Request.args.contains(query), db.Request.opendata == True
+        )
 
         res = []
-        for f in opendata_files:
-            if not f.startswith("."):
-                # filter the files by requested dataset
-                filebase, fileext = os.path.splitext(f)
-                file_metadata = filebase.split("_")[::-1]
-                lenght_metadata = len(file_metadata)
-                run = (
-                    file_metadata[0][3:] if file_metadata[0].startswith("run") else None
+        for r in opendata_req:
+            # create the model for the response
+            el = {}
+            # get the reftime
+            reftime_from = datetime.datetime.strptime(
+                r.args["reftime"]["from"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            ).date()
+            reftime_to = datetime.datetime.strptime(
+                r.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            ).date()
+            if reftime_from == reftime_to:
+                date = reftime_from.strftime("%Y-%m-%d")
+            else:
+                date = "from {} to {}".format(
+                    reftime_from.strftime("%Y-%m-%d"), reftime_to.strftime("%Y-%m-%d")
                 )
-                if run:
-                    date = file_metadata[1]
-                    if lenght_metadata > 3:
-                        dataset = "_".join(file_metadata[2:lenght_metadata][::-1])
-                    else:
-                        dataset = file_metadata[2]
-                else:
-                    date = file_metadata[0]
-                    if lenght_metadata > 2:
-                        dataset = "_".join(file_metadata[1:lenght_metadata][::-1])
-                    else:
-                        dataset = file_metadata[1]
-
-                if dataset != dataset_name:
-                    continue
-                # create the model for the response
-                el = {}
-                el["date"] = date
-                el["run"] = run
-                el["filename"] = f
+            el["date"] = date
+            # get the run
+            run = None
+            if "run" in r.args["filters"]:
+                values = r.args["filters"]["run"]
+                if not isinstance(values, list):
+                    values = [values]
+                parsed_values = []
+                for v in values:
+                    decoded = arki.decode_run(v)
+                    splitted = decoded.split(",")
+                    parsed_values.append(splitted[1])
+                run = ",".join(parsed_values)
+            el["run"] = run
+            # get the output filename
+            if r.fileoutput is not None:
+                el["filename"] = r.fileoutput.filename
                 res.append(el)
         # sort the elements by date
-        res.sort(
-            key=lambda x: datetime.datetime.strptime(x["date"], "%Y-%m-%d"),
-            reverse=True,
-        )
+        if res:
+            res.sort(
+                key=lambda x: datetime.datetime.strptime(x["date"], "%Y-%m-%d")
+                if "from" not in x["date"]
+                else datetime.datetime.strptime(x["date"].split(" ")[1], "%Y-%m-%d"),
+                reverse=True,
+            )
         return self.response(res)
 
 

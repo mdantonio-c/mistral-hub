@@ -8,7 +8,7 @@ import tarfile
 
 from celery import states
 from celery.exceptions import Ignore
-from mistral.endpoints import DOWNLOAD_DIR
+from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from mistral.exceptions import (
     AccessToDatasetDenied,
     DiskQuotaException,
@@ -133,43 +133,21 @@ def data_extract(
                 output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
             else:
                 # create a temporary outfile directory
-                output_dir = os.path.join("/data/tmp_outfiles", uuid)
+                output_dir = os.path.join(DOWNLOAD_DIR, "tmp_outfiles", uuid)
             os.makedirs(output_dir, exist_ok=True)
 
             # check that the datasets are all under the same license
             arki.check_compatible_licenses(db, datasets)
 
-            if not opendata:
-                # output filename in the user space
-                # max filename len = 64
-                out_filename = "data-{utc_now}-{id}.{fileformat}".format(
-                    utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
-                    id=self.request.id,
-                    fileformat=dataset_format,
-                )
-            else:
+            # max filename len = 64
+            out_filename = "data-{utc_now}-{id}.{fileformat}".format(
+                utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
+                id=self.request.id,
+                fileformat=dataset_format,
+            )
+            if opendata:
                 # get opendata folder as output dir
-                output_dir = "/opendata"
-                # output file in opendata folder
-                # TODO. once the ar will be json the outfilename with metadata will be not necessary
-                # se non c'è run toglilo dal name
-                run = None
-                if filters and "run" in filters:
-                    values = filters["run"]
-                    if not isinstance(values, list):
-                        values = [values]
-                    parsed_values = []
-                    for v in values:
-                        decoded = arki.decode_run(v)
-                        splitted = decoded.split(",")
-                        parsed_values.append(splitted[1])
-                    run = ",".join(parsed_values)
-                out_filename = "{dataset}_{date}{run}.{fileformat}".format(
-                    dataset=datasets[0],
-                    date=datetime.datetime.utcnow().strftime("%Y-%m-%d"),
-                    run=f"_run{run}" if run else "",
-                    fileformat=dataset_format,
-                )
+                output_dir = OPENDATA_DIR
 
             # final result
             outfile = os.path.join(output_dir, out_filename)
