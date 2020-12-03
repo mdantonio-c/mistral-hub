@@ -51,6 +51,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
 
   private lastRunAt: moment.Moment;
   timestamp: string;
+  timestampRun: string;
 
   @ViewChild("carousel", { static: true }) carousel: NgbCarousel;
 
@@ -70,6 +71,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     this.lastRunAt = moment.utc(`${this.reftime}`, "YYYYMMDDHH");
     // console.log(`last run at ${this.lastRunAt}`);
     this.timestamp = this.lastRunAt.format();
+    this.timestampRun = this.lastRunAt.format();
 
     this.grid_num = this.filter.res === "lm2.2" ? 4 : 6;
 

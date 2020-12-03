@@ -18,11 +18,11 @@ export const Fields: KeyValuePair[] = [
 export const FlashFloodFFields: KeyValuePair[] = [
   {
     key: "percentile",
-    value: "Flash Flood - 6h precipitation percentiles (mm)",
+    value: "6h precipitation percentiles (mm)",
   },
   {
     key: "probability",
-    value: "Flash Flood - 6h precipitation probability (%)",
+    value: "6h precipitation probability (%)",
   },
 ];
 
