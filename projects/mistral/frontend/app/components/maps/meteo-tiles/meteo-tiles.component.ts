@@ -58,27 +58,30 @@ export class MeteoTilesComponent {
   readonly DEFAULT_PRODUCT_IFF = "Precipitation percentiles 1%";
   readonly LEGEND_POSITION = "bottomleft";
   readonly DEFAULT_DATASET = "lm5";
+  readonly license_iff =
+    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>';
+  readonly license_cosmo =
+    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
+  readonly license =
+    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
 
   map: L.Map;
   dataset: string;
   private run: string;
   private legends: { [key: string]: L.Control } = {};
+  // license = this.license;
 
-  LAYER_OSM = L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
-      maxZoom: 8,
-      minZoom: 5,
-    }
-  );
+  LAYER_OSM = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: this.license,
+    //'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>'+l_iff,
+    maxZoom: MAX_ZOOM,
+    minZoom: MIN_ZOOM,
+  });
   LAYER_MAPBOX_LIGHT = L.tileLayer(
     "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw",
     {
       id: "mapbox.light",
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="https://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
+      attribution: this.license,
       maxZoom: MAX_ZOOM,
       minZoom: MIN_ZOOM,
     }
@@ -86,8 +89,7 @@ export class MeteoTilesComponent {
   LAYER_DARKMATTER = L.tileLayer(
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png",
     {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="https://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>',
+      attribution: this.license,
       maxZoom: MAX_ZOOM,
       minZoom: MIN_ZOOM,
     }
@@ -277,56 +279,6 @@ export class MeteoTilesComponent {
 
         this.mmProductsData[0][idx] = results[0].data;
         this.mmProductsData[1][idx] = results[1].data;
-
-        // this.mmProductsData[0] = this.toGeoJSON(
-        // this.toGeoJSON(
-        //   results[0].data, MultiModelProduct.TM, startTime);
-        // this.mmProductsData[1] = this.toGeoJSON(
-        // this.toGeoJSON(
-        //   results[1].data, MultiModelProduct.RH, startTime);
-        // console.log(this.mmProductsData[0]);
-
-        // let icon = L.icon({
-        //   iconUrl: '/app/custom/assets/images/marker-icon.png',
-        //   iconSize: [22, 22],
-        //   iconAnchor: [5, 25]
-        // });
-
-        /*
-        let endTime = moment
-          .utc(reftime)
-          .add(96, "hours")
-          .toDate();
-        console.log(`endTime ${moment.utc(endTime).format()}`);
-
-        let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
-          startTime,
-          endTime,
-          'PT3H'
-        );
-        (this.map as any).timeDimension.setAvailableTimes(
-          newAvailableTimes,
-          "replace"
-        );
-        (this.map as any).timeDimension.setCurrentTime(startTime);
-         */
-
-        // let mmLayer = (L as any).geoJSON(this.mmProductsData[0], {
-        //   pointToLayer: function (feature, latLng) {
-        //       return new L.Marker(latLng, {
-        //         icon: icon
-        //     });
-        //   }
-        // });
-        // let mmTimeLayer = L.timeDimension.layer.geoJson(mmLayer, {
-        //   updateTimeDimension: true,
-        //   addlastPoint: true,
-        //   waitForReady: true
-        // });
-        // this.layersControl["overlays"] = {
-        //     "MM Layer": mmTimeLayer
-        // };
-        // mmTimeLayer.addTo(this.map);
 
         if (this.markersGroup) {
           this.map.removeLayer(this.markersGroup);
@@ -787,15 +739,24 @@ export class MeteoTilesComponent {
       }
     }
 
-    this.loadRunAvailable(newDs);
+    this.loadRunAvailable(newDs); //removeAttribution
 
     this.dataset = newDs;
     if (this.dataset === "lm5") {
       this.map.setView(MAP_CENTER, 5);
+      this.map.attributionControl.removeAttribution(this.license);
+      this.map.attributionControl.removeAttribution(this.license_iff);
+      this.map.attributionControl.addAttribution(this.license_cosmo);
     } else if (this.dataset === "lm2.2") {
       this.map.setView(MAP_CENTER, 6);
+      this.map.attributionControl.removeAttribution(this.license);
+      this.map.attributionControl.removeAttribution(this.license_iff);
+      this.map.attributionControl.addAttribution(this.license_cosmo);
     } else if (this.dataset === "iff") {
       this.map.setView(MAP_CENTER, 6);
+      this.map.attributionControl.removeAttribution(this.license);
+      this.map.attributionControl.removeAttribution(this.license_cosmo);
+      this.map.attributionControl.addAttribution(this.license_iff);
     } else {
       console.error(`Unknown dataset ${newDs}`);
     }
@@ -1041,6 +1002,7 @@ export class MeteoTilesComponent {
 
   /**
    * Convert data model for observations to GeoJSON.
+   * CURRENTLY NOT USED
    * @param data
    * @param product
    * @private
