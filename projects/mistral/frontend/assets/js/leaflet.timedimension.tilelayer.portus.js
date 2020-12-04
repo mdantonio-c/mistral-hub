@@ -157,7 +157,7 @@ L.TimeDimension.Layer.TileLayer.Portus = L.TimeDimension.Layer.TileLayer.extend(
       }
       this._currentLayer = layer;
       this._currentTime = time;
-      console.log("Show layer with time: " + new Date(time).toISOString());
+      // console.log("Show layer with time: " + new Date(time).toISOString());
 
       this._evictCachedTimes(this._timeCacheForward, this._timeCacheBackward);
     },

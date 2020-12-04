@@ -216,14 +216,14 @@ export interface StationDetail {
 }
 
 export interface ObsValue {
-  // level: string;
   ref: string;
-  // timerange: string;
   val: number;
   rel?: number; // 1 or 0
 }
 
 export interface ObsData {
+  lev?: string;
+  trange?: string;
   val: ObsValue[];
   var: string;
 }
