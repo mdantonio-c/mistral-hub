@@ -137,10 +137,17 @@ def pp_derived_variables(datasets, params, tmp_extraction, user_dir, fileformat)
         else:
             libsim_tool = "v7d_transform"
         post_proc_cmd = shlex.split(
-            "{} --output-variable-list={} --input-format=BUFR --output-format=BUFR {} {}".format(
-                libsim_tool, ",".join(params.get("variables")), tmp_outfile, pp1_output
+            "{} --output-variable-list={} {} {} {}".format(
+                libsim_tool,
+                ",".join(params.get("variables")),
+                "--input-format=BUFR --output-format=BUFR"
+                if libsim_tool == "v7d_transform"
+                else "",
+                tmp_outfile,
+                pp1_output,
             )
         )
+        log.debug("funziona?")
         log.debug("Post process command: {}>", post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
