@@ -85,8 +85,7 @@ export class MeteoTilesComponent {
   // license = this.license;
 
   LAYER_OSM = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    // attribution: this.license,
-    attribution: license,
+    attribution: this.license,
     //'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>'+l_iff,
     maxZoom: 8,
     minZoom: 5,
@@ -95,8 +94,7 @@ export class MeteoTilesComponent {
     "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw",
     {
       id: "mapbox.light",
-      // attribution: this.license,
-      attribution: license,
+      attribution: this.license,
       maxZoom: 8,
       minZoom: 5,
     }
@@ -104,8 +102,7 @@ export class MeteoTilesComponent {
   LAYER_DARKMATTER = L.tileLayer(
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png",
     {
-      // attribution: this.license,
-      attribution: license,
+      attribution: this.license,
       maxZoom: 8,
       minZoom: 5,
     }
