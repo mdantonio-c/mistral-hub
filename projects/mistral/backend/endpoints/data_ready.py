@@ -157,6 +157,7 @@ class DataReady(EndpointResource):
             processors = r["args"].get("processors")
             output_format = r["args"].get("output_format")
             pushing_queue = r["args"].get("pushing_queue")
+            opendata = r["opendata"]
 
             try:
                 # this operation is done by the data extraction task
@@ -189,6 +190,7 @@ class DataReady(EndpointResource):
                         pushing_queue,
                         request_id,
                         data_ready,
+                        opendata,
                     ],
                     countdown=1,
                 )

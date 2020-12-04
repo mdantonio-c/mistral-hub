@@ -1,3 +1,33 @@
+/* new */
+
+div.dpc-container {
+  width:100%;
+  display:flex;
+  justify-content:center;
+}
+
+div.dpc-label {
+  border-radius:.25rem;
+  background-color:white;
+  color:black;
+  padding:5px;
+  margin:5px 5px 10px;
+  border-style:solid;
+  border-width:medium;
+  border-color:black;
+  width:fit-content;
+}
+
+div.explain {
+  padding-left: 40px;
+  font-size: 90%;
+  margin: 5px;
+  padding-right: 40px;
+  text-align: justify;
+}
+
+/* end new */
+
 h4 {
   display: inline;
   padding: 0 2px;

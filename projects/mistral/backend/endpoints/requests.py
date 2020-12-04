@@ -57,7 +57,7 @@ class UserRequests(EndpointResource):
         )
         # log.debug(requests)
         for r in requests:
-            args = json.loads(r.args)
+            args = r.args
             # filter the dictionary None elements
             # and rename the dataset key to make it compatible with the
             # input data extraction request
@@ -109,7 +109,7 @@ class UserRequests(EndpointResource):
 
             # delete request and fileoutput entry from database.
             # Delete fileoutput from user folder
-            repo.delete_request_record(db, user, request_id, DOWNLOAD_DIR)
+            repo.delete_request_record(db, user, request_id)
 
             return self.response(f"Removed request {request_id}")
         else:
