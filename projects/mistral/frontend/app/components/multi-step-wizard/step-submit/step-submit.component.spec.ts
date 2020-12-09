@@ -6,6 +6,7 @@ import { ReactiveFormsModule, FormBuilder } from "@angular/forms";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { NgxSpinnerModule } from "ngx-spinner";
 
 import { NotificationService } from "@rapydo/services/notification";
 import { StepSubmitComponent } from "./step-submit.component";
@@ -45,6 +46,7 @@ describe("StepSubmitComponent", () => {
         ReactiveFormsModule,
         RouterTestingModule.withRoutes([]),
         NgbModule,
+        NgxSpinnerModule,
       ],
       providers: [
         DatePipe,
