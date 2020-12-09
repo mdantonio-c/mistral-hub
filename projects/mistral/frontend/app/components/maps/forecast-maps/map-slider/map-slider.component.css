@@ -9,12 +9,12 @@ div.dpc-container {
 div.dpc-label {
   border-radius:.25rem;
   background-color:white;
-  color:black;
+  color:#6c757d;
   padding:5px;
   margin:5px 5px 10px;
   border-style:solid;
-  border-width:medium;
-  border-color:black;
+  border-width:2px;
+  border-color:#6c757d;
   width:fit-content;
 }
 
