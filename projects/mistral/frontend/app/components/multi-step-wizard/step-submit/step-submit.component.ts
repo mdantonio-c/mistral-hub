@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { FormData, FormDataService } from "@app/services/formData.service";
@@ -12,6 +12,9 @@ import { DataService } from "@app/services/data.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { StepComponent } from "../step.component";
+import { fromEvent } from "rxjs";
+import { exhaustMap, tap } from "rxjs/operators";
+import { NgxSpinnerService } from "ngx-spinner";
 
 @Component({
   selector: "step-submit",
@@ -25,6 +28,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
   scheduleForm: FormGroup;
   schedule: TaskSchedule = null;
 
+  @ViewChild("submitButton", { static: true }) submitButton: ElementRef;
+
   constructor(
     protected router: Router,
     protected route: ActivatedRoute,
@@ -32,7 +37,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     public dataService: DataService,
     protected formDataService: FormDataService,
     private modalService: NgbModal,
-    private notify: NotificationService
+    private notify: NotificationService,
+    private spinner: NgxSpinnerService
   ) {
     super(formDataService, router, route);
     this.scheduleForm = this.formBuilder.group({
@@ -59,6 +65,38 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     // default request name
     // this.formData.defaultName();
     window.scroll(0, 0);
+
+    fromEvent(this.submitButton.nativeElement, "click")
+      .pipe(
+        tap((_) => this.spinner.show()),
+        exhaustMap(() =>
+          this.dataService.extractData(
+            this.formData.request_name,
+            this.formData.reftime,
+            this.formData.datasets.map((x) => x.id),
+            this.formData.filters,
+            this.formData.schedule,
+            this.formData.postprocessors,
+            this.formData.output_format,
+            this.formData.push
+          )
+        )
+      )
+      .subscribe(
+        (resp) => {
+          this.schedule = null;
+          this.formData = this.formDataService.resetFormData();
+          this.isFormValid = false;
+          // Navigate to the 'My Requests' page
+          this.router.navigate(["app/requests"]);
+        },
+        (error) => {
+          this.notify.showError(error);
+        }
+      )
+      .add(() => {
+        this.spinner.hide();
+      });
   }
 
   emptyName() {
@@ -148,32 +186,5 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
   goToPrevious() {
     // Navigate to the postprocess page
     this.router.navigate(["../", "postprocess"], { relativeTo: this.route });
-  }
-
-  submit() {
-    console.log("submit request for data extraction");
-    this.dataService
-      .extractData(
-        this.formData.request_name,
-        this.formData.reftime,
-        this.formData.datasets.map((x) => x.id),
-        this.formData.filters,
-        this.formData.schedule,
-        this.formData.postprocessors,
-        this.formData.output_format,
-        this.formData.push
-      )
-      .subscribe(
-        (resp) => {
-          this.schedule = null;
-          this.formData = this.formDataService.resetFormData();
-          this.isFormValid = false;
-          // Navigate to the 'My Requests' page
-          this.router.navigate(["app/requests"]);
-        },
-        (error) => {
-          this.notify.showError(error);
-        }
-      );
   }
 }
