@@ -87,7 +87,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
   ];
 
   timeRanges = PP_TIME_RANGES;
-  stepIntervals = ["-", "hours", "days", "months", "years"];
+  stepUnits = ["hours", "days", "months", "years"];
   interpolationTypes = ["-", "near", "bilin", "average", "min", "max"];
 
   cropTypes = [
@@ -105,7 +105,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
 
   selectedInputTimeRange;
   selectedOutputTimeRange;
-  selectedStepInterval;
+  selectedStepUnit;
   selectedInterpolationType;
   selectedConversionFormat;
   selectedCropType;
@@ -162,7 +162,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       );
     if (pt && pt.length) {
       this.form.controls["selectedTimePP"].setValue(true);
-      this.selectedStepInterval = pt[0].interval; //'interval': this.selectedStepInterval,
+      this.selectedStepUnit = pt[0].interval; //'interval': this.selectedStepUnit,
       this.form.controls["timeStep"].setValue(pt[0].step); //'step': this.form.value.timeStep
       this.selectedInputTimeRange = this.timeRanges.filter(
         (t) => t.code == pt[0]["input_timerange"]
@@ -171,7 +171,8 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
         (t) => t.code == pt[0]["output_timerange"]
       )[0];
     } else {
-      this.selectedStepInterval = "-";
+      this.form.controls["timeStep"].setValue(1);
+      this.selectedStepUnit = "hours";
       this.selectedInputTimeRange = {
         code: -1,
         desc: "-",
@@ -581,7 +582,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       processor_type: "statistic_elaboration",
       input_timerange: this.selectedInputTimeRange.code,
       output_timerange: this.selectedOutputTimeRange.code,
-      interval: this.selectedStepInterval,
+      interval: this.selectedStepUnit,
       step: this.form.value.timeStep,
     };
   }
@@ -599,8 +600,8 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       this.selectedOutputTimeRange.code == null ||
       this.selectedOutputTimeRange.code == -1 ||
       this.form.value.timeStep == null ||
-      this.selectedStepInterval == null ||
-      this.selectedStepInterval == "-"
+      this.selectedStepUnit == null ||
+      this.selectedStepUnit == "-"
     ) {
       validationItem.messages.push(" - Missing mandatory fields<br/>");
     }
@@ -741,8 +742,8 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     this.selectedOutputTimeRange = outRange;
   }
 
-  setStepInterval(interval) {
-    this.selectedStepInterval = interval;
+  setStepUnit(unit) {
+    this.selectedStepUnit = unit;
   }
 
   setCropType(cropType) {
