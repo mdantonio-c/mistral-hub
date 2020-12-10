@@ -97,10 +97,10 @@
 
           <div class="dpc-container"> 
             <div *ngIf="filter.field == 'percentile' || filter.field == 'probability'" class="dpc-label">
-          		Forecast model: <b>Italy Flash Flood</b> - Forecast date: <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> - Run: <b>{{ filter.run }}</b>
+          		Forecast model: <b>Italy Flash Flood</b> - Reference date: <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> - Run: <b>{{ filter.run }}</b>
             </div>
             <div *ngIf="filter.field != 'percentile' && filter.field != 'probability'" class="dpc-label">
-          		Forecast model: <b>COSMO {{ getValue("res", filter.res) }} Km</b> - Forecast date: <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> - Run: <b>{{ filter.run }}</b>
+          		Forecast model: <b>COSMO {{ getValue("res", filter.res) }} Km</b> - Reference date: <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> - Run: <b>{{ filter.run }}</b>
             </div>
           </div>
 
