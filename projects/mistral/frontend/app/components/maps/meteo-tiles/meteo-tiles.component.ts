@@ -68,12 +68,15 @@ export class MeteoTilesComponent {
   private legends: { [key: string]: L.Control } = {};
   // license = this.license;
 
-  LAYER_OSM = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: this.license,
-    //'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>'+l_iff,
-    maxZoom: MAX_ZOOM,
-    minZoom: MIN_ZOOM,
-  });
+  LAYER_OSM = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      attribution: this.license,
+      //'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>'+l_iff,
+      maxZoom: MAX_ZOOM,
+      minZoom: MIN_ZOOM,
+    }
+  );
   LAYER_MAPBOX_LIGHT = L.tileLayer(
     "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw",
     {
@@ -169,16 +172,23 @@ export class MeteoTilesComponent {
       data,
       comp: MeteoTilesComponent = ref
     ) {
-      let date = new Date((map as any).timeDimension.getCurrentTime());
+      const start = moment.utc(
+        (map as any).timeDimension.getAvailableTimes()[0]
+      );
+      const current = moment.utc((map as any).timeDimension.getCurrentTime());
+      const hour = current.diff(start, "hours");
+      const index = Math.floor(hour / 3) - 1;
+      // const index = Math.floor(Math.random() * 23);
       // every 3 hour step refresh multi-model markers on the map
       // TODO
-      console.log(moment.utc(date).format());
+      console.log(`Hour: ${hour}, index: ${index}`);
       // clean up multi-model layer
       if (comp.markersGroup) {
         comp.map.removeLayer(comp.markersGroup);
       }
       if (comp.showed) {
-        comp.loadMarkers(Math.floor(Math.random() * 23));
+        // comp.loadMarkers(Math.floor(Math.random() * 23));
+        comp.loadMarkers(index);
       }
     });
   }
