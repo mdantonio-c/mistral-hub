@@ -116,7 +116,7 @@ export class MeteoTilesComponent {
       limitSliders: true,
       playerOptions: {
         buffer: 0,
-        transitionTime: 250,
+        transitionTime: 500,
         loop: true,
       },
     },
@@ -129,7 +129,7 @@ export class MeteoTilesComponent {
   private markers: L.Marker[] = [];
   private allMarkers: L.Marker[] = [];
   private markersGroup: any;
-  private mmProductsData: any[][] = [new Array(24), new Array(24)];
+  private mmProductsData: any[][] = null;
 
   constructor(
     private tilesService: TilesService,
@@ -176,19 +176,20 @@ export class MeteoTilesComponent {
         (map as any).timeDimension.getAvailableTimes()[0]
       );
       const current = moment.utc((map as any).timeDimension.getCurrentTime());
-      const hour = current.diff(start, "hours");
       // every 3 hour step refresh multi-model markers on the map
-      // TODO
-      console.log(`Hour: ${hour}`);
+      const hour = current.diff(start, "hours");
+      if (hour % 3 !== 0) {
+        return;
+      }
+      // console.log(`Hour: ${hour}`);
+
       // clean up multi-model layer
       if (comp.markersGroup) {
         comp.map.removeLayer(comp.markersGroup);
       }
       if (comp.showed) {
-        const index = Math.floor(hour / 3) - 1;
-        console.log(`Index: ${index}`);
-        // const index = Math.floor(Math.random() * 23);
-        // comp.loadMarkers(Math.floor(Math.random() * 23));
+        const index = Math.floor(hour / 3);
+        // console.log(`Index: ${index}`);
         comp.loadMarkers(index);
       }
     });
@@ -206,7 +207,6 @@ export class MeteoTilesComponent {
           this.runAvailable = runAvailable;
           console.log("Available Run", runAvailable);
           let reftime = runAvailable.reftime;
-          console.log("reftime", reftime);
           this.run = reftime.substr(8, 2);
 
           // set time
@@ -215,9 +215,6 @@ export class MeteoTilesComponent {
             .add(runAvailable.start_offset, "hours")
             .toDate();
           console.log(`startTime: ${startTime}`);
-          // let startTime = new Date(Date.UTC(2020, 4, 11));
-          // startTime.setUTCHours(0, 0, 0, 0);
-          // let endTime = 'PT72H';
           let endTime = moment
             .utc(reftime, "YYYYMMDDHH")
             .add(runAvailable.end_offset, "hours")
@@ -225,7 +222,6 @@ export class MeteoTilesComponent {
           console.log(`endTime ${endTime}`);
 
           // add time dimension
-          /*
           let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
             startTime,
             endTime,
@@ -236,14 +232,9 @@ export class MeteoTilesComponent {
             "replace"
           );
           (this.map as any).timeDimension.setCurrentTime(startTime);
-           */
 
           this.setOverlaysToMap();
 
-          // let tm2m: L.Layer = this.layersControl["overlays"][
-          //   this.DEFAULT_PRODUCT_COSMO
-          // ];
-          // tm2m.addTo(this.map);
           this.dataset = runAvailable.dataset;
 
           // add default layer
@@ -273,7 +264,7 @@ export class MeteoTilesComponent {
       });
   }
 
-  private getMMProducts(timerange = MULTI_MODEL_TIME_RANGES._1D3H) {
+  private getMMProducts() {
     console.log("loading multi-model ensemble products");
     // reset current data
     this.mmProductsData = [new Array(24), new Array(24)];
@@ -285,47 +276,17 @@ export class MeteoTilesComponent {
     //       .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
     //       .toDate();
     const reftime = moment.utc("2020-12-10 00:00:00").toDate();
-    console.log(
-      `reftime: ${moment
-        .utc(reftime)
-        .format()}, timerange ${timerange.toString()}`
-    );
+    console.log(`reftime: ${moment.utc(reftime).format()}}`);
 
-    // added
-    let startTime = moment.utc(reftime, "YYYYMMDDHH").add(27, "hours").toDate();
-    console.log(`startTime: ${startTime}`);
-    // let startTime = new Date(Date.UTC(2020, 4, 11));
-    // startTime.setUTCHours(0, 0, 0, 0);
-    // let endTime = 'PT72H';
-    let endTime = moment.utc(reftime, "YYYYMMDDHH").add(96, "hours").toDate();
-    console.log(`endTime ${endTime}`);
-    let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
-      startTime,
-      endTime,
-      `PT3H`
-    );
-    (this.map as any).timeDimension.setAvailableTimes(
-      newAvailableTimes,
-      "replace"
-    );
-    (this.map as any).timeDimension.setCurrentTime(startTime);
-    // end
-
-    // emit value every 0.5s
-    const source = interval(500);
+    // emit value every 0.05s
+    const source = interval(50);
     // keep a running total of the number of even numbers out
     const numberCount = source.pipe(scan((acc, _) => acc + 1, 0));
     // do not emit until 24 numbers have been emitted
     const maxNumbers = numberCount.pipe(filter((val) => val > 24));
-    const example = source.pipe(
-      // map(val => `number (timerange: ${Object.values(MULTI_MODEL_TIME_RANGES)[val]}) : ${val}`),
-      takeUntil(maxNumbers)
-    );
-    // const subscribe = example.subscribe(val => console.log(val));
+    const loadMultipleData$ = source.pipe(takeUntil(maxNumbers));
 
-    // console.log(`MULTI_MODEL_TIME_RANGES[0] ${Object.values(MULTI_MODEL_TIME_RANGES)[0]}`);
-
-    const subscribe = example.subscribe((val) => {
+    loadMultipleData$.subscribe((val) => {
       const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
       console.log(`timerange: ${timerange} : ${val}`);
       let filterTM: ObsFilter = {
@@ -342,8 +303,6 @@ export class MeteoTilesComponent {
       };
       let productTM$ = this.obsService.getData(filterTM, true);
       let productRH$ = this.obsService.getData(filterRH, true);
-      // let productTM = of(MOCK_MM_TEMP_OBS_RESPONSE);
-      // let productRH = of(MOCK_MM_RH_OBS_RESPONSE);
       forkJoin([productTM$, productRH$]).subscribe(
         (results) => {
           if (results[0].data.length === 0 && results[1].data.length === 0) {
@@ -352,20 +311,10 @@ export class MeteoTilesComponent {
           }
           const offset = parseInt(timerange.toString().split(",")[1]) / 3600;
           const idx = Math.floor((offset - 27) / 3);
-          console.log(`offset: +${offset}h, idx: ${idx}`);
-          // set time
-          let startTime = moment.utc(reftime).add(27, "hours").toDate();
-          console.log(`startTime: ${moment.utc(startTime).format()}`);
+          // console.log(`offset: +${offset}h, idx: ${idx}`);
 
           this.mmProductsData[0][idx] = results[0].data;
           this.mmProductsData[1][idx] = results[1].data;
-
-          // if (this.markersGroup) {
-          //   this.map.removeLayer(this.markersGroup);
-          // }
-          // if (this.showed) {
-          //   this.loadMarkers();
-          // }
         },
         (error) => {
           this.notify.showError(error);
@@ -904,10 +853,16 @@ export class MeteoTilesComponent {
   }
 
   private loadMarkers(timerangeIdx = 0) {
-    console.log(`loading markers`);
+    const idx = this.mmProduct === MultiModelProduct.TM ? 0 : 1;
+    if (
+      !this.mmProductsData ||
+      !this.mmProductsData[idx] ||
+      !this.mmProductsData[idx][timerangeIdx]
+    ) {
+      return;
+    }
     this.allMarkers = [];
     let obsData: ObsData;
-    const idx = this.mmProduct === MultiModelProduct.TM ? 0 : 1;
     const unit: string =
       this.mmProduct === MultiModelProduct.TM ? "<i>°</i>" : "";
     let min: number, max: number;
