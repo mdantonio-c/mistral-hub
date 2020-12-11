@@ -2,6 +2,7 @@ import { Component, Input, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { FormData, FormDataService } from "@app/services/formData.service";
+import { User } from "@rapydo/types";
 import {
   ScheduleType,
   RepeatEvery,
@@ -15,6 +16,7 @@ import { StepComponent } from "../step.component";
 import { fromEvent } from "rxjs";
 import { exhaustMap, tap } from "rxjs/operators";
 import { NgxSpinnerService } from "ngx-spinner";
+import { AuthService } from "@rapydo/services/auth";
 
 @Component({
   selector: "step-submit",
@@ -27,6 +29,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
   isFormValid = false;
   scheduleForm: FormGroup;
   schedule: TaskSchedule = null;
+  user: User;
 
   @ViewChild("submitButton", { static: true }) submitButton: ElementRef;
 
@@ -38,7 +41,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     protected formDataService: FormDataService,
     private modalService: NgbModal,
     private notify: NotificationService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
+    private authService: AuthService
   ) {
     super(formDataService, router, route);
     this.scheduleForm = this.formBuilder.group({
@@ -51,6 +55,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.user = this.authService.getUser();
     this.formData = this.formDataService.getFormData();
     this.isFormValid = this.formDataService.isFormValid();
     this.formDataService.getSummaryStats().subscribe((response) => {
@@ -78,7 +83,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
             this.formData.schedule,
             this.formData.postprocessors,
             this.formData.output_format,
-            this.formData.push
+            this.formData.push,
+            this.formData.opendata
           )
         )
       )
@@ -186,5 +192,21 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
   goToPrevious() {
     // Navigate to the postprocess page
     this.router.navigate(["../", "postprocess"], { relativeTo: this.route });
+  }
+
+  toggleOpenDataSchedule() {
+    this.formData.opendata = !this.formData.opendata;
+  }
+
+  checkOpenData() {
+    if (
+      this.user &&
+      this.user.roles.admin_root &&
+      this.formData.datasets.length == 1 &&
+      this.formData.datasets[0].is_public &&
+      this.formData.datasets[0].category !== "OBS"
+    ) {
+      return true;
+    } else return false;
   }
 }

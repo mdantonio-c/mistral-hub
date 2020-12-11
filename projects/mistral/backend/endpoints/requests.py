@@ -70,6 +70,7 @@ class UserRequests(EndpointResource):
                 "submission_date": r.submission_date.isoformat(),
                 "status": r.status,
                 "task_id": r.task_id,
+                "opendata": r.opendata,
             }
             if r.schedule_id is not None:
                 item["schedule_id"] = r.schedule_id

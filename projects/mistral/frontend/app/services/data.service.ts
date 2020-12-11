@@ -120,7 +120,8 @@ export class DataService {
     schedule?: TaskSchedule,
     postprocessors?: any[],
     outputformat?: string,
-    push?: boolean
+    push?: boolean,
+    opendata?: boolean
   ) {
     let data = {
       request_name: request_name,
@@ -172,6 +173,9 @@ export class DataService {
     let endpoint = schedule ? "schedules" : "data";
     if (push) {
       endpoint += "?push=true";
+    }
+    if (opendata) {
+      data["opendata"] = true;
     }
     return this.api.post(endpoint, data);
   }

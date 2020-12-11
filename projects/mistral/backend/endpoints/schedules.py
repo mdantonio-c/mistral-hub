@@ -372,8 +372,14 @@ class Schedules(EndpointResource):
                 raise BadRequest(
                     "Multi dataset for opendata schedules is not supported"
                 )
-            # check that the dataset is a open one
+
             ds_entry = db.Datasets.query.filter_by(arkimet_id=dataset_names[0]).first()
+            # check that the dataset is not of observed type
+            if ds_entry.category.name == "OBS":
+                raise BadRequest(
+                    "Opendata schedules service is not intended for observed data"
+                )
+            # check that the dataset is a open one
             # get license
             license = db.License.query.filter_by(id=ds_entry.license_id).first()
             # get license group
@@ -614,6 +620,8 @@ class Schedules(EndpointResource):
                         request_id,
                         pushing_queue,
                         name,
+                        False,
+                        opendata,
                     ],
                     countdown=1,
                 )

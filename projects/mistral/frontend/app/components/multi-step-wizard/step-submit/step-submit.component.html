@@ -171,6 +171,21 @@
       <div *ngIf="scheduleForm.get('repeatType').value === 'data-ready'">
         <!-- nothing -->
       </div>
+      <ng-container *ngIf="checkOpenData()">
+        <hr />
+        Open data schedule
+        <dd>
+          <button
+            type="button"
+            class="btn btn-sm btn-toggle"
+            data-toggle="button"
+            [ngClass]="{ active: formData.opendata }"
+            (click)="toggleOpenDataSchedule()"
+          >
+            <div class="handle"></div>
+          </button>
+        </dd>
+      </ng-container>
     </div>
     <div class="modal-footer">
       <button

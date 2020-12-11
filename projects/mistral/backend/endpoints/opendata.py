@@ -112,7 +112,7 @@ class OpendataFileList(EndpointResource):
             el["date"] = date
             # get the run
             run = None
-            if "run" in r.args["filters"]:
+            if r.args["filters"] and "run" in r.args["filters"]:
                 values = r.args["filters"]["run"]
                 if not isinstance(values, list):
                     values = [values]
