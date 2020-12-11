@@ -177,16 +177,17 @@ export class MeteoTilesComponent {
       );
       const current = moment.utc((map as any).timeDimension.getCurrentTime());
       const hour = current.diff(start, "hours");
-      const index = Math.floor(hour / 3) - 1;
-      // const index = Math.floor(Math.random() * 23);
       // every 3 hour step refresh multi-model markers on the map
       // TODO
-      console.log(`Hour: ${hour}, index: ${index}`);
+      console.log(`Hour: ${hour}`);
       // clean up multi-model layer
       if (comp.markersGroup) {
         comp.map.removeLayer(comp.markersGroup);
       }
       if (comp.showed) {
+        const index = Math.floor(hour / 3) - 1;
+        console.log(`Index: ${index}`);
+        // const index = Math.floor(Math.random() * 23);
         // comp.loadMarkers(Math.floor(Math.random() * 23));
         comp.loadMarkers(index);
       }
