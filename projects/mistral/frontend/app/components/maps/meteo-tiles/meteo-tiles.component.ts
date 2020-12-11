@@ -42,10 +42,6 @@ const MAP_CENTER = L.latLng(41.879966, 12.28),
     northEast: L.latLng(55.5, 47.0),
   };
 
-const TILES_PATH = environment.production
-  ? "resources/tiles"
-  : "app/custom/assets/images/tiles";
-
 const MAX_ZOOM = 8;
 const MIN_ZOOM = 5;
 
@@ -141,6 +137,26 @@ export class MeteoTilesComponent {
     // set the initial set of displayed layers
     this.options["layers"] = [this.LAYER_MAPBOX_LIGHT];
     this.dataset = this.DEFAULT_DATASET;
+  }
+
+  getTilesUrl() {
+    let production = environment.production;
+    if (environment.backendURI.startsWith("https")) {
+      production = true;
+    }
+    const TILES_PATH = production
+      ? "resources/tiles"
+      : "app/custom/assets/images/tiles";
+
+    let baseUrl = "";
+    if (environment.backendURI !== "") {
+      baseUrl += `${environment.backendURI}/`;
+    }
+    baseUrl += `${TILES_PATH}/${this.run}-${this.dataset}`;
+    if (production) {
+      baseUrl += `/${this.runAvailable.area}`;
+    }
+    return baseUrl;
   }
 
   onMapReady(map: L.Map) {
@@ -348,10 +364,8 @@ export class MeteoTilesComponent {
   }
 
   private setOverlaysToMap() {
-    let baseUrl = `${TILES_PATH}/${this.run}-${this.dataset}`;
-    if (environment.production) {
-      baseUrl += `/${this.runAvailable.area}`;
-    }
+    const baseUrl = this.getTilesUrl();
+
     let bounds =
       this.dataset === "lm5"
         ? L.latLngBounds(LM5_BOUNDS["southWest"], LM5_BOUNDS["northEast"])
