@@ -9,6 +9,7 @@ import { FormsModule } from "@angular/forms";
 import { NgxSpinnerModule } from "ngx-spinner";
 
 import { NotificationService } from "@rapydo/services/notification";
+import { AuthService } from "@rapydo/services/auth";
 import { StepSubmitComponent } from "./step-submit.component";
 import { FormatDatePipe } from "../../../pipes/format-date.pipe";
 import { FormDataService } from "../../../services/formData.service";
@@ -50,6 +51,7 @@ describe("StepSubmitComponent", () => {
       ],
       providers: [
         DatePipe,
+        AuthService,
         { provide: FormBuilder, useValue: formBuilder },
         { provide: FormDataService, useClass: FormDataServiceStub },
         { provide: DataService, useClass: DataServiceStub },
