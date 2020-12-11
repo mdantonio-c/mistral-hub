@@ -822,7 +822,20 @@ class BeDballe:
                         rec["min"],
                         rec["sec"],
                     )
-                    product_val["ref"] = reftime.isoformat()
+                    if query["rep_memo"] and query["rep_memo"] == "multim-forecast":
+                        if "datetimemin" in query:
+                            # multimodel case
+                            # check if the data is from the requested run
+                            actual_reftime = query["datetimemin"]
+                            trange = rec["trange"]
+                            validity_interval = timedelta(seconds=trange.p1)
+                            if not actual_reftime == reftime - validity_interval:
+                                # this data is not from the requested run
+                                continue
+                            else:
+                                product_val["ref"] = actual_reftime.isoformat()
+                    else:
+                        product_val["ref"] = reftime.isoformat()
 
                     if query:
                         if "query" in query:
