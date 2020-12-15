@@ -29,5 +29,5 @@ jobs:
       - name: MyPy
         run: |
 
-          mypy --disallow-incomplete-defs --disallow-any-unimported --disallow-any-generics --check-untyped-defs --warn-redundant-casts --warn-unused-ignores --warn-unused-configs --warn-return-any --warn-unreachable --txt-report . --html-report . restapi/
+          mypy --disallow-incomplete-defs --disallow-any-unimported --disallow-any-generics --check-untyped-defs --warn-redundant-casts --warn-unused-ignores --warn-unused-configs --warn-return-any --warn-unreachable --txt-report . --html-report . projects/${PROJECT}/backend/
           cat index.txt
