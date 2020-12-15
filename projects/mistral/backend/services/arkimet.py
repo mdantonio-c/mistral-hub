@@ -5,7 +5,7 @@ import shlex
 import subprocess
 
 import arkimet as arki
-import dateutil
+import dateutil.parser
 from arkimet.cfg import Sections
 from mistral.exceptions import AccessToDatasetDenied, InvalidLicenseException
 from restapi.utilities.logs import log
@@ -277,7 +277,7 @@ class BeArkimet:
         else:
             return None
 
-    #### to configure observed datasets one by one
+    # to configure observed datasets one by one
     @staticmethod
     def get_observed_dataset_params(dataset):
         cfg = arki.cfg.Sections.parse(BeArkimet.arkimet_conf)
@@ -295,7 +295,7 @@ class BeArkimet:
                 networks.append(f.split("=")[1])
         return networks
 
-    #### to configure all observed datasets at one time
+    # to configure all observed datasets at one time
     # @staticmethod
     # def get_observed_dataset_params(datasets):
     #     dataset_items = []
