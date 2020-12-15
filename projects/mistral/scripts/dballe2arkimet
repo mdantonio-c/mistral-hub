@@ -29,8 +29,7 @@ import tempfile
 
 import dballe
 from mistral.services.dballe import BeDballe
-
-# from restapi.confs import get_backend_url
+from restapi.config import get_backend_url
 from restapi.connectors import smtp
 from restapi.services.detect import detector
 
@@ -257,17 +256,12 @@ def dballe2arkimet(date):
             logging.warning("Do not delete data from dballe")
             # sent alert by mail
             smtp_client = smtp.get_instance()
-            # host = get_backend_url()
+            host = get_backend_url()
             smtp_client.send(
                 "Error migrate data from dballe to arkimet: data not deleted from DBalle",
-                "Alert from host : Migration error",
+                f"Alert from {host} : Migration error",
                 to_address="b.chiavarini@cineca.it",
             )
-            # smtp_client.send(
-            #     "Error migrate data from dballe to arkimet: data not deleted from DBalle",
-            #     f"Alert from {host} : Migration error",
-            #     to_address="b.chiavarini@cineca.it",
-            # )
 
 
 def main():
