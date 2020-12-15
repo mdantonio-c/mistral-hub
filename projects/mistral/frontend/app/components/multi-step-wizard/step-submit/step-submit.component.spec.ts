@@ -7,7 +7,7 @@ import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { NgxSpinnerModule } from "ngx-spinner";
-import { HttpClient } from "@angular/common/http";
+import { HttpClientModule, HttpClient } from "@angular/common/http";
 
 import { NotificationService } from "@rapydo/services/notification";
 import { AuthService } from "@rapydo/services/auth";
@@ -50,6 +50,7 @@ describe("StepSubmitComponent", () => {
         RouterTestingModule.withRoutes([]),
         NgbModule,
         NgxSpinnerModule,
+        HttpClientModule,
       ],
       providers: [
         HttpClient,
