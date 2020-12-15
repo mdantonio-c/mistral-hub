@@ -22,12 +22,8 @@ jobs:
         with:
           project: ${PROJECT}
           submodule: http-api
-      - name: Install mypy
-        run: |
-          pip install mypy lxml html5lib
-
-      - name: MyPy
-        run: |
-
-          mypy --disallow-incomplete-defs --disallow-any-unimported --disallow-any-generics --check-untyped-defs --warn-redundant-casts --warn-unused-ignores --warn-unused-configs --warn-return-any --warn-unreachable --txt-report . --html-report . projects/${PROJECT}/backend/
-          cat index.txt
+      - uses: rapydo/actions/mypy@v1
+        with:
+          project: ${PROJECT}
+          # install: ...
+          ignore: restapi
