@@ -822,7 +822,7 @@ class BeDballe:
                         rec["min"],
                         rec["sec"],
                     )
-                    if query["rep_memo"] and query["rep_memo"] == "multim-forecast":
+                    if "rep_memo" in query and query["rep_memo"] == "multim-forecast":
                         if "datetimemin" in query:
                             # multimodel case
                             # check if the data is from the requested run
@@ -862,7 +862,6 @@ class BeDballe:
                     else:
                         # append the value
                         response[station_tuple][rec["var"]].append(product_val)
-
         return response
 
     @staticmethod
