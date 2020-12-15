@@ -16,6 +16,7 @@ FILEFORMATS = ["BUFR", "JSON"]
 class ObservationsQuery(Schema):
     networks = fields.Str(required=False)
     q = fields.Str(required=False)
+    interval = fields.Int(required=False)
     lonmin = fields.Float(required=False)
     latmin = fields.Float(required=False)
     lonmax = fields.Float(required=False)
@@ -63,6 +64,7 @@ class MapsObservations(EndpointResource):
         self,
         networks=None,
         q="",
+        interval=None,
         lonmin=None,
         latmin=None,
         lonmax=None,
@@ -158,6 +160,7 @@ class MapsObservations(EndpointResource):
                 raw_res = dballe.get_maps_response(
                     query,
                     onlyStations,
+                    interval=interval,
                     db_type=db_type,
                     query_station_data=query_station_data,
                 )
