@@ -1,0 +1,34 @@
+name: MyPy
+
+env:
+  PROJECT: mistral
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  mypy:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: rapydo/actions/install@v1
+        with:
+          project: ${PROJECT}
+          submodule: http-api
+      - name: Install
+        run: |
+          pip install mypy lxml html5lib
+          pip install --upgrade --no-cache-dir
+
+      - name: MyPy
+        run: |
+
+          mypy --disallow-incomplete-defs --disallow-any-unimported --disallow-any-generics --check-untyped-defs --warn-redundant-casts --warn-unused-ignores --warn-unused-configs --warn-return-any --warn-unreachable --txt-report . --html-report . restapi/
+          cat index.txt
