@@ -60,7 +60,10 @@ const TM2 = "Temperature at 2 meters",
   TPPERC10 = "Precipitation percentile 10%",
   TPPERC25 = "Precipitation percentile 25%",
   TPPERC50 = "Precipitation percentile 50%",
+  TPPERC70 = "Precipitation percentile 70%",
   TPPERC75 = "Precipitation percentile 75%",
+  TPPERC80 = "Precipitation percentile 80%",
+  TPPERC90 = "Precipitation percentile 90%",
   TPPERC99 = "Precipitation percentile 99%",
   TPPROB5 = "Precipitation probability 5%",
   TPPROB10 = "Precipitation probability 10%",
@@ -332,8 +335,41 @@ export class MeteoTilesComponent {
           }),
           {}
         ),
+        [TPPERC70]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/percentile-perc70/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
+          {}
+        ),
         [TPPERC75]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(`${baseUrl}/percentile-perc75/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
+          {}
+        ),
+        [TPPERC80]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/percentile-perc80/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
+          {}
+        ),
+        [TPPERC90]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/percentile-perc90/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
@@ -536,12 +572,13 @@ export class MeteoTilesComponent {
     return legend;
   }
 
+
   private initLegends(map: L.Map) {
     let layers = this.layersControl["overlays"];
     this.legends = {
       [TM2]: this.createLegendControl("tm2"),
-      [PREC3P]: this.createLegendControl("prec3tp"),
-      [PREC6P]: this.createLegendControl("prec6tp"),
+      [PREC3P]: this.createLegendControl("prp"),
+      [PREC6P]: this.createLegendControl("prp"),
       [SF3]: this.createLegendControl("sf3"),
       [RH]: this.createLegendControl("rh"),
       [HCC]: this.createLegendControl("hcc"),
@@ -550,8 +587,11 @@ export class MeteoTilesComponent {
       [TPPERC1]: this.createLegendControl("tpperc"),
       [TPPERC10]: this.createLegendControl("tpperc"),
       [TPPERC25]: this.createLegendControl("tpperc"),
-      [TPPERC75]: this.createLegendControl("tpperc"),
       [TPPERC50]: this.createLegendControl("tpperc"),
+      [TPPERC70]: this.createLegendControl("tpperc"),
+      [TPPERC75]: this.createLegendControl("tpperc"),
+      [TPPERC80]: this.createLegendControl("tpperc"),
+      [TPPERC90]: this.createLegendControl("tpperc"),
       [TPPERC99]: this.createLegendControl("tpperc"),
       [TPPROB5]: this.createLegendControl("tpprob"),
       [TPPROB20]: this.createLegendControl("tpprob"),
@@ -560,14 +600,18 @@ export class MeteoTilesComponent {
     };
 
     let legends = this.legends;
+    let currentActiveLayers = [];
+    currentActiveLayers.push(TM2);
+    currentActiveLayers.push(TPPERC1);
+
     map.on("overlayadd", function (event) {
       console.log(event["name"]);
+      currentActiveLayers.push(event["name"]);
+
       if (event["name"] === TM2) {
         legends[TM2].addTo(map);
-      } else if (event["name"] === PREC3P) {
+      } else if (event["name"] === PREC3P || event["name"] === PREC6P) {
         legends[PREC3P].addTo(this);
-      } else if (event["name"] === PREC6P) {
-        legends[PREC6P].addTo(this);
       } else if (event["name"] === SF3 || event["name"] === SF6) {
         legends[SF3].addTo(this);
       } else if (event["name"] === RH) {
@@ -583,7 +627,10 @@ export class MeteoTilesComponent {
         event["name"] === TPPERC10 ||
         event["name"] === TPPERC25 ||
         event["name"] === TPPERC50 ||
+        event["name"] === TPPERC70 ||
         event["name"] === TPPERC75 ||
+        event["name"] === TPPERC80 ||
+        event["name"] === TPPERC90 ||
         event["name"] === TPPERC99
       ) {
         legends[TPPERC1].addTo(this);
@@ -598,15 +645,18 @@ export class MeteoTilesComponent {
     });
 
     map.on("overlayremove", function (event) {
+      currentActiveLayers = currentActiveLayers.filter(function(value, index, arr){
+      return value != event["name"];
+      });
       if (event["name"] === TM2) {
         this.removeControl(legends[TM2]);
-      } else if (event["name"] === PREC3P) {
+      } else if (event["name"] === PREC3P && !currentActiveLayers.includes(PREC6P)) {
         this.removeControl(legends[PREC3P]);
-      } else if (event["name"] === PREC6P) {
-        this.removeControl(legends[PREC6P]);
-      } else if (event["name"] === SF3 && !map.hasLayer(layers[SF6])) {
+      } else if (event["name"] === PREC6P && !currentActiveLayers.includes(PREC3P)) {
+        this.removeControl(legends[PREC3P]);
+      } else if (event["name"] === SF3 && !currentActiveLayers.includes(SF6)) {
         this.removeControl(legends[SF3]);
-      } else if (event["name"] === SF6 && !map.hasLayer(layers[SF3])) {
+      } else if (event["name"] === SF6 && !currentActiveLayers.includes(SF3)) {
         this.removeControl(legends[SF3]);
       } else if (event["name"] === RH) {
         this.removeControl(legends[RH]);
@@ -618,84 +668,138 @@ export class MeteoTilesComponent {
         this.removeControl(legends[LCC]);
       } else if (
         event["name"] === TPPERC1 &&
-        !map.hasLayer(layers[TPPERC10]) &&
-        !map.hasLayer(layers[TPPERC25]) &&
-        !map.hasLayer(layers[TPPERC50]) &&
-        !map.hasLayer(layers[TPPERC75]) &&
-        !map.hasLayer(layers[TPPERC99])
+        !currentActiveLayers.includes(TPPERC10) &&
+        !currentActiveLayers.includes(TPPERC25) &&
+        !currentActiveLayers.includes(TPPERC50) &&
+        !currentActiveLayers.includes(TPPERC70) &&
+        !currentActiveLayers.includes(TPPERC75) &&
+        !currentActiveLayers.includes(TPPERC80) &&
+        !currentActiveLayers.includes(TPPERC90) &&
+        !currentActiveLayers.includes(TPPERC99)
       ) {
         this.removeControl(legends[TPPERC1]);
       } else if (
         event["name"] === TPPERC10 &&
-        !map.hasLayer(layers[TPPERC1]) &&
-        !map.hasLayer(layers[TPPERC25]) &&
-        !map.hasLayer(layers[TPPERC50]) &&
-        !map.hasLayer(layers[TPPERC75]) &&
-        !map.hasLayer(layers[TPPERC99])
+        !currentActiveLayers.includes(TPPERC1) &&
+        !currentActiveLayers.includes(TPPERC25) &&
+        !currentActiveLayers.includes(TPPERC50) &&
+        !currentActiveLayers.includes(TPPERC70) &&
+        !currentActiveLayers.includes(TPPERC75) &&
+        !currentActiveLayers.includes(TPPERC80) &&
+        !currentActiveLayers.includes(TPPERC90) &&
+        !currentActiveLayers.includes(TPPERC99)
       ) {
         this.removeControl(legends[TPPERC1]);
       } else if (
         event["name"] === TPPERC25 &&
-        !map.hasLayer(layers[TPPERC1]) &&
-        !map.hasLayer(layers[TPPERC10]) &&
-        !map.hasLayer(layers[TPPERC50]) &&
-        !map.hasLayer(layers[TPPERC75]) &&
-        !map.hasLayer(layers[TPPERC99])
+        !currentActiveLayers.includes(TPPERC1) &&
+        !currentActiveLayers.includes(TPPERC10) &&
+        !currentActiveLayers.includes(TPPERC50) &&
+        !currentActiveLayers.includes(TPPERC70) &&
+        !currentActiveLayers.includes(TPPERC75) &&
+        !currentActiveLayers.includes(TPPERC80) &&
+        !currentActiveLayers.includes(TPPERC90) &&
+        !currentActiveLayers.includes(TPPERC99)
       ) {
-        this.removeControl(legends[TPPERC50]);
+        this.removeControl(legends[TPPERC1]);
       } else if (
         event["name"] === TPPERC50 &&
-        !map.hasLayer(layers[TPPERC1]) &&
-        !map.hasLayer(layers[TPPERC10]) &&
-        !map.hasLayer(layers[TPPERC25]) &&
-        !map.hasLayer(layers[TPPERC75]) &&
-        !map.hasLayer(layers[TPPERC99])
+        !currentActiveLayers.includes(TPPERC1) &&
+        !currentActiveLayers.includes(TPPERC10) &&
+        !currentActiveLayers.includes(TPPERC25) &&
+        !currentActiveLayers.includes(TPPERC70) &&
+        !currentActiveLayers.includes(TPPERC75) &&
+        !currentActiveLayers.includes(TPPERC80) &&
+        !currentActiveLayers.includes(TPPERC90) &&
+        !currentActiveLayers.includes(TPPERC99)
       ) {
-        this.removeControl(legends[TPPERC75]);
+        this.removeControl(legends[TPPERC1]);
+      } else if (
+        event["name"] === TPPERC70 &&
+        !currentActiveLayers.includes(TPPERC1) &&
+        !currentActiveLayers.includes(TPPERC10) &&
+        !currentActiveLayers.includes(TPPERC25) &&
+        !currentActiveLayers.includes(TPPERC50) &&
+        !currentActiveLayers.includes(TPPERC75) &&
+        !currentActiveLayers.includes(TPPERC80) &&
+        !currentActiveLayers.includes(TPPERC90) &&
+        !currentActiveLayers.includes(TPPERC99)
+      ) {
+        this.removeControl(legends[TPPERC1]);
       } else if (
         event["name"] === TPPERC75 &&
-        !map.hasLayer(layers[TPPERC1]) &&
-        !map.hasLayer(layers[TPPERC10]) &&
-        !map.hasLayer(layers[TPPERC25]) &&
-        !map.hasLayer(layers[TPPERC50]) &&
-        !map.hasLayer(layers[TPPERC99])
+        !currentActiveLayers.includes(TPPERC1) &&
+        !currentActiveLayers.includes(TPPERC10) &&
+        !currentActiveLayers.includes(TPPERC25) &&
+        !currentActiveLayers.includes(TPPERC50) &&
+        !currentActiveLayers.includes(TPPERC70) &&
+        !currentActiveLayers.includes(TPPERC80) &&
+        !currentActiveLayers.includes(TPPERC90) &&
+        !currentActiveLayers.includes(TPPERC99)
       ) {
-        this.removeControl(legends[TPPERC99]);
+        this.removeControl(legends[TPPERC1]);
+      } else if (
+        event["name"] === TPPERC80 &&
+        !currentActiveLayers.includes(TPPERC1) &&
+        !currentActiveLayers.includes(TPPERC10) &&
+        !currentActiveLayers.includes(TPPERC25) &&
+        !currentActiveLayers.includes(TPPERC50) &&
+        !currentActiveLayers.includes(TPPERC70) &&
+        !currentActiveLayers.includes(TPPERC75) &&
+        !currentActiveLayers.includes(TPPERC90) &&
+        !currentActiveLayers.includes(TPPERC99)
+      ) {
+        this.removeControl(legends[TPPERC1]);
+      } else if (
+        event["name"] === TPPERC90 &&
+        !currentActiveLayers.includes(TPPERC1) &&
+        !currentActiveLayers.includes(TPPERC10) &&
+        !currentActiveLayers.includes(TPPERC25) &&
+        !currentActiveLayers.includes(TPPERC50) &&
+        !currentActiveLayers.includes(TPPERC70) &&
+        !currentActiveLayers.includes(TPPERC75) &&
+        !currentActiveLayers.includes(TPPERC80) &&
+        !currentActiveLayers.includes(TPPERC99)
+      ) {
+        this.removeControl(legends[TPPERC1]);
       } else if (
         event["name"] === TPPERC99 &&
-        !map.hasLayer(layers[TPPERC1]) &&
-        !map.hasLayer(layers[TPPERC10]) &&
-        !map.hasLayer(layers[TPPERC25]) &&
-        !map.hasLayer(layers[TPPERC50]) &&
-        !map.hasLayer(layers[TPPERC75])
+        !currentActiveLayers.includes(TPPERC1) &&
+        !currentActiveLayers.includes(TPPERC10) &&
+        !currentActiveLayers.includes(TPPERC25) &&
+        !currentActiveLayers.includes(TPPERC50) &&
+        !currentActiveLayers.includes(TPPERC70) &&
+        !currentActiveLayers.includes(TPPERC75) &&
+        !currentActiveLayers.includes(TPPERC80) &&
+        !currentActiveLayers.includes(TPPERC90)
       ) {
         this.removeControl(legends[TPPERC1]);
       } else if (
         event["name"] === TPPROB5 &&
-        !map.hasLayer(layers[TPPROB10]) &&
-        !map.hasLayer(layers[TPPROB20]) &&
-        !map.hasLayer(layers[TPPROB50])
+        !currentActiveLayers.includes(TPPROB10) &&
+        !currentActiveLayers.includes(TPPROB20) &&
+        !currentActiveLayers.includes(TPPROB50)
       ) {
         this.removeControl(legends[TPPROB5]);
       } else if (
         event["name"] === TPPROB10 &&
-        !map.hasLayer(layers[TPPROB5]) &&
-        !map.hasLayer(layers[TPPROB20]) &&
-        !map.hasLayer(layers[TPPROB50])
+        !currentActiveLayers.includes(TPPROB5) &&
+        !currentActiveLayers.includes(TPPROB20) &&
+        !currentActiveLayers.includes(TPPROB50)
       ) {
         this.removeControl(legends[TPPROB5]);
       } else if (
         event["name"] === TPPROB20 &&
-        !map.hasLayer(layers[TPPROB5]) &&
-        !map.hasLayer(layers[TPPROB10]) &&
-        !map.hasLayer(layers[TPPROB50])
+        !currentActiveLayers.includes(TPPROB5) &&
+        !currentActiveLayers.includes(TPPROB10) &&
+        !currentActiveLayers.includes(TPPROB50)
       ) {
         this.removeControl(legends[TPPROB5]);
       } else if (
         event["name"] === TPPROB50 &&
-        !map.hasLayer(layers[TPPROB5]) &&
-        !map.hasLayer(layers[TPPROB10]) &&
-        !map.hasLayer(layers[TPPROB20])
+        !currentActiveLayers.includes(TPPROB5) &&
+        !currentActiveLayers.includes(TPPROB10) &&
+        !currentActiveLayers.includes(TPPROB20)
       ) {
         this.removeControl(legends[TPPROB5]);
       }
@@ -704,8 +808,11 @@ export class MeteoTilesComponent {
     // add default legend to the map
     if (this.dataset === "iff") {
       this.legends[TPPERC1].addTo(map);
+      currentActiveLayers.push(TPPERC1);
+      console.log(currentActiveLayers);
     } else {
       this.legends[TM2].addTo(map);
+      currentActiveLayers.push(TM2);
     }
   }
 
@@ -715,11 +822,11 @@ export class MeteoTilesComponent {
     let currentActiveNames = [];
     for (let name in overlays) {
       if (this.map.hasLayer(overlays[name])) {
+        console.log(overlays);
         currentActiveNames.push(name);
         this.map.removeLayer(overlays[name]);
       }
     }
-
     this.loadRunAvailable(newDs);
 
     this.dataset = newDs;
@@ -824,7 +931,7 @@ export class MeteoTilesComponent {
             unit +
             "</span></div>",
           iconSize: [24, 6],
-          className: `mst-marker-icon 
+          className: `mst-marker-icon
             mst-obs-marker-color-${this.obsService.getColor(
               obsData.val[0].val,
               min,
