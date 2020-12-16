@@ -5,6 +5,7 @@
 
     <div class="row no-gutters">
       <div class="col-md-6 mb-4 mb-md-0">
+      
         <!-- Summary Stats-->
         <div class="card mst--expansion-panel mst--info-panel">
           <div class="card-header">
@@ -12,12 +13,6 @@
           </div>
           <div class="body">
             <ul>
-              <li *ngIf="summaryStats">
-                <strong>From:</strong> {{ summaryStats.b | fmtDate }}
-              </li>
-              <li *ngIf="summaryStats">
-                <strong>To:</strong> {{ summaryStats.e | fmtDate }}
-              </li>
               <li *ngIf="summaryStats">
                 <strong>Count:</strong> {{ summaryStats.c }}
               </li>
@@ -30,6 +25,24 @@
             </ul>
           </div>
         </div>
+        
+        <!-- Reftime -->
+        <div class="card mst--expansion-panel mst--info-panel">
+          <div class="card-header">
+            <h5>Reftime</h5>
+          </div>
+          <div class="body">
+            <ul>
+              <li *ngIf="summaryStats">
+                <strong>From:</strong> {{ summaryStats.b | fmtDate }}
+              </li>
+              <li *ngIf="summaryStats">
+                <strong>To:</strong> {{ summaryStats.e | fmtDate }}
+              </li>
+            </ul>
+          </div>
+        </div>        
+        
       </div>
       <div class="col-md-6">
         <!-- My Request -->

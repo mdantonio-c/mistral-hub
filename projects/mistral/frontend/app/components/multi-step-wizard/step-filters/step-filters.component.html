@@ -28,21 +28,12 @@
         <div class="col-md-6 mb-4 mb-md-0">
           <!-- Summary Stats-->
           <div
-            class="card mst--expansion-panel mst--info-panel h-100"
+            class="card mst--expansion-panel mst--info-panel"
             *ngIf="summaryStats"
           >
             <div class="card-header">
               <h5>Summary Stats</h5>
-              <button
-                type="button"
-                class="btn btn-sm ml-2 p-0 mb-1"
-                (click)="editReftime(reftimeContent)"
-                ngbTooltip="Change reftime"
-                triggers="hover"
-                placement="right"
-              >
-                <i class="fa fa-edit"></i>
-              </button>
+
               <button
                 type="button"
                 class="btn btn-sm ml-2 p-0 mb-1 float-right"
@@ -55,8 +46,6 @@
             </div>
             <div class="body">
               <ul>
-                <li><strong>From:</strong> {{ summaryStats.b | fmtDate }}</li>
-                <li><strong>To:</strong> {{ summaryStats.e | fmtDate }}</li>
                 <li><strong>Count:</strong> {{ summaryStats.c }}</li>
                 <li>
                   <strong>Size:</strong>
@@ -85,6 +74,46 @@
           </div>
         </div>
       </div>
+
+
+
+
+      <!-- Refime  -->
+      <div class="no-gutters">
+        
+          <div
+            class="card mst--expansion-panel" *ngIf="summaryStats">
+            <div class="card-header">
+              <h5>reftime</h5>
+              <button
+                type="button"
+                class="btn btn-sm ml-2 p-0 mb-1"
+                (click)="editReftime(reftimeContent)"
+                ngbTooltip="Change reftime"
+                triggers="hover"
+                placement="right"
+              >
+                <i class="fa fa-edit"></i>
+              </button>
+
+            </div>
+            <div class="card-body mst--list-filter">
+              <ul class="row no-gutters">
+                <li class="col-sm-12 col-md-12">
+                    <label style="margin:6px 0 0 12px;">From: {{ summaryStats.b | fmtDate }}</label>
+                </li>
+                <li class="col-sm-12 col-md-12">
+                    <label style="margin:6px 0 0 12px;">To: {{ summaryStats.e | fmtDate }}</label>
+                </li>
+              </ul>
+            </div>
+          </div>
+        
+      </div>
+
+
+
+
 
       <!-- Filters -->
       <div
