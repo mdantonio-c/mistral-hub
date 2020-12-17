@@ -216,14 +216,14 @@ export interface StationDetail {
 }
 
 export interface ObsValue {
-  // level: string;
   ref: string;
-  // timerange: string;
   val: number;
   rel?: number; // 1 or 0
 }
 
 export interface ObsData {
+  lev?: string;
+  trange?: string;
   val: ObsValue[];
   var: string;
 }
@@ -262,6 +262,20 @@ export interface DataSeries {
   timerange?: string;
   level?: string;
   series: SeriesItem[];
+}
+
+export interface MultiStationDataSeries {
+  name: string;
+  code: string;
+  unit?: string;
+  timerange?: string;
+  level?: string;
+  series: MultiStationSeriesItem[];
+}
+
+export interface MultiStationSeriesItem {
+  name: Date;
+  value: any;
 }
 
 export interface SeriesItem {

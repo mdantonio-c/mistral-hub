@@ -23,6 +23,7 @@ export class FormData {
   schedule: TaskSchedule;
   output_format = "";
   push: boolean = false;
+  opendata: boolean = false;
 
   clear() {
     this.request_name = "";
@@ -33,6 +34,7 @@ export class FormData {
     this.schedule = null;
     this.reftime = this.defaultRefTime();
     this.push = false;
+    this.opendata = false;
   }
 
   setSchedule(schedule: TaskSchedule) {

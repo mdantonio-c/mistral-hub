@@ -30,6 +30,8 @@ class DataReady(EndpointResource):
         db = sqlalchemy.get_instance()
 
         schedules_list = db.Schedule.query.all()
+        log.debug("rundate type: {}", type(rundate))
+        log.debug("reftime {}", rundate.isoformat())
         for row in schedules_list:
             r = SqlApiDbManager._get_schedule_response(row)
 
@@ -151,12 +153,16 @@ class DataReady(EndpointResource):
 
             log.info("Checking schedule: {}\n{}", name, r)
 
-            reftime = {"from": rundate.isoformat(), "to": rundate.isoformat()}
+            reftime = {
+                "from": rundate.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                "to": rundate.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            }
 
             filters = r["args"].get("filters")
             processors = r["args"].get("processors")
             output_format = r["args"].get("output_format")
             pushing_queue = r["args"].get("pushing_queue")
+            opendata = r["opendata"]
 
             try:
                 # this operation is done by the data extraction task
@@ -189,6 +195,7 @@ class DataReady(EndpointResource):
                         pushing_queue,
                         request_id,
                         data_ready,
+                        opendata,
                     ],
                     countdown=1,
                 )

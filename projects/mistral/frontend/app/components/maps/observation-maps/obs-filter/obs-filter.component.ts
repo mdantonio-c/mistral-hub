@@ -154,12 +154,6 @@ export class ObsFilterComponent implements OnInit {
                 emitEvent: false,
               });
             }
-            if (this.allNetworks.length === 1) {
-              this.filterForm.controls.network.setValue(
-                this.allNetworks[0].code,
-                { emitEvent: false }
-              );
-            }
           }
           if (items.level) {
             this.allLevels = items.level;

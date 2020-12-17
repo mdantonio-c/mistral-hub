@@ -5,7 +5,7 @@ import {
   ObsFilter,
   Station,
   StationDetail,
-  DataSeries,
+  MultiStationDataSeries,
   ObservationResponse,
   DescriptionDict,
 } from "@app/types";
@@ -24,7 +24,7 @@ const STATION_NAME_CODE = "B01019";
 })
 export class ObsMeteogramsComponent implements AfterViewInit {
   filter: ObsFilter;
-  multi: DataSeries[];
+  multi: MultiStationDataSeries[];
   report: Observation[];
   descriptions: DescriptionDict;
   loading: boolean = true;
@@ -64,6 +64,11 @@ export class ObsMeteogramsComponent implements AfterViewInit {
   private xAxisTickFormatting(val) {
     // val: 2020-09-07T04:00:00
     return moment(val).format("HH:mm");
+  }
+
+  TooltipDateFormat(val) {
+    // val: 2020-09-07T04:00:00
+    return moment(val).format("YYYY-MM-DD HH:mm");
   }
 
   private getName(station: Station) {
@@ -115,11 +120,11 @@ export class ObsMeteogramsComponent implements AfterViewInit {
       });
   }
 
-  private normalize(data: Observation[]): DataSeries[] {
-    let res: DataSeries[] = [];
+  private normalize(data: Observation[]): MultiStationDataSeries[] {
+    let res: MultiStationDataSeries[] = [];
     data.forEach((obs) => {
       let p: ObsData = obs.prod[0];
-      let s: DataSeries = {
+      let s: MultiStationDataSeries = {
         name: this.getName(obs.stat) || "n/a",
         code: p.var,
         series: [],
@@ -128,7 +133,7 @@ export class ObsMeteogramsComponent implements AfterViewInit {
         .filter((obs) => obs.rel === 1)
         .map((obs) => {
           return {
-            name: obs.ref,
+            name: new Date(obs.ref),
             value: ObsService.showData(obs.val, p.var),
           };
         });

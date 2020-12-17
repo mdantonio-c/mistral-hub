@@ -8,7 +8,7 @@ import tarfile
 
 from celery import states
 from celery.exceptions import Ignore
-from mistral.endpoints import DOWNLOAD_DIR
+from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from mistral.exceptions import (
     AccessToDatasetDenied,
     DiskQuotaException,
@@ -44,7 +44,8 @@ def data_extract(
     request_id=None,
     amqp_queue=None,
     schedule_id=None,
-    data_ready=None,
+    data_ready=False,
+    opendata=False,
 ):
     with celery_app.app.app_context():
         log.info("Start task [{}:{}]", self.request.id, self.name)
@@ -64,8 +65,8 @@ def data_extract(
                         )
                     )
                 # adapt the request reftime
-                if not data_ready:
-                    reftime = adapt_reftime(schedule, reftime)
+                if reftime and not data_ready:
+                    reftime = adapt_reftime(db, schedule, reftime)
 
                 # create an entry in request db linked to the scheduled request entry
                 request_name = SqlApiDbManager.get_schedule_name(db, schedule_id)
@@ -81,6 +82,7 @@ def data_extract(
                         "output_format": output_format,
                     },
                     schedule_id=schedule_id,
+                    opendata=opendata,
                 )
                 # update the entry with celery task id
                 request.task_id = self.request.id
@@ -131,21 +133,25 @@ def data_extract(
                 output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
             else:
                 # create a temporary outfile directory
-                output_dir = os.path.join("/data/tmp_outfiles", uuid)
+                output_dir = os.path.join(DOWNLOAD_DIR, "tmp_outfiles", uuid)
             os.makedirs(output_dir, exist_ok=True)
 
             # check that the datasets are all under the same license
             arki.check_compatible_licenses(db, datasets)
 
-            # output filename in the user space
             # max filename len = 64
             out_filename = "data-{utc_now}-{id}.{fileformat}".format(
                 utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
                 id=self.request.id,
                 fileformat=dataset_format,
             )
+            if opendata:
+                # get opendata folder as output dir
+                output_dir = OPENDATA_DIR
+
             # final result
             outfile = os.path.join(output_dir, out_filename)
+            log.debug("outfile: {}", outfile)
 
             if not amqp_queue:
                 if data_type != "OBS" and "multim-forecast" not in datasets:
@@ -479,11 +485,20 @@ def data_extract(
 
             # create fileoutput record in db
             if not amqp_queue:
-                SqlApiDbManager.create_fileoutput_record(
-                    db, user_id, request_id, target_filename, data_size
-                )
-            # update request status
-            request.status = states.SUCCESS
+                if not opendata or data_size > 0:
+                    SqlApiDbManager.create_fileoutput_record(
+                        db, user_id, request_id, target_filename, data_size
+                    )
+                    request.status = states.SUCCESS
+                else:
+                    # remove the empty output file
+                    if os.path.exists(outfile):
+                        os.remove(outfile)
+                    request.status = states.FAILURE
+                    request.error_message = "The resulting output file was empty"
+            else:
+                # update request status
+                request.status = states.SUCCESS
 
         except ReferenceError as exc:
             request.status = states.FAILURE
@@ -698,16 +713,76 @@ def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
     return str(bytes) + units[0] if bytes < 1024 else human_size(bytes >> 10, units[1:])
 
 
-def adapt_reftime(schedule, reftime):
+def adapt_reftime(db, schedule, reftime):
     new_reftime = None
     if reftime is not None:
         new_reftime = {}
         time_delta_from = schedule.time_delta
+        # get the interval
+        if not schedule.is_crontab:
+            schedule_interval = datetime.timedelta(
+                **{schedule.period.name: schedule.every}
+            )
+        else:
+            cron_settings = json.loads(schedule.crontab_settings)
+            if "day_of_week" in cron_settings:
+                schedule_interval = datetime.timedelta(
+                    **{"days": cron_settings["day_of_week"]}
+                )
+            elif "day_of_month" in cron_settings:
+                if not "month of year" in cron_settings:
+                    days_in_month_dict = {
+                        1: 31,
+                        2: 28,
+                        3: 31,
+                        4: 30,
+                        5: 31,
+                        6: 30,
+                        7: 31,
+                        8: 31,
+                        9: 30,
+                        10: 31,
+                        11: 30,
+                        12: 31,
+                    }
+                    # interval is the number of the day of the past month
+                    schedule_interval = datetime.timedelta(
+                        **{
+                            "days": days_in_month_dict[
+                                datetime.datetime.now().month - 1
+                            ]
+                        }
+                    )
+                else:
+                    schedule_interval = datetime.timedelta(days=365)
+            else:
+                schedule_interval = datetime.timedelta(days=1)
+
+        # check if there are submitted requests
+        last_r = (
+            db.Request.query.filter_by(schedule_id=schedule.id)
+            .order_by(db.Request.submission_date.desc())
+            .first()
+        )
+        if last_r:
+            # get the reftime of the last submitted request
+            if last_r.args["reftime"]:
+                last_reftime_to = datetime.datetime.strptime(
+                    last_r.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                )
+        else:
+            # get the reftime of the schedule
+            last_reftime_to = datetime.datetime.strptime(
+                reftime["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+
         now = datetime.datetime.utcnow()
-        reftime_to = datetime.datetime.strptime(reftime["to"], "%Y-%m-%dT%H:%M:%S.%fZ")
-        submission_date = schedule.submission_date
-        time_delta_to = submission_date - reftime_to
-        new_reftime_to = now - time_delta_to
+        # get the delta for the reftime to (including the case a schedule has been switched off for some time)
+        time_delta_to = schedule_interval * (
+            int((now - last_reftime_to) / schedule_interval)
+        )
+        # get the new reftimes
+        new_reftime_to = last_reftime_to + time_delta_to
         new_reftime_from = new_reftime_to - time_delta_from
         new_reftime["from"] = new_reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         new_reftime["to"] = new_reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")

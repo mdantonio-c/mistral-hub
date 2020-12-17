@@ -29,7 +29,7 @@ import tempfile
 
 import dballe
 from mistral.services.dballe import BeDballe
-from restapi.confs import get_backend_url
+from restapi.config import get_backend_url
 from restapi.connectors import smtp
 from restapi.services.detect import detector
 

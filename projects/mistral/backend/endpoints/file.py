@@ -1,11 +1,9 @@
 import os
 
 from flask import send_from_directory
-from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import sqlalchemy
-from restapi.exceptions import NotFound
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 
@@ -27,10 +25,7 @@ class FileDownload(EndpointResource):
         db = sqlalchemy.get_instance()
 
         # check for file existence, ownership and location
-        if not SqlApiDbManager.check_fileoutput(db, user, filename, DOWNLOAD_DIR):
-            raise NotFound("File not found")
-
-        user_dir = os.path.join(DOWNLOAD_DIR, user.uuid, "outputs")
-        log.info("directory: {}", user_dir)
+        file_dir = SqlApiDbManager.check_fileoutput(db, user, filename)
+        log.info("directory: {}", file_dir)
         # download the file as a response attachment
-        return send_from_directory(user_dir, filename, as_attachment=True)
+        return send_from_directory(file_dir, filename, as_attachment=True)

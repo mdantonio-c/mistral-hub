@@ -16,6 +16,7 @@ FILEFORMATS = ["BUFR", "JSON"]
 class ObservationsQuery(Schema):
     networks = fields.Str(required=False)
     q = fields.Str(required=False)
+    interval = fields.Int(required=False)
     lonmin = fields.Float(required=False)
     latmin = fields.Float(required=False)
     lonmax = fields.Float(required=False)
@@ -57,11 +58,13 @@ class MapsObservations(EndpointResource):
             404: "The query does not give result",
         },
     )
+    @decorators.cache(timeout=600)
     # 200: {'schema': {'$ref': '#/definitions/MapStations'}}
     def get(
         self,
         networks=None,
         q="",
+        interval=None,
         lonmin=None,
         latmin=None,
         lonmax=None,
@@ -154,30 +157,13 @@ class MapsObservations(EndpointResource):
                     query_station_data=query_station_data,
                 )
             else:
-                if not onlyStations and not query_station_data:
-                    # parse the list params
-                    for key, value in query.items():
-                        if isinstance(value, list):
-                            query[key] = value[0]
-                    today = datetime.datetime.now().date()
-                    if query["datetimemax"].date() < today:
-                        seconds = 600
-                    else:
-                        # for past days caching time is longer
-                        seconds = 3600
-                    query["cache_time"] = round(time.time() / seconds)
-
-                    # call the wrapper. this response will be cached
-                    params = {**query}
-                    params["db_type"] = db_type
-                    raw_res = dballe.get_obs_data(**params)
-                else:
-                    raw_res = dballe.get_maps_response(
-                        query,
-                        onlyStations,
-                        db_type=db_type,
-                        query_station_data=query_station_data,
-                    )
+                raw_res = dballe.get_maps_response(
+                    query,
+                    onlyStations,
+                    interval=interval,
+                    db_type=db_type,
+                    query_station_data=query_station_data,
+                )
         except AccessToDatasetDenied:
             raise ServerError("Access to dataset denied")
         # parse the response

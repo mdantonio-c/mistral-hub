@@ -1,6 +1,16 @@
 <div class="tab-pane fade show active mt-4">
   <h4 class="head text-center">{{ title }}</h4>
   <br />
+  <ngx-spinner
+    bdColor="rgba(255,255,255,0.8)"
+    color="#6c757d"
+    zIndex="1000"
+    [fullScreen]="false"
+    type="square-jelly-box"
+    size="medium"
+  >
+    Submitting...
+  </ngx-spinner>
   <!-- Summary Stats-->
   <div class="card mst--expansion-panel mst--info-panel" *ngIf="summaryStats">
     <div class="card-header">
@@ -66,7 +76,7 @@
   <button
     class="btn btn-info"
     [disabled]="!isFormValid || emptyName() || summaryStats.c === 0"
-    (click)="submit()"
+    #submitButton
   >
     Submit <i class="fa fa-arrow-right" aria-hidden="true"></i>
   </button>
@@ -161,6 +171,21 @@
       <div *ngIf="scheduleForm.get('repeatType').value === 'data-ready'">
         <!-- nothing -->
       </div>
+      <ng-container *ngIf="checkOpenData()">
+        <hr />
+        Open data schedule
+        <dd>
+          <button
+            type="button"
+            class="btn btn-sm btn-toggle"
+            data-toggle="button"
+            [ngClass]="{ active: formData.opendata }"
+            (click)="toggleOpenDataSchedule()"
+          >
+            <div class="handle"></div>
+          </button>
+        </dd>
+      </ng-container>
     </div>
     <div class="modal-footer">
       <button

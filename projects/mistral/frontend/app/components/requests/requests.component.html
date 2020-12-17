@@ -250,7 +250,13 @@
       [flexGrow]="2"
     >
       <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
-        <strong>{{ value }}</strong>
+        <strong>{{ value }}</strong
+        ><span
+          class="badge badge-warning"
+          style="margin-left: 2%; box-shadow: 1px 1px #0000003d"
+          *ngIf="row.opendata"
+          >OPEN DATA</span
+        >
       </ng-template>
     </ngx-datatable-column>
     <!-- Submission date -->

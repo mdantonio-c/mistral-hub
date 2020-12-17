@@ -3,7 +3,6 @@ import os
 import subprocess
 import tempfile
 from datetime import datetime, time, timedelta
-from functools import lru_cache
 
 import arkimet as arki
 import dateutil
@@ -566,39 +565,11 @@ class BeDballe:
             return 1
 
     @staticmethod
-    @lru_cache(maxsize=128)
-    def get_obs_data(
-        cache_time,
-        datetimemin=None,
-        datetimemax=None,
-        db_type=None,
-        product=None,
-        level=None,
-        timerange=None,
-        license=None,
-        rep_memo=None,
-        query=None,
-        lonmin=None,
-        lonmax=None,
-        latmin=None,
-        latmax=None,
-    ):
-        params = locals()
-        query_data = {}
-        for k, v in params.items():
-            if v:
-                # restore the list params
-                if k == "product" or k == "level" or k == "timerange":
-                    query_data[k] = [v]
-                else:
-                    query_data[k] = v
-        return BeDballe.get_maps_response(query_data=query_data, db_type=db_type)
-
-    @staticmethod
     def get_maps_response_for_mixed(
         query_data=None,
         only_stations=False,
         query_station_data=None,
+        interval=None,
     ):
         # get data from the dballe database
         log.debug("mixed dbs: get data from dballe")
@@ -639,12 +610,14 @@ class BeDballe:
             dballe_maps_data = BeDballe.get_maps_response(
                 query_station_data=query_for_dballe,
                 only_stations=only_stations,
+                interval=interval,
                 db_type="dballe",
             )
         else:
             dballe_maps_data = BeDballe.get_maps_response(
                 query_data=query_for_dballe,
                 only_stations=only_stations,
+                interval=interval,
                 db_type="dballe",
             )
 
@@ -669,6 +642,7 @@ class BeDballe:
                     arki_maps_data = BeDballe.get_maps_response(
                         query_station_data=query_for_arki,
                         only_stations=only_stations,
+                        interval=interval,
                         db_type="arkimet",
                         previous_res=dballe_maps_data,
                     )
@@ -676,6 +650,7 @@ class BeDballe:
                     arki_maps_data = BeDballe.get_maps_response(
                         query_data=query_for_arki,
                         only_stations=only_stations,
+                        interval=interval,
                         db_type="arkimet",
                         previous_res=dballe_maps_data,
                     )
@@ -693,6 +668,7 @@ class BeDballe:
     def get_maps_response(
         query_data=None,
         only_stations=False,
+        interval=None,
         db_type=None,
         query_station_data=None,
         download=None,
@@ -782,6 +758,36 @@ class BeDballe:
         if download:
             return db, query_data, query_station_data
 
+        if "rep_memo" in query and query["rep_memo"] == "multim-forecast":
+            # adjust reftime for multimodel extraction
+            if "datetimemin" in query:
+                # check if multiple runs are requested
+                if query["datetimemax"] - query["datetimemin"] < timedelta(days=1):
+                    last_reftime = query["datetimemin"]
+                else:
+                    last_reftime = query["datetimemax"]
+                # change the reftime to according to requested interval or to the multimodel max interval
+                if interval:
+                    query["datetimemax"] = last_reftime + timedelta(hours=interval)
+                else:
+                    # get multimodel max interval
+                    explorer = BeDballe.build_explorer(
+                        db_type, network_list=["multim-forecast"]
+                    )
+                    explorer.set_filter({"rep_memo": "multim-forecast"})
+                    tranges = explorer.tranges
+                    max_interval = None
+                    for t in tranges:
+                        trange_interval = t.p1
+                        if max_interval:
+                            if trange_interval > max_interval:
+                                max_interval = trange_interval
+                        else:
+                            max_interval = trange_interval
+                    query["datetimemax"] = last_reftime + timedelta(
+                        seconds=max_interval
+                    )
+
         log.debug("start retrieving data: query data for maps {}", query)
         with db.transaction() as tr:
             # check if query gives back a result
@@ -852,7 +858,20 @@ class BeDballe:
                         rec["min"],
                         rec["sec"],
                     )
-                    product_val["ref"] = reftime.isoformat()
+                    if "rep_memo" in query and query["rep_memo"] == "multim-forecast":
+                        if "datetimemin" in query:
+                            # multimodel case
+                            # check if the data is from the requested run
+                            actual_reftime = query["datetimemin"]
+                            trange = rec["trange"]
+                            validity_interval = timedelta(seconds=trange.p1)
+                            if not actual_reftime == reftime - validity_interval:
+                                # this data is not from the requested run
+                                continue
+                            else:
+                                product_val["ref"] = actual_reftime.isoformat()
+                    else:
+                        product_val["ref"] = reftime.isoformat()
 
                     if query:
                         if "query" in query:
@@ -879,7 +898,6 @@ class BeDballe:
                     else:
                         # append the value
                         response[station_tuple][rec["var"]].append(product_val)
-
         return response
 
     @staticmethod

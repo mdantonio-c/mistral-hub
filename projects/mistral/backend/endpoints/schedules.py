@@ -270,6 +270,9 @@ class ScheduledDataExtraction(Schema):
         data_key="on-data-ready",
         description="Activate data extraction when requested data is ready",
     )
+    opendata = fields.Bool(
+        description="Schedule for data available in opendata folder for all users",
+    )
 
     @pre_load
     def validate_schedule(self, data, **kwargs):
@@ -324,6 +327,7 @@ class Schedules(EndpointResource):
         period_settings=None,
         crontab_settings=None,
         data_ready=False,
+        opendata=False,
         push=False,
     ):
         user = self.get_user()
@@ -356,6 +360,36 @@ class Schedules(EndpointResource):
         # clean up filters from unknown values
         if filters:
             filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
+
+        if opendata:
+            # get user roles
+            user_roles = [r.name for r in user.roles]
+            # check if the user is allowed to post opendata schedule
+            if "admin_root" not in user_roles:
+                raise Forbidden("Only admins can post an opendata schedule")
+            # check that only one dataset is request
+            if len(dataset_names) > 1:
+                raise BadRequest(
+                    "Multi dataset for opendata schedules is not supported"
+                )
+
+            ds_entry = db.Datasets.query.filter_by(arkimet_id=dataset_names[0]).first()
+            # check that the dataset is not of observed type
+            if ds_entry.category.name == "OBS":
+                raise BadRequest(
+                    "Opendata schedules service is not intended for observed data"
+                )
+            # check that the dataset is a open one
+            # get license
+            license = db.License.query.filter_by(id=ds_entry.license_id).first()
+            # get license group
+            group_license = db.GroupLicense.query.filter_by(
+                id=license.group_license_id
+            ).first()
+            if not group_license.is_public:
+                raise BadRequest(
+                    "the dataset requested for opendata schedule is not an open dataset"
+                )
 
         # clean up processors from unknown values
         # processors = [
@@ -470,6 +504,7 @@ class Schedules(EndpointResource):
                     period=period,
                     on_data_ready=data_ready,
                     time_delta=time_delta,
+                    opendata=opendata,
                 )
                 name = str(name_int)
 
@@ -494,6 +529,8 @@ class Schedules(EndpointResource):
                             request_id,
                             pushing_queue,
                             name_int,
+                            data_ready,
+                            opendata,
                         ],
                     )
                     log.info("Scheduling periodic task")
@@ -517,6 +554,7 @@ class Schedules(EndpointResource):
                     crontab_settings=crontab_settings,
                     on_data_ready=data_ready,
                     time_delta=time_delta,
+                    opendata=opendata,
                 )
                 name = str(name_int)
                 if data_ready is False:
@@ -541,6 +579,8 @@ class Schedules(EndpointResource):
                             request_id,
                             pushing_queue,
                             name_int,
+                            data_ready,
+                            opendata,
                         ],
                     )
                     log.info("Scheduling crontab task")
@@ -562,6 +602,7 @@ class Schedules(EndpointResource):
                     },
                     on_data_ready=data_ready,
                     time_delta=time_delta,
+                    opendata=opendata,
                 )
                 name = str(name_int)
 
@@ -579,6 +620,8 @@ class Schedules(EndpointResource):
                         request_id,
                         pushing_queue,
                         name,
+                        False,
+                        opendata,
                     ],
                     countdown=1,
                 )
@@ -708,6 +751,8 @@ class Schedules(EndpointResource):
                                 request_id,
                                 schedule_response["args"]["pushing_queue"],
                                 schedule_id,
+                                False,
+                                schedule_response["opendata"],
                             ],
                         )
 
@@ -733,6 +778,8 @@ class Schedules(EndpointResource):
                                 request_id,
                                 schedule_response["args"]["pushing_queue"],
                                 schedule_id,
+                                False,
+                                schedule_response["opendata"],
                             ],
                         )
 
