@@ -25,35 +25,13 @@ import {
 import {
   MULTI_MODEL_TIME_RANGES,
   DatasetProduct as DP,
-  MultiModelProduct,
+  // MultiModelProduct,
 } from "./meteo-tiles.config";
 
 declare module "leaflet" {
   let timeDimension: any;
 }
 
-<<<<<<< HEAD
-const MAP_CENTER = L.latLng(41.879966, 12.28);
-/*
-"lm2.2": {
-  "lat": [34.5, 48.0],
-  "lon": [5.0, 21.2]
-}
- */
-const LM2_BOUNDS = {
-  southWest: L.latLng(34.5, 5.0),
-  northEast: L.latLng(48.0, 21.2),
-};
-/*
-"lm5":{
-  "lat": [25.8, 55.5],
-  "lon": [-30.9, 47.0]
-}
- */
-const LM5_BOUNDS = {
-  southWest: L.latLng(25.8, -30.9),
-  northEast: L.latLng(55.5, 47.0),
-};
 const TILES_PATH = environment.production
   ? "resources/tiles"
   : "app/custom/assets/images/tiles";
@@ -85,7 +63,6 @@ enum MultiModelProduct {
   RH = "B13003",
   TM = "B12101",
 }
-=======
 const MAP_CENTER = L.latLng(41.879966, 12.28),
   LM2_BOUNDS = {
     southWest: L.latLng(34.5, 5.0),
@@ -95,7 +72,6 @@ const MAP_CENTER = L.latLng(41.879966, 12.28),
     southWest: L.latLng(25.8, -30.9),
     northEast: L.latLng(55.5, 47.0),
   };
->>>>>>> 9a61f6a83e65b66b07e23824fcdb888ab853d94d
 
 const MAX_ZOOM = 8;
 const MIN_ZOOM = 5;
@@ -697,15 +673,16 @@ export class MeteoTilesComponent {
 
     let legends = this.legends;
     let currentActiveLayers = [];
-    currentActiveLayers.push(TM2);
-    currentActiveLayers.push(TPPERC1);
+    currentActiveLayers.push(DP.TM2);
+    currentActiveLayers.push(DP.TPPERC1);
+
 
     map.on("overlayadd", function (event) {
+      currentActiveLayers.push(event["name"]);
       // console.log(event["name"]);
       if (event["name"] === DP.TM2) {
         legends[DP.TM2].addTo(map);
-
-      } else if (event["name"] === DP.PREC3P || event["name"] === PREC6P) {
+      } else if (event["name"] === DP.PREC3P || event["name"] === DP.PREC6P) {
         legends[DP.PREC3P].addTo(this);
       } else if (event["name"] === DP.SF3 || event["name"] === DP.SF6) {
         legends[DP.SF3].addTo(this);
@@ -745,17 +722,6 @@ export class MeteoTilesComponent {
       });
       if (event["name"] === DP.TM2) {
         this.removeControl(legends[DP.TM2]);
-
-      } else if (event["name"] === PREC3P && !currentActiveLayers.includes(PREC6P)) {
-        this.removeControl(legends[PREC3P]);
-      } else if (event["name"] === PREC6P && !currentActiveLayers.includes(PREC3P)) {
-        this.removeControl(legends[PREC3P]);
-      } else if (event["name"] === SF3 && !currentActiveLayers.includes(SF6)) {
-        this.removeControl(legends[SF3]);
-      } else if (event["name"] === SF6 && !currentActiveLayers.includes(SF3)) {
-        this.removeControl(legends[SF3]);
-
-
       } else if (event["name"] === DP.PREC3P && !currentActiveLayers.includes(DP.PREC6P)) {
         this.removeControl(legends[DP.PREC3P]);
       } else if (event["name"] === DP.PREC6P && !currentActiveLayers.includes(DP.PREC3P)) {
