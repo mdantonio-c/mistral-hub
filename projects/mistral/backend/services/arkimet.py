@@ -327,7 +327,8 @@ class BeArkimet:
             category = i[1]["_category"]
             # check if the dataset is for observed data
             if category != "OBS":
-                continue
+                if i[0] != "multim-forecast":
+                    continue
             # if a license is queried, filter by license
             if license:
                 matches = False
