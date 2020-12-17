@@ -94,10 +94,9 @@ class BeDballe:
                 for i in network[1:]:
                     arkimet_query += f" or  BUFR:t = {i}"
             arkimet_query += ";"
-
         if dballe_query or all_dballe_queries:
             # improve the query adding stations
-            explorer = BeDballe.build_explorer("arkimet")
+            explorer = BeDballe.build_explorer("arkimet", network)
             # create a list of station details
             station_list = []
             # populate the station list.
