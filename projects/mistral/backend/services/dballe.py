@@ -691,6 +691,36 @@ class BeDballe:
 
         query = {**parsed_query}
 
+        if "rep_memo" in query and query["rep_memo"] == "multim-forecast":
+            # adjust reftime for multimodel extraction
+            if "datetimemin" in query:
+                # check if multiple runs are requested
+                if query["datetimemax"] - query["datetimemin"] < timedelta(days=1):
+                    last_reftime = query["datetimemin"]
+                else:
+                    last_reftime = query["datetimemax"]
+                # change the reftime to according to requested interval or to the multimodel max interval
+                if interval:
+                    query["datetimemax"] = last_reftime + timedelta(hours=interval)
+                else:
+                    # get multimodel max interval
+                    explorer = BeDballe.build_explorer(
+                        db_type, network_list=["multim-forecast"]
+                    )
+                    explorer.set_filter({"rep_memo": "multim-forecast"})
+                    tranges = explorer.tranges
+                    max_interval = None
+                    for t in tranges:
+                        trange_interval = t.p1
+                        if max_interval:
+                            if trange_interval > max_interval:
+                                max_interval = trange_interval
+                        else:
+                            max_interval = trange_interval
+                    query["datetimemax"] = last_reftime + timedelta(
+                        seconds=max_interval
+                    )
+
         # managing db_type
         if db_type == "arkimet":
             # manage bounding box for queries by station id
@@ -704,8 +734,8 @@ class BeDballe:
             datemin = None
             datemax = None
             if query_data:
-                datemin = query_data["datetimemin"]
-                datemax = query_data["datetimemax"]
+                datemin = query["datetimemin"]
+                datemax = query["datetimemax"]
             # for now we consider network as a single parameters.
             # TODO choose if the network will be a single or multiple param
             # transform network param in a list to be managed better for arkimet queries
@@ -756,36 +786,6 @@ class BeDballe:
         # if download param, return the db and the query to download the data
         if download:
             return db, query_data, query_station_data
-
-        if "rep_memo" in query and query["rep_memo"] == "multim-forecast":
-            # adjust reftime for multimodel extraction
-            if "datetimemin" in query:
-                # check if multiple runs are requested
-                if query["datetimemax"] - query["datetimemin"] < timedelta(days=1):
-                    last_reftime = query["datetimemin"]
-                else:
-                    last_reftime = query["datetimemax"]
-                # change the reftime to according to requested interval or to the multimodel max interval
-                if interval:
-                    query["datetimemax"] = last_reftime + timedelta(hours=interval)
-                else:
-                    # get multimodel max interval
-                    explorer = BeDballe.build_explorer(
-                        db_type, network_list=["multim-forecast"]
-                    )
-                    explorer.set_filter({"rep_memo": "multim-forecast"})
-                    tranges = explorer.tranges
-                    max_interval = None
-                    for t in tranges:
-                        trange_interval = t.p1
-                        if max_interval:
-                            if trange_interval > max_interval:
-                                max_interval = trange_interval
-                        else:
-                            max_interval = trange_interval
-                    query["datetimemax"] = last_reftime + timedelta(
-                        seconds=max_interval
-                    )
 
         log.debug("start retrieving data: query data for maps {}", query)
         with db.transaction() as tr:
