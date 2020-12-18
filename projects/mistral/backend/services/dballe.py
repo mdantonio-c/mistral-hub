@@ -692,6 +692,10 @@ class BeDballe:
         query = {**parsed_query}
 
         if "rep_memo" in query and query["rep_memo"] == "multim-forecast":
+            if db_type == "arkimet":
+                # multimodel maps for archived data are not supported as too resource consuming
+                return []
+
             # adjust reftime for multimodel extraction
             if "datetimemin" in query:
                 # check if multiple runs are requested
