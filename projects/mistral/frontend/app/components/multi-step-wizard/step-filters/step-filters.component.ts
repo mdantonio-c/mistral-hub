@@ -282,9 +282,11 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     const modalRef = this.modalService.open(content);
     let fullDataset = !this.formDataService.getReftime();
     setTimeout(() => {
+      this.spinner.show("sp3");
       this.disabledDp = fullDataset;
-      this.filterForm.get("fullDataset").setValue(fullDataset ? true : false);
       this.checkRefTimeControls();
+      this.filterForm.get("fullDataset").setValue(fullDataset ? true : false);
+      this.spinner.hide("sp3");
     });
     modalRef.result.then(
       (result) => {
