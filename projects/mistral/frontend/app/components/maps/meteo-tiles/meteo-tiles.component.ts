@@ -209,18 +209,17 @@ export class MeteoTilesComponent {
       const current = moment.utc((map as any).timeDimension.getCurrentTime());
       // every 3 hour step refresh multi-model markers on the map
       const hour = current.diff(start, "hours");
-      if (hour % 3 !== 0) {
+      if (hour === 0 || hour % 3 !== 0) {
         return;
       }
-      // console.log(`Hour: ${hour}`);
 
       // clean up multi-model layer
       if (comp.markersGroup) {
         comp.map.removeLayer(comp.markersGroup);
       }
       if (comp.showed) {
-        const index = Math.floor(hour / 3);
-        // console.log(`Index: ${index}`);
+        const index = Math.floor(hour / 3) - 1 + start.hours() / 3;
+        console.log(`Hour: +${hour} - Index: ${index}`);
         comp.loadMarkers(index);
       }
     });
@@ -236,7 +235,7 @@ export class MeteoTilesComponent {
         (runAvailable: RunAvailable) => {
           // runAvailable.reftime : 2020051100
           this.runAvailable = runAvailable;
-          console.log("Available Run", runAvailable);
+          console.log(`Last Available Run [${dataset}]`, runAvailable);
           let reftime = runAvailable.reftime;
           this.run = reftime.substr(8, 2);
 
@@ -245,12 +244,12 @@ export class MeteoTilesComponent {
             .utc(reftime, "YYYYMMDDHH")
             .add(runAvailable.start_offset, "hours")
             .toDate();
-          console.log(`startTime: ${startTime}`);
+          console.log(`startTime: ${moment.utc(startTime).format()}`);
           let endTime = moment
             .utc(reftime, "YYYYMMDDHH")
             .add(runAvailable.end_offset, "hours")
             .toDate();
-          console.log(`endTime ${endTime}`);
+          console.log(`endTime ${moment.utc(endTime).format()}`);
 
           // add time dimension
           let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
@@ -296,18 +295,27 @@ export class MeteoTilesComponent {
   }
 
   private getMMProducts() {
-    console.log("loading multi-model ensemble products");
+    let reftime: Date = this.runAvailable
+      ? moment
+          .utc(this.runAvailable.reftime.substr(0, 8), "YYYYMMDD")
+          .subtract(1, "days")
+          .toDate()
+      : moment
+          .utc()
+          .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+          .toDate();
+    // const reftime = moment.utc("2020-12-10 00:00:00")
+    //   .subtract(1, "days")
+    //   .toDate();
+    console.log(
+      `loading multi-model ensemble products [reftime: ${moment
+        .utc(reftime)
+        .format()}]`
+    );
+
     // reset current data
     this.mmProductsData = [new Array(24), new Array(24)];
-
-    // let reftime: Date = this.runAvailable
-    //   ? moment(this.runAvailable.reftime.substr(0, 6), "YYYYMMDD").toDate()
-    //   : moment
-    //       .utc()
-    //       .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-    //       .toDate();
-    const reftime = moment.utc("2020-12-10 00:00:00").toDate();
-    console.log(`reftime: ${moment.utc(reftime).format()}}`);
+    console.log("reset mmProductData", this.mmProductsData);
 
     // emit value every 0.05s
     const source = interval(50);
@@ -325,12 +333,14 @@ export class MeteoTilesComponent {
         reftime: reftime,
         network: "multim-forecast",
         timerange: timerange,
+        interval: this.runAvailable.end_offset + 24 || 72,
       };
       let filterRH: ObsFilter = {
         product: MultiModelProduct.RH,
         reftime: reftime,
         network: "multim-forecast",
         timerange: timerange,
+        interval: this.runAvailable.end_offset + 24 || 72,
       };
       let productTM$ = this.obsService.getData(filterTM, true);
       let productRH$ = this.obsService.getData(filterRH, true);
@@ -647,7 +657,6 @@ export class MeteoTilesComponent {
     return legend;
   }
 
-
   private initLegends(map: L.Map) {
     let layers = this.layersControl["overlays"];
     this.legends = {
@@ -675,7 +684,6 @@ export class MeteoTilesComponent {
     let currentActiveLayers = [];
     currentActiveLayers.push(DP.TM2);
     currentActiveLayers.push(DP.TPPERC1);
-
 
     map.on("overlayadd", function (event) {
       currentActiveLayers.push(event["name"]);
@@ -717,18 +725,34 @@ export class MeteoTilesComponent {
     });
 
     map.on("overlayremove", function (event) {
-      currentActiveLayers = currentActiveLayers.filter(function(value, index, arr){
+      currentActiveLayers = currentActiveLayers.filter(function (
+        value,
+        index,
+        arr
+      ) {
         return value != event["name"];
       });
       if (event["name"] === DP.TM2) {
         this.removeControl(legends[DP.TM2]);
-      } else if (event["name"] === DP.PREC3P && !currentActiveLayers.includes(DP.PREC6P)) {
+      } else if (
+        event["name"] === DP.PREC3P &&
+        !currentActiveLayers.includes(DP.PREC6P)
+      ) {
         this.removeControl(legends[DP.PREC3P]);
-      } else if (event["name"] === DP.PREC6P && !currentActiveLayers.includes(DP.PREC3P)) {
+      } else if (
+        event["name"] === DP.PREC6P &&
+        !currentActiveLayers.includes(DP.PREC3P)
+      ) {
         this.removeControl(legends[DP.PREC3P]);
-      } else if (event["name"] === DP.SF3 && !currentActiveLayers.includes(DP.SF6)) {
+      } else if (
+        event["name"] === DP.SF3 &&
+        !currentActiveLayers.includes(DP.SF6)
+      ) {
         this.removeControl(legends[DP.SF3]);
-      } else if (event["name"] === DP.SF6 && !currentActiveLayers.includes(DP.SF3)) {
+      } else if (
+        event["name"] === DP.SF6 &&
+        !currentActiveLayers.includes(DP.SF3)
+      ) {
         this.removeControl(legends[DP.SF3]);
       } else if (event["name"] === DP.RH) {
         this.removeControl(legends[DP.RH]);
@@ -893,13 +917,19 @@ export class MeteoTilesComponent {
     let currentActiveNames = [];
     for (let name in overlays) {
       if (this.map.hasLayer(overlays[name])) {
-        console.log(overlays);
         currentActiveNames.push(name);
         this.map.removeLayer(overlays[name]);
       }
     }
 
-    this.loadRunAvailable(newDs); //removeAttribution
+    // clean up multi-model layer
+    if (this.markersGroup) {
+      this.map.removeLayer(this.markersGroup);
+    }
+    this.allMarkers = [];
+    this.markers = [];
+
+    this.loadRunAvailable(newDs);
 
     this.dataset = newDs;
     if (this.dataset === "lm5") {
@@ -1017,14 +1047,9 @@ export class MeteoTilesComponent {
       obsData = s.prod.find((x) => x.var === this.mmProduct);
       // console.log(obsData);
       if (obsData.val.length !== 0) {
+        const val = ObsService.showData(obsData.val[0].val, this.mmProduct);
         let icon = L.divIcon({
-          html:
-            `<div class="mstObsIcon"><span>${ObsService.showData(
-              obsData.val[0].val,
-              this.mmProduct
-            )}` +
-            unit +
-            "</span></div>",
+          html: `<div class="mstObsIcon"><span>${val}` + unit + "</span></div>",
           iconSize: [24, 6],
           className: `mst-marker-icon
             mst-obs-marker-color-${this.obsService.getColor(
@@ -1039,7 +1064,11 @@ export class MeteoTilesComponent {
         m.options["station"] = s.stat;
         m.options["data"] = obsData;
         m.bindTooltip(
-          MeteoTilesComponent.buildTooltipTemplate(s.stat, obsData.val[0].ref),
+          MeteoTilesComponent.buildTooltipTemplate(
+            s.stat,
+            obsData.val[0].ref,
+            val + unit
+          ),
           {
             direction: "top",
             offset: [4, -2],
@@ -1058,19 +1087,25 @@ export class MeteoTilesComponent {
     this.markersGroup.addTo(this.map);
   }
 
-  private static buildTooltipTemplate(station: Station, reftime?: string) {
+  private static buildTooltipTemplate(
+    station: Station,
+    reftime?: string,
+    val?: string
+  ) {
     let ident = station.ident || "";
     let name =
       station.details && station.details.length
         ? station.details.find((e) => e.var === "B01019")
         : undefined;
     const template =
-      `<ul class="p-1 m-0"><li>` +
-      (name ? `<b>${name.val}</b>` : "n/a") +
-      `</li><li><b>Lat</b>: ${station.lat}, <b>Lon</b>: ${station.lon}</li>` +
-      `<hr class="m-1"/><li>` +
-      (reftime ? `${reftime}` : "n/a") +
-      `</li></ul>`;
+      `<h6 class="mb-1" style="font-size: small;">` +
+      (name ? `${name.val}` : "n/a") +
+      `<span class="badge badge-secondary ml-2">${val}</span></h6>` +
+      `<ul class="p-0 m-0"><li><b>Lat</b>: ${station.lat}</li><li><b>Lon</b>: ${station.lon}</li></ul>` +
+      `<hr class="my-1"/>` +
+      `<span>` +
+      (reftime ? `${moment.utc(reftime).format("MMM Do, hh:mm")}` : "n/a") +
+      `</span>`;
     return template;
   }
 

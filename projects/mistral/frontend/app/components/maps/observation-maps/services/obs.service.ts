@@ -154,6 +154,9 @@ export class ObsService {
         `latmin:${filter.bbox.latMin},lonmin:${filter.bbox.lonMin}` +
         `,latmax:${filter.bbox.latMax},lonmax:${filter.bbox.lonMax}`;
     }
+    if (filter.interval) {
+      params["interval"] = filter.interval;
+    }
     return this.api
       .get("observations", "", params)
       .pipe(map((data: ObservationResponse) => (this._data = data)));
