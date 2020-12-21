@@ -238,6 +238,8 @@ class BeDballe:
                     max_date = datetimemax
         # create the summary
         summary = {}
+        if not message_count:
+            return summary
         summary["c"] = message_count
         if fields and "datetimemin" in fields:
             q_dtmin_index = fields.index("datetimemin")
@@ -340,7 +342,18 @@ class BeDballe:
 
         else:
             # get the fields network by network for the requested networks
+            queried_reftime = None
+            n_total_runs = 0
             for n in query_networks_list:
+                if n == "multim-forecast":
+                    if "datetimemax" in filters_for_explorer:
+                        # extend reftime max for multimodel case
+                        queried_reftime = filters_for_explorer["datetimemax"]
+                        filters_for_explorer[
+                            "datetimemax"
+                        ] = BeDballe.extend_reftime_for_multimodel(query, db_type)
+                        log.debug("query for multimodel: {}", filters_for_explorer)
+
                 # filter the dballe database by network
                 filters_for_explorer["report"] = n
 
@@ -383,17 +396,61 @@ class BeDballe:
                     net_variables = net_variables_temp
 
                 ######### TIMERANGES FIELDS
-                (
-                    trange_fields,
-                    net_variables_temp,
-                    level_fields_temp,
-                ) = BeDballe.get_fields(
-                    explorer,
-                    filters_for_explorer,
-                    net_variables,
-                    query,
-                    param="timerange",
-                )
+                if n != "multim-forecast":
+                    (
+                        trange_fields,
+                        net_variables_temp,
+                        level_fields_temp,
+                    ) = BeDballe.get_fields(
+                        explorer,
+                        filters_for_explorer,
+                        net_variables,
+                        query,
+                        param="timerange",
+                        queried_reftime=queried_reftime,
+                    )
+                else:
+                    total_runs = query["datetimemax"] - query["datetimemin"]
+                    n_total_runs = total_runs.days
+                    if not n_total_runs:
+                        # only one run is requested
+                        n_total_runs = 1
+                    trange_fields = []
+                    net_variables_temp = []
+                    level_fields_temp = []
+                    for i in range(n_total_runs):
+                        reftime_to_check = query["datetimemin"] + timedelta(days=i)
+                        # log.debug("reftime to check: {}",reftime_to_check)
+                        if not query["datetimemin"] == reftime_to_check:
+                            reftime_to_check = reftime_to_check.replace(
+                                hour=0, minute=0
+                            )
+                        (
+                            part_trange_fields,
+                            part_net_variables_temp,
+                            part_level_fields_temp,
+                        ) = BeDballe.get_fields(
+                            explorer,
+                            filters_for_explorer,
+                            net_variables,
+                            query,
+                            param="timerange",
+                            run_to_check=reftime_to_check,
+                        )
+                        if part_trange_fields:
+                            trange_fields.extend(
+                                x for x in part_trange_fields if x not in trange_fields
+                            )
+                            net_variables_temp.extend(
+                                x
+                                for x in part_net_variables_temp
+                                if x not in net_variables_temp
+                            )
+                            level_fields_temp.extend(
+                                x
+                                for x in part_level_fields_temp
+                                if x not in level_fields_temp
+                            )
                 if not trange_fields:
                     continue
                 # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
@@ -442,13 +499,73 @@ class BeDballe:
             # if summary is required
             summary = {}
             if summary_stats:
-                summary = BeDballe.get_summary(params, explorer, query)
+                if not queried_reftime:
+                    summary = BeDballe.get_summary(params, explorer, query=query)
+                else:
+                    # multimodel case
+                    if len(params) > 1:
+                        # not only multimodel is requested
+                        params.remove("multim-forecast")
+                        # restore the original requested datetimemax
+                        query["datetimemax"] = queried_reftime
+                        summary = BeDballe.get_summary(params, explorer, query=query)
+                    for trange in fields["timerange"]:
+                        params = ["multim-forecast"]
+                        list = []
+                        for v in trange["code"].split(","):
+                            list.append(int(v))
+                        timerange_interval = list[1]
+                        for i in range(n_total_runs):
+                            reftime_to_check = query["datetimemin"] + timedelta(days=i)
+                            # log.debug("reftime to check: {}",reftime_to_check)
+                            if not query["datetimemin"] == reftime_to_check:
+                                reftime_to_check = reftime_to_check.replace(
+                                    hour=0, minute=0
+                                )
+                            multim_summary_query = {}
+                            multim_summary_query["datetimemin"] = multim_summary_query[
+                                "datetimemax"
+                            ] = reftime_to_check + timedelta(seconds=timerange_interval)
+                            multim_summary_query["timerange"] = [trange["code"]]
+                            # log.debug("query for multimodel summary: {}",multim_summary_query)
+                            part_summary = BeDballe.get_summary(
+                                params, explorer, query=multim_summary_query
+                            )
+                            log.debug("part summary: {}", part_summary)
+                            if part_summary:
+                                if not summary:
+                                    summary = part_summary
+                                    summary["b"] = BeDballe.from_datetime_to_list(
+                                        reftime_to_check
+                                    )
+                                    summary["e"] = BeDballe.from_datetime_to_list(
+                                        reftime_to_check
+                                    )
+                                else:
+                                    summary["c"] += part_summary["c"]
+                                    # case of query on multiple datasets: check if the date min and the date max of the summary for the others dataset has to be considered
+                                    if (
+                                        part_summary["c"] != 0
+                                        and datetime(*summary["e"]) < reftime_to_check
+                                    ):
+                                        summary["e"] = BeDballe.from_datetime_to_list(
+                                            reftime_to_check
+                                        )
+                                    if (
+                                        part_summary["c"] != 0
+                                        and datetime(*summary["b"]) > reftime_to_check
+                                    ):
+                                        summary["b"] = BeDballe.from_datetime_to_list(
+                                            reftime_to_check
+                                        )
             return fields, summary
         else:
             return None, None
 
     @staticmethod
-    def get_fields(explorer, filters_for_explorer, variables, query, param):
+    def get_fields(
+        explorer, filters_for_explorer, variables, query, param, run_to_check=None
+    ):
         # filter the dballe database by list of variables (level and timerange depend on variable)
         filters_w_varlist = {**filters_for_explorer, "varlist": variables}
         explorer.set_filter(filters_w_varlist)
@@ -459,8 +576,34 @@ class BeDballe:
             param_list = explorer.levels
         elif param == "timerange":
             param_list = explorer.tranges
-            # if the param is timerange, 3 values packed are needed
-            level_list = explorer.levels
+            if run_to_check:
+                # multimodel case : check for every timerange if actually exists for the actual reftime and create list of levels accordingly
+                # param_list_parsed, variables, level_list_parsed
+                level_list = []
+                query_for_tranges = {**filters_w_varlist}
+                trange_to_remove = []
+                for p in param_list:
+                    query_for_tranges["datetimemin"] = query_for_tranges[
+                        "datetimemax"
+                    ] = run_to_check + timedelta(seconds=p.p1)
+                    query_for_tranges["trange"] = p
+                    # log.debug("query tranges: {}",query_for_tranges)
+                    explorer.set_filter(query_for_tranges)
+                    vars_by_trange = explorer.varcodes
+                    if not vars_by_trange:
+                        # append the timerange to the list of timeranges to remove
+                        trange_to_remove.append(p)
+                        continue
+                    else:
+                        level_list.extend(
+                            x for x in explorer.levels if x not in level_list
+                        )
+                log.debug("empty timeranges: {}", trange_to_remove)
+                for tr in trange_to_remove:
+                    param_list.remove(tr)
+            else:
+                # if the param is timerange, 3 values packed are needed
+                level_list = explorer.levels
 
         # parse the dballe object
         param_list_parsed = []
@@ -471,8 +614,8 @@ class BeDballe:
                 elif param == "timerange":
                     p = BeDballe.from_trange_object_to_string(e)
                 param_list_parsed.append(p)
+        level_list_parsed = []
         if level_list:
-            level_list_parsed = []
             # parse the level list
             for lev in level_list:
                 if lev is not None:
@@ -690,40 +833,15 @@ class BeDballe:
             parsed_query = BeDballe.parse_query_for_maps(query_data)
 
         query = {**parsed_query}
-
         if "rep_memo" in query and query["rep_memo"] == "multim-forecast":
             if db_type == "arkimet":
                 # multimodel maps for archived data are not supported as too resource consuming
                 return []
-
             # adjust reftime for multimodel extraction
             if "datetimemin" in query:
-                # check if multiple runs are requested
-                if query["datetimemax"] - query["datetimemin"] < timedelta(days=1):
-                    last_reftime = query["datetimemin"]
-                else:
-                    last_reftime = query["datetimemax"]
-                # change the reftime to according to requested interval or to the multimodel max interval
-                if interval:
-                    query["datetimemax"] = last_reftime + timedelta(hours=interval)
-                else:
-                    # get multimodel max interval
-                    explorer = BeDballe.build_explorer(
-                        db_type, network_list=["multim-forecast"]
-                    )
-                    explorer.set_filter({"rep_memo": "multim-forecast"})
-                    tranges = explorer.tranges
-                    max_interval = None
-                    for t in tranges:
-                        trange_interval = t.p1
-                        if max_interval:
-                            if trange_interval > max_interval:
-                                max_interval = trange_interval
-                        else:
-                            max_interval = trange_interval
-                    query["datetimemax"] = last_reftime + timedelta(
-                        seconds=max_interval
-                    )
+                query["datetimemax"] = BeDballe.extend_reftime_for_multimodel(
+                    query, db_type, interval
+                )
 
         # managing db_type
         if db_type == "arkimet":
@@ -977,6 +1095,34 @@ class BeDballe:
         response["data"] = response_data
 
         return response
+
+    @staticmethod
+    def extend_reftime_for_multimodel(query, db_type, interval=None):
+        # check if multiple runs are requested
+        if query["datetimemax"] - query["datetimemin"] < timedelta(days=1):
+            last_reftime = query["datetimemin"]
+        else:
+            last_reftime = query["datetimemax"]
+        # change the reftime to according to requested interval or to the multimodel max interval
+        if interval:
+            new_datetimemax = last_reftime + timedelta(hours=interval)
+        else:
+            # get multimodel max interval
+            explorer = BeDballe.build_explorer(
+                db_type, network_list=["multim-forecast"]
+            )
+            explorer.set_filter({"rep_memo": "multim-forecast"})
+            tranges = explorer.tranges
+            max_interval = None
+            for t in tranges:
+                trange_interval = t.p1
+                if max_interval:
+                    if trange_interval > max_interval:
+                        max_interval = trange_interval
+                else:
+                    max_interval = trange_interval
+            new_datetimemax = last_reftime + timedelta(seconds=max_interval)
+        return new_datetimemax
 
     @staticmethod
     def merge_db_for_download(
