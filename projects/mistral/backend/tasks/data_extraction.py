@@ -12,6 +12,7 @@ from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from mistral.exceptions import (
     AccessToDatasetDenied,
     DiskQuotaException,
+    EmptyOutputFile,
     PostProcessingException,
 )
 from mistral.services.arkimet import BeArkimet as arki
@@ -528,6 +529,14 @@ def data_extract(
             # manually update the task state
             self.update_state(state=states.FAILURE, meta=str(exc))
             raise Ignore()
+        except EmptyOutputFile as exc:
+            request.status = states.FAILURE
+            request.error_message = str(exc)
+            log.warning(exc)
+            # manually update the task state
+            self.update_state(state=states.FAILURE, meta=str(exc))
+            raise Ignore()
+
         except Exception as exc:
             # handle all the other exceptions
             request.status = states.FAILURE
@@ -624,6 +633,55 @@ def observed_extraction(
     else:
         db_type = "mixed"
 
+    queried_reftime = None
+    if "multim-forecast" in datasets:
+        # multimodel case
+        if reftime:
+            interval = None
+            queried_reftime = queries[fields.index("datetimemax")][0]
+            # extend the reftime
+            # datetimemin, datetimemax se timerange in query diventa interval il timerange maggiore
+            q_for_multimodel_reftime = {}
+            q_for_multimodel_reftime["datetimemin"] = queries[
+                fields.index("datetimemin")
+            ][0]
+            # check if the datetimemin coincide with a multimodel run
+            if (
+                not q_for_multimodel_reftime["datetimemin"].hour == 0
+                and q_for_multimodel_reftime["datetimemin"].minute == 0
+            ):
+                first_run = (
+                    q_for_multimodel_reftime["datetimemin"] + datetime.timedelta(days=1)
+                ).replace(hour=0, minute=0)
+                if queried_reftime < first_run:
+                    # the result will be empty
+                    raise EmptyOutputFile("The requested query does not giany results")
+                else:
+                    q_for_multimodel_reftime["datetimemin"] = queries[
+                        fields.index("datetimemin")
+                    ][0] = first_run
+            q_for_multimodel_reftime["datetimemax"] = queries[
+                fields.index("datetimemax")
+            ][0]
+            max_trange_interval = None
+            if ["trange"] in fields:
+                req_trange_list = queries[fields.index("trange")]
+                for t in req_trange_list:
+                    if not max_trange_interval:
+                        # get the timerange p1 value
+                        max_trange_interval = t[1]
+                    else:
+                        if t[1] > max_trange_interval:
+                            max_trange_interval = t[1]
+            if max_trange_interval:
+                # get the timerange p1 in hour as interval to extend the reftime fo multimodel query
+                interval = max_trange_interval / 3600
+            queries[fields.index("datetimemax")][
+                0
+            ] = dballe.extend_reftime_for_multimodel(
+                q_for_multimodel_reftime, db_type, interval
+            )
+
     if db_type == "arkimet" and not amqp_queue:
         # check using arkimet if the estimated filesize does not exceed the disk quota
         query = ""
@@ -640,9 +698,14 @@ def observed_extraction(
 
     # extract the data
     if db_type == "mixed":
-        dballe.extract_data_for_mixed(datasets, fields, queries, outfile)
+        # TODO
+        dballe.extract_data_for_mixed(
+            datasets, fields, queries, outfile, queried_reftime
+        )
     else:
-        dballe.extract_data(datasets, fields, queries, outfile, db_type)
+        dballe.extract_data(
+            datasets, fields, queries, outfile, db_type, queried_reftime
+        )
 
 
 def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):

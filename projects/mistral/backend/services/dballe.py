@@ -412,13 +412,13 @@ class BeDballe:
                 else:
                     total_runs = query["datetimemax"] - query["datetimemin"]
                     n_total_runs = total_runs.days
-                    if not n_total_runs:
-                        # only one run is requested
-                        n_total_runs = 1
+                    # if not n_total_runs:
+                    #     # only one run is requested
+                    #     n_total_runs = 1
                     trange_fields = []
                     net_variables_temp = []
                     level_fields_temp = []
-                    for i in range(n_total_runs):
+                    for i in range(n_total_runs + 1):
                         reftime_to_check = query["datetimemin"] + timedelta(days=i)
                         # log.debug("reftime to check: {}",reftime_to_check)
                         if not query["datetimemin"] == reftime_to_check:
@@ -531,7 +531,7 @@ class BeDballe:
                             part_summary = BeDballe.get_summary(
                                 params, explorer, query=multim_summary_query
                             )
-                            log.debug("part summary: {}", part_summary)
+                            # log.debug("part summary: {}", part_summary)
                             if part_summary:
                                 if not summary:
                                     summary = part_summary
@@ -598,7 +598,7 @@ class BeDballe:
                         level_list.extend(
                             x for x in explorer.levels if x not in level_list
                         )
-                log.debug("empty timeranges: {}", trange_to_remove)
+                # log.debug("empty timeranges: {}", trange_to_remove)
                 for tr in trange_to_remove:
                     param_list.remove(tr)
             else:
@@ -838,6 +838,7 @@ class BeDballe:
                 # multimodel maps for archived data are not supported as too resource consuming
                 return []
             # adjust reftime for multimodel extraction
+            # TODO se c'è timerange in richiesta: controlli se è in contraddizione con interval e se è minore lo sostituisci all'intervallo per la richiesta
             if "datetimemin" in query:
                 query["datetimemax"] = BeDballe.extend_reftime_for_multimodel(
                     query, db_type, interval
@@ -1102,7 +1103,7 @@ class BeDballe:
         if query["datetimemax"] - query["datetimemin"] < timedelta(days=1):
             last_reftime = query["datetimemin"]
         else:
-            last_reftime = query["datetimemax"]
+            last_reftime = query["datetimemax"].replace(hour=0, minute=0)
         # change the reftime to according to requested interval or to the multimodel max interval
         if interval:
             new_datetimemax = last_reftime + timedelta(hours=interval)
@@ -1521,7 +1522,9 @@ class BeDballe:
         return fields, queries
 
     @staticmethod
-    def extract_data_for_mixed(datasets, fields, queries, outfile):
+    def extract_data_for_mixed(
+        datasets, fields, queries, outfile, queried_reftime=None
+    ):
         # extract data from the dballe database
         log.debug("mixed dbs: extract data from dballe")
         dballe_queries = []
@@ -1551,7 +1554,12 @@ class BeDballe:
 
         # extract
         BeDballe.extract_data(
-            datasets, fields, dballe_queries, dballe_outfile, db_type="dballe"
+            datasets,
+            fields,
+            dballe_queries,
+            dballe_outfile,
+            db_type="dballe",
+            queried_reftime=queried_reftime,
         )
 
         # extract data from the arkimet database
@@ -1567,8 +1575,17 @@ class BeDballe:
         arki_outfile = filebase + "_arki_part" + fileext + ".tmp"
 
         # extract
+        queried_reftime_for_arki = None
+        if queried_reftime:
+            # use il reftime arki as queried reftime
+            queried_reftime_for_arki = refmax_arki
         BeDballe.extract_data(
-            datasets, fields, arki_queries, arki_outfile, db_type="arkimet"
+            datasets,
+            fields,
+            arki_queries,
+            arki_outfile,
+            db_type="arkimet",
+            queried_reftime=queried_reftime_for_arki,
         )
 
         cat_cmd = ["cat"]
@@ -1590,7 +1607,7 @@ class BeDballe:
                 raise Exception("Failure in data extraction")
 
     @staticmethod
-    def extract_data(datasets, fields, queries, outfile, db_type):
+    def extract_data(datasets, fields, queries, outfile, db_type, queried_reftime=None):
         # choose the db
         arkimet_query = None
         if db_type == "arkimet":
@@ -1628,7 +1645,21 @@ class BeDballe:
                     engine=engine, user=user, pw=pw, host=host, port=port
                 )
             )
-
+        requested_runs = []
+        if queried_reftime:
+            # multimodel case. get a list of all runs
+            total_runs = queried_reftime - queries[fields.index("datetimemin")][0]
+            n_total_runs = total_runs.days
+            # if not n_total_runs:
+            #     # only one run is requested
+            #     n_total_runs = 1
+            for i in range(n_total_runs + 1):
+                multim_run = queries[fields.index("datetimemin")][0] + timedelta(days=i)
+                # be sure that all runs are 00:00
+                requested_runs.append(
+                    multim_run.replace(hour=0, minute=0, second=0, microsecond=0)
+                )
+            log.debug("requested runs: {}", requested_runs)
         # get all the possible combinations of queries
         all_queries = list(itertools.product(*queries))
         counter = 1
@@ -1655,7 +1686,14 @@ class BeDballe:
                 exporter = dballe.Exporter("BUFR")
                 with open(part_outfile, "wb") as out:
                     for row in tr.query_messages(dballe_query):
-                        out.write(exporter.to_binary(row.message))
+                        if queried_reftime:
+                            msg = BeDballe.filter_multimodel_messages(
+                                row.message, requested_runs
+                            )
+                        else:
+                            msg = row.message
+                        if msg:
+                            out.write(exporter.to_binary(msg))
 
             cat_cmd.append(part_outfile)
             # update counter
@@ -1677,3 +1715,59 @@ class BeDballe:
             ext_proc.wait()
             if ext_proc.wait() != 0:
                 raise Exception("Failure in data extraction")
+
+    @staticmethod
+    def filter_multimodel_messages(msg, list_of_runs):
+        count_msgs = 0
+        new_msg = dballe.Message("generic")
+
+        new_msg.set_named("year", msg.get_named("year"))
+        new_msg.set_named("month", msg.get_named("month"))
+        new_msg.set_named("day", msg.get_named("day"))
+        new_msg.set_named("hour", msg.get_named("hour"))
+        new_msg.set_named("minute", msg.get_named("minute"))
+        new_msg.set_named("second", msg.get_named("second"))
+        new_msg.set_named("rep_memo", msg.report)
+        new_msg.set_named("longitude", int(msg.coords[0] * 10 ** 5))
+        new_msg.set_named("latitude", int(msg.coords[1] * 10 ** 5))
+        if msg.ident:
+            new_msg.set_named("ident", msg.ident)
+
+        for data in msg.query_data({"query": "attrs"}):
+            variable = data["variable"]
+            attrs = variable.get_attrs()
+            v = dballe.var(data["variable"].code, data["variable"].get())
+            for a in attrs:
+                v.seta(a)
+
+            # get the validity interval from the data timerange
+            validity_interval = timedelta(seconds=data["trange"].p1)
+            # get the message date
+            validity_time = datetime(
+                msg.get_named("year").get(),
+                msg.get_named("month").get(),
+                msg.get_named("day").get(),
+                msg.get_named("hour").get(),
+                msg.get_named("minute").get(),
+            )
+            # compare the resulting reftime with the list of run
+            if not validity_time - validity_interval in list_of_runs:
+                continue
+            else:
+                # if matches proceed saving the message
+                new_msg.set(data["level"], data["trange"], v)
+                count_msgs += 1
+
+        for data in msg.query_station_data({"query": "attrs"}):
+            variable = data["variable"]
+            attrs = variable.get_attrs()
+            v = dballe.var(data["variable"].code, data["variable"].get())
+            for a in attrs:
+                v.seta(a)
+
+            new_msg.set(dballe.Level(), dballe.Trange(), v)
+        if count_msgs > 0:
+            # there are matching messages: return the filtered message in order to be exported
+            return new_msg
+        else:
+            return None

@@ -12,3 +12,7 @@ class InvalidLicenseException(Exception):
 
 class AccessToDatasetDenied(Exception):
     """Exception for permission denied to access arkimet dataset"""
+
+
+class EmptyOutputFile(Exception):
+    """Exception for permission denied to access arkimet dataset"""
