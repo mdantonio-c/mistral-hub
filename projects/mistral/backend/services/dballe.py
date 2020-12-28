@@ -405,7 +405,6 @@ class BeDballe:
                         net_variables,
                         query,
                         param="timerange",
-                        queried_reftime=queried_reftime,
                     )
                 else:
                     total_runs = query["datetimemax"] - query["datetimemin"]
