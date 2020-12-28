@@ -420,7 +420,7 @@ class BeDballe:
                     level_fields_temp = []
                     for i in range(n_total_runs + 1):
                         reftime_to_check = query["datetimemin"] + timedelta(days=i)
-                        # log.debug("reftime to check: {}",reftime_to_check)
+                        log.debug("reftime to check: {}", reftime_to_check)
                         if not query["datetimemin"] == reftime_to_check:
                             reftime_to_check = reftime_to_check.replace(
                                 hour=0, minute=0
@@ -515,9 +515,9 @@ class BeDballe:
                         for v in trange["code"].split(","):
                             list.append(int(v))
                         timerange_interval = list[1]
-                        for i in range(n_total_runs):
+                        for i in range(n_total_runs + 1):
                             reftime_to_check = query["datetimemin"] + timedelta(days=i)
-                            # log.debug("reftime to check: {}",reftime_to_check)
+                            log.debug("reftime to check: {}", reftime_to_check)
                             if not query["datetimemin"] == reftime_to_check:
                                 reftime_to_check = reftime_to_check.replace(
                                     hour=0, minute=0
@@ -1530,6 +1530,7 @@ class BeDballe:
         dballe_queries = []
         for q in queries:
             dballe_queries.append(q)
+        additional_runs = None
         if "datetimemin" in fields:
             (
                 refmax_dballe,
@@ -1540,6 +1541,15 @@ class BeDballe:
                 queries[fields.index("datetimemin")][0],
                 queries[fields.index("datetimemax")][0],
             )
+            if queried_reftime:
+                # multimodel case, the datemin has to coincide with a run
+                refmin_dballe = refmin_dballe.replace(hour=0, minute=0)
+                # calculate the number of requested runs to add for dballe extraction
+                date_delta = (refmin_dballe - refmin_arki).days
+                if date_delta > 4:
+                    additional_runs = 4
+                else:
+                    additional_runs = date_delta
             # set up query for dballe with the correct reftimes
             dballe_queries[fields.index("datetimemin")][0] = refmin_dballe
 
@@ -1560,6 +1570,7 @@ class BeDballe:
             dballe_outfile,
             db_type="dballe",
             queried_reftime=queried_reftime,
+            additional_runs=additional_runs,
         )
 
         # extract data from the arkimet database
@@ -1607,7 +1618,15 @@ class BeDballe:
                 raise Exception("Failure in data extraction")
 
     @staticmethod
-    def extract_data(datasets, fields, queries, outfile, db_type, queried_reftime=None):
+    def extract_data(
+        datasets,
+        fields,
+        queries,
+        outfile,
+        db_type,
+        queried_reftime=None,
+        additional_runs=None,
+    ):
         # choose the db
         arkimet_query = None
         if db_type == "arkimet":
@@ -1655,10 +1674,26 @@ class BeDballe:
             #     n_total_runs = 1
             for i in range(n_total_runs + 1):
                 multim_run = queries[fields.index("datetimemin")][0] + timedelta(days=i)
-                # be sure that all runs are 00:00
-                requested_runs.append(
-                    multim_run.replace(hour=0, minute=0, second=0, microsecond=0)
-                )
+                if not queries[fields.index("datetimemin")][0] == multim_run:
+                    # be sure that all runs are 00:00
+                    requested_runs.append(
+                        multim_run.replace(hour=0, minute=0, second=0, microsecond=0)
+                    )
+                else:
+                    requested_runs.append(multim_run)
+            if additional_runs:
+                # mixed db case: add the requested runs that are supposed to be in arkimet
+                for i in range(additional_runs + 1):
+                    multim_run = queries[fields.index("datetimemin")][0] - timedelta(
+                        days=i
+                    )
+                    if not queries[fields.index("datetimemin")][0] == multim_run:
+                        # be sure that all runs are 00:00
+                        requested_runs.append(
+                            multim_run.replace(
+                                hour=0, minute=0, second=0, microsecond=0
+                            )
+                        )
             log.debug("requested runs: {}", requested_runs)
         # get all the possible combinations of queries
         all_queries = list(itertools.product(*queries))
