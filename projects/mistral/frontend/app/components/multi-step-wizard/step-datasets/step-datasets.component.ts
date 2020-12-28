@@ -82,6 +82,17 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
           .showWarning(`It is not currently possible to mix different types of datasets.
                 Please select datasets under the same category.`);
       }
+      let selected_datasets = val
+        .map((v, i) => (v ? this.datasets[i].id : null))
+        .filter((v) => v !== null);
+      if (
+        selected_datasets.includes("multim-forecast") &&
+        selected_datasets.length > 1
+      ) {
+        this.notify.showWarning(
+          `The selection of multiple datasets is not supported if Multi-Model Ensemble is included.`
+        );
+      }
     });
   }
 
