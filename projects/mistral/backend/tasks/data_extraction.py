@@ -681,6 +681,12 @@ def observed_extraction(
             ] = dballe.extend_reftime_for_multimodel(
                 q_for_multimodel_reftime, db_type, interval
             )
+            if db_type == "arkimet":
+                # check if db_type is changed (from arkimet to mixed) with the extended query
+                db_type = dballe.get_db_type(
+                    date_min=queries[fields.index("datetimemin")][0],
+                    date_max=queries[fields.index("datetimemax")][0],
+                )
 
     if db_type == "arkimet" and not amqp_queue:
         # check using arkimet if the estimated filesize does not exceed the disk quota

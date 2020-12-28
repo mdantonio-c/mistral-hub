@@ -264,7 +264,14 @@ class BeDballe:
         return summary
 
     @staticmethod
-    def load_filters(params, summary_stats, all_products, db_type, query_dic=None):
+    def load_filters(
+        params,
+        summary_stats,
+        all_products,
+        db_type,
+        query_dic=None,
+        queried_reftime=None,
+    ):
         query = {}
         if query_dic:
             query = {**query_dic}
@@ -342,17 +349,8 @@ class BeDballe:
 
         else:
             # get the fields network by network for the requested networks
-            queried_reftime = None
             n_total_runs = 0
             for n in query_networks_list:
-                if n == "multim-forecast":
-                    if "datetimemax" in filters_for_explorer:
-                        # extend reftime max for multimodel case
-                        queried_reftime = filters_for_explorer["datetimemax"]
-                        filters_for_explorer[
-                            "datetimemax"
-                        ] = BeDballe.extend_reftime_for_multimodel(query, db_type)
-                        log.debug("query for multimodel: {}", filters_for_explorer)
 
                 # filter the dballe database by network
                 filters_for_explorer["report"] = n

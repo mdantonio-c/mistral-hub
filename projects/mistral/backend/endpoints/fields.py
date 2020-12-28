@@ -108,10 +108,29 @@ class Fields(EndpointResource):
             if bounding_box:
                 for key, value in bounding_box.items():
                     query_dic[key] = value
+
+            queried_reftime = None
             if "datetimemin" in query_dic:
                 db_type = dballe.get_db_type(
                     query_dic["datetimemin"], query_dic["datetimemax"]
                 )
+                if "network" in query_dic and "multim-forecast" in query_dic["network"]:
+                    # multimodel case: extend reftime
+                    # check if an interval is requested
+                    interval = None
+                    if "timerange" in query_dic:
+                        splitted_timerange = query_dic["timerange"][0].split(",")
+                        interval = int(splitted_timerange[1]) / 3600
+                    queried_reftime = query_dic["datetimemax"]
+                    query_dic["datetimemax"] = dballe.extend_reftime_for_multimodel(
+                        query_dic, db_type, interval=interval
+                    )
+                    if db_type == "arkimet":
+                        # check if db_type is changed (from arkimet to mixed) with the extended query
+                        db_type = dballe.get_db_type(
+                            query_dic["datetimemin"], query_dic["datetimemax"]
+                        )
+
                 if db_type != "dballe" and not user:
                     raise Unauthorized(
                         "to access archived data the user has to be logged"
@@ -140,6 +159,7 @@ class Fields(EndpointResource):
                     allAvailableProducts,
                     db_type=db_type,
                     query_dic=query_dic,
+                    queried_reftime=queried_reftime,
                 )
             except AccessToDatasetDenied:
                 raise ServerError("Access to dataset denied")
