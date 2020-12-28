@@ -5,7 +5,7 @@ from flask import Response, stream_with_context
 from mistral.exceptions import AccessToDatasetDenied
 from mistral.services.dballe import BeDballe as dballe
 from restapi import decorators
-from restapi.exceptions import BadRequest, NotFound, ServerError, Unauthorized
+from restapi.exceptions import BadRequest, Conflict, NotFound, ServerError, Unauthorized
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
@@ -56,6 +56,7 @@ class MapsObservations(EndpointResource):
             200: "List of values successfully retrieved",
             400: "Missing params",
             404: "The query does not give result",
+            409: "The requested interval is greater than the requested timerange",
         },
     )
     @decorators.cache(timeout=600)
@@ -119,6 +120,16 @@ class MapsObservations(EndpointResource):
             else:
                 db_type = "mixed"
         log.debug("type of database: {}", db_type)
+
+        if interval:
+            # check if there is a requested timerange and if its interval is lower of the requested one
+            if "timerange" in query:
+                splitted_timerange = query["timerange"][0].split(",")
+                timerange_interval = int(splitted_timerange[1]) / 3600
+                if timerange_interval > interval:
+                    raise Conflict(
+                        "the requested interval is greater than the requested timerange"
+                    )
 
         query_station_data = {}
         if stationDetails:

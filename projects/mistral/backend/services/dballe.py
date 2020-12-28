@@ -838,7 +838,9 @@ class BeDballe:
                 # multimodel maps for archived data are not supported as too resource consuming
                 return []
             # adjust reftime for multimodel extraction
-            # TODO se c'è timerange in richiesta: controlli se è in contraddizione con interval e se è minore lo sostituisci all'intervallo per la richiesta
+            if "trange" in query:
+                # use the timerange interval as interval to extend the reftime
+                interval = query["trange"][1] / 3600
             if "datetimemin" in query:
                 query["datetimemax"] = BeDballe.extend_reftime_for_multimodel(
                     query, db_type, interval
