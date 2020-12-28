@@ -45,7 +45,7 @@ DATASETS = {
     "iff": {
         "area": "Italia",
         "start_offset": 6,
-        "end_offset": 48,
+        "end_offset": 72,
         "step": 3,
         "boundaries": {
             "SW": (

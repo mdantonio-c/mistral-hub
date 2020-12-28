@@ -1,7 +1,14 @@
 import { Component } from "@angular/core";
 import { environment } from "@rapydo/../environments/environment";
 import { Observable, forkJoin, of, concat, interval } from "rxjs";
-import { filter, scan, takeUntil, withLatestFrom, map } from "rxjs/operators";
+import {
+  filter,
+  scan,
+  takeUntil,
+  catchError,
+  withLatestFrom,
+  map,
+} from "rxjs/operators";
 import * as moment from "moment";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
@@ -161,6 +168,9 @@ export class MeteoTilesComponent {
   private allMarkers: L.Marker[] = [];
   private markersGroup: any;
   private mmProductsData: any[][] = null;
+  private currentIdx: number = null;
+  private currentMMReftime: Date = null;
+  private timeLoading: boolean = false;
 
   constructor(
     private tilesService: TilesService,
@@ -203,13 +213,26 @@ export class MeteoTilesComponent {
       data,
       comp: MeteoTilesComponent = ref
     ) {
+      if (comp.timeLoading) {
+        return;
+      }
+      // console.log('onTimeLoad');
       const start = moment.utc(
         (map as any).timeDimension.getAvailableTimes()[0]
       );
       const current = moment.utc((map as any).timeDimension.getCurrentTime());
       // every 3 hour step refresh multi-model markers on the map
       const hour = current.diff(start, "hours");
-      if (hour === 0 || hour % 3 !== 0) {
+      const index = Math.floor(hour / 3) - 1 + start.hours() / 3;
+      // console.log(`Hour: +${hour} - Index: ${index}`);
+      if (index < 0) {
+        if (comp.markersGroup) {
+          comp.map.removeLayer(comp.markersGroup);
+        }
+        return;
+      }
+      if (index === comp.currentIdx && comp.markersGroup) {
+        // do nothing
         return;
       }
 
@@ -218,8 +241,6 @@ export class MeteoTilesComponent {
         comp.map.removeLayer(comp.markersGroup);
       }
       if (comp.showed) {
-        const index = Math.floor(hour / 3) - 1 + start.hours() / 3;
-        console.log(`Hour: +${hour} - Index: ${index}`);
         comp.loadMarkers(index);
       }
     });
@@ -227,6 +248,7 @@ export class MeteoTilesComponent {
 
   private loadRunAvailable(dataset: string) {
     this.spinner.show();
+    this.timeLoading = true;
     // need to get last run available
     const lastRun$ = this.tilesService.getLastRun(dataset);
     // and the download the MultiModel data
@@ -244,12 +266,12 @@ export class MeteoTilesComponent {
             .utc(reftime, "YYYYMMDDHH")
             .add(runAvailable.start_offset, "hours")
             .toDate();
-          console.log(`startTime: ${moment.utc(startTime).format()}`);
+          // console.log(`startTime: ${moment.utc(startTime).format()}`);
           let endTime = moment
             .utc(reftime, "YYYYMMDDHH")
             .add(runAvailable.end_offset, "hours")
             .toDate();
-          console.log(`endTime ${moment.utc(endTime).format()}`);
+          // console.log(`endTime ${moment.utc(endTime).format()}`);
 
           // add time dimension
           let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
@@ -261,6 +283,13 @@ export class MeteoTilesComponent {
             newAvailableTimes,
             "replace"
           );
+          const today = moment.utc();
+          // console.log(`today: ${today.format()}`);
+          if (moment.utc(startTime).isSame(today, "day")) {
+            // console.log(`reftime today! set hour to ${today.hours()}`);
+            startTime.setUTCHours(today.hours());
+          }
+          this.timeLoading = false;
           (this.map as any).timeDimension.setCurrentTime(startTime);
 
           this.setOverlaysToMap();
@@ -289,7 +318,7 @@ export class MeteoTilesComponent {
       .add(() => {
         this.map.invalidateSize();
         this.spinner.hide();
-        // use rxjs operator to concat this
+        // get multi-model products
         this.getMMProducts();
       });
   }
@@ -304,9 +333,11 @@ export class MeteoTilesComponent {
           .utc()
           .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
           .toDate();
-    // const reftime = moment.utc("2020-12-10 00:00:00")
-    //   .subtract(1, "days")
-    //   .toDate();
+    if (moment(this.currentMMReftime).isSame(reftime, "day")) {
+      // do nothing if the reftime does NOT change
+      return;
+    }
+    this.currentMMReftime = reftime;
     console.log(
       `loading multi-model ensemble products [reftime: ${moment
         .utc(reftime)
@@ -315,53 +346,77 @@ export class MeteoTilesComponent {
 
     // reset current data
     this.mmProductsData = [new Array(24), new Array(24)];
-    console.log("reset mmProductData", this.mmProductsData);
 
     // emit value every 0.05s
     const source = interval(50);
     // keep a running total of the number of even numbers out
     const numberCount = source.pipe(scan((acc, _) => acc + 1, 0));
     // do not emit until 24 numbers have been emitted
-    const maxNumbers = numberCount.pipe(filter((val) => val > 24));
-    const loadMultipleData$ = source.pipe(takeUntil(maxNumbers));
+    let maxNumbers = numberCount.pipe(filter((val) => val > 24));
+    const loadMultipleData$ = source.pipe(
+      catchError((error) => {
+        // FIXME stop subscription on error
+        // console.log('ERROR', error);
+        // clearInterval()
+        throw error;
+      }),
+      // catchError(_ => of('no data!')),
+      takeUntil(maxNumbers)
+    );
 
-    loadMultipleData$.subscribe((val) => {
-      const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
-      console.log(`timerange: ${timerange} : ${val}`);
-      let filterTM: ObsFilter = {
-        product: MultiModelProduct.TM,
-        reftime: reftime,
-        network: "multim-forecast",
-        timerange: timerange,
-        interval: this.runAvailable.end_offset + 24 || 72,
-      };
-      let filterRH: ObsFilter = {
-        product: MultiModelProduct.RH,
-        reftime: reftime,
-        network: "multim-forecast",
-        timerange: timerange,
-        interval: this.runAvailable.end_offset + 24 || 72,
-      };
-      let productTM$ = this.obsService.getData(filterTM, true);
-      let productRH$ = this.obsService.getData(filterRH, true);
-      forkJoin([productTM$, productRH$]).subscribe(
-        (results) => {
-          if (results[0].data.length === 0 && results[1].data.length === 0) {
-            this.notify.showWarning("No Multi-Model data found.");
-            return;
+    loadMultipleData$
+      .subscribe((val) => {
+        const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
+        console.log(`timerange: ${timerange} : ${val}`);
+        let filterTM: ObsFilter = {
+          product: MultiModelProduct.TM,
+          reftime: reftime,
+          network: "multim-forecast",
+          timerange: timerange,
+          interval: this.runAvailable.end_offset + 24 || 72,
+        };
+        let filterRH: ObsFilter = {
+          product: MultiModelProduct.RH,
+          reftime: reftime,
+          network: "multim-forecast",
+          timerange: timerange,
+          interval: this.runAvailable.end_offset + 24 || 72,
+        };
+        let productTM$ = this.obsService.getData(filterTM, true);
+        let productRH$ = this.obsService.getData(filterRH, true);
+        forkJoin([productTM$, productRH$]).subscribe(
+          (results) => {
+            if (results[0].data.length === 0 && results[1].data.length === 0) {
+              this.notify.showWarning("No Multi-Model data found.");
+              return;
+            }
+            const offset = parseInt(timerange.toString().split(",")[1]) / 3600;
+            const idx = Math.floor((offset - 27) / 3);
+            // console.log(`offset: +${offset}h, idx: ${idx}`);
+
+            this.mmProductsData[0][idx] = results[0].data;
+            this.mmProductsData[1][idx] = results[1].data;
+          },
+          (error) => {
+            this.notify.showError(error);
+            throw error;
           }
-          const offset = parseInt(timerange.toString().split(",")[1]) / 3600;
-          const idx = Math.floor((offset - 27) / 3);
-          // console.log(`offset: +${offset}h, idx: ${idx}`);
-
-          this.mmProductsData[0][idx] = results[0].data;
-          this.mmProductsData[1][idx] = results[1].data;
-        },
-        (error) => {
-          this.notify.showError(error);
+        );
+      })
+      .add(() => {
+        const today = moment.utc();
+        const current = moment.utc(
+          (this.map as any).timeDimension.getCurrentTime()
+        );
+        if (moment(current).isSame(today, "day")) {
+          // console.log(`fire ${current}`);
+          (this.map as any).timeDimension.fire("timeload", {
+            time: current,
+          });
+          // (this.map as any).timeDimension.setCurrentTime(current);
+          // (this.map as any).timeDimension.nextTime();
         }
-      );
-    });
+      });
   }
 
   private setOverlaysToMap() {
@@ -912,6 +967,7 @@ export class MeteoTilesComponent {
   }
 
   changeDataset(newDs) {
+    // console.log(`change to dataset ${newDs}`);
     // remove all current layers
     let overlays = this.layersControl["overlays"];
     let currentActiveNames = [];
@@ -922,12 +978,13 @@ export class MeteoTilesComponent {
       }
     }
 
+    this.currentIdx = null;
     // clean up multi-model layer
     if (this.markersGroup) {
-      this.map.removeLayer(this.markersGroup);
+      // remove marker layer
+      console.log("clean up markers");
+      this.cleanupMMLayer();
     }
-    this.allMarkers = [];
-    this.markers = [];
 
     this.loadRunAvailable(newDs);
 
@@ -950,44 +1007,15 @@ export class MeteoTilesComponent {
     } else {
       console.error(`Unknown dataset ${newDs}`);
     }
+  }
 
-    /*
-    // remove all current layers
-    let overlays = this.layersControl["overlays"];
-    let currentActiveNames = [];
-    for (let name in overlays) {
-      if (this.map.hasLayer(overlays[name])) {
-        currentActiveNames.push(name);
-        this.map.removeLayer(overlays[name]);
-      }
+  private cleanupMMLayer() {
+    if (!this.map) {
+      return;
     }
-    this.setOverlaysToMap();
-
-    // reload the new list of layers
-    overlays = this.layersControl["overlays"];
-
-    // apply the same list to the map
-    for (let name in overlays) {
-      if (currentActiveNames.includes(name)) {
-        let tileLayer: L.Layer = overlays[name];
-        tileLayer.addTo(this.map);
-        this.legends[name].addTo(this.map);
-      }
-    }
-    if (this.dataset === "iff") {
-      let tp1prec: L.Layer = this.layersControl["overlays"][
-        this.DEFAULT_PRODUCT_IFF
-      ];
-      tp1prec.addTo(this.map);
-      this.legends[TPPERC1].addTo(this.map);
-    } else {
-      let tm2m: L.Layer = this.layersControl["overlays"][
-        this.DEFAULT_PRODUCT_COSMO
-      ];
-      tm2m.addTo(this.map);
-      this.legends[TM2].addTo(this.map);
-    }
-     */
+    this.map.removeLayer(this.markersGroup);
+    this.allMarkers = [];
+    this.markers = [];
   }
 
   /**
@@ -1015,12 +1043,15 @@ export class MeteoTilesComponent {
   }
 
   private loadMarkers(timerangeIdx = 0) {
+    this.currentIdx = timerangeIdx;
+    console.log(`load markers. timerange IDX: ${timerangeIdx}`);
     const idx = this.mmProduct === MultiModelProduct.TM ? 0 : 1;
     if (
       !this.mmProductsData ||
       !this.mmProductsData[idx] ||
       !this.mmProductsData[idx][timerangeIdx]
     ) {
+      // console.log("No data to load");
       return;
     }
     this.allMarkers = [];
@@ -1104,7 +1135,7 @@ export class MeteoTilesComponent {
       `<ul class="p-0 m-0"><li><b>Lat</b>: ${station.lat}</li><li><b>Lon</b>: ${station.lon}</li></ul>` +
       `<hr class="my-1"/>` +
       `<span>` +
-      (reftime ? `${moment.utc(reftime).format("MMM Do, hh:mm")}` : "n/a") +
+      (reftime ? `${moment.utc(reftime).format("MMM Do, HH:mm")}` : "n/a") +
       `</span>`;
     return template;
   }
