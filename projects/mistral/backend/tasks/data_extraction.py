@@ -24,6 +24,7 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import output_formatting
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
+from restapi.config import get_backend_url
 from restapi.connectors import rabbitmq, smtp, sqlalchemy
 from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
@@ -130,11 +131,13 @@ def data_extract(
 
             # create download user dir if it doesn't exist
             uuid = SqlApiDbManager.get_uuid(db, user_id)
-            if not amqp_queue:
-                output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
-            else:
-                # create a temporary outfile directory
-                output_dir = os.path.join(DOWNLOAD_DIR, "tmp_outfiles", uuid)
+            output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
+            ## decomment for pushing output data in an amqp queue
+            # if not amqp_queue:
+            #     output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
+            # else:
+            #     # create a temporary outfile directory
+            #     output_dir = os.path.join(DOWNLOAD_DIR, "tmp_outfiles", uuid)
             os.makedirs(output_dir, exist_ok=True)
 
             # check that the datasets are all under the same license
@@ -154,19 +157,19 @@ def data_extract(
             outfile = os.path.join(output_dir, out_filename)
             log.debug("outfile: {}", outfile)
 
-            if not amqp_queue:
-                if data_type != "OBS" and "multim-forecast" not in datasets:
-                    esti_data_size = check_user_quota(
-                        user_id,
-                        output_dir,
-                        db,
-                        datasets=datasets,
-                        query=query,
-                        schedule_id=schedule_id,
-                    )
-                # observed data. in future the if statement will be for data using arkimet and data using dballe
-                else:
-                    log.debug("observation in dballe")
+            ## for pushing data output to amqp queue use case, the estimation of data size can be skipped
+            if data_type != "OBS" and "multim-forecast" not in datasets:
+                esti_data_size = check_user_quota(
+                    user_id,
+                    output_dir,
+                    db,
+                    datasets=datasets,
+                    query=query,
+                    schedule_id=schedule_id,
+                )
+            # observed data. in future the if statement will be for data using arkimet and data using dballe
+            else:
+                log.debug("observation in dballe")
 
             if postprocessors:
                 log.debug(postprocessors)
@@ -461,45 +464,43 @@ def data_extract(
                 # rename outfile correctly
                 outfile = os.path.join(output_dir, out_filename)
 
-            if not amqp_queue:
-                # get the actual data size
-                data_size = os.path.getsize(os.path.join(output_dir, out_filename))
-                log.debug(f"Actual resulting data size: {data_size}")
-                if data_type != "OBS" and "multim-forecast" not in datasets:
-                    if data_size > esti_data_size:
-                        log.warning(
-                            "Actual resulting data exceeds estimation of {}",
-                            human_size(data_size - esti_data_size),
-                        )
-                else:
-                    # check if the user space is not exceeded (for the observations we can't calculate the esti_data_size so this check is done after the extraction)
-                    check_user_quota(
-                        user_id,
-                        output_dir,
-                        db,
-                        output_filename=out_filename,
-                        schedule_id=schedule_id,
+            ## for pushing data output to amqp queue use case, the estimation of data size can be skipped
+            # get the actual data size
+            data_size = os.path.getsize(os.path.join(output_dir, out_filename))
+            log.debug(f"Actual resulting data size: {data_size}")
+            if data_type != "OBS" and "multim-forecast" not in datasets:
+                if data_size > esti_data_size:
+                    log.warning(
+                        "Actual resulting data exceeds estimation of {}",
+                        human_size(data_size - esti_data_size),
                     )
+            else:
+                # check if the user space is not exceeded (for the observations we can't calculate the esti_data_size so this check is done after the extraction)
+                check_user_quota(
+                    user_id,
+                    output_dir,
+                    db,
+                    output_filename=out_filename,
+                    schedule_id=schedule_id,
+                )
 
             # target result
             target_filename = os.path.basename(outfile)
 
-            # create fileoutput record in db
-            if not amqp_queue:
-                if not opendata or data_size > 0:
+            if data_size > 0:
+                # update request status
+                request.status = states.SUCCESS
+                if not opendata:
+                    ## for pushing data output to amqp queue use case, the creation of fileoutput record in db can be skipped
+                    # create fileoutput record in db
                     SqlApiDbManager.create_fileoutput_record(
                         db, user_id, request_id, target_filename, data_size
                     )
-                    request.status = states.SUCCESS
-                else:
-                    # remove the empty output file
-                    if os.path.exists(outfile):
-                        os.remove(outfile)
-                    request.status = states.FAILURE
-                    request.error_message = "The resulting output file was empty"
             else:
-                # update request status
-                request.status = states.SUCCESS
+                # remove the empty output file
+                if os.path.exists(outfile):
+                    os.remove(outfile)
+                raise EmptyOutputFile("The resulting output file is empty")
 
         except ReferenceError as exc:
             request.status = states.FAILURE
@@ -553,9 +554,21 @@ def data_extract(
             request.end_date = datetime.datetime.utcnow()
             db.session.commit()
             log.info("Terminate task {} with state {}", self.request.id, request.status)
+            ## decomment for pushing output data in an amqp queue
+            # if amqp_queue:
+            #     extra_msg = push_data_to_queue(amqp_queue, outfile, output_dir, request)
+            # notificate_by_email(db, user_id, request, extra_msg, amqp_queue)
             if amqp_queue:
-                extra_msg = push_data_to_queue(amqp_queue, outfile, output_dir, request)
-            notificate_by_email(db, user_id, request, extra_msg, amqp_queue)
+                try:
+                    # notificate via amqp queue
+                    notificate_by_amqp_queue(amqp_queue, request)
+                except BaseException:
+                    extra_msg += f"failed communication with {amqp_queue} amqp queue"
+                    # notify via mail adding a warning about the amqp communication error
+                    notificate_by_email(db, user_id, request, extra_msg)
+            else:
+                # notificate via email
+                notificate_by_email(db, user_id, request, extra_msg)
 
 
 def check_user_quota(
@@ -688,7 +701,8 @@ def observed_extraction(
                     date_max=queries[fields.index("datetimemax")][0],
                 )
 
-    if db_type == "arkimet" and not amqp_queue:
+    ## for pushing data output to amqp queue use case, the estimation of data size can be skipped
+    if db_type == "arkimet":
         # check using arkimet if the estimated filesize does not exceed the disk quota
         query = ""
         if reftime:
@@ -704,7 +718,6 @@ def observed_extraction(
 
     # extract the data
     if db_type == "mixed":
-        # TODO
         dballe.extract_data_for_mixed(
             datasets, fields, queries, outfile, queried_reftime
         )
@@ -717,10 +730,13 @@ def observed_extraction(
 def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
     """Send email notification. """
     user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
-    if amqp_queue:
-        body_msg = request.error_message or f"Your data has been pushed to {amqp_queue}"
-    else:
-        body_msg = request.error_message or "Your data is ready for downloading"
+    ## decomment for pushing output data in an amqp queue use case
+    # if amqp_queue:
+    #     body_msg = request.error_message or f"Your data has been pushed to {amqp_queue}"
+    # else:
+    #     body_msg = request.error_message or "Your data is ready for downloading"
+
+    body_msg = request.error_message or "Your data is ready for downloading"
     body_msg += extra_msg
 
     replaces = {"title": request.name, "status": request.status, "message": body_msg}
@@ -729,6 +745,32 @@ def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
         smtp_client.send(
             body, "MeteoHub: data extraction completed", user_email, plain_body=body
         )
+
+
+def notificate_by_amqp_queue(amqp_queue, request):
+    # send a message to the queue
+    with rabbitmq.get_instance() as rabbit:
+        rabbit_msg = {
+            "request_name": request.name,
+            "status": request.status,
+            "reftime": request.args["reftime"],
+        }
+        if request.error_message:
+            rabbit_msg["error_message"] = request.error_message
+        if request.status == states.SUCCESS:
+            # get the filename and the url to download the data
+            filename = request.fileoutput.filename
+            rabbit_msg["filename"] = filename
+            host = get_backend_url()
+            url = f"{host}/api/data/{filename}"
+            rabbit_msg["download_url"] = url
+
+        rabbit.send_json(
+            rabbit_msg,
+            routing_key=amqp_queue,
+        )
+
+        rabbit.disconnect()
 
 
 def push_data_to_queue(amqp_queue, outfile, output_dir, request):
