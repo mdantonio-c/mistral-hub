@@ -301,6 +301,9 @@ class ScheduledDataExtraction(Schema):
         return data
 
 
+DATASET_ENABLED_TO_DATAREADY = ["lm2.2", "lm5"]
+
+
 class Schedules(EndpointResource):
     labels = ["schedule"]
 
@@ -360,6 +363,13 @@ class Schedules(EndpointResource):
         # clean up filters from unknown values
         if filters:
             filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
+
+        if data_ready:
+            # check if data ready function is enabled for the requested datasets
+            if not all(elem in DATASET_ENABLED_TO_DATAREADY for elem in dataset_names):
+                raise BadRequest(
+                    "Data-ready service is not available for the selected datasets"
+                )
 
         if opendata:
             # get user roles

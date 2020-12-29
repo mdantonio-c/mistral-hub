@@ -38,7 +38,6 @@
     </div>
   </div>
 
-
   <div class="card mst--expansion-panel mst--info-panel">
     <div class="card-header">
       <h5 class="card-title">
@@ -136,7 +135,10 @@
           >Periodically</label
         >
       </div>
-      <div class="custom-control custom-radio custom-control-inline">
+      <div
+        *ngIf="checkDataReady()"
+        class="custom-control custom-radio custom-control-inline"
+      >
         <input
           type="radio"
           class="custom-control-input"

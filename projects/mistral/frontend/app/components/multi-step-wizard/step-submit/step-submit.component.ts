@@ -104,6 +104,16 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
         this.spinner.hide();
       });
   }
+  checkDataReady() {
+    let dataReadyDatasets = ["lm2.2", "lm5"];
+    let requestedDatasets = this.formData.datasets.map((x) => x.id);
+    if (
+      requestedDatasets.length == 1 &&
+      requestedDatasets.every((elem) => dataReadyDatasets.indexOf(elem) > -1)
+    ) {
+      return true;
+    } else return false;
+  }
 
   emptyName() {
     return (

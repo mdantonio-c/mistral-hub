@@ -561,7 +561,12 @@ class BeDballe:
 
     @staticmethod
     def get_fields(
-        explorer, filters_for_explorer, variables, query, param, run_to_check=None
+        explorer,
+        filters_for_explorer,
+        variables,
+        query,
+        param,
+        run_to_check=None,
     ):
         # filter the dballe database by list of variables (level and timerange depend on variable)
         filters_w_varlist = {**filters_for_explorer, "varlist": variables}
