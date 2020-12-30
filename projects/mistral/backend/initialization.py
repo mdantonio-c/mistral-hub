@@ -1,11 +1,12 @@
 from mistral.services.arkimet import BeArkimet as arki
+from restapi.connectors import celery, sqlalchemy
 from restapi.utilities.logs import log
 
 
 class Initializer:
-    def __init__(self, services, app=None):
+    def __init__(self, app=None):
 
-        sql = services["sqlalchemy"]
+        sql = sqlalchemy.get_instance()
 
         admin = sql.Role.query.filter_by(name="admin_root").first()
         if admin is None:
@@ -343,19 +344,19 @@ class Initializer:
 
         log.info("Datasets successfully updated")
 
-        celery = services["celery"]
+        celery_app = celery.get_instance()
         UNIQUE_NAME = "requests_cleanup"
 
-        task = celery.get_periodic_task(name=UNIQUE_NAME)
+        task = celery_app.get_periodic_task(name=UNIQUE_NAME)
 
         if task:
             log.info("Automatic_cleanup task already installed, deleting...")
-            res = celery.delete_periodic_task(name=UNIQUE_NAME)
+            res = celery_app.delete_periodic_task(name=UNIQUE_NAME)
             log.info("Automatic_cleanup task deleted = {}", res)
 
         HOUR = "3"
         MINUTE = "45"
-        celery.create_crontab_task(
+        celery_app.create_crontab_task(
             name=UNIQUE_NAME,
             # task="mistral.tasks.requests_cleanup.automatic_cleanup",
             task="automatic_cleanup",

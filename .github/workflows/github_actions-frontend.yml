@@ -26,7 +26,7 @@ jobs:
 
       - name: Run Karma
         run: |
-          rapydo -s frontend pull
+          rapydo -s frontend pull --quiet
           rapydo -s frontend start
           sleep 5
           rapydo -s frontend logs

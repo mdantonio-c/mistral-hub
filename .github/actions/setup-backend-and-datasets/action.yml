@@ -16,7 +16,7 @@ runs:
         ls -l data/arkimet;
         ls -l data/arkimet_conf;
 
-        rapydo pull;
+        rapydo pull --quiet;
         rapydo build --force;
         rapydo add task test_task;
         rapydo start;
