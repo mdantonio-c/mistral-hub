@@ -33,7 +33,7 @@ class OutputBindings(EndpointResource):
     def get(self):
 
         db = sqlalchemy.get_instance()
-        rabbit = rabbitmq.get_instance()
+        rabbit = rabbitmq.get_instance(verification=1)
 
         if not rabbit.exchange_exists(EXCHANGE):
             rabbit.create_exchange(EXCHANGE)

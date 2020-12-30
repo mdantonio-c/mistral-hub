@@ -4,6 +4,7 @@ import { FormlyFieldConfig } from "@ngx-formly/core";
 import { BaseProjectOptions } from "@rapydo/base.project.options";
 import { BytesPipe } from "@rapydo/pipes/bytes";
 import { YesNoPipe } from "@rapydo/pipes/yes_or_no";
+import { AdminMenu, User } from "@rapydo/types";
 
 @Injectable()
 export class ProjectOptions extends BaseProjectOptions {
@@ -57,6 +58,16 @@ export class ProjectOptions extends BaseProjectOptions {
 
   registration_disclaimer(): string {
     return null;
+  }
+
+  admin_menu_entries(user: User): AdminMenu[] {
+    return [
+      {
+        enabled: user.isAdmin,
+        label: "Bindings",
+        router_link: "/app/admin/bindings",
+      },
+    ];
   }
 
   private initTemplates() {
