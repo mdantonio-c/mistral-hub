@@ -23,7 +23,6 @@ station_to_filter = [
     (44.68944, 10.51056, "dpcn-emiliaromag"),
 ]
 
-
 # DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
 
 
@@ -39,6 +38,9 @@ class BeDballe:
     ARKI_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/arkimet_summary_filtered.json"
     DBALLE_JSON_SUMMARY_PATH = "/arkimet/config/dballe_summary.json"
     DBALLE_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/dballe_summary_filtered.json"
+
+    # dballe codes for quality check attributes to consider for quality check filters
+    QC_CODES = ["B33007"]
 
     @staticmethod
     def get_db_type(date_min, date_max):
@@ -703,10 +705,11 @@ class BeDballe:
     def data_qc(attrs):
         attrs_dict = {v.code: v.get() for v in attrs}
         # Data already checked and checked as invalid by QC filter
-        if attrs_dict.get("B33007", 100) == 0:
-            return 0
-        else:
-            return 1
+        for key, val in attrs_dict.items():
+            if key in BeDballe.QC_CODES and val < 50:
+                # data is considered unreliable if its confidence is less than 50%
+                return 0
+        return 1
 
     @staticmethod
     def get_maps_response_for_mixed(
