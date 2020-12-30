@@ -166,11 +166,11 @@ class DataReady(EndpointResource):
 
             try:
 
-                celery_app = celery.get_instance()
+                c = celery.get_instance()
                 # copied from "submit first request for scheduled ondataready
                 request_to_be_created_id = None
                 data_ready = True
-                celery_app.send_task(
+                c.celery_app.send_task(
                     "data_extract",
                     args=[
                         r.get("user_id"),

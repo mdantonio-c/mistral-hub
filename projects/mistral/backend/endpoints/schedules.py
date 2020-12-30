@@ -454,7 +454,7 @@ class Schedules(EndpointResource):
                     and "spare_point_interpolation" in postprocessors_list
                 ):
                     raise BadRequest(
-                        f"This postprocessor does not support {output_format} output format",
+                        f"This postprocessor does not support {output_format} format",
                     )
 
         # WE NEED THIS APPROXIMATION OF ON DATA READY
@@ -487,7 +487,7 @@ class Schedules(EndpointResource):
             if not rabbit.queue_exists(pushing_queue):
                 raise Forbidden("User's queue for push notification does not exists")
 
-        celery_app = celery.get_instance()
+        c = celery.get_instance()
 
         name = None
         try:
@@ -520,11 +520,11 @@ class Schedules(EndpointResource):
 
                 if data_ready is False:
                     # remove previous task
-                    res = celery_app.delete_periodic_task(name=name)
+                    res = c.delete_periodic_task(name=name)
                     log.debug("Previous task deleted = {}", res)
 
                     request_id = None
-                    celery_app.create_periodic_task(
+                    c.create_periodic_task(
                         name=name,
                         task="mistral.tasks.data_extraction.data_extract",
                         every=every,
@@ -575,7 +575,7 @@ class Schedules(EndpointResource):
                         crontab_settings[i] = str_val
 
                     request_id = None
-                    celery_app.create_crontab_task(
+                    c.create_crontab_task(
                         name=name,
                         task="mistral.tasks.data_extraction.data_extract",
                         **crontab_settings,
@@ -619,7 +619,7 @@ class Schedules(EndpointResource):
             if data_ready:
                 # submit the first request
                 request_id = None
-                celery_app.send_task(
+                c.celery_app.send_task(
                     "data_extract",
                     args=[
                         user.id,
@@ -719,7 +719,7 @@ class Schedules(EndpointResource):
         user = self.get_user()
 
         db = sqlalchemy.get_instance()
-        celery_app = celery.get_instance()
+        c = celery.get_instance()
 
         # check if the schedule exist and is owned by the current user
         self.request_and_owner_check(db, user.id, schedule_id)
@@ -727,13 +727,13 @@ class Schedules(EndpointResource):
         schedule = db.Schedule.query.get(schedule_id)
         if schedule.on_data_ready is False:
             # retrieving mongodb task
-            task = celery_app.get_periodic_task(name=schedule_id)
+            task = c.get_periodic_task(name=schedule_id)
             log.debug("Periodic task - {}", task)
             # disable the schedule deleting it from mongodb
             if is_active is False:
                 if task is None:
                     raise Conflict("Scheduled task is already disabled")
-                celery_app.delete_periodic_task(name=schedule_id)
+                c.delete_periodic_task(name=schedule_id)
             # enable the schedule
             if is_active is True:
                 if task:
@@ -747,7 +747,7 @@ class Schedules(EndpointResource):
                 try:
                     request_id = None
                     if "periodic" in schedule_response:
-                        celery_app.create_periodic_task(
+                        c.create_periodic_task(
                             name=str(schedule_id),
                             task="mistral.tasks.data_extraction.data_extract",
                             every=schedule_response["every"],
@@ -775,7 +775,7 @@ class Schedules(EndpointResource):
                             val = schedule_response["crontab_settings"].get(i)
                             str_val = str(val)
                             crontab_settings[i] = str_val
-                        celery_app.create_crontab_task(
+                        c.create_crontab_task(
                             name=str(schedule_id),
                             task="mistral.tasks.data_extraction.data_extract",
                             **crontab_settings,

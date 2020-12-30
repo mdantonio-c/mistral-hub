@@ -388,8 +388,8 @@ class Data(EndpointResource, Uploader):
                 },
             )
 
-            celery_app = celery.get_instance()
-            task = celery_app.send_task(
+            c = celery.get_instance()
+            task = c.celery_app.send_task(
                 "data_extract",
                 args=[
                     user.id,
