@@ -57,6 +57,7 @@ def data_extract(
             schedule = None
             output_dir = None
             outfile = None
+            data_size = None
             if schedule_id is not None:
                 # load schedule for this request
                 schedule = db.Schedule.query.get(schedule_id)
@@ -552,23 +553,37 @@ def data_extract(
                     os.remove(f)
 
             request.end_date = datetime.datetime.utcnow()
-            db.session.commit()
-            log.info("Terminate task {} with state {}", self.request.id, request.status)
-            ## decomment for pushing output data in an amqp queue
-            # if amqp_queue:
-            #     extra_msg = push_data_to_queue(amqp_queue, outfile, output_dir, request)
-            # notificate_by_email(db, user_id, request, extra_msg, amqp_queue)
-            if amqp_queue:
-                try:
-                    # notificate via amqp queue
-                    notificate_by_amqp_queue(amqp_queue, request)
-                except BaseException:
-                    extra_msg += f"failed communication with {amqp_queue} amqp queue"
-                    # notify via mail adding a warning about the amqp communication error
-                    notificate_by_email(db, user_id, request, extra_msg)
+            if data_ready and data_size == 0:
+                # to prevent data ready notification given by error
+                # request will not be saved in db if the resulting output is empty
+                db.session.delete(request)
+                db.session.commit()
+                log.info(
+                    "Terminate task {} : the data ready extraction does not give any result",
+                    self.request.id,
+                )
             else:
-                # notificate via email
-                notificate_by_email(db, user_id, request, extra_msg)
+                db.session.commit()
+                log.info(
+                    "Terminate task {} with state {}", self.request.id, request.status
+                )
+                ## decomment for pushing output data in an amqp queue
+                # if amqp_queue:
+                #     extra_msg = push_data_to_queue(amqp_queue, outfile, output_dir, request)
+                # notificate_by_email(db, user_id, request, extra_msg, amqp_queue)
+                if amqp_queue:
+                    try:
+                        # notificate via amqp queue
+                        notificate_by_amqp_queue(amqp_queue, request)
+                    except BaseException:
+                        extra_msg += (
+                            f"failed communication with {amqp_queue} amqp queue"
+                        )
+                        # notify via mail adding a warning about the amqp communication error
+                        notificate_by_email(db, user_id, request, extra_msg)
+                else:
+                    # notificate via email
+                    notificate_by_email(db, user_id, request, extra_msg)
 
 
 def check_user_quota(
