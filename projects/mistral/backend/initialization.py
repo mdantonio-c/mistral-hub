@@ -353,18 +353,12 @@ class Initializer:
             res = celery.delete_periodic_task(name=UNIQUE_NAME)
             log.info("Automatic_cleanup task deleted = {}", res)
 
-        # EVERY = "5"
-        # celery.create_periodic_task(
-        #     name=UNIQUE_NAME,
-        #     task="mistral.tasks.requests_cleanup.automatic_cleanup",
-        #     every=EVERY,
-        # )
-        # log.info("Automa,tic_cleanup task installed every {} seconds", EVERY)
         HOUR = "3"
         MINUTE = "45"
         celery.create_crontab_task(
             name=UNIQUE_NAME,
-            task="mistral.tasks.requests_cleanup.automatic_cleanup",
+            # task="mistral.tasks.requests_cleanup.automatic_cleanup",
+            task="automatic_cleanup",
             hour=HOUR,
             minute=MINUTE,
             args=[],

@@ -21,8 +21,6 @@ export class TilesService {
     if (run) {
       params["run"] = run;
     }
-    return this.api.get("tiles", "", params, {
-      validationSchema: "RunAvailable",
-    });
+    return this.api.get("tiles", params, { validationSchema: "RunAvailable" });
   }
 }

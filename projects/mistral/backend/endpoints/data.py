@@ -337,7 +337,7 @@ class Data(EndpointResource, Uploader):
                             "Post processors unaivailable for the requested datasets"
                         )
 
-        # check if the output format chosen by the user is compatible with the chosen datasets
+        # check if the output format is compatible with the chosen datasets
         if output_format is not None:
             postprocessors_list = []
             if postprocessors:
@@ -389,7 +389,8 @@ class Data(EndpointResource, Uploader):
             )
 
             celery_app = celery.get_instance()
-            task = celery_app.data_extract.apply_async(
+            task = celery_app.send_task(
+                "data_extract",
                 args=[
                     user.id,
                     dataset_names,

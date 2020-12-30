@@ -165,25 +165,13 @@ class DataReady(EndpointResource):
             opendata = r["opendata"]
 
             try:
-                # this operation is done by the data extraction task
-                # request = SqlApiDbManager.create_request_record(
-                #     db,
-                #     r.get("user_id"),
-                #     request_name,
-                #     {
-                #         "datasets": datasets,
-                #         "reftime": reftime,
-                #         "filters": filters,
-                #         "postprocessors": processors,
-                #         "format": output_format,
-                #     },
-                # )
 
                 celery_app = celery.get_instance()
                 # copied from "submit first request for scheduled ondataready
                 request_to_be_created_id = None
                 data_ready = True
-                celery_app.data_extract.apply_async(
+                celery_app.send_task(
+                    "data_extract",
                     args=[
                         r.get("user_id"),
                         datasets,
@@ -200,27 +188,9 @@ class DataReady(EndpointResource):
                     countdown=1,
                 )
 
-                # celery_app.data_extract.apply_async(
-                #     args=[
-                #         r.get("user_id"),
-                #         datasets,
-                #         reftime,
-                #         filters,
-                #         processors,
-                #         output_format,
-                #         request.id,
-                #     ],
-                #     countdown=1,
-                # )
-                #
-                # request.task_id = task.id
-                # request.status = task.status  # 'PENDING'
-                # db.session.commit()
-                # log.info("Request successfully saved: <ID:{}>", request.id)
                 log.info("Request successfully submitted: <ID:{}>", request_id)
             except Exception as error:
                 log.error(error)
-                # db.session.rollback()
                 raise SystemError("Unable to submit the request")
 
         return self.response("1", code=202)

@@ -25,8 +25,11 @@ export interface MeteoMapset {
 export class MeteoService {
   constructor(private api: ApiService) {}
 
+  private get_params(params: MeteoFilter): Record<string, unknown> {
+    return JSON.parse(JSON.stringify(params));
+  }
   getMapset(params: MeteoFilter): Observable<MeteoMapset> {
-    return this.api.get("maps/ready", "", params);
+    return this.api.get("maps/ready", this.get_params(params));
   }
 
   getMapLegend(params: MeteoFilter): Observable<Blob> {
@@ -35,7 +38,7 @@ export class MeteoService {
         responseType: "blob",
       },
     };
-    return this.api.get("maps/legend", "", params, options);
+    return this.api.get("maps/legend", this.get_params(params), options);
   }
 
   getMapImage(params: MeteoFilter, offset: string): Observable<Blob> {
@@ -44,7 +47,7 @@ export class MeteoService {
         responseType: "blob",
       },
     };
-    return this.api.get("maps/" + offset, "", params, options);
+    return this.api.get(`maps/${offset}`, this.get_params(params), options);
   }
 
   getAllMapImages(params: MeteoFilter, offsets: string[]): Observable<any[]> {

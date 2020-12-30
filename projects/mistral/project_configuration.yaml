@@ -2,13 +2,13 @@
 project:
   title: Meteo-Hub
   description: "Mistral Meteo Hub"
-  version: "0.3.5"
-  rapydo: "0.9"
+  version: "0.4.0"
+  rapydo: "1.0"
 
 variables:
   env:
     FRONTEND_FRAMEWORK: angular
-    ENABLE_FOOTER: true
+    # ENABLE_FOOTER: true
     RUN_SCHEMATHESIS: 0
     CRONTAB_ENABLE: 1
 
@@ -24,12 +24,12 @@ variables:
     ACTIVATE_MONGODB: 1
     ACTIVATE_RABBIT: 1
     ACTIVATE_CELERY: 1
-    ACTIVATE_CELERYUI: 1
+    ACTIVATE_CELERYUI: 0
     ACTIVATE_CELERYBEAT: 1
 
-    ALLOW_ACCESS_TOKEN_PARAMETER: True
-    ALLOW_PASSWORD_RESET: "true"
-    ALLOW_TERMS_OF_USE: "true"
+    ALLOW_ACCESS_TOKEN_PARAMETER: 1
+    ALLOW_PASSWORD_RESET: 1
+    ALLOW_TERMS_OF_USE: 1
     UPLOAD_PATH: /data
 
     CELERY_BACKEND: MONGODB
@@ -38,11 +38,11 @@ variables:
     PLATFORM: GALILEO
     FRONTEND_DEBUG: 0
 
-    RABBITMQ_ENABLE_MANAGEMENT_PLUGIN: 1
+    # RABBITMQ_ENABLE_MANAGEMENT_PLUGIN: 1
     # RABBITMQ_ENABLE_SHOVEL_PLUGIN: 1
     # SET_UNSAFE_EVAL: "unsafe-eval"
 
-    CORS_ALLOW_ALL_ORIGINS: 1
+    CORS_ALLOWED_ORIGIN: "*"
     SET_CSP_IMG_SRC: "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://api.tiles.mapbox.com https://cartodb-basemaps-a.global.ssl.fastly.net https://cartodb-basemaps-b.global.ssl.fastly.net https://cartodb-basemaps-c.global.ssl.fastly.net https://cartodb-basemaps-d.global.ssl.fastly.net"
     SET_CSP_FONT_SRC: https://netdna.bootstrapcdn.com
 

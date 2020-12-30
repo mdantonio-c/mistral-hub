@@ -619,7 +619,8 @@ class Schedules(EndpointResource):
             if data_ready:
                 # submit the first request
                 request_id = None
-                celery_app.data_extract.apply_async(
+                celery_app.send_task(
+                    "data_extract",
                     args=[
                         user.id,
                         dataset_names,

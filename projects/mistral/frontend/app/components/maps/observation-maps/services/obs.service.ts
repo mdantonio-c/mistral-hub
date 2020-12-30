@@ -51,7 +51,7 @@ export class ObsService {
     if (filter.network && filter.network !== "") {
       params["q"] += `;network:${filter.network}`;
     }
-    return this.api.get("fields", "", params);
+    return this.api.get("fields", params);
   }
 
   // getObservations(filter: ObsFilter) {
@@ -95,7 +95,7 @@ export class ObsService {
     if (filter.level && filter.level !== "") {
       params["q"] += `;level:${filter.level}`;
     }
-    return this.api.get("observations", "", params);
+    return this.api.get("observations", params);
     //.pipe(map((data: Observation[], descriptions: Descriptions[]) => (data.data, data.descr)));
   }
 
@@ -158,7 +158,7 @@ export class ObsService {
       params["interval"] = filter.interval;
     }
     return this.api
-      .get("observations", "", params)
+      .get("observations", params)
       .pipe(map((data: ObservationResponse) => (this._data = data)));
   }
 

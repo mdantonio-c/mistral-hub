@@ -6,12 +6,10 @@ from restapi.connectors import sqlalchemy
 from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 
-celery_app = CeleryExt.celery_app
 
-
-@celery_app.task(bind=True)
+@CeleryExt.celery_app.task(bind=True, name="automatic_cleanup")
 def automatic_cleanup(self):
-    with celery_app.app.app_context():
+    with CeleryExt.app.app_context():
 
         log.info("Autocleaning task started!")
 

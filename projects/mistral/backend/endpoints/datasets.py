@@ -11,6 +11,7 @@ class Datasets(EndpointResource):
 
     labels = ["dataset"]
 
+    @decorators.auth.optional()
     @decorators.use_kwargs(
         {"licenceSpecs": fields.Bool(required=False)}, location="query"
     )
@@ -35,7 +36,7 @@ class Datasets(EndpointResource):
     def get(self, dataset_name=None, licenceSpecs=False):
         """ Get all the datasets or a specific one if a name is provided."""
         db = sqlalchemy.get_instance()
-        user = self.get_user_if_logged()
+        user = self.get_user()
         # TODO: it's okay that if logged you'll see less dataset than anonymous users?
         try:
             datasets = SqlApiDbManager.get_datasets(db, user, licenceSpecs=licenceSpecs)

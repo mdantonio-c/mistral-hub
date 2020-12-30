@@ -26,6 +26,7 @@ class Fields(EndpointResource):
 
     labels = ["field"]
 
+    @decorators.auth.optional()
     @decorators.use_kwargs(FieldsQuery, location="query")
     @decorators.endpoint(
         path="/fields",
@@ -57,7 +58,7 @@ class Fields(EndpointResource):
                 bounding_box["latmax"] = latmax
 
         # check for existing dataset(s)
-        user = self.get_user_if_logged()
+        user = self.get_user()
         db = sqlalchemy.get_instance()
         if datasets:
             if not user:

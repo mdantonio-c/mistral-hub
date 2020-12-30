@@ -1,7 +1,6 @@
 import json
 
 from restapi.connectors import sqlalchemy
-from restapi.services.detect import detector
 from restapi.tests import API_URI, BaseTests
 
 __author__ = "Beatrice Chiavarini (b.chiavarini@cineca.it)"
@@ -25,14 +24,13 @@ class TestApp(BaseTests):
         r = client.get(endpoint)
         assert r.status_code == 404
 
-    def test_endpoint_with_login(self, client, app, faker):
+    def test_endpoint_with_login(self, client, faker):
 
         # create a fake user
         admin_headers, _ = self.do_login(client, None, None)
         schema = self.getDynamicInputSchema(client, "admin/users", admin_headers)
         data = self.buildData(schema)
 
-        detector.init_services(app=app)
         obj = sqlalchemy.get_instance()
 
         # get the special dataset id for user authorization

@@ -29,10 +29,8 @@ from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 from restapi.utilities.templates import get_html_template
 
-celery_app = CeleryExt.celery_app
 
-
-@celery_app.task(bind=True)
+@CeleryExt.celery_app.task(bind=True, name="data_extract")
 # @send_errors_by_email
 def data_extract(
     self,
@@ -48,7 +46,7 @@ def data_extract(
     data_ready=False,
     opendata=False,
 ):
-    with celery_app.app.app_context():
+    with CeleryExt.app.app_context():
         log.info("Start task [{}:{}]", self.request.id, self.name)
         extra_msg = ""
         try:
@@ -164,7 +162,8 @@ def data_extract(
                         query=query,
                         schedule_id=schedule_id,
                     )
-                # observed data. in future the if statement will be for data using arkimet and data using dballe
+                # observed data: in future the if statement will be
+                # for data using arkimet and data using dballe
                 else:
                     log.debug("observation in dballe")
 
@@ -252,7 +251,10 @@ def data_extract(
                             out_filename = outfile_name + ".BUFR"
                             outfile = os.path.join(output_dir, out_filename)
                             # bufr_outfile = outfile_name+'.BUFR'
-                            # pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
+                            # pp3_3.pp_sp_interpolation(
+                            #     params=p, input=tmp_outfile,
+                            #     output=bufr_outfile,fileformat=dataset_format
+                            # )
                             pp3_3.pp_sp_interpolation(
                                 params=p,
                                 input=tmp_outfile,
@@ -266,8 +268,8 @@ def data_extract(
                         for f in tmp_filelist:
                             os.remove(f)
                         # if pp_type == 'spare_point_interpolation':
-                        #     # remove the temporary folder where the files for the interpolation were uploaded
                         #     uploaded_filepath = Path(p.get('coord-filepath'))
+                        #     temporary upload folder for the interpolation files
                         #     shutil.rmtree(uploaded_filepath.parent)
 
                 # case of multiple postprocessor
@@ -316,7 +318,7 @@ def data_extract(
                             for item in postprocessors:
                                 if item["processor_type"] == "statistic_elaboration":
                                     p.append(item)
-                            # check if the input has to be the previous postprocess output
+                            # check if the input has the previous postprocess output
                             pp_input = ""
                             if pp_output is not None:
                                 pp_input = pp_output
@@ -345,7 +347,7 @@ def data_extract(
                                 for item in postprocessors
                                 if item["processor_type"] == "grid_cropping"
                             )
-                            # check if the input has to be the previous postprocess output
+                            # check if the input has the previous postprocess output
                             pp_input = ""
                             if pp_output is not None:
                                 pp_input = pp_output
@@ -371,7 +373,7 @@ def data_extract(
                                 for item in postprocessors
                                 if item["processor_type"] == "grid_interpolation"
                             )
-                            # check if the input has to be the previous postprocess output
+                            # check if the input has the previous postprocess output
                             pp_input = ""
                             if pp_output is not None:
                                 pp_input = pp_output
@@ -397,13 +399,16 @@ def data_extract(
                                 for item in postprocessors
                                 if item["processor_type"] == "spare_point_interpolation"
                             )
-                            # check if the input has to be the previous postprocess output
+                            # check if the input has he previous postprocess output
                             pp_input = ""
                             if pp_output is not None:
                                 pp_input = pp_output
                             else:
                                 pp_input = tmp_outfile
-                            # new_tmp_extraction_filename = tmp_extraction_basename.split('.')[0] + '-pp3_3.grib.tmp'
+                            # new_tmp_extraction_filename = (
+                            #     tmp_extraction_basename.split('.')[0]
+                            #     + '-pp3_3.grib.tmp'
+                            # )
                             new_tmp_extraction_filename = (
                                 tmp_extraction_basename.split(".")[0] + ".bufr"
                             )
@@ -417,12 +422,14 @@ def data_extract(
                                 output=pp_output,
                                 fileformat=dataset_format,
                             )
-                        # rename the final output of postprocessors as outfile unless it is not a bufr file
+                        # rename the final output of postprocessors as outfile
+                        # unless it is not a bufr file
                         if pp_output.split(".")[-1] != "bufr":
                             log.debug("dest: {}".format(str(outfile)))
                             os.rename(pp_output, outfile)
                         # else:
-                        #     # if it is a bufr file, the filename resulting from the pp is will be the new outifle filename
+                        #     # if it is a bufr file, the filename resulting from pp
+                        #     # is will be the new outifle filename
                         #     outfile = pp_output
                     finally:
                         log.debug("end of multiple postprocessors")
@@ -430,7 +437,7 @@ def data_extract(
                     #     tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
                     #     for f in tmp_filelist:
                     #         os.remove(f)
-                    # if there is, remove the temporary folder where the files for the sp_interpolation were uploaded
+                    # remove the temporary sp_interpolation upload folder, if any
                     # if os.path.isdir(os.path.join(UPLOAD_PATH,uuid)):
                     #     shutil.rmtree(os.path.join(UPLOAD_PATH,uuid))
             else:
@@ -472,7 +479,9 @@ def data_extract(
                             human_size(data_size - esti_data_size),
                         )
                 else:
-                    # check if the user space is not exceeded (for the observations we can't calculate the esti_data_size so this check is done after the extraction)
+                    # check if the user space is not exceeded
+                    # For the observations we can't calculate the esti_data_size
+                    # so this check is done after the extraction.
                     check_user_quota(
                         user_id,
                         output_dir,
@@ -799,7 +808,7 @@ def adapt_reftime(db, schedule, reftime):
                     **{"days": cron_settings["day_of_week"]}
                 )
             elif "day_of_month" in cron_settings:
-                if not "month of year" in cron_settings:
+                if "month of year" not in cron_settings:
                     days_in_month_dict = {
                         1: 31,
                         2: 28,

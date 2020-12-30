@@ -12,7 +12,6 @@ export class AdminService {
   getBindings(): Observable<ExchangeBindings> {
     return this.api.get<ExchangeBindings>(
       "outbindings",
-      "",
       {},
       { validationSchema: "ExchangeBindings" }
     );

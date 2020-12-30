@@ -34,7 +34,7 @@ export class DataService {
    */
   getDatasets(licenceSpecs = false): Observable<Dataset[]> {
     const params = licenceSpecs ? { licenceSpecs: true } : {};
-    return this.api.get("datasets", "", params);
+    return this.api.get("datasets", params);
   }
 
   /**
@@ -44,7 +44,7 @@ export class DataService {
    */
   getDataset(datasetId: string, licenceSpecs = false): Observable<Dataset> {
     const params = licenceSpecs ? { licenceSpecs: true } : {};
-    return this.api.get(`datasets/${datasetId}`, "", params);
+    return this.api.get(`datasets/${datasetId}`, params);
   }
 
   getOpenData(datasetId): Observable<OpenData[]> {
@@ -84,7 +84,7 @@ export class DataService {
     if (onlyStats) {
       params["onlySummaryStats"] = true;
     }
-    return this.api.get("fields", "", params);
+    return this.api.get("fields", params);
   }
 
   uploadTemplate(file: File) {
@@ -190,7 +190,7 @@ export class DataService {
         observe: "response",
       },
     };
-    return this.api.get(`data/${filename}`, "", {}, options);
+    return this.api.get(`data/${filename}`, {}, options);
   }
 
   toggleScheduleActiveState(
@@ -206,14 +206,13 @@ export class DataService {
   getLastScheduledRequest(scheduleId): Observable<any> {
     return this.api.get(
       `schedules/${scheduleId}/requests`,
-      "",
       { last: true },
       { rawError: true }
     );
   }
 
   countScheduledRequests(scheduleId): Observable<any> {
-    return this.api.get(`schedules/${scheduleId}/requests`, "", {
+    return this.api.get(`schedules/${scheduleId}/requests`, {
       get_total: true,
     });
   }

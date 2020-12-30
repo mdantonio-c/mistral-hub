@@ -1,5 +1,4 @@
 import datetime
-import time
 
 from flask import Response, stream_with_context
 from mistral.exceptions import AccessToDatasetDenied
@@ -48,6 +47,7 @@ class MapsObservations(EndpointResource):
     # schema_expose = True
     labels = ["maps-observations"]
 
+    @decorators.auth.optional()
     @decorators.use_kwargs(ObservationsQuery, location="query")
     @decorators.endpoint(
         path="/observations",
@@ -77,7 +77,7 @@ class MapsObservations(EndpointResource):
         stationDetails=False,
         reliabilityCheck=False,
     ):
-        user = self.get_user_if_logged()
+        user = self.get_user()
         query = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
@@ -185,6 +185,7 @@ class MapsObservations(EndpointResource):
 
         return self.response(res)
 
+    @decorators.auth.optional()
     @decorators.use_kwargs(ObservationsDownloader, location="query")
     @decorators.endpoint(
         path="/observations",
@@ -211,7 +212,7 @@ class MapsObservations(EndpointResource):
         singleStation=False,
         reliabilityCheck=False,
     ):
-        user = self.get_user_if_logged()
+        user = self.get_user()
         query_data = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:

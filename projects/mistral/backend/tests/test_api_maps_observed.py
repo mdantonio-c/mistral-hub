@@ -5,7 +5,6 @@ import dballe
 import pytest
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe
-from restapi.services.detect import detector
 from restapi.tests import API_URI, BaseTests
 from restapi.utilities.logs import log
 
@@ -171,14 +170,13 @@ class TestApp(BaseTests):
                 break
         return check_product_1, check_product_2
 
-    def create_fake_user(self, client, app):
+    def create_fake_user(self, client):
         # create a fake user
         admin_headers, _ = self.do_login(client, None, None)
         self.save("admin_header", admin_headers)
         schema = self.getDynamicInputSchema(client, "admin/users", admin_headers)
         data = self.buildData(schema)
 
-        detector.init_services(app=app)
         # obj = sqlalchemy.get_instance()
 
         # get the group license id for user authorization
@@ -209,8 +207,8 @@ class TestApp(BaseTests):
         r = client.get(endpoint)
         assert r.status_code == 401
 
-    def test_for_dballe_dbtype(self, client, app, faker):
-        self.create_fake_user(client, app)
+    def test_for_dballe_dbtype(self, client, faker):
+        self.create_fake_user(client)
         # headers, _ = self.do_login(client, None, None)
         # self.save("auth_header", headers)
         headers = self.get("auth_header")
@@ -373,7 +371,7 @@ class TestApp(BaseTests):
         # check response content
         assert not response_data["data"][0]["prod"]
 
-        #### get station details ####
+        # get station details ####
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
             date_from=q_params["date_from"],
             date_to=q_params["date_to"],
