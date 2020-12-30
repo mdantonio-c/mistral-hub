@@ -3,14 +3,70 @@
     <div class="col-12">
       <div class="card">
         <div class="card-header">
-          <h4>Bindings</h4>
+          <h4 class="d-inline">
+            Bindings on <{{data?.exchange || 'n/a'}}> exchange
+          </h4>
+          <span class="float-right"
+            ><i
+              class="fa fa-sync clickable"
+              aria-hidden="true"
+              (click)="getBindings()"
+            ></i
+          ></span>
         </div>
-
-        <div class="card-block" *ngIf="data">
-          Exchange = {{ data.exchange }}
-          <br />
-          <div *ngFor="let network of data.bindings | keyvalue">
-            network {{ network.key }}: allowed queues = {{ network.value }}
+        <div class="card-block">
+          <ngx-spinner
+            bdColor="rgba(255,255,255,0.8)"
+            color="#6c757d"
+            [fullScreen]="false"
+            type="ball-clip-rotate-multiple"
+            size="medium"
+          ></ngx-spinner>
+          <div class="table-responsive mb-2" *ngIf="rows?.length">
+            <ngx-datatable
+              class="bootstrap expandable"
+              [rows]="rows"
+              [columnMode]="ColumnMode.force"
+              [headerHeight]="50"
+              [footerHeight]="50"
+              rowHeight="auto"
+              [reorderable]="reorderable"
+            >
+              <!-- Network -->
+              <ngx-datatable-column
+                name="Network"
+                prop="network"
+                [sortable]="true"
+              >
+                <ng-template
+                  let-value="value"
+                  let-row="row"
+                  ngx-datatable-cell-template
+                >
+                  <span>{{ value }}</span>
+                </ng-template>
+              </ngx-datatable-column>
+              <!-- User output queues -->
+              <ng-container *ngFor="let user of outputs">
+                <ngx-datatable-column prop="{{user}}" [sortable]="false">
+                  <ng-template
+                    let-value="value"
+                    let-row="row"
+                    ngx-datatable-cell-template
+                  >
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-toggle"
+                      data-toggle="button"
+                      [ngClass]="{ active: value }"
+                      (click)="toggleBinding(user, row.network, value, row)"
+                    >
+                      <div class="handle"></div>
+                    </button>
+                  </ng-template>
+                </ngx-datatable-column>
+              </ng-container>
+            </ngx-datatable>
           </div>
         </div>
       </div>

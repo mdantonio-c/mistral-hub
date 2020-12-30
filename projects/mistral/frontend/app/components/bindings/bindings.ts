@@ -1,65 +1,108 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 
 // import { BindingsService } from "@app/services/{name}"
-
 import { NgxSpinnerService } from "ngx-spinner";
-import { ApiService } from "@rapydo/services/api";
+// import {ApiService} from "@rapydo/services/api";
 import { AuthService } from "@rapydo/services/auth";
 import { NotificationService } from "@rapydo/services/notification";
-import { ExchangeBindings } from "@app/types";
+import { AdminService } from "../../services/admin.service";
+// import { ExchangeBindings } from "@app/types";
+import { ExchangeBindings } from "../../types";
+
+enum ColumnMode {
+  standard = "standard",
+  flex = "flex",
+  force = "force",
+}
 
 @Component({
   templateUrl: "bindings.html",
 })
-export class BindingsComponent {
+export class BindingsComponent implements OnInit {
   public data: ExchangeBindings;
+  rows = [];
+  reorderable = true;
+  ColumnMode = ColumnMode;
+  outputs: string[] = [];
 
   constructor(
     private spinner: NgxSpinnerService,
-    private api: ApiService,
+    private adminService: AdminService,
     private auth: AuthService,
     private notify: NotificationService
-  ) {
-    this.get_bindings();
+  ) {}
+
+  ngOnInit() {
+    this.getBindings();
   }
 
-  private get_bindings() {
-    this.api
-      .get<ExchangeBindings>(
-        "outbindings",
-        "",
-        {},
-        { validationSchema: "ExchangeBindings" }
-      )
+  getBindings() {
+    this.spinner.show();
+    this.adminService
+      .getBindings()
       .subscribe(
         (response) => {
           this.data = response;
+          // this.rows = this.data.bindings
+          let res = new Set<string>();
+          for (const [key, value] of Object.entries(this.data.bindings)) {
+            let entry = {
+              network: key,
+            };
+            if (value && value.length) {
+              const o: string[] = value.map((v) => v.split("-")[0]);
+              o.forEach((x) => {
+                entry[x] = true;
+                res.add(x);
+              });
+            }
+            this.rows.push(entry);
+          }
+          this.outputs = [...res];
         },
         (error) => {
           this.notify.showError(error);
         }
-      );
+      )
+      .add(() => {
+        this.spinner.hide();
+      });
   }
 
-  private enable_binding(user, network) {
-    this.api.post(`outbindings/${user}/${network}`).subscribe(
-      (response) => {
-        this.notify.showSuccess("Binding enabled");
-      },
-      (error) => {
-        this.notify.showError(error);
-      }
-    );
-  }
-
-  private disable_binding(user, network) {
-    this.api.delete(`outbindings/${user}/${network}`).subscribe(
-      (response) => {
-        this.notify.showSuccess("Binding disabled");
-      },
-      (error) => {
-        this.notify.showError(error);
-      }
-    );
+  toggleBinding(user: string, network: string, val: boolean, row) {
+    this.spinner.show();
+    const action = val ? "deactivate" : "activate";
+    console.info(`[user:${user}] - ${action} binding for network '${network}'`);
+    if (val) {
+      this.adminService
+        .disableBinding(user, network)
+        .subscribe(
+          () => {
+            this.notify.showSuccess("Binding disabled");
+            row[user] = !val;
+          },
+          (error) => {
+            this.notify.showError(error);
+          }
+        )
+        .add(() => {
+          this.spinner.hide();
+        });
+    } else {
+      this.adminService
+        .enableBinding(user, network)
+        .subscribe(
+          () => {
+            this.notify.showSuccess("Binding enabled");
+            row[user] = !val;
+          },
+          (error) => {
+            this.notify.showError(error);
+          }
+        )
+        .add(() => {
+          this.spinner.hide();
+        });
+    }
   }
 }
