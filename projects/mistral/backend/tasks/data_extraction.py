@@ -58,6 +58,7 @@ def data_extract(
             output_dir = None
             outfile = None
             data_size = None
+            double_request = False
             if schedule_id is not None:
                 # load schedule for this request
                 schedule = db.Schedule.query.get(schedule_id)
@@ -70,6 +71,23 @@ def data_extract(
                 # adapt the request reftime
                 if reftime and not data_ready:
                     reftime = adapt_reftime(db, schedule, reftime)
+
+                if data_ready:
+                    # to prevent double extraction given to the double notification of the two clusters,check if the same data has already be extracted
+                    last_request = (
+                        db.Request.query.filter_by(
+                            schedule_id=schedule_id, status="SUCCESS"
+                        )
+                        .order_by(db.Request.submission_date.desc())
+                        .first()
+                    )
+                    # check if the reftime is the same of the last request
+                    if last_request.args["reftime"] == reftime:
+                        double_request = True
+                        log.info(
+                            "Data-Ready request: the data has already been extracted due to a previous data-ready notification"
+                        )
+                        return
 
                 # create an entry in request db linked to the scheduled request entry
                 request_name = SqlApiDbManager.get_schedule_name(db, schedule_id)
@@ -546,44 +564,49 @@ def data_extract(
             log.exception("Failed to extract data: {}", repr(exc))
             raise exc
         finally:
-            if output_dir:
-                # remove tmp file
-                tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
-                for f in tmp_filelist:
-                    os.remove(f)
+            if (
+                not double_request
+            ):  # which means if the extraction hasn't been interrupted
+                if output_dir:
+                    # remove tmp file
+                    tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
+                    for f in tmp_filelist:
+                        os.remove(f)
 
-            request.end_date = datetime.datetime.utcnow()
-            if data_ready and data_size == 0:
-                # to prevent data ready notification given by error
-                # request will not be saved in db if the resulting output is empty
-                db.session.delete(request)
-                db.session.commit()
-                log.info(
-                    "Terminate task {} : the data ready extraction does not give any result",
-                    self.request.id,
-                )
-            else:
-                db.session.commit()
-                log.info(
-                    "Terminate task {} with state {}", self.request.id, request.status
-                )
-                ## decomment for pushing output data in an amqp queue
-                # if amqp_queue:
-                #     extra_msg = push_data_to_queue(amqp_queue, outfile, output_dir, request)
-                # notificate_by_email(db, user_id, request, extra_msg, amqp_queue)
-                if amqp_queue:
-                    try:
-                        # notificate via amqp queue
-                        notificate_by_amqp_queue(amqp_queue, request)
-                    except BaseException:
-                        extra_msg += (
-                            f"failed communication with {amqp_queue} amqp queue"
-                        )
-                        # notify via mail adding a warning about the amqp communication error
-                        notificate_by_email(db, user_id, request, extra_msg)
+                request.end_date = datetime.datetime.utcnow()
+                if data_ready and data_size == 0:
+                    # to prevent data ready notification given by error
+                    # request will not be saved in db if the resulting output is empty
+                    db.session.delete(request)
+                    db.session.commit()
+                    log.info(
+                        "Terminate task {} : the data ready extraction does not give any result",
+                        self.request.id,
+                    )
                 else:
-                    # notificate via email
-                    notificate_by_email(db, user_id, request, extra_msg)
+                    db.session.commit()
+                    log.info(
+                        "Terminate task {} with state {}",
+                        self.request.id,
+                        request.status,
+                    )
+                    ## decomment for pushing output data in an amqp queue
+                    # if amqp_queue:
+                    #     extra_msg = push_data_to_queue(amqp_queue, outfile, output_dir, request)
+                    # notificate_by_email(db, user_id, request, extra_msg, amqp_queue)
+                    if amqp_queue:
+                        try:
+                            # notificate via amqp queue
+                            notificate_by_amqp_queue(amqp_queue, request)
+                        except BaseException:
+                            extra_msg += (
+                                f"failed communication with {amqp_queue} amqp queue"
+                            )
+                            # notify via mail adding a warning about the amqp communication error
+                            notificate_by_email(db, user_id, request, extra_msg)
+                    else:
+                        # notificate via email
+                        notificate_by_email(db, user_id, request, extra_msg)
 
 
 def check_user_quota(
