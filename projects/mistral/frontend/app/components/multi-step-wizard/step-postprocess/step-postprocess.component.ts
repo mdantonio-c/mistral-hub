@@ -135,6 +135,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       selectedSpacePP: new FormControl(),
       hasGribDataset: false,
       hasBufrDataset: false,
+      onlyReliable: false,
     });
   }
 
@@ -405,6 +406,9 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     this.buildSpaceCrop();
     this.buildOutputFormat();
   }
+  toggleOnlyReliable() {
+    this.form.value.onlyReliable = !this.form.value.onlyReliable;
+  }
 
   loadFile(files: FileList) {
     if (files.length == 1) {
@@ -507,6 +511,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     } else {
       this.formDataService.setOutputFormat("");
     }
+    this.formDataService.setQCFilter(this.form.value.onlyReliable);
 
     if (this.validationResults.length) {
       this.validationResults.forEach((r) => {

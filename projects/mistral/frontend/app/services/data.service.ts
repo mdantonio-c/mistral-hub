@@ -121,7 +121,8 @@ export class DataService {
     postprocessors?: any[],
     outputformat?: string,
     push?: boolean,
-    opendata?: boolean
+    opendata?: boolean,
+    only_reliable?: boolean
   ) {
     let data = {
       request_name: request_name,
@@ -169,6 +170,9 @@ export class DataService {
     }
     if (outputformat) {
       data["output_format"] = outputformat;
+    }
+    if (only_reliable) {
+      data["only_reliable"] = true;
     }
     let endpoint = schedule ? "schedules" : "data";
     if (push) {

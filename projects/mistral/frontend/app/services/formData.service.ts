@@ -22,6 +22,7 @@ export class FormData {
   postprocessors: any[] = [];
   schedule: TaskSchedule;
   output_format = "";
+  only_reliable: boolean = false;
   push: boolean = false;
   opendata: boolean = false;
 
@@ -33,6 +34,7 @@ export class FormData {
     this.output_format = "";
     this.schedule = null;
     this.reftime = this.defaultRefTime();
+    this.only_reliable = false;
     this.push = false;
     this.opendata = false;
   }
@@ -225,5 +227,8 @@ export class FormDataService {
 
   setOutputFormat(data: any) {
     this.formData.output_format = data;
+  }
+  setQCFilter(data: boolean) {
+    this.formData.only_reliable = data;
   }
 }
