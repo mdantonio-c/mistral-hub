@@ -22,6 +22,7 @@ from mistral.tools import derived_variables as pp1
 from mistral.tools import grid_cropping as pp3_2
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import output_formatting
+from mistral.tools import quality_check_filter as qc
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi.config import get_backend_url
@@ -44,6 +45,7 @@ def data_extract(
     postprocessors=[],
     output_format=None,
     request_id=None,
+    only_reliable=None,
     amqp_queue=None,
     schedule_id=None,
     data_ready=False,
@@ -224,6 +226,7 @@ def data_extract(
                         tmp_outfile,
                         amqp_queue=amqp_queue,
                         schedule_id=schedule_id,
+                        only_reliable=only_reliable,
                     )
 
                 # case of single postprocessor
@@ -470,6 +473,7 @@ def data_extract(
                         outfile,
                         amqp_queue=amqp_queue,
                         schedule_id=schedule_id,
+                        only_reliable=only_reliable,
                     )
 
             if output_format:
@@ -671,6 +675,7 @@ def observed_extraction(
     outfile,
     amqp_queue=None,
     schedule_id=None,
+    only_reliable=False,
 ):
     # parsing the query
     fields, queries = dballe.parse_query_for_data_extraction(datasets, filters, reftime)
@@ -755,6 +760,16 @@ def observed_extraction(
         )
 
     # extract the data
+    if only_reliable:
+        if outfile.endswith(".tmp"):
+            outfile_split = outfile[:-4]
+            filebase, fileext = os.path.splitext(outfile_split)
+        else:
+            filebase, fileext = os.path.splitext(outfile)
+        # change the name of the output file as it will be processed an other time by the postprocessor
+        qc_outfile = outfile
+        outfile = filebase + "_to_be_qcfiltered" + fileext + ".tmp"
+
     if db_type == "mixed":
         dballe.extract_data_for_mixed(
             datasets, fields, queries, outfile, queried_reftime
@@ -763,6 +778,10 @@ def observed_extraction(
         dballe.extract_data(
             datasets, fields, queries, outfile, db_type, queried_reftime
         )
+
+    if only_reliable:
+        # processed the resulting file
+        qc.pp_quality_check_filter(input=outfile, output=qc_outfile)
 
 
 def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):

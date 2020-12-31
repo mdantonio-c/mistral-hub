@@ -251,6 +251,7 @@ class ScheduledDataExtraction(Schema):
     )
     filters = fields.Nested(Filters, description="Apply different filtering criteria.")
     output_format = fields.Str(validate=validate.OneOf(OUTPUT_FORMATS))
+    only_reliable = fields.Bool(required=False)
     postprocessors = fields.List(
         Postprocessors(description="Post-processing request details"),
         unique=True,
@@ -326,6 +327,7 @@ class Schedules(EndpointResource):
         reftime=None,
         filters=None,
         output_format=None,
+        only_reliable=False,
         postprocessors=None,
         period_settings=None,
         crontab_settings=None,
@@ -487,6 +489,14 @@ class Schedules(EndpointResource):
             if not rabbit.queue_exists(pushing_queue):
                 raise Forbidden("User's queue for push notification does not exists")
 
+        if only_reliable:
+            # check if the option is possible for the selecte datasets
+            data_type = arki.get_datasets_category(dataset_names)
+            if data_type != "OBS" and "multim-forecast" not in dataset_names:
+                raise BadRequest(
+                    "The chosen datasets does not support 'only quality controlled data' option "
+                )
+
         celery_app = celery.get_instance()
 
         name = None
@@ -508,6 +518,7 @@ class Schedules(EndpointResource):
                         "filters": filters,
                         "postprocessors": postprocessors,
                         "output_format": output_format,
+                        "only_reliable": only_reliable,
                         "pushing_queue": pushing_queue,
                     },
                     every=every,
@@ -537,6 +548,7 @@ class Schedules(EndpointResource):
                             postprocessors,
                             output_format,
                             request_id,
+                            only_reliable,
                             pushing_queue,
                             name_int,
                             data_ready,
@@ -559,6 +571,7 @@ class Schedules(EndpointResource):
                         "filters": filters,
                         "postprocessors": postprocessors,
                         "output_format": output_format,
+                        "only_reliable": only_reliable,
                         "pushing_queue": pushing_queue,
                     },
                     crontab_settings=crontab_settings,
@@ -587,6 +600,7 @@ class Schedules(EndpointResource):
                             postprocessors,
                             output_format,
                             request_id,
+                            only_reliable,
                             pushing_queue,
                             name_int,
                             data_ready,
@@ -608,6 +622,7 @@ class Schedules(EndpointResource):
                         "filters": filters,
                         "postprocessors": postprocessors,
                         "output_format": output_format,
+                        "only_reliable": only_reliable,
                         "pushing_queue": pushing_queue,
                     },
                     on_data_ready=data_ready,
@@ -628,6 +643,7 @@ class Schedules(EndpointResource):
                         postprocessors,
                         output_format,
                         request_id,
+                        only_reliable,
                         pushing_queue,
                         name,
                         False,
@@ -759,6 +775,7 @@ class Schedules(EndpointResource):
                                 schedule_response["args"]["postprocessors"],
                                 schedule_response["args"]["output_format"],
                                 request_id,
+                                schedule_response["args"]["only_reliable"],
                                 schedule_response["args"]["pushing_queue"],
                                 schedule_id,
                                 False,
@@ -786,6 +803,7 @@ class Schedules(EndpointResource):
                                 schedule_response["args"]["postprocessors"],
                                 schedule_response["args"]["output_format"],
                                 request_id,
+                                schedule_response["args"]["only_reliable"],
                                 schedule_response["args"]["pushing_queue"],
                                 schedule_id,
                                 False,
