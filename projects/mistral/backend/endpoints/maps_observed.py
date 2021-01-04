@@ -423,6 +423,7 @@ class MapsObservations(EndpointResource):
                             output_format,
                             download_query_data,
                             download_query_station_data,
+                            qc_filter=reliabilityCheck,
                         )
                     ),
                     mimetype=mime,
