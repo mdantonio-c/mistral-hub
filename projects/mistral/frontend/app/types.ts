@@ -181,6 +181,7 @@ export interface ObsFilter {
   level?: string;
   bbox?: BoundingBox;
   onlyStations?: boolean;
+  reliabilityCheck?: boolean;
   interval?: number;
 }
 

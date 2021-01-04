@@ -1016,6 +1016,13 @@ class BeDballe:
                                     and station_tuple in station_to_filter
                                 ):
                                     product_val["rel"] = 0
+                    if (
+                        "rel" not in product_val.keys()
+                        and station_tuple[2] != "multim-forecast"
+                    ):
+                        # quality control filter is not active: use the default value (1)
+                        # this param is not useful for multimodel use case
+                        product_val["rel"] = 1
 
                     if query_station_data or extend_res:
                         level = BeDballe.from_level_object_to_string(rec["level"])

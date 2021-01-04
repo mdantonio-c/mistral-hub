@@ -115,6 +115,18 @@
       </option>
     </select>
   </div>
+  <dd>Quality Control Filter</dd>
+  <dd>
+    <button
+      type="button"
+      class="btn btn-sm btn-toggle"
+      data-toggle="button"
+      [ngClass]="{ active: filterForm.value.reliabilityCheck }"
+      (click)="toggleReliabilityCheck()"
+    >
+      <div class="handle"></div>
+    </button>
+  </dd>
 
   <div class="text-center mt-4">
     <button
