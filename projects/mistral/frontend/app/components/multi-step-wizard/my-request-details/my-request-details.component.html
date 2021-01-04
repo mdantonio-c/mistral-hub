@@ -105,7 +105,22 @@
       </ng-container>
     </dl>
   </dd>
-  <dd *ngIf="!myRequest.postprocessors || !myRequest.postprocessors.length">
+  <dd *ngIf="myRequest.only_reliable">
+    <dl class="row">
+      <dt class="col-sm-3" style="font-weight: normal">
+        quality control filter
+      </dt>
+      <dd class="col-sm-9">
+        <p>only quality controlled data</p>
+      </dd>
+    </dl>
+  </dd>
+  <dd
+    *ngIf="
+      (!myRequest.postprocessors && !myRequest.only_reliable) ||
+      (!myRequest.postprocessors.length && !myRequest.only_reliable)
+    "
+  >
     None
   </dd>
   <ng-container *ngIf="myRequest.output_format">
