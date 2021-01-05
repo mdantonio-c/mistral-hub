@@ -655,7 +655,9 @@ def observed_extraction(
                 ).replace(hour=0, minute=0)
                 if queried_reftime < first_run:
                     # the result will be empty
-                    raise EmptyOutputFile("The requested query does not giany results")
+                    raise EmptyOutputFile(
+                        "The requested query does not get any results"
+                    )
                 else:
                     q_for_multimodel_reftime["datetimemin"] = queries[
                         fields.index("datetimemin")
