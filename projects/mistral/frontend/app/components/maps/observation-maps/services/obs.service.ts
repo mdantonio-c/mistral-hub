@@ -210,8 +210,10 @@ export class ObsService {
     );
   }
 
-  getColor(d, min, max) {
-    return COLORS[this.getColorIndex(d, min, max)];
+  getColor(d, min, max, rel = 1) {
+    if (rel == 0) {
+      return "undefined";
+    } else return COLORS[this.getColorIndex(d, min, max)];
   }
 
   // @ts-ignore

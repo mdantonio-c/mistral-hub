@@ -106,7 +106,13 @@ export class ObsMapComponent {
           res = ObsService.showData(val, type); // default precision is 5
 
           // custom background color of cluster
-          c = " mst-marker-color-" + srv.getColor(val, srv.min, srv.max);
+          let reliability = 1;
+          if (dirtyCluster) {
+            reliability = 0;
+          }
+          c =
+            " mst-marker-color-" +
+            srv.getColor(val, srv.min, srv.max, reliability);
 
           // if the cluster contains data for a single station, bind a tooltip
           let is_single_station = false;
@@ -270,7 +276,7 @@ export class ObsMapComponent {
               iconSize: [24, 6],
               className:
                 "leaflet-marker-icon mst-marker-color-" +
-                this.obsService.getColor(val, min, max),
+                this.obsService.getColor(val, min, max, obsData.val[i].rel),
             });
           } else {
             icon = L.divIcon({
@@ -281,7 +287,7 @@ export class ObsMapComponent {
               iconSize: [40, 40],
               className:
                 "leaflet-marker-icon mst-marker-color-" +
-                this.obsService.getColor(val, min, max) +
+                this.obsService.getColor(val, min, max, obsData.val[i].rel) +
                 " marker-cluster",
             });
           }
