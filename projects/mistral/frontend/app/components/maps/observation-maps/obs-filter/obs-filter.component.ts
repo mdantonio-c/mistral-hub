@@ -75,7 +75,7 @@ export class ObsFilterComponent implements OnInit {
       boundingBox: [""],
       network: [""],
       license: ["CC-BY", Validators.required],
-      reliabilityCheck: [false],
+      reliabilityCheck: [true],
     });
   }
 
@@ -137,7 +137,7 @@ export class ObsFilterComponent implements OnInit {
               timerange: "",
               boundingBox: "",
               license: "CC-BY",
-              reliabilityCheck: false,
+              reliabilityCheck: true,
             },
             { emitEvent: false }
           );
