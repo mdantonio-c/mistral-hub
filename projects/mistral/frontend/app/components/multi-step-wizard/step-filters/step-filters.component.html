@@ -24,7 +24,6 @@
         <p style="font-size: 20px; color: white">Updating Filters...</p>
       </ngx-spinner>
 
-
       <div class="row no-gutters">
         <div class="col-md-6 mb-4 mb-md-0">
           <!-- Summary Stats-->
@@ -76,45 +75,38 @@
         </div>
       </div>
 
-
-
-
       <!-- Refime  -->
       <div class="no-gutters">
-        
-          <div
-            class="card mst--expansion-panel" *ngIf="summaryStats">
-            <div class="card-header">
-              <h5>reftime</h5>
-              <button
-                type="button"
-                class="btn btn-sm ml-2 p-0 mb-1"
-                (click)="editReftime(reftimeContent)"
-                ngbTooltip="Change reftime"
-                triggers="hover"
-                placement="right"
-              >
-                <i class="fa fa-edit"></i>
-              </button>
-
-            </div>
-            <div class="card-body mst--list-filter">
-              <ul class="row no-gutters">
-                <li class="col-sm-12 col-md-6">
-                    <label style="margin:6px 0 0 12px;">From: {{ summaryStats.b | fmtDate }}</label>
-                </li>
-                <li class="col-sm-12 col-md-6">
-                    <label style="margin:6px 0 0 12px;">To: {{ summaryStats.e | fmtDate }}</label>
-                </li>
-              </ul>
-            </div>
+        <div class="card mst--expansion-panel" *ngIf="summaryStats">
+          <div class="card-header">
+            <h5>reftime</h5>
+            <button
+              type="button"
+              class="btn btn-sm ml-2 p-0 mb-1"
+              (click)="editReftime()"
+              ngbTooltip="Change reftime"
+              triggers="hover"
+              placement="right"
+            >
+              <i class="fa fa-edit"></i>
+            </button>
           </div>
-        
+          <div class="card-body mst--list-filter">
+            <ul class="row no-gutters">
+              <li class="col-sm-12 col-md-6">
+                <label style="margin: 6px 0 0 12px"
+                  >From: {{ summaryStats.b | fmtDate }}</label
+                >
+              </li>
+              <li class="col-sm-12 col-md-6">
+                <label style="margin: 6px 0 0 12px"
+                  >To: {{ summaryStats.e | fmtDate }}</label
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
-
-
-
-
 
       <!-- Filters -->
       <div
@@ -175,137 +167,4 @@
       </div>
     </div>
   </div>
-
-  <!-- Reftime Modal -->
-  <ng-template #reftimeContent let-modal>
-
-    <div class="modal-header">
-      <h4 class="modal-title">Change Reftime</h4>
-      <button
-        type="button"
-        class="btn close"
-        aria-label="Close"
-        (click)="modal.dismiss()">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-
-    <div class="modal-body"> 
-
-     <ngx-spinner
-       name="sp3"
-       bdColor="rgba(255,255,255,0.8)"
-       color="#6c757d" 
-       zIndex="100"
-       [fullScreen]="false" 
-       type="ball-clip-rotate-multiple" 
-       size="medium">
-     </ngx-spinner>
-				
-      <div class="form-group row" style="align-items: center">
-        <label for="fromDate" class="col-sm-2 col-form-label">From:</label>
-        <div class="input-group col-sm-5">
-          <input
-            id="fromDate"
-            class="form-control"
-            placeholder="yyyy-mm-dd"
-            [formControl]="filterForm.controls.fromDate"
-            [attr.disabled]="disabledDp"
-            [maxDate]="fromMaxDate"
-            ngbDatepicker
-            #from="ngbDatepicker"
-          />
-          <div class="input-group-append">
-            <button
-              class="btn btn-outline-secondary"
-              (click)="from.toggle()"
-              type="button"
-            >
-              <i class="fa fa-calendar"></i>
-            </button>
-          </div>
-        </div>
-        <div class="input-group col-sm-5">
-          <ngb-timepicker
-            formControlName="fromTime"
-            name="fromTime"
-            [attr.disabled]="disabledDp"
-          ></ngb-timepicker>
-        </div>
-      </div>
-      <div class="form-group row" style="align-items: center">
-        <label for="toDate" class="col-sm-2 col-form-label">To:</label>
-        <div class="input-group col-sm-5">
-          <input
-            id="toDate"
-            class="form-control"
-            placeholder="yyyy-mm-dd"
-            formControlName="toDate"
-            [attr.disabled]="disabledDp"
-            [minDate]="toMinDate"
-            [maxDate]="today()"
-            ngbDatepicker
-            #to="ngbDatepicker"
-          />
-          <div class="input-group-append">
-            <button
-              class="btn btn-outline-secondary"
-              (click)="to.toggle()"
-              type="button"
-            >
-              <i class="fa fa-calendar"></i>
-            </button>
-          </div>
-        </div>
-        <div class="input-group col-sm-5">
-          <ngb-timepicker
-            formControlName="toTime"
-            name="toTime"
-            [attr.disabled]="disabledDp"
-          ></ngb-timepicker>
-        </div>
-      </div>
-      <div
-        *ngIf="
-          !filterForm.controls.fullDataset.value &&
-          filterForm.errors?.timeRangeInconsistency &&
-          (filterForm.touched || filterForm.dirty)
-        "
-        class="cross-validation-error-message alert alert-danger"
-      >
-        Time inconsistency: From time value cannot be greater than To time
-        value.
-      </div>
-      <button
-        class="btn btn-sm btn-outline-primary mr-2"
-        (click)="selectToday()"
-      >
-        Select Today
-      </button>
-      <hr />
-      <div>
-        <input
-          class="mst--input-checkbox"
-          type="checkbox"
-          formControlName="fullDataset"
-          id="full_ds"
-          (click)="toggleFullDataset()"
-        />
-        <label for="full_ds">Full Dataset</label>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button
-        type="button"
-        class="btn btn-info"
-        (click)="modal.close('save')"
-        [disabled]="
-          !filterForm.controls.fullDataset.value &&
-          filterForm.errors?.timeRangeInconsistency
-        "
-      >
-        Save
-      </button>
-    </div>
-  </ng-template>
 </form>
