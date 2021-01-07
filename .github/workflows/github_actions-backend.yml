@@ -32,6 +32,8 @@ jobs:
 
       - name: Run Pytest
         run: |
+          # wait few seconds to let the init process in docker-entrypoint to complete
+          sleep 20
           rapydo shell --no-tty backend 'restapi tests --wait'
           docker cp ${PROJECT}_backend_1:/code/coverage.xml coverage.xml
           bash <(curl -s https://codecov.io/bash)
@@ -47,3 +49,12 @@ jobs:
 
       - name: Docker Push
         run: docker push meteohub/backend:${{ env.RAPYDO_VERSION }}
+
+      - name: Print Logs
+        if: failure()
+        run: tail -100 data/logs/backend-server.log
+
+      - name: Docker Logs
+        if: failure()
+        run: |
+          rapydo logs
