@@ -121,10 +121,7 @@ export class ObsService {
    * @param filter
    * @param reliabilityCheck request for value reliability. Default to true.
    */
-  private loadObservations(
-    filter: ObsFilter,
-    reliabilityCheck = true
-  ): Observable<ObservationResponse> {
+  private loadObservations(filter: ObsFilter): Observable<ObservationResponse> {
     this._data = null;
     let d = [
       `${filter.reftime.getFullYear()}`,
@@ -133,8 +130,10 @@ export class ObsService {
     ].join("-");
     let params = {
       q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
-      reliabilityCheck: reliabilityCheck,
     };
+    if (filter.reliabilityCheck) {
+      params["reliabilityCheck"] = filter.reliabilityCheck;
+    }
     // ignore only station filter
     // if (filter.onlyStations) {
     //   params["onlyStations"] = true;
@@ -192,6 +191,9 @@ export class ObsService {
     if (filter.network && filter.network !== "") {
       params["networks"] = filter.network;
     }
+    if (filter.reliabilityCheck) {
+      params["reliabilityCheck"] = filter.reliabilityCheck;
+    }
     return this.http
       .post<Blob>(environment.backendURI + "/api/observations", null, {
         params: params,
@@ -208,8 +210,10 @@ export class ObsService {
     );
   }
 
-  getColor(d, min, max) {
-    return COLORS[this.getColorIndex(d, min, max)];
+  getColor(d, min, max, rel = 1) {
+    if (rel == 0) {
+      return "undefined";
+    } else return COLORS[this.getColorIndex(d, min, max)];
   }
 
   // @ts-ignore

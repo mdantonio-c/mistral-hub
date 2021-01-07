@@ -75,6 +75,7 @@ export class ObsFilterComponent implements OnInit {
       boundingBox: [""],
       network: [""],
       license: ["CC-BY", Validators.required],
+      reliabilityCheck: [true],
     });
   }
 
@@ -87,6 +88,7 @@ export class ObsFilterComponent implements OnInit {
     if (this.network) {
       startFilter.network = this.network;
     }
+    this.allProducts = [];
     this.loadFilter(startFilter, true);
 
     // subscribe form value changes
@@ -135,6 +137,7 @@ export class ObsFilterComponent implements OnInit {
               timerange: "",
               boundingBox: "",
               license: "CC-BY",
+              reliabilityCheck: true,
             },
             { emitEvent: false }
           );
@@ -250,7 +253,17 @@ export class ObsFilterComponent implements OnInit {
     if (form.level) {
       filter.level = form.level;
     }
+    if (form.reliabilityCheck) {
+      filter.reliabilityCheck = true;
+    }
     return filter;
+  }
+  toggleReliabilityCheck() {
+    this.filterForm.value.reliabilityCheck = !this.filterForm.value
+      .reliabilityCheck;
+    if (this.allProducts && this.allProducts.length > 0) {
+      this.isUpdatable = true;
+    }
   }
 
   update() {

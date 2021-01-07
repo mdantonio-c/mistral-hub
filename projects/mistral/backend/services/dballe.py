@@ -23,7 +23,6 @@ station_to_filter = [
     (44.68944, 10.51056, "dpcn-emiliaromag"),
 ]
 
-
 # DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
 
 
@@ -39,6 +38,9 @@ class BeDballe:
     ARKI_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/arkimet_summary_filtered.json"
     DBALLE_JSON_SUMMARY_PATH = "/arkimet/config/dballe_summary.json"
     DBALLE_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/dballe_summary_filtered.json"
+
+    # dballe codes for quality check attributes to consider for quality check filters
+    QC_CODES = ["B33007"]
 
     @staticmethod
     def get_db_type(date_min, date_max):
@@ -703,10 +705,11 @@ class BeDballe:
     def data_qc(attrs):
         attrs_dict = {v.code: v.get() for v in attrs}
         # Data already checked and checked as invalid by QC filter
-        if attrs_dict.get("B33007", 100) == 0:
-            return 0
-        else:
-            return 1
+        for key, val in attrs_dict.items():
+            if key in BeDballe.QC_CODES and val < 50:
+                # data is considered unreliable if its confidence is less than 50%
+                return 0
+        return 1
 
     @staticmethod
     def get_maps_response_for_mixed(
@@ -1013,6 +1016,13 @@ class BeDballe:
                                     and station_tuple in station_to_filter
                                 ):
                                     product_val["rel"] = 0
+                    if (
+                        "rel" not in product_val.keys()
+                        and station_tuple[2] != "multim-forecast"
+                    ):
+                        # quality control filter is not active: use the default value (1)
+                        # this param is not useful for multimodel use case
+                        product_val["rel"] = 1
 
                     if query_station_data or extend_res:
                         level = BeDballe.from_level_object_to_string(rec["level"])
@@ -1155,7 +1165,9 @@ class BeDballe:
             return dballe_db, query_data
 
     @staticmethod
-    def download_data_from_map(db, output_format, query_data, query_station_data=None):
+    def download_data_from_map(
+        db, output_format, query_data, query_station_data=None, qc_filter=False
+    ):
         download_query = {}
         if query_station_data:
             parsed_query = BeDballe.parse_query_for_maps(query_station_data)
@@ -1167,7 +1179,12 @@ class BeDballe:
             exporter = dballe.Exporter(output_format)
             log.debug("download query: {}", download_query)
             for row in tr.query_messages(download_query):
-                yield exporter.to_binary(row.message)
+                if qc_filter:
+                    msg = BeDballe.filter_messages(row.message, quality_check=True)
+                else:
+                    msg = row.message
+                if msg:
+                    yield exporter.to_binary(row.message)
 
     @staticmethod
     def from_query_to_dic(q):
@@ -1726,8 +1743,8 @@ class BeDballe:
                 with open(part_outfile, "wb") as out:
                     for row in tr.query_messages(dballe_query):
                         if queried_reftime:
-                            msg = BeDballe.filter_multimodel_messages(
-                                row.message, requested_runs
+                            msg = BeDballe.filter_messages(
+                                row.message, list_of_runs=requested_runs
                             )
                         else:
                             msg = row.message
@@ -1756,7 +1773,7 @@ class BeDballe:
                 raise Exception("Failure in data extraction")
 
     @staticmethod
-    def filter_multimodel_messages(msg, list_of_runs):
+    def filter_messages(msg, list_of_runs=None, quality_check=False):
         count_msgs = 0
         new_msg = dballe.Message("generic")
 
@@ -1776,26 +1793,36 @@ class BeDballe:
             variable = data["variable"]
             attrs = variable.get_attrs()
             v = dballe.var(data["variable"].code, data["variable"].get())
-            for a in attrs:
-                v.seta(a)
+            to_be_discarded = False
+            # 1.Multimodel filter
+            if list_of_runs:
+                for a in attrs:
+                    v.seta(a)
 
-            # get the validity interval from the data timerange
-            validity_interval = timedelta(seconds=data["trange"].p1)
-            # get the message date
-            validity_time = datetime(
-                msg.get_named("year").get(),
-                msg.get_named("month").get(),
-                msg.get_named("day").get(),
-                msg.get_named("hour").get(),
-                msg.get_named("minute").get(),
-            )
-            # compare the resulting reftime with the list of run
-            if not validity_time - validity_interval in list_of_runs:
-                continue
-            else:
+                # get the validity interval from the data timerange
+                validity_interval = timedelta(seconds=data["trange"].p1)
+                # get the message date
+                validity_time = datetime(
+                    msg.get_named("year").get(),
+                    msg.get_named("month").get(),
+                    msg.get_named("day").get(),
+                    msg.get_named("hour").get(),
+                    msg.get_named("minute").get(),
+                )
+                # compare the resulting reftime with the list of run
+                if not validity_time - validity_interval in list_of_runs:
+                    to_be_discarded = True
+            # 2. Quality control filter
+            if quality_check:
+                is_ok = BeDballe.data_qc(attrs)
+                if not is_ok:
+                    to_be_discarded = True
+            if not to_be_discarded:
                 # if matches proceed saving the message
                 new_msg.set(data["level"], data["trange"], v)
                 count_msgs += 1
+            else:
+                continue
 
         for data in msg.query_station_data({"query": "attrs"}):
             variable = data["variable"]

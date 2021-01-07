@@ -221,6 +221,7 @@ class DataExtraction(Schema):
     )
     filters = fields.Nested(Filters, description="Apply different filtering criteria.")
     output_format = fields.Str(validate=validate.OneOf(OUTPUT_FORMATS))
+    only_reliable = fields.Bool(required=False)
     postprocessors = fields.List(
         Postprocessors(description="Post-processing request details"),
         unique=True,
@@ -270,6 +271,7 @@ class Data(EndpointResource, Uploader):
         reftime=None,
         filters=None,
         output_format=None,
+        only_reliable=False,
         postprocessors=None,
         push=False,
     ):
@@ -371,6 +373,13 @@ class Data(EndpointResource, Uploader):
             if not rabbit.queue_exists(pushing_queue):
                 raise Forbidden("User's queue for push notification does not exists")
 
+        if only_reliable:
+            # check if the option is possible for the selecte datasets
+            data_type = arki.get_datasets_category(dataset_names)
+            if data_type != "OBS" and "multim-forecast" not in dataset_names:
+                raise BadRequest(
+                    "The chosen datasets does not support 'only quality controlled data' option "
+                )
         # run the following steps in a transaction
         task = None
         try:
@@ -384,6 +393,7 @@ class Data(EndpointResource, Uploader):
                     "filters": filters,
                     "postprocessors": postprocessors,
                     "output_format": output_format,
+                    "only_reliable": only_reliable,
                     "pushing_queue": pushing_queue,
                 },
             )
@@ -399,6 +409,7 @@ class Data(EndpointResource, Uploader):
                     postprocessors,
                     output_format,
                     request.id,
+                    only_reliable,
                     pushing_queue,
                 ],
                 countdown=1,

@@ -3,6 +3,7 @@ import { saveAs as importedSaveAs } from "file-saver";
 
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 import { DataService } from "@app/services/data.service";
+import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { concatMap, tap } from "rxjs/operators";
 
 export interface Schedule {}
@@ -14,6 +15,8 @@ export interface Schedule {}
 export class SchedulesComponent extends BasePaginationComponent<Schedule> {
   expanded: any = {};
   loadingLast = false; // it should be bound to the single row!
+  PP_TIME_RANGES = PP_TIME_RANGES;
+  decode = decode;
 
   constructor(
     protected injector: Injector,

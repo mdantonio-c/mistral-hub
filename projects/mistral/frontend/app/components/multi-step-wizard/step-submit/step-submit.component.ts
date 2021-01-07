@@ -70,7 +70,6 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     // default request name
     // this.formData.defaultName();
     window.scroll(0, 0);
-
     fromEvent(this.submitButton.nativeElement, "click")
       .pipe(
         tap((_) => this.spinner.show()),
@@ -84,7 +83,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
             this.formData.postprocessors,
             this.formData.output_format,
             this.formData.push,
-            this.formData.opendata
+            this.formData.opendata,
+            this.formData.only_reliable
           )
         )
       )
