@@ -7,6 +7,8 @@ project:
 
 variables:
   env:
+    PYTHON_PATH: /usr/local/lib/python3.8/dist-packages
+
     FRONTEND_FRAMEWORK: angular
     # ENABLE_FOOTER: true
     RUN_SCHEMATHESIS: 0
