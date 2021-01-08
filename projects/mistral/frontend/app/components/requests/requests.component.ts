@@ -108,4 +108,8 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
       }
     }, this.intervalStep * 1000);
   }
+  getFileName(path) {
+    let filepath = path.split("/");
+    return filepath[filepath.length - 1];
+  }
 }

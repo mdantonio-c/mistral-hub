@@ -109,4 +109,8 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
       }
     );
   }
+  getFileName(path) {
+    let filepath = path.split("/");
+    return filepath[filepath.length - 1];
+  }
 }

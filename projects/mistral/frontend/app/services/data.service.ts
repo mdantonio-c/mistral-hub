@@ -204,7 +204,7 @@ export class DataService {
     const data = {
       is_active: toState,
     };
-    return this.api.patch("schedules", scheduleId, data);
+    return this.api.patch(`schedules/${scheduleId}`, data);
   }
 
   getLastScheduledRequest(scheduleId): Observable<any> {
