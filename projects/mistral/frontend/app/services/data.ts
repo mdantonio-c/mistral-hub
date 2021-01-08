@@ -6,7 +6,7 @@ export const PP_TIME_RANGES = [
   { code: 3, desc: "Minimum" },
   { code: 4, desc: "Difference" },
   { code: 6, desc: "Standard deviation" },
-  { code: 254, desc: "Immediate" },
+  { code: 254, desc: "Instantaneous" },
 ];
 
 /**
