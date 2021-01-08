@@ -88,4 +88,8 @@ export class MyRequestDetailsComponent implements OnInit {
   toggleDataPush() {
     this.myRequest.push = !this.myRequest.push;
   }
+  getFileName(path) {
+    let filepath = path.split("/");
+    return filepath[filepath.length - 1];
+  }
 }

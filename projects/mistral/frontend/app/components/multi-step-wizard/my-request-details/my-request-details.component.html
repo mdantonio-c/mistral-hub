@@ -85,7 +85,9 @@
         <ng-container *ngIf="p.processor_type === 'grid_cropping'">
           <dd class="col-sm-9">
             <p>
-              {{ p["sub-type"] }} = {{ p.boundings.ilon | number: "1.3-3" }},
+              crop type:
+              {{ p["sub_type"] }}, boundings:
+              {{ p.boundings.ilon | number: "1.3-3" }},
               {{ p.boundings.ilat | number: "1.3-3" }},
               {{ p.boundings.flon | number: "1.3-3" }},
               {{ p.boundings.flat | number: "1.3-3" }}
@@ -99,6 +101,42 @@
               >
                 <i class="fas fa-external-link-alt"></i>
               </a>
+            </p>
+          </dd>
+        </ng-container>
+        <ng-container *ngIf="p.processor_type === 'grid_interpolation'">
+          <dd class="col-sm-9">
+            <p>
+              <i>interpolation type:</i>
+              {{ p["sub_type"] }},
+              <span *ngIf="p.boundings !== undefined"
+                ><i>nodes: nx=</i>{{ p.nodes.nx }}; <i>ny=</i>{{ p.nodes.ny }},
+                <i>boundings: </i>{{ p.boundings["x-min"] | number: "1.3-3" }},
+                {{ p.boundings["y-min"] | number: "1.3-3" }},
+                {{ p.boundings["x-max"] | number: "1.3-3" }},
+                {{ p.boundings["y-max"] | number: "1.3-3" }}
+                <a
+                  href="http://openstreetmap.org/?minlon={{
+                    p.boundings['x-min']
+                  }}&minlat={{ p.boundings['y-min'] }}&maxlon={{
+                    p.boundings['x-max']
+                  }}&maxlat={{ p.boundings['y-max'] }}"
+                  target="_blank"
+                >
+                  <i class="fas fa-external-link-alt"></i> </a
+              ></span>
+              <span *ngIf="p.template !== undefined">
+                <i>template name: </i>{{ getFileName(p.template) }}</span
+              >
+            </p>
+          </dd>
+        </ng-container>
+        <ng-container *ngIf="p.processor_type === 'spare_point_interpolation'">
+          <dd class="col-sm-9">
+            <p>
+              <i>interpolation type:</i>
+              {{ p["sub_type"] }}, <i>shp file name: </i
+              >{{ getFileName(p["coord_filepath"]) }}
             </p>
           </dd>
         </ng-container>
