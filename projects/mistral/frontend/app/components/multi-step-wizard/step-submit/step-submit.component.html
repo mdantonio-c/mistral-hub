@@ -158,9 +158,29 @@
           <select formControlName="cPeriod" class="custom-select mx-2">
             <option>day</option>
             <option>week</option>
-            <option>month</option>
-          </select>
-          at:
+            <option>month</option></select
+          ><span *ngIf="scheduleForm.get('cPeriod').value === 'day'; else on"
+            >at:</span
+          >
+          <ng-template #on>on</ng-template>
+          <span *ngIf="scheduleForm.get('cPeriod').value === 'week'">
+            <select formControlName="weekDay" class="custom-select mx-2">
+              <option value="1">Monday</option>
+              <option value="2">Tuesday</option>
+              <option value="3">Wednesday</option>
+              <option value="4">Thursday</option>
+              <option value="5">Friday</option>
+              <option value="6">Saturday</option>
+              <option value="7">Sunday</option>
+            </select>
+            at
+          </span>
+          <span *ngIf="scheduleForm.get('cPeriod').value === 'month'">
+            <select formControlName="monthDay" class="custom-select mx-2">
+              <option *ngFor="let n of fillDayofMonths()">{{ n }}</option>
+            </select>
+            at
+          </span>
         </div>
         <div>
           <ngb-timepicker formControlName="time"></ngb-timepicker>

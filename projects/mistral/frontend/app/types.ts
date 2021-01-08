@@ -128,6 +128,8 @@ export interface RefTime {
 export interface TaskSchedule {
   type: ScheduleType;
   time?: string; // hh:mm
+  day_of_week?: string;
+  day_of_month?: string;
   every?: number;
   repeat?: RepeatEvery;
 }

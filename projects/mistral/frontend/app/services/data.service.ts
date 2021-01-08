@@ -148,9 +148,13 @@ export class DataService {
             minute: parseInt(split[1].replace(/^0/, "")),
           };
           if (schedule.repeat === RepeatEvery.WEEK) {
-            data["crontab-settings"]["day_of_week"] = 1; // every Monday
+            data["crontab-settings"]["day_of_week"] = parseInt(
+              schedule.day_of_week
+            );
           } else if (schedule.repeat === RepeatEvery.MONTH) {
-            data["crontab-settings"]["day_of_month"] = 1; // every first of the month
+            data["crontab-settings"]["day_of_month"] = parseInt(
+              schedule.day_of_month
+            );
           }
           break;
         case ScheduleType.PERIOD:

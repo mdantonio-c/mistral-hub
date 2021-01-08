@@ -49,6 +49,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       repeatType: [ScheduleType.CRONTAB, Validators.required],
       cPeriod: [RepeatEvery.DAY],
       time: ["00:00"],
+      weekDay: [],
+      monthDay: [],
       every: [1],
       period: [RepeatEvery.HOUR],
     });
@@ -137,6 +139,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
                 this.schedule = {
                   type: ScheduleType.CRONTAB,
                   time: this.scheduleForm.get("time").value,
+                  day_of_week: this.scheduleForm.get("weekDay").value,
+                  day_of_month: this.scheduleForm.get("monthDay").value,
                   repeat: this.scheduleForm.get("cPeriod").value,
                 };
                 break;
@@ -194,6 +198,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       repeatType: ScheduleType.CRONTAB,
       cPeriod: RepeatEvery.DAY,
       time: "00:00",
+      weekDay: "",
+      monthDay: "",
       every: 1,
       period: RepeatEvery.HOUR,
     });
@@ -218,5 +224,12 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     ) {
       return true;
     } else return false;
+  }
+  fillDayofMonths() {
+    let range = [];
+    for (var i = 1; i < 32; i++) {
+      range.push(i);
+    }
+    return range;
   }
 }
