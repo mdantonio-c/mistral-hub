@@ -170,37 +170,6 @@ class TestApp(BaseTests):
                 break
         return check_product_1, check_product_2
 
-    def create_fake_user(self, client):
-        # create a fake user
-        admin_headers, _ = self.do_login(client, None, None)
-        self.save("admin_header", admin_headers)
-        schema = self.getDynamicInputSchema(client, "admin/users", admin_headers)
-        data = self.buildData(schema)
-
-        # obj = sqlalchemy.get_instance()
-
-        # get the group license id for user authorization
-        # group_lic_to_auth = obj.GroupLicense.query.filter_by(
-        #     name="CCBY_COMPLIANT"
-        # ).first()
-        data["is_active"] = True
-        data["open_dataset"] = True
-        # data["group_license"] = [str(group_lic_to_auth.id)]
-        # data["group_license"] = json.dumps(data["group_license"])
-        r = client.post(f"{API_URI}/admin/users", data=data, headers=admin_headers)
-        assert r.status_code == 200
-
-        self.save("fake_uuid", self.get_content(r))
-        user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
-
-        self.save("auth_header", user_header)
-
-    def delete_fake_user(self, client):
-        headers = self.get("admin_header")
-        uuid = self.get("fake_uuid")
-        r = client.delete(f"{API_URI}/admin/users/{uuid}", headers=headers)
-        assert r.status_code == 204
-
     def test_endpoint_without_login(self, client):
 
         endpoint = API_URI + "/observations"
@@ -208,13 +177,18 @@ class TestApp(BaseTests):
         assert r.status_code == 401
 
     def test_for_dballe_dbtype(self, client, faker):
-        self.create_fake_user(client)
+        # create a fake user and login with it
+
+        uuid, data = self.create_user(client, {"open_dataset": True})
+        self.save("fake_uuid", uuid)
+        user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
+
+        self.save("auth_header", user_header)
         # headers, _ = self.do_login(client, None, None)
         # self.save("auth_header", headers)
-        headers = self.get("auth_header")
 
-        q_params = self.get_params_value(client, headers, "dballe")
-        self.standard_observed_endpoint_testing(client, faker, headers, q_params)
+        q_params = self.get_params_value(client, user_header, "dballe")
+        self.standard_observed_endpoint_testing(client, faker, user_header, q_params)
 
     def test_for_arkimet_dbtype(self, client, faker):
         headers = self.get("auth_header")
@@ -227,7 +201,9 @@ class TestApp(BaseTests):
 
         q_params = self.get_params_value(client, headers, "mixed")
         self.standard_observed_endpoint_testing(client, faker, headers, q_params)
-        self.delete_fake_user(client)
+
+        uuid = self.get("fake_uuid")
+        self.delete_user(client, uuid)
 
     def standard_observed_endpoint_testing(self, client, faker, headers, q_params):
 

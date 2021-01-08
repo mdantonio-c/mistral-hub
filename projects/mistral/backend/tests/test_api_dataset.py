@@ -26,11 +26,6 @@ class TestApp(BaseTests):
 
     def test_endpoint_with_login(self, client, faker):
 
-        # create a fake user
-        admin_headers, _ = self.do_login(client, None, None)
-        schema = self.getDynamicInputSchema(client, "admin/users", admin_headers)
-        data = self.buildData(schema)
-
         obj = sqlalchemy.get_instance()
 
         # get the special dataset id for user authorization
@@ -60,17 +55,13 @@ class TestApp(BaseTests):
         obj.session.add(dataset_to_auth)
         obj.session.commit()
 
-        data["is_active"] = True
+        # create a fake user and login with it
+        data = {}
         data["datasets"] = [str(dataset_to_auth.id)]
         data["datasets"] = json.dumps(data["datasets"])
         data["open_dataset"] = True
 
-        r = client.post(f"{API_URI}/admin/users", data=data, headers=admin_headers)
-        assert r.status_code == 200
-
-        uuid = self.get_content(r)
-
-        # login of the new user
+        uuid, data = self.create_user(client, data)
         user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
 
         self.save("auth_header", user_header)
@@ -119,6 +110,7 @@ class TestApp(BaseTests):
         # # the user can access
         # assert response_data["authorized"] is True
 
+        admin_headers, _ = self.do_login(client, None, None)
         # test use case of user who doesn't want to see open datasets
         # change fake user preferences
         new_data = {}
