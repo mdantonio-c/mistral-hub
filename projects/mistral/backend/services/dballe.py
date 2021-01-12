@@ -40,7 +40,7 @@ class BeDballe:
     DBALLE_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/dballe_summary_filtered.json"
 
     # dballe codes for quality check attributes to consider for quality check filters
-    QC_CODES = ["B33007"]
+    QC_CODES = ["B33007", "B33192"]
 
     @staticmethod
     def get_db_type(date_min, date_max):
