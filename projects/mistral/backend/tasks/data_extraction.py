@@ -82,7 +82,7 @@ def data_extract(
                         .first()
                     )
                     # check if the reftime is the same of the last request
-                    if last_request.args["reftime"] == reftime:
+                    if last_request and last_request.args["reftime"] == reftime:
                         double_request = True
                         log.info(
                             "Data-Ready request: the data has already been extracted due to a previous data-ready notification"
