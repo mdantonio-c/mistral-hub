@@ -1,14 +1,13 @@
-import { FormGroup, ValidationErrors, ValidatorFn } from "@angular/forms";
+import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 
 /** From time can't be greater than To time */
 export const timeRangeInconsistencyValidator: ValidatorFn = (
-  control: FormGroup
+  control: AbstractControl
 ): ValidationErrors | null => {
   const fromTime = control.get("fromTime");
   const toTime = control.get("toTime");
   const from = control.get("fromDate");
   const to = control.get("toDate");
-
   return from &&
     to &&
     fromTime &&
@@ -20,6 +19,8 @@ export const timeRangeInconsistencyValidator: ValidatorFn = (
 };
 
 const datesAreOnSameDay = (first, second) =>
+  first instanceof Date &&
+  second instanceof Date &&
   first.getFullYear() === second.getFullYear() &&
   first.getMonth() === second.getMonth() &&
   first.getDate() === second.getDate();

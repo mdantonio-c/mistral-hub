@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
+  AbstractControl,
   FormBuilder,
   FormGroup,
   FormArray,
@@ -86,6 +87,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
 
   private onChanges(): void {
     this.filterForm.get("fromDate").valueChanges.subscribe((val) => {
+      if (!(val instanceof Date)) return;
       this.toMinDate = {
         year: (val as Date).getUTCFullYear(),
         month: (val as Date).getUTCMonth() + 1,
@@ -93,6 +95,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       };
     });
     this.filterForm.get("toDate").valueChanges.subscribe((val) => {
+      if (!(val instanceof Date)) return;
       this.fromMaxDate = {
         year: (val as Date).getUTCFullYear(),
         month: (val as Date).getUTCMonth() + 1,
@@ -331,12 +334,14 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   private getSelectedFilters() {
     const selectedFilters = [];
     (this.filterForm.controls.filters as FormArray).controls.forEach(
-      (f: FormGroup) => {
+      (f: AbstractControl) => {
         let res = {
-          name: f.controls.name.value,
-          values: (f.controls.values as FormArray).controls
+          name: (f as FormGroup).controls.name.value,
+          values: ((f as FormGroup).controls.values as FormArray).controls
             .map((v, j) =>
-              v.value ? this.filters[f.controls.name.value][j] : null
+              v.value
+                ? this.filters[(f as FormGroup).controls.name.value][j]
+                : null
             )
             .filter((v) => v !== null),
           query: "",

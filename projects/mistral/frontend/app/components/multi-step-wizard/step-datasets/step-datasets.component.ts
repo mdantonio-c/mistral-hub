@@ -1,17 +1,12 @@
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import {
-  FormBuilder,
-  FormGroup,
-  FormArray,
-  FormControl,
-  ValidatorFn,
-} from "@angular/forms";
+import { FormBuilder, FormGroup, FormArray, FormControl } from "@angular/forms";
 import { NotificationService } from "@rapydo/services/notification";
 import { FormDataService } from "@app/services/formData.service";
 import { Dataset } from "@app/types";
 import { NgxSpinnerService } from "ngx-spinner";
 import { StepComponent } from "../step.component";
+import { minSelectedCheckboxes } from "@app/validators/min-selected-checkboxes.validator";
 
 @Component({
   selector: "step-datasets",
@@ -117,19 +112,4 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
       this.router.navigate(["../", "filters"], { relativeTo: this.route });
     }
   }
-}
-
-function minSelectedCheckboxes(min = 1) {
-  const validator: ValidatorFn = (formArray: FormArray) => {
-    const totalSelected = formArray.controls
-      // get a list of checkbox values (boolean)
-      .map((control) => control.value)
-      // total up the number of checked checkboxes
-      .reduce((prev, next) => (next ? prev + next : prev), 0);
-
-    // if the total is not greater than the minimum, return the error message
-    return totalSelected >= min ? null : { required: true };
-  };
-
-  return validator;
 }

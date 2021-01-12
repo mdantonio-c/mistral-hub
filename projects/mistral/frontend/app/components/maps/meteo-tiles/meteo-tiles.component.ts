@@ -746,17 +746,17 @@ export class MeteoTilesComponent {
       if (event["name"] === DP.TM2) {
         legends[DP.TM2].addTo(map);
       } else if (event["name"] === DP.PREC3P || event["name"] === DP.PREC6P) {
-        legends[DP.PREC3P].addTo(this);
+        legends[DP.PREC3P].addTo(map);
       } else if (event["name"] === DP.SF3 || event["name"] === DP.SF6) {
-        legends[DP.SF3].addTo(this);
+        legends[DP.SF3].addTo(map);
       } else if (event["name"] === DP.RH) {
-        legends[DP.RH].addTo(this);
+        legends[DP.RH].addTo(map);
       } else if (event["name"] === DP.HCC) {
-        legends[DP.HCC].addTo(this);
+        legends[DP.HCC].addTo(map);
       } else if (event["name"] === DP.MCC) {
-        legends[DP.MCC].addTo(this);
+        legends[DP.MCC].addTo(map);
       } else if (event["name"] === DP.LCC) {
-        legends[DP.LCC].addTo(this);
+        legends[DP.LCC].addTo(map);
       } else if (
         event["name"] === DP.TPPERC1 ||
         event["name"] === DP.TPPERC10 ||
@@ -768,14 +768,14 @@ export class MeteoTilesComponent {
         event["name"] === DP.TPPERC90 ||
         event["name"] === DP.TPPERC99
       ) {
-        legends[DP.TPPERC1].addTo(this);
+        legends[DP.TPPERC1].addTo(map);
       } else if (
         event["name"] === DP.TPPROB5 ||
         event["name"] === DP.TPPROB10 ||
         event["name"] === DP.TPPROB20 ||
         event["name"] === DP.TPPROB50
       ) {
-        legends[DP.TPPROB5].addTo(this);
+        legends[DP.TPPROB5].addTo(map);
       }
     });
 
@@ -788,35 +788,35 @@ export class MeteoTilesComponent {
         return value != event["name"];
       });
       if (event["name"] === DP.TM2) {
-        this.removeControl(legends[DP.TM2]);
+        map.removeControl(legends[DP.TM2]);
       } else if (
         event["name"] === DP.PREC3P &&
         !currentActiveLayers.includes(DP.PREC6P)
       ) {
-        this.removeControl(legends[DP.PREC3P]);
+        map.removeControl(legends[DP.PREC3P]);
       } else if (
         event["name"] === DP.PREC6P &&
         !currentActiveLayers.includes(DP.PREC3P)
       ) {
-        this.removeControl(legends[DP.PREC3P]);
+        map.removeControl(legends[DP.PREC3P]);
       } else if (
         event["name"] === DP.SF3 &&
         !currentActiveLayers.includes(DP.SF6)
       ) {
-        this.removeControl(legends[DP.SF3]);
+        map.removeControl(legends[DP.SF3]);
       } else if (
         event["name"] === DP.SF6 &&
         !currentActiveLayers.includes(DP.SF3)
       ) {
-        this.removeControl(legends[DP.SF3]);
+        map.removeControl(legends[DP.SF3]);
       } else if (event["name"] === DP.RH) {
-        this.removeControl(legends[DP.RH]);
+        map.removeControl(legends[DP.RH]);
       } else if (event["name"] === DP.HCC) {
-        this.removeControl(legends[DP.HCC]);
+        map.removeControl(legends[DP.HCC]);
       } else if (event["name"] === DP.MCC) {
-        this.removeControl(legends[DP.MCC]);
+        map.removeControl(legends[DP.MCC]);
       } else if (event["name"] === DP.LCC) {
-        this.removeControl(legends[DP.LCC]);
+        map.removeControl(legends[DP.LCC]);
       } else if (
         event["name"] === DP.TPPERC1 &&
         !currentActiveLayers.includes(DP.TPPERC10) &&
@@ -828,7 +828,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        this.removeControl(legends[DP.TPPERC1]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPERC10 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -840,7 +840,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        this.removeControl(legends[DP.TPPERC1]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPERC25 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -852,7 +852,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        this.removeControl(legends[DP.TPPERC25]);
+        map.removeControl(legends[DP.TPPERC25]);
       } else if (
         event["name"] === DP.TPPERC50 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -864,7 +864,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        this.removeControl(legends[DP.TPPERC50]);
+        map.removeControl(legends[DP.TPPERC50]);
       } else if (
         event["name"] === DP.TPPERC70 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -876,7 +876,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        this.removeControl(legends[DP.TPPERC70]);
+        map.removeControl(legends[DP.TPPERC70]);
       } else if (
         event["name"] === DP.TPPERC75 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -888,7 +888,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        this.removeControl(legends[DP.TPPERC75]);
+        map.removeControl(legends[DP.TPPERC75]);
       } else if (
         event["name"] === DP.TPPERC80 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -900,7 +900,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        this.removeControl(legends[DP.TPPERC80]);
+        map.removeControl(legends[DP.TPPERC80]);
       } else if (
         event["name"] === DP.TPPERC90 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -912,7 +912,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC80) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        this.removeControl(legends[DP.TPPERC90]);
+        map.removeControl(legends[DP.TPPERC90]);
       } else if (
         event["name"] === DP.TPPERC99 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -924,35 +924,35 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC80) &&
         !currentActiveLayers.includes(DP.TPPERC90)
       ) {
-        this.removeControl(legends[DP.TPPERC90]);
+        map.removeControl(legends[DP.TPPERC90]);
       } else if (
         event["name"] === DP.TPPROB5 &&
         !currentActiveLayers.includes(DP.TPPROB10) &&
         !currentActiveLayers.includes(DP.TPPROB20) &&
         !currentActiveLayers.includes(DP.TPPROB50)
       ) {
-        this.removeControl(legends[DP.TPPROB5]);
+        map.removeControl(legends[DP.TPPROB5]);
       } else if (
         event["name"] === DP.TPPROB10 &&
         !currentActiveLayers.includes(DP.TPPROB5) &&
         !currentActiveLayers.includes(DP.TPPROB20) &&
         !currentActiveLayers.includes(DP.TPPROB50)
       ) {
-        this.removeControl(legends[DP.TPPROB5]);
+        map.removeControl(legends[DP.TPPROB5]);
       } else if (
         event["name"] === DP.TPPROB20 &&
         !currentActiveLayers.includes(DP.TPPROB5) &&
         !currentActiveLayers.includes(DP.TPPROB10) &&
         !currentActiveLayers.includes(DP.TPPROB50)
       ) {
-        this.removeControl(legends[DP.TPPROB5]);
+        map.removeControl(legends[DP.TPPROB5]);
       } else if (
         event["name"] === DP.TPPROB50 &&
         !currentActiveLayers.includes(DP.TPPROB5) &&
         !currentActiveLayers.includes(DP.TPPROB10) &&
         !currentActiveLayers.includes(DP.TPPROB20)
       ) {
-        this.removeControl(legends[DP.TPPROB5]);
+        map.removeControl(legends[DP.TPPROB5]);
       }
     });
 

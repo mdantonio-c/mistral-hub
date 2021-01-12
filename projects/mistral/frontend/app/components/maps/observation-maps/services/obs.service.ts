@@ -157,7 +157,7 @@ export class ObsService {
       params["interval"] = filter.interval;
     }
     return this.api
-      .get("observations", params)
+      .get<ObservationResponse>("observations", params)
       .pipe(map((data: ObservationResponse) => (this._data = data)));
   }
 
