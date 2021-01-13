@@ -67,72 +67,6 @@ class BeArkimet:
         return datasets
 
     @staticmethod
-    def get_unique_license(datasets):
-        """
-        Get license name for a give list of datasets.
-        If the list of datasets does not share the same license, an exception is raised.
-        Datasets that do not specify a license are not allowed.
-        :return: the unique license name
-        """
-        if not datasets:
-            raise ValueError("Unexpected empty datasets list")
-        cfg_sections = Sections()
-        cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
-        licenses = set()
-        for ds in [a for a in cfg.items() if a[0] in datasets]:
-            id_ = ds[0]
-            val = ds[1].get("_license")
-            if not val:
-                raise InvalidLicenseException(f"Missing license for dataset {id_}")
-            val = val.upper()
-            if val not in BeArkimet.allowed_licenses:
-                raise InvalidLicenseException(
-                    "Unexpected license <{}> for dataset {}. "
-                    "Allowed licenses are {}".format(
-                        val, id_, list(BeArkimet.allowed_licenses)
-                    )
-                )
-            licenses.add(val)
-        return (
-            list(licenses)[0]
-            if len(licenses) == 1
-            else InvalidLicenseException(
-                f"Datasets do not share the same license. {licenses}"
-            )
-        )
-
-    @staticmethod
-    def check_compatible_licenses(db, datasets):
-        """
-        Check that the datasets belong to compatible licenses.
-        :param db: database instance service
-        :param datasets: list of datasets
-        :return: shared license group
-        """
-        if not datasets:
-            raise ValueError("Unexpected empty datasets list")
-        cfg_sections = Sections()
-        cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
-        groups_of_licenses = set()
-        for ds in [a for a in cfg.items() if a[0] in datasets]:
-            id = ds[0]
-            license_name = ds[1].get("_license")
-            if not license_name:
-                raise InvalidLicenseException(f"Missing license for dataset {id}")
-            # get the license group
-            license_ = db.License.query.filter_by(name=license_name).first()
-            group_license_id = license_.group_license_id
-            gp_license = db.GroupLicense.query.filter_by(id=group_license_id).first()
-            groups_of_licenses.add(gp_license)
-        return (
-            list(groups_of_licenses)[0]
-            if len(groups_of_licenses) == 1
-            else InvalidLicenseException(
-                f"Datasets do not share the same license group. {groups_of_licenses}"
-            )
-        )
-
-    @staticmethod
     def load_summary(datasets=[], query=""):
         """
         Get summary for one or more datasets. If no dataset is provided consider all available ones.
@@ -319,7 +253,24 @@ class BeArkimet:
     #     return dataset_items
 
     @staticmethod
+    def from_network_to_dataset(network):
+        cfg_sections = Sections()
+        cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
+        for i in [a for a in cfg.items() if a[0] not in ["error", "duplicates"]]:
+            filter = i[1]["filter"]
+            filters_split = shlex.split(filter)
+            # networks is the parameter that defines the different dataset for observed data
+            nets = []
+            for f in filters_split:
+                if f.startswith("BUFR"):
+                    nets.append(f.split("=")[1])
+            if network in nets:
+                return i[0]
+        return None
+
+    @staticmethod
     def get_obs_datasets(query, license):
+        # TODO sostituire con cose dal db
         datasets = []
         cfg_sections = Sections()
         cfg = cfg_sections.parse(BeArkimet.arkimet_conf)

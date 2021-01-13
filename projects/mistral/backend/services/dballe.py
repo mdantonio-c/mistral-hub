@@ -823,9 +823,17 @@ class BeDballe:
         download=None,
         previous_res=None,
     ):
-        DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/DBALLE")
-
-        # TODO va fatto un check licenze compatibili qui all'inizio (by dataset)? oppure a seconda della licenza lo si manda su un dballe o un altro?
+        # get the license group
+        alchemy_db = sqlalchemy.get_instance()
+        license_group = alchemy_db.GroupLicense.query.filter_by(
+            name=query_data["license"]
+        ).first()
+        # get the dsn
+        dballe_dsn = license_group.dballe_dsn
+        try:
+            DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}")
+        except OSError:
+            raise Exception("Unable to connect to dballe database")
 
         if previous_res:
             # integrate the already existent response
@@ -892,6 +900,7 @@ class BeDballe:
                 if "license" in query_data.keys():
                     license = query_data["license"]
             # get the correct arkimet dataset
+            # TODO sistemare questa funzione
             datasets = arki_service.get_obs_datasets(query_for_arkimet, license)
 
             if not datasets:
@@ -1222,6 +1231,8 @@ class BeDballe:
                                 ] = dateutil.parser.parse(date)
 
                     # parsing all other parameters
+                    elif p == "license":
+                        query_dic[p] = val
                     else:
                         val_list = [x.strip() for x in val.split(" or ")]
                         query_dic[p] = val_list
@@ -1685,8 +1696,6 @@ class BeDballe:
             # get the license group
             alchemy_db = sqlalchemy.get_instance()
             license_group = SqlApiDbManager.get_license_group(alchemy_db, datasets)
-            if not license_group:
-                raise Exception("Datasets belong to different license groups")
             # get the dsn
             dballe_dsn = license_group.dballe_dsn
             try:

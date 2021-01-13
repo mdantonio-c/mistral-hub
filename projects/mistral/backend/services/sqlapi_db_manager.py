@@ -421,7 +421,7 @@ class SqlApiDbManager:
         return resp
 
     @staticmethod
-    def get_datasets(db, user, licenceSpecs=False):
+    def get_datasets(db, user, licenceSpecs=False, group_license=None):
         # get all datasets
         ds_objects = db.Datasets.query.filter_by().all()
         datasets = []
@@ -433,6 +433,9 @@ class SqlApiDbManager:
             group_license = db.GroupLicense.query.filter_by(
                 id=license.group_license_id
             ).first()
+            if group_license:
+                if group_license.name != group_license:
+                    continue
             if user:
                 # get user authorized datasets
                 user_datasets_auth = [ds.name for ds in user.datasets]
@@ -487,3 +490,23 @@ class SqlApiDbManager:
                     # datasets belongs to different license groups
                     return None
         return license_group
+
+    @staticmethod
+    def check_dataset_authorization(db, dataset_name, user):
+        ds_object = db.Datasets.query.filter_by(arkimet_id=dataset_name).first()
+        license = db.License.query.filter_by(id=ds_object.license_id).first()
+        group_license = db.GroupLicense.query.filter_by(
+            id=license.group_license_id
+        ).first()
+        if group_license.is_public:
+            # open dataset
+            return True
+        else:
+            if not user:
+                # anonymous user and private dataset
+                return False
+            user_datasets_auth = [ds.name for ds in user.datasets]
+            if dataset_name in user_datasets_auth:
+                return True
+            else:
+                return False

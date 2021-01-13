@@ -13,6 +13,7 @@ from mistral.exceptions import (
     AccessToDatasetDenied,
     DiskQuotaException,
     EmptyOutputFile,
+    InvalidLicenseException,
     PostProcessingException,
 )
 from mistral.services.arkimet import BeArkimet as arki
@@ -160,7 +161,11 @@ def data_extract(
             os.makedirs(output_dir, exist_ok=True)
 
             # check that the datasets are all under the same license
-            arki.check_compatible_licenses(db, datasets)
+            license_group = SqlApiDbManager.get_license_group(db, datasets)
+            if not license_group:
+                raise InvalidLicenseException(
+                    "Invalid set of datasets : datasets belongs to different license groups"
+                )
 
             # max filename len = 64
             out_filename = "data-{utc_now}-{id}.{fileformat}".format(

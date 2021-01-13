@@ -2,8 +2,11 @@ import datetime
 
 from flask import Response, stream_with_context
 from mistral.exceptions import AccessToDatasetDenied
+from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
+from restapi.connectors import sqlalchemy
 from restapi.exceptions import BadRequest, Conflict, NotFound, ServerError, Unauthorized
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
@@ -31,7 +34,7 @@ class ObservationsQuery(Schema):
 class ObservationsDownloader(Schema):
     output_format = fields.Str(validate=validate.OneOf(FILEFORMATS), required=True)
     networks = fields.Str(required=False)
-    q = fields.Str(required=False)
+    q = fields.Str(required=True)
     lonmin = fields.Float(required=False)
     latmin = fields.Float(required=False)
     lonmax = fields.Float(required=False)
@@ -63,8 +66,8 @@ class MapsObservations(EndpointResource):
     # 200: {'schema': {'$ref': '#/definitions/MapStations'}}
     def get(
         self,
-        networks=None,
         q="",
+        networks=None,
         interval=None,
         lonmin=None,
         latmin=None,
@@ -78,6 +81,7 @@ class MapsObservations(EndpointResource):
         reliabilityCheck=False,
     ):
         user = self.get_user()
+        alchemy_db = sqlalchemy.get_instance()
         query = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
@@ -90,35 +94,78 @@ class MapsObservations(EndpointResource):
                 query["latmax"] = latmax
 
         if networks:
+            # check user authorization for the requested network
+            dataset_name = arki.from_network_to_dataset(networks)
+            if not dataset_name:
+                raise NotFound("The requested network does not exists")
+            check_auth = SqlApiDbManager.check_dataset_authorization(
+                alchemy_db, dataset_name, user
+            )
+            if not check_auth:
+                raise Unauthorized(
+                    "user is not authorized to access the selected network"
+                )
             query["rep_memo"] = networks
         if reliabilityCheck:
             query["query"] = "attrs"
 
+        # parse the query
         if q:
-            # parse the query
             parsed_query = dballe.from_query_to_dic(q)
             for key, value in parsed_query.items():
                 query[key] = value
 
-            # get db type
-            if "datetimemin" in query:
-                db_type = dballe.get_db_type(query["datetimemin"], query["datetimemax"])
-                if db_type != "dballe" and not user:
-                    raise Unauthorized(
-                        "to access archived data the user has to be logged"
-                    )
+        # check consistency with license group
+        if "license" not in query:
+            if networks == "multim-forecast":
+                # is the only case where the request come without a requested license group
+                multim_group_license = SqlApiDbManager.get_license_group(
+                    alchemy_db, [dataset_name]
+                )
+                query["license"] = multim_group_license.name
             else:
-                if not user:
+                raise BadRequest("License group parameter is mandatory")
+        # 1. user is authorized to see data from that license group (is open or at least one of his authorized dataset comes from the group)
+        group_license = alchemy_db.GroupLicense.query.filter_by(
+            name=query["license"]
+        ).first()
+        if not group_license:
+            raise BadRequest("The selected group of license does not exists")
+        # check if the license group is open
+        if not group_license.is_public:
+            if not user:
+                raise Unauthorized(
+                    "to access not open datasets the user has to be logged"
+                )
+            else:
+                auth_datasets = SqlApiDbManager.get_datasets(
+                    alchemy_db, user, group_license=query["license"]
+                )
+                if not auth_datasets:
                     raise Unauthorized(
-                        "to access archived data the user has to be logged"
+                        "the user is not authorized to access datasets from the selected license group"
                     )
-                else:
-                    db_type = "mixed"
+        # 2. if a network is requested check if belongs to the selected license group
+        if networks:
+            ds_group_license = SqlApiDbManager.get_license_group(
+                alchemy_db, [dataset_name]
+            )
+            if ds_group_license.name != group_license.name:
+                raise BadRequest(
+                    "The selected network and the selected license group does not match"
+                )
+
+        # get db type
+        if "datetimemin" in query:
+            db_type = dballe.get_db_type(query["datetimemin"], query["datetimemax"])
+            if db_type != "dballe" and not user:
+                raise Unauthorized("to access archived data the user has to be logged")
         else:
             if not user:
                 raise Unauthorized("to access archived data the user has to be logged")
             else:
                 db_type = "mixed"
+
         log.debug("type of database: {}", db_type)
 
         if interval:
@@ -199,9 +246,9 @@ class MapsObservations(EndpointResource):
     # 200: {'schema': {'$ref': '#/definitions/Fileoutput'}}
     def post(
         self,
+        q,
         output_format,
         networks=None,
-        q="",
         lonmin=None,
         latmin=None,
         lonmax=None,
