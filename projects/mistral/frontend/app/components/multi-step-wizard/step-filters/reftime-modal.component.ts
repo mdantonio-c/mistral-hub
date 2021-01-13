@@ -3,10 +3,12 @@ import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { FormGroup, FormControl, Validators } from "@angular/forms";
 import { NgbDateStruct } from "@ng-bootstrap/ng-bootstrap";
 import * as moment from "moment";
+import { timeRangeInconsistencyValidator } from "../../../validators/time-range-inconsistency.validator";
 
 @Component({
   selector: "reftime-modal-content",
   templateUrl: "./reftime-modal.component.html",
+  styles: [".top-fixed { position: absolute; top: -18px; }"],
 })
 export class ReftimeModalContent implements OnInit {
   form: FormGroup;
@@ -32,6 +34,7 @@ export class ReftimeModalContent implements OnInit {
 
   private onChanges(): void {
     this.form.get("fromDate").valueChanges.subscribe((val) => {
+      if (!(val instanceof Date)) return;
       this.toMinDate = {
         year: (val as Date).getUTCFullYear(),
         month: (val as Date).getUTCMonth() + 1,
@@ -39,6 +42,7 @@ export class ReftimeModalContent implements OnInit {
       };
     });
     this.form.get("toDate").valueChanges.subscribe((val) => {
+      if (!(val instanceof Date)) return;
       this.fromMaxDate = {
         year: (val as Date).getUTCFullYear(),
         month: (val as Date).getUTCMonth() + 1,
@@ -90,16 +94,17 @@ function getReftime(value): FormGroup {
     toDate: null,
     toTime: null,
     fullDataset: false,
-    validRefTime: false,
   };
-  return new FormGroup({
-    fromDate: new FormControl(value.fromDate),
-    fromTime: new FormControl(value.fromTime),
-    toDate: new FormControl(value.toDate),
-    toTime: new FormControl(value.toTime),
-    fullDataset: new FormControl(value.fullDataset),
-    validRefTime: new FormControl(value.validRefTime, {
-      validators: Validators.requiredTrue,
-    }),
-  });
+  return new FormGroup(
+    {
+      fromDate: new FormControl(value.fromDate, [Validators.required]),
+      fromTime: new FormControl(value.fromTime, [Validators.required]),
+      toDate: new FormControl(value.toDate, [Validators.required]),
+      toTime: new FormControl(value.toTime, [Validators.required]),
+      fullDataset: new FormControl(value.fullDataset),
+    },
+    {
+      validators: [timeRangeInconsistencyValidator],
+    }
+  );
 }

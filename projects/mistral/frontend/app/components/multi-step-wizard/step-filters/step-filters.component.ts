@@ -9,7 +9,6 @@ import {
   Validators,
 } from "@angular/forms";
 import { GenericItems, RefTime } from "@app/types";
-import { timeRangeInconsistencyValidator } from "../../../validators/time-range-inconsistency.validator";
 import { NotificationService } from "@rapydo/services/notification";
 import { FormDataService } from "@app/services/formData.service";
 import { ArkimetService } from "@app/services/arkimet.service";
@@ -42,26 +41,21 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   ) {
     super(formDataService, router, route);
     const refTime: RefTime = this.formDataService.getReftime();
-    this.filterForm = this.fb.group(
-      {
-        filters: this.fb.array([]),
-        reftime: ReftimeModel.getReftime({
-          fromDate: refTime
-            ? refTime.from
-            : this.formDataService.getDefaultRefTime().from,
-          fromTime: refTime
-            ? moment.utc(refTime.from).format("HH:mm")
-            : "00:00",
-          toDate: refTime
-            ? refTime.to
-            : this.formDataService.getDefaultRefTime().to,
-          toTime: refTime ? moment.utc(refTime.to).format("HH:mm") : "00:00",
-          fullDataset: false,
-          validRefTime: false,
-        }),
-      },
-      { validators: timeRangeInconsistencyValidator }
-    );
+    this.filterForm = this.fb.group({
+      filters: this.fb.array([]),
+      reftime: ReftimeModel.getReftime({
+        fromDate: refTime
+          ? refTime.from
+          : this.formDataService.getDefaultRefTime().from,
+        fromTime: refTime ? moment.utc(refTime.from).format("HH:mm") : "00:00",
+        toDate: refTime
+          ? refTime.to
+          : this.formDataService.getDefaultRefTime().to,
+        toTime: refTime ? moment.utc(refTime.to).format("HH:mm") : "00:00",
+        fullDataset: false,
+      }),
+      validRefTime: new FormControl(false, [Validators.requiredTrue]),
+    });
   }
 
   ngOnInit() {
@@ -233,15 +227,13 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     });
 
     if (this.summaryStats["c"] === 0) {
-      (this.filterForm.controls
-        .reftime as FormGroup).controls.validRefTime.setValue(false);
+      this.filterForm.controls.validRefTime.setValue(false);
       this.notify.showWarning(
         "The applied reference time does not produce any result. " +
           "Please choose a different reference time range."
       );
     } else {
-      (this.filterForm.controls
-        .reftime as FormGroup).controls.validRefTime.setValue(true);
+      this.filterForm.controls.validRefTime.setValue(true);
     }
   }
 
