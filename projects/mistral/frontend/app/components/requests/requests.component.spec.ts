@@ -33,7 +33,7 @@ class StubLoadingComponent {}
 @Injectable()
 class ApiServiceStub extends ApiService {
   constructor() {
-    super({} as HttpClient, {} as NotificationService);
+    super({} as HttpClient, {} as any, {} as NotificationService);
   }
 
   get(
