@@ -8,6 +8,8 @@ import arkimet as arki
 import dateutil
 import dballe
 from mistral.services.arkimet import BeArkimet as arki_service
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
+from restapi.connectors import sqlalchemy
 from restapi.utilities.logs import log
 
 user = os.environ.get("ALCHEMY_USER")
@@ -1680,11 +1682,19 @@ class BeDballe:
             # fill the temp db and choose it as the db for extraction
             DB = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
         else:
-            DB = dballe.DB.connect(
-                "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
-                    engine=engine, user=user, pw=pw, host=host, port=port
+            # get the license group
+            alchemy_db = sqlalchemy.get_instance()
+            license_group = SqlApiDbManager.get_license_group(alchemy_db, datasets)
+            if not license_group:
+                raise Exception("Datasets belong to different license groups")
+            # get the dsn
+            dballe_dsn = license_group.dballe_dsn
+            try:
+                DB = dballe.DB.connect(
+                    f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}"
                 )
-            )
+            except OSError:
+                raise Exception("Unable to connect to dballe database")
         requested_runs = []
         if queried_reftime:
             # multimodel case. get a list of all runs

@@ -90,6 +90,12 @@ class Fields(EndpointResource):
                 raise BadRequest(
                     "Invalid set of datasets : datasets categories are different"
                 )
+            # check the licence group
+            license_group = SqlApiDbManager.get_license_group(db, datasets)
+            if not license_group:
+                raise BadRequest(
+                    "Invalid set of datasets : datasets belongs to different license groups"
+                )
         else:
             # maps case: TODO: manage user authorizations
             # if data_type is forecast always dataset has to be specified.

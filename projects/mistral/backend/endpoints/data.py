@@ -295,6 +295,13 @@ class Data(EndpointResource, Uploader):
                 "Invalid set of datasets : datasets have different formats"
             )
 
+        # check the licence group
+        license_group = repo.get_license_group(db, dataset_names)
+        if not license_group:
+            raise BadRequest(
+                "Invalid set of datasets : datasets belongs to different license groups"
+            )
+
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
         # clean up filters from unknown values

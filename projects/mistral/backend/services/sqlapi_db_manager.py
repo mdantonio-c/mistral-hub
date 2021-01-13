@@ -470,3 +470,20 @@ class SqlApiDbManager:
             datasets.append(dataset_el)
 
         return datasets
+
+    @staticmethod
+    def get_license_group(db, datasets):
+        license_group = None
+        for d in datasets:
+            ds = db.Datasets.query.filter_by(arkimet_id=d).first()
+            license = db.License.query.filter_by(id=ds.license_id).first()
+            group_license = db.GroupLicense.query.filter_by(
+                id=license.group_license_id
+            ).first()
+            if not license_group:
+                license_group = group_license
+            else:
+                if license_group.id != group_license.id:
+                    # datasets belongs to different license groups
+                    return None
+        return license_group
