@@ -69,36 +69,6 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     window.scroll(0, 0);
   }
 
-  private onChanges(): void {
-    this.filterForm.get("fromDate").valueChanges.subscribe((val) => {
-      if (!(val instanceof Date)) return;
-      this.toMinDate = {
-        year: (val as Date).getUTCFullYear(),
-        month: (val as Date).getUTCMonth() + 1,
-        day: (val as Date).getUTCDate(),
-      };
-    });
-    this.filterForm.get("toDate").valueChanges.subscribe((val) => {
-      if (!(val instanceof Date)) return;
-      this.fromMaxDate = {
-        year: (val as Date).getUTCFullYear(),
-        month: (val as Date).getUTCMonth() + 1,
-        day: (val as Date).getUTCDate(),
-      };
-    });
-  }
-
-  today(): NgbDateStruct {
-    const today = moment.utc();
-    return { year: today.year(), month: today.month() + 1, day: today.date() };
-  }
-
-  selectToday() {
-    let d = moment().utc().toDate();
-    (this.filterForm.controls.fromDate as FormControl).setValue(d);
-    (this.filterForm.controls.toDate as FormControl).setValue(d);
-  }
-
   private getFilterGroup(name: string, values: any): FormGroup {
     let filter = this.fb.group({
       name: [name, Validators.required],
