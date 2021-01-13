@@ -430,18 +430,18 @@ class SqlApiDbManager:
             # get license
             license = db.License.query.filter_by(id=ds.license_id).first()
             # get license group
-            group_license = db.GroupLicense.query.filter_by(
+            group_license_obj = db.GroupLicense.query.filter_by(
                 id=license.group_license_id
             ).first()
             if group_license:
-                if group_license.name != group_license:
+                if group_license_obj.name != group_license:
                     continue
             if user:
                 # get user authorized datasets
                 user_datasets_auth = [ds.name for ds in user.datasets]
                 open_dataset = user.open_dataset
                 # check the authorization
-                if not group_license.is_public:
+                if not group_license_obj.is_public:
                     # looking for exception: check the authorized datasets
                     if ds.name not in user_datasets_auth:
                         continue
@@ -456,7 +456,7 @@ class SqlApiDbManager:
             dataset_el["category"] = ds.category.name
             dataset_el["format"] = ds.fileformat
             dataset_el["bounding"] = ds.bounding
-            dataset_el["is_public"] = group_license.is_public
+            dataset_el["is_public"] = group_license_obj.is_public
 
             if licenceSpecs:
                 attribution = db.Attribution.query.filter_by(
@@ -465,8 +465,8 @@ class SqlApiDbManager:
                 dataset_el["license"] = license.name
                 dataset_el["license_description"] = license.descr
                 dataset_el["license_url"] = license.url
-                dataset_el["group_license"] = group_license.name
-                dataset_el["group_license_description"] = group_license.descr
+                dataset_el["group_license"] = group_license_obj.name
+                dataset_el["group_license_description"] = group_license_obj.descr
                 dataset_el["attribution"] = attribution.name
                 dataset_el["attribution_description"] = attribution.descr
                 dataset_el["attribution_url"] = attribution.url
