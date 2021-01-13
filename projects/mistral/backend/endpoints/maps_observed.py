@@ -139,7 +139,7 @@ class MapsObservations(EndpointResource):
                 )
             else:
                 auth_datasets = SqlApiDbManager.get_datasets(
-                    alchemy_db, user, group_license=query["license"]
+                    alchemy_db, user, category="OBS", group_license=query["license"]
                 )
                 if not auth_datasets:
                     raise Unauthorized(

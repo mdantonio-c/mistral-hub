@@ -421,12 +421,15 @@ class SqlApiDbManager:
         return resp
 
     @staticmethod
-    def get_datasets(db, user, licenceSpecs=False, group_license=None):
+    def get_datasets(db, user, category=None, licenceSpecs=False, group_license=None):
         # get all datasets
         ds_objects = db.Datasets.query.filter_by().all()
         datasets = []
         for ds in ds_objects:
             dataset_el = {}
+            if category:
+                if ds.category != category:
+                    continue
             # get license
             license = db.License.query.filter_by(id=ds.license_id).first()
             # get license group
