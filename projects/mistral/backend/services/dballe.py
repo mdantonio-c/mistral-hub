@@ -396,7 +396,7 @@ class BeDballe:
                     net_variables = net_variables_temp
 
                 ######### TIMERANGES FIELDS
-                if n != "multim-forecast":
+                if n != "multim-forecast" or not queried_reftime:
                     (
                         trange_fields,
                         net_variables_temp,

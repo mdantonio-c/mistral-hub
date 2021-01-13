@@ -1,5 +1,5 @@
 import { Component, Output, EventEmitter, Injector } from "@angular/core";
-import { Subscription } from "rxjs";
+import { Subscription, concat } from "rxjs";
 import { saveAs as importedSaveAs } from "file-saver";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 
@@ -49,7 +49,9 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   }
   list(): Subscription {
     const ret = super.list();
-    this.onLoad.emit();
+    ret.add((response) => {
+      this.onLoad.emit();
+    });
     return ret;
   }
 

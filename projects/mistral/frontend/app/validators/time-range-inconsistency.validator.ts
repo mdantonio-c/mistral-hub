@@ -12,7 +12,7 @@ export const timeRangeInconsistencyValidator: ValidatorFn = (
     to &&
     fromTime &&
     toTime &&
-    datesAreOnSameDay(from.value, to.value) &&
+    datesAreOnSameDay(new Date(from.value), new Date(to.value)) &&
     fromTime.value > toTime.value
     ? { timeRangeInconsistency: true }
     : null;

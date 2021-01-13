@@ -73,7 +73,8 @@ def data_extract(
                     reftime = adapt_reftime(db, schedule, reftime)
 
                 if data_ready:
-                    # to prevent double extraction given to the double notification of the two clusters,check if the same data has already be extracted
+                    # check if the same data has already been extracted
+                    # to prevent duplicated extractions due to multiple notifications
                     last_request = (
                         db.Request.query.filter_by(
                             schedule_id=schedule_id, status="SUCCESS"
@@ -82,10 +83,11 @@ def data_extract(
                         .first()
                     )
                     # check if the reftime is the same of the last request
-                    if last_request.args["reftime"] == reftime:
+                    if last_request and last_request.args["reftime"] == reftime:
                         double_request = True
                         log.info(
-                            "Data-Ready request: the data has already been extracted due to a previous data-ready notification"
+                            "Data-Ready request: the data has already been extracted "
+                            "due to a previous data-ready notification"
                         )
                         return
 
@@ -151,7 +153,7 @@ def data_extract(
             # create download user dir if it doesn't exist
             uuid = SqlApiDbManager.get_uuid(db, user_id)
             output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
-            ## decomment for pushing output data in an amqp queue
+            # decomment for pushing output data in an amqp queue
             # if not amqp_queue:
             #     output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
             # else:
@@ -714,7 +716,9 @@ def observed_extraction(
                 ).replace(hour=0, minute=0)
                 if queried_reftime < first_run:
                     # the result will be empty
-                    raise EmptyOutputFile("The requested query does not giany results")
+                    raise EmptyOutputFile(
+                        "The requested query does not get any results"
+                    )
                 else:
                     q_for_multimodel_reftime["datetimemin"] = queries[
                         fields.index("datetimemin")

@@ -180,6 +180,7 @@ class TestApp(BaseTests):
         # create a fake user and login with it
 
         uuid, data = self.create_user(client, {"open_dataset": True})
+        # Will be used to delete the user after the tests
         self.save("fake_uuid", uuid)
         user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
 

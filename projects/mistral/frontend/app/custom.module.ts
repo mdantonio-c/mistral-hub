@@ -24,23 +24,24 @@ import { DashboardComponent } from "@app/components/dashboard/dashboard.componen
 import { StorageUsageComponent } from "@app/components/dashboard/storage-usage/storage-usage.component";
 import { NgbTimeStringAdapter } from "@app/adapters/timepicker-adapter";
 
-import { LicenseComponent } from "@app/components/license/license.component";
-import { PrivacyComponent } from "@app/components/privacy/privacy.component";
+import { LicenseComponent } from "./components/license/license.component";
+import { PrivacyComponent } from "./components/privacy/privacy.component";
 import { DatasetsComponent } from "./components/datasets/datasets.component";
 import { DatasetDetailsComponent } from "./components/dataset-details/dataset-details.component";
 
-import { DisableControlDirective } from "@app/directives/disable-control";
+import { DisableControlDirective } from "./directives/disable-control";
 
 /* Multi-Step Wizard Components */
-import { MultiStepWizardComponent } from "@app/components/multi-step-wizard/multi-step-wizard.component";
-import { MyRequestDetailsComponent } from "@app/components/multi-step-wizard/my-request-details/my-request-details.component";
-import { NavbarComponent } from "@app/components/multi-step-wizard/navbar/navbar.component";
-import { StepComponent } from "@app/components/multi-step-wizard/step.component";
-import { StepDatasetsComponent } from "@app/components/multi-step-wizard/step-datasets/step-datasets.component";
-import { StepFiltersComponent } from "@app/components/multi-step-wizard/step-filters/step-filters.component";
-import { StepPostprocessComponent } from "@app/components/multi-step-wizard/step-postprocess/step-postprocess.component";
-import { StepPostprocessMapComponent } from "@app/components/multi-step-wizard/step-postprocess/map/step-postprocess-map.component";
-import { StepSubmitComponent } from "@app/components/multi-step-wizard/step-submit/step-submit.component";
+import { MultiStepWizardComponent } from "./components/multi-step-wizard/multi-step-wizard.component";
+import { MyRequestDetailsComponent } from "./components/multi-step-wizard/my-request-details/my-request-details.component";
+import { NavbarComponent } from "./components/multi-step-wizard/navbar/navbar.component";
+import { StepComponent } from "./components/multi-step-wizard/step.component";
+import { StepDatasetsComponent } from "./components/multi-step-wizard/step-datasets/step-datasets.component";
+import { StepFiltersComponent } from "./components/multi-step-wizard/step-filters/step-filters.component";
+import { StepPostprocessComponent } from "./components/multi-step-wizard/step-postprocess/step-postprocess.component";
+import { StepPostprocessMapComponent } from "./components/multi-step-wizard/step-postprocess/map/step-postprocess-map.component";
+import { StepSubmitComponent } from "./components/multi-step-wizard/step-submit/step-submit.component";
+import { ReftimeModalContent } from "./components/multi-step-wizard/step-filters/reftime-modal.component";
 
 /* Maps */
 import { ForecastMapsBaseComponent } from "@app/components/maps/forecast-maps/forecast-maps-base.component";
@@ -169,6 +170,7 @@ const appRoutes: Routes = [
     DatasetsComponent,
     DatasetDetailsComponent,
     BindingsComponent,
+    ReftimeModalContent,
     FormatDatePipe,
     ReplacePipe,
     DisableControlDirective,
@@ -179,5 +181,6 @@ const appRoutes: Routes = [
     { provide: NgbTimeAdapter, useClass: NgbTimeStringAdapter },
   ],
   exports: [RouterModule, MapFlashFloodFilterComponent],
+  entryComponents: [ReftimeModalContent],
 })
 export class CustomModule {}

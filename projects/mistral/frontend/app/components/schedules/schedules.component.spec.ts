@@ -36,7 +36,11 @@ class ApiServiceStub extends ApiService {
     super({} as HttpClient, {} as NotificationService);
   }
 
-  get(endpoint: string, id = "", data = {}, options = {}) {
+  get(
+    endpoint: string,
+    data: Record<string, unknown> = {},
+    options: Record<string, unknown> = {}
+  ) {
     if (data["get_total"] === true) {
       return of(MockSchedulesTotalResponse);
     } else {
