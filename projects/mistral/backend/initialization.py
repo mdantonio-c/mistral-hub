@@ -8,24 +8,6 @@ class Initializer:
 
         sql = sqlalchemy.get_instance()
 
-        admin = sql.Role.query.filter_by(name="admin_root").first()
-        if admin is None:
-            log.warning("Admin role does not exist")
-        else:
-            admin.description = "Administrator"
-            sql.session.add(admin)
-
-        user = sql.Role.query.filter_by(name="normal_user").first()
-        if user is None:
-            log.warning("User role does not exist")
-        else:
-            user.description = "User"
-
-            sql.session.add(user)
-
-        sql.session.commit()
-        log.info("Roles successfully updated")
-
         # add license groups to db
         license_group_data_to_insert = [
             {
