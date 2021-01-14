@@ -6,6 +6,13 @@ project:
   rapydo: "1.0"
 
 variables:
+  roles:
+    normal_user: User
+    staff_user: Staff
+    admin_root: Administrator
+    institutional: Institutional
+    # default: normal_user
+
   env:
     PYTHON_PATH: /usr/local/lib/python3.8/dist-packages
 
@@ -40,24 +47,10 @@ variables:
     PLATFORM: GALILEO
     FRONTEND_DEBUG: 0
 
-    # RABBITMQ_ENABLE_MANAGEMENT_PLUGIN: 1
-    # RABBITMQ_ENABLE_SHOVEL_PLUGIN: 1
-    # SET_UNSAFE_EVAL: "unsafe-eval"
-
     CORS_ALLOWED_ORIGIN: "*"
     SET_CSP_IMG_SRC: "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://api.tiles.mapbox.com https://cartodb-basemaps-a.global.ssl.fastly.net https://cartodb-basemaps-b.global.ssl.fastly.net https://cartodb-basemaps-c.global.ssl.fastly.net https://cartodb-basemaps-d.global.ssl.fastly.net"
     SET_CSP_FONT_SRC: https://netdna.bootstrapcdn.com
 
-  roles:
-    normal_user: User
-    staff_user: Staff
-    admin_root: Administrator
-    institutional: Institutional
-    # default: normal_user
-# controller:
-#   commands:
-#     init:
-#       description: Init DB-All.e PostgreSQL database
-#       command: sh /scripts/init_dballe.sh
-#       service: backend
-#       user: developer
+    # RABBITMQ_ENABLE_MANAGEMENT_PLUGIN: 1
+    # RABBITMQ_ENABLE_SHOVEL_PLUGIN: 1
+    # SET_UNSAFE_EVAL: "unsafe-eval"
