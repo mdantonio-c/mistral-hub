@@ -1,7 +1,7 @@
 import datetime
 
 from flask import Response, stream_with_context
-from mistral.exceptions import AccessToDatasetDenied
+from mistral.exceptions import AccessToDatasetDenied, WrongDbConfiguration
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
@@ -241,6 +241,10 @@ class MapsObservations(EndpointResource):
                 )
         except AccessToDatasetDenied:
             raise ServerError("Access to dataset denied")
+        except WrongDbConfiguration:
+            raise ServerError(
+                "no dballe DSN configured for the requested license group"
+            )
         # parse the response
         res = dballe.parse_obs_maps_response(raw_res)
 

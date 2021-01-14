@@ -15,4 +15,8 @@ class AccessToDatasetDenied(Exception):
 
 
 class EmptyOutputFile(Exception):
-    """Exception for permission denied to access arkimet dataset"""
+    """Exception for empty output file"""
+
+
+class WrongDbConfiguration(Exception):
+    """Exception for misconfiguration in db"""

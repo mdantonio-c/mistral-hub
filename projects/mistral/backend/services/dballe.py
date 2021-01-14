@@ -7,6 +7,7 @@ from datetime import datetime, time, timedelta
 import arkimet as arki
 import dateutil
 import dballe
+from mistral.exceptions import WrongDbConfiguration
 from mistral.services.arkimet import BeArkimet as arki_service
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi.connectors import sqlalchemy
@@ -836,10 +837,11 @@ class BeDballe:
         ).first()
         # get the dsn
         dballe_dsn = license_group.dballe_dsn
-        try:
-            DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}")
-        except OSError:
-            raise Exception("Unable to connect to dballe database")
+        if not dballe_dsn:
+            log.error(
+                "no dballe dsn configured for {} license group", query_data["license"]
+            )
+            raise WrongDbConfiguration
 
         if previous_res:
             # integrate the already existent response
@@ -915,19 +917,30 @@ class BeDballe:
                 return []
 
             log.debug("datasets: {}", datasets)
-
-        # managing different dbs
+        mobile_db = None
         if db_type == "arkimet":
-            memdb = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
-
-        if db_type == "arkimet":
-            db = memdb
+            db = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
         else:
-            db = DB
+            # connect to the correct dballe dsn
+            try:
+                db = dballe.DB.connect(
+                    f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}"
+                )
+            except OSError:
+                raise Exception("Unable to connect to dballe database")
+            # connect to the eventual dsn for mobile station
+            mobile_dsn = f"{dballe_dsn}_MOBILE"
+            try:
+                mobile_db = dballe.DB.connect(
+                    f"{engine}://{user}:{pw}@{host}:{port}/{mobile_dsn}"
+                )
+            except OSError:
+                log.debug("{} dsn for mobile station data does not exists", dballe_dsn)
+                mobile_db = None
 
         # if download param, return the db and the query to download the data
         if download:
-            return db, query_data, query_station_data
+            return db, query_data, query_station_data, mobile_db
 
         log.debug("start retrieving data: query data for maps {}", query)
         if db_type == "arkimet" or not dsn_subset:
@@ -935,6 +948,11 @@ class BeDballe:
             response = BeDballe.extract_data_for_maps(
                 db, query, query_station_data, response, only_stations
             )
+            if mobile_db:
+                # add the data extracted from the corresponding dsn for mobile stations
+                response = BeDballe.extract_data_for_maps(
+                    mobile_db, query, query_station_data, response, only_stations
+                )
         else:
             log.debug("extraction from a dsn subset case")
             # get all networks of the requested datasets
@@ -948,6 +966,12 @@ class BeDballe:
                 response = BeDballe.extract_data_for_maps(
                     db, query, query_station_data, response, only_stations
                 )
+                if mobile_db:
+                    # add the data extracted from the corresponding dsn for mobile stations
+                    response = BeDballe.extract_data_for_maps(
+                        mobile_db, query, query_station_data, response, only_stations
+                    )
+
         return response
 
     @staticmethod
