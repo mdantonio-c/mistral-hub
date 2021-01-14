@@ -13,7 +13,7 @@ export class CustomFooterComponent {
   public to_year = moment().year();
 
   constructor() {
-    var t = environment.projectDescription;
+    let t = environment.projectDescription;
     t = t.replace(/^'/, "");
     t = t.replace(/'$/, "");
     this.project = t;

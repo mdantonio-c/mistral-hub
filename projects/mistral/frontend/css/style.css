@@ -908,3 +908,8 @@ input[type="number"]::-webkit-outer-spin-button {
 .mst-obs-marker-color-850000 {
   background-color: rgba(133, 0, 0, 0.6);
 }
+
+.card-horizontal {
+  display: flex;
+  flex: 1 1 auto;
+}
