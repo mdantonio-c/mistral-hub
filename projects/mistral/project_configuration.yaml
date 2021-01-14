@@ -55,6 +55,7 @@ variables:
         internal: staff_user
         admin: admin_root
         default: normal_user
+        institutional: Institutional
 # controller:
 #   commands:
 #     init:
