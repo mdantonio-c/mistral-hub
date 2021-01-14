@@ -1198,20 +1198,45 @@ class BeDballe:
         return new_datetimemax
 
     @staticmethod
+    def import_data_in_temp_db(db, temp_db, query):
+        with db.transaction() as tr:
+            with temp_db.transaction() as temptr:
+                for cur in tr.query_messages(query):
+                    temptr.import_messages(cur.message)
+
+    @staticmethod
     def merge_db_for_download(
         dballe_db,
         dballe_query_data,
         arki_db=None,
         arki_query_data=None,
+        mobile_db=None,
+        dsn_subset=[],
     ):
         # merge the dbs
         query_data = BeDballe.parse_query_for_maps(dballe_query_data)
         if arki_db:
             log.debug("Filling temp db with data from dballe. query: {}", query_data)
-            with dballe_db.transaction() as tr:
-                with arki_db.transaction() as temptr:
-                    for cur in tr.query_messages(query_data):
-                        temptr.import_messages(cur.message)
+            if not dsn_subset:
+                BeDballe.import_data_in_temp_db(dballe_db, arki_db, query_data)
+                if mobile_db:
+                    BeDballe.import_data_in_temp_db(mobile_db, arki_db, query_data)
+            else:
+                # get all networks of the requested datasets
+                nets = []
+                for ds in dsn_subset:
+                    for el in arki_service.get_observed_dataset_params(ds):
+                        nets.append(el)
+                for n in nets:
+                    # extract querying network by network
+                    query_data["rep_memo"] = n
+                    BeDballe.import_data_in_temp_db(dballe_db, arki_db, query_data)
+                    if mobile_db:
+                        # add the data extracted from the corresponding dsn for mobile stations
+                        BeDballe.import_data_in_temp_db(mobile_db, arki_db, query_data)
+                    # clean the query
+                    query_data.pop("rep_memo", None)
+
         # merge the queries for data
         if arki_query_data:
             if "datetimemin" in arki_query_data:
@@ -1224,7 +1249,13 @@ class BeDballe:
 
     @staticmethod
     def download_data_from_map(
-        db, output_format, query_data, query_station_data=None, qc_filter=False
+        db,
+        output_format,
+        query_data,
+        query_station_data=None,
+        qc_filter=False,
+        mobile_db=None,
+        dsn_subset=[],
     ):
         download_query = {}
         if query_station_data:
@@ -1232,17 +1263,60 @@ class BeDballe:
         elif query_data:
             parsed_query = BeDballe.parse_query_for_maps(query_data)
         download_query = {**parsed_query}
-
+        if dsn_subset:
+            nets = []
+            for ds in dsn_subset:
+                for el in arki_service.get_observed_dataset_params(ds):
+                    nets.append(el)
         with db.transaction() as tr:
             exporter = dballe.Exporter(output_format)
             log.debug("download query: {}", download_query)
-            for row in tr.query_messages(download_query):
-                if qc_filter:
-                    msg = BeDballe.filter_messages(row.message, quality_check=True)
+            if dsn_subset:
+                for n in nets:
+                    download_query["rep_memo"] = n
+                    for row in tr.query_messages(download_query):
+                        if qc_filter:
+                            msg = BeDballe.filter_messages(
+                                row.message, quality_check=True
+                            )
+                        else:
+                            msg = row.message
+                        if msg:
+                            yield exporter.to_binary(row.message)
+            else:
+                for row in tr.query_messages(download_query):
+                    if qc_filter:
+                        msg = BeDballe.filter_messages(row.message, quality_check=True)
+                    else:
+                        msg = row.message
+                    if msg:
+                        yield exporter.to_binary(row.message)
+        if mobile_db:
+            with mobile_db.transaction() as tr:
+                exporter = dballe.Exporter(output_format)
+                log.debug("exporting from mobile dsn")
+                if dsn_subset:
+                    for n in nets:
+                        download_query["rep_memo"] = n
+                        for row in tr.query_messages(download_query):
+                            if qc_filter:
+                                msg = BeDballe.filter_messages(
+                                    row.message, quality_check=True
+                                )
+                            else:
+                                msg = row.message
+                            if msg:
+                                yield exporter.to_binary(row.message)
                 else:
-                    msg = row.message
-                if msg:
-                    yield exporter.to_binary(row.message)
+                    for row in tr.query_messages(download_query):
+                        if qc_filter:
+                            msg = BeDballe.filter_messages(
+                                row.message, quality_check=True
+                            )
+                        else:
+                            msg = row.message
+                        if msg:
+                            yield exporter.to_binary(row.message)
 
     @staticmethod
     def from_query_to_dic(q):

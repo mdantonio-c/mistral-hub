@@ -281,6 +281,7 @@ class MapsObservations(EndpointResource):
         reliabilityCheck=False,
     ):
         user = self.get_user()
+        alchemy_db = sqlalchemy.get_instance()
         query_data = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
@@ -293,37 +294,90 @@ class MapsObservations(EndpointResource):
                 query_data["latmax"] = latmax
 
         if networks:
+            # check user authorization for the requested network
+            dataset_name = arki.from_network_to_dataset(networks)
+            if not dataset_name:
+                raise NotFound("The requested network does not exists")
+            check_auth = SqlApiDbManager.check_dataset_authorization(
+                alchemy_db, dataset_name, user
+            )
+            if not check_auth:
+                raise Unauthorized(
+                    "user is not authorized to access the selected network"
+                )
             query_data["rep_memo"] = networks
         if reliabilityCheck:
             query_data["query"] = "attrs"
 
-        if q:
-            # parse the query
-            parsed_query = dballe.from_query_to_dic(q)
-            for key, value in parsed_query.items():
-                query_data[key] = value
+        # parse the query
+        parsed_query = dballe.from_query_to_dic(q)
+        for key, value in parsed_query.items():
+            query_data[key] = value
 
-            # get db type
-            if "datetimemin" in query_data:
-                db_type = dballe.get_db_type(
-                    query_data["datetimemin"], query_data["datetimemax"]
+        # check consistency with license group
+        dsn_subset = []
+        if "license" not in query_data:
+            raise BadRequest("License group parameter is mandatory")
+        # 1. user is authorized to see data from that license group (is open or at least one of his authorized dataset comes from the group)
+        group_license = alchemy_db.GroupLicense.query.filter_by(
+            name=query_data["license"]
+        ).first()
+        if not group_license:
+            raise BadRequest("The selected group of license does not exists")
+        # check if the license group is open
+        if not group_license.is_public:
+            if not user:
+                raise Unauthorized(
+                    "to access not open datasets the user has to be logged"
                 )
-                if db_type != "dballe" and not user:
-                    raise Unauthorized(
-                        "to access archived data the user has to be logged"
-                    )
             else:
-                if not user:
+                auth_datasets = []
+                auth_datasets_dic = SqlApiDbManager.get_datasets(
+                    alchemy_db,
+                    user,
+                    category="OBS",
+                    group_license=query_data["license"],
+                )
+                for d in auth_datasets_dic:
+                    auth_datasets.append(d["id"])
+                if not auth_datasets:
                     raise Unauthorized(
-                        "to access archived data the user has to be logged"
+                        "the user is not authorized to access datasets from the selected license group"
                     )
-                else:
-                    db_type = "mixed"
+                # check if the user is authorized to all datasets in the DSN corresponding to the license group
+                dsn_datasets = SqlApiDbManager.retrieve_dataset_by_dsn(
+                    alchemy_db, group_license.dballe_dsn
+                )
+                log.debug(
+                    "dsn datasets: {}, authorized datasets: {}",
+                    dsn_datasets,
+                    auth_datasets,
+                )
+                if set(auth_datasets) != set(dsn_datasets):
+                    dsn_subset = [elem for elem in auth_datasets]
+        # 2. if a network is requested check if belongs to the selected license group
+        if networks:
+            ds_group_license = SqlApiDbManager.get_license_group(
+                alchemy_db, [dataset_name]
+            )
+            if ds_group_license.name != group_license.name:
+                raise BadRequest(
+                    "The selected network and the selected license group does not match"
+                )
+
+        # get db type
+        if "datetimemin" in query_data:
+            db_type = dballe.get_db_type(
+                query_data["datetimemin"], query_data["datetimemax"]
+            )
+            if db_type != "dballe" and not user:
+                raise Unauthorized("to access archived data the user has to be logged")
         else:
             if not user:
                 raise Unauthorized("to access archived data the user has to be logged")
             else:
                 db_type = "mixed"
+
         log.debug("type of database: {}", db_type)
 
         query_station_data = {}
@@ -412,6 +466,7 @@ class MapsObservations(EndpointResource):
                     dballe_db,
                     dballe_query_data,
                     dballe_query_station_data,
+                    mobile_db,
                 ) = dballe.get_maps_response(
                     query_data_for_dballe,
                     False,
@@ -433,12 +488,14 @@ class MapsObservations(EndpointResource):
                         arki_db,
                         arki_query_data,
                         arki_query_station_data,
+                        arki_mobile_db,
                     ) = dballe.get_maps_response(
                         query_data_for_arki,
                         False,
                         db_type="arkimet",
                         query_station_data=query_station_data_for_arki,
                         download=True,
+                        dsn_subset=dsn_subset,
                     )
 
                 # merge the queries and the db
@@ -451,7 +508,13 @@ class MapsObservations(EndpointResource):
                     dballe_query_data,
                     arki_db,
                     arki_query_data,
+                    mobile_db=mobile_db,
+                    dsn_subset=dsn_subset,
                 )
+                # if there is a temporary db we no more need the dsn subset list and the mobile db connection as we have already use them for fill the temp db
+                if arki_db:
+                    dsn_subset = []
+                    mobile_db = None
                 # if there is a query station data, merge the two queries
                 download_query_station_data = {}
                 if query_station_data:
@@ -469,12 +532,14 @@ class MapsObservations(EndpointResource):
                     db_for_extraction,
                     download_query_data,
                     download_query_station_data,
+                    mobile_db,
                 ) = dballe.get_maps_response(
                     query_data,
                     False,
                     db_type=db_type,
                     query_station_data=query_station_data,
                     download=True,
+                    dsn_subset=dsn_subset,
                 )
 
             mime = None
@@ -493,6 +558,8 @@ class MapsObservations(EndpointResource):
                             download_query_data,
                             download_query_station_data,
                             qc_filter=reliabilityCheck,
+                            mobile_db=mobile_db,
+                            dsn_subset=dsn_subset,
                         )
                     ),
                     mimetype=mime,
