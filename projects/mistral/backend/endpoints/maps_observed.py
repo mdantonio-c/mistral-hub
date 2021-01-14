@@ -116,6 +116,7 @@ class MapsObservations(EndpointResource):
                 query[key] = value
 
         # check consistency with license group
+        dsn_subset = []
         if "license" not in query:
             if networks == "multim-forecast":
                 # is the only case where the request come without a requested license group
@@ -138,13 +139,27 @@ class MapsObservations(EndpointResource):
                     "to access not open datasets the user has to be logged"
                 )
             else:
-                auth_datasets = SqlApiDbManager.get_datasets(
+                auth_datasets = []
+                auth_datasets_dic = SqlApiDbManager.get_datasets(
                     alchemy_db, user, category="OBS", group_license=query["license"]
                 )
+                for d in auth_datasets_dic:
+                    auth_datasets.append(d["id"])
                 if not auth_datasets:
                     raise Unauthorized(
                         "the user is not authorized to access datasets from the selected license group"
                     )
+                # check if the user is authorized to all datasets in the DSN corresponding to the license group
+                dsn_datasets = SqlApiDbManager.retrieve_dataset_by_dsn(
+                    alchemy_db, group_license.dballe_dsn
+                )
+                log.debug(
+                    "dsn datasets: {}, authorized datasets: {}",
+                    dsn_datasets,
+                    auth_datasets,
+                )
+                if set(auth_datasets) != set(dsn_datasets):
+                    dsn_subset = [elem for elem in auth_datasets]
         # 2. if a network is requested check if belongs to the selected license group
         if networks:
             ds_group_license = SqlApiDbManager.get_license_group(
@@ -213,6 +228,7 @@ class MapsObservations(EndpointResource):
                     query,
                     onlyStations,
                     query_station_data=query_station_data,
+                    dsn_subset=dsn_subset,
                 )
             else:
                 raw_res = dballe.get_maps_response(
@@ -221,6 +237,7 @@ class MapsObservations(EndpointResource):
                     interval=interval,
                     db_type=db_type,
                     query_station_data=query_station_data,
+                    dsn_subset=dsn_subset,
                 )
         except AccessToDatasetDenied:
             raise ServerError("Access to dataset denied")

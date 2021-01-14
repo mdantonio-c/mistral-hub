@@ -270,7 +270,7 @@ class BeArkimet:
 
     @staticmethod
     def get_obs_datasets(query, license):
-        # TODO sostituire con cose dal db
+        # actually this function is used only in tests and in a "side" script. For other purpose is better to use SqlApiDbManager.get_datasets that retrieve datasets from the db instead of arkimet config
         datasets = []
         cfg_sections = Sections()
         cfg = cfg_sections.parse(BeArkimet.arkimet_conf)

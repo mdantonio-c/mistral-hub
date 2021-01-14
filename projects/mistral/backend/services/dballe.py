@@ -719,6 +719,7 @@ class BeDballe:
         only_stations=False,
         query_station_data=None,
         interval=None,
+        dsn_subset=[],
     ):
         # get data from the dballe database
         log.debug("mixed dbs: get data from dballe")
@@ -761,6 +762,7 @@ class BeDballe:
                 only_stations=only_stations,
                 interval=interval,
                 db_type="dballe",
+                dsn_subset=dsn_subset,
             )
         else:
             dballe_maps_data = BeDballe.get_maps_response(
@@ -768,6 +770,7 @@ class BeDballe:
                 only_stations=only_stations,
                 interval=interval,
                 db_type="dballe",
+                dsn_subset=dsn_subset,
             )
 
         if query_for_dballe:
@@ -794,6 +797,7 @@ class BeDballe:
                         interval=interval,
                         db_type="arkimet",
                         previous_res=dballe_maps_data,
+                        dsn_subset=dsn_subset,
                     )
                 else:
                     arki_maps_data = BeDballe.get_maps_response(
@@ -802,6 +806,7 @@ class BeDballe:
                         interval=interval,
                         db_type="arkimet",
                         previous_res=dballe_maps_data,
+                        dsn_subset=dsn_subset,
                     )
 
                 if not dballe_maps_data and not arki_maps_data:
@@ -822,6 +827,7 @@ class BeDballe:
         query_station_data=None,
         download=None,
         previous_res=None,
+        dsn_subset=[],
     ):
         # get the license group
         alchemy_db = sqlalchemy.get_instance()
@@ -894,25 +900,20 @@ class BeDballe:
                 if download:
                     return None, {}, {}
                 return []
-            # check if there is a queried license
-            license = None
-            if query_data:
-                if "license" in query_data.keys():
-                    license = query_data["license"]
-            # get the correct arkimet dataset
-            # TODO sistemare questa funzione
-            datasets = arki_service.get_obs_datasets(query_for_arkimet, license)
+
+            elif dsn_subset:
+                datasets = dsn_subset
+            else:
+                # extract data from all the datasets of the selected dsn
+                datasets = SqlApiDbManager.retrieve_dataset_by_dsn(
+                    alchemy_db, dballe_dsn
+                )
 
             if not datasets:
                 if download:
                     return None, {}, {}
                 return []
 
-            # check datasets license,
-            # TODO se non passa il check il frontend lancerà un messaggio del tipo: 'dati con licenze diverse, prego sceglierne una'
-            # check_license = arki_service.get_unique_license(
-            #     datasets
-            # )  # the exception raised by this function is enough?
             log.debug("datasets: {}", datasets)
 
         # managing different dbs
@@ -929,6 +930,28 @@ class BeDballe:
             return db, query_data, query_station_data
 
         log.debug("start retrieving data: query data for maps {}", query)
+        if db_type == "arkimet" or not dsn_subset:
+            # extract all data in db
+            response = BeDballe.extract_data_for_maps(
+                db, query, query_station_data, response, only_stations
+            )
+        else:
+            log.debug("extraction from a dsn subset case")
+            # get all networks of the requested datasets
+            nets = []
+            for ds in dsn_subset:
+                for el in arki_service.get_observed_dataset_params(ds):
+                    nets.append(el)
+            for n in nets:
+                # extract querying network by network
+                query["rep_memo"] = n
+                response = BeDballe.extract_data_for_maps(
+                    db, query, query_station_data, response, only_stations
+                )
+        return response
+
+    @staticmethod
+    def extract_data_for_maps(db, query, query_station_data, response, only_stations):
         with db.transaction() as tr:
             # check if query gives back a result
             count_data = tr.query_data(query).remaining

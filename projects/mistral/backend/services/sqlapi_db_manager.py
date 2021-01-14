@@ -428,7 +428,7 @@ class SqlApiDbManager:
         for ds in ds_objects:
             dataset_el = {}
             if category:
-                if ds.category != category:
+                if ds.category.name != category:
                     continue
             # get license
             license = db.License.query.filter_by(id=ds.license_id).first()
@@ -513,3 +513,17 @@ class SqlApiDbManager:
                 return True
             else:
                 return False
+
+    @staticmethod
+    def retrieve_dataset_by_dsn(db, dsn_name):
+        license_groups = db.GroupLicense.query.filter_by(dballe_dsn=dsn_name).all()
+        datasets_names = []
+        for lg in license_groups:
+            # get all licenses
+            licenses = lg.license.all()
+            for lic in licenses:
+                datasets = lic.datasets.all()
+                for d in datasets:
+                    if d.category.name == "OBS":
+                        datasets_names.append(d.arkimet_id)
+        return datasets_names
