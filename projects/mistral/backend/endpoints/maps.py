@@ -24,7 +24,7 @@ FIELDS = [
     "percentile",
     "probability",
 ]
-LEVELS_PE = ["1", "10", "25", "50", "75", "99"]
+LEVELS_PE = ["1", "10", "25", "50", "70", "75", "80", "90", "95", "99"]
 LEVELS_PR = ["5", "10", "20", "50"]
 AREAS = ["Italia", "Nord_Italia", "Centro_Italia", "Sud_Italia", "Area_Mediterranea"]
 PLATFORMS = ["GALILEO", "MEUCCI"]

@@ -31,7 +31,11 @@ export const Levels_pe: KeyValuePair[] = [
   { key: "10", value: "10" },
   { key: "25", value: "25" },
   { key: "50", value: "50" },
+  { key: "70", value: "70" },
   { key: "75", value: "75" },
+  { key: "80", value: "80" },
+  { key: "90", value: "90" },
+  { key: "95", value: "95" },
   { key: "99", value: "99" },
 ];
 
