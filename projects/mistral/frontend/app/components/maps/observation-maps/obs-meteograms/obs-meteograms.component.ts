@@ -34,7 +34,7 @@ export class ObsMeteogramsComponent implements AfterViewInit {
   product: string;
   level: string;
   timerange: string;
-  userunit: string;
+  unit: string;
 
   // chart options
   colorScheme = {
@@ -52,7 +52,7 @@ export class ObsMeteogramsComponent implements AfterViewInit {
   }
 
   getUserUnit(varcode: string) {
-    return ObsService.showUserUnit(varcode);
+    return ObsService.showUserUnit(varcode, this.unit);
   }
 
   xAxisLabelFormatting() {
@@ -96,19 +96,12 @@ export class ObsMeteogramsComponent implements AfterViewInit {
           // get product info
           if (data.length !== 0) {
             let obs = data[0];
-            //this.product = obs.prod[0].description;
             this.product = response.descr[obs.prod[0].var].descr;
+            this.unit = response.descr[obs.prod[0].var].unit;
             this.varcode = obs.prod[0].var;
-            /*if (filter.level) {
-              this.level = obs.products[0].values[0].level_desc;
-            }
-            if (filter.timerange) {
-              this.timerange = obs.products[0].values[0].timerange_desc;
-            }*/
           }
           let multi = this.normalize(data);
           Object.assign(this, { multi });
-          // console.log(multi);
         },
         (error) => {
           this.notify.showError(error);

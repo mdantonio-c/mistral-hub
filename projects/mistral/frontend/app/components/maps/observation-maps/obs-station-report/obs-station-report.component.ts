@@ -62,17 +62,10 @@ export class ObsStationReportComponent implements OnInit {
     this.obsService
       .getStationTimeSeries(this.filter, this.station)
       .subscribe(
-        //(data: Observation[], descriptions: Descriptions[]) => {
         (response: ObservationResponse) => {
           let data = response.data;
           this.descriptions = response.descr;
           this.report = data[0];
-          // if (this.filter.level) {
-          //   this.level = this.descriptions[this.report.prod[0].lev].desc;
-          // }
-          // if (this.filter.timerange) {
-          //   this.timerange = this.descriptions[this.report.prod[0].trange].desc;
-          // }
           let multi = this.normalize(data[0]);
           Object.assign(this, { multi });
           //console.log(JSON.stringify(this.multi));
@@ -101,7 +94,8 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   getUserUnit(varcode: string) {
-    return ObsService.showUserUnit(varcode);
+    const unit: string = this.single[0].unit;
+    return ObsService.showUserUnit(varcode, unit);
   }
 
   xAxisLabelFormatting() {
@@ -115,11 +109,6 @@ export class ObsStationReportComponent implements OnInit {
     return moment(val).format("HH:mm");
   }
 
-  download() {
-    // TODO
-    console.log("download");
-  }
-
   private updateGraphData(varcode: string) {
     this.single = this.multi.filter((x: DataSeries) => x.code === varcode);
   }
@@ -131,7 +120,7 @@ export class ObsStationReportComponent implements OnInit {
         // name: v.description,
         name: "",
         code: v.var,
-        // unit: v.unit,
+        unit: this.descriptions[v.var].unit,
         series: [],
       };
       v.val.forEach((obs) => {
