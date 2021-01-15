@@ -527,3 +527,17 @@ class SqlApiDbManager:
                     if d.category.name == "OBS":
                         datasets_names.append(d.arkimet_id)
         return datasets_names
+
+    @staticmethod
+    def retrieve_dataset_by_license_group(db, group_license_name):
+        # function used for observed data
+        license_group = db.GroupLicense.query.filter_by(name=group_license_name).first()
+        datasets_names = []
+        # get all licenses
+        licenses = license_group.license.all()
+        for lic in licenses:
+            datasets = lic.datasets.all()
+            for d in datasets:
+                if d.category.name == "OBS":
+                    datasets_names.append(d.arkimet_id)
+        return datasets_names

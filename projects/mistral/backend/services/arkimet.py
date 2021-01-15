@@ -269,6 +269,20 @@ class BeArkimet:
         return None
 
     @staticmethod
+    def from_dataset_to_networks(dataset):
+        nets = []
+        cfg_sections = Sections()
+        cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
+        for i in [a for a in cfg.items() if a[0] == dataset]:
+            filter = i[1]["filter"]
+            filters_split = shlex.split(filter)
+            # networks is the parameter that defines the different dataset for observed data
+            for f in filters_split:
+                if f.startswith("BUFR"):
+                    nets.append(f.split("=")[1])
+        return nets
+
+    @staticmethod
     def get_obs_datasets(query, license):
         # actually this function is used only in tests and in a "side" script. For other purpose is better to use SqlApiDbManager.get_datasets that retrieve datasets from the db instead of arkimet config
         datasets = []

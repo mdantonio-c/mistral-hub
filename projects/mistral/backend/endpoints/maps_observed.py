@@ -1,7 +1,13 @@
 import datetime
 
 from flask import Response, stream_with_context
-from mistral.exceptions import AccessToDatasetDenied, WrongDbConfiguration
+from mistral.exceptions import (
+    AccessToDatasetDenied,
+    NetworkNotInLicenseGroup,
+    UnAuthorizedUser,
+    UnexistingLicenseGroup,
+    WrongDbConfiguration,
+)
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
@@ -93,6 +99,7 @@ class MapsObservations(EndpointResource):
                 query["latmin"] = latmin
                 query["latmax"] = latmax
 
+        dataset_name = None
         if networks:
             # check user authorization for the requested network
             dataset_name = arki.from_network_to_dataset(networks)
@@ -116,7 +123,6 @@ class MapsObservations(EndpointResource):
                 query[key] = value
 
         # check consistency with license group
-        dsn_subset = []
         if "license" not in query:
             if networks == "multim-forecast":
                 # is the only case where the request come without a requested license group
@@ -126,49 +132,19 @@ class MapsObservations(EndpointResource):
                 query["license"] = multim_group_license.name
             else:
                 raise BadRequest("License group parameter is mandatory")
-        # 1. user is authorized to see data from that license group (is open or at least one of his authorized dataset comes from the group)
-        group_license = alchemy_db.GroupLicense.query.filter_by(
-            name=query["license"]
-        ).first()
-        if not group_license:
-            raise BadRequest("The selected group of license does not exists")
-        # check if the license group is open
-        if not group_license.is_public:
-            if not user:
-                raise Unauthorized(
-                    "to access not open datasets the user has to be logged"
-                )
-            else:
-                auth_datasets = []
-                auth_datasets_dic = SqlApiDbManager.get_datasets(
-                    alchemy_db, user, category="OBS", group_license=query["license"]
-                )
-                for d in auth_datasets_dic:
-                    auth_datasets.append(d["id"])
-                if not auth_datasets:
-                    raise Unauthorized(
-                        "the user is not authorized to access datasets from the selected license group"
-                    )
-                # check if the user is authorized to all datasets in the DSN corresponding to the license group
-                dsn_datasets = SqlApiDbManager.retrieve_dataset_by_dsn(
-                    alchemy_db, group_license.dballe_dsn
-                )
-                log.debug(
-                    "dsn datasets: {}, authorized datasets: {}",
-                    dsn_datasets,
-                    auth_datasets,
-                )
-                if set(auth_datasets) != set(dsn_datasets):
-                    dsn_subset = [elem for elem in auth_datasets]
-        # 2. if a network is requested check if belongs to the selected license group
-        if networks:
-            ds_group_license = SqlApiDbManager.get_license_group(
-                alchemy_db, [dataset_name]
+        try:
+            group_license, dsn_subset = dballe.check_access_authorization(
+                user, query["license"], dataset_name
             )
-            if ds_group_license.name != group_license.name:
-                raise BadRequest(
-                    "The selected network and the selected license group does not match"
-                )
+
+        except UnexistingLicenseGroup:
+            raise BadRequest("The selected group of license does not exists")
+        except UnAuthorizedUser:
+            raise Unauthorized("user is not authorized to access the datasets")
+        except NetworkNotInLicenseGroup:
+            BadRequest(
+                "The selected network and the selected license group does not match"
+            )
 
         # get db type
         if "datetimemin" in query:
@@ -293,6 +269,7 @@ class MapsObservations(EndpointResource):
                 query_data["latmin"] = latmin
                 query_data["latmax"] = latmax
 
+        dataset_name = None
         if networks:
             # check user authorization for the requested network
             dataset_name = arki.from_network_to_dataset(networks)
@@ -315,55 +292,22 @@ class MapsObservations(EndpointResource):
             query_data[key] = value
 
         # check consistency with license group
-        dsn_subset = []
         if "license" not in query_data:
             raise BadRequest("License group parameter is mandatory")
-        # 1. user is authorized to see data from that license group (is open or at least one of his authorized dataset comes from the group)
-        group_license = alchemy_db.GroupLicense.query.filter_by(
-            name=query_data["license"]
-        ).first()
-        if not group_license:
-            raise BadRequest("The selected group of license does not exists")
-        # check if the license group is open
-        if not group_license.is_public:
-            if not user:
-                raise Unauthorized(
-                    "to access not open datasets the user has to be logged"
-                )
-            else:
-                auth_datasets = []
-                auth_datasets_dic = SqlApiDbManager.get_datasets(
-                    alchemy_db,
-                    user,
-                    category="OBS",
-                    group_license=query_data["license"],
-                )
-                for d in auth_datasets_dic:
-                    auth_datasets.append(d["id"])
-                if not auth_datasets:
-                    raise Unauthorized(
-                        "the user is not authorized to access datasets from the selected license group"
-                    )
-                # check if the user is authorized to all datasets in the DSN corresponding to the license group
-                dsn_datasets = SqlApiDbManager.retrieve_dataset_by_dsn(
-                    alchemy_db, group_license.dballe_dsn
-                )
-                log.debug(
-                    "dsn datasets: {}, authorized datasets: {}",
-                    dsn_datasets,
-                    auth_datasets,
-                )
-                if set(auth_datasets) != set(dsn_datasets):
-                    dsn_subset = [elem for elem in auth_datasets]
-        # 2. if a network is requested check if belongs to the selected license group
-        if networks:
-            ds_group_license = SqlApiDbManager.get_license_group(
-                alchemy_db, [dataset_name]
+
+        try:
+            group_license, dsn_subset = dballe.check_access_authorization(
+                user, query_data["license"], dataset_name
             )
-            if ds_group_license.name != group_license.name:
-                raise BadRequest(
-                    "The selected network and the selected license group does not match"
-                )
+
+        except UnexistingLicenseGroup:
+            raise BadRequest("The selected group of license does not exists")
+        except UnAuthorizedUser:
+            raise Unauthorized("user is not authorized to access the datasets")
+        except NetworkNotInLicenseGroup:
+            BadRequest(
+                "The selected network and the selected license group does not match"
+            )
 
         # get db type
         if "datetimemin" in query_data:
