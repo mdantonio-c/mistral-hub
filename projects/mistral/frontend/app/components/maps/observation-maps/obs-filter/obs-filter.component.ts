@@ -17,6 +17,8 @@ import { User } from "@rapydo/types";
 import { AuthService } from "@rapydo/services/auth";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
+import { debounceTime, distinctUntilChanged } from "rxjs/operators";
+import { Subject } from "rxjs";
 
 const LAST_DAYS = +environment.CUSTOM.LASTDAYS || 10;
 
@@ -44,6 +46,10 @@ export class ObsFilterComponent implements OnInit {
     day: this.today.getDate(),
   };
   minDate: NgbDateStruct | null;
+  minTime: number = 0;
+  maxTime: number = 23;
+  rangeValue = [this.minTime, this.maxTime];
+  timeChanged: Subject<number[]> = new Subject<number[]>();
   user: User;
 
   isUpdatable: boolean = false;
@@ -70,6 +76,7 @@ export class ObsFilterComponent implements OnInit {
     this.filterForm = this.fb.group({
       product: [this.DEFAULT_PRODUCT, Validators.required],
       reftime: [this.today, Validators.required],
+      time: [[this.minTime, this.maxTime]],
       level: [""],
       timerange: [""],
       boundingBox: [""],
@@ -77,6 +84,11 @@ export class ObsFilterComponent implements OnInit {
       license: ["CC-BY", Validators.required],
       reliabilityCheck: [true],
     });
+    this.timeChanged
+      .pipe(debounceTime(2000), distinctUntilChanged())
+      .subscribe((model) => {
+        this.filterForm.get("time").setValue(model);
+      });
   }
 
   ngOnInit() {
@@ -131,6 +143,7 @@ export class ObsFilterComponent implements OnInit {
           this.filterForm.reset(
             {
               reftime: f.reftime,
+              time: f.time,
               product: f.product,
               network: f.network || "",
               level: "",
@@ -242,6 +255,7 @@ export class ObsFilterComponent implements OnInit {
     let filter: ObsFilter = {
       product: form.product,
       reftime: form.reftime,
+      time: form.time,
     };
     if (form.network !== "") {
       filter.network = form.network;
@@ -275,4 +289,14 @@ export class ObsFilterComponent implements OnInit {
   download() {
     this.filterDownload.emit(this.toObsFilter());
   }
+
+  updateTime($event) {
+    this.timeChanged.next($event.newValue);
+  }
+
+  formatter = (val: number[]) =>
+    `${String(val[0]).padStart(2, "0")}:00 - ${String(val[1]).padStart(
+      2,
+      "0"
+    )}:59`;
 }

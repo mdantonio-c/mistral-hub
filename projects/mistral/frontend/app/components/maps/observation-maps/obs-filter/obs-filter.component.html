@@ -2,7 +2,7 @@
   [name]="'filter-spinner'"
   bdColor="rgba(255,255,255,0.8)"
   color="#6c757d"
-  zIndex="1000"
+  [zIndex]="1080"
   [fullScreen]="false"
   type="ball-clip-rotate-multiple"
   size="medium"
@@ -18,54 +18,61 @@
     </select>
   </div>
   <!-- Date -->
-  <div class="form-row">
-    <div class="col-md-8">
-      <label for="date">Date</label>
-      <div class="input-group">
-        <input
-          class="form-control"
-          id="date"
-          placeholder="dd/mm/yyyy"
-          formControlName="reftime"
-          [maxDate]="maxDate"
-          [minDate]="minDate"
-          [footerTemplate]="footerTemplate"
-          [ngClass]="{ 'is-invalid': filterForm.controls.reftime.invalid }"
-          ngbDatepicker
-          #d="ngbDatepicker"
-        />
-        <ng-template #footerTemplate>
-          <hr class="my-0" />
-          <button
-            class="btn btn-primary btn-sm m-2 float-left"
-            (click)="filterForm.controls.reftime.setValue(today); d.close()"
-          >
-            Today
-          </button>
-          <button
-            class="btn btn-secondary btn-sm m-2 float-right"
-            (click)="d.close()"
-          >
-            Close
-          </button>
-        </ng-template>
-        <div class="input-group-append">
-          <button
-            class="btn btn-outline-secondary"
-            (click)="d.toggle()"
-            type="button"
-          >
-            <i class="fa fa-calendar"></i>
-          </button>
-        </div>
-      </div>
-      <div class="invalid-feedback" *ngIf="filterForm.controls.reftime.invalid">
-        Please choose a date.
+  <div class="form-group">
+    <label for="date">Date</label>
+    <div class="input-group">
+      <input
+        class="form-control"
+        id="date"
+        placeholder="dd/mm/yyyy"
+        formControlName="reftime"
+        [maxDate]="maxDate"
+        [minDate]="minDate"
+        [footerTemplate]="footerTemplate"
+        [ngClass]="{ 'is-invalid': filterForm.controls.reftime.invalid }"
+        ngbDatepicker
+        #d="ngbDatepicker"
+      />
+      <ng-template #footerTemplate>
+        <hr class="my-0" />
+        <button
+          class="btn btn-primary btn-sm m-2 float-left"
+          (click)="filterForm.controls.reftime.setValue(today); d.close()"
+        >
+          Today
+        </button>
+        <button
+          class="btn btn-secondary btn-sm m-2 float-right"
+          (click)="d.close()"
+        >
+          Close
+        </button>
+      </ng-template>
+      <div class="input-group-append">
+        <button
+          class="btn btn-outline-secondary"
+          (click)="d.toggle()"
+          type="button"
+        >
+          <i class="fa fa-calendar"></i>
+        </button>
       </div>
     </div>
-    <div class="col-md-4">
-      <label for="hour">Hour</label>
-      <input type="text" class="form-control" id="hour" disabled />
+    <div class="invalid-feedback" *ngIf="filterForm.controls.reftime.invalid">
+      Please choose a date.
+    </div>
+    <div class="space-4"></div>
+    <div class="mx-2 mt-4">
+      <mv-slider
+        id="mst-slider"
+        [range]="true"
+        [(value)]="rangeValue"
+        [min]="minTime"
+        [max]="maxTime"
+        [step]="1"
+        [formatter]="formatter"
+        (change)="updateTime($event)"
+      ></mv-slider>
     </div>
   </div>
   <!-- Level -->

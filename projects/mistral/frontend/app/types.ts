@@ -178,6 +178,7 @@ export interface Templates {
 export interface ObsFilter {
   product: string;
   reftime: Date;
+  time?: number[]; // expected 2 values (from, to)
   network?: string;
   timerange?: string;
   level?: string;
