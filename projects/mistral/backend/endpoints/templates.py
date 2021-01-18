@@ -4,9 +4,10 @@ import subprocess
 from zipfile import ZipFile
 
 from flask import request
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.config import UPLOAD_PATH
-from restapi.exceptions import BadRequest, NotFound, ServerError
+from restapi.exceptions import BadRequest, NotFound, ServerError, Unauthorized
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
@@ -64,6 +65,21 @@ class Templates(EndpointResource, Uploader):
             subfolder = os.path.join(user.uuid, "uploads", "grib")
         else:
             subfolder = os.path.join(user.uuid, "uploads", "shp")
+
+        # check the max number of templates the user is allowed to upload
+        max_user_templates = SqlApiDbManager.get_user_permissions(
+            user, param="templates"
+        )
+        if max_user_templates:
+            if f[-1] == "grib":
+                template_list = glob.glob(os.path.join(UPLOAD_PATH, subfolder, "*"))
+            else:
+                template_list = glob.glob(os.path.join(UPLOAD_PATH, subfolder, "*.shp"))
+            if len(template_list) == int(max_user_templates):
+                raise Unauthorized(
+                    "user has reached the max number of templates of this kind"
+                )
+
         log.debug("uploading in {}", subfolder)
         try:
             upload_res = self.upload(subfolder=subfolder)
@@ -177,17 +193,31 @@ class Templates(EndpointResource, Uploader):
                 else:
                     counter = len(grib_templates) + len(shp_templates)
                 return self.response({"total": counter})
+
+            # get max number of templates the user can upload
+            max_user_templates = SqlApiDbManager.get_user_permissions(
+                user, param="templates"
+            )
+
             res = []
             grib_object = {}
             grib_object["type"] = "grib"
             grib_object["files"] = []
             for t in grib_templates:
                 grib_object["files"].append(t)
+            if max_user_templates and len(grib_templates) >= int(max_user_templates):
+                grib_object["max_allowed"] = True
+            else:
+                grib_object["max_allowed"] = False
             shp_object = {}
             shp_object["type"] = "shp"
             shp_object["files"] = []
             for t in shp_templates:
                 shp_object["files"].append(t)
+            if max_user_templates and len(shp_templates) >= int(max_user_templates):
+                shp_object["max_allowed"] = True
+            else:
+                shp_object["max_allowed"] = False
             if format == "grib":
                 res.append(grib_object)
             elif format == "shp":

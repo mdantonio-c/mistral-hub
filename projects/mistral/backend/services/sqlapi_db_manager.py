@@ -567,3 +567,8 @@ class SqlApiDbManager:
                     if any(item in user_datasets_auth for item in lg_dataset_list):
                         auth_license_groups.append(lg.name)
         return auth_license_groups
+
+    @staticmethod
+    def get_user_permissions(user, param=None):
+        # TODO develop the function that will return the requested param due to user configuration or user role
+        return None
