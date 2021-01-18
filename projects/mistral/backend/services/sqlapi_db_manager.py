@@ -541,3 +541,29 @@ class SqlApiDbManager:
                 if d.category.name == "OBS":
                     datasets_names.append(d.arkimet_id)
         return datasets_names
+
+    @staticmethod
+    def get_all_user_authorized_license_groups(db, user):
+        auth_license_groups = []
+        all_license_groups = db.GroupLicense.query.filter_by().all()
+        for lg in all_license_groups:
+            if lg.is_public:
+                # check if user want to see also opendata datasets
+                if user and not user.open_dataset:
+                    continue
+                else:
+                    auth_license_groups.append(lg.name)
+            else:
+                if not user:
+                    # to see private dataset the user has to be logged
+                    continue
+                else:
+                    # get all authorized datasets
+                    user_datasets_auth = [ds.name for ds in user.datasets]
+                    # get all license group datasets
+                    lg_dataset_list = SqlApiDbManager.retrieve_dataset_by_license_group(
+                        db, lg.name
+                    )
+                    if any(item in user_datasets_auth for item in lg_dataset_list):
+                        auth_license_groups.append(lg.name)
+        return auth_license_groups

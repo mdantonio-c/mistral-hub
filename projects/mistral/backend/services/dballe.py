@@ -142,6 +142,7 @@ class BeDballe:
         dballe_query=None,
         all_dballe_queries=None,
         fields=None,
+        license_group=None,
     ):
         if isinstance(datemin, datetime):
             datemin_str = datemin.strftime("%Y-%m-%d %H:%M:%S")
@@ -164,7 +165,9 @@ class BeDballe:
             arkimet_query += ";"
         if dballe_query or all_dballe_queries:
             # improve the query adding stations
-            explorer = BeDballe.build_explorer("arkimet", network)
+            explorer = BeDballe.build_explorer(
+                "arkimet", license_group=license_group, network_list=network
+            )
             # create a list of station details
             station_list = []
             # populate the station list.
@@ -218,7 +221,7 @@ class BeDballe:
         return arkimet_query
 
     @staticmethod
-    def build_explorer(db_type, license_group, network_list=None):
+    def build_explorer(db_type, license_group=None, network_list=None):
         need_filtered = True
         if network_list:
             match_nets = next(
@@ -227,6 +230,13 @@ class BeDballe:
             )
             if match_nets:
                 need_filtered = False
+            if not license_group:
+                alchemy_db = sqlalchemy.get_instance()
+                license_group = SqlApiDbManager.get_license_group(
+                    alchemy_db, network_list
+                )
+        if not license_group:
+            raise UnexistingLicenseGroup
         # log.debug("filtered {}", need_filtered)
         explorer = dballe.DBExplorer()
         with explorer.update() as updater:
@@ -972,6 +982,7 @@ class BeDballe:
                 network=networks_as_list,
                 bounding_box=bbox_for_arki,
                 dballe_query=query,
+                license_group=license_group,
             )
             if query and not query_for_arkimet:
                 # means that there aren't data in arkimet for this dballe query
@@ -1862,6 +1873,9 @@ class BeDballe:
         queried_reftime=None,
         additional_runs=None,
     ):
+        # get the license group
+        alchemy_db = sqlalchemy.get_instance()
+        license_group = SqlApiDbManager.get_license_group(alchemy_db, datasets)
         # choose the db
         arkimet_query = None
         if db_type == "arkimet":
@@ -1888,15 +1902,13 @@ class BeDballe:
                 network=network,
                 all_dballe_queries=all_queries,
                 fields=fields,
+                license_group=license_group,
             )
 
         if arkimet_query:
             # fill the temp db and choose it as the db for extraction
             DB = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
         else:
-            # get the license group
-            alchemy_db = sqlalchemy.get_instance()
-            license_group = SqlApiDbManager.get_license_group(alchemy_db, datasets)
             # get the dsn
             dballe_dsn = license_group.dballe_dsn
             try:
