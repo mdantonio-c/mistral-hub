@@ -31,6 +31,7 @@ export class ObsFilterComponent implements OnInit {
   readonly DEFAULT_PRODUCT = "B12101";
   readonly DEFAULT_LEVEL = "103,2000,0,0";
   readonly DEFAULT_TIMERANGE = "254,0,0";
+  readonly DEFAULT_LICENSE = "CCBY_COMPLIANT";
   @Input() network: string;
 
   filterForm: FormGroup;
@@ -38,7 +39,7 @@ export class ObsFilterComponent implements OnInit {
   allLevels: CodeDescPair[];
   allProducts: CodeDescPair[];
   allTimeranges: CodeDescPair[];
-  allLicenses: CodeDescPair[] = LICENSES;
+  allLicenses: CodeDescPair[];
   today: Date = new Date();
   maxDate: NgbDateStruct = {
     year: this.today.getFullYear(),
@@ -81,7 +82,7 @@ export class ObsFilterComponent implements OnInit {
       timerange: [""],
       boundingBox: [""],
       network: [""],
-      license: ["CC-BY", Validators.required],
+      license: [this.DEFAULT_LICENSE, Validators.required],
       reliabilityCheck: [true],
     });
     this.timeChanged
@@ -96,6 +97,7 @@ export class ObsFilterComponent implements OnInit {
     let startFilter: ObsFilter = {
       product: this.DEFAULT_PRODUCT,
       reftime: this.today,
+      license: this.DEFAULT_LICENSE,
     };
     if (this.network) {
       startFilter.network = this.network;
@@ -149,7 +151,7 @@ export class ObsFilterComponent implements OnInit {
               level: "",
               timerange: "",
               boundingBox: "",
-              license: "CC-BY",
+              license: f.license || "CCBY_COMPLIANT",
               reliabilityCheck: true,
             },
             { emitEvent: false }
@@ -159,9 +161,21 @@ export class ObsFilterComponent implements OnInit {
 
           // I need all available products here, regardless of the filter
           this.allProducts = items.available_products;
+          this.allLicenses = items.all_licenses;
           this.filterForm.controls.product.setValue(f.product, {
             emitEvent: false,
           });
+
+          /*          if (items.all_licenses){
+            this.allLicenses = items.all_licenses;
+          }else{
+            this.allLicenses = LICENSES
+          }*/
+          if (this.allLicenses == undefined) {
+            this.filterForm.controls.license.setValue(this.DEFAULT_LICENSE, {
+              emitEvent: false,
+            });
+          }
 
           if (items.network) {
             this.allNetworks = items.network;
@@ -207,6 +221,10 @@ export class ObsFilterComponent implements OnInit {
               this.DEFAULT_TIMERANGE,
               { emitEvent: false }
             );
+            // set default license
+            this.filterForm.controls.license.setValue(this.DEFAULT_LICENSE, {
+              emitEvent: false,
+            });
             // emit filter update
             if (this.filterForm.invalid) {
               this.notify.showError(
@@ -256,6 +274,7 @@ export class ObsFilterComponent implements OnInit {
       product: form.product,
       reftime: form.reftime,
       time: form.time,
+      license: form.license,
     };
     if (form.network !== "") {
       filter.network = form.network;

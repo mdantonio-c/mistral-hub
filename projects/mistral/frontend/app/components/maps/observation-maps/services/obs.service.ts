@@ -34,7 +34,7 @@ export class ObsService {
         filter.reftime,
         filter.reftime,
         filter.time
-      )};product:${filter.product}`,
+      )};product:${filter.product};license:${filter.license}`,
       SummaryStats: false,
       allAvailableProducts: true,
     };
@@ -122,7 +122,7 @@ export class ObsService {
         filter.reftime,
         filter.reftime,
         filter.time
-      )};product:${filter.product}`,
+      )};product:${filter.product};license:${filter.license}`,
     };
     if (filter.reliabilityCheck) {
       params["reliabilityCheck"] = filter.reliabilityCheck;
@@ -164,7 +164,7 @@ export class ObsService {
     let params = {
       q: `${ObsService.parseReftime(from, to, filter.time)};product:${
         filter.product
-      }`,
+      };license:${filter.license}`,
       output_format: format,
     };
     if (filter.timerange && filter.timerange !== "") {

@@ -7,7 +7,15 @@ from datetime import datetime, time, timedelta
 import arkimet as arki
 import dateutil
 import dballe
+from mistral.exceptions import (
+    NetworkNotInLicenseGroup,
+    UnAuthorizedUser,
+    UnexistingLicenseGroup,
+    WrongDbConfiguration,
+)
 from mistral.services.arkimet import BeArkimet as arki_service
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
+from restapi.connectors import sqlalchemy
 from restapi.utilities.logs import log
 
 user = os.environ.get("ALCHEMY_USER")
@@ -33,11 +41,12 @@ class BeDballe:
         "LASTDAYS"
     )  # number of days after which data pass in Arkimet
 
-    # path to json file where metadata of observed data in arkimet are stored
-    ARKI_JSON_SUMMARY_PATH = "/arkimet/config/arkimet_summary.json"
-    ARKI_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/arkimet_summary_filtered.json"
-    DBALLE_JSON_SUMMARY_PATH = "/arkimet/config/dballe_summary.json"
-    DBALLE_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/dballe_summary_filtered.json"
+    # base path to json file where metadata of observed data in arkimet are stored
+    # the complete path name is  EX. /arkimet/config/dballe_summary_<license group name>.json
+    ARKI_JSON_SUMMARY_PATH = "/arkimet/config/arkimet_summary"
+    ARKI_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/arkimet_summary_filtered"
+    DBALLE_JSON_SUMMARY_PATH = "/arkimet/config/dballe_summary"
+    DBALLE_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/dballe_summary_filtered"
 
     # dballe codes for quality check attributes to consider for quality check filters
     QC_CODES = ["B33007", "B33192"]
@@ -68,6 +77,63 @@ class BeDballe:
         return refmax_dballe, refmin_dballe, refmax_arki, refmin_arki
 
     @staticmethod
+    def check_access_authorization(user, g_license_name, dataset_name, dsn_subset=True):
+        alchemy_db = sqlalchemy.get_instance()
+        dataset_subset = []
+        # 1. user is authorized to see data from that license group (is open or at least one of his authorized dataset comes from the group)
+        group_license = alchemy_db.GroupLicense.query.filter_by(
+            name=g_license_name
+        ).first()
+        if not group_license:
+            raise UnexistingLicenseGroup(
+                "The selected group of license does not exists"
+            )
+        # check if the license group is open
+        if not group_license.is_public:
+            if not user:
+                raise UnAuthorizedUser(
+                    "to access not open datasets the user has to be logged"
+                )
+            else:
+                auth_datasets = []
+                auth_datasets_dic = SqlApiDbManager.get_datasets(
+                    alchemy_db, user, category="OBS", group_license=g_license_name
+                )
+                for d in auth_datasets_dic:
+                    auth_datasets.append(d["id"])
+                if not auth_datasets:
+                    raise UnAuthorizedUser(
+                        "the user is not authorized to access datasets from the selected license group"
+                    )
+                if dsn_subset:
+                    # check if the user is authorized to all datasets in the DSN corresponding to the license group
+                    all_datasets = SqlApiDbManager.retrieve_dataset_by_dsn(
+                        alchemy_db, group_license.dballe_dsn
+                    )
+                else:
+                    all_datasets = SqlApiDbManager.retrieve_dataset_by_license_group(
+                        alchemy_db, g_license_name
+                    )
+                log.debug(
+                    "all datasets: {} by dsn={}, authorized datasets: {}",
+                    all_datasets,
+                    dsn_subset,
+                    auth_datasets,
+                )
+                if set(auth_datasets) != set(all_datasets):
+                    dataset_subset = [elem for elem in auth_datasets]
+        # 2. if a network is requested check if belongs to the selected license group
+        if dataset_name:
+            ds_group_license = SqlApiDbManager.get_license_group(
+                alchemy_db, [dataset_name]
+            )
+            if ds_group_license.name != group_license.name:
+                raise NetworkNotInLicenseGroup(
+                    "The selected network and the selected license group does not match"
+                )
+        return group_license, dataset_subset
+
+    @staticmethod
     def build_arkimet_query(
         datemin=None,
         datemax=None,
@@ -76,6 +142,7 @@ class BeDballe:
         dballe_query=None,
         all_dballe_queries=None,
         fields=None,
+        license_group=None,
     ):
         if isinstance(datemin, datetime):
             datemin_str = datemin.strftime("%Y-%m-%d %H:%M:%S")
@@ -98,7 +165,9 @@ class BeDballe:
             arkimet_query += ";"
         if dballe_query or all_dballe_queries:
             # improve the query adding stations
-            explorer = BeDballe.build_explorer("arkimet", network)
+            explorer = BeDballe.build_explorer(
+                "arkimet", license_group=license_group, network_list=network
+            )
             # create a list of station details
             station_list = []
             # populate the station list.
@@ -152,7 +221,7 @@ class BeDballe:
         return arkimet_query
 
     @staticmethod
-    def build_explorer(db_type, network_list=None):
+    def build_explorer(db_type, license_group=None, network_list=None):
         need_filtered = True
         if network_list:
             match_nets = next(
@@ -161,23 +230,44 @@ class BeDballe:
             )
             if match_nets:
                 need_filtered = False
+            if not license_group:
+                alchemy_db = sqlalchemy.get_instance()
+                license_group = SqlApiDbManager.get_license_group(
+                    alchemy_db, network_list
+                )
+        if not license_group:
+            raise UnexistingLicenseGroup
         # log.debug("filtered {}", need_filtered)
         explorer = dballe.DBExplorer()
         with explorer.update() as updater:
             if db_type == "dballe" or db_type == "mixed":
                 if need_filtered:
-                    json_summary_file = BeDballe.DBALLE_JSON_SUMMARY_PATH_FILTERED
+                    json_summary_file = "{}_{}.json".format(
+                        BeDballe.DBALLE_JSON_SUMMARY_PATH_FILTERED,
+                        license_group.name.replace(" ", "_"),
+                    )
                 else:
-                    json_summary_file = BeDballe.DBALLE_JSON_SUMMARY_PATH
+                    json_summary_file = "{}_{}.json".format(
+                        BeDballe.DBALLE_JSON_SUMMARY_PATH,
+                        license_group.name.replace(" ", "_"),
+                    )
                 # log.debug("dballe summary file{}", json_summary_file)
+                log.debug("loaded in explorer {}", json_summary_file)
                 if os.path.exists(json_summary_file):
                     with open(json_summary_file) as fd:
                         updater.add_json(fd.read())
             if db_type == "arkimet" or db_type == "mixed":
                 if need_filtered:
-                    json_summary_file = BeDballe.ARKI_JSON_SUMMARY_PATH_FILTERED
+                    json_summary_file = "{}_{}.json".format(
+                        BeDballe.ARKI_JSON_SUMMARY_PATH_FILTERED,
+                        license_group.name.replace(" ", "_"),
+                    )
                 else:
-                    json_summary_file = BeDballe.ARKI_JSON_SUMMARY_PATH
+                    json_summary_file = "{}_{}.json".format(
+                        BeDballe.ARKI_JSON_SUMMARY_PATH,
+                        license_group.name.replace(" ", "_"),
+                    )
+                log.debug("loaded in explorer {}", json_summary_file)
                 if os.path.exists(json_summary_file):
                     with open(json_summary_file) as fd:
                         updater.add_json(fd.read())
@@ -271,6 +361,7 @@ class BeDballe:
         summary_stats,
         all_products,
         db_type,
+        license_group,
         query_dic=None,
         queried_reftime=None,
     ):
@@ -291,9 +382,7 @@ class BeDballe:
             else:
                 # if there aren't requested network, data will be filtered only by dataset
                 query_networks_list = params
-        else:
-            if "network" in query:
-                query_networks_list = query["network"]
+
         log.debug(f"Loading filters: query networks list : {query_networks_list}")
 
         bbox = {}
@@ -303,7 +392,7 @@ class BeDballe:
                 bbox[key] = value
 
         # create and update the explorer object
-        explorer = BeDballe.build_explorer(db_type, query_networks_list)
+        explorer = BeDballe.build_explorer(db_type, license_group, query_networks_list)
 
         # perform the queries in database to get the list of possible filters
         fields = {}
@@ -717,6 +806,7 @@ class BeDballe:
         only_stations=False,
         query_station_data=None,
         interval=None,
+        dsn_subset=[],
     ):
         # get data from the dballe database
         log.debug("mixed dbs: get data from dballe")
@@ -759,6 +849,7 @@ class BeDballe:
                 only_stations=only_stations,
                 interval=interval,
                 db_type="dballe",
+                dsn_subset=dsn_subset,
             )
         else:
             dballe_maps_data = BeDballe.get_maps_response(
@@ -766,6 +857,7 @@ class BeDballe:
                 only_stations=only_stations,
                 interval=interval,
                 db_type="dballe",
+                dsn_subset=dsn_subset,
             )
 
         if query_for_dballe:
@@ -792,6 +884,7 @@ class BeDballe:
                         interval=interval,
                         db_type="arkimet",
                         previous_res=dballe_maps_data,
+                        dsn_subset=dsn_subset,
                     )
                 else:
                     arki_maps_data = BeDballe.get_maps_response(
@@ -800,6 +893,7 @@ class BeDballe:
                         interval=interval,
                         db_type="arkimet",
                         previous_res=dballe_maps_data,
+                        dsn_subset=dsn_subset,
                     )
 
                 if not dballe_maps_data and not arki_maps_data:
@@ -820,10 +914,20 @@ class BeDballe:
         query_station_data=None,
         download=None,
         previous_res=None,
+        dsn_subset=[],
     ):
-        DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/DBALLE")
-
-        # TODO va fatto un check licenze compatibili qui all'inizio (by dataset)? oppure a seconda della licenza lo si manda su un dballe o un altro?
+        # get the license group
+        alchemy_db = sqlalchemy.get_instance()
+        license_group = alchemy_db.GroupLicense.query.filter_by(
+            name=query_data["license"]
+        ).first()
+        # get the dsn
+        dballe_dsn = license_group.dballe_dsn
+        if not dballe_dsn:
+            log.error(
+                "no dballe dsn configured for {} license group", query_data["license"]
+            )
+            raise WrongDbConfiguration
 
         if previous_res:
             # integrate the already existent response
@@ -878,46 +982,91 @@ class BeDballe:
                 network=networks_as_list,
                 bounding_box=bbox_for_arki,
                 dballe_query=query,
+                license_group=license_group,
             )
             if query and not query_for_arkimet:
                 # means that there aren't data in arkimet for this dballe query
                 if download:
                     return None, {}, {}
                 return []
-            # check if there is a queried license
-            license = None
-            if query_data:
-                if "license" in query_data.keys():
-                    license = query_data["license"]
-            # get the correct arkimet dataset
-            datasets = arki_service.get_obs_datasets(query_for_arkimet, license)
+
+            if networks_as_list:
+                datasets = [
+                    arki_service.from_network_to_dataset(query_data["rep_memo"])
+                ]
+            elif dsn_subset:
+                datasets = dsn_subset
+            else:
+                # extract data from all the datasets of the selected dsn
+                datasets = SqlApiDbManager.retrieve_dataset_by_dsn(
+                    alchemy_db, dballe_dsn
+                )
 
             if not datasets:
                 if download:
                     return None, {}, {}
                 return []
 
-            # check datasets license,
-            # TODO se non passa il check il frontend lancerà un messaggio del tipo: 'dati con licenze diverse, prego sceglierne una'
-            # check_license = arki_service.get_unique_license(
-            #     datasets
-            # )  # the exception raised by this function is enough?
             log.debug("datasets: {}", datasets)
-
-        # managing different dbs
+        mobile_db = None
         if db_type == "arkimet":
-            memdb = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
-
-        if db_type == "arkimet":
-            db = memdb
+            db = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
         else:
-            db = DB
+            # connect to the correct dballe dsn
+            try:
+                db = dballe.DB.connect(
+                    f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}"
+                )
+            except OSError:
+                raise Exception("Unable to connect to dballe database")
+            # connect to the eventual dsn for mobile station
+            mobile_dsn = f"{dballe_dsn}_MOBILE"
+            try:
+                mobile_db = dballe.DB.connect(
+                    f"{engine}://{user}:{pw}@{host}:{port}/{mobile_dsn}"
+                )
+            except OSError:
+                log.debug("{} dsn for mobile station data does not exists", dballe_dsn)
+                mobile_db = None
 
         # if download param, return the db and the query to download the data
         if download:
-            return db, query_data, query_station_data
+            return db, query_data, query_station_data, mobile_db
 
         log.debug("start retrieving data: query data for maps {}", query)
+        if db_type == "arkimet" or not dsn_subset:
+            # extract all data in db
+            response = BeDballe.extract_data_for_maps(
+                db, query, query_station_data, response, only_stations
+            )
+            if mobile_db:
+                # add the data extracted from the corresponding dsn for mobile stations
+                response = BeDballe.extract_data_for_maps(
+                    mobile_db, query, query_station_data, response, only_stations
+                )
+        else:
+            log.debug("extraction from a dsn subset case")
+            # get all networks of the requested datasets
+            nets = []
+            for ds in dsn_subset:
+                for el in arki_service.get_observed_dataset_params(ds):
+                    nets.append(el)
+            for n in nets:
+                # extract querying network by network
+                query["rep_memo"] = n
+                response = BeDballe.extract_data_for_maps(
+                    db, query, query_station_data, response, only_stations
+                )
+                if mobile_db:
+                    # add the data extracted from the corresponding dsn for mobile stations
+                    response = BeDballe.extract_data_for_maps(
+                        mobile_db, query, query_station_data, response, only_stations
+                    )
+
+        return response
+
+    @staticmethod
+    def extract_data_for_maps(db, query, query_station_data, response, only_stations):
         with db.transaction() as tr:
             # check if query gives back a result
             count_data = tr.query_data(query).remaining
@@ -1140,20 +1289,45 @@ class BeDballe:
         return new_datetimemax
 
     @staticmethod
+    def import_data_in_temp_db(db, temp_db, query):
+        with db.transaction() as tr:
+            with temp_db.transaction() as temptr:
+                for cur in tr.query_messages(query):
+                    temptr.import_messages(cur.message)
+
+    @staticmethod
     def merge_db_for_download(
         dballe_db,
         dballe_query_data,
         arki_db=None,
         arki_query_data=None,
+        mobile_db=None,
+        dsn_subset=[],
     ):
         # merge the dbs
         query_data = BeDballe.parse_query_for_maps(dballe_query_data)
         if arki_db:
             log.debug("Filling temp db with data from dballe. query: {}", query_data)
-            with dballe_db.transaction() as tr:
-                with arki_db.transaction() as temptr:
-                    for cur in tr.query_messages(query_data):
-                        temptr.import_messages(cur.message)
+            if not dsn_subset:
+                BeDballe.import_data_in_temp_db(dballe_db, arki_db, query_data)
+                if mobile_db:
+                    BeDballe.import_data_in_temp_db(mobile_db, arki_db, query_data)
+            else:
+                # get all networks of the requested datasets
+                nets = []
+                for ds in dsn_subset:
+                    for el in arki_service.get_observed_dataset_params(ds):
+                        nets.append(el)
+                for n in nets:
+                    # extract querying network by network
+                    query_data["rep_memo"] = n
+                    BeDballe.import_data_in_temp_db(dballe_db, arki_db, query_data)
+                    if mobile_db:
+                        # add the data extracted from the corresponding dsn for mobile stations
+                        BeDballe.import_data_in_temp_db(mobile_db, arki_db, query_data)
+                    # clean the query
+                    query_data.pop("rep_memo", None)
+
         # merge the queries for data
         if arki_query_data:
             if "datetimemin" in arki_query_data:
@@ -1166,7 +1340,13 @@ class BeDballe:
 
     @staticmethod
     def download_data_from_map(
-        db, output_format, query_data, query_station_data=None, qc_filter=False
+        db,
+        output_format,
+        query_data,
+        query_station_data=None,
+        qc_filter=False,
+        mobile_db=None,
+        dsn_subset=[],
     ):
         download_query = {}
         if query_station_data:
@@ -1174,17 +1354,60 @@ class BeDballe:
         elif query_data:
             parsed_query = BeDballe.parse_query_for_maps(query_data)
         download_query = {**parsed_query}
-
+        if dsn_subset:
+            nets = []
+            for ds in dsn_subset:
+                for el in arki_service.get_observed_dataset_params(ds):
+                    nets.append(el)
         with db.transaction() as tr:
             exporter = dballe.Exporter(output_format)
             log.debug("download query: {}", download_query)
-            for row in tr.query_messages(download_query):
-                if qc_filter:
-                    msg = BeDballe.filter_messages(row.message, quality_check=True)
+            if dsn_subset:
+                for n in nets:
+                    download_query["rep_memo"] = n
+                    for row in tr.query_messages(download_query):
+                        if qc_filter:
+                            msg = BeDballe.filter_messages(
+                                row.message, quality_check=True
+                            )
+                        else:
+                            msg = row.message
+                        if msg:
+                            yield exporter.to_binary(row.message)
+            else:
+                for row in tr.query_messages(download_query):
+                    if qc_filter:
+                        msg = BeDballe.filter_messages(row.message, quality_check=True)
+                    else:
+                        msg = row.message
+                    if msg:
+                        yield exporter.to_binary(row.message)
+        if mobile_db:
+            with mobile_db.transaction() as tr:
+                exporter = dballe.Exporter(output_format)
+                log.debug("exporting from mobile dsn")
+                if dsn_subset:
+                    for n in nets:
+                        download_query["rep_memo"] = n
+                        for row in tr.query_messages(download_query):
+                            if qc_filter:
+                                msg = BeDballe.filter_messages(
+                                    row.message, quality_check=True
+                                )
+                            else:
+                                msg = row.message
+                            if msg:
+                                yield exporter.to_binary(row.message)
                 else:
-                    msg = row.message
-                if msg:
-                    yield exporter.to_binary(row.message)
+                    for row in tr.query_messages(download_query):
+                        if qc_filter:
+                            msg = BeDballe.filter_messages(
+                                row.message, quality_check=True
+                            )
+                        else:
+                            msg = row.message
+                        if msg:
+                            yield exporter.to_binary(row.message)
 
     @staticmethod
     def from_query_to_dic(q):
@@ -1220,6 +1443,8 @@ class BeDballe:
                                 ] = dateutil.parser.parse(date)
 
                     # parsing all other parameters
+                    elif p == "license":
+                        query_dic[p] = val
                     else:
                         val_list = [x.strip() for x in val.split(" or ")]
                         query_dic[p] = val_list
@@ -1648,6 +1873,9 @@ class BeDballe:
         queried_reftime=None,
         additional_runs=None,
     ):
+        # get the license group
+        alchemy_db = sqlalchemy.get_instance()
+        license_group = SqlApiDbManager.get_license_group(alchemy_db, datasets)
         # choose the db
         arkimet_query = None
         if db_type == "arkimet":
@@ -1674,17 +1902,21 @@ class BeDballe:
                 network=network,
                 all_dballe_queries=all_queries,
                 fields=fields,
+                license_group=license_group,
             )
 
         if arkimet_query:
             # fill the temp db and choose it as the db for extraction
             DB = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
         else:
-            DB = dballe.DB.connect(
-                "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
-                    engine=engine, user=user, pw=pw, host=host, port=port
+            # get the dsn
+            dballe_dsn = license_group.dballe_dsn
+            try:
+                DB = dballe.DB.connect(
+                    f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}"
                 )
-            )
+            except OSError:
+                raise Exception("Unable to connect to dballe database")
         requested_runs = []
         if queried_reftime:
             # multimodel case. get a list of all runs
