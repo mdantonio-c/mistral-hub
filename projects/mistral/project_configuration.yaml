@@ -8,7 +8,7 @@ project:
 variables:
   roles:
     normal_user: User
-    staff_user: Staff
+    staff_user: disabled
     admin_root: Administrator
     institutional: Institutional
     # default: normal_user
