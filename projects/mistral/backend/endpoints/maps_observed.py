@@ -122,6 +122,40 @@ class MapsObservations(EndpointResource):
             for key, value in parsed_query.items():
                 query[key] = value
 
+        query_station_data = {}
+        if stationDetails:
+            # check params for station
+            if not networks:
+                raise BadRequest("Parameter networks is missing")
+            if not ident:
+                if not lat or not lon:
+                    raise BadRequest("Parameters to get station details are missing")
+                else:
+                    query_station_data["lat"] = lat
+                    query_station_data["lon"] = lon
+            else:
+                query_station_data["ident"] = ident
+
+            query_station_data["rep_memo"] = networks
+
+            # get the license group
+            station_dataset = arki.from_network_to_dataset(networks)
+            l_group = SqlApiDbManager.get_license_group(alchemy_db, [station_dataset])
+            query["license"] = l_group.name
+
+            # since timerange and level are mandatory, add to the query for meteograms
+            if query:
+                if "timerange" in query:
+                    query_station_data["timerange"] = query["timerange"]
+                if "level" in query:
+                    query_station_data["level"] = query["level"]
+
+            if reliabilityCheck:
+                query_station_data["query"] = "attrs"
+            if query and "datetimemin" in query:
+                query_station_data["datetimemin"] = query["datetimemin"]
+                query_station_data["datetimemax"] = query["datetimemax"]
+
         # check consistency with license group
         if "license" not in query:
             if networks == "multim-forecast":
@@ -168,36 +202,6 @@ class MapsObservations(EndpointResource):
                     raise Conflict(
                         "the requested interval is greater than the requested timerange"
                     )
-
-        query_station_data = {}
-        if stationDetails:
-            # check params for station
-            if not networks:
-                raise BadRequest("Parameter networks is missing")
-            if not ident:
-                if not lat or not lon:
-                    raise BadRequest("Parameters to get station details are missing")
-                else:
-                    query_station_data["lat"] = lat
-                    query_station_data["lon"] = lon
-            else:
-                query_station_data["ident"] = ident
-
-            query_station_data["rep_memo"] = networks
-
-            # since timerange and level are mandatory, add to the query for meteograms
-            if query:
-                if "timerange" in query:
-                    query_station_data["timerange"] = query["timerange"]
-                if "level" in query:
-                    query_station_data["level"] = query["level"]
-
-            if reliabilityCheck:
-                query_station_data["query"] = "attrs"
-            if query and "datetimemin" in query:
-                query_station_data["datetimemin"] = query["datetimemin"]
-                query_station_data["datetimemax"] = query["datetimemax"]
-
         try:
             if db_type == "mixed":
                 raw_res = dballe.get_maps_response_for_mixed(
@@ -291,6 +295,41 @@ class MapsObservations(EndpointResource):
         for key, value in parsed_query.items():
             query_data[key] = value
 
+        query_station_data = {}
+        if singleStation:
+            # check params for station
+            if not networks:
+                raise BadRequest("Parameter networks is missing")
+
+            if not ident:
+                if not lat or not lon:
+                    raise BadRequest("Parameters to get station details are missing")
+                else:
+                    query_station_data["lat"] = lat
+                    query_station_data["lon"] = lon
+            else:
+                query_station_data["ident"] = ident
+
+            query_station_data["rep_memo"] = networks
+
+            # get the license group
+            station_dataset = arki.from_network_to_dataset(networks)
+            l_group = SqlApiDbManager.get_license_group(alchemy_db, [station_dataset])
+            query_data["license"] = l_group.name
+
+            # since timerange and level are mandatory, add to the query for meteograms
+            if query_data:
+                if "timerange" in query_data:
+                    query_station_data["timerange"] = query_data["timerange"]
+                if "level" in query_data:
+                    query_station_data["level"] = query_data["level"]
+
+            if reliabilityCheck:
+                query_station_data["query"] = "attrs"
+            if query_data and "datetimemin" in query_data:
+                query_station_data["datetimemin"] = query_data["datetimemin"]
+                query_station_data["datetimemax"] = query_data["datetimemax"]
+
         # check consistency with license group
         if "license" not in query_data:
             raise BadRequest("License group parameter is mandatory")
@@ -323,35 +362,6 @@ class MapsObservations(EndpointResource):
                 db_type = "mixed"
 
         log.debug("type of database: {}", db_type)
-
-        query_station_data = {}
-        if singleStation:
-            # check params for station
-            if not networks:
-                raise BadRequest("Parameter networks is missing")
-            if not ident:
-                if not lat or not lon:
-                    raise BadRequest("Parameters to get station details are missing")
-                else:
-                    query_station_data["lat"] = lat
-                    query_station_data["lon"] = lon
-            else:
-                query_station_data["ident"] = ident
-
-            query_station_data["rep_memo"] = networks
-
-            # since timerange and level are mandatory, add to the query for meteograms
-            if query_data:
-                if "timerange" in query_data:
-                    query_station_data["timerange"] = query_data["timerange"]
-                if "level" in query_data:
-                    query_station_data["level"] = query_data["level"]
-
-            if reliabilityCheck:
-                query_station_data["query"] = "attrs"
-            if query_data and "datetimemin" in query_data:
-                query_station_data["datetimemin"] = query_data["datetimemin"]
-                query_station_data["datetimemax"] = query_data["datetimemax"]
 
         try:
             if db_type == "mixed":

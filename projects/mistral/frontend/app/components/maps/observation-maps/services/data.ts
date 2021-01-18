@@ -97,7 +97,7 @@ export const TIME_RANGES: CodeDescPair[] = [
 ];
 
 export const LICENSES: CodeDescPair[] = [
-  { code: "CC-BY", desc: "CC-BY compliant" },
+  { code: "CCBY_COMPLIANT", desc: "CC-BY compliant" },
   // {code: "ODL", desc: "ODL"}
 ];
 
@@ -119,6 +119,7 @@ export const FIELDS_SUMMARY: FieldsSummary = {
     level: LEVELS,
     timerange: TIME_RANGES,
     network: NETWORKS,
+    all_licenses: LICENSES,
     summarystats: {
       c: 70, // fake value
       s: 0,

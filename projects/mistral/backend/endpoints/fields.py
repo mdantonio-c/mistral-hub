@@ -244,7 +244,7 @@ class Fields(EndpointResource):
                     for lg in all_group_licenses:
                         item = {}
                         item["code"] = lg
-                        item["desc"] = lg
+                        item["desc"] = lg.replace("_", " ")
                         all_group_licenses_res.append(item)
                     resulting_fields["all_licenses"] = all_group_licenses_res
 
