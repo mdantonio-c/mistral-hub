@@ -70,7 +70,7 @@ class MapEndpoint(EndpointResource):
                 MEDIA_ROOT,
                 platform,
                 env,
-                f"PROB-{run}-2.2.web",
+                f"PROB-{run}-iff.web",
             )
         else:
             self.base_path = os.path.join(
