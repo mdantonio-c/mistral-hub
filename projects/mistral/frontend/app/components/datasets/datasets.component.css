@@ -27,8 +27,14 @@
 }
 
 .scrollDiv {
-  max-height: calc(100vh - 172px);
+  max-height: calc(100vh - 238px);
   overflow: auto;
+}
+
+@media (min-width: 992px) {
+  .scrollDiv {
+    max-height: calc(100vh - 190px);
+  }
 }
 
 .ds-item {

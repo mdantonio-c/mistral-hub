@@ -310,7 +310,7 @@ export const VAR_TABLE: Bcode[] = [
     short: "Snow",
     unit: "M",
     offset: 0.0,
-    scale: 0.1,
+    scale: 100,
     userunit: "cm",
   },
   {

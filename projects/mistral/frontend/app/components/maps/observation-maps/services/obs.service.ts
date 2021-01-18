@@ -267,34 +267,23 @@ export class ObsService {
    * Show the data applying offset and scale according to its type.
    * @param val {Number} The value to show
    * @param type {String} The meaning of the value (e.g. temperature)
+   * @param precision {Number}
    */
   static showData(val: number, type: string, precision = 5) {
-    let scale = 1,
-      offset = 0;
-    let bCode = VAR_TABLE.find((x) => x.bcode === type);
-    if (!bCode) {
-      console.warn(
-        `Bcode not available for product ${type}. No offset or scale applied!`
-      );
-    } else {
-      scale = bCode.scale;
-      offset = bCode.offset;
-    }
+    const bCode = VAR_TABLE.find((x) => x.bcode === type);
+    const scale = bCode && bCode.scale ? bCode.scale : 1;
+    const offset = bCode && bCode.offset ? bCode.offset : 0;
     return (val * scale + offset).toPrecision(precision).replace(/\.?0+$/, "");
   }
 
   /**
-   *
+   * Return the 'user' unit if available in the 'bcode' table which is conversions and
+   * custom units of measurement are allowed.
    * @param type {String} The meaning of the value (e.g. temperature)
+   * @param unit {String} the unit of measurement of the product if given. Null otherwise.
    */
-  static showUserUnit(type: string): string | null {
-    let bcode = VAR_TABLE.find((x) => x.bcode === type);
-    if (!bcode) {
-      console.warn(
-        `Bcode not available for product ${type}. No userunit available!`
-      );
-      return null;
-    }
-    return bcode.userunit;
+  static showUserUnit(type: string, unit: string = null): string | null {
+    const bcode = VAR_TABLE.find((x) => x.bcode === type);
+    return bcode && bcode.userunit ? bcode.userunit : unit;
   }
 }
