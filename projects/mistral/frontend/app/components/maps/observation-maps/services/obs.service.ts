@@ -35,7 +35,7 @@ export class ObsService {
       `${filter.reftime.getDate()}`.padStart(2, "0"),
     ].join("-");
     let params = {
-      q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
+      q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product};license:${filter.license}`,
       SummaryStats: false,
       allAvailableProducts: true,
     };
@@ -129,7 +129,7 @@ export class ObsService {
       `${filter.reftime.getDate()}`.padStart(2, "0"),
     ].join("-");
     let params = {
-      q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
+      q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product};license:${filter.license}`,
     };
     if (filter.reliabilityCheck) {
       params["reliabilityCheck"] = filter.reliabilityCheck;
@@ -178,7 +178,7 @@ export class ObsService {
       `${to.getDate()}`.padStart(2, "0"),
     ].join("-");
     let params = {
-      q: `reftime: >=${fDate} 00:00,<=${tDate} 23:59;product:${filter.product}`,
+      q: `reftime: >=${fDate} 00:00,<=${tDate} 23:59;product:${filter.product};license:${filter.license}`,
       output_format: format,
     };
     if (filter.timerange && filter.timerange !== "") {

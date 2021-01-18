@@ -360,6 +360,12 @@ class Schedules(EndpointResource):
                     f"Dataset '{ds_name}' not found: "
                     "check for dataset name of for your authorizations "
                 )
+        # check the licence group
+        license_group = SqlApiDbManager.get_license_group(db, dataset_names)
+        if not license_group:
+            raise BadRequest(
+                "Invalid set of datasets : datasets belongs to different license groups"
+            )
         # incoming filters: <dict> in form of filter_name: list_of_values
         # e.g. 'level': [{...}, {...}] or 'level: {...}'
         # clean up filters from unknown values

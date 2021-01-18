@@ -93,6 +93,7 @@ class GroupLicense(db.Model):
     descr = db.Column(db.String, nullable=False)
     license = db.relationship("License", backref="group_license", lazy="dynamic")
     is_public = db.Column(db.Boolean)
+    dballe_dsn = db.Column(db.String(64))
 
 
 class License(db.Model):
