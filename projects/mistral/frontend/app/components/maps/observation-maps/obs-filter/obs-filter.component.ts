@@ -216,8 +216,6 @@ export class ObsFilterComponent implements OnInit {
               `No data available. Try selecting a different${extraMsg}reference date.`
             );
             this.isUpdatable = false;
-          } else {
-            this.isUpdatable = true;
           }
         },
         (error) => {
@@ -231,6 +229,7 @@ export class ObsFilterComponent implements OnInit {
 
   private onChanges(): void {
     this.filterForm.valueChanges.subscribe((val) => {
+      this.isUpdatable = true;
       // console.log('filter changed', val);
       // console.log('is form invalid?', this.filterForm.invalid);
       this.loadFilter(val);
