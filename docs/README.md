@@ -1,20 +1,20 @@
-﻿**MISTRAL**
+﻿# **MISTRAL**
 
-**Documentation**
+## **Documentation**
 
 
 
-Author: CINECA
+**Author**: CINECA
 
-Date: 15 January 2021
+**Date**: 19 January 2021
 
-Status: draft
+**Status**: draft
 
 
 
 # **Web Frontend features**
 <TODO Bea e Cinzia>
-##
+
 ## **Data**
 
 ### **Data Extraction**
@@ -26,18 +26,18 @@ In the first step, the user must select one or more datasets (multiple selection
 In the second step, the user can filter respect the provided parameters that are specific for the dataset category:
 
 
-|Observation|Reftime, Level, Product, Timerange|
-| :- | :- |
+|**Observation**|**Reftime, Level, Product, Timerange**|
+| -- | :- |
 |Forecast|Reftime, Area, Level, Origin, Proddef, Product, Run, Timerange|
 |Radar|Reftime, Area, Level, Origin, Proddef, Product, Run, Timerange|
 
 In the third step, the user can apply a set of post-processing that is specific for the dataset category:
 
 
-|Observation|Derived Variables, Time Post Processing, Quality Control Filter, Format Conversion|
-| :- | :- |
-|Forecast|Derived Variables, Time Post Processing, Space Post Process|
-|Radar|Derived Variables, Time Post Processing, Space Post Process|
+| **Observation** | **Derived Variables, Time Post Processing, Quality Control Filter, Format Conversion** |
+| :-------------- | :----------------------------------------------------------- |
+| Forecast        | Derived Variables, Time Post Processing, Space Post Process  |
+| Radar           | Derived Variables, Time Post Processing, Space Post Process  |
 
 In the fourth and last step, the user must enter a name for the current request and submit the request to the system.
 
@@ -80,7 +80,7 @@ By clicking on the Schedules tab, the page will show the list of the scheduled q
 
 ## **Admin guide**
 <TODO Bea>
-###
+
 ### **User roles**
 The roles implemented are:
 
@@ -141,9 +141,12 @@ By default, N=0 that means the cleaning is not active.
 ## **Data portal**
 <TODO Giuse e Mattia>
 
-Sarebbe meteo-hub
+<Sarebbe meteo-hub>
+
 ### **Meteo Hub v0.4.0**
 <TODO Giuse e Mattia>
+
+
 
 ## **Open Data Catalogue**
 ### **Installing CKAN with docker compose**
@@ -153,36 +156,41 @@ The stack is based on Docker containers deployed with docker-compose, as describ
 
 The following tools are required:
 
-\1.     **Docker Engine**: the containerization runtime
+- **Docker Engine**: the containerization runtime
 
-\2.     **Docker Compose**: multi-container orchestration tool
+- **Docker Compose**: multi-container orchestration tool
 
 The following container have been created:
 
-|**Service Name**|**image**|**Network**|**Volumes**|**notes**|
-| :- | :- | :- | :- | :- |
-|webserver|nginx:alpine|<p>80:8080</p><p>443:8443</p>|webserver\_config:/etc/nginx|<p>Reverse proxy, remaps:</p><p>/catalog -> ckan:5000</p><p>/datapusher -> datapusher:8800</p>|
-|ckan|Built from source. v2.8.2|Internally on :5000|<p>ckan\_config: /etc/ckan</p><p>ckan\_home:/usr/lib/ckan</p><p>ckan\_storage:/var/lib/ckan</p>|[https](https://github.com/ckan/ckan/tree/ckan-2.8.2)[://](https://github.com/ckan/ckan/tree/ckan-2.8.2)[github](https://github.com/ckan/ckan/tree/ckan-2.8.2)[.](https://github.com/ckan/ckan/tree/ckan-2.8.2)[com](https://github.com/ckan/ckan/tree/ckan-2.8.2)[/](https://github.com/ckan/ckan/tree/ckan-2.8.2)[ckan](https://github.com/ckan/ckan/tree/ckan-2.8.2)[/](https://github.com/ckan/ckan/tree/ckan-2.8.2)[ckan](https://github.com/ckan/ckan/tree/ckan-2.8.2)[/](https://github.com/ckan/ckan/tree/ckan-2.8.2)[tree](https://github.com/ckan/ckan/tree/ckan-2.8.2)[/](https://github.com/ckan/ckan/tree/ckan-2.8.2)[ckan](https://github.com/ckan/ckan/tree/ckan-2.8.2)[-2.8.2](https://github.com/ckan/ckan/tree/ckan-2.8.2)|
-|db|Built from source, starting from *mdillon/postgis*|Internally on :5432|pg\_data:/var/lib/postgresql/data|[https](https://hub.docker.com/r/mdillon/postgis)[://](https://hub.docker.com/r/mdillon/postgis)[hub](https://hub.docker.com/r/mdillon/postgis)[.](https://hub.docker.com/r/mdillon/postgis)[docker](https://hub.docker.com/r/mdillon/postgis)[.](https://hub.docker.com/r/mdillon/postgis)[com](https://hub.docker.com/r/mdillon/postgis)[/](https://hub.docker.com/r/mdillon/postgis)[r](https://hub.docker.com/r/mdillon/postgis)[/](https://hub.docker.com/r/mdillon/postgis)[mdillon](https://hub.docker.com/r/mdillon/postgis)[/](https://hub.docker.com/r/mdillon/postgis)[postgis](https://hub.docker.com/r/mdillon/postgis)|
-|<p>solr</p><p> </p><p> </p>|Built from source, starting from *solr:6.6.2*|Internally on :8983| |[https](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[://](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[hub](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[.](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[docker](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[.](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[com](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[layers](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[solr](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[library](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[solr](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/6.6.2](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)|
-|redis|redis:latest|internally on :6379| | |
+| **Service Name**            | **image**                                          | **Network**           | **Volumes**                                                  | **notes**                                                    |
+| :-------------------------- | :------------------------------------------------- | :-------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+| webserver                   | nginx:alpine                                       | 80:8080<br />443:8443 | webserver\_config:/etc/nginx                                 | Reverse proxy, remaps:<br />/catalog -> ckan:5000<br />/datapusher -> datapusher:8800 |
+| ckan                        | Built from source. v2.8.2                          | Internally on :5000   | ckan\_config: /etc/ckan<br />ckan\_home:/usr/lib/ckan<br />ckan\_storage:/var/lib/ckan | [https](https://github.com/ckan/ckan/tree/ckan-2.8.2)[://](https://github.com/ckan/ckan/tree/ckan-2.8.2)[github](https://github.com/ckan/ckan/tree/ckan-2.8.2)[.](https://github.com/ckan/ckan/tree/ckan-2.8.2)[com](https://github.com/ckan/ckan/tree/ckan-2.8.2)[/](https://github.com/ckan/ckan/tree/ckan-2.8.2)[ckan](https://github.com/ckan/ckan/tree/ckan-2.8.2)[/](https://github.com/ckan/ckan/tree/ckan-2.8.2)[ckan](https://github.com/ckan/ckan/tree/ckan-2.8.2)[/](https://github.com/ckan/ckan/tree/ckan-2.8.2)[tree](https://github.com/ckan/ckan/tree/ckan-2.8.2)[/](https://github.com/ckan/ckan/tree/ckan-2.8.2)[ckan](https://github.com/ckan/ckan/tree/ckan-2.8.2)[-2.8.2](https://github.com/ckan/ckan/tree/ckan-2.8.2) |
+| db                          | Built from source, starting from *mdillon/postgis* | Internally on :5432   | pg\_data:/var/lib/postgresql/data                            | [https](https://hub.docker.com/r/mdillon/postgis)[://](https://hub.docker.com/r/mdillon/postgis)[hub](https://hub.docker.com/r/mdillon/postgis)[.](https://hub.docker.com/r/mdillon/postgis)[docker](https://hub.docker.com/r/mdillon/postgis)[.](https://hub.docker.com/r/mdillon/postgis)[com](https://hub.docker.com/r/mdillon/postgis)[/](https://hub.docker.com/r/mdillon/postgis)[r](https://hub.docker.com/r/mdillon/postgis)[/](https://hub.docker.com/r/mdillon/postgis)[mdillon](https://hub.docker.com/r/mdillon/postgis)[/](https://hub.docker.com/r/mdillon/postgis)[postgis](https://hub.docker.com/r/mdillon/postgis) |
+| <p>solr</p><p> </p><p> </p> | Built from source, starting from *solr:6.6.2*      | Internally on :8983   |                                                              | [https](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[://](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[hub](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[.](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[docker](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[.](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[com](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[layers](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[solr](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[library](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[solr](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore)[/6.6.2](https://hub.docker.com/layers/solr/library/solr/6.6.2/images/sha256-02c52d10a1e0c505b203051c416b0fa16d3f0aed36ed5c71b83b4b492802eae5?context=explore) |
+| redis                       | redis:latest                                       | internally on :6379   |                                                              |                                                              |
 
 
+
+```
 **CONTAINER ID    	IMAGE                   	COMMAND              	   PORTS            NAMES**
 
 9c5a904ea8c8    	docker\_ckan             	"/ckan-entrypoint.sh…"   5000/tcp           ckan
 
-b30ff54f9106    	nginx:alpine            	"nginx -g 'daemon of…"   80/tcp, 0.0.0.0:80->8080/tcp, 0.0.0.0:443->8443/tcp                                                               webserver
+b30ff54f9106    	nginx:alpine            	"nginx -g 'daemon of…"   80/tcp, 0.0.0.0:80->8080/tcp, 0.0.0.0:443->8443/tcp                                                                      webserver
 
 c390866ab566    	redis:latest            	"docker-entrypoint.s…"   6379/tcp          redis
 
-27e4074af172    	clementmouchet/datapusher   "python datapusher/m…"          datapusher
+27e4074af172    	clementmouchet/datapusher   "python datapusher/m…"                     datapusher
 
 11eee4e9e787    	docker\_solr             	"docker-entrypoint.s…"   8983/tcp          solr
 
 2d560a0a08ae    	docker\_db               	"docker-entrypoint.s…"   0.0.0.0:5432
 
-->5432/tcp          	                                                                                                  db
+->5432/tcp          	                                                                                                                                                                                db
+```
+
+
 
 ### **Ckan extensions**
 A CKAN extension is a Python package that modifies or extends CKAN. Each extension contains one or more plugins that must be added to your CKAN config file to activate the extension’s features.
@@ -233,7 +241,7 @@ The following **environment variables** are set by docker-compose and overrides 
 The full list of effective environment variable is available at[ ](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[https](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[://](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[docs](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[ckan](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[org](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[en](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[/2.8/](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[maintaining](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[configuration](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[html](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[#](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[environment](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[variables](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)
 
 The CKAN configuration file is located at **“/etc/ckan/production.ini**” in the CKAN container. The changes applied to the config setting are:
-**
+
 ` `## Site Settings
 
 ckan.site\_url = https://mistralportal.it
@@ -309,7 +317,7 @@ ckan.locales\_offered = en it
 
 ## **NiFi-based ingestion component**
 <TODO Dedagroup>
-###
+
 ### **DPC observed data flow**
 ### **Arpae observed data flow**
 ### **DPC radar data flow**
