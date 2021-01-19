@@ -200,7 +200,7 @@ def run_statistic_elaboration(params, input, output, fileformat):
                 params.get("input_timerange"), params.get("output_timerange")
             )
         )
-        post_proc_cmd.append(f"--comp-step='{step}'")
+        post_proc_cmd.append(f"--comp-step={step}")
         if not fileformat.startswith("grib"):
             post_proc_cmd.append("--input-format=BUFR")
             post_proc_cmd.append("--output-format=BUFR")
