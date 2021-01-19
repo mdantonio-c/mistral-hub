@@ -125,7 +125,7 @@ class Fields(EndpointResource):
             dataset_name = None
             if query_dic and "network" in query_dic:
                 # map case, check for authorization
-                dataset_name = arki.from_network_to_dataset(query_dic["network"])
+                dataset_name = arki.from_network_to_dataset(query_dic["network"][0])
                 if not dataset_name:
                     raise NotFound("The requested network does not exists")
                 check_auth = SqlApiDbManager.check_dataset_authorization(
