@@ -12,16 +12,19 @@ Status: draft
 
 
 
-
 # **Web Frontend features**
 <TODO Bea e Cinzia>
-1. ## **Data**
-   1. ### **Data Extraction**
+##
+## **Data**
+
+### **Data Extraction**
+
 The user can obtain data from one or more datasets of the platform through the Web Frontend feature of the Data Extraction.
 
 In the first step, the user must select one or more datasets (multiple selection is allowed only with datasets of the same category: observation, forecast, radar).
 
 In the second step, the user can filter respect the provided parameters that are specific for the dataset category:
+
 
 |Observation|Reftime, Level, Product, Timerange|
 | :- | :- |
@@ -39,7 +42,8 @@ In the third step, the user can apply a set of post-processing that is specific 
 In the fourth and last step, the user must enter a name for the current request and submit the request to the system.
 
 Before submitting the request, the user can schedule the request by clicking on the "Schedule" button and can redirect the result of the request to an AMQP queue through the switch “Data Pushing”.
-1. ### **My Requests**
+
+### **My Requests**
 After submitting a request, the user is led to the "My Requests" page.
 
 There is a list of all requests submitted by the user. The first request on the list is the one just submitted: the status is PENDING because the execution of the request is still in progress.
@@ -63,18 +67,21 @@ Moreover the user can delete a request by clicking the trash bin icon.
 Also on this page, the situation of the user disk quota occupation is shown on the left.
 
 By clicking on the Schedules tab, the page will show the list of the scheduled query of the user.
-1. ### **Scheduled queries**
-1. ### **Data pushing**
+### **Scheduled queries**
+<TODO>
+### **Data pushing**
+<TODO>
 
-1. ## **Visualisation**
-   1. ### **Observation map**
-   1. ### **Forecast map**
-   1. ### **Italy Flash Flood map**
-   1. ### **Multi-layer map**
+## **Visualisation**
+### **Observation map**
+### **Forecast map**
+### **Italy Flash Flood map**
+### **Multi-layer map**
 
-1. ## **Admin guide**
-<TODO  Bea>
-1. ### **User roles**
+## **Admin guide**
+<TODO Bea>
+###
+### **User roles**
 The roles implemented are:
 
 - *Administrators* 
@@ -88,9 +95,9 @@ In the following table are outlined the functionalities for each profile:
 <link alla tabella>
 
 The role *User* is the default one. It corresponds to the profile “Auto-registrato”. The Demo profile has the same permissions as the “Auto-registrato” profile and therefore it corresponds to the role *User*.
-1. ### **Create a new user**
+### **Create a new user**
 
-1. ### **How To**
+### **How To**
 - **How to enable a user to “Data Pushing”**
 
 To enable a user for "Data Pushing", the administrator must connect to the "Rabbit mq" console and create a dedicated AMQP queue for the user.
@@ -104,42 +111,42 @@ The abilitation is managed in two ways:
 - enabling access to all open datasets
 - enabling additional datasets one by one
 
-1. ## **User guide**
+## **User guide**
 <TODO Marghe>
-1. ### **User profile**
+
+### **User profile**
 By clicking on the user profile icon, the Frontend shows to the user the list of information that make up the user's profile.
 
 By clicking on the “Edit your profile” icon, users can modify some of the configurations of their profile: Name and Surname and “Requests expiration”. The “Requests expiration” parameter is described in the following paragraph.
 
 Users can change their password by clicking on the button “CHANGE” near Last password change.
-1. ### **Requests expiration**
+### **Requests expiration**
 The “Requests expiration” parameter allows users to activate the automatic cleaning of their old submitted requests by setting the number N of days of expiration: requests with “End date” older than N days are deleted.
 
 By default, N=0 that means the cleaning is not active.
-1. ### **Disk quota**
-1. ### **How To**
+### **Disk quota**
+### **How To**
 
 
 
 # **API**
 
-
+<TODO Mattia>
 
 
 
 
 
 # **Installation guide**
-1. ## **Data portal**
+## **Data portal**
 <TODO Giuse e Mattia>
 
 Sarebbe meteo-hub
-1. ### **Meteo Hub v0.4.0**
+### **Meteo Hub v0.4.0**
 <TODO Giuse e Mattia>
 
-
-1. ## **Open Data Catalogue**
-   1. ### **Installing CKAN with docker compose**
+## **Open Data Catalogue**
+### **Installing CKAN with docker compose**
 The stack is based on Docker containers deployed with docker-compose, as described in the following documentation:
 
 [https](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[://](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[docs](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[ckan](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[org](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[en](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[/2.8/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[maintaining](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[installing](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[install](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[from](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[docker](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[compose](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[html](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)
@@ -177,7 +184,7 @@ c390866ab566    	redis:latest            	"docker-entrypoint.s…"   6379/tcp   
 
 ->5432/tcp          	                                                                                                  db
 
-1. ### **Ckan extensions**
+### **Ckan extensions**
 A CKAN extension is a Python package that modifies or extends CKAN. Each extension contains one or more plugins that must be added to your CKAN config file to activate the extension’s features.
 
 The **ckanext-mistral** extension has been created to customize the CKAN template.
@@ -197,7 +204,7 @@ The following extensions have been installed:
 |Ckanext-harvest|https://github.com/ckan/ckanext-harvest|2019-07-01|harvest ckan\_harvester|
 |Ckanext-multilang|https://github.com/geosolutions-it/ckanext-multilang|2019-02-01|multilang|
 
-1. ### **Web server**
+### **Web server**
 The webserver, running on the nginx:latest image, works as a reverse proxy for the environment.
 
 Two **upstreams** are configured:
@@ -209,7 +216,7 @@ Proxy\_pass under location **/catalog** and **/catalog/**
 **2.** Upstream **datapusher** toward datapusher:8800
 
 Proxy\_pass under location **/datapusher** and **/datapusher/**
-1. ### **Ckan configuration**
+### **Ckan configuration**
 The following **environment variables** are set by docker-compose and overrides the configuration file’s settings. The variable propagation is described at[ ](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[https](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[://](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[docs](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[ckan](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[org](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[en](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[/2.8/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[maintaining](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[installing](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[install](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[from](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[docker](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[compose](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[html](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[#](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[environment](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[variables](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)
 
 |**Variable name**|**Config equivalent**|**Set value**|
@@ -290,7 +297,7 @@ ckan.locale\_default = it
 ckan.locale\_order = it en
 
 ckan.locales\_offered = en it
-1. ### **Volumes**
+### **Volumes**
 
 |**Name**|**Mount point(s)**|
 | :- | :- |
@@ -300,10 +307,11 @@ ckan.locales\_offered = en it
 |ckan\_storage|ckan -> ckan\_storage:/var/lib/ckan|
 |pg\_data|db -> pg\_data:/var/lib/postgresql/data|
 
-1. ## **NiFi-based ingestion component**
+## **NiFi-based ingestion component**
 <TODO Dedagroup>
-1. ### **DPC observed data flow**
-1. ### **Arpae observed data flow**
-1. ### **DPC radar data flow**
-1. ### **Arpap Multimodel data flow**
+###
+### **DPC observed data flow**
+### **Arpae observed data flow**
+### **DPC radar data flow**
+### **Arpap Multimodel data flow**
 
