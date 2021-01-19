@@ -45,7 +45,7 @@ for dsn in dsn_list:
         log.debug("{} dsn for mobile station data does not exists", dsn)
         mobile_db = None
 
-    log.info("Extracting dballe summary...")
+    log.debug("Extracting dballe summary...")
 
     total_count = 0
     explorer = dballe.DBExplorer()
