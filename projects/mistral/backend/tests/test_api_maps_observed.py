@@ -121,7 +121,7 @@ class TestApp(BaseTests):
         for d in obs_dataset:
             endpoint = (
                 API_URI
-                + "/fields?q=reftime:>={date_from},<={date_to}&datasets={dataset};license:CCBY_COMPLIANT&SummaryStats=false".format(
+                + "/fields?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&datasets={dataset}&SummaryStats=false".format(
                     date_from=date_from, date_to=date_to, dataset=d
                 )
             )

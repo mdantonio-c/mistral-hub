@@ -83,7 +83,7 @@ class Fields(EndpointResource):
                 )
                 if not found:
                     raise NotFound(
-                        f"Dataset '{ds_name}' not found: check for dataset name of for your authorizations"
+                        f"Dataset '{ds_name}' not found: check for dataset name or for your authorizations"
                     )
 
             if len(datasets) > 1 and "multim-forecast" in datasets:
