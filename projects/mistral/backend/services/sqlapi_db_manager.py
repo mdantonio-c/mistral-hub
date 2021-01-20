@@ -159,6 +159,7 @@ class SqlApiDbManager:
         db.session.delete(request)
         db.session.commit()
 
+    @staticmethod
     def delete_schedule(db, schedule_id):
         schedule = db.Schedule.query.get(schedule_id)
         name = schedule.name
