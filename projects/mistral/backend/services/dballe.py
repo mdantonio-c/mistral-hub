@@ -918,8 +918,12 @@ class BeDballe:
     ):
         # get the license group
         alchemy_db = sqlalchemy.get_instance()
+        if query_data:
+            license_name = query_data["license"]
+        else:
+            license_name = query_station_data["license"]
         license_group = alchemy_db.GroupLicense.query.filter_by(
-            name=query_data["license"]
+            name=license_name
         ).first()
         # get the dsn
         dballe_dsn = license_group.dballe_dsn

@@ -137,6 +137,7 @@ class MapsObservations(EndpointResource):
                 query_station_data["ident"] = ident
 
             query_station_data["rep_memo"] = networks
+            query_station_data["license"] = query["license"]
 
             # get the license group
             station_dataset = arki.from_network_to_dataset(networks)
