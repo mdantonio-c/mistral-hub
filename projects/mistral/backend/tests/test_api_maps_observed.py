@@ -257,8 +257,7 @@ class TestApp(BaseTests):
         endpoint = f"{API_URI}/observations?q=reftime:>={dfrom},<={dto};license:CCBY_COMPLIANT&networks={random_net}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
-        assert r.status_code == 200
-        assert not response_data["data"]
+        assert r.status_code == 404
 
         # ### only bounding box as argument ####
         # Italy bounding-box
@@ -375,8 +374,8 @@ class TestApp(BaseTests):
             lon=station_lon_example,
         )
         r = client.get(endpoint, headers=headers)
-        response_data = self.get_content(r)
-        assert not response_data["data"]
+        # check response code
+        assert r.status_code == 404
         # check missing params
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&stationDetails=true".format(
             date_from=q_params["date_from"],
