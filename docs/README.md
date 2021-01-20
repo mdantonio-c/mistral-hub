@@ -21,19 +21,17 @@
 
 
 # **Web Frontend features**
-*TODO Bea e Cinzia*
-
 ## **Data**
 
 ### **Download open data**
 
 For all users, even those not logged in, it is possible to download packages of open data. The packages are produced on a daily basis. The user must click on the icon marked by the red arrow in the following image:
 
-![opendata](C:\Users\c.caroli\Desktop\meteo-hub-0.4.0-docs\docs\opendata.png)
+![opendata](opendata.png)
 
 A dialog window will open with the list of downloadable packages:
 
-![opendata2](C:\Users\c.caroli\Desktop\meteo-hub-0.4.0-docs\docs\opendata2.png)
+![opendata2](opendata2.png)
 
 
 
@@ -76,7 +74,7 @@ Before submitting the request, the user can schedule the request by clicking on 
 In each step of the data extraction, it is possible to interrupt the creation of the current request by clicking on the Cancel button.
 The user is brought back to the dataset selection page.
 
-![cancel](C:\Users\c.caroli\Desktop\meteo-hub-0.4.0-docs\docs\cancel.png)
+![cancel](cancel.png)
 
 
 
@@ -84,7 +82,7 @@ The user is brought back to the dataset selection page.
 
 After submitting a request, the user is led to the "My Requests" page:
 
-![myrequests](C:\Users\c.caroli\Desktop\meteo-hub-0.4.0-docs\docs\myrequests.png)
+![myrequests](myrequests.png)
 
 
 
@@ -110,12 +108,12 @@ The situation of the user disk quota occupation is shown on the widget "Storage"
 
 By clicking on the Schedules tab, the page will show the list of the scheduled requests of the user.
 ### **Scheduled queries**
-*TODO* Bea
+*TODO Bea*
 
 ### **Data pushing**
 First of all, the account must be enabled to the "Data pushing" feature. The user has to contact the Administrator to be enabled. The Administrator will enable the user to "Data pushing" and will create an AMQP queue for the user.
 
-Then the user can re-direct ...? **Cosa viene ridirezionato la notifica o l'output?** TODO Bea
+*TODO Bea*
 
 
 
@@ -125,16 +123,53 @@ Then the user can re-direct ...? **Cosa viene ridirezionato la notifica o l'outp
 
 ## **Visualisation**
 
-Four distinct visualisations of the data are available in the Frontend under the menu "Maps".
-
-They are described in the following paragraphs.
+The MISTRAL web Frontend provides some tools for the visualization of observed and forecast data. They are available under the menu "Maps" and they are described in the following paragraphs.
 
 ### **Forecasts map**
+
+Forecasts data from COSMO-5M and COSMO-2I models are displayed in this web visualisation tool. The meteorological fields are represented with raster map images in PNG format. These images are not geo-referenced and is not possible to change dynamically zoom during the visualization.
+
+![forecast](forecast.png)
+
+A sort of temporal animation was implemented showing the images in sequence (carousel).
+
+It is possible to visualise only the data of the last two runs of the models: 00 and 12.
+
+
+
 ### **Italy Flash Flood map**
+
+The same web visualisation tool, with raster map images in PNG format, has been used to display the Italy Flash Flood data:
+
+![iff](iff.png)
+
+Only visualisation of the last run data is available.
 
 ### **Observations map**
 
+Observed data from ground stations are displayed on a customized web viewer developed for Mistral project: the measurements of the weather variables are visualized as geo-referenced markers over an Open Street Map layer. 
+
+![observations](observations.png)
+
+
+
+The user can filter by variable, date, Level, Time range, Network, Group of Licenses and Quality Control Filter.
+
+The user can download the data filtered according to the selections set in the filter parameters. 
+
+In addition, the viewer provides the meteograms of the data for each variable both at the single station level and at all stations selected at that time by the filter. 
+
+The viewer also provides station displays.
+
 ### **Multi-layer map**
+
+In the multi-layer visualization the data are represented on web tiled map, like the ones provided by OpenStreetMap. In this way the user is able to navigate and zoom the map and also to over-impose different meterological parameters.
+
+The multi-layer visualisation is available for COSMO-5M, COSMO-2I and Italy Flash Flood data. Furthermore, the visualization of Arpa Piemonte's Multimodel data is available as geo-referenced markers on the map.
+
+![multi-layer](multi-layer.png)
+
+
 
 
 
@@ -152,14 +187,17 @@ The roles implemented are:
 - *Institutional*
 - *User*
 
-By assigning a role to an account, you enable that account to a certain profile and to a set of functionalities.
+By assigning a role to an account, the Administrator enables that account to a certain profile and to a set of functionalities.
 
 The functionalities for each profile are outlined in this *[table](https://gitlab.hpc.cineca.it/mistral/meteo-hub/-/issues/172#note_5812)*
 
-The role *User* is the default one. It corresponds to the profile “Auto-registrato”. The Demo profile has the same permissions as the “Auto-registrato” profile and therefore it corresponds to the role *User*.
+The role *User* is the default one. It corresponds to the profile “Auto-registrato”. 
+
+The Demo profile has the same permissions as the “Auto-registrato” profile and therefore it corresponds to the role *User*.
+
 ### **Create a new user**
 
-TODO 
+*TODO* 
 
 ### **How To**
 - **How to enable a user to “Data Pushing”**
