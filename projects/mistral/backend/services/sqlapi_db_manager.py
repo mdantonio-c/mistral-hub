@@ -580,4 +580,8 @@ class SqlApiDbManager:
         # TODO develop the function that will return the requested param due to user configuration or user role
         # param name for max number of templates: "templates"
         # param name for max filesize allowed for each request: "output_size"
+        # param name for postprocessing authorization: "allowed_postprocessing"
+        if param and param == "allowed_postprocessing":
+            # TODO change this default and retrieve the true response from user configuration
+            return True
         return None
