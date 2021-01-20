@@ -26,4 +26,4 @@ jobs:
         with:
           project: ${PROJECT}
           # install: ...
-          ignore: restapi pymodm arkimet dballe sqlalchemy
+          ignore: restapi sqlalchemy pymodm arkimet dballe eccodes

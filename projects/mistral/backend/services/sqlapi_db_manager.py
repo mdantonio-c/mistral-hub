@@ -309,12 +309,14 @@ class SqlApiDbManager:
         if sort_by == "date":
             if sort_order == "asc":
                 sorted_list = sorted(
-                    user_list, key=lambda date: date["submission_date"]
+                    user_list, key=lambda date: date["submission_date"]  # type: ignore
                 )
                 return sorted_list
             if sort_order == "desc":
                 sorted_list = sorted(
-                    user_list, key=lambda date: date["submission_date"], reverse=True
+                    user_list,
+                    key=lambda date: date["submission_date"],  # type: ignore
+                    reverse=True,
                 )
                 return sorted_list
         else:
@@ -343,11 +345,15 @@ class SqlApiDbManager:
 
         if sort_by == "date":
             if sort_order == "asc":
-                sorted_list = sorted(user_list, key=lambda date: date["creation_date"])
+                sorted_list = sorted(
+                    user_list, key=lambda date: date["creation_date"]  # type: ignore
+                )
                 return sorted_list
             if sort_order == "desc":
                 sorted_list = sorted(
-                    user_list, key=lambda date: date["creation_date"], reverse=True
+                    user_list,
+                    key=lambda date: date["creation_date"],  # type: ignore
+                    reverse=True,
                 )
                 return sorted_list
         else:
