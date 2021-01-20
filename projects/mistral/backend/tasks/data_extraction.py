@@ -14,6 +14,7 @@ from mistral.exceptions import (
     DiskQuotaException,
     EmptyOutputFile,
     InvalidLicenseException,
+    MaxOutputSizeExceeded,
     PostProcessingException,
 )
 from mistral.services.arkimet import BeArkimet as arki
@@ -549,6 +550,13 @@ def data_extract(
             # manually update the task state
             self.update_state(state=states.FAILURE, meta=str(exc))
             raise Ignore()
+        except MaxOutputSizeExceeded as exc:
+            request.status = states.FAILURE
+            request.error_message = str(exc)
+            log.warning(exc)
+            # manually update the task state
+            self.update_state(state=states.FAILURE, meta=str(exc))
+            raise Ignore()
         except PostProcessingException as exc:
             request.status = states.FAILURE
             request.error_message = str(exc)
@@ -641,6 +649,33 @@ def check_user_quota(
     log.debug(
         "Resulting output size: {} ({})", esti_data_size, human_size(esti_data_size)
     )
+    # check max filesize allowed for each request
+    user = db.User.query.filter_by(id=user_id).first()
+    max_output_size = SqlApiDbManager.get_user_permissions(user, param="output_size")
+    if max_output_size and esti_data_size > max_output_size:
+        # save error message in db
+        message = (
+            "The resulting output size exceed the size allowed for a single request"
+        )
+        # check if this request comes from a schedule. If so deactivate the schedule.
+        if schedule_id is not None:
+            # load schedule for this request
+            schedule = db.Schedule.query.get(schedule_id)
+            log.debug("Deactivate periodic task for schedule {}", schedule_id)
+            if schedule.on_data_ready is False:
+                if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
+                    raise Exception(
+                        f"Cannot delete periodic task for schedule {schedule_id}"
+                    )
+            SqlApiDbManager.update_schedule_status(db, schedule_id, False)
+            message += f' <br/><br/>Schedule "{schedule.name}" was temporary disabled for limit quota exceeded.'
+        # for already extracted observed data, delete the file
+        if output_filename:
+            fileoutput = os.path.join(user_dir, output_filename)
+            os.remove(fileoutput)
+
+        raise MaxOutputSizeExceeded(message)
+
     # check for current used space
     used_quota = int(subprocess.check_output(["du", "-sb", user_dir]).split()[0])
     log.info("Current used space: {} ({})", used_quota, human_size(used_quota))

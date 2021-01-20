@@ -578,4 +578,6 @@ class SqlApiDbManager:
     @staticmethod
     def get_user_permissions(user, param=None):
         # TODO develop the function that will return the requested param due to user configuration or user role
+        # param name for max number of templates: "templates"
+        # param name for max filesize allowed for each request: "output_size"
         return None

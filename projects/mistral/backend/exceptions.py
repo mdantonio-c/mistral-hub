@@ -32,3 +32,7 @@ class UnAuthorizedUser(Exception):
 
 class NetworkNotInLicenseGroup(Exception):
     """Exception raised if the requested network and the requested license group does not match"""
+
+
+class MaxOutputSizeExceeded(Exception):
+    """Exception raised if the output file size exceed the filesize allowed for each request"""
