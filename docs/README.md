@@ -1,6 +1,4 @@
-﻿# **MISTRAL**
-
-## **Documentation**
+﻿# **MISTRAL** Documentation
 
 
 
@@ -12,10 +10,40 @@
 
 
 
+------
+
+**List of contents**
+
+[TOC]
+
+------
+
+
+
 # **Web Frontend features**
-<TODO Bea e Cinzia>
+*TODO Bea e Cinzia*
 
 ## **Data**
+
+### **Download open data**
+
+For all users, even those not logged in, it is possible to download packages of open data. The packages are produced on a daily basis. The user must click on the icon marked by the red arrow in the following image:
+
+![opendata](C:\Users\c.caroli\Desktop\meteo-hub-0.4.0-docs\docs\opendata.png)
+
+A dialog window will open with the list of downloadable packages:
+
+![opendata2](C:\Users\c.caroli\Desktop\meteo-hub-0.4.0-docs\docs\opendata2.png)
+
+
+
+Currently this feature is available for the following datasets:
+
+- Multimodel ensemble forecast by Arpa Piemonte
+- Surface Rainfall Intensity from Radar-DPC
+- Italy Flash Flood
+
+The observations data is open, too. The user can download them in the map of observations.
 
 ### **Data Extraction**
 
@@ -26,33 +54,47 @@ In the first step, the user must select one or more datasets (multiple selection
 In the second step, the user can filter respect the provided parameters that are specific for the dataset category:
 
 
-|**Observation**|**Reftime, Level, Product, Timerange**|
-| -- | :- |
-|Forecast|Reftime, Area, Level, Origin, Proddef, Product, Run, Timerange|
-|Radar|Reftime, Area, Level, Origin, Proddef, Product, Run, Timerange|
+| Category    | Filter                                                       |
+| ----------- | :----------------------------------------------------------- |
+| Observation | Reftime, Level, Product, Timerange                           |
+| Forecast    | Reftime, Area, Level, Origin, Proddef, Product, Run, Timerange |
+| Radar       | Reftime, Area, Level, Origin, Proddef, Product, Run, Timerange |
 
 In the third step, the user can apply a set of post-processing that is specific for the dataset category:
 
 
-| **Observation** | **Derived Variables, Time Post Processing, Quality Control Filter, Format Conversion** |
-| :-------------- | :----------------------------------------------------------- |
-| Forecast        | Derived Variables, Time Post Processing, Space Post Process  |
-| Radar           | Derived Variables, Time Post Processing, Space Post Process  |
+| Category    | Post-processing                                              |
+| :---------- | :----------------------------------------------------------- |
+| Observation | Derived Variables, Time Post Processing, Quality Control Filter, Format Conversion |
+| Forecast    | Derived Variables, Time Post Processing, Space Post Process  |
+| Radar       | Derived Variables, Time Post Processing, Space Post Process  |
 
 In the fourth and last step, the user must enter a name for the current request and submit the request to the system.
 
 Before submitting the request, the user can schedule the request by clicking on the "Schedule" button and can redirect the result of the request to an AMQP queue through the switch “Data Pushing”.
 
-### **My Requests**
-After submitting a request, the user is led to the "My Requests" page.
+In each step of the data extraction, it is possible to interrupt the creation of the current request by clicking on the Cancel button.
+The user is brought back to the dataset selection page.
 
-There is a list of all requests submitted by the user. The first request on the list is the one just submitted: the status is PENDING because the execution of the request is still in progress.
+![cancel](C:\Users\c.caroli\Desktop\meteo-hub-0.4.0-docs\docs\cancel.png)
+
+
+
+### **My Requests**
+
+After submitting a request, the user is led to the "My Requests" page:
+
+![myrequests](C:\Users\c.caroli\Desktop\meteo-hub-0.4.0-docs\docs\myrequests.png)
+
+
+
+There is a list of all requests submitted by the user. The first request on the list is the one just submitted: the status is *PENDING* because the execution of the request is still in progress.
 
 By clicking on the icon:
 
 ![](icon1.png)
 
-the information on the page is updated. When the status of the request becomes SUCCESS, it means that the execution has finished successfully.
+the information on the page is updated. When the status of the request becomes *SUCCESS*, it means that the execution has finished successfully.
 
 The user can download the output data of the request by clicking the icon:
 
@@ -64,22 +106,44 @@ The user can expand the request box information by clicking the icon:
 
 Moreover the user can delete a request by clicking the trash bin icon.
 
-Also on this page, the situation of the user disk quota occupation is shown on the left.
+The situation of the user disk quota occupation is shown on the widget "Storage" on the left.
 
-By clicking on the Schedules tab, the page will show the list of the scheduled query of the user.
+By clicking on the Schedules tab, the page will show the list of the scheduled requests of the user.
 ### **Scheduled queries**
-<TODO>
+*TODO* Bea
+
 ### **Data pushing**
-<TODO>
+First of all, the account must be enabled to the "Data pushing" feature. The user has to contact the Administrator to be enabled. The Administrator will enable the user to "Data pushing" and will create an AMQP queue for the user.
+
+Then the user can re-direct ...? **Cosa viene ridirezionato la notifica o l'output?** TODO Bea
+
+
+
+------
+
+
 
 ## **Visualisation**
-### **Observation map**
-### **Forecast map**
+
+Four distinct visualisations of the data are available in the Frontend under the menu "Maps".
+
+They are described in the following paragraphs.
+
+### **Forecasts map**
 ### **Italy Flash Flood map**
+
+### **Observations map**
+
 ### **Multi-layer map**
 
+
+
+------
+
+
+
 ## **Admin guide**
-<TODO Bea>
+*TODO Bea*
 
 ### **User roles**
 The roles implemented are:
@@ -90,12 +154,12 @@ The roles implemented are:
 
 By assigning a role to an account, you enable that account to a certain profile and to a set of functionalities.
 
-In the following table are outlined the functionalities for each profile:
-
-<link alla tabella>
+The functionalities for each profile are outlined in this *[table](https://gitlab.hpc.cineca.it/mistral/meteo-hub/-/issues/172#note_5812)*
 
 The role *User* is the default one. It corresponds to the profile “Auto-registrato”. The Demo profile has the same permissions as the “Auto-registrato” profile and therefore it corresponds to the role *User*.
 ### **Create a new user**
+
+TODO 
 
 ### **How To**
 - **How to enable a user to “Data Pushing”**
@@ -111,8 +175,15 @@ The abilitation is managed in two ways:
 - enabling access to all open datasets
 - enabling additional datasets one by one
 
+
+
+------
+
+
+
 ## **User guide**
-<TODO Marghe>
+
+*TODO Marghe*
 
 ### **User profile**
 By clicking on the user profile icon, the Frontend shows to the user the list of information that make up the user's profile.
@@ -125,13 +196,16 @@ The “Requests expiration” parameter allows users to activate the automatic c
 
 By default, N=0 that means the cleaning is not active.
 ### **Disk quota**
+
+TODO
+
 ### **How To**
 
-
+TODO
 
 # **API**
 
-<TODO Mattia>
+*TODO Mattia*
 
 
 
@@ -139,12 +213,10 @@ By default, N=0 that means the cleaning is not active.
 
 # **Installation guide**
 ## **Data portal**
-<TODO Giuse e Mattia>
-
-<Sarebbe meteo-hub>
+**TODO Giuse e Mattia: sarebbe meteo-hub*
 
 ### **Meteo Hub v0.4.0**
-<TODO Giuse e Mattia>
+*TODO Giuse e Mattia*
 
 
 
@@ -185,9 +257,7 @@ c390866ab566    	redis:latest            	"docker-entrypoint.s…"   6379/tcp   
 
 11eee4e9e787    	docker\_solr             	"docker-entrypoint.s…"   8983/tcp          solr
 
-2d560a0a08ae    	docker\_db               	"docker-entrypoint.s…"   0.0.0.0:5432
-
-->5432/tcp          	                                                                                                                                                                                db
+2d560a0a08ae    	docker\_db               	"docker-entrypoint.s…"   0.0.0.0:5432->5432/tcp                                                                                                        db
 ```
 
 
@@ -201,12 +271,12 @@ The following extensions have been installed:
 
 |**extension**|**Url**|**version**|**Plugin attivati**|
 | :- | :- | :- | :- |
-|*Plugin in ckan core*| | |<p>Stats</p><p>Image\_view</p><p>Text\_view</p><p>Recline\_view</p>|
+|*Plugin in ckan core*| | |Stats, Image\_view, Text\_view, Recline\_view|
 |Datastore|*Ckan core*| |datastore|
 |Datapusher|https://github.com/ckan/datapusher|2019-01-18|datapusher|
-|Ckanext-spatial|https://github.com/ckan/ckanext-spatial|2019-03-15|<p>resource\_proxy</p><p>spatial\_metadata</p><p>spatial\_query</p><p>csw\_harvester</p>|
+|Ckanext-spatial|https://github.com/ckan/ckanext-spatial|2019-03-15|resource\_proxy, spatial\_metadata, spatial\_query, csw\_harvester|
 |Ckanext-dcat|https://github.com/ckan/ckanext-dcat|<p>2019-06-25</p><p> </p>|dcat dcat\_json\_interface structured\_data|
-|Ckanext-dcatapit|https://github.com/geosolutions-it/ckanext-dcatapit|2019-12-09|<p>dcatapit\_pkg</p><p>dcatapit\_org</p><p>dcatapit\_config</p><p>dcatapit\_csw\_harvester</p>|
+|Ckanext-dcatapit|https://github.com/geosolutions-it/ckanext-dcatapit|2019-12-09|dcatapit\_pkg, dcatapit\_org, dcatapit\_config, dcatapit\_csw\_harvester|
 |Ckanext-mistral|Mistral extensions|1.0.0|mistral|
 |Ckanext-geoview|https://github.com/ckan/ckanext-geoview/|2019-04-09|geo\_view|
 |Ckanext-harvest|https://github.com/ckan/ckanext-harvest|2019-07-01|harvest ckan\_harvester|
@@ -242,69 +312,73 @@ The full list of effective environment variable is available at[ ](https://docs.
 
 The CKAN configuration file is located at **“/etc/ckan/production.ini**” in the CKAN container. The changes applied to the config setting are:
 
-` `## Site Settings
+```
+## Site Settings
 
-ckan.site\_url = https://mistralportal.it
+ckan.site_url = https://mistralportal.it
 
-ckan.root\_path = /catalog
+ckan.root_path = /catalog
 
-\## Search Settings
+## Search Settings
 
-ckan.site\_id = default
+ckan.site_id = default
 
-solr\_url = http://solr:8983/solr
+solr_url = http://solr:8983/solr
 
-\## Redis Settings
+## Redis Settings
 
-\# URL to your Redis instance, including the database to be used.
+# URL to your Redis instance, including the database to be used.
 
 ckan.redis.url = redis://redis:6379/0
 
-\## CORS Settings
+## CORS Settings
 
-\# If cors.origin\_allow\_all is true, all origins are allowed.
+# If cors.origin_allow_all is true, all origins are allowed.
 
-\# If false, the cors.origin\_whitelist is used.
+# If false, the cors.origin_whitelist is used.
 
-ckan.cors.origin\_allow\_all = true
+ckan.cors.origin_allow_all = true
 
-\# cors.origin\_whitelist is a space separated list of allowed domains.
+# cors.origin_whitelist is a space separated list of allowed domains.
 
-\# ckan.cors.origin\_whitelist = http://example1.com http://example2.com
+# ckan.cors.origin_whitelist = http://example1.com http://example2.com
 
-\## Plugins Settings
+## Plugins Settings
 
-ckan.plugins = stats text\_view image\_view recline\_view datastore datapusher resource\_proxy spatial\_metadata spatial\_query geo\_view harvest ckan\_harvester mistral dcat dcat\_json\_interface structured\_data dcatapit\_pkg dcatapit\_org dcatapit\_config
+ckan.plugins = stats text_view image_view recline_view datastore datapusher resource_proxy spatial_metadata spatial_query geo_view harvest ckan_harvester mistral dcat dcat_json_interface structured_data dcatapit_pkg dcatapit_org dcatapit_config
 
 ` `## Dcatapit Extension settings
 
-ckanext.dcat.rdf.profiles = euro\_dcat\_ap it\_dcat\_ap
+ckanext.dcat.rdf.profiles = euro_dcat_ap it_dcat_ap
 
-ckanext.dcat.base\_uri = https://www.mistralportal.it/catalog
+ckanext.dcat.base_uri = https://www.mistralportal.it/catalog
 
-ckanext.dcatapit.form\_tabs = False
+ckanext.dcatapit.form_tabs = False
 
-\## Spatial Extension settings
+## Spatial Extension settings
 
-ckanext.spatial.search\_backend = solr-spatial-field
+ckanext.spatial.search_backend = solr-spatial-field
 
 ckan.spatial.srid = 4326
 
-\## Front-End Settings
+## Front-End Settings
 
-ckan.site\_title = CKAN
+ckan.site_title = CKAN
 
-ckan.site\_logo = /images/logo-mistral-bianco-web-300x127.png
+ckan.site_logo = /images/logo-mistral-bianco-web-300x127.png
 
-ckan.site\_description =
+ckan.site_description =
 
-\## Internationalisation Settings
+## Internationalisation Settings
 
-ckan.locale\_default = it
+ckan.locale_default = it
 
-ckan.locale\_order = it en
+ckan.locale_order = it en
 
-ckan.locales\_offered = en it
+ckan.locales_offered = en it
+```
+
+
 ### **Volumes**
 
 |**Name**|**Mount point(s)**|
@@ -316,7 +390,7 @@ ckan.locales\_offered = en it
 |pg\_data|db -> pg\_data:/var/lib/postgresql/data|
 
 ## **NiFi-based ingestion component**
-<TODO Dedagroup>
+*TODO Dedagroup*
 
 ### **DPC observed data flow**
 ### **Arpae observed data flow**
