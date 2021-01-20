@@ -588,4 +588,8 @@ class SqlApiDbManager:
         if param and param == "allowed_schedule":
             # TODO change this default and retrieve the true response from user configuration
             return True
+        # param name for authorization to access archived observed data by maps: "allowed_obs_archive"
+        if param and param == "allowed_obs_archive":
+            # TODO change this default and retrieve the true response from user configuration
+            return True
         return None

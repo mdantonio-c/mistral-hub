@@ -991,7 +991,7 @@ class BeDballe:
             if query and not query_for_arkimet:
                 # means that there aren't data in arkimet for this dballe query
                 if download:
-                    return None, {}, {}
+                    return None, {}, {}, None
                 return []
 
             if networks_as_list:
@@ -1008,7 +1008,7 @@ class BeDballe:
 
             if not datasets:
                 if download:
-                    return None, {}, {}
+                    return None, {}, {}, None
                 return []
 
             log.debug("datasets: {}", datasets)

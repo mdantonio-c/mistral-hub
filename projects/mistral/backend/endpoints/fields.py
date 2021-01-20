@@ -158,16 +158,34 @@ class Fields(EndpointResource):
                             query_dic["datetimemin"], query_dic["datetimemax"]
                         )
 
-                if db_type != "dballe" and not user:
-                    raise Unauthorized(
-                        "to access archived data the user has to be logged"
-                    )
+                if db_type != "dballe":
+                    if not user:
+                        raise Unauthorized(
+                            "to access archived data the user has to be logged"
+                        )
+                    else:
+                        # check for user authorization to access archived observed data
+                        is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
+                            user, param="allowed_obs_archive"
+                        )
+                        if not is_allowed_obs_archive:
+                            raise Unauthorized(
+                                "user is not authorized to access archived data"
+                            )
             else:
                 if not user:
                     raise Unauthorized(
                         "to access archived data the user has to be logged"
                     )
                 else:
+                    # check for user authorization to access archived observed data
+                    is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
+                        user, param="allowed_obs_archive"
+                    )
+                    if not is_allowed_obs_archive:
+                        raise Unauthorized(
+                            "user is not authorized to access archived data"
+                        )
                     db_type = "mixed"
             log.debug("db type: {}", db_type)
 
