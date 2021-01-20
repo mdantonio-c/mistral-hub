@@ -344,6 +344,13 @@ class Schedules(EndpointResource):
     ):
         user = self.get_user()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
+        db = sqlalchemy.get_instance()
+        # check if the user is authorized to post a scheduled request
+        is_allowed_schedule = SqlApiDbManager.get_user_permissions(
+            user, param="allowed_schedule"
+        )
+        if not is_allowed_schedule:
+            raise Unauthorized("user is not allowed to schedule a request")
 
         time_delta = None
         reftime_to = None
@@ -356,7 +363,6 @@ class Schedules(EndpointResource):
             parsed_reftime["from"] = reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             parsed_reftime["to"] = reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
-        db = sqlalchemy.get_instance()
         # check for existing dataset(s)
         # check for existing dataset(s)
         datasets = SqlApiDbManager.get_datasets(db, user)

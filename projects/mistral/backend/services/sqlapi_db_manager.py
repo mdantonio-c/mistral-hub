@@ -584,4 +584,8 @@ class SqlApiDbManager:
         if param and param == "allowed_postprocessing":
             # TODO change this default and retrieve the true response from user configuration
             return True
+        # param name for schedule authorization: "allowed_schedule"
+        if param and param == "allowed_schedule":
+            # TODO change this default and retrieve the true response from user configuration
+            return True
         return None
