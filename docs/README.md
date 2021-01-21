@@ -1,4 +1,4 @@
-﻿# **MISTRAL** Documentation
+# **MISTRAL** Documentation
 
 
 
@@ -254,7 +254,124 @@ TODO
 **TODO Giuse e Mattia: sarebbe meteo-hub*
 
 ### **Meteo Hub v0.4.0**
-*TODO Giuse e Mattia*
+
+MeteoHub is a docker-based environment with many components orchestrated through the docker-compose utility framework. MeteoHub is implemented as an extension of the open source framework RAPyDo that implements core functionalities for most of the adopted services (Backend APIs, Frontend UI, Celery, RabbitMQ, Redis) and wraps the use of docker-compose.
+To deploy MeteoHub a number of prerequisites are needed, in particular docker >= 17.05, python >= 3.6, git and the rapydo controller (usually installed with pip). Docker-compose is also required, but automatically installed with the controller.
+
+The MeteoHub repository can be cloned from the Cineca Gitlab:
+
+`$ git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub.git`
+
+Once installed docker, python and pip; the controller can ben installed as:
+
+`$ sudo pip3 install rapydo`
+
+to install the latest released version (at the time of writing the version 0.9, compatible with MeteoHub version 0.3.5), or:
+
+`$ sudo pip3 install git+https://github.com/rapydo/do.git@1.0`
+
+to install a specific version (at the time of writing version 1.0 is the latest development version, compatible with MeteoHub version 0.4.0)
+
+Once installed any controller version, version incompatibilities can be detect by using the `rapydo version` command:
+
+for example:
+```
+$ rapydo --version
+rapydo version: 1.0
+
+$ git branch --show-current 
+0.3.5
+
+$ rapydo version
+
+rapydo: 1.0	mistral: 0.3.5	required rapydo: 0.9
+
+This project is not compatible with rapydo version 1.0
+Please downgrade rapydo to version 0.9 or modify this project
+
+rapydo install 0.9
+
+```
+
+#### Development deployment
+The following commands are required to configure and execute the stack in development mode:
+
+To initialize the configuration:
+`$ rapydo init`
+This command will also create a .projectrc file with default settings
+
+To pull the docker images required to the stack:
+
+`$ rapydo pull`
+
+To build the custom MeteoHub image:
+
+`$ rapydo build`
+
+To start the stack:
+
+`$ rapydo start`
+
+All services will automatically start, except for the REST APIs service that is required to be manually executed with:
+
+`$ rapydo shell backend --default`
+
+In another shell the container status and logs can be inspected by using docker commands or corresponding rapydo commands:
+
+`$ docker logs mistral_frontend_1`
+`$ rapydo -s frontend logs`
+
+When the frontend compilation is completed the web interface will be available on localhost:80
+APIs will respond on localhost:8080
+
+
+#### Production deployment
+
+To run the application in production mode an hostname should be assigned to the host, to properly create a valid SSL certificate (although the IP address can be used, in this case a self-signed certificate will be created)
+
+The following commands are required to configure and execute the stack in production mode:
+
+To initialize the configuration:
+`$ rapydo --prod --hostname my.host.name init`
+This command will also create a .projectrc file with default settings including enabled productin mode, provided hostname and random passwords for all the services. Feel free to change the random passwords with any other password you prefer (passwords will be injected on the services at the first run)
+
+To pull the docker images required to the stack:
+
+`$ rapydo pull`
+
+To build the custom MeteoHub image:
+
+`$ rapydo build`
+
+To start the stack:
+
+`$ rapydo start`
+
+All services will automatically start, including an nginx reverse proxy. An ssl certificate will be automatically create by using Let's Encrypt.
+
+The container status and logs can be inspected by using docker commands or corresponding rapydo commands:
+
+```
+$ docker logs mistral_frontend_1
+
+or:
+
+$ rapydo -s frontend logs
+```
+
+The web interface will be available on https://my.host.name
+and APIs will respond on https://my.host.name/api
+
+SSL certificates created with Let's Encrypt expire in 3 months and ca be renewed by using the command:
+
+`$ rapydo ssl`
+
+A crontab to automatize the certificate renewal should be considerd:
+
+For example to renew every Monday at 00:00 AM
+
+`0 0 * * 1 cd /your/project/path && COMPOSE_INTERACTIVE_NO_CLI=1 /usr/local/bin/rapydo ssl --no-tty > /your/project/path/data/logs/ssl.log 2>&1`
+
 
 
 
