@@ -918,8 +918,12 @@ class BeDballe:
     ):
         # get the license group
         alchemy_db = sqlalchemy.get_instance()
+        if query_data:
+            license_name = query_data["license"]
+        else:
+            license_name = query_station_data["license"]
         license_group = alchemy_db.GroupLicense.query.filter_by(
-            name=query_data["license"]
+            name=license_name
         ).first()
         # get the dsn
         dballe_dsn = license_group.dballe_dsn
@@ -987,7 +991,7 @@ class BeDballe:
             if query and not query_for_arkimet:
                 # means that there aren't data in arkimet for this dballe query
                 if download:
-                    return None, {}, {}
+                    return None, {}, {}, None
                 return []
 
             if networks_as_list:
@@ -1004,7 +1008,7 @@ class BeDballe:
 
             if not datasets:
                 if download:
-                    return None, {}, {}
+                    return None, {}, {}, None
                 return []
 
             log.debug("datasets: {}", datasets)

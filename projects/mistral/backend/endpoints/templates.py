@@ -4,10 +4,18 @@ import subprocess
 from zipfile import ZipFile
 
 from flask import request
+from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.config import UPLOAD_PATH
-from restapi.exceptions import BadRequest, NotFound, ServerError, Unauthorized
+from restapi.connectors import sqlalchemy
+from restapi.exceptions import (
+    BadRequest,
+    Forbidden,
+    NotFound,
+    ServerError,
+    Unauthorized,
+)
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
@@ -102,7 +110,7 @@ class Templates(EndpointResource, Uploader):
                 if i.endswith(".zip") or i.endswith(".geojson"):
                     file_to_remove = os.path.join(UPLOAD_PATH, subfolder, i)
                     os.remove(file_to_remove)
-            raise SystemError("Unable to upload the template file")
+            raise ServerError("Unable to upload the template file")
 
         # if the file is a zip file extract the content in the upload folder
         if f[-1] == "zip":
@@ -132,6 +140,34 @@ class Templates(EndpointResource, Uploader):
         # if the file is a geojson convert it to shapefile
         if f[-1] == "geojson":
             upload_filepath = self.convert_to_shapefile(upload_filepath)
+
+        # check user quota
+        user_dir = os.path.join(
+            DOWNLOAD_DIR,
+            user.uuid,
+        )
+        used_quota = int(subprocess.check_output(["du", "-sb", user_dir]).split()[0])
+        # check for exceeding quota
+        db = sqlalchemy.get_instance()
+        max_user_quota = (
+            db.session.query(db.User.disk_quota).filter_by(id=user.id).scalar()
+        )
+        file_size = os.path.getsize(upload_filepath)
+        if used_quota + file_size > max_user_quota:
+            filebase, fileext = os.path.splitext(upload_filepath)
+            # delete all the files related to the template
+            filelist = glob.glob(
+                os.path.join(
+                    UPLOAD_PATH,
+                    user.uuid,
+                    "uploads",
+                    fileext.strip("."),
+                    filebase + "*",
+                )
+            )
+            for f in filelist:
+                os.remove(f)
+            raise Forbidden("Disk quota exceeded")
 
         r = {
             "filepath": upload_filepath,

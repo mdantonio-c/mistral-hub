@@ -578,4 +578,18 @@ class SqlApiDbManager:
     @staticmethod
     def get_user_permissions(user, param=None):
         # TODO develop the function that will return the requested param due to user configuration or user role
+        # param name for max number of templates: "templates"
+        # param name for max filesize allowed for each request: "output_size"
+        # param name for postprocessing authorization: "allowed_postprocessing"
+        if param and param == "allowed_postprocessing":
+            # TODO change this default and retrieve the true response from user configuration
+            return True
+        # param name for schedule authorization: "allowed_schedule"
+        if param and param == "allowed_schedule":
+            # TODO change this default and retrieve the true response from user configuration
+            return True
+        # param name for authorization to access archived observed data by maps: "allowed_obs_archive"
+        if param and param == "allowed_obs_archive":
+            # TODO change this default and retrieve the true response from user configuration
+            return True
         return None

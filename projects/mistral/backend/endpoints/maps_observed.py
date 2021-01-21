@@ -137,6 +137,7 @@ class MapsObservations(EndpointResource):
                 query_station_data["ident"] = ident
 
             query_station_data["rep_memo"] = networks
+            query_station_data["license"] = query["license"]
 
             # get the license group
             station_dataset = arki.from_network_to_dataset(networks)
@@ -183,12 +184,30 @@ class MapsObservations(EndpointResource):
         # get db type
         if "datetimemin" in query:
             db_type = dballe.get_db_type(query["datetimemin"], query["datetimemax"])
-            if db_type != "dballe" and not user:
-                raise Unauthorized("to access archived data the user has to be logged")
+            if db_type != "dballe":
+                if not user:
+                    raise Unauthorized(
+                        "to access archived data the user has to be logged"
+                    )
+                else:
+                    # check for user authorization to access archived observed data
+                    is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
+                        user, param="allowed_obs_archive"
+                    )
+                    if not is_allowed_obs_archive:
+                        raise Unauthorized(
+                            "user is not authorized to access archived data"
+                        )
         else:
             if not user:
                 raise Unauthorized("to access archived data the user has to be logged")
             else:
+                # check for user authorization to access archived observed data
+                is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
+                    user, param="allowed_obs_archive"
+                )
+                if not is_allowed_obs_archive:
+                    raise Unauthorized("user is not authorized to access archived data")
                 db_type = "mixed"
 
         log.debug("type of database: {}", db_type)
@@ -353,12 +372,30 @@ class MapsObservations(EndpointResource):
             db_type = dballe.get_db_type(
                 query_data["datetimemin"], query_data["datetimemax"]
             )
-            if db_type != "dballe" and not user:
-                raise Unauthorized("to access archived data the user has to be logged")
+            if db_type != "dballe":
+                if not user:
+                    raise Unauthorized(
+                        "to access archived data the user has to be logged"
+                    )
+                else:
+                    # check for user authorization to access archived observed data
+                    is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
+                        user, param="allowed_obs_archive"
+                    )
+                    if not is_allowed_obs_archive:
+                        raise Unauthorized(
+                            "user is not authorized to access archived data"
+                        )
         else:
             if not user:
                 raise Unauthorized("to access archived data the user has to be logged")
             else:
+                # check for user authorization to access archived observed data
+                is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
+                    user, param="allowed_obs_archive"
+                )
+                if not is_allowed_obs_archive:
+                    raise Unauthorized("user is not authorized to access archived data")
                 db_type = "mixed"
 
         log.debug("type of database: {}", db_type)

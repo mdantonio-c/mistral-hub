@@ -5,7 +5,14 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
 from restapi.connectors import celery, rabbitmq, sqlalchemy
-from restapi.exceptions import BadRequest, Conflict, Forbidden, NotFound, ServerError
+from restapi.exceptions import (
+    BadRequest,
+    Conflict,
+    Forbidden,
+    NotFound,
+    ServerError,
+    Unauthorized,
+)
 from restapi.models import AdvancedList, Schema, TotalSchema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
@@ -337,6 +344,13 @@ class Schedules(EndpointResource):
     ):
         user = self.get_user()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
+        db = sqlalchemy.get_instance()
+        # check if the user is authorized to post a scheduled request
+        is_allowed_schedule = SqlApiDbManager.get_user_permissions(
+            user, param="allowed_schedule"
+        )
+        if not is_allowed_schedule:
+            raise Unauthorized("user is not allowed to schedule a request")
 
         time_delta = None
         reftime_to = None
@@ -349,7 +363,6 @@ class Schedules(EndpointResource):
             parsed_reftime["from"] = reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             parsed_reftime["to"] = reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
-        db = sqlalchemy.get_instance()
         # check for existing dataset(s)
         # check for existing dataset(s)
         datasets = SqlApiDbManager.get_datasets(db, user)
@@ -414,6 +427,11 @@ class Schedules(EndpointResource):
         #     i for i in processors if arki.is_processor_allowed(i.get('type'))
         # ]
         if postprocessors:
+            allowed_postprocessing = SqlApiDbManager.get_user_permissions(
+                user, param="allowed_postprocessing"
+            )
+            if not allowed_postprocessing:
+                raise Unauthorized("user is not authorized to use postprocessing tools")
             for p in postprocessors:
                 p_type = p.get("processor_type")
                 if p_type == "derived_variables" or p_type == "statistic_elaboration":

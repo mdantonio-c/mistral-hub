@@ -5,7 +5,13 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
 from restapi.connectors import celery, rabbitmq, sqlalchemy
-from restapi.exceptions import BadRequest, Forbidden, NotFound, ServiceUnavailable
+from restapi.exceptions import (
+    BadRequest,
+    Forbidden,
+    NotFound,
+    ServiceUnavailable,
+    Unauthorized,
+)
 from restapi.models import AdvancedList, Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
@@ -318,6 +324,12 @@ class Data(EndpointResource, Uploader):
         # clean up processors from unknown values
         # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]
         if postprocessors:
+            # check if the user is authorized for postprocessors
+            allowed_postprocessing = repo.get_user_permissions(
+                user, param="allowed_postprocessing"
+            )
+            if not allowed_postprocessing:
+                raise Unauthorized("user is not authorized to use postprocessing tools")
             for p in postprocessors:
                 p_type = p.get("processor_type")
                 if p_type == "derived_variables" or p_type == "statistic_elaboration":
