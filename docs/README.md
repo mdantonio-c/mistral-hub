@@ -298,6 +298,7 @@ The following commands are required to configure and execute the stack in develo
 
 To initialize the configuration:
 `$ rapydo init`
+
 This command will also create a .projectrc file with default settings
 
 To pull the docker images required to the stack:
@@ -332,8 +333,10 @@ To run the application in production mode an hostname should be assigned to the 
 The following commands are required to configure and execute the stack in production mode:
 
 To initialize the configuration:
+
 `$ rapydo --prod --hostname my.host.name init`
-This command will also create a .projectrc file with default settings including enabled productin mode, provided hostname and random passwords for all the services. Feel free to change the random passwords with any other password you prefer (passwords will be injected on the services at the first run)
+
+This command will also create a `.projectrc` file with default settings including enabled productin mode, provided hostname and random passwords for all the services. Feel free to change the random passwords with any other password you prefer (passwords will be injected on the services at the first run) by editing the `.projectrc` file
 
 To pull the docker images required to the stack:
 
