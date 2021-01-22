@@ -395,19 +395,17 @@ For example to renew every Monday at 00:00 AM
 
 #### Arkimet config files
 
-*TODO Bea controllare*
-
 The list of the config fields managed by Arkimet can be found [here](https://github.com/ARPA-SIMC/arkimet/issues/67#issuecomment-293193990).
 
 The fields "filter, index, unique, remote import, step, replace, type, format, path" are the standard Arkimet ones, necessary for ingestion of data in Arkimet datasets.
-
-The field "description" is optional and is managed by Arkimet.
 
 The field "name" in the config file is not considered by Arkimet.
 
 For Arkimet, the dataset name is the same as the corresponding directory name and is more like an ID than a name.
 
-Arkimet allows you to add fields whose name starts with '_' and which are returned in the summary.
+The field "description" is optional and is managed by Arkimet. The content of this field is displayed with the dataset name in the dataset list page on the Frontend.
+
+Arkimet allows you to add custom fields whose name starts with '_' and which are returned in the summary.
 
 **In Meteo-hub we have added the following fields that are used to operate the Frontend:**
 
@@ -433,7 +431,7 @@ RAD radar
 
 - *_license*
 
-The name of the license that applies to the dataset must be entered in this field.
+The name of the license applied to the dataset must be entered in this field.
 
 The license name must be one of those present in the name field of the LICENSE table of the database. 
 
@@ -441,7 +439,7 @@ Mandatory field.
 
 - *_attribution*
 
-The name of the attribution that applies to the dataset must be entered in this field.
+The name of the attribution applied to the dataset must be entered in this field.
 
 The name must be one of those present in the name field of the database ATTRIBUTION table. 
 
