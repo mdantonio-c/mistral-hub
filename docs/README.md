@@ -14,7 +14,7 @@
 
 **List of contents**
 
-[TOC]
+[[TOC]]
 
 ------
 
