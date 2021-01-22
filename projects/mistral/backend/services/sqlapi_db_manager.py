@@ -1,9 +1,10 @@
+import datetime
 import json
 import os
 
 from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from restapi.connectors.celery import CeleryExt
-from restapi.exceptions import NotFound
+from restapi.exceptions import NotFound, Unauthorized
 from restapi.utilities.logs import log
 
 
@@ -576,11 +577,33 @@ class SqlApiDbManager:
         return auth_license_groups
 
     @staticmethod
+    def check_user_request_limit(db, user):
+        max_request_hour = SqlApiDbManager.get_user_permissions(
+            user, param="request_par_hour"
+        )
+        if max_request_hour:
+            now = datetime.datetime.utcnow()
+            last_hour = now.replace(minute=0, second=0, microsecond=0)
+            request_count = (
+                db.session.query(db.Request)
+                .filter(db.Request.submission_date > last_hour)
+                .filter(db.Request.submission_date < now)
+                .count()
+            )
+            if request_count == max_request_hour:
+                next_hour = last_hour + datetime.timedelta(hours=1)
+                raise Unauthorized(
+                    f"The max number of requests par hour has been reached: New requests can be submitted after {next_hour.hour}:00"
+                )
+
+    @staticmethod
     def get_user_permissions(user, param=None):
         # TODO develop the function that will return the requested param due to user configuration or user role
         # param name for max number of templates: "templates"
         # param name for max filesize allowed for each request: "output_size"
         # param name for postprocessing authorization: "allowed_postprocessing"
+        # param name for max number of request par hour: "request_par_hour"
+
         if param and param == "allowed_postprocessing":
             # TODO change this default and retrieve the true response from user configuration
             return True

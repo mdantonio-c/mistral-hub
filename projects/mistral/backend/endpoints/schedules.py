@@ -351,6 +351,9 @@ class Schedules(EndpointResource):
         if not is_allowed_schedule:
             raise Unauthorized("user is not allowed to schedule a request")
 
+        # check if the user has a limit of number of requests par hour
+        SqlApiDbManager.check_user_request_limit(db, user)
+
         time_delta = None
         reftime_to = None
         parsed_reftime = {}
