@@ -372,6 +372,7 @@ export class MeteoTilesComponent {
           product: MultiModelProduct.TM,
           reftime: reftime,
           network: "multim-forecast",
+          license: "CCBY_COMPLIANT",
           timerange: timerange,
           interval: this.runAvailable.end_offset + 24 || 72,
         };
@@ -379,6 +380,7 @@ export class MeteoTilesComponent {
           product: MultiModelProduct.RH,
           reftime: reftime,
           network: "multim-forecast",
+          license: "CCBY_COMPLIANT",
           timerange: timerange,
           interval: this.runAvailable.end_offset + 24 || 72,
         };
