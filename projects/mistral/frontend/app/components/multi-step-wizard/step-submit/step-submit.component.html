@@ -190,6 +190,7 @@
         <div class="form-inline">
           Every
           <input
+            *ngIf="scheduleForm.get('period').value !== 'minute'"
             type="number"
             formControlName="every"
             min="1"
@@ -197,7 +198,21 @@
             style="width: 80px"
             required
           />
-          <select formControlName="period" class="custom-select mx-2">
+          <input
+            *ngIf="scheduleForm.get('period').value === 'minute'"
+            type="number"
+            formControlName="every"
+            min="15"
+            class="form-control ml-2"
+            style="width: 80px"
+            value="15"
+            required
+          />
+          <select
+            formControlName="period"
+            class="custom-select mx-2"
+            (change)="onPeriodSelected(scheduleForm.get('period').value)"
+          >
             <option>minute</option>
             <option>hour</option>
             <option>day</option>

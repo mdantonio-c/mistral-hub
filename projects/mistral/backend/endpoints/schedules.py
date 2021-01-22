@@ -220,9 +220,7 @@ class PeriodSettings(Schema):
     every = fields.Integer(required=True)
     period = fields.Str(
         required=True,
-        validate=validate.OneOf(
-            ["days", "hours", "minutes", "seconds", "microseconds"]
-        ),
+        validate=validate.OneOf(["days", "hours", "minutes"]),
     )
 
 
@@ -310,6 +308,7 @@ class ScheduledDataExtraction(Schema):
 
 
 DATASET_ENABLED_TO_DATAREADY = ["lm2.2", "lm5"]
+MIN_PERIOD = {"every": 15, "period": "minutes"}
 
 
 class Schedules(EndpointResource):
@@ -421,6 +420,16 @@ class Schedules(EndpointResource):
                 raise BadRequest(
                     "the dataset requested for opendata schedule is not an open dataset"
                 )
+
+        if period_settings:
+            # check if the requested period is > of the minimum period
+            if period_settings.get("period") == MIN_PERIOD["period"]:
+                if period_settings.get("every") < MIN_PERIOD["every"]:
+                    raise Forbidden(
+                        "schedule frequency has to be greater than {} {}".format(
+                            MIN_PERIOD["every"], MIN_PERIOD["period"]
+                        )
+                    )
 
         # clean up processors from unknown values
         # processors = [
