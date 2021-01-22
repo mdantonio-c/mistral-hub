@@ -1,4 +1,4 @@
-# **MISTRAL** Documentation
+aaa# **MISTRAL** Documentation
 
 
 
@@ -389,6 +389,64 @@ For example to renew every Monday at 00:00 AM
 
 `0 0 * * 1 cd /your/project/path && COMPOSE_INTERACTIVE_NO_CLI=1 /usr/local/bin/rapydo ssl --no-tty > /your/project/path/data/logs/ssl.log 2>&1`
 
+
+#### Arkimet config files
+
+*TODO Bea controllare*
+
+The list of the config fields managed by Arkimet can be found [here](https://github.com/ARPA-SIMC/arkimet/issues/67#issuecomment-293193990).
+
+The fields "filter, index, unique, remote import, step, replace, type, format, path" are the standard Arkimet ones, necessary for ingestion of data in Arkimet datasets.
+
+The field "description" is optional and is managed by Arkimet.
+
+The field "name" in the config file is not considered by Arkimet.
+
+For Arkimet, the dataset name is the same as the corresponding directory name and is more like an ID than a name.
+
+Arkimet allows you to add fields whose name starts with '_' and which are returned in the summary.
+
+**In Meteo-hub we have added the following fields that are used to operate the Frontend:**
+
+- *_name*
+
+In this field you can enter the name of the dataset you want to appear to end users. The Frontend first looks for this field, if it is not present then use Arkimet's field "name". 
+
+Optional field.
+
+- *_category*
+
+The code indicating the type of dataset must be entered in this field. 
+
+Mandatory field.
+
+The codes are: 
+
+```
+FOR forecast
+OBS osservati
+RAD radar
+```
+
+- *_license*
+
+The name of the license that applies to the dataset must be entered in this field.
+
+The license name must be one of those present in the name field of the LICENSE table of the database. 
+
+Mandatory field.
+
+- *_attribution*
+
+The name of the attribution that applies to the dataset must be entered in this field.
+
+The name must be one of those present in the name field of the database ATTRIBUTION table. 
+
+Mandatory field.
+
+
+
+------
 
 
 
