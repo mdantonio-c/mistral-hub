@@ -1,10 +1,10 @@
-# **MISTRAL** Documentation
+# **MISTRAL Documentation**
 
 
 
-**Author**: CINECA
+**Author**: CINECA, Dedagroup
 
-**Date**: 19 January 2021
+**Date**: 22 January 2021
 
 **Status**: draft
 
@@ -12,7 +12,7 @@
 
 ------
 
-**List of contents**
+**Table of contents**
 
 [TOC]
 
@@ -241,6 +241,20 @@ TODO
 
 TODO
 
+
+------
+
+
+
+# **Licenses management**
+
+*TODO Bea*
+
+
+
+------
+
+
 # **API**
 
 *TODO Mattia*
@@ -251,8 +265,6 @@ TODO
 
 # **Installation guide**
 ## **Data portal**
-**TODO Giuse e Mattia: sarebbe meteo-hub*
-
 ### **Meteo Hub v0.4.0**
 
 MeteoHub is a docker-based environment with many components orchestrated through the docker-compose utility framework. MeteoHub is implemented as an extension of the open source framework RAPyDo that implements core functionalities for most of the adopted services (Backend APIs, Frontend UI, Celery, RabbitMQ, Redis) and wraps the use of docker-compose.
@@ -377,9 +389,87 @@ For example to renew every Monday at 00:00 AM
 
 
 
+------
+
+
+
+#### Arkimet config files
+
+The list of the config fields managed by Arkimet can be found [here](https://github.com/ARPA-SIMC/arkimet/issues/67#issuecomment-293193990).
+
+The fields "filter, index, unique, remote import, step, replace, type, format, path" are the standard Arkimet ones, necessary for ingestion of data in Arkimet datasets.
+
+The field "name" in the config file is not considered by Arkimet.
+
+For Arkimet, the dataset name is the same as the corresponding directory name and is more like an ID than a name.
+
+The field "description" is optional and is managed by Arkimet. The content of this field is displayed with the dataset name in the dataset list page on the Frontend.
+
+Arkimet allows you to add custom fields whose name starts with '_' and which are returned in the summary.
+
+**In Meteo-hub we have added the following fields that are used to operate the Frontend:**
+
+- *_name*
+
+In this field you can enter the name of the dataset you want to appear to end users. The Frontend first looks for this field, if it is not present then use Arkimet's field "name". 
+
+Optional field.
+
+- *_category*
+
+The code indicating the type of dataset must be entered in this field. 
+
+Mandatory field.
+
+The codes are: 
+
+```
+FOR forecast
+OBS osservati
+RAD radar
+```
+
+- *_license*
+
+The name of the license applied to the dataset must be entered in this field.
+
+The license name must be one of those present in the name field of the LICENSE table of the database. 
+
+Mandatory field.
+
+- *_attribution*
+
+The name of the attribution applied to the dataset must be entered in this field.
+
+The name must be one of those present in the name field of the database ATTRIBUTION table. 
+
+Mandatory field.
+
+
+
+------
+
+
+
+### **NiFi-based ingestion component**
+
+*TODO Dedagroup*
+
+#### **DPC observed data flow**
+#### **Arpae observed data flow**
+#### **DPC radar data flow**
+#### **Arpap Multimodel data flow**
+
+
+
+------
+
+
 
 ## **Open Data Catalogue**
-### **Installing CKAN with docker compose**
+
+### Installing CKAN with docker compose
+
 The stack is based on Docker containers deployed with docker-compose, as described in the following documentation:
 
 [https](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[://](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[docs](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[ckan](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[org](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[en](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[/2.8/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[maintaining](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[installing](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[install](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[from](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[docker](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[compose](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)[html](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html)
@@ -403,7 +493,7 @@ The following container have been created:
 
 
 ```
-**CONTAINER ID    	IMAGE                   	COMMAND              	   PORTS            NAMES**
+CONTAINER ID    	IMAGE                   	COMMAND              	   PORTS            NAMES
 
 9c5a904ea8c8    	docker\_ckan             	"/ckan-entrypoint.sh…"   5000/tcp           ckan
 
@@ -420,27 +510,29 @@ c390866ab566    	redis:latest            	"docker-entrypoint.s…"   6379/tcp   
 
 
 
-### **Ckan extensions**
+### Ckan extensions
+
 A CKAN extension is a Python package that modifies or extends CKAN. Each extension contains one or more plugins that must be added to your CKAN config file to activate the extension’s features.
 
 The **ckanext-mistral** extension has been created to customize the CKAN template.
 
 The following extensions have been installed:
 
-|**extension**|**Url**|**version**|**Plugin attivati**|
-| :- | :- | :- | :- |
-|*Plugin in ckan core*| | |Stats, Image\_view, Text\_view, Recline\_view|
-|Datastore|*Ckan core*| |datastore|
-|Datapusher|https://github.com/ckan/datapusher|2019-01-18|datapusher|
-|Ckanext-spatial|https://github.com/ckan/ckanext-spatial|2019-03-15|resource\_proxy, spatial\_metadata, spatial\_query, csw\_harvester|
-|Ckanext-dcat|https://github.com/ckan/ckanext-dcat|<p>2019-06-25</p><p> </p>|dcat dcat\_json\_interface structured\_data|
-|Ckanext-dcatapit|https://github.com/geosolutions-it/ckanext-dcatapit|2019-12-09|dcatapit\_pkg, dcatapit\_org, dcatapit\_config, dcatapit\_csw\_harvester|
-|Ckanext-mistral|Mistral extensions|1.0.0|mistral|
-|Ckanext-geoview|https://github.com/ckan/ckanext-geoview/|2019-04-09|geo\_view|
-|Ckanext-harvest|https://github.com/ckan/ckanext-harvest|2019-07-01|harvest ckan\_harvester|
-|Ckanext-multilang|https://github.com/geosolutions-it/ckanext-multilang|2019-02-01|multilang|
+| **extension**         | **Url**                                              | **version**               | **Plugin attivati**                                          |
+| :-------------------- | :--------------------------------------------------- | :------------------------ | :----------------------------------------------------------- |
+| *Plugin in ckan core* |                                                      |                           | Stats, Image\_view, Text\_view, Recline\_view                |
+| Datastore             | *Ckan core*                                          |                           | datastore                                                    |
+| Datapusher            | https://github.com/ckan/datapusher                   | 2019-01-18                | datapusher                                                   |
+| Ckanext-spatial       | https://github.com/ckan/ckanext-spatial              | 2019-03-15                | resource\_proxy, spatial\_metadata, spatial\_query, csw\_harvester |
+| Ckanext-dcat          | https://github.com/ckan/ckanext-dcat                 | <p>2019-06-25</p><p> </p> | dcat dcat\_json\_interface structured\_data                  |
+| Ckanext-dcatapit      | https://github.com/geosolutions-it/ckanext-dcatapit  | 2019-12-09                | dcatapit\_pkg, dcatapit\_org, dcatapit\_config, dcatapit\_csw\_harvester |
+| Ckanext-mistral       | Mistral extensions                                   | 1.0.0                     | mistral                                                      |
+| Ckanext-geoview       | https://github.com/ckan/ckanext-geoview/             | 2019-04-09                | geo\_view                                                    |
+| Ckanext-harvest       | https://github.com/ckan/ckanext-harvest              | 2019-07-01                | harvest ckan\_harvester                                      |
+| Ckanext-multilang     | https://github.com/geosolutions-it/ckanext-multilang | 2019-02-01                | multilang                                                    |
 
 ### **Web server**
+
 The webserver, running on the nginx:latest image, works as a reverse proxy for the environment.
 
 Two **upstreams** are configured:
@@ -452,18 +544,20 @@ Proxy\_pass under location **/catalog** and **/catalog/**
 **2.** Upstream **datapusher** toward datapusher:8800
 
 Proxy\_pass under location **/datapusher** and **/datapusher/**
+
 ### **Ckan configuration**
+
 The following **environment variables** are set by docker-compose and overrides the configuration file’s settings. The variable propagation is described at[ ](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[https](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[://](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[docs](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[ckan](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[org](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[en](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[/2.8/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[maintaining](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[installing](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[install](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[from](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[docker](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[compose](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[html](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[#](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[environment](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)[variables](https://docs.ckan.org/en/2.8/maintaining/installing/install-from-docker-compose.html#environment-variables)
 
-|**Variable name**|**Config equivalent**|**Set value**|
-| :- | :- | :- |
-|CKAN\_SQLALCHEMY\_URL|sqlalchemy.url|postgresql://ckan:${POSTGRES\_PASSWORD}@db/ckan|
-|CKAN\_DATASTORE\_WRITE\_URL|ckan.datastore.write\_url|postgresql://ckan:${POSTGRES\_PASSWORD}@db/datastore|
-|'CKAN\_DATASTORE\_READ\_URL'|ckan.datastore.read\_url|postgresql://datastore\_ro:${DATASTORE\_READONLY\_PASSWORD}@db/datastore|
-|CKAN\_REDIS\_URL|ckan.redis.url|redis://redis:6379/1|
-|CKAN\_SOLR\_URL|solr\_url|http://solr:8983/solr/ckan|
-|CKAN\_DATAPUSHER\_URL|ckan.datapusher.url|http://datapusher:8800|
-|CKAN\_SITE\_URL|ckan.site\_url|https://www.mistralportal.it|
+| **Variable name**            | **Config equivalent**     | **Set value**                                                |
+| :--------------------------- | :------------------------ | :----------------------------------------------------------- |
+| CKAN\_SQLALCHEMY\_URL        | sqlalchemy.url            | postgresql://ckan:${POSTGRES\_PASSWORD}@db/ckan              |
+| CKAN\_DATASTORE\_WRITE\_URL  | ckan.datastore.write\_url | postgresql://ckan:${POSTGRES\_PASSWORD}@db/datastore         |
+| 'CKAN\_DATASTORE\_READ\_URL' | ckan.datastore.read\_url  | postgresql://datastore\_ro:${DATASTORE\_READONLY\_PASSWORD}@db/datastore |
+| CKAN\_REDIS\_URL             | ckan.redis.url            | redis://redis:6379/1                                         |
+| CKAN\_SOLR\_URL              | solr\_url                 | http://solr:8983/solr/ckan                                   |
+| CKAN\_DATAPUSHER\_URL        | ckan.datapusher.url       | http://datapusher:8800                                       |
+| CKAN\_SITE\_URL              | ckan.site\_url            | https://www.mistralportal.it                                 |
 
 
 The full list of effective environment variable is available at[ ](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[https](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[://](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[docs](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[ckan](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[org](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[en](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[/2.8/](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[maintaining](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[/](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[configuration](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[.](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[html](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[#](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[environment](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[-](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)[variables](https://docs.ckan.org/en/2.8/maintaining/configuration.html#environment-variables)
@@ -539,19 +633,13 @@ ckan.locales_offered = en it
 
 ### **Volumes**
 
-|**Name**|**Mount point(s)**|
-| :- | :- |
-|webserver\_config|Webserver-> webserver\_config:/etc/nginx|
-|ckan\_config|ckan -> ckan\_config:/etc/ckan|
-|ckan\_home|ckan -> ckan\_home:/usr/lib/ckan|
-|ckan\_storage|ckan -> ckan\_storage:/var/lib/ckan|
-|pg\_data|db -> pg\_data:/var/lib/postgresql/data|
+| **Name**          | **Mount point(s)**                       |
+| :---------------- | :--------------------------------------- |
+| webserver\_config | Webserver-> webserver\_config:/etc/nginx |
+| ckan\_config      | ckan -> ckan\_config:/etc/ckan           |
+| ckan\_home        | ckan -> ckan\_home:/usr/lib/ckan         |
+| ckan\_storage     | ckan -> ckan\_storage:/var/lib/ckan      |
+| pg\_data          | db -> pg\_data:/var/lib/postgresql/data  |
 
-## **NiFi-based ingestion component**
-*TODO Dedagroup*
 
-### **DPC observed data flow**
-### **Arpae observed data flow**
-### **DPC radar data flow**
-### **Arpap Multimodel data flow**
 

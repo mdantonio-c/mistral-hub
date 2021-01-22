@@ -285,6 +285,9 @@ class Data(EndpointResource, Uploader):
         db = sqlalchemy.get_instance()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
 
+        # check if the user has a limit of number of requests par hour
+        repo.check_user_request_limit(db, user)
+
         # check for existing dataset(s)
         datasets = repo.get_datasets(db, user)
         for ds_name in dataset_names:
