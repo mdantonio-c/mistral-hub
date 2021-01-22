@@ -14,7 +14,7 @@
 
 **List of contents**
 
-[[TOC]]
+[TOC]
 
 ------
 
@@ -240,6 +240,20 @@ TODO
 ### **How To**
 
 TODO
+
+
+------
+
+
+
+# **Licenses management**
+
+*TODO Bea*
+
+
+
+------
+
 
 # **API**
 
