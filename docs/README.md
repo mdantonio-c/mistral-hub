@@ -257,9 +257,7 @@ TODO
 
 # **API**
 
-*TODO Mattia*
-
-
+The API are documented using the swagger definition at this [URL](https://meteohub-dev.hpc.cineca.it:7777).
 
 
 
