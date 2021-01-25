@@ -173,7 +173,8 @@ export const LEGEND_DATA: LegendConfig[] = [
     legend_type: "legend_rh",
     title: "RH [%]",
     colors: [
-      "rgba(0,255,255,1)","rgba(51,255,255,0.8)","rgba(102,255,255,0.6)","rgba(153,255,255,0.4)","rgba(204,255,255,0.2)","rgba(255,255,255,0.0)",],
+      "blue", "cyan","green","yellow","orange","red",],
+      // "rgba(0,255,255,1)","rgba(51,255,255,0.8)","rgba(102,255,255,0.6)","rgba(153,255,255,0.4)","rgba(204,255,255,0.2)","rgba(255,255,255,0.0)",],
     labels: [
       "110","100","90","80","70","60",],
   },

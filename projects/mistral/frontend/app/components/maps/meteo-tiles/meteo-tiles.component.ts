@@ -44,6 +44,7 @@ const TILES_PATH = environment.production
   : "app/custom/assets/images/tiles";
 // Product constants
 const TM2 = "Temperature at 2 meters",
+  PMSL = "Pressure mean sea level",
   PREC3P = "Total Precipitation (3h)",
   PREC6P = "Total Precipitation (6h)",
   SF3 = "Snowfall (3h)",
@@ -591,6 +592,15 @@ export class MeteoTilesComponent {
           }),
           {}
         ),
+        [DP.PMSL]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/pressione-pmsl/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            bounds: bounds,
+          }),
+          {}
+        ),
         // Total precipitation 3h Time Layer
         [DP.PREC3P]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(`${baseUrl}/prec3-tp/{d}{h}/{z}/{x}/{y}.png`, {
@@ -641,7 +651,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            //opacity: 0.6,
+            opacity: 0.5,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -716,6 +726,7 @@ export class MeteoTilesComponent {
     let layers = this.layersControl["overlays"];
     this.legends = {
       [DP.TM2]: this.createLegendControl("tm2"),
+      [DP.PMSL]: this.createLegendControl("pmsl"),
       [DP.PREC3P]: this.createLegendControl("prp"),
       [DP.PREC6P]: this.createLegendControl("prp"),
       [DP.SF3]: this.createLegendControl("sf3"),
@@ -745,6 +756,8 @@ export class MeteoTilesComponent {
       // console.log(event["name"]);
       if (event["name"] === DP.TM2) {
         legends[DP.TM2].addTo(map);
+      } else if (event["name"] === DP.PMSL) {
+        legends[DP.PMSL].addTo(map);
       } else if (event["name"] === DP.PREC3P || event["name"] === DP.PREC6P) {
         legends[DP.PREC3P].addTo(map);
       } else if (event["name"] === DP.SF3 || event["name"] === DP.SF6) {
@@ -789,6 +802,8 @@ export class MeteoTilesComponent {
       });
       if (event["name"] === DP.TM2) {
         map.removeControl(legends[DP.TM2]);
+      } else if (event["name"] === DP.PMSL) {
+        map.removeControl(legends[DP.PMSL]);
       } else if (
         event["name"] === DP.PREC3P &&
         !currentActiveLayers.includes(DP.PREC6P)
