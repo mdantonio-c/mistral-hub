@@ -18,6 +18,7 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
   datasets: Dataset[];
   form: FormGroup;
   selectedCategories: string[] = [];
+  selectedLicenseGroups: string[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -77,6 +78,19 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
           .showWarning(`It is not currently possible to mix different types of datasets.
                 Please select datasets under the same category.`);
       }
+      // check license group
+      let license_groups = val
+        .map((v, i) => (v ? this.datasets[i].group_license : null))
+        .filter((v) => v !== null);
+      this.selectedLicenseGroups = license_groups.filter(
+        (v, i) => license_groups.indexOf(v) === i
+      );
+      if (this.selectedLicenseGroups.length > 1) {
+        this.notify
+          .showWarning(`It is not possible to mix datasets from different license groups.
+                Please select datasets with compatible licenses.`);
+      }
+
       let selected_datasets = val
         .map((v, i) => (v ? this.datasets[i].id : null))
         .filter((v) => v !== null);

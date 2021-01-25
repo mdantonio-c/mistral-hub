@@ -94,7 +94,7 @@ class TilesEndpoint(EndpointResource):
     )
     def get(self, dataset, run=None):
         ready_file = None
-        info = DATASETS.get(dataset)
+        info = DATASETS.get(dataset, {})
         area = info.get("area")
 
         # check for run param: if not provided get the "last" run available

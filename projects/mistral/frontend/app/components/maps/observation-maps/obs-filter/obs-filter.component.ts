@@ -17,6 +17,8 @@ import { User } from "@rapydo/types";
 import { AuthService } from "@rapydo/services/auth";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
+import { debounceTime, distinctUntilChanged } from "rxjs/operators";
+import { Subject } from "rxjs";
 
 const LAST_DAYS = +environment.CUSTOM.LASTDAYS || 10;
 
@@ -29,6 +31,7 @@ export class ObsFilterComponent implements OnInit {
   readonly DEFAULT_PRODUCT = "B12101";
   readonly DEFAULT_LEVEL = "103,2000,0,0";
   readonly DEFAULT_TIMERANGE = "254,0,0";
+  readonly DEFAULT_LICENSE = "CCBY_COMPLIANT";
   @Input() network: string;
 
   filterForm: FormGroup;
@@ -36,7 +39,7 @@ export class ObsFilterComponent implements OnInit {
   allLevels: CodeDescPair[];
   allProducts: CodeDescPair[];
   allTimeranges: CodeDescPair[];
-  allLicenses: CodeDescPair[] = LICENSES;
+  allLicenses: CodeDescPair[];
   today: Date = new Date();
   maxDate: NgbDateStruct = {
     year: this.today.getFullYear(),
@@ -44,6 +47,10 @@ export class ObsFilterComponent implements OnInit {
     day: this.today.getDate(),
   };
   minDate: NgbDateStruct | null;
+  minTime: number = 0;
+  maxTime: number = 23;
+  rangeValue = [this.minTime, this.maxTime];
+  timeChanged: Subject<number[]> = new Subject<number[]>();
   user: User;
 
   isUpdatable: boolean = false;
@@ -70,13 +77,19 @@ export class ObsFilterComponent implements OnInit {
     this.filterForm = this.fb.group({
       product: [this.DEFAULT_PRODUCT, Validators.required],
       reftime: [this.today, Validators.required],
+      time: [[this.minTime, this.maxTime]],
       level: [""],
       timerange: [""],
       boundingBox: [""],
       network: [""],
-      license: ["CC-BY", Validators.required],
+      license: [this.DEFAULT_LICENSE, Validators.required],
       reliabilityCheck: [true],
     });
+    this.timeChanged
+      .pipe(debounceTime(2000), distinctUntilChanged())
+      .subscribe((model) => {
+        this.filterForm.get("time").setValue(model);
+      });
   }
 
   ngOnInit() {
@@ -84,6 +97,7 @@ export class ObsFilterComponent implements OnInit {
     let startFilter: ObsFilter = {
       product: this.DEFAULT_PRODUCT,
       reftime: this.today,
+      license: this.DEFAULT_LICENSE,
     };
     if (this.network) {
       startFilter.network = this.network;
@@ -131,12 +145,13 @@ export class ObsFilterComponent implements OnInit {
           this.filterForm.reset(
             {
               reftime: f.reftime,
+              time: f.time,
               product: f.product,
               network: f.network || "",
               level: "",
               timerange: "",
               boundingBox: "",
-              license: "CC-BY",
+              license: f.license || "CCBY_COMPLIANT",
               reliabilityCheck: true,
             },
             { emitEvent: false }
@@ -146,9 +161,21 @@ export class ObsFilterComponent implements OnInit {
 
           // I need all available products here, regardless of the filter
           this.allProducts = items.available_products;
+          this.allLicenses = items.all_licenses;
           this.filterForm.controls.product.setValue(f.product, {
             emitEvent: false,
           });
+
+          /*          if (items.all_licenses){
+            this.allLicenses = items.all_licenses;
+          }else{
+            this.allLicenses = LICENSES
+          }*/
+          if (this.allLicenses == undefined) {
+            this.filterForm.controls.license.setValue(this.DEFAULT_LICENSE, {
+              emitEvent: false,
+            });
+          }
 
           if (items.network) {
             this.allNetworks = items.network;
@@ -194,6 +221,10 @@ export class ObsFilterComponent implements OnInit {
               this.DEFAULT_TIMERANGE,
               { emitEvent: false }
             );
+            // set default license
+            this.filterForm.controls.license.setValue(this.DEFAULT_LICENSE, {
+              emitEvent: false,
+            });
             // emit filter update
             if (this.filterForm.invalid) {
               this.notify.showError(
@@ -216,8 +247,6 @@ export class ObsFilterComponent implements OnInit {
               `No data available. Try selecting a different${extraMsg}reference date.`
             );
             this.isUpdatable = false;
-          } else {
-            this.isUpdatable = true;
           }
         },
         (error) => {
@@ -231,6 +260,7 @@ export class ObsFilterComponent implements OnInit {
 
   private onChanges(): void {
     this.filterForm.valueChanges.subscribe((val) => {
+      this.isUpdatable = true;
       // console.log('filter changed', val);
       // console.log('is form invalid?', this.filterForm.invalid);
       this.loadFilter(val);
@@ -243,6 +273,8 @@ export class ObsFilterComponent implements OnInit {
     let filter: ObsFilter = {
       product: form.product,
       reftime: form.reftime,
+      time: form.time,
+      license: form.license,
     };
     if (form.network !== "") {
       filter.network = form.network;
@@ -276,4 +308,14 @@ export class ObsFilterComponent implements OnInit {
   download() {
     this.filterDownload.emit(this.toObsFilter());
   }
+
+  updateTime($event) {
+    this.timeChanged.next($event.newValue);
+  }
+
+  formatter = (val: number[]) =>
+    `${String(val[0]).padStart(2, "0")}:00 - ${String(val[1]).padStart(
+      2,
+      "0"
+    )}:59`;
 }

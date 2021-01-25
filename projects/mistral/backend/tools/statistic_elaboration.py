@@ -52,64 +52,81 @@ def pp_statistic_elaboration(params, input, output, fileformat):
                 eccodes.codes_release(gid)
     else:
         with open(input, "rb") as input_file:
-            importer = dballe.Importer("BUFR")
-            exporter = dballe.Exporter("BUFR")
-
-            with importer.from_file(input_file) as fp:
+            with open(file_not_for_pp, "wb") as no_match_file:
                 for tr in trs:
-                    for msgs in fp:
-                        for msg in msgs:
-                            count_vars = 0
-                            count_vars_nm = 0
-                            new_msg = dballe.Message("generic")
+                    file_for_pp = filebase + f"_%d_%d.{fileformat}.tmp" % tr
+                    log.debug("file for post process {} ", file_for_pp)
+                    with open(file_for_pp, "wb") as match_file:
+                        importer = dballe.Importer("BUFR")
+                        exporter = dballe.Exporter("BUFR")
 
-                            new_msg.set_named("year", msg.get_named("year"))
-                            new_msg.set_named("month", msg.get_named("month"))
-                            new_msg.set_named("day", msg.get_named("day"))
-                            new_msg.set_named("hour", msg.get_named("hour"))
-                            new_msg.set_named("minute", msg.get_named("minute"))
-                            new_msg.set_named("second", msg.get_named("second"))
-                            new_msg.set_named("rep_memo", msg.report)
-                            new_msg.set_named("longitude", int(msg.coords[0] * 10 ** 5))
-                            new_msg.set_named("latitude", int(msg.coords[1] * 10 ** 5))
-                            if msg.ident:
-                                new_msg.set_named("ident", msg.ident)
+                        with importer.from_file(input_file) as fp:
+                            for msgs in fp:
+                                for msg in msgs:
+                                    count_vars = 0
+                                    count_vars_nm = 0
+                                    new_msg = dballe.Message("generic")
 
-                            new_msg_nm = new_msg
-                            for data in msg.query_data({"query": "attrs"}):
-                                variable = data["variable"]
-                                attrs = variable.get_attrs()
-                                v = dballe.var(
-                                    data["variable"].code, data["variable"].get()
-                                )
-                                for a in attrs:
-                                    v.seta(a)
+                                    new_msg.set_named("year", msg.get_named("year"))
+                                    new_msg.set_named("month", msg.get_named("month"))
+                                    new_msg.set_named("day", msg.get_named("day"))
+                                    new_msg.set_named("hour", msg.get_named("hour"))
+                                    new_msg.set_named("minute", msg.get_named("minute"))
+                                    new_msg.set_named("second", msg.get_named("second"))
+                                    new_msg.set_named("rep_memo", msg.report)
+                                    new_msg.set_named(
+                                        "longitude", int(msg.coords[0] * 10 ** 5)
+                                    )
+                                    new_msg.set_named(
+                                        "latitude", int(msg.coords[1] * 10 ** 5)
+                                    )
+                                    if msg.ident:
+                                        new_msg.set_named("ident", msg.ident)
 
-                                if data["trange"].pind == tr[0]:
-                                    new_msg.set(data["level"], data["trange"], v)
-                                    count_vars += 1
-                                else:
-                                    new_msg_nm.set(data["level"], data["trange"], v)
-                                    count_vars_nm += 1
+                                    new_msg_nm = new_msg
+                                    for data in msg.query_data({"query": "attrs"}):
+                                        variable = data["variable"]
+                                        attrs = variable.get_attrs()
+                                        v = dballe.var(
+                                            data["variable"].code,
+                                            data["variable"].get(),
+                                        )
+                                        for a in attrs:
+                                            v.seta(a)
 
-                            for data in msg.query_station_data({"query": "attrs"}):
-                                variable = data["variable"]
-                                attrs = variable.get_attrs()
-                                v = dballe.var(
-                                    data["variable"].code, data["variable"].get()
-                                )
-                                for a in attrs:
-                                    v.seta(a)
+                                        if data["trange"].pind == tr[0]:
+                                            new_msg.set(
+                                                data["level"], data["trange"], v
+                                            )
+                                            count_vars += 1
+                                        else:
+                                            new_msg_nm.set(
+                                                data["level"], data["trange"], v
+                                            )
+                                            count_vars_nm += 1
 
-                                new_msg.set(dballe.Level(), dballe.Trange(), v)
-                                new_msg_nm.set(dballe.Level(), dballe.Trange(), v)
-                            if count_vars > 0:
-                                file_for_pp = filebase + f"_%d_%d.{fileformat}.tmp" % tr
-                                with open(file_for_pp, "wb") as match_file:
-                                    match_file.write(exporter.to_binary(new_msg))
-                            if count_vars_nm > 0:
-                                with open(file_not_for_pp, "wb") as no_match_file:
-                                    no_match_file.write(exporter.to_binary(new_msg_nm))
+                                    for data in msg.query_station_data(
+                                        {"query": "attrs"}
+                                    ):
+                                        variable = data["variable"]
+                                        attrs = variable.get_attrs()
+                                        v = dballe.var(
+                                            data["variable"].code,
+                                            data["variable"].get(),
+                                        )
+                                        for a in attrs:
+                                            v.seta(a)
+
+                                        new_msg.set(dballe.Level(), dballe.Trange(), v)
+                                        new_msg_nm.set(
+                                            dballe.Level(), dballe.Trange(), v
+                                        )
+                                    if count_vars > 0:
+                                        match_file.write(exporter.to_binary(new_msg))
+                                    if count_vars_nm > 0:
+                                        no_match_file.write(
+                                            exporter.to_binary(new_msg_nm)
+                                        )
 
     if os.path.exists(file_not_for_pp):
         fileouput_to_join.append(file_not_for_pp)

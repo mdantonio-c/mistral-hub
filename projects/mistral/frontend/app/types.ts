@@ -42,6 +42,7 @@ export interface GenericItems {
 export interface Items {
   product: any[];
   available_products: any[];
+  all_licenses?: any[];
   level?: any[];
   network?: any[];
   timerange?: any[];
@@ -178,6 +179,8 @@ export interface Templates {
 export interface ObsFilter {
   product: string;
   reftime: Date;
+  time?: number[]; // expected 2 values (from, to)
+  license?: string;
   network?: string;
   timerange?: string;
   level?: string;

@@ -8,8 +8,8 @@ runs:
   steps:
     - run: |
         wget --quiet ${{ inputs.dataset_url }}/arkimet.conf -O data/arkimet_conf/arkimet.conf;
-        wget --quiet ${{ inputs.dataset_url }}/arkimet_summary.json -O data/arkimet_conf/arkimet_summary_filtered.json;
-        wget --quiet ${{ inputs.dataset_url }}/dballe_summary_filtered.json -O data/arkimet_conf/dballe_summary_filtered.json;
+        wget --quiet ${{ inputs.dataset_url }}/arkimet_summary_CCBY_COMPLIANT.json -O data/arkimet_conf/arkimet_summary_filtered_CCBY_COMPLIANT.json;
+        wget --quiet ${{ inputs.dataset_url }}/dballe_summary_filtered_CCBY_COMPLIANT.json -O data/arkimet_conf/dballe_summary_filtered_CCBY_COMPLIANT.json;
         wget --quiet ${{ inputs.dataset_url }}/sample.bufr -O data/arkimet_conf/sample.bufr;
         wget --quiet ${{ inputs.dataset_url }}/arkimet.zip;
         unzip -q arkimet.zip -d data/;

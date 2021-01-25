@@ -29,13 +29,12 @@ export class ObsService {
    * @param filter
    */
   getFields(filter: ObsFilter): Observable<FieldsSummary> {
-    let d = [
-      `${filter.reftime.getFullYear()}`,
-      `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),
-      `${filter.reftime.getDate()}`.padStart(2, "0"),
-    ].join("-");
     let params = {
-      q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
+      q: `${ObsService.parseReftime(
+        filter.reftime,
+        filter.reftime,
+        filter.time
+      )};product:${filter.product};license:${filter.license}`,
       SummaryStats: false,
       allAvailableProducts: true,
     };
@@ -51,12 +50,9 @@ export class ObsService {
     if (filter.network && filter.network !== "") {
       params["q"] += `;network:${filter.network}`;
     }
+    console.log(`q: ${params.q}`);
     return this.api.get("fields", params);
   }
-
-  // getObservations(filter: ObsFilter) {
-  //   return this.api.get("observations", "", filter);
-  // }
 
   /**
    * Get station specifics and data for timeseries.
@@ -76,14 +72,12 @@ export class ObsService {
     filter: ObsFilter,
     station: Station
   ): Observable<ObservationResponse> {
-    // this._data = [];
-    let d = [
-      `${filter.reftime.getFullYear()}`,
-      `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),
-      `${filter.reftime.getDate()}`.padStart(2, "0"),
-    ].join("-");
     let params = {
-      q: `reftime: >=${d} 00:00,<=${d} 23:59`,
+      q: `${ObsService.parseReftime(
+        filter.reftime,
+        filter.reftime,
+        filter.time
+      )}`,
       lat: station.lat,
       lon: station.lon,
       networks: station.net,
@@ -123,13 +117,12 @@ export class ObsService {
    */
   private loadObservations(filter: ObsFilter): Observable<ObservationResponse> {
     this._data = null;
-    let d = [
-      `${filter.reftime.getFullYear()}`,
-      `${filter.reftime.getMonth() + 1}`.padStart(2, "0"),
-      `${filter.reftime.getDate()}`.padStart(2, "0"),
-    ].join("-");
     let params = {
-      q: `reftime: >=${d} 00:00,<=${d} 23:59;product:${filter.product}`,
+      q: `${ObsService.parseReftime(
+        filter.reftime,
+        filter.reftime,
+        filter.time
+      )};product:${filter.product};license:${filter.license}`,
     };
     if (filter.reliabilityCheck) {
       params["reliabilityCheck"] = filter.reliabilityCheck;
@@ -156,6 +149,7 @@ export class ObsService {
     if (filter.interval) {
       params["interval"] = filter.interval;
     }
+    console.log(`q: ${params.q}`);
     return this.api
       .get<ObservationResponse>("observations", params)
       .pipe(map((data: ObservationResponse) => (this._data = data)));
@@ -167,18 +161,10 @@ export class ObsService {
     to: Date,
     format: string
   ): Observable<Blob> {
-    let fDate = [
-      `${from.getFullYear()}`,
-      `${from.getMonth() + 1}`.padStart(2, "0"),
-      `${from.getDate()}`.padStart(2, "0"),
-    ].join("-");
-    let tDate = [
-      `${to.getFullYear()}`,
-      `${to.getMonth() + 1}`.padStart(2, "0"),
-      `${to.getDate()}`.padStart(2, "0"),
-    ].join("-");
     let params = {
-      q: `reftime: >=${fDate} 00:00,<=${tDate} 23:59;product:${filter.product}`,
+      q: `${ObsService.parseReftime(from, to, filter.time)};product:${
+        filter.product
+      };license:${filter.license}`,
       output_format: format,
     };
     if (filter.timerange && filter.timerange !== "") {
@@ -200,6 +186,26 @@ export class ObsService {
         responseType: "blob" as "json",
       })
       .pipe(catchError(this.api.parseErrorBlob));
+  }
+
+  private static parseReftime(from: Date, to: Date, time?: number[]): string {
+    let fDate = [
+      `${from.getFullYear()}`,
+      `${from.getMonth() + 1}`.padStart(2, "0"),
+      `${from.getDate()}`.padStart(2, "0"),
+    ].join("-");
+    let tDate = [
+      `${to.getFullYear()}`,
+      `${to.getMonth() + 1}`.padStart(2, "0"),
+      `${to.getDate()}`.padStart(2, "0"),
+    ].join("-");
+    let fromTime = "00:00";
+    let toTime = "23:59";
+    if (time && time.length === 2) {
+      fromTime = `${String(time[0]).padStart(2, "0")}:00`;
+      toTime = `${String(time[1]).padStart(2, "0")}:59`;
+    }
+    return `reftime: >=${fDate} ${fromTime},<=${tDate} ${toTime}`;
   }
 
   private getColorIndex(d, min, max) {

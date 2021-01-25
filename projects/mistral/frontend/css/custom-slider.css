@@ -121,3 +121,7 @@
   color: #999;
   background: #e1e4e9;
 }
+
+#mst-slider .tooltip.tooltip-main.top {
+  z-index: 100 !important;
+}

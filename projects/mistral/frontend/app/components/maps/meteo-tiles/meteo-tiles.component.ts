@@ -353,7 +353,12 @@ export class MeteoTilesComponent {
     // keep a running total of the number of even numbers out
     const numberCount = source.pipe(scan((acc, _) => acc + 1, 0));
     // do not emit until 24 numbers have been emitted
-    let maxNumbers = numberCount.pipe(filter((val) => val > 24));
+    let mm_interval = this.runAvailable.end_offset + 24 || 72;
+    let timerange_number = 24;
+    if (mm_interval === 72) {
+      timerange_number = 16;
+    }
+    let maxNumbers = numberCount.pipe(filter((val) => val > timerange_number));
     const loadMultipleData$ = source.pipe(
       catchError((error) => {
         // FIXME stop subscription on error
@@ -367,21 +372,24 @@ export class MeteoTilesComponent {
 
     loadMultipleData$
       .subscribe((val) => {
+        let interval = this.runAvailable.end_offset + 24 || 72;
         const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
         console.log(`timerange: ${timerange} : ${val}`);
         let filterTM: ObsFilter = {
           product: MultiModelProduct.TM,
           reftime: reftime,
           network: "multim-forecast",
+          license: "CCBY_COMPLIANT",
           timerange: timerange,
-          interval: this.runAvailable.end_offset + 24 || 72,
+          interval: interval,
         };
         let filterRH: ObsFilter = {
           product: MultiModelProduct.RH,
           reftime: reftime,
           network: "multim-forecast",
+          license: "CCBY_COMPLIANT",
           timerange: timerange,
-          interval: this.runAvailable.end_offset + 24 || 72,
+          interval: interval,
         };
         let productTM$ = this.obsService.getData(filterTM, true);
         let productRH$ = this.obsService.getData(filterRH, true);

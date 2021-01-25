@@ -214,6 +214,19 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     this.formData.opendata = !this.formData.opendata;
   }
 
+  onPeriodSelected(period) {
+    if (period === "minute") {
+      // set the minimum period allowed
+      this.scheduleForm.patchValue({
+        every: 15,
+      });
+    } else {
+      this.scheduleForm.patchValue({
+        every: 1,
+      });
+    }
+  }
+
   checkOpenData() {
     if (
       this.user &&

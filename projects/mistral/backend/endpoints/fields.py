@@ -1,4 +1,9 @@
-from mistral.exceptions import AccessToDatasetDenied
+from mistral.exceptions import (
+    AccessToDatasetDenied,
+    NetworkNotInLicenseGroup,
+    UnAuthorizedUser,
+    UnexistingLicenseGroup,
+)
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
@@ -60,6 +65,7 @@ class Fields(EndpointResource):
         # check for existing dataset(s)
         user = self.get_user()
         db = sqlalchemy.get_instance()
+        license_group = None
         if datasets:
             if not user:
                 # case of data extraction: endpoint needs authorization
@@ -77,7 +83,7 @@ class Fields(EndpointResource):
                 )
                 if not found:
                     raise NotFound(
-                        f"Dataset '{ds_name}' not found: check for dataset name of for your authorizations"
+                        f"Dataset '{ds_name}' not found: check for dataset name or for your authorizations"
                     )
 
             if len(datasets) > 1 and "multim-forecast" in datasets:
@@ -90,8 +96,14 @@ class Fields(EndpointResource):
                 raise BadRequest(
                     "Invalid set of datasets : datasets categories are different"
                 )
+            # check the licence group
+            license_group = SqlApiDbManager.get_license_group(db, datasets)
+            if not license_group:
+                raise BadRequest(
+                    "Invalid set of datasets : datasets belongs to different license groups"
+                )
         else:
-            # maps case: TODO: manage user authorizations
+            # maps case
             # if data_type is forecast always dataset has to be specified.
             # If dataset is not in query data_type can't be 'FOR'
             data_type = "OBS"
@@ -109,6 +121,20 @@ class Fields(EndpointResource):
             if bounding_box:
                 for key, value in bounding_box.items():
                     query_dic[key] = value
+
+            dataset_name = None
+            if query_dic and "network" in query_dic:
+                # map case, check for authorization
+                dataset_name = arki.from_network_to_dataset(query_dic["network"][0])
+                if not dataset_name:
+                    raise NotFound("The requested network does not exists")
+                check_auth = SqlApiDbManager.check_dataset_authorization(
+                    db, dataset_name, user
+                )
+                if not check_auth:
+                    raise Unauthorized(
+                        "user is not authorized to access the selected network"
+                    )
 
             queried_reftime = None
             if "datetimemin" in query_dic:
@@ -132,20 +158,63 @@ class Fields(EndpointResource):
                             query_dic["datetimemin"], query_dic["datetimemax"]
                         )
 
-                if db_type != "dballe" and not user:
-                    raise Unauthorized(
-                        "to access archived data the user has to be logged"
-                    )
+                if db_type != "dballe":
+                    if not user:
+                        raise Unauthorized(
+                            "to access archived data the user has to be logged"
+                        )
+                    else:
+                        # check for user authorization to access archived observed data
+                        is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
+                            user, param="allowed_obs_archive"
+                        )
+                        if not is_allowed_obs_archive:
+                            raise Unauthorized(
+                                "user is not authorized to access archived data"
+                            )
             else:
                 if not user:
                     raise Unauthorized(
                         "to access archived data the user has to be logged"
                     )
                 else:
+                    # check for user authorization to access archived observed data
+                    is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
+                        user, param="allowed_obs_archive"
+                    )
+                    if not is_allowed_obs_archive:
+                        raise Unauthorized(
+                            "user is not authorized to access archived data"
+                        )
                     db_type = "mixed"
             log.debug("db type: {}", db_type)
 
-            # TODO check unique license
+            l_group_subset = []
+            if not license_group:
+                # maps case
+                if "license" not in query_dic:
+                    if dataset_name and dataset_name == "multim-forecast":
+                        # is the only case where the request come without a requested license group
+                        multim_group_license = SqlApiDbManager.get_license_group(
+                            db, [dataset_name]
+                        )
+                        query_dic["license"] = multim_group_license.name
+                    else:
+                        raise BadRequest("License group parameter is mandatory")
+                try:
+                    license_group, l_group_subset = dballe.check_access_authorization(
+                        user, query_dic["license"], dataset_name, dsn_subset=False
+                    )
+
+                except UnexistingLicenseGroup:
+                    raise BadRequest("The selected group of license does not exists")
+                except UnAuthorizedUser:
+                    raise Unauthorized("user is not authorized to access the datasets")
+                except NetworkNotInLicenseGroup:
+                    BadRequest(
+                        "The selected network and the selected license group does not match"
+                    )
+
             ds_params = []
             if datasets:
                 # get dataset pars to filter dballe according to the requested dataset
@@ -153,12 +222,24 @@ class Fields(EndpointResource):
                     for el in arki.get_observed_dataset_params(ds):
                         ds_params.append(el)
                     log.info(f"dataset: {ds}, networks: {ds_params}")
+            if l_group_subset:
+                log.debug(
+                    "user authorized for a subset of dataset of the license group"
+                )
+                # special use case for private datasets
+                # the query for filters has to be done by dataset like the dataset case below
+                for ds in l_group_subset:
+                    for el in arki.get_observed_dataset_params(ds):
+                        ds_params.append(el)
+                    log.info(f"dataset: {ds}, networks: {ds_params}")
+
             try:
                 fields, summary = dballe.load_filters(
                     ds_params,
                     SummaryStats,
                     allAvailableProducts,
-                    db_type=db_type,
+                    db_type,
+                    license_group,
                     query_dic=query_dic,
                     queried_reftime=queried_reftime,
                 )
@@ -171,6 +252,19 @@ class Fields(EndpointResource):
                 if SummaryStats:
                     for key in summary:
                         resulting_fields["summarystats"][key] = summary[key]
+
+                if allAvailableProducts:
+                    # maps case: add license group field
+                    all_group_licenses = (
+                        SqlApiDbManager.get_all_user_authorized_license_groups(db, user)
+                    )
+                    all_group_licenses_res = []
+                    for lg in all_group_licenses:
+                        item = {}
+                        item["code"] = lg
+                        item["desc"] = lg.replace("_", " ")
+                        all_group_licenses_res.append(item)
+                    resulting_fields["all_licenses"] = all_group_licenses_res
 
             summary = {"items": resulting_fields}
 

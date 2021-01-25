@@ -1,9 +1,10 @@
+import datetime
 import json
 import os
 
 from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from restapi.connectors.celery import CeleryExt
-from restapi.exceptions import NotFound
+from restapi.exceptions import NotFound, Unauthorized
 from restapi.utilities.logs import log
 
 
@@ -159,6 +160,7 @@ class SqlApiDbManager:
         db.session.delete(request)
         db.session.commit()
 
+    @staticmethod
     def delete_schedule(db, schedule_id):
         schedule = db.Schedule.query.get(schedule_id)
         name = schedule.name
@@ -309,12 +311,14 @@ class SqlApiDbManager:
         if sort_by == "date":
             if sort_order == "asc":
                 sorted_list = sorted(
-                    user_list, key=lambda date: date["submission_date"]
+                    user_list, key=lambda date: date["submission_date"]  # type: ignore
                 )
                 return sorted_list
             if sort_order == "desc":
                 sorted_list = sorted(
-                    user_list, key=lambda date: date["submission_date"], reverse=True
+                    user_list,
+                    key=lambda date: date["submission_date"],  # type: ignore
+                    reverse=True,
                 )
                 return sorted_list
         else:
@@ -343,11 +347,15 @@ class SqlApiDbManager:
 
         if sort_by == "date":
             if sort_order == "asc":
-                sorted_list = sorted(user_list, key=lambda date: date["creation_date"])
+                sorted_list = sorted(
+                    user_list, key=lambda date: date["creation_date"]  # type: ignore
+                )
                 return sorted_list
             if sort_order == "desc":
                 sorted_list = sorted(
-                    user_list, key=lambda date: date["creation_date"], reverse=True
+                    user_list,
+                    key=lambda date: date["creation_date"],  # type: ignore
+                    reverse=True,
                 )
                 return sorted_list
         else:
@@ -421,24 +429,30 @@ class SqlApiDbManager:
         return resp
 
     @staticmethod
-    def get_datasets(db, user, licenceSpecs=False):
+    def get_datasets(db, user, category=None, licenceSpecs=False, group_license=None):
         # get all datasets
         ds_objects = db.Datasets.query.filter_by().all()
         datasets = []
         for ds in ds_objects:
             dataset_el = {}
+            if category:
+                if ds.category.name != category:
+                    continue
             # get license
             license = db.License.query.filter_by(id=ds.license_id).first()
             # get license group
-            group_license = db.GroupLicense.query.filter_by(
+            group_license_obj = db.GroupLicense.query.filter_by(
                 id=license.group_license_id
             ).first()
+            if group_license:
+                if group_license_obj.name != group_license:
+                    continue
             if user:
                 # get user authorized datasets
                 user_datasets_auth = [ds.name for ds in user.datasets]
                 open_dataset = user.open_dataset
                 # check the authorization
-                if not group_license.is_public:
+                if not group_license_obj.is_public:
                     # looking for exception: check the authorized datasets
                     if ds.name not in user_datasets_auth:
                         continue
@@ -453,7 +467,7 @@ class SqlApiDbManager:
             dataset_el["category"] = ds.category.name
             dataset_el["format"] = ds.fileformat
             dataset_el["bounding"] = ds.bounding
-            dataset_el["is_public"] = group_license.is_public
+            dataset_el["is_public"] = group_license_obj.is_public
 
             if licenceSpecs:
                 attribution = db.Attribution.query.filter_by(
@@ -462,11 +476,138 @@ class SqlApiDbManager:
                 dataset_el["license"] = license.name
                 dataset_el["license_description"] = license.descr
                 dataset_el["license_url"] = license.url
-                dataset_el["group_license"] = group_license.name
-                dataset_el["group_license_description"] = group_license.descr
+                dataset_el["group_license"] = group_license_obj.name
+                dataset_el["group_license_description"] = group_license_obj.descr
                 dataset_el["attribution"] = attribution.name
                 dataset_el["attribution_description"] = attribution.descr
                 dataset_el["attribution_url"] = attribution.url
             datasets.append(dataset_el)
 
         return datasets
+
+    @staticmethod
+    def get_license_group(db, datasets):
+        license_group = None
+        for d in datasets:
+            ds = db.Datasets.query.filter_by(arkimet_id=d).first()
+            license = db.License.query.filter_by(id=ds.license_id).first()
+            group_license = db.GroupLicense.query.filter_by(
+                id=license.group_license_id
+            ).first()
+            if not license_group:
+                license_group = group_license
+            else:
+                if license_group.id != group_license.id:
+                    # datasets belongs to different license groups
+                    return None
+        return license_group
+
+    @staticmethod
+    def check_dataset_authorization(db, dataset_name, user):
+        ds_object = db.Datasets.query.filter_by(arkimet_id=dataset_name).first()
+        license = db.License.query.filter_by(id=ds_object.license_id).first()
+        group_license = db.GroupLicense.query.filter_by(
+            id=license.group_license_id
+        ).first()
+        if group_license.is_public:
+            # open dataset
+            return True
+        else:
+            if not user:
+                # anonymous user and private dataset
+                return False
+            user_datasets_auth = [ds.name for ds in user.datasets]
+            if dataset_name in user_datasets_auth:
+                return True
+            else:
+                return False
+
+    @staticmethod
+    def retrieve_dataset_by_dsn(db, dsn_name):
+        license_groups = db.GroupLicense.query.filter_by(dballe_dsn=dsn_name).all()
+        datasets_names = []
+        for lg in license_groups:
+            # get all licenses
+            licenses = lg.license.all()
+            for lic in licenses:
+                datasets = lic.datasets.all()
+                for d in datasets:
+                    if d.category.name == "OBS":
+                        datasets_names.append(d.arkimet_id)
+        return datasets_names
+
+    @staticmethod
+    def retrieve_dataset_by_license_group(db, group_license_name):
+        # function used for observed data
+        license_group = db.GroupLicense.query.filter_by(name=group_license_name).first()
+        datasets_names = []
+        # get all licenses
+        licenses = license_group.license.all()
+        for lic in licenses:
+            datasets = lic.datasets.all()
+            for d in datasets:
+                if d.category.name == "OBS":
+                    datasets_names.append(d.arkimet_id)
+        return datasets_names
+
+    @staticmethod
+    def get_all_user_authorized_license_groups(db, user):
+        auth_license_groups = []
+        all_license_groups = db.GroupLicense.query.filter_by().all()
+        for lg in all_license_groups:
+            if lg.is_public:
+                # check if user want to see also opendata datasets
+                if user and not user.open_dataset:
+                    continue
+                else:
+                    auth_license_groups.append(lg.name)
+            else:
+                if not user:
+                    # to see private dataset the user has to be logged
+                    continue
+                else:
+                    # get all authorized datasets
+                    user_datasets_auth = [ds.name for ds in user.datasets]
+                    # get all license group datasets
+                    lg_dataset_list = SqlApiDbManager.retrieve_dataset_by_license_group(
+                        db, lg.name
+                    )
+                    if any(item in user_datasets_auth for item in lg_dataset_list):
+                        auth_license_groups.append(lg.name)
+        return auth_license_groups
+
+    @staticmethod
+    def check_user_request_limit(db, user):
+        max_request_hour = SqlApiDbManager.get_user_permissions(
+            user, param="request_par_hour"
+        )
+        if max_request_hour:
+            now = datetime.datetime.utcnow()
+            last_hour = now.replace(minute=0, second=0, microsecond=0)
+            request_count = (
+                db.session.query(db.Request)
+                .filter(db.Request.submission_date > last_hour)
+                .filter(db.Request.submission_date < now)
+                .count()
+            )
+            if request_count == max_request_hour:
+                next_hour = last_hour + datetime.timedelta(hours=1)
+                raise Unauthorized(
+                    f"The max number of requests par hour has been reached: New requests can be submitted after {next_hour.hour}:00"
+                )
+
+    @staticmethod
+    def get_user_permissions(user, param):
+        if param == "templates":
+            return user.max_templates
+        elif param == "output_size":
+            return user.max_output_size
+        elif param == "request_par_hour":
+            return user.request_par_hour
+        elif param == "allowed_postprocessing":
+            return user.allowed_postprocessing
+        elif param == "allowed_schedule":
+            return user.allowed_schedule
+        elif param and param == "allowed_obs_archive":
+            return user.allowed_obs_archive
+        return None

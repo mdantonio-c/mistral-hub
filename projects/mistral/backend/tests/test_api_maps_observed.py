@@ -121,7 +121,7 @@ class TestApp(BaseTests):
         for d in obs_dataset:
             endpoint = (
                 API_URI
-                + "/fields?q=reftime:>={date_from},<={date_to}&datasets={dataset}&SummaryStats=false".format(
+                + "/fields?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&datasets={dataset}&SummaryStats=false".format(
                     date_from=date_from, date_to=date_to, dataset=d
                 )
             )
@@ -172,14 +172,22 @@ class TestApp(BaseTests):
 
     def test_endpoint_without_login(self, client):
 
-        endpoint = API_URI + "/observations"
+        endpoint = API_URI + "/observations?q=license:CCBY_COMPLIANT"
         r = client.get(endpoint)
         assert r.status_code == 401
+
+    def test_endpoint_without_license(self, client):
+
+        endpoint = API_URI + "/observations"
+        r = client.get(endpoint)
+        assert r.status_code == 400
 
     def test_for_dballe_dbtype(self, client, faker):
         # create a fake user and login with it
 
-        uuid, data = self.create_user(client, {"open_dataset": True})
+        uuid, data = self.create_user(
+            client, {"open_dataset": True, "allowed_obs_archive": True}
+        )
         # Will be used to delete the user after the tests
         self.save("fake_uuid", uuid)
         user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
@@ -209,8 +217,11 @@ class TestApp(BaseTests):
     def standard_observed_endpoint_testing(self, client, faker, headers, q_params):
 
         # only reftime as argument
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}".format(
-            date_from=q_params["date_from"], date_to=q_params["date_to"]
+        endpoint = (
+            API_URI
+            + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT".format(
+                date_from=q_params["date_from"], date_to=q_params["date_to"]
+            )
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -224,7 +235,7 @@ class TestApp(BaseTests):
         assert check_product_2 is True
 
         # only network as argument
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}".format(
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}".format(
             date_from=q_params["date_from"],
             date_to=q_params["date_to"],
             network=q_params["network"],
@@ -245,13 +256,10 @@ class TestApp(BaseTests):
         random_net = faker.pystr()
         dfrom = q_params["date_from"]
         dto = q_params["date_to"]
-        endpoint = (
-            f"{API_URI}/observations?q=reftime:>={dfrom},<={dto}&networks={random_net}"
-        )
+        endpoint = f"{API_URI}/observations?q=reftime:>={dfrom},<={dto};license:CCBY_COMPLIANT&networks={random_net}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
-        assert r.status_code == 200
-        assert not response_data["data"]
+        assert r.status_code == 404
 
         # ### only bounding box as argument ####
         # Italy bounding-box
@@ -259,7 +267,7 @@ class TestApp(BaseTests):
         latmin = 36.6199
         latmax = 47.1153
         lonmax = 18.4802
-        endpoint = f"{API_URI}/observations?q=reftime:>={dfrom},<={dto}&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}"
+        endpoint = f"{API_URI}/observations?q=reftime:>={dfrom},<={dto};license:CCBY_COMPLIANT&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         # check response code
@@ -278,14 +286,14 @@ class TestApp(BaseTests):
         rand_lonmax = 47.1153
         date_from = q_params["date_from"]
         date_to = q_params["date_to"]
-        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to}&lonmin={rand_lonmin}&lonmax={rand_lonmax}&latmin={rand_latmin}&latmax={rand_latmax}"
+        endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&lonmin={rand_lonmin}&lonmax={rand_lonmax}&latmin={rand_latmin}&latmax={rand_latmax}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
         assert r.status_code == 200
         assert not response_data["data"]
 
         # ### only product as argument ####
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product}".format(
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product};license:CCBY_COMPLIANT".format(
             date_from=q_params["date_from"],
             date_to=q_params["date_to"],
             product=q_params["product_1"],
@@ -302,7 +310,7 @@ class TestApp(BaseTests):
         assert check_product_2 is False
         # check error with random param
         fake_product = "B11111"
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product}".format(
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product};license:CCBY_COMPLIANT".format(
             date_from=q_params["date_from"],
             date_to=q_params["date_to"],
             product=fake_product,
@@ -313,7 +321,7 @@ class TestApp(BaseTests):
         assert not response_data["data"]
 
         # ### all arguments ####
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product}&&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}&networks={network}".format(
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product};license:CCBY_COMPLIANT&&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}&networks={network}".format(
             date_from=q_params["date_from"],
             date_to=q_params["date_to"],
             product=q_params["product_1"],
@@ -337,7 +345,7 @@ class TestApp(BaseTests):
         # ### only stations ####
         endpoint = (
             API_URI
-            + "/observations?q=reftime:>={date_from},<={date_to}&onlyStations=true".format(
+            + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&onlyStations=true".format(
                 date_from=q_params["date_from"], date_to=q_params["date_to"]
             )
         )
@@ -349,7 +357,7 @@ class TestApp(BaseTests):
         assert not response_data["data"][0]["prod"]
 
         # get station details ####
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
             date_from=q_params["date_from"],
             date_to=q_params["date_to"],
             network=q_params["network"],
@@ -360,7 +368,7 @@ class TestApp(BaseTests):
         # check response code
         assert r.status_code == 200
         # check random network
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
             date_from=q_params["date_from"],
             date_to=q_params["date_to"],
             network=random_net,
@@ -368,10 +376,10 @@ class TestApp(BaseTests):
             lon=station_lon_example,
         )
         r = client.get(endpoint, headers=headers)
-        response_data = self.get_content(r)
-        assert not response_data["data"]
+        # check response code
+        assert r.status_code == 404
         # check missing params
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to}&networks={network}&stationDetails=true".format(
+        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&stationDetails=true".format(
             date_from=q_params["date_from"],
             date_to=q_params["date_to"],
             network=q_params["network"],

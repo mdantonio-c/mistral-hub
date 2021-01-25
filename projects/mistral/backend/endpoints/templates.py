@@ -4,9 +4,18 @@ import subprocess
 from zipfile import ZipFile
 
 from flask import request
+from mistral.endpoints import DOWNLOAD_DIR
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.config import UPLOAD_PATH
-from restapi.exceptions import BadRequest, NotFound, ServerError
+from restapi.connectors import sqlalchemy
+from restapi.exceptions import (
+    BadRequest,
+    Forbidden,
+    NotFound,
+    ServerError,
+    Unauthorized,
+)
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
@@ -64,6 +73,21 @@ class Templates(EndpointResource, Uploader):
             subfolder = os.path.join(user.uuid, "uploads", "grib")
         else:
             subfolder = os.path.join(user.uuid, "uploads", "shp")
+
+        # check the max number of templates the user is allowed to upload
+        max_user_templates = SqlApiDbManager.get_user_permissions(
+            user, param="templates"
+        )
+        if max_user_templates:
+            if f[-1] == "grib":
+                template_list = glob.glob(os.path.join(UPLOAD_PATH, subfolder, "*"))
+            else:
+                template_list = glob.glob(os.path.join(UPLOAD_PATH, subfolder, "*.shp"))
+            if len(template_list) == int(max_user_templates):
+                raise Unauthorized(
+                    "user has reached the max number of templates of this kind"
+                )
+
         log.debug("uploading in {}", subfolder)
         try:
             upload_res = self.upload(subfolder=subfolder)
@@ -86,7 +110,7 @@ class Templates(EndpointResource, Uploader):
                 if i.endswith(".zip") or i.endswith(".geojson"):
                     file_to_remove = os.path.join(UPLOAD_PATH, subfolder, i)
                     os.remove(file_to_remove)
-            raise SystemError("Unable to upload the template file")
+            raise ServerError("Unable to upload the template file")
 
         # if the file is a zip file extract the content in the upload folder
         if f[-1] == "zip":
@@ -116,6 +140,34 @@ class Templates(EndpointResource, Uploader):
         # if the file is a geojson convert it to shapefile
         if f[-1] == "geojson":
             upload_filepath = self.convert_to_shapefile(upload_filepath)
+
+        # check user quota
+        user_dir = os.path.join(
+            DOWNLOAD_DIR,
+            user.uuid,
+        )
+        used_quota = int(subprocess.check_output(["du", "-sb", user_dir]).split()[0])
+        # check for exceeding quota
+        db = sqlalchemy.get_instance()
+        max_user_quota = (
+            db.session.query(db.User.disk_quota).filter_by(id=user.id).scalar()
+        )
+        file_size = os.path.getsize(upload_filepath)
+        if used_quota + file_size > max_user_quota:
+            filebase, fileext = os.path.splitext(upload_filepath)
+            # delete all the files related to the template
+            filelist = glob.glob(
+                os.path.join(
+                    UPLOAD_PATH,
+                    user.uuid,
+                    "uploads",
+                    fileext.strip("."),
+                    filebase + "*",
+                )
+            )
+            for f in filelist:
+                os.remove(f)
+            raise Forbidden("Disk quota exceeded")
 
         r = {
             "filepath": upload_filepath,
@@ -177,17 +229,31 @@ class Templates(EndpointResource, Uploader):
                 else:
                     counter = len(grib_templates) + len(shp_templates)
                 return self.response({"total": counter})
+
+            # get max number of templates the user can upload
+            max_user_templates = SqlApiDbManager.get_user_permissions(
+                user, param="templates"
+            )
+
             res = []
             grib_object = {}
             grib_object["type"] = "grib"
             grib_object["files"] = []
             for t in grib_templates:
                 grib_object["files"].append(t)
+            if max_user_templates and len(grib_templates) >= int(max_user_templates):
+                grib_object["max_allowed"] = True
+            else:
+                grib_object["max_allowed"] = False
             shp_object = {}
             shp_object["type"] = "shp"
             shp_object["files"] = []
             for t in shp_templates:
                 shp_object["files"].append(t)
+            if max_user_templates and len(shp_templates) >= int(max_user_templates):
+                shp_object["max_allowed"] = True
+            else:
+                shp_object["max_allowed"] = False
             if format == "grib":
                 res.append(grib_object)
             elif format == "shp":

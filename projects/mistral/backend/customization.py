@@ -2,7 +2,6 @@ from restapi.connectors import sqlalchemy
 from restapi.customizer import BaseCustomizer
 from restapi.exceptions import NotFound
 from restapi.models import AdvancedList, Schema, fields, validate
-from restapi.utilities.logs import log
 
 
 class Datasets(Schema):
@@ -30,7 +29,10 @@ class Customizer(BaseCustomizer):
 
             datasets.append(dat)
 
-        # log.critical(datasets)
+        # Self-registered users
+        if "open_dataset" not in properties and "open_dataset" not in extra_properties:
+            user.open_dataset = True
+
         user.datasets = datasets
 
     @staticmethod
