@@ -451,12 +451,42 @@ Mandatory field.
 
 ### **NiFi-based ingestion component**
 
-*TODO Dedagroup*
+The ingestor machine uses docker and is equipped with the following containers:
 
-#### **DPC observed data flow**
-#### **Arpae observed data flow**
-#### **DPC radar data flow**
-#### **Arpap Multimodel data flow**
+| Container ID | Image               | Ports                                          | Name          | Description                                                  |
+| ------------ | ------------------- | ---------------------------------------------- | ------------- | ------------------------------------------------------------ |
+| b409f251c311 | arpaesimc/centos    |                                                | arpaesimcnifi | Main container, including: DBAlle and Arkimet libraries, Apache NiFi, Python scripts |
+| 0f05ef726844 | postgres            | 0.0.0.0:5432->5432/tcp                         | nice-pg       | Operational PostGres DB for NiFi                             |
+| b4e7ab3ef91f | dpage/pgadmin4      | 80/tcp, 443/tcp, 0.0.0.0:5050->5050/tcp        | pgadmin4      | PostGres DB client (optional, just for management tasks)     |
+| d2c4cd796a59 | portainer/portainer | 0.0.0.0:8000->8000/tcp, 0.0.0.0:9000->9000/tcp | portainer     | Docker client (optional, just for management tasks)          |
+
+Container *arpaesimcnifi* has been set-up with the following steps:
+
+1. Deploy from original releases available from [https://github.com/ARPA-SIMC/dballe](https://github.com/ARPA-SIMC/dballe)
+   `docker run -it arpaesimc/fedora:31 /bin/bash`
+   `docker run -it arpaesimc/centos:8 /bin/bash`
+
+2. Update the libraries available from `@copr:copr.fedorainfracloud.org:simc:stable` to the latest version available
+
+3. Install NiFi 1.11.4 as documented here:
+   https://nifi.apache.org/docs/nifi-docs/html/getting-started.html
+   https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html 
+   Installation folder: /home/nifi/nifi-1.11.4
+   Operational folder: /opt/nifi
+4. Create working directories:
+   /home/nifi/ingest/radar
+   /home/nifi/ingest/obs
+   /opt/nifi/nifi_ok_flowfile
+   /opt/nifi/nifi_error_flowfile
+   /opt/nifi/temp
+5. Copy provided python scripts into folder:
+   /home/nifi/ingest/obs
+6. Mount Arkimet storage folder to:
+   /opt/arkimet_data
+7. Create table structure in NiFi’s operational DB by launching the provided SQL script
+8. Load the provided NiFi’s XML templates into the application.
+   Create context parameters copying them from the TXT list provided.
+   Start NiFi flows.
 
 
 
