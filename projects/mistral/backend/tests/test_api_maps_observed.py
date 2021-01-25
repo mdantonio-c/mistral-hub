@@ -185,7 +185,9 @@ class TestApp(BaseTests):
     def test_for_dballe_dbtype(self, client, faker):
         # create a fake user and login with it
 
-        uuid, data = self.create_user(client, {"open_dataset": True})
+        uuid, data = self.create_user(
+            client, {"open_dataset": True, "allowed_obs_archive": True}
+        )
         # Will be used to delete the user after the tests
         self.save("fake_uuid", uuid)
         user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
