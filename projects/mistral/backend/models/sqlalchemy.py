@@ -21,6 +21,13 @@ setattr(User, "amqp_queue", db.Column(db.String(255), nullable=True))
 # Used by requests autocleaning to determine old requests to be deleted
 setattr(User, "requests_expiration_days", db.Column(db.Integer, default=0))
 setattr(User, "open_dataset", db.Column(db.Boolean))
+# user configuration
+setattr(User, "max_templates", db.Column(db.Integer))
+setattr(User, "max_output_size", db.Column(db.BigInteger))
+setattr(User, "allowed_postprocessing", db.Column(db.Boolean, default=False))
+setattr(User, "allowed_schedule", db.Column(db.Boolean, default=False))
+setattr(User, "allowed_obs_archive", db.Column(db.Boolean, default=False))
+setattr(User, "request_par_hour", db.Column(db.Integer))
 
 
 class Request(db.Model):
