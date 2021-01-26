@@ -96,32 +96,32 @@ class Customizer(BaseCustomizer):
                     multiple=True,
                 ),
                 "max_templates": fields.Int(
-                    required=True,
+                    required=required,
                     validate=validate.Range(min=0, max=999),
                     label="Max # templates",
                     description="Maximum number of templates the user can upload",
                 ),
                 "max_output_size": fields.Int(
-                    required=True,
+                    required=required,
                     validate=validate.Range(min=0, max=999),
                     label="Max output size",
                     description="Maximum amount of data the user can request at once",
                 ),
                 "allowed_postprocessing": fields.Boolean(
-                    required=True,
+                    required=required,
                     label="Postprocessing",
                     description="Allow postprocessing tools",
                 ),
                 "allowed_schedule": fields.Boolean(
-                    required=True, label="Schedule", description="Allow schedules"
+                    required=required, label="Schedule", description="Allow schedules"
                 ),
                 "allowed_obs_archive": fields.Boolean(
-                    required=True,
+                    required=required,
                     label="Observed Archive",
                     description="Allow access to observed archive",
                 ),
                 "request_par_hour": fields.Int(
-                    required=True,
+                    required=required,
                     validate=validate.Range(min=0, max=999),
                     label="Requests per hour",
                     description="Maximum number of allowed requests per hour",
