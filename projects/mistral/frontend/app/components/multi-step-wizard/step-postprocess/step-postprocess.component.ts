@@ -23,7 +23,9 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
   form: FormGroup;
   vars = [];
   gridInterpolationTemplates = [];
+  isMaxGridTemplateNumber = false;
   sparePointsTemplates = [];
+  isMaxShpTemplateNumber = false;
   validationResults = [];
   summaryStats: SummaryStats = { c: 0, s: 0 };
   uploadedFileName;
@@ -315,6 +317,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
               this.form.controls["selectedGITemplate"].setValue(file);
             }
           }
+          this.isMaxGridTemplateNumber = type.max_allowed;
         }
         this.buildSpaceGrid();
       },
@@ -356,6 +359,8 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
                 this.form.controls["selectedSPTemplate"].setValue(file);
             }
           }
+          this.isMaxShpTemplateNumber = type.max_allowed;
+          console.log("shp ", type, " ", this.isMaxShpTemplateNumber);
         }
         this.buildSparePoint();
       },

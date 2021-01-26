@@ -101,6 +101,10 @@ export class DataService {
     return this.api.get(`templates${param}`);
   }
 
+  deleteTemplates(template_name: string): Observable<Templates[]> {
+    return this.api.delete(`templates/${template_name}`);
+  }
+
   /**
    * Request for data extraction.
    *

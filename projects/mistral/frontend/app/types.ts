@@ -173,6 +173,7 @@ export interface OnOffSchedule {
 }
 
 export interface Templates {
+  max_allowed: boolean;
   files: string[];
   type: string;
 }
