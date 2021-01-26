@@ -601,7 +601,7 @@ export class MeteoTilesComponent {
           {}
         ),
         [DP.PMSL]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/pressione-pmsl/{d}{h}/{z}/{x}/{y}.png`, {
+          L.tileLayer(`${baseUrl}/pressure-pmsl/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
