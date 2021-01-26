@@ -95,11 +95,12 @@ export class MeteoTilesComponent {
   readonly LEGEND_POSITION = "bottomleft";
   readonly DEFAULT_DATASET = "lm5";
   readonly license_iff =
-    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>';
+  '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>';
+  //'&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>';
   readonly license_cosmo =
-    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
+    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
   readonly license =
-    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
+    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
 
   map: L.Map;
   dataset: string;
@@ -116,8 +117,8 @@ export class MeteoTilesComponent {
       minZoom: MIN_ZOOM,
     }
   );
-  LAYER_MAPBOX_LIGHT = L.tileLayer(
-    "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw",
+  LAYER_LIGHTMATTER = L.tileLayer(
+    "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
     {
       id: "mapbox.light",
       attribution: this.license,
@@ -138,8 +139,8 @@ export class MeteoTilesComponent {
   layersControl = {
     baseLayers: {
       "Openstreet Map": this.LAYER_OSM,
-      "Carto Map": this.LAYER_DARKMATTER,
-      "Mapbox Map": this.LAYER_MAPBOX_LIGHT,
+      "Carto Map Dark": this.LAYER_DARKMATTER,
+      "Carto Map Light": this.LAYER_LIGHTMATTER,
     },
   };
   options = {
@@ -180,7 +181,7 @@ export class MeteoTilesComponent {
     private spinner: NgxSpinnerService
   ) {
     // set the initial set of displayed layers
-    this.options["layers"] = [this.LAYER_MAPBOX_LIGHT];
+    this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.dataset = this.DEFAULT_DATASET;
   }
 
