@@ -1,14 +1,17 @@
 export interface CustomUser {
   disk_quota: number;
-  /**
-   * @nullable
-   */
+  /** @nullable */
   amqp_queue: string;
   /** @nullable */
   requests_expiration_days: number;
   datasets: SimpleDataset[];
-  /** @nullable */
   open_dataset: boolean;
+  max_templates: number;
+  max_output_size: number;
+  allowed_postprocessing: boolean;
+  allowed_schedule: boolean;
+  allowed_obs_archive: boolean;
+  request_par_hour: number;
 }
 
 export interface CodeDescPair {

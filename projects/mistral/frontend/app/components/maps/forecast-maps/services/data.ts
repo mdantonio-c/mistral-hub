@@ -8,6 +8,7 @@ export const Fields: KeyValuePair[] = [
   { key: "prec6", value: "Accumulated total prec. 6h (Kg/mq)" },
   { key: "t2m", value: "Temperature at 2 meters (C°)" },
   { key: "wind", value: "Wind at 10 meters (m/s)" },
+  { key: "pressure", value: "Pressure at mean sea level (hPa)" },
   { key: "cloud", value: "Cloud coverage (%)" },
   { key: "cloud_hml", value: "Cloud coverage high, medium, low (%)" },
   { key: "humidity", value: "Relative humidity (%)" },

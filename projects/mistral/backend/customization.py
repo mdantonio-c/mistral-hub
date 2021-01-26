@@ -95,6 +95,37 @@ class Customizer(BaseCustomizer):
                     unique=True,
                     multiple=True,
                 ),
+                "max_templates": fields.Int(
+                    required=required,
+                    validate=validate.Range(min=0, max=999),
+                    label="Max # templates",
+                    description="Maximum number of templates the user can upload",
+                ),
+                "max_output_size": fields.Int(
+                    required=required,
+                    validate=validate.Range(min=0, max=999),
+                    label="Max output size",
+                    description="Maximum amount of data the user can request at once",
+                ),
+                "allowed_postprocessing": fields.Boolean(
+                    required=required,
+                    label="Postprocessing",
+                    description="Allow postprocessing tools",
+                ),
+                "allowed_schedule": fields.Boolean(
+                    required=required, label="Schedule", description="Allow schedules"
+                ),
+                "allowed_obs_archive": fields.Boolean(
+                    required=required,
+                    label="Observed Archive",
+                    description="Allow access to observed archive",
+                ),
+                "request_par_hour": fields.Int(
+                    required=required,
+                    validate=validate.Range(min=0, max=999),
+                    label="Requests per hour",
+                    description="Maximum number of allowed requests per hour",
+                ),
             }
 
         # these are editable fields in profile

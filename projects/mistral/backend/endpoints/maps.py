@@ -17,6 +17,7 @@ FIELDS = [
     "t2m",
     "wind",
     "cloud",
+    "pressure",
     "cloud_hml",
     "humidity",
     "snow3",

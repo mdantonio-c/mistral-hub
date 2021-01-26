@@ -163,6 +163,7 @@ export enum MULTI_MODEL_TIME_RANGES {
 
 export enum DatasetProduct {
   TM2 = "Temperature at 2 meters",
+  PMSL = "Pressure mean sea level",
   PREC3P = "Total Precipitation (3h)",
   PREC6P = "Total Precipitation (6h)",
   SF3 = "Snowfall (3h)",
