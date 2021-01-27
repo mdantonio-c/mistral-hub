@@ -187,7 +187,7 @@ The *Anonymous* users are managed.
 
 The functionality enabling and the configurations for the other user profiles have been implemented **at the user level**.
 
-So, the profile "Amministratore", "Pagante", "Institutional", "Demo" and "Auto-registrato" have to be configured by the administrator at the time of the creation, through the Frontend user creation feature.
+So, the profiles "Amministratore", "Pagante", "Institutional", "Demo" and "Auto-registrato" have to be configured by the administrator at the time of the creation, through the Frontend user creation feature.
 
 The role field is only used to remind the administrator the type of the user, but from a functional point of view it is irrelevant.
 
