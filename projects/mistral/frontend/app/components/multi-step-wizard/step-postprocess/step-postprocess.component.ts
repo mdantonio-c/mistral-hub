@@ -7,6 +7,7 @@ import {
   FormControl,
   Validators,
 } from "@angular/forms";
+import { User } from "@rapydo/types";
 import { FormDataService } from "@app/services/formData.service";
 import { PP_TIME_RANGES } from "@app/services/data";
 import { DataService } from "@app/services/data.service";
@@ -14,6 +15,7 @@ import { SummaryStats } from "@app/types";
 import { NotificationService } from "@rapydo/services/notification";
 import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { StepComponent } from "../step.component";
+import { AuthService } from "@rapydo/services/auth";
 
 @Component({
   selector: "step-postprocess",
@@ -22,6 +24,7 @@ import { StepComponent } from "../step.component";
 export class StepPostprocessComponent extends StepComponent implements OnInit {
   title = "Choose a post-processing";
   form: FormGroup;
+  user: User;
   vars = [];
   gridInterpolationTemplates = [];
   isMaxGridTemplateNumber = false;
@@ -120,7 +123,8 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     protected formDataService: FormDataService,
     private dataService: DataService,
     private notify: NotificationService,
-    private confirmationModals: ConfirmationModals
+    private confirmationModals: ConfirmationModals,
+    private authService: AuthService
   ) {
     super(formDataService, router, route);
     this.form = this.formBuilder.group({
@@ -417,6 +421,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.user = this.authService.getUser();
     window.scroll(0, 0);
 
     this.formDataService.getSummaryStats().subscribe((response) => {
