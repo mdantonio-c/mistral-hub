@@ -40,8 +40,14 @@ class Customizer(BaseCustomizer):
         data["disk_quota"] = user.disk_quota
         data["amqp_queue"] = user.amqp_queue
         data["requests_expiration_days"] = user.requests_expiration_days
-        data["datasets"] = user.datasets
         data["open_dataset"] = user.open_dataset
+        data["datasets"] = user.datasets
+        data["max_templates"] = user.max_templates
+        data["max_output_size"] = user.max_output_size
+        data["allowed_postprocessing"] = user.allowed_postprocessing
+        data["allowed_schedule"] = user.allowed_schedule
+        data["allowed_obs_archive"] = user.allowed_obs_archive
+        data["request_par_hour"] = user.request_par_hour
 
         return data
 
