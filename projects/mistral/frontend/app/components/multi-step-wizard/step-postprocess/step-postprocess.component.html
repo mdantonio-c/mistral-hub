@@ -550,6 +550,8 @@
                                 <button
                                   class="btn p-0"
                                   style="margin-left: 3vmin"
+                                  type="button"
+                                  (click)="delete(v.label)"
                                 >
                                   <i class="fa fa-trash red"></i>
                                 </button>
@@ -784,7 +786,12 @@
                             />
                             {{ v.label }}
                             <span class="checkradio"></span>
-                            <button class="btn p-0" style="margin-left: 3vmin">
+                            <button
+                              class="btn p-0"
+                              style="margin-left: 3vmin"
+                              type="button"
+                              (click)="delete(v.label)"
+                            >
                               <i class="fa fa-trash red"></i>
                             </button>
                           </label>

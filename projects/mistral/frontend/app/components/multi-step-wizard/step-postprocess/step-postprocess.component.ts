@@ -12,6 +12,7 @@ import { PP_TIME_RANGES } from "@app/services/data";
 import { DataService } from "@app/services/data.service";
 import { SummaryStats } from "@app/types";
 import { NotificationService } from "@rapydo/services/notification";
+import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { StepComponent } from "../step.component";
 
 @Component({
@@ -118,7 +119,8 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     protected route: ActivatedRoute,
     protected formDataService: FormDataService,
     private dataService: DataService,
-    private notify: NotificationService
+    private notify: NotificationService,
+    private confirmationModals: ConfirmationModals
   ) {
     super(formDataService, router, route);
     this.form = this.formBuilder.group({
@@ -360,7 +362,6 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
             }
           }
           this.isMaxShpTemplateNumber = type.max_allowed;
-          console.log("shp ", type, " ", this.isMaxShpTemplateNumber);
         }
         this.buildSparePoint();
       },
@@ -368,6 +369,33 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
         this.notify.showError("Unable to load templates");
       }
     );
+  }
+
+  public delete(
+    template_name: string,
+    text: string = null,
+    title: string = null,
+    subText: string = null
+  ) {
+    text = `Are you really sure you want to delete the template ${template_name} from your personal space?`;
+    this.confirmationModals
+      .open({ text: text, title: title, subText: subText })
+      .then(
+        (result) => {
+          this.dataService.deleteTemplates(template_name).subscribe(
+            (response) => {
+              this.notify.showSuccess(
+                "Confirmation: " + template_name + " successfully deleted"
+              );
+              this.buildTemplates();
+            },
+            (error) => {
+              this.notify.showError("Unable to delete the selected template");
+            }
+          );
+        },
+        (reason) => {}
+      );
   }
 
   private buildOutputFormat() {
