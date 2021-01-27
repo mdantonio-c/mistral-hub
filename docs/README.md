@@ -181,19 +181,25 @@ The multi-layer visualisation is available for COSMO-5M, COSMO-2I and Italy Flas
 *TODO Bea*
 
 ### **User roles**
-The roles implemented are:
+The functionalities for each profile are outlined in this *[table](https://gitlab.hpc.cineca.it/mistral/meteo-hub/-/issues/172#note_5812)*
+
+The *Anonymous* users are managed.
+
+The functionality enabling and the configurations for the other user profiles have been implemented **at the user level**.
+
+So, the profiles "Amministratore", "Pagante", "Institutional", "Demo" and "Auto-registrato" have to be configured by the administrator at the time of the creation, through the Frontend user creation feature.
+
+The role field is only used to remind the administrator the type of the user, but from a functional point of view it is irrelevant.
+
+At the moment, the roles implemented are:
 
 - *Administrators* 
 - *Institutional*
 - *User*
 
-By assigning a role to an account, the Administrator enables that account to a certain profile and to a set of functionalities.
+The role *User* is the default one. 
 
-The functionalities for each profile are outlined in this *[table](https://gitlab.hpc.cineca.it/mistral/meteo-hub/-/issues/172#note_5812)*
-
-The role *User* is the default one. It corresponds to the profile “Auto-registrato”. 
-
-The Demo profile has the same permissions as the “Auto-registrato” profile and therefore it corresponds to the role *User*.
+Other roles can be added when needed.
 
 ### **Create a new user**
 
