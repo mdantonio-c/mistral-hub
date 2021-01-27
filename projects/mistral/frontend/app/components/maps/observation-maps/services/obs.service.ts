@@ -89,6 +89,9 @@ export class ObsService {
     if (filter.level && filter.level !== "") {
       params["q"] += `;level:${filter.level}`;
     }
+    if (filter.license && filter.license !== "") {
+      params["q"] += `;license:${filter.license}`;
+    }
     return this.api.get("observations", params);
     //.pipe(map((data: Observation[], descriptions: Descriptions[]) => (data.data, data.descr)));
   }
