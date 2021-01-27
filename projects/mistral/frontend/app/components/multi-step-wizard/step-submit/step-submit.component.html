@@ -63,7 +63,11 @@
           >
         </ng-template>
       </h5>
-      <div class="btn-group btn-group-sm float-right" role="group">
+      <div
+        *ngIf="user.allowed_schedule"
+        class="btn-group btn-group-sm float-right"
+        role="group"
+      >
         <button
           class="btn btn-info btn-sm float-right"
           (click)="showSchedule(content)"
