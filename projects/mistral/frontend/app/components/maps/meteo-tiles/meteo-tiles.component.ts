@@ -107,6 +107,7 @@ export class MeteoTilesComponent {
   private run: string;
   private legends: { [key: string]: L.Control } = {};
   // license = this.license;
+  bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
 
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -115,6 +116,7 @@ export class MeteoTilesComponent {
       //'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>'+l_iff,
       maxZoom: MAX_ZOOM,
       minZoom: MIN_ZOOM,
+
     }
   );
   LAYER_LIGHTMATTER = L.tileLayer(
@@ -135,6 +137,7 @@ export class MeteoTilesComponent {
     }
   );
 
+
   // Values to bind to Leaflet Directive
   layersControl = {
     baseLayers: {
@@ -148,6 +151,9 @@ export class MeteoTilesComponent {
     center: L.latLng([46.879966, 11.726909]),
     timeDimension: true,
     timeDimensionControl: true,
+    maxBounds: this.bounds,
+    maxBoundsViscosity: 1.0,
+    //bounds:
     timeDimensionControlOptions: {
       autoPlay: false,
       loopButton: true,
@@ -207,6 +213,8 @@ export class MeteoTilesComponent {
 
   onMapReady(map: L.Map) {
     this.map = map;
+    //console.log(this.bounds);
+
     this.loadRunAvailable(this.DEFAULT_DATASET);
     this.initLegends(this.map);
     // pass a reference to this MeteoTilesComponent
@@ -446,7 +454,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -457,7 +465,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -468,7 +476,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -479,7 +487,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -490,7 +498,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -501,7 +509,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -512,7 +520,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -523,7 +531,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -534,7 +542,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -545,7 +553,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -556,7 +564,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -567,7 +575,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -578,7 +586,7 @@ export class MeteoTilesComponent {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.9,
+            opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),

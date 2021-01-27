@@ -1,4 +1,8 @@
-<form [formGroup]="form" (ngSubmit)="goToNext()">
+<form
+  [formGroup]="form"
+  (ngSubmit)="goToNext()"
+  xmlns="http://www.w3.org/1999/html"
+>
   <div class="tab-pane fade show active mt-4">
     <h4 class="head text-center">{{ title }}</h4>
     <br />
@@ -543,28 +547,57 @@
                                 />
                                 {{ v.label }}
                                 <span class="checkradio"></span>
+                                <button
+                                  class="btn p-0"
+                                  style="margin-left: 3vmin"
+                                  type="button"
+                                  (click)="delete(v.label)"
+                                >
+                                  <i class="fa fa-trash red"></i>
+                                </button>
                               </label>
                             </li>
                           </ul>
                         </div>
                         <hr />
-                        <div>
-                          <h5>Add new template to your personal area</h5>
-                        </div>
-                        <div class="custom-file">
-                          <input
-                            type="file"
-                            class="custom-file-input"
-                            id="input-grid-template"
-                            aria-describedby="inputGroupFileAddon01"
-                            (change)="loadFile($event.target.files)"
-                          />
-                          <label
-                            class="custom-file-label"
-                            for="inputGroupFile01"
-                            >Select file to upload</label
-                          >
-                        </div>
+                        <span *ngIf="!isMaxGridTemplateNumber">
+                          <div>
+                            <h5>Add new template to your personal area</h5>
+                          </div>
+                          <div class="custom-file">
+                            <input
+                              type="file"
+                              class="custom-file-input"
+                              id="input-grid-template"
+                              aria-describedby="inputGroupFileAddon01"
+                              (change)="loadFile($event.target.files)"
+                            />
+                            <label
+                              class="custom-file-label"
+                              for="inputGroupFile01"
+                              >Select file to upload</label
+                            >
+                          </div>
+                        </span>
+                        <span *ngIf="isMaxGridTemplateNumber">
+                          <div style="color: #6f757d">
+                            <h5>Add new template to your personal area</h5>
+                          </div>
+                          <div class="custom-file">
+                            <input
+                              class="form-control"
+                              type="text"
+                              placeholder="Select file to upload"
+                              readonly
+                            />
+                          </div>
+                          <div>
+                            <h5 style="color: red">
+                              The maximum number of custom template in your
+                              personal area has been reached.
+                            </h5>
+                          </div>
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -753,30 +786,65 @@
                             />
                             {{ v.label }}
                             <span class="checkradio"></span>
+                            <button
+                              class="btn p-0"
+                              style="margin-left: 3vmin"
+                              type="button"
+                              (click)="delete(v.label)"
+                            >
+                              <i class="fa fa-trash red"></i>
+                            </button>
                           </label>
                         </li>
                       </ul>
                     </div>
                     <hr />
-                    <div>
-                      <h5>
-                        Add new shape or geoJson file to your personal area. If
-                        you upload geoJson this will be converted into a shape
-                        file
-                      </h5>
-                    </div>
-                    <div class="custom-file">
-                      <input
-                        type="file"
-                        class="custom-file-input"
-                        id="input-grid-template"
-                        aria-describedby="inputGroupFileAddon01"
-                        (change)="loadFile($event.target.files)"
-                      />
-                      <label class="custom-file-label" for="inputGroupFile01"
-                        >Select file to upload</label
-                      >
-                    </div>
+                    <span *ngIf="!isMaxShpTemplateNumber">
+                      <div>
+                        <h5>
+                          Add new shape or geoJson file to your personal area.
+                          If you upload geoJson this will be converted into a
+                          shape file
+                        </h5>
+                      </div>
+
+                      <div class="custom-file">
+                        <input
+                          type="file"
+                          class="custom-file-input"
+                          id="input-grid-template"
+                          aria-describedby="inputGroupFileAddon01"
+                          (change)="loadFile($event.target.files)"
+                        />
+                        <label class="custom-file-label" for="inputGroupFile01"
+                          >Select file to upload</label
+                        >
+                      </div>
+                    </span>
+                    <span *ngIf="isMaxShpTemplateNumber">
+                      <div style="color: #6f757d">
+                        <h5>
+                          Add new shape or geoJson file to your personal area.
+                          If you upload geoJson this will be converted into a
+                          shape file
+                        </h5>
+                      </div>
+
+                      <div class="custom-file">
+                        <input
+                          class="form-control"
+                          type="text"
+                          placeholder="Select file to upload"
+                          readonly
+                        />
+                      </div>
+                      <div>
+                        <h5 style="color: red">
+                          The maximum number of custom template in your personal
+                          area has been reached.
+                        </h5>
+                      </div>
+                    </span>
                   </div>
                 </div>
               </div>

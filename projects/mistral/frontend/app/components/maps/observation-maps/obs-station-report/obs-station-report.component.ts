@@ -28,6 +28,7 @@ export class ObsStationReportComponent implements OnInit {
   name: string;
   level: string;
   timerange: string;
+  license: string;
   report: Observation;
   descriptions: DescriptionDict;
   active;

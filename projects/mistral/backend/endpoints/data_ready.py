@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
@@ -26,6 +27,15 @@ class DataReady(EndpointResource):
     def post(self, cluster, model, rundate):
 
         log.info("Cluster = {}\tModel = {}\trundate = {}", cluster, model, rundate)
+
+        # check for Meucci or Galileo cluster wich one is currently exported in filesistem
+        if cluster.lower() == "galileo" or cluster.lower() == "meucci":
+            exported_platform = os.environ.get("PLATFORM", "GALILEO")
+            if exported_platform.lower() != cluster.lower():
+                log.debug(
+                    f"the endpoint was called by {cluster} while the exported platform is {exported_platform}"
+                )
+                return self.response("1", code=202)
 
         db = sqlalchemy.get_instance()
 
