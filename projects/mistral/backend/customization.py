@@ -104,7 +104,7 @@ class Customizer(BaseCustomizer):
                 "max_templates": fields.Int(
                     required=required,
                     validate=validate.Range(min=0, max=999),
-                    label="Max # templates",
+                    label="Max templates (0 to disable)",
                     description="Maximum number of templates the user can upload",
                 ),
                 "max_output_size": fields.Int(
@@ -129,7 +129,7 @@ class Customizer(BaseCustomizer):
                 "request_par_hour": fields.Int(
                     required=required,
                     validate=validate.Range(min=0, max=999),
-                    label="Requests per hour",
+                    label="Requests per hour (0 to disable)",
                     description="Maximum number of allowed requests per hour",
                 ),
             }
