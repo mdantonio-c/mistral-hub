@@ -913,3 +913,8 @@ input[type="number"]::-webkit-outer-spin-button {
   display: flex;
   flex: 1 1 auto;
 }
+/* adapt the alert box to the card*/
+.adapt-alert {
+  padding-right: 1.25rem;
+  padding-left: 1.25rem;
+}

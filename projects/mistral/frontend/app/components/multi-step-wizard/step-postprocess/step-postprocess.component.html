@@ -26,6 +26,18 @@
                 }}
               </li>
             </ul>
+            <ul
+              *ngIf="
+                summaryStats.s &&
+                user.max_output_size &&
+                summaryStats.s > user.max_output_size
+              "
+              class="adapt-alert"
+            >
+              <li class="alert alert-warning" role="alert">
+                Size exceeds the allowed one for a single request
+              </li>
+            </ul>
           </div>
         </div>
 

@@ -22,6 +22,18 @@
         <li><strong>Count:</strong> {{ summaryStats.c }}</li>
         <li><strong>Size:</strong> {{ summaryStats.s | bytes: 2 }}</li>
       </ul>
+      <ul
+        *ngIf="
+          summaryStats.s &&
+          user.max_output_size &&
+          summaryStats.s > user.max_output_size
+        "
+        class="adapt-alert"
+      >
+        <li class="alert alert-warning" role="alert">
+          Size exceeds the allowed one for a single request
+        </li>
+      </ul>
     </div>
   </div>
 
@@ -92,7 +104,14 @@
   </button>
   <button
     class="btn btn-info"
-    [disabled]="!isFormValid || emptyName() || summaryStats.c === 0"
+    [disabled]="
+      !isFormValid ||
+      emptyName() ||
+      summaryStats.c === 0 ||
+      (summaryStats.s &&
+        user.max_output_size &&
+        summaryStats.s > user.max_output_size)
+    "
     #submitButton
   >
     Submit <i class="fa fa-arrow-right" aria-hidden="true"></i>

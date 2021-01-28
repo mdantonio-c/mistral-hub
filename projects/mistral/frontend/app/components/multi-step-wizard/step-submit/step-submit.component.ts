@@ -68,7 +68,18 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
             "Please choose different filters."
         );
       }
+      if (
+        this.summaryStats.s &&
+        this.user.max_output_size &&
+        this.summaryStats.s > this.user.max_output_size
+      ) {
+        console.log("here");
+        this.notify.showWarning(
+          "Size exceeds the allowed one for a single request"
+        );
+      }
     });
+
     // default request name
     // this.formData.defaultName();
     window.scroll(0, 0);

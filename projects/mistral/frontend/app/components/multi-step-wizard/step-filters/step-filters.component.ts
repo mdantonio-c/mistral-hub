@@ -8,6 +8,7 @@ import {
   FormControl,
   Validators,
 } from "@angular/forms";
+import { User } from "@rapydo/types";
 import { GenericItems, RefTime } from "@app/types";
 import { NotificationService } from "@rapydo/services/notification";
 import { FormDataService } from "@app/services/formData.service";
@@ -18,6 +19,7 @@ import * as moment from "moment";
 import * as _ from "lodash";
 import { StepComponent } from "../step.component";
 import { ReftimeModalContent, ReftimeModel } from "./reftime-modal.component";
+import { AuthService } from "@rapydo/services/auth";
 
 @Component({
   selector: "step-filters",
@@ -28,6 +30,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   summaryStats = { b: null, e: null, c: null, s: null };
   filterForm: FormGroup;
   filters: GenericItems;
+  user: User;
 
   constructor(
     private fb: FormBuilder,
@@ -37,7 +40,8 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     private arkimetService: ArkimetService,
     private modalService: NgbModal,
     private notify: NotificationService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
+    private authService: AuthService
   ) {
     super(formDataService, router, route);
     const refTime: RefTime = this.formDataService.getReftime();
@@ -59,6 +63,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.user = this.authService.getUser();
     this.loadFilters();
     window.scroll(0, 0);
   }

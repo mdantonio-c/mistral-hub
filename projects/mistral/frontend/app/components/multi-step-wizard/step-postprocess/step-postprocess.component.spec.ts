@@ -14,6 +14,7 @@ import { DataService } from "../../../services/data.service";
 import { FormatDatePipe } from "../../../pipes/format-date.pipe";
 
 import { NotificationService } from "@rapydo/services/notification";
+import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { BytesPipe } from "@rapydo/pipes/bytes";
 
 class NotificationServiceStub {}
@@ -54,6 +55,7 @@ describe("StepPostprocessComponent", () => {
       ],
       providers: [
         DatePipe,
+        ConfirmationModals,
         { provide: FormBuilder, useValue: formBuilder },
         { provide: FormDataService, useClass: FormDataServiceStub },
         { provide: DataService, useClass: DataServiceStub },
