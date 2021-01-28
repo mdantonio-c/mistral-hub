@@ -8,6 +8,7 @@ import {
   RepeatEvery,
   SummaryStats,
   TaskSchedule,
+  RequestHourlyReport,
 } from "@app/types";
 import { DataService } from "@app/services/data.service";
 import { NotificationService } from "@rapydo/services/notification";
@@ -25,6 +26,7 @@ import { AuthService } from "@rapydo/services/auth";
 export class StepSubmitComponent extends StepComponent implements OnInit {
   title = "Submit my request";
   summaryStats: SummaryStats = { c: 0, s: 0 };
+  requestReport: RequestHourlyReport = {};
   @Input() formData: FormData;
   isFormValid = false;
   scheduleForm: FormGroup;
@@ -73,9 +75,16 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
         this.user.max_output_size &&
         this.summaryStats.s > this.user.max_output_size
       ) {
-        console.log("here");
         this.notify.showWarning(
           "Size exceeds the allowed one for a single request"
+        );
+      }
+    });
+    this.dataService.getHourlyReport().subscribe((response) => {
+      this.requestReport = response;
+      if (this.requestReport && this.requestReport.remaining === 0) {
+        this.notify.showError(
+          "The max number of requests par hour has been reached: Please wait next hour to submit new requests "
         );
       }
     });

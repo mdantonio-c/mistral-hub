@@ -110,7 +110,8 @@
       summaryStats.c === 0 ||
       (summaryStats.s &&
         user.max_output_size &&
-        summaryStats.s > user.max_output_size)
+        summaryStats.s > user.max_output_size) ||
+      (requestReport && requestReport.remaining === 0)
     "
     #submitButton
   >

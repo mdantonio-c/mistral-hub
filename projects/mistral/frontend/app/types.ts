@@ -63,6 +63,11 @@ export interface StorageUsage {
   quota: number;
   used: number;
 }
+export interface RequestHourlyReport {
+  submitted?: number;
+  total?: number;
+  remaining?: number;
+}
 
 export interface DerivedVariables {
   code: string;

@@ -1,0 +1,29 @@
+<div class="media" *ngIf="requestReport.total">
+  <div class="media-body">
+    <h6><i class="fas fa-clock mr-2"></i>Request Hourly Report</h6>
+    <p class="small" style="line-height: 12px">
+      <b>{{ requestReport.submitted }} / {{ requestReport.total }}</b>
+    </p>
+    <div class="progress" style="height: 0.6rem">
+      <div
+        class="progress-bar"
+        role="progressbar"
+        [attr.aria-valuenow]="barValue"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [ngStyle]="{ width: barValue + '%' }"
+      >
+        <span class="sr-only">70% Complete</span>
+      </div>
+    </div>
+    <div class="space-10"></div>
+    <p class="small" style="line-height: 12px">
+      <span *ngIf="requestReport.remaining !== 0"
+        >{{ requestReport.remaining }} more requests can be submitted this hour
+      </span>
+      <span *ngIf="requestReport.remaining === 0" style="color: #a82d3a">
+        No more requests allowed for this hour</span
+      >
+    </p>
+  </div>
+</div>

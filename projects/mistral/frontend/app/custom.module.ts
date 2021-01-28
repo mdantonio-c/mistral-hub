@@ -22,6 +22,7 @@ import { RequestsComponent } from "@app/components/requests/requests.component";
 import { SchedulesComponent } from "@app/components/schedules/schedules.component";
 import { DashboardComponent } from "@app/components/dashboard/dashboard.component";
 import { StorageUsageComponent } from "@app/components/dashboard/storage-usage/storage-usage.component";
+import { RequestHourlyReportComponent } from "@app/components/dashboard/request-hourly-report/request-hourly-report.component";
 import { NgbTimeStringAdapter } from "@app/adapters/timepicker-adapter";
 
 import { LicenseComponent } from "./components/license/license.component";
@@ -163,6 +164,7 @@ const appRoutes: Routes = [
     StepSubmitComponent,
     DashboardComponent,
     StorageUsageComponent,
+    RequestHourlyReportComponent,
     RequestsComponent,
     SchedulesComponent,
     LicenseComponent,
