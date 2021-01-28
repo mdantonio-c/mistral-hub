@@ -109,7 +109,7 @@ class Customizer(BaseCustomizer):
                 ),
                 "max_output_size": fields.Int(
                     required=required,
-                    validate=validate.Range(min=0, max=999),
+                    validate=validate.Range(min=0),
                     label="Max output size",
                     description="Maximum amount of data the user can request at once",
                 ),
