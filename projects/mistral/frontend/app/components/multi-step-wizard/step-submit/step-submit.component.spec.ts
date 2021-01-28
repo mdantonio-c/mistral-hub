@@ -21,6 +21,7 @@ import { DataService } from "../../../services/data.service";
 import { DataServiceStub } from "../../../services/data.service.stub";
 
 class NotificationServiceStub {}
+class AuthServiceStub {}
 
 @Component({
   selector: "mst-my-request-details",
@@ -60,6 +61,7 @@ describe("StepSubmitComponent", () => {
         { provide: FormBuilder, useValue: formBuilder },
         { provide: FormDataService, useClass: FormDataServiceStub },
         { provide: DataService, useClass: DataServiceStub },
+        { provide: AuthService, useClass: AuthServiceStub },
         { provide: NotificationService, useClass: NotificationServiceStub },
       ],
     }).compileComponents();

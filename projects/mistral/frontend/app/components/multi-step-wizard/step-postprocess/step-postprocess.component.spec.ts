@@ -16,8 +16,10 @@ import { FormatDatePipe } from "../../../pipes/format-date.pipe";
 import { NotificationService } from "@rapydo/services/notification";
 import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { BytesPipe } from "@rapydo/pipes/bytes";
+import { AuthService } from "@rapydo/services/auth";
 
 class NotificationServiceStub {}
+class AuthServiceStub {}
 
 @Component({
   selector: "step-postprocess-map",
@@ -60,6 +62,7 @@ describe("StepPostprocessComponent", () => {
         { provide: FormDataService, useClass: FormDataServiceStub },
         { provide: DataService, useClass: DataServiceStub },
         { provide: NotificationService, useClass: NotificationServiceStub },
+        { provide: AuthService, useClass: AuthServiceStub },
       ],
     }).compileComponents();
   });

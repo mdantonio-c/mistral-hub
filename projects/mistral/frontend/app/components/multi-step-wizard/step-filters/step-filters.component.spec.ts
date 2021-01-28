@@ -16,9 +16,11 @@ import { FormatDatePipe } from "../../../pipes/format-date.pipe";
 import { DisableControlDirective } from "@app/directives/disable-control";
 
 import { BytesPipe } from "@rapydo/pipes/bytes";
+import { AuthService } from "@rapydo/services/auth";
 import { ArkimetService } from "../../../services/arkimet.service";
 
 class NotificationServiceStub {}
+class AuthServiceStub {}
 
 describe("StepFiltersComponent", () => {
   let component: StepFiltersComponent;
@@ -49,6 +51,7 @@ describe("StepFiltersComponent", () => {
         { provide: FormBuilder, useValue: formBuilder },
         { provide: FormDataService, useClass: FormDataServiceStub },
         { provide: NotificationService, useClass: NotificationServiceStub },
+        { provide: AuthService, useClass: AuthServiceStub },
       ],
     }).compileComponents();
   }));
