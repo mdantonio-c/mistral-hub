@@ -12,8 +12,11 @@ MEDIA_ROOT = "/meteo/"
 RUNS = ["00", "12"]
 RESOLUTIONS = ["lm2.2", "lm5"]
 FIELDS = [
+    "prec1",
     "prec3",
     "prec6",
+    "prec12",
+    "prec24",
     "t2m",
     "wind",
     "cloud",
