@@ -154,10 +154,11 @@ class SqlApiDbManager:
             try:
                 filepath = os.path.join(file_dir, out_file.filename)
                 os.remove(filepath)
+                db.session.delete(out_file)
             except FileNotFoundError as error:
                 # silently pass when file is not found
                 log.warning(error)
-        db.session.delete(request)
+        # db.session.delete(request)
         db.session.commit()
 
     @staticmethod
@@ -323,6 +324,10 @@ class SqlApiDbManager:
                 return sorted_list
         else:
             return user_list
+
+    @staticmethod
+    def get_user_request_by_id(db, request_id):
+        return db.Request.query.get(request_id)
 
     @staticmethod
     def get_user_schedules(db, user_id, sort_by=None, sort_order=None):

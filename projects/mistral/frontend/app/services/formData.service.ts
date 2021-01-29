@@ -11,6 +11,7 @@ import {
   TaskSchedule,
   RefTime,
   FieldsSummary,
+  RequestArgs,
 } from "@app/types";
 import { DataService } from "./data.service";
 
@@ -228,6 +229,7 @@ export class FormDataService {
   setOutputFormat(data: any) {
     this.formData.output_format = data;
   }
+
   setQCFilter(data: boolean) {
     this.formData.only_reliable = data;
   }

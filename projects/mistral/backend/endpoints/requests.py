@@ -116,3 +116,38 @@ class UserRequests(EndpointResource):
         else:
             # should be Forbidden...
             raise Unauthorized("This request doesn't come from the request's owner")
+
+
+class CloneUserRequests(EndpointResource):
+    @decorators.auth.require()
+    @decorators.endpoint(
+        path="/requests/<request_id>/clone",
+        summary="Get a request to be cloned.",
+        responses={
+            200: "A user request query model",
+            404: "No user request found",
+        },
+    )
+    def get(self, request_id):
+        log.debug(f"Request for cloning query - ID<{request_id}>")
+
+        user = self.get_user()
+
+        db = sqlalchemy.get_instance()
+        # check if the request exists
+        if not repo.check_request(db, request_id=request_id):
+            raise NotFound(f"User request <{request_id}> not found")
+        # check if the current user is the owner of the request
+        if not repo.check_owner(db, user.id, request_id=request_id):
+            raise Unauthorized("This request doesn't come from the request's owner")
+
+        user_request = repo.get_user_request_by_id(db, request_id)
+        args = user_request.args
+        # setup request query model
+        args_datasets = args.get("datasets")
+        args["datasets"] = [
+            ds
+            for ds in repo.get_datasets(db, user, licenceSpecs=True)
+            if ds["id"] in args_datasets
+        ]
+        return self.response(args)
