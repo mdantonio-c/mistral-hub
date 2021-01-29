@@ -10,18 +10,18 @@ import { NgxSpinnerModule } from "ngx-spinner";
 import { HttpClientModule, HttpClient } from "@angular/common/http";
 
 import { NotificationService } from "@rapydo/services/notification";
-import { AuthService } from "@rapydo/services/auth";
 import { ApiService } from "@rapydo/services/api";
 import { StepSubmitComponent } from "./step-submit.component";
-import { FormatDatePipe } from "../../../pipes/format-date.pipe";
-import { FormDataService } from "../../../services/formData.service";
-import { FormDataServiceStub } from "../../../services/formData.service.stub";
+import { FormatDatePipe } from "@app/pipes/format-date.pipe";
+import { FormDataService } from "@app/services/formData.service";
+import { FormDataServiceStub } from "@app/services/formData.service.stub";
 import { BytesPipe } from "@rapydo/pipes/bytes";
-import { DataService } from "../../../services/data.service";
-import { DataServiceStub } from "../../../services/data.service.stub";
+import { DataService } from "@app/services/data.service";
+import { DataServiceStub } from "@app/services/data.service.stub";
+import { AuthService } from "@rapydo/services/auth";
+import { AuthServiceStub } from "@app/services/auth.service.stub";
 
 class NotificationServiceStub {}
-class AuthServiceStub {}
 
 @Component({
   selector: "mst-my-request-details",

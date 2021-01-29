@@ -1,12 +1,15 @@
 import { Component, DebugElement } from "@angular/core";
 import { Injectable } from "@angular/core";
 import { async, ComponentFixture, TestBed } from "@angular/core/testing";
+import { RouterTestingModule } from "@angular/router/testing";
+import { Router } from "@angular/router";
 import { NgxDatatableModule } from "@swimlane/ngx-datatable";
 import { MomentModule } from "ngx-moment";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { of } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ToastrModule } from "ngx-toastr";
+import { NgxSpinnerModule } from "ngx-spinner";
 
 import { RequestsComponent } from "./requests.component";
 import { BytesPipe } from "@rapydo/pipes/bytes";
@@ -54,6 +57,7 @@ class FormlyServiceStub {}
 describe("RequestsComponent", () => {
   let component: RequestsComponent;
   let fixture: ComponentFixture<RequestsComponent>;
+  let router: Router;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -73,6 +77,8 @@ describe("RequestsComponent", () => {
           progressAnimation: "increasing",
           positionClass: "toast-bottom-right",
         }),
+        RouterTestingModule.withRoutes([]),
+        NgxSpinnerModule,
       ],
       providers: [
         NotificationService,
@@ -90,6 +96,7 @@ describe("RequestsComponent", () => {
     fixture = TestBed.createComponent(RequestsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    router = TestBed.inject(Router);
   });
 
   it("should create", () => {

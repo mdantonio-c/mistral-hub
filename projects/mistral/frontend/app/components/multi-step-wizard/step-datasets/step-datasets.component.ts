@@ -33,11 +33,11 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
     this.form = this.formBuilder.group({
       datasets: new FormArray([], minSelectedCheckboxes(1)),
     });
-    this.presetForm = this.router.getCurrentNavigation().extras
+    /*this.presetForm = this.router.getCurrentNavigation().extras
       .state as RequestArgs;
     if (this.presetForm) {
       console.log(this.presetForm);
-    }
+    }*/
   }
 
   ngOnInit() {

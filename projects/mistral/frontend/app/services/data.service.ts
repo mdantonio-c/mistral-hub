@@ -241,11 +241,11 @@ export class DataService {
   }
 
   getStorageUsage(): Observable<StorageUsage> {
-    return this.api.get(`usage`);
+    return this.api.get("usage");
   }
 
   getHourlyReport(): Observable<RequestHourlyReport> {
-    return this.api.get(`hourly`);
+    return this.api.get("hourly");
   }
 
   getDerivedVariables(): Observable<DerivedVariables[]> {

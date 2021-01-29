@@ -17,9 +17,9 @@ import { NotificationService } from "@rapydo/services/notification";
 import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { BytesPipe } from "@rapydo/pipes/bytes";
 import { AuthService } from "@rapydo/services/auth";
+import { AuthServiceStub } from "@app/services/auth.service.stub";
 
 class NotificationServiceStub {}
-class AuthServiceStub {}
 
 @Component({
   selector: "step-postprocess-map",
@@ -34,6 +34,12 @@ class StubStepPostprocessMapComponent {
   @Input() flatControl;
 }
 
+@Component({
+  selector: "mst-my-request-details",
+  template: "<div></div>",
+})
+class StubMyRequestDetailsComponent {}
+
 describe("StepPostprocessComponent", () => {
   let component: StepPostprocessComponent;
   let fixture: ComponentFixture<StepPostprocessComponent>;
@@ -47,6 +53,7 @@ describe("StepPostprocessComponent", () => {
       declarations: [
         StepPostprocessComponent,
         StubStepPostprocessMapComponent,
+        StubMyRequestDetailsComponent,
         FormatDatePipe,
         BytesPipe,
       ],
