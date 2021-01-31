@@ -109,18 +109,13 @@ const appRoutes: Routes = [
     component: MeteoTilesComponent,
   },
   {
-    path: "app/license",
-    component: LicenseComponent,
-    canActivate: [AuthGuard],
-  },
-  {
     path: "app/admin/bindings",
     component: BindingsComponent,
     canActivate: [AuthGuard],
     runGuardsAndResolvers: "always",
     data: { roles: ["admin_root"] },
   },
-
+  { path: "app/license", component: LicenseComponent },
   { path: "public/privacy", component: PrivacyComponent },
   { path: "app", redirectTo: "/app/datasets", pathMatch: "full" },
   { path: "", redirectTo: "/app/datasets", pathMatch: "full" },
