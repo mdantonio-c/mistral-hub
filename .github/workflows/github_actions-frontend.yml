@@ -12,7 +12,7 @@ on:
 jobs:
   frontend-tests:
     runs-on: ubuntu-20.04
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v2
@@ -35,3 +35,17 @@ jobs:
           rapydo shell --no-tty frontend "yarn run test:single"
           cp data/${PROJECT}/karma/lcov.info .
           bash <(curl -s https://codecov.io/bash)
+
+      - name: Production mode
+        run: |
+          rapydo remove --all
+          rapydo --prod init --force
+          rapydo pull --quiet
+          rapydo build
+
+          rapydo -s frontend,proxy start
+          rapydo dump
+          rapydo -s frontend logs --follow
+          docker-compose logs --tail 2 frontend 2>&1 | grep "files have been compressed."
+          docker-compose logs --tail 20 proxy
+          curl --insecure -X GET https://localhost
