@@ -65,6 +65,11 @@ import { FormatDatePipe } from "@app/pipes/format-date.pipe";
 import { ReplacePipe } from "@app/pipes/replace.pipe";
 import { WorkflowGuard } from "@app/services/workflow-guard.service";
 
+import { AdminLicgroupsComponent } from "@app/components/admin-licgroups/admin-licgroups";
+
+import { AdminLicensesComponent } from "@app/components/admin-licenses/admin-licenses";
+import { AdminAttributionsComponent } from "@app/components/admin-attributions/admin-attributions";
+
 const appRoutes: Routes = [
   {
     path: "app/data",
@@ -120,6 +125,27 @@ const appRoutes: Routes = [
     runGuardsAndResolvers: "always",
     data: { roles: ["admin_root"] },
   },
+  {
+    path: "app/admin/group-licenses",
+    component: AdminLicgroupsComponent,
+    canActivate: [AuthGuard],
+    runGuardsAndResolvers: "always",
+    data: { roles: ["admin_root"] },
+  },
+  {
+    path: "app/admin/licenses",
+    component: AdminLicensesComponent,
+    canActivate: [AuthGuard],
+    runGuardsAndResolvers: "always",
+    data: { roles: ["admin_root"] },
+  },
+  {
+    path: "app/admin/attributions",
+    component: AdminAttributionsComponent,
+    canActivate: [AuthGuard],
+    runGuardsAndResolvers: "always",
+    data: { roles: ["admin_root"] },
+  },
 
   { path: "public/privacy", component: PrivacyComponent },
   { path: "app", redirectTo: "/app/datasets", pathMatch: "full" },
@@ -137,6 +163,9 @@ const appRoutes: Routes = [
     NgxChartsModule,
   ],
   declarations: [
+    AdminLicensesComponent,
+    AdminLicgroupsComponent,
+    AdminAttributionsComponent,
     HomeComponent,
     DataComponent,
     ForecastMapsBaseComponent,

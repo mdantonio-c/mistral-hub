@@ -255,6 +255,27 @@ class SqlApiDbManager:
         return r
 
     @staticmethod
+    def _get_license_group_response(db_lgroup):
+        r = {
+            "id": db_lgroup.id,
+            "name": db_lgroup.name,
+            "descr": db_lgroup.descr,
+            "is_public": db_lgroup.is_public,
+            "dballe_dsn": db_lgroup.dballe_dsn,
+        }
+        return r
+
+    @staticmethod
+    def _get_license_response(db_license):
+        r = {
+            "id": db_license.id,
+            "name": db_license.name,
+            "descr": db_license.descr,
+            "url": db_license.url,
+        }
+        return r
+
+    @staticmethod
     def get_user_requests(db, user_id, sort_by=None, sort_order=None):
 
         # default value if sort_by and sort_order are None

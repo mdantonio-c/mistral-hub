@@ -74,6 +74,51 @@ export interface DerivedVariables {
   desc: string;
 }
 
+export interface LicenseGroup {
+  id: string;
+  name: string;
+  descr: string;
+  is_public: boolean;
+  dballe_dsn?: string;
+  license?: SimpleLicense[];
+}
+
+export interface SimpleLicense {
+  id: string;
+  name: string;
+  descr: string;
+  url: URL;
+}
+
+export interface LicenseGroups extends Array<LicenseGroup> {}
+
+export interface Licenses extends Array<License> {}
+
+export interface License {
+  id: string;
+  name: string;
+  descr: string;
+  url?: URL;
+  group_license: SimpleLicenseGroup;
+  datasets?: SimpleDataset[];
+}
+
+export interface SimpleLicenseGroup {
+  id: string;
+  name: string;
+  descr: string;
+}
+
+export interface Attributions extends Array<Attribution> {}
+
+export interface Attribution {
+  id: string;
+  name: string;
+  descr: string;
+  url?: URL;
+  datasets?: SimpleDataset[];
+}
+
 /**
  * Expected filter names:
  *
