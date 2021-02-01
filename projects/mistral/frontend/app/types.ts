@@ -109,6 +109,16 @@ export interface SimpleLicenseGroup {
   name: string;
   descr: string;
 }
+export interface SimpleLicense {
+  id: string;
+  name: string;
+  descr: string;
+}
+export interface SimpleAttribution {
+  id: string;
+  name: string;
+  descr: string;
+}
 
 export interface Attributions extends Array<Attribution> {}
 
@@ -144,10 +154,18 @@ export interface SimpleDataset {
   name: string;
 }
 
-export interface SimpleGroupLicence {
+export interface AdminDataset {
   id: string;
+  arkimet_id: string;
   name: string;
+  description: string;
+  category: string;
+  fileformat: string;
+  bounding?: string;
+  license: SimpleLicense;
+  attribution: SimpleAttribution;
 }
+export interface AdminDatasets extends Array<AdminDataset> {}
 
 export interface Dataset {
   id: string;

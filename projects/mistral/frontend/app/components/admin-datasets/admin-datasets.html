@@ -1,0 +1,74 @@
+<div class="container-fluid">
+  <div class="row justify-content-md-center">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="panel-title">
+            <i class="fas fa-file-alt"></i> Dataset list
+            <span class="float-right"
+              ><i
+                class="fas fa-sync-alt"
+                ngbTooltip="Reload the list of {{resource_name}}s"
+                (click)="list();"
+              ></i
+            ></span>
+          </h4>
+        </div>
+
+        <div class="card-block">
+          <ngx-spinner [fullScreen]="false"> </ngx-spinner>
+
+          <div class="table-responsive">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-6">
+                  <input
+                    type="text"
+                    class="form-control data-filter"
+                    placeholder="Type to filter groups"
+                    (keyup)="updateFilter($event)"
+                  />
+                </div>
+                <div class="col-6 text-right">
+                  <button class="btn btn-secondary" (click)="create()">
+                    <i class="fas fa-plus"></i> new {{resource_name}}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrapper" #tableWrapper>
+              <ngx-datatable
+                class="bootstrap"
+                [rows]="data"
+                [columns]="columns"
+                [columnMode]="ColumnMode.flex"
+                [headerHeight]="40"
+                [footerHeight]="40"
+                [limit]="paging.itemsPerPage"
+                [rowHeight]="'auto'"
+                (activate)="onDatatableActivate($event)"
+              >
+              </ngx-datatable>
+            </div>
+          </div>
+
+          <ng-template #emptyHeader let-column="column"> &nbsp; </ng-template>
+
+          <ng-template
+            #controlsCell
+            let-row="row"
+            let-value="value"
+            let-i="index"
+          >
+            <i class="fas fa-edit fa-lg clickable" (click)="update(row)"></i>
+            <i
+              class="fas fa-trash fa-lg red clickable"
+              (click)="delete(row.id)"
+            ></i>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

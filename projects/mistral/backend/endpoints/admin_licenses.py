@@ -61,10 +61,7 @@ def getInputSchema(request, is_post):
     if len(lgroup_keys) == 1:
         default_group = lgroup_keys[0]
     else:
-        if is_post:
-            default_group = None
-        else:
-            default_group = None
+        default_group = None
 
     attributes["group_license"] = fields.Str(
         label="License Group",
@@ -142,6 +139,8 @@ class AdminLicenses(EndpointResource):
             raise Conflict(str(exc))
         lic_group = db.GroupLicense.query.filter_by(id=lgroup_id).first
         if not lic_group:
+            db.session.delete(new_lic)
+            db.session.commit()
             raise NotFound("This license group")
         new_lic.group_license_id = lgroup_id
         db.session.commit()

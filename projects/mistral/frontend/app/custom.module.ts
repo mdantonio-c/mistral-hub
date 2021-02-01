@@ -69,6 +69,7 @@ import { AdminLicgroupsComponent } from "@app/components/admin-licgroups/admin-l
 
 import { AdminLicensesComponent } from "@app/components/admin-licenses/admin-licenses";
 import { AdminAttributionsComponent } from "@app/components/admin-attributions/admin-attributions";
+import { AdminDatasetsComponent } from "@app/components/admin-datasets/admin-datasets";
 
 const appRoutes: Routes = [
   {
@@ -146,6 +147,13 @@ const appRoutes: Routes = [
     runGuardsAndResolvers: "always",
     data: { roles: ["admin_root"] },
   },
+  {
+    path: "app/admin/datasets",
+    component: AdminDatasetsComponent,
+    canActivate: [AuthGuard],
+    runGuardsAndResolvers: "always",
+    data: { roles: ["admin_root"] },
+  },
 
   { path: "app/license", component: LicenseComponent },
   { path: "public/privacy", component: PrivacyComponent },
@@ -164,6 +172,7 @@ const appRoutes: Routes = [
     NgxChartsModule,
   ],
   declarations: [
+    AdminDatasetsComponent,
     AdminLicensesComponent,
     AdminLicgroupsComponent,
     AdminAttributionsComponent,
