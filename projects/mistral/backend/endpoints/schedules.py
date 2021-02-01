@@ -20,7 +20,7 @@ from restapi.utilities.logs import log
 OUTPUT_FORMATS = ["json", "bufr", "grib"]
 DERIVED_VARIABLES = [
     "B12194",  # Air density
-    "B13003",  # Relative humidity
+    "B12107",  # Virtual temperature
     "B11001",  # Wind direction
     "B11002",  # Wind speed
     "B11003",  # U-component
