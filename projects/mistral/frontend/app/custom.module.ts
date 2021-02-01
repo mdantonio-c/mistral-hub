@@ -147,6 +147,7 @@ const appRoutes: Routes = [
     data: { roles: ["admin_root"] },
   },
 
+  { path: "app/license", component: LicenseComponent },
   { path: "public/privacy", component: PrivacyComponent },
   { path: "app", redirectTo: "/app/datasets", pathMatch: "full" },
   { path: "", redirectTo: "/app/datasets", pathMatch: "full" },

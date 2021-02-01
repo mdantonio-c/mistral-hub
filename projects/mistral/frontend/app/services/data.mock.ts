@@ -4,6 +4,7 @@ import {
   SummaryStats,
   DataExtractionRequest,
 } from "@app/types";
+import { User } from "@rapydo/types";
 
 export const MockStorageUsageResponse: StorageUsage = {
   quota: 5368709120,
@@ -21,6 +22,45 @@ export const MockDerivedVariables: DerivedVariables[] = [
   { code: "B13003", desc: "Relative humidity" },
   { code: "B13205", desc: "Snowfall (grid-scale + convective)" },
 ];
+
+export const MockUser: User = {
+  allowed_obs_archive: null,
+  allowed_postprocessing: null,
+  allowed_schedule: null,
+  amqp_queue: "",
+  datasets: [
+    { id: "21", name: "COSMO-2I" },
+    { id: "22", name: "COSMO-5M" },
+  ],
+  disk_quota: 1073741824,
+  email: "user@nomail.org",
+  expiration: null,
+  first_login: new Date(Date.parse("2019-09-13T16:42:46.307465Z")),
+  group: {
+    fullname: "Default group",
+    shortname: "Default",
+    uuid: "fb4f94ab-9572-4c56-9a0f-b58c8da90296",
+  },
+  isAdmin: true,
+  isCoordinator: false,
+  isStaff: false,
+  is_active: true,
+  last_login: new Date(Date.parse("2021-01-29T12:13:46.972746Z")),
+  last_password_change: new Date(Date.parse("2020-03-17T17:06:06.248131Z")),
+  max_output_size: null,
+  max_templates: null,
+  name: "Default",
+  open_dataset: true,
+  privacy_accepted: true,
+  request_par_hour: null,
+  requests_expiration_days: 0,
+  roles: {
+    admin_root: "Administrator",
+    normal_user: "User",
+  },
+  surname: "User",
+  uuid: "0e2eac66-a2d8-44d5-9121-6b173567140a",
+};
 
 export const MockSummaryStatsResponse: SummaryStats = {
   b: [2019, 9, 1, 12, 0, 0],

@@ -236,6 +236,13 @@ export const LEGEND_DATA: LegendConfig[] = [
           "40","30","20",
           "10","2",],
       },
+      {
+          id: "pmsl",
+          legend_type: "legend_pmsl",
+          title: "",
+          colors: [          ],
+          labels: [          ],
+        },
   {
     id: "tpperc",
     legend_type: "legend_tpperc",

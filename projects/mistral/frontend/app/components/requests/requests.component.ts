@@ -2,10 +2,12 @@ import { Component, Output, EventEmitter, Injector } from "@angular/core";
 import { Subscription, concat } from "rxjs";
 import { saveAs as importedSaveAs } from "file-saver";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
+import { DataExtractionRequest } from "../../types";
 
 import { DataService } from "@app/services/data.service";
 import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { environment } from "@rapydo/../environments/environment";
+import { Router, NavigationExtras } from "@angular/router";
 
 export interface Request {}
 
@@ -23,7 +25,11 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   interval: any;
   readonly intervalStep = 20; // seconds
 
-  constructor(protected injector: Injector, public dataService: DataService) {
+  constructor(
+    protected injector: Injector,
+    public dataService: DataService,
+    private router: Router
+  ) {
     super(injector);
     this.init("request", "requests", null);
     this.initPaging(20, true);
@@ -47,12 +53,21 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     this.activateAutoSync();
     this.list();
   }
+
   list(): Subscription {
     const ret = super.list();
     ret.add((response) => {
       this.onLoad.emit();
     });
     return ret;
+  }
+
+  clone(request) {
+    // TODO query clone API to retrieve the query model
+    let objToSend: NavigationExtras = request.args;
+    this.router.navigate(["/app/data/submit"], {
+      state: objToSend,
+    });
   }
 
   copiedToClipboard($event) {
@@ -110,6 +125,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
       }
     }, this.intervalStep * 1000);
   }
+
   getFileName(path) {
     let filepath = path.split("/");
     return filepath[filepath.length - 1];

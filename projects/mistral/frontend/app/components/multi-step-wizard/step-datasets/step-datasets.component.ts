@@ -2,11 +2,11 @@ import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, FormArray, FormControl } from "@angular/forms";
 import { NotificationService } from "@rapydo/services/notification";
-import { FormDataService } from "@app/services/formData.service";
-import { Dataset } from "@app/types";
+import { FormDataService } from "../../../services/formData.service";
 import { NgxSpinnerService } from "ngx-spinner";
 import { StepComponent } from "../step.component";
 import { minSelectedCheckboxes } from "@app/validators/min-selected-checkboxes.validator";
+import { Dataset, RequestArgs } from "../../../types";
 
 @Component({
   selector: "step-datasets",
@@ -19,6 +19,7 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
   form: FormGroup;
   selectedCategories: string[] = [];
   selectedLicenseGroups: string[] = [];
+  private presetForm: RequestArgs;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -32,6 +33,11 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
     this.form = this.formBuilder.group({
       datasets: new FormArray([], minSelectedCheckboxes(1)),
     });
+    /*this.presetForm = this.router.getCurrentNavigation().extras
+      .state as RequestArgs;
+    if (this.presetForm) {
+      console.log(this.presetForm);
+    }*/
   }
 
   ngOnInit() {
@@ -46,11 +52,13 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
             this.notify.showWarning(
               "Unexpected result. The list of datasets is empty."
             );
+            return;
           }
-          this.datasets.map((o, i) => {
-            const control = new FormControl(
-              this.formDataService.isDatasetSelected(o.id)
-            );
+          this.datasets.map((ds, i) => {
+            const val = this.presetForm
+              ? this.presetForm.dataset_names.includes(ds.id)
+              : this.formDataService.isDatasetSelected(ds.id);
+            const control = new FormControl(val);
             (this.form.controls.datasets as FormArray).push(control);
           });
         },

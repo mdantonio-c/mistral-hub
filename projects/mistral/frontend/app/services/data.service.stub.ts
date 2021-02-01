@@ -4,7 +4,7 @@ import { HttpClient } from "@angular/common/http";
 
 import { ApiService } from "@rapydo/services/api";
 import { DataService } from "./data.service";
-import { StorageUsage } from "@app/types";
+import { StorageUsage, RequestHourlyReport } from "@app/types";
 import {
   MockDerivedVariables,
   MockGribTemplateResponse,
@@ -21,6 +21,10 @@ export class DataServiceStub extends DataService {
 
   getStorageUsage(): Observable<StorageUsage> {
     return of(MockStorageUsageResponse);
+  }
+
+  getHourlyReport(): Observable<RequestHourlyReport> {
+    return of({} as RequestHourlyReport);
   }
 
   getDerivedVariables(): Observable<any> {

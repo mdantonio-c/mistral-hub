@@ -18,9 +18,9 @@ import { DisableControlDirective } from "@app/directives/disable-control";
 import { BytesPipe } from "@rapydo/pipes/bytes";
 import { AuthService } from "@rapydo/services/auth";
 import { ArkimetService } from "../../../services/arkimet.service";
+import { AuthServiceStub } from "@app/services/auth.service.stub";
 
 class NotificationServiceStub {}
-class AuthServiceStub {}
 
 describe("StepFiltersComponent", () => {
   let component: StepFiltersComponent;

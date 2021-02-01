@@ -118,6 +118,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     } else if (this.filter.field === "prec6" || this.filter.field === "snow6") {
       this.fromMin = 6;
       this.fromMinImage = 6;
+    } else if (this.filter.field === "prec12") {
+      this.fromMin = 12;
+      this.fromMinImage = 12;
+    } else if (this.filter.field === "prec24") {
+      this.fromMin = 24;
+      this.fromMinImage = 24;
     } else if (
       this.filter.field === "percentile" ||
       this.filter.field === "probability"
