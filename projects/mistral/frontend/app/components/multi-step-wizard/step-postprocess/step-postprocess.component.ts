@@ -16,6 +16,7 @@ import { NotificationService } from "@rapydo/services/notification";
 import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { StepComponent } from "../step.component";
 import { AuthService } from "@rapydo/services/auth";
+import { NgxSpinnerService } from "ngx-spinner";
 
 @Component({
   selector: "step-postprocess",
@@ -124,7 +125,8 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     private dataService: DataService,
     private notify: NotificationService,
     private confirmationModals: ConfirmationModals,
-    private authService: AuthService
+    private authService: AuthService,
+    private spinner: NgxSpinnerService
   ) {
     super(formDataService, router, route);
     this.form = this.formBuilder.group({
@@ -423,11 +425,21 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
   ngOnInit() {
     this.user = this.authService.getUser();
     window.scroll(0, 0);
-
-    this.formDataService.getSummaryStats().subscribe((response) => {
-      this.summaryStats = response;
-      //console.log('ngOnInit: this.summaryStats=', this.summaryStats);
-    });
+    this.spinner.show("summary-spinner");
+    this.formDataService
+      .getSummaryStats()
+      .subscribe(
+        (response) => {
+          this.summaryStats = response;
+          //console.log('ngOnInit: this.summaryStats=', this.summaryStats);
+        },
+        (error) => {
+          this.notify.showError("Error loading summary stats");
+        }
+      )
+      .add(() => {
+        this.spinner.hide("summary-spinner");
+      });
 
     this.checkDatasetFormat();
     this.dataService.getDerivedVariables().subscribe(

@@ -24,6 +24,12 @@ class StubSchedulesComponent {}
 })
 class StubStorageUsageComponent {}
 
+@Component({
+  selector: "app-request-hourly-report",
+  template: "<div>hourly-report</div>",
+})
+class StubHourlyReportComponent {}
+
 describe("DashboardComponent", () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
@@ -37,6 +43,7 @@ describe("DashboardComponent", () => {
         StubStorageUsageComponent,
         StubRequestsComponent,
         StubSchedulesComponent,
+        StubHourlyReportComponent,
       ],
       imports: [NgbModule],
     }).compileComponents();

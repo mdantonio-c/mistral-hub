@@ -170,7 +170,7 @@ export class FormDataService {
     );
   }
 
-  setFilters(data: any) {
+  setFilters(data: Filters[]) {
     // Update Filters only when the Filter Form had been validated successfully
     this.isFilterFormValid = true;
     this.formData.filters = data;
@@ -195,7 +195,7 @@ export class FormDataService {
     return false;
   }
 
-  setPostProcessor(data: any) {
+  setPostProcessor(data: any[]) {
     // Update Postprocess only when the Postprocess Form had been validated successfully
     this.isPostprocessFormValid = true;
     this.formData.postprocessors = data;

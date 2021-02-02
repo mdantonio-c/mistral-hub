@@ -7,6 +7,7 @@ import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { of } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ToastrModule } from "ngx-toastr";
+import { NgxSpinnerModule } from "ngx-spinner";
 
 import { SchedulesComponent } from "./schedules.component";
 import { BytesPipe } from "@rapydo/pipes/bytes";
@@ -73,6 +74,7 @@ describe("SchedulesComponent", () => {
           progressAnimation: "increasing",
           positionClass: "toast-bottom-right",
         }),
+        NgxSpinnerModule,
       ],
       providers: [
         NotificationService,

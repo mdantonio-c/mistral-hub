@@ -62,12 +62,25 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     return ret;
   }
 
-  clone(request) {
-    // TODO query clone API to retrieve the query model
-    let objToSend: NavigationExtras = request.args;
-    this.router.navigate(["/app/data/submit"], {
-      state: objToSend,
-    });
+  cloneAsNew(request) {
+    this.spinner.show();
+    // query clone API to retrieve the query model
+    this.dataService
+      .cloneRequest(request.id)
+      .subscribe(
+        (data) => {
+          let objToSend: NavigationExtras = data;
+          this.router.navigate(["/app/data/submit"], {
+            state: objToSend,
+          });
+        },
+        (error) => {
+          this.notify.showError(`Unable to clone request: ${request.id}`);
+        }
+      )
+      .add(() => {
+        this.spinner.hide();
+      });
   }
 
   copiedToClipboard($event) {

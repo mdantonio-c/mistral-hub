@@ -230,6 +230,10 @@ export class DataService {
     });
   }
 
+  cloneRequest(requestId): Observable<any> {
+    return this.api.get(`requests/${requestId}/clone`);
+  }
+
   getVariableDescription(code): string {
     if (this._derivedVariables === undefined) {
       console.warn(

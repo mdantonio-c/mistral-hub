@@ -11,6 +11,16 @@
       <div class="col-md-6 mb-4 mb-md-0">
         <!-- Summary Stats-->
         <div class="card mst--expansion-panel mst--info-panel">
+          <ngx-spinner
+            bdColor="rgba(255,255,255,0.8)"
+            color="#6c757d"
+            zIndex="1000"
+            [fullScreen]="false"
+            type="ball-clip-rotate-multiple"
+            size="medium"
+            name="summary-spinner"
+          >
+          </ngx-spinner>
           <div class="card-header">
             <h5>Summary Stats</h5>
           </div>
@@ -43,6 +53,16 @@
 
         <!-- Reftime -->
         <div class="card mst--expansion-panel mst--info-panel">
+          <ngx-spinner
+            bdColor="rgba(255,255,255,0.8)"
+            color="#6c757d"
+            zIndex="1000"
+            [fullScreen]="false"
+            type="ball-clip-rotate-multiple"
+            size="medium"
+            name="summary-spinner"
+          >
+          </ngx-spinner>
           <div class="card-header">
             <h5>Reftime</h5>
           </div>
@@ -78,7 +98,7 @@
       *ngIf="form.value.hasGribDataset && !user.allowed_postprocessing"
     >
       <div class="col">
-        <div class="no-results">
+        <div class="no-results mt-4">
           <h3>No Post-processing available</h3>
         </div>
       </div>

@@ -62,24 +62,35 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     this.user = this.authService.getUser();
     this.formData = this.formDataService.getFormData();
     this.isFormValid = this.formDataService.isFormValid();
-    this.formDataService.getSummaryStats().subscribe((response) => {
-      this.summaryStats = response;
-      if (this.summaryStats.c === 0) {
-        this.notify.showWarning(
-          "The applied filter do not produce any result. " +
-            "Please choose different filters."
-        );
-      }
-      if (
-        this.summaryStats.s &&
-        this.user.max_output_size &&
-        this.summaryStats.s > this.user.max_output_size
-      ) {
-        this.notify.showWarning(
-          "Size exceeds the allowed one for a single request"
-        );
-      }
-    });
+    this.spinner.show("summary-spinner");
+    this.formDataService
+      .getSummaryStats()
+      .subscribe(
+        (response) => {
+          this.summaryStats = response;
+          if (this.summaryStats.c === 0) {
+            this.notify.showWarning(
+              "The applied filter do not produce any result. " +
+                "Please choose different filters."
+            );
+          }
+          if (
+            this.summaryStats.s &&
+            this.user.max_output_size &&
+            this.summaryStats.s > this.user.max_output_size
+          ) {
+            this.notify.showWarning(
+              "Size exceeds the allowed one for a single request"
+            );
+          }
+        },
+        (error) => {
+          this.notify.showError("Error loading summary stats");
+        }
+      )
+      .add(() => {
+        this.spinner.hide("summary-spinner");
+      });
     this.dataService.getHourlyReport().subscribe((response) => {
       this.requestReport = response;
       if (this.requestReport && this.requestReport.remaining === 0) {

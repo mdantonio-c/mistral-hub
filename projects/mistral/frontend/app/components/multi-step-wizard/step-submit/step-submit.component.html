@@ -14,6 +14,16 @@
 
   <!-- Summary Stats-->
   <div class="card mst--expansion-panel mst--info-panel" *ngIf="summaryStats">
+    <ngx-spinner
+      bdColor="rgba(255,255,255,0.8)"
+      color="#6c757d"
+      zIndex="1000"
+      [fullScreen]="false"
+      type="ball-clip-rotate-multiple"
+      size="medium"
+      name="summary-spinner"
+    >
+    </ngx-spinner>
     <div class="card-header">
       <h5>Summary Stats</h5>
     </div>
@@ -39,6 +49,16 @@
 
   <!-- Reftime -->
   <div class="card mst--expansion-panel mst--info-panel" *ngIf="summaryStats">
+    <ngx-spinner
+      bdColor="rgba(255,255,255,0.8)"
+      color="#6c757d"
+      zIndex="1000"
+      [fullScreen]="false"
+      type="ball-clip-rotate-multiple"
+      size="medium"
+      name="summary-spinner"
+    >
+    </ngx-spinner>
     <div class="card-header">
       <h5>Reftime</h5>
     </div>

@@ -91,7 +91,7 @@ export interface DerivedVariables {
 export interface Filters {
   name: string;
   values: any[];
-  query: string;
+  query?: string;
 }
 
 export interface SimpleDataset {

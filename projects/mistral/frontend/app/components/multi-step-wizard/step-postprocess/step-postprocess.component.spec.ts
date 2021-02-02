@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder } from "@angular/forms";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { DebugElement, Input, Component } from "@angular/core";
 import { DatePipe } from "@angular/common";
+import { NgxSpinnerModule } from "ngx-spinner";
 
 import { StepPostprocessComponent } from "./step-postprocess.component";
 import { FormDataService } from "../../../services/formData.service";
@@ -60,6 +61,7 @@ describe("StepPostprocessComponent", () => {
       imports: [
         ReactiveFormsModule,
         RouterTestingModule.withRoutes([]),
+        NgxSpinnerModule,
         NgbModule,
       ],
       providers: [
