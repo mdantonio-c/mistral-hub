@@ -67,7 +67,7 @@ RUN wget --no-check-certificate "https://confluence.ecmwf.int/download/attachmen
   && make install \
   && cd /usr/share/eccodes-build \
   && ln -sf lib lib64 \
-  && pip3 install eccodes \
+  && pip3 install eccodes netCDF4 \
   && rm -rf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
   && rm -rf /tmp/eccodes-build
 
