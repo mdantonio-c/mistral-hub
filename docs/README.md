@@ -97,7 +97,7 @@ By clicking on the Schedules tab, the page will show the list of the scheduled r
 
 ### **Scheduled queries**
 
-The submission of any request of data extraction can be scheduled. This functionality is not available for all users as it has to be enabled specifically for each account by an admin (see [Admin Guide](README.md#admin-guide))
+The submission of any request of data extraction can be scheduled. This functionality is not available for all users as it has to be enabled specifically for each account by the Administrator (see [Admin Guide](README.md#admin-guide))
 
 To choose the scheduling options the user has to click on the icon on the "Submit my request" page.
 ![](schedule.png)
@@ -123,7 +123,18 @@ TODO
 
 First of all, the account must be enabled to the "Data pushing" feature. The user has to contact the Administrator to be enabled. The Administrator will enable the user to "Data pushing" and will create an AMQP queue for the user.
 
-_TODO Bea_
+Once enabled, in the "Submit my request" page the user will see the "Data pushing" option
+
+![](pushing.png)
+
+Enabling the "Data pushing" option the user will receive in his AMQP queue a notification when its data extraction has been completed.\
+The message will contain:
+
+- the name of the submitted request
+- the queried reftime
+- the request status stating if the data extraction has been successful or not
+- the error messages (in case of failure of the data extraction)
+- the name of the output file and the url to download it (in case of success of the data extraction)
 
 ---
 
