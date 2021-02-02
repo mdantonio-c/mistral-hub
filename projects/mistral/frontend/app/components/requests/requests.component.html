@@ -417,12 +417,16 @@
           <div class="btn-group mr-1" role="group">
             <button
               class="btn p-0 mr-1"
-              *ngIf="row.status == 'SUCCESS'"
+              *ngIf="row.status == 'SUCCESS' && row.fileoutput"
               (click)="downloadByUrl(row.fileoutput)"
             >
               <i class="fa fa-download"></i>
             </button>
-            <button class="btn p-0" (click)="delete(row.id)">
+            <button
+              class="btn p-0"
+              *ngIf="row.fileoutput"
+              (click)="delete(row.id)"
+            >
               <i class="fa fa-trash red"></i>
             </button>
           </div>
