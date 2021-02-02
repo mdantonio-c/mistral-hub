@@ -100,7 +100,7 @@ By clicking on the Schedules tab, the page will show the list of the scheduled r
 The submission of any request of data extraction can be scheduled. This functionality is not available for all users as it has to be enabled specifically for each account by an admin (see [Admin Guide](README.md#admin-guide))
 
 To choose the scheduling options the user has to click on the icon on the "Submit my request" page.
-![](scheduled.png)
+![](schedule.png)
 
 The scheduling options are:
 
