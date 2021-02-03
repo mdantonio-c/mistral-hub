@@ -350,7 +350,6 @@ class Initializer:
         MINUTE = "45"
         celery_app.create_crontab_task(
             name=UNIQUE_NAME,
-            # task="mistral.tasks.requests_cleanup.automatic_cleanup",
             task="automatic_cleanup",
             hour=HOUR,
             minute=MINUTE,

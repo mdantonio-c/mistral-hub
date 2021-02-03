@@ -573,7 +573,7 @@ class Schedules(EndpointResource):
                     request_id = None
                     c.create_periodic_task(
                         name=name,
-                        task="mistral.tasks.data_extraction.data_extract",
+                        task="data_extract",
                         every=every,
                         period=period,
                         args=[
@@ -626,7 +626,7 @@ class Schedules(EndpointResource):
                     request_id = None
                     c.create_crontab_task(
                         name=name,
-                        task="mistral.tasks.data_extraction.data_extract",
+                        task="data_extract",
                         **crontab_settings,
                         args=[
                             user.id,
@@ -801,7 +801,7 @@ class Schedules(EndpointResource):
                     if "periodic" in schedule_response:
                         c.create_periodic_task(
                             name=str(schedule_id),
-                            task="mistral.tasks.data_extraction.data_extract",
+                            task="data_extract",
                             every=schedule_response["every"],
                             period=schedule_response["period"],
                             args=[
@@ -830,7 +830,7 @@ class Schedules(EndpointResource):
                             crontab_settings[i] = str_val
                         c.create_crontab_task(
                             name=str(schedule_id),
-                            task="mistral.tasks.data_extraction.data_extract",
+                            task="data_extract",
                             **crontab_settings,
                             args=[
                                 user.id,
