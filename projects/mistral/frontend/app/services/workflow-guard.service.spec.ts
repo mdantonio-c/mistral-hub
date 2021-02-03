@@ -5,6 +5,8 @@ import { Router } from "@angular/router";
 import { WorkflowGuard } from "@app/services/workflow-guard.service";
 import { WorkflowService } from "@app/services/workflow.service";
 import { WorkflowServiceStub } from "@app/services/workflow.service.stub";
+import { FormDataService } from "@app/services/formData.service";
+import { FormDataServiceStub } from "@app/services/formData.service.stub";
 
 describe("WorkflowGuardServiceGuard", () => {
   let router: Router;
@@ -14,6 +16,7 @@ describe("WorkflowGuardServiceGuard", () => {
       providers: [
         WorkflowGuard,
         { provide: WorkflowService, useClass: WorkflowServiceStub },
+        { provide: FormDataService, useClass: FormDataServiceStub },
       ],
     });
     router = TestBed.inject(Router);
