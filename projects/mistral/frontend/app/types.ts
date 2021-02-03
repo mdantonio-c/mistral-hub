@@ -13,6 +13,7 @@ export interface CustomUser {
   allowed_postprocessing: boolean;
   allowed_schedule: boolean;
   allowed_obs_archive: boolean;
+  /** @nullable */
   request_par_hour: number;
 }
 
