@@ -89,7 +89,7 @@ The user can expand the request box information by clicking the icon:
 
 ![](icon3.png)
 
-Moreover the user can delete a request by clicking the trash bin icon.
+The requests cannot be canceled: clicking the trash bin icon deletes only the associated output file upon request (extraction data). Once deleted, it will obviously no longer be possible to download this file.
 
 The situation of the user disk quota occupation is shown on the widget "Storage" on the left.
 
