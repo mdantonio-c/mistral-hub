@@ -80,7 +80,8 @@ export interface LicenseGroup {
   name: string;
   descr: string;
   is_public: boolean;
-  dballe_dsn?: string;
+  /** @nullable */
+  dballe_dsn: string;
   license?: SimpleLicense[];
 }
 
@@ -88,7 +89,8 @@ export interface SimpleLicense {
   id: string;
   name: string;
   descr: string;
-  url: URL;
+  /** @nullable */
+  url?: string;
 }
 
 export interface LicenseGroups extends Array<LicenseGroup> {}
@@ -99,7 +101,8 @@ export interface License {
   id: string;
   name: string;
   descr: string;
-  url?: URL;
+  /** @nullable */
+  url?: string;
   group_license: SimpleLicenseGroup;
   datasets?: SimpleDataset[];
 }
@@ -109,11 +112,7 @@ export interface SimpleLicenseGroup {
   name: string;
   descr: string;
 }
-export interface SimpleLicense {
-  id: string;
-  name: string;
-  descr: string;
-}
+
 export interface SimpleAttribution {
   id: string;
   name: string;
@@ -126,7 +125,8 @@ export interface Attribution {
   id: string;
   name: string;
   descr: string;
-  url?: URL;
+  /** @nullable */
+  url: string;
   datasets?: SimpleDataset[];
 }
 
@@ -161,7 +161,8 @@ export interface AdminDataset {
   description: string;
   category: string;
   fileformat: string;
-  bounding?: string;
+  /** @nullable */
+  bounding: string;
   license: SimpleLicense;
   attribution: SimpleAttribution;
 }

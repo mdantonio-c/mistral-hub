@@ -18,7 +18,7 @@ export class AdminDatasetsComponent extends BasePaginationComponent<
 
   constructor(protected injector: Injector) {
     super(injector);
-    this.init("dataset", "admin/datasets", "AdminDataset");
+    this.init("dataset", "admin/datasets", "AdminDatasets");
     this.initPaging();
     this.list();
   }

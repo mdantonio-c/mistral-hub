@@ -1,5 +1,6 @@
 from typing import Any
 
+from marshmallow import pre_load
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import Conflict, DatabaseDuplicatedEntry, NotFound
@@ -26,7 +27,13 @@ class Attribution(Schema):
 class AttributionInput(Schema):
     name = fields.Str(required=True, label="Name")
     descr = fields.Str(required=True, label="Description")
-    url = fields.URL(required=False, label="Url")
+    url = fields.URL(required=False, label="Url", allow_none=True)
+
+    @pre_load
+    def null_url(self, data, **kwargs):
+        if "url" in data and data["url"] == "":
+            data["url"] = None
+        return data
 
 
 class AdminAttributions(EndpointResource):
