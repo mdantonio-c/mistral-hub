@@ -6,6 +6,7 @@ export interface CustomUser {
   requests_expiration_days: number;
   datasets: SimpleDataset[];
   open_dataset: boolean;
+  /** @nullable */
   max_templates: number;
   /** @nullable */
   max_output_size: number;
