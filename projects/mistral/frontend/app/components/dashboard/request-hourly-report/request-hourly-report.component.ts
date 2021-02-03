@@ -27,6 +27,7 @@ export class RequestHourlyReportComponent implements OnInit {
         this.barValue =
           (this.requestReport.submitted * 100) / this.requestReport.total;
       },
+
       (error) => {
         this.notify.showError(error);
       }

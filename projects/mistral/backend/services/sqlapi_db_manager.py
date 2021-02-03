@@ -595,7 +595,7 @@ class SqlApiDbManager:
                 .filter(db.Request.submission_date < now)
                 .count()
             )
-            if request_count == max_request_hour:
+            if request_count >= max_request_hour:
                 next_hour = last_hour + datetime.timedelta(hours=1)
                 raise Unauthorized(
                     f"The max number of requests par hour has been reached: New requests can be submitted after {next_hour.hour}:00"
