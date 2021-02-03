@@ -7,6 +7,7 @@ export interface CustomUser {
   datasets: SimpleDataset[];
   open_dataset: boolean;
   max_templates: number;
+  /** @nullable */
   max_output_size: number;
   allowed_postprocessing: boolean;
   allowed_schedule: boolean;
