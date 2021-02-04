@@ -186,8 +186,6 @@ The multi-layer visualisation is available for COSMO-5M, COSMO-2I and Italy Flas
 
 ## **Admin guide**
 
-_TODO Bea_
-
 ### **User roles**
 
 The functionalities for each profile are outlined in this _[table](https://gitlab.hpc.cineca.it/mistral/meteo-hub/-/issues/172#note_5812)_
@@ -210,9 +208,37 @@ The role _User_ is the default one.
 
 Other roles can be added when needed.
 
+### **User Configuration**
+
+Some functionalities are available only prior authorization. The administrator can provide user access to them at the time of creating the account or modifying it later.\
+These functionalities are:
+
+- Possibility to schedule a data extraction, enabled in user's profile page selecting the checkbox _Schedule_
+- Use of post-processing tools, enabled in user's profile page selecting the checkbox _Postprocessing_
+- Access to archived observed data, enabled in user's profile page selecting the checkbox _Observed Archive_
+
+Additional parameters the administrator can configure at user level are:
+
+- _Max Templates_ : the maximum number of templates of each kind (.shp templates or .grib templates) the user can upload in his personal space. Set 0 to allow unlimited number of uploaded templates.
+- _Max output size_ : the maximum file output size for each request of data extraction
+- _Requests per hour_: the maximum number of request of data extraction a user can submit each hour. Set 0 to allow unlimited number of requests per hour.
+
 ### **Create a new user**
 
 _TODO_
+
+### **Datasets**
+
+_TODO Bea_
+
+### **Packaged data for public access**
+
+The administrator has the possibility to create files of packaged data available for public download.\
+In order to create a scheduled data extraction of public package data, _Open data schedule_ option has to be enabled in Schedule panel.
+![](opendata_pack.png)
+The resulting output file will be automatically available in the list of downloadable packages (see [Download open data](README.md#download-open-data))\
+The _opendata_ flag is available only for dataset with open license.\
+Opendata schedules and opendata request are marked by a specific label in "My Requests" page.
 
 ### **How To**
 
@@ -226,8 +252,11 @@ The authorization to access a dataset is implemented at the user level: it is th
 
 The abilitation is managed in two ways:
 
-- enabling access to all open datasets
+- enabling access to all open datasets selecting _Enable access to Open Datasets_ checkbox
 - enabling additional datasets one by one
+
+- **How to add a new dataset**
+  _TODO Bea_
 
 ---
 
@@ -449,6 +478,10 @@ The name of the attribution applied to the dataset must be entered in this field
 The name must be one of those present in the name field of the database ATTRIBUTION table.
 
 Mandatory field.
+
+#### Dballe DSN
+
+_TO DO Bea_
 
 ---
 
