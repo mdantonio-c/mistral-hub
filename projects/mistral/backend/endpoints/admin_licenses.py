@@ -1,5 +1,6 @@
 from typing import Any, Dict, Union
 
+from marshmallow import pre_load
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import sqlalchemy
@@ -37,6 +38,14 @@ def get_output_schema():
     return schema(many=True)
 
 
+class LicenseInput(Schema):
+    @pre_load
+    def null_url(self, data, **kwargs):
+        if "url" in data and data["url"] == "":
+            data["url"] = None
+        return data
+
+
 # Note that these are callables returning a model, not models!
 # They will be executed a runtime
 # Can't use request.method because it is not passed at loading time, i.e. the Specs will
@@ -49,7 +58,7 @@ def getInputSchema(request, is_post):
 
     attributes["name"] = fields.Str(required=is_post)
     attributes["descr"] = fields.Str(required=is_post)
-    attributes["url"] = fields.URL(required=is_post)
+    attributes["url"] = fields.URL(required=False, allow_none=True)
 
     lgroup_keys = []
     lgroup_labels = []
@@ -71,7 +80,7 @@ def getInputSchema(request, is_post):
         validate=validate.OneOf(choices=lgroup_keys, labels=lgroup_labels),
     )
 
-    return Schema.from_dict(attributes, name="LicenseDefinition")
+    return LicenseInput.from_dict(attributes, name="LicenseDefinition")
 
 
 def getPOSTInputSchema(request):
