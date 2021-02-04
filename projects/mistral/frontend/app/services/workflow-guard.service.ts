@@ -3,6 +3,7 @@ import { CanActivate, Router, ActivatedRouteSnapshot } from "@angular/router";
 
 import { WorkflowService } from "@app/services/workflow.service";
 import { FormDataService } from "@app/services/formData.service";
+import { ArkimetService } from "@app/services/arkimet.service";
 import * as moment from "moment";
 import { Filters } from "@app/types";
 
@@ -13,7 +14,8 @@ export class WorkflowGuard implements CanActivate {
   constructor(
     private router: Router,
     private workflowService: WorkflowService,
-    private formDataService: FormDataService
+    private formDataService: FormDataService,
+    private arkimetService: ArkimetService
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
@@ -35,10 +37,19 @@ export class WorkflowGuard implements CanActivate {
       let filters: Filters[] = [];
       if (presetForm.filters) {
         for (const [key, value] of Object.entries(presetForm.filters)) {
-          filters.push({
+          let res = {
             name: `${key}`,
             values: value as any[],
-          });
+            query: "",
+          };
+          if (res.values.length) {
+            res.query = this.arkimetService.getQuery(res);
+            // dballe query
+            if (res.query === "" || res.query.split(":")[1] === "") {
+              res.query += res.values.map((v) => v.code).join(" or ");
+            }
+            filters.push(res);
+          }
         }
       }
       this.formDataService.setFilters(filters);
