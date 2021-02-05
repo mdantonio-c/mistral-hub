@@ -112,7 +112,6 @@ The scheduling options are:
   
   ![](attimeschedule.png)
 
-  
 - *Periodically* repeats the submission with a defined interval in hour, days or minutes. The shortest interval available is 15 minutes.
   
   ![](periodicallyscheduled.png)
@@ -129,7 +128,7 @@ In the "My Requests" page, there is the possibility to modify a request and subm
 
 
 
-By clicking on the icon, the user finds himself with the same pre-filled request and has the possibility to modify the filter and post-processing settings and to resubmit the modified query as if it were a new request.
+By clicking on the icon, the user ends up with the same pre-filled request and has the possibility to modify the filter and post-processing settings and to re-submit the modified query as if it were a new request.
 
 ### **Data pushing**
 
