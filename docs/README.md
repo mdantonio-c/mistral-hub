@@ -104,24 +104,28 @@ The submission of any request of data extraction can be scheduled. This function
 To choose the scheduling options the user has to click on the icon on the "Submit my request" page.
 ![](schedule.png)
 
+
+
 The scheduling options are:
 
-- At time
+- *At time* repeats the submission every day at a defined time, every defined day of the week or every defined day of a month.
+  
   ![](attimeschedule.png)
-  repeats the submission every day at a defined time, every defined day of the week or every defined day of a month
 
-- Periodically
+  
+- *Periodically* repeats the submission with a defined interval in hour, days or minutes. The shortest interval available is 15 minutes.
+  
   ![](periodicallyscheduled.png)
-  repeats the submission with a defined interval in hour, days or minutes. The shortest interval available is 15 minutes
 
-- On data ready
-  On data ready option is available only for some datasets. The request is submitted every time new data are available for the selected dataset.
+  
+  
+- *On data ready* option is available only for some datasets. The request is submitted every time new data are available for the selected dataset.
 
 ### **Clone as a new request**
 
 In the "My Requests" page, there is the possibility to modify a request and submit it again. If the user expands the box of the request he wants to clone, he can see some icons on the upper right side of the box. The first icon is the one to click to start cloning the request:
 
-![](C:\Users\c.caroli\Documents\backuppati\WORK\SCAI-MD-TEAM\Mistral\DOCUMENTAZIONE\docs\clone.png)
+![](clone.png)
 
 
 
@@ -202,7 +206,7 @@ On the Web Frontend, users are given the opportunity to self-register using the 
 In this way they obtain the credentials to log into the portal.
 The self-registered users can access a set of additional features than the non-registered users.
 
-![](C:\Users\c.caroli\Documents\backuppati\WORK\SCAI-MD-TEAM\Mistral\DOCUMENTAZIONE\docs\selfreg.png)
+![](selfreg.png)
 
 
 
@@ -238,9 +242,7 @@ Other roles can be added when needed.
 
 ### **User Configuration**
 
-TODO: 
-
-mancano alcuni parametri di configurazione: 
+*TODO* mancano alcuni parametri di configurazione: 
 
 Email - che è usata anche come username
 
