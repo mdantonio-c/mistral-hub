@@ -45,6 +45,7 @@ export const MockUser: User = {
   isCoordinator: false,
   isStaff: false,
   is_active: true,
+  two_factor_enabled: false,
   last_login: new Date(Date.parse("2021-01-29T12:13:46.972746Z")),
   last_password_change: new Date(Date.parse("2020-03-17T17:06:06.248131Z")),
   max_output_size: null,
