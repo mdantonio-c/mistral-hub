@@ -93,6 +93,8 @@ The requests cannot be canceled: clicking the trash bin icon deletes only the as
 
 The situation of the user disk quota occupation is shown on the widget "Storage" on the left.
 
+The number of requests the user has done in the last hour is shown on the widget "Request Hourly Report" on the left.
+
 By clicking on the Schedules tab, the page will show the list of the scheduled requests of the user.
 
 ### **Scheduled queries**
@@ -104,20 +106,26 @@ To choose the scheduling options the user has to click on the icon on the "Submi
 
 The scheduling options are:
 
-- At time\
-  ![](attimeschedule.png)\
+- At time
+  ![](attimeschedule.png)
   repeats the submission every day at a defined time, every defined day of the week or every defined day of a month
 
-- Periodically\
-  ![](periodicallyscheduled.png)\
+- Periodically
+  ![](periodicallyscheduled.png)
   repeats the submission with a defined interval in hour, days or minutes. The shortest interval available is 15 minutes
 
-- On data ready\
+- On data ready
   On data ready option is available only for some datasets. The request is submitted every time new data are available for the selected dataset.
 
-### **Clone a request**
+### **Clone as a new request**
 
-TODO
+In the "My Requests" page, there is the possibility to modify a request and submit it again. If the user expands the box of the request he wants to clone, he can see some icons on the upper right side of the box. The first icon is the one to click to start cloning the request:
+
+![](C:\Users\c.caroli\Documents\backuppati\WORK\SCAI-MD-TEAM\Mistral\DOCUMENTAZIONE\docs\clone.png)
+
+
+
+By clicking on the icon, the user finds himself with the same pre-filled request and has the possibility to modify the filter and post-processing settings and to resubmit the modified query as if it were a new request.
 
 ### **Data pushing**
 
@@ -127,7 +135,7 @@ Once enabled, in the "Submit my request" page the user will see the "Data pushin
 
 ![](pushing.png)
 
-Enabling the "Data pushing" option the user will receive in his AMQP queue a notification when its data extraction has been completed.\
+Enabling the "Data pushing" option the user will receive in his AMQP queue a notification when its data extraction has been completed.
 The message will contain:
 
 - the name of the submitted request
@@ -166,7 +174,7 @@ Observed data from ground stations are displayed on a customized web viewer deve
 
 ![observations](observations.png)
 
-The user can filter by variable, date, Level, Time range, Network, Group of Licenses and Quality Control Filter.
+The user can filter by Variable, Date (the user can select a whole day or identify a time interval of less than 24 hours within that day), Level, Time range, Network, Group of Licenses and Quality Control Filter.
 
 The user can download the data filtered according to the selections set in the filter parameters.
 
@@ -182,7 +190,27 @@ The multi-layer visualisation is available for COSMO-5M, COSMO-2I and Italy Flas
 
 ![multi-layer](multi-layer.png)
 
----
+
+
+------
+
+
+
+## **Self-registration**
+
+On the Web Frontend, users are given the opportunity to self-register using the "Sign up" button in the menu.
+In this way they obtain the credentials to log into the portal.
+The self-registered users can access a set of additional features than the non-registered users.
+
+![](C:\Users\c.caroli\Documents\backuppati\WORK\SCAI-MD-TEAM\Mistral\DOCUMENTAZIONE\docs\selfreg.png)
+
+
+
+
+
+------
+
+
 
 ## **Admin guide**
 
@@ -210,7 +238,29 @@ Other roles can be added when needed.
 
 ### **User Configuration**
 
-Some functionalities are available only prior authorization. The administrator can provide user access to them at the time of creating the account or modifying it later.\
+TODO: 
+
+mancano alcuni parametri di configurazione: 
+
+Email - che è usata anche come username
+
+Roles
+
+Group
+
+Account expiration
+
+Disk quota
+
+AMQP queue
+
+Requests expirations (in days, 0 to disable) 
+
+Enable access to Open Datasets  e Allowed additional datasets 
+
+
+
+Some functionalities are available only prior authorization. The administrator can provide user access to them at the time of creating the account or modifying it later.
 These functionalities are:
 
 - Possibility to schedule a data extraction, enabled in user's profile page selecting the checkbox _Schedule_
