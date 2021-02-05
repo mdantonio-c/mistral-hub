@@ -211,7 +211,7 @@ class Fields(EndpointResource):
                 except UnAuthorizedUser:
                     raise Unauthorized("user is not authorized to access the datasets")
                 except NetworkNotInLicenseGroup:
-                    BadRequest(
+                    raise BadRequest(
                         "The selected network and the selected license group does not match"
                     )
 
@@ -253,18 +253,18 @@ class Fields(EndpointResource):
                     for key in summary:
                         resulting_fields["summarystats"][key] = summary[key]
 
-                if allAvailableProducts:
-                    # maps case: add license group field
-                    all_group_licenses = (
-                        SqlApiDbManager.get_all_user_authorized_license_groups(db, user)
-                    )
-                    all_group_licenses_res = []
-                    for lg in all_group_licenses:
-                        item = {}
-                        item["code"] = lg
-                        item["desc"] = lg.replace("_", " ")
-                        all_group_licenses_res.append(item)
-                    resulting_fields["all_licenses"] = all_group_licenses_res
+            if allAvailableProducts:
+                # maps case: add license group field
+                all_group_licenses = (
+                    SqlApiDbManager.get_all_user_authorized_license_groups(db, user)
+                )
+                all_group_licenses_res = []
+                for lg in all_group_licenses:
+                    item = {}
+                    item["code"] = lg
+                    item["desc"] = lg.replace("_", " ")
+                    all_group_licenses_res.append(item)
+                resulting_fields["all_licenses"] = all_group_licenses_res
 
             summary = {"items": resulting_fields}
 
