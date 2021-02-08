@@ -219,15 +219,13 @@ The self-registered users can access a set of additional features than the non-r
 
 ### **User roles**
 
-The functionalities for each profile are outlined in this _[table](https://gitlab.hpc.cineca.it/mistral/meteo-hub/-/issues/172#note_5812)_
-
-The _Anonymous_ users are managed.
+The functionalities for each *profile* are outlined in this _[table](https://gitlab.hpc.cineca.it/mistral/meteo-hub/-/issues/172#note_5812)_.
 
 The functionality enabling and the configurations for the other user profiles have been implemented **at the user level**.
 
 So, the profiles "Amministratore", "Pagante", "Institutional", "Demo" and "Auto-registrato" have to be configured by the administrator at the time of the creation of the account, through the Frontend user creation feature.
 
-The role field is only used to remind the administrator the type of the user, but from a functional point of view it is irrelevant.
+The *role* field is only used to remind the administrator the type of the user, but from a functional point of view it is irrelevant.
 
 At the moment, the roles implemented are:
 
@@ -235,31 +233,29 @@ At the moment, the roles implemented are:
 - _Institutional_
 - _User_
 
-The role _User_ is the default one.
+The *self-registered* users are configured with profile *User*.
 
 Other roles can be added when needed.
 
 ### **User Configuration**
 
-*TODO* mancano alcuni parametri di configurazione: 
+*Email*: it should be the real email address of the user in fact the password could be notified by email. It constitutes also the *userid*.
 
-Email - che è usata anche come username
+*Roles*: the role field is only used to remind the administrator the type of the user, but from a functional point of view it is irrelevant.
 
-Roles
+*Group*: there is currently a single group to which all users belong. The group has no function at the moment.
 
-Group
+*Account expiration*: the user can be assigned an expiration date.
 
-Account expiration
+*Disk quota*: each user has assigned a disk quota in which the results of his requests are saved. This quota also constitutes the ceiling for the space available to the user.
 
-Disk quota
+*AMQP queue*: the name of the AMQP queue on which the user is enabled to do data pushing must be indicated here. Not all users are enabled for this functionality.
 
-AMQP queue
+*Requests expirations* (in days, 0 to disable): the value of the field indicates the number of days after which the request results are automatically deleted from the user's disk quota. If set to 0 then these are not deleted. The value of this field can also be modified by the user himself.
 
-Requests expirations (in days, 0 to disable) 
+*Enable access to Open Datasets*: by selecting this check the user is enabled to access the Open datasets.
 
-Enable access to Open Datasets  e Allowed additional datasets 
-
-
+*Allowed additional datasets*: the user can be enabled to access to single datasets.
 
 Some functionalities are available only prior authorization. The administrator can provide user access to them at the time of creating the account or modifying it later.
 These functionalities are:
