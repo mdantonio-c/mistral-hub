@@ -177,7 +177,7 @@ class MapsObservations(EndpointResource):
         except UnAuthorizedUser:
             raise Unauthorized("user is not authorized to access the datasets")
         except NetworkNotInLicenseGroup:
-            BadRequest(
+            raise BadRequest(
                 "The selected network and the selected license group does not match"
             )
 
@@ -363,7 +363,7 @@ class MapsObservations(EndpointResource):
         except UnAuthorizedUser:
             raise Unauthorized("user is not authorized to access the datasets")
         except NetworkNotInLicenseGroup:
-            BadRequest(
+            raise BadRequest(
                 "The selected network and the selected license group does not match"
             )
 

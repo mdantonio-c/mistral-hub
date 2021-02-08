@@ -524,12 +524,11 @@ def data_extract(
             if data_size > 0:
                 # update request status
                 request.status = states.SUCCESS
-                if not opendata:
-                    ## for pushing data output to amqp queue use case, the creation of fileoutput record in db can be skipped
-                    # create fileoutput record in db
-                    SqlApiDbManager.create_fileoutput_record(
-                        db, user_id, request_id, target_filename, data_size
-                    )
+                ## for pushing data output to amqp queue use case, the creation of fileoutput record in db can be skipped
+                # create fileoutput record in db
+                SqlApiDbManager.create_fileoutput_record(
+                    db, user_id, request_id, target_filename, data_size
+                )
             else:
                 # remove the empty output file
                 if os.path.exists(outfile):
