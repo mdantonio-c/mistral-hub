@@ -237,7 +237,7 @@ The *self-registered* users are configured with profile *User*.
 
 Other roles can be added when needed.
 
-### **User Configuration**
+### **User configuration**
 
 *Email*: it should be the real email address of the user in fact the password could be notified by email. It constitutes also the *userid*.
 
@@ -261,7 +261,7 @@ Some functionalities are available only prior authorization. The administrator c
 These functionalities are:
 
 - Possibility to schedule a data extraction, enabled in user's profile page selecting the checkbox _Schedule_
-- Use of post-processing tools, enabled in user's profile page selecting the checkbox _Postprocessing_
+- Use of post-processing tools, enabled in user's profile page selecting the checkbox _Postprocessing_ `*`
 - Access to archived observed data, enabled in user's profile page selecting the checkbox _Observed Archive_
 
 Additional parameters the administrator can configure at user level are:
@@ -269,6 +269,8 @@ Additional parameters the administrator can configure at user level are:
 - _Max Templates_ : the maximum number of templates of each kind (.shp templates or .grib templates) the user can upload in his personal space. Set 0 to allow unlimited number of uploaded templates.
 - _Max output size_ : the maximum file output size for each request of data extraction
 - _Requests per hour_: the maximum number of request of data extraction a user can submit each hour. Set 0 to allow unlimited number of requests per hour.
+
+`*`  *Format conversion* and *Quality Control Filtering* are enabled for all users. They are not subject to the enabling of the Postprocessing field.
 
 ### **Create a new user**
 
