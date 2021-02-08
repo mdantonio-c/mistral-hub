@@ -16,6 +16,16 @@ class Customizer(BaseCustomizer):
         for p in ("datasets",):
             if p in properties:
                 extra_properties[p] = properties.pop(p, None)
+
+        properties.setdefault("open_dataset", True)
+        # 1 GB, as defined in sqlalchemy model
+        properties.setdefault("disk_quota", 1073741824)
+        properties.setdefault("max_output_size", 1073741824)
+        properties.setdefault("max_templates", 1)
+        properties.setdefault("allowed_postprocessing", False)
+        properties.setdefault("allowed_schedule", False)
+        properties.setdefault("allowed_obs_archive", True)
+        properties.setdefault("request_par_hour", 10)
         return properties, extra_properties
 
     @staticmethod
@@ -28,10 +38,6 @@ class Customizer(BaseCustomizer):
                 raise NotFound(f"Dataset {dataset_id} not found")
 
             datasets.append(dat)
-
-        # Self-registered users
-        if "open_dataset" not in properties and "open_dataset" not in extra_properties:
-            user.open_dataset = True
 
         user.datasets = datasets
 

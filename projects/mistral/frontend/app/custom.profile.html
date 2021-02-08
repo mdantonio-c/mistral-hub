@@ -41,3 +41,38 @@
     <ng-template #noValues> - </ng-template>
   </td>
 </ng-container>
+
+<ng-container *ngIf="row.key == 'open_dataset'">
+  <th>Open datasets allowed</th>
+  <td>{{row.value | yes_or_no}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'allowed_postprocessing'">
+  <th>Postprocessing allowed</th>
+  <td>{{row.value | yes_or_no}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'allowed_schedule'">
+  <th>Schedules allowed</th>
+  <td>{{row.value | yes_or_no}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'allowed_obs_archive'">
+  <th>Observation archive allowed</th>
+  <td>{{row.value | yes_or_no }}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'max_templates'">
+  <th>Max number of templates</th>
+  <td>{{row.value}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'max_output_size'">
+  <th>Max allowed output size</th>
+  <td>{{row.value | bytes}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'request_par_hour'">
+  <th>Allowed requests per hour</th>
+  <td>{{row.value}}</td>
+</ng-container>
