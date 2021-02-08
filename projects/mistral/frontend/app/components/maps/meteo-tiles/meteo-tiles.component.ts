@@ -1092,15 +1092,11 @@ export class MeteoTilesComponent {
     let min: number, max: number;
     this.mmProductsData[idx][timerangeIdx].forEach((s) => {
       obsData = s.prod.find((x) => x.var === this.mmProduct);
-      let localMin = Math.min(
-        ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val)
-      );
+      let localMin = Math.min(...obsData.val.map((v) => v.val));
       if (!min || localMin < min) {
         min = localMin;
       }
-      let localMax = Math.max(
-        ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val)
-      );
+      let localMax = Math.max(...obsData.val.map((v) => v.val));
       if (!max || localMax > max) {
         max = localMax;
       }
