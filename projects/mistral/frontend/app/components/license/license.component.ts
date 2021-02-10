@@ -10,6 +10,7 @@ import { NgxSpinnerService } from "ngx-spinner";
 })
 export class LicenseComponent implements OnInit {
   data;
+  maps_data;
   ColumnMode = ColumnMode;
 
   constructor(
@@ -40,5 +41,40 @@ export class LicenseComponent implements OnInit {
       .add(() => {
         this.spinner.hide();
       });
+    // maps licenses
+    this.maps_data = [
+      {
+        name: "Observations map",
+        description:
+          "Observation map: graphic representation of the observational data collected in Meteo-Hub platform",
+        attribution_description: "Mistral",
+        license_description: "CC BY 4.0",
+        license_url: "https://creativecommons.org/licenses/by/4.0/legalcode",
+      },
+      {
+        name: "Forecast map",
+        description:
+          "Forecast map: graphic representation of the forecast data collected in Meteo-Hub platform",
+        attribution_description: "Mistral",
+        license_description: " CC BY-ND 4.0",
+        license_url: "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
+      },
+      {
+        name: "Multi layer Map",
+        description:
+          "Graphic representation of data collected in Meteo-Hub platform from diffferent models",
+        attribution_description: "Mistral",
+        license_description: " CC BY-ND 4.0",
+        license_url: "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
+      },
+      {
+        name: "IFF",
+        description:
+          "Graphic representation of forecast model Italy Flash Flood",
+        attribution_description: "Mistral",
+        license_description: "CC BY 4.0",
+        license_url: "https://creativecommons.org/licenses/by/4.0/legalcode",
+      },
+    ];
   }
 }
