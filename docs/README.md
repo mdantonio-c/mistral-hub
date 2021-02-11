@@ -2,7 +2,7 @@
 
 **Author**: CINECA, Dedagroup
 
-**Date**: 22 January 2021
+**Date**: 11 February 2021
 
 **Status**: draft
 
@@ -550,26 +550,37 @@ Container _arpaesimcnifi_ has been set-up with the following steps:
 1. Deploy from original releases available from [https://github.com/ARPA-SIMC/dballe](https://github.com/ARPA-SIMC/dballe)
 
    `docker run -it arpaesimc/fedora:31 /bin/bash`
+
    `docker run -it arpaesimc/centos:8 /bin/bash`
 
 2. Update the libraries available from `@copr:copr.fedorainfracloud.org:simc:stable` to the latest version available
 
 3. Install NiFi 1.11.4 as documented here:
+
    https://nifi.apache.org/docs/nifi-docs/html/getting-started.html
+
    https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
+
    Installation folder: /home/nifi/nifi-1.11.4
+
    Operational folder: /opt/nifi
+
 4. Create working directories:
+
    /home/nifi/ingest/radar
    /home/nifi/ingest/obs
    /opt/nifi/nifi_ok_flowfile
    /opt/nifi/nifi_error_flowfile
    /opt/nifi/temp
+
 5. Copy provided python scripts into folder:
    /home/nifi/ingest/obs
+
 6. Mount Arkimet storage folder to:
    /opt/arkimet_data
+
 7. Create table structure in NiFi’s operational DB by launching the provided SQL script
+
 8. Load the provided NiFi’s XML templates into the application.
    Create context parameters copying them from the TXT list provided.
    Start NiFi flows.
