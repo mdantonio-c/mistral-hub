@@ -233,7 +233,7 @@ At the moment, the roles implemented are:
 - _Institutional_
 - _User_
 
-The *self-registered* users are configured with profile *User*.
+The *Self-registered* users are configured with profile *User*.
 
 Other roles can be added when needed.
 
@@ -548,6 +548,7 @@ The ingestor machine uses docker and is equipped with the following containers:
 Container _arpaesimcnifi_ has been set-up with the following steps:
 
 1. Deploy from original releases available from [https://github.com/ARPA-SIMC/dballe](https://github.com/ARPA-SIMC/dballe)
+
    `docker run -it arpaesimc/fedora:31 /bin/bash`
    `docker run -it arpaesimc/centos:8 /bin/bash`
 
