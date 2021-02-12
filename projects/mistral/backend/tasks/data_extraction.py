@@ -29,13 +29,13 @@ from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
 from restapi.config import get_backend_url
 from restapi.connectors import rabbitmq, smtp, sqlalchemy
-from restapi.connectors.celery import CeleryExt
+from restapi.connectors.celery import CeleryExt, send_errors_by_email
 from restapi.utilities.logs import log
 from restapi.utilities.templates import get_html_template
 
 
 @CeleryExt.celery_app.task(bind=True, name="data_extract")
-# @send_errors_by_email
+@send_errors_by_email
 def data_extract(
     self,
     user_id,

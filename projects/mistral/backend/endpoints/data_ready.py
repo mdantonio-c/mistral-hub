@@ -190,6 +190,7 @@ class DataReady(EndpointResource):
                         processors,
                         output_format,
                         request_to_be_created_id,
+                        None,
                         pushing_queue,
                         request_id,
                         data_ready,
