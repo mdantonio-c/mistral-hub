@@ -54,4 +54,8 @@ class Datasets(EndpointResource):
                 raise NotFound(f"Dataset not found for name: {dataset_name}")
             return self.response(matched_ds)
 
-        return self.response(datasets)
+        sorted_datasets = None
+        if datasets:
+            sorted_datasets = sorted(datasets, key=lambda k: k["description"])
+
+        return self.response(sorted_datasets)

@@ -122,7 +122,7 @@
         <ng-template #noValue>-</ng-template>
       </div>
       <br />
-      <h3>Attributions &amp; Licenses - Maps</h3>
+      <h3>Attributions &amp; Licenses - Mistral Products</h3>
       <!-- maps licenses table -->
       <div class="table-responsive">
         <ngx-datatable
@@ -131,13 +131,13 @@
           [columnMode]="ColumnMode.flex"
           [headerHeight]="40"
           [footerHeight]="40"
-          [rows]="maps_data"
+          [rows]="mistral_products"
           [rowHeight]="'auto'"
         >
           <!-- Column Templates -->
           <!-- Map name -->
           <ngx-datatable-column
-            name="Map"
+            name="Product"
             prop="name"
             [resizeable]="false"
             [sortable]="false"
