@@ -171,7 +171,7 @@ class Initializer:
             },
             {
                 "name": "MISTRAL",
-                "descr": "Mistral project",
+                "descr": "Mistral",
                 "url": "https://www.mistralportal.it",
             },
             {
