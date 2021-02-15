@@ -10,7 +10,6 @@ import { NgxSpinnerService } from "ngx-spinner";
 })
 export class LicenseComponent implements OnInit {
   data;
-  iff_dataset;
   mistral_products;
   ColumnMode = ColumnMode;
 
@@ -27,9 +26,13 @@ export class LicenseComponent implements OnInit {
       .getDatasets(true)
       .subscribe(
         (response) => {
-          this.data = response.filter((x) => x.name !== "COSMO-2Ipp_ecPoint");
-          this.iff_dataset =
+          this.data = response
+            .filter((x) => x.name !== "COSMO-2Ipp_ecPoint")
+            .filter((x) => x.name !== "multim-forecast");
+          let iff_dataset =
             response.find((x) => x.name === "COSMO-2Ipp_ecPoint") || null;
+          let multim_dataset =
+            response.find((x) => x.name === "multim-forecast") || null;
           // console.log('Data loaded', this.data);
           if (this.data.length === 0) {
             this.notify.showWarning(
@@ -75,10 +78,10 @@ export class LicenseComponent implements OnInit {
                 "https://creativecommons.org/licenses/by/4.0/legalcode",
             },
           ];
-          // change name to iff dataset to match the name of the mistral product
-          this.iff_dataset.name = "IFF Data";
           // append iff dataset in mistral products
-          this.mistral_products.push(this.iff_dataset);
+          this.mistral_products.push(iff_dataset);
+          // append multimodel dataset in mistral products
+          this.mistral_products.push(multim_dataset);
         },
         (error) => {
           this.notify.showError(error);
