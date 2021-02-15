@@ -2,7 +2,7 @@
 
 **Author**: CINECA, Dedagroup
 
-**Date**: 11 February 2021
+**Date**: 15 February 2021
 
 **Status**: draft
 
@@ -272,14 +272,6 @@ Additional parameters the administrator can configure at user level are:
 
 `*`  *Format conversion* and *Quality Control Filtering* are enabled for all users. They are not subject to the enabling of the Postprocessing field.
 
-### **Create a new user**
-
-_TODO_
-
-### **Datasets**
-
-_TODO Bea_
-
 ### **Packaged data for public access**
 
 The administrator has the possibility to create files of packaged data available for public download.\
@@ -302,38 +294,109 @@ The authorization to access a dataset is implemented at the user level: it is th
 The abilitation is managed in two ways:
 
 - enabling access to all open datasets selecting _Enable access to Open Datasets_ checkbox
+
 - enabling additional datasets one by one
 
 - **How to add a new dataset**
   _TODO Bea_
 
+  
+
 ---
 
 ## **User guide**
 
-_TODO Marghe_
-
 ### **User profile**
 
-By clicking on the user profile icon, the Frontend shows to the user the list of information that make up the user's profile.
+By clicking on the Profile icon in the menu, users can access the Profile page. In the Profile page all the parameters that characterize the user profile can be viewed:
 
-By clicking on the “Edit your profile” icon, users can modify some of the configurations of their profile: Name and Surname and “Requests expiration”. The “Requests expiration” parameter is described in the following paragraph.
+*Name*: it is the name of the user.
 
-Users can change their password by clicking on the button “CHANGE” near Last password change.
+*Email*: it is the real email address of the user and also *userid*.
 
-### **Requests expiration**
+*Group*: the group has no function at the moment.
 
-The “Requests expiration” parameter allows users to activate the automatic cleaning of their old submitted requests by setting the number N of days of expiration: requests with “End date” older than N days are deleted.
+*Roles*: it is a classification of users.
 
-By default, N=0 that means the cleaning is not active.
+*Privacy accepted*: if the user accepted the Privacy policy of the portal.
 
-### **Disk quota**
+*Observation archive allowed*: if YES than the user is enabled to access the archived observed data.
 
-TODO
+*Postprocessing allowed*: if YES than the user is enabled to use post-processing tools.
 
-### **How To**
+*Schedules allowed*: if YES than the user is enabled to schedule the data extractions.
 
-TODO
+*AMQP Queue*: the name of the AMQP queue on which the user is enabled to do data pushing is indicated here. Not all users are enabled for this functionality.
+
+*Allowed datasets*: the user can be enabled to access single datasets.
+
+*Account expiration*: only if the user has an expiration date.
+
+*Disk quota*: each user has assigned a disk quota in which the results of his requests are saved. This quota also constitutes the ceiling for the space available to the user.
+
+_Max allowed output size_ : the maximum file output size for each request of data extraction
+
+_Max number of templates_ : the maximum number of templates of each kind (.shp templates or .grib templates) the user can upload in his personal space. Set 0 to allow unlimited number of uploaded templates.
+
+*Open datasets allowed*: by selecting this check the user is enabled to access the Open datasets.
+
+_Allowed requests per hour_: the maximum number of request of data extraction a user can submit each hour. Set 0 to allow unlimited number of requests per hour.
+
+*Requests expiration* (in days, 0 to disable): the value of the field indicates the number of days after which the request results are automatically deleted from the user's disk quota. If set to 0 then these are not deleted. The value of this field can also be modified by the user himself.
+
+*Last password change*: the date of the last change of the password.
+
+The  image below shows the Profile page:
+
+![](C:\Users\c.caroli\Documents\backuppati\WORK\SCAI-MD-TEAM\Mistral\DOCUMENTAZIONE\docs\profile.png)
+
+In the Profile page, the user is able to:
+
+- change password
+- to customize the following item (by clicking on the EDIT function icon):
+  - Name 
+  - Surname
+  - Requests expirations (in days, 0 to disable): the user can select how many days he needs to keep the results of his requests available on My Request page before they are automatically deleted.
+
+![](C:\Users\c.caroli\Documents\backuppati\WORK\SCAI-MD-TEAM\Mistral\DOCUMENTAZIONE\docs\profile2.png)
+
+
+
+### **How to build a Data Extraction and Post-processing request**
+
+Two video tutorials explain the main functions offered by Meteo-hub and are available on the MISTRAL YouTube channel.
+
+The first video tutorial illustrates:
+
+- Home page of the Mistral project website
+- The basic functionalities present in Meteo-hub platform *version 0.2* through the four steps provided in Meteo-hub:
+  - Submit your Data Extraction
+  - Filter your data: how to select filter for customizing the request
+  - Choose a Post-processing: derived variables 
+  - Submit My Request:  immediately or scheduled
+
+- Presentation of the My request page: List of submitted request, Download or Delete a request, List of scheduled request.
+
+It is available on MISTRAL project YouTube channel:
+
+https://www.youtube.com/watch?v=v6JuqW2tPag
+
+The second video tutorial illustrates:
+
+- Open Services page on Mistral project website
+- The new features developed and present in Meteo-hub *version 0.3* illustrated through the four steps of construction and submission of the request:
+  - Submit your Data Extraction
+  - Filter your data: interactive selection where the other filters adjust according to the user's selection
+  - Choose a Post-processing:  Derived variables, Space post-processing, Time post-processing
+  - Submit My Request
+
+- My request page: Copy the request to clipboard, Download the JSON file of the request.
+
+It is available on MISTRAL project YouTube channel:
+
+https://www.youtube.com/watch?v=bAQD-IjS8oQ&t
+
+
 
 ---
 
@@ -392,7 +455,7 @@ rapydo install 0.9
 
 ```
 
-#### Development deployment
+#### **Development deployment**
 
 The following commands are required to configure and execute the stack in development mode:
 
@@ -425,7 +488,7 @@ In another shell the container status and logs can be inspected by using docker 
 When the frontend compilation is completed the web interface will be available on localhost:80
 APIs will respond on localhost:8080
 
-#### Production deployment
+#### **Production deployment**
 
 To run the application in production mode an hostname should be assigned to the host, to properly create a valid SSL certificate (although the IP address can be used, in this case a self-signed certificate will be created)
 
@@ -476,7 +539,7 @@ For example to renew every Monday at 00:00 AM
 
 ---
 
-#### Arkimet config files
+#### **Arkimet config files**
 
 The list of the config fields managed by Arkimet can be found [here](https://github.com/ARPA-SIMC/arkimet/issues/67#issuecomment-293193990).
 
@@ -528,9 +591,9 @@ The name must be one of those present in the name field of the database ATTRIBUT
 
 Mandatory field.
 
-#### Dballe DSN
+#### **Dballe DSN**
 
-_TO DO Bea_
+_TODO Bea_
 
 ---
 
@@ -589,7 +652,7 @@ Container _arpaesimcnifi_ has been set-up with the following steps:
 
 ## **Open Data Catalogue**
 
-### Installing CKAN with docker compose
+### **Installing CKAN with docker compose**
 
 The stack is based on Docker containers deployed with docker-compose, as described in the following documentation:
 
@@ -627,7 +690,7 @@ c390866ab566    	redis:latest            	"docker-entrypoint.s…"   6379/tcp   
 2d560a0a08ae    	docker\_db               	"docker-entrypoint.s…"   0.0.0.0:5432->5432/tcp                                                                                                        db
 ```
 
-### Ckan extensions
+### **Ckan extensions**
 
 A CKAN extension is a Python package that modifies or extends CKAN. Each extension contains one or more plugins that must be added to your CKAN config file to activate the extension’s features.
 
