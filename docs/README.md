@@ -104,29 +104,23 @@ The submission of any request of data extraction can be scheduled. This function
 To choose the scheduling options the user has to click on the icon on the "Submit my request" page.
 ![](schedule.png)
 
-
-
 The scheduling options are:
 
-- *At time* repeats the submission every day at a defined time, every defined day of the week or every defined day of a month.
-  
+- _At time_ repeats the submission every day at a defined time, every defined day of the week or every defined day of a month.
+
   ![](attimeschedule.png)
 
-- *Periodically* repeats the submission with a defined interval in hour, days or minutes. The shortest interval available is 15 minutes.
-  
+- _Periodically_ repeats the submission with a defined interval in hour, days or minutes. The shortest interval available is 15 minutes.
+
   ![](periodicallyscheduled.png)
 
-  
-  
-- *On data ready* option is available only for some datasets. The request is submitted every time new data are available for the selected dataset.
+- _On data ready_ option is available only for some datasets. The request is submitted every time new data are available for the selected dataset.
 
 ### **Clone as a new request**
 
 In the "My Requests" page, there is the possibility to modify a request and submit it again. If the user expands the box of the request he wants to clone, he can see some icons on the upper right side of the box. The first icon is the one to click to start cloning the request:
 
 ![](clone.png)
-
-
 
 By clicking on the icon, the user ends up with the same pre-filled request and has the possibility to modify the filter and post-processing settings and to re-submit the modified query as if it were a new request.
 
@@ -193,11 +187,7 @@ The multi-layer visualisation is available for COSMO-5M, COSMO-2I and Italy Flas
 
 ![multi-layer](multi-layer.png)
 
-
-
-------
-
-
+---
 
 ## **Self-registration**
 
@@ -207,25 +197,19 @@ The self-registered users can access a set of additional features than the non-r
 
 ![](selfreg.png)
 
-
-
-
-
-------
-
-
+---
 
 ## **Admin guide**
 
 ### **User roles**
 
-The functionalities for each *profile* are outlined in this _[table](https://gitlab.hpc.cineca.it/mistral/meteo-hub/-/issues/172#note_5812)_.
+The functionalities for each _profile_ are outlined in this _[table](https://gitlab.hpc.cineca.it/mistral/meteo-hub/-/issues/172#note_5812)_.
 
 The functionality enabling and the configurations for the other user profiles have been implemented **at the user level**.
 
 So, the profiles "Amministratore", "Pagante", "Institutional", "Demo" and "Auto-registrato" have to be configured by the administrator at the time of the creation of the account, through the Frontend user creation feature.
 
-The *role* field is only used to remind the administrator the type of the user, but from a functional point of view it is irrelevant.
+The _role_ field is only used to remind the administrator the type of the user, but from a functional point of view it is irrelevant.
 
 At the moment, the roles implemented are:
 
@@ -233,29 +217,29 @@ At the moment, the roles implemented are:
 - _Institutional_
 - _User_
 
-The *Self-registered* users are configured with profile *User*.
+The _Self-registered_ users are configured with profile _User_.
 
 Other roles can be added when needed.
 
 ### **User configuration**
 
-*Email*: it should be the real email address of the user in fact the password could be notified by email. It constitutes also the *userid*.
+_Email_: it should be the real email address of the user in fact the password could be notified by email. It constitutes also the _userid_.
 
-*Roles*: the role field is only used to remind the administrator the type of the user, but from a functional point of view it is irrelevant.
+_Roles_: the role field is only used to remind the administrator the type of the user, but from a functional point of view it is irrelevant.
 
-*Group*: there is currently a single group to which all users belong. The group has no function at the moment.
+_Group_: there is currently a single group to which all users belong. The group has no function at the moment.
 
-*Account expiration*: the user can be assigned an expiration date.
+_Account expiration_: the user can be assigned an expiration date.
 
-*Disk quota*: each user has assigned a disk quota in which the results of his requests are saved. This quota also constitutes the ceiling for the space available to the user.
+_Disk quota_: each user has assigned a disk quota in which the results of his requests are saved. This quota also constitutes the ceiling for the space available to the user.
 
-*AMQP queue*: the name of the AMQP queue on which the user is enabled to do data pushing must be indicated here. Not all users are enabled for this functionality.
+_AMQP queue_: the name of the AMQP queue on which the user is enabled to do data pushing must be indicated here. Not all users are enabled for this functionality.
 
-*Requests expirations* (in days, 0 to disable): the value of the field indicates the number of days after which the request results are automatically deleted from the user's disk quota. If set to 0 then these are not deleted. The value of this field can also be modified by the user himself.
+_Requests expirations_ (in days, 0 to disable): the value of the field indicates the number of days after which the request results are automatically deleted from the user's disk quota. If set to 0 then these are not deleted. The value of this field can also be modified by the user himself.
 
-*Enable access to Open Datasets*: by selecting this check the user is enabled to access the Open datasets.
+_Enable access to Open Datasets_: by selecting this check the user is enabled to access the Open datasets.
 
-*Allowed additional datasets*: the user can be enabled to access to single datasets.
+_Allowed additional datasets_: the user can be enabled to access to single datasets.
 
 Some functionalities are available only prior authorization. The administrator can provide user access to them at the time of creating the account or modifying it later.
 These functionalities are:
@@ -270,13 +254,13 @@ Additional parameters the administrator can configure at user level are:
 - _Max output size_ : the maximum file output size for each request of data extraction
 - _Requests per hour_: the maximum number of request of data extraction a user can submit each hour. Set 0 to allow unlimited number of requests per hour.
 
-`*`  *Format conversion* and *Quality Control Filtering* are enabled for all users. They are not subject to the enabling of the Postprocessing field.
+`*` _Format conversion_ and _Quality Control Filtering_ are enabled for all users. They are not subject to the enabling of the Postprocessing field.
 
 ### **Packaged data for public access**
 
 The administrator has the possibility to create files of packaged data available for public download.\
 In order to create a scheduled data extraction of public package data, _Open data schedule_ option has to be enabled in Schedule panel.
-![](opendata_pack.png)
+![](opendata_pack.png)\
 The resulting output file will be automatically available in the list of downloadable packages (see [Download open data](README.md#download-open-data))\
 The _opendata_ flag is available only for dataset with open license.\
 Opendata schedules and opendata request are marked by a specific label in "My Requests" page.
@@ -293,14 +277,20 @@ The authorization to access a dataset is implemented at the user level: it is th
 
 The abilitation is managed in two ways:
 
-- enabling access to all open datasets selecting _Enable access to Open Datasets_ checkbox
+1. enabling access to all open datasets selecting _Enable access to Open Datasets_ checkbox
 
-- enabling additional datasets one by one
+2. enabling additional datasets one by one
 
 - **How to add a new dataset**
-  _TODO Bea_
 
-  
+A dataset consists of:
+
+- an Arkimet directory containing the Arkimet archive and the dataset configuration.
+- a database record where all dataset properties are saved
+
+In order to create a new dataset, a new Arkimet directory has to be created with the following path: _data/arkimet/dataset_folder_. See [Arkimet config chapter](README.md#arkimet-config-files) for more information on how create a dataset configuration file.\
+A new dataset entry has to be created in the database. The element properties are the same described for the dataset configuration.Every dataset must have an attribution reference and a license reference chosen from the attribution and license elements previously saved in the database.\
+If the chosen license is an open one, the dataset will be automatically available for data extraction to all registered users. In case of datasets of observed data with an open license, data will be automatically visible on the observations map and available for download by map. If its license is a proprietary one, dataset will be visible in the dataset list page but available for data extraction only to users authorized by the administator.
 
 ---
 
@@ -310,43 +300,43 @@ The abilitation is managed in two ways:
 
 By clicking on the Profile icon in the menu, users can access the Profile page. In the Profile page all the parameters that characterize the user profile can be viewed:
 
-*Name*: it is the name of the user.
+_Name_: it is the name of the user.
 
-*Email*: it is the real email address of the user and also *userid*.
+_Email_: it is the real email address of the user and also _userid_.
 
-*Group*: the group has no function at the moment.
+_Group_: the group has no function at the moment.
 
-*Roles*: it is a classification of users.
+_Roles_: it is a classification of users.
 
-*Privacy accepted*: if the user accepted the Privacy policy of the portal.
+_Privacy accepted_: if the user accepted the Privacy policy of the portal.
 
-*Observation archive allowed*: if YES than the user is enabled to access the archived observed data.
+_Observation archive allowed_: if YES than the user is enabled to access the archived observed data.
 
-*Postprocessing allowed*: if YES than the user is enabled to use post-processing tools.
+_Postprocessing allowed_: if YES than the user is enabled to use post-processing tools.
 
-*Schedules allowed*: if YES than the user is enabled to schedule the data extractions.
+_Schedules allowed_: if YES than the user is enabled to schedule the data extractions.
 
-*AMQP Queue*: the name of the AMQP queue on which the user is enabled to do data pushing is indicated here. Not all users are enabled for this functionality.
+_AMQP Queue_: the name of the AMQP queue on which the user is enabled to do data pushing is indicated here. Not all users are enabled for this functionality.
 
-*Allowed datasets*: the user can be enabled to access single datasets.
+_Allowed datasets_: the user can be enabled to access single datasets.
 
-*Account expiration*: only if the user has an expiration date.
+_Account expiration_: only if the user has an expiration date.
 
-*Disk quota*: each user has assigned a disk quota in which the results of his requests are saved. This quota also constitutes the ceiling for the space available to the user.
+_Disk quota_: each user has assigned a disk quota in which the results of his requests are saved. This quota also constitutes the ceiling for the space available to the user.
 
 _Max allowed output size_ : the maximum file output size for each request of data extraction
 
 _Max number of templates_ : the maximum number of templates of each kind (.shp templates or .grib templates) the user can upload in his personal space. Set 0 to allow unlimited number of uploaded templates.
 
-*Open datasets allowed*: by selecting this check the user is enabled to access the Open datasets.
+_Open datasets allowed_: by selecting this check the user is enabled to access the Open datasets.
 
 _Allowed requests per hour_: the maximum number of request of data extraction a user can submit each hour. Set 0 to allow unlimited number of requests per hour.
 
-*Requests expiration* (in days, 0 to disable): the value of the field indicates the number of days after which the request results are automatically deleted from the user's disk quota. If set to 0 then these are not deleted. The value of this field can also be modified by the user himself.
+_Requests expiration_ (in days, 0 to disable): the value of the field indicates the number of days after which the request results are automatically deleted from the user's disk quota. If set to 0 then these are not deleted. The value of this field can also be modified by the user himself.
 
-*Last password change*: the date of the last change of the password.
+_Last password change_: the date of the last change of the password.
 
-The  image below shows the Profile page:
+The image below shows the Profile page:
 
 ![](profile.png)
 
@@ -354,13 +344,11 @@ In the Profile page, the user is able to:
 
 - change password
 - to customize the following item (by clicking on the EDIT function icon):
-  - Name 
+  - Name
   - Surname
   - Requests expirations (in days, 0 to disable): the user can select how many days he needs to keep the results of his requests available on My Request page before they are automatically deleted.
 
 ![](profile2.png)
-
-
 
 ### **How to build a Data Extraction and Post-processing request**
 
@@ -369,11 +357,12 @@ Two video tutorials explain the main functions offered by Meteo-hub and are avai
 The first video tutorial illustrates:
 
 - Home page of the Mistral project website
-- The basic functionalities present in Meteo-hub platform *version 0.2* through the four steps provided in Meteo-hub:
+- The basic functionalities present in Meteo-hub platform _version 0.2_ through the four steps provided in Meteo-hub:
+
   - Submit your Data Extraction
   - Filter your data: how to select filter for customizing the request
-  - Choose a Post-processing: derived variables 
-  - Submit My Request:  immediately or scheduled
+  - Choose a Post-processing: derived variables
+  - Submit My Request: immediately or scheduled
 
 - Presentation of the My request page: List of submitted request, Download or Delete a request, List of scheduled request.
 
@@ -384,10 +373,11 @@ https://www.youtube.com/watch?v=v6JuqW2tPag
 The second video tutorial illustrates:
 
 - Open Services page on Mistral project website
-- The new features developed and present in Meteo-hub *version 0.3* illustrated through the four steps of construction and submission of the request:
+- The new features developed and present in Meteo-hub _version 0.3_ illustrated through the four steps of construction and submission of the request:
+
   - Submit your Data Extraction
   - Filter your data: interactive selection where the other filters adjust according to the user's selection
-  - Choose a Post-processing:  Derived variables, Space post-processing, Time post-processing
+  - Choose a Post-processing: Derived variables, Space post-processing, Time post-processing
   - Submit My Request
 
 - My request page: Copy the request to clipboard, Download the JSON file of the request.
@@ -395,8 +385,6 @@ The second video tutorial illustrates:
 It is available on MISTRAL project YouTube channel:
 
 https://www.youtube.com/watch?v=bAQD-IjS8oQ&t
-
-
 
 ---
 
