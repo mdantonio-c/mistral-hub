@@ -348,7 +348,7 @@ _Allowed requests per hour_: the maximum number of request of data extraction a 
 
 The  image below shows the Profile page:
 
-![](C:\Users\c.caroli\Documents\backuppati\WORK\SCAI-MD-TEAM\Mistral\DOCUMENTAZIONE\docs\profile.png)
+![](profile.png)
 
 In the Profile page, the user is able to:
 
@@ -358,7 +358,7 @@ In the Profile page, the user is able to:
   - Surname
   - Requests expirations (in days, 0 to disable): the user can select how many days he needs to keep the results of his requests available on My Request page before they are automatically deleted.
 
-![](C:\Users\c.caroli\Documents\backuppati\WORK\SCAI-MD-TEAM\Mistral\DOCUMENTAZIONE\docs\profile2.png)
+![](profile2.png)
 
 
 
