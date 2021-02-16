@@ -124,7 +124,7 @@
       <br />
       <h3>Attributions &amp; Licenses - Mistral Products</h3>
       <!-- maps licenses table -->
-      <div class="table-responsive">
+      <div class="table-responsive" *ngIf="mistral_products?.length">
         <ngx-datatable
           #licensesTable
           class="bootstrap expandable"
