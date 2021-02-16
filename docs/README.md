@@ -390,7 +390,25 @@ https://www.youtube.com/watch?v=bAQD-IjS8oQ&t
 
 # **Licenses management**
 
-_TODO Bea_
+Every dataset is linked to:
+
+- a single license
+- a single attribution
+- in case of dataset of observations data, one or more networks
+
+All these parameters are defined in both the dataset configuration file and the record in the application database related to the dataset (except for the networks.They are defined only in the configuration file).
+
+Every license is linked to a Group of licenses. The groups of licenses define and collect licenses compatible with each other. Examples can be _CCBY_COMPLIANT_ Group of licenses or _CCBY-SA_COMPLIANT_ Group of licenses.\
+This because some licenses, despite being open licenses, belong to different compatible groups. Data coming from datasets with licenses from different compatible groups cannot be mixed in the same output of a data extraction or mixed when visualized on a map.\
+In practice, a user cannot continue with the following data extraction steps if datasets coming from different license groups have been selected in the first one. Besides, for the observations map the filtering field _"Group of licenses"_ is mandatory.
+
+For a better optimization in extracting data for maps visualization, it is recommended to use different Dballe DSN corresponding to the different groups of licenses. For every group of licenses saved in the database it is possible to indicate the name of the corresponding Dballe DSN in _dballe_dsn_ field.
+
+For reasons related to Arkimet and Dballe software architecture it is also recommended to use different Dballe DSN for data coming from mobile stations and from fixed station even if under the same group of licenses.\
+Conventionally the Dballe DSN for data coming from mobile station will have the same name of the DSN for fixed station corresponding to the same group of licenses with the \__MOBILE_ suffix.\
+**Example**\
+There is a dataset of observations data with license _CCBY 4.0_ from the _CCBY_COMPLIANT_ license group with data both coming from mobile stations and fixed stations. The _CCBY_COMPLIANT_ license group is associated to a Dballe DSN named _DBALLECCBY_. Data from fixed station will be ingested in a Dballe instance called _DBALLECCBY_ while data from mobile stations will be ingested in a Dballe instance called _DBALLECCBY_MOBILE_.\
+When a user requests data from this dataset, the system automatically extracts the data from both databases and joins them in a single output file or a single map.
 
 ---
 
@@ -581,7 +599,41 @@ Mandatory field.
 
 #### **Dballe DSN**
 
-_TODO Bea_
+DSN in Dballe are used to subdivide data coming from mobile station and from fixed station and networks with licenses belonging to different license groups.\
+The first step in adding a Dballe DSN is to create a new database with the following commands:
+
+enter in postgres container\
+`$ rapydo shell postgres`
+
+create a new database
+
+```
+$ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" << EOSQL
+$ CREATE DATABASE "new_database_name";
+$ EOSQL
+```
+
+add the newly created database to _/var/lib/postgresql/current/pg_hba.conf_
+
+```
+hostnossl       new_database_name  user_name 0.0.0.0/0    password
+```
+
+exit the container and restart the service with the following command\
+`$ rapydo -s postgres start`
+
+Once the new database has been created it has to be initialized as a Dballe instance:\
+enter in backend container\
+`$ rapydo shell backend`
+
+inizialized the new database:
+
+```
+$ dbadb wipe --dsn=postgresql://${ALCHEMY_USER}:${ALCHEMY_PASSWORD}@${ALCHEMY_HOST}:${ALCHEMY_PORT}/new_database_name
+```
+
+As explained in [License Management chapter](README.md#licenses-management) in order to enable data extraction from the newly created Dballe DSN, it has to be associated in the application database to a group of licenses.\
+This operation is not requested in case of DSN for data coming from mobile station: if the new DSN follows the naming convention previously illustrated in the above-mentioned chapter, it will be automatically enable for data extraction if the corresponding DSN for data from fixed station has been previously associated to the corresponding group of licenses.
 
 ---
 

@@ -39,14 +39,23 @@ export class LicenseComponent implements OnInit {
               "Unexpected result. The list of datasets is empty."
             );
           }
+          let attr_description = null;
+          let attr_url = null;
+          if (iff_dataset) {
+            attr_description = iff_dataset.attribution_description;
+            attr_url = iff_dataset.attribution_url;
+          } else {
+            attr_description = "Mistral";
+            attr_url = "https://www.mistralportal.it";
+          }
           // mistral products licenses
           this.mistral_products = [
             {
               name: "Observations map",
               description:
                 "Observation map: graphic representation of the observational data collected in Meteo-Hub platform",
-              attribution_description: iff_dataset.attribution_description,
-              attribution_url: iff_dataset.attribution_url,
+              attribution_description: attr_description,
+              attribution_url: attr_url,
               license_description: "CC BY 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by/4.0/legalcode",
@@ -55,8 +64,8 @@ export class LicenseComponent implements OnInit {
               name: "Forecast map",
               description:
                 "Forecast map: graphic representation of the forecast data collected in Meteo-Hub platform",
-              attribution_description: iff_dataset.attribution_description,
-              attribution_url: iff_dataset.attribution_url,
+              attribution_description: attr_description,
+              attribution_url: attr_url,
               license_description: " CC BY-ND 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
@@ -65,8 +74,8 @@ export class LicenseComponent implements OnInit {
               name: "Multi layer Map",
               description:
                 "Graphic representation of data collected in Meteo-Hub platform from diffferent models",
-              attribution_description: iff_dataset.attribution_description,
-              attribution_url: iff_dataset.attribution_url,
+              attribution_description: attr_description,
+              attribution_url: attr_url,
               license_description: " CC BY-ND 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
@@ -75,8 +84,8 @@ export class LicenseComponent implements OnInit {
               name: "IFF Map",
               description:
                 "Graphic representation of forecast model Italy Flash Flood",
-              attribution_description: iff_dataset.attribution_description,
-              attribution_url: iff_dataset.attribution_url,
+              attribution_description: attr_description,
+              attribution_url: attr_url,
               license_description: "CC BY 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by/4.0/legalcode",
