@@ -38,7 +38,7 @@ export class ObsMapComponent {
     {
       detectRetina: true,
       attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>',
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>',
     }
   );
 
