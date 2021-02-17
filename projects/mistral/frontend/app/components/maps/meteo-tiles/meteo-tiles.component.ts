@@ -94,13 +94,14 @@ export class MeteoTilesComponent {
   readonly DEFAULT_PRODUCT_IFF = "Precipitation percentiles 1%";
   readonly LEGEND_POSITION = "bottomleft";
   readonly DEFAULT_DATASET = "lm5";
-  readonly license_iff =
-    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>';
-  //'&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>';
-  readonly license_cosmo =
-    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
+  // readonly license_iff =
+  //   '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>';
+  // //'&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>';
+  // readonly license_cosmo =
+  // // '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
+  // '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>';
   readonly license =
-    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
+    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> | &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>';
 
   map: L.Map;
   dataset: string;
@@ -1022,19 +1023,19 @@ export class MeteoTilesComponent {
     this.dataset = newDs;
     if (this.dataset === "lm5") {
       this.map.setView(MAP_CENTER, 5);
-      this.map.attributionControl.removeAttribution(this.license);
-      this.map.attributionControl.removeAttribution(this.license_iff);
-      this.map.attributionControl.addAttribution(this.license_cosmo);
+      // this.map.attributionControl.removeAttribution(this.license);
+      // this.map.attributionControl.removeAttribution(this.license_iff);
+      // this.map.attributionControl.addAttribution(this.license_cosmo);
     } else if (this.dataset === "lm2.2") {
       this.map.setView(MAP_CENTER, 6);
-      this.map.attributionControl.removeAttribution(this.license);
-      this.map.attributionControl.removeAttribution(this.license_iff);
-      this.map.attributionControl.addAttribution(this.license_cosmo);
+      // this.map.attributionControl.removeAttribution(this.license);
+      // this.map.attributionControl.removeAttribution(this.license_iff);
+      // this.map.attributionControl.addAttribution(this.license_cosmo);
     } else if (this.dataset === "iff") {
       this.map.setView(MAP_CENTER, 6);
-      this.map.attributionControl.removeAttribution(this.license);
-      this.map.attributionControl.removeAttribution(this.license_cosmo);
-      this.map.attributionControl.addAttribution(this.license_iff);
+      // this.map.attributionControl.removeAttribution(this.license);
+      // this.map.attributionControl.removeAttribution(this.license_cosmo);
+      // this.map.attributionControl.addAttribution(this.license_iff);
     } else {
       console.error(`Unknown dataset ${newDs}`);
     }
