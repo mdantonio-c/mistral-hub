@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi.connectors import sqlalchemy
 from restapi.connectors.celery import CeleryExt
@@ -37,7 +36,7 @@ def automatic_cleanup(self):
                 continue
 
             user = users.get(r.user_id)
-            repo.delete_request_record(db, user, r.id, DOWNLOAD_DIR)
+            repo.delete_request_record(db, user, r.id)
             log.warning(
                 "Request {} (completed on {}) deleted",
                 r.id,
