@@ -956,9 +956,7 @@ def adapt_reftime(db, schedule, reftime):
         else:
             cron_settings = json.loads(schedule.crontab_settings)
             if "day_of_week" in cron_settings:
-                schedule_interval = datetime.timedelta(
-                    **{"days": cron_settings["day_of_week"]}
-                )
+                schedule_interval = datetime.timedelta(days=7)
             elif "day_of_month" in cron_settings:
                 if "month of year" not in cron_settings:
                     days_in_month_dict = {
@@ -994,12 +992,16 @@ def adapt_reftime(db, schedule, reftime):
             .order_by(db.Request.submission_date.desc())
             .first()
         )
+        last_submission = None
         if last_r:
             # get the reftime of the last submitted request
             if last_r.args["reftime"]:
                 last_reftime_to = datetime.datetime.strptime(
                     last_r.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
                 )
+            last_submission = datetime.datetime.strptime(
+                last_r.submission_date, "%Y-%m-%d %H:%M:%S.%f"
+            )
         else:
             # get the reftime of the schedule
             last_reftime_to = datetime.datetime.strptime(
@@ -1007,10 +1009,14 @@ def adapt_reftime(db, schedule, reftime):
             )
 
         now = datetime.datetime.utcnow()
+
         # get the delta for the reftime to (including the case a schedule has been switched off for some time)
-        time_delta_to = schedule_interval * (
-            int((now - last_reftime_to) / schedule_interval)
-        )
+        if last_submission:
+            time_delta_to = schedule_interval * (
+                int((now - last_submission) / schedule_interval)
+            )
+        else:
+            time_delta_to = schedule_interval
         # get the new reftimes
         new_reftime_to = last_reftime_to + time_delta_to
         new_reftime_from = new_reftime_to - time_delta_from
