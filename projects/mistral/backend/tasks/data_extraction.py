@@ -524,7 +524,7 @@ def data_extract(
             if data_size > 0:
                 # update request status
                 request.status = states.SUCCESS
-                if opendata and datasets == "cosmo_2Ipp_ecPoint":
+                if opendata and datasets == ["cosmo_2Ipp_ecPoint"]:
                     # opendata file for iff use case: filter the output with eccodes to get the sort set list of percentiles
                     tmp_file = outfile + ".tmp"
                     os.rename(outfile, tmp_file)
@@ -536,7 +536,7 @@ def data_extract(
                         tmp_file,
                         outfile,
                     ]
-                    post_proc = subprocess.Popen(post_proc_cmd, stdout=out)
+                    post_proc = subprocess.Popen(post_proc_cmd)
                     post_proc.wait()
                     if not os.path.exists(outfile):
                         raise Exception("Failure in extract percentiles shortlist")
