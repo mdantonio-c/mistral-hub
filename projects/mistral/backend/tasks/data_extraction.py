@@ -999,9 +999,7 @@ def adapt_reftime(db, schedule, reftime):
                 last_reftime_to = datetime.datetime.strptime(
                     last_r.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
                 )
-            last_submission = datetime.datetime.strptime(
-                last_r.submission_date, "%Y-%m-%d %H:%M:%S.%f"
-            )
+            last_submission = last_r.submission_date
         else:
             # get the reftime of the schedule
             last_reftime_to = datetime.datetime.strptime(
