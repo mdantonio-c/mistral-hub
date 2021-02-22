@@ -3,6 +3,7 @@ import os
 import subprocess
 import tempfile
 from datetime import datetime, time, timedelta
+from typing import Any, Dict, List, Optional, Union
 
 import arkimet as arki
 import dateutil
@@ -318,18 +319,18 @@ class BeDballe:
                 # these notations still cause segfault
                 # datetimemin = cur["datetimemin"]
                 # datetimemin = cur["datetimemax"]
-                if min_date:
+                if min_date:  # type:ignore
                     if datetimemin < min_date:
                         min_date = datetimemin
                 else:
                     min_date = datetimemin
-                if max_date:
+                if max_date:  # type:ignore
                     if datetimemax > max_date:
                         max_date = datetimemax
                 else:
                     max_date = datetimemax
         # create the summary
-        summary = {}
+        summary: Optional[Dict[str, Union[str, List[str]]]] = None
         if not message_count:
             return summary
         summary["c"] = message_count
@@ -663,7 +664,7 @@ class BeDballe:
         filters_w_varlist = {**filters_for_explorer, "varlist": variables}
         explorer.set_filter(filters_w_varlist)
 
-        level_list = []
+        level_list: Optional[List[Any]] = None
         # get the list of all the fields for requested param according to the variables
         if param == "level":
             param_list = explorer.levels
@@ -897,7 +898,7 @@ class BeDballe:
                     )
 
                 if not dballe_maps_data and not arki_maps_data:
-                    response = []
+                    response: Optional[List[object]] = None
                     return response
 
                 if arki_maps_data:
@@ -1520,7 +1521,7 @@ class BeDballe:
             var_infos = dballe.varinfo(var_code)
             description = var_infos.desc
         elif type == "timerange" or type == "level":
-            list = []
+            list: Optional[List[Optional[int]]] = None
             for v in value.split(","):
                 if type == "level" and v == "0":
                     val = None
@@ -1577,7 +1578,7 @@ class BeDballe:
                     or key == "level"
                     and not isinstance(value, tuple)
                 ):
-                    tuple_list = []
+                    tuple_list: Optional[List[Optional[int]]] = None
                     for v in value[0].split(","):
                         if key == "level" and v == "0":
                             val = None
@@ -1611,7 +1612,7 @@ class BeDballe:
                 for e in value:
                     if key == "timerange" or key == "level":
                         # transform the timerange or level value in a tuple (required for dballe query)
-                        tuple_list = []
+                        tuple_list: Optional[List[Optional[int]]] = None
                         for v in e["code"].split(","):
                             if key == "level" and v == "0":
                                 val = None
@@ -1669,7 +1670,7 @@ class BeDballe:
                     query_list = []
                     for v in value:
                         split_list = v.split(",")
-                        tuple_list = []
+                        tuple_list: Optional[List[Optional[int]]] = None
                         for s in split_list:
                             if key == "level" and s == "0":
                                 val = None

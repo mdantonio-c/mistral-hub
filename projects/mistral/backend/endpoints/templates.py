@@ -1,6 +1,7 @@
 import glob
 import os
 import subprocess
+from typing import Any, Dict, List, Optional
 from zipfile import ZipFile
 
 from flask import request
@@ -235,8 +236,8 @@ class Templates(EndpointResource, Uploader):
                 user, param="templates"
             )
 
-            res = []
-            grib_object = {}
+            res: Optional[List[object]] = None
+            grib_object: Optional[Dict[str, Any]] = None
             grib_object["type"] = "grib"
             grib_object["files"] = []
             for t in grib_templates:
@@ -245,7 +246,7 @@ class Templates(EndpointResource, Uploader):
                 grib_object["max_allowed"] = True
             else:
                 grib_object["max_allowed"] = False
-            shp_object = {}
+            shp_object: Optional[Dict[str, Any]] = None
             shp_object["type"] = "shp"
             shp_object["files"] = []
             for t in shp_templates:

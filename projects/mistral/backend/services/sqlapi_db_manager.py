@@ -501,7 +501,7 @@ class SqlApiDbManager:
             ).first()
             if not license_group:
                 license_group = group_license
-            else:
+            else:  # type: ignore
                 if license_group.id != group_license.id:
                     # datasets belongs to different license groups
                     return None

@@ -1,5 +1,6 @@
 import datetime
 import os
+from typing import Any, Dict
 
 from flask import send_from_directory
 from mistral.endpoints import OPENDATA_DIR
@@ -43,7 +44,7 @@ class OpendataFileList(EndpointResource):
         if not group_license.is_public:
             raise BadRequest(f"Dataset {dataset_name} is not public")
 
-        query = {}
+        query: Dict[str, Any] = {}
         reftime = {}
         # add dataset to query
         query["datasets"] = [dataset_name]
