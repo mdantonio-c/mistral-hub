@@ -1,4 +1,5 @@
 import json
+from typing import Dict, List, Union
 
 from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, BaseTests
@@ -113,7 +114,7 @@ class TestApp(BaseTests):
         admin_headers, _ = self.do_login(client, None, None)
         # test use case of user who doesn't want to see open datasets
         # change fake user preferences
-        new_data = {}
+        new_data: Dict[str, Union[bool, List[str]]] = {}
         new_data["open_dataset"] = False
         new_data["datasets"] = data["datasets"]
         r = client.put(

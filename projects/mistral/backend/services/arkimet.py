@@ -86,7 +86,8 @@ class BeArkimet:
         log.debug("Launching Arkimet command: {}", args)
 
         proc = subprocess.Popen(args, encoding="utf-8", stdout=subprocess.PIPE)
-        summary = json.loads(proc.stdout.read())
+        if proc.stdout:
+            summary = json.loads(proc.stdout.read())
         if proc.wait() == 0:
             return summary
         else:
@@ -482,12 +483,8 @@ class BeArkimet:
             val = i.get("va")
             if not isinstance(val, int):
                 raise TypeError("Run value must be a number")
-            h = math.floor(i.get("va") / 60)
-            m = val % 60
-            if h < 10:
-                h = "0" + str(h)
-            if m < 10:
-                m = "0" + str(m)
+            h = str(math.floor(i.get("va") / 60)).zfill(2)
+            m = str(val % 60).zfill(2)
             return f"MINUTE,{h}:{m}"
         else:
             raise ValueError(f"Invalid <run> style for {style}")

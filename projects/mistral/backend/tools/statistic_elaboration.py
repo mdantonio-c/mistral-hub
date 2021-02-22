@@ -1,6 +1,7 @@
 import os
 import shlex
 import subprocess
+from typing import Any, Dict
 
 import dballe
 import eccodes
@@ -27,7 +28,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
     file_not_for_pp = filebase + f"_others.{fileformat}.tmp"
     if fileformat == "grib":
         with open(input, mode="r") as filein:
-            fd = {}
+            fd: Dict[tuple[int, int], Any] = {}
             fdother = None
             while True:
                 gid = eccodes.codes_grib_new_from_file(filein)
