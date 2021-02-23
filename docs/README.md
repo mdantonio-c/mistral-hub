@@ -858,3 +858,42 @@ ckan.locales_offered = en it
 | ckan_home        | ckan -> ckan_home:/usr/lib/ckan         |
 | ckan_storage     | ckan -> ckan_storage:/var/lib/ckan      |
 | pg_data          | db -> pg_data:/var/lib/postgresql/data  |
+
+# Mistral Infrastructure
+
+Mistral platform is essentially based on a microservice architecture: the individual components are deployed
+independently and operate in a broader design.
+The following picture shows an overview of the architecture of the mistral platform and additional services are
+briefly described below.
+
+![Mistral Architecture](mistral_architecture.png "Mistral Architecture")
+
+### Open Data Portal
+
+The National Meteorological Open Data Portal is the main access point for citizens, public administrations and private
+organizations to meteorological data. The web site provides useful informative sections as well as links to the
+underlying services.
+
+### Open Data Catalogue
+
+One of the main goals of the Mistral platform is to improve the interoperability of the datasets and metadata of the
+Italian weather sector. For this purpose the Open Data Catalogue allows the direct upload of the managed datasets
+to the Italian National Data Open Portal (dati.gov.it) and consequently into EU Open Data Portal (europeandataportal.eu).
+This service leverages the CKAN Open Data product and its capabilities that makes data easily discoverable and presentable.
+
+### Ingestor
+
+The core task of the Ingestor is to feed the dataset repository by preserving the integrity of the data, as previously
+described [above](#nifi-based-ingestion-component).
+
+### Dataset Repository
+
+The storage is essentially based on two data sources: DB-All.e and Arkimet. The former is a fast on-disk database used
+exclusively to store observed data. It allows to manage large amounts of data using its simple API, and provides tools
+to import and export in the standard BUFR format. Its main use is to accommodate and make readily available the most
+current data while the older ones are periodically archived. The latter plays the role of an actual archive.
+Here both forecast and observed data are collected and stored for a long time. It currently supports data in GRIB, BUFR,
+HDF5 and VM2 formats. Arkimet manages a set of datasets, each of which contains homogeneous data stored in segments.
+It exploits the commonalities between the data in a dataset to implement a fast, powerful and space-efficient indexing
+system. When data is ingested into Arkimet, it is scanned and annotated with metadata, such as reference time and
+product information, then it is dispatched to one of the datasets configured in the system.
