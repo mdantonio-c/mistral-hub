@@ -30,8 +30,8 @@ from mistral.tools import statistic_elaboration as pp2
 from restapi.config import get_backend_url
 from restapi.connectors import rabbitmq, smtp, sqlalchemy
 from restapi.connectors.celery import CeleryExt, send_errors_by_email
+from restapi.connectors.smtp.notifications import get_html_template
 from restapi.utilities.logs import log
-from restapi.utilities.templates import get_html_template
 
 
 @CeleryExt.celery_app.task(bind=True, name="data_extract")
@@ -833,9 +833,9 @@ def observed_extraction(
 def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
     """Send email notification. """
     user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
-    ## decomment for pushing output data in an amqp queue use case
+    # decomment for pushing output data in an amqp queue use case
     # if amqp_queue:
-    #     body_msg = request.error_message or f"Your data has been pushed to {amqp_queue}"
+    #     body_msg = request.error_message or f"Data has been pushed to {amqp_queue}"
     # else:
     #     body_msg = request.error_message or "Your data is ready for downloading"
 
@@ -843,10 +843,10 @@ def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
     body_msg += extra_msg
 
     replaces = {"title": request.name, "status": request.status, "message": body_msg}
-    body = get_html_template("data_extraction_result.html", replaces)
+    body, plain = get_html_template("data_extraction_result.html", replaces)
     with smtp.get_instance() as smtp_client:
         smtp_client.send(
-            body, "MeteoHub: data extraction completed", user_email, plain_body=body
+            body, "MeteoHub: data extraction completed", user_email, plain_body=plain
         )
 
 
