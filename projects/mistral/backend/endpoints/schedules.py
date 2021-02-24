@@ -827,13 +827,12 @@ class Schedules(EndpointResource):
                         )
 
                     if "crontab" in schedule_response:
+
                         # parsing crontab settings
-                        crontab_settings: Dict[str, str] = {}
-                        for i in schedule_response["crontab_settings"].keys():
-                            log.debug(i)
-                            val = schedule_response["crontab_settings"].get(i)
-                            str_val = str(val)
-                            crontab_settings[i] = str_val
+                        crontab_settings: Dict[str, Any] = {}
+                        for i, val in schedule_response["crontab_settings"].items():
+                            crontab_settings[i] = str(val)
+
                         c.create_crontab_task(
                             name=str(schedule_id),
                             task="data_extract",
