@@ -1,11 +1,8 @@
-import json
-
-from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi import decorators
 from restapi.connectors import sqlalchemy
+from restapi.endpoints.schemas import TotalSchema
 from restapi.exceptions import NotFound, Unauthorized
-from restapi.models import TotalSchema
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 from sqlalchemy.orm import joinedload

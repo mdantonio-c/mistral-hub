@@ -5,6 +5,7 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
 from restapi.connectors import celery, rabbitmq, sqlalchemy
+from restapi.endpoints.schemas import TotalSchema
 from restapi.exceptions import (
     BadRequest,
     Conflict,
@@ -13,7 +14,7 @@ from restapi.exceptions import (
     ServerError,
     Unauthorized,
 )
-from restapi.models import AdvancedList, Schema, TotalSchema, fields, validate
+from restapi.models import AdvancedList, Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 
