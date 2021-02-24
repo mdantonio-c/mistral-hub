@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import rabbitmq, sqlalchemy
@@ -38,7 +40,7 @@ class OutputBindings(EndpointResource):
         if not rabbit.exchange_exists(EXCHANGE):
             rabbit.create_exchange(EXCHANGE)
 
-        data = {"exchange": EXCHANGE, "bindings": {}}
+        data: Dict[str, Any] = {"exchange": EXCHANGE, "bindings": {}}
 
         datasets = SqlApiDbManager.get_datasets(db, user=None)
         for d in datasets:

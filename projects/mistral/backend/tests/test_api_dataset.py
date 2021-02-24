@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, BaseTests
@@ -57,7 +57,7 @@ class TestApp(BaseTests):
         obj.session.commit()
 
         # create a fake user and login with it
-        data = {}
+        data: Dict[str, Any] = {}
         data["datasets"] = [str(dataset_to_auth.id)]
         data["datasets"] = json.dumps(data["datasets"])
         data["open_dataset"] = True

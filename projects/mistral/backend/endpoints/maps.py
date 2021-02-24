@@ -1,4 +1,5 @@
 import os
+from typing import Dict, Union
 
 from flask import send_file
 from restapi import decorators
@@ -41,7 +42,7 @@ def check_platform_availability(platform):
 
 
 def get_schema(set_required):
-    attributes = {}
+    attributes: Dict[str, Union[fields.Field, type]] = {}
     attributes["run"] = fields.Str(validate=validate.OneOf(RUNS), required=True)
     attributes["res"] = fields.Str(validate=validate.OneOf(RESOLUTIONS), required=True)
     attributes["field"] = fields.Str(validate=validate.OneOf(FIELDS), required=True)
@@ -65,28 +66,30 @@ def get_schema(set_required):
 class MapEndpoint(EndpointResource):
     def __init__(self):
         super().__init__()
-        self.base_path = None
 
-    def set_base_path(self, field, platform, env, run, res):
+    @staticmethod
+    def get_base_path(field, platform, env, run, res):
         # flood fields have a different path
         if (field == "percentile") or (field == "probability"):
-            self.base_path = os.path.join(
+            base_path = os.path.join(
                 MEDIA_ROOT,
                 platform,
                 env,
                 f"PROB-{run}-iff.web",
             )
         else:
-            self.base_path = os.path.join(
+            base_path = os.path.join(
                 MEDIA_ROOT,
                 platform,
                 env,
                 f"Magics-{run}-{res}.web",
             )
-        log.debug(f"base_path: {self.base_path}")
+        log.debug(f"base_path: {base_path}")
+        return base_path
 
-    def get_ready_file(self, area):
-        ready_path = os.path.join(self.base_path, area)
+    @staticmethod
+    def get_ready_file(base_path, area):
+        ready_path = os.path.join(base_path, area)
         log.debug(f"ready_path: {ready_path}")
 
         ready_files = []
@@ -145,16 +148,16 @@ class MapImage(MapEndpoint):
 
         log.debug(f"Retrieve map image by offset <{map_offset}>")
 
-        self.set_base_path(field, platform, env, run, res)
+        base_path = self.get_base_path(field, platform, env, run, res)
 
         # Check if the images are ready: 2017112900.READY
-        ready_file = self.get_ready_file(area)
+        ready_file = self.get_ready_file(base_path, area)
         reftime = ready_file[:10]
 
         # get map image
         if field == "percentile":
             map_image_file = os.path.join(
-                self.base_path,
+                base_path,
                 area,
                 field,
                 "{field}.{reftime}.{offset}.png".format(
@@ -163,7 +166,7 @@ class MapImage(MapEndpoint):
             )
         elif field == "probability":
             map_image_file = os.path.join(
-                self.base_path,
+                base_path,
                 area,
                 field,
                 "{field}.{reftime}.{offset}.png".format(
@@ -172,7 +175,7 @@ class MapImage(MapEndpoint):
             )
         else:
             map_image_file = os.path.join(
-                self.base_path,
+                base_path,
                 area,
                 field,
                 "{field}.{reftime}.{offset}.png".format(
@@ -251,16 +254,16 @@ class MapSet(MapEndpoint):
             platform = "GALILEO"
             log.warning("Forcing platform to {} because field is {}", platform, field)
 
-        self.set_base_path(field, platform, env, run, res)
+        base_path = self.get_base_path(field, platform, env, run, res)
 
         # Check if the images are ready: 2017112900.READY
-        ready_file = self.get_ready_file(area)
+        ready_file = self.get_ready_file(base_path, area)
         reftime = ready_file[:10]
 
         data = {"reftime": reftime, "offsets": [], "platform": platform}
 
         # load image offsets
-        images_path = os.path.join(self.base_path, area, field)
+        images_path = os.path.join(base_path, area, field)
 
         list_file = sorted(os.listdir(images_path))
 
@@ -321,10 +324,10 @@ class MapLegend(MapEndpoint):
             )
         )
 
-        self.set_base_path(field, platform, env, run, res)
+        base_path = self.get_base_path(field, platform, env, run, res)
 
         # Get legend image
-        legend_path = os.path.join(self.base_path, "legends")
+        legend_path = os.path.join(base_path, "legends")
         if field == "percentile":
             map_legend_file = os.path.join(legend_path, "perc6" + ".png")
         elif field == "probability":

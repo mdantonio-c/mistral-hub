@@ -179,9 +179,12 @@ class Postprocessors(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
-            if value.get("processor_type") not in self.postprocessors:
+            if not (
+                postprocessor_schema := self.postprocessors.get(
+                    value.get("processor_type")
+                )
+            ):
                 raise ValidationError("unknown postprocessor")
-            postprocessor_schema = self.postprocessors.get(value.get("processor_type"))
             valid_data = postprocessor_schema().load(value, unknown=None, partial=None)
 
         except ValidationError as error:

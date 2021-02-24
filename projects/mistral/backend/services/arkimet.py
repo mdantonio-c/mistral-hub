@@ -483,7 +483,7 @@ class BeArkimet:
             val = i.get("va")
             if not isinstance(val, int):
                 raise TypeError("Run value must be a number")
-            h = str(math.floor(i.get("va") / 60)).zfill(2)
+            h = str(math.floor(val / 60)).zfill(2)
             m = str(val % 60).zfill(2)
             return f"MINUTE,{h}:{m}"
         else:
@@ -503,6 +503,7 @@ class BeArkimet:
         # un = {}
         if style == "GRIB1":
             un = {
+                -1: "n/a",
                 0: "m",
                 1: "h",
                 2: "d",
@@ -517,10 +518,14 @@ class BeArkimet:
                 254: "s",
             }
             return "GRIB1,{type},{p1}{un},{p2}{un}".format(
-                type=i.get("ty"), p1=i.get("p1"), p2=i.get("p2"), un=un[i.get("un")]
+                type=i.get("ty", -1),
+                p1=i.get("p1", -1),
+                p2=i.get("p2", -1),
+                un=un[i.get("un", -1)],
             )
         elif style == "GRIB2":
             un = {
+                -1: "n/a",
                 0: "m",
                 1: "h",
                 2: "d",
@@ -535,10 +540,14 @@ class BeArkimet:
                 254: "s",
             }
             return "GRIB2,{type},{p1}{un},{p2}{un}".format(
-                type=i.get("ty"), p1=i.get("p1"), p2=i.get("p2"), un=un[i.get("un")]
+                type=i.get("ty", -1),
+                p1=i.get("p1", -1),
+                p2=i.get("p2", -1),
+                un=un[i.get("un", -1)],
             )
         elif style == "Timedef":
             un = {
+                -1: "n/a",
                 0: "m",
                 1: "h",
                 2: "d",
@@ -553,10 +562,10 @@ class BeArkimet:
                 13: "s",
             }
             s = "Timedef"
-            if i.get("su") == 255:
+            if i.get("su", -1) == 255:
                 s = "".join([s, ",-"])
             else:
-                s = "".join([s, ",{}{}".format(i.get("sl"), un[i.get("su")])])
+                s = "".join([s, ",{}{}".format(i.get("sl"), un[i.get("su", -1)])])
             if i.get("pt"):
                 s = "".join([s, ",{}".format(i.get("pt"))])
             else:
@@ -574,13 +583,14 @@ class BeArkimet:
             If stat unit is 255, then proclen = "-"
             (see arki / types / timerange.cc:1408).
             """
-            if i.get("pu"):
-                s = "".join([s, ",{}{}".format(i.get("pl"), un[i.get("su")])])
+            if i.get("pu", -1):
+                s = "".join([s, ",{}{}".format(i.get("pl"), un[i.get("su", -1)])])
             else:
                 s = "".join([s, ",-"])
             return s
         elif style == "BUFR":
             un = {
+                -1: "n/a",
                 0: "m",
                 1: "h",
                 2: "d",
@@ -594,6 +604,6 @@ class BeArkimet:
                 12: "h12",
                 13: "s",
             }
-            return "BUFR,{val}{un}".format(val=i.get("va"), un=un[i.get("un")])
+            return "BUFR,{val}{un}".format(val=i.get("va", -1), un=un[i.get("un", -1)])
         else:
             raise ValueError(f"Invalid <timerange> style for {style}")

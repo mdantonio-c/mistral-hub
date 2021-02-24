@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from mistral.exceptions import (
     AccessToDatasetDenied,
     NetworkNotInLicenseGroup,
@@ -113,7 +115,7 @@ class Fields(EndpointResource):
             summary = None
             log.debug(f"Dataset(s) for observed data: {datasets}")
 
-            resulting_fields = {"summarystats": {"c": 0, "s": 0}}
+            resulting_fields: Dict[str, Any] = {"summarystats": {"c": 0, "s": 0}}
             # check db type
             query_dic = {}
             if q:

@@ -16,7 +16,7 @@ port = os.environ.get("ALCHEMY_PORT")
 
 
 class TestApp(BaseTests):
-    BeDballe.LASTDAYS = None
+    BeDballe.LASTDAYS = 0
 
     @staticmethod
     def get_params_value(client, headers, db_type):

@@ -3,7 +3,7 @@ import os
 import subprocess
 import tempfile
 from datetime import datetime, time, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import arkimet as arki
 import dateutil
@@ -39,7 +39,7 @@ class BeDballe:
     MAPS_NETWORK_FILTER = ["multim-forecast"]
     explorer = None
     LASTDAYS = os.environ.get(
-        "LASTDAYS"
+        "LASTDAYS", "10"
     )  # number of days after which data pass in Arkimet
 
     # base path to json file where metadata of observed data in arkimet are stored
@@ -284,8 +284,8 @@ class BeDballe:
         # get all the possible combinations of queries to count the messages
         all_queries = list(itertools.product(*queries))
         message_count = 0
-        min_date = None
-        max_date = None
+        min_date: Optional[datetime] = None
+        max_date: Optional[datetime] = None
         for q in all_queries:
             dballe_query = {}
             for k, v in zip(fields, q):
@@ -320,17 +320,17 @@ class BeDballe:
                 # datetimemin = cur["datetimemin"]
                 # datetimemin = cur["datetimemax"]
                 if min_date:
-                    if datetimemin < min_date:  # type:ignore
+                    if datetimemin < min_date:
                         min_date = datetimemin
                 else:
                     min_date = datetimemin
                 if max_date:
-                    if datetimemax > max_date:  # type:ignore
+                    if datetimemax > max_date:
                         max_date = datetimemax
                 else:
                     max_date = datetimemax
         # create the summary
-        summary: Dict[str, Union[str, List[str]]] = {}
+        summary: Dict[str, Union[int, List[str]]] = {}
         if not message_count:
             return summary
         summary["c"] = message_count
@@ -1084,6 +1084,7 @@ class BeDballe:
                 if "level" and "trange" not in query:
                     extend_res = True
 
+            station_tuple: Tuple[Any, ...] = ()
             for rec in tr.query_data(query):
                 # discard data from excluded networks
                 if rec["rep_memo"] in BeDballe.MAPS_NETWORK_FILTER:
@@ -1172,7 +1173,7 @@ class BeDballe:
                                     product_val["rel"] = 0
                     if (
                         "rel" not in product_val.keys()
-                        and station_tuple[2] != "multim-forecast"
+                        and rec["rep_memo"] != "multim-forecast"
                     ):
                         # quality control filter is not active: use the default value (1)
                         # this param is not useful for multimodel use case
@@ -1193,7 +1194,7 @@ class BeDballe:
     @staticmethod
     def parse_obs_maps_response(raw_res):
         log.debug("start parsing response for maps")
-        response = {}
+        response: Dict[str, Any] = {}
         response_data = []
         descriptions_dic = {}
         if raw_res:
@@ -1202,7 +1203,7 @@ class BeDballe:
             levels = []
             timeranges = []
             for key, value in raw_res.items():
-                res_el = {}
+                res_el: Dict[str, Any] = {}
                 station_el = {}
                 products_list = []
                 if len(key) == 2:
@@ -1282,11 +1283,11 @@ class BeDballe:
             )
             explorer.set_filter({"rep_memo": "multim-forecast"})
             tranges = explorer.tranges
-            max_interval = None
+            max_interval: float = 0
             for t in tranges:
                 trange_interval = t.p1
                 if max_interval:
-                    if trange_interval > max_interval:  # type:ignore
+                    if trange_interval > max_interval:
                         max_interval = trange_interval
                 else:
                     max_interval = trange_interval
@@ -1419,7 +1420,7 @@ class BeDballe:
         # example of query string: string= "reftime: >=2020-02-01 01:00,<=2020-02-04 15:13;level:1,0,0,0 or 103,2000,0,0;product:B11001 or B13011;timerange:0,0,3600 or 1,0,900;network:fidupo or agrmet"
         params_list = ["reftime", "network", "product", "level", "timerange", "license"]
         query_list = q.split(";")
-        query_dic = {}
+        query_dic: Dict[str, Any] = {}
         for e in query_list:
             for p in params_list:
                 if e.startswith(p):

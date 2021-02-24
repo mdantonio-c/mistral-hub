@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
@@ -181,9 +183,12 @@ class Postprocessors(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
-            if value.get("processor_type") not in self.postprocessors:
+            if not (
+                postprocessor_schema := self.postprocessors.get(
+                    value.get("processor_type")
+                )
+            ):
                 raise ValidationError("unknown postprocessor")
-            postprocessor_schema = self.postprocessors.get(value.get("processor_type"))
             valid_data = postprocessor_schema().load(value, unknown=None, partial=None)
 
         except ValidationError as error:
@@ -823,7 +828,7 @@ class Schedules(EndpointResource):
 
                     if "crontab" in schedule_response:
                         # parsing crontab settings
-                        crontab_settings = {}
+                        crontab_settings: Dict[str, str] = {}
                         for i in schedule_response["crontab_settings"].keys():
                             log.debug(i)
                             val = schedule_response["crontab_settings"].get(i)

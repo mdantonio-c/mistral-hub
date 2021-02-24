@@ -30,7 +30,78 @@ class TemplatesFormatter(Schema):
     get_total = fields.Bool(required=False)
 
 
-class Templates(EndpointResource, Uploader):
+class Templates(EndpointResource):
+    labels = ["templates"]
+
+    @decorators.auth.require()
+    @decorators.use_kwargs(TemplatesFormatter, location="query")
+    @decorators.endpoint(
+        path="/templates",
+        summary="Get templates",
+        description="Returns the user templates list",
+        responses={200: "List of user templates"},
+    )
+    # 200: {'schema': {'$ref': '#/definitions/TemplateFile'}}
+    def get(
+        self,
+        format=None,
+        perpage=None,
+        currentpage=None,
+        get_total=False,
+    ):
+        user = self.get_user()
+        grib_templates = glob.glob(
+            os.path.join(UPLOAD_PATH, user.uuid, "uploads", "grib", "*")
+        )
+        shp_templates = glob.glob(
+            os.path.join(UPLOAD_PATH, user.uuid, "uploads", "shp", "*.shp")
+        )
+        # get total count for user templates
+        if get_total:
+            if format == "grib":
+                counter = len(grib_templates)
+            elif format == "shp":
+                counter = len(shp_templates)
+            else:
+                counter = len(grib_templates) + len(shp_templates)
+            return self.response({"total": counter})
+
+        # get max number of templates the user can upload
+        max_user_templates = SqlApiDbManager.get_user_permissions(
+            user, param="templates"
+        )
+
+        res: List[Optional[object]] = []
+        grib_object: Dict[str, Any] = {}
+        grib_object["type"] = "grib"
+        grib_object["files"] = []
+        for t in grib_templates:
+            grib_object["files"].append(t)
+        if max_user_templates and len(grib_templates) >= int(max_user_templates):
+            grib_object["max_allowed"] = True
+        else:
+            grib_object["max_allowed"] = False
+        shp_object: Dict[str, Any] = {}
+        shp_object["type"] = "shp"
+        shp_object["files"] = []
+        for t in shp_templates:
+            shp_object["files"].append(t)
+        if max_user_templates and len(shp_templates) >= int(max_user_templates):
+            shp_object["max_allowed"] = True
+        else:
+            shp_object["max_allowed"] = False
+        if format == "grib":
+            res.append(grib_object)
+        elif format == "shp":
+            res.append(shp_object)
+        else:
+            res.append(grib_object)
+            res.append(shp_object)
+
+        return self.response(res)
+
+
+class Template(EndpointResource, Uploader):
     labels = ["templates"]
 
     @staticmethod
@@ -92,7 +163,7 @@ class Templates(EndpointResource, Uploader):
         log.debug("uploading in {}", subfolder)
         try:
             upload_res = self.upload(subfolder=subfolder)
-            if type(upload_res) == tuple:
+            if isinstance(upload_res, tuple):
                 upload_response = upload_res[0]
             else:
                 upload_response = upload_res
@@ -177,91 +248,28 @@ class Templates(EndpointResource, Uploader):
         return self.response(r)
 
     @decorators.auth.require()
-    @decorators.use_kwargs(TemplatesFormatter, location="query")
     @decorators.endpoint(
         path="/templates/<template_name>",
         summary="Get a template filepath",
         description="Returns a single template by name",
         responses={200: "Template filepath.", 404: "Template not found"},
     )
-    @decorators.endpoint(
-        path="/templates",
-        summary="Get templates",
-        description="Returns the user templates list",
-        responses={200: "List of user templates"},
-    )
     # 200: {'schema': {'$ref': '#/definitions/TemplateFile'}}
-    def get(
-        self,
-        template_name=None,
-        format=None,
-        perpage=None,
-        currentpage=None,
-        get_total=False,
-    ):
+    def get(self, template_name):
         user = self.get_user()
 
-        if template_name is not None:
-            # get the template extension to determine the folder where to find it
-            filebase, fileext = os.path.splitext(template_name)
+        # get the template extension to determine the folder where to find it
+        filebase, fileext = os.path.splitext(template_name)
 
-            filepath = os.path.join(
-                UPLOAD_PATH, user.uuid, "uploads", fileext.strip("."), template_name
-            )
-            # check if the template exists
-            if not os.path.exists(filepath):
-                raise NotFound("The template doesn't exist")
-            res = {}
-            res["filepath"] = filepath
-            res["format"] = fileext.strip(".")
-        else:
-            grib_templates = glob.glob(
-                os.path.join(UPLOAD_PATH, user.uuid, "uploads", "grib", "*")
-            )
-            shp_templates = glob.glob(
-                os.path.join(UPLOAD_PATH, user.uuid, "uploads", "shp", "*.shp")
-            )
-            # get total count for user templates
-            if get_total:
-                if format == "grib":
-                    counter = len(grib_templates)
-                elif format == "shp":
-                    counter = len(shp_templates)
-                else:
-                    counter = len(grib_templates) + len(shp_templates)
-                return self.response({"total": counter})
-
-            # get max number of templates the user can upload
-            max_user_templates = SqlApiDbManager.get_user_permissions(
-                user, param="templates"
-            )
-
-            res: List[Optional[object]] = []
-            grib_object: Dict[str, Any] = {}
-            grib_object["type"] = "grib"
-            grib_object["files"] = []
-            for t in grib_templates:
-                grib_object["files"].append(t)
-            if max_user_templates and len(grib_templates) >= int(max_user_templates):
-                grib_object["max_allowed"] = True
-            else:
-                grib_object["max_allowed"] = False
-            shp_object: Dict[str, Any] = {}
-            shp_object["type"] = "shp"
-            shp_object["files"] = []
-            for t in shp_templates:
-                shp_object["files"].append(t)
-            if max_user_templates and len(shp_templates) >= int(max_user_templates):
-                shp_object["max_allowed"] = True
-            else:
-                shp_object["max_allowed"] = False
-            if format == "grib":
-                res.append(grib_object)
-            elif format == "shp":
-                res.append(shp_object)
-            else:
-                res.append(grib_object)
-                res.append(shp_object)
+        filepath = os.path.join(
+            UPLOAD_PATH, user.uuid, "uploads", fileext.strip("."), template_name
+        )
+        # check if the template exists
+        if not os.path.exists(filepath):
+            raise NotFound("The template doesn't exist")
+        res = {}
+        res["filepath"] = filepath
+        res["format"] = fileext.strip(".")
 
         return self.response(res)
 

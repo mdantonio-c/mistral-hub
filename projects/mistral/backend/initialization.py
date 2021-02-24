@@ -23,26 +23,26 @@ class Initializer:
                 "dballe_dsn": None,
             },
         ]
-        for el in license_group_data_to_insert:
-            l_group = sql.GroupLicense.query.filter_by(name=el["name"]).first()
+        for lg in license_group_data_to_insert:
+            l_group = sql.GroupLicense.query.filter_by(name=lg["name"]).first()
             if l_group is None:
                 new_l_group = sql.GroupLicense(
-                    name=el["name"],
-                    descr=el["descr"],
-                    is_public=el["is_public"],
-                    dballe_dsn=el["dballe_dsn"],
+                    name=lg["name"],
+                    descr=lg["descr"],
+                    is_public=lg["is_public"],
+                    dballe_dsn=lg["dballe_dsn"],
                 )
                 sql.session.add(new_l_group)
             else:
                 # check if the element has to be updated
                 if (
-                    l_group.descr != el["descr"]
-                    or l_group.is_public != el["is_public"]
-                    or l_group.dballe_dsn != el["dballe_dsn"]
+                    l_group.descr != lg["descr"]
+                    or l_group.is_public != lg["is_public"]
+                    or l_group.dballe_dsn != lg["dballe_dsn"]
                 ):
-                    l_group.is_public = el["is_public"]
-                    l_group.descr = el["descr"]
-                    l_group.dballe_dsn = el["dballe_dsn"]
+                    l_group.is_public = lg["is_public"]
+                    l_group.descr = lg["descr"]
+                    l_group.dballe_dsn = lg["dballe_dsn"]
                     sql.session.add(l_group)
         sql.session.commit()
         log.info("GroupLicense succesfully updated")
@@ -82,34 +82,34 @@ class Initializer:
             },
         ]
 
-        for el in license_data_to_insert:
-            lic = sql.License.query.filter_by(name=el["name"]).first()
-            group_lic = sql.GroupLicense.query.filter_by(name=el["group_name"]).first()
+        for ld in license_data_to_insert:
+            lic = sql.License.query.filter_by(name=ld["name"]).first()
+            group_lic = sql.GroupLicense.query.filter_by(name=ld["group_name"]).first()
             if group_lic is None:
                 log.error(
                     "Licence {} cannot be updated: license group {} does not exists",
-                    el["group_name"],
-                    el["name"],
+                    ld["group_name"],
+                    ld["name"],
                 )
                 continue
             if lic is None:
                 new_lic = sql.License(
-                    name=el["name"],
-                    descr=el["descr"],
+                    name=ld["name"],
+                    descr=ld["descr"],
                     group_license_id=group_lic.id,
-                    url=el["url"],
+                    url=ld["url"],
                 )
                 sql.session.add(new_lic)
             else:
                 # check if licence has to be updated
                 if (
                     lic.group_license_id != group_lic.id
-                    or lic.descr != el["descr"]
-                    or lic.url != el["url"]
+                    or lic.descr != ld["descr"]
+                    or lic.url != ld["url"]
                 ):
                     lic.group_license_id = group_lic.id
-                    lic.descr = el["descr"]
-                    lic.url = el["url"]
+                    lic.descr = ld["descr"]
+                    lic.url = ld["url"]
                     sql.session.add(lic)
 
         # add attribution to db

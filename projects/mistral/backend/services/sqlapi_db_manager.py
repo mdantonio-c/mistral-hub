@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from typing import Any, Optional
 
 from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from restapi.connectors.celery import CeleryExt
@@ -492,7 +493,7 @@ class SqlApiDbManager:
 
     @staticmethod
     def get_license_group(db, datasets):
-        license_group = None
+        license_group: Optional[Any] = None
         for d in datasets:
             ds = db.Datasets.query.filter_by(arkimet_id=d).first()
             license = db.License.query.filter_by(id=ds.license_id).first()
@@ -501,10 +502,9 @@ class SqlApiDbManager:
             ).first()
             if not license_group:
                 license_group = group_license
-            else:  # type: ignore
-                if license_group.id != group_license.id:
-                    # datasets belongs to different license groups
-                    return None
+            elif license_group.id != group_license.id:
+                # datasets belongs to different license groups
+                return None
         return license_group
 
     @staticmethod

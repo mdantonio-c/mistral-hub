@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import tarfile
+from typing import Optional
 
 from celery import states
 from celery.exceptions import Ignore
@@ -57,7 +58,6 @@ def data_extract(
         try:
             db = sqlalchemy.get_instance()
             schedule = None
-            output_dir = None
             outfile = None
             data_size = None
             double_request = False
@@ -453,9 +453,10 @@ def data_extract(
                             )
                         # rename the final output of postprocessors as outfile
                         # unless it is not a bufr file
-                        if pp_output.split(".")[-1] != "bufr":
-                            log.debug("dest: {}".format(str(outfile)))
-                            os.rename(pp_output, outfile)
+                        if pp_output:
+                            if pp_output.split(".")[-1] != "bufr":
+                                log.debug("dest: {}".format(str(outfile)))
+                                os.rename(pp_output, outfile)
                         # else:
                         #     # if it is a bufr file, the filename resulting from pp
                         #     # is will be the new outifle filename
@@ -781,7 +782,7 @@ def observed_extraction(
             q_for_multimodel_reftime["datetimemax"] = queries[
                 fields.index("datetimemax")
             ][0]
-            max_trange_interval = None
+            max_trange_interval: Optional[int] = None
             if ["trange"] in fields:
                 req_trange_list = queries[fields.index("trange")]
                 for t in req_trange_list:
@@ -789,7 +790,7 @@ def observed_extraction(
                         # get the timerange p1 value
                         max_trange_interval = t[1]
                     else:
-                        if t[1] > max_trange_interval:  # type:ignore
+                        if t[1] > max_trange_interval:
                             max_trange_interval = t[1]
             if max_trange_interval:
                 # get the timerange p1 in hour as interval to extend the reftime fo multimodel query
@@ -892,48 +893,49 @@ def notificate_by_amqp_queue(amqp_queue, request):
         rabbit.disconnect()
 
 
-def push_data_to_queue(amqp_queue, outfile, output_dir, request):
-    # send a message in the queue
-    extra_msg = ""
-    try:
-        with rabbitmq.get_instance() as rabbit:
-            # case 1 if output send the file
-            if os.path.exists(outfile):
-                filebase, fileext = os.path.splitext(outfile)
-                if fileext == ".json":
-                    with open(outfile) as f:
-                        jsondata = json.dumps(f.read())
-                        rabbit_msg = json.loads(jsondata)
-                    rabbit.send_json(
-                        rabbit_msg,
-                        routing_key=amqp_queue,
-                    )
-                else:
-                    with open(outfile, "rb") as f:
-                        rabbit_msg = f.read()
-                    rabbit.send(
-                        rabbit_msg,
-                        routing_key=amqp_queue,
-                    )
-                log.debug("sending fileoutput to {}", amqp_queue)
-            # case 2 no output --> notify failure and error message
-            else:
-                rabbit_msg = request.error_message
-                log.debug("no output: sending error message to {}", amqp_queue)
-                rabbit.send_json(
-                    rabbit_msg,
-                    routing_key=amqp_queue,
-                )
-
-            rabbit.disconnect()
-    except BaseException:
-        extra_msg = f"failed communication with {amqp_queue} amqp queue"
-    finally:
-        if os.path.exists(output_dir):
-            # to be sure it is the tmp dir
-            if "/data/tmp_outfiles" in output_dir:
-                shutil.rmtree(output_dir)
-        return extra_msg
+# method to push data to an amqp queue instead of only a notification: at the moment is not used but it wasn't deleted because it can be useful
+# def push_data_to_queue(amqp_queue, outfile, output_dir, request):
+#     # send a message in the queue
+#     extra_msg = ""
+#     try:
+#         with rabbitmq.get_instance() as rabbit:
+#             # case 1 if output send the file
+#             if os.path.exists(outfile):
+#                 filebase, fileext = os.path.splitext(outfile)
+#                 if fileext == ".json":
+#                     with open(outfile) as f:
+#                         jsondata = json.dumps(f.read())
+#                         rabbit_msg = json.loads(jsondata)
+#                     rabbit.send_json(
+#                         rabbit_msg,
+#                         routing_key=amqp_queue,
+#                     )
+#                 else:
+#                     with open(outfile, "rb") as f:
+#                         rabbit_msg = f.read()
+#                     rabbit.send(
+#                         rabbit_msg,
+#                         routing_key=amqp_queue,
+#                     )
+#                 log.debug("sending fileoutput to {}", amqp_queue)
+#             # case 2 no output --> notify failure and error message
+#             else:
+#                 rabbit_msg = request.error_message
+#                 log.debug("no output: sending error message to {}", amqp_queue)
+#                 rabbit.send_json(
+#                     rabbit_msg,
+#                     routing_key=amqp_queue,
+#                 )
+#
+#             rabbit.disconnect()
+#     except BaseException:
+#         extra_msg = f"failed communication with {amqp_queue} amqp queue"
+#     finally:
+#         if os.path.exists(output_dir):
+#             # to be sure it is the tmp dir
+#             if "/data/tmp_outfiles" in output_dir:
+#                 shutil.rmtree(output_dir)
+#         return extra_msg
 
 
 def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
