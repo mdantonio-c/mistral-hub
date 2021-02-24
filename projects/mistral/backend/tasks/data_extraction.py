@@ -789,7 +789,7 @@ def observed_extraction(
                         # get the timerange p1 value
                         max_trange_interval = t[1]
                     else:
-                        if t[1] > max_trange_interval:
+                        if t[1] > max_trange_interval:  # type:ignore
                             max_trange_interval = t[1]
             if max_trange_interval:
                 # get the timerange p1 in hour as interval to extend the reftime fo multimodel query

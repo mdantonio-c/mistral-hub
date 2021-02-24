@@ -236,8 +236,8 @@ class Templates(EndpointResource, Uploader):
                 user, param="templates"
             )
 
-            res: Optional[List[object]] = []
-            grib_object: Optional[Dict[str, Any]] = {}
+            res: List[Optional[object]] = []
+            grib_object: Dict[str, Any] = {}
             grib_object["type"] = "grib"
             grib_object["files"] = []
             for t in grib_templates:
@@ -246,7 +246,7 @@ class Templates(EndpointResource, Uploader):
                 grib_object["max_allowed"] = True
             else:
                 grib_object["max_allowed"] = False
-            shp_object: Optional[Dict[str, Any]] = {}
+            shp_object: Dict[str, Any] = {}
             shp_object["type"] = "shp"
             shp_object["files"] = []
             for t in shp_templates:
