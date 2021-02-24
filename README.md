@@ -1,4 +1,4 @@
-# Mistral Meteo-hub
+# Mistral Meteo-Hub
 
 ## HOWTO Get started
 
@@ -25,7 +25,7 @@ $ rapydo pull
 $ rapydo start
 ```
 
-First time it takes a while as it builds some docker images. Finally you should see:
+First time it takes a while as it builds some docker images. Finally, you should see:
 
 ```
 ...
@@ -53,24 +53,22 @@ test
 
 You can configure your instance to only execute frontend container by connecting to a remove server for all backend services.
 
-Edit you .projectrc file and add the folowing lines:
+Edit you .projectrc file and add the following lines:
 
 ```
 services: frontend
 ```
 
-in the main section
-
-and:
+in the main section and:
 
 ```
-   BACKEND_URI: https://remote.host.url
-   BACKEND_API_PORT: 443
+BACKEND_URI: https://remote.host.url
+BACKEND_API_PORT: 443
 ```
 
 in the project_configuration>variables>env section
 
-Your .projectrc will be something like:
+Your `.projectrc` will be something like:
 
 ```
 [...]
@@ -84,4 +82,43 @@ project_configuration:
       BACKEND_API_PORT: 443
 ```
 
-Use rapydo command as usual
+Use `rapydo` command as usual.
+
+## Meteo-Hub Data Ingestion
+
+At the moment, a Meteo-Hub installation does not come with the data ingestor component.
+The latter can be installed by following the instructions described in the section
+[NiFi-based ingestion component](docs/README.md#nifi-based-ingestion-component)
+of the documentation.
+
+Its task is to feed the dataset repository, taking care of preserving the integrity of the data.
+Currently, it only affects the observed data from ground stations and radars.
+
+Data from ground stations are provided in two different ways:
+
+- made available and retrieved from an FTP Server
+- directly transferred by data provider via AMQP protocol
+
+Differently, radar data is harvested by querying a web service.
+
+The ingestion process is coordinated by an orchestrator which channels the data into the right pipeline and ensures that
+they are properly stored. This process, also called harmonization, requires data interpretation and may
+involve transformations and normalizations for quality assurance.
+
+Source code is available [here](https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion/-/tree/deda).
+
+## Meteo-Hub API
+
+The HTTP APIs, written in Python by using the Flask framework, are used by the graphic user interface
+as well as by programmatic access to the data. All the endpoints are described as OpenAPI specifications
+by adopting the Swagger framework.
+
+The API specifications are available at  
+https://meteohub.hpc.cineca.it:7777
+
+## Meteo-Hub CLI
+
+A simple command line client can be used to directly interact with the API for data request submission and for pushing
+data to the ingestor as well.
+
+Source code is available [here](https://gitlab.hpc.cineca.it/mistral/meteo-hub-cli).

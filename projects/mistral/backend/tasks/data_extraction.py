@@ -72,7 +72,7 @@ def data_extract(
                     )
                 # adapt the request reftime
                 if reftime and not data_ready:
-                    reftime = adapt_reftime(db, schedule, reftime)
+                    reftime = adapt_reftime(schedule, reftime)
 
                 if data_ready:
                     # check if the same data has already been extracted
@@ -524,6 +524,22 @@ def data_extract(
             if data_size > 0:
                 # update request status
                 request.status = states.SUCCESS
+                if opendata and datasets == ["cosmo_2Ipp_ecPoint"]:
+                    # opendata file for iff use case: filter the output with eccodes to get the sort set list of percentiles
+                    tmp_file = outfile + ".tmp"
+                    os.rename(outfile, tmp_file)
+                    percentiles_short_list = "10/25/50/75/90/99"
+                    post_proc_cmd = [
+                        "grib_copy",
+                        "-w",
+                        f"percentileValue={percentiles_short_list}",
+                        tmp_file,
+                        outfile,
+                    ]
+                    post_proc = subprocess.Popen(post_proc_cmd)
+                    post_proc.wait()
+                    if not os.path.exists(outfile):
+                        raise Exception("Failure in extract percentiles shortlist")
                 ## for pushing data output to amqp queue use case, the creation of fileoutput record in db can be skipped
                 # create fileoutput record in db
                 SqlApiDbManager.create_fileoutput_record(
@@ -773,7 +789,7 @@ def observed_extraction(
                         # get the timerange p1 value
                         max_trange_interval = t[1]
                     else:
-                        if t[1] > max_trange_interval:
+                        if t[1] > max_trange_interval:  # type:ignore
                             max_trange_interval = t[1]
             if max_trange_interval:
                 # get the timerange p1 in hour as interval to extend the reftime fo multimodel query
@@ -927,22 +943,22 @@ def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
     return str(bytes) + units[0] if bytes < 1024 else human_size(bytes >> 10, units[1:])
 
 
-def adapt_reftime(db, schedule, reftime):
+def adapt_reftime(schedule, reftime):
     new_reftime = None
     if reftime is not None:
         new_reftime = {}
         time_delta_from = schedule.time_delta
         # get the interval
         if not schedule.is_crontab:
+            minor_time_interval = schedule.period.name
             schedule_interval = datetime.timedelta(
                 **{schedule.period.name: schedule.every}
             )
         else:
+            minor_time_interval = "days"
             cron_settings = json.loads(schedule.crontab_settings)
             if "day_of_week" in cron_settings:
-                schedule_interval = datetime.timedelta(
-                    **{"days": cron_settings["day_of_week"]}
-                )
+                schedule_interval = datetime.timedelta(days=7)
             elif "day_of_month" in cron_settings:
                 if "month of year" not in cron_settings:
                     days_in_month_dict = {
@@ -972,31 +988,36 @@ def adapt_reftime(db, schedule, reftime):
             else:
                 schedule_interval = datetime.timedelta(days=1)
 
-        # check if there are submitted requests
-        last_r = (
-            db.Request.query.filter_by(schedule_id=schedule.id)
-            .order_by(db.Request.submission_date.desc())
-            .first()
+        first_reftime_to = datetime.datetime.strptime(
+            schedule.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
         )
-        if last_r:
-            # get the reftime of the last submitted request
-            if last_r.args["reftime"]:
-                last_reftime_to = datetime.datetime.strptime(
-                    last_r.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
-                )
-        else:
-            # get the reftime of the schedule
-            last_reftime_to = datetime.datetime.strptime(
-                reftime["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
-            )
+        first_submission = schedule.submission_date
 
         now = datetime.datetime.utcnow()
-        # get the delta for the reftime to (including the case a schedule has been switched off for some time)
+
         time_delta_to = schedule_interval * (
-            int((now - last_reftime_to) / schedule_interval)
+            int((now - first_submission) / schedule_interval)
         )
+        # check if the submission/reftime delta is between an interval
+        minor_delta = datetime.timedelta(**{minor_time_interval: 1})
+        additional_delta = schedule_interval * (
+            int((first_submission - first_reftime_to) / schedule_interval)
+        )  # in case of reftime older than yesterday
+        first_reftime_to_wout_delta = first_reftime_to + additional_delta
+        if first_submission - first_reftime_to_wout_delta < minor_delta:
+            if (
+                minor_time_interval == "days"
+                and (first_submission.day - first_reftime_to_wout_delta.day) == 1
+            ):
+                time_delta_to = time_delta_to + datetime.timedelta(days=1)
+            elif (
+                minor_time_interval == "hours"
+                and (first_submission.hour - first_reftime_to_wout_delta.hour) == 1
+            ):
+                time_delta_to = time_delta_to + datetime.timedelta(hours=1)
+
         # get the new reftimes
-        new_reftime_to = last_reftime_to + time_delta_to
+        new_reftime_to = first_reftime_to + time_delta_to
         new_reftime_from = new_reftime_to - time_delta_from
         new_reftime["from"] = new_reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         new_reftime["to"] = new_reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
