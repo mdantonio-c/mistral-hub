@@ -38,8 +38,8 @@ station_to_filter = [
 class BeDballe:
     MAPS_NETWORK_FILTER = ["multim-forecast"]
     explorer = None
-    LASTDAYS = os.environ.get(
-        "LASTDAYS", "10"
+    LASTDAYS = int(
+        os.environ.get("LASTDAYS", "10")
     )  # number of days after which data pass in Arkimet
 
     # base path to json file where metadata of observed data in arkimet are stored
@@ -55,9 +55,9 @@ class BeDballe:
     @staticmethod
     def get_db_type(date_min, date_max):
         date_min_compar = datetime.utcnow() - date_min
-        if date_min_compar.days > int(BeDballe.LASTDAYS):
+        if date_min_compar.days > BeDballe.LASTDAYS:
             date_max_compar = datetime.utcnow() - date_max
-            if date_max_compar.days > int(BeDballe.LASTDAYS):
+            if date_max_compar.days > BeDballe.LASTDAYS:
                 db_type = "arkimet"
             else:
                 db_type = "mixed"
@@ -68,7 +68,7 @@ class BeDballe:
     @staticmethod
     def split_reftimes(date_min, date_max):
         refmax_dballe = date_max
-        refmin_dballe = datetime.utcnow() - timedelta(days=int(BeDballe.LASTDAYS))
+        refmin_dballe = datetime.utcnow() - timedelta(days=BeDballe.LASTDAYS)
         # refmax_arki_dt = refmin_dballe - timedelta(minutes=1)
         # refmax_arki = refmax_arki_dt.strftime("%Y-%m-%d %H:%M")
         # refmin_arki = date_min.strftime("%Y-%m-%d %H:%M")

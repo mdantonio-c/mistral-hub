@@ -47,15 +47,18 @@ class OutputBindings(EndpointResource):
             data["bindings"].setdefault(d.get("id"), [])
 
         bindings = rabbit.get_bindings(EXCHANGE)
-        for row in bindings:
-            network = row["routing_key"]
-            queue = row["queue"]
+        if bindings:
+            for row in bindings:
+                network = row["routing_key"]
+                queue = row["queue"]
 
-            if network not in data["bindings"]:
-                log.warning("Unknown network {} associated to {}", network, EXCHANGE)
-                continue
+                if network not in data["bindings"]:
+                    log.warning(
+                        "Unknown network {} associated to {}", network, EXCHANGE
+                    )
+                    continue
 
-            data["bindings"][network].append(queue)
+                data["bindings"][network].append(queue)
 
         return self.response(data)
 
@@ -77,7 +80,8 @@ class OutputBindings(EndpointResource):
         if not rabbit.queue_exists(queue):
             rabbit.create_queue(queue)
 
-        rabbit.channel.queue_bind(queue, EXCHANGE, routing_key=network)
+        if rabbit.channel:
+            rabbit.channel.queue_bind(queue, EXCHANGE, routing_key=network)
 
         return self.empty_response()
 
@@ -95,6 +99,7 @@ class OutputBindings(EndpointResource):
 
         if rabbit.exchange_exists(EXCHANGE) and rabbit.queue_exists(queue):
 
-            rabbit.channel.queue_unbind(queue, EXCHANGE, routing_key=network)
+            if rabbit.channel:
+                rabbit.channel.queue_unbind(queue, EXCHANGE, routing_key=network)
 
         return self.empty_response()

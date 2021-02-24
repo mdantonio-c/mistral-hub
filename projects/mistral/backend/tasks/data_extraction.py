@@ -851,6 +851,8 @@ def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
     replaces = {"title": request.name, "status": request.status, "message": body_msg}
     body, plain = get_html_template("data_extraction_result.html", replaces)
     with smtp.get_instance() as smtp_client:
+        if not body:
+            body = " "
         smtp_client.send(
             body, "MeteoHub: data extraction completed", user_email, plain_body=plain
         )
