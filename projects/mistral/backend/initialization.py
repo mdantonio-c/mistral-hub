@@ -357,3 +357,7 @@ class Initializer:
         )
 
         log.info("Automatic_cleanup task installed every day at {}:{}", HOUR, MINUTE)
+
+    # This method is called after normal initialization if TESTING mode is enabled
+    def initialize_testing_environment(self):
+        pass
