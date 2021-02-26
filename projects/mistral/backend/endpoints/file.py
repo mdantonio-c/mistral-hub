@@ -1,5 +1,3 @@
-import os
-
 from flask import send_from_directory
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators

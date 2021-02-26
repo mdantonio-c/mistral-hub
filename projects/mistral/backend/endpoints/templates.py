@@ -1,6 +1,7 @@
 import glob
 import os
 import subprocess
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from zipfile import ZipFile
 
@@ -162,7 +163,7 @@ class Template(EndpointResource, Uploader):
 
         log.debug("uploading in {}", subfolder)
         try:
-            upload_res = self.upload(subfolder=subfolder)
+            upload_res = self.upload(subfolder=Path(subfolder))
             if isinstance(upload_res, tuple):
                 upload_response = upload_res[0]
             else:
