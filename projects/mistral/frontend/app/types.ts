@@ -78,6 +78,61 @@ export interface DerivedVariables {
   desc: string;
 }
 
+export interface LicenseGroup {
+  id: string;
+  name: string;
+  descr: string;
+  is_public: boolean;
+  /** @nullable */
+  dballe_dsn: string;
+  license?: SimpleLicense[];
+}
+
+export interface SimpleLicense {
+  id: string;
+  name: string;
+  descr: string;
+  /** @nullable */
+  url?: string;
+}
+
+export interface LicenseGroups extends Array<LicenseGroup> {}
+
+export interface Licenses extends Array<License> {}
+
+export interface License {
+  id: string;
+  name: string;
+  descr: string;
+  /** @nullable */
+  url?: string;
+  group_license: SimpleLicenseGroup;
+  datasets?: SimpleDataset[];
+}
+
+export interface SimpleLicenseGroup {
+  id: string;
+  name: string;
+  descr: string;
+}
+
+export interface SimpleAttribution {
+  id: string;
+  name: string;
+  descr: string;
+}
+
+export interface Attributions extends Array<Attribution> {}
+
+export interface Attribution {
+  id: string;
+  name: string;
+  descr: string;
+  /** @nullable */
+  url: string;
+  datasets?: SimpleDataset[];
+}
+
 /**
  * Expected filter names:
  *
@@ -102,10 +157,19 @@ export interface SimpleDataset {
   name: string;
 }
 
-export interface SimpleGroupLicence {
+export interface AdminDataset {
   id: string;
+  arkimet_id: string;
   name: string;
+  description: string;
+  category: string;
+  fileformat: string;
+  /** @nullable */
+  bounding: string;
+  license: SimpleLicense;
+  attribution: SimpleAttribution;
 }
+export interface AdminDatasets extends Array<AdminDataset> {}
 
 export interface Dataset {
   id: string;
