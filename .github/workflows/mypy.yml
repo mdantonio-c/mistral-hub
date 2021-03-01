@@ -33,3 +33,4 @@ jobs:
         with:
           name: mypy-report
           path: report
+          allow_untyped_defs: true
