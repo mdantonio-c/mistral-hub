@@ -2,6 +2,7 @@ import datetime
 
 from restapi import decorators
 from restapi.connectors import sqlalchemy
+from restapi.exceptions import ServerError
 from restapi.rest.definition import EndpointResource
 
 
@@ -21,6 +22,10 @@ class HourlyReport(EndpointResource):
         Get user remaining request par hour
         """
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
+
         db = sqlalchemy.get_instance()
         data = {}
         if user.request_par_hour:

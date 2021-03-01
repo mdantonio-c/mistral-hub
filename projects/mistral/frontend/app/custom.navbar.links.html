@@ -77,4 +77,48 @@
       >Privacy</a
     >
   </li>
+  <li
+    class="nav-item"
+    ngbDropdown
+    *ngIf="user && (user.isAdmin || user.isCoordinator)"
+  >
+    <a
+      class="nav-link clickable"
+      ngbDropdownToggle
+      id="navbarDropdownMapsLink"
+      role="button"
+    >
+      Licenses
+    </a>
+    <div
+      ngbDropdownMenu
+      aria-labelledby="navbarDropdownMapsLink"
+      class="dropdown-menu"
+    >
+      <a
+        ngbDropdownItem
+        routerLink="app/admin/group-licenses"
+        routerLinkActive="active"
+        (click)="collapse()"
+        >License Groups</a
+      >
+      <a
+        ngbDropdownItem
+        routerLink="app/admin/licenses"
+        routerLinkActive="active"
+        (click)="collapse()"
+        >Licenses</a
+      >
+      <a
+        ngbDropdownItem
+        routerLink="app/admin/attributions"
+        routerLinkActive="active"
+        (click)="collapse()"
+        >Attributions</a
+      >
+      <a ngbDropdownItem routerLink="app/admin/datasets" (click)="collapse()"
+        >Datasets</a
+      >
+    </div>
+  </li>
 </ul>

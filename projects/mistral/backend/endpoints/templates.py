@@ -51,6 +51,10 @@ class Templates(EndpointResource):
         get_total=False,
     ):
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
+
         grib_templates = glob.glob(
             os.path.join(UPLOAD_PATH, user.uuid, "uploads", "grib", "*")
         )
@@ -119,6 +123,10 @@ class Template(EndpointResource, Uploader):
     # 202: {'schema': {'$ref': '#/definitions/TemplateFile'}}
     def post(self):
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
+
         # allowed formats for uploaded file
         allowed_exts = [
             "shp",
@@ -258,6 +266,9 @@ class Template(EndpointResource, Uploader):
     # 200: {'schema': {'$ref': '#/definitions/TemplateFile'}}
     def get(self, template_name):
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
 
         # get the template extension to determine the folder where to find it
         filebase, fileext = os.path.splitext(template_name)
@@ -282,6 +293,10 @@ class Template(EndpointResource, Uploader):
     )
     def delete(self, template_name):
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
+
         # get the template extension to determine the folder where to find it
         filebase, fileext = os.path.splitext(template_name)
 

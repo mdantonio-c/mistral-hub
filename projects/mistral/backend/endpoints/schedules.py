@@ -348,6 +348,10 @@ class Schedules(EndpointResource):
         push=False,
     ):
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
+
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
         db = sqlalchemy.get_instance()
         # check if the user is authorized to post a scheduled request
@@ -737,6 +741,9 @@ class Schedules(EndpointResource):
     ):
 
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         if schedule_id is not None:
@@ -775,6 +782,9 @@ class Schedules(EndpointResource):
     )
     def patch(self, schedule_id, is_active):
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         c = celery.get_instance()
@@ -872,6 +882,9 @@ class Schedules(EndpointResource):
     )
     def delete(self, schedule_id):
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         celery_app = celery.get_instance()
@@ -934,6 +947,10 @@ class ScheduledRequests(EndpointResource):
 
         # check for schedule ownership
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
+
         if not SqlApiDbManager.check_owner(db, user.id, schedule_id=schedule_id):
             raise Forbidden("This request doesn't come from the schedule's owner")
 

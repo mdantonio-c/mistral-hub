@@ -3,6 +3,7 @@ import subprocess
 
 from mistral.endpoints import DOWNLOAD_DIR
 from restapi import decorators
+from restapi.exceptions import ServerError
 from restapi.rest.definition import EndpointResource
 
 
@@ -22,6 +23,10 @@ class Usage(EndpointResource):
         Get actual user disk quota and current usage
         """
         user = self.get_user()
+
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
 
         # get current usage
         used_quota = 0
