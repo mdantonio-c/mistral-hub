@@ -38,7 +38,7 @@ export class ObsMapComponent {
     {
       detectRetina: true,
       attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>',
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL data contributor</a>',
     }
   );
 
@@ -169,6 +169,7 @@ export class ObsMapComponent {
 
   onMapReady(map: L.Map) {
     this.map = map;
+    this.map.attributionControl.setPrefix(false);
   }
 
   markerClusterReady(group: L.MarkerClusterGroup) {
