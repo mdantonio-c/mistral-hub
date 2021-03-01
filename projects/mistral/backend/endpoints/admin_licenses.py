@@ -1,14 +1,15 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from marshmallow import pre_load
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import Conflict, DatabaseDuplicatedEntry, NotFound
-from restapi.models import ISO8601UTC, AdvancedList, Schema, fields, validate
+from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource, Response
-from restapi.services.authentication import BaseAuthentication, Role
-from restapi.utilities.logs import log
+from restapi.services.authentication import Role
+
+# from restapi.utilities.logs import log
 
 
 class Datasets(Schema):
@@ -67,6 +68,7 @@ def getInputSchema(request, is_post):
         lgroup_keys.append(str(lg.id))
         lgroup_labels.append(f"{lg.name} - {lg.descr}")
 
+    default_group: Optional[Any] = None
     if len(lgroup_keys) == 1:
         default_group = lgroup_keys[0]
     else:

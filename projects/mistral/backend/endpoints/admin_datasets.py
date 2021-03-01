@@ -1,13 +1,13 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
-from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import Conflict, DatabaseDuplicatedEntry, NotFound
-from restapi.models import ISO8601UTC, AdvancedList, Schema, fields, validate
+from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource, Response
-from restapi.services.authentication import BaseAuthentication, Role
-from restapi.utilities.logs import log
+from restapi.services.authentication import Role
+
+# from restapi.utilities.logs import log
 
 
 class License(Schema):
@@ -72,6 +72,7 @@ def getInputSchema(request, is_post):
         license_keys.append(str(lic.id))
         license_labels.append(f"{lic.name} - {lic.descr}")
 
+    default_license: Optional[Any] = None
     if len(license_keys) == 1:
         default_license = license_keys[0]
     else:
@@ -92,6 +93,7 @@ def getInputSchema(request, is_post):
         attr_keys.append(str(attr.id))
         attr_labels.append(f"{attr.name} - {attr.descr}")
 
+    default_attr: Optional[Any] = None
     if len(attr_keys) == 1:
         default_attr = attr_keys[0]
     else:

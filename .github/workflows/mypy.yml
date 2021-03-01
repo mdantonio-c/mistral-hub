@@ -31,5 +31,5 @@ jobs:
       - name: Save Report
         uses: actions/upload-artifact@v2
         with:
-          name: mypy-${PROJECT}-report
+          name: mypy-report
           path: report

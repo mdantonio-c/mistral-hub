@@ -2,7 +2,7 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.endpoints.schemas import TotalSchema
-from restapi.exceptions import NotFound, Unauthorized
+from restapi.exceptions import NotFound, ServerError, Unauthorized
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 from sqlalchemy.orm import joinedload
@@ -30,6 +30,9 @@ class UserRequests(EndpointResource):
     ):
 
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         if get_total:
@@ -96,6 +99,9 @@ class UserRequests(EndpointResource):
         log.debug("delete request {}", request_id)
 
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         # check if the request exists
@@ -129,6 +135,9 @@ class CloneUserRequests(EndpointResource):
         log.debug(f"Request for cloning query - ID<{request_id}>")
 
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         # check if the request exists

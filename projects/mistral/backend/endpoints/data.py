@@ -9,6 +9,7 @@ from restapi.exceptions import (
     BadRequest,
     Forbidden,
     NotFound,
+    ServerError,
     ServiceUnavailable,
     Unauthorized,
 )
@@ -285,6 +286,10 @@ class Data(EndpointResource, Uploader):
         push=False,
     ):
         user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
+
         db = sqlalchemy.get_instance()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
 
