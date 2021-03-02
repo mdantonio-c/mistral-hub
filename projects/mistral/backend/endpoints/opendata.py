@@ -47,7 +47,7 @@ class OpendataFileList(EndpointResource):
         query: Dict[str, Any] = {}
         reftime = {}
         # add dataset to query
-        query["datasets"] = [dataset_name]
+        query["datasets"] = [ds_entry.arkimet_id]
         if q:
             # q=reftime: >=2019-06-21 00:00,<=2019-06-22 15:46;run:MINUTE,00:00
             # parse the query

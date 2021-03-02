@@ -988,20 +988,43 @@ def adapt_reftime(schedule, reftime):
 
         now = datetime.datetime.utcnow()
 
-        # delete the time differences between the first submission and now
+        # delete the time differences between the first submission and now (to fix bug of first submission hour grater than now hour that make the delta gain a day)
+        # i have to replace also seconds and microseconds also to prevent gains or loss of 1 day
         if minor_time_interval == "days":
             first_submission = first_submission.replace(
-                hour=now.hour, minute=now.minute
+                hour=now.hour,
+                minute=now.minute,
+                second=now.second,
+                microsecond=now.microsecond,
             )
         elif minor_time_interval == "hours":
             first_submission = first_submission.replace(
-                minute=now.minute, second=now.second
+                minute=now.minute, second=now.second, microsecond=now.microsecond
             )
 
-        # calculate the time delta considering also case when the
+        # calculate the time delta considering also case when the scheduled is switched of for some time
+        # the float is used instead of int to prevent approsimation to basis in case schedule interval has no unit=1 (ex. every 3 days)
         time_delta_to = schedule_interval * (
-            int((now - first_submission) / schedule_interval)
+            float((now - first_submission) / schedule_interval)
         )
+
+        # check if the submission/reftime delta is between an interval
+        minor_delta = datetime.timedelta(**{minor_time_interval: 1})
+        additional_delta = schedule_interval * (
+            float((first_submission - first_reftime_to) / schedule_interval)
+        )  # in case of reftime older than yesterday
+        first_reftime_to_wout_delta = first_reftime_to + additional_delta
+        if first_submission - first_reftime_to_wout_delta < minor_delta:
+            if (
+                minor_time_interval == "days"
+                and (first_submission.day - first_reftime_to_wout_delta.day) == 1
+            ):
+                time_delta_to = time_delta_to + datetime.timedelta(days=1)
+            elif (
+                minor_time_interval == "hours"
+                and (first_submission.hour - first_reftime_to_wout_delta.hour) == 1
+            ):
+                time_delta_to = time_delta_to + datetime.timedelta(hours=1)
 
         # get the new reftimes
         new_reftime_to = first_reftime_to + time_delta_to
