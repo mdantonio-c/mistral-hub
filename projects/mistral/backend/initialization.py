@@ -4,7 +4,7 @@ from restapi.utilities.logs import log
 
 
 class Initializer:
-    def __init__(self, app=None):
+    def __init__(self) -> None:
 
         sql = sqlalchemy.get_instance()
 
@@ -359,5 +359,5 @@ class Initializer:
         log.info("Automatic_cleanup task installed every day at {}:{}", HOUR, MINUTE)
 
     # This method is called after normal initialization if TESTING mode is enabled
-    def initialize_testing_environment(self):
+    def initialize_testing_environment(self) -> None:
         pass
