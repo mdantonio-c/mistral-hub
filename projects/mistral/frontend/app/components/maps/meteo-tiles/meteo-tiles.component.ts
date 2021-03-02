@@ -17,7 +17,7 @@ import { TilesService } from "./services/tiles.service";
 import { ObsService } from "../observation-maps/services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd } from "@angular/router";
 import { LegendConfig, LEGEND_DATA } from "./services/data";
 import {
   Observation,
@@ -101,7 +101,8 @@ export class MeteoTilesComponent {
   // readonly license_cosmo =
   // // '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
   // '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>';
-  license =    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> | &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>';
+  license =
+    '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> | &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>';
 
   map: L.Map;
   dataset: string;
@@ -189,21 +190,23 @@ export class MeteoTilesComponent {
     // set the initial set of displayed layers
     this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.dataset = this.DEFAULT_DATASET;
-    router.events.subscribe(s => {
+    router.events.subscribe((s) => {
       if (s instanceof NavigationEnd) {
         const tree = router.parseUrl(router.url);
         if (tree.fragment) {
           const element = document.querySelector("#" + tree.fragment);
-          if (element) { element.scrollIntoView(true); }
+          if (element) {
+            element.scrollIntoView(true);
+          }
         }
       }
     });
   }
-//   constructor(router: Router) {
-//
+  //   constructor(router: Router) {
+  //
 
-//
-// }
+  //
+  // }
 
   getTilesUrl() {
     let production = environment.production;
@@ -231,7 +234,7 @@ export class MeteoTilesComponent {
 
     this.loadRunAvailable(this.DEFAULT_DATASET);
     this.initLegends(this.map);
-    this.map.attributionControl.setPrefix(false);
+    this.map.attributionControl.setPrefix("");
     // pass a reference to this MeteoTilesComponent
     const ref = this;
     (map as any).timeDimension.on("timeload", function (
