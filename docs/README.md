@@ -269,7 +269,7 @@ Opendata schedules and opendata request are marked by a specific label in "My Re
 
 - **How to enable a user to “Data Pushing”**
 
-To enable a user for "Data Pushing", the administrator must connect to the "Rabbit mq" console and create a dedicated AMQP queue for the user.
+To enable a user for "Data Pushing", the administrator must connect to the "Rabbit mq" console and create a dedicated AMQP queue for the user. The "AMQP queue" field in user's profile has to be updated with the name of the newly created dedicated AMQP queue.
 
 - **How to give a user access to a dataset**
 
@@ -291,6 +291,10 @@ A dataset consists of:
 In order to create a new dataset, a new Arkimet directory has to be created with the following path: _data/arkimet/dataset_folder_. See [Arkimet config chapter](README.md#arkimet-config-files) for more information on how create a dataset configuration file.\
 A new dataset entry has to be created in the database. The element properties are the same described for the dataset configuration.Every dataset must have an attribution reference and a license reference chosen from the attribution and license elements previously saved in the database.\
 If the chosen license is an open one, the dataset will be automatically available for data extraction to all registered users. In case of datasets of observed data with an open license, data will be automatically visible on the observations map and available for download by map. If its license is a proprietary one, dataset will be visible in the dataset list page but available for data extraction only to users authorized by the administator.
+
+To manage datasets, licenses and attribute entries in the database, Administrators can use also the dedicated interfaces.
+
+![](adminlicense.png)
 
 ---
 
