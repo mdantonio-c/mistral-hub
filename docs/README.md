@@ -386,6 +386,23 @@ It is available on MISTRAL project YouTube channel:
 
 https://www.youtube.com/watch?v=bAQD-IjS8oQ&t
 
+### **How to download all the observed data with a scheduled request**
+
+Scheduled requests can be used to automatically extract all the data of a selected dataset as they are ingested on MeteoHub platform.
+
+To daily download all the data of a specified observed dataset, a user has to:
+
+- create a request selecting that dataset
+- select as _Reftime_ the day before from 00:00 to 23:59
+- add the desired filters. If no filters are set, all the available data in the selected dataset for the selected time interval will be extracted
+- enable the _Quality Control Filter_ if he wants to extract only quality checked data
+- in the "Submit your request" step, schedule the request as: _Repeat at time_, _Every day at_ and choose the time he prefers
+
+**Please note:**\
+Using the scheduled data extractions users will not have an exact replica of the dataset,
+because all data ingested on the platform later than a day are lost. This is, for example, the case of data that are re-send days before to overwrite and correct older data.\
+The only way to exactly replicate the dataset, at the moment, is using the Pushing via an AMQP queue.
+
 ---
 
 # **Licenses management**
