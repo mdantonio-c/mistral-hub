@@ -105,7 +105,6 @@ class Customizer(BaseCustomizer):
                     label="Allowed additional datasets",
                     description="",
                     unique=True,
-                    multiple=True,
                 ),
                 "max_templates": fields.Int(
                     required=required,
