@@ -1,7 +1,7 @@
 from restapi.connectors import sqlalchemy
 from restapi.customizer import BaseCustomizer
 from restapi.exceptions import NotFound
-from restapi.models import AdvancedList, Schema, fields, validate
+from restapi.models import Schema, fields, validate
 
 
 class Datasets(Schema):
@@ -94,7 +94,7 @@ class Customizer(BaseCustomizer):
                     label="Enable access to Open Datasets",
                     required=False,
                 ),
-                "datasets": AdvancedList(
+                "datasets": fields.List(
                     fields.Str(
                         validate=validate.OneOf(
                             choices=[str(v.id) for v in datasets],

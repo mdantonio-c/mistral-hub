@@ -13,7 +13,7 @@ from restapi.exceptions import (
     ServiceUnavailable,
     Unauthorized,
 )
-from restapi.models import AdvancedList, Schema, fields, validate
+from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
 from restapi.services.uploader import Uploader
 from restapi.utilities.logs import log
@@ -49,7 +49,7 @@ class AVProcessor(Schema):
     processor_type = fields.Str(required=True)
     # "derived_variables"
 
-    variables = AdvancedList(
+    variables = fields.List(
         fields.Str(
             validate=validate.OneOf(DERIVED_VARIABLES),
             description="The list of requested derived variables to be calculated.",
@@ -222,7 +222,7 @@ class Filters(Schema):
 class DataExtraction(Schema):
     request_name = fields.Str(required=True)
     reftime = fields.Nested(Reftime, allow_none=True)
-    dataset_names = AdvancedList(
+    dataset_names = fields.List(
         fields.Str(description="Dataset name"),
         unique=True,
         min_items=1,

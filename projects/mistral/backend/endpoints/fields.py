@@ -12,13 +12,13 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import BadRequest, NotFound, ServerError, Unauthorized
-from restapi.models import Schema, UniqueDelimitedList, fields
+from restapi.models import Schema, fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 
 
 class FieldsQuery(Schema):
-    datasets = UniqueDelimitedList(fields.Str(), delimiter=",")
+    datasets = fields.DelimitedList(fields.Str(), delimiter=",", unique=True)
     q = fields.Str(required=False)
     lonmin = fields.Float(required=False)
     latmin = fields.Float(required=False)
