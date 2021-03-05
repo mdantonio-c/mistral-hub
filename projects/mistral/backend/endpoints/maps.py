@@ -58,9 +58,7 @@ def get_schema(set_required):
     )
     attributes["env"] = fields.Str(validate=validate.OneOf(ENVS), required=False)
 
-    return Schema.from_dict(attributes)
-    # schema = Schema.from_dict(attributes)
-    # return schema()
+    return Schema.from_dict(attributes, name="MapsSchema")
 
 
 class MapEndpoint(EndpointResource):
