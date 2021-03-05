@@ -6,6 +6,7 @@ import { MomentModule } from "ngx-moment";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { of } from "rxjs";
 import { HttpClient } from "@angular/common/http";
+import { Router } from "@angular/router";
 import { ToastrModule } from "ngx-toastr";
 import { NgxSpinnerModule } from "ngx-spinner";
 
@@ -34,7 +35,7 @@ class StubLoadingComponent {}
 @Injectable()
 class ApiServiceStub extends ApiService {
   constructor() {
-    super({} as HttpClient, {} as any, {} as NotificationService);
+    super({} as HttpClient, {} as Router, {} as any, {} as NotificationService);
   }
 
   get(
