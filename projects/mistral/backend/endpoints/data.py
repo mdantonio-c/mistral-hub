@@ -157,8 +157,7 @@ class GIProcessor(Schema):
     nodes = fields.Nested(Nodes, description="number of nodes of the target grid")
     template = fields.Url(
         relative=True,
-        require_tls=False,
-        schems=None,
+        require_tld=False,
         description="grib template for interpolation",
     )
     sub_type = fields.Str(required=True, validate=validate.OneOf(SUBTYPES))
