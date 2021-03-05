@@ -230,6 +230,7 @@ export class MeteoTilesComponent {
 
   onMapReady(map: L.Map) {
     this.map = map;
+    this.map.attributionControl.setPrefix("");
     //console.log(this.bounds);
 
     this.loadRunAvailable(this.DEFAULT_DATASET);
