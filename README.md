@@ -105,7 +105,7 @@ The ingestion process is coordinated by an orchestrator which channels the data 
 they are properly stored. This process, also called harmonization, requires data interpretation and may
 involve transformations and normalizations for quality assurance.
 
-Source code is available [here](https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion/-/tree/deda).
+Source code is available [here](https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion).
 
 ## Meteo-Hub API
 
