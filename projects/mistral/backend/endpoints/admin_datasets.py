@@ -120,7 +120,6 @@ def getPUTInputSchema(request):
 
 class AdminDatasets(EndpointResource):
 
-    depends_on = ["not ADMINER_DISABLED"]
     labels = ["admin"]
     private = True
 

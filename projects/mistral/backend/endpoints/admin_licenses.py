@@ -95,7 +95,6 @@ def getPUTInputSchema(request):
 
 class AdminLicenses(EndpointResource):
 
-    depends_on = ["not ADMINER_DISABLED"]
     labels = ["admin"]
     private = True
 

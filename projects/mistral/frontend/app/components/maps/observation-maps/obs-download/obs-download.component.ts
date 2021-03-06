@@ -13,7 +13,7 @@ import { NgxSpinnerService } from "ngx-spinner";
 import { NotificationService } from "@rapydo/services/notification";
 import { AuthService } from "@rapydo/services/auth";
 import { environment } from "@rapydo/../environments/environment";
-import { saveAs as importedSaveAs } from "file-saver";
+import { saveAs as importedSaveAs } from "file-saver-es";
 import * as moment from "moment";
 
 const LAST_DAYS = +environment.CUSTOM.LASTDAYS || 10;

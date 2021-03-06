@@ -1,5 +1,5 @@
 import { Component, ElementRef, Injector } from "@angular/core";
-import { saveAs as importedSaveAs } from "file-saver";
+import { saveAs as importedSaveAs } from "file-saver-es";
 
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 import { DataService } from "@app/services/data.service";
