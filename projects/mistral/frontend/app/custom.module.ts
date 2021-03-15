@@ -117,7 +117,6 @@ const appRoutes: Routes = [
   {
     path: "app/license",
     component: LicenseComponent,
-    canActivate: [AuthGuard],
   },
   {
     path: "app/admin/bindings",
