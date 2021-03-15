@@ -233,7 +233,6 @@ class DataExtraction(Schema):
     only_reliable = fields.Bool(required=False)
     postprocessors = fields.List(
         Postprocessors(description="Post-processing request details"),
-        # unique=True,
         description="Apply one or more post-processing to the filtered data.",
     )
 
