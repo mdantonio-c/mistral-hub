@@ -115,7 +115,7 @@ class MapImage(MapEndpoint):
 
     @decorators.use_kwargs(get_schema(True), location="query")
     @decorators.endpoint(
-        path="/maps/<map_offset>",
+        path="/maps/offset/<map_offset>",
         summary="Get a forecast map for a specific run.",
         responses={
             200: "Map successfully retrieved",

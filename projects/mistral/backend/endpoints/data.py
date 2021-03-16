@@ -69,8 +69,7 @@ class SPIProcessor(Schema):
     coord_filepath = fields.Url(
         required=True,
         relative=True,
-        require_tls=False,
-        schems=None,
+        require_tld=False,
         description="file to define the target spare points",
     )
     file_format = fields.Str(

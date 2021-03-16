@@ -69,8 +69,7 @@ class SPIProcessor(Schema):
     coord_filepath = fields.Url(
         required=True,
         relative=True,
-        require_tls=False,
-        schems=None,
+        require_tld=False,
         description="file to define the target spare points",
     )
     file_format = fields.Str(
@@ -316,6 +315,53 @@ MIN_PERIOD = {"every": 15, "period": "minutes"}
 
 
 class Schedules(EndpointResource):
+    labels = ["schedule"]
+
+    @decorators.auth.require()
+    @decorators.get_pagination
+    @decorators.marshal_with(TotalSchema, code=206)
+    @decorators.endpoint(
+        path="/schedules",
+        summary="Get user schedules.",
+        description="Returns a single schedule by id",
+        responses={
+            200: "List of user schedules.",
+            206: "Total number of elements is returned",
+            403: "User not allowed to get the schedule",
+            404: "The schedule does not exists",
+        },
+    )
+    # 200: {'schema': {'$ref': '#/definitions/Requests'}}
+    def get(
+        self,
+        get_total,
+        page,
+        size,
+        sort_order,
+        sort_by,
+        input_filter,
+    ):
+
+        user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
+
+        db = sqlalchemy.get_instance()
+
+        # get total count for user schedules
+        if get_total:
+            counter = SqlApiDbManager.count_user_schedules(db, user.id)
+            return self.pagination_total(counter)
+        # get user requests list
+        res = SqlApiDbManager.get_user_schedules(
+            db, user.id, sort_by=sort_by, sort_order=sort_order
+        )
+
+        return self.response(res)
+
+
+class SingleSchedule(EndpointResource):
     labels = ["schedule"]
 
     @decorators.auth.require()
@@ -722,20 +768,9 @@ class Schedules(EndpointResource):
             404: "The schedule does not exists",
         },
     )
-    @decorators.endpoint(
-        path="/schedules",
-        summary="Get user schedules.",
-        description="Returns a single schedule by id",
-        responses={
-            200: "List of user schedules.",
-            206: "Total number of elements is returned",
-            403: "User not allowed to get the schedule",
-            404: "The schedule does not exists",
-        },
-    )
     # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(
-        self, get_total, page, size, sort_order, sort_by, input_filter, schedule_id=None
+        self, get_total, page, size, sort_order, sort_by, input_filter, schedule_id
     ):
 
         user = self.get_user()
@@ -744,20 +779,11 @@ class Schedules(EndpointResource):
             raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
-        if schedule_id is not None:
-            # check for schedule ownership
-            self.request_and_owner_check(db, user.id, schedule_id)
-            # get schedule by id
-            res = SqlApiDbManager.get_schedule_by_id(db, schedule_id)
-        else:
-            # get total count for user schedules
-            if get_total:
-                counter = SqlApiDbManager.count_user_schedules(db, user.id)
-                return self.pagination_total(counter)
-            # get user requests list
-            res = SqlApiDbManager.get_user_schedules(
-                db, user.id, sort_by=sort_by, sort_order=sort_order
-            )
+
+        # check for schedule ownership
+        self.request_and_owner_check(db, user.id, schedule_id)
+        # get schedule by id
+        res = SqlApiDbManager.get_schedule_by_id(db, schedule_id)
 
         return self.response(res)
 
