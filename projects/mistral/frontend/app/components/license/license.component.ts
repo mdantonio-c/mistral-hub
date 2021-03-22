@@ -3,6 +3,7 @@ import { DataService } from "../../services/data.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { ColumnMode } from "@swimlane/ngx-datatable";
 import { NgxSpinnerService } from "ngx-spinner";
+import { Router, Scroll } from "@angular/router";
 
 @Component({
   selector: "license",
@@ -12,16 +13,47 @@ export class LicenseComponent implements OnInit {
   data;
   mistral_products;
   ColumnMode = ColumnMode;
+  loading: boolean = false;
 
   constructor(
     private dataService: DataService,
     private notify: NotificationService,
-    private spinner: NgxSpinnerService
-  ) {}
+    private spinner: NgxSpinnerService,
+    private router: Router
+  ) {
+    this.router.events.subscribe((event: any) => {
+      if (event instanceof Scroll && event.anchor) {
+        setTimeout(() => {
+          this.scroll("#" + event.anchor);
+        }, 500);
+      }
+    });
+  }
+
+  private scroll(query: string) {
+    const targetElement = document.querySelector(query);
+    if (!targetElement) {
+      window.scrollTo(0, 0);
+    } else if (!this.isInViewport(targetElement)) {
+      targetElement.scrollIntoView();
+    }
+  }
+
+  private isInViewport = (elem: any) => {
+    const bounding = elem.getBoundingClientRect();
+    return (
+      bounding.top >= 0 &&
+      bounding.left >= 0 &&
+      bounding.bottom <=
+        (window.innerHeight || document.documentElement.clientHeight) &&
+      bounding.right <=
+        (window.innerWidth || document.documentElement.clientWidth)
+    );
+  };
 
   ngOnInit() {
     this.spinner.show();
-
+    this.loading = true;
     this.dataService
       .getDatasets(true)
       .subscribe(
@@ -102,6 +134,7 @@ export class LicenseComponent implements OnInit {
       )
       .add(() => {
         this.spinner.hide();
+        this.loading = false;
       });
   }
 }

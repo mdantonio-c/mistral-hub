@@ -1,18 +1,17 @@
 <div class="container-fluid">
   <div class="row text-justify justify-content-md-center">
-    <div class="col-10">
+    <div class="col-12 col-md-10">
       <ngx-spinner
         bdColor="rgba(255,255,255,0.8)"
         color="#6c757d"
         zIndex="1000"
-        [fullScreen]="false"
+        [fullScreen]="true"
         type="ball-clip-rotate-multiple"
         size="medium"
-      >
-      </ngx-spinner>
+      ></ngx-spinner>
 
       <!-- no dataset -->
-      <div class="row" *ngIf="!data?.length">
+      <div class="row" *ngIf="!loading && !data?.length">
         <div class="col">
           <div class="no-results">
             <h4>Attributions &amp; Licenses - Mistral Contributors</h4>
@@ -20,209 +19,217 @@
           </div>
         </div>
       </div>
-      <h3>Attributions &amp; Licenses - Mistral Contributors</h3>
 
-      <!-- load dataset licenses in the table -->
-      <div class="table-responsive" *ngIf="data?.length" #tableWrapper>
-        <ngx-datatable
-          #licensesTable
-          class="bootstrap expandable"
-          [columnMode]="ColumnMode.flex"
-          [headerHeight]="40"
-          [footerHeight]="40"
-          [rows]="data"
-          [rowHeight]="'auto'"
-        >
-          <!-- Column Templates -->
-
-          <!-- Dataset -->
-          <ngx-datatable-column
-            name="Dataset"
-            prop="name"
-            [resizeable]="false"
-            [sortable]="false"
-            [draggable]="false"
-            [flexGrow]="1"
-          >
-            <ng-template
-              let-value="value"
-              let-row="row"
-              ngx-datatable-cell-template
+      <ng-container *ngIf="data?.length">
+        <section>
+          <h3 id="mistral-contributors">
+            Attributions &amp; Licenses - Mistral Contributors
+          </h3>
+          <!-- load dataset licenses in the table -->
+          <div class="table-responsive" *ngIf="data?.length" #tableWrapper>
+            <ngx-datatable
+              #licensesTable
+              class="bootstrap expandable"
+              [columnMode]="ColumnMode.flex"
+              [headerHeight]="40"
+              [footerHeight]="0"
+              [rows]="data"
+              [rowHeight]="'auto'"
             >
-              {{ value }}
-            </ng-template>
-          </ngx-datatable-column>
+              <!-- Column Templates -->
 
-          <!-- Dataset description -->
-          <ngx-datatable-column
-            name="Description"
-            prop="description"
-            [resizeable]="false"
-            [sortable]="false"
-            [draggable]="false"
-            [flexGrow]="3"
-          >
-            <ng-template
-              let-value="value"
-              let-row="row"
-              ngx-datatable-cell-template
-            >
-              {{ value }}
-            </ng-template>
-          </ngx-datatable-column>
-
-          <!-- Dataset attribution -->
-          <ngx-datatable-column
-            name="Attribution"
-            prop="attribution_description"
-            [resizeable]="false"
-            [sortable]="false"
-            [draggable]="false"
-            [flexGrow]="2"
-          >
-            <ng-template
-              let-value="value"
-              let-row="row"
-              ngx-datatable-cell-template
-            >
-              {{ value }}&nbsp;<a
-                [href]="row.attribution_url"
-                target="_blank"
-                *ngIf="value && row.attribution_url"
+              <!-- Dataset -->
+              <ngx-datatable-column
+                name="Dataset"
+                prop="name"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="1"
               >
-                <i class="fas fa-external-link-alt"></i
-              ></a>
-            </ng-template>
-          </ngx-datatable-column>
+                <ng-template
+                  let-value="value"
+                  let-row="row"
+                  ngx-datatable-cell-template
+                >
+                  {{ value }}
+                </ng-template>
+              </ngx-datatable-column>
 
-          <!-- Dataset license -->
-          <ngx-datatable-column
-            name="Work distributed under license "
-            prop="license_description"
-            [resizeable]="false"
-            [sortable]="false"
-            [draggable]="false"
-            [flexGrow]="2"
-          >
-            <ng-template
-              let-value="value"
-              let-row="row"
-              ngx-datatable-cell-template
-            >
-              {{ value }}&nbsp;<a
-                [href]="row.license_url"
-                target="_blank"
-                *ngIf="value && row.license_url"
+              <!-- Dataset description -->
+              <ngx-datatable-column
+                name="Description"
+                prop="description"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="3"
               >
-                <i class="fas fa-external-link-alt"></i
-              ></a>
-            </ng-template>
-          </ngx-datatable-column>
-        </ngx-datatable>
-        <ng-template #noValue>-</ng-template>
-      </div>
-      <br />
-      <h3 name="anchor">Attributions &amp; Licenses - Mistral Products</h3>
-      <!-- maps licenses table -->
-      <div class="table-responsive" *ngIf="mistral_products?.length">
-        <ngx-datatable
-          #licensesTable
-          class="bootstrap expandable"
-          [columnMode]="ColumnMode.flex"
-          [headerHeight]="40"
-          [footerHeight]="40"
-          [rows]="mistral_products"
-          [rowHeight]="'auto'"
-        >
-          <!-- Column Templates -->
-          <!-- Map name -->
-          <ngx-datatable-column
-            name="Product"
-            prop="name"
-            [resizeable]="false"
-            [sortable]="false"
-            [draggable]="false"
-            [flexGrow]="1"
-          >
-            <ng-template
-              let-value="value"
-              let-row="row"
-              ngx-datatable-cell-template
-            >
-              {{ value }}
-            </ng-template>
-          </ngx-datatable-column>
+                <ng-template
+                  let-value="value"
+                  let-row="row"
+                  ngx-datatable-cell-template
+                >
+                  {{ value }}
+                </ng-template>
+              </ngx-datatable-column>
 
-          <!-- Map description -->
-          <ngx-datatable-column
-            name="Description"
-            prop="description"
-            [resizeable]="false"
-            [sortable]="false"
-            [draggable]="false"
-            [flexGrow]="3"
-          >
-            <ng-template
-              let-value="value"
-              let-row="row"
-              ngx-datatable-cell-template
-            >
-              {{ value }}
-            </ng-template>
-          </ngx-datatable-column>
-
-          <!-- Map attribution -->
-          <ngx-datatable-column
-            name="Attribution"
-            prop="attribution_description"
-            [resizeable]="false"
-            [sortable]="false"
-            [draggable]="false"
-            [flexGrow]="2"
-          >
-            <ng-template
-              let-value="value"
-              let-row="row"
-              ngx-datatable-cell-template
-            >
-              {{ value }}&nbsp;<a
-                [href]="row.attribution_url"
-                target="_blank"
-                *ngIf="value && row.attribution_url"
+              <!-- Dataset attribution -->
+              <ngx-datatable-column
+                name="Attribution"
+                prop="attribution_description"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="2"
               >
-                <i class="fas fa-external-link-alt"></i
-              ></a>
-            </ng-template>
-          </ngx-datatable-column>
+                <ng-template
+                  let-value="value"
+                  let-row="row"
+                  ngx-datatable-cell-template
+                >
+                  {{ value }}&nbsp;<a
+                    [href]="row.attribution_url"
+                    target="_blank"
+                    *ngIf="value && row.attribution_url"
+                  >
+                    <i class="fas fa-external-link-alt"></i
+                  ></a>
+                </ng-template>
+              </ngx-datatable-column>
 
-          <!-- Map license -->
-          <ngx-datatable-column
-            name="Work distributed under license "
-            prop="license_description"
-            [resizeable]="false"
-            [sortable]="false"
-            [draggable]="false"
-            [flexGrow]="2"
-          >
-            <ng-template
-              let-value="value"
-              let-row="row"
-              ngx-datatable-cell-template
-            >
-              {{ value }}&nbsp;<a
-                [href]="row.license_url"
-                target="_blank"
-                *ngIf="value && row.license_url"
+              <!-- Dataset license -->
+              <ngx-datatable-column
+                name="Work distributed under license "
+                prop="license_description"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="2"
               >
-                <i class="fas fa-external-link-alt"></i
-              ></a>
-            </ng-template>
-          </ngx-datatable-column>
-        </ngx-datatable>
-        <ng-template #noValue>-</ng-template>
-      </div>
+                <ng-template
+                  let-value="value"
+                  let-row="row"
+                  ngx-datatable-cell-template
+                >
+                  {{ value }}&nbsp;<a
+                    [href]="row.license_url"
+                    target="_blank"
+                    *ngIf="value && row.license_url"
+                  >
+                    <i class="fas fa-external-link-alt"></i
+                  ></a>
+                </ng-template>
+              </ngx-datatable-column>
+            </ngx-datatable>
+            <ng-template #noValue>-</ng-template>
+          </div>
+        </section>
 
-      <br /><br />
+        <section class="mt-5">
+          <h3 id="mistral-products">
+            Attributions &amp; Licenses - Mistral Products
+          </h3>
+          <!-- maps licenses table -->
+          <div class="table-responsive" *ngIf="mistral_products?.length">
+            <ngx-datatable
+              #licensesTable
+              class="bootstrap expandable"
+              [columnMode]="ColumnMode.flex"
+              [headerHeight]="40"
+              [footerHeight]="0"
+              [rows]="mistral_products"
+              [rowHeight]="'auto'"
+            >
+              <!-- Column Templates -->
+              <!-- Map name -->
+              <ngx-datatable-column
+                name="Product"
+                prop="name"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="1"
+              >
+                <ng-template
+                  let-value="value"
+                  let-row="row"
+                  ngx-datatable-cell-template
+                >
+                  {{ value }}
+                </ng-template>
+              </ngx-datatable-column>
+
+              <!-- Map description -->
+              <ngx-datatable-column
+                name="Description"
+                prop="description"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="3"
+              >
+                <ng-template
+                  let-value="value"
+                  let-row="row"
+                  ngx-datatable-cell-template
+                >
+                  {{ value }}
+                </ng-template>
+              </ngx-datatable-column>
+
+              <!-- Map attribution -->
+              <ngx-datatable-column
+                name="Attribution"
+                prop="attribution_description"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="2"
+              >
+                <ng-template
+                  let-value="value"
+                  let-row="row"
+                  ngx-datatable-cell-template
+                >
+                  {{ value }}&nbsp;<a
+                    [href]="row.attribution_url"
+                    target="_blank"
+                    *ngIf="value && row.attribution_url"
+                  >
+                    <i class="fas fa-external-link-alt"></i
+                  ></a>
+                </ng-template>
+              </ngx-datatable-column>
+
+              <!-- Map license -->
+              <ngx-datatable-column
+                name="Work distributed under license "
+                prop="license_description"
+                [resizeable]="false"
+                [sortable]="false"
+                [draggable]="false"
+                [flexGrow]="2"
+              >
+                <ng-template
+                  let-value="value"
+                  let-row="row"
+                  ngx-datatable-cell-template
+                >
+                  {{ value }}&nbsp;<a
+                    [href]="row.license_url"
+                    target="_blank"
+                    *ngIf="value && row.license_url"
+                  >
+                    <i class="fas fa-external-link-alt"></i
+                  ></a>
+                </ng-template>
+              </ngx-datatable-column>
+            </ngx-datatable>
+            <ng-template #noValue>-</ng-template>
+          </div>
+        </section>
+      </ng-container>
     </div>
   </div>
 </div>

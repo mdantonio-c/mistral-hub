@@ -13,9 +13,10 @@
       </div>
       <div class="col px-1">
         <div class="row">
-
-
-          <div class="col-lg-6 badges" style="text-align: center;vertical-align: middle;">
+          <div
+            class="col-lg-6 badges"
+            style="text-align: center; vertical-align: middle"
+          >
             <h4>
               <span
                 class="badge badge-info"
@@ -54,15 +55,21 @@
               }}</span>
             </h4>
             <div
-              *ngIf="filter.field == 'percentile' || filter.field == 'probability'"
-              class="explain">
+              *ngIf="
+                filter.field == 'percentile' || filter.field == 'probability'
+              "
+              class="explain"
+            >
               From 0 to 48h: blending of ecPoint-Rainfall and COSMO-2I-EPS
               post-processed
               <br />
               From 48h to 240h (day 10): only ecPoint-Rainfall is available
             </div>
           </div>
-          <div class="col-lg-6" style="text-align: center;vertical-align: middle;">
+          <div
+            class="col-lg-6"
+            style="text-align: center; vertical-align: middle"
+          >
             <ngx-spinner
               [name]="LEGEND_SPINNER"
               bdColor="rgba(248, 249, 250, 0.8)"
@@ -92,18 +99,28 @@
       type="ball-clip-rotate-multiple"
       size="medium"
     >
-      <p style="margin-top: 3rem;">Map loading...</p>
+      <p style="margin-top: 3rem">Map loading...</p>
     </ngx-spinner>
 
-          <div class="dpc-container">
-            <div *ngIf="filter.field == 'percentile' || filter.field == 'probability'" class="dpc-label">
-          		Forecast model: <b>Italy Flash Flood</b> - Reference date: <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> - Run: <b>{{ filter.run }}</b>
-            </div>
-            <div *ngIf="filter.field != 'percentile' && filter.field != 'probability'" class="dpc-label">
-          		Forecast model: <b>COSMO {{ getValue("res", filter.res) }} Km</b> - Reference date: <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> - Run: <b>{{ filter.run }}</b>
-            </div>
-          </div>
-
+    <div class="dpc-container">
+      <div
+        *ngIf="filter.field == 'percentile' || filter.field == 'probability'"
+        class="dpc-label"
+      >
+        Forecast model: <b>Italy Flash Flood</b> - Reference date:
+        <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> -
+        Run: <b>{{ filter.run }}</b>
+      </div>
+      <div
+        *ngIf="filter.field != 'percentile' && filter.field != 'probability'"
+        class="dpc-label"
+      >
+        Forecast model: <b>COSMO {{ getValue("res", filter.res) }} Km</b> -
+        Reference date:
+        <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> -
+        Run: <b>{{ filter.run }}</b>
+      </div>
+    </div>
 
     <div id="map-container">
       <ngb-carousel
@@ -145,23 +162,28 @@
             />
             <div
               *ngIf="filter.field == 'prec3' || filter.field == 't2m'"
-              style="font-size: 90%; margin: 5px;">
+              style="font-size: 90%; margin: 5px"
+            >
               <div class="mst--data-attribution">
                 <!-- Work distributed under License -->
                 <a
                   target="_blank"
                   rel="noopener"
-                  href="https://meteohub.hpc.cineca.it/app/license"
+                  [routerLink]="'/app/license'"
+                  [fragment]="'mistral-products'"
                   title="[MISTRAL]"
-                  > &copy; MISTRAL
-                  <!-- CC BY-ND 4.0 -->
-                  </a
                 >
+                  &copy; MISTRAL
+                  <!-- CC BY-ND 4.0 -->
+                </a>
               </div>
             </div>
             <div
-              *ngIf="filter.field == 'percentile' || filter.field == 'probability'"
-              style="font-size: 90%; margin: 5px;">
+              *ngIf="
+                filter.field == 'percentile' || filter.field == 'probability'
+              "
+              style="font-size: 90%; margin: 5px"
+            >
               <div class="mst--data-attribution">
                 <!-- Work distributed under License -->
 
@@ -170,10 +192,10 @@
                   rel="noopener"
                   href="https://meteohub.hpc.cineca.it/app/license"
                   title="[MISTRAL]"
-                  > &copy; MISTRAL
-                  <!-- CC BY 4.0 -->
-                  </a
                 >
+                  &copy; MISTRAL
+                  <!-- CC BY 4.0 -->
+                </a>
               </div>
             </div>
 
