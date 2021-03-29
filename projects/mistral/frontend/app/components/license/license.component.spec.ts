@@ -1,5 +1,6 @@
 import { async, ComponentFixture, TestBed } from "@angular/core/testing";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
+import { RouterTestingModule } from "@angular/router/testing";
 
 import { LicenseComponent } from "./license.component";
 import { DataService } from "../../services/data.service";
@@ -18,7 +19,12 @@ describe("LicenseComponent", () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [LicenseComponent],
-      imports: [BrowserAnimationsModule, NgxSpinnerModule, NgxDatatableModule],
+      imports: [
+        BrowserAnimationsModule,
+        RouterTestingModule.withRoutes([]),
+        NgxSpinnerModule,
+        NgxDatatableModule,
+      ],
       providers: [
         { provide: DataService, useClass: DataServiceStub },
         { provide: NotificationService, useClass: NotificationServiceStub },
