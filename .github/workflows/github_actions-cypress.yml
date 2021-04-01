@@ -60,4 +60,4 @@ jobs:
 
       - name: Print mocked email on failure
         if: failure()
-        run: cat data/logs/mock.mail.lastsent.body
+        run: cat data/logs/mock.mail.*.body
