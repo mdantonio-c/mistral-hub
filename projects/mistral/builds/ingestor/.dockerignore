@@ -1,0 +1,3 @@
+.dockerignore
+ingestor-db.df
+ingestor-nifi.df
