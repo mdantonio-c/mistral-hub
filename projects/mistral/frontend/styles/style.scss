@@ -1,15 +1,15 @@
 /* add the bootstrap-slider style css */
-@import url("bootstrap-slider/dist/css/bootstrap-slider.min.css");
-@import url("custom-slider.css");
+@import "bootstrap-slider/dist/css/bootstrap-slider";
+@import "custom-slider";
 
 /* add leaflet and leaflet-draw css */
-@import url("leaflet/dist/leaflet.css");
-@import url("leaflet-draw/dist/leaflet.draw.css");
-@import url("leaflet.markercluster/dist/MarkerCluster.Default.css");
-@import url("leaflet-timedimension/dist/leaflet.timedimension.control.css");
+@import "leaflet/dist/leaflet";
+@import "leaflet-draw/dist/leaflet.draw";
+@import "leaflet.markercluster/dist/MarkerCluster.Default";
+@import "leaflet-timedimension/dist/leaflet.timedimension.control";
 
-@import url("button-toggle.css");
-@import url("weather-icons.css");
+@import "button-toggle";
+@import "weather-icons";
 
 /* customize container width */
 @media (min-width: 1200px) {

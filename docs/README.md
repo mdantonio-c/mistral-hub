@@ -456,9 +456,9 @@ Once installed docker, python and pip; the controller can ben installed as:
 
 to install the latest released version (at the time of writing the version 0.9, compatible with MeteoHub version 0.3.5), or:
 
-`$ sudo pip3 install git+https://github.com/rapydo/do.git@1.1`
+`$ sudo pip3 install git+https://github.com/rapydo/do.git@1.2`
 
-to install a specific version (at the time of writing version 1.1 is the latest development version, compatible with MeteoHub version 0.4.1)
+to install a specific version (at the time of writing version 1.2 is the latest development version, compatible with MeteoHub version 0.4.1)
 
 Once installed any controller version, version incompatibilities can be detect by using the `rapydo version` command:
 
