@@ -27,6 +27,7 @@ import { NgbTimeStringAdapter } from "@app/adapters/timepicker-adapter";
 
 import { LicenseComponent } from "./components/license/license.component";
 import { PrivacyComponent } from "./components/privacy/privacy.component";
+import { ParticipateComponent } from "./components/participate/participate.component";
 import { DatasetsComponent } from "./components/datasets/datasets.component";
 import { DatasetDetailsComponent } from "./components/dataset-details/dataset-details.component";
 
@@ -156,6 +157,7 @@ const appRoutes: Routes = [
 
   { path: "app/license", component: LicenseComponent },
   { path: "public/privacy", component: PrivacyComponent },
+  { path: "public/participate", component: ParticipateComponent },
   { path: "app", redirectTo: "/app/datasets", pathMatch: "full" },
   { path: "", redirectTo: "/app/datasets", pathMatch: "full" },
 ];
@@ -207,6 +209,7 @@ const appRoutes: Routes = [
     SchedulesComponent,
     LicenseComponent,
     PrivacyComponent,
+    ParticipateComponent,
     DatasetsComponent,
     DatasetDetailsComponent,
     BindingsComponent,

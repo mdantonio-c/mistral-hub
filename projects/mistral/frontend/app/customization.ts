@@ -10,6 +10,7 @@ import { AdminMenu, User } from "@rapydo/types";
 export class ProjectOptions extends BaseProjectOptions {
   private policy_it: string;
   private policy_en: string;
+  private participate_en: string;
 
   constructor() {
     super();
@@ -22,6 +23,16 @@ export class ProjectOptions extends BaseProjectOptions {
       {
         label: "Click here to visualize our Terms of Use",
         text: this.policy_en,
+      },
+    ];
+  }
+
+  participation_statements() {
+    return [
+      //{'label': 'IT', 'text': this.policy_it},
+      {
+        label: "How to publish your weather data on the MISTRAL portal ",
+        text: this.participate_en,
       },
     ];
   }
@@ -243,5 +254,85 @@ To exercise the above rights, you can contact the DATA CONTROLLER at the followi
 <br/>
 The DATA CONTROLLER is required to provide a response within one month of the request, extendable up to three months if the request is particularly complex.<br/>
 		`;
+    this.participate_en = `
+<br>
+<h5>Observational data</h5>
+<br>
+<ol>
+<li>
+<h6><b>License</b></h6><p>
+Data is required to be available with an OPEN license. Most of the data available on MISTRAL has CC BY 4.0 license and this is the recommended license. However, the system is designed to accept and redistribute data with any type of OPEN license.
+<br>For further information please contact us: <a href= "mailto:mistral@cineca.it">mistral@cineca.it</a>.</p>
+</li>
+<li>
+<h6><b>Modality</b></h6><p>
+Data must be sent to MISTRAL via the AMQP protocol.<br>
+AMQP (Advanced Message Queuing Protocol) is a protocol for communications through message queues that guarantees interoperability, security, reliability and persistence.
+</p>
+<p>
+An <b>additional method</b> is available for the <b>Regions</b> to publish the observational data of the ground stations they own:
+<ul>
+<li>giving the authorization to the Civil Protection to redistribute to MISTRAL the data that it already collects from the Regions. MISTRAL has already activated this collection flow for 11 regions and an autonomous province.</li>
+</ul>
+</p>
+<p>
+For further information please contact us: <a href= "mailto:mistral@cineca.it">mistral@cineca.it</a>
+</p>
+</li>
+<li>
+<h6><b>Data model: data and metadata</b></h6><p>
+Each data is a value associated with 6 unique metadata:
+<ul>
+<li>
+<i>Time</i>: date time of the observation or end of the observation period
+</li>
+<li>
+<i>Longitude, latitude and identifier</i>: geographical coordinates and identification of the data generator
+</li>
+<li>
+<i>Network</i>: it defines stations with homogeneous characteristics (class of instruments, representativeness and / or mobile or fixed stations)
+</li>
+<li>
+<i>Time range</i>: it indicates observation or time of the forecast and any "statistical" processing in coded form using a table
+</li>
+<li>
+<i>Level</i>: the vertical coordinates (possibly layer) in coded form by means of a table
+</li>
+<li>
+<i>Variable</i>: physical parameter defined with a description, unit of measurement, measurement range and significant figures.
+</li>
+</ul>
+</p>
+<p>
+For more details please see: <a href="https://doc.rmap.cc/rmap_rfc/rfc.html#data-model-dati-e-metadati" target="blank">doc.rmap.cc/rmap_rfc/rfc.html#data-model-dati-e-metadati</a><br>
+</p>
+<p>
+Each data can also be equipped with attributes, for example produced by quality control.
+</p>
+</li>
+<li>
+<h6><b>Format</b></h6><p>
+The formats managed are:
+<ul>
+<li>BUFR</li>
+<li>JSON</li>
+</ul>
+For more details please see: <a href="https://doc.rmap.cc/rmap_rfc/rfc.html#formati" target="blank">doc.rmap.cc/rmap_rfc/rfc.html#formati</a>
+</p>
+</li>
+<li>To publish observational data on the MISTRAL portal, please contact the MISTRAL team: <a href= "mailto:mistral@cineca.it">mistral@cineca.it</a></li>
+</ol>
+<br>
+<h5>Forecast model data</h5>
+<p>
+To publish forecast model data on the MISTRAL portal, please contact the MISTRAL team: <a href= "mailto:mistral@cineca.it">mistral@cineca.it</a> 
+</p>
+<br>
+<h5>Other types</h5>
+<p>
+To publish data of other types on the MISTRAL portal, please contact the MISTRAL team: <a href= "mailto:mistral@cineca.it">mistral@cineca.it</a>
+</p>
+
+`;
   }
 }

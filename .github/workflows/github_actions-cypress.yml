@@ -43,7 +43,7 @@ jobs:
           rapydo -s frontend logs
           rapydo shell --no-tty frontend "yarn install"
           rapydo shell --no-tty frontend "reload-types"
-          rapydo shell --no-tty frontend "yarn run cypress:start"
+          rapydo shell --no-tty frontend "yarn run cypress:start:full"
 
           rapydo shell --no-tty frontend "npx nyc --all report --reporter=lcov --report-dir /coverage"
           cp data/${PROJECT}/karma/lcov.info .
@@ -60,4 +60,4 @@ jobs:
 
       - name: Print mocked email on failure
         if: failure()
-        run: cat data/logs/mock.mail.lastsent.body
+        run: cat data/logs/mock.mail.*.body
