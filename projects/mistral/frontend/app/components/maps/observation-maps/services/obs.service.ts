@@ -51,7 +51,7 @@ export class ObsService {
       params["q"] += `;network:${filter.network}`;
     }
     console.log(`q: ${params.q}`);
-    return this.api.get("fields", params);
+    return this.api.get("/api/fields", params);
   }
 
   /**
@@ -92,7 +92,7 @@ export class ObsService {
     if (filter.license && filter.license !== "") {
       params["q"] += `;license:${filter.license}`;
     }
-    return this.api.get("observations", params);
+    return this.api.get("/api/observations", params);
     //.pipe(map((data: Observation[], descriptions: Descriptions[]) => (data.data, data.descr)));
   }
 
@@ -154,7 +154,7 @@ export class ObsService {
     }
     console.log(`q: ${params.q}`);
     return this.api
-      .get<ObservationResponse>("observations", params)
+      .get<ObservationResponse>("/api/observations", params)
       .pipe(map((data: ObservationResponse) => (this._data = data)));
   }
 

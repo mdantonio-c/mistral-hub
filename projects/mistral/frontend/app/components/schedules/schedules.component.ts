@@ -24,7 +24,7 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
     private el: ElementRef
   ) {
     super(injector);
-    this.init("schedule", "schedules", null);
+    this.init("schedule", "/api/schedules", null);
     this.initPaging(20, true);
     this.list();
   }

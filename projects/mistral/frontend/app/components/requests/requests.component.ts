@@ -31,7 +31,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     private router: Router
   ) {
     super(injector);
-    this.init("request", "requests", null);
+    this.init("request", "/api/requests", null);
     this.initPaging(20, true);
     this.list();
   }

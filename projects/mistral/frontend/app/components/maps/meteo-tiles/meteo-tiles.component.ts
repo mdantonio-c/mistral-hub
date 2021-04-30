@@ -40,9 +40,6 @@ declare module "leaflet" {
   let timeDimension: any;
 }
 
-const TILES_PATH = environment.production
-  ? "resources/tiles"
-  : "app/custom/assets/images/tiles";
 // Product constants
 const TM2 = "Temperature at 2 meters",
   PMSL = "Pressure mean sea level",
@@ -96,11 +93,11 @@ export class MeteoTilesComponent {
   readonly LEGEND_POSITION = "bottomleft";
   readonly DEFAULT_DATASET = "lm5";
   // readonly license_iff =
-  //   '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>';
+  //   '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://meteohub.mistralportal.it/app/license">MISTRAL</a>';
   // //'&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>';
   // readonly license_cosmo =
   // // '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
-  // '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://meteohub.hpc.cineca.it/app/license">MISTRAL</a>';
+  // '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://meteohub.mistralportal.it/app/license">MISTRAL</a>';
   license =
     '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">Open Street Map</a> ' +
     '&copy; <a href="http://cartodb.com/attributions" target="_blank">CartoDB</a> | ' +
@@ -211,19 +208,23 @@ export class MeteoTilesComponent {
   // }
 
   getTilesUrl() {
-    let production = environment.production;
-    if (environment.backendURI.startsWith("https")) {
-      production = true;
-    }
-    const TILES_PATH = production
-      ? "resources/tiles"
-      : "app/custom/assets/images/tiles";
-
     let baseUrl = "";
-    if (environment.backendURI !== "") {
-      baseUrl += `${environment.backendURI}/`;
+    let production = false;
+    if (environment.CUSTOM.TILES_URL !== "") {
+      baseUrl = `${environment.CUSTOM.TILES_URL}/tiles/`;
+      production = true;
+    } else if (
+      environment.production ||
+      environment.backendURI.startsWith("https")
+    ) {
+      baseUrl = `${environment.backendURI}/resources/tiles/`;
+      production = true;
+    } else {
+      baseUrl = `${environment.backendURI}/app/custom/assets/images/tiles/`;
+      production = false;
     }
-    baseUrl += `${TILES_PATH}/${this.run}-${this.dataset}`;
+
+    baseUrl += `${this.run}-${this.dataset}`;
     if (production) {
       baseUrl += `/${this.runAvailable.area}`;
     }
@@ -240,41 +241,41 @@ export class MeteoTilesComponent {
     this.map.attributionControl.setPrefix("");
     // pass a reference to this MeteoTilesComponent
     const ref = this;
-    (map as any).timeDimension.on("timeload", function (
-      data,
-      comp: MeteoTilesComponent = ref
-    ) {
-      if (comp.timeLoading) {
-        return;
-      }
-      // console.log('onTimeLoad');
-      const start = moment.utc(
-        (map as any).timeDimension.getAvailableTimes()[0]
-      );
-      const current = moment.utc((map as any).timeDimension.getCurrentTime());
-      // every 3 hour step refresh multi-model markers on the map
-      const hour = current.diff(start, "hours");
-      const index = Math.floor(hour / 3) - 1 + start.hours() / 3;
-      // console.log(`Hour: +${hour} - Index: ${index}`);
-      if (index < 0) {
+    (map as any).timeDimension.on(
+      "timeload",
+      function (data, comp: MeteoTilesComponent = ref) {
+        if (comp.timeLoading) {
+          return;
+        }
+        // console.log('onTimeLoad');
+        const start = moment.utc(
+          (map as any).timeDimension.getAvailableTimes()[0]
+        );
+        const current = moment.utc((map as any).timeDimension.getCurrentTime());
+        // every 3 hour step refresh multi-model markers on the map
+        const hour = current.diff(start, "hours");
+        const index = Math.floor(hour / 3) - 1 + start.hours() / 3;
+        // console.log(`Hour: +${hour} - Index: ${index}`);
+        if (index < 0) {
+          if (comp.markersGroup) {
+            comp.map.removeLayer(comp.markersGroup);
+          }
+          return;
+        }
+        if (index === comp.currentIdx && comp.markersGroup) {
+          // do nothing
+          return;
+        }
+
+        // clean up multi-model layer
         if (comp.markersGroup) {
           comp.map.removeLayer(comp.markersGroup);
         }
-        return;
+        if (comp.showed) {
+          comp.loadMarkers(index);
+        }
       }
-      if (index === comp.currentIdx && comp.markersGroup) {
-        // do nothing
-        return;
-      }
-
-      // clean up multi-model layer
-      if (comp.markersGroup) {
-        comp.map.removeLayer(comp.markersGroup);
-      }
-      if (comp.showed) {
-        comp.loadMarkers(index);
-      }
-    });
+    );
   }
 
   private loadRunAvailable(dataset: string) {

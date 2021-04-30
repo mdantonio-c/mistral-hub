@@ -35,7 +35,7 @@ export class DataService {
    */
   getDatasets(licenceSpecs = false): Observable<Dataset[]> {
     const params = licenceSpecs ? { licenceSpecs: true } : {};
-    return this.api.get("datasets", params);
+    return this.api.get("/api/datasets", params);
   }
 
   /**
@@ -45,12 +45,12 @@ export class DataService {
    */
   getDataset(datasetId: string, licenceSpecs = false): Observable<Dataset> {
     const params = licenceSpecs ? { licenceSpecs: true } : {};
-    return this.api.get(`datasets/${datasetId}`, params);
+    return this.api.get(`/api/datasets/${datasetId}`, params);
   }
 
   getOpenData(datasetId): Observable<OpenData[]> {
     //Observable<DataExtractionRequest[]> {
-    return this.api.get(`datasets/${datasetId}/opendata`);
+    return this.api.get(`/api/datasets/${datasetId}/opendata`);
     // return of(MockOpenDataResponse);
   }
 
@@ -85,7 +85,7 @@ export class DataService {
     if (onlyStats) {
       params["onlySummaryStats"] = true;
     }
-    return this.api.get("fields", params);
+    return this.api.get("/api/fields", params);
   }
 
   uploadTemplate(file: File) {
@@ -99,11 +99,11 @@ export class DataService {
 
   getTemplates(format?: string): Observable<Templates[]> {
     const param = format ? `?format=${format}` : "";
-    return this.api.get(`templates${param}`);
+    return this.api.get(`/api/templates${param}`);
   }
 
   deleteTemplates(template_name: string): Observable<Templates[]> {
-    return this.api.delete(`templates/${template_name}`);
+    return this.api.delete(`/api/templates/${template_name}`);
   }
 
   /**
@@ -190,7 +190,7 @@ export class DataService {
     if (opendata) {
       data["opendata"] = true;
     }
-    return this.api.post(endpoint, data);
+    return this.api.post(`/api/${endpoint}`, data);
   }
 
   /**
@@ -203,7 +203,7 @@ export class DataService {
         observe: "response",
       },
     };
-    return this.api.get(`data/${filename}`, {}, options);
+    return this.api.get(`/api/data/${filename}`, {}, options);
   }
 
   toggleScheduleActiveState(
@@ -213,7 +213,7 @@ export class DataService {
     const data = {
       is_active: toState,
     };
-    return this.api.patch(`schedules/${scheduleId}`, data);
+    return this.api.patch(`/api/schedules/${scheduleId}`, data);
   }
 
   getLastScheduledRequest(scheduleId): Observable<any> {
@@ -225,13 +225,13 @@ export class DataService {
   }
 
   countScheduledRequests(scheduleId): Observable<any> {
-    return this.api.get(`schedules/${scheduleId}/requests`, {
+    return this.api.get(`/api/schedules/${scheduleId}/requests`, {
       get_total: true,
     });
   }
 
   cloneRequest(requestId): Observable<any> {
-    return this.api.get(`requests/${requestId}/clone`);
+    return this.api.get(`/api/requests/${requestId}/clone`);
   }
 
   getVariableDescription(code): string {
@@ -245,11 +245,11 @@ export class DataService {
   }
 
   getStorageUsage(): Observable<StorageUsage> {
-    return this.api.get("usage");
+    return this.api.get("/api/usage");
   }
 
   getHourlyReport(): Observable<RequestHourlyReport> {
-    return this.api.get("hourly");
+    return this.api.get("/api/hourly");
   }
 
   getDerivedVariables(): Observable<DerivedVariables[]> {

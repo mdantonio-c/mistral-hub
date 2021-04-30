@@ -23,6 +23,8 @@ services:
       INJECT_FRONTEND_DEBUG: ${FRONTEND_DEBUG}
       INJECT_LASTDAYS: ${LASTDAYS}
       INJECT_PLATFORM: ${PLATFORM}
+      INJECT_MAPS_URL: ${MAPS_URL}
+      INJECT_TILES_URL: ${TILES_URL}
     volumes:
       - ${VANILLA_DIR}/data/maps:/meteo
 

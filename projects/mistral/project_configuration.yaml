@@ -45,8 +45,8 @@ variables:
 
     LASTDAYS: 10
     PLATFORM: GALILEO
-    TILES_URL:
     MAPS_URL:
+    TILES_URL:
     FRONTEND_DEBUG: 0
 
     CORS_ALLOWED_ORIGIN: "*"

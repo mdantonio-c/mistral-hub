@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Observable, forkJoin, of } from "rxjs";
 import { ApiService } from "@rapydo/services/api";
+import { environment } from "@rapydo/../environments/environment";
 
 export interface MeteoFilter {
   field: string;
@@ -23,32 +24,52 @@ export interface MeteoMapset {
   providedIn: "root",
 })
 export class MeteoService {
-  constructor(private api: ApiService) {}
+  private maps_url: string = "";
+  private external_url: boolean = false;
+
+  constructor(private api: ApiService) {
+    this.maps_url = environment.CUSTOM.MAPS_URL;
+    this.external_url = this.maps_url != "";
+  }
 
   private get_params(params: MeteoFilter): Record<string, unknown> {
     return JSON.parse(JSON.stringify(params));
   }
   getMapset(params: MeteoFilter): Observable<MeteoMapset> {
-    return this.api.get("maps/ready", this.get_params(params));
+    const options = {
+      externalURL: this.external_url,
+    };
+
+    return this.api.get(
+      `${this.maps_url}/api/maps/ready`,
+      this.get_params(params),
+      options
+    );
   }
 
   getMapLegend(params: MeteoFilter): Observable<Blob> {
-    let options = {
-      conf: {
-        responseType: "blob",
-      },
-    };
-    return this.api.get("maps/legend", this.get_params(params), options);
-  }
-
-  getMapImage(params: MeteoFilter, offset: string): Observable<Blob> {
-    let options = {
+    const options = {
+      externalURL: this.external_url,
       conf: {
         responseType: "blob",
       },
     };
     return this.api.get(
-      `maps/offset/${offset}`,
+      `${this.maps_url}/api/maps/legend`,
+      this.get_params(params),
+      options
+    );
+  }
+
+  getMapImage(params: MeteoFilter, offset: string): Observable<Blob> {
+    const options = {
+      externalURL: this.external_url,
+      conf: {
+        responseType: "blob",
+      },
+    };
+    return this.api.get(
+      `${this.maps_url}/api/maps/offset/${offset}`,
       this.get_params(params),
       options
     );

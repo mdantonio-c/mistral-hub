@@ -18,10 +18,10 @@ export class AdminService {
   }
 
   enableBinding(user, network): Observable<null> {
-    return this.api.post(`outbindings/${user}-output/${network}`);
+    return this.api.post(`/api/outbindings/${user}-output/${network}`);
   }
 
   disableBinding(user, network): Observable<null> {
-    return this.api.delete(`outbindings/${user}-output/${network}`);
+    return this.api.delete(`/api/outbindings/${user}-output/${network}`);
   }
 }
