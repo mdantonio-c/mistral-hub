@@ -18,25 +18,22 @@ variables:
 
     AUTH_SERVICE: sqlalchemy
     FRONTEND_FRAMEWORK: angular
-    # ENABLE_FOOTER: true
     CRONTAB_ENABLE: 1
-
-    LOG_LEVEL: DEBUG
 
     ACTIVATE_ALCHEMY: 1
     ACTIVATE_POSTGRES: 1
     ALCHEMY_USER: sqluser
-    ALCHEMY_API_DB: SQL_API
-    ALCHEMY_ENGINE: postgresql
     ALCHEMY_DBS: "SQL_API DBALLE"
 
     ACTIVATE_REDIS: 1
     ACTIVATE_RABBIT: 1
+
     ACTIVATE_CELERY: 1
+    CELERY_ENABLE_CONNECTOR: 1
+    CELERY_BACKEND: REDIS
+
     ACTIVATE_CELERYUI: 0
     ACTIVATE_CELERYBEAT: 1
-
-    CELERY_ENABLE_CONNECTOR: 1
 
     ALLOW_ACCESS_TOKEN_PARAMETER: 1
     ALLOW_PASSWORD_RESET: 1
@@ -46,16 +43,12 @@ variables:
 
     UPLOAD_PATH: /data
 
-    CELERY_BACKEND: REDIS
-
     LASTDAYS: 10
     PLATFORM: GALILEO
+    TILES_URL:
+    MAPS_URL:
     FRONTEND_DEBUG: 0
 
     CORS_ALLOWED_ORIGIN: "*"
     SET_CSP_IMG_SRC: "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://api.tiles.mapbox.com https://cartodb-basemaps-a.global.ssl.fastly.net https://cartodb-basemaps-b.global.ssl.fastly.net https://cartodb-basemaps-c.global.ssl.fastly.net https://cartodb-basemaps-d.global.ssl.fastly.net"
     SET_CSP_FONT_SRC: https://netdna.bootstrapcdn.com
-
-    # RABBITMQ_ENABLE_MANAGEMENT_PLUGIN: 1
-    # RABBITMQ_ENABLE_SHOVEL_PLUGIN: 1
-    # SET_UNSAFE_EVAL: "unsafe-eval"
