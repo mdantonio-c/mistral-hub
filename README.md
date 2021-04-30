@@ -114,7 +114,7 @@ as well as by programmatic access to the data. All the endpoints are described a
 by adopting the Swagger framework.
 
 The API specifications are available at  
-https://meteohub.hpc.cineca.it:7777
+https://meteohub.mistralportal.it:7777
 
 ## Meteo-Hub CLI
 

@@ -435,7 +435,7 @@ When a user requests data from this dataset, the system automatically extracts t
 
 # **API**
 
-The API are documented using the swagger definition at this [URL](https://meteohub-dev.hpc.cineca.it:7777).
+The API are documented using the swagger definition at this [URL](https://meteohub.mistralportal.it:7777).
 
 # **Installation guide**
 
