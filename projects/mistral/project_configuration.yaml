@@ -14,8 +14,6 @@ variables:
     # default: normal_user
 
   env:
-    PYTHON_PATH: /usr/local/lib/python3.8/dist-packages
-
     AUTH_SERVICE: sqlalchemy
     FRONTEND_FRAMEWORK: angular
     CRONTAB_ENABLE: 1
