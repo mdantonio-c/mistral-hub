@@ -12,6 +12,6 @@ services:
       - 80:8080
       - 9876:9876
 
-  sqlalchemyui:
+  adminer:
     ports:
       - 81:8888
