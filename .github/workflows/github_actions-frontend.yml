@@ -40,7 +40,7 @@ jobs:
         run: |
           rapydo remove --all
           rapydo --prod init --force
-          rapydo frontend,proxy pull --quiet
+          rapydo -s frontend,proxy pull --quiet
 
           rapydo -s frontend,proxy start
           rapydo dump
