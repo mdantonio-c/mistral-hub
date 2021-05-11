@@ -8,12 +8,15 @@ import { environment } from "@rapydo/../environments/environment";
   providedIn: "root",
 })
 export class TilesService {
-  private tiles_url: string = "";
+  // private tiles_url: string = "";
+  private maps_url: string = "";
   private external_url: boolean = false;
 
   constructor(private api: ApiService) {
-    this.tiles_url = environment.CUSTOM.TILES_URL;
-    this.external_url = this.tiles_url != "";
+    // this.tiles_url = environment.CUSTOM.TILES_URL;
+    // this.external_url = this.tiles_url != "";
+    this.maps_url = environment.CUSTOM.MAPS_URL;
+    this.external_url = this.maps_url != "";
   }
 
   /**
@@ -34,6 +37,6 @@ export class TilesService {
       validationSchema: "RunAvailable",
     };
 
-    return this.api.get(`${this.tiles_url}/api/tiles`, params, options);
+    return this.api.get(`${this.maps_url}/api/tiles`, params, options);
   }
 }
