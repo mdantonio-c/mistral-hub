@@ -50,7 +50,7 @@ export class ObsService {
     if (filter.network && filter.network !== "") {
       params["q"] += `;network:${filter.network}`;
     }
-    console.log(`q: ${params.q}`);
+    // console.log(`q: ${params.q}`);
     return this.api.get("fields", params);
   }
 
@@ -152,7 +152,7 @@ export class ObsService {
     if (filter.interval) {
       params["interval"] = filter.interval;
     }
-    console.log(`q: ${params.q}`);
+    // console.log(`q: ${params.q}`);
     return this.api
       .get<ObservationResponse>("observations", params)
       .pipe(map((data: ObservationResponse) => (this._data = data)));

@@ -48,24 +48,20 @@ const TM2 = "Temperature at 2 meters",
   PMSL = "Pressure mean sea level",
   WIND10M = "Wind speed at 10 meters",
   RH = "Relative Humidity",
-
   PREC1P = "Total Precipitation (1h)",
   PREC3P = "Total Precipitation (3h)",
   PREC6P = "Total Precipitation (6h)",
   PREC12P = "Total Precipitation (12h)",
   PREC24P = "Total Precipitation (24h)",
-
   SF1 = "Snowfall (3h)",
   SF3 = "Snowfall (3h)",
   SF6 = "Snowfall (6h)",
   SF12 = "Snowfall (12h)",
   SF24 = "Snowfall (24h)",
-
   TCC = "Total Cloud",
   HCC = "High Cloud",
   MCC = "Medium Cloud",
   LCC = "Low Cloud",
-
   TPPERC1 = "Precipitation percentiles 1%",
   TPPERC10 = "Precipitation percentile 10%",
   TPPERC25 = "Precipitation percentile 25%",
@@ -75,7 +71,6 @@ const TM2 = "Temperature at 2 meters",
   TPPERC80 = "Precipitation percentile 80%",
   TPPERC90 = "Precipitation percentile 90%",
   TPPERC99 = "Precipitation percentile 99%",
-
   TPPROB5 = "Precipitation probability 5%",
   TPPROB10 = "Precipitation probability 10%",
   TPPROB20 = "Precipitation probability 20%",
@@ -260,7 +255,6 @@ export class MeteoTilesComponent {
       if (comp.timeLoading) {
         return;
       }
-      // console.log('onTimeLoad');
       const start = moment.utc(
         (map as any).timeDimension.getAvailableTimes()[0]
       );
@@ -413,62 +407,59 @@ export class MeteoTilesComponent {
       takeUntil(maxNumbers)
     );
 
-    loadMultipleData$
-      .subscribe((val) => {
-        let interval = this.runAvailable.end_offset + 24 || 72;
-        const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
-        console.log(`timerange: ${timerange} : ${val}`);
-        let filterTM: ObsFilter = {
-          product: MultiModelProduct.TM,
-          reftime: reftime,
-          network: "multim-forecast",
-          license: "CCBY_COMPLIANT",
-          timerange: timerange,
-          interval: interval,
-        };
-        let filterRH: ObsFilter = {
-          product: MultiModelProduct.RH,
-          reftime: reftime,
-          network: "multim-forecast",
-          license: "CCBY_COMPLIANT",
-          timerange: timerange,
-          interval: interval,
-        };
-        let productTM$ = this.obsService.getData(filterTM, true);
-        let productRH$ = this.obsService.getData(filterRH, true);
-        forkJoin([productTM$, productRH$]).subscribe(
-          (results) => {
-            if (results[0].data.length === 0 && results[1].data.length === 0) {
-              this.notify.showWarning("No Multi-Model data found.");
-              return;
-            }
-            const offset = parseInt(timerange.toString().split(",")[1]) / 3600;
-            const idx = Math.floor((offset - 27) / 3);
-            // console.log(`offset: +${offset}h, idx: ${idx}`);
-
-            this.mmProductsData[0][idx] = results[0].data;
-            this.mmProductsData[1][idx] = results[1].data;
-          },
-          (error) => {
-            this.notify.showError(error);
-            throw error;
+    loadMultipleData$.subscribe((val) => {
+      let interval = this.runAvailable.end_offset + 24 || 72;
+      const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
+      // console.log(`timerange: ${timerange} : ${val}`);
+      let filterTM: ObsFilter = {
+        product: MultiModelProduct.TM,
+        reftime: reftime,
+        network: "multim-forecast",
+        license: "CCBY_COMPLIANT",
+        timerange: timerange,
+        interval: interval,
+      };
+      let filterRH: ObsFilter = {
+        product: MultiModelProduct.RH,
+        reftime: reftime,
+        network: "multim-forecast",
+        license: "CCBY_COMPLIANT",
+        timerange: timerange,
+        interval: interval,
+      };
+      let productTM$ = this.obsService.getData(filterTM, true);
+      let productRH$ = this.obsService.getData(filterRH, true);
+      forkJoin([productTM$, productRH$]).subscribe(
+        (results) => {
+          if (results[0].data.length === 0 && results[1].data.length === 0) {
+            this.notify.showWarning("No Multi-Model data found.");
+            return;
           }
-        );
-      })
-      .add(() => {
-        const today = moment.utc();
-        const current = moment.utc(
-          (this.map as any).timeDimension.getCurrentTime()
-        );
-        if (moment(current).isSame(today, "day")) {
-          // console.log(`fire ${current}`);
-          (this.map as any).timeDimension.fire("timeload", {
-            time: current,
-          });
-          // (this.map as any).timeDimension.setCurrentTime(current);
-          // (this.map as any).timeDimension.nextTime();
+          const offset = parseInt(timerange.toString().split(",")[1]) / 3600;
+          const idx = Math.floor((offset - 27) / 3);
+          // console.log(`offset: +${offset}h, idx: ${idx}`);
+
+          this.mmProductsData[0][idx] = results[0].data;
+          this.mmProductsData[1][idx] = results[1].data;
+
+          const today = moment.utc();
+          const current = moment.utc(
+            (this.map as any).timeDimension.getCurrentTime()
+          );
+          if (moment(current).isSame(today, "day")) {
+            (this.map as any).timeDimension.fire("timeload", {
+              time: current,
+            });
+            // (this.map as any).timeDimension.setCurrentTime(current);
+            // (this.map as any).timeDimension.nextTime();
+          }
+        },
+        (error) => {
+          this.notify.showError(error);
+          throw error;
         }
-      });
+      );
+    });
   }
 
   private setOverlaysToMap() {
@@ -937,8 +928,7 @@ export class MeteoTilesComponent {
         event["name"] === DP.PREC24P
       ) {
         legends[DP.PREC1P].addTo(map);
-      }
-      else if (
+      } else if (
         event["name"] === DP.SF1 ||
         event["name"] === DP.SF3 ||
         event["name"] === DP.SF6 ||
@@ -946,20 +936,15 @@ export class MeteoTilesComponent {
         event["name"] === DP.SF24
       ) {
         legends[DP.SF1].addTo(map);
-      }
-      else if (event["name"] === DP.TCC) {
+      } else if (event["name"] === DP.TCC) {
         legends[DP.TCC].addTo(map);
-      }
-      else if (event["name"] === DP.HCC) {
+      } else if (event["name"] === DP.HCC) {
         legends[DP.HCC].addTo(map);
-      }
-      else if (event["name"] === DP.MCC) {
+      } else if (event["name"] === DP.MCC) {
         legends[DP.MCC].addTo(map);
-      }
-      else if (event["name"] === DP.LCC) {
+      } else if (event["name"] === DP.LCC) {
         legends[DP.LCC].addTo(map);
-      }
-      else if (
+      } else if (
         event["name"] === DP.TPPERC1 ||
         event["name"] === DP.TPPERC10 ||
         event["name"] === DP.TPPERC25 ||
@@ -1044,7 +1029,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.SF12) &&
         !currentActiveLayers.includes(DP.SF24)
       ) {
-          map.removeControl(legends[DP.SF1]);
+        map.removeControl(legends[DP.SF1]);
       } else if (
         event["name"] === DP.SF3 &&
         !currentActiveLayers.includes(DP.SF1) &&
@@ -1079,16 +1064,12 @@ export class MeteoTilesComponent {
         map.removeControl(legends[DP.SF1]);
       } else if (event["name"] === DP.RH) {
         map.removeControl(legends[DP.RH]);
-
       } else if (event["name"] === DP.TCC) {
         map.removeControl(legends[DP.TCC]);
-
       } else if (event["name"] === DP.HCC) {
         map.removeControl(legends[DP.HCC]);
-
       } else if (event["name"] === DP.MCC) {
         map.removeControl(legends[DP.MCC]);
-
       } else if (event["name"] === DP.LCC) {
         map.removeControl(legends[DP.LCC]);
       } else if (
@@ -1256,7 +1237,6 @@ export class MeteoTilesComponent {
     // clean up multi-model layer
     if (this.markersGroup) {
       // remove marker layer
-      console.log("clean up markers");
       this.cleanupMMLayer();
     }
 
@@ -1318,7 +1298,6 @@ export class MeteoTilesComponent {
 
   private loadMarkers(timerangeIdx = 0) {
     this.currentIdx = timerangeIdx;
-    console.log(`load markers. timerange IDX: ${timerangeIdx}`);
     const idx = this.mmProduct === MultiModelProduct.TM ? 0 : 1;
     if (
       !this.mmProductsData ||
@@ -1328,6 +1307,7 @@ export class MeteoTilesComponent {
       // console.log("No data to load");
       return;
     }
+    // console.log(`load markers. timerange IDX: ${timerangeIdx}`);
     this.allMarkers = [];
     let obsData: ObsData;
     const unit: string =
