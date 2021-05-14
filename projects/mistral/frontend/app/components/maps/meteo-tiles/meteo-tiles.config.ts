@@ -164,14 +164,26 @@ export enum MULTI_MODEL_TIME_RANGES {
 export enum DatasetProduct {
   TM2 = "Temperature at 2 meters",
   PMSL = "Pressure mean sea level",
+  WIND10M = "Wind speed at 10 meters",
+  RH = "Relative Humidity",
+
+  PREC1P = "Total Precipitation (1h)",
   PREC3P = "Total Precipitation (3h)",
   PREC6P = "Total Precipitation (6h)",
+  PREC12P = "Total Precipitation (12h)",
+  PREC24P = "Total Precipitation (24h)",
+
+  SF1 = "Snowfall (1h)",
   SF3 = "Snowfall (3h)",
   SF6 = "Snowfall (6h)",
-  RH = "Relative Humidity",
+  SF12 = "Snowfall (12h)",
+  SF24 = "Snowfall (24h)",
+
+  TCC = "Total Cloud",
   HCC = "High Cloud",
   MCC = "Medium Cloud",
   LCC = "Low Cloud",
+
   TPPERC1 = "Precipitation percentiles 1%",
   TPPERC10 = "Precipitation percentile 10%",
   TPPERC25 = "Precipitation percentile 25%",
@@ -181,6 +193,7 @@ export enum DatasetProduct {
   TPPERC80 = "Precipitation percentile 80%",
   TPPERC90 = "Precipitation percentile 90%",
   TPPERC99 = "Precipitation percentile 99%",
+
   TPPROB5 = "Precipitation probability 5%",
   TPPROB10 = "Precipitation probability 10%",
   TPPROB20 = "Precipitation probability 20%",
