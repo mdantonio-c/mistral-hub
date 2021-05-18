@@ -40,7 +40,6 @@ class ApiServiceStub extends ApiService {
     super(
       {} as HttpClient,
       {} as Router,
-      {} as any,
       {} as NotificationService,
       {} as SSRService
     );
