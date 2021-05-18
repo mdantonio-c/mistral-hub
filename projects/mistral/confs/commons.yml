@@ -46,7 +46,7 @@ services:
   #    environment:
   #      ACTIVATE: ${ACTIVATE_NIFI}
 
-  celeryui:
+  flower:
     build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
     # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
     image: meteohub/backend:${RAPYDO_VERSION}

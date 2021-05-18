@@ -15,6 +15,7 @@ import { RequestsComponent } from "./requests.component";
 import { BytesPipe } from "@rapydo/pipes/bytes";
 import { AuthService } from "@rapydo/services/auth";
 import { NotificationService } from "@rapydo/services/notification";
+import { SSRService } from "@rapydo/services/ssr";
 import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { ProjectOptions } from "@app/customization";
 import { FormlyService } from "@rapydo/services/formly";
@@ -36,7 +37,13 @@ class StubLoadingComponent {}
 @Injectable()
 class ApiServiceStub extends ApiService {
   constructor() {
-    super({} as HttpClient, {} as Router, {} as any, {} as NotificationService);
+    super(
+      {} as HttpClient,
+      {} as Router,
+      {} as any,
+      {} as NotificationService,
+      {} as SSRService
+    );
   }
 
   get(
@@ -82,6 +89,7 @@ describe("RequestsComponent", () => {
       ],
       providers: [
         NotificationService,
+        SSRService,
         ProjectOptions,
         ConfirmationModals,
         { provide: DataService, useClass: DataServiceStub },
