@@ -43,11 +43,19 @@ declare module "leaflet" {
 // Product constants
 const TM2 = "Temperature at 2 meters",
   PMSL = "Pressure mean sea level",
+  WIND10M = "Wind speed at 10 meters",
+  RH = "Relative Humidity",
+  PREC1P = "Total Precipitation (1h)",
   PREC3P = "Total Precipitation (3h)",
   PREC6P = "Total Precipitation (6h)",
+  PREC12P = "Total Precipitation (12h)",
+  PREC24P = "Total Precipitation (24h)",
+  SF1 = "Snowfall (3h)",
   SF3 = "Snowfall (3h)",
   SF6 = "Snowfall (6h)",
-  RH = "Relative Humidity",
+  SF12 = "Snowfall (12h)",
+  SF24 = "Snowfall (24h)",
+  TCC = "Total Cloud",
   HCC = "High Cloud",
   MCC = "Medium Cloud",
   LCC = "Low Cloud",
@@ -201,11 +209,6 @@ export class MeteoTilesComponent {
       }
     });
   }
-  //   constructor(router: Router) {
-  //
-
-  //
-  // }
 
   getTilesUrl() {
     let baseUrl = "";
@@ -247,7 +250,6 @@ export class MeteoTilesComponent {
         if (comp.timeLoading) {
           return;
         }
-        // console.log('onTimeLoad');
         const start = moment.utc(
           (map as any).timeDimension.getAvailableTimes()[0]
         );
@@ -401,62 +403,59 @@ export class MeteoTilesComponent {
       takeUntil(maxNumbers)
     );
 
-    loadMultipleData$
-      .subscribe((val) => {
-        let interval = this.runAvailable.end_offset + 24 || 72;
-        const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
-        console.log(`timerange: ${timerange} : ${val}`);
-        let filterTM: ObsFilter = {
-          product: MultiModelProduct.TM,
-          reftime: reftime,
-          network: "multim-forecast",
-          license: "CCBY_COMPLIANT",
-          timerange: timerange,
-          interval: interval,
-        };
-        let filterRH: ObsFilter = {
-          product: MultiModelProduct.RH,
-          reftime: reftime,
-          network: "multim-forecast",
-          license: "CCBY_COMPLIANT",
-          timerange: timerange,
-          interval: interval,
-        };
-        let productTM$ = this.obsService.getData(filterTM, true);
-        let productRH$ = this.obsService.getData(filterRH, true);
-        forkJoin([productTM$, productRH$]).subscribe(
-          (results) => {
-            if (results[0].data.length === 0 && results[1].data.length === 0) {
-              this.notify.showWarning("No Multi-Model data found.");
-              return;
-            }
-            const offset = parseInt(timerange.toString().split(",")[1]) / 3600;
-            const idx = Math.floor((offset - 27) / 3);
-            // console.log(`offset: +${offset}h, idx: ${idx}`);
-
-            this.mmProductsData[0][idx] = results[0].data;
-            this.mmProductsData[1][idx] = results[1].data;
-          },
-          (error) => {
-            this.notify.showError(error);
-            throw error;
+    loadMultipleData$.subscribe((val) => {
+      let interval = this.runAvailable.end_offset + 24 || 72;
+      const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
+      // console.log(`timerange: ${timerange} : ${val}`);
+      let filterTM: ObsFilter = {
+        product: MultiModelProduct.TM,
+        reftime: reftime,
+        network: "multim-forecast",
+        license: "CCBY_COMPLIANT",
+        timerange: timerange,
+        interval: interval,
+      };
+      let filterRH: ObsFilter = {
+        product: MultiModelProduct.RH,
+        reftime: reftime,
+        network: "multim-forecast",
+        license: "CCBY_COMPLIANT",
+        timerange: timerange,
+        interval: interval,
+      };
+      let productTM$ = this.obsService.getData(filterTM, true);
+      let productRH$ = this.obsService.getData(filterRH, true);
+      forkJoin([productTM$, productRH$]).subscribe(
+        (results) => {
+          if (results[0].data.length === 0 && results[1].data.length === 0) {
+            this.notify.showWarning("No Multi-Model data found.");
+            return;
           }
-        );
-      })
-      .add(() => {
-        const today = moment.utc();
-        const current = moment.utc(
-          (this.map as any).timeDimension.getCurrentTime()
-        );
-        if (moment(current).isSame(today, "day")) {
-          // console.log(`fire ${current}`);
-          (this.map as any).timeDimension.fire("timeload", {
-            time: current,
-          });
-          // (this.map as any).timeDimension.setCurrentTime(current);
-          // (this.map as any).timeDimension.nextTime();
+          const offset = parseInt(timerange.toString().split(",")[1]) / 3600;
+          const idx = Math.floor((offset - 27) / 3);
+          // console.log(`offset: +${offset}h, idx: ${idx}`);
+
+          this.mmProductsData[0][idx] = results[0].data;
+          this.mmProductsData[1][idx] = results[1].data;
+
+          const today = moment.utc();
+          const current = moment.utc(
+            (this.map as any).timeDimension.getCurrentTime()
+          );
+          if (moment(current).isSame(today, "day")) {
+            (this.map as any).timeDimension.fire("timeload", {
+              time: current,
+            });
+            // (this.map as any).timeDimension.setCurrentTime(current);
+            // (this.map as any).timeDimension.nextTime();
+          }
+        },
+        (error) => {
+          this.notify.showError(error);
+          throw error;
         }
-      });
+      );
+    });
   }
 
   private setOverlaysToMap() {
@@ -631,11 +630,49 @@ export class MeteoTilesComponent {
           }),
           {}
         ),
+        // Pressure at mean sea level
         [DP.PMSL]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(`${baseUrl}/pressure-pmsl/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Wind speed at 10 meters
+        [DP.WIND10M]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Relative humidity Time Layer
+        [DP.RH]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/humidity-r/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.5,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
+          {}
+        ),
+        ////////////////////////////////////
+        /////////// PRECIPITATION //////////
+        ////////////////////////////////////
+
+        // Total precipitation 1h Time Layer
+        [DP.PREC1P]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/prec1-tp/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
             bounds: bounds,
           }),
           {}
@@ -654,6 +691,43 @@ export class MeteoTilesComponent {
         // Total precipitation 6h Time Layer
         [DP.PREC6P]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(`${baseUrl}/prec6-tp/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Total precipitation 6h Time Layer
+        [DP.PREC12P]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/prec12-tp/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Total precipitation 3h Time Layer
+        [DP.PREC24P]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/prec24-tp/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
+          {}
+        ),
+        ////////////////////////////////////
+        ///////////// SNOWFALL /////////////
+        ////////////////////////////////////
+
+        // Snowfall 1h Time Layer
+        [DP.SF1]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/snow1-snow/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
@@ -684,13 +758,39 @@ export class MeteoTilesComponent {
           }),
           {}
         ),
-        // Relative humidity Time Layer
-        [DP.RH]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/humidity-r/{d}{h}/{z}/{x}/{y}.png`, {
+        // Snowfall 12h Time Layer
+        [DP.SF12]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/snow12-snow/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
-            opacity: 0.5,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Snowfall 24h Time Layer
+        [DP.SF24]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/snow24-snow/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            bounds: bounds,
+          }),
+          {}
+        ),
+        ////////////////////////////////////
+        //////////// CLOUD COVER ///////////
+        ////////////////////////////////////
+
+        // Total Cloud Time Layer
+        [DP.TCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud-tcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            //opacity: 0.6,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -767,19 +867,33 @@ export class MeteoTilesComponent {
     this.legends = {
       [DP.TM2]: this.createLegendControl("tm2"),
       [DP.PMSL]: this.createLegendControl("pmsl"),
+      [DP.WIND10M]: this.createLegendControl("ws10m"),
+      [DP.RH]: this.createLegendControl("rh"),
+
+      [DP.PREC1P]: this.createLegendControl("prp"),
       [DP.PREC3P]: this.createLegendControl("prp"),
       [DP.PREC6P]: this.createLegendControl("prp"),
-      [DP.SF3]: this.createLegendControl("sf3"),
-      [DP.RH]: this.createLegendControl("rh"),
+      [DP.PREC12P]: this.createLegendControl("prp"),
+      [DP.PREC24P]: this.createLegendControl("prp"),
+
+      [DP.SF1]: this.createLegendControl("sf"),
+      [DP.SF3]: this.createLegendControl("sf"),
+      [DP.SF6]: this.createLegendControl("sf"),
+      [DP.SF12]: this.createLegendControl("sf"),
+      [DP.SF24]: this.createLegendControl("sf"),
+
+      [DP.TCC]: this.createLegendControl("tcc"),
       [DP.HCC]: this.createLegendControl("hcc"),
       [DP.MCC]: this.createLegendControl("mcc"),
       [DP.LCC]: this.createLegendControl("lcc"),
+
       [DP.TPPERC1]: this.createLegendControl("tpperc"),
       [DP.TPPERC10]: this.createLegendControl("tpperc"),
       [DP.TPPERC25]: this.createLegendControl("tpperc"),
       [DP.TPPERC75]: this.createLegendControl("tpperc"),
       [DP.TPPERC50]: this.createLegendControl("tpperc"),
       [DP.TPPERC99]: this.createLegendControl("tpperc"),
+
       [DP.TPPROB5]: this.createLegendControl("tpprob"),
       [DP.TPPROB20]: this.createLegendControl("tpprob"),
       [DP.TPPROB10]: this.createLegendControl("tpprob"),
@@ -798,12 +912,28 @@ export class MeteoTilesComponent {
         legends[DP.TM2].addTo(map);
       } else if (event["name"] === DP.PMSL) {
         legends[DP.PMSL].addTo(map);
-      } else if (event["name"] === DP.PREC3P || event["name"] === DP.PREC6P) {
-        legends[DP.PREC3P].addTo(map);
-      } else if (event["name"] === DP.SF3 || event["name"] === DP.SF6) {
-        legends[DP.SF3].addTo(map);
+      } else if (event["name"] === DP.WIND10M) {
+        legends[DP.WIND10M].addTo(map);
       } else if (event["name"] === DP.RH) {
         legends[DP.RH].addTo(map);
+      } else if (
+        event["name"] === DP.PREC1P ||
+        event["name"] === DP.PREC3P ||
+        event["name"] === DP.PREC6P ||
+        event["name"] === DP.PREC12P ||
+        event["name"] === DP.PREC24P
+      ) {
+        legends[DP.PREC1P].addTo(map);
+      } else if (
+        event["name"] === DP.SF1 ||
+        event["name"] === DP.SF3 ||
+        event["name"] === DP.SF6 ||
+        event["name"] === DP.SF12 ||
+        event["name"] === DP.SF24
+      ) {
+        legends[DP.SF1].addTo(map);
+      } else if (event["name"] === DP.TCC) {
+        legends[DP.TCC].addTo(map);
       } else if (event["name"] === DP.HCC) {
         legends[DP.HCC].addTo(map);
       } else if (event["name"] === DP.MCC) {
@@ -844,28 +974,94 @@ export class MeteoTilesComponent {
         map.removeControl(legends[DP.TM2]);
       } else if (event["name"] === DP.PMSL) {
         map.removeControl(legends[DP.PMSL]);
+      } else if (event["name"] === DP.WIND10M) {
+        map.removeControl(legends[DP.WIND10M]);
+      } else if (
+        // PRECIPITATION
+        event["name"] === DP.PREC1P &&
+        !currentActiveLayers.includes(DP.PREC3P) &&
+        !currentActiveLayers.includes(DP.PREC6P) &&
+        !currentActiveLayers.includes(DP.PREC12P) &&
+        !currentActiveLayers.includes(DP.PREC24P)
+      ) {
+        map.removeControl(legends[DP.PREC1P]);
       } else if (
         event["name"] === DP.PREC3P &&
-        !currentActiveLayers.includes(DP.PREC6P)
+        !currentActiveLayers.includes(DP.PREC1P) &&
+        !currentActiveLayers.includes(DP.PREC6P) &&
+        !currentActiveLayers.includes(DP.PREC12P) &&
+        !currentActiveLayers.includes(DP.PREC24P)
       ) {
         map.removeControl(legends[DP.PREC3P]);
       } else if (
         event["name"] === DP.PREC6P &&
-        !currentActiveLayers.includes(DP.PREC3P)
+        !currentActiveLayers.includes(DP.PREC1P) &&
+        !currentActiveLayers.includes(DP.PREC3P) &&
+        !currentActiveLayers.includes(DP.PREC12P) &&
+        !currentActiveLayers.includes(DP.PREC24P)
       ) {
-        map.removeControl(legends[DP.PREC3P]);
+        map.removeControl(legends[DP.PREC6P]);
+      } else if (
+        event["name"] === DP.PREC12P &&
+        !currentActiveLayers.includes(DP.PREC1P) &&
+        !currentActiveLayers.includes(DP.PREC3P) &&
+        !currentActiveLayers.includes(DP.PREC6P) &&
+        !currentActiveLayers.includes(DP.PREC24P)
+      ) {
+        map.removeControl(legends[DP.PREC12P]);
+      } else if (
+        event["name"] === DP.PREC24P &&
+        !currentActiveLayers.includes(DP.PREC1P) &&
+        !currentActiveLayers.includes(DP.PREC3P) &&
+        !currentActiveLayers.includes(DP.PREC6P) &&
+        !currentActiveLayers.includes(DP.PREC12P)
+      ) {
+        map.removeControl(legends[DP.PREC24P]);
+      } else if (
+        // SNOWFALL
+        event["name"] === DP.SF1 &&
+        !currentActiveLayers.includes(DP.SF3) &&
+        !currentActiveLayers.includes(DP.SF6) &&
+        !currentActiveLayers.includes(DP.SF12) &&
+        !currentActiveLayers.includes(DP.SF24)
+      ) {
+        map.removeControl(legends[DP.SF1]);
       } else if (
         event["name"] === DP.SF3 &&
-        !currentActiveLayers.includes(DP.SF6)
+        !currentActiveLayers.includes(DP.SF1) &&
+        !currentActiveLayers.includes(DP.SF6) &&
+        !currentActiveLayers.includes(DP.SF12) &&
+        !currentActiveLayers.includes(DP.SF24)
       ) {
-        map.removeControl(legends[DP.SF3]);
+        map.removeControl(legends[DP.SF1]);
       } else if (
         event["name"] === DP.SF6 &&
-        !currentActiveLayers.includes(DP.SF3)
+        !currentActiveLayers.includes(DP.SF1) &&
+        !currentActiveLayers.includes(DP.SF3) &&
+        !currentActiveLayers.includes(DP.SF12) &&
+        !currentActiveLayers.includes(DP.SF24)
       ) {
-        map.removeControl(legends[DP.SF3]);
+        map.removeControl(legends[DP.SF1]);
+      } else if (
+        event["name"] === DP.SF12 &&
+        !currentActiveLayers.includes(DP.SF1) &&
+        !currentActiveLayers.includes(DP.SF3) &&
+        !currentActiveLayers.includes(DP.SF6) &&
+        !currentActiveLayers.includes(DP.SF24)
+      ) {
+        map.removeControl(legends[DP.SF1]);
+      } else if (
+        event["name"] === DP.SF24 &&
+        !currentActiveLayers.includes(DP.SF1) &&
+        !currentActiveLayers.includes(DP.SF3) &&
+        !currentActiveLayers.includes(DP.SF6) &&
+        !currentActiveLayers.includes(DP.SF12)
+      ) {
+        map.removeControl(legends[DP.SF1]);
       } else if (event["name"] === DP.RH) {
         map.removeControl(legends[DP.RH]);
+      } else if (event["name"] === DP.TCC) {
+        map.removeControl(legends[DP.TCC]);
       } else if (event["name"] === DP.HCC) {
         map.removeControl(legends[DP.HCC]);
       } else if (event["name"] === DP.MCC) {
@@ -895,7 +1091,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        map.removeControl(legends[DP.TPPERC1]);
+        map.removeControl(legends[DP.TPPERC10]);
       } else if (
         event["name"] === DP.TPPERC25 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -1037,7 +1233,6 @@ export class MeteoTilesComponent {
     // clean up multi-model layer
     if (this.markersGroup) {
       // remove marker layer
-      console.log("clean up markers");
       this.cleanupMMLayer();
     }
 
@@ -1099,7 +1294,6 @@ export class MeteoTilesComponent {
 
   private loadMarkers(timerangeIdx = 0) {
     this.currentIdx = timerangeIdx;
-    console.log(`load markers. timerange IDX: ${timerangeIdx}`);
     const idx = this.mmProduct === MultiModelProduct.TM ? 0 : 1;
     if (
       !this.mmProductsData ||
@@ -1109,6 +1303,7 @@ export class MeteoTilesComponent {
       // console.log("No data to load");
       return;
     }
+    // console.log(`load markers. timerange IDX: ${timerangeIdx}`);
     this.allMarkers = [];
     let obsData: ObsData;
     const unit: string =
