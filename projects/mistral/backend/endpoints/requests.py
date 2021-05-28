@@ -49,7 +49,7 @@ class UserRequests(EndpointResource):
         # )
         data = []
         requests = (
-            db.Request.query.filter_by(user_id=user.id)
+            db.Request.query.filter_by(user_id=user.id,archived=False)
             .options(joinedload(db.Request.fileoutput))
             .order_by(db.Request.submission_date.desc())
             .paginate(page, size, False)
