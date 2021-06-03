@@ -314,4 +314,18 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
       this.carousel.next();
     }
   }
+  
+  /**
+   * backward
+   */
+  backward() {
+    this.carousel.prev();
+  }
+  /**
+   * forward
+   */
+  forward() {
+    this.carousel.next();
+  }
+  
 }
