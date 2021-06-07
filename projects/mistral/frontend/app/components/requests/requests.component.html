@@ -391,7 +391,7 @@
     </ngx-datatable-column>
     <!-- Controls -->
     <ngx-datatable-column
-      width="60"
+      width="80"
       headerClass="px-0"
       [resizeable]="false"
       [sortable]="false"
@@ -423,6 +423,13 @@
               <i class="fa fa-download"></i>
             </button>
             <button
+              class="btn p-0 mr-1"
+              *ngIf="row.archive !== false"
+              (click)="archive(row.id)"
+            >
+              <i class="fa fa-archive "></i>
+            </button>
+                        <button
               class="btn p-0"
               *ngIf="row.fileoutput"
               (click)="delete(row.id)"

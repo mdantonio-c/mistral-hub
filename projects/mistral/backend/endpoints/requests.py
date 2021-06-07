@@ -89,6 +89,45 @@ class UserRequests(EndpointResource):
     @decorators.auth.require()
     @decorators.endpoint(
         path="/requests/<request_id>",
+        summary="Archive a request",
+        responses={
+            200: "Request archived successfully.",
+            404: "Request does not exist.",
+        },
+    )
+    def put(self, request_id):
+        log.debug("archive request {}", request_id)
+
+        user = self.get_user()
+        # Can't happen since auth is required
+        if not user:  # pragma: no cover
+            raise ServerError("User misconfiguration")
+
+        db = sqlalchemy.get_instance()
+        # check if the request exists
+        if not repo.check_request(db, request_id=request_id):
+            raise NotFound("The request doesn't exist")
+
+        # check if the current user is the owner of the request
+        if repo.check_owner(db, user.id, request_id=request_id):
+
+            # delete request and fileoutput entry from database.
+            # Delete fileoutput from user folder
+            repo.delete_request_record(db, user, request_id)
+            # Mark the request as archived
+            request = db.Request.query.get(request_id)
+            request.archived = True
+            db.session.commit()
+
+
+            return self.response(f"Archived request {request_id}")
+        else:
+            # should be Forbidden...
+            raise Unauthorized("This request doesn't come from the request's owner")
+
+    @decorators.auth.require()
+    @decorators.endpoint(
+        path="/requests/<request_id>",
         summary="Delete a request",
         responses={
             200: "Request deleted successfully.",
@@ -114,6 +153,10 @@ class UserRequests(EndpointResource):
             # delete request and fileoutput entry from database.
             # Delete fileoutput from user folder
             repo.delete_request_record(db, user, request_id)
+            # Delete the request from the db
+            request = db.Request.query.get(request_id)
+            db.session.delete(request)
+            db.session.commit()
 
             return self.response(f"Removed request {request_id}")
         else:

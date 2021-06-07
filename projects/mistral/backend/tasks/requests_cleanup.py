@@ -35,8 +35,12 @@ def automatic_cleanup(self):
 
         user = users.get(r.user_id)
         repo.delete_request_record(db, user, r.id)
+        # set the request as archived
+        r.archived = True
+        db.session.commit()
+
         log.warning(
-            "Request {} (completed on {}) deleted",
+            "Request {} (completed on {}) archived",
             r.id,
             r.end_date.isoformat(),
         )
