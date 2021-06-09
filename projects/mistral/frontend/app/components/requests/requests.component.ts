@@ -2,6 +2,7 @@ import { Component, Output, EventEmitter, Injector } from "@angular/core";
 import { Subscription, concat } from "rxjs";
 import { saveAs as importedSaveAs } from "file-saver-es";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
+import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { DataExtractionRequest } from "../../types";
 
 import { DataService } from "@app/services/data.service";
@@ -16,6 +17,7 @@ export interface Request {}
   templateUrl: "./requests.component.html",
 })
 export class RequestsComponent extends BasePaginationComponent<Request> {
+  protected confirmationModals: ConfirmationModals;
   expanded: any = {};
   @Output() onLoad: EventEmitter<null> = new EventEmitter<null>();
 
@@ -106,6 +108,38 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
         this.notify.showError(`Unable to download file: ${filename}`);
       }
     );
+  }
+
+  public archive(
+    uuid: string,
+    text: string = null,
+    title: string = null,
+    subText: string = null
+  ): void {
+     text = `Are you really sure you want to archive this request?`;
+     subText = `
+        The file related to this request will be permanently deleted.
+        This operation cannot be undone.`
+    let confirmbutton = "Yes, archive"
+
+    this.confirmationModals
+      .open({ text: text, title: title, subText: subText, confirmButton: confirmbutton})
+      .then(
+        (result) => {
+          this.dataService
+              .archiveRequest(uuid)
+              .subscribe(
+            (response) => {
+              this.notify.showSuccess(`Confirmation: request successfully archived`);
+              this.list();
+            },
+            (error) => {
+              this.notify.showError(error);
+            }
+          );
+        },
+        (reason) => {}
+      );
   }
 
   private getFileURL(filename) {

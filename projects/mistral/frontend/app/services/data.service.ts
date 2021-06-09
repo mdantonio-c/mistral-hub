@@ -234,6 +234,10 @@ export class DataService {
     return this.api.get(`/api/requests/${requestId}/clone`);
   }
 
+  archiveRequest(requestId): Observable<any> {
+    return this.api.put(`/api/requests/${requestId}`);
+  }
+
   getVariableDescription(code): string {
     if (this._derivedVariables === undefined) {
       console.warn(

@@ -19,10 +19,10 @@ div.dpc-label {
 }
 
 div.explain {
-  padding-left: 40px;
+  padding-left: 5px;
   font-size: 90%;
   margin: 5px;
-  padding-right: 40px;
+  padding-right: 20px;
   text-align: justify;
 }
 
@@ -31,6 +31,12 @@ div.explain {
 h4 {
   display: inline;
   padding: 0 2px;
+}
+
+h4.parameter {
+  display: inline;
+  padding: 0 2px;
+  margin: 0 5px 0 0;
 }
 
 #slider-bar {
