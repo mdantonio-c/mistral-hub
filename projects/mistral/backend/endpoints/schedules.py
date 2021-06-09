@@ -737,7 +737,7 @@ class SingleSchedule(EndpointResource):
                         only_reliable,
                         pushing_queue,
                         name,
-                        False,
+                        data_ready,
                         opendata,
                     ],
                     countdown=1,
