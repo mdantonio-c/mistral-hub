@@ -37,10 +37,11 @@ jobs:
 
       - name: Run Cypress
         run: |
+
+          rapydo -e API_AUTOSTART=1 start;
           sleep 20
           rapydo logs
-          rapydo shell --no-tty backend --detach "restapi launch"
-          rapydo -s frontend logs
+
           rapydo shell --no-tty frontend "yarn install"
           rapydo shell --no-tty frontend "reload-types"
           rapydo shell --no-tty frontend "yarn run cypress:start:full"
