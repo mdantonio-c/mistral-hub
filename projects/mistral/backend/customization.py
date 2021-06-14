@@ -78,11 +78,6 @@ class Customizer(BaseCustomizer):
                     label="Disk quota",
                     description="Disk quota in bytes",
                 ),
-                "amqp_queue": fields.Str(
-                    required=False,
-                    label="AMQP queue",
-                    description="AMQP queue used to notify the user",
-                ),
                 "requests_expiration_days": fields.Int(
                     required=False,
                     missing=0,
@@ -137,6 +132,11 @@ class Customizer(BaseCustomizer):
                     label="Requests per hour (0 to disable)",
                     description="Maximum number of allowed requests per hour",
                 ),
+                "amqp_queue": fields.Str(
+                    required=False,
+                    label="AMQP queue",
+                    description="AMQP queue used to notify the user",
+                ),
             }
 
         # these are editable fields in profile
@@ -157,10 +157,16 @@ class Customizer(BaseCustomizer):
 
     @staticmethod
     def get_custom_output_fields(request):
-        custom_fields = Customizer.get_custom_input_fields(
-            request, scope=BaseCustomizer.ADMIN
-        )
-
-        custom_fields["datasets"] = fields.Nested(Datasets(many=True))
-
-        return custom_fields
+        return {
+            "disk_quota": fields.Int(),
+            "requests_expiration_days": fields.Int(),
+            "open_dataset": fields.Boolean(),
+            "datasets": fields.Nested(Datasets(many=True)),
+            "max_templates": fields.Int(),
+            "max_output_size": fields.Int(),
+            "allowed_postprocessing": fields.Boolean(),
+            "allowed_schedule": fields.Boolean(),
+            "allowed_obs_archive": fields.Boolean(),
+            "request_par_hour": fields.Int(),
+            "amqp_queue": fields.Str(),
+        }
