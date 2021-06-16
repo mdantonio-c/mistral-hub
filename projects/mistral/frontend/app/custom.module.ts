@@ -20,6 +20,7 @@ import { HomeComponent } from "@app/custom.home";
 import { DataComponent } from "@app/components/data/data.component";
 import { RequestsComponent } from "@app/components/requests/requests.component";
 import { SchedulesComponent } from "@app/components/schedules/schedules.component";
+import { ArchiveComponent } from "@app/components/archive/archive.component";
 import { DashboardComponent } from "@app/components/dashboard/dashboard.component";
 import { StorageUsageComponent } from "@app/components/dashboard/storage-usage/storage-usage.component";
 import { RequestHourlyReportComponent } from "@app/components/dashboard/request-hourly-report/request-hourly-report.component";
@@ -207,6 +208,7 @@ const appRoutes: Routes = [
     RequestHourlyReportComponent,
     RequestsComponent,
     SchedulesComponent,
+    ArchiveComponent,
     LicenseComponent,
     PrivacyComponent,
     ParticipateComponent,
