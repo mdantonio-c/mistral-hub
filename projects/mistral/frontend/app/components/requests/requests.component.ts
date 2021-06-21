@@ -62,7 +62,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     subject.subscribe((success: boolean) => {
       this.onLoad.emit();
     });
-    return ret;
+    return subject;
   }
 
   cloneAsNew(request) {
