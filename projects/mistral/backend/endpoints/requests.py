@@ -3,6 +3,7 @@ from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.endpoints.schemas import TotalSchema
 from restapi.exceptions import NotFound, ServerError, Unauthorized
+from restapi.models import fields
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 from sqlalchemy.orm import joinedload
@@ -24,9 +25,18 @@ class UserRequests(EndpointResource):
             404: "User has no requests",
         },
     )
+    @decorators.use_kwargs({"archived": fields.Bool(required=False)}, location="query")
     # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(
-        self, get_total, page, size, sort_order, sort_by, input_filter, request_id=None
+        self,
+        get_total,
+        page,
+        size,
+        sort_order,
+        sort_by,
+        input_filter,
+        request_id=None,
+        archived=False,
     ):
 
         user = self.get_user()
@@ -48,8 +58,9 @@ class UserRequests(EndpointResource):
         #     db, user.id, sort_by=sort_by, sort_order=sort_order
         # )
         data = []
+
         requests = (
-            db.Request.query.filter_by(user_id=user.id,archived=False)
+            db.Request.query.filter_by(user_id=user.id, archived=archived)
             .options(joinedload(db.Request.fileoutput))
             .order_by(db.Request.submission_date.desc())
             .paginate(page, size, False)
@@ -118,7 +129,6 @@ class UserRequests(EndpointResource):
             request = db.Request.query.get(request_id)
             request.archived = True
             db.session.commit()
-
 
             return self.response(f"Archived request {request_id}")
         else:
