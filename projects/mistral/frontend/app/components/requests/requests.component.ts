@@ -1,5 +1,5 @@
 import { Component, Output, EventEmitter, Injector } from "@angular/core";
-import { Subscription, concat } from "rxjs";
+import { Subject, concat } from "rxjs";
 import { saveAs as importedSaveAs } from "file-saver-es";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
@@ -56,9 +56,10 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     this.list();
   }
 
-  list(): Subscription {
-    const ret = super.list();
-    ret.add((response) => {
+  public list(): Subject<boolean> {
+    const subject = super.list();
+
+    subject.subscribe((success: boolean) => {
       this.onLoad.emit();
     });
     return ret;
@@ -116,21 +117,26 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     title: string = null,
     subText: string = null
   ): void {
-     text = `Are you really sure you want to archive this request?`;
-     subText = `
+    text = `Are you really sure you want to archive this request?`;
+    subText = `
         The file related to this request will be permanently deleted.
-        This operation cannot be undone.`
-    let confirmbutton = "Yes, archive"
+        This operation cannot be undone.`;
+    let confirmbutton = "Yes, archive";
 
     this.confirmationModals
-      .open({ text: text, title: title, subText: subText, confirmButton: confirmbutton})
+      .open({
+        text: text,
+        title: title,
+        subText: subText,
+        confirmButton: confirmbutton,
+      })
       .then(
         (result) => {
-          this.dataService
-              .archiveRequest(uuid)
-              .subscribe(
+          this.dataService.archiveRequest(uuid).subscribe(
             (response) => {
-              this.notify.showSuccess(`Confirmation: request successfully archived`);
+              this.notify.showSuccess(
+                `Confirmation: request successfully archived`
+              );
               this.list();
             },
             (error) => {
