@@ -1,6 +1,6 @@
 FROM arpaesimc/centos:8 AS arpaesimc
 
-FROM rapydo/backend:1.2
+FROM rapydo/backend:2.0
 
 ARG RAPYDO_VERSION
 RUN test -n "$RAPYDO_VERSION"

@@ -1,6 +1,4 @@
-version: "3"
-#######################
-# Link services inside API
+version: "3.8"
 
 services:
   backend:

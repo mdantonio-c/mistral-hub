@@ -3,6 +3,7 @@ import json
 import os
 from typing import Any, Optional
 
+from celery.result import AsyncResult
 from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from restapi.connectors.celery import CeleryExt
 from restapi.exceptions import NotFound, Unauthorized
@@ -422,7 +423,7 @@ class SqlApiDbManager:
         r_to_update = request.query.filter(request.task_id == task_id).first()
 
         # ask celery the status of the given request
-        result = CeleryExt.celery_app.data_extract.AsyncResult(task_id)
+        result = AsyncResult(task_id)
         # log.info('status:{}', result.status)
 
         r_to_update.status = result.status

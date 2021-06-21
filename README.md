@@ -2,12 +2,12 @@
 
 ## HOWTO Get started
 
-Install rapydo framework last version 1.2
+Install rapydo framework last version 2.0
 
-`$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@1.2`
+`$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@2.0`
 
-or ugprade to rapydo 1.2
-`$ rapydo install 1.2`
+or ugprade to rapydo 2.0
+`$ rapydo install 2.0`
 
 ####Clone the project
 
@@ -19,7 +19,7 @@ $ git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub.git
 
 ```
 $ cd meteo-hub
-$ git checkout 0.4.2
+$ git checkout 0.4.3
 $ rapydo init
 $ rapydo pull
 $ rapydo start

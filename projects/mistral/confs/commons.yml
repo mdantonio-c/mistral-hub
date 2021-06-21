@@ -1,18 +1,17 @@
-# Customize this file to include compose configurations common to bluprints
-version: "3"
+version: "3.8"
 
 services:
   backend:
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
+    build: ${PROJECT_DIR}/builds/backend
     image: meteohub/backend:${RAPYDO_VERSION}
 
     volumes:
-      - ${VANILLA_DIR}/data/user_repo:/data
-      - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
-      - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
-      - ${VANILLA_DIR}/data/maps:/meteo
-      - ${VANILLA_DIR}/data/opendata:/opendata
-      - ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/scripts:/scripts
+      - ${DATA_DIR}/user_repo:/data
+      - ${DATA_DIR}/arkimet:/arkimet/datasets
+      - ${DATA_DIR}/arkimet_conf:/arkimet/config
+      - ${DATA_DIR}/maps:/meteo
+      - ${DATA_DIR}/opendata:/opendata
+      - ${PROJECT_DIR}/scripts:/scripts
 
     environment:
       LASTDAYS: ${LASTDAYS}
@@ -26,10 +25,9 @@ services:
       INJECT_MAPS_URL: ${MAPS_URL}
       INJECT_TILES_URL: ${TILES_URL}
     volumes:
-      - ${VANILLA_DIR}/data/maps:/meteo
+      - ${DATA_DIR}/maps:/meteo
 
   postgres:
-    # image: postgres:11.5-alpine
     ports:
       - ${ALCHEMY_PORT}:${ALCHEMY_PORT}
 
@@ -38,40 +36,37 @@ services:
       - ${RABBITMQ_PORT}:${RABBITMQ_PORT}
       - ${RABBITMQ_MANAGEMENT_PORT}:${RABBITMQ_MANAGEMENT_PORT}
 
-  #  nifi:
-  #    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/nifi
-  #    image: meteohub/nifi:${RAPYDO_VERSION}
-  #    ports:
-  #      - 8070:8080
-  #    environment:
-  #      ACTIVATE: ${ACTIVATE_NIFI}
-
   flower:
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
+    build: ${PROJECT_DIR}/builds/backend
     image: meteohub/backend:${RAPYDO_VERSION}
     volumes:
-      - ${VANILLA_DIR}/data/user_repo:/data
-      - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
-      - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
+      - ${DATA_DIR}/user_repo:/data
+      - ${DATA_DIR}/arkimet:/arkimet/datasets
+      - ${DATA_DIR}/arkimet_conf:/arkimet/config
 
   celery:
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
+    build: ${PROJECT_DIR}/builds/backend
     image: meteohub/backend:${RAPYDO_VERSION}
     volumes:
-      - ${VANILLA_DIR}/data/user_repo:/data
-      - ${VANILLA_DIR}/data/arkimet:/arkimet/datasets
-      - ${VANILLA_DIR}/data/arkimet_conf:/arkimet/config
-      - ${VANILLA_DIR}/data/opendata:/opendata
+      - ${DATA_DIR}/user_repo:/data
+      - ${DATA_DIR}/arkimet:/arkimet/datasets
+      - ${DATA_DIR}/arkimet_conf:/arkimet/config
+      - ${DATA_DIR}/opendata:/opendata
     environment:
       LASTDAYS: ${LASTDAYS}
       PLATFORM: ${PLATFORM}
 
   celery-beat:
-    build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/backend
-    # build: ${VANILLA_DIR}/projects/${COMPOSE_PROJECT_NAME}/builds/tmpbackend
+    build: ${PROJECT_DIR}/builds/backend
     image: meteohub/backend:${RAPYDO_VERSION}
+
+  #  nifi:
+  #    build: ${PROJECT_DIR}/builds/nifi
+  #    image: meteohub/nifi:${RAPYDO_VERSION}
+  #    ports:
+  #      - 8070:8080
+  #    environment:
+  #      ACTIVATE: ${ACTIVATE_NIFI}
 
   # arkimet:
   #   restart: always
@@ -90,7 +85,7 @@ services:
   #       aliases:
   #         - arkimet
   #   volumes:
-  #     - ${VANILLA_DIR}/data/arkimet:/datasets
+  #     - ${DATA_DIR}/arkimet:/datasets
   #   environment:
   #     ACTIVATE: 1
 # volumes:
