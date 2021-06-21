@@ -992,7 +992,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.PREC12P) &&
         !currentActiveLayers.includes(DP.PREC24P)
       ) {
-        map.removeControl(legends[DP.PREC3P]);
+        map.removeControl(legends[DP.PREC1P]);
       } else if (
         event["name"] === DP.PREC6P &&
         !currentActiveLayers.includes(DP.PREC1P) &&
@@ -1000,7 +1000,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.PREC12P) &&
         !currentActiveLayers.includes(DP.PREC24P)
       ) {
-        map.removeControl(legends[DP.PREC6P]);
+        map.removeControl(legends[DP.PREC1P]);
       } else if (
         event["name"] === DP.PREC12P &&
         !currentActiveLayers.includes(DP.PREC1P) &&
@@ -1008,7 +1008,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.PREC6P) &&
         !currentActiveLayers.includes(DP.PREC24P)
       ) {
-        map.removeControl(legends[DP.PREC12P]);
+        map.removeControl(legends[DP.PREC1P]);
       } else if (
         event["name"] === DP.PREC24P &&
         !currentActiveLayers.includes(DP.PREC1P) &&
@@ -1016,7 +1016,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.PREC6P) &&
         !currentActiveLayers.includes(DP.PREC12P)
       ) {
-        map.removeControl(legends[DP.PREC24P]);
+        map.removeControl(legends[DP.PREC1P]);
       } else if (
         // SNOWFALL
         event["name"] === DP.SF1 &&
@@ -1091,7 +1091,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        map.removeControl(legends[DP.TPPERC10]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPERC25 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -1103,7 +1103,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        map.removeControl(legends[DP.TPPERC25]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPERC50 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -1115,7 +1115,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        map.removeControl(legends[DP.TPPERC50]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPERC70 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -1127,7 +1127,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        map.removeControl(legends[DP.TPPERC70]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPERC75 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -1139,7 +1139,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        map.removeControl(legends[DP.TPPERC75]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPERC80 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -1151,7 +1151,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        map.removeControl(legends[DP.TPPERC80]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPERC90 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -1163,7 +1163,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC80) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
-        map.removeControl(legends[DP.TPPERC90]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPERC99 &&
         !currentActiveLayers.includes(DP.TPPERC1) &&
@@ -1175,7 +1175,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC80) &&
         !currentActiveLayers.includes(DP.TPPERC90)
       ) {
-        map.removeControl(legends[DP.TPPERC90]);
+        map.removeControl(legends[DP.TPPERC1]);
       } else if (
         event["name"] === DP.TPPROB5 &&
         !currentActiveLayers.includes(DP.TPPROB10) &&
