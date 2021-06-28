@@ -10,6 +10,8 @@ import { decode, PP_TIME_RANGES } from "@app/services/data";
 import { environment } from "@rapydo/../environments/environment";
 import { Router, NavigationExtras } from "@angular/router";
 
+import { take } from "rxjs/operators";
+
 export interface Request {}
 
 @Component({
@@ -59,7 +61,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   public list(): Subject<boolean> {
     const subject = super.list();
 
-    subject.subscribe((success: boolean) => {
+    subject.pipe(take(1)).subscribe((success: boolean) => {
       this.onLoad.emit();
     });
     return subject;
