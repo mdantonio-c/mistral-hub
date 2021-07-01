@@ -27,8 +27,12 @@ datasets_to_filter = [
 ]
 license_groups_need_filtering = []
 for ds in datasets_to_filter:
-    group_lic = SqlApiDbManager.get_license_group(alchemy_db, [ds])
-    license_groups_need_filtering.append(group_lic.name)
+    try:
+        group_lic = SqlApiDbManager.get_license_group(alchemy_db, [ds])
+        license_groups_need_filtering.append(group_lic.name)
+    except BaseException as exc:
+        log.debug("Exception in create the license group to filter: {}", exc)
+        continue
 
 log.debug("groups needing filtering: {}", license_groups_need_filtering)
 

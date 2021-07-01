@@ -4,7 +4,7 @@
   <div class="col">
     <div class="no-results">
       <h2>No Data</h2>
-      <p>You have not submitted any requests yet</p>
+      <p>You have not archived any requests yet</p>
     </div>
   </div>
 </div>
@@ -348,20 +348,7 @@
         }}</span>
       </ng-template>
     </ngx-datatable-column>
-    <!-- Size -->
-    <ngx-datatable-column
-      name="Size"
-      prop="filesize"
-      [resizeable]="false"
-      [sortable]="false"
-      [draggable]="false"
-      [flexGrow]="0.5"
-      [minWidth]="66"
-    >
-      <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
-        <span *ngIf="value; else noValue">{{ value | bytes }}</span>
-      </ng-template>
-    </ngx-datatable-column>
+
     <!-- Status -->
     <ngx-datatable-column
       name="Status"
@@ -415,20 +402,6 @@
       <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
         <div class="btn-toolbar justify-content-end" role="toolbar">
           <div class="btn-group mr-1" role="group">
-            <button
-              class="btn p-0 mr-1"
-              *ngIf="row.status == 'SUCCESS' && row.fileoutput"
-              (click)="downloadByUrl(row.fileoutput)"
-            >
-              <i class="fa fa-download"></i>
-            </button>
-            <button
-              class="btn p-0 mr-1"
-              *ngIf="row.archive !== false"
-              (click)="archive(row.id)"
-            >
-              <i class="fa fa-archive"></i>
-            </button>
             <button class="btn p-0" (click)="delete(row.id)">
               <i class="fa fa-trash red"></i>
             </button>
