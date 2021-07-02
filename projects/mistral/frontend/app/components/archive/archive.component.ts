@@ -1,5 +1,7 @@
 import { Component, Output, EventEmitter, Injector } from "@angular/core";
 import { Subject, concat } from "rxjs";
+import { take } from "rxjs/operators";
+
 import { saveAs as importedSaveAs } from "file-saver-es";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 
