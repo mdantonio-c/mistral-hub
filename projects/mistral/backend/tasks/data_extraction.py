@@ -51,7 +51,7 @@ def data_extract(
     data_ready=False,
     opendata=False,
 ):
-    log.info("Start task [{}:{}]", self.request.id, self.name)
+    log.info("Start task [{}:{}]", self.request.id, self.name)  # type: ignore
     extra_msg = ""
     try:
         db = sqlalchemy.get_instance()
@@ -64,7 +64,7 @@ def data_extract(
             schedule = db.Schedule.query.get(schedule_id)
             if schedule is None:
                 raise ReferenceError(
-                    f"Cannot find schedule reference for task {self.request.id}"
+                    f"Cannot find schedule reference for task {self.request.id}"  # type: ignore
                 )
             # adapt the request reftime
             if reftime and not data_ready:
@@ -106,7 +106,7 @@ def data_extract(
                 opendata=opendata,
             )
             # update the entry with celery task id
-            request.task_id = self.request.id
+            request.task_id = self.request.id  # type: ignore
             request.status = states.STARTED
             request_id = request.id
             db.session.commit()
@@ -116,7 +116,7 @@ def data_extract(
             request = db.Request.query.get(request_id)
             if request is None:
                 raise ReferenceError(
-                    f"Cannot find request reference for task {self.request.id}"
+                    f"Cannot find request reference for task {self.request.id}"  # type: ignore
                 )
 
         # get the format of the datasets
@@ -167,7 +167,7 @@ def data_extract(
         # max filename len = 64
         out_filename = "data-{utc_now}-{id}.{fileformat}".format(
             utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
-            id=self.request.id,
+            id=self.request.id,  # type: ignore
             fileformat=dataset_format,
         )
         if opendata:
@@ -446,7 +446,7 @@ def data_extract(
                     # unless it is not a bufr file
                     if pp_output:
                         if pp_output.split(".")[-1] != "bufr":
-                            log.debug("dest: {}".format(str(outfile)))
+                            log.debug(f"dest: {str(outfile)}")
                             os.rename(pp_output, outfile)
                     # else:
                     #     # if it is a bufr file, the filename resulting from pp
@@ -837,7 +837,7 @@ def observed_extraction(
 
 
 def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
-    """Send email notification. """
+    """Send email notification."""
     user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
     # decomment for pushing output data in an amqp queue use case
     # if amqp_queue:

@@ -182,7 +182,7 @@ class DataReady(EndpointResource):
                 data_ready = True
                 c.celery_app.send_task(
                     "data_extract",
-                    args=[
+                    args=(
                         r.get("user_id"),
                         datasets,
                         reftime,
@@ -195,7 +195,7 @@ class DataReady(EndpointResource):
                         request_id,
                         data_ready,
                         opendata,
-                    ],
+                    ),
                     countdown=1,
                 )
 

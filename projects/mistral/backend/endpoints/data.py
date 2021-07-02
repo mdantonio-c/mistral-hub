@@ -428,7 +428,7 @@ class Data(EndpointResource, Uploader):
             c = celery.get_instance()
             task = c.celery_app.send_task(
                 "data_extract",
-                args=[
+                args=(
                     user.id,
                     dataset_names,
                     parsed_reftime,
@@ -438,7 +438,7 @@ class Data(EndpointResource, Uploader):
                     request.id,
                     only_reliable,
                     pushing_queue,
-                ],
+                ),
                 countdown=1,
             )
 
