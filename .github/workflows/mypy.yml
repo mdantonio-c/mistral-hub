@@ -27,7 +27,7 @@ jobs:
           project: ${PROJECT}
           allow_untyped_defs: true
           # install: ...
-          ignore: sqlalchemy alembic pymodm arkimet dballe eccodes celery
+          ignore: alembic pymodm arkimet dballe eccodes
 
       - name: Save Report
         uses: actions/upload-artifact@v2
