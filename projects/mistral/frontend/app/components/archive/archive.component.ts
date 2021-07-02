@@ -1,5 +1,5 @@
 import { Component, Output, EventEmitter, Injector } from "@angular/core";
-import { Subscription, concat } from "rxjs";
+import { Subject, concat } from "rxjs";
 import { saveAs as importedSaveAs } from "file-saver-es";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 
@@ -55,12 +55,12 @@ export class ArchiveComponent extends BasePaginationComponent<Request> {
     this.list();
   }
 
-  list(): Subscription {
-    const ret = super.list();
-    ret.add((response) => {
+  public list(): Subject<boolean> {
+    const subject = super.list();
+    subject.pipe(take(1)).subscribe((success: boolean) => {
       this.onLoad.emit();
     });
-    return ret;
+    return subject;
   }
 
   cloneAsNew(request) {
