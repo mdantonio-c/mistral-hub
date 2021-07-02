@@ -51,7 +51,7 @@ def data_extract(
     data_ready=False,
     opendata=False,
 ):
-    log.info("Start task [{}:{}]", self.request.id, self.name)  # type: ignore
+    log.info("Start task [{}:{}]", self.request.id, self.name)
     extra_msg = ""
     try:
         db = sqlalchemy.get_instance()
@@ -64,7 +64,7 @@ def data_extract(
             schedule = db.Schedule.query.get(schedule_id)
             if schedule is None:
                 raise ReferenceError(
-                    f"Cannot find schedule reference for task {self.request.id}"  # type: ignore
+                    f"Cannot find schedule reference for task {self.request.id}"
                 )
             # adapt the request reftime
             if reftime and not data_ready:
@@ -106,7 +106,7 @@ def data_extract(
                 opendata=opendata,
             )
             # update the entry with celery task id
-            request.task_id = self.request.id  # type: ignore
+            request.task_id = self.request.id
             request.status = states.STARTED
             request_id = request.id
             db.session.commit()
@@ -116,7 +116,7 @@ def data_extract(
             request = db.Request.query.get(request_id)
             if request is None:
                 raise ReferenceError(
-                    f"Cannot find request reference for task {self.request.id}"  # type: ignore
+                    f"Cannot find request reference for task {self.request.id}"
                 )
 
         # get the format of the datasets
@@ -167,7 +167,7 @@ def data_extract(
         # max filename len = 64
         out_filename = "data-{utc_now}-{id}.{fileformat}".format(
             utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
-            id=self.request.id,  # type: ignore
+            id=self.request.id,
             fileformat=dataset_format,
         )
         if opendata:
