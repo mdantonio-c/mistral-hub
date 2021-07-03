@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from celery.app.task import Task
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi.connectors import sqlalchemy
 from restapi.connectors.celery import CeleryExt
@@ -7,7 +8,7 @@ from restapi.utilities.logs import log
 
 
 @CeleryExt.task()
-def automatic_cleanup(self):
+def automatic_cleanup(self: Task):
     log.info("Autocleaning task started!")
 
     db = sqlalchemy.get_instance()
