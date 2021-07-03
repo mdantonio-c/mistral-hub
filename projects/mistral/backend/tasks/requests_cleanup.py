@@ -8,7 +8,7 @@ from restapi.utilities.logs import log
 
 
 @CeleryExt.task()
-def automatic_cleanup(self: Task):
+def automatic_cleanup(self: Task) -> str:
     log.info("Autocleaning task started!")
 
     db = sqlalchemy.get_instance()
