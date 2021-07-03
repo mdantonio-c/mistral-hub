@@ -726,7 +726,7 @@ class SingleSchedule(EndpointResource):
                 request_id = None
                 c.celery_app.send_task(
                     "data_extract",
-                    args=(  # type: ignore
+                    args=(
                         user.id,
                         dataset_names,
                         parsed_reftime,
