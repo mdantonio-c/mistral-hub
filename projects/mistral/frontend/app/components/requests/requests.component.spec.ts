@@ -1,4 +1,5 @@
 import { Component, DebugElement } from "@angular/core";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { Injectable } from "@angular/core";
 import { async, ComponentFixture, TestBed } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
@@ -69,6 +70,7 @@ describe("RequestsComponent", () => {
     TestBed.configureTestingModule({
       declarations: [RequestsComponent, StubLoadingComponent, BytesPipe],
       imports: [
+        BrowserAnimationsModule,
         NgxDatatableModule,
         MomentModule,
         NgbModule,
