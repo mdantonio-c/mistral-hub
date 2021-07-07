@@ -60,13 +60,18 @@ services:
     build: ${PROJECT_DIR}/builds/backend
     image: meteohub/backend:${RAPYDO_VERSION}
 
-  #  nifi:
-  #    build: ${PROJECT_DIR}/builds/nifi
-  #    image: meteohub/nifi:${RAPYDO_VERSION}
-  #    ports:
-  #      - 8070:8080
-  #    environment:
-  #      ACTIVATE: ${ACTIVATE_NIFI}
+  nifi:
+    build: ${PROJECT_DIR}/builds/ingestor
+    image: meteohub/nifi:${RAPYDO_VERSION}
+    volumes:
+      - ${DATA_DIR}/arkimet:/arkimet/datasets
+      - ${DATA_DIR}/nifi:/opt/nifi
+    ports:
+      - 8070:8080
+    environment:
+      ACTIVATE: ${ACTIVATE_NIFI}
+    networks:
+      default:
 
   # arkimet:
   #   restart: always

@@ -29,6 +29,10 @@ RUN mkdir -p /home/nifi/ingest/radar \
 
 WORKDIR /opt/nifi
 
+# install database drivers
+RUN mkdir /home/nifi/nifi-driver && \
+    wget --quiet -O /home/nifi/nifi-driver/postgresql-42.2.19.jar https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
+
 # Enable Network
 RUN sed -ie 's/^nifi\.web\.http\.host=.*/nifi.web.http.host=0.0.0.0/' conf/nifi.properties
 
