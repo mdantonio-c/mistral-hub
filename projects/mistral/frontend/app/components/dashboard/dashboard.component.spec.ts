@@ -1,5 +1,6 @@
 import { async, ComponentFixture, TestBed } from "@angular/core/testing";
 import { Component, DebugElement } from "@angular/core";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { By } from "@angular/platform-browser";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 
@@ -45,7 +46,7 @@ describe("DashboardComponent", () => {
         StubSchedulesComponent,
         StubHourlyReportComponent,
       ],
-      imports: [NgbModule],
+      imports: [BrowserAnimationsModule, NgbModule],
     }).compileComponents();
   }));
 
