@@ -10,15 +10,14 @@ import { BasePaginationComponent } from "@rapydo/components/base.pagination.comp
 export class AdminLicensesComponent extends BasePaginationComponent<License> {
   @ViewChild("controlsCell", { static: false })
   public controlsCell: TemplateRef<any>;
-  @ViewChild("emptyHeader", { static: false }) public emptyHeader: TemplateRef<
-    any
-  >;
+  @ViewChild("emptyHeader", { static: false })
+  public emptyHeader: TemplateRef<any>;
   @ViewChild("datasetsCell", { static: false })
   public datasetsCell: TemplateRef<any>;
 
   constructor(protected injector: Injector) {
     super(injector);
-    this.init("license", "admin/licenses", "Licenses");
+    this.init("license", "/api/admin/licenses", "Licenses");
     this.initPaging();
     this.list();
   }

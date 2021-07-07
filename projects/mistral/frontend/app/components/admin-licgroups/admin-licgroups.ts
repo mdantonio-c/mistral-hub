@@ -7,20 +7,17 @@ import { BasePaginationComponent } from "@rapydo/components/base.pagination.comp
 @Component({
   templateUrl: "./admin-licgroups.html",
 })
-export class AdminLicgroupsComponent extends BasePaginationComponent<
-  LicenseGroup
-> {
+export class AdminLicgroupsComponent extends BasePaginationComponent<LicenseGroup> {
   @ViewChild("controlsCell", { static: false })
   public controlsCell: TemplateRef<any>;
-  @ViewChild("emptyHeader", { static: false }) public emptyHeader: TemplateRef<
-    any
-  >;
+  @ViewChild("emptyHeader", { static: false })
+  public emptyHeader: TemplateRef<any>;
   @ViewChild("licensesCell", { static: false })
   public licensesCell: TemplateRef<any>;
 
   constructor(protected injector: Injector) {
     super(injector);
-    this.init("license group", "admin/licensegroups", "LicenseGroups");
+    this.init("license group", "/api/admin/licensegroups", "LicenseGroups");
     this.initPaging();
     this.list();
   }
