@@ -8,6 +8,7 @@ import {
   HttpClientTestingModule,
   HttpTestingController,
 } from "@angular/common/http/testing";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 
 import { AppModule } from "@rapydo/app.module";
 import { AdminAttributionsComponent } from "./admin-attributions";
@@ -33,7 +34,12 @@ describe("AdminAttributionsComponent", () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [AppModule, AdminModule, HttpClientTestingModule],
+      imports: [
+        AppModule,
+        AdminModule,
+        BrowserAnimationsModule,
+        HttpClientTestingModule,
+      ],
     }).compileComponents();
 
     injector = getTestBed();
