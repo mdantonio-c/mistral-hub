@@ -7,20 +7,17 @@ import { BasePaginationComponent } from "@rapydo/components/base.pagination.comp
 @Component({
   templateUrl: "./admin-attributions.html",
 })
-export class AdminAttributionsComponent extends BasePaginationComponent<
-  Attribution
-> {
+export class AdminAttributionsComponent extends BasePaginationComponent<Attribution> {
   @ViewChild("controlsCell", { static: false })
   public controlsCell: TemplateRef<any>;
-  @ViewChild("emptyHeader", { static: false }) public emptyHeader: TemplateRef<
-    any
-  >;
+  @ViewChild("emptyHeader", { static: false })
+  public emptyHeader: TemplateRef<any>;
   @ViewChild("datasetsCell", { static: false })
   public datasetsCell: TemplateRef<any>;
 
   constructor(protected injector: Injector) {
     super(injector);
-    this.init("attribution", "admin/attributions", "Attributions");
+    this.init("attribution", "/api/admin/attributions", "Attributions");
     this.initPaging();
     this.list();
   }

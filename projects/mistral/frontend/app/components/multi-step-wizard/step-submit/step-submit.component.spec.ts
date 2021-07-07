@@ -1,4 +1,5 @@
 import { Component, Input } from "@angular/core";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { async, ComponentFixture, TestBed } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 import { Router } from "@angular/router";
@@ -46,6 +47,7 @@ describe("StepSubmitComponent", () => {
         StubMyRequestDetailsComponent,
       ],
       imports: [
+        BrowserAnimationsModule,
         FormsModule,
         ReactiveFormsModule,
         RouterTestingModule.withRoutes([]),
