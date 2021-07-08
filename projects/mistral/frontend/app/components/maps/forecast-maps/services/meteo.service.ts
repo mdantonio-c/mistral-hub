@@ -25,31 +25,23 @@ export interface MeteoMapset {
 })
 export class MeteoService {
   private maps_url: string = "";
-  private external_url: boolean = false;
 
   constructor(private api: ApiService) {
     this.maps_url = environment.CUSTOM.MAPS_URL;
-    this.external_url = this.maps_url != "";
   }
 
   private get_params(params: MeteoFilter): Record<string, unknown> {
     return JSON.parse(JSON.stringify(params));
   }
   getMapset(params: MeteoFilter): Observable<MeteoMapset> {
-    const options = {
-      externalURL: this.external_url,
-    };
-
     return this.api.get(
       `${this.maps_url}/api/maps/ready`,
-      this.get_params(params),
-      options
+      this.get_params(params)
     );
   }
 
   getMapLegend(params: MeteoFilter): Observable<Blob> {
     const options = {
-      externalURL: this.external_url,
       conf: {
         responseType: "blob",
       },
@@ -63,7 +55,6 @@ export class MeteoService {
 
   getMapImage(params: MeteoFilter, offset: string): Observable<Blob> {
     const options = {
-      externalURL: this.external_url,
       conf: {
         responseType: "blob",
       },
