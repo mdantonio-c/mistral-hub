@@ -455,6 +455,9 @@ export class ObsMapComponent {
         title = bcode.short || bcode.description;
         userunit = bcode.userunit;
         (scale = bcode.scale), (offset = bcode.offset);
+      } else {
+        title = srv.getProductDescr(product);
+        userunit = srv.getUnit(product);
       }
 
       div.innerHTML += `<h6>${title} [${userunit}]</h6>`;

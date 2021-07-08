@@ -240,6 +240,16 @@ export class ObsService {
     return this._max;
   }
 
+  getUnit(product): string {
+    let code_dictionary = this._data.descr[product];
+    return code_dictionary.unit;
+  }
+
+  getProductDescr(product): string {
+    let code_dictionary = this._data.descr[product];
+    return code_dictionary.descr;
+  }
+
   // @ts-ignore
   set max(value: number) {
     this._max = value;

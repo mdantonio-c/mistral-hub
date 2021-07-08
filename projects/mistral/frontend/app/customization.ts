@@ -315,7 +315,7 @@ Each data can also be equipped with attributes, for example produced by quality 
 The formats managed are:
 <ul>
 <li>BUFR</li>
-<li>JSON</li>
+<li>JSON (in development)</li>
 </ul>
 For more details please see: <a href="https://doc.rmap.cc/rmap_rfc/rfc.html#formati" target="blank">doc.rmap.cc/rmap_rfc/rfc.html#formati</a>
 </p>
