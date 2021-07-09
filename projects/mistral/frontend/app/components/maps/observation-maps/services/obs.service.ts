@@ -51,7 +51,7 @@ export class ObsService {
       params["q"] += `;network:${filter.network}`;
     }
     // console.log(`q: ${params.q}`);
-    return this.api.get("fields", params);
+    return this.api.get("/api/fields", params);
   }
 
   /**
