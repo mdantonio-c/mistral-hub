@@ -1,4 +1,4 @@
-FROM arpaesimc/fedora:31
+FROM arpaesimc/centos:8
 
 LABEL maintainer="Giuseppe Trotta <g.trotta@cineca.it>"
 ENV NIFI_VERSION="1.13.2" \
