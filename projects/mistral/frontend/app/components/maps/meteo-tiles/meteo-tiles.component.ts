@@ -641,15 +641,15 @@ export class MeteoTilesComponent {
           {}
         ),
         // Wind speed at 10 meters
-        [DP.WIND10M]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            bounds: bounds,
-          }),
-          {}
-        ),
+        // [DP.WIND10M]: L.timeDimension.layer.tileLayer.portus(
+        //   L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
+        //     minZoom: 5,
+        //     maxZoom: maxZoom,
+        //     tms: false,
+        //     bounds: bounds,
+        //   }),
+        //   {}
+        // ),
         // Relative humidity Time Layer
         [DP.RH]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(`${baseUrl}/humidity-r/{d}{h}/{z}/{x}/{y}.png`, {
@@ -867,7 +867,7 @@ export class MeteoTilesComponent {
     this.legends = {
       [DP.TM2]: this.createLegendControl("tm2"),
       [DP.PMSL]: this.createLegendControl("pmsl"),
-      [DP.WIND10M]: this.createLegendControl("ws10m"),
+      // [DP.WIND10M]: this.createLegendControl("ws10m"),
       [DP.RH]: this.createLegendControl("rh"),
 
       [DP.PREC1P]: this.createLegendControl("prp"),
