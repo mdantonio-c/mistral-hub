@@ -213,7 +213,10 @@ export class FormDataService {
     this.workflowService.resetSteps();
     // Return the form data after all this.* members had been reset
     this.formData.clear();
-    this.isDatasetFormValid = this.isFilterFormValid = this.isPostprocessFormValid = false;
+    this.isDatasetFormValid =
+      this.isFilterFormValid =
+      this.isPostprocessFormValid =
+        false;
     return this.formData;
   }
 

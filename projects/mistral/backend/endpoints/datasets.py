@@ -25,7 +25,7 @@ class Datasets(EndpointResource):
     )
     # 200: {'schema': {'$ref': '#/definitions/Dataset'}}
     def get(self, licenceSpecs=False):
-        """ Get all the datasets or a specific one if a name is provided."""
+        """Get all the datasets or a specific one if a name is provided."""
         db = sqlalchemy.get_instance()
         user = self.get_user()
         # TODO: it's okay that if logged you'll see less dataset than anonymous users?
@@ -63,7 +63,7 @@ class SingleDataset(EndpointResource):
     )
     # 200: {'schema': {'$ref': '#/definitions/Dataset'}}
     def get(self, dataset_name, licenceSpecs=False):
-        """ Get all the datasets or a specific one if a name is provided."""
+        """Get all the datasets or a specific one if a name is provided."""
         db = sqlalchemy.get_instance()
         user = self.get_user()
         # TODO: it's okay that if logged you'll see less dataset than anonymous users?

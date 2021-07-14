@@ -222,15 +222,26 @@
         class="col d-flex align-items-center"
         [hidden]="isImageLoading || images.length === 0"
       >
-      
-        <button type="button" id="prev-button" class="btn btn-info btn-sm mr-1" (click)="backward()" title="Backward">
+        <button
+          type="button"
+          id="prev-button"
+          class="btn btn-info btn-sm mr-1"
+          (click)="backward()"
+          title="Backward"
+        >
           <span class="fas fa-backward"></span>
         </button>
 
-        <button type="button" id="prev-button" class="btn btn-info btn-sm mr-2" (click)="forward()" title="Forward">
+        <button
+          type="button"
+          id="prev-button"
+          class="btn btn-info btn-sm mr-2"
+          (click)="forward()"
+          title="Forward"
+        >
           <span class="fas fa-forward"></span>
         </button>
-        
+
         <button
           type="button"
           id="play-button"

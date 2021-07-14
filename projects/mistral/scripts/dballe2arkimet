@@ -114,7 +114,7 @@ parser.add_argument(
 
 opts = parser.parse_args()
 
-date = datetime.date(*[int(e) for e in opts.date.split("-")])
+date = datetime.date(*(int(e) for e in opts.date.split("-")))
 
 
 class Error(Exception):

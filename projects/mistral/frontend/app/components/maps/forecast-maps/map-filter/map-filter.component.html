@@ -31,7 +31,12 @@
                       'wi-barometer wi-fw': f.key === 'pressure',
                       'wi-cloud wi-fw': f.key === 'cloud',
                       'wi-cloudy wi-fw': f.key === 'cloud_hml',
-                      'wi-umbrella': f.key === 'prec1' || f.key === 'prec3' || f.key === 'prec6' || f.key === 'prec12' || f.key === 'prec24',
+                      'wi-umbrella':
+                        f.key === 'prec1' ||
+                        f.key === 'prec3' ||
+                        f.key === 'prec6' ||
+                        f.key === 'prec12' ||
+                        f.key === 'prec24',
                       'wi-snow': f.key === 'snow3' || f.key === 'snow6',
                       'wi-sandstorm': f.key === 'maxwind',
                       'wi-strong-wind': f.key === 'wind',
@@ -41,11 +46,9 @@
                       'wi-thermometer': f.key === 't2m_0c' || f.key === 't2m'
                     }"
                   >
-                  <small
-                  class="verySmallText"
-                  *ngIf="f.key === 'prec1'"
-                  >1h</small
-                  >
+                    <small class="verySmallText" *ngIf="f.key === 'prec1'"
+                      >1h</small
+                    >
                     <small
                       class="verySmallText"
                       *ngIf="f.key === 'prec3' || f.key === 'snow3'"
@@ -56,14 +59,10 @@
                       *ngIf="f.key === 'prec6' || f.key === 'snow6'"
                       >6h</small
                     >
-                    <small
-                      class="verySmallText"
-                      *ngIf="f.key === 'prec12'"
+                    <small class="verySmallText" *ngIf="f.key === 'prec12'"
                       >12h</small
                     >
-                    <small
-                      class="verySmallText"
-                      *ngIf="f.key === 'prec24'"
+                    <small class="verySmallText" *ngIf="f.key === 'prec24'"
                       >24h</small
                     >
                     <small class="verySmallText" *ngIf="f.key === 't2m_0c'"

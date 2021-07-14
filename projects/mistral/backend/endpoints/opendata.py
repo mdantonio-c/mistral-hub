@@ -29,7 +29,7 @@ class OpendataFileList(EndpointResource):
         },
     )
     def get(self, dataset_name, q=""):
-        """ Get all the opendata filenames and metadata for that dataset"""
+        """Get all the opendata filenames and metadata for that dataset"""
         log.debug("requested for {}", dataset_name)
         # check if the dataset exists
         db = sqlalchemy.get_instance()
@@ -85,7 +85,7 @@ class OpendataFileList(EndpointResource):
         log.debug("opendata query {}", query)
         # get the available opendata requests
         opendata_req = db.Request.query.filter(
-            db.Request.args.contains(query), db.Request.opendata == True
+            db.Request.args.contains(query), db.Request.opendata is True
         )
 
         res = []

@@ -41,7 +41,10 @@ def upgrade():
         sa.Column("group_license_id", sa.Integer(), nullable=True),
         sa.Column("name", sa.String(), nullable=False),
         sa.Column("descr", sa.String(), nullable=False),
-        sa.ForeignKeyConstraint(["group_license_id"], ["group_license.id"],),
+        sa.ForeignKeyConstraint(
+            ["group_license_id"],
+            ["group_license.id"],
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_license_name"), "license", ["name"], unique=False)
