@@ -1,1 +1,11 @@
 version: "3.8"
+
+services:
+  postgres:
+    ports:
+      - ${ALCHEMY_PORT}:${ALCHEMY_PORT}
+
+  rabbit:
+    ports:
+      - ${RABBITMQ_PORT}:${RABBITMQ_PORT}
+      - ${RABBITMQ_MANAGEMENT_PORT}:${RABBITMQ_MANAGEMENT_PORT}

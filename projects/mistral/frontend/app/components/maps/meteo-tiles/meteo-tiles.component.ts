@@ -308,7 +308,9 @@ export class MeteoTilesComponent {
           // console.log(`endTime ${moment.utc(endTime).format()}`);
 
           // add time dimension
-          let newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
+          let newAvailableTimes = (
+            L as any
+          ).TimeDimension.Util.explodeTimeRange(
             startTime,
             endTime,
             `PT${runAvailable.step}H`
@@ -332,15 +334,13 @@ export class MeteoTilesComponent {
 
           // add default layer
           if (this.dataset === "iff") {
-            let tp1prec: L.Layer = this.layersControl["overlays"][
-              this.DEFAULT_PRODUCT_IFF
-            ];
+            let tp1prec: L.Layer =
+              this.layersControl["overlays"][this.DEFAULT_PRODUCT_IFF];
             tp1prec.addTo(this.map);
             this.legends[DP.TPPERC1].addTo(this.map);
           } else {
-            let tm2m: L.Layer = this.layersControl["overlays"][
-              this.DEFAULT_PRODUCT_COSMO
-            ];
+            let tm2m: L.Layer =
+              this.layersControl["overlays"][this.DEFAULT_PRODUCT_COSMO];
             tm2m.addTo(this.map);
             this.legends[DP.TM2].addTo(this.map);
           }
@@ -614,9 +614,8 @@ export class MeteoTilesComponent {
           {}
         ),
       };
-      let tp1prec: L.Layer = this.layersControl["overlays"][
-        this.DEFAULT_PRODUCT_IFF
-      ];
+      let tp1prec: L.Layer =
+        this.layersControl["overlays"][this.DEFAULT_PRODUCT_IFF];
       tp1prec.addTo(this.map);
     } else {
       this.layersControl["overlays"] = {

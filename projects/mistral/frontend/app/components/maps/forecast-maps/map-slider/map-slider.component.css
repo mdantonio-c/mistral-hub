@@ -1,21 +1,21 @@
 /* new */
 
 div.dpc-container {
-  width:100%;
-  display:flex;
-  justify-content:center;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 div.dpc-label {
-  border-radius:.25rem;
-  background-color:white;
-  color:#6c757d;
-  padding:5px;
-  margin:5px 5px 10px;
-  border-style:solid;
-  border-width:2px;
-  border-color:#6c757d;
-  width:fit-content;
+  border-radius: 0.25rem;
+  background-color: white;
+  color: #6c757d;
+  padding: 5px;
+  margin: 5px 5px 10px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #6c757d;
+  width: fit-content;
 }
 
 div.explain {

@@ -12,8 +12,10 @@ import { ForecastMapsBaseComponent } from "./forecast-maps-base.component";
   selector: "app-forecast-maps",
   templateUrl: "./forecast-maps.component.html",
 })
-export class ForecastMapsComponent extends ForecastMapsBaseComponent
-  implements OnInit {
+export class ForecastMapsComponent
+  extends ForecastMapsBaseComponent
+  implements OnInit
+{
   loading = false;
   filter: MeteoFilter;
   offsets: string[] = [];

@@ -53,7 +53,7 @@ class Fields(EndpointResource):
         SummaryStats=True,
         allAvailableProducts=False,
     ):
-        """ Get all fields for given datasets"""
+        """Get all fields for given datasets"""
         bounding_box = {}
         if lonmin:
             if not lonmax or not latmin or not latmax:

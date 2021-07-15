@@ -344,7 +344,7 @@ class BeArkimet:
     @staticmethod
     def __decode_area(i):
         if not isinstance(i, dict):
-            raise ValueError("Unexpected input type for <{}>".format(type(i).__name__))
+            raise ValueError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("s")
         vals = [k[0] + "=" + str(k[1]) for k in i.get("va", {}).items()]
         if style == "GRIB":
@@ -362,7 +362,7 @@ class BeArkimet:
     @staticmethod
     def __decode_level(i):
         if not isinstance(i, dict):
-            raise TypeError("Unexpected input type for <{}>".format(type(i).__name__))
+            raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("s")
         if style == "GRIB1":
             lev = [str(i.get("lt", ""))]
@@ -401,7 +401,7 @@ class BeArkimet:
     @staticmethod
     def __decode_origin(i):
         if not isinstance(i, dict):
-            raise TypeError("Unexpected input type for <{}>".format(type(i).__name__))
+            raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("s")
         if style == "GRIB1":
             return "GRIB1,{ce},{sc},{pr}".format(
@@ -427,7 +427,7 @@ class BeArkimet:
     @staticmethod
     def __decode_proddef(i):
         if not isinstance(i, dict):
-            raise TypeError("Unexpected input type for <{}>".format(type(i).__name__))
+            raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("s")
         if style == "GRIB":
             vals = [k[0] + "=" + str(k[1]) for k in i.get("va", {}).items()]
@@ -438,7 +438,7 @@ class BeArkimet:
     @staticmethod
     def __decode_product(i):
         if not isinstance(i, dict):
-            raise TypeError("Unexpected input type for <{}>".format(type(i).__name__))
+            raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("s")
         if style == "GRIB1":
             return "GRIB1,{origin},{table},{product}".format(
@@ -471,13 +471,13 @@ class BeArkimet:
     @staticmethod
     def __decode_quantity(i):
         if not isinstance(i, dict):
-            raise TypeError("Unexpected input type for <{}>".format(type(i).__name__))
+            raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         return ",".join([str(k) for k in i.get("va", [])])
 
     @staticmethod
     def decode_run(i):
         if not isinstance(i, dict):
-            raise TypeError("Unexpected input type for <{}>".format(type(i).__name__))
+            raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("s")
         if style == "MINUTE":
             val = i.get("va")
@@ -492,13 +492,13 @@ class BeArkimet:
     @staticmethod
     def __decode_task(i):
         if not isinstance(i, dict):
-            raise TypeError("Unexpected input type for <{}>".format(type(i).__name__))
+            raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         return str(i.get("va", ""))
 
     @staticmethod
     def __decode_timerange(i):
         if not isinstance(i, dict):
-            raise TypeError("Unexpected input type for <{}>".format(type(i).__name__))
+            raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("s")
         # un = {}
         if style == "GRIB1":

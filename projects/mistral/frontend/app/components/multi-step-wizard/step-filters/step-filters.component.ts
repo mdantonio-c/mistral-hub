@@ -259,8 +259,9 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
         ) {
           this.formDataService.setReftime(null);
         } else {
-          let fromDate: Date = (this.filterForm.controls
-            .reftime as FormGroup).get("fromDate").value;
+          let fromDate: Date = (
+            this.filterForm.controls.reftime as FormGroup
+          ).get("fromDate").value;
           const fromTime = (this.filterForm.controls.reftime as FormGroup)
             .get("fromTime")
             .value.split(":");
@@ -269,8 +270,9 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
             .hours(parseInt(fromTime[0]))
             .minutes(parseInt(fromTime[1]))
             .toDate();
-          let toDate: Date = (this.filterForm.controls
-            .reftime as FormGroup).get("toDate").value;
+          let toDate: Date = (
+            this.filterForm.controls.reftime as FormGroup
+          ).get("toDate").value;
           const toTime = (this.filterForm.controls.reftime as FormGroup)
             .get("toTime")
             .value.split(":");

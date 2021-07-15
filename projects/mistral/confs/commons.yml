@@ -27,15 +27,6 @@ services:
     volumes:
       - ${DATA_DIR}/maps:/meteo
 
-  postgres:
-    ports:
-      - ${ALCHEMY_PORT}:${ALCHEMY_PORT}
-
-  rabbit:
-    ports:
-      - ${RABBITMQ_PORT}:${RABBITMQ_PORT}
-      - ${RABBITMQ_MANAGEMENT_PORT}:${RABBITMQ_MANAGEMENT_PORT}
-
   flower:
     build: ${PROJECT_DIR}/builds/backend
     image: meteohub/backend:${RAPYDO_VERSION}
@@ -63,6 +54,7 @@ services:
   nifi:
     build: ${PROJECT_DIR}/builds/ingestor
     image: meteohub/nifi:${RAPYDO_VERSION}
+    restart: always
     volumes:
       - ${DATA_DIR}/arkimet:/arkimet/datasets
       - ${DATA_DIR}/nifi:/opt/nifi
@@ -72,27 +64,6 @@ services:
       ACTIVATE: ${ACTIVATE_NIFI}
     networks:
       default:
-
-  # arkimet:
-  #   restart: always
-  #   build:
-  #     context: ${PROJECT_DIR}/builds/arkimet
-  #     # args:
-  #     #   RAPYDO_VERSION: ${RAPYDO_VERSION}
-  #     #   CURRENT_UID: ${CURRENT_UID}
-  #   image: rapydo/arkimet:${RAPYDO_VERSION}
-  #   # expose:
-  #   #   - 8090
-  #   ports:
-  #     - 8090:8090
-  #   networks:
-  #     default:
-  #       aliases:
-  #         - arkimet
-  #   volumes:
-  #     - ${DATA_DIR}/arkimet:/datasets
-  #   environment:
-  #     ACTIVATE: 1
 # volumes:
 #   -
 

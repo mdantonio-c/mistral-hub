@@ -6,8 +6,10 @@ import { MeteoFilter } from "./services/meteo.service";
   selector: "app-flash-flood-maps",
   templateUrl: "./flash-flood-maps.component.html",
 })
-export class FlashFloodMapsComponent extends ForecastMapsBaseComponent
-  implements OnInit {
+export class FlashFloodMapsComponent
+  extends ForecastMapsBaseComponent
+  implements OnInit
+{
   loading = false;
   filter: MeteoFilter;
   offsets: string[] = [];

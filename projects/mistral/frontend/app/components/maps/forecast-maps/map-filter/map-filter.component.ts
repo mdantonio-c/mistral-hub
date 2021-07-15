@@ -40,9 +40,8 @@ export class MapFilterComponent implements OnInit {
   areas: KeyValuePair[] = Areas;
   user;
 
-  @Output() onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<
-    MeteoFilter
-  >();
+  @Output() onFilterChange: EventEmitter<MeteoFilter> =
+    new EventEmitter<MeteoFilter>();
 
   constructor(private fb: FormBuilder, private authService: AuthService) {
     this.filterForm = this.fb.group({

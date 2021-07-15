@@ -10,6 +10,7 @@ import { of } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ToastrModule } from "ngx-toastr";
 import { NgxSpinnerModule } from "ngx-spinner";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 
 import { ArchiveComponent } from "./archive.component";
 import { BytesPipe } from "@rapydo/pipes/bytes";
@@ -69,6 +70,7 @@ describe("ArchiveComponent", () => {
     TestBed.configureTestingModule({
       declarations: [ArchiveComponent, StubLoadingComponent, BytesPipe],
       imports: [
+        BrowserAnimationsModule,
         NgxDatatableModule,
         MomentModule,
         NgbModule,

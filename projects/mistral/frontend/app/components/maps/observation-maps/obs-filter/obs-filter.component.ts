@@ -55,15 +55,12 @@ export class ObsFilterComponent implements OnInit {
 
   isUpdatable: boolean = false;
 
-  @Output() filterChange: EventEmitter<ObsFilter> = new EventEmitter<
-    ObsFilter
-  >();
-  @Output() filterUpdate: EventEmitter<ObsFilter> = new EventEmitter<
-    ObsFilter
-  >();
-  @Output() filterDownload: EventEmitter<ObsFilter> = new EventEmitter<
-    ObsFilter
-  >();
+  @Output() filterChange: EventEmitter<ObsFilter> =
+    new EventEmitter<ObsFilter>();
+  @Output() filterUpdate: EventEmitter<ObsFilter> =
+    new EventEmitter<ObsFilter>();
+  @Output() filterDownload: EventEmitter<ObsFilter> =
+    new EventEmitter<ObsFilter>();
 
   constructor(
     private fb: FormBuilder,
@@ -291,8 +288,8 @@ export class ObsFilterComponent implements OnInit {
     return filter;
   }
   toggleReliabilityCheck() {
-    this.filterForm.value.reliabilityCheck = !this.filterForm.value
-      .reliabilityCheck;
+    this.filterForm.value.reliabilityCheck =
+      !this.filterForm.value.reliabilityCheck;
     if (this.allProducts && this.allProducts.length > 0) {
       this.isUpdatable = true;
     }

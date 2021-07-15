@@ -1,5 +1,6 @@
 import { Component, DebugElement } from "@angular/core";
 import { async, ComponentFixture, TestBed } from "@angular/core/testing";
+import { RouterTestingModule } from "@angular/router/testing";
 import { ToastrModule } from "ngx-toastr";
 
 import { ApiService } from "@rapydo/services/api";
@@ -34,6 +35,7 @@ describe("DataComponent", () => {
         StubMultiStepWizardComponent,
       ],
       imports: [
+        RouterTestingModule.withRoutes([]),
         ToastrModule.forRoot({
           maxOpened: 5,
           preventDuplicates: true,

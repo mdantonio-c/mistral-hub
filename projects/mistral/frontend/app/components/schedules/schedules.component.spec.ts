@@ -1,5 +1,6 @@
 import { Component, DebugElement } from "@angular/core";
 import { Injectable } from "@angular/core";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { async, ComponentFixture, TestBed } from "@angular/core/testing";
 import { NgxDatatableModule } from "@swimlane/ngx-datatable";
 import { MomentModule } from "ngx-moment";
@@ -67,6 +68,7 @@ describe("SchedulesComponent", () => {
     TestBed.configureTestingModule({
       declarations: [SchedulesComponent, StubLoadingComponent, BytesPipe],
       imports: [
+        BrowserAnimationsModule,
         NgxDatatableModule,
         MomentModule,
         NgbModule,

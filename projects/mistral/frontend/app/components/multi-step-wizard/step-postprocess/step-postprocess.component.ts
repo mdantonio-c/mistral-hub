@@ -406,7 +406,8 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
 
   private buildOutputFormat() {
     if (this.formDataService.getFormData().output_format) {
-      this.selectedConversionFormat = this.formDataService.getFormData().output_format;
+      this.selectedConversionFormat =
+        this.formDataService.getFormData().output_format;
     } else {
       this.selectedConversionFormat = "-";
     }

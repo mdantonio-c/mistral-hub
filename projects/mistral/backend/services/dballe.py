@@ -159,7 +159,7 @@ class BeDballe:
                 datemin=datemin, datemax=datemax
             )
         if network:
-            arkimet_query += "product: BUFR:t = {}".format(network[0])
+            arkimet_query += f"product: BUFR:t = {network[0]}"
             if len(network) > 1:
                 for i in network[1:]:
                     arkimet_query += f" or  BUFR:t = {i}"

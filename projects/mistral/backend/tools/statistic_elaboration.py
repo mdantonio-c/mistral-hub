@@ -27,7 +27,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
     # split the input file according to the input timeranges
     file_not_for_pp = filebase + f"_others.{fileformat}.tmp"
     if fileformat == "grib":
-        with open(input, mode="r") as filein:
+        with open(input) as filein:
             fd: Dict[tuple[int, int], Any] = {}
             fdother = None
             while True:

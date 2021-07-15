@@ -3,6 +3,7 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { Router } from "@angular/router";
 import { ReactiveFormsModule, FormBuilder } from "@angular/forms";
 import { NgxSpinnerModule } from "ngx-spinner";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 
 import { NotificationService } from "@rapydo/services/notification";
 import { StepDatasetsComponent } from "./step-datasets.component";
@@ -22,6 +23,7 @@ describe("StepDatasetsComponent", () => {
     TestBed.configureTestingModule({
       declarations: [StepDatasetsComponent],
       imports: [
+        BrowserAnimationsModule,
         ReactiveFormsModule,
         RouterTestingModule.withRoutes([]),
         NgxSpinnerModule,
