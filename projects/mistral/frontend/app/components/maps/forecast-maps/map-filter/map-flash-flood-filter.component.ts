@@ -19,17 +19,21 @@ export class MapFlashFloodFilterComponent implements OnInit {
   fields: KeyValuePair[] = FlashFloodFFields;
   levels_pe: KeyValuePair[] = Levels_pe;
   levels_pr: KeyValuePair[] = Levels_pr;
-  runs: KeyValuePair[] = [{ key: "00", value: "00" }];
+  runs: KeyValuePair[] = [
+    { key: "00", value: "00" },
+    { key: "12", value: "12" },
+  ];
   resolutions: KeyValuePair[] = [{ key: "lm2.2", value: "2.2" }];
-  areas: KeyValuePair[] = [{ key: "Italia", value: "Italy" },
-  { key: "Nord_Italia", value: "Northern Italy" },
-  { key: "Centro_Italia", value: "Central Italy" },
-  { key: "Sud_Italia", value: "Southern Italy" }];
+  areas: KeyValuePair[] = [
+    { key: "Italia", value: "Italy" },
+    { key: "Nord_Italia", value: "Northern Italy" },
+    { key: "Centro_Italia", value: "Central Italy" },
+    { key: "Sud_Italia", value: "Southern Italy" },
+  ];
   user;
 
-  @Output() onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<
-    MeteoFilter
-  >();
+  @Output()
+  onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<MeteoFilter>();
 
   constructor(private fb: FormBuilder, private authService: AuthService) {
     this.filterForm = this.fb.group({

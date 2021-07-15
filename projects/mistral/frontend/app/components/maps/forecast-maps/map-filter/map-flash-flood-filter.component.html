@@ -106,13 +106,6 @@
                     ? 'btn-success'
                     : 'btn-secondary'
                 "
-                *ngIf="
-                  !(
-                    run.key === '12' &&
-                    (filterForm.get('field').value === 'percentile' ||
-                      filterForm.get('field').value === 'probability')
-                  )
-                "
               >
                 <input type="radio" formControlName="run" [value]="run.key" />
                 <strong>{{ run.key }}</strong>
@@ -162,7 +155,7 @@
 
             <div
               _ngcontent-ibx-c201=""
-              style="font-size: 90%; margin: 5px;"
+              style="font-size: 90%; margin: 5px"
               class="ng-star-inserted"
             >
               From 0 to 48h: 2.2 km
@@ -177,8 +170,7 @@
             <label class="col-form-label"><strong>AREA:</strong></label>
             <select id="areaGroup" formControlName="area" class="form-control">
               <ng-container *ngFor="let area of areas">
-                <option
-                  [value]="area.key">
+                <option [value]="area.key">
                   {{ area.value }}
                 </option>
               </ng-container>
