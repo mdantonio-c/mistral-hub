@@ -135,6 +135,7 @@ class TestApp(BaseTests):
                 )
                 break
 
+        assert isinstance(response_data, dict)
         if not response_data["items"]:
             pytest.fail("No results obtained from DBALLE")
 

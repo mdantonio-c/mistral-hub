@@ -1,6 +1,7 @@
 from typing import Tuple
 
-from restapi.connectors import Connector, sqlalchemy
+from restapi.connectors import sqlalchemy
+from restapi.connectors.sqlalchemy import SQLAlchemy
 from restapi.customizer import BaseCustomizer, FlaskRequest, Props, User
 from restapi.exceptions import NotFound
 from restapi.models import Schema, fields, validate
@@ -33,7 +34,7 @@ class Customizer(BaseCustomizer):
 
     @staticmethod
     def custom_user_properties_post(
-        user: User, properties: Props, extra_properties: Props, db: Connector
+        user: User, properties: Props, extra_properties: Props, db: SQLAlchemy
     ) -> None:
 
         datasets = []
@@ -159,6 +160,8 @@ class Customizer(BaseCustomizer):
         # these are additional fields in registration form
         if scope == BaseCustomizer.REGISTRATION:
             return {}
+
+        return {}
 
     @staticmethod
     def get_custom_output_fields(request: FlaskRequest) -> Props:
