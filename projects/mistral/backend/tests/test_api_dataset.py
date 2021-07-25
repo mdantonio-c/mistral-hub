@@ -106,6 +106,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint, headers=self.get("auth_header"))
         assert r.status_code == 200
         response_data = self.get_content(r)
+        assert isinstance(response_data, dict)
         # the dataset is not public
         assert response_data["is_public"] is False
         # # the user can access

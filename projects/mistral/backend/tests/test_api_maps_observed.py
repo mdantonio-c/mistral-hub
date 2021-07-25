@@ -128,6 +128,7 @@ class TestApp(BaseTests):
             assert r.status_code == 200
 
             response_data = TestApp.get_content(r)
+            assert isinstance(response_data, dict)
             if response_data["items"]:
                 log.debug(
                     "api fields db type {} : response data: {}", db_type, response_data
@@ -223,6 +224,7 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
+        assert isinstance(response_data, dict)
         # check response code
         assert r.status_code == 200
         # check response content
@@ -240,6 +242,7 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
+        assert isinstance(response_data, dict)
         station_lat_example = response_data["data"][0]["stat"]["lat"]
         station_lon_example = response_data["data"][0]["stat"]["lon"]
         # check response code
@@ -268,6 +271,7 @@ class TestApp(BaseTests):
         endpoint = f"{API_URI}/observations?q=reftime:>={dfrom},<={dto};license:CCBY_COMPLIANT&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
+        assert isinstance(response_data, dict)
         # check response code
         assert r.status_code == 200
         # check response content
@@ -287,6 +291,7 @@ class TestApp(BaseTests):
         endpoint = f"{API_URI}/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&lonmin={rand_lonmin}&lonmax={rand_lonmax}&latmin={rand_latmin}&latmax={rand_latmax}"
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
+        assert isinstance(response_data, dict)
         assert r.status_code == 200
         assert not response_data["data"]
 
@@ -315,6 +320,7 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
+        assert isinstance(response_data, dict)
         assert r.status_code == 200
         assert not response_data["data"]
 
@@ -349,6 +355,7 @@ class TestApp(BaseTests):
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
+        assert isinstance(response_data, dict)
         # check response code
         assert r.status_code == 200
         # check response content

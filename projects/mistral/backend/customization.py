@@ -1,7 +1,10 @@
-from restapi.connectors import sqlalchemy
-from restapi.customizer import BaseCustomizer
+from typing import Tuple
+
+from restapi.connectors import Connector, sqlalchemy
+from restapi.customizer import BaseCustomizer, FlaskRequest, Props, User
 from restapi.exceptions import NotFound
 from restapi.models import Schema, fields, validate
+from restapi.rest.definition import EndpointResource
 
 
 class Datasets(Schema):
@@ -11,7 +14,7 @@ class Datasets(Schema):
 
 class Customizer(BaseCustomizer):
     @staticmethod
-    def custom_user_properties_pre(properties):
+    def custom_user_properties_pre(properties: Props) -> Tuple[Props, Props]:
         extra_properties = {}
         for p in ("datasets",):
             if p in properties:
@@ -29,7 +32,9 @@ class Customizer(BaseCustomizer):
         return properties, extra_properties
 
     @staticmethod
-    def custom_user_properties_post(user, properties, extra_properties, db):
+    def custom_user_properties_post(
+        user: User, properties: Props, extra_properties: Props, db: Connector
+    ) -> None:
 
         datasets = []
         for dataset_id in extra_properties.get("datasets", []):
@@ -42,7 +47,7 @@ class Customizer(BaseCustomizer):
         user.datasets = datasets
 
     @staticmethod
-    def manipulate_profile(ref, user, data):
+    def manipulate_profile(ref: EndpointResource, user: User, data: Props) -> Props:
         data["disk_quota"] = user.disk_quota
         data["amqp_queue"] = user.amqp_queue
         data["requests_expiration_days"] = user.requests_expiration_days
@@ -58,7 +63,7 @@ class Customizer(BaseCustomizer):
         return data
 
     @staticmethod
-    def get_custom_input_fields(request, scope):
+    def get_custom_input_fields(request: FlaskRequest, scope: int) -> Props:
 
         # prevent queries at server startup
         if request:
@@ -156,7 +161,7 @@ class Customizer(BaseCustomizer):
             return {}
 
     @staticmethod
-    def get_custom_output_fields(request):
+    def get_custom_output_fields(request: FlaskRequest) -> Props:
         return {
             "disk_quota": fields.Int(),
             "requests_expiration_days": fields.Int(),
