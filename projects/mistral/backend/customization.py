@@ -33,7 +33,7 @@ class Customizer(BaseCustomizer):
         return properties, extra_properties
 
     @staticmethod
-    def custom_user_properties_post(
+    def custom_user_properties_post(  # type: ignore[override]
         user: User, properties: Props, extra_properties: Props, db: SQLAlchemy
     ) -> None:
 
