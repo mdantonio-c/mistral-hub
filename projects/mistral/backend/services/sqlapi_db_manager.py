@@ -68,9 +68,9 @@ class SqlApiDbManager:
         return True if res is not None else False
 
     @staticmethod
-    def count_user_requests(db, user_id):
+    def count_user_requests(db, user_id, archived):
         log.debug("get total requests for user UUID {}", user_id)
-        return db.Request.query.filter_by(user_id=user_id).count()
+        return db.Request.query.filter_by(user_id=user_id, archived=archived).count()
 
     @staticmethod
     def count_user_schedules(db, user_id):
