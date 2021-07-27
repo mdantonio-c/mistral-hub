@@ -46,7 +46,7 @@ class UserRequests(EndpointResource):
 
         db = sqlalchemy.get_instance()
         if get_total:
-            counter = repo.count_user_requests(db, user.id)
+            counter = repo.count_user_requests(db, user.id, archived)
             return self.pagination_total(counter)
 
         # offset = (page - 1) * size
