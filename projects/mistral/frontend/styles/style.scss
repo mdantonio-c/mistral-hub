@@ -30,20 +30,23 @@
   }
 }
 
-.navbar .navbar-brand {
-  margin-right: 40px;
-}
+.navbar {
+  .navbar-brand {
+    margin-right: 40px;
 
-.navbar .navbar-brand img {
-  height: 48px;
-}
+    img {
+      height: 48px;
+      color: rgba(255, 255, 255, 0.5) !important;
+    }
 
-.navbar .navbar-brand .project-title {
-  /*font-family: 'Manjari Bold';*/
-  font-family: "Roboto Condensed";
-  top: 9px;
-  position: relative;
-  font-size: large;
+    .project-title {
+      /*font-family: 'Manjari Bold';*/
+      font-family: "Roboto Condensed";
+      top: 9px;
+      position: relative;
+      font-size: large;
+    }
+  }
 }
 
 [hidden] {
@@ -113,17 +116,14 @@
   }
   75% {
     opacity: 0;
-  } /* Set this to 99% for no fade-in. */
+  }
+  /* Set this to 99% for no fade-in. */
   100% {
     opacity: 1;
   }
 }
 
 /* Buttons */
-.btn.no-rounded {
-  border-radius: 0 !important;
-}
-
 .btn.no-rounded {
   -webkit-border-radius: 0 !important;
   -moz-border-radius: 0 !important;
@@ -647,6 +647,7 @@ input[type="number"]::-webkit-outer-spin-button {
 .carousel-inner .active {
   opacity: 1;
 }
+
 .legenda {
   padding: 6px 12px;
   font: 12px Arial, Helvetica, sans-serif;
@@ -685,6 +686,7 @@ input[type="number"]::-webkit-outer-spin-button {
   margin-right: 8px;
   opacity: 0.7;
 }
+
 .legend_prec {
   padding: 6px 12px;
   font: 12px Arial, Helvetica, sans-serif;
@@ -703,6 +705,7 @@ input[type="number"]::-webkit-outer-spin-button {
   margin-right: 8px;
   opacity: 0.7;
 }
+
 .legend_cc {
   padding: 6px 6px;
   font: 15px Arial, Helvetica, sans-serif;
@@ -713,6 +716,7 @@ input[type="number"]::-webkit-outer-spin-button {
   line-height: 40px;
   color: #555;
 }
+
 .legend_cc i {
   width: 16px;
   height: 39px;
@@ -720,6 +724,7 @@ input[type="number"]::-webkit-outer-spin-button {
   margin-right: 8px;
   opacity: 0.7;
 }
+
 .legend_rh {
   padding: 6px 6px;
   font: 15px Arial, Helvetica, sans-serif;
@@ -730,6 +735,7 @@ input[type="number"]::-webkit-outer-spin-button {
   line-height: 40px;
   color: #555;
 }
+
 .legend_rh i {
   width: 16px;
   height: 39px;
@@ -737,6 +743,7 @@ input[type="number"]::-webkit-outer-spin-button {
   margin-right: 8px;
   opacity: 0.7;
 }
+
 .legend_sf {
   padding: 6px 6px;
   font: 12px Arial, Helvetica, sans-serif;
@@ -766,6 +773,7 @@ input[type="number"]::-webkit-outer-spin-button {
   line-height: 22px;
   color: #555;
 }
+
 .legend_tpprob i {
   width: 16px;
   height: 21px;
@@ -773,6 +781,7 @@ input[type="number"]::-webkit-outer-spin-button {
   margin-right: 8px;
   opacity: 0.7;
 }
+
 .legend_tpperc {
   padding: 6px 8px;
   font: 12px Arial, Helvetica, sans-serif;
@@ -810,6 +819,7 @@ input[type="number"]::-webkit-outer-spin-button {
   margin-right: 8px;
   opacity: 0.7;
 }
+
 /* leaflet markers */
 .leaflet-marker-icon {
   display: flex;
@@ -870,27 +880,35 @@ input[type="number"]::-webkit-outer-spin-button {
 .mst-obs-marker-color-undefined {
   background-color: rgba(0, 0, 0, 0.2);
 }
+
 .mst-obs-marker-color-3030ff {
   background-color: rgba(48, 48, 255, 0.6);
 }
+
 .mst-obs-marker-color-007885 {
   background-color: rgba(0, 120, 133, 0.6);
 }
+
 .mst-obs-marker-color-00855D {
   background-color: rgba(0, 133, 93, 0.6);
 }
+
 .mst-obs-marker-color-0D8500 {
   background-color: rgba(13, 133, 0, 0.6);
 }
+
 .mst-obs-marker-color-478500 {
   background-color: rgba(71, 133, 0, 0.6);
 }
+
 .mst-obs-marker-color-788500 {
   background-color: rgba(120, 133, 0, 0.6);
 }
+
 .mst-obs-marker-color-853C00 {
   background-color: rgba(133, 60, 0, 0.6);
 }
+
 .mst-obs-marker-color-850000 {
   background-color: rgba(133, 0, 0, 0.6);
 }
@@ -899,6 +917,7 @@ input[type="number"]::-webkit-outer-spin-button {
   display: flex;
   flex: 1 1 auto;
 }
+
 /* adapt the alert box to the card*/
 .adapt-alert {
   padding-right: 1.25rem;
