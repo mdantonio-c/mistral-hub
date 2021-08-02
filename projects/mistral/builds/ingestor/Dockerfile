@@ -25,7 +25,7 @@ RUN mkdir -p /downloads/apache-nifi && \
     tar -zxvf nifi-$NIFI_VERSION-bin.tar.gz && \
     mv nifi-$NIFI_VERSION /opt/ && \
     ln -s /opt/nifi-$NIFI_VERSION/ /opt/nifi && \
-    chown -R nifi:nifi /opt/nifi
+    chown -R nifi:nifi /opt/nifi-$NIFI_VERSION
 
 USER nifi
 
