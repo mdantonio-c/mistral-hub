@@ -49,5 +49,5 @@ RUN mkdir /home/nifi/nifi-driver && \
 RUN sed -ie 's/^nifi\.web\.http\.host=.*/nifi.web.http.host=0.0.0.0/' conf/nifi.properties
 
 # Start NiFi
-ENTRYPOINT ["/bin/bash", "bin/nifi.sh", "run"]
+ENTRYPOINT ["/bin/bash", "/opt/nifi/bin/nifi.sh", "run"]
 EXPOSE 8080
