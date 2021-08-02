@@ -15,7 +15,7 @@ ENV JAVA_HOME="/usr/lib/jvm/jre"
 RUN mkdir /downloads/apache-nifi -p && \
     cd /downloads/apache-nifi && \
     yum -y install wget && \
-    wget https://archive.apache.org/nifi/$NIFI_VERSION/nifi-$NIFI_VERSION-bin.tar.gz && \
+    wget https://archive.apache.org/dist/nifi/$NIFI_VERSION/nifi-$NIFI_VERSION-bin.tar.gz && \
     tar -zxvf nifi-$NIFI_VERSION-bin.tar.gz && \
     mv nifi-$NIFI_VERSION /opt/ && \
     ln -s /opt/nifi-$NIFI_VERSION/ /opt/nifi
