@@ -9,7 +9,7 @@ services:
       - ${DATA_DIR}/user_repo:/data
       - ${DATA_DIR}/arkimet:/arkimet/datasets
       - ${DATA_DIR}/arkimet_conf:/arkimet/config
-      - ${DATA_DIR}/maps:/meteo
+      # - ${DATA_DIR}/maps:/meteo
       - ${DATA_DIR}/opendata:/opendata
       - ${PROJECT_DIR}/scripts:/scripts
 
@@ -24,8 +24,8 @@ services:
       INJECT_PLATFORM: ${PLATFORM}
       INJECT_MAPS_URL: ${MAPS_URL}
       INJECT_TILES_URL: ${TILES_URL}
-    volumes:
-      - ${DATA_DIR}/maps:/meteo
+    # volumes:
+    #   - ${DATA_DIR}/maps:/meteo
 
   flower:
     build: ${PROJECT_DIR}/builds/backend
