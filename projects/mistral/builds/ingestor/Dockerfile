@@ -26,9 +26,7 @@ RUN mkdir -p /downloads/apache-nifi && \
     rm nifi-$NIFI_VERSION-bin.tar.gz && \
     mv nifi-$NIFI_VERSION /opt/ && \
     ln -s /opt/nifi-$NIFI_VERSION/ /opt/nifi && \
-    chown -R nifi:nifi /opt/nifi-$NIFI_VERSION && \
-    ls /opt/ && \
-    ls /opt/nifi/
+    chown -R nifi:nifi /opt/nifi-$NIFI_VERSION
 
 USER nifi
 
@@ -43,6 +41,9 @@ RUN mkdir -p /home/nifi/ingest/radar \
 RUN cd /tmp && git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion.git && mv meteo-hub-ingestion/amqp2dballe_nifi_6.py meteo-hub-ingestion/dpc_bufr2dballe_4.py meteo-hub-ingestion/json2jsonl_nifi_2.py meteo-hub-ingestion/jsonl2bufr_nifi_3.py /home/nifi/ingest/obs && rm -rf meteo-hub-ingestion
 
 WORKDIR /opt/nifi
+
+# DEBUG CODE:
+RUN ls
 
 # install database drivers
 RUN mkdir /home/nifi/nifi-driver && \
