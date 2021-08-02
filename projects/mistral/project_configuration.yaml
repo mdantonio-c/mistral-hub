@@ -44,7 +44,7 @@ variables:
     UPLOAD_PATH: /data
 
     LASTDAYS: 10
-    PLATFORM: GALILEO
+    PLATFORM: G100
     MAPS_URL:
     TILES_URL:
     FRONTEND_DEBUG: 0

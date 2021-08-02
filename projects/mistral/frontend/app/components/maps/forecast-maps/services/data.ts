@@ -61,7 +61,7 @@ export const Resolutions: KeyValuePair[] = [
 ];
 
 export const Platforms: KeyValuePair[] = [
-  { key: "GALILEO", value: "GALILEO" },
+  { key: "G100", value: "G100" },
   { key: "MEUCCI", value: "MEUCCI" },
 ];
 

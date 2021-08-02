@@ -26,7 +26,7 @@ import { environment } from "@rapydo/../environments/environment";
   styleUrls: ["./map-filter.component.css"],
 })
 export class MapFilterComponent implements OnInit {
-  readonly DEFAULT_PLATFORM = environment.CUSTOM.PLATFORM || "GALILEO";
+  readonly DEFAULT_PLATFORM = environment.CUSTOM.PLATFORM || "G100";
   readonly DEFAULT_ENV = "PROD";
 
   filterForm: FormGroup;
@@ -40,9 +40,8 @@ export class MapFilterComponent implements OnInit {
   areas: KeyValuePair[] = Areas;
   user;
 
-  @Output() onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<
-    MeteoFilter
-  >();
+  @Output()
+  onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<MeteoFilter>();
 
   constructor(private fb: FormBuilder, private authService: AuthService) {
     this.filterForm = this.fb.group({

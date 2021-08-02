@@ -26,14 +26,17 @@ class DataReady(EndpointResource):
     )
     def post(self, cluster, model, rundate):
 
+        cluster = cluster.lower()
         log.info("Cluster = {}\tModel = {}\trundate = {}", cluster, model, rundate)
 
-        # check for Meucci or Galileo cluster wich one is currently exported in filesistem
-        if cluster.lower() == "galileo" or cluster.lower() == "meucci":
-            exported_platform = os.environ.get("PLATFORM", "GALILEO")
-            if exported_platform.lower() != cluster.lower():
+        # check which cluster is currently exported on filesystem
+        if cluster == "g100" or cluster == "galileo" or cluster == "meucci":
+            exported_platform = os.environ.get("PLATFORM", "G100").lower()
+            if exported_platform != cluster:
                 log.debug(
-                    f"the endpoint was called by {cluster} while the exported platform is {exported_platform}"
+                    "The endpoint was called by {} while the exported platform is {}",
+                    cluster,
+                    exported_platform,
                 )
                 return self.response("1", code=202)
 
