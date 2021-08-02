@@ -23,9 +23,12 @@ RUN mkdir -p /downloads/apache-nifi && \
     cd /downloads/apache-nifi && \
     wget --quiet $DOWNLOAD_URL/$NIFI_VERSION/nifi-$NIFI_VERSION-bin.tar.gz && \
     tar -zxvf nifi-$NIFI_VERSION-bin.tar.gz && \
+    rm nifi-$NIFI_VERSION-bin.tar.gz && \
     mv nifi-$NIFI_VERSION /opt/ && \
     ln -s /opt/nifi-$NIFI_VERSION/ /opt/nifi && \
-    chown -R nifi:nifi /opt/nifi-$NIFI_VERSION
+    chown -R nifi:nifi /opt/nifi-$NIFI_VERSION && \
+    ls /opt/ && \
+    ls /opt/nifi/ && \
 
 USER nifi
 
