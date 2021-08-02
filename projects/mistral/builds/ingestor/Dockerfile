@@ -28,7 +28,7 @@ RUN mkdir -p /downloads/apache-nifi && \
     ln -s /opt/nifi-$NIFI_VERSION/ /opt/nifi && \
     chown -R nifi:nifi /opt/nifi-$NIFI_VERSION && \
     ls /opt/ && \
-    ls /opt/nifi/ && \
+    ls /opt/nifi/
 
 USER nifi
 
