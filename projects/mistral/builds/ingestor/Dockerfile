@@ -2,7 +2,8 @@ FROM arpaesimc/centos:8
 
 LABEL maintainer="Giuseppe Trotta <g.trotta@cineca.it>"
 ENV NIFI_VERSION="1.13.2" \
-    JAVA_VERSION="1.8.0"
+    JAVA_VERSION="1.8.0" \
+    DOWNLOAD_URL="https://archive.apache.org/dist/nifi"
 
 RUN dnf -y repository-packages copr:copr.fedorainfracloud.org:simc:stable upgrade
 
@@ -11,14 +12,26 @@ RUN yum -y update && \
     yum -y install java-$JAVA_VERSION-openjdk
 ENV JAVA_HOME="/usr/lib/jvm/jre"
 
+# Install Git
+RUN yum -y install git
+
 # Install NiFi
 RUN mkdir /downloads/apache-nifi -p && \
     cd /downloads/apache-nifi && \
     yum -y install wget && \
-    wget --quiet https://archive.apache.org/dist/nifi/$NIFI_VERSION/nifi-$NIFI_VERSION-bin.tar.gz && \
+    wget  --quiet $DOWNLOAD_URL/$NIFI_VERSION/nifi-$NIFI_VERSION-bin.tar.gz && \
     tar -zxvf nifi-$NIFI_VERSION-bin.tar.gz && \
     mv nifi-$NIFI_VERSION /opt/ && \
     ln -s /opt/nifi-$NIFI_VERSION/ /opt/nifi
+
+
+RUN groupadd -g 1000 nifi || groupmod -n nifi `getent group 1000 | cut -d: -f1` \
+    && useradd --shell /bin/bash -u 1000 -g 1000 -m nifi \
+    && chown -R nifi:nifi /opt/nifi \
+    && chmod -R u+rwX /opt/nifi \
+    && chown -R nifi:nifi /home/nifi
+
+USER nifi
 
 # Create working directories
 RUN mkdir -p /home/nifi/ingest/radar \
@@ -28,7 +41,6 @@ RUN mkdir -p /home/nifi/ingest/radar \
     /opt/nifi/temp
 
 # clone python scripts for the ingestor in the dedicated folder
-RUN yum -y install git
 RUN cd /tmp && git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion.git && mv meteo-hub-ingestion/amqp2dballe_nifi_6.py meteo-hub-ingestion/dpc_bufr2dballe_4.py meteo-hub-ingestion/json2jsonl_nifi_2.py meteo-hub-ingestion/jsonl2bufr_nifi_3.py /home/nifi/ingest/obs && rm -rf meteo-hub-ingestion
 
 WORKDIR /opt/nifi
