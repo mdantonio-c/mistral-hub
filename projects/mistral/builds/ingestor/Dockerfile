@@ -13,23 +13,19 @@ RUN yum -y update && \
 ENV JAVA_HOME="/usr/lib/jvm/jre"
 
 # Install Git
-RUN yum -y install git
-
-# Install NiFi
-RUN mkdir /downloads/apache-nifi -p && \
-    cd /downloads/apache-nifi && \
-    yum -y install wget && \
-    wget  --quiet $DOWNLOAD_URL/$NIFI_VERSION/nifi-$NIFI_VERSION-bin.tar.gz && \
-    tar -zxvf nifi-$NIFI_VERSION-bin.tar.gz && \
-    mv nifi-$NIFI_VERSION /opt/ && \
-    ln -s /opt/nifi-$NIFI_VERSION/ /opt/nifi
-
+RUN yum -y install git wget
 
 RUN groupadd -g 1000 nifi || groupmod -n nifi `getent group 1000 | cut -d: -f1` \
-    && useradd --shell /bin/bash -u 1000 -g 1000 -m nifi \
-    && chown -R nifi:nifi /opt/nifi \
-    && chmod -R u+rwX /opt/nifi \
-    && chown -R nifi:nifi /home/nifi
+    && useradd --shell /bin/bash -u 1000 -g 1000 -m nifi
+
+# Install NiFi
+RUN mkdir -p /downloads/apache-nifi && \
+    cd /downloads/apache-nifi && \
+    wget --quiet $DOWNLOAD_URL/$NIFI_VERSION/nifi-$NIFI_VERSION-bin.tar.gz && \
+    tar -zxvf nifi-$NIFI_VERSION-bin.tar.gz && \
+    mv nifi-$NIFI_VERSION /opt/ && \
+    ln -s /opt/nifi-$NIFI_VERSION/ /opt/nifi && \
+    chown -R nifi:nifi /opt/nifi
 
 USER nifi
 
