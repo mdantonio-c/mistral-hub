@@ -12,9 +12,7 @@ services:
 
   nifi:
     ports:
-      # Switch once enabled https
-      # - 8070:8443
-      - 8070:8080
+      - 8070:8443
     volumes:
       - ssl_certs:/ssl
     environment:
@@ -22,16 +20,17 @@ services:
 
       SINGLE_USER_CREDENTIALS_USERNAME: ${NIFI_USERNAME}
       SINGLE_USER_CREDENTIALS_PASSWORD: ${NIFI_PASSWORD}
+      NIFI_SECURITY_USER_LOGIN_IDENTITY_PROVIDER: single-user-provider
+      NIFI_SECURITY_USER_AUTHORIZER: single-user-authorizer
 
-      # To enable HTTPS:
-      # https://community.cloudera.com/t5/Support-Questions/NIFI-SSL-how-to-use-registered-certificates-not-self-signed/td-p/214397
+      NIFI_WEB_PROXY_HOST: ${PROJECT_DOMAIN}:8070
+      NIFI_WEB_HTTPS_HOST: 0.0.0.0
+      NIFI_WEB_HTTPS_PORT: 8443
 
-      # Remove once enabled https
-      NIFI_WEB_HTTP_HOST: 0.0.0.0
-      NIFI_WEB_HTTP_PORT: 8080
-
-      # NIFI_WEB_HTTPS_HOST: 0.0.0.0
-      # NIFI_WEB_HTTPS_PORT: 8443
-
-      # KEYSTORE_PATH: /ssl/real/privkey1.pem
-      # TRUSTSTORE_PATH: /ssl/real/fullchain1.pem
+      AUTH: tls
+      KEYSTORE_PATH: /ssl/keystore.p12
+      KEYSTORE_TYPE: PKCS12
+      KEYSTORE_PASSWORD: root
+      TRUSTSTORE_PATH: /ssl/keystore.p12
+      TRUSTSTORE_TYPE: PKCS12
+      TRUSTSTORE_PASSWORD: root
