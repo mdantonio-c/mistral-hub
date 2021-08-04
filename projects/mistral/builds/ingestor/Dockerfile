@@ -7,7 +7,7 @@ USER root
 # This is the version installed on debian 10 with apt-get
 ENV PYTHON_VERSION="3.7"
 
-# Install Python, pip, compilers and dependencies of proj and GDAL (built later)
+# Install Python, pip, compilers and dependencies (sqlite3 libsqlite3-dev libtiff5-dev curl pkg-config) of proj and GDAL (built later)
 RUN apt-get update && apt-get install --yes git python3 python3-dev python3-distutils make gcc g++ sqlite3 libsqlite3-dev libtiff5-dev curl pkg-config \
     && apt-get autoremove --yes \
     && curl --silent https://bootstrap.pypa.io/get-pip.py --output get-pip.py \
@@ -38,6 +38,8 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 # https://gis.stackexchange.com/questions/375685/how-to-install-or-build-gdal-3-on-debian-buster
 # Flag --with-proj=/usr/local suggested in:
 # https://github.com/OSGeo/gdal/issues/1352
+# Verify important: install numpy BEFORE GDAL
+# https://gis.stackexchange.com/questions/153199/import-error-no-module-named-gdal-array
 RUN wget --quiet https://download.osgeo.org/gdal/3.0.4/gdal304.zip \
     && unzip gdal304.zip \
     && cd gdal-3.0.4 \
@@ -47,7 +49,9 @@ RUN wget --quiet https://download.osgeo.org/gdal/3.0.4/gdal304.zip \
     && make install \
     && cd .. \
     && rm -rf gdal304.zip gdal-3.0.4 \
-    && pip3 install numpy GDAL==3.0.4
+    && pip3 install numpy \
+    && pip3 install GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
+
 
 COPY --from=arpaesimc /usr/bin /usr/bin/centos
 
