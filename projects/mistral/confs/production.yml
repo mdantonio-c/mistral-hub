@@ -13,6 +13,8 @@ services:
   nifi:
     ports:
       - 8070:8443
+    volumes:
+      - ssl_certs:/ssl
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
       NIFI_WEB_HTTPS_HOST: 0.0.0.0
@@ -20,3 +22,5 @@ services:
       NIFI_WEB_HTTPS_PORT: 8443
       SINGLE_USER_CREDENTIALS_USERNAME: ${NIFI_USERNAME}
       SINGLE_USER_CREDENTIALS_PASSWORD: ${NIFI_PASSWORD}
+      KEYSTORE_PATH: /ssl/real/privkey1.pem
+      TRUSTSTORE_PATH: /ssl/real/fullchain1.pem
