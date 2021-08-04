@@ -4,3 +4,9 @@ services:
   adminer:
     ports:
       - 81:8888
+
+  nifi:
+    environment:
+      ACTIVATE: ${ACTIVATE_NIFI}
+      NIFI_WEB_HTTP_HOST: 0.0.0.0
+      NIFI_WEB_HTTP_PORT: 8080
