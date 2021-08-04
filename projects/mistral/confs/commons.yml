@@ -58,8 +58,6 @@ services:
     volumes:
       - ${DATA_DIR}/arkimet:/arkimet/datasets
       # - ${DATA_DIR}/nifi:/opt/nifi
-    ports:
-      - 8070:8080
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
     networks:

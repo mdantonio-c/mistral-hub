@@ -6,6 +6,8 @@ services:
       - 81:8888
 
   nifi:
+    ports:
+      - 8070:8080
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
       NIFI_WEB_HTTP_HOST: 0.0.0.0
