@@ -17,10 +17,18 @@ services:
       - ssl_certs:/ssl
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
-      NIFI_WEB_HTTPS_HOST: 0.0.0.0
-      # NIFI_WEB_HTTPS_HOST: ${PROJECT_DOMAIN}
-      NIFI_WEB_HTTPS_PORT: 8443
+
       SINGLE_USER_CREDENTIALS_USERNAME: ${NIFI_USERNAME}
       SINGLE_USER_CREDENTIALS_PASSWORD: ${NIFI_PASSWORD}
-      KEYSTORE_PATH: /ssl/real/privkey1.pem
-      TRUSTSTORE_PATH: /ssl/real/fullchain1.pem
+
+      # To enable HTTPS:
+      # https://community.cloudera.com/t5/Support-Questions/NIFI-SSL-how-to-use-registered-certificates-not-self-signed/td-p/214397
+
+      NIFI_WEB_HTTP_HOST: 0.0.0.0
+      NIFI_WEB_HTTP_PORT: 8080
+
+      # NIFI_WEB_HTTPS_HOST: 0.0.0.0
+      # NIFI_WEB_HTTPS_PORT: 8443
+
+      # KEYSTORE_PATH: /ssl/real/privkey1.pem
+      # TRUSTSTORE_PATH: /ssl/real/fullchain1.pem
