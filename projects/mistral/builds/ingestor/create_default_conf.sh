@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ -z "$(ls ${NIFI_HOME}/conf)" ]; then
    echo "Default conf is missing, copying it..."
    cp ${NIFI_HOME}/default-conf/* ${NIFI_HOME}/conf/
