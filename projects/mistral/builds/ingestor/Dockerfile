@@ -91,8 +91,8 @@ RUN git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion.git && mv
 RUN mkdir /home/nifi/nifi-driver && \
     wget --quiet -O /home/nifi/nifi-driver/postgresql-42.2.19.jar https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 
-# Enable Network
-# RUN sed -ie 's/^nifi\.web\.http\.host=.*/nifi.web.http.host=0.0.0.0/' conf/nifi.properties
+
+RUN cp -r ${NIFI_HOME}/nifi-current/conf ${NIFI_HOME}/nifi-current/default-conf
 
 WORKDIR ${NIFI_HOME}
 ENV PATH="$PATH:/usr/bin/centos"
