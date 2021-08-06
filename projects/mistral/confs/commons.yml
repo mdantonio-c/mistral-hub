@@ -64,6 +64,7 @@ services:
       - ${DATA_DIR}/nifi/content_repository:/opt/nifi/nifi-current/content_repository
       - ${DATA_DIR}/nifi/provenance_repository:/opt/nifi/nifi-current/provenance_repository
       - ${DATA_DIR}/nifi/state:/opt/nifi/nifi-current/state
+      - ${DATA_DIR}/nifi/logs:/opt/nifi/nifi-current/logs
 
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
