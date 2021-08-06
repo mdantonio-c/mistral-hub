@@ -84,6 +84,8 @@ COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter /usr/local/l
 
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter-0.0.2-py3.6.egg-info /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter-0.0.2-py3.6.egg-info/
 
+RUN chown -R nifi:nifi /opt/nifi
+
 USER nifi
 
 # Create working directories
