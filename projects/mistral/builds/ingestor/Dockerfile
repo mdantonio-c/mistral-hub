@@ -93,7 +93,7 @@ RUN mkdir /home/nifi/nifi-driver && \
 
 RUN cp -r ${NIFI_HOME}/conf ${NIFI_HOME}/default-conf
 
-COPY create_default_conf.sh /opt/nifi/bin/create_default_conf.sh
+COPY --chown=nifi --chmod=700 create_default_conf.sh /usr/local/bin/create_default_conf.sh
 
 WORKDIR ${NIFI_HOME}
 ENV PATH="$PATH:/usr/bin/centos"
