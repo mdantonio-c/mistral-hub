@@ -92,7 +92,7 @@ RUN mkdir /home/nifi/nifi-driver && \
     wget --quiet -O /home/nifi/nifi-driver/postgresql-42.2.19.jar https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 
 
-RUN cp -r ${NIFI_HOME}/nifi-current/conf ${NIFI_HOME}/nifi-current/default-conf
+RUN cp -r ${NIFI_HOME}/conf ${NIFI_HOME}/default-conf
 
 WORKDIR ${NIFI_HOME}
 ENV PATH="$PATH:/usr/bin/centos"
