@@ -240,7 +240,8 @@ class DataExtraction(Schema):
         if data.get("postprocessors"):
             postprocessor_types = []
             for p in data.get("postprocessors"):
-                postprocessor_types.append(p.get("processor_type"))
+                if type(p) == dict and "processor_types" in p.keys():
+                    postprocessor_types.append(p.get("processor_type"))
             if len(postprocessor_types) != len(set(postprocessor_types)):
                 raise ValidationError("Postprocessors list contains duplicates")
 
