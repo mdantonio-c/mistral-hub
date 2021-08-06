@@ -4,6 +4,15 @@ FROM apache/nifi:1.14.0
 
 USER root
 
+ARG CURRENT_UID
+RUN test -n "$CURRENT_UID"
+
+ARG CURRENT_GID
+RUN test -n "$CURRENT_GID"
+
+RUN usermod -u ${CURRENT_UID} nifi \
+    && groupmod -og ${CURRENT_GID} nifi
+
 # This is the version installed on debian 10 with apt-get
 ENV PYTHON_VERSION="3.7"
 

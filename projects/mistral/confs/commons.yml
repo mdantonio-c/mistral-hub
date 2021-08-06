@@ -52,7 +52,11 @@ services:
     image: meteohub/backend:${RAPYDO_VERSION}
 
   nifi:
-    build: ${PROJECT_DIR}/builds/ingestor
+    build:
+      context: ${PROJECT_DIR}/builds/ingestor
+      args:
+        CURRENT_UID: ${CURRENT_UID}
+        CURRENT_GID: ${CURRENT_GID}
     image: meteohub/nifi:${RAPYDO_VERSION}
     restart: always
     volumes:
