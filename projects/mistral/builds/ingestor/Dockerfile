@@ -61,6 +61,28 @@ RUN wget --quiet https://download.osgeo.org/gdal/3.0.4/gdal304.zip \
     && pip3 install numpy \
     && pip3 install GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
 
+ENV ECCODES_VERSION="2.19.0"
+ENV ECCODES_DIR="/usr/share/eccodes-build"
+
+# Only eccodes-simc from arpaesimc
+ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes-build/share/eccodes/definitions/"
+
+RUN apt-get update -y && apt-get update && apt-get install --yes cmake  gfortran
+
+RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz?api=v2" -O /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && cd /tmp \
+  && tar -xzf eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && mkdir /tmp/eccodes-build \
+  && cd /tmp/eccodes-build \
+  && cmake -DCMAKE_INSTALL_PREFIX=/usr/share/eccodes-build /tmp/eccodes-${ECCODES_VERSION}-Source \
+  && make \
+  && ctest \
+  && make install \
+  && cd /usr/share/eccodes-build \
+  && ln -sf lib lib64 \
+  && pip3 install eccodes netCDF4 \
+  && rm -rf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && rm -rf /tmp/eccodes-build
 
 COPY --from=arpaesimc /usr/bin /usr/bin/centos
 
@@ -71,6 +93,10 @@ COPY --from=arpaesimc /usr/lib64/libarkimet.* /usr/lib64/libdballe.* /usr/lib64/
 COPY --from=arpaesimc /usr/lib64/libzip.so.5* /usr/lib64/liblzo2.so.2* /usr/lib64/libeccodes.so.0.1* /usr/lib64/libpopt.so.0* usr/lib64/libaec.so.0* /usr/lib64/libgomp.so.1* /usr/lib/x86_64-linux-gnu/
 
 COPY --from=arpaesimc /etc/arkimet /etc/arkimet
+
+COPY --from=arpaesimc /usr/share/eccodes-simc/definitions/ /usr/share/eccodes-simc/definitions/
+COPY --from=arpaesimc /usr/share/libsim/ /usr/share/libsim/
+COPY --from=arpaesimc /usr/share/wreport/ /usr/share/wreport/
 
 COPY --from=arpaesimc /usr/lib64/python3.6/site-packages/_arkimet* /usr/lib64/python3.6/site-packages/_dballe* usr/lib64/python3.6/site-packages/_wreport* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/
 
