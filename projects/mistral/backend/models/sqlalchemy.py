@@ -20,6 +20,7 @@ setattr(User, "amqp_queue", db.Column(db.String(255), nullable=True))
 # In days, 0 to disable.
 # Used by requests autocleaning to determine old requests to be deleted
 setattr(User, "requests_expiration_days", db.Column(db.Integer, default=0))
+setattr(User, "requests_expiration_delete", db.Column(db.Boolean, default=False))
 setattr(User, "open_dataset", db.Column(db.Boolean))
 # user configuration
 setattr(User, "max_templates", db.Column(db.Integer))

@@ -18,6 +18,11 @@
   </td>
 </ng-container>
 
+<ng-container *ngIf="row.key == 'requests_expiration_delete'">
+  <th>Delete expired requests</th>
+  <td>{{row.value | yes_or_no}}</td>
+</ng-container>
+
 <ng-container *ngIf="row.key == 'datasets'">
   <th>Allowed datasets</th>
   <td>

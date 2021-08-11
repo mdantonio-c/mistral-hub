@@ -52,6 +52,7 @@ class Customizer(BaseCustomizer):
         data["disk_quota"] = user.disk_quota
         data["amqp_queue"] = user.amqp_queue
         data["requests_expiration_days"] = user.requests_expiration_days
+        data["requests_expiration_delete"] = user.requests_expiration_delete
         data["open_dataset"] = user.open_dataset
         data["datasets"] = user.datasets
         data["max_templates"] = user.max_templates
@@ -154,7 +155,12 @@ class Customizer(BaseCustomizer):
                     validate=validate.Range(min=0, max=365),
                     label="Requests expirations (in days, 0 to disable)",
                     description="Number of days after which requests will be cleaned",
-                )
+                ),
+                "requests_expiration_delete": fields.Boolean(
+                    required=False,
+                    label="Delete expired requests (unless they will be archived)",
+                    description="If set false expired request will be archive instead of deleted",
+                ),
             }
 
         # these are additional fields in registration form
@@ -168,6 +174,7 @@ class Customizer(BaseCustomizer):
         return {
             "disk_quota": fields.Int(),
             "requests_expiration_days": fields.Int(),
+            "requests_expiration_delete": fields.Boolean(),
             "open_dataset": fields.Boolean(),
             "datasets": fields.Nested(Datasets(many=True)),
             "max_templates": fields.Int(),

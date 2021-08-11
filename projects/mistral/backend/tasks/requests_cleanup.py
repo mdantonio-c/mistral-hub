@@ -30,20 +30,29 @@ def automatic_cleanup(self: Task) -> str:
             log.info("{} not completed yet?", r.id)
             continue
 
+        if r.archived:
+            log.info("{} already archived", r.id)
+            continue
+
         if r.end_date > now - exp:
             # log.info("{} {}: {}", r.id, r.user_id, r.end_date.isoformat())
             continue
 
         user = users.get(r.user_id)
         repo.delete_request_record(db, user, r.id)
-        # set the request as archived
-        r.archived = True
+        # check if the request has to be deleted or archived
+        operation = None
+        if user.requests_expiration_delete:
+            db.session.delete(r)
+            operation = "deleted"
+        else:
+            # set the request as archived
+            r.archived = True
+            operation = "archived"
         db.session.commit()
 
         log.warning(
-            "Request {} (completed on {}) archived",
-            r.id,
-            r.end_date.isoformat(),
+            "Request {} (completed on {}) {}", r.id, r.end_date.isoformat(), operation
         )
 
     log.info("Autocleaning task completed")

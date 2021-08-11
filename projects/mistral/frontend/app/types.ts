@@ -4,6 +4,7 @@ export interface CustomUser {
   amqp_queue: string;
   /** @nullable */
   requests_expiration_days: number;
+  requests_expiration_delete: boolean;
   datasets: SimpleDataset[];
   open_dataset: boolean;
   /** @nullable */
