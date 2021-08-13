@@ -1,0 +1,54 @@
+<div class="modal-header modal-warning bg-light">
+  <button
+    type="button"
+    class="close"
+    aria-describedby="modal-title"
+    (click)="modal.dismiss('Cross click')"
+  >
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body text-center">
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><b class="text-info">Archive</b></h5>
+          <h2 class="card-title"><i class="fa fa-archive"></i></h2>
+
+          <p class="card-text">
+            The request will be archived and all the file related deleted
+          </p>
+          <button
+            type="button"
+            ngbAutofocus
+            class="btn btn-sm btn-info"
+            (click)="modal.close('archive')"
+          >
+            Archive
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><b class="text-danger">Delete</b></h5>
+          <h2 class="card-title"><i class="fa fa-trash"></i></h2>
+
+          <p class="card-text">
+            The request and all the file related will be permanently deleted
+          </p>
+          <button
+            type="button"
+            ngbAutofocus
+            class="btn btn-sm btn-danger"
+            (click)="modal.close('delete')"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

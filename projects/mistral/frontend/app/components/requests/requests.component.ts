@@ -1,9 +1,11 @@
 import { Component, Output, EventEmitter, Injector } from "@angular/core";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { Subject, concat } from "rxjs";
 import { saveAs as importedSaveAs } from "file-saver-es";
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
 import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { DataExtractionRequest } from "../../types";
+import { ArchiveDeleteModals } from "./delete_archive_modal/archive-delete.modal";
 
 import { DataService } from "@app/services/data.service";
 import { decode, PP_TIME_RANGES } from "@app/services/data";
@@ -20,6 +22,7 @@ export interface Request {}
 })
 export class RequestsComponent extends BasePaginationComponent<Request> {
   protected confirmationModals: ConfirmationModals;
+  protected modalService: NgbModal;
   expanded: any = {};
   @Output() onLoad: EventEmitter<null> = new EventEmitter<null>();
 
@@ -110,6 +113,19 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
       (error) => {
         this.notify.showError(`Unable to download file: ${filename}`);
       }
+    );
+  }
+
+  public delete_or_archive(uuid: string) {
+    this.modalService.open(ArchiveDeleteModals).result.then(
+      (result) => {
+        if (result == "archive") {
+          this.archive(uuid);
+        } else if (result == "delete") {
+          this.delete(uuid);
+        }
+      },
+      (reason) => {}
     );
   }
 
