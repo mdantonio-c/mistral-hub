@@ -42,7 +42,7 @@ def automatic_cleanup(self: Task) -> str:
         repo.delete_request_record(db, user, r.id)
         # check if the request has to be deleted or archived
         operation = None
-        if user.requests_expiration_delete:
+        if user and user.requests_expiration_delete:
             db.session.delete(r)
             operation = "deleted"
         else:
