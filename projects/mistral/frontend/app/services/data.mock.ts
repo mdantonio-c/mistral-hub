@@ -55,6 +55,7 @@ export const MockUser: User = {
   privacy_accepted: true,
   request_par_hour: null,
   requests_expiration_days: 0,
+  requests_expiration_delete: false,
   roles: {
     admin_root: "Administrator",
     normal_user: "User",
