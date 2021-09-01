@@ -15,10 +15,7 @@ export class StepPostprocessMapComponent {
   @Input() flonControl: FormControl;
   @Input() flatControl: FormControl;
 
-  layerList = [];
-  formControls;
-  mapView;
-  drawControl;
+  drawnItems: L.FeatureGroup = L.featureGroup();
 
   options = {
     layers: [
@@ -46,10 +43,12 @@ export class StepPostprocessMapComponent {
         showArea: false,
       },
     },
+    edit: {
+      featureGroup: this.drawnItems,
+    },
   };
 
   onMapReady(map) {
-    this.mapView = map;
     map.on(L.Draw.Event.DRAWSTART, (e) => {
       this.resetAll();
     });
@@ -58,36 +57,30 @@ export class StepPostprocessMapComponent {
       this.resetAll();
     });
 
-    this.formControls = [
+    const formControls = [
       this.ilonControl,
       this.ilatControl,
       this.flonControl,
       this.flatControl,
     ];
     // Form-changes event listener
-    this.formControls.forEach((control) =>
+    formControls.forEach((control) =>
       control.valueChanges.subscribe((val) => {
         this.updateRectangle();
       })
     );
-  }
-
-  onDrawReady(drawControl: L.Control.Draw) {
-    this.drawControl = drawControl;
+    let poly = this.updateRectangle();
+    if (poly) {
+      map.fitBounds((poly as L.Rectangle).getLatLngs(), { padding: [50, 50] });
+    }
   }
 
   public clearAll() {
-    this.layerList.forEach((layer) => {
-      this.mapView.removeLayer(layer);
-    });
-    this.layerList = [];
-    this.drawControl.options.edit.featureGroup.clearLayers();
+    this.drawnItems.clearLayers();
   }
 
   public resetAll() {
-    this.layerList.forEach((layer) => {
-      this.mapView.removeLayer(layer);
-    });
+    this.drawnItems.clearLayers();
     this.ilonControl.reset();
     this.ilatControl.reset();
     this.flonControl.reset();
@@ -108,37 +101,40 @@ export class StepPostprocessMapComponent {
           L.latLng(this.flatControl.value, this.flonControl.value)
         )
       );
-      this.drawControl.options.edit.featureGroup.addLayer(poly);
-      this.mapView.addLayer(poly);
-      this.layerList.push(poly);
+      // this.drawControl.options.edit.featureGroup.addLayer(poly);
+      // this.mapView.addLayer(poly);
+      // this.layerList.push(poly);
+      this.drawnItems.addLayer(poly);
+      return poly;
     }
   }
 
   public onDrawCreated(e: any) {
-    const type = (e as any).layerType;
-    const layer = (e as any).layer;
+    const type = (e as L.DrawEvents.Created).layerType,
+      layer = (e as L.DrawEvents.Created).layer;
     if (type === "rectangle") {
-      const objll = layer._latlngs;
-      this.ilonControl.setValue(objll[0][0].lng, { emitEvent: false });
-      this.ilatControl.setValue(objll[0][0].lat, { emitEvent: false });
-      this.flonControl.setValue(objll[0][2].lng, { emitEvent: false });
-      this.flatControl.setValue(objll[0][2].lat, { emitEvent: false });
-      this.layerList.push(layer);
-      // console.log(this.layerList);
+      const coords = (layer as L.Rectangle).getLatLngs();
+      this.ilonControl.setValue(coords[0][0].lng, { emitEvent: false });
+      this.ilatControl.setValue(coords[0][0].lat, { emitEvent: false });
+      this.flonControl.setValue(coords[0][2].lng, { emitEvent: false });
+      this.flatControl.setValue(coords[0][2].lat, { emitEvent: false });
+      this.drawnItems.addLayer(layer);
     }
   }
 
-  public onEditStop(e: any) {
-    this.layerList.forEach((layer) => {
-      const objll = layer._latlngs;
-      this.ilonControl.setValue(objll[0][0].lng, { emitEvent: false });
-      this.ilatControl.setValue(objll[0][0].lat, { emitEvent: false });
-      this.flonControl.setValue(objll[0][2].lng, { emitEvent: false });
-      this.flatControl.setValue(objll[0][2].lat, { emitEvent: false });
+  onDrawEdited(e: L.DrawEvents.Edited) {
+    const ref = this;
+    e.layers.eachLayer(function (
+      layer,
+      comp: StepPostprocessMapComponent = ref
+    ) {
+      if (layer instanceof L.Rectangle) {
+        const coords = (layer as L.Rectangle).getLatLngs();
+        comp.ilonControl.setValue(coords[0][0].lng, { emitEvent: false });
+        comp.ilatControl.setValue(coords[0][0].lat, { emitEvent: false });
+        comp.flonControl.setValue(coords[0][2].lng, { emitEvent: false });
+        comp.flatControl.setValue(coords[0][2].lat, { emitEvent: false });
+      }
     });
-  }
-
-  public onDrawStart(e: any) {
-    // tslint:disable-next-line:no-console
   }
 }
