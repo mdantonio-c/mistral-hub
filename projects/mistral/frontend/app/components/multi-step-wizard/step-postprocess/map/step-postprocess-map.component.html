@@ -8,12 +8,12 @@
         leafletDraw
         [leafletOptions]="options"
         [leafletDrawOptions]="drawOptions"
-        (leafletDrawReady)="onDrawReady($event)"
-        (leafletDrawCreated)="onDrawCreated($event)"
-        (leafletDrawStart)="onDrawStart($event)"
-        (leafletDrawEdited)="onEditStop($event)"
         (leafletMapReady)="onMapReady($event)"
-      ></div>
+        (leafletDrawCreated)="onDrawCreated($event)"
+        (leafletDrawEdited)="onDrawEdited($event)"
+      >
+        <div [leafletLayer]="drawnItems"></div>
+      </div>
     </div>
   </div>
 </div>
