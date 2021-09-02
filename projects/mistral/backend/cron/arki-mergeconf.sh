@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This script is actually unused
+
 set -a
 
 source /etc/rapydo-environment
