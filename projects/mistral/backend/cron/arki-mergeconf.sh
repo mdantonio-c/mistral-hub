@@ -9,6 +9,6 @@ source /etc/rapydo-environment
 # RuntimeError: cannot open file /arkimet/datasets/cosmo_2Ipp_ecPoint/config: No such file or directory
 DATASETS=$(find /arkimet/datasets/*/ -type f -name 'config' | sed -r 's|/[^/]+$||' | tr '\n' ' ')
 
-arki-mergeconf --extra $DATASETS > /arkimet/config/arkimet.conf.tmp
+/usr/bin/centos/arki-mergeconf --extra $DATASETS > /arkimet/config/arkimet.conf.tmp
 
-mv /arkimet/config/arkimet.conf.tmp /arkimet/config/arkimet.conf
+/bin/mv /arkimet/config/arkimet.conf.tmp /arkimet/config/arkimet.conf
