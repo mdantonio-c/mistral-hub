@@ -223,7 +223,7 @@ export const obsData = [
 export const VAR_TABLE: Bcode[] = [
   {
     bcode: "B12101",
-    description: "TEMPERATURE/DRY-BULB TEMPERATURE",
+    description: "Temperature/dry-bulb temperature",
     short: "T",
     unit: "K",
     offset: -273.15,
@@ -232,7 +232,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B13003",
-    description: "RELATIVE HUMIDITY",
+    description: "Relative humidity",
     short: "RH",
     unit: "%",
     offset: 0.0,
@@ -241,7 +241,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B10004",
-    description: "PRESSURE",
+    description: "Pressure",
     short: "P",
     unit: "Pa",
     offset: 0.0,
@@ -250,7 +250,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B11001",
-    description: "WIND DIRECTION",
+    description: "Wind direction",
     short: "WDIR",
     unit: "DEGREE TRUE",
     offset: 0.0,
@@ -259,7 +259,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B11002",
-    description: "WIND SPEED",
+    description: "Wind speed",
     short: "WS",
     unit: "M/S",
     offset: 0.0,
@@ -268,7 +268,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B13011",
-    description: "TOTAL PRECIPITATION / TOTAL WATER EQUIVALENT",
+    description: "Total precipitation / total water equivalent",
     short: "Prp",
     unit: "KG/M**2",
     offset: 0.0,
@@ -309,7 +309,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B13013",
-    description: "TOTAL SNOW DEPTH",
+    description: "Total snow depth",
     short: "Snow",
     unit: "M",
     offset: 0.0,
@@ -318,7 +318,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "20001",
-    description: "HORIZONTAL VISIBILITY",
+    description: "Horizontal visibility",
     unit: "M",
     offset: 0.0,
     scale: 1.0,
