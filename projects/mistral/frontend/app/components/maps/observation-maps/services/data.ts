@@ -23,34 +23,34 @@ export const NETWORKS: CodeDescPair[] = [
 ];
 
 export const PRODUCTS: CodeDescPair[] = [
-  { code: "B12101", desc: "TEMPERATURE/DRY-BULB TEMPERATURE" },
-  { code: "B13003", desc: "RELATIVE HUMIDITY" },
-  { code: "B13011", desc: "TOTAL PRECIPITATION / TOTAL WATER EQUIVALENT" },
+  { code: "B12101", desc: "Temperature/dry-bulb temperature" },
+  { code: "B13003", desc: "Relative humidity" },
+  { code: "B13011", desc: "Total precipitation / total water equivalent" },
   { code: "B13227", desc: "Soil volumetric water content" },
-  { code: "B22001", desc: "DIRECTION OF WAVES" },
-  { code: "B22043", desc: "SEA/WATER TEMPERATURE" },
-  { code: "B22070", desc: "SIGNIFICANT WAVE HEIGHT" },
-  { code: "B22071", desc: "SPECTRAL PEAK WAVE PERIOD" },
-  { code: "B22074", desc: "AVERAGE WAVE PERIOD" },
+  { code: "B22001", desc: "Direction of waves" },
+  { code: "B22043", desc: "Sea/water temperature" },
+  { code: "B22070", desc: "Significant wave height" },
+  { code: "B22071", desc: "Spectral peak wave period" },
+  { code: "B22074", desc: "Average wave period" },
   { code: "B13215", desc: "River level" },
-  { code: "B11001", desc: "WIND DIRECTION" },
-  { code: "B11002", desc: "WIND SPEED" },
-  { code: "B10004", desc: "PRESSURE" },
+  { code: "B11001", desc: "Wind direction" },
+  { code: "B11002", desc: "Wind speed" },
+  { code: "B10004", desc: "Pressure" },
   { code: "B13226", desc: "River discharge" },
-  { code: "B11041", desc: "MAXIMUM WIND GUST SPEED" },
-  { code: "B13013", desc: "TOTAL SNOW DEPTH" },
+  { code: "B11041", desc: "Maximum wind gust speed" },
+  { code: "B13013", desc: "Total snow depth" },
   { code: "B14198", desc: "Global radiation flux (downward)" },
-  { code: "B13080", desc: "WATER PH" },
-  { code: "B13083", desc: "DISSOLVED OXYGEN" },
+  { code: "B13080", desc: "Water PH" },
+  { code: "B13083", desc: "Dissolved oxygen" },
   { code: "B13231", desc: "Ossigeno disciolto sat" },
   {
     code: "B22037",
     desc: "Tidal elevation with respect to national land datum",
   },
   { code: "B22038", desc: "Tidal elevation with respect to local chart datum" },
-  { code: "B22062", desc: "SALINITY" },
+  { code: "B22062", desc: "Salinity" },
   { code: "B22195", desc: "Depth below sea surface" },
-  { code: "B11043", desc: "MAXIMUM WIND GUST DIRECTION" },
+  { code: "B11043", desc: "Maximum wind gust direction" },
 ];
 
 export const LEVELS: CodeDescPair[] = [
@@ -223,7 +223,7 @@ export const obsData = [
 export const VAR_TABLE: Bcode[] = [
   {
     bcode: "B12101",
-    description: "TEMPERATURE/DRY-BULB TEMPERATURE",
+    description: "Temperature/dry-bulb temperature",
     short: "T",
     unit: "K",
     offset: -273.15,
@@ -232,7 +232,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B13003",
-    description: "RELATIVE HUMIDITY",
+    description: "Relative humidity",
     short: "RH",
     unit: "%",
     offset: 0.0,
@@ -241,7 +241,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B10004",
-    description: "PRESSURE",
+    description: "Pressure",
     short: "P",
     unit: "Pa",
     offset: 0.0,
@@ -250,7 +250,8 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B11001",
-    description: "WIND DIRECTION",
+    description: "Wind direction",
+    short: "WDIR",
     unit: "DEGREE TRUE",
     offset: 0.0,
     scale: 1.0,
@@ -258,7 +259,8 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B11002",
-    description: "WIND SPEED",
+    description: "Wind speed",
+    short: "WS",
     unit: "M/S",
     offset: 0.0,
     scale: 1.0,
@@ -266,7 +268,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B13011",
-    description: "TOTAL PRECIPITATION / TOTAL WATER EQUIVALENT",
+    description: "Total precipitation / total water equivalent",
     short: "Prp",
     unit: "KG/M**2",
     offset: 0.0,
@@ -307,7 +309,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "B13013",
-    description: "TOTAL SNOW DEPTH",
+    description: "Total snow depth",
     short: "Snow",
     unit: "M",
     offset: 0.0,
@@ -316,7 +318,7 @@ export const VAR_TABLE: Bcode[] = [
   },
   {
     bcode: "20001",
-    description: "HORIZONTAL VISIBILITY",
+    description: "Horizontal visibility",
     unit: "M",
     offset: 0.0,
     scale: 1.0,
