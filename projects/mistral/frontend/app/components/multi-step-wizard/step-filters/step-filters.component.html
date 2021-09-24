@@ -154,7 +154,7 @@
                   (change)="onFilterChange()"
                 />
                 <label for="{{ f.value.name + '-' + j }}">{{
-                  filters[f.value.name][j].desc
+                  filters[f.value.name][j].desc | titlecase
                 }}</label>
               </li>
             </ul>
