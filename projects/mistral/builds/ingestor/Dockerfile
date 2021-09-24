@@ -49,6 +49,11 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 # https://github.com/OSGeo/gdal/issues/1352
 # Verify important: install numpy BEFORE GDAL
 # https://gis.stackexchange.com/questions/153199/import-error-no-module-named-gdal-array
+
+# Note: setuptools 58 added a breaking change to remove use_2to3 support:
+https://setuptools.readthedocs.io/en/latest/history.html#v58-0-0
+# Due to that GDAL can't be installed with setuptools 58 and raises the error:
+# error in GDAL setup command: use_2to3 is invalid.
 RUN wget --quiet https://download.osgeo.org/gdal/3.0.4/gdal304.zip \
     && unzip gdal304.zip \
     && cd gdal-3.0.4 \
@@ -58,7 +63,7 @@ RUN wget --quiet https://download.osgeo.org/gdal/3.0.4/gdal304.zip \
     && make install \
     && cd .. \
     && rm -rf gdal304.zip gdal-3.0.4 \
-    && pip3 install numpy \
+    && pip3 install numpy setuptools==57.5.0 \
     && pip3 install GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
 
 ENV ECCODES_VERSION="2.19.0"
