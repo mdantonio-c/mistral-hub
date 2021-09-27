@@ -38,7 +38,7 @@ jobs:
       - name: Run Cypress
         run: |
 
-          rapydo -e API_AUTOSTART=1 start;
+          rapydo -e API_AUTOSTART=1 restart;
           sleep 20
           rapydo logs
 
