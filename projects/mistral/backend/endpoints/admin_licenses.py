@@ -75,11 +75,13 @@ def getInputSchema(request, is_post):
         default_group = None
 
     attributes["group_license"] = fields.Str(
-        label="License Group",
-        description="The license group to which the license belongs",
         required=is_post,
-        default=default_group,
+        dump_default=default_group,
         validate=validate.OneOf(choices=lgroup_keys, labels=lgroup_labels),
+        metadata={
+            "label": "License Group",
+            "description": "The license group to which the license belongs",
+        },
     )
 
     return LicenseInput.from_dict(attributes, name="LicenseDefinition")

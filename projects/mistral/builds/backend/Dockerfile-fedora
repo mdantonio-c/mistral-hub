@@ -6,7 +6,7 @@
 # ImportError: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.32' not found (required by /lib/x86_64-linux-gnu/libpq.so.5)
 FROM arpaesimc/fedora:33 AS arpaesimc
 
-FROM rapydo/backend:2.0
+FROM rapydo/backend:2.1
 
 ARG RAPYDO_VERSION
 RUN test -n "$RAPYDO_VERSION"
@@ -17,6 +17,7 @@ ENV APIUSER developer
 
 RUN usermod -u $CURRENT_UID $APIUSER
 
+# ~ 30 seconds
 RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get install --yes \
@@ -41,6 +42,7 @@ ENV ECCODES_VERSION="2.19.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
 ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes-build/share/eccodes/definitions/"
 
+# ~ 170 seconds
 RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz?api=v2" -O /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
   && cd /tmp \
   && tar -xzf eccodes-${ECCODES_VERSION}-Source.tar.gz \

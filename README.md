@@ -2,27 +2,28 @@
 
 ## HOWTO Get started
 
-Install rapydo framework last version 2.0
-
-`$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@2.0`
-
-or ugprade to rapydo 2.0
-`$ rapydo install 2.0`
-
-####Clone the project
+#### Clone the project
 
 ```
 $ git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub.git
-```
-
-####Init & start
-
-```
 $ cd meteo-hub
-$ git checkout 0.4.3
+$ git checkout 0.4.4
+```
+
+### Install the controller
+
+```
+$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@2.1`
+
+$ rapydo install
+```
+
+### Init & start
+
+```
 $ rapydo init
-$ rapydo build
 $ rapydo pull
+$ rapydo build
 $ rapydo start
 ```
 
@@ -43,12 +44,7 @@ In dev mode you need to start api service by hand. Open a terminal and run
 `$ rapydo shell backend "restapi launch"`
 
 Now open your browser and type http://localhost in the address bar.  
-You can enter the app with the following username and password
-
-```
-user@nomail.org
-test
-```
+You will find the default credentials into the .projectrc file
 
 ## Execute frontend only
 
@@ -83,7 +79,7 @@ project_configuration:
       BACKEND_API_PORT: 443
 ```
 
-Use `rapydo` command as usual.
+Use `rapydo` commands as usual.
 
 ## Meteo-Hub Data Ingestion
 

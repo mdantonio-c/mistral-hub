@@ -456,7 +456,7 @@ Once installed docker, python and pip; the controller can ben installed as:
 
 to install the latest released version, or:
 
-`$ sudo pip3 install git+https://github.com/rapydo/do.git@2.0`
+`$ sudo pip3 install git+https://github.com/rapydo/do.git@1.1`
 
 to install a specific version
 

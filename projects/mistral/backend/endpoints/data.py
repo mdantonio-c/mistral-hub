@@ -52,7 +52,9 @@ class AVProcessor(Schema):
     variables = fields.List(
         fields.Str(
             validate=validate.OneOf(DERIVED_VARIABLES),
-            description="The list of requested derived variables to be calculated.",
+            metadata={
+                "description": "The list of requested derived variables to be calculated."
+            },
         ),
         unique=True,
         min_items=1,
@@ -63,14 +65,16 @@ class AVProcessor(Schema):
 class SPIProcessor(Schema):
     # Spare points interpolation postprocessor
     processor_type = fields.Str(
-        required=True, description="description of the postprocessor"
+        required=True, metadata={"description": "description of the postprocessor"}
     )
     # "spare_point_interpolation"
     coord_filepath = fields.Url(
         required=True,
         relative=True,
         require_tld=False,
-        description="file to define the target spare points",
+        metadata={
+            "description": "file to define the target spare points",
+        },
     )
     file_format = fields.Str(
         required=True, data_key="format", validate=validate.OneOf(["shp", "geojson"])
@@ -81,7 +85,7 @@ class SPIProcessor(Schema):
 class SEProcessor(Schema):
     # Statistic Elaboration post-processing
     processor_type = fields.Str(
-        required=True, description="description of the postprocessor"
+        required=True, metadata={"description": "description of the postprocessor"}
     )
     # "statistic_elaboration"
     input_timerange = fields.Integer(required=True, validate=validate.OneOf(TIMERANGES))
@@ -91,9 +95,11 @@ class SEProcessor(Schema):
     interval = fields.Str(
         required=True,
         validate=validate.OneOf(["hours", "days", "months", "years"]),
-        description="Interval of elaboration",
+        metadata={
+            "description": "Interval of elaboration",
+        },
     )
-    step = fields.Integer(required=True, description="step range")
+    step = fields.Integer(required=True, metadata={"description": "step range"})
 
     @pre_load
     def timeranges_validation(self, data, **kwargs):
@@ -123,11 +129,11 @@ class CropBoundings(Schema):
 class GCProcessor(Schema):
     #  Grid cropping post processor
     processor_type = fields.Str(
-        required=True, description="description of the postprocessor"
+        required=True, metadata={"description": "description of the postprocessor"}
     )
     # "grid_cropping"
     boundings = fields.Nested(
-        CropBoundings, description="boundings of the cropped grid"
+        CropBoundings, metadata={"description": "boundings of the cropped grid"}
     )
     sub_type = fields.Str(required=True, validate=validate.OneOf(["coord", "bbox"]))
 
@@ -147,17 +153,21 @@ class Nodes(Schema):
 class GIProcessor(Schema):
     # Grid interpolation post processor to interpolate data on a new grid
     processor_type = fields.Str(
-        required=True, description="description of the postprocessor"
+        required=True, metadata={"description": "description of the postprocessor"}
     )
     # "grid_interpolation"
     boundings = fields.Nested(
-        InterpolBoundings, description="boundings of the target grid"
+        InterpolBoundings, metadata={"description": "boundings of the target grid"}
     )
-    nodes = fields.Nested(Nodes, description="number of nodes of the target grid")
+    nodes = fields.Nested(
+        Nodes, metadata={"description": "number of nodes of the target grid"}
+    )
     template = fields.Url(
         relative=True,
         require_tld=False,
-        description="grib template for interpolation",
+        metadata={
+            "description": "grib template for interpolation",
+        },
     )
     sub_type = fields.Str(required=True, validate=validate.OneOf(SUBTYPES))
 
@@ -221,18 +231,24 @@ class DataExtraction(Schema):
     request_name = fields.Str(required=True)
     reftime = fields.Nested(Reftime, allow_none=True)
     dataset_names = fields.List(
-        fields.Str(description="Dataset name"),
+        fields.Str(metadata={"description": "Dataset name"}),
         unique=True,
         min_items=1,
         required=True,
-        description="Data belong to the datasets of the list.",
+        metadata={
+            "description": "Data belong to the datasets of the list.",
+        },
     )
-    filters = fields.Nested(Filters, description="Apply different filtering criteria.")
+    filters = fields.Nested(
+        Filters, metadata={"description": "Apply different filtering criteria."}
+    )
     output_format = fields.Str(validate=validate.OneOf(OUTPUT_FORMATS))
     only_reliable = fields.Bool(required=False)
     postprocessors = fields.List(
-        Postprocessors(description="Post-processing request details"),
-        description="Apply one or more post-processing to the filtered data.",
+        Postprocessors(metadata={"description": "Post-processing request details"}),
+        metadata={
+            "description": "Apply one or more post-processing to the filtered data."
+        },
     )
 
     @pre_load

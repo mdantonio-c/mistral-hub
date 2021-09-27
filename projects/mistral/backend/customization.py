@@ -82,18 +82,24 @@ class Customizer(BaseCustomizer):
                     required=required,
                     # validate=validate.Range(min=0, max=???),
                     validate=validate.Range(min=0),
-                    label="Disk quota",
-                    description="Disk quota in bytes",
+                    metadata={
+                        "label": "Disk quota",
+                        "description": "Disk quota in bytes",
+                    },
                 ),
                 "requests_expiration_days": fields.Int(
                     required=False,
-                    missing=0,
+                    load_default=0,
                     validate=validate.Range(min=0, max=365),
-                    label="Requests expirations (in days, 0 to disable)",
-                    description="Number of days after which requests will be cleaned",
+                    metadata={
+                        "label": "Requests expirations (in days, 0 to disable)",
+                        "description": "Number of days after which requests will be cleaned",
+                    },
                 ),
                 "open_dataset": fields.Boolean(
-                    label="Enable access to Open Datasets",
+                    metadata={
+                        "label": "Enable access to Open Datasets",
+                    },
                     required=False,
                 ),
                 "datasets": fields.List(
@@ -104,45 +110,60 @@ class Customizer(BaseCustomizer):
                         )
                     ),
                     required=False,
-                    label="Allowed additional datasets",
-                    description="",
+                    metadata={
+                        "label": "Allowed additional datasets",
+                        "description": "",
+                    },
                     unique=True,
                 ),
                 "max_templates": fields.Int(
                     required=required,
                     validate=validate.Range(min=0, max=999),
-                    label="Max templates (0 to disable)",
-                    description="Maximum number of templates the user can upload",
+                    metadata={
+                        "label": "Max templates (0 to disable)",
+                        "description": "Maximum number of templates the user can upload",
+                    },
                 ),
                 "max_output_size": fields.Int(
                     required=required,
                     validate=validate.Range(min=0),
-                    label="Max output size",
-                    description="Maximum amount of data the user can request at once",
+                    metadata={
+                        "label": "Max output size",
+                        "description": "Maximum amount of data the user can request at once",
+                    },
                 ),
                 "allowed_postprocessing": fields.Boolean(
                     required=required,
-                    label="Postprocessing",
-                    description="Allow postprocessing tools",
+                    metadata={
+                        "label": "Postprocessing",
+                        "description": "Allow postprocessing tools",
+                    },
                 ),
                 "allowed_schedule": fields.Boolean(
-                    required=required, label="Schedule", description="Allow schedules"
+                    required=required,
+                    metadata={"label": "Schedule", "description": "Allow schedules"},
                 ),
                 "allowed_obs_archive": fields.Boolean(
                     required=required,
-                    label="Observed Archive",
-                    description="Allow access to observed archive",
+                    metadata={
+                        "label": "Observed Archive",
+                        "description": "Allow access to observed archive",
+                    },
                 ),
                 "request_par_hour": fields.Int(
                     required=required,
                     validate=validate.Range(min=0, max=999),
-                    label="Requests per hour (0 to disable)",
-                    description="Maximum number of allowed requests per hour",
+                    metadata={
+                        "label": "Requests per hour (0 to disable)",
+                        "description": "Maximum number of allowed requests per hour",
+                    },
                 ),
                 "amqp_queue": fields.Str(
                     required=False,
-                    label="AMQP queue",
-                    description="AMQP queue used to notify the user",
+                    metadata={
+                        "label": "AMQP queue",
+                        "description": "AMQP queue used to notify the user",
+                    },
                 ),
             }
 
@@ -151,15 +172,19 @@ class Customizer(BaseCustomizer):
             return {
                 "requests_expiration_days": fields.Int(
                     required=False,
-                    missing=0,
+                    load_default=0,
                     validate=validate.Range(min=0, max=365),
-                    label="Requests expirations (in days, 0 to disable)",
-                    description="Number of days after which requests will be cleaned",
+                    metadata={
+                        "label": "Requests expirations (in days, 0 to disable)",
+                        "description": "Number of days after which requests will be cleaned",
+                    },
                 ),
                 "requests_expiration_delete": fields.Boolean(
                     required=False,
-                    label="Delete expired requests (unless they will be archived)",
-                    description="If set false expired request will be archive instead of deleted",
+                    metadata={
+                        "label": "Delete expired requests (unless they will be archived)",
+                        "description": "If set false expired request will be archive instead of deleted",
+                    },
                 ),
             }
 

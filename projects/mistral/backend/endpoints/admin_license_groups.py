@@ -32,8 +32,10 @@ class LicGroupInput(Schema):
     is_public = fields.Bool(required=True, label=" Is an open license group")
     dballe_dsn = fields.Str(
         required=False,
-        label="DBAll-e DSN name",
-        description=" Required if the License Group includes observations datasets",
+        metadata={
+            "label": "DBAll-e DSN name",
+            "description": " Required if the License Group includes observations datasets",
+        },
     )
 
 

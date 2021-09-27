@@ -1,10 +1,6 @@
 version: "3.8"
 
 services:
-  adminer:
-    ports:
-      - 81:8888
-
   nifi:
     ports:
       - 8070:8080

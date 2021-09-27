@@ -64,15 +64,15 @@ class OutputBindings(EndpointResource):
 
     @decorators.auth.require_all(Role.ADMIN)
     @decorators.endpoint(
-        path="/outbindings/<user>/<network>",
+        path="/outbindings/<username>/<network>",
         summary="Allow a user to receive a network...",
         responses={"200": "User allowed"},
     )
-    def post(self, user, network):
+    def post(self, username, network):
 
         rabbit = rabbitmq.get_instance()
 
-        queue = self.get_queue(user)
+        queue = self.get_queue(username)
 
         if not rabbit.exchange_exists(EXCHANGE):
             rabbit.create_exchange(EXCHANGE)
@@ -87,15 +87,15 @@ class OutputBindings(EndpointResource):
 
     @decorators.auth.require_all(Role.ADMIN)
     @decorators.endpoint(
-        path="/outbindings/<user>/<network>",
+        path="/outbindings/<username>/<network>",
         summary="Disallow a user from receiving a network",
         responses={"200": "User disallowed"},
     )
-    def delete(self, user, network):
+    def delete(self, username, network):
 
         rabbit = rabbitmq.get_instance()
 
-        queue = self.get_queue(user)
+        queue = self.get_queue(username)
 
         if rabbit.exchange_exists(EXCHANGE) and rabbit.queue_exists(queue):
 

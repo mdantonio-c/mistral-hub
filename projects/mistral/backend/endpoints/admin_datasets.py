@@ -53,8 +53,10 @@ def getInputSchema(request, is_post):
 
     attributes["arkimet_id"] = fields.Str(
         required=is_post,
-        label="Arkimet id",
-        description="the name of dataset directory in Arkimet",
+        metadata={
+            "label": "Arkimet id",
+            "description": "the name of dataset directory in Arkimet",
+        },
     )
     attributes["name"] = fields.Str(required=is_post)
     attributes["description"] = fields.Str(required=is_post)
@@ -79,11 +81,13 @@ def getInputSchema(request, is_post):
         default_license = None
 
     attributes["license"] = fields.Str(
-        label="License",
-        description="The dataset's license",
         required=is_post,
-        default=default_license,
+        dump_default=default_license,
         validate=validate.OneOf(choices=license_keys, labels=license_labels),
+        metadata={
+            "label": "License",
+            "description": "The dataset's license",
+        },
     )
 
     attr_keys = []
@@ -100,11 +104,13 @@ def getInputSchema(request, is_post):
         default_attr = None
 
     attributes["attribution"] = fields.Str(
-        label="Attribution",
-        description="The dataset's attribution",
         required=is_post,
-        default=default_attr,
+        dump_default=default_attr,
         validate=validate.OneOf(choices=attr_keys, labels=attr_labels),
+        metadata={
+            "label": "Attribution",
+            "description": "The dataset's attribution",
+        },
     )
 
     return Schema.from_dict(attributes, name="AttributionDefinition")

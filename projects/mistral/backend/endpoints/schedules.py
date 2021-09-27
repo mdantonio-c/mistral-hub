@@ -43,7 +43,9 @@ class AVProcessor(Schema):
     variables = fields.List(
         fields.Str(
             validate=validate.OneOf(DERIVED_VARIABLES),
-            description="The list of requested derived variables to be calculated.",
+            metadata={
+                "description": "The list of requested derived variables to be calculated."
+            },
         ),
         unique=True,
         min_items=1,
