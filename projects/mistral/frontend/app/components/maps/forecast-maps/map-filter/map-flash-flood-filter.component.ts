@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import {
   KeyValuePair,
   FlashFloodFFields,
+  IffRuns,
   Levels_pe,
   Levels_pr,
 } from "../services/data";
@@ -19,10 +20,8 @@ export class MapFlashFloodFilterComponent implements OnInit {
   fields: KeyValuePair[] = FlashFloodFFields;
   levels_pe: KeyValuePair[] = Levels_pe;
   levels_pr: KeyValuePair[] = Levels_pr;
-  runs: KeyValuePair[] = [
-    { key: "00", value: "00" },
-    { key: "12", value: "12" },
-  ];
+  runs: KeyValuePair[] = IffRuns;
+
   resolutions: KeyValuePair[] = [{ key: "lm2.2", value: "2.2" }];
   areas: KeyValuePair[] = [
     { key: "Italia", value: "Italy" },
@@ -41,6 +40,7 @@ export class MapFlashFloodFilterComponent implements OnInit {
       level_pe: ["25"],
       level_pr: ["20"],
       run: ["00", Validators.required],
+
       res: ["lm2.2", Validators.required],
       area: ["Italia", Validators.required],
     });

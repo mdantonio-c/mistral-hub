@@ -8,6 +8,7 @@ export interface MeteoFilter {
   level_pe: string;
   level_pr: string;
   run: string;
+  iffruns: string;
   res: string;
   platform?: string;
   env?: string;

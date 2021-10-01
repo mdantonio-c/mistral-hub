@@ -96,24 +96,17 @@
 
         <!-- RUN -->
         <div class="form-group">
-          <label class="col-form-label"><strong>RUN:</strong></label>
-          <div id="runGroup">
-            <ng-container *ngFor="let run of runs">
-              <label
-                class="btn-circle"
-                [ngClass]="
-                  filterForm.get('run').value === run.key
-                    ? 'btn-success'
-                    : 'btn-secondary'
-                "
-              >
-                <input type="radio" formControlName="run" [value]="run.key" />
-                <strong>{{ run.key }}</strong>
-              </label>
-            </ng-container>
-          </div>
+          <label class="col-form-label"><strong>PRODUCTS:</strong></label>
+
+          <select id="runGroup" formControlName="run" class="form-control">
+          <ng-container *ngFor="let run of runs">
+          <option [value]="run.key">
+          {{ run.value }}
+          </option>
+          </ng-container>
+          </select>
         </div>
-        <!-- RESOLUTION -->
+
         <fieldset>
           <div class="form-group">
             <label class="col-form-label"
