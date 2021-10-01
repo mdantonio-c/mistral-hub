@@ -85,7 +85,7 @@ class OpendataFileList(EndpointResource):
         log.debug("opendata query {}", query)
         # get the available opendata requests
         opendata_req = db.Request.query.filter(
-            db.Request.args.contains(query), db.Request.opendata is True
+            db.Request.args.contains(query), db.Request.opendata.is_(True)
         )
 
         res = []
