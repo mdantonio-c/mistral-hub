@@ -510,7 +510,7 @@ All services will automatically start, except for the REST APIs service that is 
 In another shell the container status and logs can be inspected by using docker commands or corresponding rapydo commands:
 
 `$ docker logs mistral_frontend_1`
-`$ rapydo -s frontend logs`
+`$ rapydo logs frontend`
 
 When the frontend compilation is completed the web interface will be available on localhost:80
 APIs will respond on localhost:8080
@@ -548,7 +548,7 @@ $ docker logs mistral_frontend_1
 
 or:
 
-$ rapydo -s frontend logs
+$ rapydo logs frontend
 ```
 
 The web interface will be available on https://my.host.name
@@ -640,11 +640,12 @@ add the newly created database to _/var/lib/postgresql/current/pg_hba.conf_
 hostnossl       new_database_name  user_name 0.0.0.0/0    password
 ```
 
-exit the container and restart the service with the following command\
-`$ rapydo -s postgres start`
+exit the container and restart the service with the following command:
 
-Once the new database has been created it has to be initialized as a Dballe instance:\
-enter in backend container\
+`$ rapydo start postgres`
+
+Once the new database has been created it has to be initialized as a Dballe instance:
+enter in backend container
 `$ rapydo shell backend`
 
 inizialized the new database:
