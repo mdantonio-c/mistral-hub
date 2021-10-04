@@ -26,15 +26,20 @@ jobs:
 
       - name: Run Karma
         run: |
-          rapydo pull pull --quiet
+          rapydo pull --quiet frontend
           rapydo start frontend
           sleep 5
           rapydo logs frontend
           rapydo shell --no-tty frontend "yarn install"
           rapydo shell --no-tty frontend "reload-types"
           rapydo shell --no-tty frontend "yarn run test:single"
-          cp data/${PROJECT}/karma/lcov.info .
-          bash <(curl -s https://codecov.io/bash)
+
+      - name: Coverage
+        uses: rapydo/actions/coverage@v1
+        with:
+          repository: projects/${PROJECT}
+          project: ${PROJECT}
+          step: frontend
 
       - name: Production mode
         run: |

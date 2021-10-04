@@ -47,8 +47,13 @@ jobs:
           rapydo shell --no-tty frontend "yarn run cypress:start:full"
 
           rapydo shell --no-tty frontend "npx nyc --all report --reporter=lcov --report-dir /coverage"
-          cp data/${PROJECT}/karma/lcov.info .
-          bash <(curl -s https://codecov.io/bash)
+
+      - name: Coverage
+        uses: rapydo/actions/coverage@v1
+        with:
+          repository: projects/${PROJECT}
+          project: ${PROJECT}
+          step: frontend
 
       - name: Print docker logs on failure
         if: failure()
