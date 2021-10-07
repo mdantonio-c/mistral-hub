@@ -34,6 +34,19 @@
   cursor: pointer;
 }
 
+.btn-small-circle {
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  vertical-align: middle;
+  /* padding-bottom: 1px; */
+  margin: 1px 1px;
+  font-size: 10px;
+  /* line-height: 2; */
+  border-radius: 20px;
+  /* cursor: pointer; */
+}
+
 .btn-squared {
   width: 27px;
   height: 27px;
