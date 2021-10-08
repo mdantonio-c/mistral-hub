@@ -42,7 +42,7 @@
               </span>
             </h4>
             <h4 class="parameter">
-              <span class="badge badge-success">{{ filter.run }}</span>
+              <span class="badge badge-success">{{ selectedRun.value }}</span>
             </h4>
             <h4 class="parameter">
               <span class="badge badge-warning"
@@ -109,7 +109,7 @@
       >
         Forecast model: <b>Italy Flash Flood</b> - Reference date:
         <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> -
-        Run: <b>{{ filter.run }}</b>
+        Product: <b>{{ selectedRun.value }}</b>
       </div>
       <div
         *ngIf="filter.field != 'percentile' && filter.field != 'probability'"
@@ -118,7 +118,7 @@
         Forecast model: <b>COSMO {{ getValue("res", filter.res) }} Km</b> -
         Reference date:
         <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> -
-        Run: <b>{{ filter.run }}</b>
+        Product: <b>{{ selectedRun.value }}</b>
       </div>
     </div>
 

@@ -55,6 +55,11 @@ export const Runs: KeyValuePair[] = [
   { key: "12", value: "12" },
 ];
 
+export const IffRuns: KeyValuePair[] = [
+  { key: "12", value: "IFF" },
+  { key: "00", value: "IFF UPDATE" },
+];
+
 export const Resolutions: KeyValuePair[] = [
   { key: "lm2.2", value: "2.2" },
   { key: "lm5", value: "5" },

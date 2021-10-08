@@ -3,6 +3,7 @@ import {
   Input,
   Output,
   OnChanges,
+  OnInit,
   ViewChild,
   AfterViewInit,
   EventEmitter,
@@ -15,6 +16,9 @@ import {
   Fields,
   FlashFloodFFields,
   Resolutions,
+  Runs,
+  IffRuns,
+  KeyValuePair
 } from "../services/data";
 import { NgbCarousel, NgbSlideEvent } from "@ng-bootstrap/ng-bootstrap";
 import * as moment from "moment";
@@ -27,7 +31,7 @@ const SLIDER_TICKS = [0, 12, 24, 36, 48, 60, 72];
   templateUrl: "./map-slider.component.html",
   styleUrls: ["./map-slider.component.css"],
 })
-export class MapSliderComponent implements OnChanges, AfterViewInit {
+export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   @Input() filter: MeteoFilter;
   @Input() offsets: string[];
   @Input() reftime: string;
@@ -46,6 +50,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
   utcTime = true;
   public readonly LEGEND_SPINNER = "legendSpinner";
   public readonly IMAGE_SPINNER = "imageSpinner";
+  selectedRun : KeyValuePair;
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
@@ -60,6 +65,13 @@ export class MapSliderComponent implements OnChanges, AfterViewInit {
     private meteoService: MeteoService,
     private spinner: NgxSpinnerService
   ) {}
+
+  ngOnInit() {
+    this.selectedRun = (this.filter.field == 'percentile' || this.filter.field == 'probability') ?
+    IffRuns.find(x =>  this.filter.run === x.key) :
+    Runs.find(x =>  this.filter.run === x.key);
+  }
+
 
   setInputSliderFormatter(value) {
     return `+${value}h`;
