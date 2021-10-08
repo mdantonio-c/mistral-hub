@@ -31,7 +31,7 @@ setattr(User, "allowed_obs_archive", db.Column(db.Boolean, default=False))
 setattr(User, "request_par_hour", db.Column(db.Integer))
 
 
-class Request(db.Model):
+class Request(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     name = db.Column(db.String, index=True, nullable=False)
@@ -54,7 +54,7 @@ class Request(db.Model):
         )
 
 
-class FileOutput(db.Model):
+class FileOutput(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(64), index=True, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
@@ -73,7 +73,7 @@ class PeriodEnum(enum.Enum):
     microseconds = 5
 
 
-class Schedule(db.Model):
+class Schedule(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -95,7 +95,7 @@ class Schedule(db.Model):
         )
 
 
-class GroupLicense(db.Model):
+class GroupLicense(db.Model):  # type: ignore
     __tablename__ = "group_license"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, index=True, nullable=False)
@@ -105,7 +105,7 @@ class GroupLicense(db.Model):
     dballe_dsn = db.Column(db.String(64))
 
 
-class License(db.Model):
+class License(db.Model):  # type: ignore
     __tablename__ = "license"
     id = db.Column(db.Integer, primary_key=True)
     group_license_id = db.Column(db.Integer, db.ForeignKey("group_license.id"))
@@ -115,7 +115,7 @@ class License(db.Model):
     datasets = db.relationship("Datasets", backref="dataset_license", lazy="dynamic")
 
 
-class Attribution(db.Model):
+class Attribution(db.Model):  # type: ignore
     __tablename__ = "attribution"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, index=True, nullable=False)
@@ -139,7 +139,7 @@ dataset_user_association_table = db.Table(
 )
 
 
-class Datasets(db.Model):
+class Datasets(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     arkimet_id = db.Column(db.String, index=True, unique=True)
     name = db.Column(db.String, index=True, nullable=False, unique=True)

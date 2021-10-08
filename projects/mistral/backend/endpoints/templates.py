@@ -138,6 +138,9 @@ class Template(EndpointResource, Uploader):
         ]
         self.set_allowed_exts(allowed_exts)
         request_file = request.files["file"]
+        if not request_file.filename:
+            raise ServerError("Unable to upload the template file")
+
         f = request_file.filename.rsplit(".", 1)
 
         # check if the shapefile in the zip folder is complete
