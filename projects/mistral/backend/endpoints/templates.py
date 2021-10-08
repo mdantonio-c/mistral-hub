@@ -213,12 +213,12 @@ class Template(EndpointResource, Uploader):
             # remove the zip file
             os.remove(upload_filepath)
             # get .shp file filename
-            for f in files:
-                e = f.rsplit(".", 1)
+            for ff in files:
+                e = ff.rsplit(".", 1)
                 if e[-1] == "shp" or e[-1] == "grib":
-                    upload_filepath = os.path.join(UPLOAD_PATH, subfolder, f)
+                    upload_filepath = os.path.join(UPLOAD_PATH, subfolder, ff)
                 if e[-1] == "geojson":
-                    upload_filepath = os.path.join(UPLOAD_PATH, subfolder, f)
+                    upload_filepath = os.path.join(UPLOAD_PATH, subfolder, ff)
                     upload_filepath = self.convert_to_shapefile(upload_filepath)
 
         # if the file is a geojson convert it to shapefile
@@ -249,8 +249,8 @@ class Template(EndpointResource, Uploader):
                     filebase + "*",
                 )
             )
-            for f in filelist:
-                os.remove(f)
+            for tmpf in filelist:
+                os.remove(tmpf)
             raise Forbidden("Disk quota exceeded")
 
         r = {
