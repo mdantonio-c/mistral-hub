@@ -1,41 +1,45 @@
 import datetime
 import json
-import os
+from pathlib import Path
 from typing import Any, Optional
 
 from celery.result import AsyncResult
 from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
-from restapi.connectors.celery import CeleryExt
+from restapi.connectors import sqlalchemy
 from restapi.exceptions import NotFound, Unauthorized
+from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
 
 class SqlApiDbManager:
     @staticmethod
-    def check_fileoutput(db, user, filename):
+    def check_fileoutput(user: User, filename: str) -> Path:
+
+        db = sqlalchemy.get_instance()
         fileoutput = db.FileOutput
         # query for the requested file in database
         f_to_download = fileoutput.query.filter(fileoutput.filename == filename).first()
         # check if the requested file is in the database
-        if f_to_download is not None:
-            # check if the user owns the file
-            if SqlApiDbManager.check_owner(db, user.id, file_id=f_to_download.id):
-                # check if the file is an opendata or not
-                if f_to_download.request.opendata:
-                    file_dir = OPENDATA_DIR
-                else:
-                    file_dir = os.path.join(DOWNLOAD_DIR, user.uuid, "outputs")
-
-                # check if the requested file is in the user folder
-                path = os.path.join(file_dir, f_to_download.filename)
-                if os.path.exists(path):
-                    return file_dir
-                else:
-                    raise NotFound(f"File path: {path} does not exists")
-            else:
-                raise NotFound("User is not the file owner")
-        else:
+        if f_to_download is None:
             raise NotFound(f"file: {filename} is not in database")
+
+        # check if the user owns the file
+        if not SqlApiDbManager.check_owner(db, user.id, file_id=f_to_download.id):
+            raise NotFound("User is not the file owner")
+
+        # check if the file is an opendata or not
+        if f_to_download.request.opendata:
+            file_dir = OPENDATA_DIR
+        else:
+            file_dir = DOWNLOAD_DIR.joinpath(user.uuid, "outputs")
+
+        # check if the requested file is in the user folder
+        path = file_dir.joinpath(f_to_download.filename)
+        if not path.exists():
+            log.error("File path: {} does not exists", path)
+            raise NotFound(f"File path for {f_to_download.filename} does not exists")
+
+        return file_dir
 
     @staticmethod
     def check_owner(db, user_id, schedule_id=None, request_id=None, file_id=None):
@@ -151,11 +155,11 @@ class SqlApiDbManager:
             if out_file.request.opendata:
                 file_dir = OPENDATA_DIR
             else:
-                file_dir = os.path.join(DOWNLOAD_DIR, user.uuid, "outputs")
+                file_dir = DOWNLOAD_DIR.joinpath(user.uuid, "outputs")
             # delete the file output
             try:
-                filepath = os.path.join(file_dir, out_file.filename)
-                os.remove(filepath)
+                filepath = file_dir.joinpath(out_file.filename)
+                filepath.unlink()
                 db.session.delete(out_file)
             except FileNotFoundError as error:
                 # silently pass when file is not found

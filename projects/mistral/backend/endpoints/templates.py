@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from zipfile import ZipFile
 
 from flask import request
@@ -165,7 +165,7 @@ class Template(EndpointResource, Uploader):
         try:
             upload_response = self.upload(subfolder=subfolder)
             log.debug("upload response: {}", upload_response)
-            upload_filename = upload_response["filename"]
+            upload_filename = upload_response["filename"]  # type: ignore
             upload_filepath = subfolder.joinpath(upload_filename)
             log.debug("File uploaded. Filepath : {}", upload_filepath)
         except Exception as error:
@@ -181,20 +181,20 @@ class Template(EndpointResource, Uploader):
 
         # if the file is a zip file extract the content in the upload folder
         if file_extension == "zip":
-            files = []
+            zip_files = []
             with ZipFile(upload_filepath, "r") as zip:
-                files = zip.namelist()
-                log.debug("filelist: {}", files)
+                zip_files = zip.namelist()
+                log.debug("filelist: {}", zip_files)
 
                 ext = "INVALID_EXT"
-                for i in files:
-                    if i.endswith("grib"):
+                for z in zip_files:
+                    if z.endswith("grib"):
                         ext = "grib"
                         break
-                    if i.endswith("shp"):
+                    if z.endswith("shp"):
                         ext = "shp"
                         break
-                    if i.endswith("geojson"):
+                    if z.endswith("geojson"):
                         ext = "shp"
                         break
 
@@ -203,7 +203,7 @@ class Template(EndpointResource, Uploader):
             # remove the zip file
             upload_filepath.unlink()
 
-            for ff in files:
+            for ff in zip_files:
                 upload_filepath = zip_upload_path.joinpath(ff)
                 ff_ext = Path(ff).suffix.strip(".")
                 if ff_ext == "geojson":
@@ -331,7 +331,13 @@ class Template(EndpointResource, Uploader):
     @staticmethod
     def convert_to_shapefile(filepath: Path) -> Path:
         output_file = filepath.with_suffix(".shp")
-        cmd = ["ogr2ogr", "-f", "ESRI Shapefile", output_file, filepath]
+        cmd: List[Union[str, Path]] = [
+            "ogr2ogr",
+            "-f",
+            "ESRI Shapefile",
+            output_file,
+            filepath,
+        ]
         try:
             proc = subprocess.Popen(cmd)
             # wait for the process to terminate

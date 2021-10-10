@@ -1,8 +1,7 @@
 import datetime
 import glob
 import json
-import os
-import shutil
+import os  # still a lot of os. to be replaced with Pathlib
 import subprocess
 import tarfile
 from typing import Optional
@@ -148,14 +147,14 @@ def data_extract(
 
         # create download user dir if it doesn't exist
         uuid = SqlApiDbManager.get_uuid(db, user_id)
-        output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
+        output_dir = DOWNLOAD_DIR.joinpath(uuid, "outputs")
         # decomment for pushing output data in an amqp queue
         # if not amqp_queue:
-        #     output_dir = os.path.join(DOWNLOAD_DIR, uuid, "outputs")
+        #     output_dir = DOWNLOAD_DIR.joinpath(uuid, "outputs")
         # else:
         #     # create a temporary outfile directory
-        #     output_dir = os.path.join(DOWNLOAD_DIR, "tmp_outfiles", uuid)
-        os.makedirs(output_dir, exist_ok=True)
+        #     output_dir = DOWNLOAD_DIR.joinpath("tmp_outfiles", uuid)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         # check that the datasets are all under the same license
         license_group = SqlApiDbManager.get_license_group(db, datasets)
@@ -175,10 +174,11 @@ def data_extract(
             output_dir = OPENDATA_DIR
 
         # final result
-        outfile = os.path.join(output_dir, out_filename)
+        outfile = output_dir.joinpath(out_filename)
         log.debug("outfile: {}", outfile)
 
-        ## for pushing data output to amqp queue use case, the estimation of data size can be skipped
+        # the estimation of data size can be skipped
+        # when pushing data output to amqp queue
         if data_type != "OBS" and "multim-forecast" not in datasets:
             esti_data_size = check_user_quota(
                 user_id,
@@ -188,7 +188,8 @@ def data_extract(
                 query=query,
                 schedule_id=schedule_id,
             )
-        # observed data. in future the if statement will be for data using arkimet and data using dballe
+        # Observed data, in a future
+        # the if statement will be for data using arkimet and data using dballe
         else:
             log.debug("observation in dballe")
 
@@ -210,7 +211,7 @@ def data_extract(
                 log.debug("Data extraction with post-processing <{}>", pp_type)
 
             # temporarily save the data extraction output
-            tmp_outfile = os.path.join(output_dir, out_filename + ".tmp")
+            tmp_outfile = output_dir.joinpath(out_filename + ".tmp")
             # call data extraction
             if data_type != "OBS" and "multim-forecast" not in datasets:
                 arki.arkimet_extraction(datasets, query, tmp_outfile)
@@ -286,10 +287,9 @@ def data_extract(
                         )
 
                 finally:
-                    # always remove tmp file
-                    tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
-                    for f in tmp_filelist:
-                        os.remove(f)
+                    # always remove tmp files
+                    for f in output_dir.glob("*.tmp"):
+                        f.unlink()
                     # if pp_type == 'spare_point_interpolation':
                     #     # remove the temporary folder where the files for the interpolation were uploaded
                     #     uploaded_filepath = Path(p.get('coord-filepath'))
@@ -324,9 +324,8 @@ def data_extract(
                             tmp_extraction_basename.split(".")[0]
                             + f"-pp1.{dataset_format}.tmp"
                         )
-                        pp_output = os.path.join(
-                            output_dir, new_tmp_extraction_filename
-                        )
+                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
+
                         with open(pp_output, mode="w") as pp1_outfile:
                             ext_proc = subprocess.Popen(cat_cmd, stdout=pp1_outfile)
                             ext_proc.wait()
@@ -350,9 +349,8 @@ def data_extract(
                             tmp_extraction_basename.split(".")[0]
                             + f"-pp2.{dataset_format}.tmp"
                         )
-                        pp_output = os.path.join(
-                            output_dir, new_tmp_extraction_filename
-                        )
+                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
+
                         pp2.pp_statistic_elaboration(
                             params=p,
                             input=pp_input,
@@ -378,9 +376,8 @@ def data_extract(
                         )[0] + "-pp3_2.{fileformat}.tmp".format(
                             fileformat=dataset_format
                         )
-                        pp_output = os.path.join(
-                            output_dir, new_tmp_extraction_filename
-                        )
+                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
+
                         pp3_2.pp_grid_cropping(
                             params=p, input=pp_input, output=pp_output
                         )
@@ -404,9 +401,7 @@ def data_extract(
                         )[0] + "-pp3_1.{fileformat}.tmp".format(
                             fileformat=dataset_format
                         )
-                        pp_output = os.path.join(
-                            output_dir, new_tmp_extraction_filename
-                        )
+                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
                         pp3_1.pp_grid_interpolation(
                             params=p, input=pp_input, output=pp_output
                         )
@@ -433,9 +428,7 @@ def data_extract(
                             tmp_extraction_basename.split(".")[0] + ".bufr"
                         )
                         out_filename = new_tmp_extraction_filename
-                        pp_output = os.path.join(
-                            output_dir, new_tmp_extraction_filename
-                        )
+                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
                         pp3_3.pp_sp_interpolation(
                             params=p,
                             input=pp_input,
@@ -447,20 +440,14 @@ def data_extract(
                     if pp_output:
                         if pp_output.split(".")[-1] != "bufr":
                             log.debug(f"dest: {str(outfile)}")
-                            os.rename(pp_output, outfile)
+                            pp_output.rename(outfile)
                     # else:
                     #     # if it is a bufr file, the filename resulting from pp
                     #     # is will be the new outifle filename
                     #     outfile = pp_output
                 finally:
                     log.debug("end of multiple postprocessors")
-                #     # remove all tmp file
-                #     tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
-                #     for f in tmp_filelist:
-                #         os.remove(f)
-                # remove the temporary sp_interpolation upload folder, if any
-                # if os.path.isdir(os.path.join(UPLOAD_PATH,uuid)):
-                #     shutil.rmtree(os.path.join(UPLOAD_PATH,uuid))
+
         else:
             if data_type != "OBS" and "multim-forecast" not in datasets:
                 arki.arkimet_extraction(datasets, query, outfile)
