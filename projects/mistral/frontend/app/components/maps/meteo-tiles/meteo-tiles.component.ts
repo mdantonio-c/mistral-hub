@@ -107,9 +107,9 @@ export class MeteoTilesComponent {
   // // '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>';
   // '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://meteohub.mistralportal.it/app/license">MISTRAL</a>';
   license =
-    '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">Open Street Map</a> ' +
-    '&copy; <a href="http://cartodb.com/attributions" target="_blank">CartoDB</a> | ' +
-    '&copy; <a href="./app/license#mistral-products" target="_blank">MISTRAL</a>';
+    '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">Open Street Map</a> ' +
+    '&copy; <a href="http://cartodb.com/attributions" target="_blank" rel="noopener noreferrer">CartoDB</a> | ' +
+    '&copy; <a href="./app/license#mistral-products" target="_blank" rel="noopener noreferrer">MISTRAL</a>';
 
   map: L.Map;
   dataset: string;

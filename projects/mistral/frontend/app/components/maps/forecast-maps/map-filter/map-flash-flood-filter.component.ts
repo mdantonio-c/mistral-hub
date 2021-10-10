@@ -9,31 +9,51 @@ import {
 } from "../services/data";
 import { MeteoFilter } from "../services/meteo.service";
 import { AuthService } from "@rapydo/services/auth";
-import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from "@ng-bootstrap/ng-bootstrap";
 
 // #####################################################
 @Component({
-  selector: 'ngbd-modal-content',
+  selector: "ngbd-modal-content",
   template: `
     <div class="modal-header">
       <h4 class="modal-title">PRODUCTS</h4>
-      <button type="button" class="close" aria-label="Close" (click)="activeModal.dismiss('Cross click')">
+      <button
+        type="button"
+        class="close"
+        aria-label="Close"
+        (click)="activeModal.dismiss('Cross click')"
+      >
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
     <div class="modal-body">
       <p>
-      <b>IFF</b>: blending product using yesterday's 12UTC ECMWF ensemble forecast with the 21UTC COSMO-2I-EPS forecast.
+        <b>IFF</b>: blending product using yesterday's 12UTC ECMWF ensemble
+        forecast with the 21UTC COSMO-2I-EPS forecast.
       </p>
       <p>
-      <b>IFF update</b>: updated blending product using today's 00UTC ECMWF ensemble forecast with the 21UTC COSMO-2I-EPS forecast.
+        <b>IFF update</b>: updated blending product using today's 00UTC ECMWF
+        ensemble forecast with the 21UTC COSMO-2I-EPS forecast.
       </p>
-      Both products are created with the <a href="https://github.com/ecmwf/ecPoint/blob/master/README.md" target="_blank">ecPoint</a> post-processing system.
+      Both products are created with the
+      <a
+        href="https://github.com/ecmwf/ecPoint/blob/master/README.md"
+        target="_blank"
+        rel="noopener noreferrer"
+        >ecPoint</a
+      >
+      post-processing system.
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-outline-dark" (click)="activeModal.close('Close click')">Close</button>
+      <button
+        type="button"
+        class="btn btn-outline-dark"
+        (click)="activeModal.close('Close click')"
+      >
+        Close
+      </button>
     </div>
-  `
+  `,
   // This is an "update" of the Run 12 and it is available ~ 2h later.
 })
 export class NgbdModalContent {
@@ -69,12 +89,12 @@ export class MapFlashFloodFilterComponent implements OnInit {
   @Output() onFilterChange: EventEmitter<MeteoFilter> =
     new EventEmitter<MeteoFilter>();
 
-  constructor(private fb: FormBuilder, private authService: AuthService,
-    private modalService: NgbModal
-    // #####################################################
-    // config: MapFlashFloodFilterComponent, private modalService: NgbModal
-    // #####################################################
-  ) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private modalService: NgbModal // ##################################################### // config: MapFlashFloodFilterComponent, private modalService: NgbModal
+  ) // #####################################################
+  {
     this.filterForm = this.fb.group({
       field: ["percentile", Validators.required],
       level_pe: ["25"],
@@ -84,8 +104,8 @@ export class MapFlashFloodFilterComponent implements OnInit {
       res: ["lm2.2", Validators.required],
       area: ["Italia", Validators.required],
     });
-   //  config.backdrop = 'static';
-   // config.keyboard = false;
+    //  config.backdrop = 'static';
+    // config.keyboard = false;
   }
 
   ngOnInit() {
@@ -106,12 +126,12 @@ export class MapFlashFloodFilterComponent implements OnInit {
       this.filter();
     });
   }
-// #####################################################
+  // #####################################################
   open() {
     const modalRef = this.modalService.open(NgbdModalContent);
     // modalRef.componentInstance.name = 'World';
   }
-// #####################################################
+  // #####################################################
 
   private filter() {
     let filter: MeteoFilter = this.filterForm.value;

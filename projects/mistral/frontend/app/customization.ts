@@ -59,7 +59,7 @@ export class ProjectOptions extends BaseProjectOptions {
   }
 
   cookie_law_text(): string {
-    return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page. If you need more information you can read <a target='_blank' href='https://www.cineca.it/privacy/cookies-cineca'>privacy and cookie policy</a>";
+    return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page. If you need more information you can read <a target='_blank' rel='noopener noreferrer' href='https://www.cineca.it/privacy/cookies-cineca'>privacy and cookie policy</a>";
   }
 
   cookie_law_button(): string {
