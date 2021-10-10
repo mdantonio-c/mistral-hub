@@ -1,5 +1,3 @@
-import glob
-import os
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -19,7 +17,8 @@ from restapi.exceptions import (
     Unauthorized,
 )
 from restapi.models import Schema, fields, validate
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import User
 from restapi.services.uploader import Uploader
 from restapi.utilities.logs import log
 
@@ -45,22 +44,20 @@ class Templates(EndpointResource):
     # 200: {'schema': {'$ref': '#/definitions/TemplateFile'}}
     def get(
         self,
-        format=None,
-        perpage=None,
-        currentpage=None,
-        get_total=False,
-    ):
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+        user: User,
+        format: Optional[str] = None,
+        perpage: Optional[int] = None,
+        currentpage: Optional[int] = None,
+        get_total: bool = False,
+    ) -> Response:
 
-        grib_templates = glob.glob(
-            os.path.join(UPLOAD_PATH, user.uuid, "uploads", "grib", "*")
+        grib_templates = list(
+            UPLOAD_PATH.joinpath(user.uuid, "uploads", "grib").glob("*")
         )
-        shp_templates = glob.glob(
-            os.path.join(UPLOAD_PATH, user.uuid, "uploads", "shp", "*.shp")
+        shp_templates = list(
+            UPLOAD_PATH.joinpath(user.uuid, "uploads", "shp").glob("*.shp")
         )
+
         # get total count for user templates
         if get_total:
             if format == "grib":
@@ -77,24 +74,23 @@ class Templates(EndpointResource):
         )
 
         res: List[Optional[object]] = []
+
         grib_object: Dict[str, Any] = {}
         grib_object["type"] = "grib"
-        grib_object["files"] = []
-        for t in grib_templates:
-            grib_object["files"].append(t)
+        grib_object["files"] = grib_templates
         if max_user_templates and len(grib_templates) >= int(max_user_templates):
             grib_object["max_allowed"] = True
         else:
             grib_object["max_allowed"] = False
+
         shp_object: Dict[str, Any] = {}
         shp_object["type"] = "shp"
-        shp_object["files"] = []
-        for t in shp_templates:
-            shp_object["files"].append(t)
+        shp_object["files"] = shp_templates
         if max_user_templates and len(shp_templates) >= int(max_user_templates):
             shp_object["max_allowed"] = True
         else:
             shp_object["max_allowed"] = False
+
         if format == "grib":
             res.append(grib_object)
         elif format == "shp":
@@ -109,11 +105,6 @@ class Templates(EndpointResource):
 class Template(EndpointResource, Uploader):
     labels = ["templates"]
 
-    @staticmethod
-    def get_extension(filepath):
-        _, fileext = os.path.splitext(filepath)
-        return fileext.strip(".")
-
     @decorators.auth.require()
     @decorators.endpoint(
         path="/templates",
@@ -121,11 +112,11 @@ class Template(EndpointResource, Uploader):
         responses={202: "File uploaded", 400: "File cannot be uploaded"},
     )
     # 202: {'schema': {'$ref': '#/definitions/TemplateFile'}}
-    def post(self):
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+    def post(self, user: User) -> Response:
+
+        request_file = request.files["file"]
+        if not request_file.filename:
+            raise ServerError("Unable to upload the template file")
 
         # allowed formats for uploaded file
         allowed_exts = [
@@ -137,14 +128,11 @@ class Template(EndpointResource, Uploader):
             "grib",
         ]
         self.set_allowed_exts(allowed_exts)
-        request_file = request.files["file"]
-        if not request_file.filename:
-            raise ServerError("Unable to upload the template file")
 
-        f = request_file.filename.rsplit(".", 1)
+        file_extension = Path(request_file.filename).suffix.strip(".")
 
         # check if the shapefile in the zip folder is complete
-        if f[-1] == "zip":
+        if file_extension == "zip":
             with ZipFile(request_file, "r") as zip:
                 uploaded_files = zip.namelist()
                 self.check_files_to_upload(
@@ -153,35 +141,32 @@ class Template(EndpointResource, Uploader):
             request.files["file"].seek(0)
 
         # upload the files
-        if f[-1] == "grib":
-            subfolder = os.path.join(user.uuid, "uploads", "grib")
+        if file_extension == "grib":
+            ext = "grib"
         else:
-            subfolder = os.path.join(user.uuid, "uploads", "shp")
+            ext = "shp"
 
+        subfolder = UPLOAD_PATH.joinpath(user.uuid, "uploads", ext)
         # check the max number of templates the user is allowed to upload
         max_user_templates = SqlApiDbManager.get_user_permissions(
             user, param="templates"
         )
         if max_user_templates:
-            if f[-1] == "grib":
-                template_list = glob.glob(os.path.join(UPLOAD_PATH, subfolder, "*"))
+            if file_extension == "grib":
+                template_list = subfolder.glob("*")
             else:
-                template_list = glob.glob(os.path.join(UPLOAD_PATH, subfolder, "*.shp"))
-            if len(template_list) == int(max_user_templates):
+                template_list = subfolder.glob("*.shp")
+            if len(list(template_list)) == int(max_user_templates):
                 raise Unauthorized(
                     "user has reached the max number of templates of this kind"
                 )
 
         log.debug("uploading in {}", subfolder)
         try:
-            upload_res = self.upload(subfolder=Path(subfolder))
-            if isinstance(upload_res, tuple):
-                upload_response = upload_res[0]
-            else:
-                upload_response = upload_res
+            upload_response = self.upload(subfolder=subfolder)
             log.debug("upload response: {}", upload_response)
             upload_filename = upload_response["filename"]
-            upload_filepath = os.path.join(UPLOAD_PATH, subfolder, upload_filename)
+            upload_filepath = subfolder.joinpath(upload_filename)
             log.debug("File uploaded. Filepath : {}", upload_filepath)
         except Exception as error:
             log.error(error)
@@ -189,73 +174,66 @@ class Template(EndpointResource, Uploader):
             # geojson and zip files are always deleted if the process doesn't
             # rise an exception. If there are such ind of files in the directory
             # means they were uploaded but the exception was risen
-            subfolder_path = os.path.join(UPLOAD_PATH, subfolder)
-            for i in os.listdir(subfolder_path):
-                if i.endswith(".zip") or i.endswith(".geojson"):
-                    file_to_remove = os.path.join(UPLOAD_PATH, subfolder, i)
-                    os.remove(file_to_remove)
+            for i in subfolder.iterdir():
+                if i.name.endswith(".zip") or i.name.endswith(".geojson"):
+                    i.unlink()
             raise ServerError("Unable to upload the template file")
 
         # if the file is a zip file extract the content in the upload folder
-        if f[-1] == "zip":
+        if file_extension == "zip":
             files = []
             with ZipFile(upload_filepath, "r") as zip:
                 files = zip.namelist()
                 log.debug("filelist: {}", files)
-                if any(i.endswith("shp") for i in files) or any(
-                    i.endswith("geojson") for i in files
-                ):
-                    subfolder = os.path.join(user.uuid, "uploads", "shp")
-                if any(i.endswith("grib") for i in files):
-                    subfolder = os.path.join(user.uuid, "uploads", "grib")
-                zip_upload_path = os.path.join(UPLOAD_PATH, subfolder)
+
+                ext = "INVALID_EXT"
+                for i in files:
+                    if i.endswith("grib"):
+                        ext = "grib"
+                        break
+                    if i.endswith("shp"):
+                        ext = "shp"
+                        break
+                    if i.endswith("geojson"):
+                        ext = "shp"
+                        break
+
+                zip_upload_path = UPLOAD_PATH.joinpath(user.uuid, "uploads", ext)
                 zip.extractall(path=zip_upload_path)
             # remove the zip file
-            os.remove(upload_filepath)
-            # get .shp file filename
+            upload_filepath.unlink()
+
             for ff in files:
-                e = ff.rsplit(".", 1)
-                if e[-1] == "shp" or e[-1] == "grib":
-                    upload_filepath = os.path.join(UPLOAD_PATH, subfolder, ff)
-                if e[-1] == "geojson":
-                    upload_filepath = os.path.join(UPLOAD_PATH, subfolder, ff)
+                upload_filepath = zip_upload_path.joinpath(ff)
+                ff_ext = Path(ff).suffix.strip(".")
+                if ff_ext == "geojson":
                     upload_filepath = self.convert_to_shapefile(upload_filepath)
 
         # if the file is a geojson convert it to shapefile
-        if f[-1] == "geojson":
+        if file_extension == "geojson":
             upload_filepath = self.convert_to_shapefile(upload_filepath)
 
         # check user quota
-        user_dir = os.path.join(
-            DOWNLOAD_DIR,
-            user.uuid,
-        )
+        user_dir = DOWNLOAD_DIR.joinpath(user.uuid)
         used_quota = int(subprocess.check_output(["du", "-sb", user_dir]).split()[0])
         # check for exceeding quota
         db = sqlalchemy.get_instance()
         max_user_quota = (
             db.session.query(db.User.disk_quota).filter_by(id=user.id).scalar()
         )
-        file_size = os.path.getsize(upload_filepath)
+        file_size = upload_filepath.stat().st_size
         if used_quota + file_size > max_user_quota:
-            filebase, fileext = os.path.splitext(upload_filepath)
+            filebase = upload_filepath.stem
+
             # delete all the files related to the template
-            filelist = glob.glob(
-                os.path.join(
-                    UPLOAD_PATH,
-                    user.uuid,
-                    "uploads",
-                    fileext.strip("."),
-                    filebase + "*",
-                )
-            )
-            for tmpf in filelist:
-                os.remove(tmpf)
+            for f in zip_upload_path.parent.glob(f"{filebase}*"):
+                f.unlink()
+
             raise Forbidden("Disk quota exceeded")
 
         r = {
             "filepath": upload_filepath,
-            "format": self.get_extension(upload_filepath),
+            "format": upload_filepath.suffix.strip("."),
         }
         return self.response(r)
 
@@ -267,24 +245,20 @@ class Template(EndpointResource, Uploader):
         responses={200: "Template filepath.", 404: "Template not found"},
     )
     # 200: {'schema': {'$ref': '#/definitions/TemplateFile'}}
-    def get(self, template_name):
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+    def get(self, template_name: str, user: User) -> Response:
 
         # get the template extension to determine the folder where to find it
-        filebase, fileext = os.path.splitext(template_name)
+        fileext = Path(template_name).suffix.strip(".")
 
-        filepath = os.path.join(
-            UPLOAD_PATH, user.uuid, "uploads", fileext.strip("."), template_name
-        )
+        filepath = UPLOAD_PATH.joinpath(user.uuid, "uploads", fileext, template_name)
         # check if the template exists
-        if not os.path.exists(filepath):
+        if filepath.exists():
             raise NotFound("The template doesn't exist")
-        res = {}
-        res["filepath"] = filepath
-        res["format"] = fileext.strip(".")
+
+        res = {
+            "filepath": filepath,
+            "format": fileext,
+        }
 
         return self.response(res)
 
@@ -294,50 +268,49 @@ class Template(EndpointResource, Uploader):
         summary="Delete a template",
         responses={200: "Template is succesfully deleted", 404: "Template not found"},
     )
-    def delete(self, template_name):
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+    def delete(self, template_name: str, user: User) -> Response:
 
         # get the template extension to determine the folder where to find it
-        filebase, fileext = os.path.splitext(template_name)
+        template = Path(template_name)
+        fileext = template.suffix.strip(".")
 
-        filepath = os.path.join(
-            UPLOAD_PATH, user.uuid, "uploads", fileext.strip("."), template_name
-        )
-        # check if the template exists
-        if not os.path.exists(filepath):
+        filepath = UPLOAD_PATH.joinpath(user.uuid, "uploads", fileext, template_name)
+        if not filepath.exists():
             raise NotFound("The template doesn't exist")
-        # get all the files related to the template to remove
-        filelist = glob.glob(
-            os.path.join(
-                UPLOAD_PATH, user.uuid, "uploads", fileext.strip("."), filebase + "*"
-            )
-        )
-        for f in filelist:
-            os.remove(f)
+
+        filebase = template.stem
+        for f in filepath.parent.glob(f"{filebase}*"):
+            f.unlink()
+
         return self.response(
             f"File {template_name} succesfully deleted",
         )
 
     @staticmethod
-    def check_files_to_upload(UPLOAD_PATH, user_uuid, files, allowed_exts):
+    def check_files_to_upload(
+        UPLOAD_PATH: Path, user_uuid: str, files: List[str], allowed_exts: List[str]
+    ) -> None:
         # create a dictionary to compare the uploaded files specs
         file_dict = {}
         for f in files:
-            e = f.rsplit(".", 1)
+            ff = Path(f)
+            f_ext = ff.suffix.strip(".")
+
             # check in the correct folder if the file was already uploaded
-            subfolder = ""
-            if e[-1] == "shp" or e[-1] == "geojson":
-                subfolder = os.path.join(user_uuid, "uploads", "shp")
-            if e[-1] == "grib":
-                subfolder = os.path.join(user_uuid, "uploads", "grib")
-            if os.path.exists(os.path.join(UPLOAD_PATH, subfolder, f)):
+            if f_ext == "shp" or f_ext == "geojson":
+                ext = "shp"
+            elif f_ext == "grib":
+                ext = "grib"
+            else:
+                ext = "INVALID_EXT"
+
+            path = UPLOAD_PATH.joinpath(user_uuid, "uploads", ext, f)
+            if path.exists():
                 # should be Conflict...
                 raise BadRequest(f"File '{f}' already exists")
 
-            file_dict[e[1]] = e[0]
+            file_dict[f_ext] = ff.stem
+
         if "shp" in file_dict:
             # check if there is a file .shx and a file .dbf
             if "shx" not in file_dict:
@@ -356,17 +329,16 @@ class Template(EndpointResource, Uploader):
                     raise BadRequest("Wrong extension: File extension not allowed")
 
     @staticmethod
-    def convert_to_shapefile(filepath):
-        filebase, fileext = os.path.splitext(filepath)
-        output_file = filebase + ".shp"
+    def convert_to_shapefile(filepath: Path) -> Path:
+        output_file = filepath.with_suffix(".shp")
         cmd = ["ogr2ogr", "-f", "ESRI Shapefile", output_file, filepath]
         try:
             proc = subprocess.Popen(cmd)
             # wait for the process to terminate
             if proc.wait() != 0:
                 raise ServerError("Errors in converting the uploaded file")
-            else:
-                return output_file
+            return output_file
+
         finally:
             # remove the source file
-            os.remove(filepath)
+            filepath.unlink()
