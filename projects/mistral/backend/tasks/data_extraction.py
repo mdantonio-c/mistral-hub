@@ -276,7 +276,7 @@ def data_extract(
                         # change output extension from .grib to .BUFR
                         outfile_name, outfile_ext = os.path.splitext(out_filename)
                         out_filename = outfile_name + ".BUFR"
-                        outfile = os.path.join(output_dir, out_filename)
+                        outfile = output_dir.joinpath(out_filename)
                         # bufr_outfile = outfile_name+'.BUFR'
                         # pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
                         pp3_3.pp_sp_interpolation(
@@ -340,7 +340,6 @@ def data_extract(
                             if item["processor_type"] == "statistic_elaboration":
                                 p.append(item)
                         # check if the input has to be the previous postprocess output
-                        pp_input = ""
                         if pp_output is not None:
                             pp_input = pp_output
                         else:
@@ -366,7 +365,6 @@ def data_extract(
                             if item["processor_type"] == "grid_cropping"
                         )
                         # check if the input has the previous postprocess output
-                        pp_input = ""
                         if pp_output is not None:
                             pp_input = pp_output
                         else:
@@ -391,7 +389,6 @@ def data_extract(
                             if item["processor_type"] == "grid_interpolation"
                         )
                         # check if the input has the previous postprocess output
-                        pp_input = ""
                         if pp_output is not None:
                             pp_input = pp_output
                         else:
@@ -415,7 +412,6 @@ def data_extract(
                             if item["processor_type"] == "spare_point_interpolation"
                         )
                         # check if the input has he previous postprocess output
-                        pp_input = ""
                         if pp_output is not None:
                             pp_input = pp_output
                         else:
@@ -438,7 +434,7 @@ def data_extract(
                     # rename the final output of postprocessors as outfile
                     # unless it is not a bufr file
                     if pp_output:
-                        if pp_output.split(".")[-1] != "bufr":
+                        if pp_output.suffix.strip(".") != "bufr":
                             log.debug(f"dest: {str(outfile)}")
                             pp_output.rename(outfile)
                     # else:
@@ -475,7 +471,7 @@ def data_extract(
             )
             out_filename = os.path.basename(out_filepath)
             # rename outfile correctly
-            outfile = os.path.join(output_dir, out_filename)
+            outfile = output_dir.joinpath(out_filename)
 
         ## for pushing data output to amqp queue use case, the estimation of data size can be skipped
         # get the actual data size
