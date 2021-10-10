@@ -500,9 +500,10 @@ def data_extract(
             # update request status
             request.status = states.SUCCESS
             if opendata and datasets == ["cosmo_2Ipp_ecPoint"]:
-                # opendata file for iff use case: filter the output with eccodes to get the sort set list of percentiles
-                tmp_file = outfile + ".tmp"
-                os.rename(outfile, tmp_file)
+                # opendata file for iff use case:
+                # filter the output with eccodes to get the sort set list of percentiles
+                tmp_file = outfile.with_suffi(".tmp")
+                outfile.rename(tmp_file)
                 percentiles_short_list = "10/25/50/75/90/99"
                 post_proc_cmd = [
                     "grib_copy",
@@ -513,17 +514,18 @@ def data_extract(
                 ]
                 post_proc = subprocess.Popen(post_proc_cmd)
                 post_proc.wait()
-                if not os.path.exists(outfile):
+                if not outfile.exists():
                     raise Exception("Failure in extract percentiles shortlist")
-            ## for pushing data output to amqp queue use case, the creation of fileoutput record in db can be skipped
+            # the creation of fileoutput record in db can be skipped
+            # when pushing data output to amqp queue
             # create fileoutput record in db
             SqlApiDbManager.create_fileoutput_record(
                 db, user_id, request_id, target_filename, data_size
             )
         else:
             # remove the empty output file
-            if os.path.exists(outfile):
-                os.remove(outfile)
+            if outfile.exists():
+                outfile.unlink()
             raise EmptyOutputFile("The resulting output file is empty")
 
     except ReferenceError as exc:
@@ -578,10 +580,9 @@ def data_extract(
     finally:
         if not double_request:  # which means if the extraction hasn't been interrupted
             if output_dir:
-                # remove tmp file
-                tmp_filelist = glob.glob(os.path.join(output_dir, "*.tmp"))
-                for f in tmp_filelist:
-                    os.remove(f)
+                # remove tmp files
+                for f in output_dir.glob("*.tmp"):
+                    f.unlink()
 
             request.end_date = datetime.datetime.utcnow()
             if data_ready and data_size == 0:
@@ -590,7 +591,7 @@ def data_extract(
                 db.session.delete(request)
                 db.session.commit()
                 log.info(
-                    "Terminate task {} : the data ready extraction does not give any result",
+                    "Terminate task {}: data extraction does not give any result",
                     self.request.id,
                 )
             else:
@@ -600,23 +601,23 @@ def data_extract(
                     self.request.id,
                     request.status,
                 )
-                ## decomment for pushing output data in an amqp queue
+                # decomment for pushing output data in an amqp queue
                 # if amqp_queue:
                 #     extra_msg = push_data_to_queue(amqp_queue, outfile, output_dir, request)
-                # notificate_by_email(db, user_id, request, extra_msg, amqp_queue)
+                # notify_by_email(db, user_id, request, extra_msg, amqp_queue)
                 if amqp_queue:
                     try:
-                        # notificate via amqp queue
-                        notificate_by_amqp_queue(amqp_queue, request)
+                        # notify via amqp queue
+                        notify_by_amqp_queue(amqp_queue, request)
                     except BaseException:
                         extra_msg += (
                             f"failed communication with {amqp_queue} amqp queue"
                         )
                         # notify via mail adding a warning about the amqp communication error
-                        notificate_by_email(db, user_id, request, extra_msg)
+                        notify_by_email(db, user_id, request, extra_msg)
                 else:
-                    # notificate via email
-                    notificate_by_email(db, user_id, request, extra_msg)
+                    # notify via email
+                    notify_by_email(db, user_id, request, extra_msg)
 
 
 def check_user_quota(
@@ -819,7 +820,7 @@ def observed_extraction(
         qc.pp_quality_check_filter(input=outfile, output=qc_outfile)
 
 
-def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
+def notify_by_email(db, user_id, request, extra_msg, amqp_queue=None):
     """Send email notification."""
     user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
     # decomment for pushing output data in an amqp queue use case
@@ -841,7 +842,7 @@ def notificate_by_email(db, user_id, request, extra_msg, amqp_queue=None):
         )
 
 
-def notificate_by_amqp_queue(amqp_queue, request):
+def notify_by_amqp_queue(amqp_queue, request):
     # send a message to the queue
     with rabbitmq.get_instance() as rabbit:
         rabbit_msg = {
