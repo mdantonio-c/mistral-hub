@@ -544,7 +544,7 @@ class MapsObservations(EndpointResource):
 
             # stream data
             if db_for_extraction:
-                return FlaskResponse(  # type: ignore
+                return FlaskResponse(
                     stream_with_context(
                         dballe.download_data_from_map(
                             db_for_extraction,
