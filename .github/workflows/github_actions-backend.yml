@@ -70,8 +70,8 @@ jobs:
           sleep 45
           rapydo logs
           curl --insecure -X GET --max-time 5 https://localhost/api/status | grep "Server is alive"
-          rapydo log proxy logs --tail 20
-          rapydo log backend logs --tail 20
+          rapydo logs proxy --tail 20
+          rapydo logs backend --tail 20
 
           LOGURU_LEVEL=WARNING rapydo list services
           # This should fail if at least one container is in Exit status
