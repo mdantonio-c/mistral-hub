@@ -502,7 +502,7 @@ def data_extract(
             if opendata and datasets == ["cosmo_2Ipp_ecPoint"]:
                 # opendata file for iff use case:
                 # filter the output with eccodes to get the sort set list of percentiles
-                tmp_file = outfile.with_suffi(".tmp")
+                tmp_file = outfile.with_suffix(".tmp")
                 outfile.rename(tmp_file)
                 percentiles_short_list = "10/25/50/75/90/99"
                 post_proc_cmd = [
