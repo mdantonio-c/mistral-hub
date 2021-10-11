@@ -25,7 +25,7 @@ jobs:
       - uses: rapydo/actions/mypy@v1
         with:
           project: ${PROJECT}
-          allow_untyped_defs: true
+          # allow_untyped_defs: true
           # install: ...
           ignore: arkimet dballe eccodes
 
