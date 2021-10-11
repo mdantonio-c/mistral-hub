@@ -1,6 +1,6 @@
-import datetime
 import os
-from typing import Any, Dict
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 from flask import send_from_directory
 from mistral.endpoints import OPENDATA_DIR
@@ -63,22 +63,20 @@ class OpendataFileList(EndpointResource):
                 if e.startswith("reftime"):
                     val = e.split("reftime:")[1]
                     reftimes = [x.strip() for x in val.split(",")]
-                    for r in reftimes:
-                        if r.startswith(">"):
-                            date_min = r.strip(">=")
-                            reftime["from"] = datetime.datetime.strptime(
+                    for reftime in reftimes:
+                        if reftime.startswith(">"):
+                            date_min = reftime.strip(">=")
+                            reftime["from"] = datetime.strptime(
                                 date_min, "%Y-%m-%d %H:%M"
                             ).date()
-                        if r.startswith("<"):
-                            date_max = r.strip("<=")
-                            reftime["to"] = datetime.datetime.strptime(
+                        if reftime.startswith("<"):
+                            date_max = reftime.strip("<=")
+                            reftime["to"] = datetime.strptime(
                                 date_max, "%Y-%m-%d %H:%M"
                             ).date()
-                        if r.startswith("="):
-                            date = r.strip("=")
-                            reftime["from"] = reftime[
-                                "to"
-                            ] = datetime.datetime.strptime(
+                        if reftime.startswith("="):
+                            date = reftime.strip("=")
+                            reftime["from"] = reftime["to"] = datetime.strptime(
                                 date, "%Y-%m-%d %H:%M"
                             ).date()
 
@@ -91,12 +89,12 @@ class OpendataFileList(EndpointResource):
         res = []
         for r in opendata_req:
             # create the model for the response
-            el = {}
+            el: Dict[str, Optional[str]] = {}
             # get the reftime
-            reftime_from = datetime.datetime.strptime(
+            reftime_from = datetime.strptime(
                 r.args["reftime"]["from"], "%Y-%m-%dT%H:%M:%S.%fZ"
             ).date()
-            reftime_to = datetime.datetime.strptime(
+            reftime_to = datetime.strptime(
                 r.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
             ).date()
             # check if there is a requested reftime
@@ -131,9 +129,9 @@ class OpendataFileList(EndpointResource):
         # sort the elements by date
         if res:
             res.sort(
-                key=lambda x: datetime.datetime.strptime(x["date"], "%Y-%m-%d")
+                key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d")
                 if "from" not in x["date"]
-                else datetime.datetime.strptime(x["date"].split(" ")[1], "%Y-%m-%d"),
+                else datetime.strptime(x["date"].split(" ")[1], "%Y-%m-%d"),
                 reverse=True,
             )
         return self.response(res)

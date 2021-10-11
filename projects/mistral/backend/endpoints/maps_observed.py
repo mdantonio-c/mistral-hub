@@ -75,16 +75,16 @@ class MapsObservations(EndpointResource):
     def get(
         self,
         user: Optional[User],
-        q="",
-        networks=None,
+        q: str = "",
+        networks: Optional[str] = None,
         interval=None,
-        lonmin=None,
-        latmin=None,
-        lonmax=None,
-        latmax=None,
-        lat=None,
-        lon=None,
-        ident=None,
+        lonmin: Optional[float] = None,
+        latmin: Optional[float] = None,
+        lonmax: Optional[float] = None,
+        latmax: Optional[float] = None,
+        lat: Optional[float] = None,
+        lon: Optional[float] = None,
+        ident: Optional[str] = None,
         onlyStations: bool = False,
         stationDetails: bool = False,
         reliabilityCheck: bool = False,
@@ -268,17 +268,17 @@ class MapsObservations(EndpointResource):
     # 200: {'schema': {'$ref': '#/definitions/Fileoutput'}}
     def post(
         self,
-        q,
-        output_format,
+        q: str,
+        output_format: str,
         user: Optional[User],
-        networks=None,
-        lonmin=None,
-        latmin=None,
-        lonmax=None,
-        latmax=None,
-        lat=None,
-        lon=None,
-        ident=None,
+        networks: Optional[str] = None,
+        lonmin: Optional[float] = None,
+        latmin: Optional[float] = None,
+        lonmax: Optional[float] = None,
+        latmax: Optional[float] = None,
+        lat: Optional[float] = None,
+        lon: Optional[float] = None,
+        ident: Optional[str] = None,
         singleStation: bool = False,
         reliabilityCheck: bool = False,
     ) -> Response:
@@ -558,6 +558,6 @@ class MapsObservations(EndpointResource):
                     mimetype=mime,
                 )
             else:
-                return []
+                return self.response([])
         except AccessToDatasetDenied:
             raise ServerError("Access to dataset denied")

@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
@@ -290,15 +293,15 @@ class Data(EndpointResource, Uploader):
     )
     def post(
         self,
-        request_name,
-        dataset_names,
+        request_name: str,
+        dataset_names: List[str],
         user: User,
-        reftime=None,
-        filters=None,
-        output_format=None,
-        only_reliable=False,
-        postprocessors=None,
-        push=False,
+        reftime: Optional[Dict[str, datetime]] = None,
+        filters: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+        output_format: Optional[str] = None,
+        only_reliable: bool = False,
+        postprocessors: Optional[List[Any]] = None,
+        push: bool = False,
     ) -> Response:
 
         db = sqlalchemy.get_instance()

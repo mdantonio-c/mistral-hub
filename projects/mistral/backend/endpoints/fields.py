@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from mistral.exceptions import (
     AccessToDatasetDenied,
@@ -45,15 +45,15 @@ class Fields(EndpointResource):
     def get(
         self,
         user: Optional[User],
-        datasets=[],
-        q="",
-        lonmin=None,
-        latmin=None,
-        lonmax=None,
-        latmax=None,
-        onlySummaryStats=False,
-        SummaryStats=True,
-        allAvailableProducts=False,
+        datasets: List[str] = [],
+        q: str = "",
+        lonmin: Optional[float] = None,
+        latmin: Optional[float] = None,
+        lonmax: Optional[float] = None,
+        latmax: Optional[float] = None,
+        onlySummaryStats: bool = False,
+        SummaryStats: bool = True,
+        allAvailableProducts: bool = False,
     ) -> Response:
         """Get all fields for given datasets"""
         bounding_box = {}

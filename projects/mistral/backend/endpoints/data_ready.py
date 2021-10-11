@@ -1,5 +1,5 @@
-import datetime
 import os
+from datetime import datetime, timedelta
 
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
@@ -116,26 +116,23 @@ class DataReady(EndpointResource):
 
             # check if there are others schedule params
             if r["period"] or r["crontab_set"]:
-                req_date = datetime.datetime.strptime(
-                    rundate.isoformat(), "%Y-%m-%dT%H:%M:%S"
-                )
+                req_date = datetime.strptime(rundate.isoformat(), "%Y-%m-%dT%H:%M:%S")
                 # get the last request
                 last_req = SqlApiDbManager.get_last_scheduled_request(db, r["id"])
                 if last_req:
-                    submission_date = datetime.datetime.strptime(
+                    submission_date = datetime.strptime(
                         last_req["submission_date"], "%Y-%m-%dT%H:%M:%S.%f"
                     ).date()
                 else:
                     # if there aren't any previous requests consider
                     # the submission date of the schedule itself
-                    submission_date = datetime.datetime.strptime(
+                    submission_date = datetime.strptime(
                         r["creation_date"], "%Y-%m-%dT%H:%M:%S.%f"
                     ).date()
                 # periodic schedules
                 if r["period"] == "days":
                     day_interval = r["every"]
-                    timedelta = datetime.timedelta(days=day_interval)
-                    next_submission = submission_date + timedelta
+                    next_submission = submission_date + timedelta(days=day_interval)
                     if req_date.date() != next_submission:
                         log.debug(
                             "Skipping {}: scheduling period does not coincide",
