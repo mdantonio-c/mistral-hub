@@ -6,7 +6,7 @@ from restapi.connectors import sqlalchemy
 from restapi.exceptions import Conflict, DatabaseDuplicatedEntry, NotFound
 from restapi.models import Schema, fields
 from restapi.rest.definition import EndpointResource, Response
-from restapi.services.authentication import Role
+from restapi.services.authentication import Role, User
 
 
 class License(Schema):
@@ -27,9 +27,11 @@ class LicGroup(Schema):
 
 
 class LicGroupInput(Schema):
-    name = fields.Str(required=True, label="Name")
-    descr = fields.Str(required=True, label="Description")
-    is_public = fields.Bool(required=True, label=" Is an open license group")
+    name = fields.Str(required=True, metadata={"label": "Name"})
+    descr = fields.Str(required=True, metadata={"label": "Description"})
+    is_public = fields.Bool(
+        required=True, metadata={"label": " Is an open license group"}
+    )
     dballe_dsn = fields.Str(
         required=False,
         metadata={
@@ -53,7 +55,7 @@ class AdminLicGroups(EndpointResource):
             200: "List of license groups successfully retrieved",
         },
     )
-    def get(self) -> Response:
+    def get(self, user: User) -> Response:
         db = sqlalchemy.get_instance()
         lic_groups = []
         for gl in db.GroupLicense.query.all():
@@ -76,7 +78,7 @@ class AdminLicGroups(EndpointResource):
             409: "Request is invalid due to conflicts",
         },
     )
-    def post(self, **kwargs: Any) -> Response:
+    def post(self, user: User, **kwargs: Any) -> Response:
         db = sqlalchemy.get_instance()
         try:
             new_gl = db.GroupLicense(**kwargs)
@@ -99,7 +101,7 @@ class AdminLicGroups(EndpointResource):
             409: "Request is invalid due to conflicts",
         },
     )
-    def put(self, lic_group_id: str, **kwargs: Any) -> Response:
+    def put(self, lic_group_id: str, user: User, **kwargs: Any) -> Response:
 
         db = sqlalchemy.get_instance()
         lgroup = db.GroupLicense.query.filter_by(id=lic_group_id).first()
@@ -125,7 +127,7 @@ class AdminLicGroups(EndpointResource):
             404: "License group not found",
         },
     )
-    def delete(self, lic_group_id: str) -> Response:
+    def delete(self, lic_group_id: str, user: User) -> Response:
         db = sqlalchemy.get_instance()
         lgroup = db.GroupLicense.query.filter_by(id=lic_group_id).first()
         if not lgroup:

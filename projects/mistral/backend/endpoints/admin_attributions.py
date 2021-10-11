@@ -6,8 +6,7 @@ from restapi.connectors import sqlalchemy
 from restapi.exceptions import Conflict, DatabaseDuplicatedEntry, NotFound
 from restapi.models import Schema, fields
 from restapi.rest.definition import EndpointResource, Response
-from restapi.services.authentication import Role
-from restapi.utilities.logs import log
+from restapi.services.authentication import Role, User
 
 
 class Datasets(Schema):
@@ -25,9 +24,9 @@ class Attribution(Schema):
 
 
 class AttributionInput(Schema):
-    name = fields.Str(required=True, label="Name")
-    descr = fields.Str(required=True, label="Description")
-    url = fields.URL(required=False, label="Url", allow_none=True)
+    name = fields.Str(required=True, metadata={"label": "Name"})
+    descr = fields.Str(required=True, metadata={"label": "Description"})
+    url = fields.URL(required=False, allow_none=True, metadata={"label": "Url"})
 
     @pre_load
     def null_url(self, data, **kwargs):
@@ -50,7 +49,7 @@ class AdminAttributions(EndpointResource):
             200: "List of attributions successfully retrieved",
         },
     )
-    def get(self) -> Response:
+    def get(self, user: User) -> Response:
         db = sqlalchemy.get_instance()
         attributions = []
         for a in db.Attribution.query.all():
@@ -73,7 +72,7 @@ class AdminAttributions(EndpointResource):
             409: "Request is invalid due to conflicts",
         },
     )
-    def post(self, **kwargs: Any) -> Response:
+    def post(self, user: User, **kwargs: Any) -> Response:
         db = sqlalchemy.get_instance()
         try:
             new_attr = db.Attribution(**kwargs)
@@ -96,7 +95,7 @@ class AdminAttributions(EndpointResource):
             409: "Request is invalid due to conflicts",
         },
     )
-    def put(self, attribution_id: str, **kwargs: Any) -> Response:
+    def put(self, attribution_id: str, user: User, **kwargs: Any) -> Response:
 
         db = sqlalchemy.get_instance()
         attribution = db.Attribution.query.filter_by(id=attribution_id).first()
@@ -122,7 +121,7 @@ class AdminAttributions(EndpointResource):
             404: "Attribution not found",
         },
     )
-    def delete(self, attribution_id: str) -> Response:
+    def delete(self, attribution_id: str, user: User) -> Response:
         db = sqlalchemy.get_instance()
         attribution = db.Attribution.query.filter_by(id=attribution_id).first()
         if not attribution:

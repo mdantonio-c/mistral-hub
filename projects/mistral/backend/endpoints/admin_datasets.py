@@ -5,9 +5,7 @@ from restapi.connectors import sqlalchemy
 from restapi.exceptions import Conflict, DatabaseDuplicatedEntry, NotFound
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource, Response
-from restapi.services.authentication import Role
-
-# from restapi.utilities.logs import log
+from restapi.services.authentication import Role, User
 
 
 class License(Schema):
@@ -136,7 +134,7 @@ class AdminDatasets(EndpointResource):
         summary="List of datasets",
         responses={200: "List of datasets successfully retrieved"},
     )
-    def get(self) -> Response:
+    def get(self, user: User) -> Response:
         db = sqlalchemy.get_instance()
         datasets = []
         for d in db.Datasets.query.all():
@@ -171,7 +169,7 @@ class AdminDatasets(EndpointResource):
             409: "This dataset already exists",
         },
     )
-    def post(self, **kwargs: Any) -> Response:
+    def post(self, user: User, **kwargs: Any) -> Response:
 
         license_id = kwargs.pop("license")
         attribution_id = kwargs.pop("attribution")
@@ -210,7 +208,7 @@ class AdminDatasets(EndpointResource):
             409: "Request is invalid due to conflicts",
         },
     )
-    def put(self, dataset_id: str, **kwargs: Any) -> Response:
+    def put(self, dataset_id: str, user: User, **kwargs: Any) -> Response:
         license_id = kwargs.pop("license", None)
         attribution_id = kwargs.pop("attribution", None)
         db = sqlalchemy.get_instance()
@@ -249,7 +247,7 @@ class AdminDatasets(EndpointResource):
         summary="Delete a dataset",
         responses={200: "Dataset successfully deleted", 404: "Dataset not found"},
     )
-    def delete(self, dataset_id: str) -> Response:
+    def delete(self, dataset_id: str, user: User) -> Response:
 
         db = sqlalchemy.get_instance()
         dataset = db.Datasets.query.filter_by(id=dataset_id).first()

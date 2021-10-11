@@ -3,8 +3,8 @@ import subprocess
 
 from mistral.endpoints import DOWNLOAD_DIR
 from restapi import decorators
-from restapi.exceptions import ServerError
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import User
 
 
 class Usage(EndpointResource):
@@ -18,17 +18,10 @@ class Usage(EndpointResource):
         responses={200: "Disk usage information"},
     )
     # 200: {'schema': {'$ref': '#/definitions/StorageUsage'}}
-    def get(self):
+    def get(self, user: User) -> Response:
         """
         Get actual user disk quota and current usage
         """
-        user = self.get_user()
-
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
-
-        # get current usage
         used_quota = 0
         user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
         if os.path.isdir(user_dir):

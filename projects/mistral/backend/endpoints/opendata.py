@@ -9,7 +9,7 @@ from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import BadRequest, NotFound
 from restapi.models import fields
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
 from restapi.utilities.logs import log
 
 
@@ -28,7 +28,7 @@ class OpendataFileList(EndpointResource):
             404: "Requested dataset not found",
         },
     )
-    def get(self, dataset_name, q=""):
+    def get(self, dataset_name: str, q: str = "") -> Response:
         """Get all the opendata filenames and metadata for that dataset"""
         log.debug("requested for {}", dataset_name)
         # check if the dataset exists
@@ -151,7 +151,7 @@ class OpendataDownload(EndpointResource):
             404: "File not found",
         },
     )
-    def get(self, filename):
+    def get(self, filename: str) -> Response:
         # check if the requested file exists
         if not os.path.exists(os.path.join(OPENDATA_DIR, filename)):
             raise NotFound("File not found")

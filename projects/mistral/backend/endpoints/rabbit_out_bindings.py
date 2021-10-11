@@ -4,8 +4,8 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import rabbitmq, sqlalchemy
 from restapi.models import Schema, fields
-from restapi.rest.definition import EndpointResource
-from restapi.services.authentication import Role
+from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import Role, User
 from restapi.utilities.logs import log
 
 EXCHANGE = "obs-data-output"
@@ -21,7 +21,7 @@ class OutputBindings(EndpointResource):
     labels = ["admin"]
 
     @staticmethod
-    def get_queue(user):
+    def get_queue(user: str) -> str:
         # Naming convention?
         return f"{user}"
 
@@ -32,7 +32,7 @@ class OutputBindings(EndpointResource):
         summary="List of bindings between networks and user data queues",
         responses={"200": "List of bindings is returned"},
     )
-    def get(self):
+    def get(self, user: User) -> Response:
 
         db = sqlalchemy.get_instance()
         rabbit = rabbitmq.get_instance(verification=1)
@@ -68,7 +68,7 @@ class OutputBindings(EndpointResource):
         summary="Allow a user to receive a network...",
         responses={"200": "User allowed"},
     )
-    def post(self, username, network):
+    def post(self, username: str, network: str, user: User) -> Response:
 
         rabbit = rabbitmq.get_instance()
 
@@ -91,7 +91,7 @@ class OutputBindings(EndpointResource):
         summary="Disallow a user from receiving a network",
         responses={"200": "User disallowed"},
     )
-    def delete(self, username, network):
+    def delete(self, username: str, network: str, user: User) -> Response:
 
         rabbit = rabbitmq.get_instance()
 

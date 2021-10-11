@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from mistral.exceptions import (
     AccessToDatasetDenied,
@@ -13,7 +13,8 @@ from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import BadRequest, NotFound, ServerError, Unauthorized
 from restapi.models import Schema, fields
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
 
@@ -43,6 +44,7 @@ class Fields(EndpointResource):
     # 200: {'schema': {'$ref': '#/definitions/Summary'}}
     def get(
         self,
+        user: Optional[User],
         datasets=[],
         q="",
         lonmin=None,
@@ -52,7 +54,7 @@ class Fields(EndpointResource):
         onlySummaryStats=False,
         SummaryStats=True,
         allAvailableProducts=False,
-    ):
+    ) -> Response:
         """Get all fields for given datasets"""
         bounding_box = {}
         if lonmin:
@@ -65,7 +67,6 @@ class Fields(EndpointResource):
                 bounding_box["latmax"] = latmax
 
         # check for existing dataset(s)
-        user = self.get_user()
         db = sqlalchemy.get_instance()
         license_group = None
         if datasets:

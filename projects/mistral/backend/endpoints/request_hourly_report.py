@@ -2,8 +2,8 @@ import datetime
 
 from restapi import decorators
 from restapi.connectors import sqlalchemy
-from restapi.exceptions import ServerError
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import User
 
 
 class HourlyReport(EndpointResource):
@@ -17,14 +17,10 @@ class HourlyReport(EndpointResource):
         responses={200: "Request hourly report information"},
     )
     # 200: {'schema': {'$ref': '#/definitions/StorageUsage'}}
-    def get(self):
+    def get(self, user: User) -> Response:
         """
         Get user remaining request par hour
         """
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         data = {}

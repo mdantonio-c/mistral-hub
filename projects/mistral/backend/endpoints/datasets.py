@@ -1,9 +1,12 @@
+from typing import Optional
+
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import NotFound, ServiceUnavailable
 from restapi.models import fields
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
 
@@ -24,10 +27,9 @@ class Datasets(EndpointResource):
         },
     )
     # 200: {'schema': {'$ref': '#/definitions/Dataset'}}
-    def get(self, licenceSpecs=False):
+    def get(self, user: Optional[User], licenceSpecs: bool = False) -> Response:
         """Get all the datasets or a specific one if a name is provided."""
         db = sqlalchemy.get_instance()
-        user = self.get_user()
         # TODO: it's okay that if logged you'll see less dataset than anonymous users?
         try:
             datasets = SqlApiDbManager.get_datasets(db, user, licenceSpecs=licenceSpecs)
@@ -62,10 +64,11 @@ class SingleDataset(EndpointResource):
         },
     )
     # 200: {'schema': {'$ref': '#/definitions/Dataset'}}
-    def get(self, dataset_name, licenceSpecs=False):
+    def get(
+        self, dataset_name: str, user: Optional[User], licenceSpecs: bool = False
+    ) -> Response:
         """Get all the datasets or a specific one if a name is provided."""
         db = sqlalchemy.get_instance()
-        user = self.get_user()
         # TODO: it's okay that if logged you'll see less dataset than anonymous users?
         try:
             datasets = SqlApiDbManager.get_datasets(db, user, licenceSpecs=licenceSpecs)

@@ -6,7 +6,8 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import celery, sqlalchemy
 from restapi.models import fields
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
 
@@ -24,7 +25,7 @@ class DataReady(EndpointResource):
         summary="Notify that a dataset is ready",
         responses={202: "Notification received"},
     )
-    def post(self, cluster, model, rundate):
+    def post(self, cluster: str, model: str, rundate: datetime, user: User) -> Response:
 
         cluster = cluster.lower()
         log.info("Cluster = {}\tModel = {}\trundate = {}", cluster, model, rundate)

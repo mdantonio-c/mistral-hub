@@ -2,9 +2,10 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.endpoints.schemas import TotalSchema
-from restapi.exceptions import NotFound, ServerError, Unauthorized
+from restapi.exceptions import NotFound, Unauthorized
 from restapi.models import fields
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import User
 from restapi.utilities.logs import log
 from sqlalchemy.orm import joinedload
 
@@ -29,20 +30,15 @@ class UserRequests(EndpointResource):
     # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(
         self,
-        get_total,
-        page,
-        size,
-        sort_order,
-        sort_by,
-        input_filter,
-        request_id=None,
-        archived=False,
-    ):
-
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+        get_total: bool,
+        page: int,
+        size: int,
+        sort_by: str,
+        sort_order: str,
+        input_filter: str,
+        user: User,
+        archived: bool = False,
+    ) -> Response:
 
         db = sqlalchemy.get_instance()
         if get_total:
@@ -106,13 +102,8 @@ class UserRequests(EndpointResource):
             404: "Request does not exist.",
         },
     )
-    def put(self, request_id):
+    def put(self, request_id: str, user: User) -> Response:
         log.debug("archive request {}", request_id)
-
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         # check if the request exists
@@ -144,13 +135,8 @@ class UserRequests(EndpointResource):
             404: "Request does not exist.",
         },
     )
-    def delete(self, request_id):
+    def delete(self, request_id: str, user: User) -> Response:
         log.debug("delete request {}", request_id)
-
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         # check if the request exists
@@ -184,13 +170,8 @@ class CloneUserRequests(EndpointResource):
             404: "No user request found",
         },
     )
-    def get(self, request_id):
+    def get(self, request_id: str, user: User) -> Response:
         log.debug(f"Request for cloning query - ID<{request_id}>")
-
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
 
         db = sqlalchemy.get_instance()
         # check if the request exists

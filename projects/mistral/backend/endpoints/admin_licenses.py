@@ -7,9 +7,7 @@ from restapi.connectors import sqlalchemy
 from restapi.exceptions import Conflict, DatabaseDuplicatedEntry, NotFound
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource, Response
-from restapi.services.authentication import Role
-
-# from restapi.utilities.logs import log
+from restapi.services.authentication import Role, User
 
 
 class Datasets(Schema):
@@ -107,7 +105,7 @@ class AdminLicenses(EndpointResource):
         summary="List of licenses",
         responses={200: "List of licenses successfully retrieved"},
     )
-    def get(self) -> Response:
+    def get(self, user: User) -> Response:
         db = sqlalchemy.get_instance()
         licenses = []
         for lic in db.License.query.all():
@@ -138,7 +136,7 @@ class AdminLicenses(EndpointResource):
             409: "This license already exists",
         },
     )
-    def post(self, **kwargs: Any) -> Response:
+    def post(self, user: User, **kwargs: Any) -> Response:
 
         lgroup_id = kwargs.pop("group_license")
         db = sqlalchemy.get_instance()
@@ -170,7 +168,7 @@ class AdminLicenses(EndpointResource):
             409: "Request is invalid due to conflicts",
         },
     )
-    def put(self, license_id: str, **kwargs: Any) -> Response:
+    def put(self, license_id: str, user: User, **kwargs: Any) -> Response:
         lgroup_id = kwargs.pop("group_license", None)
         db = sqlalchemy.get_instance()
 
@@ -201,7 +199,7 @@ class AdminLicenses(EndpointResource):
         summary="Delete a license",
         responses={200: "License successfully deleted", 404: "License not found"},
     )
-    def delete(self, license_id: str) -> Response:
+    def delete(self, license_id: str, user: User) -> Response:
 
         db = sqlalchemy.get_instance()
         license = db.License.query.filter_by(id=license_id).first()

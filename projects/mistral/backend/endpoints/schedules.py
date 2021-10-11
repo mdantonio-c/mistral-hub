@@ -17,7 +17,8 @@ from restapi.exceptions import (
     Unauthorized,
 )
 from restapi.models import Schema, fields, validate
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
 OUTPUT_FORMATS = ["json", "bufr", "grib"]
@@ -44,7 +45,7 @@ class AVProcessor(Schema):
         fields.Str(
             validate=validate.OneOf(DERIVED_VARIABLES),
             metadata={
-                "description": "The list of requested derived variables to be calculated."
+                "description": "The list of requested derived variables to be calculated"
             },
         ),
         unique=True,
@@ -65,14 +66,14 @@ SUBTYPES = [
 class SPIProcessor(Schema):
     # Spare points interpolation postprocessor
     processor_type = fields.Str(
-        required=True, description="description of the postprocessor"
+        required=True, metadata={"description": "description of the postprocessor"}
     )
     # "spare_point_interpolation"
     coord_filepath = fields.Url(
         required=True,
         relative=True,
         require_tld=False,
-        description="file to define the target spare points",
+        metadata={"description": "file to define the target spare points"},
     )
     file_format = fields.Str(
         required=True, data_key="format", validate=validate.OneOf(["shp", "geojson"])
@@ -86,7 +87,7 @@ TIMERANGES = [0, 1, 2, 3, 4, 6, 254]
 class SEProcessor(Schema):
     # Statistic Elaboration post-processing
     processor_type = fields.Str(
-        required=True, description="description of the postprocessor"
+        required=True, metadata={"description": "description of the postprocessor"}
     )
     # "statistic_elaboration"
     input_timerange = fields.Integer(required=True, validate=validate.OneOf(TIMERANGES))
@@ -96,9 +97,9 @@ class SEProcessor(Schema):
     interval = fields.Str(
         required=True,
         validate=validate.OneOf(["hours", "days", "months", "years"]),
-        description="Interval of elaboration",
+        metadata={"description": "Interval of elaboration"},
     )
-    step = fields.Integer(required=True, description="step range")
+    step = fields.Integer(required=True, metadata={"description": "step range"})
 
     @pre_load
     def timeranges_validation(self, data, **kwargs):
@@ -128,11 +129,11 @@ class CropBoundings(Schema):
 class GCProcessor(Schema):
     #  Grid cropping post processor
     processor_type = fields.Str(
-        required=True, description="description of the postprocessor"
+        required=True, metadata={"description": "description of the postprocessor"}
     )
     # "grid_cropping"
     boundings = fields.Nested(
-        CropBoundings, description="boundings of the cropped grid"
+        CropBoundings, metadata={"description": "boundings of the cropped grid"}
     )
     sub_type = fields.Str(required=True, validate=validate.OneOf(["coord", "bbox"]))
 
@@ -152,17 +153,19 @@ class Nodes(Schema):
 class GIProcessor(Schema):
     # Grid interpolation post processor to interpolate data on a new grid
     processor_type = fields.Str(
-        required=True, description="description of the postprocessor"
+        required=True, metadata={"description": "description of the postprocessor"}
     )
     # "grid_interpolation"
     boundings = fields.Nested(
-        InterpolBoundings, description="boundings of the target grid"
+        InterpolBoundings, metadata={"description": "boundings of the target grid"}
     )
-    nodes = fields.Nested(Nodes, description="number of nodes of the target grid")
+    nodes = fields.Nested(
+        Nodes, metadata={"description": "number of nodes of the target grid"}
+    )
     template = fields.Url(
         relative=True,
         require_tld=False,
-        description="grib template for interpolation",
+        metadata={"description": "grib template for interpolation"},
     )
     sub_type = fields.Str(required=True, validate=validate.OneOf(SUBTYPES))
 
@@ -254,35 +257,43 @@ class ScheduledDataExtraction(Schema):
     request_name = fields.Str(required=True)
     reftime = fields.Nested(Reftime, allow_none=True)
     dataset_names = fields.List(
-        fields.Str(description="Dataset name"),
+        fields.Str(metadata={"description": "Dataset name"}),
         unique=True,
         min_items=1,
         required=True,
-        description="Data belong to the datasets of the list.",
+        metadata={"description": "Data belong to the datasets of the list."},
     )
-    filters = fields.Nested(Filters, description="Apply different filtering criteria.")
+    filters = fields.Nested(
+        Filters, metadata={"description": "Apply different filtering criteria."}
+    )
     output_format = fields.Str(validate=validate.OneOf(OUTPUT_FORMATS))
     only_reliable = fields.Bool(required=False)
     postprocessors = fields.List(
-        Postprocessors(description="Post-processing request details"),
-        description="Apply one or more post-processing to the filtered data.",
+        Postprocessors(metadata={"description": "Post-processing request details"}),
+        metadata={
+            "description": "Apply one or more post-processing to the filtered data."
+        },
     )
     period_settings = fields.Nested(
         PeriodSettings,
         data_key="period-settings",
-        description="Settings for the periodic request",
+        metadata={"description": "Settings for the periodic request"},
     )
     crontab_settings = fields.Nested(
         CrontabSettings,
         data_key="crontab-settings",
-        description="Settings for the crontab request",
+        metadata={"description": "Settings for the crontab request"},
     )
     data_ready = fields.Bool(
         data_key="on-data-ready",
-        description="Activate data extraction when requested data is ready",
+        metadata={
+            "description": "Activate data extraction when requested data is ready"
+        },
     )
     opendata = fields.Bool(
-        description="Schedule for data available in opendata folder for all users",
+        metadata={
+            "description": "Schedule for data available in opendata folder for all users"
+        },
     )
 
     @pre_load
@@ -336,18 +347,14 @@ class Schedules(EndpointResource):
     # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(
         self,
-        get_total,
-        page,
-        size,
-        sort_order,
-        sort_by,
-        input_filter,
-    ):
-
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+        get_total: bool,
+        page: int,
+        size: int,
+        sort_by: str,
+        sort_order: str,
+        input_filter: str,
+        user: User,
+    ) -> Response:
 
         db = sqlalchemy.get_instance()
 
@@ -382,6 +389,7 @@ class SingleSchedule(EndpointResource):
         self,
         request_name,
         dataset_names,
+        user: User,
         reftime=None,
         filters=None,
         output_format=None,
@@ -392,11 +400,7 @@ class SingleSchedule(EndpointResource):
         data_ready=False,
         opendata=False,
         push=False,
-    ):
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+    ) -> Response:
 
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
         db = sqlalchemy.get_instance()
@@ -772,13 +776,16 @@ class SingleSchedule(EndpointResource):
     )
     # 200: {'schema': {'$ref': '#/definitions/Requests'}}
     def get(
-        self, get_total, page, size, sort_order, sort_by, input_filter, schedule_id
-    ):
-
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+        self,
+        get_total: bool,
+        page: int,
+        size: int,
+        sort_by: str,
+        sort_order: str,
+        input_filter: str,
+        schedule_id: str,
+        user: User,
+    ) -> Response:
 
         db = sqlalchemy.get_instance()
 
@@ -793,7 +800,8 @@ class SingleSchedule(EndpointResource):
     @decorators.use_kwargs(
         {
             "is_active": fields.Bool(
-                required=True, description="Enable or disable the schedule"
+                required=True,
+                metadata={"description": "Enable or disable the schedule"},
             )
         }
     )
@@ -806,11 +814,7 @@ class SingleSchedule(EndpointResource):
             400: "Schedule is already enabled/disabled",
         },
     )
-    def patch(self, schedule_id, is_active):
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+    def patch(self, schedule_id: str, is_active: bool, user: User) -> Response:
 
         db = sqlalchemy.get_instance()
         c = celery.get_instance()
@@ -906,11 +910,7 @@ class SingleSchedule(EndpointResource):
             404: "Schedule not found",
         },
     )
-    def delete(self, schedule_id):
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
+    def delete(self, schedule_id: str, user: User) -> Response:
 
         db = sqlalchemy.get_instance()
         celery_app = celery.get_instance()
@@ -957,7 +957,9 @@ class ScheduledRequests(EndpointResource):
         },
     )
     # 200: {'schema': {'$ref': '#/definitions/Requests'}}
-    def get(self, schedule_id, get_total=False, last=True):
+    def get(
+        self, schedule_id: str, user: User, get_total: bool = False, last: bool = True
+    ) -> Response:
         """
         Get all submitted requests for this schedule
         :param schedule_id:
@@ -972,10 +974,6 @@ class ScheduledRequests(EndpointResource):
             raise NotFound(f"The schedule ID {schedule_id} does not exist")
 
         # check for schedule ownership
-        user = self.get_user()
-        # Can't happen since auth is required
-        if not user:  # pragma: no cover
-            raise ServerError("User misconfiguration")
 
         if not SqlApiDbManager.check_owner(db, user.id, schedule_id=schedule_id):
             raise Forbidden("This request doesn't come from the schedule's owner")

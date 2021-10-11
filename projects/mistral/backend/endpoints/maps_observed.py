@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 
 from flask import Response, stream_with_context
 from mistral.exceptions import (
@@ -16,6 +17,7 @@ from restapi.connectors import sqlalchemy
 from restapi.exceptions import BadRequest, Conflict, NotFound, ServerError, Unauthorized
 from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource
+from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
 FILEFORMATS = ["BUFR", "JSON"]
@@ -72,6 +74,7 @@ class MapsObservations(EndpointResource):
     # 200: {'schema': {'$ref': '#/definitions/MapStations'}}
     def get(
         self,
+        user: Optional[User],
         q="",
         networks=None,
         interval=None,
@@ -82,11 +85,10 @@ class MapsObservations(EndpointResource):
         lat=None,
         lon=None,
         ident=None,
-        onlyStations=False,
-        stationDetails=False,
-        reliabilityCheck=False,
-    ):
-        user = self.get_user()
+        onlyStations: bool = False,
+        stationDetails: bool = False,
+        reliabilityCheck: bool = False,
+    ) -> Response:
         alchemy_db = sqlalchemy.get_instance()
         query = {}
         if lonmin or latmin or lonmax or latmax:
@@ -268,6 +270,7 @@ class MapsObservations(EndpointResource):
         self,
         q,
         output_format,
+        user: Optional[User],
         networks=None,
         lonmin=None,
         latmin=None,
@@ -276,10 +279,9 @@ class MapsObservations(EndpointResource):
         lat=None,
         lon=None,
         ident=None,
-        singleStation=False,
-        reliabilityCheck=False,
-    ):
-        user = self.get_user()
+        singleStation: bool = False,
+        reliabilityCheck: bool = False,
+    ) -> Response:
         alchemy_db = sqlalchemy.get_instance()
         query_data = {}
         if lonmin or latmin or lonmax or latmax:
