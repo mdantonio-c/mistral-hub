@@ -129,9 +129,11 @@ class OpendataFileList(EndpointResource):
         # sort the elements by date
         if res:
             res.sort(
-                key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d")
-                if "from" not in x["date"]
-                else datetime.strptime(x["date"].split(" ")[1], "%Y-%m-%d"),
+                key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d")  # type: ignore
+                if "from" not in x["date"]  # type: ignore
+                else datetime.strptime(
+                    x["date"].split(" ")[1], "%Y-%m-%d"  # type: ignore
+                ),
                 reverse=True,
             )
         return self.response(res)
