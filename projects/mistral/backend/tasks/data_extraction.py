@@ -1,10 +1,9 @@
 import datetime
-import glob
 import json
 import os  # still a lot of os. to be replaced with Pathlib
 import subprocess
 import tarfile
-from typing import Optional
+from typing import List, Optional, Path, Union
 
 from celery import states
 from celery.exceptions import Ignore
@@ -505,7 +504,7 @@ def data_extract(
                 tmp_file = outfile.with_suffix(".tmp")
                 outfile.rename(tmp_file)
                 percentiles_short_list = "10/25/50/75/90/99"
-                post_proc_cmd = [
+                post_proc_cmd: List[Union[str, Path]] = [
                     "grib_copy",
                     "-w",
                     f"percentileValue={percentiles_short_list}",
