@@ -3,7 +3,8 @@ import json
 import os  # still a lot of os. to be replaced with Pathlib
 import subprocess
 import tarfile
-from typing import List, Optional, Path, Union
+from pathlib import Path
+from typing import List, Optional, Union
 
 from celery import states
 from celery.exceptions import Ignore
