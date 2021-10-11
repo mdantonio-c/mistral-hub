@@ -1,7 +1,8 @@
 import datetime
 from typing import Any, Dict, Optional
 
-from flask import FlaskResponse, stream_with_context
+from flask import Response as FlaskResponse
+from flask import stream_with_context
 from mistral.exceptions import (
     AccessToDatasetDenied,
     NetworkNotInLicenseGroup,
