@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from flask import Response, stream_with_context
 from mistral.exceptions import (
@@ -77,7 +77,7 @@ class MapsObservations(EndpointResource):
         user: Optional[User],
         q: str = "",
         networks: Optional[str] = None,
-        interval=None,
+        interval: Optional[int] = None,
         lonmin: Optional[float] = None,
         latmin: Optional[float] = None,
         lonmax: Optional[float] = None,
@@ -90,7 +90,7 @@ class MapsObservations(EndpointResource):
         reliabilityCheck: bool = False,
     ) -> Response:
         alchemy_db = sqlalchemy.get_instance()
-        query = {}
+        query: Dict[str, Any] = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
                 raise BadRequest("Coordinates for bounding box are missing")

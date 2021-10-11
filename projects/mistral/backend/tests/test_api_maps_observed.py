@@ -3,9 +3,10 @@ from datetime import datetime, timedelta
 
 import dballe
 import pytest
+from faker import Faker
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe
-from restapi.tests import API_URI, BaseTests
+from restapi.tests import API_URI, BaseTests, FlaskClient
 from restapi.utilities.logs import log
 
 user = os.environ.get("ALCHEMY_USER")
@@ -170,19 +171,19 @@ class TestApp(BaseTests):
                 break
         return check_product_1, check_product_2
 
-    def test_endpoint_without_login(self, client):
+    def test_endpoint_without_login(self, client: FlaskClient) -> None:
 
         endpoint = API_URI + "/observations?q=license:CCBY_COMPLIANT"
         r = client.get(endpoint)
         assert r.status_code == 401
 
-    def test_endpoint_without_license(self, client):
+    def test_endpoint_without_license(self, client: FlaskClient) -> None:
 
         endpoint = API_URI + "/observations"
         r = client.get(endpoint)
         assert r.status_code == 400
 
-    def test_for_dballe_dbtype(self, client, faker):
+    def test_for_dballe_dbtype(self, client: FlaskClient, faker: Faker) -> None:
         # create a fake user and login with it
 
         uuid, data = self.create_user(
@@ -199,13 +200,13 @@ class TestApp(BaseTests):
         q_params = self.get_params_value(client, user_header, "dballe")
         self.standard_observed_endpoint_testing(client, faker, user_header, q_params)
 
-    def test_for_arkimet_dbtype(self, client, faker):
+    def test_for_arkimet_dbtype(self, client: FlaskClient, faker: Faker) -> None:
         headers = self.get("auth_header")
 
         q_params = self.get_params_value(client, headers, "arkimet")
         self.standard_observed_endpoint_testing(client, faker, headers, q_params)
 
-    def test_for_mixed_dbtype(self, client, faker):
+    def test_for_mixed_dbtype(self, client: FlaskClient, faker: Faker) -> None:
         headers = self.get("auth_header")
 
         q_params = self.get_params_value(client, headers, "mixed")

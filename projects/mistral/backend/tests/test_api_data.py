@@ -1,7 +1,7 @@
 # from unittest.mock import patch
 
 # from restapi.connectors.celery import CeleryExt
-from restapi.tests import API_URI, BaseTests
+from restapi.tests import API_URI, BaseTests, FlaskClient
 
 
 class TestApp(BaseTests):
@@ -15,7 +15,7 @@ class TestApp(BaseTests):
     #     assert r == 1
 
     # def test_endpoint_without_login(self, app, mock_celery, client):
-    def test_endpoint_without_login(self, client):
+    def test_endpoint_without_login(self, client: FlaskClient) -> None:
 
         endpoint = f"{API_URI}/data"
         r = client.post(endpoint)

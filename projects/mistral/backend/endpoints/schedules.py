@@ -1,4 +1,5 @@
-from typing import Any, Dict
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
@@ -387,19 +388,19 @@ class SingleSchedule(EndpointResource):
     )
     def post(
         self,
-        request_name,
-        dataset_names,
+        request_name: str,
+        dataset_names: List[str],
         user: User,
-        reftime=None,
-        filters=None,
-        output_format=None,
-        only_reliable=False,
-        postprocessors=None,
-        period_settings=None,
-        crontab_settings=None,
-        data_ready=False,
-        opendata=False,
-        push=False,
+        reftime: Optional[Dict[str, datetime]] = None,
+        filters: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+        output_format: Optional[str] = None,
+        only_reliable: bool = False,
+        postprocessors: Optional[List[Any]] = None,
+        period_settings: Optional[Dict[str, Union[str, int]]] = None,
+        crontab_settings: Optional[Dict[str, int]] = None,
+        data_ready: bool = False,
+        opendata: bool = False,
+        push: bool = False,
     ) -> Response:
 
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")

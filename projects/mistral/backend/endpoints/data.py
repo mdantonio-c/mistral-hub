@@ -343,8 +343,16 @@ class Data(EndpointResource, Uploader):
         if reftime:
             dt_from = reftime.get("date_from")
             dt_to = reftime.get("date_to")
-            parsed_reftime["from"] = dt_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-            parsed_reftime["to"] = dt_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+            if dt_from:
+                parsed_reftime["from"] = dt_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            else:  # pragma: no cover
+                log.warning("Missing date_from in reftime")
+
+            if dt_to:
+                parsed_reftime["to"] = dt_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            else:  # pragma: no cover
+                log.warning("Missing date_to in reftime")
 
         # clean up processors from unknown values
         # processors = [i for i in processors if arki.is_processor_allowed(i.get('type'))]

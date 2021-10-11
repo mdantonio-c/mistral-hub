@@ -45,7 +45,7 @@ class OpendataFileList(EndpointResource):
             raise BadRequest(f"Dataset {dataset_name} is not public")
 
         query: Dict[str, Any] = {}
-        reftime = {}
+        reftime: Dict[str, str] = {}
         # add dataset to query
         query["datasets"] = [ds_entry.arkimet_id]
         if q:
@@ -63,19 +63,19 @@ class OpendataFileList(EndpointResource):
                 if e.startswith("reftime"):
                     val = e.split("reftime:")[1]
                     reftimes = [x.strip() for x in val.split(",")]
-                    for reftime in reftimes:
-                        if reftime.startswith(">"):
-                            date_min = reftime.strip(">=")
+                    for ref in reftimes:
+                        if ref.startswith(">"):
+                            date_min = ref.strip(">=")
                             reftime["from"] = datetime.strptime(
                                 date_min, "%Y-%m-%d %H:%M"
                             ).date()
-                        if reftime.startswith("<"):
-                            date_max = reftime.strip("<=")
+                        if ref.startswith("<"):
+                            date_max = ref.strip("<=")
                             reftime["to"] = datetime.strptime(
                                 date_max, "%Y-%m-%d %H:%M"
                             ).date()
-                        if reftime.startswith("="):
-                            date = reftime.strip("=")
+                        if ref.startswith("="):
+                            date = ref.strip("=")
                             reftime["from"] = reftime["to"] = datetime.strptime(
                                 date, "%Y-%m-%d %H:%M"
                             ).date()

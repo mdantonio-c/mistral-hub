@@ -1,14 +1,15 @@
 import json
 from typing import Any, Dict, List, Union
 
+from faker import Faker
 from restapi.connectors import sqlalchemy
-from restapi.tests import API_URI, BaseTests
+from restapi.tests import API_URI, BaseTests, FlaskClient
 
 __author__ = "Beatrice Chiavarini (b.chiavarini@cineca.it)"
 
 
 class TestApp(BaseTests):
-    def test_endpoint_without_login(self, client, faker):
+    def test_endpoint_without_login(self, client: FlaskClient, faker: Faker) -> None:
         endpoint = API_URI + "/datasets"
         r = client.get(endpoint)
         assert r.status_code == 200
@@ -25,7 +26,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint)
         assert r.status_code == 404
 
-    def test_endpoint_with_login(self, client, faker):
+    def test_endpoint_with_login(self, client: FlaskClient, faker: Faker) -> None:
 
         obj = sqlalchemy.get_instance()
 
