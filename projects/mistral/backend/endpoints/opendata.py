@@ -45,7 +45,7 @@ class OpendataFileList(EndpointResource):
             raise BadRequest(f"Dataset {dataset_name} is not public")
 
         query: Dict[str, Any] = {}
-        reftime: Dict[str, str] = {}
+        reftime: Dict[str, datetime] = {}
         # add dataset to query
         query["datasets"] = [ds_entry.arkimet_id]
         if q:

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
@@ -325,7 +325,7 @@ class ScheduledDataExtraction(Schema):
 
 
 DATASET_ENABLED_TO_DATAREADY = ["lm2.2", "lm5"]
-MIN_PERIOD = {"every": 15, "period": "minutes"}
+MIN_PERIOD = 15  # in minutes
 
 
 class Schedules(EndpointResource):
@@ -422,6 +422,8 @@ class SingleSchedule(EndpointResource):
         if reftime:
             reftime_to = reftime.get("date_to")
             reftime_from = reftime.get("date_from")
+            if not reftime_to or not reftime_from:  # pragma: no cover
+                raise BadRequest("Can't extra date_from and date_to from reftime")
             time_delta = reftime_to - reftime_from
             parsed_reftime["from"] = reftime_from.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             parsed_reftime["to"] = reftime_to.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
@@ -487,12 +489,10 @@ class SingleSchedule(EndpointResource):
 
         if period_settings:
             # check if the requested period is > of the minimum period
-            if period_settings.get("period") == MIN_PERIOD["period"]:
-                if period_settings.get("every") < MIN_PERIOD["every"]:
+            if period_settings.get("period", "") == "minutes":
+                if period_settings.get("every", 0) < MIN_PERIOD:
                     raise Forbidden(
-                        "schedule frequency has to be greater than {} {}".format(
-                            MIN_PERIOD["every"], MIN_PERIOD["period"]
-                        )
+                        f"Schedule frequency can't be lower than {MIN_PERIOD} minutes"
                     )
 
         # clean up processors from unknown values
@@ -599,8 +599,8 @@ class SingleSchedule(EndpointResource):
         name = None
         try:
             if period_settings is not None:
-                every = period_settings.get("every")
-                period = period_settings.get("period")
+                every = cast(int, period_settings.get("every"))
+                period = cast(str, period_settings.get("period"))
                 log.info("Period settings [{} {}]", every, period)
 
                 # get schedule id in postgres database
@@ -678,17 +678,16 @@ class SingleSchedule(EndpointResource):
                 )
                 name = str(name_int)
                 if data_ready is False:
-                    # parsing crontab settings
-                    for i in crontab_settings.keys():
-                        val = crontab_settings.get(i)
-                        str_val = str(val)
-                        crontab_settings[i] = str_val
 
                     request_id = None
                     c.create_crontab_task(
                         name=name,
                         task="data_extract",
-                        **crontab_settings,
+                        minute=str(crontab_settings.get("minute")),
+                        hour=str(crontab_settings.get("hour")),
+                        day_of_week=str(crontab_settings.get("day_of_week")),
+                        day_of_month=str(crontab_settings.get("day_of_month")),
+                        month_of_year=str(crontab_settings.get("month_of_year")),
                         args=[
                             user.id,
                             dataset_names,
@@ -869,15 +868,16 @@ class SingleSchedule(EndpointResource):
 
                     if "crontab" in schedule_response:
 
-                        # parsing crontab settings
-                        crontab_settings: Dict[str, Any] = {}
-                        for i, val in schedule_response["crontab_settings"].items():
-                            crontab_settings[i] = str(val)
+                        cronsettings = schedule_response["crontab_settings"]
 
                         c.create_crontab_task(
                             name=str(schedule_id),
                             task="data_extract",
-                            **crontab_settings,
+                            minute=str(cronsettings.get("minute")),
+                            hour=str(cronsettings.get("hour")),
+                            day_of_week=str(cronsettings.get("day_of_week")),
+                            day_of_month=str(cronsettings.get("day_of_month")),
+                            month_of_year=str(cronsettings.get("month_of_year")),
                             args=[
                                 user.id,
                                 schedule_response["args"]["datasets"],

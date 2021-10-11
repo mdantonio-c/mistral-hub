@@ -1,7 +1,7 @@
 import datetime
 from typing import Any, Dict, Optional
 
-from flask import Response, stream_with_context
+from flask import FlaskResponse, stream_with_context
 from mistral.exceptions import (
     AccessToDatasetDenied,
     NetworkNotInLicenseGroup,
@@ -16,7 +16,7 @@ from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import BadRequest, Conflict, NotFound, ServerError, Unauthorized
 from restapi.models import Schema, fields, validate
-from restapi.rest.definition import EndpointResource
+from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
@@ -124,7 +124,7 @@ class MapsObservations(EndpointResource):
             for key, value in parsed_query.items():
                 query[key] = value
 
-        query_station_data = {}
+        query_station_data: Dict[str, Any] = {}
         if stationDetails:
             # check params for station
             if not networks:
@@ -543,7 +543,7 @@ class MapsObservations(EndpointResource):
 
             # stream data
             if db_for_extraction:
-                return Response(
+                return FlaskResponse(
                     stream_with_context(
                         dballe.download_data_from_map(
                             db_for_extraction,
