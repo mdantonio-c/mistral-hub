@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Dict, Optional
 
 from flask import send_from_directory
@@ -45,7 +45,7 @@ class OpendataFileList(EndpointResource):
             raise BadRequest(f"Dataset {dataset_name} is not public")
 
         query: Dict[str, Any] = {}
-        reftime: Dict[str, datetime] = {}
+        reftime: Dict[str, date] = {}
         # add dataset to query
         query["datasets"] = [ds_entry.arkimet_id]
         if q:
@@ -75,9 +75,9 @@ class OpendataFileList(EndpointResource):
                                 date_max, "%Y-%m-%d %H:%M"
                             ).date()
                         if ref.startswith("="):
-                            date = ref.strip("=")
+                            ref_date = ref.strip("=")
                             reftime["from"] = reftime["to"] = datetime.strptime(
-                                date, "%Y-%m-%d %H:%M"
+                                ref_date, "%Y-%m-%d %H:%M"
                             ).date()
 
         log.debug("opendata query {}", query)
@@ -103,12 +103,12 @@ class OpendataFileList(EndpointResource):
                     continue
 
             if reftime_from == reftime_to:
-                date = reftime_from.strftime("%Y-%m-%d")
+                ref_date = reftime_from.strftime("%Y-%m-%d")
             else:
-                date = "from {} to {}".format(
+                ref_date = "from {} to {}".format(
                     reftime_from.strftime("%Y-%m-%d"), reftime_to.strftime("%Y-%m-%d")
                 )
-            el["date"] = date
+            el["date"] = ref_date
             # get the run
             run = None
             if r.args["filters"] and "run" in r.args["filters"]:

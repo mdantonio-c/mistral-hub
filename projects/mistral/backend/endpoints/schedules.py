@@ -21,6 +21,7 @@ from restapi.models import Schema, fields, validate
 from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
 from restapi.utilities.logs import log
+from restapi.utilities.time import AllowedTimedeltaPeriods
 
 OUTPUT_FORMATS = ["json", "bufr", "grib"]
 DERIVED_VARIABLES = [
@@ -490,7 +491,7 @@ class SingleSchedule(EndpointResource):
         if period_settings:
             # check if the requested period is > of the minimum period
             if period_settings.get("period", "") == "minutes":
-                if period_settings.get("every", 0) < MIN_PERIOD:
+                if int(period_settings.get("every", "0")) < MIN_PERIOD:
                     raise Forbidden(
                         f"Schedule frequency can't be lower than {MIN_PERIOD} minutes"
                     )
@@ -600,7 +601,7 @@ class SingleSchedule(EndpointResource):
         try:
             if period_settings is not None:
                 every = cast(int, period_settings.get("every"))
-                period = cast(str, period_settings.get("period"))
+                period = cast(AllowedTimedeltaPeriods, period_settings.get("period"))
                 log.info("Period settings [{} {}]", every, period)
 
                 # get schedule id in postgres database

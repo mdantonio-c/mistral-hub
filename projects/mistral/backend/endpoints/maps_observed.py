@@ -284,7 +284,7 @@ class MapsObservations(EndpointResource):
         reliabilityCheck: bool = False,
     ) -> Response:
         alchemy_db = sqlalchemy.get_instance()
-        query_data = {}
+        query_data: Dict[str, Any] = {}
         if lonmin or latmin or lonmax or latmax:
             if not lonmin or not lonmax or not latmin or not latmax:
                 raise BadRequest("Coordinates for bounding box are missing")
@@ -317,7 +317,7 @@ class MapsObservations(EndpointResource):
         for key, value in parsed_query.items():
             query_data[key] = value
 
-        query_station_data = {}
+        query_station_data: Dict[str, Any] = {}
         if singleStation:
             # check params for station
             if not networks:
@@ -544,7 +544,7 @@ class MapsObservations(EndpointResource):
 
             # stream data
             if db_for_extraction:
-                return FlaskResponse(
+                return FlaskResponse(  # type: ignore
                     stream_with_context(
                         dballe.download_data_from_map(
                             db_for_extraction,
