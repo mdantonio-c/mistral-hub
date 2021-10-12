@@ -46,7 +46,7 @@ variables:
     ALLOW_REGISTRATION: 1
     ENABLE_ANGULAR_SSR: 0
 
-    UPLOAD_PATH: /data
+    DATA_PATH: /data
 
     LASTDAYS: 10
     PLATFORM: G100

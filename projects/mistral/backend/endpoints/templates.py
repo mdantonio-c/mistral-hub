@@ -7,7 +7,7 @@ from flask import request
 from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
-from restapi.config import UPLOAD_PATH
+from restapi.config import DATA_PATH
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import (
     BadRequest,
@@ -52,10 +52,10 @@ class Templates(EndpointResource):
     ) -> Response:
 
         grib_templates = list(
-            UPLOAD_PATH.joinpath(user.uuid, "uploads", "grib").glob("*")
+            DATA_PATH.joinpath(user.uuid, "uploads", "grib").glob("*")
         )
         shp_templates = list(
-            UPLOAD_PATH.joinpath(user.uuid, "uploads", "shp").glob("*.shp")
+            DATA_PATH.joinpath(user.uuid, "uploads", "shp").glob("*.shp")
         )
 
         # get total count for user templates
@@ -136,7 +136,7 @@ class Template(EndpointResource, Uploader):
             with ZipFile(request_file, "r") as zip:
                 uploaded_files = zip.namelist()
                 self.check_files_to_upload(
-                    UPLOAD_PATH, user.uuid, uploaded_files, allowed_exts
+                    DATA_PATH, user.uuid, uploaded_files, allowed_exts
                 )
             request.files["file"].seek(0)
 
@@ -146,7 +146,7 @@ class Template(EndpointResource, Uploader):
         else:
             ext = "shp"
 
-        subfolder = UPLOAD_PATH.joinpath(user.uuid, "uploads", ext)
+        subfolder = DATA_PATH.joinpath(user.uuid, "uploads", ext)
         # check the max number of templates the user is allowed to upload
         max_user_templates = SqlApiDbManager.get_user_permissions(
             user, param="templates"
@@ -198,7 +198,7 @@ class Template(EndpointResource, Uploader):
                         ext = "shp"
                         break
 
-                zip_upload_path = UPLOAD_PATH.joinpath(user.uuid, "uploads", ext)
+                zip_upload_path = DATA_PATH.joinpath(user.uuid, "uploads", ext)
                 zip.extractall(path=zip_upload_path)
             # remove the zip file
             upload_filepath.unlink()
@@ -250,7 +250,7 @@ class Template(EndpointResource, Uploader):
         # get the template extension to determine the folder where to find it
         fileext = Path(template_name).suffix.strip(".")
 
-        filepath = UPLOAD_PATH.joinpath(user.uuid, "uploads", fileext, template_name)
+        filepath = DATA_PATH.joinpath(user.uuid, "uploads", fileext, template_name)
         # check if the template exists
         if filepath.exists():
             raise NotFound("The template doesn't exist")
@@ -274,7 +274,7 @@ class Template(EndpointResource, Uploader):
         template = Path(template_name)
         fileext = template.suffix.strip(".")
 
-        filepath = UPLOAD_PATH.joinpath(user.uuid, "uploads", fileext, template_name)
+        filepath = DATA_PATH.joinpath(user.uuid, "uploads", fileext, template_name)
         if not filepath.exists():
             raise NotFound("The template doesn't exist")
 
@@ -288,7 +288,7 @@ class Template(EndpointResource, Uploader):
 
     @staticmethod
     def check_files_to_upload(
-        UPLOAD_PATH: Path, user_uuid: str, files: List[str], allowed_exts: List[str]
+        DATA_PATH: Path, user_uuid: str, files: List[str], allowed_exts: List[str]
     ) -> None:
         # create a dictionary to compare the uploaded files specs
         file_dict = {}
@@ -304,7 +304,7 @@ class Template(EndpointResource, Uploader):
             else:
                 ext = "INVALID_EXT"
 
-            path = UPLOAD_PATH.joinpath(user_uuid, "uploads", ext, f)
+            path = DATA_PATH.joinpath(user_uuid, "uploads", ext, f)
             if path.exists():
                 # should be Conflict...
                 raise BadRequest(f"File '{f}' already exists")
