@@ -1,8 +1,8 @@
 import subprocess
 from pathlib import Path
 
+from mistral.endpoints import PostProcessorsType
 from mistral.exceptions import PostProcessingException
-from restapi.endpoints import PostProcessorsType
 from restapi.exceptions import BadRequest
 from restapi.utilities.logs import log
 

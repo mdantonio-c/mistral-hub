@@ -4,8 +4,8 @@ from typing import Any, Dict, List
 
 import dballe
 import eccodes
+from mistral.endpoints import PostProcessorsType
 from mistral.exceptions import PostProcessingException
-from restapi.endpoints import PostProcessorsType
 from restapi.utilities.logs import log
 
 # conversion from grib1 to grib2 style

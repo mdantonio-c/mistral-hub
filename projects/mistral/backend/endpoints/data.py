@@ -2,13 +2,13 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from marshmallow import ValidationError, pre_load
+from mistral.endpoints import PostProcessorsType
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
 from restapi.connectors import celery, rabbitmq, sqlalchemy
-from restapi.endpoints import PostProcessorsType
 from restapi.exceptions import (
     BadRequest,
     Forbidden,
