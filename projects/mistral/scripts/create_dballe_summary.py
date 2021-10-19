@@ -1,5 +1,3 @@
-import os
-
 import dballe
 from mistral.services.arkimet import BeArkimet as arki_service
 from mistral.services.dballe import BeDballe as dballe_service
@@ -7,15 +5,9 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi.connectors import sqlalchemy
 from restapi.utilities.logs import log
 
-user = os.environ.get("ALCHEMY_USER")
-pw = os.environ.get("ALCHEMY_PASSWORD")
-host = os.environ.get("ALCHEMY_HOST")
-engine = os.environ.get("ALCHEMY_DBTYPE")
-port = os.environ.get("ALCHEMY_PORT")
-
 # get the list of dsn from the db
-alchemy_db = sqlalchemy.get_instance()
-license_groups = alchemy_db.GroupLicense.query.filter_by().all()
+db = sqlalchemy.get_instance()
+license_groups = db.GroupLicense.query.filter_by().all()
 dsn_list = []
 dsn_list.extend(
     x.dballe_dsn
@@ -28,7 +20,7 @@ datasets_to_filter = [
 license_groups_need_filtering = []
 for ds in datasets_to_filter:
     try:
-        group_lic = SqlApiDbManager.get_license_group(alchemy_db, [ds])
+        group_lic = SqlApiDbManager.get_license_group(db, [ds])
         license_groups_need_filtering.append(group_lic.name)
     except BaseException as exc:
         log.debug("Exception in create the license group to filter: {}", exc)
@@ -36,6 +28,11 @@ for ds in datasets_to_filter:
 
 log.debug("groups needing filtering: {}", license_groups_need_filtering)
 
+engine = db.variables.get("dbtype")
+user = db.variables.get("user")
+pw = db.variables.get("password")
+host = db.variables.get("host")
+port = db.variables.get("port")
 for dsn in dsn_list:
     log.debug("summary for {}", dsn)
     DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/{dsn}")
@@ -69,7 +66,7 @@ for dsn in dsn_list:
 
     # check if the dsn contains a single group of licenses
     dsn_license_group_list = [
-        x.name for x in alchemy_db.GroupLicense.query.filter_by(dballe_dsn=dsn).all()
+        x.name for x in db.GroupLicense.query.filter_by(dballe_dsn=dsn).all()
     ]
     if len(dsn_license_group_list) == 1:
         # path to json_summary_file
@@ -122,9 +119,7 @@ for dsn in dsn_list:
                 dballe_service.DBALLE_JSON_SUMMARY_PATH_FILTERED, lg.replace(" ", "_")
             )
             # retrieve networks of the license group
-            dataset_list = SqlApiDbManager.retrieve_dataset_by_license_group(
-                alchemy_db, lg
-            )
+            dataset_list = SqlApiDbManager.retrieve_dataset_by_license_group(db, lg)
             net_list = []
             for ds in dataset_list:
                 nets = arki_service.from_dataset_to_networks(ds)
@@ -145,5 +140,10 @@ for dsn in dsn_list:
             with open(complete_json_summary, "wt") as fd:
                 fd.write(subset_explorer.to_json())
 
-        # at the moment we don't need a filtered summary in this use case as the only network to filter is the multimodel one which is in an open dsn (so doesn't match with this use case)
-        # so the complete summary is already the filtered one as it does not contain networks considered to be filtered
+        """
+        at the moment we don't need a filtered summary in this use case as the only
+        network to filter is the multimodel one which is in an open dsn
+        (so doesn't match with this use case)
+        so the complete summary is already the filtered one as it does not contain
+        networks considered to be filtered
+    """

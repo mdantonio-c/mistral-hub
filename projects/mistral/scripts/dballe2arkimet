@@ -184,13 +184,15 @@ class makeenv:
 def dballe2arkimet(date):
     logging.info("Start to migrate data to arkimet")
     rec = {"yearmax": date.year, "monthmax": date.month, "daymax": date.day}
-    user = os.environ.get("ALCHEMY_USER")
-    pw = os.environ.get("ALCHEMY_PASSWORD")
-    host = os.environ.get("ALCHEMY_HOST")
-    engine = os.environ.get("ALCHEMY_DBTYPE")
-    port = os.environ.get("ALCHEMY_PORT")
+
     # get the list of dsn from the db
     alchemy_db = sqlalchemy.get_instance()
+    engine = alchemy_db.variables.get("dbtype")
+    user = alchemy_db.variables.get("user")
+    pw = alchemy_db.variables.get("password")
+    host = alchemy_db.variables.get("host")
+    port = alchemy_db.variables.get("port")
+
     license_groups = alchemy_db.GroupLicense.query.filter_by().all()
     dsn_list = []
     dsn_list.extend(

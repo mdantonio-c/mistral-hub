@@ -1,7 +1,6 @@
-import os
-import shlex
 import subprocess
-from typing import Any, Dict
+from pathlib import Path
+from typing import Any, Dict, List
 
 import dballe
 import eccodes
@@ -12,7 +11,9 @@ from restapi.utilities.logs import log
 ed1to2 = {3: 0, 4: 1, 5: 4, 0: 254}
 
 
-def pp_statistic_elaboration(params, input, output, fileformat):
+def pp_statistic_elaboration(
+    params: Dict[str, Any], input: Path, output: Path, fileformat: str
+):
     log.debug("Statistic elaboration postprocessor")
 
     # get timeranges tuples
@@ -22,10 +23,9 @@ def pp_statistic_elaboration(params, input, output, fileformat):
         trs.append(timerange)
     log.debug("timeranges: {}", trs)
 
-    fileouput_to_join = []
-    filebase, fileext = os.path.splitext(output)
+    fileouput_to_join: List[Path] = []
     # split the input file according to the input timeranges
-    file_not_for_pp = filebase + f"_others.{fileformat}.tmp"
+    file_not_for_pp = Path(f"{output.stem}_others.{fileformat}.tmp")
     if fileformat == "grib":
         with open(input) as filein:
             fd: Dict[tuple[int, int], Any] = {}
@@ -39,7 +39,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
                     if match_timerange(gid, tr[0]):
                         if fd.get(tr, None) is None:  # better way?
                             # create name for the temporary output
-                            file_for_pp = filebase + f"_%d_%d.{fileformat}.tmp" % tr
+                            file_for_pp = f"{output.stem}_%d_%d.{fileformat}.tmp" % tr
                             fd[tr] = open(file_for_pp, "wb")
                         match = True
                         # write to file/pipe for tr
@@ -55,7 +55,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
         with open(input, "rb") as input_file:
             with open(file_not_for_pp, "wb") as no_match_file:
                 for tr in trs:
-                    file_for_pp = filebase + f"_%d_%d.{fileformat}.tmp" % tr
+                    file_for_pp = f"{output.stem}_%d_%d.{fileformat}.tmp" % tr
                     log.debug("file for post process {} ", file_for_pp)
                     with open(file_for_pp, "wb") as match_file:
                         importer = dballe.Importer("BUFR")
@@ -129,7 +129,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
                                             exporter.to_binary(new_msg_nm)
                                         )
 
-    if os.path.exists(file_not_for_pp):
+    if file_not_for_pp.exists():
         fileouput_to_join.append(file_not_for_pp)
     # postprocess each file coming from the splitted input
     check_input_for_pp = False
@@ -139,9 +139,9 @@ def pp_statistic_elaboration(params, input, output, fileformat):
             for item in params
             if item["input_timerange"] == tr[0] and item["output_timerange"] == tr[1]
         )
-        splitted_input = filebase + f"_%d_%d.{fileformat}.tmp" % tr
-        tmp_output = filebase + f"_%d_%d_result.{fileformat}.tmp" % tr
-        if os.path.exists(splitted_input):
+        splitted_input = Path(f"{output.stem}_%d_%d.{fileformat}.tmp" % tr)
+        tmp_output = f"{output.stem}_%d_%d_result.{fileformat}.tmp" % tr
+        if splitted_input.exists():
             pp_output = run_statistic_elaboration(
                 params=p, input=splitted_input, output=tmp_output, fileformat=fileformat
             )
@@ -159,9 +159,9 @@ def pp_statistic_elaboration(params, input, output, fileformat):
 
     check_fileoutput_exists = False
     for f in fileouput_to_join:
-        if os.path.exists(f):
+        if f.exists():
             check_fileoutput_exists = True
-            cat_cmd.append(f)
+            cat_cmd.append(str(f))
     if not check_fileoutput_exists:
         message = "Error in post-processing: no results"
         log.warning(message)
@@ -174,7 +174,9 @@ def pp_statistic_elaboration(params, input, output, fileformat):
             raise Exception("Failure in post processing")
 
 
-def run_statistic_elaboration(params, input, output, fileformat):
+def run_statistic_elaboration(
+    params: Dict[str, Any], input: Path, output: Path, fileformat: str
+) -> Path:
     log.debug("postprocessing file {}", input)
     step = ""
     interval = params.get("interval")

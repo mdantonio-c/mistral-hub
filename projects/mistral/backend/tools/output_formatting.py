@@ -1,11 +1,13 @@
-import os
 import subprocess
+from pathlib import Path
 
 from mistral.exceptions import PostProcessingException
 from restapi.utilities.logs import log
 
 
-def pp_output_formatting(output_format, input, output):
+def pp_output_formatting(
+    output_format: str, input_file: Path, output_file: Path
+) -> Path:
     try:
         if output_format == "json":
             log.debug("Output formatting to {}", output_format)
@@ -15,20 +17,21 @@ def pp_output_formatting(output_format, input, output):
             post_proc_cmd.append("--json")
             post_proc_cmd.append("-t")
             post_proc_cmd.append("bufr")
-            post_proc_cmd.append(input)
+            post_proc_cmd.append(input_file)
 
             log.debug("Post process command: {}>", post_proc_cmd)
 
-            with open(output, mode="w") as outfile:
+            with open(output_file, mode="w") as outfile:
                 proc = subprocess.Popen(post_proc_cmd, stdout=outfile)
                 # wait for the process to terminate
                 if proc.wait() != 0:
                     raise Exception("Failure in post-processing")
                 else:
-                    return output
+                    return output_file
         else:
-            # up to now we have only one postprocessor for output formatting. Here we can add others in future if needed
-            return input
+            # up to now we have only one postprocessor for output formatting.
+            # Here we can add others in future if needed
+            return input_file
 
     except Exception as perr:
         log.warning(perr)
@@ -37,4 +40,4 @@ def pp_output_formatting(output_format, input, output):
 
     finally:
         # remove the input file
-        os.remove(input)
+        input_file.unlink()

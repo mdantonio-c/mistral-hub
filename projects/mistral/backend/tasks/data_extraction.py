@@ -238,7 +238,6 @@ def data_extract(
 
                     if pp_type == "derived_variables":
                         pp1_output = pp1.pp_derived_variables(
-                            datasets=datasets,
                             params=p,
                             tmp_extraction=tmp_outfile,
                             user_dir=output_dir,
@@ -311,7 +310,6 @@ def data_extract(
                             if item["processor_type"] == "derived_variables"
                         )
                         pp1_output = pp1.pp_derived_variables(
-                            datasets=datasets,
                             params=p,
                             tmp_extraction=tmp_outfile,
                             user_dir=output_dir,

@@ -1,5 +1,4 @@
-import os
-import sys
+from pathlib import Path
 
 import dballe
 from mistral.services.arkimet import BeArkimet as arki_service
@@ -10,8 +9,8 @@ from restapi.utilities.logs import log
 datasets = arki_service.get_obs_datasets(None, None)
 
 # path to json_summary_file
-json_summary = dballe_service.ARKI_JSON_SUMMARY_PATH
-json_summary_filtered = dballe_service.ARKI_JSON_SUMMARY_PATH_FILTERED
+json_summary = Path(dballe_service.ARKI_JSON_SUMMARY_PATH)
+json_summary_filtered = Path(dballe_service.ARKI_JSON_SUMMARY_PATH_FILTERED)
 
 total_count = 0
 # fill a temporary dballe with all observed data coming from arkimet
@@ -25,7 +24,7 @@ for d in datasets:
     with complete_explorer.update() as updater:
         # Load existing json summary
         data_in_json_count = 0
-        if os.path.exists(json_summary):
+        if json_summary.exists():
             with open(json_summary) as fd:
                 updater.add_json(fd.read())
             for cur in complete_explorer.query_summary_all({}):
@@ -53,7 +52,7 @@ for d in datasets:
         log.info("###### Importing in filtered json summary ######")
         with filtered_explorer.update() as updater:
             # Load existing json summary
-            if os.path.exists(json_summary_filtered):
+            if json_summary_filtered.exists():
                 with open(json_summary_filtered) as fd:
                     updater.add_json(fd.read())
             with temp_db.transaction() as tr:

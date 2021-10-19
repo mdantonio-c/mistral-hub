@@ -17,13 +17,8 @@ from mistral.exceptions import (
 from mistral.services.arkimet import BeArkimet as arki_service
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi.connectors import sqlalchemy
+from restapi.env import Env
 from restapi.utilities.logs import log
-
-user = os.environ.get("ALCHEMY_USER")
-pw = os.environ.get("ALCHEMY_PASSWORD")
-host = os.environ.get("ALCHEMY_HOST")
-engine = os.environ.get("ALCHEMY_DBTYPE")
-port = os.environ.get("ALCHEMY_PORT")
 
 # temporary fix to discard Lugo station from maps
 station_to_filter = [
@@ -32,15 +27,12 @@ station_to_filter = [
     (44.68944, 10.51056, "dpcn-emiliaromag"),
 ]
 
-# DB = dballe.DB.connect("{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(engine=engine, user=user, pw=pw,host=host, port=port))
-
 
 class BeDballe:
     MAPS_NETWORK_FILTER = ["multim-forecast"]
     explorer = None
-    LASTDAYS = int(
-        os.environ.get("LASTDAYS", "10")
-    )  # number of days after which data pass in Arkimet
+    # number of days after which data pass in Arkimet
+    LASTDAYS = Env.get_int("LASTDAYS", 10)
 
     # base path to json file where metadata of observed data in arkimet are stored
     # the complete path name is  EX. /arkimet/config/dballe_summary_<license group name>.json
@@ -919,6 +911,11 @@ class BeDballe:
     ):
         # get the license group
         alchemy_db = sqlalchemy.get_instance()
+        engine = alchemy_db.variables.get("dbtype")
+        user = alchemy_db.variables.get("user")
+        pw = alchemy_db.variables.get("password")
+        host = alchemy_db.variables.get("host")
+        port = alchemy_db.variables.get("port")
         if query_data:
             license_name = query_data["license"]
         else:
@@ -1881,6 +1878,11 @@ class BeDballe:
     ):
         # get the license group
         alchemy_db = sqlalchemy.get_instance()
+        engine = alchemy_db.variables.get("dbtype")
+        user = alchemy_db.variables.get("user")
+        pw = alchemy_db.variables.get("password")
+        host = alchemy_db.variables.get("host")
+        port = alchemy_db.variables.get("port")
         license_group = SqlApiDbManager.get_license_group(alchemy_db, datasets)
         # choose the db
         arkimet_query = None

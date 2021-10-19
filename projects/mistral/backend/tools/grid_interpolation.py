@@ -1,17 +1,18 @@
-import os
 import subprocess
+from pathlib import Path
+from typing import Any, Dict
 
 from mistral.exceptions import PostProcessingException
 from restapi.exceptions import BadRequest
 from restapi.utilities.logs import log
 
 
-def check_template_filepath(template_file):
-    if not os.path.exists(template_file):
+def check_template_filepath(template_file: Path) -> None:
+    if not template_file.exists():
         raise BadRequest("the template file does not exists")
 
 
-def get_trans_type(params):
+def get_trans_type(params: Dict[str, Any]):
     # get trans-type according to the sub-type coming from the request
     sub_type = params["sub_type"]
     if sub_type in ("near", "bilin"):
@@ -20,7 +21,7 @@ def get_trans_type(params):
         params["trans_type"] = "boxinter"
 
 
-def pp_grid_interpolation(params, input, output):
+def pp_grid_interpolation(params: Dict[str, Any], input: Path, output: Path) -> Path:
     log.debug("Grid interpolation postprocessor")
     try:
         post_proc_cmd = []
@@ -28,7 +29,7 @@ def pp_grid_interpolation(params, input, output):
         post_proc_cmd.append("--trans-type={}".format(params.get("trans_type")))
         post_proc_cmd.append("--sub-type={}".format(params.get("sub_type")))
 
-        # check if there is a grib file template. If not, looks for others interpolation params
+        # check if there is a grib file template or look for others interpolation params
         if "template" in params:
             post_proc_cmd.append(
                 "--output-format=grib_api:{}".format(params["template"])
