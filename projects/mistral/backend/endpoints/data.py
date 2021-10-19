@@ -8,6 +8,7 @@ from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
 from restapi.connectors import celery, rabbitmq, sqlalchemy
+from restapi.endpoints import PostProcessorsType
 from restapi.exceptions import (
     BadRequest,
     Forbidden,
@@ -300,7 +301,7 @@ class Data(EndpointResource, Uploader):
         filters: Optional[Dict[str, List[Dict[str, Any]]]] = None,
         output_format: Optional[str] = None,
         only_reliable: bool = False,
-        postprocessors: Optional[List[Any]] = None,
+        postprocessors: Optional[List[PostProcessorsType]] = None,
         push: bool = False,
     ) -> Response:
 

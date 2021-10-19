@@ -1,14 +1,14 @@
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Any, Dict
 
 from mistral.exceptions import PostProcessingException
+from restapi.endpoints import PostProcessorsType
 from restapi.utilities.logs import log
 
 
 def pp_derived_variables(
-    params: Dict[str, Any], tmp_extraction: Path, user_dir: Path, fileformat: str
+    params: PostProcessorsType, tmp_extraction: Path, user_dir: Path, fileformat: str
 ) -> Path:
     log.debug("Derived variable postprocessor")
 

@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 import dballe
 import eccodes
 from mistral.exceptions import PostProcessingException
+from restapi.endpoints import PostProcessorsType
 from restapi.utilities.logs import log
 
 # conversion from grib1 to grib2 style
@@ -12,8 +13,8 @@ ed1to2 = {3: 0, 4: 1, 5: 4, 0: 254}
 
 
 def pp_statistic_elaboration(
-    params: Dict[str, Any], input: Path, output: Path, fileformat: str
-):
+    params: List[PostProcessorsType], input: Path, output: Path, fileformat: str
+) -> None:
     log.debug("Statistic elaboration postprocessor")
 
     # get timeranges tuples
@@ -175,7 +176,7 @@ def pp_statistic_elaboration(
 
 
 def run_statistic_elaboration(
-    params: Dict[str, Any], input: Path, output: Path, fileformat: str
+    params: PostProcessorsType, input: Path, output: Path, fileformat: str
 ) -> Path:
     log.debug("postprocessing file {}", input)
     step = ""

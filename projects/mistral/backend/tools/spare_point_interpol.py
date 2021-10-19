@@ -1,14 +1,14 @@
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Any, Dict
 
 from mistral.exceptions import PostProcessingException
+from restapi.endpoints import PostProcessorsType
 from restapi.exceptions import BadRequest
 from restapi.utilities.logs import log
 
 
-def get_trans_type(params: Dict[str, Any]) -> None:
+def get_trans_type(params: PostProcessorsType) -> None:
     # get trans-type according to the sub-type coming from the request
     sub_type = params["sub_type"]
     if sub_type in ("near", "bilin"):
@@ -17,7 +17,7 @@ def get_trans_type(params: Dict[str, Any]) -> None:
         params["trans_type"] = "polyinter"
 
 
-def check_coord_filepath(params: Dict[str, Any]) -> None:
+def check_coord_filepath(params: PostProcessorsType) -> None:
     coord_filepath = Path(params["coord_filepath"])
     if not coord_filepath.exists():
         raise BadRequest("the coord-filepath does not exists")
@@ -42,7 +42,7 @@ def check_coord_filepath(params: Dict[str, Any]) -> None:
 
 
 def pp_sp_interpolation(
-    params: Dict[str, Any], input: Path, output: Path, fileformat: str
+    params: PostProcessorsType, input: Path, output: Path, fileformat: str
 ) -> Path:
     log.debug("Spare point interpolation postprocessor")
     try:

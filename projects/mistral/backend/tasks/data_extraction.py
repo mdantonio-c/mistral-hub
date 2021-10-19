@@ -41,7 +41,7 @@ def data_extract(
     datasets,
     reftime=None,
     filters=None,
-    postprocessors=[],
+    postprocessors=[],  # List[PostProcessorsType]
     output_format=None,
     request_id=None,
     only_reliable=None,

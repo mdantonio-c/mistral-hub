@@ -1,8 +1,8 @@
 import subprocess
 from pathlib import Path
-from typing import Any, Dict
 
 from mistral.exceptions import PostProcessingException
+from restapi.endpoints import PostProcessorsType
 from restapi.exceptions import BadRequest
 from restapi.utilities.logs import log
 
@@ -12,7 +12,7 @@ def check_template_filepath(template_file: Path) -> None:
         raise BadRequest("the template file does not exists")
 
 
-def get_trans_type(params: Dict[str, Any]):
+def get_trans_type(params: PostProcessorsType) -> None:
     # get trans-type according to the sub-type coming from the request
     sub_type = params["sub_type"]
     if sub_type in ("near", "bilin"):
@@ -21,7 +21,9 @@ def get_trans_type(params: Dict[str, Any]):
         params["trans_type"] = "boxinter"
 
 
-def pp_grid_interpolation(params: Dict[str, Any], input: Path, output: Path) -> Path:
+def pp_grid_interpolation(
+    params: PostProcessorsType, input: Path, output: Path
+) -> Path:
     log.debug("Grid interpolation postprocessor")
     try:
         post_proc_cmd = []
