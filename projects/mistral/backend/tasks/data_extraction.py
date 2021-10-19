@@ -54,9 +54,7 @@ def data_extract(
     extra_msg = ""
     try:
         db = sqlalchemy.get_instance()
-        schedule = None
-        outfile = None
-        data_size = None
+        data_size = 0
         double_request = False
         if schedule_id is not None:
             # load schedule for this request
@@ -299,7 +297,6 @@ def data_extract(
                 try:
 
                     tmp_extraction_basename = os.path.basename(tmp_outfile)
-                    pp_output = None
                     if any(
                         d["processor_type"] == "derived_variables"
                         for d in postprocessors
