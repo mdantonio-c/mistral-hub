@@ -146,10 +146,13 @@ def pp_statistic_elaboration(
             if item["input_timerange"] == tr[0] and item["output_timerange"] == tr[1]
         )
         splitted_input = Path(f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr)
-        tmp_output = f"{output_file.stem}_%d_%d_result.{fileformat}.tmp" % tr
+        tmp_output = Path(f"{output_file.stem}_%d_%d_result.{fileformat}.tmp" % tr)
         if splitted_input.exists():
             pp_output = run_statistic_elaboration(
-                params=p, input=splitted_input, output=tmp_output, fileformat=fileformat
+                params=p,
+                input_file=splitted_input,
+                output_file=tmp_output,
+                fileformat=fileformat,
             )
             log.debug("output: {}", pp_output)
             fileouput_to_join.append(pp_output)

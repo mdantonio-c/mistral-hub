@@ -254,19 +254,19 @@ def data_extract(
                         params.append(p)
                         pp2.pp_statistic_elaboration(
                             params=params,
-                            input=tmp_outfile,
-                            output=outfile,
+                            input_file=tmp_outfile,
+                            output_file=outfile,
                             fileformat=dataset_format,
                         )
 
                     elif pp_type == "grid_interpolation":
                         pp3_1.pp_grid_interpolation(
-                            params=p, input=tmp_outfile, output=outfile
+                            params=p, input_file=tmp_outfile, output_file=outfile
                         )
 
                     elif pp_type == "grid_cropping":
                         pp3_2.pp_grid_cropping(
-                            params=p, input=tmp_outfile, output=outfile
+                            params=p, input_file=tmp_outfile, output_file=outfile
                         )
 
                     elif pp_type == "spare_point_interpolation":
@@ -275,11 +275,10 @@ def data_extract(
                         out_filename = outfile_name + ".BUFR"
                         outfile = output_dir.joinpath(out_filename)
                         # bufr_outfile = outfile_name+'.BUFR'
-                        # pp3_3.pp_sp_interpolation(params=p, input=tmp_outfile, output=bufr_outfile,fileformat=dataset_format)
                         pp3_3.pp_sp_interpolation(
                             params=p,
-                            input=tmp_outfile,
-                            output=outfile,
+                            input_file=tmp_outfile,
+                            output_file=outfile,
                             fileformat=dataset_format,
                         )
 
@@ -347,8 +346,8 @@ def data_extract(
 
                         pp2.pp_statistic_elaboration(
                             params=p,
-                            input=pp_input,
-                            output=pp_output,
+                            input_file=pp_input,
+                            output_file=pp_output,
                             fileformat=dataset_format,
                         )
                     if any(
@@ -372,7 +371,7 @@ def data_extract(
                         pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
                         pp3_2.pp_grid_cropping(
-                            params=p, input=pp_input, output=pp_output
+                            params=p, input_file=pp_input, output_file=pp_output
                         )
                     if any(
                         d["processor_type"] == "grid_interpolation"
@@ -395,7 +394,7 @@ def data_extract(
                         )
                         pp_output = output_dir.joinpath(new_tmp_extraction_filename)
                         pp3_1.pp_grid_interpolation(
-                            params=p, input=pp_input, output=pp_output
+                            params=p, input_file=pp_input, output_file=pp_output
                         )
                     if any(
                         d["processor_type"] == "spare_point_interpolation"
@@ -422,8 +421,8 @@ def data_extract(
                         pp_output = output_dir.joinpath(new_tmp_extraction_filename)
                         pp3_3.pp_sp_interpolation(
                             params=p,
-                            input=pp_input,
-                            output=pp_output,
+                            input_file=pp_input,
+                            output_file=pp_output,
                             fileformat=dataset_format,
                         )
                     # rename the final output of postprocessors as outfile
@@ -811,7 +810,7 @@ def observed_extraction(
 
     if only_reliable:
         # processed the resulting file
-        qc.pp_quality_check_filter(input=outfile, output=qc_outfile)
+        qc.pp_quality_check_filter(input_file=outfile, output_file=qc_outfile)
 
 
 def notify_by_email(db, user_id, request, extra_msg, amqp_queue=None):
