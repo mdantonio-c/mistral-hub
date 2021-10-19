@@ -17,7 +17,7 @@ def pp_output_formatting(
             post_proc_cmd.append("--json")
             post_proc_cmd.append("-t")
             post_proc_cmd.append("bufr")
-            post_proc_cmd.append(input_file)
+            post_proc_cmd.append(str(input_file))
 
             log.debug("Post process command: {}>", post_proc_cmd)
 

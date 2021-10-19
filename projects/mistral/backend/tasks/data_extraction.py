@@ -458,13 +458,12 @@ def data_extract(
                 )
 
         if output_format:
-            filebase, fileext = os.path.splitext(out_filename)
-            input = os.path.join(output_dir, out_filename)
-            output = os.path.join(output_dir, filebase + "." + output_format)
+            input_file = output_dir.joinpath(out_filename)
+            output_file = input_file.with_suffix(f".{output_format}")
             out_filepath = output_formatting.pp_output_formatting(
-                output_format, input, output
+                output_format, input_file, output_file
             )
-            out_filename = os.path.basename(out_filepath)
+            out_filename = out_filepath.name
             # rename outfile correctly
             outfile = output_dir.joinpath(out_filename)
 

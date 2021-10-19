@@ -22,7 +22,7 @@ def get_trans_type(params: PostProcessorsType) -> None:
 
 
 def pp_grid_interpolation(
-    params: PostProcessorsType, input: Path, output: Path
+    params: PostProcessorsType, input_file: Path, output_file: Path
 ) -> Path:
     log.debug("Grid interpolation postprocessor")
     try:
@@ -62,8 +62,8 @@ def pp_grid_interpolation(
                     post_proc_cmd.append("--ny={}".format(params["nodes"]["ny"]))
 
         # post_proc_cmd.append('--display')
-        post_proc_cmd.append(input)
-        post_proc_cmd.append(output)
+        post_proc_cmd.append(str(input_file))
+        post_proc_cmd.append(str(output_file))
         log.debug("Post process command: {}>", post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
@@ -71,7 +71,7 @@ def pp_grid_interpolation(
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
         else:
-            return output
+            return output_file
 
     except Exception as perr:
         log.warning(perr)

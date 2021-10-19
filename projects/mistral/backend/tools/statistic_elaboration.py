@@ -13,7 +13,10 @@ ed1to2 = {3: 0, 4: 1, 5: 4, 0: 254}
 
 
 def pp_statistic_elaboration(
-    params: List[PostProcessorsType], input: Path, output: Path, fileformat: str
+    params: List[PostProcessorsType],
+    input_file: Path,
+    output_file: Path,
+    fileformat: str,
 ) -> None:
     log.debug("Statistic elaboration postprocessor")
 
@@ -26,9 +29,9 @@ def pp_statistic_elaboration(
 
     fileouput_to_join: List[Path] = []
     # split the input file according to the input timeranges
-    file_not_for_pp = Path(f"{output.stem}_others.{fileformat}.tmp")
+    file_not_for_pp = Path(f"{output_file.stem}_others.{fileformat}.tmp")
     if fileformat == "grib":
-        with open(input) as filein:
+        with open(input_file) as filein:
             fd: Dict[tuple[int, int], Any] = {}
             fdother = None
             while True:
@@ -40,7 +43,9 @@ def pp_statistic_elaboration(
                     if match_timerange(gid, tr[0]):
                         if fd.get(tr, None) is None:  # better way?
                             # create name for the temporary output
-                            file_for_pp = f"{output.stem}_%d_%d.{fileformat}.tmp" % tr
+                            file_for_pp = (
+                                f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
+                            )
                             fd[tr] = open(file_for_pp, "wb")
                         match = True
                         # write to file/pipe for tr
@@ -53,10 +58,10 @@ def pp_statistic_elaboration(
                     eccodes.codes_write(gid, fdother)
                 eccodes.codes_release(gid)
     else:
-        with open(input, "rb") as input_file:
+        with open(input_file, "rb") as input_file:
             with open(file_not_for_pp, "wb") as no_match_file:
                 for tr in trs:
-                    file_for_pp = f"{output.stem}_%d_%d.{fileformat}.tmp" % tr
+                    file_for_pp = f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
                     log.debug("file for post process {} ", file_for_pp)
                     with open(file_for_pp, "wb") as match_file:
                         importer = dballe.Importer("BUFR")
@@ -140,8 +145,8 @@ def pp_statistic_elaboration(
             for item in params
             if item["input_timerange"] == tr[0] and item["output_timerange"] == tr[1]
         )
-        splitted_input = Path(f"{output.stem}_%d_%d.{fileformat}.tmp" % tr)
-        tmp_output = f"{output.stem}_%d_%d_result.{fileformat}.tmp" % tr
+        splitted_input = Path(f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr)
+        tmp_output = f"{output_file.stem}_%d_%d_result.{fileformat}.tmp" % tr
         if splitted_input.exists():
             pp_output = run_statistic_elaboration(
                 params=p, input=splitted_input, output=tmp_output, fileformat=fileformat
@@ -168,7 +173,7 @@ def pp_statistic_elaboration(
         log.warning(message)
         raise PostProcessingException(message)
 
-    with open(output, mode="w") as outfile:
+    with open(output_file, mode="w") as outfile:
         ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
         ext_proc.wait()
         if ext_proc.wait() != 0:
@@ -176,9 +181,9 @@ def pp_statistic_elaboration(
 
 
 def run_statistic_elaboration(
-    params: PostProcessorsType, input: Path, output: Path, fileformat: str
+    params: PostProcessorsType, input_file: Path, output_file: Path, fileformat: str
 ) -> Path:
-    log.debug("postprocessing file {}", input)
+    log.debug("postprocessing file {}", input_file)
     step = ""
     interval = params.get("interval")
     if interval == "years":
@@ -190,7 +195,6 @@ def run_statistic_elaboration(
     if interval == "hours":
         step = "0000000000 {:02d}:00:00.000".format(params.get("step"))
 
-    libsim_tool = ""
     if fileformat.startswith("grib"):
         libsim_tool = "vg6d_transform"
     else:
@@ -208,8 +212,8 @@ def run_statistic_elaboration(
         if not fileformat.startswith("grib"):
             post_proc_cmd.append("--input-format=BUFR")
             post_proc_cmd.append("--output-format=BUFR")
-        post_proc_cmd.append(input)
-        post_proc_cmd.append(output)
+        post_proc_cmd.append(str(input_file))
+        post_proc_cmd.append(str(output_file))
         log.debug("Post process command: {}>", post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
@@ -218,7 +222,7 @@ def run_statistic_elaboration(
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
         else:
-            return output
+            return output_file
 
     except Exception as perr:
         log.warning(perr)

@@ -42,7 +42,7 @@ def check_coord_filepath(params: PostProcessorsType) -> None:
 
 
 def pp_sp_interpolation(
-    params: PostProcessorsType, input: Path, output: Path, fileformat: str
+    params: PostProcessorsType, input_file: Path, output_file: Path, fileformat: str
 ) -> Path:
     log.debug("Spare point interpolation postprocessor")
     try:
@@ -60,8 +60,8 @@ def pp_sp_interpolation(
         post_proc_cmd.append("--coord-format={}".format(params.get("file_format")))
         post_proc_cmd.append("--coord-file={}".format(params.get("coord_filepath")))
         post_proc_cmd.append("--output-format=BUFR")
-        post_proc_cmd.append(input)
-        post_proc_cmd.append(output)
+        post_proc_cmd.append(str(input_file))
+        post_proc_cmd.append(str(output_file))
         log.debug("Post process command: {}>", post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
@@ -69,7 +69,7 @@ def pp_sp_interpolation(
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
         else:
-            return output
+            return output_file
 
     except Exception as perr:
         log.warning(perr)
