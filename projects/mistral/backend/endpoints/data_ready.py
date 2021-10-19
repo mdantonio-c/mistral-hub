@@ -1,10 +1,10 @@
-import os
 from datetime import datetime, timedelta
 
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import celery, sqlalchemy
+from restapi.env import Env
 from restapi.models import fields
 from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
@@ -32,7 +32,7 @@ class DataReady(EndpointResource):
 
         # check which cluster is currently exported on filesystem
         if cluster == "g100" or cluster == "galileo" or cluster == "meucci":
-            exported_platform = os.environ.get("PLATFORM", "G100").lower()
+            exported_platform = Env.get("PLATFORM", "G100").lower()
             if exported_platform != cluster:
                 log.debug(
                     "The endpoint was called by {} while the exported platform is {}",

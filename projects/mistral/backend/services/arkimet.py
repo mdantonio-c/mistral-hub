@@ -1,16 +1,16 @@
 import json
 import math
-import os
 import shlex
 import subprocess
 
 import arkimet as arki
 import dateutil.parser
 from arkimet.cfg import Sections
-from mistral.exceptions import AccessToDatasetDenied, InvalidLicenseException
+from mistral.exceptions import AccessToDatasetDenied
+from restapi.env import Env
 from restapi.utilities.logs import log
 
-DATASET_ROOT = os.environ.get("DATASET_ROOT", "/")
+DATASET_ROOT = Env.get("DATASET_ROOT", "/")
 
 
 class BeArkimet:

@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta
 
 import dballe
@@ -6,19 +5,22 @@ import pytest
 from faker import Faker
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe
+from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, BaseTests, FlaskClient
 from restapi.utilities.logs import log
 
-user = os.environ.get("ALCHEMY_USER")
-pw = os.environ.get("ALCHEMY_PASSWORD")
-host = os.environ.get("ALCHEMY_HOST")
-engine = os.environ.get("ALCHEMY_DBTYPE")
-port = os.environ.get("ALCHEMY_PORT")
+# user = os.environ.get("ALCHEMY_USER")
+# pw = os.environ.get("ALCHEMY_PASSWORD")
+# host = os.environ.get("ALCHEMY_HOST")
+# engine = os.environ.get("ALCHEMY_DBTYPE")
+# port = os.environ.get("ALCHEMY_PORT")
 
 
 class TestApp(BaseTests):
     @staticmethod
     def get_params_value(client, headers, db_type):
+
+        db = sqlalchemy.get_instance()
         # get an existing dataset of observed data
         obs_dataset = arki.get_obs_datasets(None, None)
         date_from_dt = None
@@ -29,7 +31,11 @@ class TestApp(BaseTests):
                 if db_type == "dballe":
                     db = dballe.DB.connect(
                         "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
-                            engine=engine, user=user, pw=pw, host=host, port=port
+                            engine=db.variables.get("dbtype"),
+                            user=db.variables.get("user"),
+                            pw=db.variables.get("password"),
+                            host=db.variables.get("host"),
+                            port=db.variables.get("port"),
                         )
                     )
                     # get a valid reftime for dballe
@@ -77,7 +83,11 @@ class TestApp(BaseTests):
                 elif db_type == "mixed":
                     db = dballe.DB.connect(
                         "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
-                            engine=engine, user=user, pw=pw, host=host, port=port
+                            engine=db.variables.get("dbtype"),
+                            user=db.variables.get("user"),
+                            pw=db.variables.get("password"),
+                            host=db.variables.get("host"),
+                            port=db.variables.get("port"),
                         )
                     )
                     # get a valid reftime for dballe
