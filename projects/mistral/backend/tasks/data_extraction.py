@@ -242,7 +242,7 @@ def data_extract(
                             fileformat=dataset_format,
                         )
                         # join pp1_output and tmp_extraction in output file
-                        cat_cmd = ["cat", tmp_outfile, pp1_output]
+                        cat_cmd = ["cat", str(tmp_outfile), str(pp1_output)]
                         with open(outfile, mode="w") as out:
                             ext_proc = subprocess.Popen(cat_cmd, stdout=out)
                             ext_proc.wait()
@@ -313,7 +313,7 @@ def data_extract(
                             fileformat=dataset_format,
                         )
                         # join pp1_output and tmp_extraction in output file
-                        cat_cmd = ["cat", tmp_outfile, pp1_output]
+                        cat_cmd = ["cat", str(tmp_outfile), str(pp1_output)]
                         # new temp file as pp output
                         new_tmp_extraction_filename = (
                             tmp_extraction_basename.split(".")[0]
