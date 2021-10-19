@@ -1,4 +1,3 @@
-import os
 import subprocess
 
 from mistral.endpoints import DOWNLOAD_DIR
@@ -23,8 +22,8 @@ class Usage(EndpointResource):
         Get actual user disk quota and current usage
         """
         used_quota = 0
-        user_dir = os.path.join(DOWNLOAD_DIR, user.uuid)
-        if os.path.isdir(user_dir):
+        user_dir = DOWNLOAD_DIR.joinpath(user.uuid)
+        if user_dir.is_dir():
             used_quota = int(
                 subprocess.check_output(["du", "-sb", user_dir]).split()[0]
             )

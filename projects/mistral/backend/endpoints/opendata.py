@@ -1,4 +1,3 @@
-import os
 from datetime import date, datetime
 from typing import Any, Dict, Optional
 
@@ -152,8 +151,10 @@ class OpendataDownload(EndpointResource):
         },
     )
     def get(self, filename: str) -> Response:
+
+        OPENDATA_DIR.joinpath(filename)
         # check if the requested file exists
-        if not os.path.exists(os.path.join(OPENDATA_DIR, filename)):
+        if not OPENDATA_DIR.joinpath(filename).exists():
             raise NotFound("File not found")
 
         # download the file as a response attachment
