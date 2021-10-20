@@ -1,17 +1,20 @@
 import subprocess
+from pathlib import Path
 
+from mistral.endpoints import PostProcessorsType
 from mistral.exceptions import PostProcessingException
 from restapi.utilities.logs import log
 
 
-def pp_grid_cropping(params, input, output):
+def pp_grid_cropping(
+    params: PostProcessorsType, input_file: Path, output_file: Path
+) -> Path:
     log.debug("Grid cropping postprocessor")
     try:
         post_proc_cmd = []
         post_proc_cmd.append("vg6d_transform")
-        post_proc_cmd.append(
-            "--trans-mode=s"
-        )  # parametro opzionale per limitare l'uso della memoria elaborando un messaggio alla volta
+        # limit memory usage by elaborating a message at once
+        post_proc_cmd.append("--trans-mode=s")
         post_proc_cmd.append("--trans-type={}".format(params.get("trans_type")))
         post_proc_cmd.append("--sub-type={}".format(params.get("sub_type")))
 
@@ -24,8 +27,8 @@ def pp_grid_cropping(params, input, output):
         if "flat" in params["boundings"]:
             post_proc_cmd.append("--flat={}".format(params["boundings"]["flat"]))
 
-        post_proc_cmd.append(input)
-        post_proc_cmd.append(output)
+        post_proc_cmd.append(str(input_file))
+        post_proc_cmd.append(str(output_file))
         log.debug("Post process command: {}>", post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
@@ -33,7 +36,7 @@ def pp_grid_cropping(params, input, output):
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
         else:
-            return output
+            return output_file
 
     except Exception as perr:
         log.warning(perr)

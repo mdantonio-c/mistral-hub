@@ -58,7 +58,7 @@ def pp_statistic_elaboration(
                     eccodes.codes_write(gid, fdother)
                 eccodes.codes_release(gid)
     else:
-        with open(input_file, "rb") as input_file:
+        with open(input_file, "rb") as in_file:
             with open(file_not_for_pp, "wb") as no_match_file:
                 for tr in trs:
                     file_for_pp = f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
@@ -67,7 +67,7 @@ def pp_statistic_elaboration(
                         importer = dballe.Importer("BUFR")
                         exporter = dballe.Exporter("BUFR")
 
-                        with importer.from_file(input_file) as fp:
+                        with importer.from_file(in_file) as fp:
                             for msgs in fp:
                                 for msg in msgs:
                                     count_vars = 0
