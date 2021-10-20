@@ -53,6 +53,7 @@ def data_extract(
     try:
         db = sqlalchemy.get_instance()
         data_size = 0
+        pp_output: Optional[Path] = None
         double_request = False
         if schedule_id is not None:
             # load schedule for this request
