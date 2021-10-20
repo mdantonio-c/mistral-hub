@@ -1,6 +1,5 @@
 import datetime
 import json
-import os  # still a lot of os. to be replaced with Pathlib
 import subprocess
 import tarfile
 from pathlib import Path
@@ -51,7 +50,6 @@ def data_extract(
     opendata=False,
 ):
     log.info("Start task [{}:{}]", self.request.id, self.name)
-    extra_msg = ""
     try:
         db = sqlalchemy.get_instance()
         data_size = 0
@@ -162,7 +160,7 @@ def data_extract(
             )
 
         # max filename len = 64
-        out_filename = "data-{utc_now}-{id}.{fileformat}".format(
+        output_file_name = "data-{utc_now}-{id}.{fileformat}".format(
             utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
             id=self.request.id,
             fileformat=dataset_format,
@@ -172,7 +170,7 @@ def data_extract(
             output_dir = OPENDATA_DIR
 
         # final result
-        outfile = output_dir.joinpath(out_filename)
+        outfile = output_dir.joinpath(output_file_name)
         log.debug("outfile: {}", outfile)
 
         # the estimation of data size can be skipped
@@ -209,7 +207,7 @@ def data_extract(
                 log.debug("Data extraction with post-processing <{}>", pp_type)
 
             # temporarily save the data extraction output
-            tmp_outfile = output_dir.joinpath(out_filename + ".tmp")
+            tmp_outfile = output_dir.joinpath(output_file_name + ".tmp")
             # call data extraction
             if data_type != "OBS" and "multim-forecast" not in datasets:
                 arki.arkimet_extraction(datasets, query, tmp_outfile)
@@ -271,10 +269,8 @@ def data_extract(
 
                     elif pp_type == "spare_point_interpolation":
                         # change output extension from .grib to .BUFR
-                        outfile_name, outfile_ext = os.path.splitext(out_filename)
-                        out_filename = outfile_name + ".BUFR"
-                        outfile = output_dir.joinpath(out_filename)
-                        # bufr_outfile = outfile_name+'.BUFR'
+                        outfile = outfile.with_prefix(".BUFR")
+
                         pp3_3.pp_sp_interpolation(
                             params=p,
                             input_file=tmp_outfile,
@@ -287,7 +283,7 @@ def data_extract(
                     for f in output_dir.glob("*.tmp"):
                         f.unlink()
                     # if pp_type == 'spare_point_interpolation':
-                    #     # remove the temporary folder where the files for the interpolation were uploaded
+                    #     # remove the interpolation files temporary upload folder
                     #     uploaded_filepath = Path(p.get('coord-filepath'))
                     #     shutil.rmtree(uploaded_filepath.parent)
 
@@ -295,7 +291,6 @@ def data_extract(
             else:
                 try:
 
-                    tmp_extraction_basename = os.path.basename(tmp_outfile)
                     if any(
                         d["processor_type"] == "derived_variables"
                         for d in postprocessors
@@ -315,8 +310,7 @@ def data_extract(
                         cat_cmd = ["cat", str(tmp_outfile), str(pp1_output)]
                         # new temp file as pp output
                         new_tmp_extraction_filename = (
-                            tmp_extraction_basename.split(".")[0]
-                            + f"-pp1.{dataset_format}.tmp"
+                            f"{tmp_outfile.stem}-pp1.{dataset_format}.tmp"
                         )
                         pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
@@ -339,8 +333,7 @@ def data_extract(
                         else:
                             pp_input = tmp_outfile
                         new_tmp_extraction_filename = (
-                            tmp_extraction_basename.split(".")[0]
-                            + f"-pp2.{dataset_format}.tmp"
+                            f"{tmp_outfile.stem}-pp2.{dataset_format}.tmp"
                         )
                         pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
@@ -363,10 +356,9 @@ def data_extract(
                             pp_input = pp_output
                         else:
                             pp_input = tmp_outfile
-                        new_tmp_extraction_filename = tmp_extraction_basename.split(
-                            "."
-                        )[0] + "-pp3_2.{fileformat}.tmp".format(
-                            fileformat=dataset_format
+
+                        new_tmp_extraction_filename = (
+                            f"{tmp_outfile.stem}-pp3_2.{dataset_format}.tmp"
                         )
                         pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
@@ -387,10 +379,8 @@ def data_extract(
                             pp_input = pp_output
                         else:
                             pp_input = tmp_outfile
-                        new_tmp_extraction_filename = tmp_extraction_basename.split(
-                            "."
-                        )[0] + "-pp3_1.{fileformat}.tmp".format(
-                            fileformat=dataset_format
+                        new_tmp_extraction_filename = (
+                            f"{tmp_outfile.stem}-pp3_1.{dataset_format}.tmp"
                         )
                         pp_output = output_dir.joinpath(new_tmp_extraction_filename)
                         pp3_1.pp_grid_interpolation(
@@ -410,13 +400,10 @@ def data_extract(
                             pp_input = pp_output
                         else:
                             pp_input = tmp_outfile
-                        # new_tmp_extraction_filename = (
-                        #     tmp_extraction_basename.split('.')[0]
-                        #     + '-pp3_3.grib.tmp'
+                        # new_tmp_extraction_filename =
+                        #     f"{tmp_outfile.stem}-pp3_3.grib.tmp"
                         # )
-                        new_tmp_extraction_filename = (
-                            tmp_extraction_basename.split(".")[0] + ".bufr"
-                        )
+                        new_tmp_extraction_filename = f"{tmp_outfile.stem}.bufr"
                         out_filename = new_tmp_extraction_filename
                         pp_output = output_dir.joinpath(new_tmp_extraction_filename)
                         pp3_3.pp_sp_interpolation(
@@ -466,9 +453,9 @@ def data_extract(
             # rename outfile correctly
             outfile = output_dir.joinpath(out_filename)
 
-        ## for pushing data output to amqp queue use case, the estimation of data size can be skipped
+        # estimation of data size can be skipped when pushing data output to amqp queue
         # get the actual data size
-        data_size = os.path.getsize(os.path.join(output_dir, out_filename))
+        data_size = output_dir.joinpath(out_filename).stat().st_size
         log.debug(f"Actual resulting data size: {data_size}")
         if data_type != "OBS" and "multim-forecast" not in datasets:
             if data_size > esti_data_size:
@@ -477,7 +464,9 @@ def data_extract(
                     human_size(data_size - esti_data_size),
                 )
         else:
-            # check if the user space is not exceeded (for the observations we can't calculate the esti_data_size so this check is done after the extraction)
+            # check if the user space is not exceeded:
+            # for the observations we can't calculate the esti_data_size
+            # so this check is done after the extraction
             check_user_quota(
                 user_id,
                 output_dir,
@@ -487,7 +476,7 @@ def data_extract(
             )
 
         # target result
-        target_filename = os.path.basename(outfile)
+        target_filename = outfile.name
 
         if data_size > 0:
             # update request status
@@ -596,21 +585,22 @@ def data_extract(
                 )
                 # decomment for pushing output data in an amqp queue
                 # if amqp_queue:
-                #     extra_msg = push_data_to_queue(amqp_queue, outfile, output_dir, request)
+                #     extra_msg = push_data_to_queue(
+                #         amqp_queue, outfile, output_dir, request
+                #     )
                 # notify_by_email(db, user_id, request, extra_msg, amqp_queue)
                 if amqp_queue:
                     try:
                         # notify via amqp queue
                         notify_by_amqp_queue(amqp_queue, request)
                     except BaseException:
-                        extra_msg += (
-                            f"failed communication with {amqp_queue} amqp queue"
-                        )
-                        # notify via mail adding a warning about the amqp communication error
+                        extra_msg = f"failed communication with {amqp_queue} amqp queue"
+
+                        # notify via mail (adding the amqp communication error)
                         notify_by_email(db, user_id, request, extra_msg)
                 else:
                     # notify via email
-                    notify_by_email(db, user_id, request, extra_msg)
+                    notify_by_email(db, user_id, request, "")
 
 
 def check_user_quota(
@@ -626,7 +616,12 @@ def check_user_quota(
         # check the output size
         esti_data_size = arki.estimate_data_size(datasets, query)
     elif output_filename:
-        esti_data_size = os.path.getsize(os.path.join(user_dir, output_filename))
+        esti_data_size = Path(user_dir, output_filename).stat().st_size
+    else:  # pragma: no cover
+        log.warning(
+            "Invalid check user quota request, both datasets and output_file are empty"
+        )
+        esti_data_size = 0
 
     log.debug(
         "Resulting output size: {} ({})", esti_data_size, human_size(esti_data_size)
@@ -653,8 +648,7 @@ def check_user_quota(
             message += f' <br/><br/>Schedule "{schedule.name}" was temporary disabled for limit quota exceeded.'
         # for already extracted observed data, delete the file
         if output_filename:
-            fileoutput = os.path.join(user_dir, output_filename)
-            os.remove(fileoutput)
+            user_dir.joinpath(output_filename).unlink()
 
         raise MaxOutputSizeExceeded(message)
 
@@ -685,8 +679,7 @@ def check_user_quota(
             message += f' <br/><br/>Schedule "{schedule.name}" was temporary disabled for limit quota exceeded.'
         # for already extracted observed data, delete the file
         if output_filename:
-            fileoutput = os.path.join(user_dir, output_filename)
-            os.remove(fileoutput)
+            user_dir.joinpath(output_filename).unlink()
 
         raise DiskQuotaException(message)
     return esti_data_size
@@ -699,7 +692,7 @@ def observed_extraction(
     datasets,
     filters,
     reftime,
-    outfile,
+    outfile,  # : Path
     amqp_queue=None,
     schedule_id=None,
     only_reliable=False,
@@ -723,7 +716,8 @@ def observed_extraction(
             interval = None
             queried_reftime = queries[fields.index("datetimemax")][0]
             # extend the reftime
-            # datetimemin, datetimemax se timerange in query diventa interval il timerange maggiore
+            # datetimemin, datetimemax
+            # se timerange in query diventa interval il timerange maggiore
             q_for_multimodel_reftime = {}
             q_for_multimodel_reftime["datetimemin"] = queries[
                 fields.index("datetimemin")
@@ -759,7 +753,8 @@ def observed_extraction(
                         if t[1] > max_trange_interval:
                             max_trange_interval = t[1]
             if max_trange_interval:
-                # get the timerange p1 in hour as interval to extend the reftime fo multimodel query
+                # get the timerange p1 in hour as interval
+                # to extend the reftime fo multimodel query
                 interval = max_trange_interval / 3600
             queries[fields.index("datetimemax")][
                 0
@@ -767,13 +762,14 @@ def observed_extraction(
                 q_for_multimodel_reftime, db_type, interval
             )
             if db_type == "arkimet":
-                # check if db_type is changed (from arkimet to mixed) with the extended query
+                # check if db_type is changed
+                # (from arkimet to mixed) with the extended query
                 db_type = dballe.get_db_type(
                     date_min=queries[fields.index("datetimemin")][0],
                     date_max=queries[fields.index("datetimemax")][0],
                 )
 
-    ## for pushing data output to amqp queue use case, the estimation of data size can be skipped
+    # the estimation of data size can be skipped when pushing data output to amqp queue
     if db_type == "arkimet":
         # check using arkimet if the estimated filesize does not exceed the disk quota
         query = ""
@@ -790,14 +786,16 @@ def observed_extraction(
 
     # extract the data
     if only_reliable:
-        if outfile.endswith(".tmp"):
-            outfile_split = outfile[:-4]
-            filebase, fileext = os.path.splitext(outfile_split)
-        else:
-            filebase, fileext = os.path.splitext(outfile)
-        # change the name of the output file as it will be processed an other time by the postprocessor
+        # In case of .tmp extension, remove it
+        if outfile.suffix == ".tmp":
+            outfile = outfile.with_suffix("")
+
+        fileext = outfile.suffix
+        filebase = outfile.with_suffix("")
+        # change the name of the output file
+        # as it will be processed an other time by the postprocessor
         qc_outfile = outfile
-        outfile = filebase + "_to_be_qcfiltered" + fileext + ".tmp"
+        outfile = f"{filebase}_to_be_qcfiltered{fileext}.tmp"
 
     if db_type == "mixed":
         dballe.extract_data_for_mixed(
@@ -861,7 +859,8 @@ def notify_by_amqp_queue(amqp_queue, request):
         rabbit.disconnect()
 
 
-# method to push data to an amqp queue instead of only a notification: at the moment is not used but it wasn't deleted because it can be useful
+# method to push data to an amqp queue instead of only a notification:
+# at the moment is not used but it wasn't deleted because it can be useful
 # def push_data_to_queue(amqp_queue, outfile, output_dir, request):
 #     # send a message in the queue
 #     extra_msg = ""
@@ -979,8 +978,10 @@ def adapt_reftime(schedule, reftime):
                 minute=now.minute, second=now.second, microsecond=now.microsecond
             )
 
-        # calculate the time delta considering also case when the scheduled is switched of for some time
-        # the float is used instead of int to prevent approsimation to basis in case schedule interval has no unit=1 (ex. every 3 days)
+        # calculate the time delta considering also case when
+        # the scheduled is switched of for some time
+        # the float is used instead of int to prevent rounding to basis
+        # in case schedule interval has no unit=1 (ex. every 3 days)
         time_delta_to = schedule_interval * (
             float((now - first_submission) / schedule_interval)
         )
@@ -1021,14 +1022,14 @@ def package_data_license(user_dir, out_file, license_file):
     """
     utc_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ.%f")
     tar_filename = f"data-{utc_now}.tar.gz"
-    tar_file = os.path.join(user_dir, tar_filename)
+    tar_file = Path(user_dir, tar_filename)
     with tarfile.open(tar_file, "w:gz") as tar:
         log.debug("--TAR ARCHIVE-------------------------")
         log.debug("data file: {}", out_file)
-        tar.add(out_file, arcname=os.path.basename(out_file))
+        tar.add(out_file, arcname=out_file.name)
         log.debug("license file: {}", license_file)
         tar.add(license_file, arcname="LICENSE")
         log.debug("--------------------------------------")
     # delete out_filename
-    os.remove(out_file)
+    out_file.unlink()
     return tar_filename
