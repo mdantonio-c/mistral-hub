@@ -1,8 +1,8 @@
 import itertools
-import os
 import subprocess
 import tempfile
 from datetime import datetime, time, timedelta
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import arkimet as arki
@@ -73,7 +73,8 @@ class BeDballe:
     def check_access_authorization(user, g_license_name, dataset_name, dsn_subset=True):
         alchemy_db = sqlalchemy.get_instance()
         dataset_subset = []
-        # 1. user is authorized to see data from that license group (is open or at least one of his authorized dataset comes from the group)
+        # 1. user is authorized to see data from that license group
+        # (is open or at least one of his authorized dataset comes from the group)
         group_license = alchemy_db.GroupLicense.query.filter_by(
             name=g_license_name
         ).first()
@@ -99,7 +100,8 @@ class BeDballe:
                         "the user is not authorized to access datasets from the selected license group"
                     )
                 if dsn_subset:
-                    # check if the user is authorized to all datasets in the DSN corresponding to the license group
+                    # check if the user is authorized to all datasets in
+                    # the DSN corresponding to the license group
                     all_datasets = SqlApiDbManager.retrieve_dataset_by_dsn(
                         alchemy_db, group_license.dballe_dsn
                     )
@@ -233,35 +235,36 @@ class BeDballe:
         # log.debug("filtered {}", need_filtered)
         explorer = dballe.DBExplorer()
         with explorer.update() as updater:
+
             if db_type == "dballe" or db_type == "mixed":
                 if need_filtered:
-                    json_summary_file = "{}_{}.json".format(
-                        BeDballe.DBALLE_JSON_SUMMARY_PATH_FILTERED,
-                        license_group.name.replace(" ", "_"),
-                    )
+                    summary_file_prefix = BeDballe.DBALLE_JSON_SUMMARY_PATH_FILTERED
                 else:
-                    json_summary_file = "{}_{}.json".format(
-                        BeDballe.DBALLE_JSON_SUMMARY_PATH,
-                        license_group.name.replace(" ", "_"),
-                    )
+                    summary_file_prefix = BeDballe.DBALLE_JSON_SUMMARY_PATH
+
+                summary_file_suffix = license_group.name.replace(" ", "_")
+                json_summary_file = Path(
+                    f"{summary_file_prefix}_{summary_file_suffix}.json"
+                )
                 # log.debug("dballe summary file{}", json_summary_file)
                 log.debug("loaded in explorer {}", json_summary_file)
-                if os.path.exists(json_summary_file):
+                if json_summary_file.exists():
                     with open(json_summary_file) as fd:
                         updater.add_json(fd.read())
+
             if db_type == "arkimet" or db_type == "mixed":
                 if need_filtered:
-                    json_summary_file = "{}_{}.json".format(
-                        BeDballe.ARKI_JSON_SUMMARY_PATH_FILTERED,
-                        license_group.name.replace(" ", "_"),
-                    )
+                    summary_file_prefix = BeDballe.ARKI_JSON_SUMMARY_PATH_FILTERED
                 else:
-                    json_summary_file = "{}_{}.json".format(
-                        BeDballe.ARKI_JSON_SUMMARY_PATH,
-                        license_group.name.replace(" ", "_"),
-                    )
+                    summary_file_prefix = BeDballe.ARKI_JSON_SUMMARY_PATH
+
+                summary_file_suffix = license_group.name.replace(" ", "_")
+                json_summary_file = Path(
+                    f"{summary_file_prefix}_{summary_file_suffix}.json"
+                )
+
                 log.debug("loaded in explorer {}", json_summary_file)
-                if os.path.exists(json_summary_file):
+                if json_summary_file.exists():
                     with open(json_summary_file) as fd:
                         updater.add_json(fd.read())
         return explorer
@@ -373,7 +376,7 @@ class BeDballe:
                 else:
                     query_networks_list = query["network"]
             else:
-                # if there aren't requested network, data will be filtered only by dataset
+                # in case of no requested network data will be only filtered by dataset
                 query_networks_list = params
 
         log.debug(f"Loading filters: query networks list : {query_networks_list}")
@@ -403,32 +406,36 @@ class BeDballe:
             filters_for_explorer["datetimemax"] = query["datetimemax"]
 
         if not query_networks_list:
-            # if there isn't a query network list, it's observed maps case (the data extraction is always managed using datasets)
+            # if there isn't a query network list, it's observed maps case
+            # (the data extraction is always managed using datasets)
             explorer.set_filter(filters_for_explorer)
-            # list of the variables of the query without level and timerange costraints (used in "all available products" case)
+            # list of the variables of the query without level and timerange costraints
+            # (used in "all available products" case)
             network_products = explorer.varcodes
-            # add all values of the query to the filter for explorer (N.B. i can do that only beacuse i am in the maps case and i am sure that queries are all single param)
+            # add all values of the query to the filter for explorer
+            # (N.B. i can do that only because i am in the maps case
+            # and i am sure that queries are all single param)
             if query:
                 parsed_query = BeDballe.parse_query_for_maps(query)
                 for key, value in parsed_query.items():
                     filters_for_explorer[key] = value
             explorer.set_filter(filters_for_explorer)
 
-            ######### VARIABLES FIELDS
+            # ####### VARIABLES FIELDS
             # get the list of the variables coming from the query
             variables = explorer.varcodes
 
-            ######### LEVELS FIELDS
+            # ######## LEVELS FIELDS
             level_fields = explorer.levels
             if level_fields:
                 for el in level_fields:
                     levels.append(BeDballe.from_level_object_to_string(el))
-            ######### TIMERANGES FIELDS
+            # ######## TIMERANGES FIELDS
             trange_fields = explorer.tranges
             if trange_fields:
                 for el in trange_fields:
                     tranges.append(BeDballe.from_trange_object_to_string(el))
-            ######### NETWORKS FIELDS
+            # ######## NETWORKS FIELDS
             networks_list = explorer.reports
 
         else:
@@ -444,40 +451,44 @@ class BeDballe:
                 # list of the variables of this network
                 net_variables = []
 
-                ######### VARIABLES FIELDS
+                # ######## VARIABLES FIELDS
                 # get the list of all the variables of the network
                 varlist = explorer.varcodes
-                # append all the products available for that network (not filtered by the query)
+                # append all the products available for that network
+                # (not filtered by the query)
                 if varlist:
                     network_products.extend(
                         x for x in varlist if x not in network_products
                     )
 
-                #### PRODUCT is in the query filters
+                # #### PRODUCT is in the query filters
                 if "product" in query:
                     # check if the requested variables are in the network
                     for e in query["product"]:
+                        # if there is append to the temporary list of matching variables
                         if e in varlist:
-                            # if there is append it to the temporary list of matching variables
                             net_variables.append(e)
                     if not net_variables:
-                        # if at the end of the cycle the temporary list of matching variables is still empty go to the next network
+                        # if at the end of the cycle the temporary list of matching
+                        # variables is still empty go to the next network
                         continue
                 else:
-                    # if product is not in the query filter append all the variable of the network o the final list of the fields
+                    # if product is not in the query filter append all the variable
+                    # of the network o the final list of the fields
                     net_variables = varlist
 
-                ######### LEVELS FIELDS
+                # ######## LEVELS FIELDS
                 level_fields, net_variables_temp = BeDballe.get_fields(
                     explorer, filters_for_explorer, net_variables, query, param="level"
                 )
                 if not level_fields:
                     continue
-                # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
+                # check if the temporary list of variable is not more little of
+                # the general one. If it is, replace the general list
                 if not all(elem in net_variables_temp for elem in net_variables):
                     net_variables = net_variables_temp
 
-                ######### TIMERANGES FIELDS
+                # ######## TIMERANGES FIELDS
                 if n != "multim-forecast" or not queried_reftime:
                     (
                         trange_fields,
@@ -534,11 +545,13 @@ class BeDballe:
                             )
                 if not trange_fields:
                     continue
-                # check if the temporary list of variable is not more little of the general one. If it is, replace the general list
+                # check if the temporary list of variable is not more little of
+                # the general one. If it is, replace the general list
                 if not all(elem in net_variables_temp for elem in net_variables):
                     net_variables = net_variables_temp
 
-                # check if the temporary list of levels is not more little of the general one. If it is, replace the general list
+                # check if the temporary list of levels is not more little
+                # f the general one. If it is, replace the general list
                 if not all(elem in level_fields_temp for elem in level_fields):
                     level_fields = level_fields_temp
 
@@ -608,7 +621,10 @@ class BeDballe:
                                 "datetimemax"
                             ] = reftime_to_check + timedelta(seconds=timerange_interval)
                             multim_summary_query["timerange"] = [trange["code"]]
-                            # log.debug("query for multimodel summary: {}",multim_summary_query)
+                            # log.debug(
+                            #     "query for multimodel summary: {}",
+                            #     multim_summary_query
+                            # )
                             part_summary = BeDballe.get_summary(
                                 params, explorer, query=multim_summary_query
                             )
@@ -624,7 +640,9 @@ class BeDballe:
                                     )
                                 else:
                                     summary["c"] += part_summary["c"]
-                                    # case of query on multiple datasets: check if the date min and the date max of the summary for the others dataset has to be considered
+                                    # case of query on multiple datasets:
+                                    # check if the date min and the date max of the
+                                    # summary of others dataset has to be considered
                                     if (
                                         part_summary["c"] != 0
                                         and datetime(*summary["e"]) < reftime_to_check
@@ -652,7 +670,8 @@ class BeDballe:
         param,
         run_to_check=None,
     ):
-        # filter the dballe database by list of variables (level and timerange depend on variable)
+        # filter the dballe database by list of variables
+        # (level and timerange depend on variable)
         filters_w_varlist = {**filters_for_explorer, "varlist": variables}
         explorer.set_filter(filters_w_varlist)
 
@@ -663,7 +682,8 @@ class BeDballe:
         elif param == "timerange":
             param_list = explorer.tranges
             if run_to_check:
-                # multimodel case : check for every timerange if actually exists for the actual reftime and create list of levels accordingly
+                # multimodel case: check for every timerange if actually exists
+                # for the actual reftime and create list of levels accordingly
                 # param_list_parsed, variables, level_list_parsed
                 level_list = []
                 query_for_tranges = {**filters_w_varlist}
@@ -708,22 +728,24 @@ class BeDballe:
                     level = BeDballe.from_level_object_to_string(lev)
                     level_list_parsed.append(level)
 
-        #### the param is in the query filters
+        # #### the param is in the query filters
         if param in query:
             temp_fields = []
-            # check if the requested params matches the one required for the given variables
+            # check if the requested params matches the required for the given variables
             for e in query[param]:
                 if e in param_list_parsed:
                     # if there is append it to the temporary list of matching fields
                     temp_fields.append(e)
             if not temp_fields:
-                # if at the end of the cycle the temporary list of matching variables is still empty go to the next network
+                # if at the end of the cycle the temporary list of matching variables
+                # is still empty go to the next network
                 if param == "level":
                     return None, None
                 elif param == "timerange":
                     return None, None, None
             else:
-                # if only the param is in query and not product, discard from the network variable list all products not matching the param
+                # if only the param is in query and not product,
+                # discard from the network list all products not matching the param
                 if "product" not in query:
                     variables_by_param = []
                     levels_by_trange = []
@@ -747,13 +769,15 @@ class BeDballe:
                                 elif param == "timerange":
                                     p = BeDballe.from_trange_object_to_string(e)
                                 param_list_parsed.append(p)
-                            # if the param matches append the variable in a temporary list
+                            # if the param matches append the variable in a temp list
                             if qp in param_list_parsed:
                                 variables_by_param.append(v)
-                    # the temporary list of variables matching the requested param become the list of the variable of the network
+                    # the temporary list of variables matching the requested param
+                    # become the list of the variable of the network
                     variables = variables_by_param
-                    # if the list of variables has been modified, we are filtering by timeranges and level is not in
-                    # query, i have to check if the level fields still matches the new variable list
+                    # if the list of variables has been modified, we are filtering
+                    # by timeranges and level is not in query, i have to check if
+                    # the level fields still matches the new variable list
                     if param == "timerange" and "level" not in query:
                         # for each variable check if the level matches
                         for level in level_list_parsed:
@@ -770,7 +794,8 @@ class BeDballe:
                             # if the level matches append the level in a temporary list
                             if level in var_level_parsed:
                                 levels_by_trange.append(level)
-                        # the temporary list of levels matching the resulted variables become the list of levels to return
+                        # the temporary list of levels matching the resulted variables
+                        # become the list of levels to return
                         level_list_parsed = levels_by_trange
                 if param == "level":
                     return temp_fields, variables
@@ -936,7 +961,8 @@ class BeDballe:
             response = previous_res
         else:
             response = {}
-        # choose the right query for the right situation(station details response or default one)
+        # choose the right query for the right situation
+        # (station details responseor default one)
         query = {}
         if query_station_data:
             parsed_query = BeDballe.parse_query_for_maps(query_station_data)
@@ -946,7 +972,8 @@ class BeDballe:
         query = {**parsed_query}
         if "rep_memo" in query and query["rep_memo"] == "multim-forecast":
             if db_type == "arkimet":
-                # multimodel maps for archived data are not supported as too resource consuming
+                # multimodel maps for archived data are not supported
+                # as too resource consuming
                 return []
             # adjust reftime for multimodel extraction
             if "trange" in query:
@@ -1060,7 +1087,7 @@ class BeDballe:
                     db, query, query_station_data, response, only_stations
                 )
                 if mobile_db:
-                    # add the data extracted from the corresponding dsn for mobile stations
+                    # add data extracted from the corresponding dsn for mobile stations
                     response = BeDballe.extract_data_for_maps(
                         mobile_db, query, query_station_data, response, only_stations
                     )
@@ -1161,7 +1188,7 @@ class BeDballe:
                             attrs = variable.get_attrs()
                             is_reliable = BeDballe.data_qc(attrs)
                             product_val["rel"] = is_reliable
-                            # temporary fix: make null data from stations with mistaken data
+                            # tmp fix: make null data from stations with mistaken data
                             if "var" in query:
                                 if (
                                     query["var"] == "B12101"
@@ -1172,7 +1199,7 @@ class BeDballe:
                         "rel" not in product_val.keys()
                         and rec["rep_memo"] != "multim-forecast"
                     ):
-                        # quality control filter is not active: use the default value (1)
+                        # QC filter is not active: use the default value (1)
                         # this param is not useful for multimodel use case
                         product_val["rel"] = 1
 
@@ -1270,7 +1297,8 @@ class BeDballe:
             last_reftime = query["datetimemin"]
         else:
             last_reftime = query["datetimemax"].replace(hour=0, minute=0)
-        # change the reftime to according to requested interval or to the multimodel max interval
+        # change the reftime to according to requested interval
+        # or to the multimodel max interval
         if interval:
             new_datetimemax = last_reftime + timedelta(hours=interval)
         else:
@@ -1325,8 +1353,8 @@ class BeDballe:
                     # extract querying network by network
                     query_data["rep_memo"] = n
                     BeDballe.import_data_in_temp_db(dballe_db, arki_db, query_data)
+                    # add data extracted from the corresponding dsn for mobile stations
                     if mobile_db:
-                        # add the data extracted from the corresponding dsn for mobile stations
                         BeDballe.import_data_in_temp_db(mobile_db, arki_db, query_data)
                     # clean the query
                     query_data.pop("rep_memo", None)
@@ -1609,7 +1637,8 @@ class BeDballe:
                 field_queries = []
                 for e in value:
                     if key == "timerange" or key == "level":
-                        # transform the timerange or level value in a tuple (required for dballe query)
+                        # transform the timerange or level value in a tuple
+                        # (required for dballe query)
                         tuple_list: List[Optional[int]] = []
                         for v in e["code"].split(","):
                             if key == "level" and v == "0":
@@ -1664,7 +1693,8 @@ class BeDballe:
                 key_index = allowed_keys.index(key)
                 fields.append(dballe_keys[key_index])
                 if key == "timerange" or key == "level":
-                    # transform the timerange or level value in a tuple (required for dballe query)
+                    # transform the timerange or level value in a tuple
+                    # (required for dballe query)
                     query_list = []
                     for v in value:
                         split_list = v.split(",")
@@ -1802,14 +1832,15 @@ class BeDballe:
             # set up query for dballe with the correct reftimes
             dballe_queries[fields.index("datetimemin")][0] = refmin_dballe
 
-        # set the filename for the partial extraction
-        if outfile.endswith(".tmp"):
-            outfile_split = outfile[:-4]
-            filebase, fileext = os.path.splitext(outfile_split)
-        else:
-            filebase, fileext = os.path.splitext(outfile)
+        # In case of .tmp extension, remove it
+        if outfile.suffix == ".tmp":
+            outfile = outfile.with_suffix("")
 
-        dballe_outfile = filebase + "_dballe_part" + fileext + ".tmp"
+        # set the filename for the partial extraction
+        fileext = outfile.suffix
+        filebase = outfile.with_suffix("")
+
+        dballe_outfile = f"{filebase}_dballe_part{fileext}.tmp"
 
         # extract
         BeDballe.extract_data(
@@ -1832,7 +1863,7 @@ class BeDballe:
             arki_queries[fields.index("datetimemin")][0] = refmin_arki
             arki_queries[fields.index("datetimemax")][0] = refmax_arki
 
-        arki_outfile = filebase + "_arki_part" + fileext + ".tmp"
+        arki_outfile = Path(f"{filebase}_arki_part{fileext}.tmp")
 
         # extract
         queried_reftime_for_arki = None
@@ -1849,10 +1880,10 @@ class BeDballe:
         )
 
         cat_cmd = ["cat"]
-        if os.path.exists(dballe_outfile):
-            cat_cmd.append(dballe_outfile)
-        if os.path.exists(arki_outfile):
-            cat_cmd.append(arki_outfile)
+        if dballe_outfile.exists():
+            cat_cmd.append(str(dballe_outfile))
+        if arki_outfile.exists():
+            cat_cmd.append(str(arki_outfile))
 
         # check if the extractions were done
         if len(cat_cmd) == 1:
@@ -1942,8 +1973,8 @@ class BeDballe:
                     )
                 else:
                     requested_runs.append(multim_run)
+            # mixed db case: add the requested runs that are supposed to be in arkimet
             if additional_runs:
-                # mixed db case: add the requested runs that are supposed to be in arkimet
                 for i in range(additional_runs + 1):
                     multim_run = queries[fields.index("datetimemin")][0] - timedelta(
                         days=i
@@ -1964,18 +1995,23 @@ class BeDballe:
             dballe_query = {}
             for k, v in zip(fields, q):
                 dballe_query[k] = v
+
+            # In case of .tmp extension, remove it
+            if outfile.suffix == ".tmp":
+                outfile = outfile.with_suffix("")
+
             # set the filename for the partial extraction
-            if outfile.endswith(".tmp"):
-                outfile_split = outfile[:-4]
-                filebase, fileext = os.path.splitext(outfile_split)
-            else:
-                filebase, fileext = os.path.splitext(outfile)
-            part_outfile = filebase + "_part" + str(counter) + fileext + ".tmp"
+            fileext = outfile.suffix
+            filebase = outfile.with_suffix("")
+            part_outfile = f"{filebase}_part{counter}{fileext}.tmp"
 
             with DB.transaction() as tr:
                 # check if the query gives a result
                 count = tr.query_data(dballe_query).remaining
-                # log.debug('counter= {} dballe query: {} count:{}'.format(str(counter), dballe_query, count))
+                # log.debug(
+                #     "counter = {} dballe query: {} count: {}",
+                #     counter, dballe_query, count
+                # )
                 if count == 0:
                     continue
                 log.debug("Extract data from dballe. query: {}", dballe_query)
@@ -2073,7 +2109,8 @@ class BeDballe:
 
             new_msg.set(dballe.Level(), dballe.Trange(), v)
         if count_msgs > 0:
-            # there are matching messages: return the filtered message in order to be exported
+            # there are matching messages:
+            # return the filtered message in order to be exported
             return new_msg
         else:
             return None
