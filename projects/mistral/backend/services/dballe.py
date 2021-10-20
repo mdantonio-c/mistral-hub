@@ -1840,7 +1840,7 @@ class BeDballe:
         fileext = outfile.suffix
         filebase = outfile.with_suffix("")
 
-        dballe_outfile = f"{filebase}_dballe_part{fileext}.tmp"
+        dballe_outfile = Path(f"{filebase}_dballe_part{fileext}.tmp")
 
         # extract
         BeDballe.extract_data(
