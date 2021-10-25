@@ -562,7 +562,7 @@ A crontab to automatize the certificate renewal should be considerd:
 
 For example to renew every Monday at 00:00 AM
 
-`0 0 * * 1 cd /your/project/path && COMPOSE_INTERACTIVE_NO_CLI=1 /usr/local/bin/rapydo ssl --no-tty > /your/project/path/data/logs/ssl.log 2>&1`
+`0 0 * * 1 cd /your/project/path && /usr/local/bin/rapydo ssl > /your/project/path/data/logs/ssl.log 2>&1`
 
 ---
 

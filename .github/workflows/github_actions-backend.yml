@@ -34,7 +34,7 @@ jobs:
         run: |
           # wait few seconds to let the init process in docker-entrypoint to complete
           sleep 20
-          rapydo shell --no-tty backend 'restapi tests --wait --destroy'
+          rapydo shell backend 'restapi tests --wait --destroy'
 
           LOGURU_LEVEL=WARNING rapydo list services
           # This should fail if at least one container is in Exit status
@@ -49,7 +49,7 @@ jobs:
 
       - name: Test arpaesimc tools
         run: |
-          rapydo shell --no-tty backend "bash /code/tests/custom/test_arpaesimc.sh"
+          rapydo shell backend "bash /code/tests/custom/test_arpaesimc.sh"
 
       - name: Login to DockerHub
         uses: docker/login-action@v1

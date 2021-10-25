@@ -21,10 +21,10 @@ runs:
         rapydo build --force;
         rapydo add task test_task;
         rapydo start;
-        rapydo shell --no-tty backend 'restapi wait';
+        rapydo shell backend 'restapi wait';
 
         echo "dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE" > init.sh;
         echo "dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr" >> init.sh;
         docker cp init.sh ${{ inputs.project }}_backend_1:/tmp/init.sh;
-        rapydo shell --no-tty backend 'bash /tmp/init.sh';
+        rapydo shell backend 'bash /tmp/init.sh';
       shell: bash
