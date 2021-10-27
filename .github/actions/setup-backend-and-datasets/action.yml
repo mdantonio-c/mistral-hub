@@ -15,6 +15,9 @@ runs:
         unzip -q arkimet.zip -d data/;
         ls -l data/arkimet;
         ls -l data/arkimet_conf;
+        mkdir data/user_repo/templates_for_pp;
+        wget --quiet ${{ inputs.dataset_url }}/template_for_spare_point.zip -O data/user_repo/templates_for_pp/template_for_spare_point.zip;
+
 
         rapydo pull --quiet;
         rapydo install buildx
