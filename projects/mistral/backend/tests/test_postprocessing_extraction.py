@@ -469,7 +469,7 @@ class TestApp(BaseTests):
             filters=filters,
         )
         # check fileformat for output file
-        assert sp_filepath.suffix == ".BUFR"
+        assert sp_filepath.suffix == ".bufr"
         # delete the request
         self.delete_the_request(client, sp_request_id)
 

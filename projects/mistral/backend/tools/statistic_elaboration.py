@@ -13,18 +13,18 @@ ed1to2 = {3: 0, 4: 1, 5: 4, 0: 254}
 
 
 def pp_statistic_elaboration(
-    params: List[PostProcessorsType],
+    params: PostProcessorsType,
     input_file: Path,
     output_file: Path,
     fileformat: str,
 ) -> None:
     log.debug("Statistic elaboration postprocessor")
 
-    # get timeranges tuples
-    trs = []
-    for i in params:
-        timerange = (i.get("input_timerange"), i.get("output_timerange"))
-        trs.append(timerange)
+    # Create the list of timeranges tuples
+    # Note: trs is a list because this post processor was originally intended to be
+    # requestable multiple times. This functionality is not available but we kept
+    # this part of implemented code ready for this opportunity
+    trs = [(params.get("input_timerange"), params.get("output_timerange"))]
     log.debug("timeranges: {}", trs)
 
     fileouput_to_join: List[Path] = []
@@ -140,16 +140,11 @@ def pp_statistic_elaboration(
     # postprocess each file coming from the splitted input
     check_input_for_pp = False
     for tr in trs:
-        p = next(
-            item
-            for item in params
-            if item["input_timerange"] == tr[0] and item["output_timerange"] == tr[1]
-        )
         splitted_input = Path(f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr)
         tmp_output = Path(f"{output_file.stem}_%d_%d_result.{fileformat}.tmp" % tr)
         if splitted_input.exists():
             pp_output = run_statistic_elaboration(
-                params=p,
+                params=params,
                 input_file=splitted_input,
                 output_file=tmp_output,
                 fileformat=fileformat,

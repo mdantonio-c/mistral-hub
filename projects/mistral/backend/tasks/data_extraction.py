@@ -3,11 +3,11 @@ import json
 import subprocess
 import tarfile
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from celery import states
 from celery.exceptions import Ignore
-from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
+from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR, PostProcessorsType
 from mistral.exceptions import (
     AccessToDatasetDenied,
     DiskQuotaException,
@@ -191,56 +191,67 @@ def data_extract(
         else:
             log.debug("observation in dballe")
 
-        # ##################################### #
-        # ########## POST PROCESSORS ########## #
-        # ##################################### #
+        # ########################################## #
+        # ##### EXTRACTION FROM ARKIMET/DBALLE ##### #
+        # ########################################## #
+
+        if postprocessors:
+            # temporarily save the data extraction output
+            # Note: tmp_outfile == outfile + ".tmp"
+            tmp_outfile = output_dir.joinpath(output_file_name + ".tmp")
+
+            tmp_extraction_filename = tmp_outfile
+        else:
+            tmp_extraction_filename = outfile
+
+        if data_type != "OBS" and "multim-forecast" not in datasets:
+            arki.arkimet_extraction(datasets, query, tmp_extraction_filename)
+        else:
+            observed_extraction(
+                user_id,
+                output_dir,
+                db,
+                datasets,
+                filters,
+                reftime,
+                tmp_extraction_filename,
+                amqp_queue=amqp_queue,
+                schedule_id=schedule_id,
+                only_reliable=only_reliable,
+            )
+
+        # ########################################## #
+        # ############ POST PROCESSORS ############# #
+        # ########################################## #
         if postprocessors:
             log.debug(postprocessors)
+
+            enabled_postprocessors = (
+                "derived_variables",
+                "grid_interpolation",
+                "grid_cropping",
+                "spare_point_interpolation",
+                "statistic_elaboration",
+            )
+
             # check if requested postprocessors are enabled
+            requested_postprocessors: Dict[str, PostProcessorsType] = {}
             for p in postprocessors:
                 pp_type = p.get("processor_type")
-                enabled_postprocessors = (
-                    "derived_variables",
-                    "grid_interpolation",
-                    "grid_cropping",
-                    "spare_point_interpolation",
-                    "statistic_elaboration",
-                )
+
                 if pp_type not in enabled_postprocessors:
                     raise ValueError("Unknown post-processor: {}", pp_type)
 
                 log.debug("Data extraction with post-processing <{}>", pp_type)
+                requested_postprocessors[pp_type] = p
 
-            # temporarily save the data extraction output
-            # Note: tmp_outfile == outfile + ".tmp"
-            tmp_outfile = output_dir.joinpath(output_file_name + ".tmp")
-            # call data extraction
-            if data_type != "OBS" and "multim-forecast" not in datasets:
-                arki.arkimet_extraction(datasets, query, tmp_outfile)
-            else:
-                # dballe_extraction(datasets, filters, reftime, outfile)
-                observed_extraction(
-                    user_id,
-                    output_dir,
-                    db,
-                    datasets,
-                    filters,
-                    reftime,
-                    tmp_outfile,
-                    amqp_queue=amqp_queue,
-                    schedule_id=schedule_id,
-                    only_reliable=only_reliable,
-                )
+            if p := requested_postprocessors.get("derived_variables"):
+                # input is the output of the previous pp if executed or the main input
+                pp_input = pp_output or tmp_outfile
 
-            if any(d["processor_type"] == "derived_variables" for d in postprocessors):
-                p = next(
-                    item
-                    for item in postprocessors
-                    if item["processor_type"] == "derived_variables"
-                )
                 pp1_output = pp1.pp_derived_variables(
                     params=p,
-                    tmp_extraction=tmp_outfile,
+                    tmp_extraction=pp_input,
                     user_dir=output_dir,
                     fileformat=dataset_format,
                 )
@@ -257,18 +268,10 @@ def data_extract(
                     ext_proc.wait()
                     if ext_proc.wait() != 0:
                         raise Exception("Failure in data extraction")
-            if any(
-                d["processor_type"] == "statistic_elaboration" for d in postprocessors
-            ):
-                p = []
-                for item in postprocessors:
-                    if item["processor_type"] == "statistic_elaboration":
-                        p.append(item)
-                # check if the input has to be the previous postprocess output
-                if pp_output is not None:
-                    pp_input = pp_output
-                else:
-                    pp_input = tmp_outfile
+
+            if p := requested_postprocessors.get("statistic_elaboration"):
+                # input is the output of the previous pp if executed or the main input
+                pp_input = pp_output or tmp_outfile
 
                 # this is equivalent to .stem only if the file has only 1 extension
                 basename = tmp_outfile.name.split(".")[0]
@@ -281,17 +284,10 @@ def data_extract(
                     output_file=pp_output,
                     fileformat=dataset_format,
                 )
-            if any(d["processor_type"] == "grid_cropping" for d in postprocessors):
-                p = next(
-                    item
-                    for item in postprocessors
-                    if item["processor_type"] == "grid_cropping"
-                )
-                # check if the input has the previous postprocess output
-                if pp_output is not None:
-                    pp_input = pp_output
-                else:
-                    pp_input = tmp_outfile
+
+            if p := requested_postprocessors.get("grid_cropping"):
+                # input is the output of the previous pp if executed or the main input
+                pp_input = pp_output or tmp_outfile
 
                 # this is equivalent to .stem only if the file has only 1 extension
                 basename = tmp_outfile.name.split(".")[0]
@@ -301,17 +297,10 @@ def data_extract(
                 pp3_2.pp_grid_cropping(
                     params=p, input_file=pp_input, output_file=pp_output
                 )
-            if any(d["processor_type"] == "grid_interpolation" for d in postprocessors):
-                p = next(
-                    item
-                    for item in postprocessors
-                    if item["processor_type"] == "grid_interpolation"
-                )
-                # check if the input has the previous postprocess output
-                if pp_output is not None:
-                    pp_input = pp_output
-                else:
-                    pp_input = tmp_outfile
+
+            if p := requested_postprocessors.get("grid_interpolation"):
+                # input is the output of the previous pp if executed or the main input
+                pp_input = pp_output or tmp_outfile
 
                 # this is equivalent to .stem only if the file has only 1 extension
                 basename = tmp_outfile.name.split(".")[0]
@@ -320,60 +309,37 @@ def data_extract(
                 pp3_1.pp_grid_interpolation(
                     params=p, input_file=pp_input, output_file=pp_output
                 )
-            if any(
-                d["processor_type"] == "spare_point_interpolation"
-                for d in postprocessors
-            ):
-                p = next(
-                    item
-                    for item in postprocessors
-                    if item["processor_type"] == "spare_point_interpolation"
-                )
-                # check if the input has he previous postprocess output
-                if pp_output is not None:
-                    pp_input = pp_output
-                else:
-                    pp_input = tmp_outfile
+
+            if p := requested_postprocessors.get("spare_point_interpolation"):
+                # input is the output of the previous pp if executed or the main input
+                pp_input = pp_output or tmp_outfile
 
                 # this is equivalent to .stem only if the file has only 1 extension
                 basename = tmp_outfile.name.split(".")[0]
                 new_tmp_extraction_filename = f"{basename}.bufr"
                 output_file_name = new_tmp_extraction_filename
                 pp_output = output_dir.joinpath(new_tmp_extraction_filename)
+
                 pp3_3.pp_sp_interpolation(
                     params=p,
                     input_file=pp_input,
                     output_file=pp_output,
                     fileformat=dataset_format,
                 )
+
             # rename the final output of postprocessors as outfile
             # unless it is not a bufr file
             if pp_output:
                 if pp_output.suffix.strip(".") != "bufr":
                     log.debug(f"dest: {str(outfile)}")
                     pp_output.rename(outfile)
+                else:
+                    outfile = pp_output
+
             # else:
             #     # if it is a bufr file, the filename resulting from pp
             #     # is will be the new outifle filename
             #     outfile = pp_output
-
-        else:
-            if data_type != "OBS" and "multim-forecast" not in datasets:
-                arki.arkimet_extraction(datasets, query, outfile)
-            else:
-                # dballe_extraction(datasets, filters, reftime, outfile)
-                observed_extraction(
-                    user_id,
-                    output_dir,
-                    db,
-                    datasets,
-                    filters,
-                    reftime,
-                    outfile,
-                    amqp_queue=amqp_queue,
-                    schedule_id=schedule_id,
-                    only_reliable=only_reliable,
-                )
 
         if output_format:
             input_file = output_dir.joinpath(output_file_name)
@@ -445,51 +411,34 @@ def data_extract(
     except ReferenceError as exc:
         request.status = states.FAILURE
         request.error_message = str(exc)
-        log.warning(exc)
-        # manually update the task state
-        self.update_state(state=states.FAILURE, meta=str(exc))
-        raise Ignore()
+        raise Ignore(str(exc))
     except DiskQuotaException as exc:
         request.status = states.FAILURE
         request.error_message = str(exc)
-        log.warning(exc)
-        # manually update the task state
-        self.update_state(state=states.FAILURE, meta=str(exc))
-        raise Ignore()
+        raise Ignore(str(exc))
     except MaxOutputSizeExceeded as exc:
         request.status = states.FAILURE
         request.error_message = str(exc)
-        log.warning(exc)
-        # manually update the task state
-        self.update_state(state=states.FAILURE, meta=str(exc))
-        raise Ignore()
+        raise Ignore(str(exc))
     except PostProcessingException as exc:
         request.status = states.FAILURE
         request.error_message = str(exc)
-        log.warning(exc)
-        # manually update the task state
-        self.update_state(state=states.FAILURE, meta=str(exc))
-        raise Ignore()
+        raise Ignore(str(exc))
     except AccessToDatasetDenied as exc:
         request.status = states.FAILURE
         request.error_message = str(exc)
-        log.warning(exc)
         # manually update the task state
-        self.update_state(state=states.FAILURE, meta=str(exc))
-        raise Ignore()
+        raise Ignore(str(exc))
     except EmptyOutputFile as exc:
         request.status = states.FAILURE
         request.error_message = str(exc)
-        log.warning(exc)
-        # manually update the task state
-        self.update_state(state=states.FAILURE, meta=str(exc))
-        raise Ignore()
+        raise Ignore(str(exc))
 
     except Exception as exc:
         # handle all the other exceptions
         request.status = states.FAILURE
         request.error_message = "Failed to extract data"
-        log.exception("Failed to extract data: {}", repr(exc))
+        # log.exception("Failed to extract data: {}", repr(exc))
         raise exc
     finally:
         if not double_request:  # which means if the extraction hasn't been interrupted
