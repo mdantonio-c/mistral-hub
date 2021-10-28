@@ -163,6 +163,7 @@ def data_extract(
         # max filename len = 64
         output_file_name = "data-{utc_now}-{id}.{fileformat}".format(
             utc_now=datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
+            # It is None during tests
             id=self.request.id,
             fileformat=dataset_format,
         )
@@ -211,6 +212,7 @@ def data_extract(
                 log.debug("Data extraction with post-processing <{}>", pp_type)
 
             # temporarily save the data extraction output
+            # Note: tmp_outfile == outfile + ".tmp"
             tmp_outfile = output_dir.joinpath(output_file_name + ".tmp")
             # call data extraction
             if data_type != "OBS" and "multim-forecast" not in datasets:
@@ -245,9 +247,9 @@ def data_extract(
                 # join pp1_output and tmp_extraction in output file
                 cat_cmd = ["cat", str(tmp_outfile), str(pp1_output)]
                 # new temp file as pp output
-                new_tmp_extraction_filename = (
-                    f"{tmp_outfile.stem}-pp1.{dataset_format}.tmp"
-                )
+                # this is equivalent to .stem only if the file has only 1 extension
+                basename = tmp_outfile.name.split(".")[0]
+                new_tmp_extraction_filename = f"{basename}-pp1.{dataset_format}.tmp"
                 pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
                 with open(pp_output, mode="w") as pp1_outfile:
@@ -267,9 +269,10 @@ def data_extract(
                     pp_input = pp_output
                 else:
                     pp_input = tmp_outfile
-                new_tmp_extraction_filename = (
-                    f"{tmp_outfile.stem}-pp2.{dataset_format}.tmp"
-                )
+
+                # this is equivalent to .stem only if the file has only 1 extension
+                basename = tmp_outfile.name.split(".")[0]
+                new_tmp_extraction_filename = f"{basename}-pp2.{dataset_format}.tmp"
                 pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
                 pp2.pp_statistic_elaboration(
@@ -290,9 +293,9 @@ def data_extract(
                 else:
                     pp_input = tmp_outfile
 
-                new_tmp_extraction_filename = (
-                    f"{tmp_outfile.stem}-pp3_2.{dataset_format}.tmp"
-                )
+                # this is equivalent to .stem only if the file has only 1 extension
+                basename = tmp_outfile.name.split(".")[0]
+                new_tmp_extraction_filename = f"{basename}-pp3_2.{dataset_format}.tmp"
                 pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
                 pp3_2.pp_grid_cropping(
@@ -309,9 +312,10 @@ def data_extract(
                     pp_input = pp_output
                 else:
                     pp_input = tmp_outfile
-                new_tmp_extraction_filename = (
-                    f"{tmp_outfile.stem}-pp3_1.{dataset_format}.tmp"
-                )
+
+                # this is equivalent to .stem only if the file has only 1 extension
+                basename = tmp_outfile.name.split(".")[0]
+                new_tmp_extraction_filename = f"{basename}-pp3_1.{dataset_format}.tmp"
                 pp_output = output_dir.joinpath(new_tmp_extraction_filename)
                 pp3_1.pp_grid_interpolation(
                     params=p, input_file=pp_input, output_file=pp_output
@@ -330,10 +334,10 @@ def data_extract(
                     pp_input = pp_output
                 else:
                     pp_input = tmp_outfile
-                # new_tmp_extraction_filename =
-                #     f"{tmp_outfile.stem}-pp3_3.grib.tmp"
-                # )
-                new_tmp_extraction_filename = f"{tmp_outfile.stem}.bufr"
+
+                # this is equivalent to .stem only if the file has only 1 extension
+                basename = tmp_outfile.name.split(".")[0]
+                new_tmp_extraction_filename = f"{basename}.bufr"
                 output_file_name = new_tmp_extraction_filename
                 pp_output = output_dir.joinpath(new_tmp_extraction_filename)
                 pp3_3.pp_sp_interpolation(
