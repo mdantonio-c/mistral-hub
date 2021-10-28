@@ -84,6 +84,9 @@ COPY --from=arpaesimc \
   /usr/lib64/libeccodes_f90.* \
   /usr/lib64/libsim_* \
   /usr/lib64/libdballef.* \
+  /usr/lib/x86_64-linux-gnu/
+
+COPY --from=arpaesimc \
   /usr/lib64/libnetcdff.* \
   /usr/lib64/libnetcdf.* \
   /usr/lib64/libgeos-3.7.2.* \
@@ -101,6 +104,9 @@ COPY --from=arpaesimc \
   /usr/lib64/liblog4c.* \
   /usr/lib64/libarmadillo.* \
   /usr/lib64/libcfitsio.* \
+  /usr/lib/x86_64-linux-gnu/
+
+COPY --from=arpaesimc \
   /usr/lib64/libdap.so.* \
   /usr/lib64/libdapclient.* \
   /usr/lib64/libdapserver.* \
@@ -120,6 +126,9 @@ COPY --from=arpaesimc \
   /usr/lib64/liblcms2.* \
   /usr/lib64/libcrypto.* \
   /usr/lib64/libssl.* \
+  /usr/lib/x86_64-linux-gnu/
+
+COPY --from=arpaesimc \
   /usr/lib64/libarchive.so.13* \
   /usr/lib64/libmariadb.so.3* \
   /usr/lib64/libxapian.so.30* \
@@ -138,6 +147,9 @@ COPY --from=arpaesimc \
   /usr/lib64/libfortrangis.* \
   /usr/lib64/libfortranc.* \
   /usr/lib64/libgfortran.* \
+  /usr/lib/x86_64-linux-gnu/
+
+COPY --from=arpaesimc \
   /usr/lib64/liblua-5.3.so* \
   /usr/lib64/libopenblasp.so.0* \
   /usr/lib64/libopenblaso.* \
