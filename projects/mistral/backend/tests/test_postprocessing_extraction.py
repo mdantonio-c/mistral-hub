@@ -5,13 +5,14 @@ from pathlib import Path
 from typing import Any, Dict
 
 import eccodes
+import pytest
 from faker import Faker
 from flask import Flask
 from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi.connectors import sqlalchemy
+from restapi.connectors.celery import Ignore
 from restapi.tests import API_URI, BaseTests
-from restapi.utilities.logs import log
 
 # Workaround for typing FlaskClient copied by restapi.tests
 FlaskClient = Any
@@ -158,17 +159,18 @@ class TestApp(BaseTests):
             request_name,
             {},
         )
-        self.send_task(
-            app,
-            TASK_NAME,
-            user_id,
-            datasets,
-            None,
-            None,
-            [{"processor_type": faker.pystr()}],
-            None,
-            pp1_request.id,
-        )
+        with pytest.raises(Ignore, match=r"Unknown post-processor"):
+            self.send_task(
+                app,
+                TASK_NAME,
+                user_id,
+                datasets,
+                None,
+                None,
+                [{"processor_type": faker.pystr()}],
+                None,
+                pp1_request.id,
+            )
         request = db.Request.query.filter_by(id=pp1_request.id).first()
         assert request.status == "FAILURE"
         # TODO adjust error message in case of value exception
