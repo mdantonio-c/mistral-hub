@@ -60,17 +60,18 @@ class TestApp(BaseTests):
         )
         if test_failure:
             # check the failure
-            self.send_task(
-                app,
-                TASK_NAME,
-                user_id,
-                datasets,
-                None,
-                wrong_params,
-                pp_settings,
-                None,
-                request.id,
-            )
+            with pytest.raises(Ignore):
+                self.send_task(
+                    app,
+                    TASK_NAME,
+                    user_id,
+                    datasets,
+                    None,
+                    wrong_params,
+                    pp_settings,
+                    None,
+                    request.id,
+                )
             request = db.Request.query.filter_by(id=request.id).first()
             assert request.status == "FAILURE"
             assert "Error in post-processing" in request.error_message
