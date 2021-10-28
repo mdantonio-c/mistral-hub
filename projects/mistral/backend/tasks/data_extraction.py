@@ -448,10 +448,11 @@ def data_extract(
                         if pp_output.split(".")[-1] != "bufr":
                             log.debug(f"dest: {str(outfile)}")
                             os.rename(pp_output, outfile)
-                    # else:
-                    #     # if it is a bufr file, the filename resulting from pp
-                    #     # is will be the new outifle filename
-                    #     outfile = pp_output
+                        else:
+                            # if it is a bufr file, the filename resulting from pp
+                            # is will be the new outifle filename
+                            outfile = pp_output
+
                 finally:
                     log.debug("end of multiple postprocessors")
                 #     # remove all tmp file
@@ -631,9 +632,9 @@ def data_extract(
                         )
                         # notify via mail adding a warning about the amqp communication error
                         notificate_by_email(db, user_id, request, extra_msg)
-                else:
-                    # notificate via email
-                    notificate_by_email(db, user_id, request, extra_msg)
+                # else:
+                #     # notificate via email
+                #     notificate_by_email(db, user_id, request, extra_msg)
 
 
 def check_user_quota(
