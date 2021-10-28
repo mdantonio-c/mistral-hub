@@ -229,203 +229,186 @@ def data_extract(
 
             # case of single postprocessor
             if len(postprocessors) == 1:
-                try:
-                    p = postprocessors[0]
-                    pp_type = p.get("processor_type")
+                p = postprocessors[0]
+                pp_type = p.get("processor_type")
 
-                    if pp_type == "derived_variables":
-                        pp1_output = pp1.pp_derived_variables(
-                            params=p,
-                            tmp_extraction=tmp_outfile,
-                            user_dir=output_dir,
-                            fileformat=dataset_format,
-                        )
-                        # join pp1_output and tmp_extraction in output file
-                        cat_cmd = ["cat", str(tmp_outfile), str(pp1_output)]
-                        with open(outfile, mode="w") as out:
-                            ext_proc = subprocess.Popen(cat_cmd, stdout=out)
-                            ext_proc.wait()
-                            if ext_proc.wait() != 0:
-                                raise Exception("Failure in data extraction")
+                if pp_type == "derived_variables":
+                    pp1_output = pp1.pp_derived_variables(
+                        params=p,
+                        tmp_extraction=tmp_outfile,
+                        user_dir=output_dir,
+                        fileformat=dataset_format,
+                    )
+                    # join pp1_output and tmp_extraction in output file
+                    cat_cmd = ["cat", str(tmp_outfile), str(pp1_output)]
+                    with open(outfile, mode="w") as out:
+                        ext_proc = subprocess.Popen(cat_cmd, stdout=out)
+                        ext_proc.wait()
+                        if ext_proc.wait() != 0:
+                            raise Exception("Failure in data extraction")
 
-                    elif pp_type == "statistic_elaboration":
-                        params = []
-                        params.append(p)
-                        pp2.pp_statistic_elaboration(
-                            params=params,
-                            input_file=tmp_outfile,
-                            output_file=outfile,
-                            fileformat=dataset_format,
-                        )
+                elif pp_type == "statistic_elaboration":
+                    params = []
+                    params.append(p)
+                    pp2.pp_statistic_elaboration(
+                        params=params,
+                        input_file=tmp_outfile,
+                        output_file=outfile,
+                        fileformat=dataset_format,
+                    )
 
-                    elif pp_type == "grid_interpolation":
-                        pp3_1.pp_grid_interpolation(
-                            params=p, input_file=tmp_outfile, output_file=outfile
-                        )
+                elif pp_type == "grid_interpolation":
+                    pp3_1.pp_grid_interpolation(
+                        params=p, input_file=tmp_outfile, output_file=outfile
+                    )
 
-                    elif pp_type == "grid_cropping":
-                        pp3_2.pp_grid_cropping(
-                            params=p, input_file=tmp_outfile, output_file=outfile
-                        )
+                elif pp_type == "grid_cropping":
+                    pp3_2.pp_grid_cropping(
+                        params=p, input_file=tmp_outfile, output_file=outfile
+                    )
 
-                    elif pp_type == "spare_point_interpolation":
-                        # change output extension from .grib to .BUFR
-                        outfile = outfile.with_suffix(".BUFR")
-                        output_file_name = outfile.name
+                elif pp_type == "spare_point_interpolation":
+                    # change output extension from .grib to .BUFR
+                    outfile = outfile.with_suffix(".BUFR")
+                    output_file_name = outfile.name
 
-                        pp3_3.pp_sp_interpolation(
-                            params=p,
-                            input_file=tmp_outfile,
-                            output_file=outfile,
-                            fileformat=dataset_format,
-                        )
-
-                finally:
-                    # always remove tmp files
-                    for f in output_dir.glob("*.tmp"):
-                        f.unlink()
-                    # if pp_type == 'spare_point_interpolation':
-                    #     # remove the interpolation files temporary upload folder
-                    #     uploaded_filepath = Path(p.get('coord-filepath'))
-                    #     shutil.rmtree(uploaded_filepath.parent)
+                    pp3_3.pp_sp_interpolation(
+                        params=p,
+                        input_file=tmp_outfile,
+                        output_file=outfile,
+                        fileformat=dataset_format,
+                    )
 
             # case of multiple postprocessor
             else:
-                try:
 
-                    if any(
-                        d["processor_type"] == "derived_variables"
-                        for d in postprocessors
-                    ):
-                        p = next(
-                            item
-                            for item in postprocessors
-                            if item["processor_type"] == "derived_variables"
-                        )
-                        pp1_output = pp1.pp_derived_variables(
-                            params=p,
-                            tmp_extraction=tmp_outfile,
-                            user_dir=output_dir,
-                            fileformat=dataset_format,
-                        )
-                        # join pp1_output and tmp_extraction in output file
-                        cat_cmd = ["cat", str(tmp_outfile), str(pp1_output)]
-                        # new temp file as pp output
-                        new_tmp_extraction_filename = (
-                            f"{tmp_outfile.stem}-pp1.{dataset_format}.tmp"
-                        )
-                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
+                if any(
+                    d["processor_type"] == "derived_variables" for d in postprocessors
+                ):
+                    p = next(
+                        item
+                        for item in postprocessors
+                        if item["processor_type"] == "derived_variables"
+                    )
+                    pp1_output = pp1.pp_derived_variables(
+                        params=p,
+                        tmp_extraction=tmp_outfile,
+                        user_dir=output_dir,
+                        fileformat=dataset_format,
+                    )
+                    # join pp1_output and tmp_extraction in output file
+                    cat_cmd = ["cat", str(tmp_outfile), str(pp1_output)]
+                    # new temp file as pp output
+                    new_tmp_extraction_filename = (
+                        f"{tmp_outfile.stem}-pp1.{dataset_format}.tmp"
+                    )
+                    pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
-                        with open(pp_output, mode="w") as pp1_outfile:
-                            ext_proc = subprocess.Popen(cat_cmd, stdout=pp1_outfile)
-                            ext_proc.wait()
-                            if ext_proc.wait() != 0:
-                                raise Exception("Failure in data extraction")
-                    if any(
-                        d["processor_type"] == "statistic_elaboration"
-                        for d in postprocessors
-                    ):
-                        p = []
-                        for item in postprocessors:
-                            if item["processor_type"] == "statistic_elaboration":
-                                p.append(item)
-                        # check if the input has to be the previous postprocess output
-                        if pp_output is not None:
-                            pp_input = pp_output
-                        else:
-                            pp_input = tmp_outfile
-                        new_tmp_extraction_filename = (
-                            f"{tmp_outfile.stem}-pp2.{dataset_format}.tmp"
-                        )
-                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
+                    with open(pp_output, mode="w") as pp1_outfile:
+                        ext_proc = subprocess.Popen(cat_cmd, stdout=pp1_outfile)
+                        ext_proc.wait()
+                        if ext_proc.wait() != 0:
+                            raise Exception("Failure in data extraction")
+                if any(
+                    d["processor_type"] == "statistic_elaboration"
+                    for d in postprocessors
+                ):
+                    p = []
+                    for item in postprocessors:
+                        if item["processor_type"] == "statistic_elaboration":
+                            p.append(item)
+                    # check if the input has to be the previous postprocess output
+                    if pp_output is not None:
+                        pp_input = pp_output
+                    else:
+                        pp_input = tmp_outfile
+                    new_tmp_extraction_filename = (
+                        f"{tmp_outfile.stem}-pp2.{dataset_format}.tmp"
+                    )
+                    pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
-                        pp2.pp_statistic_elaboration(
-                            params=p,
-                            input_file=pp_input,
-                            output_file=pp_output,
-                            fileformat=dataset_format,
-                        )
-                    if any(
-                        d["processor_type"] == "grid_cropping" for d in postprocessors
-                    ):
-                        p = next(
-                            item
-                            for item in postprocessors
-                            if item["processor_type"] == "grid_cropping"
-                        )
-                        # check if the input has the previous postprocess output
-                        if pp_output is not None:
-                            pp_input = pp_output
-                        else:
-                            pp_input = tmp_outfile
+                    pp2.pp_statistic_elaboration(
+                        params=p,
+                        input_file=pp_input,
+                        output_file=pp_output,
+                        fileformat=dataset_format,
+                    )
+                if any(d["processor_type"] == "grid_cropping" for d in postprocessors):
+                    p = next(
+                        item
+                        for item in postprocessors
+                        if item["processor_type"] == "grid_cropping"
+                    )
+                    # check if the input has the previous postprocess output
+                    if pp_output is not None:
+                        pp_input = pp_output
+                    else:
+                        pp_input = tmp_outfile
 
-                        new_tmp_extraction_filename = (
-                            f"{tmp_outfile.stem}-pp3_2.{dataset_format}.tmp"
-                        )
-                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
+                    new_tmp_extraction_filename = (
+                        f"{tmp_outfile.stem}-pp3_2.{dataset_format}.tmp"
+                    )
+                    pp_output = output_dir.joinpath(new_tmp_extraction_filename)
 
-                        pp3_2.pp_grid_cropping(
-                            params=p, input_file=pp_input, output_file=pp_output
-                        )
-                    if any(
-                        d["processor_type"] == "grid_interpolation"
-                        for d in postprocessors
-                    ):
-                        p = next(
-                            item
-                            for item in postprocessors
-                            if item["processor_type"] == "grid_interpolation"
-                        )
-                        # check if the input has the previous postprocess output
-                        if pp_output is not None:
-                            pp_input = pp_output
-                        else:
-                            pp_input = tmp_outfile
-                        new_tmp_extraction_filename = (
-                            f"{tmp_outfile.stem}-pp3_1.{dataset_format}.tmp"
-                        )
-                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
-                        pp3_1.pp_grid_interpolation(
-                            params=p, input_file=pp_input, output_file=pp_output
-                        )
-                    if any(
-                        d["processor_type"] == "spare_point_interpolation"
-                        for d in postprocessors
-                    ):
-                        p = next(
-                            item
-                            for item in postprocessors
-                            if item["processor_type"] == "spare_point_interpolation"
-                        )
-                        # check if the input has he previous postprocess output
-                        if pp_output is not None:
-                            pp_input = pp_output
-                        else:
-                            pp_input = tmp_outfile
-                        # new_tmp_extraction_filename =
-                        #     f"{tmp_outfile.stem}-pp3_3.grib.tmp"
-                        # )
-                        new_tmp_extraction_filename = f"{tmp_outfile.stem}.bufr"
-                        output_file_name = new_tmp_extraction_filename
-                        pp_output = output_dir.joinpath(new_tmp_extraction_filename)
-                        pp3_3.pp_sp_interpolation(
-                            params=p,
-                            input_file=pp_input,
-                            output_file=pp_output,
-                            fileformat=dataset_format,
-                        )
-                    # rename the final output of postprocessors as outfile
-                    # unless it is not a bufr file
-                    if pp_output:
-                        if pp_output.suffix.strip(".") != "bufr":
-                            log.debug(f"dest: {str(outfile)}")
-                            pp_output.rename(outfile)
-                    # else:
-                    #     # if it is a bufr file, the filename resulting from pp
-                    #     # is will be the new outifle filename
-                    #     outfile = pp_output
-                finally:
-                    log.debug("end of multiple postprocessors")
+                    pp3_2.pp_grid_cropping(
+                        params=p, input_file=pp_input, output_file=pp_output
+                    )
+                if any(
+                    d["processor_type"] == "grid_interpolation" for d in postprocessors
+                ):
+                    p = next(
+                        item
+                        for item in postprocessors
+                        if item["processor_type"] == "grid_interpolation"
+                    )
+                    # check if the input has the previous postprocess output
+                    if pp_output is not None:
+                        pp_input = pp_output
+                    else:
+                        pp_input = tmp_outfile
+                    new_tmp_extraction_filename = (
+                        f"{tmp_outfile.stem}-pp3_1.{dataset_format}.tmp"
+                    )
+                    pp_output = output_dir.joinpath(new_tmp_extraction_filename)
+                    pp3_1.pp_grid_interpolation(
+                        params=p, input_file=pp_input, output_file=pp_output
+                    )
+                if any(
+                    d["processor_type"] == "spare_point_interpolation"
+                    for d in postprocessors
+                ):
+                    p = next(
+                        item
+                        for item in postprocessors
+                        if item["processor_type"] == "spare_point_interpolation"
+                    )
+                    # check if the input has he previous postprocess output
+                    if pp_output is not None:
+                        pp_input = pp_output
+                    else:
+                        pp_input = tmp_outfile
+                    # new_tmp_extraction_filename =
+                    #     f"{tmp_outfile.stem}-pp3_3.grib.tmp"
+                    # )
+                    new_tmp_extraction_filename = f"{tmp_outfile.stem}.bufr"
+                    output_file_name = new_tmp_extraction_filename
+                    pp_output = output_dir.joinpath(new_tmp_extraction_filename)
+                    pp3_3.pp_sp_interpolation(
+                        params=p,
+                        input_file=pp_input,
+                        output_file=pp_output,
+                        fileformat=dataset_format,
+                    )
+                # rename the final output of postprocessors as outfile
+                # unless it is not a bufr file
+                if pp_output:
+                    if pp_output.suffix.strip(".") != "bufr":
+                        log.debug(f"dest: {str(outfile)}")
+                        pp_output.rename(outfile)
+                # else:
+                #     # if it is a bufr file, the filename resulting from pp
+                #     # is will be the new outifle filename
+                #     outfile = pp_output
 
         else:
             if data_type != "OBS" and "multim-forecast" not in datasets:
