@@ -271,6 +271,7 @@ def data_extract(
                     elif pp_type == "spare_point_interpolation":
                         # change output extension from .grib to .BUFR
                         outfile = outfile.with_suffix(".BUFR")
+                        output_file_name = outfile.name
 
                         pp3_3.pp_sp_interpolation(
                             params=p,
@@ -405,7 +406,7 @@ def data_extract(
                         #     f"{tmp_outfile.stem}-pp3_3.grib.tmp"
                         # )
                         new_tmp_extraction_filename = f"{tmp_outfile.stem}.bufr"
-                        out_filename = new_tmp_extraction_filename
+                        output_file_name = new_tmp_extraction_filename
                         pp_output = output_dir.joinpath(new_tmp_extraction_filename)
                         pp3_3.pp_sp_interpolation(
                             params=p,
@@ -445,18 +446,18 @@ def data_extract(
                 )
 
         if output_format:
-            input_file = output_dir.joinpath(out_filename)
+            input_file = output_dir.joinpath(output_file_name)
             output_file = input_file.with_suffix(f".{output_format}")
             out_filepath = output_formatting.pp_output_formatting(
                 output_format, input_file, output_file
             )
-            out_filename = out_filepath.name
+            output_file_name = out_filepath.name
             # rename outfile correctly
-            outfile = output_dir.joinpath(out_filename)
+            outfile = output_dir.joinpath(output_file_name)
 
         # estimation of data size can be skipped when pushing data output to amqp queue
         # get the actual data size
-        data_size = output_dir.joinpath(out_filename).stat().st_size
+        data_size = output_dir.joinpath(output_file_name).stat().st_size
         log.debug(f"Actual resulting data size: {data_size}")
         if data_type != "OBS" and "multim-forecast" not in datasets:
             if data_size > esti_data_size:
@@ -472,7 +473,7 @@ def data_extract(
                 user_id,
                 output_dir,
                 db,
-                output_filename=out_filename,
+                output_filename=output_file_name,
                 schedule_id=schedule_id,
             )
 
