@@ -273,6 +273,7 @@ def data_extract(
 
                     elif pp_type == "spare_point_interpolation":
                         # change output extension from .grib to .BUFR
+                        outfile = outfile.with_suffix(".BUFR")
                         output_file_name = outfile.name
 
                         pp3_3.pp_sp_interpolation(
