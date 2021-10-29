@@ -8,7 +8,12 @@
   padding: 0;
 }
 
-.legend {
+.legenda {
+  transform: scale(0.8);
+  background: none !important;
+}
+
+/*.legend {
   padding: 6px 8px;
   font: 12px Arial, Helvetica, sans-serif;
   background: white;
@@ -26,7 +31,7 @@
   float: left;
   margin-right: 8px;
   opacity: 0.7;
-}
+}*/
 
 /* .legend_t2m {
   padding: 6px 8px;

@@ -847,7 +847,7 @@ export class MeteoTilesComponent {
     legend.onAdd = () => {
       let div = L.DomUtil.create("div");
       div.style.clear = "unset";
-      div.innerHTML += `<img src="/app/custom/assets/images/${id}.png">`;
+      div.innerHTML += `<img class="legenda" src="/app/custom/assets/images/${id}.svg">`;
       // for (let i = 0; i < config.labels.length; i++) {
       //   div.innerHTML +=
       //     '<i style="background:' +
