@@ -49,6 +49,7 @@ class TestApp(BaseTests):
         filters={},
         test_failure=False,
         wrong_params={},
+        output_format=None,
     ):
         request_name = faker.pystr()
         # try a postprocess that does not exists
@@ -69,7 +70,7 @@ class TestApp(BaseTests):
                     None,
                     wrong_params,
                     pp_settings,
-                    None,
+                    output_format,
                     request.id,
                 )
             request = db.Request.query.filter_by(id=request.id).first()
@@ -84,7 +85,7 @@ class TestApp(BaseTests):
             None,
             filters,
             pp_settings,
-            None,
+            output_format,
             request.id,
         )
         request_filepath = self.check_extraction_success(db, request.id, user_dir)
@@ -245,14 +246,19 @@ class TestApp(BaseTests):
 
         # check extracted_grib_file
         dv_exists = False
+        other_params_exists = False
         # open the file and search the derived variable in the results
         with open(dv_filepath) as filein:
             while True:
                 gid = eccodes.codes_grib_new_from_file(filein)
                 if eccodes.codes_get(gid, "shortName") == "relhum_2m":
                     dv_exists = True
+                else:
+                    other_params_exists = True
+                if dv_exists and other_params_exists:
                     break
         assert dv_exists
+        assert other_params_exists
         # delete the request
         self.delete_the_request(client, dv_request_id)
 
@@ -342,16 +348,16 @@ class TestApp(BaseTests):
         self.delete_the_request(client, se_request_id)
 
         # try grid interpolation without template
-        x_min = faker.pyint(-10, +10)
-        y_min = faker.pyint(-10, +10)
+        x_min = -15
+        y_min = -10
         nx = faker.pyint(2, 100)
         grid_interpol_pp_no_template = {
             "processor_type": "grid_interpolation",
             "boundings": {
                 "x_min": x_min,
-                "x_max": x_min + 2,
+                "x_max": 20,
                 "y_min": y_min,
-                "y_max": y_min + 2,
+                "y_max": 10,
             },
             "nodes": {"nx": nx, "ny": nx},
             "trans_type": "inter",  # in the application this field is added in data.py endpoint
@@ -413,21 +419,16 @@ class TestApp(BaseTests):
         # delete the grid intepolation request with template
         self.delete_the_request(client, gi_template_request_id)
 
-        # delete the template file
-        template_file.unlink()
-        # check template deletion
-        assert not any(Path(upload_folder).iterdir())
-
         # try grid cropping postprocess
-        initial_lon = faker.pyint(-10, +10)
-        initial_lat = faker.pyint(-10, +10)
+        initial_lon = -10
+        initial_lat = -5
         grid_cropping_pp = {
             "processor_type": "grid_cropping",
             "boundings": {
                 "ilon": initial_lon,
                 "ilat": initial_lat,
-                "flon": initial_lon + 2,
-                "flat": initial_lat + 2,
+                "flon": 10,
+                "flat": 5,
             },
             "trans_type": "zoom",  # in the application this field is added in data.py endpoint
             "sub_type": "coord",
@@ -473,7 +474,66 @@ class TestApp(BaseTests):
         # delete the request
         self.delete_the_request(client, sp_request_id)
 
+        # check multiple postprocessors : derived variable,statistic,interpolation no template, cropping
+        multiple_1_request_id, multiple_1_filepath = self.extract_w_postprocessor(
+            faker,
+            app,
+            db,
+            user_id,
+            user_dir,
+            datasets,
+            [
+                derived_variable_pp,
+                statistic_elaboration_pp,
+                grid_interpol_pp_no_template,
+                grid_cropping_pp,
+            ],
+        )
+        # check extracted_grib_file
+        dv_exists = False
+        se_exists = False
+        with open(multiple_1_filepath) as filein:
+            while True:
+                gid = eccodes.codes_grib_new_from_file(filein)
+                try:
+                    msg_shortname = eccodes.codes_get(gid, "shortName")
+                    if msg_shortname == "tp":
+                        if eccodes.codes_get(gid, "stepRange") == "3-6":
+                            se_exists = True
+                    if msg_shortname == "relhum_2m":
+                        dv_exists = True
+                    if se_exists and dv_exists:
+                        break
+                    # check spatial postprocessing
+                    assert eccodes.codes_get(gid, "Ni") == nx
+                except BaseException:  # i think that when arrives at the end of the file an error is thrown
+                    break
+        assert dv_exists and se_exists
+        # delete the request
+        self.delete_the_request(client, multiple_1_request_id)
+
+        # check multiple postprocessors: derived variable,statistic,spare point, output format
+        multiple_2_request_id, multiple_2_filepath = self.extract_w_postprocessor(
+            faker,
+            app,
+            db,
+            user_id,
+            user_dir,
+            datasets,
+            [derived_variable_pp, statistic_elaboration_pp, spare_point_pp],
+            output_format="json",
+        )
+        # check that the output file is a json
+        assert multiple_2_filepath.suffix == ".json"
+        # delete the request
+        self.delete_the_request(client, multiple_2_request_id)
+
         # delete the user
         admin_headers, _ = self.do_login(client, None, None)
         r = client.delete(f"{API_URI}/admin/users/{uuid}", headers=admin_headers)
         assert r.status_code == 204
+        # delete the user folder
+        dir_to_delete = user_dir.parent
+        shutil.rmtree(dir_to_delete, ignore_errors=True)
+        # check folder deletion
+        assert not dir_to_delete.exists()
