@@ -43,7 +43,7 @@ ENV PATH="$PATH:/usr/bin/centos"
 
 ENV DATASET_ROOT="/arkimet/datasets/"
 
-ENV ECCODES_VERSION="2.19.0"
+ENV ECCODES_VERSION="2.23.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
 
 # With both definitions from arpaesimc

@@ -65,7 +65,7 @@ RUN wget --quiet https://download.osgeo.org/gdal/3.0.4/gdal304.zip \
     && pip3 install numpy setuptools==57.5.0 \
     && pip3 install GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
 
-ENV ECCODES_VERSION="2.19.0"
+ENV ECCODES_VERSION="2.23.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
 
 # Only eccodes-simc from arpaesimc

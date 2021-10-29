@@ -38,7 +38,7 @@ ENV PATH="$PATH:/usr/bin/arpaesimc"
 
 ENV DATASET_ROOT="/arkimet/datasets/"
 
-ENV ECCODES_VERSION="2.19.0"
+ENV ECCODES_VERSION="2.23.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
 ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes-build/share/eccodes/definitions/"
 
