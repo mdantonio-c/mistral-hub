@@ -42,10 +42,13 @@ def check_coord_filepath(params: PostProcessorsType) -> None:
 
 
 def pp_sp_interpolation(
-    params: PostProcessorsType, input_file: Path, output_file: Path, fileformat: str
+    params: PostProcessorsType, input_file: Path, output_folder: Path, fileformat: str
 ) -> Path:
     log.debug("Spare point interpolation postprocessor")
     try:
+
+        output_file = output_folder.joinpath(f"{input_file.stem}.bufr")
+
         post_proc_cmd = []
 
         if fileformat.startswith("grib"):
@@ -68,8 +71,8 @@ def pp_sp_interpolation(
         # wait for the process to terminate
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
-        else:
-            return output_file
+
+        return output_file
 
     except Exception as perr:
         log.warning(perr)

@@ -49,6 +49,7 @@ def data_extract(
     data_ready=False,
     opendata=False,
 ):
+
     log.info("Start task [{}:{}]", self.request.id, self.name)
     try:
         db = sqlalchemy.get_instance()
@@ -246,100 +247,58 @@ def data_extract(
                 requested_postprocessors[pp_type] = p
 
             if p := requested_postprocessors.get("derived_variables"):
-                # input is the output of the previous pp if executed or the main input
-                pp_input = pp_output or tmp_outfile
 
-                pp1_output = pp1.pp_derived_variables(
+                pp_output = pp1.pp_derived_variables(
                     params=p,
-                    tmp_extraction=pp_input,
-                    user_dir=output_dir,
+                    input_file=pp_output or tmp_outfile,
+                    output_folder=output_dir,
                     fileformat=dataset_format,
                 )
-                # join pp1_output and tmp_extraction in output file
-                cat_cmd = ["cat", str(tmp_outfile), str(pp1_output)]
-                # new temp file as pp output
-                # this is equivalent to .stem only if the file has only 1 extension
-                basename = tmp_outfile.name.split(".")[0]
-                new_tmp_extraction_filename = f"{basename}-pp1.{dataset_format}.tmp"
-                pp_output = output_dir.joinpath(new_tmp_extraction_filename)
-
-                with open(pp_output, mode="w") as pp1_outfile:
-                    ext_proc = subprocess.Popen(cat_cmd, stdout=pp1_outfile)
-                    ext_proc.wait()
-                    if ext_proc.wait() != 0:
-                        raise Exception("Failure in data extraction")
 
             if p := requested_postprocessors.get("statistic_elaboration"):
-                # input is the output of the previous pp if executed or the main input
-                pp_input = pp_output or tmp_outfile
 
-                # this is equivalent to .stem only if the file has only 1 extension
-                basename = tmp_outfile.name.split(".")[0]
-                new_tmp_extraction_filename = f"{basename}-pp2.{dataset_format}.tmp"
-                pp_output = output_dir.joinpath(new_tmp_extraction_filename)
-
-                pp2.pp_statistic_elaboration(
+                pp_output = pp2.pp_statistic_elaboration(
                     params=p,
-                    input_file=pp_input,
-                    output_file=pp_output,
+                    input_file=pp_output or tmp_outfile,
+                    output_folder=output_dir,
                     fileformat=dataset_format,
                 )
 
             if p := requested_postprocessors.get("grid_cropping"):
-                # input is the output of the previous pp if executed or the main input
-                pp_input = pp_output or tmp_outfile
 
-                # this is equivalent to .stem only if the file has only 1 extension
-                basename = tmp_outfile.name.split(".")[0]
-                new_tmp_extraction_filename = f"{basename}-pp3_2.{dataset_format}.tmp"
-                pp_output = output_dir.joinpath(new_tmp_extraction_filename)
-
-                pp3_2.pp_grid_cropping(
-                    params=p, input_file=pp_input, output_file=pp_output
-                )
-
-            if p := requested_postprocessors.get("grid_interpolation"):
-                # input is the output of the previous pp if executed or the main input
-                pp_input = pp_output or tmp_outfile
-
-                # this is equivalent to .stem only if the file has only 1 extension
-                basename = tmp_outfile.name.split(".")[0]
-                new_tmp_extraction_filename = f"{basename}-pp3_1.{dataset_format}.tmp"
-                pp_output = output_dir.joinpath(new_tmp_extraction_filename)
-                pp3_1.pp_grid_interpolation(
-                    params=p, input_file=pp_input, output_file=pp_output
-                )
-
-            if p := requested_postprocessors.get("spare_point_interpolation"):
-                # input is the output of the previous pp if executed or the main input
-                pp_input = pp_output or tmp_outfile
-
-                # this is equivalent to .stem only if the file has only 1 extension
-                basename = tmp_outfile.name.split(".")[0]
-                new_tmp_extraction_filename = f"{basename}.bufr"
-                output_file_name = new_tmp_extraction_filename
-                pp_output = output_dir.joinpath(new_tmp_extraction_filename)
-
-                pp3_3.pp_sp_interpolation(
+                pp_output = pp3_2.pp_grid_cropping(
                     params=p,
-                    input_file=pp_input,
-                    output_file=pp_output,
+                    input_file=pp_output or tmp_outfile,
+                    output_folder=output_dir,
                     fileformat=dataset_format,
                 )
 
-            # rename the final output of postprocessors as outfile
-            # unless it is not a bufr file
+            if p := requested_postprocessors.get("grid_interpolation"):
+
+                pp_output = pp3_1.pp_grid_interpolation(
+                    params=p,
+                    input_file=pp_output or tmp_outfile,
+                    output_folder=output_dir,
+                    fileformat=dataset_format,
+                )
+
+            if p := requested_postprocessors.get("spare_point_interpolation"):
+
+                pp_output = pp3_3.pp_sp_interpolation(
+                    params=p,
+                    input_file=pp_output or tmp_outfile,
+                    output_folder=output_dir,
+                    fileformat=dataset_format,
+                )
+
+            # rename the final postprocessors output unless it is a bufr file
             if pp_output:
-                if pp_output.suffix.strip(".") != "bufr":
+                if pp_output.suffix == ".tmp":
                     log.debug(f"dest: {str(outfile)}")
                     pp_output.rename(outfile)
                 else:
                     outfile = pp_output
-
-            # else:
-            #     # if it is a bufr file, the filename resulting from pp
-            #     # is will be the new outifle filename
-            #     outfile = pp_output
+                    output_file_name = pp_output.name
 
         if output_format:
             input_file = output_dir.joinpath(output_file_name)
@@ -373,9 +332,6 @@ def data_extract(
                 schedule_id=schedule_id,
             )
 
-        # target result
-        target_filename = outfile.name
-
         if data_size > 0:
             # update request status
             request.status = states.SUCCESS
@@ -400,7 +356,7 @@ def data_extract(
             # when pushing data output to amqp queue
             # create fileoutput record in db
             SqlApiDbManager.create_fileoutput_record(
-                db, user_id, request_id, target_filename, data_size
+                db, user_id, request_id, outfile.name, data_size
             )
         else:
             # remove the empty output file
@@ -408,28 +364,14 @@ def data_extract(
                 outfile.unlink()
             raise EmptyOutputFile("The resulting output file is empty")
 
-    except ReferenceError as exc:
-        request.status = states.FAILURE
-        request.error_message = str(exc)
-        raise Ignore(str(exc))
-    except DiskQuotaException as exc:
-        request.status = states.FAILURE
-        request.error_message = str(exc)
-        raise Ignore(str(exc))
-    except MaxOutputSizeExceeded as exc:
-        request.status = states.FAILURE
-        request.error_message = str(exc)
-        raise Ignore(str(exc))
-    except PostProcessingException as exc:
-        request.status = states.FAILURE
-        request.error_message = str(exc)
-        raise Ignore(str(exc))
-    except AccessToDatasetDenied as exc:
-        request.status = states.FAILURE
-        request.error_message = str(exc)
-        # manually update the task state
-        raise Ignore(str(exc))
-    except EmptyOutputFile as exc:
+    except (
+        ReferenceError,
+        DiskQuotaException,
+        MaxOutputSizeExceeded,
+        PostProcessingException,
+        AccessToDatasetDenied,
+        EmptyOutputFile,
+    ) as exc:
         request.status = states.FAILURE
         request.error_message = str(exc)
         raise Ignore(str(exc))
@@ -464,15 +406,9 @@ def data_extract(
                     self.request.id,
                     request.status,
                 )
-                # decomment for pushing output data in an amqp queue
-                # if amqp_queue:
-                #     extra_msg = push_data_to_queue(
-                #         amqp_queue, outfile, output_dir, request
-                #     )
-                # notify_by_email(db, user_id, request, extra_msg, amqp_queue)
+
                 if amqp_queue:
                     try:
-                        # notify via amqp queue
                         notify_by_amqp_queue(amqp_queue, request)
                     except BaseException:
                         extra_msg = f"failed communication with {amqp_queue} amqp queue"
@@ -692,14 +628,9 @@ def observed_extraction(
         qc.pp_quality_check_filter(input_file=outfile, output_file=qc_outfile)
 
 
-def notify_by_email(db, user_id, request, extra_msg, amqp_queue=None):
+def notify_by_email(db, user_id, request, extra_msg):
     """Send email notification."""
     user_email = db.session.query(db.User.email).filter_by(id=user_id).scalar()
-    # decomment for pushing output data in an amqp queue use case
-    # if amqp_queue:
-    #     body_msg = request.error_message or f"Data has been pushed to {amqp_queue}"
-    # else:
-    #     body_msg = request.error_message or "Your data is ready for downloading"
 
     body_msg = request.error_message or "Your data is ready for downloading"
     body_msg += extra_msg
@@ -738,52 +669,6 @@ def notify_by_amqp_queue(amqp_queue, request):
         )
 
         rabbit.disconnect()
-
-
-# method to push data to an amqp queue instead of only a notification:
-# at the moment is not used but it wasn't deleted because it can be useful
-# def push_data_to_queue(amqp_queue, outfile, output_dir, request):
-#     # send a message in the queue
-#     extra_msg = ""
-#     try:
-#         with rabbitmq.get_instance() as rabbit:
-#             # case 1 if output send the file
-#             if os.path.exists(outfile):
-#                 filebase, fileext = os.path.splitext(outfile)
-#                 if fileext == ".json":
-#                     with open(outfile) as f:
-#                         jsondata = json.dumps(f.read())
-#                         rabbit_msg = json.loads(jsondata)
-#                     rabbit.send_json(
-#                         rabbit_msg,
-#                         routing_key=amqp_queue,
-#                     )
-#                 else:
-#                     with open(outfile, "rb") as f:
-#                         rabbit_msg = f.read()
-#                     rabbit.send(
-#                         rabbit_msg,
-#                         routing_key=amqp_queue,
-#                     )
-#                 log.debug("sending fileoutput to {}", amqp_queue)
-#             # case 2 no output --> notify failure and error message
-#             else:
-#                 rabbit_msg = request.error_message
-#                 log.debug("no output: sending error message to {}", amqp_queue)
-#                 rabbit.send_json(
-#                     rabbit_msg,
-#                     routing_key=amqp_queue,
-#                 )
-#
-#             rabbit.disconnect()
-#     except BaseException:
-#         extra_msg = f"failed communication with {amqp_queue} amqp queue"
-#     finally:
-#         if os.path.exists(output_dir):
-#             # to be sure it is the tmp dir
-#             if "/data/tmp_outfiles" in output_dir:
-#                 shutil.rmtree(output_dir)
-#         return extra_msg
 
 
 def human_size(bytes, units=[" bytes", "KB", "MB", "GB", "TB", "PB", "EB"]):
@@ -845,8 +730,10 @@ def adapt_reftime(schedule, reftime):
 
         now = datetime.datetime.utcnow()
 
-        # delete the time differences between the first submission and now (to fix bug of first submission hour grater than now hour that make the delta gain a day)
-        # i have to replace also seconds and microseconds also to prevent gains or loss of 1 day
+        # delete the time differences between the first submission and now
+        # to fix bug of first submission hour greater than now hour
+        # that make the delta gain a day
+        # also replace seconds and microseconds to prevent gains or loss of 1 day
         if minor_time_interval == "days":
             first_submission = first_submission.replace(
                 hour=now.hour,

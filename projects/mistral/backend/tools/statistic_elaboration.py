@@ -15,10 +15,12 @@ ed1to2 = {3: 0, 4: 1, 5: 4, 0: 254}
 def pp_statistic_elaboration(
     params: PostProcessorsType,
     input_file: Path,
-    output_file: Path,
+    output_folder: Path,
     fileformat: str,
-) -> None:
+) -> Path:
     log.debug("Statistic elaboration postprocessor")
+
+    output_file = output_folder.joinpath(f"{input_file.stem}-pp2.{fileformat}.tmp")
 
     # Create the list of timeranges tuples
     # Note: trs is a list because this post processor was originally intended to be
@@ -176,6 +178,8 @@ def pp_statistic_elaboration(
         ext_proc.wait()
         if ext_proc.wait() != 0:
             raise Exception("Failure in post processing")
+
+    return output_file
 
 
 def run_statistic_elaboration(

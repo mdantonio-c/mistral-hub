@@ -8,23 +8,23 @@ from restapi.utilities.logs import log
 
 
 def pp_derived_variables(
-    params: PostProcessorsType, tmp_extraction: Path, user_dir: Path, fileformat: str
+    params: PostProcessorsType, input_file: Path, output_folder: Path, fileformat: str
 ) -> Path:
     log.debug("Derived variable postprocessor")
 
+    output_file_step1 = output_folder.joinpath(
+        f"{input_file.stem}-pp1.{fileformat}.step1.tmp"
+    )
+    output_file_step2 = output_folder.joinpath(
+        f"{input_file.stem}-pp1.{fileformat}.tmp"
+    )
     try:
-        tmp_outfile = tmp_extraction
         # command for postprocessor
-        if fileformat.startswith("grib"):
-            pp1_output_filename = f"{tmp_extraction.stem}-pp1_output.grib.tmp"
-        else:
-            pp1_output_filename = f"{tmp_extraction.stem}-pp1_output.bufr.tmp"
-        pp1_output = user_dir.joinpath(pp1_output_filename)
-        libsim_tool = ""
         if fileformat.startswith("grib"):
             libsim_tool = "vg6d_transform"
         else:
             libsim_tool = "v7d_transform"
+
         post_proc_cmd = shlex.split(
             "{} --output-variable-list={} {} {} {}".format(
                 libsim_tool,
@@ -32,20 +32,27 @@ def pp_derived_variables(
                 "--input-format=BUFR --output-format=BUFR"
                 if libsim_tool == "v7d_transform"
                 else "",
-                tmp_outfile,
-                pp1_output,
+                input_file,
+                output_file_step1,
             )
         )
-        log.debug("funziona?")
         log.debug("Post process command: {}>", post_proc_cmd)
 
         proc = subprocess.Popen(post_proc_cmd)
         # wait for the process to terminate
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
-        else:
-            return pp1_output
 
+        # merge input file and the transform output
+        cat_cmd = ["cat", str(input_file), str(output_file_step1)]
+
+        with open(output_file_step2, mode="w") as pp1_outfile:
+            ext_proc = subprocess.Popen(cat_cmd, stdout=pp1_outfile)
+            ext_proc.wait()
+            if ext_proc.wait() != 0:
+                raise Exception("Failure in data extraction")
+
+        return output_file_step2
     except Exception as perr:
         log.warning(perr)
         message = "Error in post-processing: no results"

@@ -22,10 +22,15 @@ def get_trans_type(params: PostProcessorsType) -> None:
 
 
 def pp_grid_interpolation(
-    params: PostProcessorsType, input_file: Path, output_file: Path
+    params: PostProcessorsType, input_file: Path, output_folder: Path, fileformat: str
 ) -> Path:
     log.debug("Grid interpolation postprocessor")
     try:
+
+        output_file = output_folder.joinpath(
+            f"{input_file.stem}-pp3_1.{fileformat}.tmp"
+        )
+
         post_proc_cmd = []
         post_proc_cmd.append("vg6d_transform")
         post_proc_cmd.append("--trans-type={}".format(params.get("trans_type")))
@@ -70,9 +75,8 @@ def pp_grid_interpolation(
         # wait for the process to terminate
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
-        else:
-            return output_file
 
+        return output_file
     except Exception as perr:
         log.warning(perr)
         message = "Error in post-processing: no results"

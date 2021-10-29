@@ -7,10 +7,15 @@ from restapi.utilities.logs import log
 
 
 def pp_grid_cropping(
-    params: PostProcessorsType, input_file: Path, output_file: Path
+    params: PostProcessorsType, input_file: Path, output_folder: Path, fileformat: str
 ) -> Path:
     log.debug("Grid cropping postprocessor")
     try:
+
+        output_file = output_folder.joinpath(
+            f"{input_file.stem}-pp3_2.{fileformat}.tmp"
+        )
+
         post_proc_cmd = []
         post_proc_cmd.append("vg6d_transform")
         # limit memory usage by elaborating a message at once
@@ -35,8 +40,8 @@ def pp_grid_cropping(
         # wait for the process to terminate
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
-        else:
-            return output_file
+
+        return output_file
 
     except Exception as perr:
         log.warning(perr)
