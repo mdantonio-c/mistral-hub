@@ -348,16 +348,16 @@ class TestApp(BaseTests):
         self.delete_the_request(client, se_request_id)
 
         # try grid interpolation without template
-        x_min = faker.pyint(-10, +10)
-        y_min = faker.pyint(-10, +10)
+        x_min = -15
+        y_min = -10
         nx = faker.pyint(2, 100)
         grid_interpol_pp_no_template = {
             "processor_type": "grid_interpolation",
             "boundings": {
                 "x_min": x_min,
-                "x_max": x_min + 2,
+                "x_max": 20,
                 "y_min": y_min,
-                "y_max": y_min + 2,
+                "y_max": 10,
             },
             "nodes": {"nx": nx, "ny": nx},
             "trans_type": "inter",  # in the application this field is added in data.py endpoint
@@ -420,17 +420,15 @@ class TestApp(BaseTests):
         self.delete_the_request(client, gi_template_request_id)
 
         # try grid cropping postprocess
-        initial_lon = (
-            x_min + 2
-        )  # in multiple postprocessor we use crop before interpolation, so the cropping has to be included in the interpolated grid
-        initial_lat = y_min + 2
+        initial_lon = -10
+        initial_lat = -5
         grid_cropping_pp = {
             "processor_type": "grid_cropping",
             "boundings": {
                 "ilon": initial_lon,
                 "ilat": initial_lat,
-                "flon": initial_lon + 2,
-                "flat": initial_lat + 2,
+                "flon": 10,
+                "flat": 5,
             },
             "trans_type": "zoom",  # in the application this field is added in data.py endpoint
             "sub_type": "coord",
