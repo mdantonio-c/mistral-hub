@@ -632,9 +632,9 @@ def data_extract(
                         )
                         # notify via mail adding a warning about the amqp communication error
                         notificate_by_email(db, user_id, request, extra_msg)
-                # else:
-                #     # notificate via email
-                #     notificate_by_email(db, user_id, request, extra_msg)
+                else:
+                    # notificate via email
+                    notificate_by_email(db, user_id, request, extra_msg)
 
 
 def check_user_quota(
