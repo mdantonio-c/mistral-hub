@@ -144,7 +144,7 @@ def pp_statistic_elaboration(
     for tr in trs:
         splitted_input = Path(f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr)
         tmp_output = Path(f"{output_file.stem}_%d_%d_result.{fileformat}.tmp" % tr)
-        if splitted_input.exists():
+        if splitted_input.exists() and splitted_input.stat().st_size > 0:
             pp_output = run_statistic_elaboration(
                 params=params,
                 input_file=splitted_input,

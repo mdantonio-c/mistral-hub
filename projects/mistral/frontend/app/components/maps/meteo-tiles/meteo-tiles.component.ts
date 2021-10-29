@@ -59,19 +59,20 @@ const TM2 = "Temperature at 2 meters",
   HCC = "High Cloud",
   MCC = "Medium Cloud",
   LCC = "Low Cloud",
-  TPPERC1 = "Precipitation percentiles 1%",
-  TPPERC10 = "Precipitation percentile 10%",
-  TPPERC25 = "Precipitation percentile 25%",
-  TPPERC50 = "Precipitation percentile 50%",
-  TPPERC70 = "Precipitation percentile 70%",
-  TPPERC75 = "Precipitation percentile 75%",
-  TPPERC80 = "Precipitation percentile 80%",
-  TPPERC90 = "Precipitation percentile 90%",
-  TPPERC99 = "Precipitation percentile 99%",
-  TPPROB5 = "Precipitation probability 5%",
-  TPPROB10 = "Precipitation probability 10%",
-  TPPROB20 = "Precipitation probability 20%",
-  TPPROB50 = "Precipitation probability 50%";
+  TPPERC1 = "Precipitation percentiles 1",
+  TPPERC10 = "Precipitation percentile 10",
+  TPPERC25 = "Precipitation percentile 25",
+  TPPERC50 = "Precipitation percentile 50",
+  TPPERC70 = "Precipitation percentile 70",
+  TPPERC75 = "Precipitation percentile 75",
+  TPPERC80 = "Precipitation percentile 80",
+  TPPERC90 = "Precipitation percentile 90",
+  TPPERC95 = "Precipitation percentile 95",
+  TPPERC99 = "Precipitation percentile 99",
+  TPPROB5 = "Precipitation probability 5 mm",
+  TPPROB10 = "Precipitation probability 10 mm",
+  TPPROB20 = "Precipitation probability 20 mm",
+  TPPROB50 = "Precipitation probability 50 mm";
 
 enum MultiModelProduct {
   RH = "B13003",
@@ -558,6 +559,17 @@ export class MeteoTilesComponent {
           }),
           {}
         ),
+        [DP.TPPERC95]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/percentile-perc95/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.6,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
+          {}
+        ),
         [DP.TPPERC99]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(`${baseUrl}/percentile-perc99/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
@@ -889,8 +901,12 @@ export class MeteoTilesComponent {
       [DP.TPPERC1]: this.createLegendControl("tpperc"),
       [DP.TPPERC10]: this.createLegendControl("tpperc"),
       [DP.TPPERC25]: this.createLegendControl("tpperc"),
-      [DP.TPPERC75]: this.createLegendControl("tpperc"),
       [DP.TPPERC50]: this.createLegendControl("tpperc"),
+      [DP.TPPERC70]: this.createLegendControl("tpperc"),
+      [DP.TPPERC75]: this.createLegendControl("tpperc"),
+      [DP.TPPERC80]: this.createLegendControl("tpperc"),
+      [DP.TPPERC90]: this.createLegendControl("tpperc"),
+      [DP.TPPERC95]: this.createLegendControl("tpperc"),
       [DP.TPPERC99]: this.createLegendControl("tpperc"),
 
       [DP.TPPROB5]: this.createLegendControl("tpprob"),
@@ -948,6 +964,7 @@ export class MeteoTilesComponent {
         event["name"] === DP.TPPERC75 ||
         event["name"] === DP.TPPERC80 ||
         event["name"] === DP.TPPERC90 ||
+        event["name"] === DP.TPPERC95 ||
         event["name"] === DP.TPPERC99
       ) {
         legends[DP.TPPERC1].addTo(map);
@@ -1076,6 +1093,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC75) &&
         !currentActiveLayers.includes(DP.TPPERC80) &&
         !currentActiveLayers.includes(DP.TPPERC90) &&
+        !currentActiveLayers.includes(DP.TPPERC95) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
         map.removeControl(legends[DP.TPPERC1]);
@@ -1088,6 +1106,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC75) &&
         !currentActiveLayers.includes(DP.TPPERC80) &&
         !currentActiveLayers.includes(DP.TPPERC90) &&
+        !currentActiveLayers.includes(DP.TPPERC95) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
         map.removeControl(legends[DP.TPPERC1]);
@@ -1112,6 +1131,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC75) &&
         !currentActiveLayers.includes(DP.TPPERC80) &&
         !currentActiveLayers.includes(DP.TPPERC90) &&
+        !currentActiveLayers.includes(DP.TPPERC95) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
         map.removeControl(legends[DP.TPPERC1]);
@@ -1124,6 +1144,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC75) &&
         !currentActiveLayers.includes(DP.TPPERC80) &&
         !currentActiveLayers.includes(DP.TPPERC90) &&
+        !currentActiveLayers.includes(DP.TPPERC95) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
         map.removeControl(legends[DP.TPPERC1]);
@@ -1136,6 +1157,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC70) &&
         !currentActiveLayers.includes(DP.TPPERC80) &&
         !currentActiveLayers.includes(DP.TPPERC90) &&
+        !currentActiveLayers.includes(DP.TPPERC95) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
         map.removeControl(legends[DP.TPPERC1]);
@@ -1148,6 +1170,7 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC70) &&
         !currentActiveLayers.includes(DP.TPPERC75) &&
         !currentActiveLayers.includes(DP.TPPERC90) &&
+        !currentActiveLayers.includes(DP.TPPERC95) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
         map.removeControl(legends[DP.TPPERC1]);
@@ -1160,6 +1183,20 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC70) &&
         !currentActiveLayers.includes(DP.TPPERC75) &&
         !currentActiveLayers.includes(DP.TPPERC80) &&
+        !currentActiveLayers.includes(DP.TPPERC95) &&
+        !currentActiveLayers.includes(DP.TPPERC99)
+      ) {
+        map.removeControl(legends[DP.TPPERC1]);
+      } else if (
+        event["name"] === DP.TPPERC95 &&
+        !currentActiveLayers.includes(DP.TPPERC1) &&
+        !currentActiveLayers.includes(DP.TPPERC10) &&
+        !currentActiveLayers.includes(DP.TPPERC25) &&
+        !currentActiveLayers.includes(DP.TPPERC50) &&
+        !currentActiveLayers.includes(DP.TPPERC70) &&
+        !currentActiveLayers.includes(DP.TPPERC75) &&
+        !currentActiveLayers.includes(DP.TPPERC80) &&
+        !currentActiveLayers.includes(DP.TPPERC90) &&
         !currentActiveLayers.includes(DP.TPPERC99)
       ) {
         map.removeControl(legends[DP.TPPERC1]);
@@ -1172,7 +1209,8 @@ export class MeteoTilesComponent {
         !currentActiveLayers.includes(DP.TPPERC70) &&
         !currentActiveLayers.includes(DP.TPPERC75) &&
         !currentActiveLayers.includes(DP.TPPERC80) &&
-        !currentActiveLayers.includes(DP.TPPERC90)
+        !currentActiveLayers.includes(DP.TPPERC90) &&
+        !currentActiveLayers.includes(DP.TPPERC95)
       ) {
         map.removeControl(legends[DP.TPPERC1]);
       } else if (

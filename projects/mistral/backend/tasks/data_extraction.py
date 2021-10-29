@@ -412,11 +412,9 @@ def data_extract(
                         notify_by_amqp_queue(amqp_queue, request)
                     except BaseException:
                         extra_msg = f"failed communication with {amqp_queue} amqp queue"
-
                         # notify via mail (adding the amqp communication error)
                         notify_by_email(db, user_id, request, extra_msg)
                 else:
-                    # notify via email
                     notify_by_email(db, user_id, request, "")
 
 
