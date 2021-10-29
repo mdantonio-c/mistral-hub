@@ -141,7 +141,7 @@ def pp_statistic_elaboration(params, input, output, fileformat):
         )
         splitted_input = filebase + f"_%d_%d.{fileformat}.tmp" % tr
         tmp_output = filebase + f"_%d_%d_result.{fileformat}.tmp" % tr
-        if os.path.exists(splitted_input):
+        if os.path.exists(splitted_input) and os.path.getsize(splitted_input) > 0:
             pp_output = run_statistic_elaboration(
                 params=p, input=splitted_input, output=tmp_output, fileformat=fileformat
             )

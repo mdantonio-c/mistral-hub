@@ -1,14 +1,18 @@
 import json
+import os
 import shutil
 import zipfile
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict
 
+import dballe
 import eccodes
 import pytest
 from faker import Faker
 from flask import Flask
 from mistral.endpoints import DOWNLOAD_DIR
+from mistral.services.dballe import BeDballe
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi.connectors import sqlalchemy
 from restapi.connectors.celery import Ignore
@@ -18,6 +22,12 @@ from restapi.tests import API_URI, BaseTests
 FlaskClient = Any
 
 TASK_NAME = "data_extract"
+
+alchemy_user = os.environ.get("ALCHEMY_USER")
+pw = os.environ.get("ALCHEMY_PASSWORD")
+host = os.environ.get("ALCHEMY_HOST")
+engine = os.environ.get("ALCHEMY_DBTYPE")
+port = os.environ.get("ALCHEMY_PORT")
 
 
 class TestApp(BaseTests):
@@ -116,6 +126,7 @@ class TestApp(BaseTests):
         forecast_dataset = db.Datasets.query.filter_by(
             name=forecast_dataset_name
         ).first()
+        observed_dataset_name = "agrmet"
 
         # create the user
         data: Dict[str, Any] = {}
@@ -527,6 +538,150 @@ class TestApp(BaseTests):
         assert multiple_2_filepath.suffix == ".json"
         # delete the request
         self.delete_the_request(client, multiple_2_request_id)
+
+        # OBSERVED DATA
+        # change the variable LASTDAYS according to the reftime of the data in dballe
+        dballe_db = dballe.DB.connect(
+            "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
+                engine=engine, user=alchemy_user, pw=pw, host=host, port=port
+            )
+        )
+        with dballe_db.transaction() as tr:
+            for row in tr.query_data({}):
+                date_to_dt = (
+                    datetime(
+                        row["year"],
+                        row["month"],
+                        row["day"],
+                        row["hour"],
+                        row["min"],
+                    )
+                    + timedelta(hours=1)
+                )
+                date_from_dt = date_to_dt - timedelta(hours=1)
+                today = datetime.now()
+                last_dballe_date = date_from_dt - timedelta(days=1)
+                time_delta = today - last_dballe_date
+                BeDballe.LASTDAYS = time_delta.days
+                break
+
+        # simple observation extraction
+        simple_request = SqlApiDbManager.create_request_record(
+            db,
+            user_id,
+            request_name,
+            {},
+        )
+        datasets = [observed_dataset_name]
+
+        self.send_task(
+            app, TASK_NAME, user_id, datasets, None, None, [], None, simple_request.id
+        )
+        self.check_extraction_success(db, simple_request.id, user_dir)
+        # delete the request
+        self.delete_the_request(client, simple_request.id)
+
+        # try derived variable postprocessor
+        obs_derived_variable_pp = {
+            "processor_type": "derived_variables",
+            "variables": ["B12103"],
+        }
+        obs_filters = {
+            "product": [
+                {
+                    "code": "B12101",
+                    "desc": "TEMPERATURE/DRY-BULB TEMPERATURE",
+                    "active": "true",
+                },
+                {"code": "B13003", "desc": "RELATIVE HUMIDITY", "active": "true"},
+            ]
+        }
+        wrong_obs_filters_for_derived_variable = {
+            "product": [
+                {
+                    "code": "B12101",
+                    "desc": "TEMPERATURE/DRY-BULB TEMPERATURE",
+                    "active": "true",
+                }
+            ]
+        }
+
+        obs_dv_request_id, obs_dv_filepath = self.extract_w_postprocessor(
+            faker,
+            app,
+            db,
+            user_id,
+            user_dir,
+            datasets,
+            [obs_derived_variable_pp],
+            filters=obs_filters,
+            test_failure=True,
+            wrong_params=wrong_obs_filters_for_derived_variable,
+        )
+        # delete the request
+        self.delete_the_request(client, obs_dv_request_id)
+
+        # try statistic elaboration postprocessor
+        obs_statistic_elaboration_pp = {
+            "processor_type": "statistic_elaboration",
+            "input_timerange": 1,
+            "output_timerange": 1,
+            "interval": "hours",
+            "step": 1,
+        }
+        wrong_obs_filters_for_statistic_elaboration = {
+            "product": [
+                {
+                    "code": "B12101",
+                    "desc": "TEMPERATURE/DRY-BULB TEMPERATURE",
+                    "active": "true",
+                }
+            ]
+        }
+        obs_filters = {
+            "product": [
+                {
+                    "code": "B12101",
+                    "desc": "TEMPERATURE/DRY-BULB TEMPERATURE",
+                    "active": "true",
+                },
+                {
+                    "code": "B13011",
+                    "desc": "TOTAL PRECIPITATION / TOTAL WATER EQUIVALENT",
+                    "active": "true",
+                },
+            ]
+        }
+        se_obs_request_id, se_obs_filepath = self.extract_w_postprocessor(
+            faker,
+            app,
+            db,
+            user_id,
+            user_dir,
+            datasets,
+            [obs_statistic_elaboration_pp],
+            filters=obs_filters,
+            test_failure=True,
+            wrong_params=wrong_obs_filters_for_statistic_elaboration,
+        )
+        # delete the request
+        self.delete_the_request(client, se_obs_request_id)
+
+        # check multiple postprocessors: derived variable,statistic, output format
+        multiple_obs_request_id, multiple_obs_filepath = self.extract_w_postprocessor(
+            faker,
+            app,
+            db,
+            user_id,
+            user_dir,
+            datasets,
+            [obs_derived_variable_pp, obs_statistic_elaboration_pp],
+            output_format="json",
+        )
+        # check that the output file is a json
+        assert multiple_obs_filepath.suffix == ".json"
+        # delete the request
+        self.delete_the_request(client, multiple_obs_request_id)
 
         # delete the user
         admin_headers, _ = self.do_login(client, None, None)
