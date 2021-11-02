@@ -31,7 +31,9 @@ def pp_statistic_elaboration(
 
     fileouput_to_join: List[Path] = []
     # split the input file according to the input timeranges
-    file_not_for_pp = Path(f"{output_file.stem}_others.{fileformat}.tmp")
+    file_not_for_pp = output_folder.joinpath(
+        f"{output_file.stem}_others.{fileformat}.tmp"
+    )
     if fileformat == "grib":
         with open(input_file) as filein:
             fd: Dict[tuple[int, int], Any] = {}
