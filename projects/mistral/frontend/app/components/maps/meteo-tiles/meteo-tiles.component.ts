@@ -857,17 +857,17 @@ export class MeteoTilesComponent {
 
     const legend = new L.Control({ position: this.LEGEND_POSITION });
     legend.onAdd = () => {
-      let div = L.DomUtil.create("div", config.legend_type);
+      let div = L.DomUtil.create("div");
       div.style.clear = "unset";
-      div.innerHTML += `<h6>${config.title}</h6>`;
-      for (let i = 0; i < config.labels.length; i++) {
-        div.innerHTML +=
-          '<i style="background:' +
-          config.colors[i] +
-          '"></i><span>' +
-          config.labels[i] +
-          "</span><br>";
-      }
+      div.innerHTML += `<img class="legenda" src="/app/custom/assets/images/${id}.svg">`;
+      // for (let i = 0; i < config.labels.length; i++) {
+      //   div.innerHTML +=
+      //     '<i style="background:' +
+      //     config.colors[i] +
+      //     '"></i><span>' +
+      //     config.labels[i] +
+      //     "</span><br>";
+      // }
       return div;
     };
     return legend;
