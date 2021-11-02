@@ -47,7 +47,7 @@ def pp_statistic_elaboration(
                     if match_timerange(gid, tr[0]):
                         if fd.get(tr, None) is None:  # better way?
                             # create name for the temporary output
-                            file_for_pp = (
+                            file_for_pp = output_folder.joinpath(
                                 f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
                             )
                             fd[tr] = open(file_for_pp, "wb")
