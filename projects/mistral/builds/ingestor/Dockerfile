@@ -16,9 +16,10 @@ RUN usermod -u ${CURRENT_UID} nifi \
 # This is the version installed on debian 10 with apt-get
 ENV PYTHON_VERSION="3.7"
 
-# Install Python, pip, compilers and dependencies (sqlite3 libsqlite3-dev libtiff5-dev curl pkg-config) of proj and GDAL (built later)
-RUN apt-get update && apt-get install --yes git python3 python3-dev python3-distutils make gcc g++ sqlite3 libsqlite3-dev libtiff5-dev curl pkg-config \
+# Install Python, pip, compilers and dependencies
+RUN apt-get update && apt-get install --yes --no-install-recommends git python3 python3-dev python3-distutils make gcc g++ cmake gfortran gdal-bin libgdal-dev \
     && apt-get autoremove --yes \
+    && apt-get clean \
     && curl --silent https://bootstrap.pypa.io/get-pip.py --output get-pip.py \
     && python3 get-pip.py \
     && rm get-pip.py \
@@ -31,38 +32,9 @@ RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6
 
 WORKDIR /tmp
 
-# Install proj-7 (prerequisite of GDAL)
-RUN wget --quiet https://download.osgeo.org/proj/proj-7.2.0.tar.gz \
-    && tar xvzf proj-7.2.0.tar.gz \
-    && cd proj-7.2.0 \
-    && ./configure --without-curl --disable-dependency-tracking \
-    && make \
-    && make install \
-    && cd .. \
-    && rm -rf proj-7.2.0.tar.gz proj-7.2.0
-
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
-# Install GDAL3 on Debian 10
-# https://gis.stackexchange.com/questions/375685/how-to-install-or-build-gdal-3-on-debian-buster
-# Flag --with-proj=/usr/local suggested in:
-# https://github.com/OSGeo/gdal/issues/1352
-# Verify important: install numpy BEFORE GDAL
-# https://gis.stackexchange.com/questions/153199/import-error-no-module-named-gdal-array
-# Note: setuptools 58 added a breaking change to remove use_2to3 support:
-# https://setuptools.readthedocs.io/en/latest/history.html#v58-0-0
-# Due to that GDAL can't be installed with setuptools 58 and raises the error:
-# error in GDAL setup command: use_2to3 is invalid.
-RUN wget --quiet https://download.osgeo.org/gdal/3.0.4/gdal304.zip \
-    && unzip gdal304.zip \
-    && cd gdal-3.0.4 \
-    && ./configure --with-proj=/usr/local \
-    && make clean \
-    && make \
-    && make install \
-    && cd .. \
-    && rm -rf gdal304.zip gdal-3.0.4 \
-    && pip3 install numpy setuptools==57.5.0 \
+RUN pip3 install numpy setuptools==57.5.0 \
     && pip3 install GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
 
 ENV ECCODES_VERSION="2.23.0"
@@ -70,8 +42,6 @@ ENV ECCODES_DIR="/usr/share/eccodes-build"
 
 # Only eccodes-simc from arpaesimc
 ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes-build/share/eccodes/definitions/"
-
-RUN apt-get update -y && apt-get update && apt-get install --yes cmake  gfortran
 
 RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz?api=v2" -O /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
   && cd /tmp \
