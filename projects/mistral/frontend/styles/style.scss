@@ -30,6 +30,15 @@
   }
 }
 
+@font-face {
+  font-family: "Montserrat-semibold";
+  src: url("../assets/font/Montserrat-SemiBold.ttf") format("truetype");
+}
+
+body {
+  font-family: "Montserrat-semibold";
+}
+
 .navbar {
   .navbar-brand {
     margin-right: 40px;
@@ -47,6 +56,25 @@
       font-size: large;
     }
   }
+  .navbar-nav {
+    .nav-link {
+      color: white !important;
+    }
+    &.navbar-right .nav-item a {
+      background-color: $nav-item-icon-bk;
+      border-radius: 25px;
+      margin-right: 5px;
+    }
+  }
+}
+
+.footer {
+  color: white !important;
+}
+
+.spacer {
+  min-height: 0rem;
+  height: 0rem;
 }
 
 [hidden] {
@@ -631,21 +659,23 @@ input[type="number"]::-webkit-outer-spin-button {
 }*/
 
 /* the following fix flickering issues with map carousel */
-.carousel-inner .carousel-item {
-  opacity: 0;
-  top: 0;
-  left: 0;
-  width: 100%;
-  display: block;
-  position: absolute;
-}
+.carousel-inner {
+  .carousel-item {
+    opacity: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: block;
+    position: absolute;
 
-.carousel-inner .carousel-item:first-of-type {
-  position: relative;
-}
+    &:first-of-type {
+      position: relative;
+    }
+  }
 
-.carousel-inner .active {
-  opacity: 1;
+  .active {
+    opacity: 1;
+  }
 }
 
 .legenda {
@@ -657,15 +687,15 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 5px;
   line-height: 6px;
   color: #555;
-}
 
-.legenda i {
-  width: 16px;
-  height: 6px;
-  line-height: 13px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
+  i {
+    width: 16px;
+    height: 6px;
+    line-height: 13px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+  }
 }
 
 .legend_t2m {
@@ -677,14 +707,14 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 5px;
   line-height: 7px;
   color: #555;
-}
 
-.legend_t2m i {
-  width: 16px;
-  height: 6px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
+  i {
+    width: 16px;
+    height: 6px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+  }
 }
 
 .legend_prec {
@@ -696,14 +726,14 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 5px;
   line-height: 14px;
   color: #555;
-}
 
-.legend_prec i {
-  width: 16px;
-  height: 13px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
+  i {
+    width: 16px;
+    height: 13px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+  }
 }
 
 .legend_cc {
@@ -715,14 +745,14 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 5px;
   line-height: 40px;
   color: #555;
-}
 
-.legend_cc i {
-  width: 16px;
-  height: 39px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
+  i {
+    width: 16px;
+    height: 39px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+  }
 }
 
 .legend_rh {
@@ -734,14 +764,14 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 5px;
   line-height: 40px;
   color: #555;
-}
 
-.legend_rh i {
-  width: 16px;
-  height: 39px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
+  i {
+    width: 16px;
+    height: 39px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+  }
 }
 
 .legend_sf {
@@ -753,14 +783,14 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 5px;
   line-height: 13px;
   color: #555;
-}
 
-.legend_sf i {
-  width: 16px;
-  height: 12px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
+  i {
+    width: 16px;
+    height: 12px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+  }
 }
 
 .legend_tpprob {
@@ -772,14 +802,14 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 5px;
   line-height: 22px;
   color: #555;
-}
 
-.legend_tpprob i {
-  width: 16px;
-  height: 21px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
+  i {
+    width: 16px;
+    height: 21px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+  }
 }
 
 .legend_tpperc {
@@ -791,14 +821,14 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 5px;
   line-height: 15px;
   color: #555;
-}
 
-.legend_tpperc i {
-  width: 16px;
-  height: 14px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
+  i {
+    width: 16px;
+    height: 14px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+  }
 }
 
 .legend_ws {
@@ -810,14 +840,14 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 5px;
   line-height: 8px;
   color: #555;
-}
 
-.legend_ws i {
-  width: 16px;
-  height: 7.5px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
+  i {
+    width: 16px;
+    height: 7.5px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+  }
 }
 
 /* leaflet markers */
