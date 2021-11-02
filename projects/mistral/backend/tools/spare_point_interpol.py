@@ -47,7 +47,7 @@ def pp_sp_interpolation(
     log.debug("Spare point interpolation postprocessor")
     try:
 
-        output_file = output_folder.joinpath(f"{input_file.stem}.bufr")
+        output_file = output_folder.joinpath(f"{input_file.stem}").with_suffx(".bufr")
 
         post_proc_cmd = []
 
