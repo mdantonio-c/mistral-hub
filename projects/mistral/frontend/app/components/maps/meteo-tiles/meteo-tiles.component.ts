@@ -94,7 +94,7 @@ const MIN_ZOOM = 5;
 @Component({
   selector: "app-meteo-tiles",
   templateUrl: "./meteo-tiles.component.html",
-  styleUrls: ["./meteo-tiles.component.css"],
+  styleUrls: ["./meteo-tiles.component.scss"],
 })
 export class MeteoTilesComponent {
   readonly DEFAULT_PRODUCT_COSMO = "Temperature at 2 meters";
