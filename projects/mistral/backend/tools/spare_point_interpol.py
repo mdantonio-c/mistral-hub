@@ -33,8 +33,7 @@ def check_coord_filepath(params: PostProcessorsType) -> None:
             or not coord_filepath.with_suffix(".dbf").exists()
         ):
             # delete the folder with the corrupted files
-            uploaded_filepath = Path(params["coord_filepath"])
-            shutil.rmtree(uploaded_filepath.parent)
+            shutil.rmtree(coord_filepath.parent)
             raise BadRequest(
                 "Sorry. The file for the interpolation is corrupted. "
                 "Please try to upload it again"

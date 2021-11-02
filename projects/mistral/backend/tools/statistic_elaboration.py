@@ -65,7 +65,9 @@ def pp_statistic_elaboration(
         with open(input_file, "rb") as in_file:
             with open(file_not_for_pp, "wb") as no_match_file:
                 for tr in trs:
-                    file_for_pp = f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
+                    file_for_pp = output_folder.joinpath(
+                        f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
+                    )
                     log.debug("file for post process {} ", file_for_pp)
                     with open(file_for_pp, "wb") as match_file:
                         importer = dballe.Importer("BUFR")
@@ -144,8 +146,12 @@ def pp_statistic_elaboration(
     # postprocess each file coming from the splitted input
     check_input_for_pp = False
     for tr in trs:
-        splitted_input = Path(f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr)
-        tmp_output = Path(f"{output_file.stem}_%d_%d_result.{fileformat}.tmp" % tr)
+        splitted_input = output_folder.joinpath(
+            f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
+        )
+        tmp_output = output_folder.joinpath(
+            f"{output_file.stem}_%d_%d_result.{fileformat}.tmp" % tr
+        )
         if splitted_input.exists() and splitted_input.stat().st_size > 0:
             pp_output = run_statistic_elaboration(
                 params=params,
