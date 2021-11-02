@@ -1996,14 +1996,8 @@ class BeDballe:
             for k, v in zip(fields, q):
                 dballe_query[k] = v
 
-            # In case of .tmp extension, remove it
-            if outfile.suffix == ".tmp":
-                outfile = outfile.with_suffix("")
-
             # set the filename for the partial extraction
-            fileext = outfile.suffix
-            filebase = outfile.with_suffix("")
-            part_outfile = f"{filebase}_part{counter}{fileext}.tmp"
+            part_outfile = f"{outfile}_part{counter}.tmp"
 
             with DB.transaction() as tr:
                 # check if the query gives a result
