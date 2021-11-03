@@ -17,6 +17,10 @@ ENV APIUSER developer
 
 RUN usermod -u $CURRENT_UID $APIUSER
 
+#########################################################
+# Dependencies
+#########################################################
+
 # ~ 30 seconds
 RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
  && apt-get update \
@@ -38,25 +42,32 @@ ENV PATH="$PATH:/usr/bin/arpaesimc"
 
 ENV DATASET_ROOT="/arkimet/datasets/"
 
+WORKDIR /tmp
+
+#########################################################
+# ECCODES
+#########################################################
+
 ENV ECCODES_VERSION="2.23.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
 ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes-build/share/eccodes/definitions/"
 
 # ~ 170 seconds
 RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz?api=v2" -O /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
-  && cd /tmp \
-  && tar -xzf eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && tar -xzf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz -C /tmp/ \
   && mkdir /tmp/eccodes-build \
   && cd /tmp/eccodes-build \
   && cmake -DCMAKE_INSTALL_PREFIX=/usr/share/eccodes-build /tmp/eccodes-${ECCODES_VERSION}-Source \
   && make \
   && ctest \
   && make install \
-  && cd /usr/share/eccodes-build \
-  && ln -sf lib lib64 \
+  && ln -sf /usr/share/eccodes-build/lib /usr/share/eccodes-build/lib64 \
   && pip3 install --no-cache-dir eccodes netCDF4 \
-  && rm -rf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
-  && rm -rf /tmp/eccodes-build
+  && rm -rf /tmp/eccodes*
+
+#########################################################
+# arpaesimc
+#########################################################
 
 COPY --from=arpaesimc /usr/bin /usr/bin/arpaesimc
 

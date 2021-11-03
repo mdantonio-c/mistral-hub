@@ -16,6 +16,10 @@ RUN usermod -u ${CURRENT_UID} nifi \
 # This is the version installed on debian 10 with apt-get
 ENV PYTHON_VERSION="3.7"
 
+#########################################################
+# Dependencies
+#########################################################
+
 # Install Python, pip, compilers and dependencies
 RUN apt-get update && apt-get install --yes --no-install-recommends git python3 python3-dev python3-distutils make gcc g++ cmake gfortran gdal-bin libgdal-dev \
     && apt-get autoremove --yes \
@@ -32,10 +36,9 @@ RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6
 
 WORKDIR /tmp
 
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-
-RUN pip3 install --no-cache-dir numpy setuptools==57.5.0 \
-    && pip3 install --no-cache-dir GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
+#########################################################
+# ECCODES
+#########################################################
 
 ENV ECCODES_VERSION="2.23.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
@@ -44,19 +47,29 @@ ENV ECCODES_DIR="/usr/share/eccodes-build"
 ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes-build/share/eccodes/definitions/"
 
 RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz?api=v2" -O /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
-  && cd /tmp \
-  && tar -xzf eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && tar -xzf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz -C /tmp/ \
   && mkdir /tmp/eccodes-build \
   && cd /tmp/eccodes-build \
   && cmake -DCMAKE_INSTALL_PREFIX=/usr/share/eccodes-build /tmp/eccodes-${ECCODES_VERSION}-Source \
   && make \
   && ctest \
   && make install \
-  && cd /usr/share/eccodes-build \
-  && ln -sf lib lib64 \
+  && ln -sf /usr/share/eccodes-build/lib /usr/share/eccodes-build/lib64 \
   && pip3 install --no-cache-dir eccodes netCDF4 \
-  && rm -rf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
-  && rm -rf /tmp/eccodes-build
+  && rm -rf /tmp/eccodes*
+
+#########################################################
+# GDAL
+#########################################################
+
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+RUN pip3 install --no-cache-dir numpy setuptools==57.5.0 \
+    && pip3 install --no-cache-dir GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
+
+#########################################################
+# arpaesimc
+#########################################################
 
 COPY --from=arpaesimc /usr/bin /usr/bin/centos
 
@@ -83,6 +96,11 @@ COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dballe /usr/local/lib/pyt
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter/
 
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter-0.0.2-py3.6.egg-info /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter-0.0.2-py3.6.egg-info/
+
+#########################################################
+# NIFI
+#########################################################
+
 
 RUN chown -R nifi:nifi /opt/nifi
 
