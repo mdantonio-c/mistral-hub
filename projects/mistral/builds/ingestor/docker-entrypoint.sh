@@ -1,6 +1,20 @@
 #!/bin/bash
 set -e
 
+NIFI_USER="nifi"
+
+DEVID=$(id -u ${NIFI_USER})
+if [[ "${DEVID}" != "${CURRENT_UID}" ]]; then
+    echo "Fixing uid of user ${NIFI_USER} from ${DEVID} to ${CURRENT_UID}..."
+    usermod -u ${CURRENT_UID} ${NIFI_USER}
+fi
+
+GROUPID=$(id -g ${NIFI_USER})
+if [[ "${GROUPID}" != "${CURRENT_GID}" ]]; then
+    echo "Fixing gid user ${NIFI_USER} from ${GROUPID} to ${CURRENT_GID}..."
+    groupmod -og ${CURRENT_GID} ${NIFI_USER}
+fi
+
 # add cert creation here
 
 if [ -z "$(ls ${NIFI_HOME}/conf)" ]; then
@@ -12,4 +26,4 @@ else
    echo "Default conf already initialized"
 fi
 
-HOME=/home/nifi su -p nifi -c '/opt/nifi/scripts/start.sh'
+HOME=/home/${NIFI_USER} su -p ${NIFI_USER} -c '/opt/nifi/scripts/start.sh'
