@@ -75,6 +75,12 @@ services:
       ACTIVATE: ${ACTIVATE_NIFI}
       CURRENT_UID: ${CURRENT_UID}
       CURRENT_GID: ${CURRENT_GID}
+
+      ALCHEMY_HOST: ${ALCHEMY_HOST}
+      ALCHEMY_PORT: ${ALCHEMY_PORT}
+      ALCHEMY_USER: "${ALCHEMY_USER}"
+      ALCHEMY_PASSWORD: "${ALCHEMY_PASSWORD}"
+
     networks:
       default:
 # volumes:
