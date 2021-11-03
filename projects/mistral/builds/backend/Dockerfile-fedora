@@ -1,5 +1,3 @@
-# FROM arpaesimc/centos:8 AS arpaesimc
-
 # Does not work because it required glibc 2.32 that is not yet
 # available on Ubuntu 20.04
 # Error is:
@@ -23,7 +21,7 @@ RUN usermod -u $CURRENT_UID $APIUSER
 
 # ~ 30 seconds
 RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
- && apt-get update \
+ && apt-get update -qq \
  && apt-get install --yes --no-install-recommends \
       libssl1.0.0 \
       libssl-dev \
