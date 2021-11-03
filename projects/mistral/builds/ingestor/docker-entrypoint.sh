@@ -12,4 +12,4 @@ else
    echo "Default conf already initialized"
 fi
 
-su -p nifi -c '/opt/nifi/scripts/start.sh'
+HOME=/home/nifi su -p nifi -c '/opt/nifi/scripts/start.sh'
