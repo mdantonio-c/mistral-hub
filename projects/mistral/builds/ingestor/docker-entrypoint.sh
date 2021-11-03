@@ -26,10 +26,4 @@ else
    echo "Default conf already initialized"
 fi
 
-PROPS="/opt/nifi/nifi-current/conf/nifi.properties"
-CUSTOM_PROPS="/opt/nifi/nifi-current/conf/nifi.custom.properties"
-
-touch ${CUSTOM_PROPS}
-sed -i -e "s|^nifi\.variable\.registry\.properties=.*$|nifi.variable.registry.properties=${CUSTOM_PROPS}|g" $PROPS
-
 HOME=/home/${NIFI_USER} su -p ${NIFI_USER} -c '/opt/nifi/scripts/start.sh'
