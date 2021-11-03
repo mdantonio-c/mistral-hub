@@ -101,7 +101,6 @@ COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter-0.0.2-py3.6.
 # NIFI
 #########################################################
 
-
 RUN chown -R nifi:nifi /opt/nifi
 
 USER nifi
@@ -122,7 +121,9 @@ RUN mkdir /home/nifi/nifi-driver && \
 
 RUN cp -r ${NIFI_HOME}/conf ${NIFI_HOME}/default-conf
 
-COPY --chown=nifi --chmod=700 docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+USER root
+
+COPY --chmod=700 docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
 WORKDIR ${NIFI_HOME}
 ENV PATH="$PATH:/usr/bin/centos"
