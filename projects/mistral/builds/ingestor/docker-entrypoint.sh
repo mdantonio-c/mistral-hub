@@ -16,6 +16,8 @@ if [[ "${GROUPID}" != "${CURRENT_GID}" ]]; then
 fi
 
 # add cert creation here
+openssl pkcs12 -export -out ${KEYSTORE_PATH} -in /ssl/real/fullchain.pem -inkey /ssl/real/privkey.pem -passin pass:${KEYSTORE_PASSWORD} -passout pass:${KEYSTORE_PASSWORD}
+chown nifi ${KEYSTORE_PATH}
 
 if [ -z "$(ls ${NIFI_HOME}/conf)" ]; then
    echo "Default conf is missing, copying it..."
