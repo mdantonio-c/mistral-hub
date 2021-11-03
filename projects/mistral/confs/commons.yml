@@ -72,6 +72,8 @@ services:
 
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
+      CURRENT_UID: ${CURRENT_UID}
+      CURRENT_GID: ${CURRENT_GID}
     networks:
       default:
 # volumes:
