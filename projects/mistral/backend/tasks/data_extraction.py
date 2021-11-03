@@ -601,16 +601,10 @@ def observed_extraction(
 
     # extract the data
     if only_reliable:
-        # In case of .tmp extension, remove it
-        if outfile.suffix == ".tmp":
-            outfile = outfile.with_suffix("")
-
-        fileext = outfile.suffix
-        filebase = outfile.with_suffix("")
         # change the name of the output file
         # as it will be processed an other time by the postprocessor
         qc_outfile = outfile
-        outfile = f"{filebase}_to_be_qcfiltered{fileext}.tmp"
+        outfile = f"{outfile}_to_be_qcfiltered.tmp"
 
     if db_type == "mixed":
         dballe.extract_data_for_mixed(

@@ -1832,15 +1832,7 @@ class BeDballe:
             # set up query for dballe with the correct reftimes
             dballe_queries[fields.index("datetimemin")][0] = refmin_dballe
 
-        # In case of .tmp extension, remove it
-        if outfile.suffix == ".tmp":
-            outfile = outfile.with_suffix("")
-
-        # set the filename for the partial extraction
-        fileext = outfile.suffix
-        filebase = outfile.with_suffix("")
-
-        dballe_outfile = Path(f"{filebase}_dballe_part{fileext}.tmp")
+        dballe_outfile = Path(f"{outfile}_dballe_part.tmp")
 
         # extract
         BeDballe.extract_data(
@@ -1863,7 +1855,7 @@ class BeDballe:
             arki_queries[fields.index("datetimemin")][0] = refmin_arki
             arki_queries[fields.index("datetimemax")][0] = refmax_arki
 
-        arki_outfile = Path(f"{filebase}_arki_part{fileext}.tmp")
+        arki_outfile = Path(f"{outfile}_arki_part.tmp")
 
         # extract
         queried_reftime_for_arki = None

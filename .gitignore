@@ -107,4 +107,4 @@ htmlcov/
 .cache_ggshield
 nosetests.xml
 coverage.xml
-*,cover
+*.cover
