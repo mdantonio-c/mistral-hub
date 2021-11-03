@@ -21,7 +21,7 @@ ENV PYTHON_VERSION="3.7"
 #########################################################
 
 # Install Python, pip, compilers and dependencies
-RUN apt-get update -qq && apt-get install --yes --no-install-recommends git python3 python3-dev python3-distutils make gcc g++ cmake gfortran gdal-bin libgdal-dev \
+RUN apt-get update -qq && apt-get install --yes --no-install-recommends python3 python3-dev python3-distutils make gcc g++ cmake gfortran gdal-bin libgdal-dev \
     && apt-get autoremove --yes \
     && apt-get clean \
     && curl --silent https://bootstrap.pypa.io/get-pip.py --output get-pip.py \
@@ -101,27 +101,20 @@ COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter-0.0.2-py3.6.
 # NIFI
 #########################################################
 
-RUN chown -R nifi:nifi /opt/nifi
-
-USER nifi
-
 # Create working directories
-RUN mkdir -p /home/nifi/ingest/radar \
-    /home/nifi/ingest/obs \
-    /opt/nifi/nifi_ok_flowfile \
+RUN mkdir -p /opt/nifi/nifi_ok_flowfile \
     /opt/nifi/nifi_error_flowfile \
     /opt/nifi/temp
 
-# Clone python scripts for the ingestor in the dedicated folder
-RUN git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion.git && mv meteo-hub-ingestion/amqp2dballe_nifi_6.py meteo-hub-ingestion/dpc_bufr2dballe_4.py meteo-hub-ingestion/json2jsonl_nifi_2.py meteo-hub-ingestion/jsonl2bufr_nifi_3.py /home/nifi/ingest/obs && rm -rf meteo-hub-ingestion
+RUN chown -R nifi:nifi /opt/nifi
+
 
 # Install database drivers
 RUN mkdir /home/nifi/nifi-driver && \
-    wget --quiet -O /home/nifi/nifi-driver/postgresql-42.2.19.jar https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
+    wget --quiet -O /home/nifi/nifi-driver/postgresql-42.2.19.jar https://jdbc.postgresql.org/download/postgresql-42.2.19.jar && \
+    chown -R nifi:nifi /home/nifi/nifi-driver
 
-RUN cp -r ${NIFI_HOME}/conf ${NIFI_HOME}/default-conf
-
-USER root
+RUN cp -r ${NIFI_HOME}/conf ${NIFI_HOME}/default-conf && chown -R nifi:nifi ${NIFI_HOME}/default-conf
 
 COPY --chmod=700 docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
