@@ -20,7 +20,7 @@ RUN usermod -u $CURRENT_UID $APIUSER
 # ~ 30 seconds
 RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
  && apt-get update \
- && apt-get install --yes \
+ && apt-get install --yes --no-install-recommends \
       libssl1.0.0 \
       libssl-dev \
       libpopt-dev \
@@ -54,7 +54,7 @@ RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/a
   && make install \
   && cd /usr/share/eccodes-build \
   && ln -sf lib lib64 \
-  && pip3 install eccodes netCDF4 \
+  && pip3 install --no-cache-dir eccodes netCDF4 \
   && rm -rf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
   && rm -rf /tmp/eccodes-build
 
@@ -151,6 +151,6 @@ COPY --from=arpaesimc /usr/lib/python3.9/site-packages/dba_qcfilter /usr/local/l
 COPY --from=arpaesimc /usr/lib/python3.9/site-packages/dba_qcfilter-0.0.2-py3.9.egg-info /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter-0.0.2-py3.9.egg-info/
 
 # (Re)install numpy to prevent issues with shared libraries
-RUN pip3 install --upgrade numpy
+RUN pip3 install --upgrade --no-cache-dir numpy
 
 WORKDIR /code

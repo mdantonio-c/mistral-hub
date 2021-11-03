@@ -34,8 +34,8 @@ WORKDIR /tmp
 
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
-RUN pip3 install numpy setuptools==57.5.0 \
-    && pip3 install GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
+RUN pip3 install --no-cache-dir numpy setuptools==57.5.0 \
+    && pip3 install --no-cache-dir GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
 
 ENV ECCODES_VERSION="2.23.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
@@ -54,7 +54,7 @@ RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/a
   && make install \
   && cd /usr/share/eccodes-build \
   && ln -sf lib lib64 \
-  && pip3 install eccodes netCDF4 \
+  && pip3 install --no-cache-dir eccodes netCDF4 \
   && rm -rf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
   && rm -rf /tmp/eccodes-build
 
