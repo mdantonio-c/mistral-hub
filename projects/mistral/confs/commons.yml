@@ -81,6 +81,11 @@ services:
       ALCHEMY_USER: "${ALCHEMY_USER}"
       ALCHEMY_PASSWORD: "${ALCHEMY_PASSWORD}"
 
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+
     networks:
       default:
 # volumes:
