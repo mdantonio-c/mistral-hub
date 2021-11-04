@@ -10,7 +10,7 @@
     ></label>
     <ul class="selector">
       <li class="sidenav-item">
-        <span class="t2m"></span>
+        <span class="t2m attivo"></span>
         <a href="#">
           <span class="nav-text">Temperature</span>
         </a>
@@ -86,12 +86,21 @@
         <a href="#">
           <span class="nav-text">Selected dataset</span>
         </a>
+        <div class="selettore-dataset">
+          <a href="#" class="selected">Cosmo 5km</a>
+          <a href="#">Cosmo 2km</a>
+          <a href="#">IFF</a>
+        </div>
       </li>
-      <li class="sidenav-item last">
+      <li class="sidenav-item last multi-model">
         <span class="switch"></span>
-        <a href="#">
-          <span class="nav-text">Multi-model</span>
-        </a>
+        <div class="selettore-multimodel">
+          <a href="#">
+            <span class="nav-text">Multi-model ensemble</span>
+            <input type="checkbox" value="active" />
+          </a>
+          <p>Selected: temperature</p>
+        </div>
       </li>
       <li class="sidenav-item">
         <span class="plus"></span>
