@@ -1,0 +1,183 @@
+<nav class="map-sidenav" [class.collapsed]="isCollapsed">
+  <div class="map-sidenav-menu">
+    <!-- partial collapse -->
+    <input id="toggle" type="checkbox" />
+    <label
+      for="toggle"
+      class="toggle"
+      (click)="isCollapsed = !isCollapsed"
+      [class.collapsed]="isCollapsed"
+    ></label>
+    <ul class="selector">
+      <li class="sidenav-item">
+        <span class="t2m"></span>
+        <a href="#">
+          <span class="nav-text">Temperature</span>
+        </a>
+      </li>
+      <li class="sidenav-item">
+        <span class="prs"></span>
+        <a href="#">
+          <span class="nav-text">Pressure</span>
+        </a>
+      </li>
+      <li class="sidenav-item">
+        <span class="rh"></span>
+        <a href="#">
+          <span class="nav-text">Relative humidity</span>
+        </a>
+      </li>
+      <li class="sidenav-item">
+        <span class="prp"></span>
+        <a href="#">
+          <span class="nav-text">precipitation</span>
+        </a>
+        <div class="selettore-orario">
+          <ul class="progressbar">
+            <li class="active">1H</li>
+            <li class="active">3h</li>
+            <li>6h</li>
+            <li>12h</li>
+            <li>24h</li>
+          </ul>
+        </div>
+      </li>
+      <li class="sidenav-item">
+        <span class="sf"></span>
+        <a href="#">
+          <span class="nav-text">Snow Fall</span>
+        </a>
+        <div class="selettore-orario">
+          <ul class="progressbar">
+            <li class="active">1H</li>
+            <li class="active">3h</li>
+            <li class="active">6h</li>
+            <li>12h</li>
+            <li>24h</li>
+          </ul>
+        </div>
+      </li>
+      <li class="sidenav-item last">
+        <span class="cc"></span>
+        <a href="#">
+          <span class="nav-text">Clouds</span>
+        </a>
+        <div class="selettore-clouds">
+          <label>
+            <input type="radio" value="low" />
+            Low
+          </label>
+          <label>
+            <input type="radio" value="medium" />
+            Medium
+          </label>
+          <label>
+            <input type="radio" value="high" />
+            High
+          </label>
+          <label>
+            <input type="radio" value="total" />
+            Total
+          </label>
+        </div>
+      </li>
+      <li class="sidenav-item">
+        <span class="input"></span>
+        <a href="#">
+          <span class="nav-text">Selected dataset</span>
+        </a>
+      </li>
+      <li class="sidenav-item last">
+        <span class="switch"></span>
+        <a href="#">
+          <span class="nav-text">Multi-model</span>
+        </a>
+      </li>
+      <li class="sidenav-item">
+        <span class="plus"></span>
+        <a href="#">
+          <span class="nav-text">Zoom in</span>
+        </a>
+      </li>
+      <li class="sidenav-item last">
+        <span class="minus"></span>
+        <a href="#">
+          <span class="nav-text">Zoom out</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<!--
+<nav class="map-sidenav">
+  <div class="map-sidenav-menu">
+    <div class="nav">
+      <ng-container *ngFor="let section of sideNavSections"
+          ><div class="sb-sidenav-menu-heading" *ngIf="section.text">{{ section.text }}</div>
+          <ng-container *ngFor="let item of section.items"><sb-side-nav-item [sideNavItem]="sideNavItems[item]"></sb-side-nav-item></ng-container
+      ></ng-container>
+      <div class="leaflet-top leaflet-right h-100">
+        <div class="leaflet-control-layers leaflet-control leaflet-control-layers-expanded m-0 h-100" aria-haspopup="true"><a
+          class="leaflet-control-layers-toggle" href="#" title="Layers"></a>
+          <section class="leaflet-control-layers-list">
+            <div class="leaflet-control-layers-base"><label>
+              <div><input type="radio" class="leaflet-control-layers-selector" name="leaflet-base-layers_86"><span> Openstreet Map</span>
+              </div>
+            </label><label>
+              <div><input type="radio" class="leaflet-control-layers-selector" name="leaflet-base-layers_86"><span> Carto Map Dark</span>
+              </div>
+            </label><label>
+              <div><input type="radio" class="leaflet-control-layers-selector" name="leaflet-base-layers_86"
+                          checked="checked"><span> Carto Map Light</span></div>
+            </label></div>
+            <div class="leaflet-control-layers-separator" style=""></div>
+            <div class="leaflet-control-layers-overlays"><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector" checked=""><span> Temperature at 2 meters</span>
+              </div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Pressure mean sea level</span>
+              </div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Relative Humidity</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Total Precipitation (1h)</span>
+              </div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Total Precipitation (3h)</span>
+              </div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Total Precipitation (6h)</span>
+              </div>
+            </label><label>
+              <div><input type="checkbox"
+                          class="leaflet-control-layers-selector"><span> Total Precipitation (12h)</span></div>
+            </label><label>
+              <div><input type="checkbox"
+                          class="leaflet-control-layers-selector"><span> Total Precipitation (24h)</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Snowfall (1h)</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Snowfall (3h)</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Snowfall (6h)</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Snowfall (12h)</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Snowfall (24h)</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Total Cloud</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> High Cloud</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Medium Cloud</span></div>
+            </label><label>
+              <div><input type="checkbox" class="leaflet-control-layers-selector"><span> Low Cloud</span></div>
+            </label></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="map-sidenav-footer">
+  </div>
+</nav>-->

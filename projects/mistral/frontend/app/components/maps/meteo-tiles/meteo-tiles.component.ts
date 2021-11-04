@@ -155,6 +155,7 @@ export class MeteoTilesComponent {
     },
   };
   options = {
+    zoomControl: false,
     zoom: MIN_ZOOM,
     center: L.latLng([46.879966, 11.726909]),
     timeDimension: true,
@@ -177,7 +178,7 @@ export class MeteoTilesComponent {
   };
   private runAvailable: RunAvailable;
 
-  public showed: boolean = true;
+  public showed: boolean = false;
   public mmProduct = MultiModelProduct.TM;
   public MultiModelProduct = MultiModelProduct;
   private markers: L.Marker[] = [];
@@ -354,7 +355,7 @@ export class MeteoTilesComponent {
         this.map.invalidateSize();
         this.spinner.hide();
         // get multi-model products
-        this.getMMProducts();
+        // this.getMMProducts();
       });
   }
 

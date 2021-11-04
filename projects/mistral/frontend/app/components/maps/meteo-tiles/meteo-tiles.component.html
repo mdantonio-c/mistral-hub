@@ -11,11 +11,11 @@
   class="map"
   leaflet
   [leafletOptions]="options"
-  [leafletLayersControl]="layersControl"
   (leafletMapReady)="onMapReady($event)"
   (leafletMapZoomEnd)="onMapZoomEnd($event)"
 >
-  <div class="leaflet-top leaflet-left" style="left: 40px">
+  <mst-side-nav></mst-side-nav>
+  <!--<div class="leaflet-top leaflet-left" style="left: 40px">
     <div class="leaflet-control" style="height: 20px">
       <div
         style="
@@ -57,9 +57,9 @@
         </div>
       </div>
     </div>
-  </div>
+  </div>-->
 
-  <div class="leaflet-bottom leaflet-right" style="bottom: 10px">
+  <!--<div class="leaflet-bottom leaflet-right" style="bottom: 10px">
     <div class="leaflet-control leaflet-bar leaflet-bar-horizontal">
       <div
         class="p-1"
@@ -99,7 +99,7 @@
         <small class="text-muted font-weight-bold">Multi-Model Ensemble</small>
         <div class="box-checkbox d-inline">
           <input
-            class="mst--input-checkbox mst--input-checkbox-sm"
+            class="mst&#45;&#45;input-checkbox mst&#45;&#45;input-checkbox-sm"
             id="show-mm-ensemble"
             type="checkbox"
             [(ngModel)]="showed"
@@ -109,5 +109,5 @@
         </div>
       </div>
     </div>
-  </div>
+  </div>-->
 </div>
