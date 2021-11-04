@@ -14,7 +14,10 @@
   (leafletMapReady)="onMapReady($event)"
   (leafletMapZoomEnd)="onMapZoomEnd($event)"
 >
-  <mst-side-nav></mst-side-nav>
+  <map-side-nav
+    (onZoomIn)="map.zoomIn()"
+    (onZoomOut)="map.zoomOut()"
+  ></map-side-nav>
   <!--<div class="leaflet-top leaflet-left" style="left: 40px">
     <div class="leaflet-control" style="height: 20px">
       <div
