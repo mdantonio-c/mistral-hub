@@ -111,14 +111,14 @@
         </div>
       </li>
       <li class="sidenav-item">
-        <span class="plus clickable"></span>
-        <a href="#" *ngIf="!isCollapsed">
+        <span class="plus clickable" (click)="zoom($event, 'in')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
           <span class="nav-text">Zoom in</span>
         </a>
       </li>
       <li class="sidenav-item last">
-        <span class="minus clickable"></span>
-        <a href="#" *ngIf="!isCollapsed">
+        <span class="minus clickable" (click)="zoom($event, 'out')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
           <span class="nav-text">Zoom out</span>
         </a>
       </li>
