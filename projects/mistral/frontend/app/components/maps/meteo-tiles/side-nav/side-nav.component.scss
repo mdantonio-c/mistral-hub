@@ -7,7 +7,7 @@
   float: right;
   height: 100%;
   text-align: center;
-  width: 250px;
+  width: 270px;
   cursor: auto;
 
   &.collapsed {
@@ -21,6 +21,11 @@
     width: 100%;
     position: relative;
     margin-left: 20px;
+  }
+
+  li a:hover .nav-text {
+    text-decoration: none;
+    border-bottom: 1px solid #fff;
   }
 
   .map-sidenav-menu {
@@ -60,17 +65,17 @@
         transition: 0.3s ease;
       }
 
-      &:checked ~ .ul {
+      /*&:checked ~ .ul {
         height: 90%;
         width: 100%;
         overflow-y: scroll;
         overflow-x: hidden;
-      }
+      }*/
     }
 
     .toggle {
       cursor: pointer;
-      margin-left: 178px;
+      margin-left: 190px;
       margin-top: 12px;
 
       &.collapsed {
@@ -109,6 +114,11 @@
       align-items: center;
       margin: 2px;
       flex-wrap: wrap;
+
+      & > .attivo {
+        background-color: #e49c1e;
+        border-radius: 25px;
+      }
     }
 
     .selector {
@@ -135,8 +145,18 @@
   }
 }
 
+.multi-model {
+  display: flex !important ;
+  flex-wrap: nowrap !important;
+  .nav-text {
+    width: 80% !important;
+    margin-left: 10px !important;
+  }
+}
+
 .prp + a,
-.sf + a {
+.sf + a,
+.input + a {
   margin-top: -20px;
 }
 
@@ -156,6 +176,7 @@
 .minus {
   background-size: contain;
   background-repeat: no-repeat;
+  background-position: center center;
   display: block;
   margin-top: 8px;
   padding: 10px;
@@ -169,8 +190,6 @@
 
 .prs {
   background-image: url("/app/custom/assets/images/icons/pressione.svg");
-  /*width: 35px;
-  height: 35px;*/
 }
 
 .rh {
@@ -187,8 +206,6 @@
 
 .cc {
   background-image: url("/app/custom/assets/images/icons/clouds.svg");
-  /*width: 45px;
-  height: 45px;*/
 }
 
 .input {
@@ -197,9 +214,8 @@
 
 .switch {
   background-image: url("/app/custom/assets/images/icons/switch.svg");
-  /*width: 70px;
   height: 70px;
-  margin-bottom: 10px;*/
+  margin-bottom: 10px;
 }
 
 .plus {
@@ -208,26 +224,50 @@
 
 .minus {
   background-image: url("/app/custom/assets/images/icons/minus.svg");
-  /*width: 44px;
-  height: 44px;
-  margin-left: 2px;
-  margin-bottom: 10px;*/
 }
 
-/*selettori orari*/
+/* time, clouds and datasets selectors */
 
 .selettore-orario,
-.selettore-clouds {
+.selettore-clouds,
+.selettore-dataset {
   height: 30px;
-  width: 140px;
+  width: 100%;
   margin-left: 50px;
   margin-top: -15px;
+}
+
+.selettore-dataset {
+  display: flex;
+  width: 200px;
+}
+
+.selettore-multimodel {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 .selettore-clouds {
   display: flex;
   height: 40px;
   margin-top: -23px;
+  margin-left: 55px;
+
+  input {
+    margin-left: 10px;
+    margin-right: 10px;
+    z-index: -1;
+    position: relative;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 7px;
+    width: 13px !important;
+    height: 13px !important;
+    border: 2px solid #999;
+    transition: 0.2s all linear;
+  }
 }
 
 .progressbar {
@@ -289,23 +329,8 @@
   }
 }
 
-.selettore-clouds input {
-  margin-left: 10px;
-  margin-right: 10px;
-
-  z-index: -1;
-  position: relative;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  border-radius: 7px;
-  width: 13px !important;
-  height: 13px !important;
-  border: 2px solid #999;
-  transition: 0.2s all linear;
-}
-
-.selettore-clouds input:checked {
+.selettore-clouds input:checked,
+.selettore-multimodel input:checked {
   background-color: #e49c1e;
   border-color: #e49c1e;
 }
@@ -318,6 +343,48 @@
   color: #fff;
   text-align: center;
   margin-top: 2px;
+}
+
+.selettore-dataset a,
+.selettore-multimodel p {
+  color: #fff;
+  text-transform: uppercase;
+  font-size: 10px;
+  margin-top: 1px;
+  margin-left: 10px;
+  height: 15px;
+}
+
+.selettore-multimodel {
+  position: relative;
+  p {
+    font-size: 9px;
+    align-self: flex-start;
+  }
+  input {
+    position: absolute;
+    right: -30px;
+    top: 10px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 7px;
+    width: 13px !important;
+    height: 13px !important;
+    border: 2px solid #999;
+    transition: 0.2s all linear;
+  }
+}
+
+.selettore-dataset .selected,
+.selettore-dataset .selected:hover {
+  color: #e49c1e;
+  border-bottom: 1px solid #e49c1e;
+}
+
+.selettore-dataset a:hover {
+  border-bottom: 1px solid #fff;
+  text-decoration: none;
 }
 
 /*scorrimento pannello*/
