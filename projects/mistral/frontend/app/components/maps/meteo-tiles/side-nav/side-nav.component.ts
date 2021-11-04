@@ -9,7 +9,7 @@ import {
 import { Subscription } from "rxjs";
 
 @Component({
-  selector: "mst-side-nav",
+  selector: "map-side-nav",
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./side-nav.component.html",
   styleUrls: ["side-nav.component.scss"],
