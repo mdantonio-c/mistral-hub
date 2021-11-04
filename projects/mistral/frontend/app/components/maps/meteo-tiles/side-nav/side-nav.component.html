@@ -10,25 +10,25 @@
     ></label>
     <ul class="selector">
       <li class="sidenav-item">
-        <span class="t2m attivo"></span>
+        <span class="t2m attivo clickable"></span>
         <a href="#" *ngIf="!isCollapsed">
           <span class="nav-text">Temperature</span>
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="prs"></span>
+        <span class="prs clickable"></span>
         <a href="#" *ngIf="!isCollapsed">
           <span class="nav-text">Pressure</span>
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="rh"></span>
+        <span class="rh clickable"></span>
         <a href="#" *ngIf="!isCollapsed">
           <span class="nav-text">Relative humidity</span>
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="prp"></span>
+        <span class="prp clickable"></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#">
             <span class="nav-text">precipitation</span>
@@ -45,7 +45,7 @@
         </ng-container>
       </li>
       <li class="sidenav-item">
-        <span class="sf"></span>
+        <span class="sf clickable"></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#">
             <span class="nav-text">Snow Fall</span>
@@ -62,7 +62,7 @@
         </ng-container>
       </li>
       <li class="sidenav-item last">
-        <span class="cc"></span>
+        <span class="cc clickable"></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#">
             <span class="nav-text">Clouds</span>
@@ -111,13 +111,13 @@
         </div>
       </li>
       <li class="sidenav-item">
-        <span class="plus"></span>
+        <span class="plus clickable"></span>
         <a href="#" *ngIf="!isCollapsed">
           <span class="nav-text">Zoom in</span>
         </a>
       </li>
       <li class="sidenav-item last">
-        <span class="minus"></span>
+        <span class="minus clickable"></span>
         <a href="#" *ngIf="!isCollapsed">
           <span class="nav-text">Zoom out</span>
         </a>
