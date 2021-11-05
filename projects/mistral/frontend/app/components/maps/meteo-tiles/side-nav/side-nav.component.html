@@ -1,0 +1,174 @@
+<nav class="map-sidenav" [class.collapsed]="isCollapsed">
+  <div class="map-sidenav-menu">
+    <!-- partial collapse -->
+    <!--<input id="toggle" type="checkbox" />-->
+    <label
+      for="toggle"
+      class="toggle"
+      (click)="isCollapsed = !isCollapsed"
+      [class.collapsed]="isCollapsed"
+    ></label>
+    <ul class="selector">
+      <li class="sidenav-item">
+        <span class="t2m clickable" (click)="toggleLayer($event, 't2m')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 't2m')">
+          <span class="nav-text">Temperature</span>
+        </a>
+      </li>
+      <li class="sidenav-item">
+        <span class="prs clickable" (click)="toggleLayer($event, 'prs')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'prs')">
+          <span class="nav-text">Pressure</span>
+        </a>
+      </li>
+      <li class="sidenav-item">
+        <span class="rh clickable" (click)="toggleLayer($event, 'rh')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'rh')">
+          <span class="nav-text">Relative humidity</span>
+        </a>
+      </li>
+      <li class="sidenav-item">
+        <span class="prp clickable" (click)="toggleLayer($event, 'prp')"></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#" (click)="toggleLayer($event, 'prp')">
+            <span class="nav-text">precipitation</span>
+          </a>
+          <div class="selettore-orario">
+            <div class="progressbar">
+              <label>
+                <input type="checkbox" name="hours" value="1" />
+                <span></span>
+                1h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="3" />
+                <span></span>
+                3h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="6" />
+                <span></span>
+                6h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="12" />
+                <span></span>
+                12h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="24" />
+                24h
+              </label>
+            </div>
+          </div>
+        </ng-container>
+      </li>
+      <li class="sidenav-item">
+        <span class="sf clickable" (click)="toggleLayer($event, 'sf')"></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#" (click)="toggleLayer($event, 'sf')">
+            <span class="nav-text">Snow Fall</span>
+          </a>
+          <div class="selettore-orario">
+            <div class="progressbar">
+              <label>
+                <input type="checkbox" name="hours" value="1" />
+                <span></span>
+                1h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="3" />
+                <span></span>
+                3h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="6" />
+                <span></span>
+                6h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="12" />
+                <span></span>
+                12h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="24" />
+                24h
+              </label>
+              <!--<li class="active">1H</li>
+              <li class="active">3h</li>
+              <li class="active">6h</li>
+              <li>12h</li>
+              <li>24h</li>-->
+            </div>
+          </div>
+        </ng-container>
+      </li>
+      <li class="sidenav-item last">
+        <span class="cc clickable" (click)="toggleLayer($event, 'cc')"></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#" (click)="toggleLayer($event, 'cc')">
+            <span class="nav-text">Clouds</span>
+          </a>
+          <div class="selettore-clouds">
+            <label>
+              <input type="checkbox" name="clouds" value="low" />
+              Low
+            </label>
+            <label>
+              <input type="checkbox" name="clouds" value="medium" />
+              Medium
+            </label>
+            <label>
+              <input type="checkbox" name="clouds" value="high" />
+              High
+            </label>
+            <label>
+              <input type="checkbox" name="clouds" value="total" />
+              Total
+            </label>
+          </div>
+        </ng-container>
+      </li>
+      <li class="sidenav-item">
+        <span class="input"></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#" click-stop-propagation>
+            <span class="nav-text">Selected dataset</span>
+          </a>
+          <div class="selettore-dataset">
+            <a id="lm5" href="#" (click)="changeDataset($event, 'lm5')"
+              >Cosmo 5km</a
+            >
+            <a id="lm2.2" href="#" (click)="changeDataset($event, 'lm2.2')"
+              >Cosmo 2km</a
+            >
+            <a id="iff" href="#" (click)="changeDataset($event, 'iff')">IFF</a>
+          </div>
+        </ng-container>
+      </li>
+      <li class="sidenav-item last multi-model">
+        <span class="switch"></span>
+        <div class="selettore-multimodel" *ngIf="!isCollapsed">
+          <a href="#" click-stop-propagation>
+            <span class="nav-text">Multi-model ensemble</span>
+            <input type="checkbox" value="active" />
+          </a>
+          <p>Selected: temperature</p>
+        </div>
+      </li>
+      <li class="sidenav-item">
+        <span class="plus clickable" (click)="zoom($event, 'in')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
+          <span class="nav-text">Zoom in</span>
+        </a>
+      </li>
+      <li class="sidenav-item last">
+        <span class="minus clickable" (click)="zoom($event, 'out')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
+          <span class="nav-text">Zoom out</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
