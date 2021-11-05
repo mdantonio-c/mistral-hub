@@ -16,27 +16,27 @@
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="prs clickable"></span>
-        <a href="#" *ngIf="!isCollapsed">
+        <span class="prs clickable" (click)="toggleLayer($event, 'prs')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'prs')">
           <span class="nav-text">Pressure</span>
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="rh clickable"></span>
-        <a href="#" *ngIf="!isCollapsed">
+        <span class="rh clickable" (click)="toggleLayer($event, 'rh')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'rh')">
           <span class="nav-text">Relative humidity</span>
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="prp clickable"></span>
+        <span class="prp clickable" (click)="toggleLayer($event, 'prp')"></span>
         <ng-container *ngIf="!isCollapsed">
-          <a href="#">
+          <a href="#" (click)="toggleLayer($event, 'prp')">
             <span class="nav-text">precipitation</span>
           </a>
           <div class="selettore-orario">
             <div class="progressbar">
-               <label>
-              <input type="checkbox" name="hours" value="1" />
+              <label>
+                <input type="checkbox" name="hours" value="1" />
                 <span></span>
                 1h
               </label>
@@ -49,7 +49,7 @@
                 <input type="checkbox" name="hours" value="6" />
                 <span></span>
                 6h
-                </label>
+              </label>
               <label>
                 <input type="checkbox" name="hours" value="12" />
                 <span></span>
@@ -64,20 +64,20 @@
         </ng-container>
       </li>
       <li class="sidenav-item">
-        <span class="sf clickable"></span>
+        <span class="sf clickable" (click)="toggleLayer($event, 'sf')"></span>
         <ng-container *ngIf="!isCollapsed">
-          <a href="#">
+          <a href="#" (click)="toggleLayer($event, 'sf')">
             <span class="nav-text">Snow Fall</span>
           </a>
           <div class="selettore-orario">
             <div class="progressbar">
               <label>
-              <input type="checkbox" name="hours" value="1" />
+                <input type="checkbox" name="hours" value="1" />
                 <span></span>
                 1h
               </label>
               <label>
-              <input type="checkbox" name="hours" value="3" />
+                <input type="checkbox" name="hours" value="3" />
                 <span></span>
                 3h
               </label>
@@ -87,7 +87,7 @@
                 6h
               </label>
               <label>
-              <input type="checkbox" name="hours" value="12" />
+                <input type="checkbox" name="hours" value="12" />
                 <span></span>
                 12h
               </label>
@@ -105,9 +105,9 @@
         </ng-container>
       </li>
       <li class="sidenav-item last">
-        <span class="cc clickable"></span>
+        <span class="cc clickable" (click)="toggleLayer($event, 'cc')"></span>
         <ng-container *ngIf="!isCollapsed">
-          <a href="#">
+          <a href="#" (click)="toggleLayer($event, 'cc')">
             <span class="nav-text">Clouds</span>
           </a>
           <div class="selettore-clouds">
