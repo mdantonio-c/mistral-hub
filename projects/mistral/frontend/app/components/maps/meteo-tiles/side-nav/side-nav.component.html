@@ -16,7 +16,7 @@
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="prs clickable" (click)="toggleLayer($event, 'prs')" ></span>
+        <span class="prs clickable" (click)="toggleLayer($event, 'prs')"></span>
         <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'prs')">
           <span class="nav-text">Pressure</span>
         </a>
@@ -36,7 +36,7 @@
           <div class="selettore-orario">
             <div class="progressbar">
               <label>
-                <input type="checkbox" name="hours" value="1"/>
+                <input type="checkbox" name="hours" value="1" />
                 <span></span>
                 1h
               </label>
@@ -137,19 +137,25 @@
             <span class="nav-text">Selected dataset</span>
           </a>
           <div class="selettore-dataset">
-            <a id="lm5" href="#" (click)="changeDataset($event, 'lm5')"
-              >Cosmo 5km</a
-            >
-            <a id="lm2.2" href="#" (click)="changeDataset($event, 'lm2.2')"
-              >Cosmo 2km</a
-            >
-            <a id="iff" href="#" (click)="changeDataset($event, 'iff')">IFF</a>
+            <ng-container *ngFor="let ds of availableDatasets">
+              <a
+                id="{{ ds.code }}"
+                href="#"
+                (click)="changeDataset($event, ds.code)"
+                [ngClass]="{ selected: dataset === ds.code }"
+                >{{ ds.desc }}</a
+              >
+            </ng-container>
           </div>
         </ng-container>
       </li>
       <li class="sidenav-item last multi-model">
-       <div class="custom-control custom-switch">
-          <input type="checkbox" class="custom-control-input" id="customSwitch1">
+        <div class="custom-control custom-switch">
+          <input
+            type="checkbox"
+            class="custom-control-input"
+            id="customSwitch1"
+          />
           <label class="custom-control-label" for="customSwitch1"></label>
         </div>
         <div class="selettore-multimodel" *ngIf="!isCollapsed">

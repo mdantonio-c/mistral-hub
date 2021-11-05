@@ -13,6 +13,7 @@ import {
 } from "@angular/core";
 import {
   DatasetProduct as DP,
+  DATASETS,
   // MultiModelProduct,
 } from "../meteo-tiles.config";
 import { Subscription } from "rxjs";
@@ -36,6 +37,7 @@ export class SideNavComponent implements OnInit, OnDestroy {
   @Output() onDatasetChange: EventEmitter<string> = new EventEmitter<string>();
 
   public isCollapsed = false;
+  public availableDatasets = DATASETS;
 
   subscription: Subscription = new Subscription();
   routeDataSubscription!: Subscription;
@@ -48,19 +50,6 @@ export class SideNavComponent implements OnInit, OnDestroy {
     const isFirstChange = Object.values(changes).some((c) => c.isFirstChange());
     if (isFirstChange) {
       return;
-    }
-    // activate selected dataset
-    const selectorElements = this.el.nativeElement.querySelectorAll(
-      ".selettore-dataset > a"
-    );
-    selectorElements.forEach((el) => {
-      this.renderer.removeClass(el, "selected");
-    });
-    let datasetEl = this.el.nativeElement.querySelector(
-      `.selettore-dataset #${this._escapeChars(this.dataset)}`
-    );
-    if (datasetEl) {
-      this.renderer.addClass(datasetEl, "selected");
     }
 
     // activate layers
