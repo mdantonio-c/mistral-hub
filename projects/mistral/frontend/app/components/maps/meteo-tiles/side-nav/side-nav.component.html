@@ -1,7 +1,7 @@
 <nav class="map-sidenav" [class.collapsed]="isCollapsed">
   <div class="map-sidenav-menu">
     <!-- partial collapse -->
-    <input id="toggle" type="checkbox" />
+    <!--<input id="toggle" type="checkbox" />-->
     <label
       for="toggle"
       class="toggle"
@@ -34,13 +34,32 @@
             <span class="nav-text">precipitation</span>
           </a>
           <div class="selettore-orario">
-            <ul class="progressbar">
-              <li class="active">1H</li>
-              <li class="active">3h</li>
-              <li>6h</li>
-              <li>12h</li>
-              <li>24h</li>
-            </ul>
+            <div class="progressbar">
+               <label>
+              <input type="checkbox" name="hours" value="1" />
+                <span></span>
+                1h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="3" />
+                <span></span>
+                3h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="6" />
+                <span></span>
+                6h
+                </label>
+              <label>
+                <input type="checkbox" name="hours" value="12" />
+                <span></span>
+                12h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="24" />
+                24h
+              </label>
+            </div>
           </div>
         </ng-container>
       </li>
@@ -51,13 +70,37 @@
             <span class="nav-text">Snow Fall</span>
           </a>
           <div class="selettore-orario">
-            <ul class="progressbar">
-              <li class="active">1H</li>
+            <div class="progressbar">
+              <label>
+              <input type="checkbox" name="hours" value="1" />
+                <span></span>
+                1h
+              </label>
+              <label>
+              <input type="checkbox" name="hours" value="3" />
+                <span></span>
+                3h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="6" />
+                <span></span>
+                6h
+              </label>
+              <label>
+              <input type="checkbox" name="hours" value="12" />
+                <span></span>
+                12h
+              </label>
+              <label>
+                <input type="checkbox" name="hours" value="24" />
+                24h
+              </label>
+              <!--<li class="active">1H</li>
               <li class="active">3h</li>
               <li class="active">6h</li>
               <li>12h</li>
-              <li>24h</li>
-            </ul>
+              <li>24h</li>-->
+            </div>
           </div>
         </ng-container>
       </li>
@@ -69,19 +112,19 @@
           </a>
           <div class="selettore-clouds">
             <label>
-              <input type="radio" value="low" />
+              <input type="checkbox" name="clouds" value="low" />
               Low
             </label>
             <label>
-              <input type="radio" value="medium" />
+              <input type="checkbox" name="clouds" value="medium" />
               Medium
             </label>
             <label>
-              <input type="radio" value="high" />
+              <input type="checkbox" name="clouds" value="high" />
               High
             </label>
             <label>
-              <input type="radio" value="total" />
+              <input type="checkbox" name="clouds" value="total" />
               Total
             </label>
           </div>
