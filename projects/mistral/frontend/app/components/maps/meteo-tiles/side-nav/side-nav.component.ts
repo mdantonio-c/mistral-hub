@@ -31,7 +31,8 @@ export class SideNavComponent implements OnInit, OnDestroy {
 
   @Output() onZoomIn: EventEmitter<null> = new EventEmitter<null>();
   @Output() onZoomOut: EventEmitter<null> = new EventEmitter<null>();
-  @Output() onLayerChange: EventEmitter<string> = new EventEmitter<string>();
+  @Output() onLayerChange: EventEmitter<Record<string, string | L.Layer>> =
+    new EventEmitter<Record<string, string | L.Layer>>();
   @Output() onDatasetChange: EventEmitter<string> = new EventEmitter<string>();
 
   public isCollapsed = false;
@@ -66,12 +67,14 @@ export class SideNavComponent implements OnInit, OnDestroy {
     let activeLayers: string[] = [];
     if (this.overlays) {
       for (const [key, layer] of Object.entries(this.overlays)) {
-        if (this.map.hasLayer(layer)) {
-          activeLayers.push(key);
-          let lCode = this._toLayerCode(key);
-          if (lCode) {
-            let el = this.el.nativeElement.querySelector(`.${lCode}`);
+        let lCode = this._toLayerCode(key);
+        if (lCode) {
+          let el = this.el.nativeElement.querySelector(`.${lCode}`);
+          if (this.map.hasLayer(layer)) {
+            activeLayers.push(key);
             this.renderer.addClass(el, "attivo");
+          } else {
+            this.renderer.removeClass(el, "attivo");
           }
         }
       }
@@ -107,7 +110,21 @@ export class SideNavComponent implements OnInit, OnDestroy {
 
   toggleLayer(event, layerId: string) {
     event.preventDefault();
-    this.onLayerChange.emit(layerId);
+    for (const [key, layer] of Object.entries(this.overlays)) {
+      if (layerId === this._toLayerCode(key)) {
+        // this.onLayerChange.emit(layer);
+        this.onLayerChange.emit({
+          layer: layer,
+          name: this._toLayerTitle(layerId),
+        });
+        // activate / deactivate
+        let el = this.el.nativeElement.querySelector(`.${layerId}`);
+        el.classList.contains("attivo")
+          ? this.renderer.removeClass(el, "attivo")
+          : this.renderer.addClass(el, "attivo");
+        break;
+      }
+    }
   }
 
   /**
@@ -134,7 +151,33 @@ export class SideNavComponent implements OnInit, OnDestroy {
         return "t2m";
       case DP.PMSL:
         return "prs";
-      // TODO add the other overlay titles
+      case DP.RH:
+        return "rh";
+      case DP.PREC1P || DP.PREC3P || DP.PREC6P || DP.PREC12P || DP.PREC24P:
+        return "prp";
+      case DP.SF1 || DP.SF3 || DP.SF6 || DP.SF12 || DP.SF24:
+        return "sf";
+      case DP.LCC || DP.MCC || DP.HCC:
+        return "cc";
+      default:
+        return null;
+    }
+  }
+
+  private _toLayerTitle(code: string): string | null {
+    switch (code) {
+      case "t2m":
+        return DP.TM2;
+      case "prs":
+        return DP.PMSL;
+      case "rh":
+        return DP.RH;
+      case "prp":
+        return DP.PREC1P;
+      case "sf":
+        return DP.SF1;
+      case "cc":
+        return DP.LCC;
       default:
         return null;
     }

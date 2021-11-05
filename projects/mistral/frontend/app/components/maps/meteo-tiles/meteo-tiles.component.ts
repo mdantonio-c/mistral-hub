@@ -33,51 +33,13 @@ import {
 import {
   MULTI_MODEL_TIME_RANGES,
   DatasetProduct as DP,
-  // MultiModelProduct,
+  MultiModelProduct,
 } from "./meteo-tiles.config";
 
 declare module "leaflet" {
   let timeDimension: any;
 }
 
-// Product constants
-const TM2 = "Temperature at 2 meters",
-  PMSL = "Pressure mean sea level",
-  WIND10M = "Wind speed at 10 meters",
-  RH = "Relative Humidity",
-  PREC1P = "Total Precipitation (1h)",
-  PREC3P = "Total Precipitation (3h)",
-  PREC6P = "Total Precipitation (6h)",
-  PREC12P = "Total Precipitation (12h)",
-  PREC24P = "Total Precipitation (24h)",
-  SF1 = "Snowfall (3h)",
-  SF3 = "Snowfall (3h)",
-  SF6 = "Snowfall (6h)",
-  SF12 = "Snowfall (12h)",
-  SF24 = "Snowfall (24h)",
-  TCC = "Total Cloud",
-  HCC = "High Cloud",
-  MCC = "Medium Cloud",
-  LCC = "Low Cloud",
-  TPPERC1 = "Precipitation percentiles 1",
-  TPPERC10 = "Precipitation percentile 10",
-  TPPERC25 = "Precipitation percentile 25",
-  TPPERC50 = "Precipitation percentile 50",
-  TPPERC70 = "Precipitation percentile 70",
-  TPPERC75 = "Precipitation percentile 75",
-  TPPERC80 = "Precipitation percentile 80",
-  TPPERC90 = "Precipitation percentile 90",
-  TPPERC95 = "Precipitation percentile 95",
-  TPPERC99 = "Precipitation percentile 99",
-  TPPROB5 = "Precipitation probability 5 mm",
-  TPPROB10 = "Precipitation probability 10 mm",
-  TPPROB20 = "Precipitation probability 20 mm",
-  TPPROB50 = "Precipitation probability 50 mm";
-
-enum MultiModelProduct {
-  RH = "B13003",
-  TM = "B12101",
-}
 const MAP_CENTER = L.latLng(41.879966, 12.28),
   LM2_BOUNDS = {
     southWest: L.latLng(34.5, 5.0),
@@ -1568,8 +1530,14 @@ export class MeteoTilesComponent {
     return features;
   }
 
-  alert(name) {
-    this.map.fire("overlayremove");
-    console.log(name);
+  toggleLayer(obj: Record<string, string | L.Layer>) {
+    let layer: L.Layer = obj.layer as L.Layer;
+    if (this.map.hasLayer(layer)) {
+      this.map.fire("overlayremove", obj);
+      this.map.removeLayer(layer);
+    } else {
+      this.map.fire("overlayadd", obj);
+      layer.addTo(this.map);
+    }
   }
 }
