@@ -21,39 +21,54 @@
 }
 .leaflet-bar{
   border: none!important;
+  box-shadow:none !important;
 }
 
 .leaflet-touch .leaflet-bar-timecontrol .leaflet-control-timecontrol{
   background-color: #28242D!important;
 }
 
+.leaflet-bar a {
+    background-color: transparent !important;
+}
+
+.leaflet-bar a:hover {
+    background-color:  #E49D2B !important;
+    height: 29px !important;
+    width: 29px !important;
+}
 
 .leaflet-bar a:first-child{
   border-radius: 24px!important;
 }
+
 .leaflet-bar-timecontrol{
      // background-color: ;
      color: black;
+     margin-left: 50px !important;
 }
+
 .leaflet-bar-timecontrol * {
     box-sizing: border-box;
 }
+
 .leaflet-bar-timecontrol .leaflet-control-timecontrol {
     float: left;
-    height: 26px;
+    height: 30px !important;
     line-height: 26px;
-    border: solid #a5a5a5;
-    // background-color: #fff;
-    border-width: 0 1px 0 0;
-    border-radius: 24px;
+    //border: solid #fff;
+    //background-color: #2f34349d;
+    //border-width: 0 1px 0 0;
+    border-radius: 30px;
 
 }
-.leaflet-bar-timecontrol .leaflet-control-timecontrol:first-child {
+
+/*.leaflet-bar-timecontrol .leaflet-control-timecontrol:first-child {
     border-radius: 24px;// 0 0 4px;
 }
 .leaflet-bar-timecontrol .leaflet-control-timecontrol:last-child {
     border-radius: 24px;//0 4px 4px 0;
-}
+}*/
 
 /*.leaflet-bar-timecontrol .leaflet-control-timecontrol:before {
     // font-family: "Glyphicons Halflings";
@@ -70,7 +85,7 @@
 .leaflet-bar-timecontrol a.timecontrol-date:hover {
     position: relative;
     min-width: 150px;
-    width: auto;
+    width: auto !important;
     padding: 0 10px 0 20px;
     white-space: nowrap;
 }
@@ -98,6 +113,7 @@
     display: inline-block;
     float: left;
     text-align: right;
+    margin-left: 17px;
 }
 .leaflet-bar-timecontrol .timecontrol-play,
 .leaflet-bar-timecontrol .timecontrol-play:hover {
@@ -239,37 +255,57 @@
     color: #094F8E;
 }
 
+.timecontrol-backward,
+.timecontrol-forward,
+.timecontrol-stop,
+.timecontrol-play,
+.timecontrol-loop,
+.timecontrol-speed{
+    height: 30px !important;
+    width: 30px !important;
+}
+
 .timecontrol-backward:before,
 .timecontrol-forward:before,
 .timecontrol-stop:before,
 .timecontrol-play:before,
-.timecontrol-loop:before {
+.timecontrol-loop:before,
+.timecontrol-speed:before{
     width: 100%;
-    text-align: center;
-}
-
-.timecontrol-play:before {
-    position: absolute;
-    content: "";
-    background-image: url('/app/custom/assets/images/icons/playf.svg');
     background-size: contain;
     background-position: center center;
     display: block;
     width: 30px;
     height: 30px;
+    position: absolute;
+    content: "";
 }
+
+.timecontrol-play:before {
+   
+    background-image: url('/app/custom/assets/images/icons/playf.svg');
+}
+
 /*.timecontrol-play.play:before {
     content: "\e072";
-}*/
+}*7
+
 .timecontrol-play.reverse:before {
-    content: "\e072";
+    background-image: url('/app/custom/assets/images/icons/playf.svg');
     -ms-transform: scaleX(-1);
     -webkit-transform: scaleX(-1);
     transform: scaleX(-1);
 }
-.timecontrol-play.pause:before {
+
+/*.timecontrol-play.pause:before {
     content: "\e074";
+}*/
+
+.timecontrol-play.pause:before {
+    background-image: url('/app/custom/assets/images/icons/pause.svg');
 }
+
+
 .timecontrol-play.reverse.pause:before {
     -ms-transform: none;
     -webkit-transform: none;
@@ -277,34 +313,42 @@
 }
 
 a.timecontrol-play.loading:before {
-    content: "\e031";
+    //content: "\e031";
+    background-image: url('/app/custom/assets/images/icons/loading.svg');
     opacity: 0.2;
     -webkit-animation: icon-rotation 6s infinite linear;
     animation: icon-rotation 6s infinite linear;
 }
+
 .timecontrol-date.loading:before {
-    content: "\e031";
+    //content: "\e031";
+    background-image: url('/app/custom/assets/images/icons/loading.svg');
     left: 5px;
     position: absolute;
     -webkit-animation: icon-rotation 6s infinite linear;
     animation: icon-rotation 6s infinite linear;
 }
 .timecontrol-speed:before {
-    content: "\e141";
+    //content: "\e141";
+    background-image: url('/app/custom/assets/images/icons/speed.svg');
     position: absolute;
     left: 7px;
 }
 .timecontrol-stop:before {
-    content: "\e074";
+    //content: "\e074";
+    background-image: url('/app/custom/assets/images/icons/stop.svg');
 }
 .timecontrol-forward:before {
-    content: "\e075";
+    //content: "\e075";
+    background-image: url('/app/custom/assets/images/icons/play1hf.svg');
 }
 .timecontrol-backward:before {
-    content: "\e071";
+    //content: "\e071";
+    background-image: url('/app/custom/assets/images/icons/play1hb.svg');
 }
 .timecontrol-loop:before {
-    content: "\e030";
+    //content: "\e030";
+    background-image: url('/app/custom/assets/images/icons/loop.svg');
 }
 
 @media (max-width: 767px){
