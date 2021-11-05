@@ -19,8 +19,20 @@
     src: url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot');
     src: url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.woff') format('woff'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
 }
+.leaflet-bar{
+  border: none!important;
+}
+
+.leaflet-touch .leaflet-bar-timecontrol .leaflet-control-timecontrol{
+  background-color: #28242D!important;
+}
+
+
+.leaflet-bar a:first-child{
+  border-radius: 24px!important;
+}
 .leaflet-bar-timecontrol{
-     background-color: #cc0000;
+     // background-color: ;
      color: black;
 }
 .leaflet-bar-timecontrol * {
@@ -31,18 +43,21 @@
     height: 26px;
     line-height: 26px;
     border: solid #a5a5a5;
-    background-color: #cc0000;
+    // background-color: #fff;
     border-width: 0 1px 0 0;
+    border-radius: 24px;
+
 }
 .leaflet-bar-timecontrol .leaflet-control-timecontrol:first-child {
-    border-radius: 4px 0 0 4px;
+    border-radius: 24px;// 0 0 4px;
 }
 .leaflet-bar-timecontrol .leaflet-control-timecontrol:last-child {
-    border-radius: 0 4px 4px 0;
+    border-radius: 24px;//0 4px 4px 0;
 }
 .leaflet-bar-timecontrol .leaflet-control-timecontrol:before {
-    font-family: "Glyphicons Halflings";
-    display: block;
+    // font-family: "Glyphicons Halflings";
+    // display: block;
+
 }
 .leaflet-bar-timecontrol .timecontrol-slider {
     position: relative;
@@ -112,18 +127,18 @@
 .timecontrol-slider .slider.has-limits .range {
     position: absolute;
     height: 10px;
-    background-color: #fff;
+    // background-color: #fff;
     /*opacity: 0.5;*/
 }
 .timecontrol-slider .knob {
     position: absolute;
-    width: 8px;
-    height: 22px;
+    width: 15px;
+    height: 15px;
     background-color: #ddd;
-    border-radius: 2px;
+    border-radius: 15px;
     border: 1px solid #a5a5a5;
     /*use margins because on ie,leaflet will use top/left for positionning*/
-    margin-top: -6px;
+    margin-top: -3px;
     margin-left: -4px;
     cursor: ew-resize;
     cursor: -webkit-grab;
@@ -233,7 +248,13 @@
 
 .timecontrol-play:before {
     position: absolute;
-    content: "\e072";
+    content: "";
+    background-image: url('/app/custom/assets/images/icons/playf.svg');
+    background-size: contain;
+    background-position: center center;
+    display: block;
+    width: 30px;
+    height: 30px;
 }
 /*.timecontrol-play.play:before {
     content: "\e072";
@@ -245,7 +266,7 @@
     transform: scaleX(-1);
 }
 .timecontrol-play.pause:before {
-    content: "\e073";
+    content: "\e074";
 }
 .timecontrol-play.reverse.pause:before {
     -ms-transform: none;
@@ -295,6 +316,7 @@ a.timecontrol-play.loading:before {
 .leaflet-touch .leaflet-bar-timecontrol .leaflet-control-timecontrol{
      height: 30px;
     line-height: 30px;
+
 }
 .leaflet-touch .timecontrol-slider .slider{
     margin-top: 10px;
