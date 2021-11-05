@@ -16,7 +16,7 @@
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="prs clickable" (click)="toggleLayer($event, 'prs')"></span>
+        <span class="prs clickable" (click)="toggleLayer($event, 'prs')" ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'prs')">
           <span class="nav-text">Pressure</span>
         </a>
@@ -36,7 +36,7 @@
           <div class="selettore-orario">
             <div class="progressbar">
               <label>
-                <input type="checkbox" name="hours" value="1" />
+                <input type="checkbox" name="hours" value="1"/>
                 <span></span>
                 1h
               </label>
@@ -148,7 +148,10 @@
         </ng-container>
       </li>
       <li class="sidenav-item last multi-model">
-        <span class="switch"></span>
+       <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="customSwitch1">
+          <label class="custom-control-label" for="customSwitch1"></label>
+        </div>
         <div class="selettore-multimodel" *ngIf="!isCollapsed">
           <a href="#" click-stop-propagation>
             <span class="nav-text">Multi-model ensemble</span>

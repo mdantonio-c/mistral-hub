@@ -45,7 +45,6 @@
 .leaflet-bar-timecontrol{
      // background-color: ;
      color: black;
-     margin-left: 50px !important;
 }
 
 .leaflet-bar-timecontrol * {
@@ -140,12 +139,13 @@
 .timecontrol-slider .slider.has-limits {
     margin-left: 15px;
     margin-right: 15px;
-    background-color: #ddd;
+    background-color: #2f34349d;
 }
 .timecontrol-slider .slider.has-limits .range {
     position: absolute;
     height: 10px;
-    // background-color: #fff;
+    border-radius: 10px;
+    background-color: #2f34349d;
     /*opacity: 0.5;*/
 }
 .timecontrol-slider .knob {
@@ -249,11 +249,11 @@
         transform: rotate(360deg);
     }
 }
-.timecontrol-loop.looped,
+/*.timecontrol-loop.looped,
 .timecontrol-loop.looped:hover {
     background-color: #ddd;
     color: #094F8E;
-}
+}*/
 
 .timecontrol-backward,
 .timecontrol-forward,
