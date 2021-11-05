@@ -33,6 +33,7 @@ import { DatasetsComponent } from "./components/datasets/datasets.component";
 import { DatasetDetailsComponent } from "./components/dataset-details/dataset-details.component";
 
 import { DisableControlDirective } from "./directives/disable-control";
+import { ClickStopPropagation } from "./directives/click-stop-propagation";
 
 /* Multi-Step Wizard Components */
 import { MultiStepWizardComponent } from "./components/multi-step-wizard/multi-step-wizard.component";
@@ -221,6 +222,7 @@ const appRoutes: Routes = [
     FormatDatePipe,
     ReplacePipe,
     DisableControlDirective,
+    ClickStopPropagation,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [

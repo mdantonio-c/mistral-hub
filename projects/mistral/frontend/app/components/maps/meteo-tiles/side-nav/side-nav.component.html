@@ -10,8 +10,8 @@
     ></label>
     <ul class="selector">
       <li class="sidenav-item">
-        <span class="t2m attivo clickable"></span>
-        <a href="#" *ngIf="!isCollapsed">
+        <span class="t2m clickable" (click)="toggleLayer($event, 't2m')"></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 't2m')">
           <span class="nav-text">Temperature</span>
         </a>
       </li>
@@ -133,20 +133,24 @@
       <li class="sidenav-item">
         <span class="input"></span>
         <ng-container *ngIf="!isCollapsed">
-          <a href="#">
+          <a href="#" click-stop-propagation>
             <span class="nav-text">Selected dataset</span>
           </a>
           <div class="selettore-dataset">
-            <a href="#" class="selected">Cosmo 5km</a>
-            <a href="#">Cosmo 2km</a>
-            <a href="#">IFF</a>
+            <a id="lm5" href="#" (click)="changeDataset($event, 'lm5')"
+              >Cosmo 5km</a
+            >
+            <a id="lm2.2" href="#" (click)="changeDataset($event, 'lm2.2')"
+              >Cosmo 2km</a
+            >
+            <a id="iff" href="#" (click)="changeDataset($event, 'iff')">IFF</a>
           </div>
         </ng-container>
       </li>
       <li class="sidenav-item last multi-model">
         <span class="switch"></span>
         <div class="selettore-multimodel" *ngIf="!isCollapsed">
-          <a href="#">
+          <a href="#" click-stop-propagation>
             <span class="nav-text">Multi-model ensemble</span>
             <input type="checkbox" value="active" />
           </a>

@@ -1567,4 +1567,9 @@ export class MeteoTilesComponent {
     });
     return features;
   }
+
+  alert(name) {
+    this.map.fire("overlayremove");
+    console.log(name);
+  }
 }

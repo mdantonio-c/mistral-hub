@@ -15,6 +15,11 @@
   (leafletMapZoomEnd)="onMapZoomEnd($event)"
 >
   <map-side-nav
+    [overlays]="layersControl['overlays']"
+    [dataset]="dataset"
+    [map]="map"
+    (onLayerChange)="alert($event)"
+    (onDatasetChange)="changeDataset($event)"
     (onZoomIn)="map.zoomIn()"
     (onZoomOut)="map.zoomOut()"
   ></map-side-nav>
