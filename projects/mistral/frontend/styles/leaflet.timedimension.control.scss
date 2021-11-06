@@ -14,11 +14,16 @@
  * git://github.com/socib/Leaflet.TimeDimension.git
  *
  */
+
+
 @font-face {
     font-family: 'Glyphicons Halflings';
     src: url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot');
     src: url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.woff') format('woff'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
-}
+} 
+
+
+
 .leaflet-bar{
   border: none!important;
   box-shadow:none !important;
@@ -46,7 +51,6 @@
 .leaflet-bar-timecontrol{
      // background-color: ;
      color: #fff !important;
-     font-family: 'Montserrat-semibold';
 }
 
 .leaflet-bar-timecontrol * {
