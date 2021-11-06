@@ -14,46 +14,66 @@
  * git://github.com/socib/Leaflet.TimeDimension.git
  *
  */
+
+
 @font-face {
     font-family: 'Glyphicons Halflings';
     src: url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot');
     src: url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.woff') format('woff'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
-}
+} 
+
+
+
 .leaflet-bar{
   border: none!important;
+  box-shadow:none !important;
 }
 
 .leaflet-touch .leaflet-bar-timecontrol .leaflet-control-timecontrol{
-  background-color: #28242D!important;
+  background-color: #2f34349d!important;
 }
 
+.leaflet-bar a {
+    color:#fff !important;
+}
+
+
+.leaflet-bar a:hover {
+    background-color:  #E49D2B !important;
+    height: 29px !important;
+    width: 29px !important;
+}
 
 .leaflet-bar a:first-child{
   border-radius: 24px!important;
 }
+
 .leaflet-bar-timecontrol{
      // background-color: ;
-     color: black;
+     color: #fff !important;
 }
+
 .leaflet-bar-timecontrol * {
     box-sizing: border-box;
 }
+
 .leaflet-bar-timecontrol .leaflet-control-timecontrol {
     float: left;
-    height: 26px;
+    height: 30px !important;
     line-height: 26px;
-    border: solid #a5a5a5;
-    // background-color: #fff;
-    border-width: 0 1px 0 0;
-    border-radius: 24px;
+    //border: solid #fff;
+    //background-color: #2f34349d;
+    //border-width: 0 1px 0 0;
+    border-radius: 30px;
 
 }
-.leaflet-bar-timecontrol .leaflet-control-timecontrol:first-child {
+
+/*.leaflet-bar-timecontrol .leaflet-control-timecontrol:first-child {
     border-radius: 24px;// 0 0 4px;
 }
 .leaflet-bar-timecontrol .leaflet-control-timecontrol:last-child {
     border-radius: 24px;//0 4px 4px 0;
-}
+}*/
 
 /*.leaflet-bar-timecontrol .leaflet-control-timecontrol:before {
     // font-family: "Glyphicons Halflings";
@@ -66,24 +86,30 @@
     width: auto;
     cursor: auto;
 }
+
 .leaflet-bar-timecontrol a.timecontrol-date,
 .leaflet-bar-timecontrol a.timecontrol-date:hover {
     position: relative;
     min-width: 150px;
-    width: auto;
-    padding: 0 10px 0 20px;
+    width: 180px !important;
+    padding: 0 10px 0 10px;
     white-space: nowrap;
+    background-color: #2f34349d;
+    border: 1px #fff solid;
 }
 .leaflet-bar-timecontrol a.timecontrol-date.utc,
 .leaflet-bar-timecontrol a.timecontrol-date.utc:hover {
     min-width: 185px;
 }
-.leaflet-bar-timecontrol a.timecontrol-date.loading,
+/*.leaflet-bar-timecontrol a.timecontrol-date.loading,
 .leaflet-bar-timecontrol a.timecontrol-date.loading:hover {
     background-color: #ffefa4;
-}
+}*/
 .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
     width: 200px;
+    background-color: #2f34349d !important;
+    border-radius: 20px;
+  
 }
 .leaflet-bar-timecontrol .timecontrol-speed {
     white-space: nowrap;
@@ -92,12 +118,17 @@
 .leaflet-bar-timecontrol .timecontrol-speed .slider {
     width: 55px;
     display: inline-block;
+    background-color: #2f34349d !important;
 }
 .leaflet-bar-timecontrol .timecontrol-speed .speed {
     width: 55px;
     display: inline-block;
     float: left;
-    text-align: right;
+    text-align: center;
+    margin-left: 33px;
+    background-color: #2f34349d;
+    border: 1px #fff solid;
+    border-radius:30px;
 }
 .leaflet-bar-timecontrol .timecontrol-play,
 .leaflet-bar-timecontrol .timecontrol-play:hover {
@@ -106,9 +137,9 @@
 .leaflet-bar-timecontrol .timecontrol-play span {
     font-size: 10px;
 }
-.leaflet-bar-timecontrol a.timecontrol-play.loading {
+/*.leaflet-bar-timecontrol a.timecontrol-play.loading {
     background-color: #ffefa4;
-}
+}*/
 
 /**
 * Slider/Knobs styles
@@ -118,34 +149,38 @@
     position: relative;
     height: 12px;
     margin: 6px;
-    border: 1px solid #a5a5a5;
+    border: 1px solid #fff;
+    border-radius: 10px;
     cursor: pointer;
 }
 .timecontrol-slider .slider.has-limits {
     margin-left: 15px;
     margin-right: 15px;
-    background-color: #ddd;
+    background-color: #2f34349d;
 }
 .timecontrol-slider .slider.has-limits .range {
     position: absolute;
     height: 10px;
-    // background-color: #fff;
+    border-radius: 10px;
     /*opacity: 0.5;*/
 }
 .timecontrol-slider .knob {
     position: absolute;
     width: 15px;
     height: 15px;
-    background-color: #ddd;
+    background-color: #fff;
     border-radius: 15px;
-    border: 1px solid #a5a5a5;
+    border: 1px solid #fff;
     /*use margins because on ie,leaflet will use top/left for positionning*/
     margin-top: -3px;
     margin-left: -4px;
     cursor: ew-resize;
     cursor: -webkit-grab;
-    cursor: -moz-grab;
+    cursor: -moz-grab;    
+  
 }
+
+
 .timecontrol-slider .knob:after {
     /** Big transparent block on top of the knob for easier grabbing on touch device*/
     content: ' ';
@@ -164,15 +199,15 @@
     width: 11px;
     height: 20px;
     border: none;
-    background-color: transparent;
+    background-color: #E49D2B;;
 }
 .timecontrol-slider .knob.upper {
     margin-top: -5px;
-    margin-left: -1px;
+    margin-left: -9px;
 }
 .timecontrol-slider .knob.lower {
     margin-top: -5px;
-    margin-left: -10px;
+    margin-left: -4px;
 }
 .timecontrol-slider .knob.lower:after {
     right:0px;
@@ -189,16 +224,16 @@
     top: 2px;
     width: 0;
     height: 0;
-    border-style: solid;
+    //border-style: solid;
 }
-.timecontrol-slider .knob.upper:before {
+/*..timecontrol-slider .knob.upper:before {
     border-width: 16px 0 0 10px;
     border-color: transparent transparent transparent #a5a5a5;
 }
-.timecontrol-slider .knob.lower:before {
+timecontrol-slider .knob.lower:before {
     border-width: 0 0 16px 10px;
     border-color: transparent transparent #a5a5a5;
-}
+}*/
 
 .timecontrol-slider .slider.dragging,
 .timecontrol-slider .dragging .knob,
@@ -233,43 +268,73 @@
         transform: rotate(360deg);
     }
 }
-.timecontrol-loop.looped,
+/*.timecontrol-loop.looped,
 .timecontrol-loop.looped:hover {
     background-color: #ddd;
     color: #094F8E;
+}*/
+
+.timecontrol-backward,
+.timecontrol-forward,
+.timecontrol-stop,
+.timecontrol-play,
+.timecontrol-loop,
+.timecontrol-speed{
+    height: 30px !important;
+    width: 30px !important;
+    background-color: #2f34349d!important;
+    border-radius: 30px;
+}
+
+.timecontrol-backward:hover,
+.timecontrol-forward:hover,
+.timecontrol-stop:hover,
+.timecontrol-play:hover,
+.timecontrol-loop:hover {
+    background-color:#E49D2B !important;
 }
 
 .timecontrol-backward:before,
 .timecontrol-forward:before,
 .timecontrol-stop:before,
 .timecontrol-play:before,
-.timecontrol-loop:before {
+.timecontrol-loop:before,
+.timecontrol-speed:before{
     width: 100%;
-    text-align: center;
-}
-
-.timecontrol-play:before {
-    position: absolute;
-    content: "";
-    background-image: url('/app/custom/assets/images/icons/playf.svg');
     background-size: contain;
     background-position: center center;
     display: block;
     width: 30px;
     height: 30px;
+    position: absolute;
+    content: "";
 }
+
+.timecontrol-play:before {
+   
+    background-image: url('/app/custom/assets/images/icons/playf.svg');
+}
+
 /*.timecontrol-play.play:before {
     content: "\e072";
 }*/
+
 .timecontrol-play.reverse:before {
-    content: "\e072";
+    background-image: url('/app/custom/assets/images/icons/playf.svg');
     -ms-transform: scaleX(-1);
     -webkit-transform: scaleX(-1);
     transform: scaleX(-1);
 }
-.timecontrol-play.pause:before {
+
+/*.timecontrol-play.pause:before {
     content: "\e074";
+}*/
+
+.timecontrol-play.pause:before {
+    background-image: url('/app/custom/assets/images/icons/stop.svg');
 }
+
+
 .timecontrol-play.reverse.pause:before {
     -ms-transform: none;
     -webkit-transform: none;
@@ -277,34 +342,41 @@
 }
 
 a.timecontrol-play.loading:before {
-    content: "\e031";
+    //content: "\e031";
+    background-image: url('/app/custom/assets/images/icons/loading.svg');
     opacity: 0.2;
     -webkit-animation: icon-rotation 6s infinite linear;
     animation: icon-rotation 6s infinite linear;
 }
+
 .timecontrol-date.loading:before {
-    content: "\e031";
+    //content: "\e031";
+    background-image: url('/app/custom/assets/images/icons/loading.svg');
     left: 5px;
     position: absolute;
     -webkit-animation: icon-rotation 6s infinite linear;
     animation: icon-rotation 6s infinite linear;
 }
 .timecontrol-speed:before {
-    content: "\e141";
+    //content: "\e141";
+    background-image: url('/app/custom/assets/images/icons/speed.svg');
     position: absolute;
-    left: 7px;
 }
 .timecontrol-stop:before {
-    content: "\e074";
+    //content: "\e074";
+    background-image: url('/app/custom/assets/images/icons/stop.svg');
 }
 .timecontrol-forward:before {
-    content: "\e075";
+    //content: "\e075";
+    background-image: url('/app/custom/assets/images/icons/play1hf.svg');
 }
 .timecontrol-backward:before {
-    content: "\e071";
+    //content: "\e071";
+    background-image: url('/app/custom/assets/images/icons/play1hb.svg');
 }
 .timecontrol-loop:before {
-    content: "\e030";
+    //content: "\e030";
+    background-image: url('/app/custom/assets/images/icons/loop.svg');
 }
 
 @media (max-width: 767px){

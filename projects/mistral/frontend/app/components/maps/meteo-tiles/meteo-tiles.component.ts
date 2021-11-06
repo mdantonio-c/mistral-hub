@@ -25,6 +25,7 @@ import {
   ObsFilter,
   Station,
   RunAvailable,
+  CodeDescPair,
 } from "../../../types";
 import {
   MOCK_MM_TEMP_OBS_RESPONSE,
@@ -34,6 +35,7 @@ import {
   MULTI_MODEL_TIME_RANGES,
   DatasetProduct as DP,
   MultiModelProduct,
+  DATASETS,
 } from "./meteo-tiles.config";
 
 declare module "leaflet" {
@@ -78,6 +80,7 @@ export class MeteoTilesComponent {
   dataset: string;
   private run: string;
   private legends: { [key: string]: L.Control } = {};
+  public availableDatasets: CodeDescPair[] = DATASETS;
   // license = this.license;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
 
@@ -1539,5 +1542,9 @@ export class MeteoTilesComponent {
       this.map.fire("overlayadd", obj);
       layer.addTo(this.map);
     }
+  }
+
+  printDatasetDescription(): string {
+    return this.availableDatasets.find((x) => x.code === this.dataset).desc;
   }
 }

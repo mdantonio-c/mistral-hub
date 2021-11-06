@@ -48,7 +48,7 @@
     align-content: center;
     align-items: center;
 
-    #toggle {
+   /* #toggle {
       visibility: hidden;
       z-index: 1;
 
@@ -66,18 +66,28 @@
         transition: 0.3s ease;
       }
 
-    }
+    }*/
 
     .toggle {
       cursor: pointer;
       margin-left: 190px;
-      margin-top: 12px;
+      background-image: url('/app/custom/assets/images/icons/mb_exit.svg');
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size:contain;
+      width:50px;
+      height: 50px;
+      position: absolute;
+      transition: 0.6s;
+     
 
       &.collapsed {
-        margin-left: 10px;
+        margin-left: 5px;
+        background-image: url('/app/custom/assets/images/icons/menu_burger.svg');
+        left:0;
       }
 
-      &,
+      /*&,
       &::after,
       &::before {
         position: absolute;
@@ -89,17 +99,17 @@
         z-index: 2;
         transition: 0.6s;
         border-bottom: 1px solid rgba(255, 255, 255, 0.349);
-      }
+      }/*/
 
-      &::before {
+      /*&::before {
         content: "";
         transform: translateY(-12px);
-      }
+      }*/
 
-      &::after {
+      /*&::after {
         content: "";
         transform: translateY(12px);
-      }
+      }*/
     }
 
     .sidenav-item {
@@ -116,6 +126,10 @@
       }
     }
 
+    .sidenav-item:first-of-type {
+      border-top: 1px solid rgba(255, 255, 255, 0.349);
+    }
+
     .selector {
       padding: 0;
       list-style: none;
@@ -123,11 +137,10 @@
       width: 100%;
       overflow-y: hidden;
       overflow-x: hidden;
-      margin: 20px;
-
+      margin-top: 55px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       flex-wrap: nowrap;
       //border-bottom: 1px solid rgba(255, 255, 255, 0.349);
@@ -166,7 +179,6 @@
 .sf,
 .cc,
 .input,
-.switch,
 .plus,
 .minus {
   background-size: contain;
@@ -207,11 +219,6 @@
   background-image: url("/app/custom/assets/images/icons/input.svg");
 }
 
-.switch {
-  background-image: url("/app/custom/assets/images/icons/switch.svg");
-  height: 70px;
-  margin-bottom: 10px;
-}
 
 .plus {
   background-image: url("/app/custom/assets/images/icons/plus.svg");
@@ -383,4 +390,52 @@
   text-decoration: none;
 }
 
-/*scorrimento pannello*/
+/*stile toggle multi-model*/
+
+.custom-control-label {
+  transform: rotate(90deg);
+  margin-top: 30px;
+  margin-left: 3px;
+}
+
+.collapsed .custom-switch {
+  padding-left: 35px;
+  padding-top: 18px;
+}
+
+.custom-control-label::before {
+ opacity: 0.6;
+ left: -48.25px;
+  width: 44px;
+  height: 25px;
+  border-radius: 12.5px;
+  background-color: #9C999A;
+  border-color: #9C999A !important;
+}
+
+.custom-switch .custom-control-label::after {
+    top: calc(3.6px  + 2px);
+    left: calc(-46.25px + 2px);
+    width: calc(24px - 4px);
+    height: calc(24px - 4px);
+    background-color: #E49D2B;
+    border-radius: 2.5rem;
+  display:block;
+    background-size: contain;
+    background-repeat:no-repeat;
+    content:"";
+    background-image: url('/app/custom/assets/images/icons/temper.svg');
+    transform: rotate(270deg);
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+  background-color: #9C999A;
+  border-color: #9C999A !important;
+ 
+}
+
+.custom-switch .custom-control-input:checked ~ .custom-control-label::after{
+  background-color: #E49D2B;
+  transform: translateX(16.75px) rotate(270deg);
+  background-image: url('/app/custom/assets/images/icons/humidity.svg');
+}

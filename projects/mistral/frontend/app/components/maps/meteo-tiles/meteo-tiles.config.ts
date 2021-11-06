@@ -1,3 +1,5 @@
+import { CodeDescPair } from "@app/types";
+
 /*
 export interface MMTimeRange {
   idx: number;
@@ -205,3 +207,9 @@ export enum MultiModelProduct {
   TM = "B12101",
   RH = "B13003",
 }
+
+export const DATASETS: CodeDescPair[] = [
+  { code: "lm5", desc: "Cosmo 5km" },
+  { code: "lm2.2", desc: "Cosmo 2km" },
+  { code: "iff", desc: "IFF" },
+];
