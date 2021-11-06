@@ -23,49 +23,15 @@
     (onZoomIn)="map.zoomIn()"
     (onZoomOut)="map.zoomOut()"
   ></map-side-nav>
-  <!--<div class="leaflet-top leaflet-left" style="left: 40px">
+
+
+  <div class="leaflet-top leaflet-left" style="left: 10px">
     <div class="leaflet-control" style="height: 20px">
-      <div
-        style="
-          background: rgba(255, 255, 255, 0.8);
-          font-size: 12px;
-          border-radius: 5px;
-          padding: 5px 10px;
-          -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-          -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-          box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-        "
-      >
-        <h6 style="text-align: center; color: #555">Input Dataset</h6>
-        <div id="toggle-result-format" class="btn-group" role="group">
-          <button
-            type="button"
-            class="btn btn-icon-border-classic no-rounded"
-            (click)="changeDataset('lm5')"
-            [ngClass]="{ 'active btn-primary': dataset === 'lm5' }"
-          >
+          <div class="selected-dataset">
             COSMO 5km
-          </button>
-          <button
-            type="button"
-            class="btn btn-icon-border-classic no-rounded"
-            (click)="changeDataset('lm2.2')"
-            [ngClass]="{ 'active btn-primary': dataset === 'lm2.2' }"
-          >
-            COSMO 2km
-          </button>
-          <button
-            type="button"
-            class="btn btn-icon-border-classic no-rounded"
-            (click)="changeDataset('iff')"
-            [ngClass]="{ 'active btn-primary': dataset === 'iff' }"
-          >
-            IFF
-          </button>
-        </div>
-      </div>
+          </div>
     </div>
-  </div>-->
+  </div>
 
   <!--<div class="leaflet-bottom leaflet-right" style="bottom: 10px">
     <div class="leaflet-control leaflet-bar leaflet-bar-horizontal">
