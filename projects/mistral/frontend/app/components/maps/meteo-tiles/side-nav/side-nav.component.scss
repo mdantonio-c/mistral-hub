@@ -436,33 +436,6 @@
 
 .custom-switch .custom-control-input:checked ~ .custom-control-label::after{
   background-color: #E49D2B;
-  transform: translateX(18.75px) rotate(270deg);
+  transform: translateX(16.75px) rotate(270deg);
   background-image: url('/app/custom/assets/images/icons/humidity.svg');
-}
-
-.switch-icons {
-  width: 23px;
-  height: 44px;
-  position: absolute;
-  bottom: 0;
-  left: 17px;
-}
-
-.switch-icons:before, .switch-icons:after{
-  position:absolute;
-  display:block;
-  width:21px;
-  height:22px;
-  background-size: contain;
-  background-repeat:no-repeat;
-  content:"";
-  top: -1px;
-  left: -1.5px;
-}
-
-.switch-icons:after {
-  
-  top: 24px;
-  width: 14px;
-  height: 14px;
 }

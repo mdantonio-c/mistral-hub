@@ -950,6 +950,21 @@ input[type="number"]::-webkit-outer-spin-button {
   flex: 1 1 auto;
 }
 
+.card-horizontal .img-square-wrapper img {
+  width:200px !important;
+}
+
+customfooter > div {
+  font-size:13px !important;
+}
+
+.navbar-light .navbar-toggler {
+  color:#fff;
+  font-size: 29px;
+  letter-spacing: -11px;
+  border:none;
+}
+
 /* adapt the alert box to the card*/
 .adapt-alert {
   padding-right: 1.25rem;

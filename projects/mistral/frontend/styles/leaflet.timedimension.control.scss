@@ -120,8 +120,11 @@
     width: 55px;
     display: inline-block;
     float: left;
-    text-align: right;
-    margin-left: 17px;
+    text-align: center;
+    margin-left: 33px;
+    background-color: #2f34349d;
+    border: 1px #fff solid;
+    border-radius:30px;
 }
 .leaflet-bar-timecontrol .timecontrol-play,
 .leaflet-bar-timecontrol .timecontrol-play:hover {
@@ -192,15 +195,15 @@
     width: 11px;
     height: 20px;
     border: none;
-    background-color: transparent;
+    background-color: #E49D2B;;
 }
 .timecontrol-slider .knob.upper {
     margin-top: -5px;
-    margin-left: -1px;
+    margin-left: -9px;
 }
 .timecontrol-slider .knob.lower {
     margin-top: -5px;
-    margin-left: -10px;
+    margin-left: -4px;
 }
 .timecontrol-slider .knob.lower:after {
     right:0px;
@@ -217,16 +220,16 @@
     top: 2px;
     width: 0;
     height: 0;
-    border-style: solid;
+    //border-style: solid;
 }
-.timecontrol-slider .knob.upper:before {
+/*..timecontrol-slider .knob.upper:before {
     border-width: 16px 0 0 10px;
     border-color: transparent transparent transparent #a5a5a5;
 }
-.timecontrol-slider .knob.lower:before {
+timecontrol-slider .knob.lower:before {
     border-width: 0 0 16px 10px;
     border-color: transparent transparent #a5a5a5;
-}
+}*/
 
 .timecontrol-slider .slider.dragging,
 .timecontrol-slider .dragging .knob,
@@ -275,7 +278,16 @@
 .timecontrol-speed{
     height: 30px !important;
     width: 30px !important;
-    background-color: transparent !important;
+    background-color: #2f34349d!important;
+    border-radius: 30px;
+}
+
+.timecontrol-backward:hover,
+.timecontrol-forward:hover,
+.timecontrol-stop:hover,
+.timecontrol-play:hover,
+.timecontrol-loop:hover {
+    background-color:#E49D2B !important;
 }
 
 .timecontrol-backward:before,
@@ -345,7 +357,6 @@ a.timecontrol-play.loading:before {
     //content: "\e141";
     background-image: url('/app/custom/assets/images/icons/speed.svg');
     position: absolute;
-    left: 7px;
 }
 .timecontrol-stop:before {
     //content: "\e074";
