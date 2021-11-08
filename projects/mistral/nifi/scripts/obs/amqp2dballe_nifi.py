@@ -21,15 +21,15 @@ DEFAULT_DSN = f"postgresql://{user}:{pw}@{host}:{port}/DBALLE"
 
 
 # network enabled report station
-network_filter = sys.argv[2].lower().split()
+network_filter = sys.argv[1].lower().split()
 print(network_filter)
 
 db = dballe.DB.connect(DEFAULT_DSN)
 importer = dballe.Importer("BUFR")
 
 data_now = datetime.datetime.now()
-data_max = data_now + datetime.timedelta(hours=int(sys.argv[3]))
-data_min = data_now - datetime.timedelta(hours=int(sys.argv[4]))
+data_max = data_now + datetime.timedelta(hours=int(sys.argv[2]))
+data_min = data_now - datetime.timedelta(hours=int(sys.argv[3]))
 print(data_max)
 print(data_min)
 
