@@ -3,7 +3,6 @@
     <!-- partial collapse -->
     <!--<input id="toggle" type="checkbox" />-->
     <label
-      for="toggle"
       class="toggle"
       (click)="isCollapsed = !isCollapsed"
       [class.collapsed]="isCollapsed"
@@ -35,29 +34,15 @@
           </a>
           <div class="selettore-orario">
             <div class="progressbar">
-              <label>
-                <input type="checkbox" name="hours" value="1" />
-                <span></span>
-                1h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="3" />
-                <span></span>
-                3h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="6" />
-                <span></span>
-                6h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="12" />
-                <span></span>
-                12h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="24" />
-                24h
+              <label *ngFor="let h of precipitationHours; let last = last">
+                <input
+                  type="checkbox"
+                  [checked]="h.selected"
+                  [attr.disabled]="isLayerActive('prp') ? null : true"
+                  (change)="changeHour($event, h, 'prp')"
+                />
+                <span *ngIf="!last"></span>
+                {{ h.value + "h" }}
               </label>
             </div>
           </div>
@@ -71,35 +56,16 @@
           </a>
           <div class="selettore-orario">
             <div class="progressbar">
-              <label>
-                <input type="checkbox" name="hours" value="1" />
-                <span></span>
-                1h
+              <label *ngFor="let h of snowHours; let last = last">
+                <input
+                  type="checkbox"
+                  [checked]="h.selected"
+                  [attr.disabled]="isLayerActive('sf') ? null : true"
+                  (change)="changeHour($event, h, 'sf')"
+                />
+                <span *ngIf="!last"></span>
+                {{ h.value + "h" }}
               </label>
-              <label>
-                <input type="checkbox" name="hours" value="3" />
-                <span></span>
-                3h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="6" />
-                <span></span>
-                6h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="12" />
-                <span></span>
-                12h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="24" />
-                24h
-              </label>
-              <!--<li class="active">1H</li>
-              <li class="active">3h</li>
-              <li class="active">6h</li>
-              <li>12h</li>
-              <li>24h</li>-->
             </div>
           </div>
         </ng-container>
@@ -111,21 +77,14 @@
             <span class="nav-text">Clouds</span>
           </a>
           <div class="selettore-clouds">
-            <label>
-              <input type="checkbox" name="clouds" value="low" />
-              Low
-            </label>
-            <label>
-              <input type="checkbox" name="clouds" value="medium" />
-              Medium
-            </label>
-            <label>
-              <input type="checkbox" name="clouds" value="high" />
-              High
-            </label>
-            <label>
-              <input type="checkbox" name="clouds" value="total" />
-              Total
+            <label *ngFor="let lvl of cloudLevels">
+              <input
+                type="checkbox"
+                [checked]="lvl.selected"
+                [attr.disabled]="isLayerActive('cc') ? null : true"
+                (change)="changeHour($event, lvl, 'cc')"
+              />
+              {{ lvl.value }}
             </label>
           </div>
         </ng-container>
@@ -137,23 +96,38 @@
             <span class="nav-text">Selected dataset</span>
           </a>
           <div class="selettore-dataset">
-            <a id="lm5" href="#" (click)="changeDataset($event, 'lm5')"
-              >Cosmo 5km</a
-            >
-            <a id="lm2.2" href="#" (click)="changeDataset($event, 'lm2.2')"
-              >Cosmo 2km</a
-            >
-            <a id="iff" href="#" (click)="changeDataset($event, 'iff')">IFF</a>
+            <ng-container *ngFor="let ds of availableDatasets">
+              <a
+                id="{{ ds.code }}"
+                href="#"
+                (click)="changeDataset($event, ds.code)"
+                [ngClass]="{ selected: dataset === ds.code }"
+                >{{ ds.desc }}</a
+              >
+            </ng-container>
           </div>
         </ng-container>
       </li>
       <li class="sidenav-item last multi-model">
-        <span class="switch"></span>
+        <div class="custom-control custom-switch">
+          <input
+            type="checkbox"
+            class="custom-control-input"
+            id="customSwitch1"
+          />
+          <label class="custom-control-label" for="customSwitch1"></label>
+        </div>
         <div class="selettore-multimodel" *ngIf="!isCollapsed">
           <a href="#" click-stop-propagation>
             <span class="nav-text">Multi-model ensemble</span>
-            <input type="checkbox" value="active" />
           </a>
+          <input
+            id="show-mm-ensemble"
+            type="checkbox"
+            [ngClass]="{ active: showed }"
+            [(ngModel)]="showed"
+            (click)="showHideMultiModel()"
+          />
           <p>Selected: temperature</p>
         </div>
       </li>

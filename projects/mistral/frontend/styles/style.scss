@@ -36,6 +36,11 @@
   src: url("../assets/font/Montserrat-SemiBold.ttf") format("truetype");
 }
 
+@font-face {
+  font-family: 'CourierPrime-Regular';
+  src: url('/app/custom/assets/font/CourierPrime-Regular.ttf') format('truetype');
+}
+
 body {
   font-family: "Montserrat-semibold";
 }
@@ -948,6 +953,21 @@ input[type="number"]::-webkit-outer-spin-button {
 .card-horizontal {
   display: flex;
   flex: 1 1 auto;
+}
+
+.card-horizontal .img-square-wrapper img {
+  width:200px !important;
+}
+
+customfooter > div {
+  font-size:13px !important;
+}
+
+.navbar-light .navbar-toggler {
+  color:#fff;
+  font-size: 29px;
+  letter-spacing: -11px;
+  border:none;
 }
 
 /* adapt the alert box to the card*/

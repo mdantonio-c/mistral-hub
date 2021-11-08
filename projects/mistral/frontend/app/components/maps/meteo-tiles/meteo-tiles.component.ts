@@ -25,6 +25,7 @@ import {
   ObsFilter,
   Station,
   RunAvailable,
+  CodeDescPair,
 } from "../../../types";
 import {
   MOCK_MM_TEMP_OBS_RESPONSE,
@@ -34,6 +35,7 @@ import {
   MULTI_MODEL_TIME_RANGES,
   DatasetProduct as DP,
   MultiModelProduct,
+  DATASETS,
 } from "./meteo-tiles.config";
 
 declare module "leaflet" {
@@ -78,6 +80,7 @@ export class MeteoTilesComponent {
   dataset: string;
   private run: string;
   private legends: { [key: string]: L.Control } = {};
+  public availableDatasets: CodeDescPair[] = DATASETS;
   // license = this.license;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
 
@@ -758,9 +761,21 @@ export class MeteoTilesComponent {
         //////////// CLOUD COVER ///////////
         ////////////////////////////////////
 
-        // Total Cloud Time Layer
-        [DP.TCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud-tcc/{d}{h}/{z}/{x}/{y}.png`, {
+        // Low Cloud Time Layer
+        [DP.LCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Medium Cloud Time Layer
+        [DP.MCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
@@ -782,25 +797,13 @@ export class MeteoTilesComponent {
           }),
           {}
         ),
-        // Medium Cloud Time Layer
-        [DP.MCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
+        // Total Cloud Time Layer
+        [DP.TCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud-tcc/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
             //opacity: 0.6,
-            // bounds: [[25.0, -25.0], [50.0, 47.0]],
-            bounds: bounds,
-          }),
-          {}
-        ),
-        // Low Cloud Time Layer
-        [DP.LCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.9,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -1533,11 +1536,17 @@ export class MeteoTilesComponent {
   toggleLayer(obj: Record<string, string | L.Layer>) {
     let layer: L.Layer = obj.layer as L.Layer;
     if (this.map.hasLayer(layer)) {
+      // console.log(`remove layer: ${obj.name}`);
       this.map.fire("overlayremove", obj);
       this.map.removeLayer(layer);
     } else {
+      // console.log(`add layer : ${obj.name}`);
       this.map.fire("overlayadd", obj);
       layer.addTo(this.map);
     }
+  }
+
+  printDatasetDescription(): string {
+    return this.availableDatasets.find((x) => x.code === this.dataset).desc;
   }
 }
