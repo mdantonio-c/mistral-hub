@@ -45,6 +45,17 @@ export class SideNavComponent implements OnInit, OnDestroy {
     { hour: 12, selected: false },
     { hour: 24, selected: false },
   ];
+  public snowHours: any = [
+    { hour: 1, selected: false },
+    { hour: 3, selected: false },
+    { hour: 6, selected: false },
+    { hour: 12, selected: false },
+    { hour: 24, selected: false },
+  ];
+  private hoursMap = {
+    prp: this.precipitationHours,
+    sf: this.snowHours,
+  };
 
   subscription: Subscription = new Subscription();
   routeDataSubscription!: Subscription;
@@ -104,22 +115,22 @@ export class SideNavComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleLayer(event: Event, layerId: string, isMultiLayers: boolean = false) {
+  toggleLayer(event: Event, layerId: string) {
     event.preventDefault();
     // FIXME can we do better with multi layer products? (i.e. prp)
     const fromActiveState: boolean = (
       event.target as HTMLInputElement
     ).className.includes("attivo");
     const op = fromActiveState ? "remove" : "add";
-    if (layerId === "prp") {
+    if (layerId === "prp" || layerId === "sf") {
       if (op === "remove") {
-        // reset precipitation hours
-        this.precipitationHours.forEach((e) => (e.selected = false));
+        // reset hours
+        this.hoursMap[layerId].forEach((e) => (e.selected = false));
       } else {
-        const found = this.precipitationHours.find((e) => e.selected);
+        const found = this.hoursMap[layerId].find((e) => e.selected);
         if (!found) {
           // select default
-          this.precipitationHours[0].selected = true;
+          this.hoursMap[layerId][0].selected = true;
         }
       }
     }
@@ -208,6 +219,18 @@ export class SideNavComponent implements OnInit, OnDestroy {
         }
         return DP.PREC1P;
       case "sf":
+        switch (lvl) {
+          case 1:
+            return DP.SF1;
+          case 3:
+            return DP.SF3;
+          case 6:
+            return DP.SF6;
+          case 12:
+            return DP.SF12;
+          case 24:
+            return DP.SF24;
+        }
         return DP.SF1;
       case "cc":
         return DP.LCC;
@@ -231,9 +254,9 @@ export class SideNavComponent implements OnInit, OnDestroy {
    * @param target
    * @param layerId
    */
-  changePrecipitationHour(event: Event, target, layerId: string) {
+  changeHour(event: Event, target, layerId: string) {
     target.selected = !target.selected;
-    let activeHoursCount = this.precipitationHours
+    let activeHoursCount = this.hoursMap[layerId]
       .filter((h) => h.selected)
       .reduce((accumulator) => {
         return accumulator + 1;

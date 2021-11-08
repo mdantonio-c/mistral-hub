@@ -3,7 +3,6 @@
     <!-- partial collapse -->
     <!--<input id="toggle" type="checkbox" />-->
     <label
-      for="toggle"
       class="toggle"
       (click)="isCollapsed = !isCollapsed"
       [class.collapsed]="isCollapsed"
@@ -28,12 +27,9 @@
         </a>
       </li>
       <li class="sidenav-item">
-        <span
-          class="prp clickable"
-          (click)="toggleLayer($event, 'prp', true)"
-        ></span>
+        <span class="prp clickable" (click)="toggleLayer($event, 'prp')"></span>
         <ng-container *ngIf="!isCollapsed">
-          <a href="#" (click)="toggleLayer($event, 'prp', true)">
+          <a href="#" (click)="toggleLayer($event, 'prp')">
             <span class="nav-text">precipitation</span>
           </a>
           <div class="selettore-orario">
@@ -43,7 +39,7 @@
                   type="checkbox"
                   [checked]="h.selected"
                   [attr.disabled]="isLayerActive('prp') ? null : true"
-                  (change)="changePrecipitationHour($event, h, 'prp')"
+                  (change)="changeHour($event, h, 'prp')"
                 />
                 <span *ngIf="!last"></span>
                 {{ h.hour + "h" }}
@@ -60,35 +56,16 @@
           </a>
           <div class="selettore-orario">
             <div class="progressbar">
-              <label>
-                <input type="checkbox" name="hours" value="1" />
-                <span></span>
-                1h
+              <label *ngFor="let h of snowHours; let last = last">
+                <input
+                  type="checkbox"
+                  [checked]="h.selected"
+                  [attr.disabled]="isLayerActive('sf') ? null : true"
+                  (change)="changeHour($event, h, 'sf')"
+                />
+                <span *ngIf="!last"></span>
+                {{ h.hour + "h" }}
               </label>
-              <label>
-                <input type="checkbox" name="hours" value="3" />
-                <span></span>
-                3h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="6" />
-                <span></span>
-                6h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="12" />
-                <span></span>
-                12h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="24" />
-                24h
-              </label>
-              <!--<li class="active">1H</li>
-              <li class="active">3h</li>
-              <li class="active">6h</li>
-              <li>12h</li>
-              <li>24h</li>-->
             </div>
           </div>
         </ng-container>
