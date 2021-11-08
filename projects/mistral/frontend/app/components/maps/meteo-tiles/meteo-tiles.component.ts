@@ -61,8 +61,8 @@ const MIN_ZOOM = 5;
   styleUrls: ["./meteo-tiles.component.scss"],
 })
 export class MeteoTilesComponent {
-  readonly DEFAULT_PRODUCT_COSMO = "Temperature at 2 meters";
-  readonly DEFAULT_PRODUCT_IFF = "Precipitation percentiles 1%";
+  readonly DEFAULT_PRODUCT_COSMO = DP.TM2;
+  readonly DEFAULT_PRODUCT_IFF = DP.TPPERC1;
   readonly LEGEND_POSITION = "bottomleft";
   readonly DEFAULT_DATASET = "lm5";
   // readonly license_iff =
