@@ -28,36 +28,25 @@
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="prp clickable" (click)="toggleLayer($event, 'prp')"></span>
+        <span
+          class="prp clickable"
+          (click)="toggleLayer($event, 'prp', true)"
+        ></span>
         <ng-container *ngIf="!isCollapsed">
-          <a href="#" (click)="toggleLayer($event, 'prp')">
+          <a href="#" (click)="toggleLayer($event, 'prp', true)">
             <span class="nav-text">precipitation</span>
           </a>
           <div class="selettore-orario">
             <div class="progressbar">
-              <label>
-                <input type="checkbox" name="hours" value="1" />
-                <span></span>
-                1h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="3" />
-                <span></span>
-                3h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="6" />
-                <span></span>
-                6h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="12" />
-                <span></span>
-                12h
-              </label>
-              <label>
-                <input type="checkbox" name="hours" value="24" />
-                24h
+              <label *ngFor="let h of precipitationHours; let last = last">
+                <input
+                  type="checkbox"
+                  [checked]="h.selected"
+                  [attr.disabled]="isLayerActive('prp') ? null : true"
+                  (change)="changePrecipitationHour($event, h, 'prp')"
+                />
+                <span *ngIf="!last"></span>
+                {{ h.hour + "h" }}
               </label>
             </div>
           </div>
@@ -151,7 +140,11 @@
       </li>
       <li class="sidenav-item last multi-model">
         <div class="custom-control custom-switch">
-          <input type="checkbox" class="custom-control-input" id="customSwitch1"/>
+          <input
+            type="checkbox"
+            class="custom-control-input"
+            id="customSwitch1"
+          />
           <label class="custom-control-label" for="customSwitch1"></label>
         </div>
         <div class="selettore-multimodel" *ngIf="!isCollapsed">
