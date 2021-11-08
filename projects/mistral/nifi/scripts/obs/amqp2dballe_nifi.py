@@ -9,7 +9,14 @@ import dballe
 # sys.stdout = open('out', 'w')
 # sys.stderr = open('err', 'w')
 
-DEFAULT_DSN = sys.argv[1]
+# get the DEFAULT DSN
+user = os.environ.get("ALCHEMY_USER")
+pw = os.environ.get("ALCHEMY_PASSWORD")
+host = os.environ.get("ALCHEMY_HOST")
+port = os.environ.get("ALCHEMY_PORT")
+
+
+DEFAULT_DSN = f"postgresql://{user}:{pw}@{host}:{port}/DBALLE"
 # print("Connecting: " + DEFAULT_DSN, file=sys.stdout)
 
 
