@@ -121,7 +121,13 @@
           <a href="#" click-stop-propagation>
             <span class="nav-text">Multi-model ensemble</span>
           </a>
-          <input type="checkbox" value="active" />
+          <input
+            id="show-mm-ensemble"
+            type="checkbox"
+            [ngClass]="{ active: showed }"
+            [(ngModel)]="showed"
+            (click)="showHideMultiModel()"
+          />
           <p>Selected: temperature</p>
         </div>
       </li>

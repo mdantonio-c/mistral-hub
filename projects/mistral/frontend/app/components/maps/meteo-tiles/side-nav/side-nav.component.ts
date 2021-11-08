@@ -35,6 +35,7 @@ export class SideNavComponent implements OnInit, OnDestroy {
   @Output() onLayerChange: EventEmitter<Record<string, string | L.Layer>> =
     new EventEmitter<Record<string, string | L.Layer>>();
   @Output() onDatasetChange: EventEmitter<string> = new EventEmitter<string>();
+  @Output() showMultiModel: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   public isCollapsed = false;
   public availableDatasets = DATASETS;
@@ -63,6 +64,7 @@ export class SideNavComponent implements OnInit, OnDestroy {
     sf: this.snowHours,
     cc: this.cloudLevels,
   };
+  public showed: boolean = false;
 
   subscription: Subscription = new Subscription();
   routeDataSubscription!: Subscription;
@@ -316,5 +318,10 @@ export class SideNavComponent implements OnInit, OnDestroy {
       }
     }
     return active;
+  }
+
+  showHideMultiModel() {
+    this.showed = !this.showed;
+    this.showMultiModel.emit(this.showed);
   }
 }
