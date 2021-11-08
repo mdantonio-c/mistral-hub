@@ -320,7 +320,7 @@ export class MeteoTilesComponent {
         this.map.invalidateSize();
         this.spinner.hide();
         // get multi-model products
-        // this.getMMProducts();
+        this.getMMProducts();
       });
   }
 
@@ -761,9 +761,21 @@ export class MeteoTilesComponent {
         //////////// CLOUD COVER ///////////
         ////////////////////////////////////
 
-        // Total Cloud Time Layer
-        [DP.TCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud-tcc/{d}{h}/{z}/{x}/{y}.png`, {
+        // Low Cloud Time Layer
+        [DP.LCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Medium Cloud Time Layer
+        [DP.MCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
@@ -785,25 +797,13 @@ export class MeteoTilesComponent {
           }),
           {}
         ),
-        // Medium Cloud Time Layer
-        [DP.MCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
+        // Total Cloud Time Layer
+        [DP.TCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud-tcc/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
             //opacity: 0.6,
-            // bounds: [[25.0, -25.0], [50.0, 47.0]],
-            bounds: bounds,
-          }),
-          {}
-        ),
-        // Low Cloud Time Layer
-        [DP.LCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.9,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),

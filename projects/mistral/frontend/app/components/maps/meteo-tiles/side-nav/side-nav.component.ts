@@ -39,22 +39,29 @@ export class SideNavComponent implements OnInit, OnDestroy {
   public isCollapsed = false;
   public availableDatasets = DATASETS;
   public precipitationHours: any = [
-    { hour: 1, selected: false },
-    { hour: 3, selected: false },
-    { hour: 6, selected: false },
-    { hour: 12, selected: false },
-    { hour: 24, selected: false },
+    { value: 1, selected: false, regex: "(1h)" },
+    { value: 3, selected: false, regex: "(3h)" },
+    { value: 6, selected: false, regex: "(6h)" },
+    { value: 12, selected: false, regex: "(12h)" },
+    { value: 24, selected: false, regex: "(24h)" },
   ];
   public snowHours: any = [
-    { hour: 1, selected: false },
-    { hour: 3, selected: false },
-    { hour: 6, selected: false },
-    { hour: 12, selected: false },
-    { hour: 24, selected: false },
+    { value: 1, selected: false, regex: "(1h)" },
+    { value: 3, selected: false, regex: "(3h)" },
+    { value: 6, selected: false, regex: "(6h)" },
+    { value: 12, selected: false, regex: "(12h)" },
+    { value: 24, selected: false, regex: "(24h)" },
+  ];
+  public cloudLevels: any = [
+    { value: "low", selected: false, regex: "Low" },
+    { value: "medium", selected: false, regex: "Medium" },
+    { value: "high", selected: false, regex: "High" },
+    { value: "total", selected: false, regex: "Total" },
   ];
   private hoursMap = {
     prp: this.precipitationHours,
     sf: this.snowHours,
+    cc: this.cloudLevels,
   };
 
   subscription: Subscription = new Subscription();
@@ -71,21 +78,20 @@ export class SideNavComponent implements OnInit, OnDestroy {
     }
 
     // activate layers
-    let activeLayers: string[] = [];
+    // let activeLayers: string[] = [];
     if (this.overlays) {
       for (const [key, layer] of Object.entries(this.overlays)) {
         let lCode = this._toLayerCode(key);
         if (lCode) {
           let el = this.el.nativeElement.querySelector(`.${lCode}`);
           if (this.map.hasLayer(layer)) {
-            activeLayers.push(key);
+            // activeLayers.push(key);
             this.renderer.addClass(el, "attivo");
           } else {
             this.renderer.removeClass(el, "attivo");
           }
         }
       }
-      console.log(`active layers`, activeLayers);
     }
   }
 
@@ -122,7 +128,7 @@ export class SideNavComponent implements OnInit, OnDestroy {
       event.target as HTMLInputElement
     ).className.includes("attivo");
     const op = fromActiveState ? "remove" : "add";
-    if (layerId === "prp" || layerId === "sf") {
+    if (["prp", "sf", "cc"].includes(layerId)) {
       if (op === "remove") {
         // reset hours
         this.hoursMap[layerId].forEach((e) => (e.selected = false));
@@ -187,6 +193,7 @@ export class SideNavComponent implements OnInit, OnDestroy {
       case DP.LCC:
       case DP.MCC:
       case DP.HCC:
+      case DP.TCC:
         return "cc";
       default:
         return null;
@@ -195,8 +202,11 @@ export class SideNavComponent implements OnInit, OnDestroy {
 
   private _toLayerTitle(
     code: string,
-    lvl: number | null = null
+    lvl: string | number | null = null
   ): string | null {
+    if (lvl) {
+      lvl = `${lvl}`;
+    }
     switch (code) {
       case "t2m":
         return DP.TM2;
@@ -206,33 +216,43 @@ export class SideNavComponent implements OnInit, OnDestroy {
         return DP.RH;
       case "prp":
         switch (lvl) {
-          case 1:
+          case "1":
             return DP.PREC1P;
-          case 3:
+          case "3":
             return DP.PREC3P;
-          case 6:
+          case "6":
             return DP.PREC6P;
-          case 12:
+          case "12":
             return DP.PREC12P;
-          case 24:
+          case "24":
             return DP.PREC24P;
         }
         return DP.PREC1P;
       case "sf":
         switch (lvl) {
-          case 1:
+          case "1":
             return DP.SF1;
-          case 3:
+          case "3":
             return DP.SF3;
-          case 6:
+          case "6":
             return DP.SF6;
-          case 12:
+          case "12":
             return DP.SF12;
-          case 24:
+          case "24":
             return DP.SF24;
         }
         return DP.SF1;
       case "cc":
+        switch (lvl) {
+          case "low":
+            return DP.LCC;
+          case "medium":
+            return DP.MCC;
+          case "high":
+            return DP.HCC;
+          case "total":
+            return DP.TCC;
+        }
         return DP.LCC;
       default:
         return null;
@@ -268,15 +288,15 @@ export class SideNavComponent implements OnInit, OnDestroy {
       // do nothing
       return;
     }
-    // console.log(`activate layer ${layerId}, hour ${target.hour}`);
+    // console.log(`activate layer ${layerId}, value ${target.value}`);
     for (const [key, layer] of Object.entries(this.overlays)) {
       if (
         layerId === this._toLayerCode(key) &&
-        key.includes(`(${target.hour}h)`)
+        key.includes(`${target.regex}`)
       ) {
         this.onLayerChange.emit({
           layer: layer,
-          name: this._toLayerTitle(layerId, target.hour),
+          name: this._toLayerTitle(layerId, target.value),
         });
         break;
       }
@@ -289,11 +309,12 @@ export class SideNavComponent implements OnInit, OnDestroy {
    */
   isLayerActive(layerId: string): boolean {
     if (!this.overlays) return false;
+    let active = false;
     for (const [key, layer] of Object.entries(this.overlays)) {
-      if (layerId === this._toLayerCode(key)) {
-        return this.map.hasLayer(layer) ? true : false;
+      if (layerId === this._toLayerCode(key) && this.map.hasLayer(layer)) {
+        active = true;
       }
     }
-    return false;
+    return active;
   }
 }

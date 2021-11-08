@@ -42,7 +42,7 @@
                   (change)="changeHour($event, h, 'prp')"
                 />
                 <span *ngIf="!last"></span>
-                {{ h.hour + "h" }}
+                {{ h.value + "h" }}
               </label>
             </div>
           </div>
@@ -64,7 +64,7 @@
                   (change)="changeHour($event, h, 'sf')"
                 />
                 <span *ngIf="!last"></span>
-                {{ h.hour + "h" }}
+                {{ h.value + "h" }}
               </label>
             </div>
           </div>
@@ -77,21 +77,14 @@
             <span class="nav-text">Clouds</span>
           </a>
           <div class="selettore-clouds">
-            <label>
-              <input type="checkbox" name="clouds" value="low" />
-              Low
-            </label>
-            <label>
-              <input type="checkbox" name="clouds" value="medium" />
-              Medium
-            </label>
-            <label>
-              <input type="checkbox" name="clouds" value="high" />
-              High
-            </label>
-            <label>
-              <input type="checkbox" name="clouds" value="total" />
-              Total
+            <label *ngFor="let lvl of cloudLevels">
+              <input
+                type="checkbox"
+                [checked]="lvl.selected"
+                [attr.disabled]="isLayerActive('cc') ? null : true"
+                (change)="changeHour($event, lvl, 'cc')"
+              />
+              {{ lvl.value }}
             </label>
           </div>
         </ng-container>
