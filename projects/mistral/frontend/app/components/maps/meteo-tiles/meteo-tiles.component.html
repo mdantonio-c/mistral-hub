@@ -17,12 +17,13 @@
   <map-side-nav
     [overlays]="layersControl['overlays']"
     [dataset]="dataset"
+    [isShowedMultiModel]="showed"
     [map]="map"
     (onLayerChange)="toggleLayer($event)"
     (onDatasetChange)="changeDataset($event)"
     (onZoomIn)="map.zoomIn()"
     (onZoomOut)="map.zoomOut()"
-    (showMultiModel)="showed = $event"
+    (onShowMultiModelChange)="showHideMultiModel()"
   ></map-side-nav>
 
   <div class="leaflet-top leaflet-left" style="left: 10px">

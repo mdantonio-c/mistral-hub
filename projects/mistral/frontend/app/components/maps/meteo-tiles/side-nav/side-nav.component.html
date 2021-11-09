@@ -34,7 +34,7 @@
           </a>
           <div class="selettore-orario">
             <div class="progressbar">
-              <label *ngFor="let h of precipitationHours; let last = last">
+              <label *ngFor="let h of PRECIPITATION_HOURS; let last = last">
                 <input
                   type="checkbox"
                   [checked]="h.selected"
@@ -56,7 +56,7 @@
           </a>
           <div class="selettore-orario">
             <div class="progressbar">
-              <label *ngFor="let h of snowHours; let last = last">
+              <label *ngFor="let h of SNOW_HOURS; let last = last">
                 <input
                   type="checkbox"
                   [checked]="h.selected"
@@ -77,7 +77,7 @@
             <span class="nav-text">Clouds</span>
           </a>
           <div class="selettore-clouds">
-            <label *ngFor="let lvl of cloudLevels">
+            <label *ngFor="let lvl of CLOUD_LEVELS">
               <input
                 type="checkbox"
                 [checked]="lvl.selected"
@@ -124,9 +124,10 @@
           <input
             id="show-mm-ensemble"
             type="checkbox"
-            [ngClass]="{ active: showed }"
-            [(ngModel)]="showed"
-            (click)="showHideMultiModel()"
+            class="clickable"
+            [ngClass]="{ active: isShowedMultiModel }"
+            [(ngModel)]="isShowedMultiModel"
+            (click)="toggleMultiModel()"
           />
           <p>Selected: temperature</p>
         </div>

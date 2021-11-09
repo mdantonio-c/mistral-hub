@@ -143,7 +143,7 @@ export class MeteoTilesComponent {
   };
   private runAvailable: RunAvailable;
 
-  public showed: boolean = false;
+  public showed: boolean = true;
   public mmProduct = MultiModelProduct.TM;
   public MultiModelProduct = MultiModelProduct;
   private markers: L.Marker[] = [];
@@ -320,7 +320,7 @@ export class MeteoTilesComponent {
         this.map.invalidateSize();
         this.spinner.hide();
         // get multi-model products
-        // this.getMMProducts();
+        this.getMMProducts();
       });
   }
 
