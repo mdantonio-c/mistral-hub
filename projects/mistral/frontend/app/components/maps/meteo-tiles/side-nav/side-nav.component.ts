@@ -1,22 +1,21 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
-  Output,
-  OnDestroy,
-  OnInit,
-  HostListener,
-  EventEmitter,
   ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnChanges,
+  Output,
   Renderer2,
   SimpleChanges,
 } from "@angular/core";
 import {
   DatasetProduct as DP,
   DATASETS,
-  // MultiModelProduct,
+  MultiModelProduct,
+  MultiModelProductLabel,
 } from "../meteo-tiles.config";
-import { Subscription } from "rxjs";
 import * as L from "leaflet";
 
 @Component({
@@ -25,53 +24,59 @@ import * as L from "leaflet";
   templateUrl: "./side-nav.component.html",
   styleUrls: ["side-nav.component.scss"],
 })
-export class SideNavComponent implements OnInit, OnDestroy {
+export class SideNavComponent implements OnChanges {
   @Input() overlays: L.Control.LayersObject;
   @Input() dataset: string;
+  // Reference to the primary map object
   @Input() map: L.Map;
 
+  // Change zoom level of the map
   @Output() onZoomIn: EventEmitter<null> = new EventEmitter<null>();
   @Output() onZoomOut: EventEmitter<null> = new EventEmitter<null>();
+
   @Output() onLayerChange: EventEmitter<Record<string, string | L.Layer>> =
     new EventEmitter<Record<string, string | L.Layer>>();
   @Output() onDatasetChange: EventEmitter<string> = new EventEmitter<string>();
-  @Output() showMultiModel: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  public isCollapsed = false;
-  public availableDatasets = DATASETS;
-  public precipitationHours: any = [
+  // Multi Model Ensemble
+  @Input() isShowedMultiModel: boolean;
+  @Output() onShowMultiModelChange: EventEmitter<boolean> =
+    new EventEmitter<boolean>();
+  @Output() onMMProductChange: EventEmitter<MultiModelProduct> =
+    new EventEmitter<MultiModelProduct>();
+  mmProduct: MultiModelProduct = MultiModelProduct.TM;
+  mmProductSwitch: boolean = false;
+  MultiModelProductLabel = MultiModelProductLabel;
+
+  isCollapsed = false;
+  availableDatasets = DATASETS;
+  readonly PRECIPITATION_HOURS: any = [
     { value: 1, selected: false, regex: "(1h)" },
     { value: 3, selected: false, regex: "(3h)" },
     { value: 6, selected: false, regex: "(6h)" },
     { value: 12, selected: false, regex: "(12h)" },
     { value: 24, selected: false, regex: "(24h)" },
   ];
-  public snowHours: any = [
+  readonly SNOW_HOURS: any = [
     { value: 1, selected: false, regex: "(1h)" },
     { value: 3, selected: false, regex: "(3h)" },
     { value: 6, selected: false, regex: "(6h)" },
     { value: 12, selected: false, regex: "(12h)" },
     { value: 24, selected: false, regex: "(24h)" },
   ];
-  public cloudLevels: any = [
+  readonly CLOUD_LEVELS: any = [
     { value: "low", selected: false, regex: "Low" },
     { value: "medium", selected: false, regex: "Medium" },
     { value: "high", selected: false, regex: "High" },
     { value: "total", selected: false, regex: "Total" },
   ];
   private hoursMap = {
-    prp: this.precipitationHours,
-    sf: this.snowHours,
-    cc: this.cloudLevels,
+    prp: this.PRECIPITATION_HOURS,
+    sf: this.SNOW_HOURS,
+    cc: this.CLOUD_LEVELS,
   };
-  public showed: boolean = false;
-
-  subscription: Subscription = new Subscription();
-  routeDataSubscription!: Subscription;
 
   constructor(private el: ElementRef, private renderer: Renderer2) {}
-
-  ngOnInit() {}
 
   ngOnChanges(changes: SimpleChanges): void {
     const isFirstChange = Object.values(changes).some((c) => c.isFirstChange());
@@ -95,10 +100,6 @@ export class SideNavComponent implements OnInit, OnDestroy {
         }
       }
     }
-  }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
   }
 
   @HostListener("dblclick", ["$event"])
@@ -320,8 +321,21 @@ export class SideNavComponent implements OnInit, OnDestroy {
     return active;
   }
 
-  showHideMultiModel() {
-    this.showed = !this.showed;
-    this.showMultiModel.emit(this.showed);
+  toggleMultiModel() {
+    /*const op = this.isShowedMultiModel ? 'off' : 'on';
+    console.log(`Turn ${op} Multi Model Ensemble`);*/
+    this.onShowMultiModelChange.emit(this.isShowedMultiModel);
+  }
+
+  /**
+   * Switch Multi Model Ensemble from one value to the other.
+   */
+  switchMMProduct() {
+    this.mmProductSwitch = !this.mmProductSwitch;
+    this.mmProduct = this.mmProductSwitch
+      ? MultiModelProduct.RH
+      : MultiModelProduct.TM;
+    // console.log(`change Multi Model Ensemble to ${MultiModelProductLabel.get(this.mmProduct)}`);
+    this.onMMProductChange.emit(this.mmProduct);
   }
 }
