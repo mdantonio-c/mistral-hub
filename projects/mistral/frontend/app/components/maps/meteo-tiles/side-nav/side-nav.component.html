@@ -9,25 +9,49 @@
     ></label>
     <ul class="selector">
       <li class="sidenav-item">
-        <span class="t2m clickable" (click)="toggleLayer($event, 't2m')"></span>
+        <span
+          class="t2m clickable"
+          (click)="toggleLayer($event, 't2m')"
+          placement="left"
+          [ngbTooltip]="'Temperature'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 't2m')">
           <span class="nav-text">Temperature</span>
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="prs clickable" (click)="toggleLayer($event, 'prs')"></span>
+        <span
+          class="prs clickable"
+          (click)="toggleLayer($event, 'prs')"
+          placement="left"
+          [ngbTooltip]="'Pressure'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'prs')">
           <span class="nav-text">Pressure</span>
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="rh clickable" (click)="toggleLayer($event, 'rh')"></span>
+        <span
+          class="rh clickable"
+          (click)="toggleLayer($event, 'rh')"
+          placement="left"
+          [ngbTooltip]="'Relative humidity'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'rh')">
           <span class="nav-text">Relative humidity</span>
         </a>
       </li>
       <li class="sidenav-item">
-        <span class="prp clickable" (click)="toggleLayer($event, 'prp')"></span>
+        <span
+          class="prp clickable"
+          (click)="toggleLayer($event, 'prp')"
+          placement="left"
+          [ngbTooltip]="'Precipitation'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#" (click)="toggleLayer($event, 'prp')">
             <span class="nav-text">precipitation</span>
@@ -49,7 +73,13 @@
         </ng-container>
       </li>
       <li class="sidenav-item">
-        <span class="sf clickable" (click)="toggleLayer($event, 'sf')"></span>
+        <span
+          class="sf clickable"
+          (click)="toggleLayer($event, 'sf')"
+          placement="left"
+          [ngbTooltip]="'Snow Fall'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#" (click)="toggleLayer($event, 'sf')">
             <span class="nav-text">Snow Fall</span>
@@ -71,7 +101,13 @@
         </ng-container>
       </li>
       <li class="sidenav-item last">
-        <span class="cc clickable" (click)="toggleLayer($event, 'cc')"></span>
+        <span
+          class="cc clickable"
+          (click)="toggleLayer($event, 'cc')"
+          placement="left"
+          [ngbTooltip]="'Clouds'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#" (click)="toggleLayer($event, 'cc')">
             <span class="nav-text">Clouds</span>
@@ -139,13 +175,25 @@
         </div>
       </li>
       <li class="sidenav-item">
-        <span class="plus clickable" (click)="zoom($event, 'in')"></span>
+        <span
+          class="plus clickable"
+          (click)="zoom($event, 'in')"
+          placement="left"
+          [ngbTooltip]="'Zoom in'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
           <span class="nav-text">Zoom in</span>
         </a>
       </li>
       <li class="sidenav-item last">
-        <span class="minus clickable" (click)="zoom($event, 'out')"></span>
+        <span
+          class="minus clickable"
+          (click)="zoom($event, 'out')"
+          placement="left"
+          [ngbTooltip]="'Zoom out'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
           <span class="nav-text">Zoom out</span>
         </a>
