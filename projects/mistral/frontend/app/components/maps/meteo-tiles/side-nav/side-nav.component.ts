@@ -1,21 +1,21 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
-  Output,
-  OnChanges,
-  HostListener,
-  EventEmitter,
   ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnChanges,
+  Output,
   Renderer2,
   SimpleChanges,
 } from "@angular/core";
 import {
   DatasetProduct as DP,
   DATASETS,
-  // MultiModelProduct,
+  MultiModelProduct,
+  MultiModelProductLabel,
 } from "../meteo-tiles.config";
-import { Subscription } from "rxjs";
 import * as L from "leaflet";
 
 @Component({
@@ -42,8 +42,11 @@ export class SideNavComponent implements OnChanges {
   @Input() isShowedMultiModel: boolean;
   @Output() onShowMultiModelChange: EventEmitter<boolean> =
     new EventEmitter<boolean>();
-  @Output() onMMProductChange: EventEmitter<string> =
-    new EventEmitter<string>();
+  @Output() onMMProductChange: EventEmitter<MultiModelProduct> =
+    new EventEmitter<MultiModelProduct>();
+  mmProduct: MultiModelProduct = MultiModelProduct.TM;
+  mmProductSwitch: boolean = false;
+  MultiModelProductLabel = MultiModelProductLabel;
 
   isCollapsed = false;
   availableDatasets = DATASETS;
@@ -324,7 +327,15 @@ export class SideNavComponent implements OnChanges {
     this.onShowMultiModelChange.emit(this.isShowedMultiModel);
   }
 
-  changeMMProduct(product: string) {
-    this.onMMProductChange.emit(product);
+  /**
+   * Switch Multi Model Ensemble from one value to the other.
+   */
+  switchMMProduct() {
+    this.mmProductSwitch = !this.mmProductSwitch;
+    this.mmProduct = this.mmProductSwitch
+      ? MultiModelProduct.RH
+      : MultiModelProduct.TM;
+    // console.log(`change Multi Model Ensemble to ${MultiModelProductLabel.get(this.mmProduct)}`);
+    this.onMMProductChange.emit(this.mmProduct);
   }
 }

@@ -207,6 +207,11 @@ export enum MultiModelProduct {
   TM = "B12101",
   RH = "B13003",
 }
+// @ts-ignore
+export const MultiModelProductLabel = new Map<string, string>([
+  [MultiModelProduct.TM, "Temperature"],
+  [MultiModelProduct.RH, "Relative Humidity"],
+]);
 
 export const DATASETS: CodeDescPair[] = [
   { code: "lm5", desc: "Cosmo 5km" },

@@ -113,9 +113,12 @@
           <input
             type="checkbox"
             class="custom-control-input"
-            id="customSwitch1"
+            [checked]="mmProductSwitch"
+            [attr.disabled]="isShowedMultiModel ? null : true"
+            (change)="switchMMProduct()"
+            id="mmSwitch"
           />
-          <label class="custom-control-label" for="customSwitch1"></label>
+          <label class="custom-control-label" for="mmSwitch"></label>
         </div>
         <div class="selettore-multimodel" *ngIf="!isCollapsed">
           <a href="#" click-stop-propagation>
@@ -129,7 +132,10 @@
             [(ngModel)]="isShowedMultiModel"
             (click)="toggleMultiModel()"
           />
-          <p>Selected: temperature</p>
+          <p>
+            Selected: <span></span
+            >{{ MultiModelProductLabel.get(this.mmProduct) }}
+          </p>
         </div>
       </li>
       <li class="sidenav-item">
