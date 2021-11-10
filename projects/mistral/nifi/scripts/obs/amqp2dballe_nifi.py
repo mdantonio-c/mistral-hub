@@ -9,20 +9,27 @@ import dballe
 # sys.stdout = open('out', 'w')
 # sys.stderr = open('err', 'w')
 
-DEFAULT_DSN = sys.argv[1]
+# get the DEFAULT DSN
+user = os.environ.get("ALCHEMY_USER")
+pw = os.environ.get("ALCHEMY_PASSWORD")
+host = os.environ.get("ALCHEMY_HOST")
+port = os.environ.get("ALCHEMY_PORT")
+
+
+DEFAULT_DSN = f"postgresql://{user}:{pw}@{host}:{port}/DBALLE"
 # print("Connecting: " + DEFAULT_DSN, file=sys.stdout)
 
 
 # network enabled report station
-network_filter = sys.argv[2].lower().split()
+network_filter = sys.argv[1].lower().split()
 print(network_filter)
 
 db = dballe.DB.connect(DEFAULT_DSN)
 importer = dballe.Importer("BUFR")
 
 data_now = datetime.datetime.now()
-data_max = data_now + datetime.timedelta(hours=int(sys.argv[3]))
-data_min = data_now - datetime.timedelta(hours=int(sys.argv[4]))
+data_max = data_now + datetime.timedelta(hours=int(sys.argv[2]))
+data_min = data_now - datetime.timedelta(hours=int(sys.argv[3]))
 print(data_max)
 print(data_min)
 
