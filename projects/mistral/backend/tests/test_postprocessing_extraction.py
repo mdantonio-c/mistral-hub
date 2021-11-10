@@ -16,10 +16,7 @@ from mistral.services.dballe import BeDballe
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi.connectors import sqlalchemy
 from restapi.connectors.celery import Ignore
-from restapi.tests import API_URI, BaseTests
-
-# Workaround for typing FlaskClient copied by restapi.tests
-FlaskClient = Any
+from restapi.tests import API_URI, BaseTests, FlaskClient
 
 TASK_NAME = "data_extract"
 
