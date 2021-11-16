@@ -73,6 +73,7 @@ services:
 
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
+      APP_MODE: ${APP_MODE}
       CURRENT_UID: ${CURRENT_UID}
       CURRENT_GID: ${CURRENT_GID}
 
