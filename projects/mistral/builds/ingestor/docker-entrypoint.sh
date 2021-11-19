@@ -15,7 +15,7 @@ if [[ "${GROUPID}" != "${CURRENT_GID}" ]]; then
     groupmod -og ${CURRENT_GID} ${NIFI_USER}
 fi
 
-if [ "$APP_MODE" == "production" ]; then
+if [ "${APP_MODE}" == "production" ]; then
    openssl pkcs12 -export -out ${KEYSTORE_PATH} -in /ssl/real/fullchain1.pem -inkey /ssl/real/privkey1.pem -passin pass:${KEYSTORE_PASSWORD} -passout pass:${KEYSTORE_PASSWORD}
    chown nifi ${KEYSTORE_PATH}
 fi
