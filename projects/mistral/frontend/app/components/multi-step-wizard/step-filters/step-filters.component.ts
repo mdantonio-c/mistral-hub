@@ -402,5 +402,6 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           .setValue(e.target.checked);
       }
     });
+    this.onFilterChange();
   }
 }
