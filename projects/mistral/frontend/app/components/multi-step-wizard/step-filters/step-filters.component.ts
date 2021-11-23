@@ -31,6 +31,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   filterForm: FormGroup;
   filters: GenericItems;
   user: User;
+  public isCollapsed = true;
 
   constructor(
     private fb: FormBuilder,
