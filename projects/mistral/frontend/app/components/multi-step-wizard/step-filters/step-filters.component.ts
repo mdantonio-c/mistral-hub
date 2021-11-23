@@ -32,6 +32,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   filters: GenericItems;
   user: User;
   public isCollapsed = true;
+  levelTypes: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -153,6 +154,15 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
               (this.filterForm.controls.filters as FormArray).push(
                 this.getFilterGroup(entry[0], entry[1])
               );
+              // group filter values
+              if (entry[0] === "level") {
+                let arr: string[] = [];
+                (<Array<any>>entry[1]).forEach(function (obj) {
+                  arr.push(obj.lt);
+                });
+                // @ts-ignore
+                this.levelTypes = [...new Set(arr)];
+              }
             }
           });
           //console.log(this.filterForm.get('filters'));
@@ -378,5 +388,19 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
         break;
     }
     return desc;
+  }
+
+  onLevelTypeChange(e, cIndex) {
+    // @ts-ignore
+    const level: FormGroup = (
+      this.filterForm.controls.filters as FormArray
+    ).controls.at(cIndex);
+    this.filters["level"].forEach((l, i) => {
+      if (l["lt"] == e.target.value) {
+        (level.controls.values as FormArray).controls
+          .at(i)
+          .setValue(e.target.checked);
+      }
+    });
   }
 }

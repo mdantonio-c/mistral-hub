@@ -146,23 +146,24 @@
               [attr.aria-expanded]="!isCollapsed"
               aria-controls="collapseExample"
             >
-              <i *ngIf="isCollapsed" class="fa fa-angle-right px-2"></i>
-              <i *ngIf="!isCollapsed" class="fa fa-angle-down px-2"></i>
+              <i
+                class="fa px-2"
+                [ngClass]="isCollapsed ? 'fa-angle-right' : 'fa-angle-down'"
+              ></i>
               Select by leveltype
             </button>
-
             <div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
               <div class="card-body">
                 <ul class="row no-gutters">
-                  <li
-                    formArrayName="values"
-                    *ngFor="let v of f.controls.values.controls; let j = index"
-                    class="col-sm-12 col-md-6"
-                  >
-                    <input class="mst--input-checkbox" type="checkbox" />
-                    <label for="{{ f.value.name + '-' + j }}">{{
-                      filters[f.value.name][j].lt
-                    }}</label>
+                  <li *ngFor="let lt of levelTypes" class="col-sm-4">
+                    <input
+                      [id]="'lt-' + lt"
+                      class="mst--input-checkbox"
+                      type="checkbox"
+                      [value]="lt"
+                      (change)="onLevelTypeChange($event, i)"
+                    />
+                    <label [for]="'lt-' + lt">{{ lt }}</label>
                   </li>
                 </ul>
               </div>
