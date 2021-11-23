@@ -47,7 +47,7 @@ services:
       LASTDAYS: ${LASTDAYS}
       PLATFORM: ${PLATFORM}
 
-  celery-beat:
+  celerybeat:
     build: ${PROJECT_DIR}/builds/backend
     image: meteohub/backend:${RAPYDO_VERSION}
 
