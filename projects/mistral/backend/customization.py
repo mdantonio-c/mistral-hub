@@ -27,7 +27,7 @@ class Customizer(BaseCustomizer):
         properties.setdefault("max_output_size", 1073741824)
         properties.setdefault("max_templates", 1)
         properties.setdefault("allowed_postprocessing", False)
-        properties.setdefault("allowed_schedule", False)
+        properties.setdefault("allowed_schedule", True)
         properties.setdefault("allowed_obs_archive", True)
         properties.setdefault("request_par_hour", 10)
         return properties, extra_properties
