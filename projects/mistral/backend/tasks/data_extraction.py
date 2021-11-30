@@ -186,6 +186,7 @@ def data_extract(
                 datasets=datasets,
                 query=query,
                 schedule_id=schedule_id,
+                opendata=opendata,
             )
         # Observed data, in a future
         # the if statement will be for data using arkimet and data using dballe
@@ -330,6 +331,7 @@ def data_extract(
                 db,
                 output_filename=output_file_name,
                 schedule_id=schedule_id,
+                opendata=opendata,
             )
 
         if data_size > 0:
@@ -426,6 +428,7 @@ def check_user_quota(
     query=None,
     output_filename=None,
     schedule_id=None,
+    opendata=False,
 ):
     if datasets:
         # check the output size
@@ -444,59 +447,65 @@ def check_user_quota(
     # check max filesize allowed for each request
     user = db.User.query.filter_by(id=user_id).first()
     max_output_size = SqlApiDbManager.get_user_permissions(user, param="output_size")
-    if max_output_size and esti_data_size > max_output_size:
-        # save error message in db
-        message = (
-            "The resulting output size exceed the size allowed for a single request"
+
+    if not opendata:
+        if max_output_size and esti_data_size > max_output_size:
+            # save error message in db
+            message = (
+                "The resulting output size exceed the size allowed for a single request"
+            )
+            # check if this request comes from a schedule. If so deactivate the schedule.
+            if schedule_id is not None:
+                # load schedule for this request
+                schedule = db.Schedule.query.get(schedule_id)
+                log.debug("Deactivate periodic task for schedule {}", schedule_id)
+                if schedule.on_data_ready is False:
+                    if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
+                        raise Exception(
+                            f"Cannot delete periodic task for schedule {schedule_id}"
+                        )
+                SqlApiDbManager.update_schedule_status(db, schedule_id, False)
+                message += f' <br/><br/>Schedule "{schedule.name}" was temporary disabled for limit quota exceeded.'
+            # for already extracted observed data, delete the file
+            if output_filename:
+                user_dir.joinpath(output_filename).unlink()
+
+            raise MaxOutputSizeExceeded(message)
+
+        # check for current used space
+        used_quota = int(subprocess.check_output(["du", "-sb", user_dir]).split()[0])
+        log.info("Current used space: {} ({})", used_quota, human_size(used_quota))
+
+        # check for exceeding quota
+        max_user_quota = (
+            db.session.query(db.User.disk_quota).filter_by(id=user_id).scalar()
         )
-        # check if this request comes from a schedule. If so deactivate the schedule.
-        if schedule_id is not None:
-            # load schedule for this request
-            schedule = db.Schedule.query.get(schedule_id)
-            log.debug("Deactivate periodic task for schedule {}", schedule_id)
-            if schedule.on_data_ready is False:
-                if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
-                    raise Exception(
-                        f"Cannot delete periodic task for schedule {schedule_id}"
-                    )
-            SqlApiDbManager.update_schedule_status(db, schedule_id, False)
-            message += f' <br/><br/>Schedule "{schedule.name}" was temporary disabled for limit quota exceeded.'
-        # for already extracted observed data, delete the file
-        if output_filename:
-            user_dir.joinpath(output_filename).unlink()
+        log.debug("MAX USER QUOTA for user<{}>: {}", user_id, max_user_quota)
+        if used_quota + esti_data_size > max_user_quota:
+            free_space = max(max_user_quota - used_quota, 0)
+            # save error message in db
+            message = (
+                "Disk quota exceeded: required size {}; remaining space {}".format(
+                    human_size(esti_data_size), human_size(free_space)
+                )
+            )
+            # check if this request comes from a schedule. If so deactivate the schedule.
+            if schedule_id is not None:
+                # load schedule for this request
+                schedule = db.Schedule.query.get(schedule_id)
+                log.debug("Deactivate periodic task for schedule {}", schedule_id)
+                if schedule.on_data_ready is False:
+                    if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
+                        raise Exception(
+                            f"Cannot delete periodic task for schedule {schedule_id}"
+                        )
+                SqlApiDbManager.update_schedule_status(db, schedule_id, False)
+                message += f' <br/><br/>Schedule "{schedule.name}" was temporary disabled for limit quota exceeded.'
+            # for already extracted observed data, delete the file
+            if output_filename:
+                user_dir.joinpath(output_filename).unlink()
 
-        raise MaxOutputSizeExceeded(message)
-
-    # check for current used space
-    used_quota = int(subprocess.check_output(["du", "-sb", user_dir]).split()[0])
-    log.info("Current used space: {} ({})", used_quota, human_size(used_quota))
-
-    # check for exceeding quota
-    max_user_quota = db.session.query(db.User.disk_quota).filter_by(id=user_id).scalar()
-    log.debug("MAX USER QUOTA for user<{}>: {}", user_id, max_user_quota)
-    if used_quota + esti_data_size > max_user_quota:
-        free_space = max(max_user_quota - used_quota, 0)
-        # save error message in db
-        message = "Disk quota exceeded: required size {}; remaining space {}".format(
-            human_size(esti_data_size), human_size(free_space)
-        )
-        # check if this request comes from a schedule. If so deactivate the schedule.
-        if schedule_id is not None:
-            # load schedule for this request
-            schedule = db.Schedule.query.get(schedule_id)
-            log.debug("Deactivate periodic task for schedule {}", schedule_id)
-            if schedule.on_data_ready is False:
-                if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
-                    raise Exception(
-                        f"Cannot delete periodic task for schedule {schedule_id}"
-                    )
-            SqlApiDbManager.update_schedule_status(db, schedule_id, False)
-            message += f' <br/><br/>Schedule "{schedule.name}" was temporary disabled for limit quota exceeded.'
-        # for already extracted observed data, delete the file
-        if output_filename:
-            user_dir.joinpath(output_filename).unlink()
-
-        raise DiskQuotaException(message)
+            raise DiskQuotaException(message)
     return esti_data_size
 
 
