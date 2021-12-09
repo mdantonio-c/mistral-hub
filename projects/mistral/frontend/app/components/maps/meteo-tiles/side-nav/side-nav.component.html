@@ -41,7 +41,6 @@
                   [attr.disabled]="isLayerActive('prp') ? null : true"
                   (change)="changeHour($event, h, 'prp')"
                 />
-                <span *ngIf="!last"></span>
                 {{ h.value + "h" }}
               </label>
             </div>
@@ -63,7 +62,6 @@
                   [attr.disabled]="isLayerActive('sf') ? null : true"
                   (change)="changeHour($event, h, 'sf')"
                 />
-                <span *ngIf="!last"></span>
                 {{ h.value + "h" }}
               </label>
             </div>
