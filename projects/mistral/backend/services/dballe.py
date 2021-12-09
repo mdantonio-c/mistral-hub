@@ -1105,7 +1105,7 @@ class BeDballe:
             # check if an extended response is requested:
             extend_res = False
             if query:
-                if "level" and "trange" not in query:
+                if "level" not in query and "trange" not in query:
                     extend_res = True
 
             station_tuple: Tuple[Any, ...] = ()

@@ -50,6 +50,8 @@ export class ObsFilterComponent implements OnInit {
   minTime: number = 0;
   maxTime: number = 23;
   rangeValue = [this.minTime, this.maxTime];
+  defaultMaxTime: number = this.maxTime;
+  defaultMinTime: number = this.minTime;
   timeChanged: Subject<number[]> = new Subject<number[]>();
   user: User;
 
@@ -91,10 +93,15 @@ export class ObsFilterComponent implements OnInit {
 
   ngOnInit() {
     // get fields enabling the form
+    //change the hour of the reftime
+    this.defaultMaxTime = moment.utc().hour();
+    this.defaultMinTime = moment.utc().subtract(2, "hours").hour();
+    this.rangeValue = [this.defaultMinTime, this.defaultMaxTime];
     let startFilter: ObsFilter = {
       product: this.DEFAULT_PRODUCT,
       reftime: this.today,
       license: this.DEFAULT_LICENSE,
+      time: [this.defaultMinTime, this.defaultMaxTime],
     };
     if (this.network) {
       startFilter.network = this.network;

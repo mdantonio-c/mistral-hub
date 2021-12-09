@@ -25,6 +25,7 @@ import {
   ObsFilter,
   Station,
   RunAvailable,
+  CodeDescPair,
 } from "../../../types";
 import {
   MOCK_MM_TEMP_OBS_RESPONSE,
@@ -33,51 +34,14 @@ import {
 import {
   MULTI_MODEL_TIME_RANGES,
   DatasetProduct as DP,
-  // MultiModelProduct,
+  MultiModelProduct,
+  DATASETS,
 } from "./meteo-tiles.config";
 
 declare module "leaflet" {
   let timeDimension: any;
 }
 
-// Product constants
-const TM2 = "Temperature at 2 meters",
-  PMSL = "Pressure mean sea level",
-  WIND10M = "Wind speed at 10 meters",
-  RH = "Relative Humidity",
-  PREC1P = "Total Precipitation (1h)",
-  PREC3P = "Total Precipitation (3h)",
-  PREC6P = "Total Precipitation (6h)",
-  PREC12P = "Total Precipitation (12h)",
-  PREC24P = "Total Precipitation (24h)",
-  SF1 = "Snowfall (3h)",
-  SF3 = "Snowfall (3h)",
-  SF6 = "Snowfall (6h)",
-  SF12 = "Snowfall (12h)",
-  SF24 = "Snowfall (24h)",
-  TCC = "Total Cloud",
-  HCC = "High Cloud",
-  MCC = "Medium Cloud",
-  LCC = "Low Cloud",
-  TPPERC1 = "Precipitation percentiles 1",
-  TPPERC10 = "Precipitation percentile 10",
-  TPPERC25 = "Precipitation percentile 25",
-  TPPERC50 = "Precipitation percentile 50",
-  TPPERC70 = "Precipitation percentile 70",
-  TPPERC75 = "Precipitation percentile 75",
-  TPPERC80 = "Precipitation percentile 80",
-  TPPERC90 = "Precipitation percentile 90",
-  TPPERC95 = "Precipitation percentile 95",
-  TPPERC99 = "Precipitation percentile 99",
-  TPPROB5 = "Precipitation probability 5 mm",
-  TPPROB10 = "Precipitation probability 10 mm",
-  TPPROB20 = "Precipitation probability 20 mm",
-  TPPROB50 = "Precipitation probability 50 mm";
-
-enum MultiModelProduct {
-  RH = "B13003",
-  TM = "B12101",
-}
 const MAP_CENTER = L.latLng(41.879966, 12.28),
   LM2_BOUNDS = {
     southWest: L.latLng(34.5, 5.0),
@@ -97,10 +61,10 @@ const MIN_ZOOM = 5;
   styleUrls: ["./meteo-tiles.component.scss"],
 })
 export class MeteoTilesComponent {
-  readonly DEFAULT_PRODUCT_COSMO = "Temperature at 2 meters";
-  readonly DEFAULT_PRODUCT_IFF = "Precipitation percentiles 1%";
+  readonly DEFAULT_PRODUCT_COSMO = DP.TM2;
+  readonly DEFAULT_PRODUCT_IFF = DP.TPPERC1;
   readonly LEGEND_POSITION = "bottomleft";
-  readonly DEFAULT_DATASET = "lm5";
+  readonly DEFAULT_DATASET = DATASETS[0].code;
   // readonly license_iff =
   //   '&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://meteohub.mistralportal.it/app/license">MISTRAL</a>';
   // //'&copy; <a href="http://www.openstreetmap.org/copyright">Open Street Map</a> &copy; <a href="https://www.mapbox.com/about/maps/"">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Work distributed under License CC BY 4.0</a>';
@@ -116,6 +80,7 @@ export class MeteoTilesComponent {
   dataset: string;
   private run: string;
   private legends: { [key: string]: L.Control } = {};
+  public availableDatasets: CodeDescPair[] = DATASETS;
   // license = this.license;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
 
@@ -155,6 +120,7 @@ export class MeteoTilesComponent {
     },
   };
   options = {
+    zoomControl: false,
     zoom: MIN_ZOOM,
     center: L.latLng([46.879966, 11.726909]),
     timeDimension: true,
@@ -795,9 +761,21 @@ export class MeteoTilesComponent {
         //////////// CLOUD COVER ///////////
         ////////////////////////////////////
 
-        // Total Cloud Time Layer
-        [DP.TCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud-tcc/{d}{h}/{z}/{x}/{y}.png`, {
+        // Low Cloud Time Layer
+        [DP.LCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            opacity: 0.9,
+            // bounds: [[25.0, -25.0], [50.0, 47.0]],
+            bounds: bounds,
+          }),
+          {}
+        ),
+        // Medium Cloud Time Layer
+        [DP.MCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
@@ -819,25 +797,13 @@ export class MeteoTilesComponent {
           }),
           {}
         ),
-        // Medium Cloud Time Layer
-        [DP.MCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
+        // Total Cloud Time Layer
+        [DP.TCC]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/cloud-tcc/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
             maxZoom: maxZoom,
             tms: false,
             //opacity: 0.6,
-            // bounds: [[25.0, -25.0], [50.0, 47.0]],
-            bounds: bounds,
-          }),
-          {}
-        ),
-        // Low Cloud Time Layer
-        [DP.LCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.9,
             // bounds: [[25.0, -25.0], [50.0, 47.0]],
             bounds: bounds,
           }),
@@ -1565,5 +1531,22 @@ export class MeteoTilesComponent {
       features.push(f);
     });
     return features;
+  }
+
+  toggleLayer(obj: Record<string, string | L.Layer>) {
+    let layer: L.Layer = obj.layer as L.Layer;
+    if (this.map.hasLayer(layer)) {
+      // console.log(`remove layer: ${obj.name}`);
+      this.map.fire("overlayremove", obj);
+      this.map.removeLayer(layer);
+    } else {
+      // console.log(`add layer : ${obj.name}`);
+      this.map.fire("overlayadd", obj);
+      layer.addTo(this.map);
+    }
+  }
+
+  printDatasetDescription(): string {
+    return this.availableDatasets.find((x) => x.code === this.dataset).desc;
   }
 }
