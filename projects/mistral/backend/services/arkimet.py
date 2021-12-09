@@ -1,3 +1,4 @@
+import io
 import json
 import math
 import shlex
@@ -74,27 +75,44 @@ class BeArkimet:
         :param query: Optional arkimet query filter
         :return:
         """
-        if not datasets:
-            datasets = [d["id"] for d in BeArkimet.load_datasets()]
+
         if query is None:
             query = ""
 
-        ds = " ".join([DATASET_ROOT + f"{i}" for i in datasets])
-        args = shlex.split(
-            f"arki-query --json --summary-short --annotate '{query}' {ds}"
-        )
-        log.debug("Launching Arkimet command: {}", args)
+        # parse the config
+        cfg_sections = Sections()
+        cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
 
-        proc = subprocess.Popen(args, encoding="utf-8", stdout=subprocess.PIPE)
-        if proc.stdout:
-            summary = json.loads(proc.stdout.read())
-        if proc.wait() == 0:
-            return summary
-        else:
-            raise AccessToDatasetDenied("Access to dataset denied")
+        summary = ""
+        arki_summary = ""
+        # add the datasets to a session
+        with arki.dataset.Session() as session:
+            for name, section in cfg.items():
+                if datasets:
+                    # add the selected datasets to the session
+                    if name in datasets:
+                        log.debug(f"added {name}")
+                        session.add_dataset(section)
+                else:
+                    # add all datasets to the section
+                    log.debug(f"added {name}")
+                    session.add_dataset(section)
+            # use Session.merged() to see all the selected datasets as it is one
+            with session.merged() as dataset:
+                with dataset.reader() as reader:
+                    # import query
+                    matcher = session.matcher(query)
+                    log.debug(f"query: {query}")
+                    # ask the summary
+                    arki_summary = reader.query_summary(matcher)
 
-        # with subprocess.Popen(args, encoding='utf-8', stdout=subprocess.PIPE) as proc:
-        #     return json.loads(proc.stdout.read())
+        if arki_summary:
+            with io.BytesIO() as out:
+                arki_summary.write_short(out, format="json", annotate=True)
+                out.seek(0)
+                summary = json.load(out)
+
+        return summary
 
     @staticmethod
     def estimate_data_size(datasets, query):
