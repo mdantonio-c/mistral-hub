@@ -17,11 +17,14 @@
   <map-side-nav
     [overlays]="layersControl['overlays']"
     [dataset]="dataset"
+    [isShowedMultiModel]="showed"
     [map]="map"
     (onLayerChange)="toggleLayer($event)"
     (onDatasetChange)="changeDataset($event)"
     (onZoomIn)="map.zoomIn()"
     (onZoomOut)="map.zoomOut()"
+    (onShowMultiModelChange)="showHideMultiModel()"
+    (onMMProductChange)="changeMMProduct($event)"
   ></map-side-nav>
 
   <div class="leaflet-top leaflet-left" style="left: 10px">
@@ -31,56 +34,4 @@
       </div>
     </div>
   </div>
-
-  <!--<div class="leaflet-bottom leaflet-right" style="bottom: 10px">
-    <div class="leaflet-control leaflet-bar leaflet-bar-horizontal">
-      <div
-        class="p-1"
-        style="
-          background: rgba(255, 255, 255, 0.8);
-          font-size: 12px;
-          border-radius: 5px;
-          -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-          -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-          box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-        "
-      >
-        <div class="btn-group mr-1" role="group">
-          <button
-            type="button"
-            class="btn btn-sm btn-icon btn-icon-border-classic"
-            [ngClass]="{ 'active btn-secondary': mmProduct === 'B12101' }"
-            (click)="changeMMProduct(MultiModelProduct.TM)"
-            placement="top-right"
-            ngbTooltip="Temperature"
-            tooltipClass="delayed"
-          >
-            <i class="fas fa-thermometer-three-quarters"></i>
-          </button>
-          <button
-            type="button"
-            class="btn btn-sm btn-icon btn-icon-border-classic"
-            [ngClass]="{ 'active btn-secondary': mmProduct === 'B13003' }"
-            (click)="changeMMProduct(MultiModelProduct.RH)"
-            placement="top-right"
-            ngbTooltip="Relative Humidity"
-            tooltipClass="delayed"
-          >
-            <i class="fas fa-tint"></i>
-          </button>
-        </div>
-        <small class="text-muted font-weight-bold">Multi-Model Ensemble</small>
-        <div class="box-checkbox d-inline">
-          <input
-            class="mst&#45;&#45;input-checkbox mst&#45;&#45;input-checkbox-sm"
-            id="show-mm-ensemble"
-            type="checkbox"
-            [(ngModel)]="showed"
-            (click)="showHideMultiModel()"
-          />
-          <label for="show-mm-ensemble"></label>
-        </div>
-      </div>
-    </div>
-  </div>-->
 </div>
