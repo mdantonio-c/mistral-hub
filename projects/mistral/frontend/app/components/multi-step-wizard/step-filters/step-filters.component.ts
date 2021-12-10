@@ -158,7 +158,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
               if (entry[0] === "level") {
                 let arr: string[] = [];
                 (<Array<any>>entry[1]).forEach(function (obj) {
-                  arr.push(obj.lt);
+                  arr.push(obj.level_type);
                 });
                 // @ts-ignore
                 this.levelTypes = [...new Set(arr)];
@@ -396,7 +396,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       this.filterForm.controls.filters as FormArray
     ).controls.at(cIndex);
     this.filters["level"].forEach((l, i) => {
-      if (l["lt"] == e.target.value) {
+      if (l["level_type"] == e.target.value) {
         (level.controls.values as FormArray).controls
           .at(i)
           .setValue(e.target.checked);

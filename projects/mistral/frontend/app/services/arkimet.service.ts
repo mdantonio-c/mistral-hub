@@ -18,22 +18,22 @@ enum MetaType {
 export class ArkimetService {
   static decodeArea(i): string {
     const vals = [];
-    switch (i.s) {
+    switch (i.style) {
       case "GRIB":
-        for (const k of Object.keys(i.va)) {
-          vals.push(k + "=" + i.va[k]);
+        for (const k of Object.keys(i.value)) {
+          vals.push(k + "=" + i.value[k]);
         }
         return "GRIB:" + vals.join(",");
       case "ODIMH5":
-        for (const k of Object.keys(i.va)) {
-          vals.push(k + "=" + i.va[k]);
+        for (const k of Object.keys(i.value)) {
+          vals.push(k + "=" + i.value[k]);
         }
         return "ODIMH5:" + vals.join(",");
       case "VM2":
         let a = "VM2," + i.id;
-        if (i.va !== undefined) {
-          for (const k of Object.keys(i.va)) {
-            vals.push(k + "=" + i.va[k]);
+        if (i.value !== undefined) {
+          for (const k of Object.keys(i.value)) {
+            vals.push(k + "=" + i.value[k]);
           }
           a = a + ":" + vals.join(",");
         }
@@ -43,9 +43,9 @@ export class ArkimetService {
 
   static decodeLevel(i): string {
     let l;
-    switch (i.s) {
+    switch (i.style) {
       case "GRIB1":
-        l = [i.lt];
+        l = [i.level_type];
         if (i.l1 !== undefined) {
           l.push(i.l1);
           if (i.l2 !== undefined) {
@@ -54,7 +54,7 @@ export class ArkimetService {
         }
         return "GRIB1," + l.join(",");
       case "GRIB2S":
-        l = [i.lt, "-", "-"];
+        l = [i.level_type, "-", "-"];
         if (i.sc !== undefined) {
           l[1] = i.sc;
         }
@@ -83,12 +83,21 @@ export class ArkimetService {
   }
 
   static decodeOrigin(i): string {
-    switch (i.s) {
+    switch (i.style) {
       case "GRIB1":
-        return "GRIB1," + i.ce + "," + i.sc + "," + i.pr;
+        return "GRIB1," + i.centre + "," + i.subcentre + "," + i.process;
       case "GRIB2":
         return (
-          "GRIB2," + i.ce + "," + i.sc + "," + i.pt + "," + i.bi + "," + i.pi
+          "GRIB2," +
+          i.centre +
+          "," +
+          i.subcentre +
+          "," +
+          i.pt +
+          "," +
+          i.bi +
+          "," +
+          i.pi
         );
       case "BUFR":
         return "BUFR," + i.ce + "," + i.sc;
@@ -98,22 +107,31 @@ export class ArkimetService {
   }
 
   static decodeProddef(i): string {
-    switch (i.s) {
+    switch (i.style) {
       case "GRIB":
         const vals = [];
-        for (const k of Object.keys(i.va)) {
-          vals.push(k + "=" + i.va[k]);
+        for (const k of Object.keys(i.value)) {
+          vals.push(k + "=" + i.value[k]);
         }
         return "GRIB:" + vals.join(",");
     }
   }
 
   static decodeProduct(i): string {
-    switch (i.s) {
+    switch (i.style) {
       case "GRIB1":
-        return "GRIB1," + i.or + "," + i.ta + "," + i.pr;
+        return "GRIB1," + i.origin + "," + i.table + "," + i.product;
       case "GRIB2":
-        return "GRIB2," + i.ce + "," + i.di + "," + i.ca + "," + i.no;
+        return (
+          "GRIB2," +
+          i.centre +
+          "," +
+          i.discipline +
+          "," +
+          i.category +
+          "," +
+          i.number
+        );
       case "BUFR":
         let s = "BUFR," + i.ty + "," + i.st + "," + i.ls;
         if (i.va !== undefined) {
@@ -142,15 +160,15 @@ export class ArkimetService {
   }
 
   static decodeQuantity(i): string {
-    return i.va.join(",");
+    return i.value.join(",");
   }
 
   static decodeRun(i): string {
-    switch (i.s) {
+    switch (i.style) {
       case "MINUTE":
-        const hour = Math.floor(i.va / 60);
+        const hour = Math.floor(i.value / 60);
         let h = "" + hour;
-        const minute = i.va % 60;
+        const minute = i.value % 60;
         let m = "" + minute;
         if (hour < 10) {
           h = "0" + h;
@@ -164,12 +182,12 @@ export class ArkimetService {
   }
 
   static decodeTask(i): string {
-    return i.va;
+    return i.value;
   }
 
   static decodeTimerange(i): string {
     let un = {};
-    switch (i.s) {
+    switch (i.style) {
       case "GRIB1":
         un = {
           0: "m",
@@ -185,7 +203,9 @@ export class ArkimetService {
           12: "h12",
           254: "s",
         };
-        return "GRIB1," + i.ty + "," + i.p1 + un[i.un] + "," + i.p2 + un[i.un];
+        return (
+          "GRIB1," + i.type + "," + i.p1 + un[i.unit] + "," + i.p2 + un[i.unit]
+        );
       case "GRIB2":
         un = {
           0: "m",
@@ -201,7 +221,9 @@ export class ArkimetService {
           12: "h12",
           254: "s",
         };
-        return "GRIB2," + i.ty + "," + i.p1 + un[i.un] + "," + i.p2 + un[i.un];
+        return (
+          "GRIB2," + i.type + "," + i.p1 + un[i.unit] + "," + i.p2 + un[i.unit]
+        );
       case "Timedef":
         un = {
           0: "m",

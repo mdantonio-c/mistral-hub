@@ -363,8 +363,8 @@ class BeArkimet:
     def __decode_area(i):
         if not isinstance(i, dict):
             raise ValueError(f"Unexpected input type for <{type(i).__name__}>")
-        style = i.get("s")
-        vals = [k[0] + "=" + str(k[1]) for k in i.get("va", {}).items()]
+        style = i.get("style")
+        vals = [k[0] + "=" + str(k[1]) for k in i.get("value", {}).items()]
         if style == "GRIB":
             return "GRIB:" + ",".join(vals) if vals else ""
         elif style == "ODIMH5":
@@ -381,9 +381,9 @@ class BeArkimet:
     def __decode_level(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
-        style = i.get("s")
+        style = i.get("style")
         if style == "GRIB1":
-            lev = [str(i.get("lt", ""))]
+            lev = [str(i.get("level_type", ""))]
             l1 = str(i.get("l1", ""))
             if l1:
                 lev.append(l1)
@@ -392,7 +392,7 @@ class BeArkimet:
                     lev.append(l2)
             return "GRIB1," + ",".join(lev)
         elif style == "GRIB2S":
-            lev = [str(i.get("lt", "-")), "-", "-"]
+            lev = [str(i.get("level_type", "-")), "-", "-"]
             sc = str(i.get("sc", ""))
             if sc:
                 lev[1] = sc
@@ -420,15 +420,17 @@ class BeArkimet:
     def __decode_origin(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
-        style = i.get("s")
+        style = i.get("style")
         if style == "GRIB1":
             return "GRIB1,{ce},{sc},{pr}".format(
-                ce=i.get("ce", ""), sc=i.get("sc", ""), pr=i.get("pr", "")
+                ce=i.get("centre", ""),
+                sc=i.get("subcentre", ""),
+                pr=i.get("process", ""),
             )
         elif style == "GRIB2":
             return "GRIB2,{ce},{sc},{pt},{bi},{pi}".format(
-                ce=i.get("ce", ""),
-                sc=i.get("sc", ""),
+                ce=i.get("centre", ""),
+                sc=i.get("subcentre", ""),
                 pt=i.get("pt", ""),
                 bi=i.get("bi", ""),
                 pi=i.get("pi", ""),
@@ -446,9 +448,9 @@ class BeArkimet:
     def __decode_proddef(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
-        style = i.get("s")
+        style = i.get("style")
         if style == "GRIB":
-            vals = [k[0] + "=" + str(k[1]) for k in i.get("va", {}).items()]
+            vals = [k[0] + "=" + str(k[1]) for k in i.get("value", {}).items()]
             return "GRIB:" + ",".join(vals) if vals else ""
         else:
             raise ValueError(f"Invalid <proddef> style for {style}")
@@ -457,17 +459,19 @@ class BeArkimet:
     def __decode_product(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
-        style = i.get("s")
+        style = i.get("style")
         if style == "GRIB1":
             return "GRIB1,{origin},{table},{product}".format(
-                origin=i.get("or", ""), table=i.get("ta", ""), product=i.get("pr", "")
+                origin=i.get("origin", ""),
+                table=i.get("table", ""),
+                product=i.get("product", ""),
             )
         elif style == "GRIB2":
             return "GRIB2,{centre},{discipline},{category},{number}".format(
-                centre=i.get("ce", ""),
-                discipline=i.get("di", ""),
-                category=i.get("ca", ""),
-                number=i.get("no", ""),
+                centre=i.get("centre", ""),
+                discipline=i.get("discipline", ""),
+                category=i.get("category", ""),
+                number=i.get("number", ""),
             )
         elif style == "BUFR":
             s = "BUFR,{ty},{st},{ls}".format(
@@ -490,15 +494,15 @@ class BeArkimet:
     def __decode_quantity(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
-        return ",".join([str(k) for k in i.get("va", [])])
+        return ",".join([str(k) for k in i.get("value", [])])
 
     @staticmethod
     def decode_run(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
-        style = i.get("s")
+        style = i.get("style")
         if style == "MINUTE":
-            val = i.get("va")
+            val = i.get("value")
             if not isinstance(val, int):
                 raise TypeError("Run value must be a number")
             h = str(math.floor(val / 60)).zfill(2)
@@ -511,13 +515,13 @@ class BeArkimet:
     def __decode_task(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
-        return str(i.get("va", ""))
+        return str(i.get("value", ""))
 
     @staticmethod
     def __decode_timerange(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
-        style = i.get("s")
+        style = i.get("style")
         # un = {}
         if style == "GRIB1":
             un = {
@@ -536,10 +540,10 @@ class BeArkimet:
                 254: "s",
             }
             return "GRIB1,{type},{p1}{un},{p2}{un}".format(
-                type=i.get("ty", -1),
+                type=i.get("type", -1),
                 p1=i.get("p1", -1),
                 p2=i.get("p2", -1),
-                un=un[i.get("un", -1)],
+                un=un[i.get("unit", -1)],
             )
         elif style == "GRIB2":
             un = {
@@ -558,10 +562,10 @@ class BeArkimet:
                 254: "s",
             }
             return "GRIB2,{type},{p1}{un},{p2}{un}".format(
-                type=i.get("ty", -1),
+                type=i.get("type", -1),
                 p1=i.get("p1", -1),
                 p2=i.get("p2", -1),
-                un=un[i.get("un", -1)],
+                un=un[i.get("unit", -1)],
             )
         elif style == "Timedef":
             un = {
