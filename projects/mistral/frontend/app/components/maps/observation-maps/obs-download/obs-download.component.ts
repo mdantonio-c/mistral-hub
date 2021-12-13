@@ -56,6 +56,8 @@ export class ObsDownloadComponent implements OnInit {
 
   ngOnInit() {
     if (this.filter && this.filter.reftime) {
+      //set the time to all day
+      this.filter.time = [0, 23];
       this.setDateRange(this.filter.reftime);
     }
     this.user = this.authService.getUser();
