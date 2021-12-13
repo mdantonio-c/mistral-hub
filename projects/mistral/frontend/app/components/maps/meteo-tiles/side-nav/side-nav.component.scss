@@ -20,7 +20,7 @@
     font-size: 12px;
     width: 100%;
     position: relative;
-    margin-left: 20px;
+    margin-left: 14px;
     font-family: "Montserrat-semibold";
   }
 
@@ -31,7 +31,7 @@
 
   .map-sidenav-menu {
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
-    background-color: #26232be8;
+    background-color: #26232bbe;
     position: relative;
     z-index: 800;
     pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
@@ -75,13 +75,13 @@
       background-position: center center;
       background-repeat: no-repeat;
       background-size: contain;
-      width: 50px;
-      height: 50px;
+      width: 35px;
+      height: 35px;
       position: absolute;
       transition: 0.6s;
 
       &.collapsed {
-        margin-left: 5px;
+        margin-left: 14px;
         background-image: url("/app/custom/assets/images/icons/menu_burger.svg");
         left: 0;
       }
@@ -136,7 +136,7 @@
       width: 100%;
       overflow-y: hidden;
       overflow-x: hidden;
-      margin-top: 55px;
+      margin-top: 34px;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
@@ -198,6 +198,14 @@
   background-image: url("/app/custom/assets/images/icons/pressione.svg");
 }
 
+.tpperc {
+  background-image: url("/app/custom/assets/images/icons/percentile.svg");
+}
+
+.tpprob {
+  background-image: url("/app/custom/assets/images/icons/probabilita.svg");
+}
+
 .rh {
   background-image: url("/app/custom/assets/images/icons/humidity.svg");
 }
@@ -240,12 +248,14 @@
 .selettore-dataset {
   display: flex;
   width: 200px;
+  margin-top:-5px
 }
 
 .selettore-multimodel {
   display: flex;
   align-items: center;
   flex-direction: column;
+  margin-top:10px;
 }
 
 .selettore-clouds {
@@ -354,6 +364,17 @@
   height: 15px;
 }
 
+.dataset  {
+  margin-top: -3px !important;
+}
+
+.selettore-dataset  {
+  margin-top:-14px;
+  margin-bottom: 14px;
+}
+
+
+
 .selettore-multimodel {
   position: relative;
   p {
@@ -391,7 +412,7 @@
 
 .custom-control-label {
   transform: rotate(90deg);
-  margin-top: 30px;
+  margin-top: 41px;
   margin-left: 3px;
 }
 

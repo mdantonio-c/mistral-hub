@@ -99,9 +99,16 @@ h4.parameter {
   padding-bottom: 0.2rem;
 }
 
+.card-footer .btn{
+  border-radius: 30px !important;
+  background-color:#6C757D!important;
+  border-color: #6C757D!important;
+}
+
 .card-body {
   padding: 0.5rem;
   position: relative;
+  border: none;
 }
 
 /* fit image centered in the carousel */
