@@ -18,14 +18,18 @@ RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 \
     && curl --silent https://bootstrap.pypa.io/get-pip.py --output get-pip.py \
     && python3 get-pip.py \
     && rm get-pip.py \
-    && apt-get update \
-    && apt-get install --yes python${PYTHON_VERSION}-dev \
-    && pip3 install --upgrade --no-cache-dir watchdog[watchmedo]==2.1.3 git+https://github.com/rapydo/http-api.git@$RAPYDO_VERSION
+    && apt-get update -qq \
+    && apt-get install --yes --no-install-recommends python${PYTHON_VERSION}-dev \
+    && pip3 install --upgrade --no-cache-dir git+https://github.com/rapydo/http-api.git@$RAPYDO_VERSION
+#########################################################
+
+#########################################################
+# Dependencies
 #########################################################
 
 RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
- && apt-get update \
- && apt-get install --yes \
+ && apt-get update -qq \
+ && apt-get install --yes --no-install-recommends \
       libssl1.0.0 \
       libssl-dev \
       libpopt-dev \
@@ -43,6 +47,12 @@ ENV PATH="$PATH:/usr/bin/centos"
 
 ENV DATASET_ROOT="/arkimet/datasets/"
 
+WORKDIR /tmp
+
+#########################################################
+# ECCODES
+#########################################################
+
 ENV ECCODES_VERSION="2.23.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
 
@@ -53,19 +63,20 @@ ENV ECCODES_DIR="/usr/share/eccodes-build"
 ENV ECCODES_DEFINITION_PATH="/usr/share/eccodes-simc/definitions/:/usr/share/eccodes-build/share/eccodes/definitions/"
 
 RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz?api=v2" -O /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
-  && cd /tmp \
-  && tar -xzf eccodes-${ECCODES_VERSION}-Source.tar.gz \
+  && tar -xzf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz -C /tmp/ \
   && mkdir /tmp/eccodes-build \
   && cd /tmp/eccodes-build \
   && cmake -DCMAKE_INSTALL_PREFIX=/usr/share/eccodes-build /tmp/eccodes-${ECCODES_VERSION}-Source \
   && make \
   && ctest \
   && make install \
-  && cd /usr/share/eccodes-build \
-  && ln -sf lib lib64 \
-  && pip3 install eccodes netCDF4 \
-  && rm -rf /tmp/eccodes-${ECCODES_VERSION}-Source.tar.gz \
-  && rm -rf /tmp/eccodes-build
+  && ln -sf /usr/share/eccodes-build/lib /usr/share/eccodes-build/lib64 \
+  && pip3 install --no-cache-dir eccodes netCDF4 \
+  && rm -rf /tmp/eccodes*
+
+#########################################################
+# arpaesimc
+#########################################################
 
 COPY --from=arpaesimc /usr/bin /usr/bin/centos
 
@@ -172,6 +183,6 @@ COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter /usr/local/l
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter-0.0.2-py3.6.egg-info /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter-0.0.2-py3.6.egg-info/
 
 # numpy has to be (re)installed here to prevent issues with shared libraries
-RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6 && pip3 install --upgrade numpy
+RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6 && pip3 install --upgrade --no-cache-dir numpy
 
 WORKDIR /code

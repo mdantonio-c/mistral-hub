@@ -59,6 +59,8 @@ export class ObsMapComponent {
   };
 
   private filter: ObsFilter;
+  hourFrom: number;
+  hourTo: number;
 
   constructor(
     private obsService: ObsService,
@@ -180,6 +182,8 @@ export class ObsMapComponent {
   updateMap(filter: ObsFilter, update = false) {
     // const startTime = new Date().getTime();
     this.filter = filter;
+    this.hourFrom = filter.time[0];
+    this.hourTo = filter.time[1];
     // get data
     if (this.markerClusterGroup) {
       this.markerClusterGroup.clearLayers();
