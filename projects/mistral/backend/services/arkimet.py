@@ -84,7 +84,7 @@ class BeArkimet:
         cfg = cfg_sections.parse(BeArkimet.arkimet_conf)
 
         summary = ""
-        arki_summary = ""
+        arki_summary = None
         # add the datasets to a session
         with arki.dataset.Session() as session:
             for name, section in cfg.items():
