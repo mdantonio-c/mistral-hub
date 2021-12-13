@@ -120,5 +120,7 @@ COPY --chmod=700 docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
 WORKDIR ${NIFI_HOME}
 ENV PATH="$PATH:/usr/bin/centos"
+# RCE su log4j CVE-2021-44228
+ENV JAVA_OPTS="${JAVA_OPTS} -Dlog4j2.formatMsgNoLookups=true"
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
