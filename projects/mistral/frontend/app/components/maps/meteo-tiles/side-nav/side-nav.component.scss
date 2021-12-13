@@ -70,7 +70,7 @@
 
     .toggle {
       cursor: pointer;
-      margin-left: 190px;
+      margin-left: 212px;
       background-image: url("/app/custom/assets/images/icons/mb_exit.svg");
       background-position: center center;
       background-repeat: no-repeat;
@@ -79,6 +79,7 @@
       height: 35px;
       position: absolute;
       transition: 0.6s;
+      margin-top: -5px;
 
       &.collapsed {
         margin-left: 14px;
@@ -114,7 +115,7 @@
     .sidenav-item {
       width: 100%;
       display: flex;
-      justify-content: flex-start;
+      justify-content: center;
       align-items: center;
       margin: 2px;
       flex-wrap: wrap;
@@ -139,7 +140,7 @@
       margin-top: 34px;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
+      justify-content: center;
       align-items: center;
       flex-wrap: nowrap;
       //border-bottom: 1px solid rgba(255, 255, 255, 0.349);
@@ -179,16 +180,20 @@
 .cc,
 .input,
 .plus,
-.minus {
+.minus, 
+.carte, 
+.tpperc,
+.tpprob {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
   display: block;
   margin-top: 8px;
   padding: 10px;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
 }
+
 
 .t2m {
   background-image: url("/app/custom/assets/images/icons/temper.svg");
@@ -234,6 +239,21 @@
   background-image: url("/app/custom/assets/images/icons/minus.svg");
 }
 
+.plus.isDisabled {
+  background-image: url('/app/custom/assets/images/iconsplus_disabled.svg');
+  cursor: not-allowed;
+}
+
+.minus.isDisabled {
+  background-image: url('/app/custom/assets/images/iconsimg/minus_disabled.svg');
+  cursor: not-allowed;
+}
+
+.carte  {
+  background-image: url('/app/custom/assets/images/iconsimg/map_style.svg');
+ 
+}
+
 /* time, clouds and datasets selectors */
 
 .selettore-orario,
@@ -249,6 +269,73 @@
   display: flex;
   width: 200px;
   margin-top:-5px
+}
+
+.selettore-percentile {
+  display:flex;
+  flex-wrap: wrap;
+  width:185px;
+  margin-left: 52px;
+  
+  label {
+    display:flex;
+    flex-direction:column;
+    font-size: 8px;
+    text-transform: uppercase;
+    color:#fff;
+    text-align:center;
+    margin-top:2px;
+    font-size: 10px;
+  }
+
+  input {
+    margin-left:10px;
+    margin-right:10px;
+    z-index:-1;
+    position: relative;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 7px;
+    width: 13px !important;
+    height: 13px !important;
+    border: 2px solid #999;
+    transition: 0.2s all linear;
+  }
+}
+
+.selettore-probabilita {
+  display: flex;
+  width:100%;
+  margin-left: 42px;
+  justify-content: space-around;
+  margin-bottom:20px;
+
+  label {
+    display:flex;
+    flex-direction:column;
+    font-size: 8px;
+    text-transform: uppercase;
+    color:#fff;
+    text-align:center;
+    margin-top:2px;
+    font-size: 10px;
+  }
+
+  input {
+    margin-left:10px;
+    margin-right:10px;
+    z-index:-1;
+    position: relative;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 7px;
+    width: 13px !important;
+    height: 13px !important;
+    border: 2px solid #999;
+    transition: 0.2s all linear;
+  }
 }
 
 .selettore-multimodel {
@@ -272,6 +359,63 @@
     margin-left: 10px;
     margin-right: 10px;
     z-index: -1;
+    position: relative;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 7px;
+    width: 13px !important;
+    height: 13px !important;
+    border: 2px solid #999;
+    transition: 0.2s all linear;
+  }
+}
+
+.selettore-mappa {
+  margin-bottom:10px;
+
+  label {
+    display:flex;
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 10px;
+    justify-content: space-evenly;
+    margin-left:50px;
+  }
+
+  input {
+    margin-left:10px;
+    margin-right:10px;
+    z-index:-1;
+    position: relative;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 7px;
+    width: 13px !important;
+    height: 13px !important;
+    border: 2px solid #999;
+    transition: 0.2s all linear;
+  }
+}
+
+.selettore-carte {
+  margin-top: -10px !important;
+  margin-bottom: -6px;
+
+  label {
+    display:flex;
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 10px;
+    justify-content: space-evenly;
+    margin-left:50px;
+  }
+
+  input {
+    margin-left:10px;
+    margin-right:10px;
+    z-index:-1;
     position: relative;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -332,7 +476,10 @@
 
 .selettore-clouds input:checked,
 .selettore-multimodel input:checked,
-.selettore-orario input:checked {
+.selettore-orario input:checked,
+.selettore-percentile input:checked,
+.selettore-probabilita input:checked,
+.selettore-mappa input:checked {
   background-color: #e49c1e;
   border-color: #e49c1e;
 }
@@ -406,6 +553,16 @@
 .selettore-dataset a:hover {
   border-bottom: 1px solid #fff;
   text-decoration: none;
+}
+
+.plus.iDisabled, 
+.isDisabled .nav-text, 
+.minus.iDisabled  {
+  color: currentColor;
+  cursor: not-allowed;
+  opacity: 0.5;
+  text-decoration: none;
+
 }
 
 /* style toggle multi-model */
