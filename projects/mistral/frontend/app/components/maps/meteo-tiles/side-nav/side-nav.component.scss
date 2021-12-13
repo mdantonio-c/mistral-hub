@@ -115,7 +115,7 @@
     .sidenav-item {
       width: 100%;
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       margin: 2px;
       flex-wrap: wrap;
@@ -245,12 +245,12 @@
 }
 
 .minus.isDisabled {
-  background-image: url('/app/custom/assets/images/iconsimg/minus_disabled.svg');
+  background-image: url('/app/custom/assets/images/icons/minus_disabled.svg');
   cursor: not-allowed;
 }
 
 .carte  {
-  background-image: url('/app/custom/assets/images/iconsimg/map_style.svg');
+  background-image: url('/app/custom/assets/images/icons/map_style.svg');
  
 }
 
