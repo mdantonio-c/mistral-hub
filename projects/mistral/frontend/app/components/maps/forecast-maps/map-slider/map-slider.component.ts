@@ -125,16 +125,16 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
     this.step = 1;
     if (this.filter.field === "prec3" || this.filter.field === "snow3") {
-      this.fromMin = 3;
+      this.fromMin = 0;
       this.fromMinImage = 3;
     } else if (this.filter.field === "prec6" || this.filter.field === "snow6") {
-      this.fromMin = 6;
+      this.fromMin = 0;
       this.fromMinImage = 6;
     } else if (this.filter.field === "prec12") {
-      this.fromMin = 12;
+      this.fromMin = 0;
       this.fromMinImage = 12;
     } else if (this.filter.field === "prec24") {
-      this.fromMin = 24;
+      this.fromMin = 0;
       this.fromMinImage = 24;
     } else if (
       this.filter.field === "percentile" ||
@@ -210,7 +210,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   onSlide(slideEvent: NgbSlideEvent) {
     // position the handle of the slider accordingly
     let idx = parseInt(slideEvent.current.split("-").slice(-1)[0]);
-    //console.log(`onSlide: idx=${idx}`);
+    console.log(`onSlide: idx=${idx}`);
 
     var idxSlider = idx * this.step + this.fromMin;
     // temporary patch
