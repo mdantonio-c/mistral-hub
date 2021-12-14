@@ -7,10 +7,10 @@
       (click)="isCollapsed = !isCollapsed"
       [class.collapsed]="isCollapsed"
     ></label>
-    <ul class="selector">
+    <ul class="selector ">
       <ng-container *ngIf="dataset === 'iff'; else cosmo">
-        <li class="sidenav-item">
-          <span class="perc attivo"></span>
+        <li class="sidenav-item iff">
+          <span class="tpperc attivo"></span>
           <a href="#">
             <span class="nav-text">Precipitation percentile</span>
           </a>
@@ -59,7 +59,7 @@
           </div>
         </li>
         <li class="sidenav-item last">
-          <span class="prb attivo"></span>
+          <span class="tpprob attivo"></span>
           <a href="#">
             <span class="nav-text">Precipitation probability</span>
           </a>
@@ -137,7 +137,8 @@
               <div class="progressbar">
                 <label *ngFor="let h of PRECIPITATION_HOURS; let last = last">
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name="precipitation"
                     [checked]="h.selected"
                     [attr.disabled]="isLayerActive('prp') ? null : true"
                     (change)="changeHour($event, h, 'prp')"
@@ -164,7 +165,8 @@
               <div class="progressbar">
                 <label *ngFor="let h of SNOW_HOURS; let last = last">
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name="snow"
                     [checked]="h.selected"
                     [attr.disabled]="isLayerActive('sf') ? null : true"
                     (change)="changeHour($event, h, 'sf')"
