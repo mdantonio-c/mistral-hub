@@ -400,7 +400,6 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       this.filterForm.controls.filters as FormArray
     ).controls.at(cIndex);
     this.filters["level"].forEach((l, i) => {
-      console.log(typeof e.target.value);
       if (l["style"] == "GRIB1" || l["style"] == "GRIB2S") {
         if (l["level_type"] == e.target.value) {
           (level.controls.values as FormArray).controls
