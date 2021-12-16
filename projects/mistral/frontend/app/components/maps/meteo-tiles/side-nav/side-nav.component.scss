@@ -7,7 +7,7 @@
   float: right;
   height: 100%;
   text-align: center;
-  width: 270px;
+  width: 280px;
   cursor: auto;
 
   &.collapsed {
@@ -120,11 +120,9 @@
 
 .nav-sub-text
 {
-  margin-top: -10px;
-  margin-left: 21x;
-  margin-bottom:6px;
-  width:100%;
-  text-align:center;
+  
+  margin-left: 4px;
+  font-size:10px;
   font-family: "Montserrat-semibold";
 }
 
