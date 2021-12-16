@@ -1,89 +1,72 @@
 <nav class="map-sidenav" [class.collapsed]="isCollapsed">
   <div class="map-sidenav-menu">
     <!-- partial collapse -->
-    <!--<input id="toggle" type="checkbox" />-->
     <label
       class="toggle"
       (click)="isCollapsed = !isCollapsed"
       [class.collapsed]="isCollapsed"
     ></label>
-    <ul class="selector ">
-      <ng-container *ngIf="dataset === 'iff'; else cosmo">
-        <li class="sidenav-item iff">
-          <span class="tpperc attivo"></span>
-          <a href="#">
-            <p class="nav-text">Precipitation percentile</p>
-          </a>
-          <span class="nav-sub-text">(mm)</span>
-          <div class="selettore-percentile">
-            <label>
-              <input type="radio" value="1" />
-              1
-            </label>
-            <label>
-              <input type="radio" value="10" />
-              10
-            </label>
-            <label>
-              <input type="radio" value="25" />
-              25
-            </label>
-            <label>
-              <input type="radio" value="50" />
-              50
-            </label>
-            <label>
-              <input type="radio" value="70" />
-              70
-            </label>
-            <label>
-              <input type="radio" value="75" />
-              75
-            </label>
-            <label>
-              <input type="radio" value="80" />
-              80
-            </label>
-            <label>
-              <input type="radio" value="90" />
-              90
-            </label>
-            <label>
-              <input type="radio" value="95" />
-              95
-            </label>
-            <label>
-              <input type="radio" value="99" />
-              99
-            </label>
-          </div>
+    <ul class="selector">
+      <ng-container *ngIf="dataset === 'iff'; then iff; else cosmo">
+      </ng-container>
+      <ng-template #iff>
+        <li class="sidenav-item">
+          <span
+            class="tpperc clickable attivo"
+            (click)="toggleLayer($event, 'tpperc')"
+            placement="left"
+            [ngbTooltip]="'Precipitation percentile'"
+            [disableTooltip]="!isCollapsed"
+          ></span>
+          <ng-container *ngIf="!isCollapsed">
+            <a href="#" (click)="toggleLayer($event, 'tpperc')">
+              <span class="nav-text">Precipitation percentile</span>
+            </a>
+            <span class="nav-sub-text">(mm)</span>
+            <div class="selettore-percentile">
+              <label *ngFor="let p of subLevelsMap['tpperc']">
+                <input
+                  type="radio"
+                  name="iff_percentile"
+                  [(ngModel)]="selectedMap['tpperc']"
+                  [attr.disabled]="isLayerActive('tpperc') ? null : true"
+                  [value]="p.value"
+                  (change)="changeSubLevel($event, p, 'tpperc')"
+                />
+                {{ p.value }}
+              </label>
+            </div>
+          </ng-container>
         </li>
         <li class="sidenav-item last">
-          <span class="tpprob attivo"></span>
-          <a href="#">
-            <span class="nav-text">Precipitation probability</span>
-          </a>
-          <span class="nav-sub-text">(%)</span>
-          <div class="selettore-probabilita">
-            <label>
-              <input type="radio" value="1" />
-              5
-            </label>
-            <label>
-              <input type="radio" value="10" />
-              10
-            </label>
-            <label>
-              <input type="radio" value="25" />
-              20
-            </label>
-            <label>
-              <input type="radio" value="50" />
-              50
-            </label>
-          </div>
+          <span
+            class="tpprob clickable"
+            (click)="toggleLayer($event, 'tpprob')"
+            placement="left"
+            [ngbTooltip]="'Precipitation probability'"
+            [disableTooltip]="!isCollapsed"
+          ></span>
+          <ng-container *ngIf="!isCollapsed">
+            <a href="#" (click)="toggleLayer($event, 'tpprob')">
+              <span class="nav-text">Precipitation probability</span>
+            </a>
+            <span class="nav-sub-text">(%)</span>
+            <div class="selettore-probabilita">
+              <label *ngFor="let p of subLevelsMap['tpprob']">
+                <input
+                  type="radio"
+                  name="iff_probability"
+                  [(ngModel)]="selectedMap['tpprob']"
+                  [attr.disabled]="isLayerActive('tpprob') ? null : true"
+                  [value]="p.value"
+                  (change)="changeSubLevel($event, p, 'tpprob')"
+                />
+                {{ p.value }}
+              </label>
+            </div>
+          </ng-container>
         </li>
-      </ng-container>
+      </ng-template>
       <ng-template #cosmo>
         <li class="sidenav-item">
           <span
@@ -135,13 +118,14 @@
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
-                <label *ngFor="let h of PRECIPITATION_HOURS; let last = last">
+                <label *ngFor="let h of subLevelsMap['prp']; let last = last">
                   <input
                     type="radio"
                     name="precipitation"
-                    [checked]="h.selected"
+                    [(ngModel)]="selectedMap['prp']"
                     [attr.disabled]="isLayerActive('prp') ? null : true"
-                    (change)="changeHour($event, h, 'prp')"
+                    [value]="h.value"
+                    (change)="changeSubLevel($event, h, 'prp')"
                   />
                   {{ h.value + "h" }}
                 </label>
@@ -163,13 +147,14 @@
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
-                <label *ngFor="let h of SNOW_HOURS; let last = last">
+                <label *ngFor="let h of subLevelsMap['sf']; let last = last">
                   <input
                     type="radio"
                     name="snow"
-                    [checked]="h.selected"
+                    [(ngModel)]="selectedMap['sf']"
                     [attr.disabled]="isLayerActive('sf') ? null : true"
-                    (change)="changeHour($event, h, 'sf')"
+                    [value]="h.value"
+                    (change)="changeSubLevel($event, h, 'sf')"
                   />
                   {{ h.value + "h" }}
                 </label>
@@ -190,12 +175,14 @@
               <span class="nav-text">Clouds</span>
             </a>
             <div class="selettore-clouds">
-              <label *ngFor="let lvl of CLOUD_LEVELS">
+              <label *ngFor="let lvl of subLevelsMap['cc']">
                 <input
-                  type="checkbox"
-                  [checked]="lvl.selected"
+                  type="radio"
+                  name="cloud"
+                  [(ngModel)]="selectedMap['cc']"
                   [attr.disabled]="isLayerActive('cc') ? null : true"
-                  (change)="changeHour($event, lvl, 'cc')"
+                  [value]="lvl.value"
+                  (change)="changeSubLevel($event, lvl, 'cc')"
                 />
                 {{ lvl.value }}
               </label>

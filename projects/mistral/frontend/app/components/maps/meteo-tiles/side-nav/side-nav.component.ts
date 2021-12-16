@@ -5,7 +5,6 @@ import {
   EventEmitter,
   HostListener,
   Input,
-  OnChanges,
   Output,
   Renderer2,
   SimpleChanges,
@@ -17,6 +16,16 @@ import {
   MultiModelProductLabel,
 } from "../meteo-tiles.config";
 import * as L from "leaflet";
+import {
+  CLOUD_LEVELS,
+  IFF_PERCENTILES,
+  IFF_PROBABILITIES,
+  PRECIPITATION_HOURS,
+  SNOW_HOURS,
+  toLayerCode,
+  toLayerTitle,
+} from "./data";
+import { ValueLabel } from "../../../../types";
 
 @Component({
   selector: "map-side-nav",
@@ -24,11 +33,41 @@ import * as L from "leaflet";
   templateUrl: "./side-nav.component.html",
   styleUrls: ["side-nav.component.scss"],
 })
-export class SideNavComponent implements OnChanges {
-  @Input() overlays: L.Control.LayersObject;
+export class SideNavComponent {
+  // @Input() overlays: L.Control.LayersObject;
   @Input() dataset: string;
   // Reference to the primary map object
   @Input() map: L.Map;
+
+  private _overlays: L.Control.LayersObject;
+
+  @Input() set overlays(value: L.Control.LayersObject) {
+    this._overlays = value;
+    if (!value) return;
+    // reset selectedMap
+    for (const [key, value] of Object.entries(this.selectedMap)) {
+      this.selectedMap[key] = null;
+    }
+    // activate layers
+    for (const [key, layer] of Object.entries(this._overlays)) {
+      let lCode = toLayerCode(key);
+      if (lCode) {
+        const el = this.el.nativeElement.querySelector(`.${lCode}`);
+        if (this.map.hasLayer(layer)) {
+          if (Object.keys(this.selectedMap).includes(lCode)) {
+            this.selectedMap[lCode] = this.subLevelsMap[lCode][0].value;
+          }
+          setTimeout(() => {
+            this.renderer.addClass(el, "attivo");
+          }, 0);
+        }
+      }
+    }
+  }
+
+  get overlays(): L.Control.LayersObject {
+    return this._overlays;
+  }
 
   // Change zoom level of the map
   @Output() onZoomIn: EventEmitter<null> = new EventEmitter<null>();
@@ -50,56 +89,21 @@ export class SideNavComponent implements OnChanges {
 
   isCollapsed = false;
   availableDatasets = DATASETS;
-  readonly PRECIPITATION_HOURS: any = [
-    { value: 1, selected: false, regex: "(1h)" },
-    { value: 3, selected: false, regex: "(3h)" },
-    { value: 6, selected: false, regex: "(6h)" },
-    { value: 12, selected: false, regex: "(12h)" },
-    { value: 24, selected: false, regex: "(24h)" },
-  ];
-  readonly SNOW_HOURS: any = [
-    { value: 1, selected: false, regex: "(1h)" },
-    { value: 3, selected: false, regex: "(3h)" },
-    { value: 6, selected: false, regex: "(6h)" },
-    { value: 12, selected: false, regex: "(12h)" },
-    { value: 24, selected: false, regex: "(24h)" },
-  ];
-  readonly CLOUD_LEVELS: any = [
-    { value: "low", selected: false, regex: "Low" },
-    { value: "medium", selected: false, regex: "Medium" },
-    { value: "high", selected: false, regex: "High" },
-    { value: "total", selected: false, regex: "Total" },
-  ];
-  private hoursMap = {
-    prp: this.PRECIPITATION_HOURS,
-    sf: this.SNOW_HOURS,
-    cc: this.CLOUD_LEVELS,
+
+  subLevelsMap = {
+    prp: PRECIPITATION_HOURS,
+    sf: SNOW_HOURS,
+    cc: CLOUD_LEVELS,
+    tpperc: IFF_PERCENTILES,
+    tpprob: IFF_PROBABILITIES,
   };
 
-  constructor(private el: ElementRef, private renderer: Renderer2) {}
+  selectedMap = {};
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const isFirstChange = Object.values(changes).some((c) => c.isFirstChange());
-    if (isFirstChange) {
-      return;
-    }
-
-    // activate layers
-    // let activeLayers: string[] = [];
-    if (this.overlays) {
-      for (const [key, layer] of Object.entries(this.overlays)) {
-        let lCode = this._toLayerCode(key);
-        if (lCode) {
-          let el = this.el.nativeElement.querySelector(`.${lCode}`);
-          if (this.map.hasLayer(layer)) {
-            // activeLayers.push(key);
-            this.renderer.addClass(el, "attivo");
-          } else {
-            this.renderer.removeClass(el, "attivo");
-          }
-        }
-      }
-    }
+  constructor(private el: ElementRef, private renderer: Renderer2) {
+    Object.keys(this.subLevelsMap).forEach((key) => {
+      this.selectedMap[key] = null;
+    });
   }
 
   @HostListener("dblclick", ["$event"])
@@ -131,20 +135,17 @@ export class SideNavComponent implements OnChanges {
       event.target as HTMLInputElement
     ).className.includes("attivo");
     const op = fromActiveState ? "remove" : "add";
-    if (["prp", "sf", "cc"].includes(layerId)) {
+    if (["prp", "sf", "cc", "tpperc", "tpprob"].includes(layerId)) {
       if (op === "remove") {
-        // reset hours
-        this.hoursMap[layerId].forEach((e) => (e.selected = false));
+        // reset sub-level
+        this.selectedMap[layerId] = null;
       } else {
-        const found = this.hoursMap[layerId].find((e) => e.selected);
-        if (!found) {
-          // select default
-          this.hoursMap[layerId][0].selected = true;
-        }
+        // default to first value
+        this.selectedMap[layerId] = this.subLevelsMap[layerId][0].value;
       }
     }
     for (const [key, layer] of Object.entries(this.overlays)) {
-      if (layerId === this._toLayerCode(key)) {
+      if (layerId === toLayerCode(key)) {
         // let op = (this.map.hasLayer(layer)) ? 'remove' : 'add';
         if (this.map.hasLayer(layer) && op === "remove") {
           this.onLayerChange.emit({
@@ -168,102 +169,17 @@ export class SideNavComponent implements OnChanges {
       : this.renderer.addClass(el, "attivo");
   }
 
-  /**
-   * Custom mapper for overlay titles into component codes
-   * @param title
-   * @private
-   */
-  private _toLayerCode(title: string): string | null {
-    switch (title) {
-      case DP.TM2:
-        return "t2m";
-      case DP.PMSL:
-        return "prs";
-      case DP.RH:
-        return "rh";
-      case DP.PREC1P:
-      case DP.PREC3P:
-      case DP.PREC6P:
-      case DP.PREC12P:
-      case DP.PREC24P:
-        return "prp";
-      case DP.SF1:
-      case DP.SF3:
-      case DP.SF6:
-      case DP.SF12:
-      case DP.SF24:
-        return "sf";
-      case DP.LCC:
-      case DP.MCC:
-      case DP.HCC:
-      case DP.TCC:
-        return "cc";
-      default:
-        return null;
-    }
-  }
-
-  private _toLayerTitle(
-    code: string,
-    lvl: string | number | null = null
-  ): string | null {
-    if (lvl) {
-      lvl = `${lvl}`;
-    }
-    switch (code) {
-      case "t2m":
-        return DP.TM2;
-      case "prs":
-        return DP.PMSL;
-      case "rh":
-        return DP.RH;
-      case "prp":
-        switch (lvl) {
-          case "1":
-            return DP.PREC1P;
-          case "3":
-            return DP.PREC3P;
-          case "6":
-            return DP.PREC6P;
-          case "12":
-            return DP.PREC12P;
-          case "24":
-            return DP.PREC24P;
-        }
-        return DP.PREC1P;
-      case "sf":
-        switch (lvl) {
-          case "1":
-            return DP.SF1;
-          case "3":
-            return DP.SF3;
-          case "6":
-            return DP.SF6;
-          case "12":
-            return DP.SF12;
-          case "24":
-            return DP.SF24;
-        }
-        return DP.SF1;
-      case "cc":
-        switch (lvl) {
-          case "low":
-            return DP.LCC;
-          case "medium":
-            return DP.MCC;
-          case "high":
-            return DP.HCC;
-          case "total":
-            return DP.TCC;
-        }
-        return DP.LCC;
-      default:
-        return null;
-    }
-  }
-
   changeDataset(event, datasetId) {
     event.preventDefault();
+    // clear layers
+    for (const [key, layer] of Object.entries(this.overlays)) {
+      if (this.map.hasLayer(layer)) {
+        this.onLayerChange.emit({
+          layer: layer,
+          name: key,
+        });
+      }
+    }
     this.onDatasetChange.emit(datasetId);
   }
 
@@ -277,30 +193,25 @@ export class SideNavComponent implements OnChanges {
    * @param target
    * @param layerId
    */
-  changeHour(event: Event, target, layerId: string) {
-    target.selected = !target.selected;
-    let activeHoursCount = this.hoursMap[layerId]
-      .filter((h) => h.selected)
-      .reduce((accumulator) => {
-        return accumulator + 1;
-      }, 0);
-    if (activeHoursCount === 0) {
-      // prevent unchecking last active hour
-      target.selected = !target.selected;
-      (event.target as HTMLInputElement).checked = true;
-      // do nothing
-      return;
-    }
-    // console.log(`activate layer ${layerId}, value ${target.value}`);
+  changeSubLevel(event: Event, target: ValueLabel, layerId: string) {
+    console.log(`activate layer ${layerId}, value ${target.value}`);
     for (const [key, layer] of Object.entries(this.overlays)) {
-      if (
-        layerId === this._toLayerCode(key) &&
-        key.includes(`${target.regex}`)
-      ) {
+      // need to clean up
+      if (layerId === toLayerCode(key) && this.map.hasLayer(layer)) {
         this.onLayerChange.emit({
           layer: layer,
-          name: this._toLayerTitle(layerId, target.value),
+          name: key,
         });
+        this.selectedMap[layerId] = null;
+      }
+    }
+    for (const [key, layer] of Object.entries(this.overlays)) {
+      if (layerId === toLayerCode(key) && key === target.label) {
+        this.onLayerChange.emit({
+          layer: layer,
+          name: toLayerTitle(layerId, target.value),
+        });
+        this.selectedMap[layerId] = target.value;
         break;
       }
     }
@@ -314,7 +225,7 @@ export class SideNavComponent implements OnChanges {
     if (!this.overlays) return false;
     let active = false;
     for (const [key, layer] of Object.entries(this.overlays)) {
-      if (layerId === this._toLayerCode(key) && this.map.hasLayer(layer)) {
+      if (layerId === toLayerCode(key) && this.map.hasLayer(layer)) {
         active = true;
       }
     }
