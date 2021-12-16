@@ -44,12 +44,19 @@ export class SideNavComponent {
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
     if (!value) return;
+    // reset selectedMap
+    for (const [key, value] of Object.entries(this.selectedMap)) {
+      this.selectedMap[key] = null;
+    }
     // activate layers
     for (const [key, layer] of Object.entries(this._overlays)) {
       let lCode = toLayerCode(key);
       if (lCode) {
         const el = this.el.nativeElement.querySelector(`.${lCode}`);
         if (this.map.hasLayer(layer)) {
+          if (Object.keys(this.selectedMap).includes(lCode)) {
+            this.selectedMap[lCode] = this.subLevelsMap[lCode][0].value;
+          }
           setTimeout(() => {
             this.renderer.addClass(el, "attivo");
           }, 0);
@@ -91,15 +98,13 @@ export class SideNavComponent {
     tpprob: IFF_PROBABILITIES,
   };
 
-  selectedMap = {
-    prp: null,
-    sf: null,
-    cc: null,
-    tpperc: this.subLevelsMap["tpperc"][0].value,
-    tpprob: null,
-  };
+  selectedMap = {};
 
-  constructor(private el: ElementRef, private renderer: Renderer2) {}
+  constructor(private el: ElementRef, private renderer: Renderer2) {
+    Object.keys(this.subLevelsMap).forEach((key) => {
+      this.selectedMap[key] = null;
+    });
+  }
 
   @HostListener("dblclick", ["$event"])
   @HostListener("click", ["$event"])
@@ -189,7 +194,7 @@ export class SideNavComponent {
    * @param layerId
    */
   changeSubLevel(event: Event, target: ValueLabel, layerId: string) {
-    // console.log(`activate layer ${layerId}, value ${target.value}`);
+    console.log(`activate layer ${layerId}, value ${target.value}`);
     for (const [key, layer] of Object.entries(this.overlays)) {
       // need to clean up
       if (layerId === toLayerCode(key) && this.map.hasLayer(layer)) {
