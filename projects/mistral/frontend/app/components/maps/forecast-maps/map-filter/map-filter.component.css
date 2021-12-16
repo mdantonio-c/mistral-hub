@@ -57,7 +57,12 @@
   font-size: 15px;
   line-height: 2;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 14px;
+}
+
+.btn-info {
+  background-color:#E49C1E ;
+  border-color: #E49C1E ;
 }
 
 @media (max-width: 801px) {

@@ -18,6 +18,11 @@ export interface CustomUser {
   request_par_hour: number;
 }
 
+export interface ValueLabel {
+  value: any;
+  label: string;
+}
+
 export interface CodeDescPair {
   code: string;
   /** @nullable */

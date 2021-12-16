@@ -186,7 +186,7 @@ export enum DatasetProduct {
   MCC = "Medium Cloud",
   LCC = "Low Cloud",
 
-  TPPERC1 = "Precipitation percentiles 1",
+  TPPERC1 = "Precipitation percentile 1",
   TPPERC10 = "Precipitation percentile 10",
   TPPERC25 = "Precipitation percentile 25",
   TPPERC50 = "Precipitation percentile 50",
