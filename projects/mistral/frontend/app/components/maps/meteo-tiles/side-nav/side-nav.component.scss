@@ -7,16 +7,11 @@
   float: right;
   height: 100%;
   text-align: center;
-  width: 270px;
+  width: 280px;
   cursor: auto;
 
   &.collapsed {
     width: 50px !important;
-
-    & > .map-sidenav-menu .iff {
-      margin-bottom: -378px;
-  }
-
   }
 
   li a .nav-text {
@@ -51,8 +46,6 @@
     flex-wrap: wrap;
     align-content: center;
     align-items: center;
-   
-
 
     .toggle {
       cursor: pointer;
@@ -72,11 +65,8 @@
         background-image: url("/app/custom/assets/images/icons/menu_burger.svg");
         left: 0;
       }
-
-
     }
 
-    
     .sidenav-item {
       width: 100%;
       display: flex;
@@ -118,13 +108,9 @@
   }
 }
 
-.nav-sub-text
-{
-  margin-top: -10px;
-  margin-left: 21x;
-  margin-bottom:6px;
-  width:100%;
-  text-align:center;
+.nav-sub-text {
+  margin-left: 4px;
+  font-size: 10px;
   font-family: "Montserrat-semibold";
 }
 
@@ -147,7 +133,7 @@
   margin-top: -30px;
 }
 
-.tpperc + a p{
+.tpperc + a p {
   top: 6px;
 }
 
@@ -159,8 +145,8 @@
 .cc,
 .input,
 .plus,
-.minus, 
-.carte, 
+.minus,
+.carte,
 .tpperc,
 .tpprob {
   background-size: contain;
@@ -172,7 +158,6 @@
   width: 30px;
   height: 30px;
 }
-
 
 .t2m {
   background-image: url("/app/custom/assets/images/icons/temper.svg");
@@ -219,18 +204,17 @@
 }
 
 .plus.isDisabled {
-  background-image: url('/app/custom/assets/images/iconsplus_disabled.svg');
+  background-image: url("/app/custom/assets/images/iconsplus_disabled.svg");
   cursor: not-allowed;
 }
 
 .minus.isDisabled {
-  background-image: url('/app/custom/assets/images/icons/minus_disabled.svg');
+  background-image: url("/app/custom/assets/images/icons/minus_disabled.svg");
   cursor: not-allowed;
 }
 
-.carte  {
-  background-image: url('/app/custom/assets/images/icons/map_style.svg');
- 
+.carte {
+  background-image: url("/app/custom/assets/images/icons/map_style.svg");
 }
 
 /* time, clouds and datasets selectors */
@@ -247,32 +231,32 @@
 .selettore-dataset {
   display: flex;
   width: 200px;
-  margin-top:-5px
+  margin-top: -5px;
 }
 
 .selettore-percentile {
-  display:flex;
+  display: flex;
   flex-wrap: wrap;
-  width:196px;
+  width: 196px;
   margin-left: 40px;
   justify-content: space-between;
-  
+
   label {
-    display:flex;
-    flex-direction:column;
+    display: flex;
+    flex-direction: column;
     font-size: 8px;
     text-transform: uppercase;
-    color:#fff;
-    text-align:center;
-    margin-top:2px;
+    color: #fff;
+    text-align: center;
+    margin-top: 2px;
     font-size: 10px;
     font-family: "Montserrat-semibold";
   }
 
   input {
-    margin-left:10px;
-    margin-right:10px;
-    z-index:-1;
+    margin-left: 10px;
+    margin-right: 10px;
+    z-index: -1;
     position: relative;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -282,33 +266,32 @@
     height: 13px !important;
     border: 2px solid #999;
     transition: 0.2s all linear;
-   
   }
 }
 
 .selettore-probabilita {
   display: flex;
-  width:100%;
-  margin-bottom:20px;
+  width: 100%;
+  margin-bottom: 20px;
   margin-left: 23px;
   justify-content: space-evenly;
 
   label {
-    display:flex;
-    flex-direction:column;
+    display: flex;
+    flex-direction: column;
     font-size: 8px;
     text-transform: uppercase;
-    color:#fff;
-    text-align:center;
-    margin-top:2px;
+    color: #fff;
+    text-align: center;
+    margin-top: 2px;
     font-size: 10px;
     font-family: "Montserrat-semibold";
   }
 
   input {
-    margin-left:10px;
-    margin-right:10px;
-    z-index:-1;
+    margin-left: 10px;
+    margin-right: 10px;
+    z-index: -1;
     position: relative;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -325,7 +308,7 @@
   display: flex;
   align-items: center;
   flex-direction: column;
-  margin-top:10px;
+  margin-top: 10px;
 }
 
 .selettore-clouds {
@@ -355,22 +338,22 @@
 }
 
 .selettore-mappa {
-  margin-bottom:10px;
+  margin-bottom: 10px;
 
   label {
-    display:flex;
+    display: flex;
     color: #fff;
     text-transform: uppercase;
     font-size: 10px;
     justify-content: space-evenly;
-    margin-left:50px;
+    margin-left: 50px;
     font-family: "Montserrat-semibold";
   }
 
   input {
-    margin-left:10px;
-    margin-right:10px;
-    z-index:-1;
+    margin-left: 10px;
+    margin-right: 10px;
+    z-index: -1;
     position: relative;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -388,19 +371,19 @@
   margin-bottom: -6px;
 
   label {
-    display:flex;
+    display: flex;
     color: #fff;
     text-transform: uppercase;
     font-size: 10px;
     justify-content: space-evenly;
-    margin-left:50px;
+    margin-left: 50px;
     font-family: "Montserrat-semibold";
   }
 
   input {
-    margin-left:10px;
-    margin-right:10px;
-    z-index:-1;
+    margin-left: 10px;
+    margin-right: 10px;
+    z-index: -1;
     position: relative;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -423,9 +406,9 @@
   z-index: 1;
 
   input {
-    margin-left:10px;
-    margin-right:10px;
-    z-index:-1;
+    margin-left: 10px;
+    margin-right: 10px;
+    z-index: -1;
     position: relative;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -497,16 +480,14 @@
   height: 15px;
 }
 
-.dataset  {
+.dataset {
   margin-top: -3px !important;
 }
 
-.selettore-dataset  {
-  margin-top:-14px;
+.selettore-dataset {
+  margin-top: -14px;
   margin-bottom: 14px;
 }
-
-
 
 .selettore-multimodel {
   position: relative;
@@ -541,14 +522,13 @@
   text-decoration: none;
 }
 
-.plus.iDisabled, 
-.isDisabled .nav-text, 
-.minus.iDisabled  {
+.plus.iDisabled,
+.isDisabled .nav-text,
+.minus.iDisabled {
   color: currentColor;
   cursor: not-allowed;
   opacity: 0.5;
   text-decoration: none;
-
 }
 
 /* style toggle multi-model */
