@@ -95,8 +95,8 @@ export class SideNavComponent {
     prp: null,
     sf: null,
     cc: null,
-    tpperc: this.subLevelsMap["tpperc"][2].value,
-    tpprob: this.subLevelsMap["tpprob"][2].value,
+    tpperc: this.subLevelsMap["tpperc"][0].value,
+    tpprob: null,
   };
 
   constructor(private el: ElementRef, private renderer: Renderer2) {}
