@@ -5,7 +5,6 @@ import {
   EventEmitter,
   HostListener,
   Input,
-  OnChanges,
   Output,
   Renderer2,
   SimpleChanges,
@@ -34,11 +33,34 @@ import { ValueLabel } from "../../../../types";
   templateUrl: "./side-nav.component.html",
   styleUrls: ["side-nav.component.scss"],
 })
-export class SideNavComponent implements OnChanges {
-  @Input() overlays: L.Control.LayersObject;
+export class SideNavComponent {
+  // @Input() overlays: L.Control.LayersObject;
   @Input() dataset: string;
   // Reference to the primary map object
   @Input() map: L.Map;
+
+  private _overlays: L.Control.LayersObject;
+
+  @Input() set overlays(value: L.Control.LayersObject) {
+    this._overlays = value;
+    if (!value) return;
+    // activate layers
+    for (const [key, layer] of Object.entries(this._overlays)) {
+      let lCode = toLayerCode(key);
+      if (lCode) {
+        const el = this.el.nativeElement.querySelector(`.${lCode}`);
+        if (this.map.hasLayer(layer)) {
+          setTimeout(() => {
+            this.renderer.addClass(el, "attivo");
+          }, 0);
+        }
+      }
+    }
+  }
+
+  get overlays(): L.Control.LayersObject {
+    return this._overlays;
+  }
 
   // Change zoom level of the map
   @Output() onZoomIn: EventEmitter<null> = new EventEmitter<null>();
@@ -73,30 +95,11 @@ export class SideNavComponent implements OnChanges {
     prp: null,
     sf: null,
     cc: null,
-    tpperc: null,
-    tpprob: null,
+    tpperc: this.subLevelsMap["tpperc"][2].value,
+    tpprob: this.subLevelsMap["tpprob"][2].value,
   };
 
   constructor(private el: ElementRef, private renderer: Renderer2) {}
-
-  ngOnChanges(changes: SimpleChanges): void {
-    const isFirstChange = Object.values(changes).some((c) => c.isFirstChange());
-    if (isFirstChange) {
-      return;
-    }
-
-    if (this.overlays) {
-      // activate layers
-      for (const [key, layer] of Object.entries(this.overlays)) {
-        let lCode = toLayerCode(key);
-        if (lCode) {
-          const el = this.el.nativeElement.querySelector(`.${lCode}`),
-            action = this.map.hasLayer(layer) ? "addClass" : "removeClass";
-          this.renderer[action](el, "attivo");
-        }
-      }
-    }
-  }
 
   @HostListener("dblclick", ["$event"])
   @HostListener("click", ["$event"])
@@ -127,7 +130,7 @@ export class SideNavComponent implements OnChanges {
       event.target as HTMLInputElement
     ).className.includes("attivo");
     const op = fromActiveState ? "remove" : "add";
-    if (["prp", "sf", "cc", "tpprec", "tpprob"].includes(layerId)) {
+    if (["prp", "sf", "cc", "tpperc", "tpprob"].includes(layerId)) {
       if (op === "remove") {
         // reset sub-level
         this.selectedMap[layerId] = null;
