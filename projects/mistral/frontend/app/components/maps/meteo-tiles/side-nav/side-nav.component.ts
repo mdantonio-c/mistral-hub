@@ -53,6 +53,7 @@ export class SideNavComponent {
       let lCode = toLayerCode(key);
       if (lCode) {
         const el = this.el.nativeElement.querySelector(`.${lCode}`);
+        this.renderer.removeClass(el, "attivo");
         if (this.map.hasLayer(layer)) {
           if (Object.keys(this.selectedMap).includes(lCode)) {
             this.selectedMap[lCode] = this.subLevelsMap[lCode][0].value;
