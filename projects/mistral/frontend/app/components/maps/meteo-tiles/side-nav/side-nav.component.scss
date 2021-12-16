@@ -118,6 +118,16 @@
   }
 }
 
+.nav-sub-text
+{
+  margin-top: -10px;
+  margin-left: 21x;
+  margin-bottom:6px;
+  width:100%;
+  text-align:center;
+  font-family: "Montserrat-semibold";
+}
+
 .multi-model {
   display: flex !important ;
   flex-wrap: nowrap !important;
@@ -135,6 +145,10 @@
 
 .cc + a {
   margin-top: -30px;
+}
+
+.tpperc + a p{
+  top: 6px;
 }
 
 .t2m,
@@ -239,8 +253,9 @@
 .selettore-percentile {
   display:flex;
   flex-wrap: wrap;
-  width:185px;
-  margin-left: 52px;
+  width:196px;
+  margin-left: 40px;
+  justify-content: space-between;
   
   label {
     display:flex;
@@ -251,6 +266,7 @@
     text-align:center;
     margin-top:2px;
     font-size: 10px;
+    font-family: "Montserrat-semibold";
   }
 
   input {
@@ -266,15 +282,16 @@
     height: 13px !important;
     border: 2px solid #999;
     transition: 0.2s all linear;
+   
   }
 }
 
 .selettore-probabilita {
   display: flex;
   width:100%;
-  margin-left: 42px;
-  justify-content: space-around;
   margin-bottom:20px;
+  margin-left: 23px;
+  justify-content: space-evenly;
 
   label {
     display:flex;
@@ -285,6 +302,7 @@
     text-align:center;
     margin-top:2px;
     font-size: 10px;
+    font-family: "Montserrat-semibold";
   }
 
   input {
@@ -346,6 +364,7 @@
     font-size: 10px;
     justify-content: space-evenly;
     margin-left:50px;
+    font-family: "Montserrat-semibold";
   }
 
   input {
@@ -375,6 +394,7 @@
     font-size: 10px;
     justify-content: space-evenly;
     margin-left:50px;
+    font-family: "Montserrat-semibold";
   }
 
   input {
@@ -463,6 +483,7 @@
 
 .selettore-orario label {
   align-items: center;
+  font-family: "Montserrat-semibold";
 }
 
 .selettore-dataset a,
