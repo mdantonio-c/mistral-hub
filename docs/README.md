@@ -89,7 +89,7 @@ The user can expand the request box information by clicking the icon:
 
 ![](icon3.png)
 
-Clicking the trash bin icon the user can choose to delete or archive the request. If the archive option is chosen, only the associated output file is deleted (extraction data) while the request and its detail will still be available in the Archive tab. Once the request is archived, it will obviously no longer be possible to download the related file .
+Clicking the trash bin icon the user can choose to delete or archive the request. If the archive option is chosen, only the associated output file is deleted (extraction data) while the request and its details will still be available in the Archive tab. Once the request is archived, it will obviously no longer be possible to download the related file.
 
 The situation of the user disk quota occupation is shown on the widget "Storage" on the left.
 
