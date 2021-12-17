@@ -89,7 +89,7 @@ The user can expand the request box information by clicking the icon:
 
 ![](icon3.png)
 
-The requests cannot be canceled: clicking the trash bin icon deletes only the associated output file upon request (extraction data). Once deleted, it will obviously no longer be possible to download this file.
+Clicking the trash bin icon the user can choose to delete or archive the request. If the archive option is chosen, only the associated output file is deleted (extraction data) while the request and its detail will still be available in the Archive tab. Once the request is archived, it will obviously no longer be possible to download the related file .
 
 The situation of the user disk quota occupation is shown on the widget "Storage" on the left.
 
@@ -236,6 +236,8 @@ _Disk quota_: each user has assigned a disk quota in which the results of his re
 _AMQP queue_: the name of the AMQP queue on which the user is enabled to do data pushing must be indicated here. Not all users are enabled for this functionality.
 
 _Requests expirations_ (in days, 0 to disable): the value of the field indicates the number of days after which the request results are automatically deleted from the user's disk quota. If set to 0 then these are not deleted. The value of this field can also be modified by the user himself.
+
+_Delete expired requests_ : allow the user to choose if the expired request will be deleted or archived. If set to _NO_ (default option) the expired request will be archived.
 
 _Enable access to Open Datasets_: by selecting this check the user is enabled to access the Open datasets.
 
