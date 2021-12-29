@@ -20,13 +20,6 @@ from restapi.connectors import sqlalchemy
 from restapi.env import Env
 from restapi.utilities.logs import log
 
-# temporary fix to discard Lugo station from maps
-station_to_filter = [
-    (44.4177, 11.91331, "cro"),
-    (44.68953, 10.51062, "agrmet"),
-    (44.68944, 10.51056, "dpcn-emiliaromag"),
-]
-
 
 class BeDballe:
     MAPS_NETWORK_FILTER = ["multim-forecast"]
@@ -1188,13 +1181,6 @@ class BeDballe:
                             attrs = variable.get_attrs()
                             is_reliable = BeDballe.data_qc(attrs)
                             product_val["rel"] = is_reliable
-                            # tmp fix: make null data from stations with mistaken data
-                            if "var" in query:
-                                if (
-                                    query["var"] == "B12101"
-                                    and station_tuple in station_to_filter
-                                ):
-                                    product_val["rel"] = 0
                     if (
                         "rel" not in product_val.keys()
                         and rec["rep_memo"] != "multim-forecast"

@@ -29,7 +29,7 @@ class TestApp(BaseTests):
             network_list = arki.get_observed_dataset_params(d)
             for net in network_list:
                 if db_type == "dballe":
-                    db = dballe.DB.connect(
+                    db_dballe = dballe.DB.connect(
                         "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
                             engine=db.variables.get("dbtype"),
                             user=db.variables.get("user"),
@@ -39,7 +39,7 @@ class TestApp(BaseTests):
                         )
                     )
                     # get a valid reftime for dballe
-                    with db.transaction() as tr:
+                    with db_dballe.transaction() as tr:
                         for row in tr.query_data({"rep_memo": net}):
                             date_to_dt = (
                                 datetime(
@@ -81,7 +81,7 @@ class TestApp(BaseTests):
                             summary_from[4],
                         )
                 elif db_type == "mixed":
-                    db = dballe.DB.connect(
+                    db_dballe = dballe.DB.connect(
                         "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
                             engine=db.variables.get("dbtype"),
                             user=db.variables.get("user"),
@@ -91,7 +91,7 @@ class TestApp(BaseTests):
                         )
                     )
                     # get a valid reftime for dballe
-                    with db.transaction() as tr:
+                    with db_dballe.transaction() as tr:
                         for row in tr.query_data({"rep_memo": net}):
                             date_to_dt = (
                                 datetime(
