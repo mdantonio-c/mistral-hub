@@ -16,6 +16,10 @@ import { LeafletDrawModule } from "@asymmetrik/ngx-leaflet-draw";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
 import { NgxChartsModule } from "@swimlane/ngx-charts";
 
+import { MatSelectModule } from "@angular/material/select";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
+
 import { HomeComponent } from "@app/custom.home";
 import { DataComponent } from "@app/components/data/data.component";
 import { RequestsComponent } from "@app/components/requests/requests.component";
@@ -174,6 +178,9 @@ const appRoutes: Routes = [
     LeafletDrawModule,
     LeafletMarkerClusterModule,
     NgxChartsModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
   ],
   declarations: [
     AdminDatasetsComponent,

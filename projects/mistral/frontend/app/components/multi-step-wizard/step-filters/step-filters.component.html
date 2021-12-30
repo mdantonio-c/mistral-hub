@@ -138,39 +138,27 @@
               ></i
             ></span>
           </div>
-          <div
-            *ngIf="f.value.name == 'level'"
-            class="pl-1 mst--expansion-panel"
-          >
+          <div *ngIf="f.value.name == 'level'">
+            <mat-form-field appearance="fill">
+              <mat-label>Select by leveltype</mat-label>
+              <select
+                matNativeControl
+                (change)="selectLevelType($event)"
+                [value]="selectedLevelType"
+              >
+                <option value="" selected></option>
+                <option *ngFor="let lt of levelTypes" [value]="lt">
+                  {{ lt }}
+                </option>
+              </select>
+            </mat-form-field>
             <button
-              class="btn btn-link"
+              class="btn btn-outline-primary mr-2"
               type="button"
-              (click)="collapse.toggle()"
-              [attr.aria-expanded]="!isCollapsed"
-              aria-controls="collapseExample"
+              (click)="onLevelTypeSelect(i)"
             >
-              <i
-                class="fa px-2"
-                [ngClass]="isCollapsed ? 'fa-angle-right' : 'fa-angle-down'"
-              ></i>
-              Select by leveltype
+              Select
             </button>
-            <div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
-              <div class="card-body">
-                <ul class="row no-gutters">
-                  <li *ngFor="let lt of levelTypes" class="col-sm-4">
-                    <input
-                      [id]="'lt-' + lt"
-                      class="mst--input-checkbox"
-                      type="checkbox"
-                      [value]="lt"
-                      (change)="onLevelTypeChange($event, i)"
-                    />
-                    <label [for]="'lt-' + lt">{{ lt }}</label>
-                  </li>
-                </ul>
-              </div>
-            </div>
           </div>
           <div class="card-body mst--list-filter">
             <ul class="row no-gutters">

@@ -33,6 +33,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   user: User;
   public isCollapsed = true;
   levelTypes: string[] = [];
+  selectedLevelType: string;
 
   constructor(
     private fb: FormBuilder,
@@ -394,27 +395,32 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     return desc;
   }
 
-  onLevelTypeChange(e, cIndex) {
+  selectLevelType(e) {
+    this.selectedLevelType = e.target.value;
+    //console.log("changed")
+    //console.log(e.target.value)
+  }
+
+  onLevelTypeSelect(cIndex) {
+    console.log("selected");
+    console.log(this.selectedLevelType);
     // @ts-ignore
     const level: FormGroup = (
       this.filterForm.controls.filters as FormArray
     ).controls.at(cIndex);
     this.filters["level"].forEach((l, i) => {
       if (l["style"] == "GRIB1" || l["style"] == "GRIB2S") {
-        if (l["level_type"] == e.target.value) {
-          (level.controls.values as FormArray).controls
-            .at(i)
-            .setValue(e.target.checked);
+        if (l["level_type"] == this.selectedLevelType) {
+          (level.controls.values as FormArray).controls.at(i).setValue(true);
         }
       } else if (l["style"] == "GRIB2D") {
-        let level_array = e.target.value.split(",");
+        let level_array = this.selectedLevelType.split(",");
         if (l["l1"] == level_array[0] && l["l2"] == level_array[1]) {
-          (level.controls.values as FormArray).controls
-            .at(i)
-            .setValue(e.target.checked);
+          (level.controls.values as FormArray).controls.at(i).setValue(true);
         }
       }
     });
     this.onFilterChange();
+    this.selectedLevelType = null;
   }
 }
