@@ -183,8 +183,6 @@ class TestApp(BaseTests):
             )
         request = db.Request.query.filter_by(id=pp1_request.id).first()
         assert request.status == "FAILURE"
-        # TODO adjust error message in case of value exception
-        # assert "Unknown post-processor" in request.error_message
 
         # try derived variable postprocessor
         derived_variable_pp = {

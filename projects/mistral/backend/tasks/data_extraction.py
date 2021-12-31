@@ -10,9 +10,12 @@ from celery.exceptions import Ignore
 from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR, PostProcessorsType
 from mistral.exceptions import (
     AccessToDatasetDenied,
+    DeleteScheduleException,
     DiskQuotaException,
     EmptyOutputFile,
+    InvalidFiltersException,
     InvalidLicenseException,
+    JoinObservedExtraction,
     MaxOutputSizeExceeded,
     PostProcessingException,
 )
@@ -373,12 +376,13 @@ def data_extract(
         PostProcessingException,
         AccessToDatasetDenied,
         EmptyOutputFile,
+        InvalidFiltersException,
     ) as exc:
         request.status = states.FAILURE
         request.error_message = str(exc)
         raise Ignore(str(exc))
 
-    except Exception as exc:
+    except (DeleteScheduleException, JoinObservedExtraction, Exception) as exc:
         # handle all the other exceptions
         request.status = states.FAILURE
         request.error_message = "Failed to extract data"
@@ -412,10 +416,11 @@ def data_extract(
                 if amqp_queue:
                     try:
                         notify_by_amqp_queue(amqp_queue, request)
-                    except BaseException:
+                    except BaseException as exc:
                         extra_msg = f"failed communication with {amqp_queue} amqp queue"
                         # notify via mail (adding the amqp communication error)
                         notify_by_email(db, user_id, request, extra_msg)
+                        raise exc
                 else:
                     notify_by_email(db, user_id, request, "")
 
@@ -461,7 +466,7 @@ def check_user_quota(
                 log.debug("Deactivate periodic task for schedule {}", schedule_id)
                 if schedule.on_data_ready is False:
                     if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
-                        raise Exception(
+                        raise DeleteScheduleException(
                             f"Cannot delete periodic task for schedule {schedule_id}"
                         )
                 SqlApiDbManager.update_schedule_status(db, schedule_id, False)
@@ -496,7 +501,7 @@ def check_user_quota(
                 log.debug("Deactivate periodic task for schedule {}", schedule_id)
                 if schedule.on_data_ready is False:
                     if not CeleryExt.delete_periodic_task(name=str(schedule_id)):
-                        raise Exception(
+                        raise DeleteScheduleException(
                             f"Cannot delete periodic task for schedule {schedule_id}"
                         )
                 SqlApiDbManager.update_schedule_status(db, schedule_id, False)

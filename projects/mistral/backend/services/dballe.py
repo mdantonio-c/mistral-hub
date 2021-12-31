@@ -9,6 +9,9 @@ import arkimet as arki
 import dateutil
 import dballe
 from mistral.exceptions import (
+    EmptyOutputFile,
+    InvalidFiltersException,
+    JoinObservedExtraction,
     NetworkNotInLicenseGroup,
     UnAuthorizedUser,
     UnexistingLicenseGroup,
@@ -1765,7 +1768,7 @@ class BeDballe:
                 key_index = fields.index("rep_memo")
                 nets_in_query = queries[key_index]
                 if not all(elem in dataset_nets for elem in nets_in_query):
-                    raise Exception(
+                    raise InvalidFiltersException(
                         "Failure in data extraction: Invalid set of filters"
                     )
 
@@ -1866,14 +1869,18 @@ class BeDballe:
         # check if the extractions were done
         if len(cat_cmd) == 1:
             # any extraction file exists
-            raise Exception("Failure in data extraction")
+            raise EmptyOutputFile(
+                "Failure in data extraction: the query does not give any result"
+            )
 
         # join the dballe extraction with the arki one
         with open(outfile, mode="w") as output:
             ext_proc = subprocess.Popen(cat_cmd, stdout=output)
             ext_proc.wait()
             if ext_proc.wait() != 0:
-                raise Exception("Failure in data extraction")
+                raise JoinObservedExtraction(
+                    "Failure in data extraction: error in creating the output file for mixed archives"
+                )
 
     @staticmethod
     def extract_data(
@@ -1933,7 +1940,7 @@ class BeDballe:
                     f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}"
                 )
             except OSError:
-                raise Exception("Unable to connect to dballe database")
+                raise OSError("Unable to connect to dballe database")
         requested_runs = []
         if queried_reftime:
             # multimodel case. get a list of all runs
@@ -2009,7 +2016,7 @@ class BeDballe:
 
         if counter == 1:
             # any query has given a result
-            raise Exception(
+            raise EmptyOutputFile(
                 "Failure in data extraction: the query does not give any result"
             )
 
@@ -2018,7 +2025,9 @@ class BeDballe:
             ext_proc = subprocess.Popen(cat_cmd, stdout=output)
             ext_proc.wait()
             if ext_proc.wait() != 0:
-                raise Exception("Failure in data extraction")
+                raise JoinObservedExtraction(
+                    "Failure in data extraction: error in creating the output file"
+                )
 
     @staticmethod
     def filter_messages(msg, list_of_runs=None, quality_check=False):
