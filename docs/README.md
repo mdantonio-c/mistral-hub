@@ -340,6 +340,8 @@ _Allowed requests per hour_: the maximum number of request of data extraction a 
 
 _Requests expiration_ (in days, 0 to disable): the value of the field indicates the number of days after which the request results are automatically deleted from the user's disk quota. If set to 0 then these are not deleted. The value of this field can also be modified by the user himself.
 
+_Delete expired requests_ : allow the user to choose if the expired request will be deleted or archived. If set to _NO_ (default option) the expired request will be archived.
+
 _Last password change_: the date of the last change of the password.
 
 The image below shows the Profile page:
@@ -353,6 +355,7 @@ In the Profile page, the user is able to:
   - Name
   - Surname
   - Requests expirations (in days, 0 to disable): the user can select how many days he needs to keep the results of his requests available on My Request page before they are automatically deleted.
+  - Delete expired requests (Default _No_): the user can decide if the expired requests will be deleted or archived
 
 ![](profile2.png)
 
