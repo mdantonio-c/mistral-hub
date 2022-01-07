@@ -41,11 +41,23 @@ class BeDballe:
     QC_CODES = ["B33007", "B33192"]
 
     @staticmethod
-    def get_db_type(date_min, date_max):
-        date_min_compar = datetime.utcnow() - date_min
-        if date_min_compar.days > BeDballe.LASTDAYS:
+    def get_db_type(date_min=None, date_max=None):
+        if date_min:
+            date_min_compar = datetime.utcnow() - date_min
+            min_days = date_min_compar.days
+        else:
+            # if there is not a datemin for sure the dbtype will be arkimet or mixed
+            min_days = BeDballe.LASTDAYS + 1
+
+        if date_max:
             date_max_compar = datetime.utcnow() - date_max
-            if date_max_compar.days > BeDballe.LASTDAYS:
+            max_days = date_max_compar.days
+        else:
+            # if there is not datemax for sure the dbtype will be dballe or mixed
+            max_days = BeDballe.LASTDAYS - 1
+
+        if min_days > BeDballe.LASTDAYS:
+            if max_days > BeDballe.LASTDAYS:
                 db_type = "arkimet"
             else:
                 db_type = "mixed"
@@ -55,13 +67,17 @@ class BeDballe:
 
     @staticmethod
     def split_reftimes(date_min, date_max):
-        refmax_dballe = date_max
+        refmax_dballe = None
+        refmin_dballe = None
+        refmax_arki = None
+        refmin_arki = None
+        if date_max:
+            refmax_dballe = date_max
+        if date_min:
+            refmin_arki = date_min
+
         refmin_dballe = datetime.utcnow() - timedelta(days=BeDballe.LASTDAYS)
-        # refmax_arki_dt = refmin_dballe - timedelta(minutes=1)
-        # refmax_arki = refmax_arki_dt.strftime("%Y-%m-%d %H:%M")
-        # refmin_arki = date_min.strftime("%Y-%m-%d %H:%M")
         refmax_arki = refmin_dballe - timedelta(minutes=1)
-        refmin_arki = date_min
 
         return refmax_dballe, refmin_dballe, refmax_arki, refmin_arki
 
@@ -831,15 +847,21 @@ class BeDballe:
             query_for_dballe = {**query_data}
 
         refmin_arki = None
+
+        datetime_max = None
+        datetime_min = None
+        if "datetimemax" in query_for_dballe:
+            datetime_max = query_for_dballe["datetimemax"]
         if "datetimemin" in query_for_dballe:
+            datetime_min = query_for_dballe["datetimemin"]
+
+        if datetime_min or datetime_max:
             (
                 refmax_dballe,
                 refmin_dballe,
                 refmax_arki,
                 refmin_arki,
-            ) = BeDballe.split_reftimes(
-                query_for_dballe["datetimemin"], query_for_dballe["datetimemax"]
-            )
+            ) = BeDballe.split_reftimes(datetime_min, datetime_max)
             # set up query for dballe with the correct reftimes
             query_for_dballe["datetimemin"] = refmin_dballe
         else:
@@ -875,7 +897,8 @@ class BeDballe:
             )
 
         if query_for_dballe:
-            if "datetimemin" not in query_for_dballe:
+            # if there is not reftime, only the data of the last hour will be extracted
+            if not datetime_min and not datetime_max:
                 return dballe_maps_data
             else:
                 # get data from the arkimet database
@@ -993,8 +1016,9 @@ class BeDballe:
             datemin = None
             datemax = None
             if query_data:
-                datemin = query["datetimemin"]
                 datemax = query["datetimemax"]
+                if "datetimemin" in query:
+                    datemin = query["datetimemin"]
             # for now we consider network as a single parameters.
             # TODO choose if the network will be a single or multiple param
             # transform network param in a list to be managed better for arkimet queries
