@@ -33,6 +33,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   user: User;
   public isCollapsed = true;
   levelTypes: string[] = [];
+  selectedLevelTypes: boolean[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -166,6 +167,8 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                 });
                 // @ts-ignore
                 this.levelTypes = [...new Set(arr)];
+                //initialize leveltypes
+                this.levelTypesInit();
               }
             }
           });
@@ -394,27 +397,36 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     return desc;
   }
 
-  onLevelTypeChange(e, cIndex) {
+  levelTypesInit() {
+    this.selectedLevelTypes = [];
+    for (let el = 0; el < this.levelTypes.length; el++) {
+      this.selectedLevelTypes.push(false);
+    }
+  }
+
+  onLevelTypeChange(cIndex) {
+    //console.log(this.selectedLevelTypes)
     // @ts-ignore
     const level: FormGroup = (
       this.filterForm.controls.filters as FormArray
     ).controls.at(cIndex);
     this.filters["level"].forEach((l, i) => {
       if (l["style"] == "GRIB1" || l["style"] == "GRIB2S") {
-        if (l["level_type"] == e.target.value) {
-          (level.controls.values as FormArray).controls
-            .at(i)
-            .setValue(e.target.checked);
+        if (this.selectedLevelTypes[this.levelTypes.indexOf(l["level_type"])]) {
+          (level.controls.values as FormArray).controls.at(i).setValue(true);
         }
       } else if (l["style"] == "GRIB2D") {
-        let level_array = e.target.value.split(",");
-        if (l["l1"] == level_array[0] && l["l2"] == level_array[1]) {
-          (level.controls.values as FormArray).controls
-            .at(i)
-            .setValue(e.target.checked);
+        if (
+          this.selectedLevelTypes[
+            this.levelTypes.indexOf(l["l1"] + "," + l["l2"])
+          ]
+        ) {
+          (level.controls.values as FormArray).controls.at(i).setValue(true);
         }
       }
     });
     this.onFilterChange();
+    // clean the leveltype selection array
+    this.levelTypesInit();
   }
 }
