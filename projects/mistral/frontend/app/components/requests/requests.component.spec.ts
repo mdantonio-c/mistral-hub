@@ -17,6 +17,7 @@ import { BytesPipe } from "@rapydo/pipes/bytes";
 import { AuthService } from "@rapydo/services/auth";
 import { NotificationService } from "@rapydo/services/notification";
 import { SSRService } from "@rapydo/services/ssr";
+import { LocalStorageService } from "@rapydo/services/localstorage";
 import { ConfirmationModals } from "@rapydo/services/confirmation.modals";
 import { ProjectOptions } from "@app/customization";
 import { FormlyService } from "@rapydo/services/formly";
@@ -41,6 +42,7 @@ class ApiServiceStub extends ApiService {
     super(
       {} as HttpClient,
       {} as Router,
+      {} as LocalStorageService,
       {} as NotificationService,
       {} as SSRService
     );
@@ -91,6 +93,7 @@ describe("RequestsComponent", () => {
       providers: [
         NotificationService,
         SSRService,
+        LocalStorageService,
         ProjectOptions,
         ConfirmationModals,
         { provide: DataService, useClass: DataServiceStub },

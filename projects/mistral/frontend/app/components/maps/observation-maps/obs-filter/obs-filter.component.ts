@@ -12,6 +12,7 @@ import { ObsService } from "../services/obs.service";
 import { LICENSES } from "../services/data";
 import { NgbDateStruct, NgbCalendar } from "@ng-bootstrap/ng-bootstrap";
 import { NotificationService } from "@rapydo/services/notification";
+import { LocalStorageService } from "@rapydo/services/localstorage";
 import { environment } from "@rapydo/../environments/environment";
 import { User } from "@rapydo/types";
 import { AuthService } from "@rapydo/services/auth";
@@ -70,6 +71,7 @@ export class ObsFilterComponent implements OnInit {
     private obsService: ObsService,
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
+    private local_storage: LocalStorageService,
     private authService: AuthService,
     private ref: ChangeDetectorRef
   ) {
@@ -118,12 +120,12 @@ export class ObsFilterComponent implements OnInit {
         this.applyMinDate();
       }
     });
-    this.authService.userChanged.subscribe((user) => {
-      if (user === this.authService.LOGGED_OUT) {
+    this.local_storage.userChanged.subscribe((user) => {
+      if (user === this.local_storage.LOGGED_OUT) {
         this.user = null;
         this.ref.detectChanges();
         this.minDate = null;
-      } else if (user === this.authService.LOGGED_IN) {
+      } else if (user === this.local_storage.LOGGED_IN) {
         this.user = this.authService.getUser();
       }
     });
