@@ -2,8 +2,8 @@
 project:
   title: Meteo-Hub
   description: "Mistral Meteo Hub"
-  version: "0.4.4"
-  rapydo: "2.1"
+  version: "0.4.5"
+  rapydo: "2.2"
 
 variables:
   roles:
@@ -73,4 +73,4 @@ variables:
     CORS_ALLOWED_ORIGIN: "*"
     SET_CSP_IMG_SRC: "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://api.tiles.mapbox.com https://cartodb-basemaps-a.global.ssl.fastly.net https://cartodb-basemaps-b.global.ssl.fastly.net https://cartodb-basemaps-c.global.ssl.fastly.net https://cartodb-basemaps-d.global.ssl.fastly.net https://meteohub-maps.hpc.cineca.it"
     SET_CSP_FONT_SRC: https://netdna.bootstrapcdn.com
-    SET_MAX_REQUESTS_PER_SECOND_API: 10
+    SET_MAX_REQUESTS_PER_SECOND_API: 999

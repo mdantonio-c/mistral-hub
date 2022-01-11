@@ -446,7 +446,7 @@ The API are documented using the swagger definition at this [URL](https://meteoh
 
 ## **Data portal**
 
-### **Meteo Hub v0.4.0**
+### **Meteo Hub v0.4.5**
 
 MeteoHub is a docker-based environment with many components orchestrated through the docker-compose utility framework. MeteoHub is implemented as an extension of the open source framework RAPyDo that implements core functionalities for most of the adopted services (Backend APIs, Frontend UI, Celery, RabbitMQ, Redis) and wraps the use of docker-compose.
 To deploy MeteoHub a number of prerequisites are needed, in particular docker >= 17.05, python >= 3.6, git and the rapydo controller (usually installed with pip). Docker-compose is also required, but automatically installed with the controller.
@@ -461,7 +461,7 @@ Once installed docker, python and pip; the controller can ben installed as:
 
 to install the latest released version, or:
 
-`$ sudo pip3 install git+https://github.com/rapydo/do.git@1.1`
+`$ sudo pip3 install git+https://github.com/rapydo/do.git@2.2`
 
 to install a specific version
 
@@ -471,19 +471,19 @@ for example:
 
 ```
 $ rapydo --version
-rapydo version: 1.1
+rapydo version: 2.1
 
 $ git branch --show-current
-0.4.0
+0.4.5
 
 $ rapydo version
 
-rapydo: 1.1	mistral: 0.4.0	required rapydo: 1.0
+rapydo: 2.2	mistral: 0.4.5	required rapydo: 2.2
 
-This project is not compatible with rapydo version 1.1
-Please downgrade rapydo to version 1.0 or modify this project
+This project is not compatible with rapydo version 2.1
+Please upgrade rapydo to version 2.2 or modify this project
 
-rapydo install 1.0
+rapydo install 2.2
 
 ```
 
