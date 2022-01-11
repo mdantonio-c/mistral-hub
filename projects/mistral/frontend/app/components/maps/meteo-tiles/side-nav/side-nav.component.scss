@@ -309,6 +309,8 @@
   align-items: center;
   flex-direction: column;
   margin-top: 10px;
+
+
 }
 
 .selettore-clouds {
@@ -508,6 +510,10 @@
     border: 2px solid #999;
     transition: 0.2s all linear;
   }
+
+  input[ng-reflect-model="false"] + p {
+    visibility:hidden;
+  }
 }
 
 .selettore-dataset .selected,
@@ -548,7 +554,7 @@
   opacity: 0.6;
   left: -48.25px;
   width: 44px;
-  height: 25px;
+  height: 24px;
   border-radius: 12.5px;
   background-color: #9c999a;
   border-color: #9c999a !important;
@@ -572,6 +578,11 @@
 .custom-control-input:checked ~ .custom-control-label::before {
   background-color: #9c999a;
   border-color: #9c999a !important;
+}
+
+.custom-control input[disabled="true"] ~ .custom-control-label::after {
+  background-color: #545555a9 !important;
+  background-image: none !important;
 }
 
 .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
