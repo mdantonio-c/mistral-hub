@@ -170,7 +170,9 @@
                       [ngModelOptions]="{ standalone: true }"
                       [(ngModel)]="selectedLevelTypes[i]"
                     />
-                    <label [for]="'lt-' + lt">{{ lt }}</label>
+                    <label [for]="'lt-' + lt">{{
+                      levelTypesDescriptions[i]
+                    }}</label>
                   </li>
                 </ul>
               </div>

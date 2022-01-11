@@ -234,7 +234,7 @@
 
         <button
           type="button"
-          id="prev-button"
+          id="next-button"
           class="btn btn-info btn-sm mr-2"
           (click)="forward()"
           title="Forward"
@@ -258,7 +258,7 @@
             #timeSlider
             id="mst-slider"
             [(value)]="sid"
-            [min]="0"
+            [min]="minHour"
             [max]="maxHour"
             [step]="step"
             [ticks]="sliderTicks"

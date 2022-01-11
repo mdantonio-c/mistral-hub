@@ -20,6 +20,7 @@ import * as _ from "lodash";
 import { StepComponent } from "../step.component";
 import { ReftimeModalContent, ReftimeModel } from "./reftime-modal.component";
 import { AuthService } from "@rapydo/services/auth";
+import { LEVELTYPES } from "./level-descriptions";
 
 @Component({
   selector: "step-filters",
@@ -33,6 +34,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   user: User;
   public isCollapsed = true;
   levelTypes: string[] = [];
+  levelTypesDescriptions: string[] = [];
   selectedLevelTypes: boolean[] = [];
 
   constructor(
@@ -167,6 +169,8 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                 });
                 // @ts-ignore
                 this.levelTypes = [...new Set(arr)];
+                // get descriptions for leveltypes
+                this.getLevelTypeDesc();
                 //initialize leveltypes
                 this.levelTypesInit();
               }
@@ -395,6 +399,20 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
         break;
     }
     return desc;
+  }
+
+  getLevelTypeDesc() {
+    this.levelTypesDescriptions = [];
+    for (let el = 0; el < this.levelTypes.length; el++) {
+      const leveltype = LEVELTYPES.find(
+        (x) => x.code === this.levelTypes[el].toString()
+      );
+      if (leveltype) {
+        this.levelTypesDescriptions.push(leveltype.desc);
+      } else {
+        this.levelTypesDescriptions.push(this.levelTypes[el]);
+      }
+    }
   }
 
   levelTypesInit() {
