@@ -124,7 +124,19 @@ body {
   text-align: left;
   font-size: small;
 }
+.btn-primary {
+  background-color: #E49C1E !important;
+  border-color: #E49C1E !important;
+}
 
+.btn-primary:not(:disabled):not(.disabled):active:focus {
+      box-shadow: 0 0 0 0.2rem rgb(228 156 30 / 50%) !important;
+}
+
+.btn-primary:disabled{
+  background-color: #707070d0 !important;
+  border-color: #707070d0 !important;
+}
 .btn:focus,
 .btn:active,
 .form-control:focus,
