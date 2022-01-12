@@ -72,7 +72,6 @@
       display: flex;
       justify-content: flex-start;
       align-items: center;
-      margin: 2px;
       flex-wrap: wrap;
 
       & > .attivo {
@@ -204,7 +203,7 @@
 }
 
 .plus.isDisabled {
-  background-image: url("/app/custom/assets/images/iconsplus_disabled.svg");
+  background-image: url("/app/custom/assets/images/icons/plus_disabled.svg");
   cursor: not-allowed;
 }
 
@@ -308,7 +307,7 @@
   display: flex;
   align-items: center;
   flex-direction: column;
-  margin-top: 10px;
+  margin-top: -10px;
 }
 
 .selettore-clouds {
@@ -367,7 +366,6 @@
 }
 
 .selettore-carte {
-  margin-top: -10px !important;
   margin-bottom: -6px;
 
   label {
@@ -508,6 +506,10 @@
     border: 2px solid #999;
     transition: 0.2s all linear;
   }
+
+  input[ng-reflect-model="false"] + p {
+    visibility: hidden;
+  }
 }
 
 .selettore-dataset .selected,
@@ -523,8 +525,8 @@
 }
 
 .plus.iDisabled,
-.isDisabled .nav-text,
-.minus.iDisabled {
+.nav-text.isDisabled,
+.minus.isDisabled {
   color: currentColor;
   cursor: not-allowed;
   opacity: 0.5;
@@ -548,7 +550,7 @@
   opacity: 0.6;
   left: -48.25px;
   width: 44px;
-  height: 25px;
+  height: 24px;
   border-radius: 12.5px;
   background-color: #9c999a;
   border-color: #9c999a !important;
@@ -572,6 +574,11 @@
 .custom-control-input:checked ~ .custom-control-label::before {
   background-color: #9c999a;
   border-color: #9c999a !important;
+}
+
+.custom-control input[disabled="true"] ~ .custom-control-label::after {
+  background-color: #545555a9 !important;
+  background-image: none !important;
 }
 
 .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
