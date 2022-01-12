@@ -242,20 +242,20 @@
       <!-- selettore mappe-->
       <li class="sidenav-item last selettore-carte">
         <span class="carte"></span>
-        <a href="#" >
+        <a href="#">
           <span class="nav-text">Map Style</span>
         </a>
         <div class="selettore-mappa">
-          <label >
-            <input type="radio"  value="0" name="mappa">
+          <label>
+            <input type="radio" value="0" name="mappa" />
             Openstreet Map
           </label>
           <label>
-            <input type="radio"  value="1" name="mappa">
+            <input type="radio" value="1" name="mappa" />
             Carto Map Dark
           </label>
           <label>
-            <input type="radio"  value="2" name="mappa">
+            <input type="radio" value="2" name="mappa" />
             Carto Map Light
           </label>
         </div>
@@ -263,25 +263,35 @@
       <li class="sidenav-item">
         <span
           class="plus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
           (click)="zoom($event, 'in')"
           placement="left"
           [ngbTooltip]="'Zoom in'"
           [disableTooltip]="!isCollapsed"
         ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
-          <span class="nav-text">Zoom in</span>
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+            >Zoom in</span
+          >
         </a>
       </li>
       <li class="sidenav-item last">
         <span
           class="minus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
           (click)="zoom($event, 'out')"
           placement="left"
           [ngbTooltip]="'Zoom out'"
           [disableTooltip]="!isCollapsed"
         ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
-          <span class="nav-text">Zoom out</span>
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+            >Zoom out</span
+          >
         </a>
       </li>
     </ul>

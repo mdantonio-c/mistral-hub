@@ -308,8 +308,6 @@
   align-items: center;
   flex-direction: column;
   margin-top: -10px;
-
-
 }
 
 .selettore-clouds {
@@ -507,7 +505,7 @@
   }
 
   input[ng-reflect-model="false"] + p {
-    visibility:hidden;
+    visibility: hidden;
   }
 }
 
@@ -523,8 +521,8 @@
   text-decoration: none;
 }
 
-.plus.isDisabled,
-.isDisabled .nav-text,
+.plus.iDisabled,
+.nav-text.isDisabled,
 .minus.isDisabled {
   color: currentColor;
   cursor: not-allowed;
