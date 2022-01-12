@@ -9,6 +9,9 @@ import arkimet as arki
 import dateutil
 import dballe
 from mistral.exceptions import (
+    EmptyOutputFile,
+    InvalidFiltersException,
+    JoinObservedExtraction,
     NetworkNotInLicenseGroup,
     UnAuthorizedUser,
     UnexistingLicenseGroup,
@@ -19,13 +22,6 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi.connectors import sqlalchemy
 from restapi.env import Env
 from restapi.utilities.logs import log
-
-# temporary fix to discard Lugo station from maps
-station_to_filter = [
-    (44.4177, 11.91331, "cro"),
-    (44.68953, 10.51062, "agrmet"),
-    (44.68944, 10.51056, "dpcn-emiliaromag"),
-]
 
 
 class BeDballe:
@@ -45,11 +41,23 @@ class BeDballe:
     QC_CODES = ["B33007", "B33192"]
 
     @staticmethod
-    def get_db_type(date_min, date_max):
-        date_min_compar = datetime.utcnow() - date_min
-        if date_min_compar.days > BeDballe.LASTDAYS:
+    def get_db_type(date_min=None, date_max=None):
+        if date_min:
+            date_min_compar = datetime.utcnow() - date_min
+            min_days = date_min_compar.days
+        else:
+            # if there is not a datemin for sure the dbtype will be arkimet or mixed
+            min_days = BeDballe.LASTDAYS + 1
+
+        if date_max:
             date_max_compar = datetime.utcnow() - date_max
-            if date_max_compar.days > BeDballe.LASTDAYS:
+            max_days = date_max_compar.days
+        else:
+            # if there is not datemax for sure the dbtype will be dballe or mixed
+            max_days = BeDballe.LASTDAYS - 1
+
+        if min_days > BeDballe.LASTDAYS:
+            if max_days > BeDballe.LASTDAYS:
                 db_type = "arkimet"
             else:
                 db_type = "mixed"
@@ -59,13 +67,17 @@ class BeDballe:
 
     @staticmethod
     def split_reftimes(date_min, date_max):
-        refmax_dballe = date_max
+        refmax_dballe = None
+        refmin_dballe = None
+        refmax_arki = None
+        refmin_arki = None
+        if date_max:
+            refmax_dballe = date_max
+        if date_min:
+            refmin_arki = date_min
+
         refmin_dballe = datetime.utcnow() - timedelta(days=BeDballe.LASTDAYS)
-        # refmax_arki_dt = refmin_dballe - timedelta(minutes=1)
-        # refmax_arki = refmax_arki_dt.strftime("%Y-%m-%d %H:%M")
-        # refmin_arki = date_min.strftime("%Y-%m-%d %H:%M")
         refmax_arki = refmin_dballe - timedelta(minutes=1)
-        refmin_arki = date_min
 
         return refmax_dballe, refmin_dballe, refmax_arki, refmin_arki
 
@@ -835,15 +847,21 @@ class BeDballe:
             query_for_dballe = {**query_data}
 
         refmin_arki = None
+
+        datetime_max = None
+        datetime_min = None
+        if "datetimemax" in query_for_dballe:
+            datetime_max = query_for_dballe["datetimemax"]
         if "datetimemin" in query_for_dballe:
+            datetime_min = query_for_dballe["datetimemin"]
+
+        if datetime_min or datetime_max:
             (
                 refmax_dballe,
                 refmin_dballe,
                 refmax_arki,
                 refmin_arki,
-            ) = BeDballe.split_reftimes(
-                query_for_dballe["datetimemin"], query_for_dballe["datetimemax"]
-            )
+            ) = BeDballe.split_reftimes(datetime_min, datetime_max)
             # set up query for dballe with the correct reftimes
             query_for_dballe["datetimemin"] = refmin_dballe
         else:
@@ -879,7 +897,8 @@ class BeDballe:
             )
 
         if query_for_dballe:
-            if "datetimemin" not in query_for_dballe:
+            # if there is not reftime, only the data of the last hour will be extracted
+            if not datetime_min and not datetime_max:
                 return dballe_maps_data
             else:
                 # get data from the arkimet database
@@ -997,8 +1016,9 @@ class BeDballe:
             datemin = None
             datemax = None
             if query_data:
-                datemin = query["datetimemin"]
                 datemax = query["datetimemax"]
+                if "datetimemin" in query:
+                    datemin = query["datetimemin"]
             # for now we consider network as a single parameters.
             # TODO choose if the network will be a single or multiple param
             # transform network param in a list to be managed better for arkimet queries
@@ -1188,13 +1208,6 @@ class BeDballe:
                             attrs = variable.get_attrs()
                             is_reliable = BeDballe.data_qc(attrs)
                             product_val["rel"] = is_reliable
-                            # tmp fix: make null data from stations with mistaken data
-                            if "var" in query:
-                                if (
-                                    query["var"] == "B12101"
-                                    and station_tuple in station_to_filter
-                                ):
-                                    product_val["rel"] = 0
                     if (
                         "rel" not in product_val.keys()
                         and rec["rep_memo"] != "multim-forecast"
@@ -1779,7 +1792,7 @@ class BeDballe:
                 key_index = fields.index("rep_memo")
                 nets_in_query = queries[key_index]
                 if not all(elem in dataset_nets for elem in nets_in_query):
-                    raise Exception(
+                    raise InvalidFiltersException(
                         "Failure in data extraction: Invalid set of filters"
                     )
 
@@ -1880,14 +1893,18 @@ class BeDballe:
         # check if the extractions were done
         if len(cat_cmd) == 1:
             # any extraction file exists
-            raise Exception("Failure in data extraction")
+            raise EmptyOutputFile(
+                "Failure in data extraction: the query does not give any result"
+            )
 
         # join the dballe extraction with the arki one
         with open(outfile, mode="w") as output:
             ext_proc = subprocess.Popen(cat_cmd, stdout=output)
             ext_proc.wait()
             if ext_proc.wait() != 0:
-                raise Exception("Failure in data extraction")
+                raise JoinObservedExtraction(
+                    "Failure in data extraction: error in creating the output file for mixed archives"
+                )
 
     @staticmethod
     def extract_data(
@@ -1947,7 +1964,7 @@ class BeDballe:
                     f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}"
                 )
             except OSError:
-                raise Exception("Unable to connect to dballe database")
+                raise OSError("Unable to connect to dballe database")
         requested_runs = []
         if queried_reftime:
             # multimodel case. get a list of all runs
@@ -2023,7 +2040,7 @@ class BeDballe:
 
         if counter == 1:
             # any query has given a result
-            raise Exception(
+            raise EmptyOutputFile(
                 "Failure in data extraction: the query does not give any result"
             )
 
@@ -2032,7 +2049,9 @@ class BeDballe:
             ext_proc = subprocess.Popen(cat_cmd, stdout=output)
             ext_proc.wait()
             if ext_proc.wait() != 0:
-                raise Exception("Failure in data extraction")
+                raise JoinObservedExtraction(
+                    "Failure in data extraction: error in creating the output file"
+                )
 
     @staticmethod
     def filter_messages(msg, list_of_runs=None, quality_check=False):

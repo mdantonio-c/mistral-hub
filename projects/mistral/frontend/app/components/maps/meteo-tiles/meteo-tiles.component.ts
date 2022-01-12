@@ -320,7 +320,7 @@ export class MeteoTilesComponent {
         this.map.invalidateSize();
         this.spinner.hide();
         // get multi-model products
-        // this.getMMProducts();
+        this.getMMProducts();
       });
   }
 

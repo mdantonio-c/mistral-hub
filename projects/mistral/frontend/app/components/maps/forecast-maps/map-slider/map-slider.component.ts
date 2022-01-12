@@ -18,7 +18,7 @@ import {
   Resolutions,
   Runs,
   IffRuns,
-  KeyValuePair
+  KeyValuePair,
 } from "../services/data";
 import { NgbCarousel, NgbSlideEvent } from "@ng-bootstrap/ng-bootstrap";
 import * as moment from "moment";
@@ -38,10 +38,13 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
   images: any[] = [];
   paused = true;
-  fromMin: number;
-  fromMinImage: number;
+  // private fromMin: number;
+  fromMinImage = 0;
+  minHour = 0;
   maxHour = 48;
+  /* slide id */
   sid: number;
+  /* increment step of the slider */
   step: number;
   sliderTicks = SLIDER_TICKS;
   legendToShow: any;
@@ -50,7 +53,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   utcTime = true;
   public readonly LEGEND_SPINNER = "legendSpinner";
   public readonly IMAGE_SPINNER = "imageSpinner";
-  selectedRun : KeyValuePair;
+  selectedRun: KeyValuePair;
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
@@ -67,11 +70,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   ) {}
 
   ngOnInit() {
-    this.selectedRun = (this.filter.field == 'percentile' || this.filter.field == 'probability') ?
-    IffRuns.find(x =>  this.filter.run === x.key) :
-    Runs.find(x =>  this.filter.run === x.key);
+    this.selectedRun =
+      this.filter.field == "percentile" || this.filter.field == "probability"
+        ? IffRuns.find((x) => this.filter.run === x.key)
+        : Runs.find((x) => this.filter.run === x.key);
   }
-
 
   setInputSliderFormatter(value) {
     return `+${value}h`;
@@ -124,42 +127,28 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       });
 
     this.step = 1;
-    if (this.filter.field === "prec3" || this.filter.field === "snow3") {
-      this.fromMin = 0;
-      this.fromMinImage = 3;
-    } else if (this.filter.field === "prec6" || this.filter.field === "snow6") {
-      this.fromMin = 0;
-      this.fromMinImage = 6;
-    } else if (this.filter.field === "prec12") {
-      this.fromMin = 0;
-      this.fromMinImage = 12;
-    } else if (this.filter.field === "prec24") {
-      this.fromMin = 0;
-      this.fromMinImage = 24;
-    } else if (
-      this.filter.field === "percentile" ||
-      this.filter.field === "probability"
-    ) {
-      this.fromMin = 6;
-      this.fromMinImage = 0;
-      this.step = 3;
-    } else {
-      this.fromMin = 0;
-      this.fromMinImage = 0;
+    // parseInt at end of string to get the min hour (e.g prec6 -> 6)
+    const matchedValue = this.filter.field.match(/(\d+)$/);
+    if (matchedValue) {
+      this.minHour = parseInt(matchedValue[0], 10);
+      this.fromMinImage = this.minHour;
     }
-    this.sid = this.fromMin;
 
     if (
       this.filter.field === "percentile" ||
       this.filter.field === "probability"
     ) {
-      this.maxHour = 240;
+      this.minHour = 6;
+      this.maxHour = this.filter.run === "12" ? 216 : 240;
+      this.step = 3;
     } else {
       this.maxHour = this.filter.res === "lm2.2" ? 48 : 72;
       if (this.maxHour === 48) {
         this.sliderTicks.slice(this.sliderTicks.length - 2);
       }
     }
+    this.sid = this.minHour;
+
     // get legend from service
     this.spinner.show(this.LEGEND_SPINNER);
     this.meteoService
@@ -210,9 +199,13 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   onSlide(slideEvent: NgbSlideEvent) {
     // position the handle of the slider accordingly
     let idx = parseInt(slideEvent.current.split("-").slice(-1)[0]);
-    console.log(`onSlide: idx=${idx}`);
+    // console.log(`onSlide: idx=${idx}`);
 
-    var idxSlider = idx * this.step + this.fromMin;
+    const offset =
+      this.filter.field === "percentile" || this.filter.field === "probability"
+        ? this.minHour
+        : 0;
+    let idxSlider = offset + idx * this.step;
     // temporary patch
     // due to: flash flood step from 144h to 240h is 6h
     if (
@@ -222,39 +215,39 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     ) {
       idxSlider = idxSlider + (idx - 46) * 3;
     }
-    //console.log(`onSlide: idxSlider=${idxSlider}`);
+    // console.log(`onSlide: idxSlider=${idxSlider}`);
 
     this.setSliderTo(idxSlider);
     this.updateTimestamp(idxSlider);
   }
 
   /**
+   * Load image slide into the carousel properly.
    * Called whenever the cursor is dragged or repositioned at a point in the timeline.
-   * @param $event
+   * @param index
    */
   updateCarousel(index: number) {
-    // load image slide into the carousel accordingly
-    //console.log(`updateCarousel: index=${index}`);
-    var indexImage = index;
+    // console.log(`updateCarousel: index=${index}`);
+    let indexImage = index;
     if (
       this.filter.field === "percentile" ||
       this.filter.field === "probability"
     ) {
-      if (index < this.fromMin) {
-        index = this.fromMin;
+      if (index < this.minHour) {
+        index = this.minHour;
         //console.log(`updateCarousel: 2- index=${index}`);
         this.sid = index;
       }
       // temporary patch
       // due to: flash flood step from 144h to 240h is 6h
       if (index >= 150) {
-        indexImage = (index - this.fromMin) / this.step;
+        indexImage = (index - this.minHour) / this.step;
         indexImage = 46 + (index - 144) / 6;
       } else {
-        indexImage = (index - this.fromMin) / this.step;
+        indexImage = (index - this.minHour) / this.step;
       }
     }
-    //console.log(`updateCarousel: indexImage=${indexImage}`);
+    // console.log(`updateCarousel: indexImage=${indexImage}`);
     setTimeout(() => {
       this.carousel.select(`slideId-${indexImage}`);
       this.updateTimestamp(index);
@@ -278,6 +271,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     }
   }
 
+  /**
+   * Update the date and time to be displayed at the bottom center of the map.
+   * @param amount the value to be added to the reference time
+   * @private
+   */
   private updateTimestamp(amount: number) {
     let a = this.lastRunAt.clone().add(amount, "hours");
     this.timestamp = a.format();
@@ -289,26 +287,14 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   private presetSlider() {
     // console.log('preset slider and update the carousel');
     let today = moment.utc();
-    // let today = moment.utc("2020-01-31T18:30"); // for local test
-    let from = 0;
-    if (this.filter.field === "prec3" || this.filter.field === "snow3") {
-      from += 3;
-    }
-    if (this.filter.field === "prec6" || this.filter.field === "snow6") {
-      from += 6;
-    }
-    if (
-      this.filter.field === "percentile" ||
-      this.filter.field === "probability"
-    ) {
-      from += 6;
-    }
+    let from = this.minHour;
     if (
       !(
         this.filter.field === "percentile" ||
         this.filter.field === "probability"
       ) &&
-      this.lastRunAt.isSame(today, "day")
+      this.lastRunAt.isSame(today, "day") &&
+      today.hours() > this.minHour
     ) {
       from = today.hours();
     }

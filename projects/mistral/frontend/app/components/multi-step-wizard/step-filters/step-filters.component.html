@@ -158,19 +158,52 @@
             <div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
               <div class="card-body">
                 <ul class="row no-gutters">
-                  <li *ngFor="let lt of levelTypes" class="col-sm-4">
+                  <li
+                    *ngFor="let lt of levelTypes; let i = index"
+                    class="col-sm-4"
+                  >
                     <input
                       [id]="'lt-' + lt"
                       class="mst--input-checkbox"
                       type="checkbox"
                       [value]="lt"
-                      (change)="onLevelTypeChange($event, i)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [(ngModel)]="selectedLevelTypes[i]"
                     />
-                    <label [for]="'lt-' + lt">{{ lt }}</label>
+                    <label [for]="'lt-' + lt">{{
+                      levelTypesDescriptions[i]
+                    }}</label>
                   </li>
                 </ul>
               </div>
+              <div class="card-footer">
+                <button
+                  class="btn btn-outline-primary mr-2"
+                  type="button"
+                  [disabled]="!selectedLevelTypes.includes(true)"
+                  (click)="onLevelTypeChange(i); collapse.toggle()"
+                >
+                  Select
+                </button>
+              </div>
             </div>
+          </div>
+          <div *ngIf="f.value.name == 'level'" class="ml-4 mb-2 pl-1">
+            <button
+              class="btn btn-primary mr-2"
+              type="button"
+              (click)="toggleAllLevels(i, 'select')"
+            >
+              Select all levels
+            </button>
+            <button
+              class="btn btn-warning mr-2"
+              type="button"
+              [disabled]="!isLevelsSelected ? true : null"
+              (click)="toggleAllLevels(i, 'deselect')"
+            >
+              Deselect all levels
+            </button>
           </div>
           <div class="card-body mst--list-filter">
             <ul class="row no-gutters">

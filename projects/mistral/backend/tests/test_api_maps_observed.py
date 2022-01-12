@@ -29,7 +29,7 @@ class TestApp(BaseTests):
             network_list = arki.get_observed_dataset_params(d)
             for net in network_list:
                 if db_type == "dballe":
-                    db = dballe.DB.connect(
+                    db_dballe = dballe.DB.connect(
                         "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
                             engine=db.variables.get("dbtype"),
                             user=db.variables.get("user"),
@@ -39,7 +39,7 @@ class TestApp(BaseTests):
                         )
                     )
                     # get a valid reftime for dballe
-                    with db.transaction() as tr:
+                    with db_dballe.transaction() as tr:
                         for row in tr.query_data({"rep_memo": net}):
                             date_to_dt = (
                                 datetime(
@@ -81,7 +81,7 @@ class TestApp(BaseTests):
                             summary_from[4],
                         )
                 elif db_type == "mixed":
-                    db = dballe.DB.connect(
+                    db_dballe = dballe.DB.connect(
                         "{engine}://{user}:{pw}@{host}:{port}/DBALLE".format(
                             engine=db.variables.get("dbtype"),
                             user=db.variables.get("user"),
@@ -91,7 +91,7 @@ class TestApp(BaseTests):
                         )
                     )
                     # get a valid reftime for dballe
-                    with db.transaction() as tr:
+                    with db_dballe.transaction() as tr:
                         for row in tr.query_data({"rep_memo": net}):
                             date_to_dt = (
                                 datetime(
@@ -208,24 +208,32 @@ class TestApp(BaseTests):
         # self.save("auth_header", headers)
 
         q_params = self.get_params_value(client, user_header, "dballe")
-        self.standard_observed_endpoint_testing(client, faker, user_header, q_params)
+        self.standard_observed_endpoint_testing(
+            client, faker, user_header, q_params, db_type="dballe"
+        )
 
     def test_for_arkimet_dbtype(self, client: FlaskClient, faker: Faker) -> None:
         headers = self.get("auth_header")
 
         q_params = self.get_params_value(client, headers, "arkimet")
-        self.standard_observed_endpoint_testing(client, faker, headers, q_params)
+        self.standard_observed_endpoint_testing(
+            client, faker, headers, q_params, db_type="arkimet"
+        )
 
     def test_for_mixed_dbtype(self, client: FlaskClient, faker: Faker) -> None:
         headers = self.get("auth_header")
 
         q_params = self.get_params_value(client, headers, "mixed")
-        self.standard_observed_endpoint_testing(client, faker, headers, q_params)
+        self.standard_observed_endpoint_testing(
+            client, faker, headers, q_params, db_type="mixed"
+        )
 
         uuid = self.get("fake_uuid")
         self.delete_user(client, uuid)
 
-    def standard_observed_endpoint_testing(self, client, faker, headers, q_params):
+    def standard_observed_endpoint_testing(
+        self, client, faker, headers, q_params, db_type
+    ):
 
         # only reftime as argument
         endpoint = (
@@ -245,6 +253,30 @@ class TestApp(BaseTests):
         )
         assert check_product_1 is True
         assert check_product_2 is True
+
+        if db_type != "dballe":
+            # test reftime with only date to
+            endpoint = (
+                API_URI
+                + "/observations?q=reftime:<={date_to};license:CCBY_COMPLIANT".format(
+                    date_to=q_params["date_to"]
+                )
+            )
+            r = client.get(endpoint, headers=headers)
+            # check response code
+            assert r.status_code == 200
+
+        if db_type != "arkimet":
+            # test reftime with only date from
+            endpoint = (
+                API_URI
+                + "/observations?q=reftime:>={date_from};license:CCBY_COMPLIANT".format(
+                    date_from=q_params["date_from"]
+                )
+            )
+            r = client.get(endpoint, headers=headers)
+            response_data = self.get_content(r)
+            assert r.status_code == 200
 
         # only network as argument
         endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}".format(

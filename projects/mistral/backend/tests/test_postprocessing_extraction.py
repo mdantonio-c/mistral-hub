@@ -183,8 +183,6 @@ class TestApp(BaseTests):
             )
         request = db.Request.query.filter_by(id=pp1_request.id).first()
         assert request.status == "FAILURE"
-        # TODO adjust error message in case of value exception
-        # assert "Unknown post-processor" in request.error_message
 
         # try derived variable postprocessor
         derived_variable_pp = {
@@ -194,10 +192,10 @@ class TestApp(BaseTests):
         wrong_filters_for_derived_variable = {
             "product": [
                 {
-                    "s": "GRIB1",
-                    "or": 80,
-                    "pr": 1,
-                    "ta": 2,
+                    "style": "GRIB1",
+                    "origin": 80,
+                    "product": 1,
+                    "table": 2,
                     "desc": "P Pressure Pa",
                     "active": "true",
                 }
@@ -207,34 +205,34 @@ class TestApp(BaseTests):
             "product": [
                 {
                     "desc": "P Pressure Pa",
-                    "s": "GRIB1",
-                    "or": 80,
-                    "ta": 2,
-                    "pr": 1,
+                    "style": "GRIB1",
+                    "origin": 80,
+                    "table": 2,
+                    "product": 1,
                     "active": "true",
                 },
                 {
                     "desc": "T Temperature K",
-                    "s": "GRIB1",
-                    "or": 80,
-                    "ta": 2,
-                    "pr": 11,
+                    "style": "GRIB1",
+                    "origin": 80,
+                    "table": 2,
+                    "product": 11,
                     "active": "true",
                 },
                 {
                     "desc": "None Dew-point temperature K",
-                    "s": "GRIB1",
-                    "or": 80,
-                    "ta": 2,
-                    "pr": 17,
+                    "style": "GRIB1",
+                    "origin": 80,
+                    "table": 2,
+                    "product": 17,
                     "active": "true",
                 },
                 {
                     "desc": "Q Specific humidity kg kg^-1",
-                    "s": "GRIB1",
-                    "or": 80,
-                    "ta": 2,
-                    "pr": 51,
+                    "style": "GRIB1",
+                    "origin": 80,
+                    "table": 2,
+                    "product": 51,
                     "active": "true",
                 },
             ]
@@ -282,20 +280,20 @@ class TestApp(BaseTests):
             "product": [
                 {
                     "desc": "TP Total precipitation kg m^-2",
-                    "s": "GRIB1",
-                    "or": 80,
-                    "ta": 2,
-                    "pr": 61,
+                    "style": "GRIB1",
+                    "origin": 80,
+                    "table": 2,
+                    "product": 61,
                     "active": "true",
                 }
             ],
             "timerange": [
                 {
-                    "s": "GRIB1",
+                    "style": "GRIB1",
                     "p1": 0,
                     "p2": 0,
-                    "ty": 0,
-                    "un": 1,
+                    "trange_type": 0,
+                    "unit": 1,
                     "desc": "Forecast product valid at reference time + P1 (P1>0) - time unit 1",
                     "active": "true",
                 }
@@ -305,18 +303,18 @@ class TestApp(BaseTests):
             "product": [
                 {
                     "desc": "TP Total precipitation kg m^-2",
-                    "s": "GRIB1",
-                    "or": 80,
-                    "ta": 2,
-                    "pr": 61,
+                    "style": "GRIB1",
+                    "origin": 80,
+                    "table": 2,
+                    "product": 61,
                     "active": "true",
                 },
                 {
                     "desc": "P Pressure Pa",
-                    "s": "GRIB1",
-                    "or": 80,
-                    "ta": 2,
-                    "pr": 1,
+                    "style": "GRIB1",
+                    "origin": 80,
+                    "table": 2,
+                    "product": 1,
                     "active": "true",
                 },
             ]
@@ -375,10 +373,10 @@ class TestApp(BaseTests):
             "product": [
                 {
                     "desc": "P Pressure Pa",
-                    "s": "GRIB1",
-                    "or": 80,
-                    "ta": 2,
-                    "pr": 1,
+                    "style": "GRIB1",
+                    "origin": 80,
+                    "table": 2,
+                    "product": 1,
                     "active": "true",
                 }
             ]
