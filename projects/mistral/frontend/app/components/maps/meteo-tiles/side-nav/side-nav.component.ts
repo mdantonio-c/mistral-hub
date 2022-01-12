@@ -7,6 +7,8 @@ import {
   Input,
   Output,
   Renderer2,
+  OnInit,
+  ChangeDetectorRef,
   SimpleChanges,
 } from "@angular/core";
 import {
@@ -33,7 +35,7 @@ import { ValueLabel } from "../../../../types";
   templateUrl: "./side-nav.component.html",
   styleUrls: ["side-nav.component.scss"],
 })
-export class SideNavComponent {
+export class SideNavComponent implements OnInit {
   // @Input() overlays: L.Control.LayersObject;
   @Input() dataset: string;
   // Reference to the primary map object
@@ -70,10 +72,6 @@ export class SideNavComponent {
     return this._overlays;
   }
 
-  // Change zoom level of the map
-  @Output() onZoomIn: EventEmitter<null> = new EventEmitter<null>();
-  @Output() onZoomOut: EventEmitter<null> = new EventEmitter<null>();
-
   @Output() onLayerChange: EventEmitter<Record<string, string | L.Layer>> =
     new EventEmitter<Record<string, string | L.Layer>>();
   @Output() onDatasetChange: EventEmitter<string> = new EventEmitter<string>();
@@ -87,6 +85,7 @@ export class SideNavComponent {
   mmProduct: MultiModelProduct = MultiModelProduct.TM;
   mmProductSwitch: boolean = false;
   MultiModelProductLabel = MultiModelProductLabel;
+  zLevel: number;
 
   isCollapsed = false;
   availableDatasets = DATASETS;
@@ -101,9 +100,22 @@ export class SideNavComponent {
 
   selectedMap = {};
 
-  constructor(private el: ElementRef, private renderer: Renderer2) {
+  constructor(
+    private el: ElementRef,
+    private renderer: Renderer2,
+    private ref: ChangeDetectorRef
+  ) {
     Object.keys(this.subLevelsMap).forEach((key) => {
       this.selectedMap[key] = null;
+    });
+  }
+
+  ngOnInit() {
+    this.zLevel = this.map.getZoom();
+    const ref = this;
+    this.map.on("zoomend", function (event, comp: SideNavComponent = ref) {
+      comp.zLevel = comp.map.getZoom();
+      comp.ref.detectChanges();
     });
   }
 
@@ -119,10 +131,14 @@ export class SideNavComponent {
     event.preventDefault();
     switch (inOut) {
       case "in":
-        this.onZoomIn.emit();
+        if (this.map.getZoom() < this.map.getMaxZoom()) {
+          this.map.zoomIn();
+        }
         break;
       case "out":
-        this.onZoomOut.emit();
+        if (this.map.getZoom() > this.map.getMinZoom()) {
+          this.map.zoomOut();
+        }
         break;
       default:
         console.error(`Invalid zoom param: ${inOut}`);
