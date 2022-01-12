@@ -14,6 +14,9 @@
     width: 50px !important;
   }
 
+  li a {
+    margin-top:3px;
+  }
   li a .nav-text {
     color: #fff;
     text-transform: uppercase;
@@ -87,7 +90,6 @@
     .selector {
       padding: 0;
       list-style: none;
-      height: 90%;
       width: 100%;
       overflow-y: hidden;
       overflow-x: hidden;
@@ -225,13 +227,13 @@
   height: 30px;
   width: 100%;
   margin-left: 28px;
-  margin-top: -15px;
 }
 
 .selettore-dataset {
   display: flex;
   width: 200px;
   margin-top: -5px;
+  margin-left:32px;
 }
 
 .selettore-percentile {
@@ -303,12 +305,7 @@
   }
 }
 
-.selettore-multimodel {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  margin-top: -10px;
-}
+
 
 .selettore-clouds {
   display: flex;
@@ -317,7 +314,7 @@
   align-items: center;
   justify-content: space-between;
   height: 40px;
-  margin-top: -12px;
+  margin-top: -4px;
   margin-left: 36px;
   margin-right: 8px;
 
@@ -480,12 +477,16 @@
 }
 
 .dataset {
-  margin-top: -3px !important;
+  margin-top: 10x !important;
 }
 
 
 .selettore-multimodel {
   position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  
   p {
     font-size: 9px;
     align-self: flex-start;
@@ -519,6 +520,9 @@
 .selettore-dataset a:hover {
   border-bottom: 1px solid #fff;
   text-decoration: none;
+}
+.zoom {
+  margin-top:4px;
 }
 
 .plus.iDisabled,
@@ -584,6 +588,7 @@
   background-image: url("/app/custom/assets/images/icons/humidity.svg");
 }
 
+/*scrollbar*/
 
 /* Responsive*/
 
@@ -619,4 +624,11 @@
     height: 20px;
     margin-left: 6px;
   }
+}
+
+  @media screen and (max-height: 574px) {
+  .selector {
+    overflow-y: scroll !important;
+  }
+  
 }
