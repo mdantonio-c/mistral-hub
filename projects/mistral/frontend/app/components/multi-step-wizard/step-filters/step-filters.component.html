@@ -188,6 +188,23 @@
               </div>
             </div>
           </div>
+          <div *ngIf="f.value.name == 'level'" class="ml-4 mb-2 pl-1">
+            <button
+              class="btn btn-primary mr-2"
+              type="button"
+              (click)="toggleAllLevels(i, 'select')"
+            >
+              Select all levels
+            </button>
+            <button
+              class="btn btn-warning mr-2"
+              type="button"
+              [disabled]="!isLevelsSelected ? true : null"
+              (click)="toggleAllLevels(i, 'deselect')"
+            >
+              Deselect all levels
+            </button>
+          </div>
           <div class="card-body mst--list-filter">
             <ul class="row no-gutters">
               <li
