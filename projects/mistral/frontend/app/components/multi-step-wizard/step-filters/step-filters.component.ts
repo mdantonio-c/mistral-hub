@@ -20,6 +20,7 @@ import * as _ from "lodash";
 import { StepComponent } from "../step.component";
 import { ReftimeModalContent, ReftimeModel } from "./reftime-modal.component";
 import { AuthService } from "@rapydo/services/auth";
+import { LEVELTYPES } from "./level-descriptions";
 
 @Component({
   selector: "step-filters",
@@ -33,6 +34,9 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   user: User;
   public isCollapsed = true;
   levelTypes: string[] = [];
+  levelTypesDescriptions: string[] = [];
+  selectedLevelTypes: boolean[] = [];
+  isLevelsSelected: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -166,6 +170,10 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                 });
                 // @ts-ignore
                 this.levelTypes = [...new Set(arr)];
+                // get descriptions for leveltypes
+                this.getLevelTypeDesc();
+                //initialize leveltypes
+                this.levelTypesInit();
               }
             }
           });
@@ -342,6 +350,19 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
         }
       }
     );
+    // check if there is any level that is selected
+    if (selectedFilters.length) {
+      let selectedLevels = selectedFilters.find((x) => x.name === "level");
+      if (selectedLevels) {
+        this.isLevelsSelected = true;
+      } else {
+        this.isLevelsSelected = false;
+      }
+      //console.log("is any level selected? "+ this.isLevelsSelected)
+    } else {
+      this.isLevelsSelected = false;
+    }
+
     return selectedFilters;
   }
 
@@ -394,27 +415,64 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     return desc;
   }
 
-  onLevelTypeChange(e, cIndex) {
+  getLevelTypeDesc() {
+    this.levelTypesDescriptions = [];
+    for (let el = 0; el < this.levelTypes.length; el++) {
+      const leveltype = LEVELTYPES.find(
+        (x) => x.code === this.levelTypes[el].toString()
+      );
+      if (leveltype) {
+        this.levelTypesDescriptions.push(leveltype.desc);
+      } else {
+        this.levelTypesDescriptions.push(this.levelTypes[el]);
+      }
+    }
+  }
+
+  levelTypesInit() {
+    this.selectedLevelTypes = [];
+    for (let el = 0; el < this.levelTypes.length; el++) {
+      this.selectedLevelTypes.push(false);
+    }
+  }
+
+  toggleAllLevels(cIndex, action: string) {
+    // @ts-ignore
+    const level: FormGroup = (
+      this.filterForm.controls.filters as FormArray
+    ).controls.at(cIndex);
+
+    let valueToSet = action === "select" ? true : false;
+
+    this.filters["level"].forEach((l, i) => {
+      (level.controls.values as FormArray).controls.at(i).setValue(valueToSet);
+    });
+    this.onFilterChange();
+  }
+
+  onLevelTypeChange(cIndex) {
+    //console.log(this.selectedLevelTypes)
     // @ts-ignore
     const level: FormGroup = (
       this.filterForm.controls.filters as FormArray
     ).controls.at(cIndex);
     this.filters["level"].forEach((l, i) => {
       if (l["style"] == "GRIB1" || l["style"] == "GRIB2S") {
-        if (l["level_type"] == e.target.value) {
-          (level.controls.values as FormArray).controls
-            .at(i)
-            .setValue(e.target.checked);
+        if (this.selectedLevelTypes[this.levelTypes.indexOf(l["level_type"])]) {
+          (level.controls.values as FormArray).controls.at(i).setValue(true);
         }
       } else if (l["style"] == "GRIB2D") {
-        let level_array = e.target.value.split(",");
-        if (l["l1"] == level_array[0] && l["l2"] == level_array[1]) {
-          (level.controls.values as FormArray).controls
-            .at(i)
-            .setValue(e.target.checked);
+        if (
+          this.selectedLevelTypes[
+            this.levelTypes.indexOf(l["l1"] + "," + l["l2"])
+          ]
+        ) {
+          (level.controls.values as FormArray).controls.at(i).setValue(true);
         }
       }
     });
     this.onFilterChange();
+    // clean the leveltype selection array
+    this.levelTypesInit();
   }
 }

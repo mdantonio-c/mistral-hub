@@ -83,10 +83,11 @@ Use `rapydo` commands as usual.
 
 ## Meteo-Hub Data Ingestion
 
-At the moment, a Meteo-Hub installation does not come with the data ingestor component.
-The latter can be installed by following the instructions described in the section
-[NiFi-based ingestion component](docs/README.md#nifi-based-ingestion-component)
-of the documentation.
+To install the ingestor component, enabled it from your `.projectrc`:
+
+```
+ACTIVATE_NIFI: 1
+```
 
 Its task is to feed the dataset repository, taking care of preserving the integrity of the data.
 Currently, it only affects the observed data from ground stations and radars.
@@ -102,7 +103,9 @@ The ingestion process is coordinated by an orchestrator which channels the data 
 they are properly stored. This process, also called harmonization, requires data interpretation and may
 involve transformations and normalizations for quality assurance.
 
-Source code is available [here](https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion).
+The ingestor component needs an operational DB. Its table structure can be created using the provided [SQL script](https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion/-/blob/master/nifi_db_create_script.sql)
+
+The Nifi’s XML templates to set up the ingestion processes are available in the dedicated [repository](https://gitlab.hpc.cineca.it/mistral/meteo-hub-ingestion)
 
 ## Meteo-Hub API
 

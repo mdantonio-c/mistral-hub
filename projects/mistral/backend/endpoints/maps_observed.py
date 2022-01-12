@@ -153,12 +153,13 @@ class MapsObservations(EndpointResource):
                     query_station_data["timerange"] = query["timerange"]
                 if "level" in query:
                     query_station_data["level"] = query["level"]
+                if "datetimemin" in query:
+                    query_station_data["datetimemin"] = query["datetimemin"]
+                if "datetimemax" in query:
+                    query_station_data["datetimemax"] = query["datetimemax"]
 
             if reliabilityCheck:
                 query_station_data["query"] = "attrs"
-            if query and "datetimemin" in query:
-                query_station_data["datetimemin"] = query["datetimemin"]
-                query_station_data["datetimemax"] = query["datetimemax"]
 
         # check consistency with license group
         if "license" not in query:
@@ -185,8 +186,14 @@ class MapsObservations(EndpointResource):
             )
 
         # get db type
+        datetime_min = None
+        datetime_max = None
         if "datetimemin" in query:
-            db_type = dballe.get_db_type(query["datetimemin"], query["datetimemax"])
+            datetime_min = query["datetimemin"]
+        if "datetimemax" in query:
+            datetime_max = query["datetimemax"]
+        if datetime_min or datetime_max:
+            db_type = dballe.get_db_type(date_min=datetime_min, date_max=datetime_max)
             if db_type != "dballe":
                 if not user:
                     raise Unauthorized(
@@ -348,9 +355,11 @@ class MapsObservations(EndpointResource):
 
             if reliabilityCheck:
                 query_station_data["query"] = "attrs"
-            if query_data and "datetimemin" in query_data:
-                query_station_data["datetimemin"] = query_data["datetimemin"]
-                query_station_data["datetimemax"] = query_data["datetimemax"]
+            if query_data:
+                if "datetimemin" in query_data:
+                    query_station_data["datetimemin"] = query_data["datetimemin"]
+                if "datetimemax" in query_data:
+                    query_station_data["datetimemax"] = query_data["datetimemax"]
 
         # check consistency with license group
         if "license" not in query_data:
@@ -371,10 +380,14 @@ class MapsObservations(EndpointResource):
             )
 
         # get db type
+        datetime_min = None
+        datetime_max = None
         if "datetimemin" in query_data:
-            db_type = dballe.get_db_type(
-                query_data["datetimemin"], query_data["datetimemax"]
-            )
+            datetime_min = query_data["datetimemin"]
+        if "datetimemax" in query_data:
+            datetime_max = query_data["datetimemax"]
+        if datetime_min or datetime_max:
+            db_type = dballe.get_db_type(date_min=datetime_min, date_max=datetime_max)
             if db_type != "dballe":
                 if not user:
                     raise Unauthorized(
