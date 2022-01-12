@@ -36,6 +36,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   levelTypes: string[] = [];
   levelTypesDescriptions: string[] = [];
   selectedLevelTypes: boolean[] = [];
+  isLevelsSelected: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -349,6 +350,19 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
         }
       }
     );
+    // check if there is any level that is selected
+    if (selectedFilters.length) {
+      let selectedLevels = selectedFilters.find((x) => x.name === "level");
+      if (selectedLevels) {
+        this.isLevelsSelected = true;
+      } else {
+        this.isLevelsSelected = false;
+      }
+      //console.log("is any level selected? "+ this.isLevelsSelected)
+    } else {
+      this.isLevelsSelected = false;
+    }
+
     return selectedFilters;
   }
 
@@ -420,6 +434,20 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     for (let el = 0; el < this.levelTypes.length; el++) {
       this.selectedLevelTypes.push(false);
     }
+  }
+
+  toggleAllLevels(cIndex, action: string) {
+    // @ts-ignore
+    const level: FormGroup = (
+      this.filterForm.controls.filters as FormArray
+    ).controls.at(cIndex);
+
+    let valueToSet = action === "select" ? true : false;
+
+    this.filters["level"].forEach((l, i) => {
+      (level.controls.values as FormArray).controls.at(i).setValue(valueToSet);
+    });
+    this.onFilterChange();
   }
 
   onLevelTypeChange(cIndex) {
