@@ -37,7 +37,7 @@ class AttributionInput(Schema):
 
 class AdminAttributions(EndpointResource):
 
-    labels = ["admin"]
+    labels = ["management"]
     private = True
 
     @decorators.auth.require_all(Role.ADMIN)

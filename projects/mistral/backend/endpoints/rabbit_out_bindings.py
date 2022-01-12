@@ -18,7 +18,7 @@ class Bindings(Schema):
 
 class OutputBindings(EndpointResource):
 
-    labels = ["admin"]
+    labels = ["management"]
 
     @staticmethod
     def get_queue(user: str) -> str:

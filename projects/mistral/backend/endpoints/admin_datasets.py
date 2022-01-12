@@ -124,7 +124,7 @@ def getPUTInputSchema(request):
 
 class AdminDatasets(EndpointResource):
 
-    labels = ["admin"]
+    labels = ["management"]
     private = True
 
     @decorators.auth.require_all(Role.ADMIN)

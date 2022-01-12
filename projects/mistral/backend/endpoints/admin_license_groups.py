@@ -43,7 +43,7 @@ class LicGroupInput(Schema):
 
 class AdminLicGroups(EndpointResource):
 
-    labels = ["admin"]
+    labels = ["management"]
     private = True
 
     @decorators.auth.require_all(Role.ADMIN)
