@@ -36,7 +36,7 @@ import { ValueLabel } from "../../../../types";
   styleUrls: ["side-nav.component.scss"],
 })
 export class SideNavComponent implements OnInit {
-  // @Input() overlays: L.Control.LayersObject;
+  @Input() baseLayers: L.Control.LayersObject;
   @Input() dataset: string;
   // Reference to the primary map object
   @Input() map: L.Map;
@@ -99,11 +99,12 @@ export class SideNavComponent implements OnInit {
   };
 
   selectedMap = {};
+  selectedBaseLayer: string;
 
   constructor(
     private el: ElementRef,
     private renderer: Renderer2,
-    private ref: ChangeDetectorRef
+    private changeDetector: ChangeDetectorRef
   ) {
     Object.keys(this.subLevelsMap).forEach((key) => {
       this.selectedMap[key] = null;
@@ -114,9 +115,17 @@ export class SideNavComponent implements OnInit {
     this.zLevel = this.map.getZoom();
     const ref = this;
     this.map.on("zoomend", function (event, comp: SideNavComponent = ref) {
+      // because we're outside of Angular's zone, this change won't be detected
       comp.zLevel = comp.map.getZoom();
-      comp.ref.detectChanges();
+      // need tell Angular to detect changes
+      comp.changeDetector.detectChanges();
     });
+    // set active base layer
+    for (const [key, layer] of Object.entries(this.baseLayers)) {
+      if (this.map.hasLayer(layer)) {
+        this.selectedBaseLayer = key;
+      }
+    }
   }
 
   @HostListener("dblclick", ["$event"])
@@ -265,5 +274,18 @@ export class SideNavComponent implements OnInit {
       : MultiModelProduct.TM;
     // console.log(`change Multi Model Ensemble to ${MultiModelProductLabel.get(this.mmProduct)}`);
     this.onMMProductChange.emit(this.mmProduct);
+  }
+
+  changeBaseLayer(newVal: string) {
+    // console.log(`change base layer to "${newVal}"`);
+    this.map.removeLayer(this.baseLayers[this.selectedBaseLayer]);
+    this.map.addLayer(this.baseLayers[newVal]);
+    this.selectedBaseLayer = newVal;
+
+    for (const [key, layer] of Object.entries(this.overlays)) {
+      if (this.map.hasLayer(layer)) {
+        (layer as L.TileLayer).bringToFront();
+      }
+    }
   }
 }
