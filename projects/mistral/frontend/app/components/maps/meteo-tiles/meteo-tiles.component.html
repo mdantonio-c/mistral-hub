@@ -15,6 +15,7 @@
   (leafletMapZoomEnd)="onMapZoomEnd($event)"
 >
   <map-side-nav
+    [baseLayers]="layersControl['baseLayers']"
     [overlays]="layersControl['overlays']"
     [dataset]="dataset"
     [isShowedMultiModel]="showed"

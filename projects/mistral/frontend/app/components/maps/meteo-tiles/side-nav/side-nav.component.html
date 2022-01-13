@@ -239,28 +239,26 @@
           </p>
         </div>
       </li>
-      <!-- selettore mappe-->
+      <!-- base layer map selector -->
       <li class="sidenav-item last selettore-carte">
         <span class="carte"></span>
         <a href="#">
           <span class="nav-text">Map Style</span>
         </a>
         <div class="selettore-mappa">
-          <label>
-            <input type="radio" value="0" name="mappa" />
-            Openstreet Map
-          </label>
-          <label>
-            <input type="radio" value="1" name="mappa" />
-            Carto Map Dark
-          </label>
-          <label>
-            <input type="radio" value="2" name="mappa" />
-            Carto Map Light
+          <label *ngFor="let baseLayer of baseLayers | keyvalue">
+            <input
+              type="radio"
+              name="baseMap"
+              [(ngModel)]="selectedBaseLayer"
+              [value]="baseLayer.key"
+              (change)="changeBaseLayer(baseLayer.key)"
+            />
+            {{ baseLayer.key }}
           </label>
         </div>
       </li>
-      <li class="sidenav-item">
+      <li class="sidenav-item zoom">
         <span
           class="plus clickable"
           [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"

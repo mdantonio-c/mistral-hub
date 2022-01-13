@@ -14,6 +14,9 @@
     width: 50px !important;
   }
 
+  li a {
+    margin-top:3px;
+  }
   li a .nav-text {
     color: #fff;
     text-transform: uppercase;
@@ -87,7 +90,6 @@
     .selector {
       padding: 0;
       list-style: none;
-      height: 90%;
       width: 100%;
       overflow-y: hidden;
       overflow-x: hidden;
@@ -129,7 +131,7 @@
 }
 
 .cc + a {
-  margin-top: -30px;
+  margin-top: -17px;
 }
 
 .tpperc + a p {
@@ -154,8 +156,9 @@
   display: block;
   margin-top: 8px;
   padding: 10px;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
+  margin-left: 3px;
 }
 
 .t2m {
@@ -223,14 +226,14 @@
 .selettore-dataset {
   height: 30px;
   width: 100%;
-  margin-left: 44px;
-  margin-top: -15px;
+  margin-left: 28px;
 }
 
 .selettore-dataset {
   display: flex;
   width: 200px;
   margin-top: -5px;
+  margin-left:32px;
 }
 
 .selettore-percentile {
@@ -243,7 +246,7 @@
   label {
     display: flex;
     flex-direction: column;
-    font-size: 8px;
+    font-size: 7px;
     text-transform: uppercase;
     color: #fff;
     text-align: center;
@@ -278,12 +281,11 @@
   label {
     display: flex;
     flex-direction: column;
-    font-size: 8px;
     text-transform: uppercase;
     color: #fff;
     text-align: center;
     margin-top: 2px;
-    font-size: 10px;
+    font-size: 9px;
     font-family: "Montserrat-semibold";
   }
 
@@ -303,12 +305,7 @@
   }
 }
 
-.selettore-multimodel {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  margin-top: -10px;
-}
+
 
 .selettore-clouds {
   display: flex;
@@ -317,8 +314,9 @@
   align-items: center;
   justify-content: space-between;
   height: 40px;
-  margin-top: -23px;
-  margin-left: 51px;
+  margin-top: -4px;
+  margin-left: 36px;
+  margin-right: 8px;
 
   input {
     margin-left: 10px;
@@ -345,7 +343,7 @@
     text-transform: uppercase;
     font-size: 10px;
     justify-content: space-evenly;
-    margin-left: 50px;
+    margin-right: 50px;
     font-family: "Montserrat-semibold";
   }
 
@@ -372,9 +370,9 @@
     display: flex;
     color: #fff;
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: 9px;
     justify-content: space-evenly;
-    margin-left: 50px;
+    margin-left: 32px;
     font-family: "Montserrat-semibold";
   }
 
@@ -454,7 +452,7 @@
 .selettore-orario label {
   display: flex;
   flex-direction: column;
-  font-size: 8px;
+  font-size: 9px;
   text-transform: uppercase;
   color: #fff;
   font-family: "Montserrat-semibold";
@@ -472,23 +470,23 @@
   color: #fff;
   text-transform: uppercase;
   font-family: "Montserrat-semibold";
-  font-size: 10px;
+  font-size: 9px;
   margin-top: 1px;
   margin-left: 10px;
   height: 15px;
 }
 
 .dataset {
-  margin-top: -3px !important;
+  margin-top: 10x !important;
 }
 
-.selettore-dataset {
-  margin-top: -14px;
-  margin-bottom: 14px;
-}
 
 .selettore-multimodel {
   position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  
   p {
     font-size: 9px;
     align-self: flex-start;
@@ -523,6 +521,9 @@
   border-bottom: 1px solid #fff;
   text-decoration: none;
 }
+.zoom {
+  margin-top:4px;
+}
 
 .plus.iDisabled,
 .nav-text.isDisabled,
@@ -538,7 +539,7 @@
 .custom-control-label {
   transform: rotate(90deg);
   margin-top: 41px;
-  margin-left: -4px;
+  margin-left: -9px;
 }
 
 .collapsed .custom-switch {
@@ -585,4 +586,49 @@
   background-color: #e49d2b;
   transform: translateX(16.75px) rotate(270deg);
   background-image: url("/app/custom/assets/images/icons/humidity.svg");
+}
+
+/*scrollbar*/
+
+/* Responsive*/
+
+@media screen and (max-width: 1294px) {
+  .map-sidenav li .nav-text{
+    font-size:10px !important;
+  }
+  .selettore-mappa {
+    margin-top: 13px;
+    margin-bottom: 0;
+  }
+
+  .selettore-carte label {
+    font-size:7px !important;
+    margin-right: 18px;
+  }
+  
+  .t2m,
+  .prs,
+  .rh,
+  .prp,
+  .sf,
+  .cc,
+  .input,
+  .plus,
+  .minus,
+  .carte,
+  .tpperc,
+  .tpprob  {
+    margin-top: 5px;
+    padding: 10px;
+    width: 20px;
+    height: 20px;
+    margin-left: 6px;
+  }
+}
+
+  @media screen and (max-height: 574px) {
+  .selector {
+    overflow-y: scroll !important;
+  }
+  
 }

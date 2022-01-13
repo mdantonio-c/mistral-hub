@@ -43,7 +43,13 @@ app-observation-maps .leaflet-top a, app-observation-maps .leaflet-bottom a {
 
 app-observation-maps .leaflet-control-attribution a {
     background-color: #fff !important;
+    
 }
+
+app-meteo-tiles .leaflet-bottom:has( .leaflet-control-attribution){
+    margin-bottom: 0 !important; 
+}
+
 
 .leaflet-bar a:hover {
     background-color:  #E49D2B !important;
@@ -51,12 +57,11 @@ app-observation-maps .leaflet-control-attribution a {
     width: 29px !important;
 }
 
-.leaflet-bar a:first-child{
-  border-radius: 24px!important;
-}
+.leaflet-bar a:first-child,
 .leaflet-bar a:last-child{
     border-radius: 24px!important;
   }
+
 .leaflet-bar-timecontrol{
      // background-color: ;
      color: #fff !important;
@@ -70,7 +75,8 @@ app-meteo-tiles .leaflet-left .leaflet-control  {
     margin-left:0 !important;
     margin-bottom:5px !important;
 }
-app-meteo-tiles .leaflet-bottom  {
+
+app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol  {
     margin-left:10px !important;
     margin-bottom: 10px !important;
 }
@@ -417,4 +423,19 @@ a.timecontrol-play.loading:before {
 }
 .leaflet-touch .timecontrol-slider .slider{
     margin-top: 10px;
+}
+
+
+/*Responsive legende*/
+
+@media screen and (max-height: 574px) {
+    .legenda {
+      width: 60%;
+    }
+  }
+
+@media screen and (min-height: 1295px) { 
+    .legenda {
+        width: 100%;
+      }
 }
