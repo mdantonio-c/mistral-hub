@@ -484,9 +484,12 @@
 .selettore-multimodel {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   flex-direction: column;
   
+  .nav-text {
+    margin-left:0;
+  }
   p {
     font-size: 9px;
     align-self: flex-start;
@@ -620,23 +623,23 @@
   .tpprob  {
     margin-top: 5px;
     padding: 10px;
-    width: 20px;
-    height: 20px;
-    margin-left: 6px;
+    width: 22px;
+    height: 22px;
+    margin-left: 5px;
   }
 }
 
-  @media screen and (max-height: 574px) {
+@media screen and (max-height: 574px) {
     
-    .map-sidenav .toggle {
-      width:30px !important;
-      height:30px !important;
+  .map-sidenav .toggle {
+    width:30px !important;
+    height:30px !important;
 
-      &.collapsed {
-        margin-left:10px !important;
-      }
-  
+    &.collapsed {
+      margin-left:10px !important;
     }
+  
+  }
     
   .selector {
     overflow-y: scroll !important;
@@ -672,5 +675,24 @@
   .collapsed .selector::-webkit-scrollbar-thumb {
     display:none;
     
+  }
+
+  .t2m,
+  .prs,
+  .rh,
+  .prp,
+  .sf,
+  .cc,
+  .input,
+  .plus,
+  .minus,
+  .carte,
+  .tpperc,
+  .tpprob  {
+    margin-top: 5px;
+    padding: 10px;
+    width: 22px;
+    height: 22px;
+    margin-left: 5px;
   }
 }
