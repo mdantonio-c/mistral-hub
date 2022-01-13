@@ -592,7 +592,7 @@
 
 /* Responsive*/
 
-@media screen and (max-width: 1294px) {
+@media screen and (max-width: 1295px) {
   .map-sidenav li .nav-text{
     font-size:10px !important;
   }
@@ -627,8 +627,50 @@
 }
 
   @media screen and (max-height: 574px) {
+    
+    .map-sidenav .toggle {
+      width:30px !important;
+      height:30px !important;
+
+      &.collapsed {
+        margin-left:10px !important;
+      }
+  
+    }
+    
   .selector {
     overflow-y: scroll !important;
-  }
+    scrollbar-width: thin;
+    scrollbar-color: #E49C1E  rgba(56, 56, 56, 0.473) ;
   
+
+    &::-webkit-scrollbar {
+    width: 7px; 
+    } 
+  }
+
+  .selector::-webkit-scrollbar-track {
+    
+    border-radius:20px; 
+    background-color: rgba(56, 56, 56, 0.473);
+  }
+
+  .selector::-webkit-scrollbar-thumb {
+   background: #E49C1E ;
+    border-radius: 20px;
+    
+  }
+
+  .collapsed .selector{
+    overflow-y:hidden !important;
+  }
+
+  .collapsed .selector::-webkit-scrollbar-track {
+    display:none;
+  }
+
+  .collapsed .selector::-webkit-scrollbar-thumb {
+    display:none;
+    
+  }
 }
