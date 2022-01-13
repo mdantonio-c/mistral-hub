@@ -177,8 +177,8 @@
             <div class="selettore-clouds">
               <label *ngFor="let lvl of subLevelsMap['cc']">
                 <input
-                  type="radio"
-                  name="cloud"
+                  type="checkbox"
+                  [name]="lvl.value"
                   [(ngModel)]="selectedMap['cc']"
                   [attr.disabled]="isLayerActive('cc') ? null : true"
                   [value]="lvl.value"
