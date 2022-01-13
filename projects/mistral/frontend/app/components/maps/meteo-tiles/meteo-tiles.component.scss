@@ -11,7 +11,8 @@
 .legenda {
   transform: scale(0.8);
   background: none !important;
-  margin-bottom:-20px !important; 
+  margin-bottom:-20px !important;
+ 
 }
 
 
@@ -206,3 +207,24 @@
   margin-right: 8px;
   opacity: 0.7;
 } */
+
+
+/*media query*/
+
+@media screen and (max-height: 574px) {
+  
+  .selected-dataset {
+    font-size: 20px;
+  }
+
+}
+
+@media screen and (max-width: 770px) {
+  
+  .selected-dataset {
+    font-size: 17px;
+  }
+
+
+}
+

@@ -408,6 +408,10 @@ a.timecontrol-play.loading:before {
     background-image: url('/app/custom/assets/images/icons/loop.svg');
 }
 
+.legenda {
+    margin-left: 11px !important;
+}
+
 @media (max-width: 767px){
     .leaflet-bar-timecontrol .timecontrol-date,
     .leaflet-bar-timecontrol .timecontrol-slider{
@@ -430,12 +434,52 @@ a.timecontrol-play.loading:before {
 
 @media screen and (max-height: 574px) {
     .legenda {
-      width: 60%;
+      width: 46%;
     }
   }
 
 @media screen and (min-height: 1295px) { 
     .legenda {
         width: 100%;
-      }
+    }
+    
+}
+
+@media screen and (max-width: 780px) {
+    app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
+        width:150px !important;
+    }
+
+
+    app-meteo-tiles .timecontrol-slider .slider.has-limits {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    app-meteo-tiles .timecontrol-slider .knob.upper {
+      transform: translate3d(150px, 0px, 0px) !important;
+        
+    }
+
+    app-meteo-tiles .leaflet-bar-timecontrol .leaflet-control-timecontrol {
+        margin-right: 3px !important;
+
+    }
+
+
+    app-meteo-tiles .leaflet-bar-timecontrol a.timecontrol-date {
+        width: 168px !important;
+        padding: 0;
+    }
+
+    app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .slider ,
+    app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .speed {
+        width: 60px;
+    }
+
+    .legenda {
+        width: 33%;
+    }
+   
+
 }
