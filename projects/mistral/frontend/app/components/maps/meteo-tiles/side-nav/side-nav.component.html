@@ -186,6 +186,16 @@
                 />
                 {{ lvl.value }}
               </label>
+              <div class="custom-control custom-switch d-flex mb-3">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="tccSwitch"
+                />
+                <label class="custom-control-label" for="tccSwitch"
+                  >TOTAL</label
+                >
+              </div>
             </div>
           </ng-container>
         </li>
@@ -210,7 +220,7 @@
         </ng-container>
       </li>
       <li class="sidenav-item last multi-model">
-        <div class="custom-control custom-switch">
+        <div class="custom-control mm-switch custom-switch">
           <input
             type="checkbox"
             class="custom-control-input"
