@@ -186,11 +186,12 @@
                 />
                 {{ lvl.value }}
               </label>
-              <div class="custom-control custom-switch d-flex mb-3">
+              <div class="custom-control custom-switch clouds-switch d-flex mb-3">
                 <input
                   type="checkbox"
                   class="custom-control-input"
                   id="tccSwitch"
+                  [attr.disabled]="isLayerActive('cc') ? null : true"
                 />
                 <label class="custom-control-label" for="tccSwitch"
                   >TOTAL</label

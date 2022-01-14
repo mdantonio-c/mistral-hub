@@ -332,8 +332,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     border: 2px solid #999;
     transition: 0.2s all linear;
 
-    &[type="radio"] {
-      border-radius: 7px;
+    &[type="checkbox"] {
+      border-radius: 13px;
     }
   }
 }
@@ -540,84 +540,98 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   text-decoration: none;
 }
 
-/* style custom-switch */
-.custom-control-input:focus ~ .custom-control-label::before {
+/* style custom-switch borders */
+
+  .custom-control-input:focus ~ .custom-control-label::before {
+    border-color: $light-orange !important;
+    box-shadow: 0 0 0 0.2rem $light-orange-shadow !important;
+  }
+
+ .custom-control-input:checked ~ .custom-control-label::before {
+    border-color: $light-orange !important;
+    background-color: $light-orange;
+  }
+
+ 
+  .custom-control-input:active ~ .custom-control-label::before {
+    background-color: $light-orange;
+    border-color: $light-orange !important;
+  }
+
+  .custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
   border-color: $light-orange !important;
-  box-shadow: 0 0 0 0.2rem $light-orange-shadow !important;
-}
+  }
 
-.custom-control-input:checked ~ .custom-control-label::before {
-  border-color: $light-orange !important;
-  background-color: $light-orange !important;
-}
+  .custom-control-input-green:not(:disabled):active ~ .custom-control-label::before {
+    background-color: $light-orange;
+    border-color: $light-orange !important;
+  }
 
-.custom-control-input:active ~ .custom-control-label::before {
-  background-color: $light-orange !important;
-  border-color: $light-orange !important;
-}
+  /*clouds switch*/
+  .clouds-switch {
+    .custom-control-input:checked ~ .custom-control-label::before {
+      border-color: $light-orange !important;
+      background-color: $light-orange !important;
+    }
 
-.custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
-  border-color: $light-orange !important;
-}
+    & input[disabled="true"] ~ .custom-control-label::before, & input:checked[disabled="true"] ~ .custom-control-label::before {
+      background-color: #797E7E !important;
+      border-color: #797E7E !important;
+    }
+    & input[disabled="true"] ~ .custom-control-label::after {
+      background-color: #616262 !important;
+      border-color: #616262 !important;
+    }
+    
+  }
 
-.custom-control-input-green:not(:disabled):active
-  ~ .custom-control-label::before {
-  background-color: $light-orange !important;
-  border-color: $light-orange !important;
-}
-
-/* style toggle multi-model */
-
+/*multimodel switch*/
 .collapsed .mm-switch {
   padding-left: 35px;
   padding-top: 18px;
 }
 
 .mm-switch {
+
   .custom-control-label {
     transform: rotate(90deg);
     margin-top: 41px;
-    margin-left: -9px;
+    margin-left: -9px; 
     &:before {
       opacity: 0.6;
       left: -48.25px;
       width: 44px;
       height: 24px;
       border-radius: 12.5px;
-      background-color: #9c999a;
+      background-color: #9c999a !important;
       border-color: #9c999a !important;
     }
     &:after {
+      background-color: #e49d2b;
+      border-radius: 2.5rem;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-image: url("/app/custom/assets/images/icons/temper2.svg");
       top: calc(3.6px + 2px);
       left: calc(-46.25px + 2px);
       width: calc(24px - 4px);
       height: calc(24px - 4px);
-      background-color: #e49d2b;
-      border-radius: 2.5rem;
-      display: block;
-      background-size: contain;
-      background-repeat: no-repeat;
-      content: "";
-      background-image: url("/app/custom/assets/images/icons/temper.svg");
-      transform: rotate(270deg);
     }
+  }
 
-    .custom-control-input {
-      &:checked ~ .custom-control-label::before {
-        background-color: #9c999a;
-        border-color: #9c999a !important;
-      }
-      &:checked ~ .custom-control-label::after {
-        background-color: #e49d2b;
-        transform: translateX(16.75px) rotate(270deg);
-        background-image: url("/app/custom/assets/images/icons/humidity.svg");
-      }
-    }
+ .custom-control-input:checked ~ .custom-control-label::after{
+    background-color: #e49d2b;
+    transform: translateX(16.75px) rotate(270deg) !important;
+    background-image: url("/app/custom/assets/images/icons/humidity.svg")  !important;
+  }
 
-    input[disabled="true"] ~ .custom-control-label::after {
-      background-color: #545555a9 !important;
-      background-image: none !important;
-    }
+  & input[disabled="true"] ~ .custom-control-label::after, & input:checked[disabled="true"] ~ .custom-control-label::after  {
+    background-color: #545555a9 !important;
+    background-image: none !important;
+  }
+
+  & input[disabled="true"] ~ .custom-control-label::before {
+    border-color: #545555a9 !important;
   }
 }
 
