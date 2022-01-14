@@ -35,7 +35,10 @@
   font-family: "Montserrat-semibold";
   src: url("../assets/font/Montserrat-SemiBold.ttf") format("truetype");
 }
-
+@font-face {
+  font-family: "Montserrat-regular";
+  src: url("../assets/font/Montserrat-Regular.ttf") format("truetype");
+}
 @font-face {
   font-family: 'CourierPrime-Regular';
   src: url('/app/custom/assets/font/CourierPrime-Regular.ttf') format('truetype');
