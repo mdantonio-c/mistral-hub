@@ -7,7 +7,7 @@ from restapi.connectors.celery import CeleryExt
 from restapi.utilities.logs import log
 
 
-@CeleryExt.task()
+@CeleryExt.task(idempotent=False)
 def automatic_cleanup(self: Task) -> str:
     log.info("Autocleaning task started!")
 

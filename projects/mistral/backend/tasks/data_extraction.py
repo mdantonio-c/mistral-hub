@@ -36,7 +36,7 @@ from restapi.connectors.smtp.notifications import get_html_template
 from restapi.utilities.logs import log
 
 
-@CeleryExt.task()
+@CeleryExt.task(idempotent=False)
 def data_extract(
     self,
     user_id,
