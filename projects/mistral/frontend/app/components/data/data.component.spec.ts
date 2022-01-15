@@ -5,6 +5,7 @@ import { ToastrModule } from "ngx-toastr";
 
 import { ApiService } from "@rapydo/services/api";
 import { NotificationService } from "@rapydo/services/notification";
+import { SSRService } from "@rapydo/services/ssr";
 import { DataComponent } from "./data.component";
 
 @Component({
@@ -21,6 +22,7 @@ class StubMultiStepWizardComponent {}
 
 class ApiServiceStub {}
 class NotificationServiceStub {}
+class SSRServiceStub {}
 
 describe("DataComponent", () => {
   let component: DataComponent;
@@ -51,6 +53,7 @@ describe("DataComponent", () => {
       providers: [
         { provide: ApiService, useClass: ApiServiceStub },
         { provide: NotificationService, userClass: NotificationServiceStub },
+        { provide: SSRService, userClass: SSRServiceStub },
       ],
     }).compileComponents();
   }));
