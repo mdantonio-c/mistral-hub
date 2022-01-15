@@ -74,3 +74,6 @@ variables:
     SET_CSP_IMG_SRC: "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://api.tiles.mapbox.com https://cartodb-basemaps-a.global.ssl.fastly.net https://cartodb-basemaps-b.global.ssl.fastly.net https://cartodb-basemaps-c.global.ssl.fastly.net https://cartodb-basemaps-d.global.ssl.fastly.net https://meteohub-maps.hpc.cineca.it"
     SET_CSP_FONT_SRC: https://netdna.bootstrapcdn.com
     SET_MAX_REQUESTS_PER_SECOND_API: 999
+
+    # Temporary disabled due to an incompatibility with python 3.8
+    RUN_SCHEMATHESIS: 0
