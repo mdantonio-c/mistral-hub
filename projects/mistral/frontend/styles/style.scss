@@ -124,7 +124,19 @@ body {
   text-align: left;
   font-size: small;
 }
+.btn-primary {
+  background-color: #E49C1E !important;
+  border-color: #E49C1E !important;
+}
 
+.btn-primary:not(:disabled):not(.disabled):active:focus {
+      box-shadow: 0 0 0 0.2rem rgb(228 156 30 / 50%) !important;
+}
+
+.btn-primary:disabled{
+  background-color: #707070d0 !important;
+  border-color: #707070d0 !important;
+}
 .btn:focus,
 .btn:active,
 .form-control:focus,
@@ -950,6 +962,12 @@ input[type="number"]::-webkit-outer-spin-button {
   background-color: rgba(133, 0, 0, 0.6);
 }
 
+.footer-container {
+  display:flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .card-horizontal {
   display: flex;
   flex: 1 1 auto;
@@ -974,4 +992,30 @@ customfooter > div {
 .adapt-alert {
   padding-right: 1.25rem;
   padding-left: 1.25rem;
+}
+
+/*media query footer*/
+@media screen and (max-width: 574px) {
+
+  .footer {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  
+    .footer-container {
+      display:flex;
+      align-items: center;
+      justify-content: space-between;
+    
+
+      .card-horizontal .img-square-wrapper img {
+        width: 130px !important;
+      }
+    }
+  }
+}
+
+@media screen and (max-height: 574px) {
+  .card-horizontal .img-square-wrapper img {
+    width: 160px !important;
+  }
 }

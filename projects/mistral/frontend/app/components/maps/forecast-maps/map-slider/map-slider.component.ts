@@ -139,7 +139,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.filter.field === "probability"
     ) {
       this.minHour = 6;
-      this.maxHour = 240;
+      this.maxHour = this.filter.run === "12" ? 216 : 240;
       this.step = 3;
     } else {
       this.maxHour = this.filter.res === "lm2.2" ? 48 : 72;

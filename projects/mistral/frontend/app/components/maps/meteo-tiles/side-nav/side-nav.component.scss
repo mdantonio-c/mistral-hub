@@ -14,6 +14,9 @@
     width: 50px !important;
   }
 
+  li a {
+    margin-top:3px;
+  }
   li a .nav-text {
     color: #fff;
     text-transform: uppercase;
@@ -72,7 +75,6 @@
       display: flex;
       justify-content: flex-start;
       align-items: center;
-      margin: 2px;
       flex-wrap: wrap;
 
       & > .attivo {
@@ -88,7 +90,6 @@
     .selector {
       padding: 0;
       list-style: none;
-      height: 90%;
       width: 100%;
       overflow-y: hidden;
       overflow-x: hidden;
@@ -130,7 +131,7 @@
 }
 
 .cc + a {
-  margin-top: -30px;
+  margin-top: -17px;
 }
 
 .tpperc + a p {
@@ -155,8 +156,9 @@
   display: block;
   margin-top: 8px;
   padding: 10px;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
+  margin-left: 3px;
 }
 
 .t2m {
@@ -204,7 +206,7 @@
 }
 
 .plus.isDisabled {
-  background-image: url("/app/custom/assets/images/iconsplus_disabled.svg");
+  background-image: url("/app/custom/assets/images/icons/plus_disabled.svg");
   cursor: not-allowed;
 }
 
@@ -224,14 +226,14 @@
 .selettore-dataset {
   height: 30px;
   width: 100%;
-  margin-left: 44px;
-  margin-top: -15px;
+  margin-left: 28px;
 }
 
 .selettore-dataset {
   display: flex;
   width: 200px;
   margin-top: -5px;
+  margin-left:32px;
 }
 
 .selettore-percentile {
@@ -244,7 +246,7 @@
   label {
     display: flex;
     flex-direction: column;
-    font-size: 8px;
+    font-size: 7px;
     text-transform: uppercase;
     color: #fff;
     text-align: center;
@@ -279,12 +281,11 @@
   label {
     display: flex;
     flex-direction: column;
-    font-size: 8px;
     text-transform: uppercase;
     color: #fff;
     text-align: center;
     margin-top: 2px;
-    font-size: 10px;
+    font-size: 9px;
     font-family: "Montserrat-semibold";
   }
 
@@ -304,12 +305,7 @@
   }
 }
 
-.selettore-multimodel {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  margin-top: 10px;
-}
+
 
 .selettore-clouds {
   display: flex;
@@ -318,8 +314,9 @@
   align-items: center;
   justify-content: space-between;
   height: 40px;
-  margin-top: -23px;
-  margin-left: 51px;
+  margin-top: -4px;
+  margin-left: 36px;
+  margin-right: 8px;
 
   input {
     margin-left: 10px;
@@ -346,7 +343,7 @@
     text-transform: uppercase;
     font-size: 10px;
     justify-content: space-evenly;
-    margin-left: 50px;
+    margin-right: 50px;
     font-family: "Montserrat-semibold";
   }
 
@@ -367,16 +364,15 @@
 }
 
 .selettore-carte {
-  margin-top: -10px !important;
   margin-bottom: -6px;
 
   label {
     display: flex;
     color: #fff;
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: 9px;
     justify-content: space-evenly;
-    margin-left: 50px;
+    margin-left: 32px;
     font-family: "Montserrat-semibold";
   }
 
@@ -456,7 +452,7 @@
 .selettore-orario label {
   display: flex;
   flex-direction: column;
-  font-size: 8px;
+  font-size: 9px;
   text-transform: uppercase;
   color: #fff;
   font-family: "Montserrat-semibold";
@@ -474,23 +470,26 @@
   color: #fff;
   text-transform: uppercase;
   font-family: "Montserrat-semibold";
-  font-size: 10px;
+  font-size: 9px;
   margin-top: 1px;
   margin-left: 10px;
   height: 15px;
 }
 
 .dataset {
-  margin-top: -3px !important;
+  margin-top: 10x !important;
 }
 
-.selettore-dataset {
-  margin-top: -14px;
-  margin-bottom: 14px;
-}
 
 .selettore-multimodel {
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  
+  .nav-text {
+    margin-left:0;
+  }
   p {
     font-size: 9px;
     align-self: flex-start;
@@ -508,6 +507,10 @@
     border: 2px solid #999;
     transition: 0.2s all linear;
   }
+
+  input[ng-reflect-model="false"] + p {
+    visibility: hidden;
+  }
 }
 
 .selettore-dataset .selected,
@@ -521,10 +524,13 @@
   border-bottom: 1px solid #fff;
   text-decoration: none;
 }
+.zoom {
+  margin-top:4px;
+}
 
 .plus.iDisabled,
-.isDisabled .nav-text,
-.minus.iDisabled {
+.nav-text.isDisabled,
+.minus.isDisabled {
   color: currentColor;
   cursor: not-allowed;
   opacity: 0.5;
@@ -536,7 +542,7 @@
 .custom-control-label {
   transform: rotate(90deg);
   margin-top: 41px;
-  margin-left: -4px;
+  margin-left: -9px;
 }
 
 .collapsed .custom-switch {
@@ -548,7 +554,7 @@
   opacity: 0.6;
   left: -48.25px;
   width: 44px;
-  height: 25px;
+  height: 24px;
   border-radius: 12.5px;
   background-color: #9c999a;
   border-color: #9c999a !important;
@@ -574,8 +580,119 @@
   border-color: #9c999a !important;
 }
 
+.custom-control input[disabled="true"] ~ .custom-control-label::after {
+  background-color: #545555a9 !important;
+  background-image: none !important;
+}
+
 .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
   background-color: #e49d2b;
   transform: translateX(16.75px) rotate(270deg);
   background-image: url("/app/custom/assets/images/icons/humidity.svg");
+}
+
+/*scrollbar*/
+
+/* Responsive*/
+
+@media screen and (max-width: 1295px) {
+  .map-sidenav li .nav-text{
+    font-size:10px !important;
+  }
+  .selettore-mappa {
+    margin-top: 13px;
+    margin-bottom: 0;
+  }
+
+  .selettore-carte label {
+    font-size:7px !important;
+    margin-right: 18px;
+  }
+  
+  .t2m,
+  .prs,
+  .rh,
+  .prp,
+  .sf,
+  .cc,
+  .input,
+  .plus,
+  .minus,
+  .carte,
+  .tpperc,
+  .tpprob  {
+    margin-top: 5px;
+    padding: 10px;
+    width: 22px;
+    height: 22px;
+    margin-left: 5px;
+  }
+}
+
+@media screen and (max-height: 574px) {
+    
+  .map-sidenav .toggle {
+    width:30px !important;
+    height:30px !important;
+
+    &.collapsed {
+      margin-left:10px !important;
+    }
+  
+  }
+    
+  .selector {
+    overflow-y: scroll !important;
+    scrollbar-width: thin;
+    scrollbar-color: #E49C1E  rgba(56, 56, 56, 0.473) ;
+  
+
+    &::-webkit-scrollbar {
+    width: 7px; 
+    } 
+  }
+
+  .selector::-webkit-scrollbar-track {
+    
+    border-radius:20px; 
+    background-color: rgba(56, 56, 56, 0.473);
+  }
+
+  .selector::-webkit-scrollbar-thumb {
+   background: #E49C1E ;
+    border-radius: 20px;
+    
+  }
+
+  .collapsed .selector{
+    overflow-y:hidden !important;
+  }
+
+  .collapsed .selector::-webkit-scrollbar-track {
+    display:none;
+  }
+
+  .collapsed .selector::-webkit-scrollbar-thumb {
+    display:none;
+    
+  }
+
+  .t2m,
+  .prs,
+  .rh,
+  .prp,
+  .sf,
+  .cc,
+  .input,
+  .plus,
+  .minus,
+  .carte,
+  .tpperc,
+  .tpprob  {
+    margin-top: 5px;
+    padding: 10px;
+    width: 22px;
+    height: 22px;
+    margin-left: 5px;
+  }
 }

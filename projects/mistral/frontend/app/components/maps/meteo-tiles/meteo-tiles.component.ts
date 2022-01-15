@@ -114,9 +114,9 @@ export class MeteoTilesComponent {
   // Values to bind to Leaflet Directive
   layersControl = {
     baseLayers: {
-      "Openstreet Map": this.LAYER_OSM,
-      "Carto Map Dark": this.LAYER_DARKMATTER,
       "Carto Map Light": this.LAYER_LIGHTMATTER,
+      "Carto Map Dark": this.LAYER_DARKMATTER,
+      "Openstreet Map": this.LAYER_OSM,
     },
   };
   options = {

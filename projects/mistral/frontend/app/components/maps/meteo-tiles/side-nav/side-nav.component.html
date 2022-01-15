@@ -239,28 +239,59 @@
           </p>
         </div>
       </li>
-      <li class="sidenav-item">
+      <!-- base layer map selector -->
+      <li class="sidenav-item last selettore-carte">
+        <span class="carte"></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#">
+            <span class="nav-text">Map Style</span>
+          </a>
+          <div class="selettore-mappa">
+            <label *ngFor="let baseLayer of baseLayers | keyvalue">
+              <input
+                type="radio"
+                name="baseMap"
+                [(ngModel)]="selectedBaseLayer"
+                [value]="baseLayer.key"
+                (change)="changeBaseLayer(baseLayer.key)"
+              />
+              {{ baseLayer.key }}
+            </label>
+          </div>
+        </ng-container>
+      </li>
+      <li class="sidenav-item zoom">
         <span
           class="plus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
           (click)="zoom($event, 'in')"
           placement="left"
           [ngbTooltip]="'Zoom in'"
           [disableTooltip]="!isCollapsed"
         ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
-          <span class="nav-text">Zoom in</span>
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+            >Zoom in</span
+          >
         </a>
       </li>
       <li class="sidenav-item last">
         <span
           class="minus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
           (click)="zoom($event, 'out')"
           placement="left"
           [ngbTooltip]="'Zoom out'"
           [disableTooltip]="!isCollapsed"
         ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
-          <span class="nav-text">Zoom out</span>
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+            >Zoom out</span
+          >
         </a>
       </li>
     </ul>
