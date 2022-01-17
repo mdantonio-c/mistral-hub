@@ -179,7 +179,6 @@ export class SideNavComponent implements OnInit {
         if (layerId === "cc") {
           this.showTotalClouds = false;
         }
-        this.changeDetector.detectChanges();
       } else {
         // default to first value
         this.subLevels[layerId][0].checked = true;
