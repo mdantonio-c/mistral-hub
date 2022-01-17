@@ -1762,7 +1762,7 @@ class BeDballe:
         with tempfile.SpooledTemporaryFile(mode="a+b", max_size=10000000) as tmpf:
             for d in datasets:
                 dt_part = cfg.section(d)
-                source = arki.dataset.Reader(dt_part)
+                source = arki.dataset.Session().dataset_reader(cfg=dt_part)
                 bin_data = source.query_bytes(query, with_data=True)
                 tmpf.write(bin_data)
             tmpf.seek(0)
