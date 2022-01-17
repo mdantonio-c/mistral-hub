@@ -465,6 +465,17 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   margin-top: 2px;
 }
 
+.selettore-clouds p {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 9px;
+  text-transform: uppercase;
+  color: #fff;
+  font-family: "Montserrat-semibold";
+  text-align: center;
+  margin-top: 2px;
+}
 .selettore-orario label {
   align-items: center;
   font-family: "Montserrat-semibold";
@@ -570,6 +581,18 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
   /*clouds switch*/
   .clouds-switch {
+    label {
+      position: relative;
+      left: -23px;
+      top: -4px;
+    }
+
+    p {
+      position: absolute;
+      top: 15px;
+      left: 10px;
+    }
+
     .custom-control-input:checked ~ .custom-control-label::before {
       border-color: $light-orange !important;
       background-color: $light-orange !important;
