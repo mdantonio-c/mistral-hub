@@ -123,7 +123,7 @@ class BeArkimet:
         summary = arki.Summary()
         for d in datasets:
             dt = cfg.section(d)
-            source = arki.dataset.Reader(dt)
+            source = arki.dataset.Session().dataset_reader(cfg=dt)
             source.query_summary(query, summary)
 
         return summary.size
@@ -326,7 +326,7 @@ class BeArkimet:
                     continue
             # filter by query
             if query:
-                source = arki.dataset.Reader(i[1])
+                source = arki.dataset.Session().dataset_reader(cfg=i[1])
                 summary = source.query_summary(query)
                 if summary.count == 0:
                     continue
@@ -355,7 +355,7 @@ class BeArkimet:
         with open(outfile, mode="a+b") as outfile:
             for d in datasets:
                 dt_part = cfg.section(d)
-                source = arki.dataset.Reader(dt_part)
+                source = arki.dataset.Session().dataset_reader(cfg=dt_part)
                 bin_data = source.query_bytes(query, with_data=True)
                 outfile.write(bin_data)
 
