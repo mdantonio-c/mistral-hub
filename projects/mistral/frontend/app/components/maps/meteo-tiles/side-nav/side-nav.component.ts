@@ -163,24 +163,25 @@ export class SideNavComponent implements OnInit {
     }
   }
 
-  toggleLayer(event: Event, layerId: string, multiSelection = false) {
+  toggleLayer(event: Event, layerId: string) {
     event.preventDefault();
     // can we do better with multi layer products? (i.e. prp)
-    const fromActiveState: boolean = (
-      event.target as HTMLInputElement
-    ).className.includes("attivo");
+    let el = this.el.nativeElement.querySelector(`span.${layerId}`);
+    const fromActiveState: boolean = el.classList.contains("attivo");
     const op = fromActiveState ? "remove" : "add";
     // console.log(`toggle "${op}" on layer-id "${layerId}"`);
     if (["prp", "sf", "cc", "tpperc", "tpprob"].includes(layerId)) {
       if (op === "remove") {
         // reset sub-level
-        // this.selectedMap[layerId] = null
         this.subLevels[layerId].forEach((level) => {
           level.checked = false;
         });
+        if (layerId === "cc") {
+          this.showTotalClouds = false;
+        }
+        this.changeDetector.detectChanges();
       } else {
         // default to first value
-        // this.selectedMap[layerId] = this.subLevelsMap[layerId][0].value;
         this.subLevels[layerId][0].checked = true;
       }
     }
@@ -204,8 +205,7 @@ export class SideNavComponent implements OnInit {
       }
     }
     // update active class
-    let el = this.el.nativeElement.querySelector(`.${layerId}`);
-    el.classList.contains("attivo")
+    fromActiveState
       ? this.renderer.removeClass(el, "attivo")
       : this.renderer.addClass(el, "attivo");
   }
@@ -228,14 +228,12 @@ export class SideNavComponent implements OnInit {
     return input.replace(/\./g, "\\.");
   }
 
-  preventLastUnchecked(
-    event: Event,
-    target: ValueLabelChecked,
-    layerId: string
-  ) {
+  preventActions(event: Event, target: ValueLabelChecked, layerId: string) {
     if (
-      target.checked &&
-      this.subLevels[layerId].map((x) => x.checked).filter(Boolean).length === 1
+      this.showTotalClouds ||
+      (target.checked &&
+        this.subLevels[layerId].map((x) => x.checked).filter(Boolean).length ===
+          1)
     ) {
       event.preventDefault();
     }
