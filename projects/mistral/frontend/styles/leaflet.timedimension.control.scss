@@ -313,6 +313,7 @@ timecontrol-slider .knob.lower:before {
     width: 30px !important;
     background-color: #2f34349d!important;
     border-radius: 30px;
+    margin-bottom: 2px;
 }
 
 .timecontrol-backward:hover,
@@ -432,9 +433,9 @@ a.timecontrol-play.loading:before {
 
 /*Responsive legende*/
 
-@media screen and (max-height: 574px) {
+@media screen and (max-height: 640px) {
     .legenda {
-      width: 46%;
+      width: 53%;
     }
   }
 
@@ -445,7 +446,7 @@ a.timecontrol-play.loading:before {
     
 }
 
-@media screen and (max-width: 780px) {
+@media screen and (max-width: 785px) {
     app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
         width:150px !important;
     }
@@ -478,7 +479,7 @@ a.timecontrol-play.loading:before {
     }
 
     .legenda {
-        width: 33%;
+        width: 41%;
     }
    
 
