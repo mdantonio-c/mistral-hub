@@ -171,7 +171,7 @@
             [disableTooltip]="!isCollapsed"
           ></span>
           <ng-container *ngIf="!isCollapsed">
-            <a href="#" (click)="toggleLayer($event, 'cc')">
+            <a href (click)="toggleLayer($event, 'cc')">
               <span class="nav-text">Clouds</span>
             </a>
             <div class="selettore-clouds">
@@ -182,7 +182,7 @@
                   [(ngModel)]="lvl.checked"
                   [value]="lvl.value"
                   (change)="changeSubLevel($event, lvl, 'cc', true)"
-                  (click)="preventLastUnchecked($event, lvl, 'cc')"
+                  (click)="preventActions($event, lvl, 'cc')"
                   [attr.disabled]="isLayerActive('cc') ? null : true"
                 />
                 {{ lvl.value }}
@@ -198,9 +198,8 @@
                   (change)="toggleTotalClouds()"
                   [attr.disabled]="isLayerActive('cc') ? null : true"
                 />
-                <label class="custom-control-label" for="tccSwitch"
-                  ></label
-                ><p>TOTAL</p>
+                <label class="custom-control-label" for="tccSwitch"></label>
+                <p>TOTAL</p>
               </div>
             </div>
           </ng-container>
