@@ -29,6 +29,10 @@ import {
 } from "./data";
 import { ValueLabel } from "../../../../types";
 
+interface ValueLabelChecked extends ValueLabel {
+  checked?: boolean;
+}
+
 @Component({
   selector: "map-side-nav",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,9 +50,11 @@ export class SideNavComponent implements OnInit {
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
     if (!value) return;
-    // reset selectedMap
-    for (const [key, value] of Object.entries(this.selectedMap)) {
-      this.selectedMap[key] = null;
+    // reset subLevels
+    for (const [key, value] of Object.entries(this.subLevels)) {
+      this.subLevels[key].forEach((level) => {
+        level.checked = false;
+      });
     }
     // activate layers
     for (const [key, layer] of Object.entries(this._overlays)) {
@@ -57,8 +63,8 @@ export class SideNavComponent implements OnInit {
         const el = this.el.nativeElement.querySelector(`.${lCode}`);
         this.renderer.removeClass(el, "attivo");
         if (this.map.hasLayer(layer)) {
-          if (Object.keys(this.selectedMap).includes(lCode)) {
-            this.selectedMap[lCode] = this.subLevelsMap[lCode][0].value;
+          if (Object.keys(this.subLevels).includes(lCode)) {
+            this.subLevels[lCode][0].checked = true;
           }
           setTimeout(() => {
             this.renderer.addClass(el, "attivo");
@@ -90,24 +96,27 @@ export class SideNavComponent implements OnInit {
   isCollapsed = false;
   availableDatasets = DATASETS;
 
-  subLevelsMap = {
-    prp: PRECIPITATION_HOURS,
-    sf: SNOW_HOURS,
-    cc: CLOUD_LEVELS,
-    tpperc: IFF_PERCENTILES,
-    tpprob: IFF_PROBABILITIES,
-  };
-
-  selectedMap = {};
+  subLevels: { [key: string]: ValueLabelChecked[] } = {};
   selectedBaseLayer: string;
+  showTotalClouds: boolean = false;
 
   constructor(
     private el: ElementRef,
     private renderer: Renderer2,
     private changeDetector: ChangeDetectorRef
   ) {
-    Object.keys(this.subLevelsMap).forEach((key) => {
-      this.selectedMap[key] = null;
+    const SUB_LEVELS: { [key: string]: ValueLabel[] } = {
+      prp: PRECIPITATION_HOURS,
+      sf: SNOW_HOURS,
+      cc: CLOUD_LEVELS,
+      tpperc: IFF_PERCENTILES,
+      tpprob: IFF_PROBABILITIES,
+    };
+    Object.keys(SUB_LEVELS).forEach((key) => {
+      this.subLevels[key] = SUB_LEVELS[key];
+      this.subLevels[key].forEach((level) => {
+        level.checked = false;
+      });
     });
   }
 
@@ -154,22 +163,28 @@ export class SideNavComponent implements OnInit {
     }
   }
 
-  toggleLayer(event: Event, layerId: string) {
+  toggleLayer(event: Event, layerId: string, multiSelection = false) {
     event.preventDefault();
-    // FIXME can we do better with multi layer products? (i.e. prp)
+    // can we do better with multi layer products? (i.e. prp)
     const fromActiveState: boolean = (
       event.target as HTMLInputElement
     ).className.includes("attivo");
     const op = fromActiveState ? "remove" : "add";
+    // console.log(`toggle "${op}" on layer-id "${layerId}"`);
     if (["prp", "sf", "cc", "tpperc", "tpprob"].includes(layerId)) {
       if (op === "remove") {
         // reset sub-level
-        this.selectedMap[layerId] = null;
+        // this.selectedMap[layerId] = null
+        this.subLevels[layerId].forEach((level) => {
+          level.checked = false;
+        });
       } else {
         // default to first value
-        this.selectedMap[layerId] = this.subLevelsMap[layerId][0].value;
+        // this.selectedMap[layerId] = this.subLevelsMap[layerId][0].value;
+        this.subLevels[layerId][0].checked = true;
       }
     }
+    // this.changeDetector.detectChanges();
     for (const [key, layer] of Object.entries(this.overlays)) {
       if (layerId === toLayerCode(key)) {
         // let op = (this.map.hasLayer(layer)) ? 'remove' : 'add';
@@ -213,22 +228,47 @@ export class SideNavComponent implements OnInit {
     return input.replace(/\./g, "\\.");
   }
 
+  preventLastUnchecked(
+    event: Event,
+    target: ValueLabelChecked,
+    layerId: string
+  ) {
+    if (
+      target.checked &&
+      this.subLevels[layerId].map((x) => x.checked).filter(Boolean).length === 1
+    ) {
+      event.preventDefault();
+    }
+  }
+
   /**
    * Activate / Deactivate a layer with sub levels
    * @param event
    * @param target
    * @param layerId
    */
-  changeSubLevel(event: Event, target: ValueLabel, layerId: string) {
-    console.log(`activate layer ${layerId}, value ${target.value}`);
+  changeSubLevel(
+    event: Event,
+    target: ValueLabel,
+    layerId: string,
+    multiSelection = false
+  ) {
+    // console.log(`activate layer ${layerId}, value ${target.value}`);
     for (const [key, layer] of Object.entries(this.overlays)) {
       // need to clean up
-      if (layerId === toLayerCode(key) && this.map.hasLayer(layer)) {
+      if (
+        !multiSelection &&
+        layerId === toLayerCode(key) &&
+        this.map.hasLayer(layer)
+      ) {
         this.onLayerChange.emit({
           layer: layer,
           name: key,
         });
-        this.selectedMap[layerId] = null;
+        // this.subLevels[layerId] = null;
+        this.subLevels[layerId].forEach((level) => {
+          level.checked = false;
+        });
       }
     }
     for (const [key, layer] of Object.entries(this.overlays)) {
@@ -237,9 +277,55 @@ export class SideNavComponent implements OnInit {
           layer: layer,
           name: toLayerTitle(layerId, target.value),
         });
-        this.selectedMap[layerId] = target.value;
+        if (!multiSelection) {
+          const idx = this.subLevels[layerId].findIndex(
+            (level) => level.value === target.value
+          );
+          this.subLevels[layerId][idx].checked =
+            !this.subLevels[layerId][idx].checked;
+        }
         break;
       }
+    }
+  }
+
+  toggleTotalClouds() {
+    this.showTotalClouds = !this.showTotalClouds;
+    if (this.showTotalClouds) {
+      // remove active layers for cloud sub-levels
+      let tccLayer;
+      for (const [key, layer] of Object.entries(this.overlays)) {
+        if (
+          [`${DP.LCC}`, `${DP.MCC}`, `${DP.HCC}`].includes(key) &&
+          this.map.hasLayer(layer)
+        ) {
+          this.onLayerChange.emit({ layer: layer, name: key });
+        } else if (key === `${DP.TCC}`) {
+          tccLayer = layer;
+        }
+      }
+      // show total clouds
+      if (tccLayer) {
+        this.onLayerChange.emit({
+          layer: tccLayer,
+          name: `${DP.TCC}`,
+        });
+      }
+      this.subLevels["cc"].forEach((level) => {
+        level.checked = false;
+      });
+    } else {
+      for (const [key, layer] of Object.entries(this.overlays)) {
+        if ([`${DP.TCC}`].includes(key) && this.map.hasLayer(layer)) {
+          // remove total cloud layer
+          this.onLayerChange.emit({ layer: layer, name: key });
+        }
+      }
+      this.subLevels["cc"][0].checked = true;
+      this.onLayerChange.emit({
+        layer: this.overlays[`${DP.LCC}`],
+        name: `${DP.LCC}`,
+      });
     }
   }
 
