@@ -31,6 +31,10 @@
       <div class="selected-dataset">
         {{ printDatasetDescription() }}
       </div>
+      <pre *ngIf="runAvailable">
+        Reference Date: {{ printReferenceDate() }}
+        Product: {{ printDatasetProduct() }}
+      </pre>
     </div>
   </div>
 </div>
