@@ -364,6 +364,10 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise ValueError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["value"] = i.get("va", {})
         vals = [k[0] + "=" + str(k[1]) for k in i.get("value", {}).items()]
         if style == "GRIB":
             return "GRIB:" + ",".join(vals) if vals else ""
@@ -382,6 +386,10 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["level_type"] = i.get("lt", "")
         if style == "GRIB1":
             lev = [str(i.get("level_type", ""))]
             l1 = str(i.get("l1", ""))
@@ -421,6 +429,12 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["centre"] = i.get("ce", "")
+            i["subcentre"] = i.get("sc", "")
+            i["process"] = i.get("pr", "")
         if style == "GRIB1":
             return "GRIB1,{ce},{sc},{pr}".format(
                 ce=i.get("centre", ""),
@@ -449,6 +463,10 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["value"] = i.get("va", {})
         if style == "GRIB":
             vals = [k[0] + "=" + str(k[1]) for k in i.get("value", {}).items()]
             return "GRIB:" + ",".join(vals) if vals else ""
@@ -460,6 +478,16 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["origin"] = i.get("or", "")
+            i["table"] = i.get("ta", "")
+            i["product"] = i.get("pr", "")
+            i["centre"] = i.get("ce", "")
+            i["discipline"] = i.get("di", "")
+            i["category"] = i.get("ca", "")
+            i["number"] = i.get("no", "")
         if style == "GRIB1":
             return "GRIB1,{origin},{table},{product}".format(
                 origin=i.get("origin", ""),
@@ -494,6 +522,9 @@ class BeArkimet:
     def __decode_quantity(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
+        # check if the notation is the old one or the new one
+        if "value" not in i.keys():
+            i["value"] = i.get("va", [])
         return ",".join([str(k) for k in i.get("value", [])])
 
     @staticmethod
@@ -501,6 +532,10 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["value"] = i.get("va", None)
         if style == "MINUTE":
             val = i.get("value")
             if not isinstance(val, int):
@@ -515,6 +550,9 @@ class BeArkimet:
     def __decode_task(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
+        # check if the notation is the old one or the new one
+        if "value" not in i.keys():
+            i["value"] = i.get("va", "")
         return str(i.get("value", ""))
 
     @staticmethod
@@ -522,6 +560,11 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["type"] = i.get("ty", "")
+            i["unit"] = i.get("un", "")
         # un = {}
         if style == "GRIB1":
             un = {
