@@ -1,3 +1,6 @@
+$light-orange: #e49c1e;
+$light-orange-shadow: rgba(228, 156, 30, 0.25);
+
 .map-sidenav {
   top: 0;
   right: 0;
@@ -15,7 +18,7 @@
   }
 
   li a {
-    margin-top:3px;
+    margin-top: 3px;
   }
   li a .nav-text {
     color: #fff;
@@ -78,7 +81,7 @@
       flex-wrap: wrap;
 
       & > .attivo {
-        background-color: #e49c1e;
+        background-color: $light-orange;
         border-radius: 25px;
       }
     }
@@ -233,7 +236,7 @@
   display: flex;
   width: 200px;
   margin-top: -5px;
-  margin-left:32px;
+  margin-left: 32px;
 }
 
 .selettore-percentile {
@@ -305,8 +308,6 @@
   }
 }
 
-
-
 .selettore-clouds {
   display: flex;
   flex-wrap: nowrap;
@@ -326,11 +327,14 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    border-radius: 7px;
     width: 13px !important;
     height: 13px !important;
     border: 2px solid #999;
     transition: 0.2s all linear;
+
+    &[type="checkbox"] {
+      border-radius: 13px;
+    }
   }
 }
 
@@ -429,12 +433,12 @@
   }
 
   input:checked {
-    border: 6px solid #e49c1e;
+    border: 6px solid $light-orange;
   }
 
   input:checked + span {
-    border-color: #e49c1e;
-    background-color: #e49c1e;
+    border-color: $light-orange;
+    background-color: $light-orange;
   }
 }
 
@@ -444,14 +448,15 @@
 .selettore-percentile input:checked,
 .selettore-probabilita input:checked,
 .selettore-mappa input:checked {
-  background-color: #e49c1e;
-  border-color: #e49c1e;
+  background-color: $light-orange;
+  border-color: $light-orange;
 }
 
 .selettore-clouds label,
 .selettore-orario label {
   display: flex;
   flex-direction: column;
+  align-items: center;
   font-size: 9px;
   text-transform: uppercase;
   color: #fff;
@@ -460,6 +465,17 @@
   margin-top: 2px;
 }
 
+.selettore-clouds p {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 9px;
+  text-transform: uppercase;
+  color: #fff;
+  font-family: "Montserrat-semibold";
+  text-align: center;
+  margin-top: 2px;
+}
 .selettore-orario label {
   align-items: center;
   font-family: "Montserrat-semibold";
@@ -480,15 +496,14 @@
   margin-top: 10x !important;
 }
 
-
 .selettore-multimodel {
   position: relative;
   display: flex;
   align-items: flex-start;
   flex-direction: column;
-  
+
   .nav-text {
-    margin-left:0;
+    margin-left: 0;
   }
   p {
     font-size: 9px;
@@ -515,8 +530,8 @@
 
 .selettore-dataset .selected,
 .selettore-dataset .selected:hover {
-  color: #e49c1e;
-  border-bottom: 1px solid #e49c1e;
+  color: $light-orange;
+  border-bottom: 1px solid $light-orange;
   font-family: "Montserrat-semibold";
 }
 
@@ -525,7 +540,7 @@
   text-decoration: none;
 }
 .zoom {
-  margin-top:4px;
+  margin-top: 4px;
 }
 
 .plus.iDisabled,
@@ -537,58 +552,111 @@
   text-decoration: none;
 }
 
-/* style toggle multi-model */
+/* style custom-switch borders */
 
-.custom-control-label {
-  transform: rotate(90deg);
-  margin-top: 41px;
-  margin-left: -9px;
-}
+  .custom-control-input:focus ~ .custom-control-label::before {
+    border-color: $light-orange !important;
+    box-shadow: 0 0 0 0.2rem $light-orange-shadow !important;
+  }
 
-.collapsed .custom-switch {
+ .custom-control-input:checked ~ .custom-control-label::before {
+    border-color: $light-orange !important;
+    background-color: $light-orange;
+  }
+
+ 
+  .custom-control-input:active ~ .custom-control-label::before {
+    background-color: $light-orange;
+    border-color: $light-orange !important;
+  }
+
+  .custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
+  border-color: $light-orange !important;
+  }
+
+  .custom-control-input-green:not(:disabled):active ~ .custom-control-label::before {
+    background-color: $light-orange;
+    border-color: $light-orange !important;
+  }
+
+  /*clouds switch*/
+  .clouds-switch {
+    label {
+      position: relative;
+      left: -23px;
+      top: -4px;
+    }
+
+    p {
+      position: absolute;
+      top: 15px;
+      left: 10px;
+    }
+
+    .custom-control-input:checked ~ .custom-control-label::before {
+      border-color: $light-orange !important;
+      background-color: $light-orange !important;
+    }
+
+    & input[disabled="true"] ~ .custom-control-label::before, & input:checked[disabled="true"] ~ .custom-control-label::before {
+      background-color: #797E7E !important;
+      border-color: #797E7E !important;
+    }
+    & input[disabled="true"] ~ .custom-control-label::after {
+      background-color: #616262 !important;
+      border-color: #616262 !important;
+    }
+    
+  }
+
+/*multimodel switch*/
+.collapsed .mm-switch {
   padding-left: 35px;
   padding-top: 18px;
 }
 
-.custom-control-label::before {
-  opacity: 0.6;
-  left: -48.25px;
-  width: 44px;
-  height: 24px;
-  border-radius: 12.5px;
-  background-color: #9c999a;
-  border-color: #9c999a !important;
-}
+.mm-switch {
 
-.custom-switch .custom-control-label::after {
-  top: calc(3.6px + 2px);
-  left: calc(-46.25px + 2px);
-  width: calc(24px - 4px);
-  height: calc(24px - 4px);
-  background-color: #e49d2b;
-  border-radius: 2.5rem;
-  display: block;
-  background-size: contain;
-  background-repeat: no-repeat;
-  content: "";
-  background-image: url("/app/custom/assets/images/icons/temper.svg");
-  transform: rotate(270deg);
-}
+  .custom-control-label {
+    transform: rotate(90deg);
+    margin-top: 41px;
+    margin-left: -9px; 
+    &:before {
+      opacity: 0.6;
+      left: -48.25px;
+      width: 44px;
+      height: 24px;
+      border-radius: 12.5px;
+      background-color: #9c999a !important;
+      border-color: #9c999a !important;
+    }
+    &:after {
+      background-color: #e49d2b;
+      border-radius: 2.5rem;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-image: url("/app/custom/assets/images/icons/temper2.svg");
+      top: calc(3.6px + 2px);
+      left: calc(-46.25px + 2px);
+      width: calc(24px - 4px);
+      height: calc(24px - 4px);
+    }
+  }
 
-.custom-control-input:checked ~ .custom-control-label::before {
-  background-color: #9c999a;
-  border-color: #9c999a !important;
-}
+ .custom-control-input:checked ~ .custom-control-label::after{
+    background-color: #e49d2b;
+    transform: translateX(16.75px) rotate(270deg) !important;
+    background-image: url("/app/custom/assets/images/icons/humidity.svg")  !important;
+  }
 
-.custom-control input[disabled="true"] ~ .custom-control-label::after {
-  background-color: #545555a9 !important;
-  background-image: none !important;
-}
+  & input[disabled="true"] ~ .custom-control-label::after, & input:checked[disabled="true"] ~ .custom-control-label::after  {
+    background-color: #545555a9 !important;
+    background-image: none !important;
+  }
 
-.custom-switch .custom-control-input:checked ~ .custom-control-label::after {
-  background-color: #e49d2b;
-  transform: translateX(16.75px) rotate(270deg);
-  background-image: url("/app/custom/assets/images/icons/humidity.svg");
+  & input[disabled="true"] ~ .custom-control-label::before {
+    border-color: #545555a9 !important;
+  }
 }
 
 /*scrollbar*/
@@ -596,8 +664,8 @@
 /* Responsive*/
 
 @media screen and (max-width: 1295px) {
-  .map-sidenav li .nav-text{
-    font-size:10px !important;
+  .map-sidenav li .nav-text {
+    font-size: 10px !important;
   }
   .selettore-mappa {
     margin-top: 13px;
@@ -605,10 +673,10 @@
   }
 
   .selettore-carte label {
-    font-size:7px !important;
+    font-size: 7px !important;
     margin-right: 18px;
   }
-  
+
   .t2m,
   .prs,
   .rh,
@@ -620,7 +688,7 @@
   .minus,
   .carte,
   .tpperc,
-  .tpprob  {
+  .tpprob {
     margin-top: 5px;
     padding: 10px;
     width: 22px;
@@ -629,52 +697,46 @@
   }
 }
 
-@media screen and (max-height: 574px) {
-    
+@media screen and (max-height: 640px) {
   .map-sidenav .toggle {
-    width:30px !important;
-    height:30px !important;
+    width: 30px !important;
+    height: 30px !important;
 
     &.collapsed {
-      margin-left:10px !important;
+      margin-left: 10px !important;
     }
-  
   }
-    
+
   .selector {
     overflow-y: scroll !important;
     scrollbar-width: thin;
-    scrollbar-color: #E49C1E  rgba(56, 56, 56, 0.473) ;
-  
+    scrollbar-color: #e49c1e rgba(56, 56, 56, 0.473);
 
     &::-webkit-scrollbar {
-    width: 7px; 
-    } 
+      width: 7px;
+    }
   }
 
   .selector::-webkit-scrollbar-track {
-    
-    border-radius:20px; 
+    border-radius: 20px;
     background-color: rgba(56, 56, 56, 0.473);
   }
 
   .selector::-webkit-scrollbar-thumb {
-   background: #E49C1E ;
+    background: #e49c1e;
     border-radius: 20px;
-    
   }
 
-  .collapsed .selector{
-    overflow-y:hidden !important;
+  .collapsed .selector {
+    overflow-y: hidden !important;
   }
 
   .collapsed .selector::-webkit-scrollbar-track {
-    display:none;
+    display: none;
   }
 
   .collapsed .selector::-webkit-scrollbar-thumb {
-    display:none;
-    
+    display: none;
   }
 
   .t2m,
@@ -688,7 +750,7 @@
   .minus,
   .carte,
   .tpperc,
-  .tpprob  {
+  .tpprob {
     margin-top: 5px;
     padding: 10px;
     width: 22px;

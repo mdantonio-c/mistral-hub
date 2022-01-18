@@ -24,11 +24,11 @@
             </a>
             <span class="nav-sub-text">(mm)</span>
             <div class="selettore-percentile">
-              <label *ngFor="let p of subLevelsMap['tpperc']">
+              <label *ngFor="let p of subLevels['tpperc']">
                 <input
                   type="radio"
                   name="iff_percentile"
-                  [(ngModel)]="selectedMap['tpperc']"
+                  [checked]="p.checked"
                   [attr.disabled]="isLayerActive('tpperc') ? null : true"
                   [value]="p.value"
                   (change)="changeSubLevel($event, p, 'tpperc')"
@@ -52,11 +52,11 @@
             </a>
             <span class="nav-sub-text">(%)</span>
             <div class="selettore-probabilita">
-              <label *ngFor="let p of subLevelsMap['tpprob']">
+              <label *ngFor="let p of subLevels['tpprob']">
                 <input
                   type="radio"
                   name="iff_probability"
-                  [(ngModel)]="selectedMap['tpprob']"
+                  [checked]="p.checked"
                   [attr.disabled]="isLayerActive('tpprob') ? null : true"
                   [value]="p.value"
                   (change)="changeSubLevel($event, p, 'tpprob')"
@@ -118,13 +118,13 @@
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
-                <label *ngFor="let h of subLevelsMap['prp']; let last = last">
+                <label *ngFor="let h of subLevels['prp']; let last = last">
                   <input
                     type="radio"
                     name="precipitation"
-                    [(ngModel)]="selectedMap['prp']"
                     [attr.disabled]="isLayerActive('prp') ? null : true"
                     [value]="h.value"
+                    [checked]="h.checked"
                     (change)="changeSubLevel($event, h, 'prp')"
                   />
                   {{ h.value + "h" }}
@@ -147,11 +147,11 @@
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
-                <label *ngFor="let h of subLevelsMap['sf']; let last = last">
+                <label *ngFor="let h of subLevels['sf']; let last = last">
                   <input
                     type="radio"
                     name="snow"
-                    [(ngModel)]="selectedMap['sf']"
+                    [checked]="h.checked"
                     [attr.disabled]="isLayerActive('sf') ? null : true"
                     [value]="h.value"
                     (change)="changeSubLevel($event, h, 'sf')"
@@ -171,21 +171,36 @@
             [disableTooltip]="!isCollapsed"
           ></span>
           <ng-container *ngIf="!isCollapsed">
-            <a href="#" (click)="toggleLayer($event, 'cc')">
+            <a href (click)="toggleLayer($event, 'cc')">
               <span class="nav-text">Clouds</span>
             </a>
             <div class="selettore-clouds">
-              <label *ngFor="let lvl of subLevelsMap['cc']">
+              <label *ngFor="let lvl of subLevels['cc']">
                 <input
-                  type="radio"
-                  name="cloud"
-                  [(ngModel)]="selectedMap['cc']"
-                  [attr.disabled]="isLayerActive('cc') ? null : true"
+                  type="checkbox"
+                  [name]="lvl.value"
+                  [(ngModel)]="lvl.checked"
                   [value]="lvl.value"
-                  (change)="changeSubLevel($event, lvl, 'cc')"
+                  (change)="changeSubLevel($event, lvl, 'cc', true)"
+                  (click)="preventActions($event, lvl, 'cc')"
+                  [attr.disabled]="isLayerActive('cc') ? null : true"
                 />
                 {{ lvl.value }}
               </label>
+              <div
+                class="custom-control custom-switch clouds-switch d-flex mb-3"
+              >
+                <input
+                  id="tccSwitch"
+                  type="checkbox"
+                  class="custom-control-input"
+                  [checked]="showTotalClouds"
+                  (change)="toggleTotalClouds()"
+                  [attr.disabled]="isLayerActive('cc') ? null : true"
+                />
+                <label class="custom-control-label" for="tccSwitch"></label>
+                <p>TOTAL</p>
+              </div>
             </div>
           </ng-container>
         </li>
@@ -210,7 +225,7 @@
         </ng-container>
       </li>
       <li class="sidenav-item last multi-model">
-        <div class="custom-control custom-switch">
+        <div class="custom-control mm-switch custom-switch">
           <input
             type="checkbox"
             class="custom-control-input"
