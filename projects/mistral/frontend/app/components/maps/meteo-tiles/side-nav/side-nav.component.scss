@@ -1,3 +1,6 @@
+$light-orange: #e49c1e;
+$light-orange-shadow: rgba(228, 156, 30, 0.25);
+
 .map-sidenav {
   top: 0;
   right: 0;
@@ -14,6 +17,9 @@
     width: 50px !important;
   }
 
+  li a {
+    margin-top: 3px;
+  }
   li a .nav-text {
     color: #fff;
     text-transform: uppercase;
@@ -72,11 +78,10 @@
       display: flex;
       justify-content: flex-start;
       align-items: center;
-      margin: 2px;
       flex-wrap: wrap;
 
       & > .attivo {
-        background-color: #e49c1e;
+        background-color: $light-orange;
         border-radius: 25px;
       }
     }
@@ -88,7 +93,6 @@
     .selector {
       padding: 0;
       list-style: none;
-      height: 90%;
       width: 100%;
       overflow-y: hidden;
       overflow-x: hidden;
@@ -130,7 +134,7 @@
 }
 
 .cc + a {
-  margin-top: -30px;
+  margin-top: -17px;
 }
 
 .tpperc + a p {
@@ -155,8 +159,9 @@
   display: block;
   margin-top: 8px;
   padding: 10px;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
+  margin-left: 3px;
 }
 
 .t2m {
@@ -204,7 +209,7 @@
 }
 
 .plus.isDisabled {
-  background-image: url("/app/custom/assets/images/iconsplus_disabled.svg");
+  background-image: url("/app/custom/assets/images/icons/plus_disabled.svg");
   cursor: not-allowed;
 }
 
@@ -224,14 +229,14 @@
 .selettore-dataset {
   height: 30px;
   width: 100%;
-  margin-left: 44px;
-  margin-top: -15px;
+  margin-left: 28px;
 }
 
 .selettore-dataset {
   display: flex;
   width: 200px;
   margin-top: -5px;
+  margin-left: 32px;
 }
 
 .selettore-percentile {
@@ -244,7 +249,7 @@
   label {
     display: flex;
     flex-direction: column;
-    font-size: 8px;
+    font-size: 7px;
     text-transform: uppercase;
     color: #fff;
     text-align: center;
@@ -279,12 +284,11 @@
   label {
     display: flex;
     flex-direction: column;
-    font-size: 8px;
     text-transform: uppercase;
     color: #fff;
     text-align: center;
     margin-top: 2px;
-    font-size: 10px;
+    font-size: 9px;
     font-family: "Montserrat-semibold";
   }
 
@@ -304,13 +308,6 @@
   }
 }
 
-.selettore-multimodel {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  margin-top: 10px;
-}
-
 .selettore-clouds {
   display: flex;
   flex-wrap: nowrap;
@@ -318,8 +315,9 @@
   align-items: center;
   justify-content: space-between;
   height: 40px;
-  margin-top: -23px;
-  margin-left: 51px;
+  margin-top: -4px;
+  margin-left: 36px;
+  margin-right: 8px;
 
   input {
     margin-left: 10px;
@@ -329,11 +327,14 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    border-radius: 7px;
     width: 13px !important;
     height: 13px !important;
     border: 2px solid #999;
     transition: 0.2s all linear;
+
+    &[type="checkbox"] {
+      border-radius: 13px;
+    }
   }
 }
 
@@ -346,7 +347,7 @@
     text-transform: uppercase;
     font-size: 10px;
     justify-content: space-evenly;
-    margin-left: 50px;
+    margin-right: 50px;
     font-family: "Montserrat-semibold";
   }
 
@@ -367,16 +368,15 @@
 }
 
 .selettore-carte {
-  margin-top: -10px !important;
   margin-bottom: -6px;
 
   label {
     display: flex;
     color: #fff;
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: 9px;
     justify-content: space-evenly;
-    margin-left: 50px;
+    margin-left: 32px;
     font-family: "Montserrat-semibold";
   }
 
@@ -433,12 +433,12 @@
   }
 
   input:checked {
-    border: 6px solid #e49c1e;
+    border: 6px solid $light-orange;
   }
 
   input:checked + span {
-    border-color: #e49c1e;
-    background-color: #e49c1e;
+    border-color: $light-orange;
+    background-color: $light-orange;
   }
 }
 
@@ -448,15 +448,16 @@
 .selettore-percentile input:checked,
 .selettore-probabilita input:checked,
 .selettore-mappa input:checked {
-  background-color: #e49c1e;
-  border-color: #e49c1e;
+  background-color: $light-orange;
+  border-color: $light-orange;
 }
 
 .selettore-clouds label,
 .selettore-orario label {
   display: flex;
   flex-direction: column;
-  font-size: 8px;
+  align-items: center;
+  font-size: 9px;
   text-transform: uppercase;
   color: #fff;
   font-family: "Montserrat-semibold";
@@ -464,6 +465,17 @@
   margin-top: 2px;
 }
 
+.selettore-clouds p {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 9px;
+  text-transform: uppercase;
+  color: #fff;
+  font-family: "Montserrat-semibold";
+  text-align: center;
+  margin-top: 2px;
+}
 .selettore-orario label {
   align-items: center;
   font-family: "Montserrat-semibold";
@@ -474,23 +486,25 @@
   color: #fff;
   text-transform: uppercase;
   font-family: "Montserrat-semibold";
-  font-size: 10px;
+  font-size: 9px;
   margin-top: 1px;
   margin-left: 10px;
   height: 15px;
 }
 
 .dataset {
-  margin-top: -3px !important;
-}
-
-.selettore-dataset {
-  margin-top: -14px;
-  margin-bottom: 14px;
+  margin-top: 10x !important;
 }
 
 .selettore-multimodel {
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+
+  .nav-text {
+    margin-left: 0;
+  }
   p {
     font-size: 9px;
     align-self: flex-start;
@@ -508,12 +522,16 @@
     border: 2px solid #999;
     transition: 0.2s all linear;
   }
+
+  input[ng-reflect-model="false"] + p {
+    visibility: hidden;
+  }
 }
 
 .selettore-dataset .selected,
 .selettore-dataset .selected:hover {
-  color: #e49c1e;
-  border-bottom: 1px solid #e49c1e;
+  color: $light-orange;
+  border-bottom: 1px solid $light-orange;
   font-family: "Montserrat-semibold";
 }
 
@@ -521,61 +539,222 @@
   border-bottom: 1px solid #fff;
   text-decoration: none;
 }
+.zoom {
+  margin-top: 4px;
+}
 
 .plus.iDisabled,
-.isDisabled .nav-text,
-.minus.iDisabled {
+.nav-text.isDisabled,
+.minus.isDisabled {
   color: currentColor;
   cursor: not-allowed;
   opacity: 0.5;
   text-decoration: none;
 }
 
-/* style toggle multi-model */
+/* style custom-switch borders */
 
-.custom-control-label {
-  transform: rotate(90deg);
-  margin-top: 41px;
-  margin-left: -4px;
-}
+  .custom-control-input:focus ~ .custom-control-label::before {
+    border-color: $light-orange !important;
+    box-shadow: 0 0 0 0.2rem $light-orange-shadow !important;
+  }
 
-.collapsed .custom-switch {
+ .custom-control-input:checked ~ .custom-control-label::before {
+    border-color: $light-orange !important;
+    background-color: $light-orange;
+  }
+
+ 
+  .custom-control-input:active ~ .custom-control-label::before {
+    background-color: $light-orange;
+    border-color: $light-orange !important;
+  }
+
+  .custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
+  border-color: $light-orange !important;
+  }
+
+  .custom-control-input-green:not(:disabled):active ~ .custom-control-label::before {
+    background-color: $light-orange;
+    border-color: $light-orange !important;
+  }
+
+  /*clouds switch*/
+  .clouds-switch {
+    label {
+      position: relative;
+      left: -23px;
+      top: -4px;
+    }
+
+    p {
+      position: absolute;
+      top: 15px;
+      left: 10px;
+    }
+
+    .custom-control-input:checked ~ .custom-control-label::before {
+      border-color: $light-orange !important;
+      background-color: $light-orange !important;
+    }
+
+    & input[disabled="true"] ~ .custom-control-label::before, & input:checked[disabled="true"] ~ .custom-control-label::before {
+      background-color: #797E7E !important;
+      border-color: #797E7E !important;
+    }
+    & input[disabled="true"] ~ .custom-control-label::after {
+      background-color: #616262 !important;
+      border-color: #616262 !important;
+    }
+    
+  }
+
+/*multimodel switch*/
+.collapsed .mm-switch {
   padding-left: 35px;
   padding-top: 18px;
 }
 
-.custom-control-label::before {
-  opacity: 0.6;
-  left: -48.25px;
-  width: 44px;
-  height: 25px;
-  border-radius: 12.5px;
-  background-color: #9c999a;
-  border-color: #9c999a !important;
+.mm-switch {
+
+  .custom-control-label {
+    transform: rotate(90deg);
+    margin-top: 41px;
+    margin-left: -9px; 
+    &:before {
+      opacity: 0.6;
+      left: -48.25px;
+      width: 44px;
+      height: 24px;
+      border-radius: 12.5px;
+      background-color: #9c999a !important;
+      border-color: #9c999a !important;
+    }
+    &:after {
+      background-color: #e49d2b;
+      border-radius: 2.5rem;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-image: url("/app/custom/assets/images/icons/temper2.svg");
+      top: calc(3.6px + 2px);
+      left: calc(-46.25px + 2px);
+      width: calc(24px - 4px);
+      height: calc(24px - 4px);
+    }
+  }
+
+ .custom-control-input:checked ~ .custom-control-label::after{
+    background-color: #e49d2b;
+    transform: translateX(16.75px) rotate(270deg) !important;
+    background-image: url("/app/custom/assets/images/icons/humidity.svg")  !important;
+  }
+
+  & input[disabled="true"] ~ .custom-control-label::after, & input:checked[disabled="true"] ~ .custom-control-label::after  {
+    background-color: #545555a9 !important;
+    background-image: none !important;
+  }
+
+  & input[disabled="true"] ~ .custom-control-label::before {
+    border-color: #545555a9 !important;
+  }
 }
 
-.custom-switch .custom-control-label::after {
-  top: calc(3.6px + 2px);
-  left: calc(-46.25px + 2px);
-  width: calc(24px - 4px);
-  height: calc(24px - 4px);
-  background-color: #e49d2b;
-  border-radius: 2.5rem;
-  display: block;
-  background-size: contain;
-  background-repeat: no-repeat;
-  content: "";
-  background-image: url("/app/custom/assets/images/icons/temper.svg");
-  transform: rotate(270deg);
+/*scrollbar*/
+
+/* Responsive*/
+
+@media screen and (max-width: 1295px) {
+  .map-sidenav li .nav-text {
+    font-size: 10px !important;
+  }
+  .selettore-mappa {
+    margin-top: 13px;
+    margin-bottom: 0;
+  }
+
+  .selettore-carte label {
+    font-size: 7px !important;
+    margin-right: 18px;
+  }
+
+  .t2m,
+  .prs,
+  .rh,
+  .prp,
+  .sf,
+  .cc,
+  .input,
+  .plus,
+  .minus,
+  .carte,
+  .tpperc,
+  .tpprob {
+    margin-top: 5px;
+    padding: 10px;
+    width: 22px;
+    height: 22px;
+    margin-left: 5px;
+  }
 }
 
-.custom-control-input:checked ~ .custom-control-label::before {
-  background-color: #9c999a;
-  border-color: #9c999a !important;
-}
+@media screen and (max-height: 640px) {
+  .map-sidenav .toggle {
+    width: 30px !important;
+    height: 30px !important;
 
-.custom-switch .custom-control-input:checked ~ .custom-control-label::after {
-  background-color: #e49d2b;
-  transform: translateX(16.75px) rotate(270deg);
-  background-image: url("/app/custom/assets/images/icons/humidity.svg");
+    &.collapsed {
+      margin-left: 10px !important;
+    }
+  }
+
+  .selector {
+    overflow-y: scroll !important;
+    scrollbar-width: thin;
+    scrollbar-color: #e49c1e rgba(56, 56, 56, 0.473);
+
+    &::-webkit-scrollbar {
+      width: 7px;
+    }
+  }
+
+  .selector::-webkit-scrollbar-track {
+    border-radius: 20px;
+    background-color: rgba(56, 56, 56, 0.473);
+  }
+
+  .selector::-webkit-scrollbar-thumb {
+    background: #e49c1e;
+    border-radius: 20px;
+  }
+
+  .collapsed .selector {
+    overflow-y: hidden !important;
+  }
+
+  .collapsed .selector::-webkit-scrollbar-track {
+    display: none;
+  }
+
+  .collapsed .selector::-webkit-scrollbar-thumb {
+    display: none;
+  }
+
+  .t2m,
+  .prs,
+  .rh,
+  .prp,
+  .sf,
+  .cc,
+  .input,
+  .plus,
+  .minus,
+  .carte,
+  .tpperc,
+  .tpprob {
+    margin-top: 5px;
+    padding: 10px;
+    width: 22px;
+    height: 22px;
+    margin-left: 5px;
+  }
 }

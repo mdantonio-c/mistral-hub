@@ -10,3 +10,12 @@
 .filter select option[value=""] {
   color: #ccc !important;
 }
+
+select {
+  font-family:"Montserrat-semibold";
+}
+
+option {
+ font-family:"Montserrat-regular",'Segoe UI', sans-serif;
+ font-weight:600;
+}

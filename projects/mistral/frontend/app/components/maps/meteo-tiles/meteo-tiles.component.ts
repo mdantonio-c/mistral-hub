@@ -1,14 +1,7 @@
 import { Component } from "@angular/core";
 import { environment } from "@rapydo/../environments/environment";
-import { Observable, forkJoin, of, concat, interval } from "rxjs";
-import {
-  filter,
-  scan,
-  takeUntil,
-  catchError,
-  withLatestFrom,
-  map,
-} from "rxjs/operators";
+import { forkJoin, interval } from "rxjs";
+import { filter, scan, takeUntil, catchError } from "rxjs/operators";
 import * as moment from "moment";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
@@ -28,15 +21,12 @@ import {
   CodeDescPair,
 } from "../../../types";
 import {
-  MOCK_MM_TEMP_OBS_RESPONSE,
-  MOCK_MM_RH_OBS_RESPONSE,
-} from "./data.mock";
-import {
   MULTI_MODEL_TIME_RANGES,
   DatasetProduct as DP,
   MultiModelProduct,
   DATASETS,
 } from "./meteo-tiles.config";
+import { IffRuns } from "../forecast-maps/services/data";
 
 declare module "leaflet" {
   let timeDimension: any;
@@ -114,9 +104,9 @@ export class MeteoTilesComponent {
   // Values to bind to Leaflet Directive
   layersControl = {
     baseLayers: {
-      "Openstreet Map": this.LAYER_OSM,
-      "Carto Map Dark": this.LAYER_DARKMATTER,
       "Carto Map Light": this.LAYER_LIGHTMATTER,
+      "Carto Map Dark": this.LAYER_DARKMATTER,
+      "Openstreet Map": this.LAYER_OSM,
     },
   };
   options = {
@@ -141,7 +131,7 @@ export class MeteoTilesComponent {
       },
     },
   };
-  private runAvailable: RunAvailable;
+  public runAvailable: RunAvailable;
 
   public showed: boolean = true;
   public mmProduct = MultiModelProduct.TM;
@@ -1548,5 +1538,23 @@ export class MeteoTilesComponent {
 
   printDatasetDescription(): string {
     return this.availableDatasets.find((x) => x.code === this.dataset).desc;
+  }
+
+  printDatasetProduct(): string {
+    if (!this.runAvailable) {
+      return;
+    }
+    let p = this.runAvailable.reftime.substr(8, 2);
+    return this.runAvailable.dataset === "iff"
+      ? IffRuns.find((x) => x.key === p).value
+      : p;
+  }
+
+  printReferenceDate(): string {
+    if (!this.runAvailable) {
+      return;
+    }
+    let date = this.runAvailable.reftime.substr(0, 8);
+    return `${date.substr(0, 4)}-${date.substr(4, 2)}-${date.substr(6, 2)}`;
   }
 }

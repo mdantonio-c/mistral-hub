@@ -15,14 +15,13 @@
   (leafletMapZoomEnd)="onMapZoomEnd($event)"
 >
   <map-side-nav
+    [baseLayers]="layersControl['baseLayers']"
     [overlays]="layersControl['overlays']"
     [dataset]="dataset"
     [isShowedMultiModel]="showed"
     [map]="map"
     (onLayerChange)="toggleLayer($event)"
     (onDatasetChange)="changeDataset($event)"
-    (onZoomIn)="map.zoomIn()"
-    (onZoomOut)="map.zoomOut()"
     (onShowMultiModelChange)="showHideMultiModel()"
     (onMMProductChange)="changeMMProduct($event)"
   ></map-side-nav>
@@ -32,6 +31,10 @@
       <div class="selected-dataset">
         {{ printDatasetDescription() }}
       </div>
+      <pre *ngIf="runAvailable">
+        Reference Date: {{ printReferenceDate() }}
+        Product: {{ printDatasetProduct() }}
+      </pre>
     </div>
   </div>
 </div>
