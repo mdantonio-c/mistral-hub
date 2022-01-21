@@ -156,7 +156,7 @@
               Select by leveltype
             </button>
             <div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
-              <div class="card-body">
+              <div #leveltypediv class="card-body">
                 <ul class="row no-gutters">
                   <li
                     *ngFor="let lt of levelTypes; let i = index"

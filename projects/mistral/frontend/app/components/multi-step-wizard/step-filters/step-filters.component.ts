@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
   AbstractControl,
@@ -27,6 +27,8 @@ import { LEVELTYPES } from "./level-descriptions";
   templateUrl: "./step-filters.component.html",
 })
 export class StepFiltersComponent extends StepComponent implements OnInit {
+  @ViewChild("leveltypediv ", { static: false })
+  public leveltypediv: ElementRef;
   title = "Filter your data";
   summaryStats = { b: null, e: null, c: null, s: null };
   filterForm: FormGroup;
@@ -126,9 +128,13 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                   );
                 }
               }
-              // console.log('....NEW....', m[1]);
+              //console.log('....NEW....', m[1]);
             }
           });
+          if (this.levelTypes.length !== 0) {
+            // disable the leveltypes
+            this.updateLevelType();
+          }
           this.updateSummaryStats(response.items.summarystats);
         },
         (error) => {
@@ -165,7 +171,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                   if (obj.style == "GRIB1" || obj.style == "GRIB2S") {
                     arr.push(obj.level_type);
                   } else if (obj.style == "GRIB2D") {
-                    arr.push(obj.l1, ",", obj.l2);
+                    arr.push(obj.l1 + "," + obj.l2);
                   }
                 });
                 // @ts-ignore
@@ -263,6 +269,23 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     } else {
       this.filterForm.controls.validRefTime.setValue(true);
     }
+  }
+  updateLevelType() {
+    Object.entries(this.filters).forEach((f) => {
+      if (f[0] == "level") {
+        for (const obj of <Array<any>>f[1]) {
+          let levelType = null;
+          if (obj.style == "GRIB1" || obj.style == "GRIB2S") {
+            levelType = "#lt-" + obj.level_type;
+          } else if (obj.style == "GRIB2D") {
+            levelType = "#lt-" + obj.l1 + "," + obj.l2;
+          }
+          let levelTypeInput =
+            this.leveltypediv.nativeElement.querySelector(levelType);
+          levelTypeInput["disabled"] = !obj.active;
+        }
+      }
+    });
   }
 
   resetFilters() {
