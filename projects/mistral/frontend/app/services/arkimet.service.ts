@@ -55,11 +55,11 @@ export class ArkimetService {
         return "GRIB1," + l.join(",");
       case "GRIB2S":
         l = [i.level_type, "-", "-"];
-        if (i.sc !== undefined) {
-          l[1] = i.sc;
+        if (i.scale !== undefined) {
+          l[1] = i.scale;
         }
-        if (i.va !== undefined) {
-          l[2] = i.va;
+        if (i.value !== undefined) {
+          l[2] = i.value;
         }
         return "GRIB2S," + l.join(",");
       case "GRIB2D":
@@ -93,11 +93,11 @@ export class ArkimetService {
           "," +
           i.subcentre +
           "," +
-          i.pt +
+          i.process_type +
           "," +
-          i.bi +
+          i.background_process_id +
           "," +
-          i.pi
+          i.process_id
         );
       case "BUFR":
         return "BUFR," + i.ce + "," + i.sc;
@@ -240,10 +240,10 @@ export class ArkimetService {
           13: "s",
         };
         let s = "Timedef";
-        if (i.su === 255) {
+        if (i.step_unit === 255) {
           s += ",-";
         } else {
-          s += "," + i.sl + un[i.su];
+          s += "," + i.step_len + un[i.step_unit];
         }
         if (i.pt !== undefined) {
           s += "," + i.pt;
