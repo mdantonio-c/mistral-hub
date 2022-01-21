@@ -465,10 +465,16 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       this.filterForm.controls.filters as FormArray
     ).controls.at(cIndex);
 
-    let valueToSet = action === "select" ? true : false;
-
     this.filters["level"].forEach((l, i) => {
-      (level.controls.values as FormArray).controls.at(i).setValue(valueToSet);
+      if (
+        action === "select" &&
+        (level.controls.values as FormArray).controls.at(i).disabled == false
+      ) {
+        (level.controls.values as FormArray).controls.at(i).setValue(true);
+      }
+      if (action !== "select") {
+        (level.controls.values as FormArray).controls.at(i).setValue(false);
+      }
     });
     this.onFilterChange();
   }
