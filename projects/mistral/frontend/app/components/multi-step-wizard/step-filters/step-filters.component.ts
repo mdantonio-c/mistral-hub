@@ -112,20 +112,22 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
               // console.log(f[0]);
               // console.log('....OLD....', f[1]);
               let m = Object.entries(results).filter((e) => e[0] === f[0])[0];
-              if (selectedFilterNames.includes(m[0])) {
-                if (selectedFilterNames.length === 1) {
-                  // active them all
-                  for (const obj of <Array<any>>f[1]) {
-                    obj["active"] = true;
+              if (m) {
+                if (selectedFilterNames.includes(m[0])) {
+                  if (selectedFilterNames.length === 1) {
+                    // active them all
+                    for (const obj of <Array<any>>f[1]) {
+                      obj["active"] = true;
+                    }
                   }
-                }
-              } else {
-                for (const obj of <Array<any>>f[1]) {
-                  // equal by desc
-                  obj["active"] = _.some(
-                    <Array<any>>m[1],
-                    (o, i) => o.desc === obj.desc
-                  );
+                } else {
+                  for (const obj of <Array<any>>f[1]) {
+                    // equal by desc
+                    obj["active"] = _.some(
+                      <Array<any>>m[1],
+                      (o, i) => o.desc === obj.desc
+                    );
+                  }
                 }
               }
               //console.log('....NEW....', m[1]);

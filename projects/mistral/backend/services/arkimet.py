@@ -518,7 +518,7 @@ class BeArkimet:
             )
         elif style == "VM2":
             p = "VM2,{id}".format(id=i.get("id", ""))
-            vals = [k[0] + "=" + str(k[1]) for k in i.get("va", {}).items()]
+            vals = [k[0] + "=" + str(k[1]) for k in i.get("value", {}).items()]
             return "{}:{}".format(p, ",".join(vals)) if vals else p
         else:
             raise ValueError(f"Invalid <product> style for {style}")
