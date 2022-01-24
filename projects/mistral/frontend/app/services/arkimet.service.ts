@@ -245,7 +245,7 @@ export class ArkimetService {
         } else {
           s += "," + i.step_len + un[i.step_unit];
         }
-        if (i.pt !== undefined) {
+        if (i.stat_type !== undefined) {
           s += "," + i.stat_type;
         } else {
           // If i.pt is not defined, then
