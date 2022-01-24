@@ -246,7 +246,7 @@ export class ArkimetService {
           s += "," + i.step_len + un[i.step_unit];
         }
         if (i.pt !== undefined) {
-          s += "," + i.pt;
+          s += "," + i.stat_type;
         } else {
           // If i.pt is not defined, then
           // the stat type is 255 and
@@ -265,8 +265,8 @@ export class ArkimetService {
         // If stat unit is 255, then
         // proclen = "-" (see
         // arki/types/timerange.cc:1408).
-        if (i.pu !== undefined) {
-          s += "," + i.pl + un[i.pu];
+        if (i.stat_unit !== undefined) {
+          s += "," + i.stat_len + un[i.stat_unit];
         } else {
           s += ",-";
         }

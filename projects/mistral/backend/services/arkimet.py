@@ -572,6 +572,9 @@ class BeArkimet:
             i["unit"] = i.get("un", "")
             i["step_unit"] = i.get("su", -1)
             i["step_len"] = i.get("sl", -1)
+            i["stat_type"] = i.get("pt", "")
+            i["stat_unit"] = i.get("pu", "")
+            i["stat_len"] = i.get("pl", "")
         # un = {}
         if style == "GRIB1":
             un = {
@@ -640,8 +643,8 @@ class BeArkimet:
                 s = "".join(
                     [s, ",{}{}".format(i.get("step_len"), un[i.get("step_unit", -1)])]
                 )
-            if i.get("pt"):
-                s = "".join([s, ",{}".format(i.get("pt"))])
+            if i.get("stat_type"):
+                s = "".join([s, ",{}".format(i.get("stat_type"))])
             else:
                 """
                 If i.pt is not defined, then the stat type is 255 and i.pl, i.pu are not defined too
@@ -657,8 +660,10 @@ class BeArkimet:
             If stat unit is 255, then proclen = "-"
             (see arki / types / timerange.cc:1408).
             """
-            if i.get("pu", -1):
-                s = "".join([s, ",{}{}".format(i.get("pl"), un[i.get("su", -1)])])
+            if i.get("stat_unit", -1):
+                s = "".join(
+                    [s, ",{}{}".format(i.get("stat_len"), un[i.get("stat_unit", -1)])]
+                )
             else:
                 s = "".join([s, ",-"])
             return s
