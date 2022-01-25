@@ -7,6 +7,7 @@ import subprocess
 import arkimet as arki
 import dateutil.parser
 from arkimet.cfg import Sections
+from arkimet.formatter import Formatter
 from mistral.exceptions import AccessToDatasetDenied
 from restapi.env import Env
 from restapi.utilities.logs import log
@@ -358,6 +359,26 @@ class BeArkimet:
                 source = arki.dataset.Session().dataset_reader(cfg=dt_part)
                 bin_data = source.query_bytes(query, with_data=True)
                 outfile.write(bin_data)
+
+    @staticmethod
+    def get_leveltype_descriptions(level_list):
+        leveltype_descriptions = []
+        for lev in level_list:
+            if lev["style"] == "GRIB1" or lev["style"] == "GRIB2S":
+                lt_to_describe = {
+                    "style": lev["style"],
+                    "level_type": lev["level_type"],
+                }
+            elif lev["style"] == "GRIB2D":
+                lt_to_describe = {
+                    "style": lev["style"],
+                    "l1": lev["l1"],
+                    "l2": lev["l2"],
+                }
+            descr = arki.formatter.level.format_level(lt_to_describe)
+            formatted_descr = descr.split("-")[0].rstrip()
+            leveltype_descriptions.append(formatted_descr)
+        return leveltype_descriptions
 
     @staticmethod
     def __decode_area(i):
