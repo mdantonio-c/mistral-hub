@@ -177,10 +177,13 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                 });
                 // @ts-ignore
                 this.levelTypes = [...new Set(arr)];
-                // get descriptions for leveltypes
-                this.levelTypesDescriptions = response.descriptions.leveltypes;
-                //initialize leveltypes
-                this.levelTypesInit();
+                if (this.levelTypes.length > 0 && "descriptions" in response) {
+                  // get descriptions for leveltypes
+                  this.levelTypesDescriptions =
+                    response.descriptions.leveltypes;
+                  //initialize leveltypes
+                  this.levelTypesInit();
+                }
               }
             }
           });
