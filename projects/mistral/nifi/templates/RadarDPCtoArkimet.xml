@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.3">
-    <description>Updated url to retrieve radar data from DPC platform</description>
+    <description>Template used for v 0.4.4</description>
     <groupId>11985e5f-017b-1000-4ba2-19391f864aad</groupId>
-    <name>INGEST Radar DPC to ARKIMET (2021-10-21)</name>
+    <name>INGEST Radar DPC to ARKIMET</name>
     <snippet>
         <controllerServices>
             <id>6bd420a3-17db-3d42-0000-000000000000</id>
@@ -15,9 +15,23 @@
             <comments></comments>
             <descriptors>
                 <entry>
-                    <key>Schema Write Strategy</key>
+                    <key>schema-branch</key>
                     <value>
-                        <name>Schema Write Strategy</name>
+                        <dependencies>
+                            <dependentValues>schema-name</dependentValues>
+                            <propertyName>schema-access-strategy</propertyName>
+                        </dependencies>
+                        <name>schema-branch</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>compression-level</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>gzip</dependentValues>
+                            <propertyName>compression-format</propertyName>
+                        </dependencies>
+                        <name>compression-level</name>
                     </value>
                 </entry>
                 <entry>
@@ -28,20 +42,55 @@
                     </value>
                 </entry>
                 <entry>
-                    <key>schema-protocol-version</key>
+                    <key>Timestamp Format</key>
                     <value>
-                        <dependencies>
-                            <dependentValues>hwx-schema-ref-attributes</dependentValues>
-                            <dependentValues>hwx-content-encoded-schema</dependentValues>
-                            <propertyName>Schema Write Strategy</propertyName>
-                        </dependencies>
-                        <name>schema-protocol-version</name>
+                        <name>Timestamp Format</name>
                     </value>
                 </entry>
                 <entry>
-                    <key>schema-access-strategy</key>
+                    <key>Date Format</key>
                     <value>
-                        <name>schema-access-strategy</name>
+                        <name>Date Format</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Pretty Print JSON</key>
+                    <value>
+                        <name>Pretty Print JSON</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>compression-format</key>
+                    <value>
+                        <name>compression-format</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Schema Write Strategy</key>
+                    <value>
+                        <name>Schema Write Strategy</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>suppress-nulls</key>
+                    <value>
+                        <name>suppress-nulls</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>output-grouping</key>
+                    <value>
+                        <name>output-grouping</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>schema-name</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>schema-name</dependentValues>
+                            <propertyName>schema-access-strategy</propertyName>
+                        </dependencies>
+                        <name>schema-name</name>
                     </value>
                 </entry>
                 <entry>
@@ -59,13 +108,26 @@
                     </value>
                 </entry>
                 <entry>
-                    <key>schema-name</key>
+                    <key>Time Format</key>
+                    <value>
+                        <name>Time Format</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>schema-access-strategy</key>
+                    <value>
+                        <name>schema-access-strategy</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>schema-protocol-version</key>
                     <value>
                         <dependencies>
-                            <dependentValues>schema-name</dependentValues>
-                            <propertyName>schema-access-strategy</propertyName>
+                            <dependentValues>hwx-schema-ref-attributes</dependentValues>
+                            <dependentValues>hwx-content-encoded-schema</dependentValues>
+                            <propertyName>Schema Write Strategy</propertyName>
                         </dependencies>
-                        <name>schema-name</name>
+                        <name>schema-protocol-version</name>
                     </value>
                 </entry>
                 <entry>
@@ -79,16 +141,6 @@
                     </value>
                 </entry>
                 <entry>
-                    <key>schema-branch</key>
-                    <value>
-                        <dependencies>
-                            <dependentValues>schema-name</dependentValues>
-                            <propertyName>schema-access-strategy</propertyName>
-                        </dependencies>
-                        <name>schema-branch</name>
-                    </value>
-                </entry>
-                <entry>
                     <key>schema-text</key>
                     <value>
                         <dependencies>
@@ -98,106 +150,37 @@
                         <name>schema-text</name>
                     </value>
                 </entry>
-                <entry>
-                    <key>Date Format</key>
-                    <value>
-                        <name>Date Format</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>Time Format</key>
-                    <value>
-                        <name>Time Format</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>Timestamp Format</key>
-                    <value>
-                        <name>Timestamp Format</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>Pretty Print JSON</key>
-                    <value>
-                        <name>Pretty Print JSON</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>suppress-nulls</key>
-                    <value>
-                        <name>suppress-nulls</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>output-grouping</key>
-                    <value>
-                        <name>output-grouping</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>compression-format</key>
-                    <value>
-                        <name>compression-format</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>compression-level</key>
-                    <value>
-                        <dependencies>
-                            <dependentValues>gzip</dependentValues>
-                            <propertyName>compression-format</propertyName>
-                        </dependencies>
-                        <name>compression-level</name>
-                    </value>
-                </entry>
             </descriptors>
             <name>JsonRecordSetWriter - Radar</name>
             <persistsState>false</persistsState>
             <properties>
                 <entry>
-                    <key>Schema Write Strategy</key>
-                    <value>no-schema</value>
+                    <key>schema-branch</key>
+                </entry>
+                <entry>
+                    <key>compression-level</key>
+                    <value>1</value>
                 </entry>
                 <entry>
                     <key>schema-cache</key>
                 </entry>
                 <entry>
-                    <key>schema-protocol-version</key>
-                    <value>1</value>
-                </entry>
-                <entry>
-                    <key>schema-access-strategy</key>
-                    <value>inherit-record-schema</value>
-                </entry>
-                <entry>
-                    <key>schema-registry</key>
-                </entry>
-                <entry>
-                    <key>schema-name</key>
-                    <value>${schema.name}</value>
-                </entry>
-                <entry>
-                    <key>schema-version</key>
-                </entry>
-                <entry>
-                    <key>schema-branch</key>
-                </entry>
-                <entry>
-                    <key>schema-text</key>
-                    <value>${avro.schema}</value>
+                    <key>Timestamp Format</key>
                 </entry>
                 <entry>
                     <key>Date Format</key>
                 </entry>
                 <entry>
-                    <key>Time Format</key>
-                </entry>
-                <entry>
-                    <key>Timestamp Format</key>
-                </entry>
-                <entry>
                     <key>Pretty Print JSON</key>
                     <value>false</value>
+                </entry>
+                <entry>
+                    <key>compression-format</key>
+                    <value>none</value>
+                </entry>
+                <entry>
+                    <key>Schema Write Strategy</key>
+                    <value>no-schema</value>
                 </entry>
                 <entry>
                     <key>suppress-nulls</key>
@@ -208,12 +191,29 @@
                     <value>output-array</value>
                 </entry>
                 <entry>
-                    <key>compression-format</key>
-                    <value>none</value>
+                    <key>schema-name</key>
+                    <value>${schema.name}</value>
                 </entry>
                 <entry>
-                    <key>compression-level</key>
+                    <key>schema-registry</key>
+                </entry>
+                <entry>
+                    <key>Time Format</key>
+                </entry>
+                <entry>
+                    <key>schema-access-strategy</key>
+                    <value>inherit-record-schema</value>
+                </entry>
+                <entry>
+                    <key>schema-protocol-version</key>
                     <value>1</value>
+                </entry>
+                <entry>
+                    <key>schema-version</key>
+                </entry>
+                <entry>
+                    <key>schema-text</key>
+                    <value>${avro.schema}</value>
                 </entry>
             </properties>
             <state>ENABLED</state>
@@ -421,9 +421,21 @@
                     <comments></comments>
                     <descriptors>
                         <entry>
-                            <key>Database Connection URL</key>
+                            <key>kerberos-password</key>
                             <value>
-<name>Database Connection URL</name>
+<name>kerberos-password</name>
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>dbcp-min-idle-conns</key>
+                            <value>
+<name>dbcp-min-idle-conns</name>
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>Max Wait Time</key>
+                            <value>
+<name>Max Wait Time</name>
                             </value>
                         </entry>
                         <entry>
@@ -433,9 +445,21 @@
                             </value>
                         </entry>
                         <entry>
-                            <key>database-driver-locations</key>
+                            <key>dbcp-min-evictable-idle-time</key>
                             <value>
-<name>database-driver-locations</name>
+<name>dbcp-min-evictable-idle-time</name>
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>kerberos-principal</key>
+                            <value>
+<name>kerberos-principal</name>
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>Max Total Connections</key>
+                            <value>
+<name>Max Total Connections</name>
                             </value>
                         </entry>
                         <entry>
@@ -446,39 +470,9 @@
                             </value>
                         </entry>
                         <entry>
-                            <key>kerberos-principal</key>
+                            <key>dbcp-max-conn-lifetime</key>
                             <value>
-<name>kerberos-principal</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>kerberos-password</key>
-                            <value>
-<name>kerberos-password</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>Database User</key>
-                            <value>
-<name>Database User</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>Password</key>
-                            <value>
-<name>Password</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>Max Wait Time</key>
-                            <value>
-<name>Max Wait Time</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>Max Total Connections</key>
-                            <value>
-<name>Max Total Connections</name>
+<name>dbcp-max-conn-lifetime</name>
                             </value>
                         </entry>
                         <entry>
@@ -488,21 +482,9 @@
                             </value>
                         </entry>
                         <entry>
-                            <key>dbcp-min-idle-conns</key>
+                            <key>Database Connection URL</key>
                             <value>
-<name>dbcp-min-idle-conns</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>dbcp-max-idle-conns</key>
-                            <value>
-<name>dbcp-max-idle-conns</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>dbcp-max-conn-lifetime</key>
-                            <value>
-<name>dbcp-max-conn-lifetime</name>
+<name>Database Connection URL</name>
                             </value>
                         </entry>
                         <entry>
@@ -512,9 +494,9 @@
                             </value>
                         </entry>
                         <entry>
-                            <key>dbcp-min-evictable-idle-time</key>
+                            <key>Database User</key>
                             <value>
-<name>dbcp-min-evictable-idle-time</name>
+<name>Database User</name>
                             </value>
                         </entry>
                         <entry>
@@ -523,75 +505,93 @@
 <name>dbcp-soft-min-evictable-idle-time</name>
                             </value>
                         </entry>
+                        <entry>
+                            <key>database-driver-locations</key>
+                            <value>
+<name>database-driver-locations</name>
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>dbcp-max-idle-conns</key>
+                            <value>
+<name>dbcp-max-idle-conns</name>
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>Password</key>
+                            <value>
+<name>Password</name>
+                            </value>
+                        </entry>
                     </descriptors>
                     <name>DBCPConnectionPool - Radar</name>
                     <persistsState>false</persistsState>
                     <properties>
                         <entry>
-                            <key>Database Connection URL</key>
-                            <value>#{db_connection_url}</value>
-                        </entry>
-                        <entry>
-                            <key>Database Driver Class Name</key>
-                            <value>org.postgresql.Driver</value>
-                        </entry>
-                        <entry>
-                            <key>database-driver-locations</key>
-                            <value>#{path_postgres_driver}</value>
-                        </entry>
-                        <entry>
-                            <key>kerberos-credentials-service</key>
-                        </entry>
-                        <entry>
-                            <key>kerberos-principal</key>
-                        </entry>
-                        <entry>
                             <key>kerberos-password</key>
-                        </entry>
-                        <entry>
-                            <key>Database User</key>
-                            <value>#{db_user}</value>
-                        </entry>
-                        <entry>
-                            <key>Password</key>
-                        </entry>
-                        <entry>
-                            <key>Max Wait Time</key>
-                            <value>1000 millis</value>
-                        </entry>
-                        <entry>
-                            <key>Max Total Connections</key>
-                            <value>16</value>
-                        </entry>
-                        <entry>
-                            <key>Validation-query</key>
                         </entry>
                         <entry>
                             <key>dbcp-min-idle-conns</key>
                             <value>0</value>
                         </entry>
                         <entry>
-                            <key>dbcp-max-idle-conns</key>
-                            <value>8</value>
+                            <key>Max Wait Time</key>
+                            <value>1000 millis</value>
                         </entry>
                         <entry>
-                            <key>dbcp-max-conn-lifetime</key>
-                            <value>-1</value>
-                        </entry>
-                        <entry>
-                            <key>dbcp-time-between-eviction-runs</key>
-                            <value>-1</value>
+                            <key>Database Driver Class Name</key>
+                            <value>org.postgresql.Driver</value>
                         </entry>
                         <entry>
                             <key>dbcp-min-evictable-idle-time</key>
                             <value>30 mins</value>
                         </entry>
                         <entry>
+                            <key>kerberos-principal</key>
+                        </entry>
+                        <entry>
+                            <key>Max Total Connections</key>
+                            <value>16</value>
+                        </entry>
+                        <entry>
+                            <key>kerberos-credentials-service</key>
+                        </entry>
+                        <entry>
+                            <key>dbcp-max-conn-lifetime</key>
+                            <value>-1</value>
+                        </entry>
+                        <entry>
+                            <key>Validation-query</key>
+                        </entry>
+                        <entry>
+                            <key>Database Connection URL</key>
+                            <value>${NIFI_DATABASE_URL}</value>
+                        </entry>
+                        <entry>
+                            <key>dbcp-time-between-eviction-runs</key>
+                            <value>-1</value>
+                        </entry>
+                        <entry>
+                            <key>Database User</key>
+                            <value>${ALCHEMY_USER}</value>
+                        </entry>
+                        <entry>
                             <key>dbcp-soft-min-evictable-idle-time</key>
                             <value>-1</value>
                         </entry>
+                        <entry>
+                            <key>database-driver-locations</key>
+                            <value></value>
+                        </entry>
+                        <entry>
+                            <key>dbcp-max-idle-conns</key>
+                            <value>8</value>
+                        </entry>
+                        <entry>
+                            <key>Password</key>
+                        </entry>
                     </properties>
-                    <state>ENABLED</state>
+                    <state>DISABLED</state>
                     <type>org.apache.nifi.dbcp.DBCPConnectionPool</type>
                 </controllerServices>
                 <processGroups>
@@ -1810,21 +1810,15 @@
                             <comments></comments>
                             <descriptors>
 <entry>
-    <key>Keystore Filename</key>
+    <key>Truststore Type</key>
     <value>
-        <name>Keystore Filename</name>
+        <name>Truststore Type</name>
     </value>
 </entry>
 <entry>
-    <key>Keystore Password</key>
+    <key>SSL Protocol</key>
     <value>
-        <name>Keystore Password</name>
-    </value>
-</entry>
-<entry>
-    <key>key-password</key>
-    <value>
-        <name>key-password</name>
+        <name>SSL Protocol</name>
     </value>
 </entry>
 <entry>
@@ -1840,21 +1834,27 @@
     </value>
 </entry>
 <entry>
+    <key>Keystore Password</key>
+    <value>
+        <name>Keystore Password</name>
+    </value>
+</entry>
+<entry>
+    <key>key-password</key>
+    <value>
+        <name>key-password</name>
+    </value>
+</entry>
+<entry>
     <key>Truststore Password</key>
     <value>
         <name>Truststore Password</name>
     </value>
 </entry>
 <entry>
-    <key>Truststore Type</key>
+    <key>Keystore Filename</key>
     <value>
-        <name>Truststore Type</name>
-    </value>
-</entry>
-<entry>
-    <key>SSL Protocol</key>
-    <value>
-        <name>SSL Protocol</name>
+        <name>Keystore Filename</name>
     </value>
 </entry>
                             </descriptors>
@@ -1862,7 +1862,19 @@
                             <persistsState>false</persistsState>
                             <properties>
 <entry>
-    <key>Keystore Filename</key>
+    <key>Truststore Type</key>
+    <value>JKS</value>
+</entry>
+<entry>
+    <key>SSL Protocol</key>
+    <value>TLS</value>
+</entry>
+<entry>
+    <key>Keystore Type</key>
+</entry>
+<entry>
+    <key>Truststore Filename</key>
+    <value>${SSL_TRUSTORE_FILENAME}</value>
 </entry>
 <entry>
     <key>Keystore Password</key>
@@ -1871,22 +1883,10 @@
     <key>key-password</key>
 </entry>
 <entry>
-    <key>Keystore Type</key>
-</entry>
-<entry>
-    <key>Truststore Filename</key>
-    <value>#{ssl_truststore_filename}</value>
-</entry>
-<entry>
     <key>Truststore Password</key>
 </entry>
 <entry>
-    <key>Truststore Type</key>
-    <value>JKS</value>
-</entry>
-<entry>
-    <key>SSL Protocol</key>
-    <value>TLS</value>
+    <key>Keystore Filename</key>
 </entry>
                             </properties>
                             <state>ENABLED</state>
@@ -1902,7 +1902,7 @@
                             <comments></comments>
                             <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                             <name>To Arkimet ingestor</name>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <type>OUTPUT_PORT</type>
                         </outputPorts>
                         <processors>
@@ -1923,6 +1923,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -1934,26 +1940,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -1967,7 +1967,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -1994,64 +1994,9 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
-        <key>HTTP Method</key>
+        <key>Proxy Host</key>
         <value>
-            <name>HTTP Method</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Remote URL</key>
-        <value>
-            <name>Remote URL</name>
-        </value>
-    </entry>
-    <entry>
-        <key>SSL Context Service</key>
-        <value>
-            <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
-            <name>SSL Context Service</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Connection Timeout</key>
-        <value>
-            <name>Connection Timeout</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Read Timeout</key>
-        <value>
-            <name>Read Timeout</name>
-        </value>
-    </entry>
-    <entry>
-        <key>idle-timeout</key>
-        <value>
-            <name>idle-timeout</name>
-        </value>
-    </entry>
-    <entry>
-        <key>max-idle-connections</key>
-        <value>
-            <name>max-idle-connections</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Include Date Header</key>
-        <value>
-            <name>Include Date Header</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Follow Redirects</key>
-        <value>
-            <name>Follow Redirects</name>
-        </value>
-    </entry>
-    <entry>
-        <key>disable-http2</key>
-        <value>
-            <name>disable-http2</name>
+            <name>Proxy Host</name>
         </value>
     </entry>
     <entry>
@@ -2061,21 +2006,9 @@
         </value>
     </entry>
     <entry>
-        <key>Useragent</key>
+        <key>use-etag</key>
         <value>
-            <name>Useragent</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Basic Authentication Username</key>
-        <value>
-            <name>Basic Authentication Username</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Basic Authentication Password</key>
-        <value>
-            <name>Basic Authentication Password</name>
+            <name>use-etag</name>
         </value>
     </entry>
     <entry>
@@ -2086,69 +2019,21 @@
         </value>
     </entry>
     <entry>
-        <key>Proxy Host</key>
-        <value>
-            <name>Proxy Host</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Proxy Port</key>
-        <value>
-            <name>Proxy Port</name>
-        </value>
-    </entry>
-    <entry>
         <key>Proxy Type</key>
         <value>
             <name>Proxy Type</name>
         </value>
     </entry>
     <entry>
-        <key>invokehttp-proxy-user</key>
+        <key>Basic Authentication Password</key>
         <value>
-            <name>invokehttp-proxy-user</name>
+            <name>Basic Authentication Password</name>
         </value>
     </entry>
     <entry>
-        <key>invokehttp-proxy-password</key>
+        <key>Connection Timeout</key>
         <value>
-            <name>invokehttp-proxy-password</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Put Response Body In Attribute</key>
-        <value>
-            <name>Put Response Body In Attribute</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Max Length To Put In Attribute</key>
-        <value>
-            <name>Max Length To Put In Attribute</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Digest Authentication</key>
-        <value>
-            <name>Digest Authentication</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Always Output Response</key>
-        <value>
-            <name>Always Output Response</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Add Response Headers to Request</key>
-        <value>
-            <name>Add Response Headers to Request</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Content-Type</key>
-        <value>
-            <name>Content-Type</name>
+            <name>Connection Timeout</name>
         </value>
     </entry>
     <entry>
@@ -2158,21 +2043,15 @@
         </value>
     </entry>
     <entry>
-        <key>Use Chunked Encoding</key>
+        <key>set-form-filename</key>
         <value>
-            <name>Use Chunked Encoding</name>
+            <name>set-form-filename</name>
         </value>
     </entry>
     <entry>
-        <key>Penalize on "No Retry"</key>
+        <key>Always Output Response</key>
         <value>
-            <name>Penalize on "No Retry"</name>
-        </value>
-    </entry>
-    <entry>
-        <key>use-etag</key>
-        <value>
-            <name>use-etag</name>
+            <name>Always Output Response</name>
         </value>
     </entry>
     <entry>
@@ -2182,9 +2061,45 @@
         </value>
     </entry>
     <entry>
-        <key>ignore-response-content</key>
+        <key>disable-http2</key>
         <value>
-            <name>ignore-response-content</name>
+            <name>disable-http2</name>
+        </value>
+    </entry>
+    <entry>
+        <key>idle-timeout</key>
+        <value>
+            <name>idle-timeout</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Put Response Body In Attribute</key>
+        <value>
+            <name>Put Response Body In Attribute</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Use Chunked Encoding</key>
+        <value>
+            <name>Use Chunked Encoding</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Follow Redirects</key>
+        <value>
+            <name>Follow Redirects</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Remote URL</key>
+        <value>
+            <name>Remote URL</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Content-Type</key>
+        <value>
+            <name>Content-Type</name>
         </value>
     </entry>
     <entry>
@@ -2194,9 +2109,94 @@
         </value>
     </entry>
     <entry>
-        <key>set-form-filename</key>
+        <key>max-idle-connections</key>
         <value>
-            <name>set-form-filename</name>
+            <name>max-idle-connections</name>
+        </value>
+    </entry>
+    <entry>
+        <key>invokehttp-proxy-user</key>
+        <value>
+            <name>invokehttp-proxy-user</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Read Timeout</key>
+        <value>
+            <name>Read Timeout</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Max Length To Put In Attribute</key>
+        <value>
+            <name>Max Length To Put In Attribute</name>
+        </value>
+    </entry>
+    <entry>
+        <key>invokehttp-proxy-password</key>
+        <value>
+            <name>invokehttp-proxy-password</name>
+        </value>
+    </entry>
+    <entry>
+        <key>ignore-response-content</key>
+        <value>
+            <name>ignore-response-content</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Proxy Port</key>
+        <value>
+            <name>Proxy Port</name>
+        </value>
+    </entry>
+    <entry>
+        <key>SSL Context Service</key>
+        <value>
+            <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
+            <name>SSL Context Service</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Digest Authentication</key>
+        <value>
+            <name>Digest Authentication</name>
+        </value>
+    </entry>
+    <entry>
+        <key>HTTP Method</key>
+        <value>
+            <name>HTTP Method</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Add Response Headers to Request</key>
+        <value>
+            <name>Add Response Headers to Request</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Basic Authentication Username</key>
+        <value>
+            <name>Basic Authentication Username</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Include Date Header</key>
+        <value>
+            <name>Include Date Header</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Penalize on "No Retry"</key>
+        <value>
+            <name>Penalize on "No Retry"</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Useragent</key>
+        <value>
+            <name>Useragent</name>
         </value>
     </entry>
 </descriptors>
@@ -2205,113 +2205,39 @@
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
-        <key>HTTP Method</key>
-        <value>GET</value>
-    </entry>
-    <entry>
-        <key>Remote URL</key>
-        <value>https://radar-api.protezionecivile.it/wide/product/findLastProductByType?type=SRI</value>
-    </entry>
-    <entry>
-        <key>SSL Context Service</key>
-        <value>7dcf0c87-8e40-3ff2-0000-000000000000</value>
-    </entry>
-    <entry>
-        <key>Connection Timeout</key>
-        <value>5 secs</value>
-    </entry>
-    <entry>
-        <key>Read Timeout</key>
-        <value>15 secs</value>
-    </entry>
-    <entry>
-        <key>idle-timeout</key>
-        <value>5 mins</value>
-    </entry>
-    <entry>
-        <key>max-idle-connections</key>
-        <value>5</value>
-    </entry>
-    <entry>
-        <key>Include Date Header</key>
-        <value>True</value>
-    </entry>
-    <entry>
-        <key>Follow Redirects</key>
-        <value>True</value>
-    </entry>
-    <entry>
-        <key>disable-http2</key>
-        <value>False</value>
+        <key>Proxy Host</key>
     </entry>
     <entry>
         <key>Attributes to Send</key>
     </entry>
     <entry>
-        <key>Useragent</key>
-    </entry>
-    <entry>
-        <key>Basic Authentication Username</key>
-    </entry>
-    <entry>
-        <key>Basic Authentication Password</key>
+        <key>use-etag</key>
+        <value>false</value>
     </entry>
     <entry>
         <key>proxy-configuration-service</key>
-    </entry>
-    <entry>
-        <key>Proxy Host</key>
-    </entry>
-    <entry>
-        <key>Proxy Port</key>
     </entry>
     <entry>
         <key>Proxy Type</key>
         <value>https</value>
     </entry>
     <entry>
-        <key>invokehttp-proxy-user</key>
+        <key>Basic Authentication Password</key>
     </entry>
     <entry>
-        <key>invokehttp-proxy-password</key>
-    </entry>
-    <entry>
-        <key>Put Response Body In Attribute</key>
-    </entry>
-    <entry>
-        <key>Max Length To Put In Attribute</key>
-        <value>256</value>
-    </entry>
-    <entry>
-        <key>Digest Authentication</key>
-        <value>false</value>
-    </entry>
-    <entry>
-        <key>Always Output Response</key>
-        <value>false</value>
-    </entry>
-    <entry>
-        <key>Add Response Headers to Request</key>
-        <value>false</value>
-    </entry>
-    <entry>
-        <key>Content-Type</key>
-        <value>${mime.type}</value>
+        <key>Connection Timeout</key>
+        <value>5 secs</value>
     </entry>
     <entry>
         <key>send-message-body</key>
         <value>true</value>
     </entry>
     <entry>
-        <key>Use Chunked Encoding</key>
-        <value>false</value>
+        <key>set-form-filename</key>
+        <value>true</value>
     </entry>
     <entry>
-        <key>Penalize on "No Retry"</key>
-        <value>false</value>
-    </entry>
-    <entry>
-        <key>use-etag</key>
+        <key>Always Output Response</key>
         <value>false</value>
     </entry>
     <entry>
@@ -2319,15 +2245,89 @@
         <value>10MB</value>
     </entry>
     <entry>
-        <key>ignore-response-content</key>
+        <key>disable-http2</key>
+        <value>False</value>
+    </entry>
+    <entry>
+        <key>idle-timeout</key>
+        <value>5 mins</value>
+    </entry>
+    <entry>
+        <key>Put Response Body In Attribute</key>
+    </entry>
+    <entry>
+        <key>Use Chunked Encoding</key>
         <value>false</value>
+    </entry>
+    <entry>
+        <key>Follow Redirects</key>
+        <value>True</value>
+    </entry>
+    <entry>
+        <key>Remote URL</key>
+        <value>https://radar-api.protezionecivile.it/wide/product/findLastProductByType?type=SRI</value>
+    </entry>
+    <entry>
+        <key>Content-Type</key>
+        <value>${mime.type}</value>
     </entry>
     <entry>
         <key>form-body-form-name</key>
     </entry>
     <entry>
-        <key>set-form-filename</key>
-        <value>true</value>
+        <key>max-idle-connections</key>
+        <value>5</value>
+    </entry>
+    <entry>
+        <key>invokehttp-proxy-user</key>
+    </entry>
+    <entry>
+        <key>Read Timeout</key>
+        <value>15 secs</value>
+    </entry>
+    <entry>
+        <key>Max Length To Put In Attribute</key>
+        <value>256</value>
+    </entry>
+    <entry>
+        <key>invokehttp-proxy-password</key>
+    </entry>
+    <entry>
+        <key>ignore-response-content</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>Proxy Port</key>
+    </entry>
+    <entry>
+        <key>SSL Context Service</key>
+        <value>7dcf0c87-8e40-3ff2-0000-000000000000</value>
+    </entry>
+    <entry>
+        <key>Digest Authentication</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>HTTP Method</key>
+        <value>GET</value>
+    </entry>
+    <entry>
+        <key>Add Response Headers to Request</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>Basic Authentication Username</key>
+    </entry>
+    <entry>
+        <key>Include Date Header</key>
+        <value>True</value>
+    </entry>
+    <entry>
+        <key>Penalize on "No Retry"</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>Useragent</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -2357,7 +2357,7 @@
 <autoTerminate>false</autoTerminate>
 <name>Retry</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -2396,12 +2396,6 @@
         </value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
-        <value>
-            <name>Stateful Variables Initial Value</name>
-        </value>
-    </entry>
-    <entry>
         <key>canonical-value-lookup-cache-size</key>
         <value>
             <name>canonical-value-lookup-cache-size</name>
@@ -2411,6 +2405,12 @@
         <key>arki.filepath</key>
         <value>
             <name>arki.filepath</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Stateful Variables Initial Value</key>
+        <value>
+            <name>Stateful Variables Initial Value</name>
         </value>
     </entry>
 </descriptors>
@@ -2426,15 +2426,15 @@
         <value>Do not store state</value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
-    </entry>
-    <entry>
         <key>canonical-value-lookup-cache-size</key>
         <value>100</value>
     </entry>
     <entry>
         <key>arki.filepath</key>
-        <value>#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date:append('.grib')})}</value>
+        <value>${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date:append('.grib')})}</value>
+    </entry>
+    <entry>
+        <key>Stateful Variables Initial Value</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -2448,7 +2448,7 @@
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style/>
                             <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
                         </processors>
@@ -2482,9 +2482,9 @@
         </value>
     </entry>
     <entry>
-        <key>Path Not Found Behavior</key>
+        <key>prod_creation_date</key>
         <value>
-            <name>Path Not Found Behavior</name>
+            <name>prod_creation_date</name>
         </value>
     </entry>
     <entry>
@@ -2494,9 +2494,9 @@
         </value>
     </entry>
     <entry>
-        <key>prod_creation_date</key>
+        <key>Path Not Found Behavior</key>
         <value>
-            <name>prod_creation_date</name>
+            <name>Path Not Found Behavior</name>
         </value>
     </entry>
 </descriptors>
@@ -2513,16 +2513,16 @@
         <value>auto-detect</value>
     </entry>
     <entry>
-        <key>Path Not Found Behavior</key>
-        <value>ignore</value>
+        <key>prod_creation_date</key>
+        <value>$.lastProducts[0].time</value>
     </entry>
     <entry>
         <key>Null Value Representation</key>
         <value>empty string</value>
     </entry>
     <entry>
-        <key>prod_creation_date</key>
-        <value>$.lastProducts[0].time</value>
+        <key>Path Not Found Behavior</key>
+        <value>ignore</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -2544,7 +2544,7 @@
 <autoTerminate>false</autoTerminate>
 <name>unmatched</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style/>
                             <type>org.apache.nifi.processors.standard.EvaluateJsonPath</type>
                         </processors>
@@ -2566,6 +2566,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -2577,26 +2583,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -2610,7 +2610,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -2637,6 +2637,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -2648,26 +2654,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -2681,7 +2681,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -2708,6 +2708,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -2719,26 +2725,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -2752,7 +2752,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -2779,6 +2779,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -2790,26 +2796,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -2823,7 +2823,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -2850,6 +2850,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -2861,26 +2867,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -2894,7 +2894,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -2921,6 +2921,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -2932,26 +2938,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -2965,7 +2965,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -2992,6 +2992,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -3003,26 +3009,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -3036,7 +3036,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -3063,6 +3063,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -3074,26 +3080,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -3107,7 +3107,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -3134,6 +3134,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -3145,26 +3151,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -3178,7 +3178,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -3211,9 +3211,9 @@
         </value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
+        <key>Max Attribute Length</key>
         <value>
-            <name>Command Arguments</name>
+            <name>Max Attribute Length</name>
         </value>
     </entry>
     <entry>
@@ -3223,21 +3223,9 @@
         </value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>
-            <name>Ignore STDIN</name>
-        </value>
-    </entry>
-    <entry>
         <key>Working Directory</key>
         <value>
             <name>Working Directory</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Argument Delimiter</key>
-        <value>
-            <name>Argument Delimiter</name>
         </value>
     </entry>
     <entry>
@@ -3247,9 +3235,21 @@
         </value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
+        <key>Argument Delimiter</key>
         <value>
-            <name>Max Attribute Length</name>
+            <name>Argument Delimiter</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Ignore STDIN</key>
+        <value>
+            <name>Ignore STDIN</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Command Arguments</key>
+        <value>
+            <name>Command Arguments</name>
         </value>
     </entry>
 </descriptors>
@@ -3262,31 +3262,31 @@
         <value>Command Arguments Property</value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
-        <value>#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}.tif;-srcnodata;nan;-dstnodata;-9999;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step1.tif</value>
+        <key>Max Attribute Length</key>
+        <value>256</value>
     </entry>
     <entry>
         <key>Command Path</key>
         <value>gdalwarp</value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>true</value>
+        <key>Working Directory</key>
+        <value>${NIFI_TEMP_DIR}</value>
     </entry>
     <entry>
-        <key>Working Directory</key>
-        <value>#{path_temp_directory}</value>
+        <key>Output Destination Attribute</key>
     </entry>
     <entry>
         <key>Argument Delimiter</key>
         <value>;</value>
     </entry>
     <entry>
-        <key>Output Destination Attribute</key>
+        <key>Ignore STDIN</key>
+        <value>true</value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
-        <value>256</value>
+        <key>Command Arguments</key>
+        <value>${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}.tif;-srcnodata;nan;-dstnodata;-9999;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step1.tif</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -3308,7 +3308,7 @@
 <autoTerminate>false</autoTerminate>
 <name>output stream</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -3335,6 +3335,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -3346,26 +3352,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -3379,7 +3379,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -3412,9 +3412,9 @@
         </value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
+        <key>Max Attribute Length</key>
         <value>
-            <name>Command Arguments</name>
+            <name>Max Attribute Length</name>
         </value>
     </entry>
     <entry>
@@ -3424,21 +3424,9 @@
         </value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>
-            <name>Ignore STDIN</name>
-        </value>
-    </entry>
-    <entry>
         <key>Working Directory</key>
         <value>
             <name>Working Directory</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Argument Delimiter</key>
-        <value>
-            <name>Argument Delimiter</name>
         </value>
     </entry>
     <entry>
@@ -3448,9 +3436,21 @@
         </value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
+        <key>Argument Delimiter</key>
         <value>
-            <name>Max Attribute Length</name>
+            <name>Argument Delimiter</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Ignore STDIN</key>
+        <value>
+            <name>Ignore STDIN</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Command Arguments</key>
+        <value>
+            <name>Command Arguments</name>
         </value>
     </entry>
 </descriptors>
@@ -3463,31 +3463,31 @@
         <value>Command Arguments Property</value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
-        <value>#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step2.tif;-dstnodata;9999;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step3.tif</value>
+        <key>Max Attribute Length</key>
+        <value>256</value>
     </entry>
     <entry>
         <key>Command Path</key>
         <value>gdalwarp</value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>true</value>
+        <key>Working Directory</key>
+        <value>${NIFI_TEMP_DIR}</value>
     </entry>
     <entry>
-        <key>Working Directory</key>
-        <value>#{path_temp_directory}</value>
+        <key>Output Destination Attribute</key>
     </entry>
     <entry>
         <key>Argument Delimiter</key>
         <value>;</value>
     </entry>
     <entry>
-        <key>Output Destination Attribute</key>
+        <key>Ignore STDIN</key>
+        <value>true</value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
-        <value>256</value>
+        <key>Command Arguments</key>
+        <value>${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step2.tif;-dstnodata;9999;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step3.tif</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -3509,7 +3509,7 @@
 <autoTerminate>false</autoTerminate>
 <name>output stream</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -3536,28 +3536,15 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
-        <key>JDBC Connection Pool</key>
-        <value>
-            <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
-            <name>JDBC Connection Pool</name>
-        </value>
-    </entry>
-    <entry>
-        <key>putsql-sql-statement</key>
-        <value>
-            <name>putsql-sql-statement</name>
-        </value>
-    </entry>
-    <entry>
         <key>Support Fragmented Transactions</key>
         <value>
             <name>Support Fragmented Transactions</name>
         </value>
     </entry>
     <entry>
-        <key>database-session-autocommit</key>
+        <key>putsql-sql-statement</key>
         <value>
-            <name>database-session-autocommit</name>
+            <name>putsql-sql-statement</name>
         </value>
     </entry>
     <entry>
@@ -3579,6 +3566,19 @@
         </value>
     </entry>
     <entry>
+        <key>JDBC Connection Pool</key>
+        <value>
+            <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
+            <name>JDBC Connection Pool</name>
+        </value>
+    </entry>
+    <entry>
+        <key>database-session-autocommit</key>
+        <value>
+            <name>database-session-autocommit</name>
+        </value>
+    </entry>
+    <entry>
         <key>rollback-on-failure</key>
         <value>
             <name>rollback-on-failure</name>
@@ -3590,19 +3590,11 @@
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
-        <key>JDBC Connection Pool</key>
-        <value>44410787-f421-33f4-0000-000000000000</value>
-    </entry>
-    <entry>
-        <key>putsql-sql-statement</key>
-    </entry>
-    <entry>
         <key>Support Fragmented Transactions</key>
         <value>true</value>
     </entry>
     <entry>
-        <key>database-session-autocommit</key>
-        <value>false</value>
+        <key>putsql-sql-statement</key>
     </entry>
     <entry>
         <key>Transaction Timeout</key>
@@ -3613,6 +3605,14 @@
     </entry>
     <entry>
         <key>Obtain Generated Keys</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>JDBC Connection Pool</key>
+        <value>44410787-f421-33f4-0000-000000000000</value>
+    </entry>
+    <entry>
+        <key>database-session-autocommit</key>
         <value>false</value>
     </entry>
     <entry>
@@ -3639,7 +3639,7 @@
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -3666,16 +3666,9 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
-        <key>JDBC Connection Pool</key>
+        <key>table-schema-cache-size</key>
         <value>
-            <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
-            <name>JDBC Connection Pool</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Statement Type</key>
-        <value>
-            <name>Statement Type</name>
+            <name>table-schema-cache-size</name>
         </value>
     </entry>
     <entry>
@@ -3691,15 +3684,15 @@
         </value>
     </entry>
     <entry>
-        <key>Schema Name</key>
+        <key>jts-sql-param-attr-prefix</key>
         <value>
-            <name>Schema Name</name>
+            <name>jts-sql-param-attr-prefix</name>
         </value>
     </entry>
     <entry>
-        <key>Translate Field Names</key>
+        <key>Schema Name</key>
         <value>
-            <name>Translate Field Names</name>
+            <name>Schema Name</name>
         </value>
     </entry>
     <entry>
@@ -3715,12 +3708,6 @@
         </value>
     </entry>
     <entry>
-        <key>Update Keys</key>
-        <value>
-            <name>Update Keys</name>
-        </value>
-    </entry>
-    <entry>
         <key>jts-quoted-identifiers</key>
         <value>
             <name>jts-quoted-identifiers</name>
@@ -3733,15 +3720,28 @@
         </value>
     </entry>
     <entry>
-        <key>jts-sql-param-attr-prefix</key>
+        <key>JDBC Connection Pool</key>
         <value>
-            <name>jts-sql-param-attr-prefix</name>
+            <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
+            <name>JDBC Connection Pool</name>
         </value>
     </entry>
     <entry>
-        <key>table-schema-cache-size</key>
+        <key>Update Keys</key>
         <value>
-            <name>table-schema-cache-size</name>
+            <name>Update Keys</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Translate Field Names</key>
+        <value>
+            <name>Translate Field Names</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Statement Type</key>
+        <value>
+            <name>Statement Type</name>
         </value>
     </entry>
 </descriptors>
@@ -3750,27 +3750,23 @@
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
-        <key>JDBC Connection Pool</key>
-        <value>44410787-f421-33f4-0000-000000000000</value>
-    </entry>
-    <entry>
-        <key>Statement Type</key>
-        <value>INSERT</value>
+        <key>table-schema-cache-size</key>
+        <value>100</value>
     </entry>
     <entry>
         <key>Table Name</key>
-        <value>#{db_table_rad}</value>
+        <value>rad_downloads</value>
     </entry>
     <entry>
         <key>Catalog Name</key>
     </entry>
     <entry>
-        <key>Schema Name</key>
-        <value>#{db_schema}</value>
+        <key>jts-sql-param-attr-prefix</key>
+        <value>sql</value>
     </entry>
     <entry>
-        <key>Translate Field Names</key>
-        <value>false</value>
+        <key>Schema Name</key>
+        <value>public</value>
     </entry>
     <entry>
         <key>Unmatched Field Behavior</key>
@@ -3781,9 +3777,6 @@
         <value>Fail on Unmatched Columns</value>
     </entry>
     <entry>
-        <key>Update Keys</key>
-    </entry>
-    <entry>
         <key>jts-quoted-identifiers</key>
         <value>false</value>
     </entry>
@@ -3792,12 +3785,19 @@
         <value>false</value>
     </entry>
     <entry>
-        <key>jts-sql-param-attr-prefix</key>
-        <value>sql</value>
+        <key>JDBC Connection Pool</key>
+        <value>44410787-f421-33f4-0000-000000000000</value>
     </entry>
     <entry>
-        <key>table-schema-cache-size</key>
-        <value>100</value>
+        <key>Update Keys</key>
+    </entry>
+    <entry>
+        <key>Translate Field Names</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>Statement Type</key>
+        <value>INSERT</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -3819,7 +3819,7 @@
 <autoTerminate>false</autoTerminate>
 <name>sql</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -3852,9 +3852,9 @@
         </value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
+        <key>Max Attribute Length</key>
         <value>
-            <name>Command Arguments</name>
+            <name>Max Attribute Length</name>
         </value>
     </entry>
     <entry>
@@ -3864,21 +3864,9 @@
         </value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>
-            <name>Ignore STDIN</name>
-        </value>
-    </entry>
-    <entry>
         <key>Working Directory</key>
         <value>
             <name>Working Directory</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Argument Delimiter</key>
-        <value>
-            <name>Argument Delimiter</name>
         </value>
     </entry>
     <entry>
@@ -3888,9 +3876,21 @@
         </value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
+        <key>Argument Delimiter</key>
         <value>
-            <name>Max Attribute Length</name>
+            <name>Argument Delimiter</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Ignore STDIN</key>
+        <value>
+            <name>Ignore STDIN</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Command Arguments</key>
+        <value>
+            <name>Command Arguments</name>
         </value>
     </entry>
 </descriptors>
@@ -3903,31 +3903,31 @@
         <value>Command Arguments Property</value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
-        <value>-of;GRIB;-co;"IDS=CENTER=80 SIGNF_REF_TIME=3 REF_TIME=${utc_timestamp} DISCIPLINE=0";-co;"PDS_TEMPLATE_ASSEMBLED_VALUES=1 52 8 255 50 0 0 1 0 1 0 0 1 0 0";-co;"DATA_ENCODING=COMPLEX_PACKING";-stats;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step3.tif;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}.grib</value>
+        <key>Max Attribute Length</key>
+        <value>512</value>
     </entry>
     <entry>
         <key>Command Path</key>
         <value>gdal_translate</value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>true</value>
+        <key>Working Directory</key>
+        <value>${NIFI_TEMP_DIR}</value>
     </entry>
     <entry>
-        <key>Working Directory</key>
-        <value>#{path_temp_directory}</value>
+        <key>Output Destination Attribute</key>
     </entry>
     <entry>
         <key>Argument Delimiter</key>
         <value>;</value>
     </entry>
     <entry>
-        <key>Output Destination Attribute</key>
+        <key>Ignore STDIN</key>
+        <value>true</value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
-        <value>512</value>
+        <key>Command Arguments</key>
+        <value>-of;GRIB;-co;"IDS=CENTER=80 SIGNF_REF_TIME=3 REF_TIME=${utc_timestamp} DISCIPLINE=0";-co;"PDS_TEMPLATE_ASSEMBLED_VALUES=1 52 8 255 50 0 0 1 0 1 0 0 1 0 0";-co;"DATA_ENCODING=COMPLEX_PACKING";-stats;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step3.tif;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}.grib</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -3949,7 +3949,7 @@
 <autoTerminate>false</autoTerminate>
 <name>output stream</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -3976,6 +3976,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -3987,26 +3993,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -4020,7 +4020,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -4047,6 +4047,12 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -4058,26 +4064,20 @@
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -4091,7 +4091,7 @@
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -4118,34 +4118,9 @@
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
-        <key>Database Connection Pooling Service</key>
+        <key>esql-max-rows</key>
         <value>
-            <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
-            <name>Database Connection Pooling Service</name>
-        </value>
-    </entry>
-    <entry>
-        <key>sql-pre-query</key>
-        <value>
-            <name>sql-pre-query</name>
-        </value>
-    </entry>
-    <entry>
-        <key>SQL select query</key>
-        <value>
-            <name>SQL select query</name>
-        </value>
-    </entry>
-    <entry>
-        <key>sql-post-query</key>
-        <value>
-            <name>sql-post-query</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Max Wait Time</key>
-        <value>
-            <name>Max Wait Time</name>
+            <name>esql-max-rows</name>
         </value>
     </entry>
     <entry>
@@ -4156,9 +4131,28 @@
         </value>
     </entry>
     <entry>
-        <key>esqlrecord-normalize</key>
+        <key>dbf-default-precision</key>
         <value>
-            <name>esqlrecord-normalize</name>
+            <name>dbf-default-precision</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Max Wait Time</key>
+        <value>
+            <name>Max Wait Time</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Database Connection Pooling Service</key>
+        <value>
+            <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
+            <name>Database Connection Pooling Service</name>
+        </value>
+    </entry>
+    <entry>
+        <key>sql-post-query</key>
+        <value>
+            <name>sql-post-query</name>
         </value>
     </entry>
     <entry>
@@ -4168,21 +4162,15 @@
         </value>
     </entry>
     <entry>
-        <key>dbf-default-precision</key>
-        <value>
-            <name>dbf-default-precision</name>
-        </value>
-    </entry>
-    <entry>
         <key>dbf-default-scale</key>
         <value>
             <name>dbf-default-scale</name>
         </value>
     </entry>
     <entry>
-        <key>esql-max-rows</key>
+        <key>sql-pre-query</key>
         <value>
-            <name>esql-max-rows</name>
+            <name>sql-pre-query</name>
         </value>
     </entry>
     <entry>
@@ -4197,54 +4185,56 @@
             <name>esql-fetch-size</name>
         </value>
     </entry>
+    <entry>
+        <key>SQL select query</key>
+        <value>
+            <name>SQL select query</name>
+        </value>
+    </entry>
+    <entry>
+        <key>esqlrecord-normalize</key>
+        <value>
+            <name>esqlrecord-normalize</name>
+        </value>
+    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
-        <key>Database Connection Pooling Service</key>
-        <value>44410787-f421-33f4-0000-000000000000</value>
-    </entry>
-    <entry>
-        <key>sql-pre-query</key>
-    </entry>
-    <entry>
-        <key>SQL select query</key>
-        <value>SELECT replace((prod_creation_date at time zone 'UTC')::varchar, ' ', 'T')||'Z' as utc_timestamp 
-FROM #{db_schema}.#{db_table_rad} pd
-WHERE pd.prod_filename = '${prod_filename}';</value>
-    </entry>
-    <entry>
-        <key>sql-post-query</key>
-    </entry>
-    <entry>
-        <key>Max Wait Time</key>
-        <value>0 seconds</value>
+        <key>esql-max-rows</key>
+        <value>0</value>
     </entry>
     <entry>
         <key>esqlrecord-record-writer</key>
         <value>6bd420a3-17db-3d42-0000-000000000000</value>
     </entry>
     <entry>
-        <key>esqlrecord-normalize</key>
-        <value>false</value>
+        <key>dbf-default-precision</key>
+        <value>10</value>
+    </entry>
+    <entry>
+        <key>Max Wait Time</key>
+        <value>0 seconds</value>
+    </entry>
+    <entry>
+        <key>Database Connection Pooling Service</key>
+        <value>44410787-f421-33f4-0000-000000000000</value>
+    </entry>
+    <entry>
+        <key>sql-post-query</key>
     </entry>
     <entry>
         <key>dbf-user-logical-types</key>
         <value>false</value>
     </entry>
     <entry>
-        <key>dbf-default-precision</key>
-        <value>10</value>
-    </entry>
-    <entry>
         <key>dbf-default-scale</key>
         <value>0</value>
     </entry>
     <entry>
-        <key>esql-max-rows</key>
-        <value>0</value>
+        <key>sql-pre-query</key>
     </entry>
     <entry>
         <key>esql-output-batch-size</key>
@@ -4253,6 +4243,16 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
     <entry>
         <key>esql-fetch-size</key>
         <value>0</value>
+    </entry>
+    <entry>
+        <key>SQL select query</key>
+        <value>SELECT replace((prod_creation_date at time zone 'UTC')::varchar, ' ', 'T')||'Z' as utc_timestamp 
+FROM public.rad_downloads pd
+WHERE pd.prod_filename = '${prod_filename}';</value>
+    </entry>
+    <entry>
+        <key>esqlrecord-normalize</key>
+        <value>false</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -4270,7 +4270,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -4303,9 +4303,9 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
+        <key>Max Attribute Length</key>
         <value>
-            <name>Command Arguments</name>
+            <name>Max Attribute Length</name>
         </value>
     </entry>
     <entry>
@@ -4315,21 +4315,9 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>
-            <name>Ignore STDIN</name>
-        </value>
-    </entry>
-    <entry>
         <key>Working Directory</key>
         <value>
             <name>Working Directory</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Argument Delimiter</key>
-        <value>
-            <name>Argument Delimiter</name>
         </value>
     </entry>
     <entry>
@@ -4339,9 +4327,21 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
+        <key>Argument Delimiter</key>
         <value>
-            <name>Max Attribute Length</name>
+            <name>Argument Delimiter</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Ignore STDIN</key>
+        <value>
+            <name>Ignore STDIN</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Command Arguments</key>
+        <value>
+            <name>Command Arguments</name>
         </value>
     </entry>
 </descriptors>
@@ -4354,30 +4354,30 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         <value>Command Arguments Property</value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
-        <value>-fr;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}.tif;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step1.tif;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step2.tif;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step3.tif;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step3.tif.aux.xml</value>
+        <key>Max Attribute Length</key>
+        <value>256</value>
     </entry>
     <entry>
         <key>Command Path</key>
         <value>rm</value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>true</value>
+        <key>Working Directory</key>
     </entry>
     <entry>
-        <key>Working Directory</key>
+        <key>Output Destination Attribute</key>
     </entry>
     <entry>
         <key>Argument Delimiter</key>
         <value>;</value>
     </entry>
     <entry>
-        <key>Output Destination Attribute</key>
+        <key>Ignore STDIN</key>
+        <value>true</value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
-        <value>256</value>
+        <key>Command Arguments</key>
+        <value>-fr;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}.tif;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step1.tif;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step2.tif;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step3.tif;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step3.tif.aux.xml</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -4399,7 +4399,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>false</autoTerminate>
 <name>output stream</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -4466,7 +4466,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>false</autoTerminate>
 <name>unmatched</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style/>
                             <type>org.apache.nifi.processors.standard.RouteOnAttribute</type>
                         </processors>
@@ -4488,64 +4488,9 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
-        <key>HTTP Method</key>
+        <key>Proxy Host</key>
         <value>
-            <name>HTTP Method</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Remote URL</key>
-        <value>
-            <name>Remote URL</name>
-        </value>
-    </entry>
-    <entry>
-        <key>SSL Context Service</key>
-        <value>
-            <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
-            <name>SSL Context Service</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Connection Timeout</key>
-        <value>
-            <name>Connection Timeout</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Read Timeout</key>
-        <value>
-            <name>Read Timeout</name>
-        </value>
-    </entry>
-    <entry>
-        <key>idle-timeout</key>
-        <value>
-            <name>idle-timeout</name>
-        </value>
-    </entry>
-    <entry>
-        <key>max-idle-connections</key>
-        <value>
-            <name>max-idle-connections</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Include Date Header</key>
-        <value>
-            <name>Include Date Header</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Follow Redirects</key>
-        <value>
-            <name>Follow Redirects</name>
-        </value>
-    </entry>
-    <entry>
-        <key>disable-http2</key>
-        <value>
-            <name>disable-http2</name>
+            <name>Proxy Host</name>
         </value>
     </entry>
     <entry>
@@ -4555,21 +4500,9 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Useragent</key>
+        <key>use-etag</key>
         <value>
-            <name>Useragent</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Basic Authentication Username</key>
-        <value>
-            <name>Basic Authentication Username</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Basic Authentication Password</key>
-        <value>
-            <name>Basic Authentication Password</name>
+            <name>use-etag</name>
         </value>
     </entry>
     <entry>
@@ -4580,69 +4513,21 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Proxy Host</key>
-        <value>
-            <name>Proxy Host</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Proxy Port</key>
-        <value>
-            <name>Proxy Port</name>
-        </value>
-    </entry>
-    <entry>
         <key>Proxy Type</key>
         <value>
             <name>Proxy Type</name>
         </value>
     </entry>
     <entry>
-        <key>invokehttp-proxy-user</key>
+        <key>Basic Authentication Password</key>
         <value>
-            <name>invokehttp-proxy-user</name>
+            <name>Basic Authentication Password</name>
         </value>
     </entry>
     <entry>
-        <key>invokehttp-proxy-password</key>
+        <key>Connection Timeout</key>
         <value>
-            <name>invokehttp-proxy-password</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Put Response Body In Attribute</key>
-        <value>
-            <name>Put Response Body In Attribute</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Max Length To Put In Attribute</key>
-        <value>
-            <name>Max Length To Put In Attribute</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Digest Authentication</key>
-        <value>
-            <name>Digest Authentication</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Always Output Response</key>
-        <value>
-            <name>Always Output Response</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Add Response Headers to Request</key>
-        <value>
-            <name>Add Response Headers to Request</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Content-Type</key>
-        <value>
-            <name>Content-Type</name>
+            <name>Connection Timeout</name>
         </value>
     </entry>
     <entry>
@@ -4652,21 +4537,15 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Use Chunked Encoding</key>
+        <key>set-form-filename</key>
         <value>
-            <name>Use Chunked Encoding</name>
+            <name>set-form-filename</name>
         </value>
     </entry>
     <entry>
-        <key>Penalize on "No Retry"</key>
+        <key>Always Output Response</key>
         <value>
-            <name>Penalize on "No Retry"</name>
-        </value>
-    </entry>
-    <entry>
-        <key>use-etag</key>
-        <value>
-            <name>use-etag</name>
+            <name>Always Output Response</name>
         </value>
     </entry>
     <entry>
@@ -4676,9 +4555,45 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>ignore-response-content</key>
+        <key>disable-http2</key>
         <value>
-            <name>ignore-response-content</name>
+            <name>disable-http2</name>
+        </value>
+    </entry>
+    <entry>
+        <key>idle-timeout</key>
+        <value>
+            <name>idle-timeout</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Put Response Body In Attribute</key>
+        <value>
+            <name>Put Response Body In Attribute</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Use Chunked Encoding</key>
+        <value>
+            <name>Use Chunked Encoding</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Follow Redirects</key>
+        <value>
+            <name>Follow Redirects</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Remote URL</key>
+        <value>
+            <name>Remote URL</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Content-Type</key>
+        <value>
+            <name>Content-Type</name>
         </value>
     </entry>
     <entry>
@@ -4688,9 +4603,94 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>set-form-filename</key>
+        <key>max-idle-connections</key>
         <value>
-            <name>set-form-filename</name>
+            <name>max-idle-connections</name>
+        </value>
+    </entry>
+    <entry>
+        <key>invokehttp-proxy-user</key>
+        <value>
+            <name>invokehttp-proxy-user</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Read Timeout</key>
+        <value>
+            <name>Read Timeout</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Max Length To Put In Attribute</key>
+        <value>
+            <name>Max Length To Put In Attribute</name>
+        </value>
+    </entry>
+    <entry>
+        <key>invokehttp-proxy-password</key>
+        <value>
+            <name>invokehttp-proxy-password</name>
+        </value>
+    </entry>
+    <entry>
+        <key>ignore-response-content</key>
+        <value>
+            <name>ignore-response-content</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Proxy Port</key>
+        <value>
+            <name>Proxy Port</name>
+        </value>
+    </entry>
+    <entry>
+        <key>SSL Context Service</key>
+        <value>
+            <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
+            <name>SSL Context Service</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Digest Authentication</key>
+        <value>
+            <name>Digest Authentication</name>
+        </value>
+    </entry>
+    <entry>
+        <key>HTTP Method</key>
+        <value>
+            <name>HTTP Method</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Add Response Headers to Request</key>
+        <value>
+            <name>Add Response Headers to Request</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Basic Authentication Username</key>
+        <value>
+            <name>Basic Authentication Username</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Include Date Header</key>
+        <value>
+            <name>Include Date Header</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Penalize on "No Retry"</key>
+        <value>
+            <name>Penalize on "No Retry"</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Useragent</key>
+        <value>
+            <name>Useragent</name>
         </value>
     </entry>
 </descriptors>
@@ -4699,113 +4699,39 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
-        <key>HTTP Method</key>
-        <value>POST</value>
-    </entry>
-    <entry>
-        <key>Remote URL</key>
-        <value>https://radar-api.protezionecivile.it/wide/product/downloadProduct</value>
-    </entry>
-    <entry>
-        <key>SSL Context Service</key>
-        <value>7dcf0c87-8e40-3ff2-0000-000000000000</value>
-    </entry>
-    <entry>
-        <key>Connection Timeout</key>
-        <value>5 secs</value>
-    </entry>
-    <entry>
-        <key>Read Timeout</key>
-        <value>30 secs</value>
-    </entry>
-    <entry>
-        <key>idle-timeout</key>
-        <value>5 mins</value>
-    </entry>
-    <entry>
-        <key>max-idle-connections</key>
-        <value>5</value>
-    </entry>
-    <entry>
-        <key>Include Date Header</key>
-        <value>True</value>
-    </entry>
-    <entry>
-        <key>Follow Redirects</key>
-        <value>True</value>
-    </entry>
-    <entry>
-        <key>disable-http2</key>
-        <value>False</value>
+        <key>Proxy Host</key>
     </entry>
     <entry>
         <key>Attributes to Send</key>
     </entry>
     <entry>
-        <key>Useragent</key>
-    </entry>
-    <entry>
-        <key>Basic Authentication Username</key>
-    </entry>
-    <entry>
-        <key>Basic Authentication Password</key>
+        <key>use-etag</key>
+        <value>false</value>
     </entry>
     <entry>
         <key>proxy-configuration-service</key>
-    </entry>
-    <entry>
-        <key>Proxy Host</key>
-    </entry>
-    <entry>
-        <key>Proxy Port</key>
     </entry>
     <entry>
         <key>Proxy Type</key>
         <value>https</value>
     </entry>
     <entry>
-        <key>invokehttp-proxy-user</key>
+        <key>Basic Authentication Password</key>
     </entry>
     <entry>
-        <key>invokehttp-proxy-password</key>
-    </entry>
-    <entry>
-        <key>Put Response Body In Attribute</key>
-    </entry>
-    <entry>
-        <key>Max Length To Put In Attribute</key>
-        <value>256</value>
-    </entry>
-    <entry>
-        <key>Digest Authentication</key>
-        <value>false</value>
-    </entry>
-    <entry>
-        <key>Always Output Response</key>
-        <value>false</value>
-    </entry>
-    <entry>
-        <key>Add Response Headers to Request</key>
-        <value>false</value>
-    </entry>
-    <entry>
-        <key>Content-Type</key>
-        <value>application/json</value>
+        <key>Connection Timeout</key>
+        <value>5 secs</value>
     </entry>
     <entry>
         <key>send-message-body</key>
         <value>true</value>
     </entry>
     <entry>
-        <key>Use Chunked Encoding</key>
-        <value>false</value>
+        <key>set-form-filename</key>
+        <value>true</value>
     </entry>
     <entry>
-        <key>Penalize on "No Retry"</key>
-        <value>false</value>
-    </entry>
-    <entry>
-        <key>use-etag</key>
+        <key>Always Output Response</key>
         <value>false</value>
     </entry>
     <entry>
@@ -4813,15 +4739,89 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         <value>10MB</value>
     </entry>
     <entry>
-        <key>ignore-response-content</key>
+        <key>disable-http2</key>
+        <value>False</value>
+    </entry>
+    <entry>
+        <key>idle-timeout</key>
+        <value>5 mins</value>
+    </entry>
+    <entry>
+        <key>Put Response Body In Attribute</key>
+    </entry>
+    <entry>
+        <key>Use Chunked Encoding</key>
         <value>false</value>
+    </entry>
+    <entry>
+        <key>Follow Redirects</key>
+        <value>True</value>
+    </entry>
+    <entry>
+        <key>Remote URL</key>
+        <value>https://radar-api.protezionecivile.it/wide/product/downloadProduct</value>
+    </entry>
+    <entry>
+        <key>Content-Type</key>
+        <value>application/json</value>
     </entry>
     <entry>
         <key>form-body-form-name</key>
     </entry>
     <entry>
-        <key>set-form-filename</key>
-        <value>true</value>
+        <key>max-idle-connections</key>
+        <value>5</value>
+    </entry>
+    <entry>
+        <key>invokehttp-proxy-user</key>
+    </entry>
+    <entry>
+        <key>Read Timeout</key>
+        <value>30 secs</value>
+    </entry>
+    <entry>
+        <key>Max Length To Put In Attribute</key>
+        <value>256</value>
+    </entry>
+    <entry>
+        <key>invokehttp-proxy-password</key>
+    </entry>
+    <entry>
+        <key>ignore-response-content</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>Proxy Port</key>
+    </entry>
+    <entry>
+        <key>SSL Context Service</key>
+        <value>7dcf0c87-8e40-3ff2-0000-000000000000</value>
+    </entry>
+    <entry>
+        <key>Digest Authentication</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>HTTP Method</key>
+        <value>POST</value>
+    </entry>
+    <entry>
+        <key>Add Response Headers to Request</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>Basic Authentication Username</key>
+    </entry>
+    <entry>
+        <key>Include Date Header</key>
+        <value>True</value>
+    </entry>
+    <entry>
+        <key>Penalize on "No Retry"</key>
+        <value>false</value>
+    </entry>
+    <entry>
+        <key>Useragent</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -4851,7 +4851,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>false</autoTerminate>
 <name>Retry</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -4890,15 +4890,15 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
-        <value>
-            <name>Stateful Variables Initial Value</name>
-        </value>
-    </entry>
-    <entry>
         <key>canonical-value-lookup-cache-size</key>
         <value>
             <name>canonical-value-lookup-cache-size</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Stateful Variables Initial Value</key>
+        <value>
+            <name>Stateful Variables Initial Value</name>
         </value>
     </entry>
     <entry>
@@ -4920,11 +4920,11 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         <value>Do not store state</value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
-    </entry>
-    <entry>
         <key>canonical-value-lookup-cache-size</key>
         <value>100</value>
+    </entry>
+    <entry>
+        <key>Stateful Variables Initial Value</key>
     </entry>
     <entry>
         <key>prod_code</key>
@@ -4942,7 +4942,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -4975,9 +4975,9 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
+        <key>Max Attribute Length</key>
         <value>
-            <name>Command Arguments</name>
+            <name>Max Attribute Length</name>
         </value>
     </entry>
     <entry>
@@ -4987,21 +4987,9 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>
-            <name>Ignore STDIN</name>
-        </value>
-    </entry>
-    <entry>
         <key>Working Directory</key>
         <value>
             <name>Working Directory</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Argument Delimiter</key>
-        <value>
-            <name>Argument Delimiter</name>
         </value>
     </entry>
     <entry>
@@ -5011,9 +4999,21 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
+        <key>Argument Delimiter</key>
         <value>
-            <name>Max Attribute Length</name>
+            <name>Argument Delimiter</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Ignore STDIN</key>
+        <value>
+            <name>Ignore STDIN</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Command Arguments</key>
+        <value>
+            <name>Command Arguments</name>
         </value>
     </entry>
 </descriptors>
@@ -5026,31 +5026,31 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         <value>Command Arguments Property</value>
     </entry>
     <entry>
-        <key>Command Arguments</key>
-        <value>-A;#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step1.tif;--outfile=#{path_temp_directory}/${prod_code:append('_'):append(${prod_creation_date})}_step2.tif;--calc="A*0.000277778"</value>
+        <key>Max Attribute Length</key>
+        <value>256</value>
     </entry>
     <entry>
         <key>Command Path</key>
         <value>gdal_calc.py</value>
     </entry>
     <entry>
-        <key>Ignore STDIN</key>
-        <value>true</value>
+        <key>Working Directory</key>
+        <value>${NIFI_TEMP_DIR}</value>
     </entry>
     <entry>
-        <key>Working Directory</key>
-        <value>#{path_temp_directory}</value>
+        <key>Output Destination Attribute</key>
     </entry>
     <entry>
         <key>Argument Delimiter</key>
         <value>;</value>
     </entry>
     <entry>
-        <key>Output Destination Attribute</key>
+        <key>Ignore STDIN</key>
+        <value>true</value>
     </entry>
     <entry>
-        <key>Max Attribute Length</key>
-        <value>256</value>
+        <key>Command Arguments</key>
+        <value>-A;${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step1.tif;--outfile=${NIFI_TEMP_DIR}/${prod_code:append('_'):append(${prod_creation_date})}_step2.tif;--calc="A*0.000277778"</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -5072,7 +5072,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>false</autoTerminate>
 <name>output stream</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -5099,12 +5099,6 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
-        <key>Attributes List</key>
-        <value>
-            <name>Attributes List</name>
-        </value>
-    </entry>
-    <entry>
         <key>attributes-to-json-regex</key>
         <value>
             <name>attributes-to-json-regex</name>
@@ -5117,15 +5111,21 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>Include Core Attributes</key>
-        <value>
-            <name>Include Core Attributes</name>
-        </value>
-    </entry>
-    <entry>
         <key>Null Value</key>
         <value>
             <name>Null Value</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Attributes List</key>
+        <value>
+            <name>Attributes List</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Include Core Attributes</key>
+        <value>
+            <name>Include Core Attributes</name>
         </value>
     </entry>
 </descriptors>
@@ -5134,10 +5134,6 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
-        <key>Attributes List</key>
-        <value>prod_code,prod_creation_date,prod_download_date,prod_filename</value>
-    </entry>
-    <entry>
         <key>attributes-to-json-regex</key>
     </entry>
     <entry>
@@ -5145,11 +5141,15 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         <value>flowfile-content</value>
     </entry>
     <entry>
-        <key>Include Core Attributes</key>
+        <key>Null Value</key>
         <value>false</value>
     </entry>
     <entry>
-        <key>Null Value</key>
+        <key>Attributes List</key>
+        <value>prod_code,prod_creation_date,prod_download_date,prod_filename</value>
+    </entry>
+    <entry>
+        <key>Include Core Attributes</key>
         <value>false</value>
     </entry>
 </properties>
@@ -5168,7 +5168,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style/>
                             <type>org.apache.nifi.processors.standard.AttributesToJSON</type>
                         </processors>
@@ -5190,6 +5190,12 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -5201,26 +5207,20 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -5234,7 +5234,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -5261,6 +5261,12 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -5272,26 +5278,20 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -5305,7 +5305,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -5332,6 +5332,12 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -5343,26 +5349,20 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -5376,7 +5376,7 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -5403,34 +5403,9 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
-        <key>Database Connection Pooling Service</key>
+        <key>esql-max-rows</key>
         <value>
-            <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
-            <name>Database Connection Pooling Service</name>
-        </value>
-    </entry>
-    <entry>
-        <key>sql-pre-query</key>
-        <value>
-            <name>sql-pre-query</name>
-        </value>
-    </entry>
-    <entry>
-        <key>SQL select query</key>
-        <value>
-            <name>SQL select query</name>
-        </value>
-    </entry>
-    <entry>
-        <key>sql-post-query</key>
-        <value>
-            <name>sql-post-query</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Max Wait Time</key>
-        <value>
-            <name>Max Wait Time</name>
+            <name>esql-max-rows</name>
         </value>
     </entry>
     <entry>
@@ -5441,9 +5416,28 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>esqlrecord-normalize</key>
+        <key>dbf-default-precision</key>
         <value>
-            <name>esqlrecord-normalize</name>
+            <name>dbf-default-precision</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Max Wait Time</key>
+        <value>
+            <name>Max Wait Time</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Database Connection Pooling Service</key>
+        <value>
+            <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
+            <name>Database Connection Pooling Service</name>
+        </value>
+    </entry>
+    <entry>
+        <key>sql-post-query</key>
+        <value>
+            <name>sql-post-query</name>
         </value>
     </entry>
     <entry>
@@ -5453,21 +5447,15 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
         </value>
     </entry>
     <entry>
-        <key>dbf-default-precision</key>
-        <value>
-            <name>dbf-default-precision</name>
-        </value>
-    </entry>
-    <entry>
         <key>dbf-default-scale</key>
         <value>
             <name>dbf-default-scale</name>
         </value>
     </entry>
     <entry>
-        <key>esql-max-rows</key>
+        <key>sql-pre-query</key>
         <value>
-            <name>esql-max-rows</name>
+            <name>sql-pre-query</name>
         </value>
     </entry>
     <entry>
@@ -5482,57 +5470,56 @@ WHERE pd.prod_filename = '${prod_filename}';</value>
             <name>esql-fetch-size</name>
         </value>
     </entry>
+    <entry>
+        <key>SQL select query</key>
+        <value>
+            <name>SQL select query</name>
+        </value>
+    </entry>
+    <entry>
+        <key>esqlrecord-normalize</key>
+        <value>
+            <name>esqlrecord-normalize</name>
+        </value>
+    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
-        <key>Database Connection Pooling Service</key>
-        <value>44410787-f421-33f4-0000-000000000000</value>
-    </entry>
-    <entry>
-        <key>sql-pre-query</key>
-    </entry>
-    <entry>
-        <key>SQL select query</key>
-        <value>SELECT 1 as outmsg 
-FROM #{db_schema}.#{db_table_rad}
-WHERE
-	prod_code = '${prod_code}'
-	AND prod_creation_date = to_timestamp(${prod_creation_date}/1000)
-LIMIT 1;</value>
-    </entry>
-    <entry>
-        <key>sql-post-query</key>
-    </entry>
-    <entry>
-        <key>Max Wait Time</key>
-        <value>0 seconds</value>
+        <key>esql-max-rows</key>
+        <value>0</value>
     </entry>
     <entry>
         <key>esqlrecord-record-writer</key>
         <value>6bd420a3-17db-3d42-0000-000000000000</value>
     </entry>
     <entry>
-        <key>esqlrecord-normalize</key>
-        <value>false</value>
+        <key>dbf-default-precision</key>
+        <value>10</value>
+    </entry>
+    <entry>
+        <key>Max Wait Time</key>
+        <value>0 seconds</value>
+    </entry>
+    <entry>
+        <key>Database Connection Pooling Service</key>
+        <value>44410787-f421-33f4-0000-000000000000</value>
+    </entry>
+    <entry>
+        <key>sql-post-query</key>
     </entry>
     <entry>
         <key>dbf-user-logical-types</key>
         <value>false</value>
     </entry>
     <entry>
-        <key>dbf-default-precision</key>
-        <value>10</value>
-    </entry>
-    <entry>
         <key>dbf-default-scale</key>
         <value>0</value>
     </entry>
     <entry>
-        <key>esql-max-rows</key>
-        <value>0</value>
+        <key>sql-pre-query</key>
     </entry>
     <entry>
         <key>esql-output-batch-size</key>
@@ -5541,6 +5528,19 @@ LIMIT 1;</value>
     <entry>
         <key>esql-fetch-size</key>
         <value>0</value>
+    </entry>
+    <entry>
+        <key>SQL select query</key>
+        <value>SELECT 1 as outmsg 
+FROM public.rad_downloads
+WHERE
+	prod_code = '${prod_code}'
+	AND prod_creation_date = to_timestamp(${prod_creation_date}/1000)
+LIMIT 1;</value>
+    </entry>
+    <entry>
+        <key>esqlrecord-normalize</key>
+        <value>false</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -5558,7 +5558,7 @@ LIMIT 1;</value>
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -5591,15 +5591,15 @@ LIMIT 1;</value>
         </value>
     </entry>
     <entry>
-        <key>Store State</key>
+        <key>filename</key>
         <value>
-            <name>Store State</name>
+            <name>filename</name>
         </value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
+        <key>Store State</key>
         <value>
-            <name>Stateful Variables Initial Value</name>
+            <name>Store State</name>
         </value>
     </entry>
     <entry>
@@ -5609,9 +5609,9 @@ LIMIT 1;</value>
         </value>
     </entry>
     <entry>
-        <key>filename</key>
+        <key>Stateful Variables Initial Value</key>
         <value>
-            <name>filename</name>
+            <name>Stateful Variables Initial Value</name>
         </value>
     </entry>
     <entry>
@@ -5629,19 +5629,19 @@ LIMIT 1;</value>
         <key>Delete Attributes Expression</key>
     </entry>
     <entry>
-        <key>Store State</key>
-        <value>Do not store state</value>
+        <key>filename</key>
+        <value>${prod_code:append('_'):append(${prod_creation_date:append('.tif')})}</value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
+        <key>Store State</key>
+        <value>Do not store state</value>
     </entry>
     <entry>
         <key>canonical-value-lookup-cache-size</key>
         <value>100</value>
     </entry>
     <entry>
-        <key>filename</key>
-        <value>${prod_code:append('_'):append(${prod_creation_date:append('.tif')})}</value>
+        <key>Stateful Variables Initial Value</key>
     </entry>
     <entry>
         <key>prod_filename</key>
@@ -5659,7 +5659,7 @@ LIMIT 1;</value>
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style/>
                             <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
                         </processors>
@@ -5693,15 +5693,15 @@ LIMIT 1;</value>
         </value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
-        <value>
-            <name>Stateful Variables Initial Value</name>
-        </value>
-    </entry>
-    <entry>
         <key>canonical-value-lookup-cache-size</key>
         <value>
             <name>canonical-value-lookup-cache-size</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Stateful Variables Initial Value</key>
+        <value>
+            <name>Stateful Variables Initial Value</name>
         </value>
     </entry>
 </descriptors>
@@ -5718,11 +5718,11 @@ LIMIT 1;</value>
         <value>Do not store state</value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
-    </entry>
-    <entry>
         <key>canonical-value-lookup-cache-size</key>
         <value>100</value>
+    </entry>
+    <entry>
+        <key>Stateful Variables Initial Value</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -5736,7 +5736,7 @@ LIMIT 1;</value>
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style/>
                             <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
                         </processors>
@@ -5798,7 +5798,7 @@ LIMIT 1;</value>
 <autoTerminate>false</autoTerminate>
 <name>unmatched</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style/>
                             <type>org.apache.nifi.processors.standard.RouteOnAttribute</type>
                         </processors>
@@ -5820,6 +5820,12 @@ LIMIT 1;</value>
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -5831,26 +5837,20 @@ LIMIT 1;</value>
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -5864,7 +5864,7 @@ LIMIT 1;</value>
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -5903,6 +5903,18 @@ LIMIT 1;</value>
         </value>
     </entry>
     <entry>
+        <key>Evaluation Mode</key>
+        <value>
+            <name>Evaluation Mode</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Line-by-Line Evaluation Mode</key>
+        <value>
+            <name>Line-by-Line Evaluation Mode</name>
+        </value>
+    </entry>
+    <entry>
         <key>Character Set</key>
         <value>
             <name>Character Set</name>
@@ -5918,18 +5930,6 @@ LIMIT 1;</value>
         <key>Replacement Strategy</key>
         <value>
             <name>Replacement Strategy</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Evaluation Mode</key>
-        <value>
-            <name>Evaluation Mode</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Line-by-Line Evaluation Mode</key>
-        <value>
-            <name>Line-by-Line Evaluation Mode</name>
         </value>
     </entry>
 </descriptors>
@@ -5948,6 +5948,14 @@ LIMIT 1;</value>
 }</value>
     </entry>
     <entry>
+        <key>Evaluation Mode</key>
+        <value>Entire text</value>
+    </entry>
+    <entry>
+        <key>Line-by-Line Evaluation Mode</key>
+        <value>All</value>
+    </entry>
+    <entry>
         <key>Character Set</key>
         <value>UTF-8</value>
     </entry>
@@ -5958,14 +5966,6 @@ LIMIT 1;</value>
     <entry>
         <key>Replacement Strategy</key>
         <value>Regex Replace</value>
-    </entry>
-    <entry>
-        <key>Evaluation Mode</key>
-        <value>Entire text</value>
-    </entry>
-    <entry>
-        <key>Line-by-Line Evaluation Mode</key>
-        <value>All</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -5983,7 +5983,7 @@ LIMIT 1;</value>
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style/>
                             <type>org.apache.nifi.processors.standard.ReplaceText</type>
                         </processors>
@@ -6005,6 +6005,12 @@ LIMIT 1;</value>
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
+        <key>log-message</key>
+        <value>
+            <name>log-message</name>
+        </value>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>
             <name>log-level</name>
@@ -6016,26 +6022,20 @@ LIMIT 1;</value>
             <name>log-prefix</name>
         </value>
     </entry>
-    <entry>
-        <key>log-message</key>
-        <value>
-            <name>log-message</name>
-        </value>
-    </entry>
 </descriptors>
 <executionNode>ALL</executionNode>
 <lossTolerant>false</lossTolerant>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
+        <key>log-message</key>
+    </entry>
+    <entry>
         <key>log-level</key>
         <value>info</value>
     </entry>
     <entry>
         <key>log-prefix</key>
-    </entry>
-    <entry>
-        <key>log-message</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -6049,7 +6049,7 @@ LIMIT 1;</value>
 <autoTerminate>true</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -6076,21 +6076,27 @@ LIMIT 1;</value>
 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
 <descriptors>
     <entry>
-        <key>Directory</key>
+        <key>Group</key>
         <value>
-            <name>Directory</name>
+            <name>Group</name>
         </value>
     </entry>
     <entry>
-        <key>Conflict Resolution Strategy</key>
+        <key>Owner</key>
         <value>
-            <name>Conflict Resolution Strategy</name>
+            <name>Owner</name>
         </value>
     </entry>
     <entry>
         <key>Create Missing Directories</key>
         <value>
             <name>Create Missing Directories</name>
+        </value>
+    </entry>
+    <entry>
+        <key>Permissions</key>
+        <value>
+            <name>Permissions</name>
         </value>
     </entry>
     <entry>
@@ -6106,21 +6112,15 @@ LIMIT 1;</value>
         </value>
     </entry>
     <entry>
-        <key>Permissions</key>
+        <key>Directory</key>
         <value>
-            <name>Permissions</name>
+            <name>Directory</name>
         </value>
     </entry>
     <entry>
-        <key>Owner</key>
+        <key>Conflict Resolution Strategy</key>
         <value>
-            <name>Owner</name>
-        </value>
-    </entry>
-    <entry>
-        <key>Group</key>
-        <value>
-            <name>Group</name>
+            <name>Conflict Resolution Strategy</name>
         </value>
     </entry>
 </descriptors>
@@ -6129,16 +6129,17 @@ LIMIT 1;</value>
 <penaltyDuration>30 sec</penaltyDuration>
 <properties>
     <entry>
-        <key>Directory</key>
-        <value>#{path_temp_directory}</value>
+        <key>Group</key>
     </entry>
     <entry>
-        <key>Conflict Resolution Strategy</key>
-        <value>fail</value>
+        <key>Owner</key>
     </entry>
     <entry>
         <key>Create Missing Directories</key>
         <value>true</value>
+    </entry>
+    <entry>
+        <key>Permissions</key>
     </entry>
     <entry>
         <key>Maximum File Count</key>
@@ -6147,13 +6148,12 @@ LIMIT 1;</value>
         <key>Last Modified Time</key>
     </entry>
     <entry>
-        <key>Permissions</key>
+        <key>Directory</key>
+        <value>${NIFI_TEMP_DIR}</value>
     </entry>
     <entry>
-        <key>Owner</key>
-    </entry>
-    <entry>
-        <key>Group</key>
+        <key>Conflict Resolution Strategy</key>
+        <value>fail</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -6171,7 +6171,7 @@ LIMIT 1;</value>
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -6210,9 +6210,9 @@ LIMIT 1;</value>
         </value>
     </entry>
     <entry>
-        <key>Path Not Found Behavior</key>
+        <key>utc_timestamp</key>
         <value>
-            <name>Path Not Found Behavior</name>
+            <name>utc_timestamp</name>
         </value>
     </entry>
     <entry>
@@ -6222,9 +6222,9 @@ LIMIT 1;</value>
         </value>
     </entry>
     <entry>
-        <key>utc_timestamp</key>
+        <key>Path Not Found Behavior</key>
         <value>
-            <name>utc_timestamp</name>
+            <name>Path Not Found Behavior</name>
         </value>
     </entry>
 </descriptors>
@@ -6241,16 +6241,16 @@ LIMIT 1;</value>
         <value>auto-detect</value>
     </entry>
     <entry>
-        <key>Path Not Found Behavior</key>
-        <value>ignore</value>
+        <key>utc_timestamp</key>
+        <value>$[0].utc_timestamp</value>
     </entry>
     <entry>
         <key>Null Value Representation</key>
         <value>empty string</value>
     </entry>
     <entry>
-        <key>utc_timestamp</key>
-        <value>$[0].utc_timestamp</value>
+        <key>Path Not Found Behavior</key>
+        <value>ignore</value>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -6272,7 +6272,7 @@ LIMIT 1;</value>
 <autoTerminate>false</autoTerminate>
 <name>unmatched</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style/>
                             <type>org.apache.nifi.processors.standard.EvaluateJsonPath</type>
                         </processors>
@@ -6300,15 +6300,15 @@ LIMIT 1;</value>
         </value>
     </entry>
     <entry>
-        <key>Store State</key>
+        <key>prod_download_date</key>
         <value>
-            <name>Store State</name>
+            <name>prod_download_date</name>
         </value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
+        <key>Store State</key>
         <value>
-            <name>Stateful Variables Initial Value</name>
+            <name>Store State</name>
         </value>
     </entry>
     <entry>
@@ -6318,9 +6318,9 @@ LIMIT 1;</value>
         </value>
     </entry>
     <entry>
-        <key>prod_download_date</key>
+        <key>Stateful Variables Initial Value</key>
         <value>
-            <name>prod_download_date</name>
+            <name>Stateful Variables Initial Value</name>
         </value>
     </entry>
 </descriptors>
@@ -6332,19 +6332,19 @@ LIMIT 1;</value>
         <key>Delete Attributes Expression</key>
     </entry>
     <entry>
-        <key>Store State</key>
-        <value>Do not store state</value>
+        <key>prod_download_date</key>
+        <value>${now():toNumber()}</value>
     </entry>
     <entry>
-        <key>Stateful Variables Initial Value</key>
+        <key>Store State</key>
+        <value>Do not store state</value>
     </entry>
     <entry>
         <key>canonical-value-lookup-cache-size</key>
         <value>100</value>
     </entry>
     <entry>
-        <key>prod_download_date</key>
-        <value>${now():toNumber()}</value>
+        <key>Stateful Variables Initial Value</key>
     </entry>
 </properties>
 <runDurationMillis>0</runDurationMillis>
@@ -6358,7 +6358,7 @@ LIMIT 1;</value>
 <autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
-                            <state>RUNNING</state>
+                            <state>STOPPED</state>
                             <style>
 <entry>
     <key>background-color</key>
@@ -6394,6 +6394,12 @@ LIMIT 1;</value>
                         <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                         <descriptors>
                             <entry>
+<key>log-message</key>
+<value>
+    <name>log-message</name>
+</value>
+                            </entry>
+                            <entry>
 <key>log-level</key>
 <value>
     <name>log-level</name>
@@ -6405,26 +6411,20 @@ LIMIT 1;</value>
     <name>log-prefix</name>
 </value>
                             </entry>
-                            <entry>
-<key>log-message</key>
-<value>
-    <name>log-message</name>
-</value>
-                            </entry>
                         </descriptors>
                         <executionNode>ALL</executionNode>
                         <lossTolerant>false</lossTolerant>
                         <penaltyDuration>30 sec</penaltyDuration>
                         <properties>
                             <entry>
+<key>log-message</key>
+                            </entry>
+                            <entry>
 <key>log-level</key>
 <value>info</value>
                             </entry>
                             <entry>
 <key>log-prefix</key>
-                            </entry>
-                            <entry>
-<key>log-message</key>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -6438,7 +6438,7 @@ LIMIT 1;</value>
                         <autoTerminate>true</autoTerminate>
                         <name>success</name>
                     </relationships>
-                    <state>RUNNING</state>
+                    <state>STOPPED</state>
                     <style>
                         <entry>
                             <key>background-color</key>
@@ -6477,15 +6477,15 @@ LIMIT 1;</value>
 </value>
                             </entry>
                             <entry>
-<key>Stateful Variables Initial Value</key>
-<value>
-    <name>Stateful Variables Initial Value</name>
-</value>
-                            </entry>
-                            <entry>
 <key>canonical-value-lookup-cache-size</key>
 <value>
     <name>canonical-value-lookup-cache-size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Stateful Variables Initial Value</key>
+<value>
+    <name>Stateful Variables Initial Value</name>
 </value>
                             </entry>
                             <entry>
@@ -6507,15 +6507,15 @@ LIMIT 1;</value>
 <value>Do not store state</value>
                             </entry>
                             <entry>
-<key>Stateful Variables Initial Value</key>
-                            </entry>
-                            <entry>
 <key>canonical-value-lookup-cache-size</key>
 <value>100</value>
                             </entry>
                             <entry>
+<key>Stateful Variables Initial Value</key>
+                            </entry>
+                            <entry>
 <key>giorni</key>
-<value>#{max_days_persistence_data}</value>
+<value>${MAX_DAYS_NIFI_DATA}</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -6529,7 +6529,7 @@ LIMIT 1;</value>
                         <autoTerminate>false</autoTerminate>
                         <name>success</name>
                     </relationships>
-                    <state>RUNNING</state>
+                    <state>STOPPED</state>
                     <style/>
                     <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
                 </processors>
@@ -6557,9 +6557,9 @@ LIMIT 1;</value>
 </value>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
+<key>Max Attribute Length</key>
 <value>
-    <name>Command Arguments</name>
+    <name>Max Attribute Length</name>
 </value>
                             </entry>
                             <entry>
@@ -6569,21 +6569,9 @@ LIMIT 1;</value>
 </value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
-<value>
-    <name>Ignore STDIN</name>
-</value>
-                            </entry>
-                            <entry>
 <key>Working Directory</key>
 <value>
     <name>Working Directory</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Argument Delimiter</key>
-<value>
-    <name>Argument Delimiter</name>
 </value>
                             </entry>
                             <entry>
@@ -6593,9 +6581,21 @@ LIMIT 1;</value>
 </value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
+<key>Argument Delimiter</key>
 <value>
-    <name>Max Attribute Length</name>
+    <name>Argument Delimiter</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Ignore STDIN</key>
+<value>
+    <name>Ignore STDIN</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Command Arguments</key>
+<value>
+    <name>Command Arguments</name>
 </value>
                             </entry>
                         </descriptors>
@@ -6608,31 +6608,31 @@ LIMIT 1;</value>
 <value>Command Arguments Property</value>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
-<value>--dispatch=#{path_arkimet_config}/config;${arki.filepath}</value>
+<key>Max Attribute Length</key>
+<value>256</value>
                             </entry>
                             <entry>
 <key>Command Path</key>
 <value>arki-scan</value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
-<value>true</value>
+<key>Working Directory</key>
+<value>${NIFI_ARKIMET_CONFIG_PATH}</value>
                             </entry>
                             <entry>
-<key>Working Directory</key>
-<value>#{path_arkimet_config}</value>
+<key>Output Destination Attribute</key>
                             </entry>
                             <entry>
 <key>Argument Delimiter</key>
 <value>;</value>
                             </entry>
                             <entry>
-<key>Output Destination Attribute</key>
+<key>Ignore STDIN</key>
+<value>true</value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
-<value>256</value>
+<key>Command Arguments</key>
+<value>--dispatch=${NIFI_ARKIMET_CONFIG_PATH}/config;${arki.filepath}</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -6654,7 +6654,7 @@ LIMIT 1;</value>
                         <autoTerminate>false</autoTerminate>
                         <name>output stream</name>
                     </relationships>
-                    <state>RUNNING</state>
+                    <state>STOPPED</state>
                     <style>
                         <entry>
                             <key>background-color</key>
@@ -6681,52 +6681,9 @@ LIMIT 1;</value>
                         <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                         <descriptors>
                             <entry>
-<key>Database Connection Pooling Service</key>
+<key>esql-max-rows</key>
 <value>
-    <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
-    <name>Database Connection Pooling Service</name>
-</value>
-                            </entry>
-                            <entry>
-<key>sql-pre-query</key>
-<value>
-    <name>sql-pre-query</name>
-</value>
-                            </entry>
-                            <entry>
-<key>SQL select query</key>
-<value>
-    <name>SQL select query</name>
-</value>
-                            </entry>
-                            <entry>
-<key>sql-post-query</key>
-<value>
-    <name>sql-post-query</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Max Wait Time</key>
-<value>
-    <name>Max Wait Time</name>
-</value>
-                            </entry>
-                            <entry>
-<key>dbf-normalize</key>
-<value>
-    <name>dbf-normalize</name>
-</value>
-                            </entry>
-                            <entry>
-<key>dbf-user-logical-types</key>
-<value>
-    <name>dbf-user-logical-types</name>
-</value>
-                            </entry>
-                            <entry>
-<key>compression-format</key>
-<value>
-    <name>compression-format</name>
+    <name>esql-max-rows</name>
 </value>
                             </entry>
                             <entry>
@@ -6736,15 +6693,46 @@ LIMIT 1;</value>
 </value>
                             </entry>
                             <entry>
+<key>Max Wait Time</key>
+<value>
+    <name>Max Wait Time</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Database Connection Pooling Service</key>
+<value>
+    <identifiesControllerService>org.apache.nifi.dbcp.DBCPService</identifiesControllerService>
+    <name>Database Connection Pooling Service</name>
+</value>
+                            </entry>
+                            <entry>
+<key>sql-post-query</key>
+<value>
+    <name>sql-post-query</name>
+</value>
+                            </entry>
+                            <entry>
+<key>dbf-user-logical-types</key>
+<value>
+    <name>dbf-user-logical-types</name>
+</value>
+                            </entry>
+                            <entry>
 <key>dbf-default-scale</key>
 <value>
     <name>dbf-default-scale</name>
 </value>
                             </entry>
                             <entry>
-<key>esql-max-rows</key>
+<key>sql-pre-query</key>
 <value>
-    <name>esql-max-rows</name>
+    <name>sql-pre-query</name>
+</value>
+                            </entry>
+                            <entry>
+<key>compression-format</key>
+<value>
+    <name>compression-format</name>
 </value>
                             </entry>
                             <entry>
@@ -6759,53 +6747,56 @@ LIMIT 1;</value>
     <name>esql-fetch-size</name>
 </value>
                             </entry>
+                            <entry>
+<key>SQL select query</key>
+<value>
+    <name>SQL select query</name>
+</value>
+                            </entry>
+                            <entry>
+<key>dbf-normalize</key>
+<value>
+    <name>dbf-normalize</name>
+</value>
+                            </entry>
                         </descriptors>
                         <executionNode>ALL</executionNode>
                         <lossTolerant>false</lossTolerant>
                         <penaltyDuration>30 sec</penaltyDuration>
                         <properties>
                             <entry>
-<key>Database Connection Pooling Service</key>
-<value>44410787-f421-33f4-0000-000000000000</value>
-                            </entry>
-                            <entry>
-<key>sql-pre-query</key>
-                            </entry>
-                            <entry>
-<key>SQL select query</key>
-<value>delete from #{db_schema}.#{db_table_rad} 
-where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} days');</value>
-                            </entry>
-                            <entry>
-<key>sql-post-query</key>
-                            </entry>
-                            <entry>
-<key>Max Wait Time</key>
-<value>0 seconds</value>
-                            </entry>
-                            <entry>
-<key>dbf-normalize</key>
-<value>false</value>
-                            </entry>
-                            <entry>
-<key>dbf-user-logical-types</key>
-<value>false</value>
-                            </entry>
-                            <entry>
-<key>compression-format</key>
-<value>NONE</value>
+<key>esql-max-rows</key>
+<value>0</value>
                             </entry>
                             <entry>
 <key>dbf-default-precision</key>
 <value>10</value>
                             </entry>
                             <entry>
+<key>Max Wait Time</key>
+<value>0 seconds</value>
+                            </entry>
+                            <entry>
+<key>Database Connection Pooling Service</key>
+<value>44410787-f421-33f4-0000-000000000000</value>
+                            </entry>
+                            <entry>
+<key>sql-post-query</key>
+                            </entry>
+                            <entry>
+<key>dbf-user-logical-types</key>
+<value>false</value>
+                            </entry>
+                            <entry>
 <key>dbf-default-scale</key>
 <value>0</value>
                             </entry>
                             <entry>
-<key>esql-max-rows</key>
-<value>0</value>
+<key>sql-pre-query</key>
+                            </entry>
+                            <entry>
+<key>compression-format</key>
+<value>NONE</value>
                             </entry>
                             <entry>
 <key>esql-output-batch-size</key>
@@ -6814,6 +6805,15 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
                             <entry>
 <key>esql-fetch-size</key>
 <value>0</value>
+                            </entry>
+                            <entry>
+<key>SQL select query</key>
+<value>delete from public.rad_downloads 
+where prod_creation_date &lt; (now() - interval '${MAX_DAYS_NIFI_LOGS} days');</value>
+                            </entry>
+                            <entry>
+<key>dbf-normalize</key>
+<value>false</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -6831,7 +6831,7 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
                         <autoTerminate>false</autoTerminate>
                         <name>success</name>
                     </relationships>
-                    <state>RUNNING</state>
+                    <state>STOPPED</state>
                     <style/>
                     <type>org.apache.nifi.processors.standard.ExecuteSQL</type>
                 </processors>
@@ -6859,9 +6859,9 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 </value>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
+<key>Max Attribute Length</key>
 <value>
-    <name>Command Arguments</name>
+    <name>Max Attribute Length</name>
 </value>
                             </entry>
                             <entry>
@@ -6871,21 +6871,9 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 </value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
-<value>
-    <name>Ignore STDIN</name>
-</value>
-                            </entry>
-                            <entry>
 <key>Working Directory</key>
 <value>
     <name>Working Directory</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Argument Delimiter</key>
-<value>
-    <name>Argument Delimiter</name>
 </value>
                             </entry>
                             <entry>
@@ -6895,9 +6883,21 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 </value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
+<key>Argument Delimiter</key>
 <value>
-    <name>Max Attribute Length</name>
+    <name>Argument Delimiter</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Ignore STDIN</key>
+<value>
+    <name>Ignore STDIN</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Command Arguments</key>
+<value>
+    <name>Command Arguments</name>
 </value>
                             </entry>
                         </descriptors>
@@ -6910,31 +6910,31 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 <value>Command Arguments Property</value>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
-<value>.;-type;f;-not;-newermt;"${delay}";-delete</value>
+<key>Max Attribute Length</key>
+<value>256</value>
                             </entry>
                             <entry>
 <key>Command Path</key>
 <value>find</value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
-<value>true</value>
-                            </entry>
-                            <entry>
 <key>Working Directory</key>
 <value>/opt/nifi/temp</value>
+                            </entry>
+                            <entry>
+<key>Output Destination Attribute</key>
                             </entry>
                             <entry>
 <key>Argument Delimiter</key>
 <value>;</value>
                             </entry>
                             <entry>
-<key>Output Destination Attribute</key>
+<key>Ignore STDIN</key>
+<value>true</value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
-<value>256</value>
+<key>Command Arguments</key>
+<value>.;-type;f;-not;-newermt;"${delay}";-delete</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -6956,7 +6956,7 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
                         <autoTerminate>true</autoTerminate>
                         <name>output stream</name>
                     </relationships>
-                    <state>RUNNING</state>
+                    <state>STOPPED</state>
                     <style>
                         <entry>
                             <key>background-color</key>
@@ -6989,9 +6989,9 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 </value>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
+<key>Max Attribute Length</key>
 <value>
-    <name>Command Arguments</name>
+    <name>Max Attribute Length</name>
 </value>
                             </entry>
                             <entry>
@@ -7001,21 +7001,9 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 </value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
-<value>
-    <name>Ignore STDIN</name>
-</value>
-                            </entry>
-                            <entry>
 <key>Working Directory</key>
 <value>
     <name>Working Directory</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Argument Delimiter</key>
-<value>
-    <name>Argument Delimiter</name>
 </value>
                             </entry>
                             <entry>
@@ -7025,9 +7013,21 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 </value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
+<key>Argument Delimiter</key>
 <value>
-    <name>Max Attribute Length</name>
+    <name>Argument Delimiter</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Ignore STDIN</key>
+<value>
+    <name>Ignore STDIN</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Command Arguments</key>
+<value>
+    <name>Command Arguments</name>
 </value>
                             </entry>
                         </descriptors>
@@ -7040,30 +7040,30 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 <value>Command Arguments Property</value>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
-<value>-fr;${arki.filepath}</value>
+<key>Max Attribute Length</key>
+<value>256</value>
                             </entry>
                             <entry>
 <key>Command Path</key>
 <value>rm</value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
-<value>true</value>
+<key>Working Directory</key>
                             </entry>
                             <entry>
-<key>Working Directory</key>
+<key>Output Destination Attribute</key>
                             </entry>
                             <entry>
 <key>Argument Delimiter</key>
 <value>;</value>
                             </entry>
                             <entry>
-<key>Output Destination Attribute</key>
+<key>Ignore STDIN</key>
+<value>true</value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
-<value>256</value>
+<key>Command Arguments</key>
+<value>-fr;${arki.filepath}</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -7085,7 +7085,7 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
                         <autoTerminate>true</autoTerminate>
                         <name>output stream</name>
                     </relationships>
-                    <state>RUNNING</state>
+                    <state>STOPPED</state>
                     <style>
                         <entry>
                             <key>background-color</key>
@@ -7112,6 +7112,12 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
                         <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                         <descriptors>
                             <entry>
+<key>log-message</key>
+<value>
+    <name>log-message</name>
+</value>
+                            </entry>
+                            <entry>
 <key>log-level</key>
 <value>
     <name>log-level</name>
@@ -7123,26 +7129,20 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
     <name>log-prefix</name>
 </value>
                             </entry>
-                            <entry>
-<key>log-message</key>
-<value>
-    <name>log-message</name>
-</value>
-                            </entry>
                         </descriptors>
                         <executionNode>ALL</executionNode>
                         <lossTolerant>false</lossTolerant>
                         <penaltyDuration>30 sec</penaltyDuration>
                         <properties>
                             <entry>
+<key>log-message</key>
+                            </entry>
+                            <entry>
 <key>log-level</key>
 <value>info</value>
                             </entry>
                             <entry>
 <key>log-prefix</key>
-                            </entry>
-                            <entry>
-<key>log-message</key>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -7156,7 +7156,7 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
                         <autoTerminate>true</autoTerminate>
                         <name>success</name>
                     </relationships>
-                    <state>RUNNING</state>
+                    <state>STOPPED</state>
                     <style>
                         <entry>
                             <key>background-color</key>
@@ -7189,15 +7189,15 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 </value>
                             </entry>
                             <entry>
-<key>Store State</key>
+<key>delay</key>
 <value>
-    <name>Store State</name>
+    <name>delay</name>
 </value>
                             </entry>
                             <entry>
-<key>Stateful Variables Initial Value</key>
+<key>Store State</key>
 <value>
-    <name>Stateful Variables Initial Value</name>
+    <name>Store State</name>
 </value>
                             </entry>
                             <entry>
@@ -7207,9 +7207,9 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 </value>
                             </entry>
                             <entry>
-<key>delay</key>
+<key>Stateful Variables Initial Value</key>
 <value>
-    <name>delay</name>
+    <name>Stateful Variables Initial Value</name>
 </value>
                             </entry>
                         </descriptors>
@@ -7221,19 +7221,19 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
 <key>Delete Attributes Expression</key>
                             </entry>
                             <entry>
-<key>Store State</key>
-<value>Do not store state</value>
+<key>delay</key>
+<value>${now():toNumber():minus(${giorni:multiply(86400000)}):format('yyyy-MM-dd HH:mm:ss')}</value>
                             </entry>
                             <entry>
-<key>Stateful Variables Initial Value</key>
+<key>Store State</key>
+<value>Do not store state</value>
                             </entry>
                             <entry>
 <key>canonical-value-lookup-cache-size</key>
 <value>100</value>
                             </entry>
                             <entry>
-<key>delay</key>
-<value>${now():toNumber():minus(${giorni:multiply(86400000)}):format('yyyy-MM-dd HH:mm:ss')}</value>
+<key>Stateful Variables Initial Value</key>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -7247,7 +7247,7 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
                         <autoTerminate>false</autoTerminate>
                         <name>success</name>
                     </relationships>
-                    <state>RUNNING</state>
+                    <state>STOPPED</state>
                     <style/>
                     <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
                 </processors>
@@ -7261,5 +7261,5 @@ where prod_creation_date &lt; (now() - interval '#{max_days_persistence_logs} da
             <variables/>
         </processGroups>
     </snippet>
-    <timestamp>10/21/2021 16:57:11 UTC</timestamp>
+    <timestamp>01/13/2022 17:34:01 UTC</timestamp>
 </template>
