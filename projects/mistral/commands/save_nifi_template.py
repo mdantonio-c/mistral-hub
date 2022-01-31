@@ -5,9 +5,8 @@ import requests
 import typer
 from controller import PROJECT_DIR, log
 from controller.app import Application, Configuration
-from restapi.config import DEFAULT_HOST
 
-NIFI_API_URI = f"http://{DEFAULT_HOST}:8070/nifi-api"
+NIFI_API_URI = "http://localhost:8070/nifi-api"
 
 
 def get_nifi_token():
