@@ -111,7 +111,11 @@ export class ArkimetService {
       case "GRIB":
         const vals = [];
         for (const k of Object.keys(i.value)) {
-          vals.push(k + "=" + i.value[k]);
+          if (typeof i.value[k] == "number") {
+            vals.push(k + "=" + i.value[k]);
+          } else if (typeof i.value[k] == "string") {
+            vals.push(k + "=" + '"' + i.value[k] + '"');
+          }
         }
         return "GRIB:" + vals.join(",");
     }

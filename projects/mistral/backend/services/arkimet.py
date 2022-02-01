@@ -3,6 +3,7 @@ import json
 import math
 import shlex
 import subprocess
+from typing import List
 
 import arkimet as arki
 import dateutil.parser
@@ -494,7 +495,12 @@ class BeArkimet:
             style = i.get("s")
             i["value"] = i.get("va", {})
         if style == "GRIB":
-            vals = [k[0] + "=" + str(k[1]) for k in i.get("value", {}).items()]
+            vals: List[str] = []
+            for k in i.get("value", {}).items():
+                if type(k[1]) == int:
+                    vals.append(f"{k[0]}={k[1]}")
+                elif type(k[1]) == str:
+                    vals.append(f'{k[0]} = "{k[1]}"')
             return "GRIB:" + ",".join(vals) if vals else ""
         else:
             raise ValueError(f"Invalid <proddef> style for {style}")
