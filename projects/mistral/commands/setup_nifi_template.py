@@ -154,7 +154,9 @@ def setup_nifi_template(
     res = r.json()
     controllers_id_list: List[str] = []
     for el in res["controllerServices"]:
-        controllers_id_list.append(el["id"])
+        if el["parentGroupId"] in process_group["identifier"]:
+            # the controller is used in the specified template
+            controllers_id_list.append(el["id"])
 
     controller_header = {**headers}
     controller_header["Content-Type"] = "application/json"
@@ -185,7 +187,6 @@ def setup_nifi_template(
             if password_params:
 
                 if controller_el["status"]["runStatus"] != "DISABLED":
-                    log.debug("entro qui")
                     # controller status has to be set to disabled in order to be allowed to modify its properties
                     status_body = {
                         "revision": controller_el["revision"],
