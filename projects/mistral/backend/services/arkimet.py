@@ -365,10 +365,17 @@ class BeArkimet:
     def get_leveltype_descriptions(level_list):
         leveltype_descriptions = []
         for lev in level_list:
-            if lev["style"] == "GRIB1" or lev["style"] == "GRIB2S":
+            if lev["style"] == "GRIB1":
                 lt_to_describe = {
                     "style": lev["style"],
                     "level_type": lev["level_type"],
+                }
+            elif lev["style"] == "GRIB2S":
+                lt_to_describe = {
+                    "style": lev["style"],
+                    "level_type": lev["level_type"],
+                    "scale": lev["scale"],
+                    "value": lev["value"],
                 }
             elif lev["style"] == "GRIB2D":
                 lt_to_describe = {
