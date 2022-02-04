@@ -385,7 +385,8 @@ class BeArkimet:
                 }
             descr = arki.formatter.level.format_level(lt_to_describe)
             formatted_descr = descr.split("-")[0].rstrip()
-            leveltype_descriptions.append(formatted_descr)
+            if formatted_descr not in leveltype_descriptions:
+                leveltype_descriptions.append(formatted_descr)
         return leveltype_descriptions
 
     @staticmethod
