@@ -147,3 +147,5 @@ for dsn in dsn_list:
         so the complete summary is already the filtered one as it does not contain
         networks considered to be filtered
     """
+
+db.disconnect()
