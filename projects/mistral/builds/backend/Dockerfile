@@ -20,6 +20,7 @@ RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 \
     && rm get-pip.py \
     && apt-get update -qq \
     && apt-get install --yes --no-install-recommends python${PYTHON_VERSION}-dev \
+    && pip3 install --upgrade --no-cache-dir setuptools==59.6.0 \
     && pip3 install --upgrade --no-cache-dir git+https://github.com/rapydo/http-api.git@$RAPYDO_VERSION
 #########################################################
 
