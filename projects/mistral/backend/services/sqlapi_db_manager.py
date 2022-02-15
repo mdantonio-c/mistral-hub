@@ -617,6 +617,7 @@ class SqlApiDbManager:
             last_hour = now.replace(minute=0, second=0, microsecond=0)
             request_count = (
                 db.session.query(db.Request)
+                .filter(db.Request.user_id == user.id)
                 .filter(db.Request.submission_date > last_hour)
                 .filter(db.Request.submission_date < now)
                 .count()

@@ -364,6 +364,10 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise ValueError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["value"] = i.get("va", {})
         vals = [k[0] + "=" + str(k[1]) for k in i.get("value", {}).items()]
         if style == "GRIB":
             return "GRIB:" + ",".join(vals) if vals else ""
@@ -382,6 +386,12 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["level_type"] = i.get("lt", "")
+            i["scale"] = i.get("sc", "")
+            i["value"] = i.get("va", "")
         if style == "GRIB1":
             lev = [str(i.get("level_type", ""))]
             l1 = str(i.get("l1", ""))
@@ -393,10 +403,10 @@ class BeArkimet:
             return "GRIB1," + ",".join(lev)
         elif style == "GRIB2S":
             lev = [str(i.get("level_type", "-")), "-", "-"]
-            sc = str(i.get("sc", ""))
+            sc = str(i.get("scale", ""))
             if sc:
                 lev[1] = sc
-            va = str(i.get("va", ""))
+            va = str(i.get("value", ""))
             if va:
                 lev[2] = va
             return "GRIB2S," + ",".join(lev)
@@ -421,6 +431,15 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["centre"] = i.get("ce", "")
+            i["subcentre"] = i.get("sc", "")
+            i["process"] = i.get("pr", "")
+            i["process_type"] = (i.get("pt", ""),)
+            i["background_process_id"] = (i.get("bi", ""),)
+            i["process_id"] = (i.get("pi", ""),)
         if style == "GRIB1":
             return "GRIB1,{ce},{sc},{pr}".format(
                 ce=i.get("centre", ""),
@@ -431,9 +450,9 @@ class BeArkimet:
             return "GRIB2,{ce},{sc},{pt},{bi},{pi}".format(
                 ce=i.get("centre", ""),
                 sc=i.get("subcentre", ""),
-                pt=i.get("pt", ""),
-                bi=i.get("bi", ""),
-                pi=i.get("pi", ""),
+                pt=i.get("process_type", ""),
+                bi=i.get("background_process_id", ""),
+                pi=i.get("process_id", ""),
             )
         elif style == "BUFR":
             return "BUFR,{ce},{sc}".format(ce=i.get("ce", ""), sc=i.get("sc", ""))
@@ -449,6 +468,10 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["value"] = i.get("va", {})
         if style == "GRIB":
             vals = [k[0] + "=" + str(k[1]) for k in i.get("value", {}).items()]
             return "GRIB:" + ",".join(vals) if vals else ""
@@ -460,6 +483,16 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["origin"] = i.get("or", "")
+            i["table"] = i.get("ta", "")
+            i["product"] = i.get("pr", "")
+            i["centre"] = i.get("ce", "")
+            i["discipline"] = i.get("di", "")
+            i["category"] = i.get("ca", "")
+            i["number"] = i.get("no", "")
         if style == "GRIB1":
             return "GRIB1,{origin},{table},{product}".format(
                 origin=i.get("origin", ""),
@@ -494,6 +527,9 @@ class BeArkimet:
     def __decode_quantity(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
+        # check if the notation is the old one or the new one
+        if "value" not in i.keys():
+            i["value"] = i.get("va", [])
         return ",".join([str(k) for k in i.get("value", [])])
 
     @staticmethod
@@ -501,6 +537,10 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["value"] = i.get("va", None)
         if style == "MINUTE":
             val = i.get("value")
             if not isinstance(val, int):
@@ -515,6 +555,9 @@ class BeArkimet:
     def __decode_task(i):
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
+        # check if the notation is the old one or the new one
+        if "value" not in i.keys():
+            i["value"] = i.get("va", "")
         return str(i.get("value", ""))
 
     @staticmethod
@@ -522,6 +565,16 @@ class BeArkimet:
         if not isinstance(i, dict):
             raise TypeError(f"Unexpected input type for <{type(i).__name__}>")
         style = i.get("style")
+        # the notation is the old one: convert the name of the keys to the new notation
+        if not style:
+            style = i.get("s")
+            i["type"] = i.get("ty", "")
+            i["unit"] = i.get("un", "")
+            i["step_unit"] = i.get("su", -1)
+            i["step_len"] = i.get("sl", -1)
+            i["stat_type"] = i.get("pt", "")
+            i["stat_unit"] = i.get("pu", "")
+            i["stat_len"] = i.get("pl", "")
         # un = {}
         if style == "GRIB1":
             un = {
@@ -584,12 +637,14 @@ class BeArkimet:
                 13: "s",
             }
             s = "Timedef"
-            if i.get("su", -1) == 255:
+            if i.get("step_unit", -1) == 255:
                 s = "".join([s, ",-"])
             else:
-                s = "".join([s, ",{}{}".format(i.get("sl"), un[i.get("su", -1)])])
-            if i.get("pt"):
-                s = "".join([s, ",{}".format(i.get("pt"))])
+                s = "".join(
+                    [s, ",{}{}".format(i.get("step_len"), un[i.get("step_unit", -1)])]
+                )
+            if i.get("stat_type"):
+                s = "".join([s, ",{}".format(i.get("stat_type"))])
             else:
                 """
                 If i.pt is not defined, then the stat type is 255 and i.pl, i.pu are not defined too
@@ -605,8 +660,10 @@ class BeArkimet:
             If stat unit is 255, then proclen = "-"
             (see arki / types / timerange.cc:1408).
             """
-            if i.get("pu", -1):
-                s = "".join([s, ",{}{}".format(i.get("pl"), un[i.get("su", -1)])])
+            if i.get("stat_unit", -1):
+                s = "".join(
+                    [s, ",{}{}".format(i.get("stat_len"), un[i.get("stat_unit", -1)])]
+                )
             else:
                 s = "".join([s, ",-"])
             return s
