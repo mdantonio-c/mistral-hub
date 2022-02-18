@@ -6,13 +6,16 @@ import typer
 from controller import log
 from controller.app import Application, Configuration
 
-if Configuration.production:
-    NIFI_API_URI = "https://localhost:8070/nifi-api"
-else:
-    NIFI_API_URI = "http://localhost:8070/nifi-api"
+
+def get_nifi_api_uri():
+    if Configuration.production:
+        return "https://localhost:8070/nifi-api"
+    else:
+        return "http://localhost:8070/nifi-api"
 
 
 def get_nifi_token():
+    NIFI_API_URI = get_nifi_api_uri()
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
         "Host": Configuration.hostname,
@@ -46,7 +49,7 @@ def setup_nifi_template(
         # Application.serialize_parameter("--force", force, IF=force),
     )
     Application.get_controller().controller_init()
-
+    NIFI_API_URI = get_nifi_api_uri()
     # check if an access token is needed
     access_url = f"{NIFI_API_URI}/access/config"
     headers = {"Host": Configuration.hostname}
