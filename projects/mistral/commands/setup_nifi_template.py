@@ -30,7 +30,7 @@ def get_nifi_token():
             f"Error in accessing Nifi API: Status: {r.status_code}, Response: {r.text}"
         )
         return None
-    return r.text()
+    return r.text
 
 
 @Application.app.command(help="set up an istanced nifi template")
