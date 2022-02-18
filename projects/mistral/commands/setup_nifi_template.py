@@ -4,18 +4,24 @@ from typing import Any, Dict, List, Optional
 import requests
 import typer
 from controller import log
-from controller.app import Application
+from controller.app import Application, Configuration
 
-NIFI_API_URI = "http://localhost:8070/nifi-api"
+if Configuration.production:
+    NIFI_API_URI = "https://localhost:8070/nifi-api"
+else:
+    NIFI_API_URI = "http://localhost:8070/nifi-api"
 
 
 def get_nifi_token():
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Host": Configuration.hostname,
+    }
     token_url = f"{NIFI_API_URI}/access/token"
     username = Application.env.get("NIFI_USERNAME")
     pw = Application.env.get("NIFI_PASSWORD")
     params = f"username={username},&password={pw}"
-    r = requests.post(token_url, data=params, headers=headers)
+    r = requests.post(token_url, data=params, headers=headers, verify=False)
     if r.status_code != 200:
         log.error(
             f"Error in accessing Nifi API: Status: {r.status_code}, Response: {r.text}"
@@ -43,25 +49,25 @@ def setup_nifi_template(
 
     # check if an access token is needed
     access_url = f"{NIFI_API_URI}/access/config"
-    r = requests.get(access_url)
+    headers = {"Host": Configuration.hostname}
+    r = requests.get(access_url, headers=headers, verify=False)
     if r.status_code != 200:
         log.error(
             f"Error in accessing Nifi API: Status: {r.status_code}, Response: {r.text}"
         )
         return
     res = r.json()
-    headers = {}
     if res["config"]["supportsLogin"] is True:
         token = get_nifi_token()
         if not token:
             log.error("Fail in getting the access token")
             return
-        headers = {"Authorization": f"Bearer {token}"}
+        headers["Authorization"] = f"Bearer {token}"
         log.info("Access token successfully retrieved")
 
     # get the process-group id of the selected template
     resources_url = f"{NIFI_API_URI}/resources"
-    r = requests.get(resources_url, headers=headers)
+    r = requests.get(resources_url, headers=headers, verify=False)
     if r.status_code != 200:
         log.error(
             f"Error in accessing Nifi API: Status: {r.status_code}, Response: {r.text}"
@@ -80,7 +86,7 @@ def setup_nifi_template(
     if context:
         # get all the parameter contexts
         context_url = f"{NIFI_API_URI}/flow/parameter-contexts"
-        r = requests.get(context_url, headers=headers)
+        r = requests.get(context_url, headers=headers, verify=False)
         if r.status_code != 200:
             log.error(
                 f"Error in accessing parameter contexts list: Status: {r.status_code}, Response: {r.text}"
@@ -99,7 +105,7 @@ def setup_nifi_template(
         process_group_entities: List[Dict[str, Any]] = []
         # get the process group entity of the template main process group
         p_group_url = f"{NIFI_API_URI}{process_group['identifier']}"
-        r = requests.get(p_group_url, headers=headers)
+        r = requests.get(p_group_url, headers=headers, verify=False)
         if r.status_code != 200:
             log.error(
                 f"Error in getting process group entity of the tempolate process group: Status: {r.status_code}, Response: {r.text}"
@@ -111,7 +117,7 @@ def setup_nifi_template(
         process_groups_url = (
             f"{NIFI_API_URI}{process_group['identifier']}/process-groups"
         )
-        r = requests.get(process_groups_url, headers=headers)
+        r = requests.get(process_groups_url, headers=headers, verify=False)
         if r.status_code != 200:
             log.error(
                 f"Error in accessing process group children list: Status: {r.status_code}, Response: {r.text}"
@@ -130,7 +136,9 @@ def setup_nifi_template(
             body["component"]["parameterContext"] = {}
             body["component"]["parameterContext"]["id"] = context_el["id"]
             data = json.dumps(body)
-            r = requests.put(p_group["uri"], data=data, headers=p_group_header)
+            r = requests.put(
+                p_group["uri"], data=data, headers=p_group_header, verify=False
+            )
             if r.status_code != 200:
                 log.error(
                     f"Error in setting the parameter context: Status: {r.status_code}, Response: {r.text}"
@@ -145,7 +153,7 @@ def setup_nifi_template(
     get_controller_url = (
         f"{NIFI_API_URI}/flow{process_group['identifier']}/controller-services"
     )
-    r = requests.get(get_controller_url, headers=headers)
+    r = requests.get(get_controller_url, headers=headers, verify=False)
     if r.status_code != 200:
         log.error(
             f"Error in accessing template controller list: Status: {r.status_code}, Response: {r.text}"
@@ -163,7 +171,7 @@ def setup_nifi_template(
     for c_id in controllers_id_list:
         # check the status
         controller_url = f"{NIFI_API_URI}/controller-services/{c_id}"
-        r = requests.get(controller_url, headers=headers)
+        r = requests.get(controller_url, headers=headers, verify=False)
         if r.status_code != 200:
             log.error(
                 f"Error in accessing the controller element: Status: {r.status_code}, Response: {r.text}"
@@ -197,6 +205,7 @@ def setup_nifi_template(
                         status_url,
                         data=json.dumps(status_body),
                         headers=controller_header,
+                        verify=False,
                     )
                     if dis_r.status_code != 200:
                         log.error(
@@ -210,6 +219,7 @@ def setup_nifi_template(
                     controller_url,
                     data=json.dumps(controller_el),
                     headers=controller_header,
+                    verify=False,
                 )
                 if r.status_code != 200:
                     log.error(
@@ -233,7 +243,10 @@ def setup_nifi_template(
             status_body = {"revision": controller_el["revision"], "state": "ENABLED"}
             status_url = f"{NIFI_API_URI}/controller-services/{c_id}/run-status"
             r = requests.put(
-                status_url, data=json.dumps(status_body), headers=controller_header
+                status_url,
+                data=json.dumps(status_body),
+                headers=controller_header,
+                verify=False,
             )
             if r.status_code != 200:
                 log.error(
@@ -245,7 +258,7 @@ def setup_nifi_template(
 
     # check if there are remaining invalid processors
     p_group_url = f"{NIFI_API_URI}{process_group['identifier']}"
-    r = requests.get(p_group_url, headers=headers)
+    r = requests.get(p_group_url, headers=headers, verify=False)
     if r.status_code != 200:
         log.error(
             f"Error in getting process group entity of the tempolate process group: Status: {r.status_code}, Response: {r.text}"
@@ -257,7 +270,7 @@ def setup_nifi_template(
         log.info(f"{res['invalidCount']} processors are invalid")
         # get the processor-groups elements
         flow_url = f"{NIFI_API_URI}/flow{process_group['identifier']}"
-        flow_r = requests.get(flow_url, headers=headers)
+        flow_r = requests.get(flow_url, headers=headers, verify=False)
         if flow_r.status_code != 200:
             log.error(
                 f"Error in getting process group flow of the tempolate process group: Status: {flow_r.status_code}, Response: {flow_r.text}"
@@ -274,7 +287,7 @@ def setup_nifi_template(
                 f"{len(processors_to_check)} found in the main process group. Check for more invalid processors in children process groups."
             )
             for p_group in flow_res["processGroupFlow"]["flow"]["processGroups"]:
-                p_r = requests.get(p_group["uri"], headers=headers)
+                p_r = requests.get(p_group["uri"], headers=headers, verify=False)
                 if p_r.status_code != 200:
                     log.error(
                         f"Error in getting process group children: Status: {p_r.status_code}, Response: {p_r.text}"
@@ -284,7 +297,7 @@ def setup_nifi_template(
                 if p_res["invalidCount"] > 0:
                     # get the processor-groups elements
                     p_flow_url = f"{NIFI_API_URI}/flow/process-groups/{p_group['id']}"
-                    p_flow_r = requests.get(p_flow_url, headers=headers)
+                    p_flow_r = requests.get(p_flow_url, headers=headers, verify=False)
                     if p_flow_r.status_code != 200:
                         log.error(
                             f"Error in getting process group flow children of the template process group: Status: {p_flow_r.status_code}, Response: {p_flow_r.text}"
@@ -304,7 +317,7 @@ def setup_nifi_template(
         processor_header["Content-Type"] = "application/json"
         for p_id in processors_to_check:
             processor_url = f"{NIFI_API_URI}/processors/{p_id}"
-            r = requests.get(processor_url, headers=headers)
+            r = requests.get(processor_url, headers=headers, verify=False)
             if r.status_code != 200:
                 log.error(
                     f"Error in accessing the processor element: Status: {r.status_code}, Response: {r.text}"
@@ -329,6 +342,7 @@ def setup_nifi_template(
                     processor_url,
                     data=json.dumps(processor_el),
                     headers=processor_header,
+                    verify=False,
                 )
                 if r.status_code != 200:
                     log.error(
@@ -339,7 +353,7 @@ def setup_nifi_template(
                     f"Passwords for {processor_el['component']['name']} successfully updated"
                 )
         # check if the problem is solved
-        r = requests.get(p_group_url, headers=headers)
+        r = requests.get(p_group_url, headers=headers, verify=False)
         if r.status_code != 200:
             log.error(
                 f"Error in getting process group entity of the tempolate process group: Status: {r.status_code}, Response: {r.text}"

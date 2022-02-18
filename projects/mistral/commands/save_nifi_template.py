@@ -6,16 +6,22 @@ import typer
 from controller import PROJECT_DIR, log
 from controller.app import Application, Configuration
 
-NIFI_API_URI = "http://localhost:8070/nifi-api"
+if Configuration.production:
+    NIFI_API_URI = "https://localhost:8070/nifi-api"
+else:
+    NIFI_API_URI = "http://localhost:8070/nifi-api"
 
 
 def get_nifi_token():
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Host": Configuration.hostname,
+    }
     token_url = f"{NIFI_API_URI}/access/token"
     username = Application.env.get("NIFI_USERNAME")
     pw = Application.env.get("NIFI_PASSWORD")
     params = f"username={username},&password={pw}"
-    r = requests.post(token_url, data=params, headers=headers)
+    r = requests.post(token_url, data=params, headers=headers, verify=False)
     if r.status_code != 200:
         log.error(
             f"Error in accessing Nifi API: status {r.status_code}, response {r.text}"
@@ -41,25 +47,25 @@ def save_nifi_template(
 
     # check if an access token is needed
     access_url = f"{NIFI_API_URI}/access/config"
-    r = requests.get(access_url)
+    headers = {"Host": Configuration.hostname}
+    r = requests.get(access_url, headers=headers, verify=False)
     if r.status_code != 200:
         log.error(
             f"Error in accessing Nifi API: status {r.status_code}, response {r.text}"
         )
         return
     res = r.json()
-    headers = {}
     if res["config"]["supportsLogin"] is True:
         token = get_nifi_token()
         if not token:
             log.error("Fail in getting the access token")
             return
-        headers = {"Authorization": f"Bearer {token}"}
+        headers["Authorization"] = f"Bearer {token}"
         log.info("Access token successfully retrieved")
 
     # get the template list
     resources_url = f"{NIFI_API_URI}/resources"
-    r = requests.get(resources_url, headers=headers)
+    r = requests.get(resources_url, headers=headers, verify=False)
     if r.status_code != 200:
         log.error(
             f"Error in accessing Nifi API: status {r.status_code}, response {r.text}"
@@ -92,7 +98,7 @@ def save_nifi_template(
         export_file = Path(template_dir, f"{filename}.xml")
         # download the template
         download_url = f'{NIFI_API_URI}{t["identifier"]}/download'
-        t_request = requests.get(download_url, headers=headers)
+        t_request = requests.get(download_url, headers=headers, verify=False)
         # save the template
         with open(export_file, "w") as fileout:
             fileout.write(t_request.text)
