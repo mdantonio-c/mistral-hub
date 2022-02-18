@@ -25,7 +25,7 @@ def get_nifi_token():
     pw = Application.env.get("NIFI_PASSWORD")
     params = f"username={username}&password={pw}"
     r = requests.post(token_url, data=params, headers=headers, verify=False)
-    if r.status_code != 200:
+    if r.status_code != 201:
         log.error(
             f"Error in accessing Nifi API: status {r.status_code}, response {r.text}"
         )
