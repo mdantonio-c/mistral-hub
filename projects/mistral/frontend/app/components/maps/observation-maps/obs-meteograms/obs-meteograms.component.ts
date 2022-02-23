@@ -1,4 +1,4 @@
-import { Component, AfterViewInit } from "@angular/core";
+import { Component } from "@angular/core";
 import {
   ObsData,
   Observation,
@@ -10,7 +10,8 @@ import {
   DescriptionDict,
 } from "@app/types";
 import { ObsService } from "../services/obs.service";
-
+import { tap, delay, catchError, finalize } from "rxjs/operators";
+import { throwError } from "rxjs";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
@@ -22,12 +23,12 @@ const STATION_NAME_CODE = "B01019";
   templateUrl: "./obs-meteograms.component.html",
   styleUrls: ["./obs-meteograms.component.css"],
 })
-export class ObsMeteogramsComponent implements AfterViewInit {
+export class ObsMeteogramsComponent {
   filter: ObsFilter;
   multi: MultiStationDataSeries[];
   report: Observation[];
   descriptions: DescriptionDict;
-  loading: boolean = true;
+  loading: boolean = false;
 
   // product info
   varcode: string;
@@ -46,10 +47,6 @@ export class ObsMeteogramsComponent implements AfterViewInit {
     private notify: NotificationService,
     private spinner: NgxSpinnerService
   ) {}
-
-  ngAfterViewInit(): void {
-    this.loading = false;
-  }
 
   getUserUnit(varcode: string) {
     return ObsService.showUserUnit(varcode, this.unit);
@@ -83,13 +80,17 @@ export class ObsMeteogramsComponent implements AfterViewInit {
   }
 
   updateChart(filter: ObsFilter, update = false) {
+    console.log("update the chart");
     this.filter = filter;
     this.loading = true;
-    setTimeout(() => this.spinner.show(), 0);
+    this.spinner.show();
     this.obsService
       .getData(this.filter, update)
-      .subscribe(
-        (response: ObservationResponse) => {
+      .pipe(
+        // delay output by 1 sec
+        // I don't know why but at the moment this does the trick
+        delay(1000),
+        tap((response: ObservationResponse) => {
           let data: Observation[] = response.data;
           this.descriptions = response.descr;
           this.report = data;
@@ -102,15 +103,18 @@ export class ObsMeteogramsComponent implements AfterViewInit {
           }
           let multi = this.normalize(data);
           Object.assign(this, { multi });
-        },
-        (error) => {
-          this.notify.showError(error);
-        }
+        }),
+        catchError((err) => {
+          console.error("Error loading data", err);
+          this.notify.showError(err);
+          return throwError(err);
+        }),
+        finalize(() => {
+          this.spinner.hide();
+          this.loading = false;
+        })
       )
-      .add(() => {
-        setTimeout(() => this.spinner.hide(), 0);
-        this.loading = false;
-      });
+      .subscribe();
   }
 
   private normalize(data: Observation[]): MultiStationDataSeries[] {
