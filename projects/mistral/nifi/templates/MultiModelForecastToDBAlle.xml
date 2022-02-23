@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.3">
-    <description>Template used for v 0.4.4</description>
+    <description>added monitor activity processor</description>
     <groupId>11985e5f-017b-1000-4ba2-19391f864aad</groupId>
-    <name>INGEST Multi-model Forecast data to DBALLE - v 0.4.4</name>
+    <name>INGEST Multi-model Forecast data to DBALLE - 02-23-2022</name>
     <snippet>
         <processGroups>
             <id>214fcfc9-dfb8-3895-0000-000000000000</id>
@@ -13,6 +13,31 @@
             </position>
             <comments></comments>
             <contents>
+                <connections>
+                    <id>0d652a84-adef-3da4-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>7c02ba6b-5a5b-3875-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>inactive</selectedRelationships>
+                    <source>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>06d2bf42-6da4-3af1-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
                 <connections>
                     <id>4846f113-e6cd-3fd4-0000-000000000000</id>
                     <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
@@ -114,6 +139,31 @@
                     <zIndex>0</zIndex>
                 </connections>
                 <connections>
+                    <id>a5af58c7-8d95-3a94-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>95ae047a-727e-34eb-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>success</selectedRelationships>
+                    <source>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>7c02ba6b-5a5b-3875-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
                     <id>a89276f5-b354-3fdd-0000-000000000000</id>
                     <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
                     <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
@@ -134,6 +184,31 @@
                     <source>
                         <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
                         <id>8704f35f-a20a-3c44-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>aa202944-87a6-3394-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>b4d83cb7-7eff-3045-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>success</selectedRelationships>
+                    <source>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>95ae047a-727e-34eb-0000-000000000000</id>
                         <type>PROCESSOR</type>
                     </source>
                     <zIndex>0</zIndex>
@@ -164,6 +239,56 @@
                     <zIndex>0</zIndex>
                 </connections>
                 <connections>
+                    <id>c506add6-7b6c-3767-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>ebd3547c-37df-3a76-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>activity.restored</selectedRelationships>
+                    <source>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>06d2bf42-6da4-3af1-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>caa4884b-e012-334f-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>95ae047a-727e-34eb-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>success</selectedRelationships>
+                    <source>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>ebd3547c-37df-3a76-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
                     <id>f168496c-116d-3c6c-0000-000000000000</id>
                     <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
                     <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
@@ -184,6 +309,31 @@
                     <source>
                         <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
                         <id>6fbdbc1b-c024-395a-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>f7ffd9b5-fa8a-36b9-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>06d2bf42-6da4-3af1-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>success</selectedRelationships>
+                    <source>
+                        <groupId>214fcfc9-dfb8-3895-0000-000000000000</groupId>
+                        <id>8704f35f-a20a-3c44-0000-000000000000</id>
                         <type>PROCESSOR</type>
                     </source>
                     <zIndex>0</zIndex>
@@ -224,27 +374,9 @@
                     <comments></comments>
                     <descriptors>
                         <entry>
-                            <key>Truststore Type</key>
+                            <key>Keystore Filename</key>
                             <value>
-<name>Truststore Type</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>SSL Protocol</key>
-                            <value>
-<name>SSL Protocol</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>Keystore Type</key>
-                            <value>
-<name>Keystore Type</name>
-                            </value>
-                        </entry>
-                        <entry>
-                            <key>Truststore Filename</key>
-                            <value>
-<name>Truststore Filename</name>
+<name>Keystore Filename</name>
                             </value>
                         </entry>
                         <entry>
@@ -260,15 +392,33 @@
                             </value>
                         </entry>
                         <entry>
+                            <key>Keystore Type</key>
+                            <value>
+<name>Keystore Type</name>
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>Truststore Filename</key>
+                            <value>
+<name>Truststore Filename</name>
+                            </value>
+                        </entry>
+                        <entry>
                             <key>Truststore Password</key>
                             <value>
 <name>Truststore Password</name>
                             </value>
                         </entry>
                         <entry>
-                            <key>Keystore Filename</key>
+                            <key>Truststore Type</key>
                             <value>
-<name>Keystore Filename</name>
+<name>Truststore Type</name>
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>SSL Protocol</key>
+                            <value>
+<name>SSL Protocol</name>
                             </value>
                         </entry>
                     </descriptors>
@@ -276,12 +426,13 @@
                     <persistsState>false</persistsState>
                     <properties>
                         <entry>
-                            <key>Truststore Type</key>
-                            <value>JKS</value>
+                            <key>Keystore Filename</key>
                         </entry>
                         <entry>
-                            <key>SSL Protocol</key>
-                            <value>TLS</value>
+                            <key>Keystore Password</key>
+                        </entry>
+                        <entry>
+                            <key>key-password</key>
                         </entry>
                         <entry>
                             <key>Keystore Type</key>
@@ -291,21 +442,153 @@
                             <value>${SSL_TRUSTORE_FILENAME}</value>
                         </entry>
                         <entry>
-                            <key>Keystore Password</key>
-                        </entry>
-                        <entry>
-                            <key>key-password</key>
-                        </entry>
-                        <entry>
                             <key>Truststore Password</key>
                         </entry>
                         <entry>
-                            <key>Keystore Filename</key>
+                            <key>Truststore Type</key>
+                            <value>JKS</value>
+                        </entry>
+                        <entry>
+                            <key>SSL Protocol</key>
+                            <value>TLS</value>
                         </entry>
                     </properties>
                     <state>ENABLED</state>
                     <type>org.apache.nifi.ssl.StandardRestrictedSSLContextService</type>
                 </controllerServices>
+                <labels>
+                    <id>feed1508-00cb-3ef7-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>728.0</x>
+                        <y>424.0</y>
+                    </position>
+                    <height>928.0</height>
+                    <label>Monitor</label>
+                    <style>
+                        <entry>
+                            <key>font-size</key>
+                            <value>16px</value>
+                        </entry>
+                    </style>
+                    <width>648.0</width>
+                </labels>
+                <processors>
+                    <id>06d2bf42-6da4-3af1-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>872.0</x>
+                        <y>1200.0</y>
+                    </position>
+                    <bundle>
+                        <artifact>nifi-standard-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.14.0</version>
+                    </bundle>
+                    <config>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>Threshold Duration</key>
+<value>
+    <name>Threshold Duration</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Continually Send Messages</key>
+<value>
+    <name>Continually Send Messages</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Inactivity Message</key>
+<value>
+    <name>Inactivity Message</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Activity Restored Message</key>
+<value>
+    <name>Activity Restored Message</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Copy Attributes</key>
+<value>
+    <name>Copy Attributes</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Monitoring Scope</key>
+<value>
+    <name>Monitoring Scope</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Reporting Node</key>
+<value>
+    <name>Reporting Node</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>Threshold Duration</key>
+<value>1440 min</value>
+                            </entry>
+                            <entry>
+<key>Continually Send Messages</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>Inactivity Message</key>
+<value>Lacking activity as of time: ${now():format('yyyy/MM/dd HH:mm:ss')}; flow has been inactive for ${inactivityDurationMillis:toNumber():divide(60000)} minutes</value>
+                            </entry>
+                            <entry>
+<key>Activity Restored Message</key>
+<value>Activity restored at time: ${now():format('yyyy/MM/dd HH:mm:ss')} after being inactive for ${inactivityDurationMillis:toNumber():divide(60000)} minutes</value>
+                            </entry>
+                            <entry>
+<key>Copy Attributes</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>Monitoring Scope</key>
+<value>node</value>
+                            </entry>
+                            <entry>
+<key>Reporting Node</key>
+<value>all</value>
+                            </entry>
+                        </properties>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>MonitorActivity - Consume AMQP</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>activity.restored</name>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>inactive</name>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>success</name>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.standard.MonitorActivity</type>
+                </processors>
                 <processors>
                     <id>1529f785-0fbd-325b-0000-000000000000</id>
                     <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
@@ -324,63 +607,9 @@
                         <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                         <descriptors>
                             <entry>
-<key>Keep Source File</key>
-<value>
-    <name>Keep Source File</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Minimum File Age</key>
-<value>
-    <name>Minimum File Age</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Polling Interval</key>
-<value>
-    <name>Polling Interval</name>
-</value>
-                            </entry>
-                            <entry>
 <key>Input Directory</key>
 <value>
     <name>Input Directory</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Maximum File Age</key>
-<value>
-    <name>Maximum File Age</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Batch Size</key>
-<value>
-    <name>Batch Size</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Maximum File Size</key>
-<value>
-    <name>Maximum File Size</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Minimum File Size</key>
-<value>
-    <name>Minimum File Size</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Ignore Hidden Files</key>
-<value>
-    <name>Ignore Hidden Files</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Recurse Subdirectories</key>
-<value>
-    <name>Recurse Subdirectories</name>
 </value>
                             </entry>
                             <entry>
@@ -395,48 +624,68 @@
     <name>Path Filter</name>
 </value>
                             </entry>
+                            <entry>
+<key>Batch Size</key>
+<value>
+    <name>Batch Size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Keep Source File</key>
+<value>
+    <name>Keep Source File</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Recurse Subdirectories</key>
+<value>
+    <name>Recurse Subdirectories</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Polling Interval</key>
+<value>
+    <name>Polling Interval</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Ignore Hidden Files</key>
+<value>
+    <name>Ignore Hidden Files</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Minimum File Age</key>
+<value>
+    <name>Minimum File Age</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Maximum File Age</key>
+<value>
+    <name>Maximum File Age</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Minimum File Size</key>
+<value>
+    <name>Minimum File Size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Maximum File Size</key>
+<value>
+    <name>Maximum File Size</name>
+</value>
+                            </entry>
                         </descriptors>
                         <executionNode>ALL</executionNode>
                         <lossTolerant>false</lossTolerant>
                         <penaltyDuration>30 sec</penaltyDuration>
                         <properties>
                             <entry>
-<key>Keep Source File</key>
-<value>true</value>
-                            </entry>
-                            <entry>
-<key>Minimum File Age</key>
-<value>0 sec</value>
-                            </entry>
-                            <entry>
-<key>Polling Interval</key>
-<value>0 sec</value>
-                            </entry>
-                            <entry>
 <key>Input Directory</key>
 <value>/opt/nifi/tests</value>
-                            </entry>
-                            <entry>
-<key>Maximum File Age</key>
-                            </entry>
-                            <entry>
-<key>Batch Size</key>
-<value>10</value>
-                            </entry>
-                            <entry>
-<key>Maximum File Size</key>
-                            </entry>
-                            <entry>
-<key>Minimum File Size</key>
-<value>0 B</value>
-                            </entry>
-                            <entry>
-<key>Ignore Hidden Files</key>
-<value>true</value>
-                            </entry>
-                            <entry>
-<key>Recurse Subdirectories</key>
-<value>false</value>
                             </entry>
                             <entry>
 <key>File Filter</key>
@@ -444,6 +693,40 @@
                             </entry>
                             <entry>
 <key>Path Filter</key>
+                            </entry>
+                            <entry>
+<key>Batch Size</key>
+<value>10</value>
+                            </entry>
+                            <entry>
+<key>Keep Source File</key>
+<value>true</value>
+                            </entry>
+                            <entry>
+<key>Recurse Subdirectories</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>Polling Interval</key>
+<value>0 sec</value>
+                            </entry>
+                            <entry>
+<key>Ignore Hidden Files</key>
+<value>true</value>
+                            </entry>
+                            <entry>
+<key>Minimum File Age</key>
+<value>0 sec</value>
+                            </entry>
+                            <entry>
+<key>Maximum File Age</key>
+                            </entry>
+                            <entry>
+<key>Minimum File Size</key>
+<value>0 B</value>
+                            </entry>
+                            <entry>
+<key>Maximum File Size</key>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -491,15 +774,15 @@
 </value>
                             </entry>
                             <entry>
-<key>canonical-value-lookup-cache-size</key>
-<value>
-    <name>canonical-value-lookup-cache-size</name>
-</value>
-                            </entry>
-                            <entry>
 <key>Stateful Variables Initial Value</key>
 <value>
     <name>Stateful Variables Initial Value</name>
+</value>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>
+    <name>canonical-value-lookup-cache-size</name>
 </value>
                             </entry>
                         </descriptors>
@@ -515,11 +798,11 @@
 <value>Do not store state</value>
                             </entry>
                             <entry>
-<key>canonical-value-lookup-cache-size</key>
-<value>100</value>
+<key>Stateful Variables Initial Value</key>
                             </entry>
                             <entry>
-<key>Stateful Variables Initial Value</key>
+<key>canonical-value-lookup-cache-size</key>
+<value>100</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -561,9 +844,9 @@
 </value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
+<key>Command Arguments</key>
 <value>
-    <name>Max Attribute Length</name>
+    <name>Command Arguments</name>
 </value>
                             </entry>
                             <entry>
@@ -573,15 +856,15 @@
 </value>
                             </entry>
                             <entry>
-<key>Working Directory</key>
+<key>Ignore STDIN</key>
 <value>
-    <name>Working Directory</name>
+    <name>Ignore STDIN</name>
 </value>
                             </entry>
                             <entry>
-<key>Output Destination Attribute</key>
+<key>Working Directory</key>
 <value>
-    <name>Output Destination Attribute</name>
+    <name>Working Directory</name>
 </value>
                             </entry>
                             <entry>
@@ -591,15 +874,15 @@
 </value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
+<key>Output Destination Attribute</key>
 <value>
-    <name>Ignore STDIN</name>
+    <name>Output Destination Attribute</name>
 </value>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
+<key>Max Attribute Length</key>
 <value>
-    <name>Command Arguments</name>
+    <name>Max Attribute Length</name>
 </value>
                             </entry>
                         </descriptors>
@@ -612,32 +895,32 @@
 <value>Command Arguments Property</value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
-<value>256</value>
+<key>Command Arguments</key>
+<value>obs/dpc_bufr2dballe.py;</value>
                             </entry>
                             <entry>
 <key>Command Path</key>
 <value>python3</value>
                             </entry>
                             <entry>
-<key>Working Directory</key>
-<value>/home/nifi/ingest/</value>
+<key>Ignore STDIN</key>
+<value>false</value>
                             </entry>
                             <entry>
-<key>Output Destination Attribute</key>
-<value>log</value>
+<key>Working Directory</key>
+<value>/home/nifi/ingest/</value>
                             </entry>
                             <entry>
 <key>Argument Delimiter</key>
 <value>;</value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
-<value>false</value>
+<key>Output Destination Attribute</key>
+<value>log</value>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
-<value>obs/dpc_bufr2dballe.py;</value>
+<key>Max Attribute Length</key>
+<value>256</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -661,6 +944,92 @@
                     <type>org.apache.nifi.processors.standard.ExecuteStreamCommand</type>
                 </processors>
                 <processors>
+                    <id>7c02ba6b-5a5b-3875-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>632.0</x>
+                        <y>952.0</y>
+                    </position>
+                    <bundle>
+                        <artifact>nifi-update-attribute-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.14.0</version>
+                    </bundle>
+                    <config>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>Delete Attributes Expression</key>
+<value>
+    <name>Delete Attributes Expression</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Store State</key>
+<value>
+    <name>Store State</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Stateful Variables Initial Value</key>
+<value>
+    <name>Stateful Variables Initial Value</name>
+</value>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>
+    <name>canonical-value-lookup-cache-size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>alert_code</key>
+<value>
+    <name>alert_code</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>Delete Attributes Expression</key>
+                            </entry>
+                            <entry>
+<key>Store State</key>
+<value>Do not store state</value>
+                            </entry>
+                            <entry>
+<key>Stateful Variables Initial Value</key>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>100</value>
+                            </entry>
+                            <entry>
+<key>alert_code</key>
+<value>2</value>
+                            </entry>
+                        </properties>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>Add Alert code for "critical"</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>success</name>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
+                </processors>
+                <processors>
                     <id>8704f35f-a20a-3c44-0000-000000000000</id>
                     <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
                     <position>
@@ -678,46 +1047,9 @@
                         <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                         <descriptors>
                             <entry>
-<key>ssl-context-service</key>
+<key>Queue</key>
 <value>
-    <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
-    <name>ssl-context-service</name>
-</value>
-                            </entry>
-                            <entry>
-<key>User Name</key>
-<value>
-    <name>User Name</name>
-</value>
-                            </entry>
-                            <entry>
-<key>ssl-client-auth</key>
-<value>
-    <name>ssl-client-auth</name>
-</value>
-                            </entry>
-                            <entry>
-<key>batch.size</key>
-<value>
-    <name>batch.size</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Port</key>
-<value>
-    <name>Port</name>
-</value>
-                            </entry>
-                            <entry>
-<key>Brokers</key>
-<value>
-    <name>Brokers</name>
-</value>
-                            </entry>
-                            <entry>
-<key>cert-authentication</key>
-<value>
-    <name>cert-authentication</name>
+    <name>Queue</name>
 </value>
                             </entry>
                             <entry>
@@ -727,15 +1059,27 @@
 </value>
                             </entry>
                             <entry>
+<key>batch.size</key>
+<value>
+    <name>batch.size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Brokers</key>
+<value>
+    <name>Brokers</name>
+</value>
+                            </entry>
+                            <entry>
 <key>Host Name</key>
 <value>
     <name>Host Name</name>
 </value>
                             </entry>
                             <entry>
-<key>AMQP Version</key>
+<key>Port</key>
 <value>
-    <name>AMQP Version</name>
+    <name>Port</name>
 </value>
                             </entry>
                             <entry>
@@ -745,9 +1089,9 @@
 </value>
                             </entry>
                             <entry>
-<key>Queue</key>
+<key>User Name</key>
 <value>
-    <name>Queue</name>
+    <name>User Name</name>
 </value>
                             </entry>
                             <entry>
@@ -756,59 +1100,84 @@
     <name>Password</name>
 </value>
                             </entry>
+                            <entry>
+<key>AMQP Version</key>
+<value>
+    <name>AMQP Version</name>
+</value>
+                            </entry>
+                            <entry>
+<key>ssl-context-service</key>
+<value>
+    <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
+    <name>ssl-context-service</name>
+</value>
+                            </entry>
+                            <entry>
+<key>cert-authentication</key>
+<value>
+    <name>cert-authentication</name>
+</value>
+                            </entry>
+                            <entry>
+<key>ssl-client-auth</key>
+<value>
+    <name>ssl-client-auth</name>
+</value>
+                            </entry>
                         </descriptors>
                         <executionNode>ALL</executionNode>
                         <lossTolerant>false</lossTolerant>
                         <penaltyDuration>30 sec</penaltyDuration>
                         <properties>
                             <entry>
-<key>ssl-context-service</key>
-<value>b26c6211-69ca-347a-0000-000000000000</value>
-                            </entry>
-                            <entry>
-<key>User Name</key>
-<value>${RABBITMQ_USER}</value>
-                            </entry>
-                            <entry>
-<key>ssl-client-auth</key>
-<value>REQUIRED</value>
-                            </entry>
-                            <entry>
-<key>batch.size</key>
-<value>100</value>
-                            </entry>
-                            <entry>
-<key>Port</key>
-<value>${RABBITMQ_PORT}</value>
-                            </entry>
-                            <entry>
-<key>Brokers</key>
-                            </entry>
-                            <entry>
-<key>cert-authentication</key>
-<value>false</value>
+<key>Queue</key>
+<value>arpap</value>
                             </entry>
                             <entry>
 <key>auto.acknowledge</key>
 <value>false</value>
                             </entry>
                             <entry>
+<key>batch.size</key>
+<value>100</value>
+                            </entry>
+                            <entry>
+<key>Brokers</key>
+                            </entry>
+                            <entry>
 <key>Host Name</key>
 <value>${RABBITMQ_HOST}</value>
+                            </entry>
+                            <entry>
+<key>Port</key>
+<value>${RABBITMQ_PORT}</value>
+                            </entry>
+                            <entry>
+<key>Virtual Host</key>
+                            </entry>
+                            <entry>
+<key>User Name</key>
+<value>${RABBITMQ_USER}</value>
+                            </entry>
+                            <entry>
+<key>Password</key>
                             </entry>
                             <entry>
 <key>AMQP Version</key>
 <value>0.9.1</value>
                             </entry>
                             <entry>
-<key>Virtual Host</key>
+<key>ssl-context-service</key>
+<value>b26c6211-69ca-347a-0000-000000000000</value>
                             </entry>
                             <entry>
-<key>Queue</key>
-<value>arpap</value>
+<key>cert-authentication</key>
+<value>false</value>
                             </entry>
                             <entry>
-<key>Password</key>
+<key>ssl-client-auth</key>
+<value>REQUIRED</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -861,15 +1230,15 @@
 </value>
                             </entry>
                             <entry>
-<key>canonical-value-lookup-cache-size</key>
-<value>
-    <name>canonical-value-lookup-cache-size</name>
-</value>
-                            </entry>
-                            <entry>
 <key>Stateful Variables Initial Value</key>
 <value>
     <name>Stateful Variables Initial Value</name>
+</value>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>
+    <name>canonical-value-lookup-cache-size</name>
 </value>
                             </entry>
                         </descriptors>
@@ -885,11 +1254,11 @@
 <value>Do not store state</value>
                             </entry>
                             <entry>
-<key>canonical-value-lookup-cache-size</key>
-<value>100</value>
+<key>Stateful Variables Initial Value</key>
                             </entry>
                             <entry>
-<key>Stateful Variables Initial Value</key>
+<key>canonical-value-lookup-cache-size</key>
+<value>100</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -989,6 +1358,232 @@
                     <type>org.apache.nifi.processors.standard.RouteOnAttribute</type>
                 </processors>
                 <processors>
+                    <id>95ae047a-727e-34eb-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>856.0</x>
+                        <y>736.0</y>
+                    </position>
+                    <bundle>
+                        <artifact>nifi-update-attribute-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.14.0</version>
+                    </bundle>
+                    <config>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>Delete Attributes Expression</key>
+<value>
+    <name>Delete Attributes Expression</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Store State</key>
+<value>
+    <name>Store State</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Stateful Variables Initial Value</key>
+<value>
+    <name>Stateful Variables Initial Value</name>
+</value>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>
+    <name>canonical-value-lookup-cache-size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>log_file</key>
+<value>
+    <name>log_file</name>
+</value>
+                            </entry>
+                            <entry>
+<key>service_name</key>
+<value>
+    <name>service_name</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>Delete Attributes Expression</key>
+                            </entry>
+                            <entry>
+<key>Store State</key>
+<value>Do not store state</value>
+                            </entry>
+                            <entry>
+<key>Stateful Variables Initial Value</key>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>100</value>
+                            </entry>
+                            <entry>
+<key>log_file</key>
+<value>consume_multimodel.log</value>
+                            </entry>
+                            <entry>
+<key>service_name</key>
+<value>"Nifi Consume Multimodel"</value>
+                            </entry>
+                        </properties>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>Add service name and logfile name</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>success</name>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
+                </processors>
+                <processors>
+                    <id>b4d83cb7-7eff-3045-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>856.0</x>
+                        <y>496.0</y>
+                    </position>
+                    <bundle>
+                        <artifact>nifi-standard-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.14.0</version>
+                    </bundle>
+                    <config>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>argumentsStrategy</key>
+<value>
+    <name>argumentsStrategy</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Command Arguments</key>
+<value>
+    <name>Command Arguments</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Command Path</key>
+<value>
+    <name>Command Path</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Ignore STDIN</key>
+<value>
+    <name>Ignore STDIN</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Working Directory</key>
+<value>
+    <name>Working Directory</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Argument Delimiter</key>
+<value>
+    <name>Argument Delimiter</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Output Destination Attribute</key>
+<value>
+    <name>Output Destination Attribute</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Max Attribute Length</key>
+<value>
+    <name>Max Attribute Length</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>argumentsStrategy</key>
+<value>Command Arguments Property</value>
+                            </entry>
+                            <entry>
+<key>Command Arguments</key>
+<value>obs/logging_monitor_activity.py;${service_name};${alert_code};${log_file}</value>
+                            </entry>
+                            <entry>
+<key>Command Path</key>
+<value>python3</value>
+                            </entry>
+                            <entry>
+<key>Ignore STDIN</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>Working Directory</key>
+<value>/home/nifi/ingest/</value>
+                            </entry>
+                            <entry>
+<key>Argument Delimiter</key>
+<value>;</value>
+                            </entry>
+                            <entry>
+<key>Output Destination Attribute</key>
+                            </entry>
+                            <entry>
+<key>Max Attribute Length</key>
+<value>256</value>
+                            </entry>
+                        </properties>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>Custom logging</name>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>nonzero status</name>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>original</name>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>output stream</name>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style>
+                        <entry>
+                            <key>background-color</key>
+                            <value>#2d7000</value>
+                        </entry>
+                    </style>
+                    <type>org.apache.nifi.processors.standard.ExecuteStreamCommand</type>
+                </processors>
+                <processors>
                     <id>b6fe7911-2327-3ed0-0000-000000000000</id>
                     <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
                     <position>
@@ -1018,15 +1613,15 @@
 </value>
                             </entry>
                             <entry>
-<key>canonical-value-lookup-cache-size</key>
-<value>
-    <name>canonical-value-lookup-cache-size</name>
-</value>
-                            </entry>
-                            <entry>
 <key>Stateful Variables Initial Value</key>
 <value>
     <name>Stateful Variables Initial Value</name>
+</value>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>
+    <name>canonical-value-lookup-cache-size</name>
 </value>
                             </entry>
                         </descriptors>
@@ -1042,11 +1637,11 @@
 <value>Do not store state</value>
                             </entry>
                             <entry>
-<key>canonical-value-lookup-cache-size</key>
-<value>100</value>
+<key>Stateful Variables Initial Value</key>
                             </entry>
                             <entry>
-<key>Stateful Variables Initial Value</key>
+<key>canonical-value-lookup-cache-size</key>
+<value>100</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -1094,15 +1689,15 @@
 </value>
                             </entry>
                             <entry>
-<key>canonical-value-lookup-cache-size</key>
-<value>
-    <name>canonical-value-lookup-cache-size</name>
-</value>
-                            </entry>
-                            <entry>
 <key>Stateful Variables Initial Value</key>
 <value>
     <name>Stateful Variables Initial Value</name>
+</value>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>
+    <name>canonical-value-lookup-cache-size</name>
 </value>
                             </entry>
                         </descriptors>
@@ -1118,11 +1713,11 @@
 <value>Do not store state</value>
                             </entry>
                             <entry>
-<key>canonical-value-lookup-cache-size</key>
-<value>100</value>
+<key>Stateful Variables Initial Value</key>
                             </entry>
                             <entry>
-<key>Stateful Variables Initial Value</key>
+<key>canonical-value-lookup-cache-size</key>
+<value>100</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -1134,6 +1729,92 @@
                     <name>Messaggio di Errore</name>
                     <relationships>
                         <autoTerminate>true</autoTerminate>
+                        <name>success</name>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
+                </processors>
+                <processors>
+                    <id>ebd3547c-37df-3a76-0000-000000000000</id>
+                    <parentGroupId>214fcfc9-dfb8-3895-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1104.0</x>
+                        <y>952.0</y>
+                    </position>
+                    <bundle>
+                        <artifact>nifi-update-attribute-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.14.0</version>
+                    </bundle>
+                    <config>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>Delete Attributes Expression</key>
+<value>
+    <name>Delete Attributes Expression</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Store State</key>
+<value>
+    <name>Store State</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Stateful Variables Initial Value</key>
+<value>
+    <name>Stateful Variables Initial Value</name>
+</value>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>
+    <name>canonical-value-lookup-cache-size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>alert_code</key>
+<value>
+    <name>alert_code</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>Delete Attributes Expression</key>
+                            </entry>
+                            <entry>
+<key>Store State</key>
+<value>Do not store state</value>
+                            </entry>
+                            <entry>
+<key>Stateful Variables Initial Value</key>
+                            </entry>
+                            <entry>
+<key>canonical-value-lookup-cache-size</key>
+<value>100</value>
+                            </entry>
+                            <entry>
+<key>alert_code</key>
+<value>0</value>
+                            </entry>
+                        </properties>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>Add Alert code for "ok"</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
                         <name>success</name>
                     </relationships>
                     <state>RUNNING</state>
@@ -1164,9 +1845,9 @@
 </value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
+<key>Command Arguments</key>
 <value>
-    <name>Max Attribute Length</name>
+    <name>Command Arguments</name>
 </value>
                             </entry>
                             <entry>
@@ -1176,15 +1857,15 @@
 </value>
                             </entry>
                             <entry>
-<key>Working Directory</key>
+<key>Ignore STDIN</key>
 <value>
-    <name>Working Directory</name>
+    <name>Ignore STDIN</name>
 </value>
                             </entry>
                             <entry>
-<key>Output Destination Attribute</key>
+<key>Working Directory</key>
 <value>
-    <name>Output Destination Attribute</name>
+    <name>Working Directory</name>
 </value>
                             </entry>
                             <entry>
@@ -1194,15 +1875,15 @@
 </value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
+<key>Output Destination Attribute</key>
 <value>
-    <name>Ignore STDIN</name>
+    <name>Output Destination Attribute</name>
 </value>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
+<key>Max Attribute Length</key>
 <value>
-    <name>Command Arguments</name>
+    <name>Max Attribute Length</name>
 </value>
                             </entry>
                         </descriptors>
@@ -1215,31 +1896,31 @@
 <value>Command Arguments Property</value>
                             </entry>
                             <entry>
-<key>Max Attribute Length</key>
-<value>256</value>
+<key>Command Arguments</key>
+<value>obs/jsonl2bufr_nifi.py</value>
                             </entry>
                             <entry>
 <key>Command Path</key>
 <value>python3</value>
                             </entry>
                             <entry>
-<key>Working Directory</key>
-<value>/home/nifi/ingest/</value>
+<key>Ignore STDIN</key>
+<value>false</value>
                             </entry>
                             <entry>
-<key>Output Destination Attribute</key>
+<key>Working Directory</key>
+<value>/home/nifi/ingest/</value>
                             </entry>
                             <entry>
 <key>Argument Delimiter</key>
 <value>;</value>
                             </entry>
                             <entry>
-<key>Ignore STDIN</key>
-<value>false</value>
+<key>Output Destination Attribute</key>
                             </entry>
                             <entry>
-<key>Command Arguments</key>
-<value>obs/jsonl2bufr_nifi.py</value>
+<key>Max Attribute Length</key>
+<value>256</value>
                             </entry>
                         </properties>
                         <runDurationMillis>0</runDurationMillis>
@@ -1280,5 +1961,5 @@
             <variables/>
         </processGroups>
     </snippet>
-    <timestamp>01/13/2022 17:19:02 UTC</timestamp>
+    <timestamp>02/23/2022 11:47:27 UTC</timestamp>
 </template>
