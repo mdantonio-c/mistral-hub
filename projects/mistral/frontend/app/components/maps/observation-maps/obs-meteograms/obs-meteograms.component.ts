@@ -17,6 +17,7 @@ import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
 
 const STATION_NAME_CODE = "B01019";
+const MAX_NUMBER_OF_STATIONS = 100;
 
 @Component({
   selector: "app-obs-meteograms",
@@ -80,7 +81,6 @@ export class ObsMeteogramsComponent {
   }
 
   updateChart(filter: ObsFilter, update = false) {
-    console.log("update the chart");
     this.filter = filter;
     this.loading = true;
     this.spinner.show();
@@ -91,7 +91,15 @@ export class ObsMeteogramsComponent {
         // I don't know why but at the moment this does the trick
         delay(1000),
         tap((response: ObservationResponse) => {
-          let data: Observation[] = response.data;
+          if (response.data.length > MAX_NUMBER_OF_STATIONS) {
+            this.notify.showWarning(
+              "As the number of stations exceeds the threshold only a subset of them is shown in the chart"
+            );
+          }
+          let data: Observation[] = response.data.slice(
+            0,
+            MAX_NUMBER_OF_STATIONS
+          );
           this.descriptions = response.descr;
           this.report = data;
           // get product info
