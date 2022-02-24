@@ -47,7 +47,7 @@
         [(activeId)]="active"
         class="nav-tabs navbar-custom"
       >
-        <li [ngbNavItem]="1">
+        <li [ngbNavItem]="1" [disabled]="true">
           <a ngbNavLink>Download open data</a>
           <ng-template ngbNavContent [ngSwitch]="true">
             <ng-container
