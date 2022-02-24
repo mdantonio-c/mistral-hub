@@ -1,4 +1,4 @@
-import { Component, AfterViewInit } from "@angular/core";
+import { Component } from "@angular/core";
 import {
   ObsData,
   Observation,
@@ -10,24 +10,27 @@ import {
   DescriptionDict,
 } from "@app/types";
 import { ObsService } from "../services/obs.service";
-
+import { tap, delay, catchError, finalize } from "rxjs/operators";
+import { throwError } from "rxjs";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
+import * as _ from "lodash";
 
 const STATION_NAME_CODE = "B01019";
+const MAX_NUMBER_OF_STATIONS = 100;
 
 @Component({
   selector: "app-obs-meteograms",
   templateUrl: "./obs-meteograms.component.html",
   styleUrls: ["./obs-meteograms.component.css"],
 })
-export class ObsMeteogramsComponent implements AfterViewInit {
+export class ObsMeteogramsComponent {
   filter: ObsFilter;
   multi: MultiStationDataSeries[];
   report: Observation[];
   descriptions: DescriptionDict;
-  loading: boolean = true;
+  loading: boolean = false;
 
   // product info
   varcode: string;
@@ -46,10 +49,6 @@ export class ObsMeteogramsComponent implements AfterViewInit {
     private notify: NotificationService,
     private spinner: NgxSpinnerService
   ) {}
-
-  ngAfterViewInit(): void {
-    this.loading = false;
-  }
 
   getUserUnit(varcode: string) {
     return ObsService.showUserUnit(varcode, this.unit);
@@ -85,12 +84,23 @@ export class ObsMeteogramsComponent implements AfterViewInit {
   updateChart(filter: ObsFilter, update = false) {
     this.filter = filter;
     this.loading = true;
-    setTimeout(() => this.spinner.show(), 0);
+    this.spinner.show();
     this.obsService
       .getData(this.filter, update)
-      .subscribe(
-        (response: ObservationResponse) => {
-          let data: Observation[] = response.data;
+      .pipe(
+        // delay output by 1 sec allowing the spinner to be displayed
+        // I don't know why but at the moment this does the trick
+        delay(1000),
+        tap((response: ObservationResponse) => {
+          if (response.data.length > MAX_NUMBER_OF_STATIONS) {
+            this.notify.showWarning(
+              "As the number of stations exceeds the threshold only a subset of them is shown in the chart"
+            );
+          }
+          let data: Observation[] = response.data.slice(
+            0,
+            MAX_NUMBER_OF_STATIONS
+          );
           this.descriptions = response.descr;
           this.report = data;
           // get product info
@@ -102,19 +112,22 @@ export class ObsMeteogramsComponent implements AfterViewInit {
           }
           let multi = this.normalize(data);
           Object.assign(this, { multi });
-        },
-        (error) => {
-          this.notify.showError(error);
-        }
+        }),
+        catchError((err) => {
+          console.error("Error loading data", err);
+          this.notify.showError(err);
+          return throwError(err);
+        }),
+        finalize(() => {
+          this.spinner.hide();
+          this.loading = false;
+        })
       )
-      .add(() => {
-        setTimeout(() => this.spinner.hide(), 0);
-        this.loading = false;
-      });
+      .subscribe();
   }
 
   private normalize(data: Observation[]): MultiStationDataSeries[] {
-    let res: MultiStationDataSeries[] = [];
+    let dataSeries: MultiStationDataSeries[] = [];
     data.forEach((obs) => {
       let p: ObsData = obs.prod[0];
       let s: MultiStationDataSeries = {
@@ -130,8 +143,9 @@ export class ObsMeteogramsComponent implements AfterViewInit {
             value: ObsService.showData(obs.val, p.var),
           };
         });
-      res.push(s);
+      dataSeries.push(s);
     });
-    return res;
+    // finally sort stations by name
+    return _.sortBy(dataSeries, "name");
   }
 }

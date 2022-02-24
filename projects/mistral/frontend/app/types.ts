@@ -42,6 +42,11 @@ export interface Bcode {
 
 export interface FieldsSummary {
   items: Items | GenericItems;
+  descriptions?: FieldsDescriptionDict;
+}
+
+export interface FieldsDescriptionDict {
+  leveltypes?: string[];
 }
 
 export interface GenericItems {

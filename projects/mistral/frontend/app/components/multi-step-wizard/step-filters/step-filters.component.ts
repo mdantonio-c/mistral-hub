@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
   AbstractControl,
@@ -20,13 +20,14 @@ import * as _ from "lodash";
 import { StepComponent } from "../step.component";
 import { ReftimeModalContent, ReftimeModel } from "./reftime-modal.component";
 import { AuthService } from "@rapydo/services/auth";
-import { LEVELTYPES } from "./level-descriptions";
 
 @Component({
   selector: "step-filters",
   templateUrl: "./step-filters.component.html",
 })
 export class StepFiltersComponent extends StepComponent implements OnInit {
+  @ViewChild("leveltypediv ", { static: false })
+  public leveltypediv: ElementRef;
   title = "Filter your data";
   summaryStats = { b: null, e: null, c: null, s: null };
   filterForm: FormGroup;
@@ -110,25 +111,31 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
               // console.log(f[0]);
               // console.log('....OLD....', f[1]);
               let m = Object.entries(results).filter((e) => e[0] === f[0])[0];
-              if (selectedFilterNames.includes(m[0])) {
-                if (selectedFilterNames.length === 1) {
-                  // active them all
+              if (m) {
+                if (selectedFilterNames.includes(m[0])) {
+                  if (selectedFilterNames.length === 1) {
+                    // active them all
+                    for (const obj of <Array<any>>f[1]) {
+                      obj["active"] = true;
+                    }
+                  }
+                } else {
                   for (const obj of <Array<any>>f[1]) {
-                    obj["active"] = true;
+                    // equal by desc
+                    obj["active"] = _.some(
+                      <Array<any>>m[1],
+                      (o, i) => o.desc === obj.desc
+                    );
                   }
                 }
-              } else {
-                for (const obj of <Array<any>>f[1]) {
-                  // equal by desc
-                  obj["active"] = _.some(
-                    <Array<any>>m[1],
-                    (o, i) => o.desc === obj.desc
-                  );
-                }
               }
-              // console.log('....NEW....', m[1]);
+              //console.log('....NEW....', m[1]);
             }
           });
+          if (this.levelTypes.length !== 0) {
+            // disable the leveltypes
+            this.updateLevelType();
+          }
           this.updateSummaryStats(response.items.summarystats);
         },
         (error) => {
@@ -165,15 +172,18 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                   if (obj.style == "GRIB1" || obj.style == "GRIB2S") {
                     arr.push(obj.level_type);
                   } else if (obj.style == "GRIB2D") {
-                    arr.push(obj.l1, ",", obj.l2);
+                    arr.push(obj.l1 + "," + obj.l2);
                   }
                 });
                 // @ts-ignore
                 this.levelTypes = [...new Set(arr)];
-                // get descriptions for leveltypes
-                this.getLevelTypeDesc();
-                //initialize leveltypes
-                this.levelTypesInit();
+                if (this.levelTypes.length > 0 && "descriptions" in response) {
+                  // get descriptions for leveltypes
+                  this.levelTypesDescriptions =
+                    response.descriptions.leveltypes;
+                  //initialize leveltypes
+                  this.levelTypesInit();
+                }
               }
             }
           });
@@ -263,6 +273,23 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     } else {
       this.filterForm.controls.validRefTime.setValue(true);
     }
+  }
+  updateLevelType() {
+    Object.entries(this.filters).forEach((f) => {
+      if (f[0] == "level") {
+        for (const obj of <Array<any>>f[1]) {
+          let levelType = null;
+          if (obj.style == "GRIB1" || obj.style == "GRIB2S") {
+            levelType = "#lt-" + obj.level_type;
+          } else if (obj.style == "GRIB2D") {
+            levelType = "#lt-" + obj.l1 + "," + obj.l2;
+          }
+          let levelTypeInput =
+            this.leveltypediv.nativeElement.querySelector(levelType);
+          levelTypeInput["disabled"] = !obj.active;
+        }
+      }
+    });
   }
 
   resetFilters() {
@@ -415,20 +442,6 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     return desc;
   }
 
-  getLevelTypeDesc() {
-    this.levelTypesDescriptions = [];
-    for (let el = 0; el < this.levelTypes.length; el++) {
-      const leveltype = LEVELTYPES.find(
-        (x) => x.code === this.levelTypes[el].toString()
-      );
-      if (leveltype) {
-        this.levelTypesDescriptions.push(leveltype.desc);
-      } else {
-        this.levelTypesDescriptions.push(this.levelTypes[el]);
-      }
-    }
-  }
-
   levelTypesInit() {
     this.selectedLevelTypes = [];
     for (let el = 0; el < this.levelTypes.length; el++) {
@@ -442,10 +455,16 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       this.filterForm.controls.filters as FormArray
     ).controls.at(cIndex);
 
-    let valueToSet = action === "select" ? true : false;
-
     this.filters["level"].forEach((l, i) => {
-      (level.controls.values as FormArray).controls.at(i).setValue(valueToSet);
+      if (
+        action === "select" &&
+        (level.controls.values as FormArray).controls.at(i).disabled == false
+      ) {
+        (level.controls.values as FormArray).controls.at(i).setValue(true);
+      }
+      if (action !== "select") {
+        (level.controls.values as FormArray).controls.at(i).setValue(false);
+      }
     });
     this.onFilterChange();
   }

@@ -277,6 +277,14 @@ class Fields(EndpointResource):
                 summary = arki.load_summary(datasets, q)
             except AccessToDatasetDenied:
                 raise ServerError("Access to dataset denied")
+            if summary and summary["items"]["summarystats"]["c"] > 0:
+                summary["descriptions"] = {}
+                # get the missing descriptions needed
+                # get leveltype descriptions
+                leveltype_desc = arki.get_leveltype_descriptions(
+                    summary["items"]["level"]
+                )
+                summary["descriptions"]["leveltypes"] = leveltype_desc
 
         # ######### ONLY ARKIMET SUMMARY ###########
         if onlySummaryStats:
