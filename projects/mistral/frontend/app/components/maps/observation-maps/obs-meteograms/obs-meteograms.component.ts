@@ -15,6 +15,7 @@ import { throwError } from "rxjs";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
+import * as _ from "lodash";
 
 const STATION_NAME_CODE = "B01019";
 const MAX_NUMBER_OF_STATIONS = 100;
@@ -87,7 +88,7 @@ export class ObsMeteogramsComponent {
     this.obsService
       .getData(this.filter, update)
       .pipe(
-        // delay output by 1 sec
+        // delay output by 1 sec allowing the spinner to be displayed
         // I don't know why but at the moment this does the trick
         delay(1000),
         tap((response: ObservationResponse) => {
@@ -126,7 +127,7 @@ export class ObsMeteogramsComponent {
   }
 
   private normalize(data: Observation[]): MultiStationDataSeries[] {
-    let res: MultiStationDataSeries[] = [];
+    let dataSeries: MultiStationDataSeries[] = [];
     data.forEach((obs) => {
       let p: ObsData = obs.prod[0];
       let s: MultiStationDataSeries = {
@@ -142,8 +143,9 @@ export class ObsMeteogramsComponent {
             value: ObsService.showData(obs.val, p.var),
           };
         });
-      res.push(s);
+      dataSeries.push(s);
     });
-    return res;
+    // finally sort stations by name
+    return _.sortBy(dataSeries, "name");
   }
 }
