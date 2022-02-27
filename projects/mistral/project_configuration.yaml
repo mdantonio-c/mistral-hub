@@ -7,11 +7,11 @@ project:
 
 variables:
   roles:
-    normal_user: User
     staff_user: disabled
-    admin_root: Administrator
     institutional: Institutional
-    # default: normal_user
+
+  roles_descriptions:
+    institutional: Institutional User
 
   env:
     PYTHON_PATH: /usr/local/lib/python3.8/dist-packages
