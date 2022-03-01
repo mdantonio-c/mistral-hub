@@ -97,9 +97,13 @@
         <!-- RUN -->
         <div class="form-group">
           <label class="col-form-label"><strong>PRODUCTS:</strong></label>
-          <button style="float:right;" class="btn-small-circle" (click)="open()"><b>?</b></button>
-
-
+          <button
+            style="float: right"
+            class="btn-small-circle"
+            (click)="open()"
+          >
+            <b>?</b>
+          </button>
 
           <!-- <ng-template #content let-c="close" let-d="dismiss">
               <div class="modal-header">
@@ -118,13 +122,12 @@
 
 <button class="btn btn-lg btn-outline-primary" (click)="open(content)">Launch demo modal</button> -->
 
-
           <select id="runGroup" formControlName="run" class="form-control">
-          <ng-container *ngFor="let run of runs">
-          <option [value]="run.key">
-          {{ run.value }}
-          </option>
-          </ng-container>
+            <ng-container *ngFor="let run of runs">
+              <option [value]="run.key">
+                {{ run.value }}
+              </option>
+            </ng-container>
           </select>
         </div>
 

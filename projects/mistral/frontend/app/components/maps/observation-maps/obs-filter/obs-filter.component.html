@@ -12,9 +12,9 @@
   <div class="form-group">
     <label for="variable">Variable</label>
     <select id="variable" class="form-control" formControlName="product">
-        <option [ngValue]="p.code" *ngFor="let p of allProducts">
-          {{ p.desc | titlecase }}
-        </option>
+      <option [ngValue]="p.code" *ngFor="let p of allProducts">
+        {{ p.desc | titlecase }}
+      </option>
     </select>
   </div>
   <!-- Date -->

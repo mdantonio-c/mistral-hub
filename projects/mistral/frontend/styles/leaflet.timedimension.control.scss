@@ -15,86 +15,87 @@
  *
  */
 
-
 @font-face {
-    font-family: 'Glyphicons Halflings';
-    src: url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot');
-    src: url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.woff') format('woff'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
-} 
-
-
-
-.leaflet-bar{
-  border: none!important;
-  box-shadow:none !important;
+  font-family: "Glyphicons Halflings";
+  src: url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot");
+  src: url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot?#iefix")
+      format("embedded-opentype"),
+    url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.woff")
+      format("woff"),
+    url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.ttf")
+      format("truetype"),
+    url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular")
+      format("svg");
 }
 
-.leaflet-touch .leaflet-bar-timecontrol .leaflet-control-timecontrol{
-  background-color: #2f34349d!important;
+.leaflet-bar {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.leaflet-touch .leaflet-bar-timecontrol .leaflet-control-timecontrol {
+  background-color: #2f34349d !important;
 }
 
 .leaflet-bar a {
-    color:#fff !important;
+  color: #fff !important;
 }
 
-app-observation-maps .leaflet-top a, app-observation-maps .leaflet-bottom a {
-    background-color:#6C757D !important;
+app-observation-maps .leaflet-top a,
+app-observation-maps .leaflet-bottom a {
+  background-color: #6c757d !important;
 }
 
 app-observation-maps .leaflet-control-attribution a {
-    background-color: #fff !important;
-    
+  background-color: #fff !important;
 }
 
-app-meteo-tiles .leaflet-bottom:has( .leaflet-control-attribution){
-    margin-bottom: 0 !important; 
+app-meteo-tiles .leaflet-bottom:has(.leaflet-control-attribution) {
+  margin-bottom: 0 !important;
 }
-
 
 .leaflet-bar a:hover {
-    background-color:  #E49D2B !important;
-    height: 29px !important;
-    width: 29px !important;
+  background-color: #e49d2b !important;
+  height: 29px !important;
+  width: 29px !important;
 }
 
 .leaflet-bar a:first-child,
-.leaflet-bar a:last-child{
-    border-radius: 24px!important;
-  }
+.leaflet-bar a:last-child {
+  border-radius: 24px !important;
+}
 
-.leaflet-bar-timecontrol{
-     // background-color: ;
-     color: #fff !important;
+.leaflet-bar-timecontrol {
+  // background-color: ;
+  color: #fff !important;
 }
 
 .leaflet-bar-timecontrol * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-app-meteo-tiles .leaflet-left .leaflet-control  {
-    margin-left:0 !important;
-    margin-bottom:5px !important;
+app-meteo-tiles .leaflet-left .leaflet-control {
+  margin-left: 0 !important;
+  margin-bottom: 5px !important;
 }
 
-app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol  {
-    margin-left:10px !important;
-    margin-bottom: 10px !important;
+app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol {
+  margin-left: 10px !important;
+  margin-bottom: 10px !important;
 }
 
 .leaflet-bar-timecontrol .leaflet-control-timecontrol {
-    float: left;
-    height: 30px !important;
-    line-height: 26px;
-    //border: solid #fff;
-    //background-color: #2f34349d;
-    //border-width: 0 1px 0 0;
-    border-radius: 30px;
-
+  float: left;
+  height: 30px !important;
+  line-height: 26px;
+  //border: solid #fff;
+  //background-color: #2f34349d;
+  //border-width: 0 1px 0 0;
+  border-radius: 30px;
 }
 
-
 .leaflet-control img[src*="pmsl.svg"] {
-    display:none !important;
+  display: none !important;
 }
 
 /*.leaflet-bar-timecontrol .leaflet-control-timecontrol:first-child {
@@ -111,60 +112,59 @@ app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol  {
 }*/
 
 .leaflet-bar-timecontrol .timecontrol-slider {
-    position: relative;
-    width: auto;
-    cursor: auto;
+  position: relative;
+  width: auto;
+  cursor: auto;
 }
 
 .leaflet-bar-timecontrol a.timecontrol-date,
 .leaflet-bar-timecontrol a.timecontrol-date:hover {
-    position: relative;
-    min-width: 150px;
-    width: 180px !important;
-    padding: 0 10px 0 10px;
-    white-space: nowrap;
-    background-color: #2f34349d;
-    border: 1px #fff solid;
+  position: relative;
+  min-width: 150px;
+  width: 180px !important;
+  padding: 0 10px 0 10px;
+  white-space: nowrap;
+  background-color: #2f34349d;
+  border: 1px #fff solid;
 }
 .leaflet-bar-timecontrol a.timecontrol-date.utc,
 .leaflet-bar-timecontrol a.timecontrol-date.utc:hover {
-    min-width: 185px;
+  min-width: 185px;
 }
 /*.leaflet-bar-timecontrol a.timecontrol-date.loading,
 .leaflet-bar-timecontrol a.timecontrol-date.loading:hover {
     background-color: #ffefa4;
 }*/
 .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
-    width: 200px;
-    background-color: #2f34349d !important;
-    border-radius: 20px;
-  
+  width: 200px;
+  background-color: #2f34349d !important;
+  border-radius: 20px;
 }
 .leaflet-bar-timecontrol .timecontrol-speed {
-    white-space: nowrap;
-    cursor: auto;
+  white-space: nowrap;
+  cursor: auto;
 }
 .leaflet-bar-timecontrol .timecontrol-speed .slider {
-    width: 55px;
-    display: inline-block;
-    background-color: #2f34349d !important;
+  width: 55px;
+  display: inline-block;
+  background-color: #2f34349d !important;
 }
 .leaflet-bar-timecontrol .timecontrol-speed .speed {
-    width: 55px;
-    display: inline-block;
-    float: left;
-    text-align: center;
-    margin-left: 33px;
-    background-color: #2f34349d;
-    border: 1px #fff solid;
-    border-radius:30px;
+  width: 55px;
+  display: inline-block;
+  float: left;
+  text-align: center;
+  margin-left: 33px;
+  background-color: #2f34349d;
+  border: 1px #fff solid;
+  border-radius: 30px;
 }
 .leaflet-bar-timecontrol .timecontrol-play,
 .leaflet-bar-timecontrol .timecontrol-play:hover {
-    position: relative;
+  position: relative;
 }
 .leaflet-bar-timecontrol .timecontrol-play span {
-    font-size: 10px;
+  font-size: 10px;
 }
 /*.leaflet-bar-timecontrol a.timecontrol-play.loading {
     background-color: #ffefa4;
@@ -175,85 +175,82 @@ app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol  {
 */
 
 .timecontrol-slider .slider {
-    position: relative;
-    height: 12px;
-    margin: 6px;
-    border: 1px solid #fff;
-    border-radius: 10px;
-    cursor: pointer;
+  position: relative;
+  height: 12px;
+  margin: 6px;
+  border: 1px solid #fff;
+  border-radius: 10px;
+  cursor: pointer;
 }
 .timecontrol-slider .slider.has-limits {
-    margin-left: 15px;
-    margin-right: 15px;
-    background-color: #2f34349d;
+  margin-left: 15px;
+  margin-right: 15px;
+  background-color: #2f34349d;
 }
 .timecontrol-slider .slider.has-limits .range {
-    position: absolute;
-    height: 10px;
-    border-radius: 10px;
-    /*opacity: 0.5;*/
+  position: absolute;
+  height: 10px;
+  border-radius: 10px;
+  /*opacity: 0.5;*/
 }
 .timecontrol-slider .knob {
-    position: absolute;
-    width: 15px;
-    height: 15px;
-    background-color: #fff;
-    border-radius: 15px;
-    border: 1px solid #fff;
-    /*use margins because on ie,leaflet will use top/left for positionning*/
-    margin-top: -3px;
-    margin-left: -4px;
-    cursor: ew-resize;
-    cursor: -webkit-grab;
-    cursor: -moz-grab;    
-  
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  background-color: #fff;
+  border-radius: 15px;
+  border: 1px solid #fff;
+  /*use margins because on ie,leaflet will use top/left for positionning*/
+  margin-top: -3px;
+  margin-left: -4px;
+  cursor: ew-resize;
+  cursor: -webkit-grab;
+  cursor: -moz-grab;
 }
 
-
 .timecontrol-slider .knob:after {
-    /** Big transparent block on top of the knob for easier grabbing on touch device*/
-    content: ' ';
-    display: block;
-    position: absolute;
-    width: 20px;
-    top:-5px;
-    height: 32px;
-    left: -7px;
-   /* opacity: 0.5;
+  /** Big transparent block on top of the knob for easier grabbing on touch device*/
+  content: " ";
+  display: block;
+  position: absolute;
+  width: 20px;
+  top: -5px;
+  height: 32px;
+  left: -7px;
+  /* opacity: 0.5;
     background: red;*/
-
 }
 .timecontrol-slider .knob.upper,
 .timecontrol-slider .knob.lower {
-    width: 11px;
-    height: 20px;
-    border: none;
-    background-color: #E49D2B;;
+  width: 11px;
+  height: 20px;
+  border: none;
+  background-color: #e49d2b;
 }
 .timecontrol-slider .knob.upper {
-    margin-top: -5px;
-    margin-left: -9px;
+  margin-top: -5px;
+  margin-left: -9px;
 }
 .timecontrol-slider .knob.lower {
-    margin-top: -5px;
-    margin-left: -4px;
+  margin-top: -5px;
+  margin-left: -4px;
 }
 .timecontrol-slider .knob.lower:after {
-    right:0px;
-    left: initial;
+  right: 0px;
+  left: initial;
 }
 .timecontrol-slider .knob.upper:after {
-    left:0px;
+  left: 0px;
 }
 .timecontrol-slider .knob.upper:before,
 .timecontrol-slider .knob.lower:before {
-    display: block;
-    content: '';
-    position: relative;
-    top: 2px;
-    width: 0;
-    height: 0;
-    //border-style: solid;
+  display: block;
+  content: "";
+  position: relative;
+  top: 2px;
+  width: 0;
+  height: 0;
+  //border-style: solid;
 }
 /*..timecontrol-slider .knob.upper:before {
     border-width: 16px 0 0 10px;
@@ -267,10 +264,10 @@ timecontrol-slider .knob.lower:before {
 .timecontrol-slider .slider.dragging,
 .timecontrol-slider .dragging .knob,
 .timecontrol-slider .knob.leaflet-drag-target {
-    cursor: ew-resize;
-    cursor: grabbing;
-    cursor: -webkit-grabbing;
-    cursor: -moz-grabbing;
+  cursor: ew-resize;
+  cursor: grabbing;
+  cursor: -webkit-grabbing;
+  cursor: -moz-grabbing;
 }
 
 /**
@@ -278,24 +275,24 @@ timecontrol-slider .knob.lower:before {
 */
 
 @-webkit-keyframes icon-rotation {
-    from {
-        -webkit-transform: rotate(0deg);
-        transform: rotate(0deg);
-    }
-    to {
-        -webkit-transform: rotate(360deg);
-        transform: rotate(360deg);
-    }
+  from {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
 }
 @keyframes icon-rotation {
-    from {
-        -webkit-transform: rotate(0deg);
-        transform: rotate(0deg);
-    }
-    to {
-        -webkit-transform: rotate(360deg);
-        transform: rotate(360deg);
-    }
+  from {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
 }
 /*.timecontrol-loop.looped,
 .timecontrol-loop.looped:hover {
@@ -308,12 +305,12 @@ timecontrol-slider .knob.lower:before {
 .timecontrol-stop,
 .timecontrol-play,
 .timecontrol-loop,
-.timecontrol-speed{
-    height: 30px !important;
-    width: 30px !important;
-    background-color: #2f34349d!important;
-    border-radius: 30px;
-    margin-bottom: 2px;
+.timecontrol-speed {
+  height: 30px !important;
+  width: 30px !important;
+  background-color: #2f34349d !important;
+  border-radius: 30px;
+  margin-bottom: 2px;
 }
 
 .timecontrol-backward:hover,
@@ -321,7 +318,7 @@ timecontrol-slider .knob.lower:before {
 .timecontrol-stop:hover,
 .timecontrol-play:hover,
 .timecontrol-loop:hover {
-    background-color:#E49D2B !important;
+  background-color: #e49d2b !important;
 }
 
 .timecontrol-backward:before,
@@ -329,20 +326,19 @@ timecontrol-slider .knob.lower:before {
 .timecontrol-stop:before,
 .timecontrol-play:before,
 .timecontrol-loop:before,
-.timecontrol-speed:before{
-    width: 100%;
-    background-size: contain;
-    background-position: center center;
-    display: block;
-    width: 30px;
-    height: 30px;
-    position: absolute;
-    content: "";
+.timecontrol-speed:before {
+  width: 100%;
+  background-size: contain;
+  background-position: center center;
+  display: block;
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  content: "";
 }
 
 .timecontrol-play:before {
-   
-    background-image: url('/app/custom/assets/images/icons/playf.svg');
+  background-image: url("/app/custom/assets/images/icons/playf.svg");
 }
 
 /*.timecontrol-play.play:before {
@@ -350,10 +346,10 @@ timecontrol-slider .knob.lower:before {
 }*/
 
 .timecontrol-play.reverse:before {
-    background-image: url('/app/custom/assets/images/icons/playf.svg');
-    -ms-transform: scaleX(-1);
-    -webkit-transform: scaleX(-1);
-    transform: scaleX(-1);
+  background-image: url("/app/custom/assets/images/icons/playf.svg");
+  -ms-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
 /*.timecontrol-play.pause:before {
@@ -361,126 +357,116 @@ timecontrol-slider .knob.lower:before {
 }*/
 
 .timecontrol-play.pause:before {
-    background-image: url('/app/custom/assets/images/icons/stop.svg');
+  background-image: url("/app/custom/assets/images/icons/stop.svg");
 }
 
-
 .timecontrol-play.reverse.pause:before {
-    -ms-transform: none;
-    -webkit-transform: none;
-    transform: none;
+  -ms-transform: none;
+  -webkit-transform: none;
+  transform: none;
 }
 
 a.timecontrol-play.loading:before {
-    //content: "\e031";
-    background-image: url('/app/custom/assets/images/icons/loading.svg');
-    opacity: 0.2;
-    -webkit-animation: icon-rotation 6s infinite linear;
-    animation: icon-rotation 6s infinite linear;
+  //content: "\e031";
+  background-image: url("/app/custom/assets/images/icons/loading.svg");
+  opacity: 0.2;
+  -webkit-animation: icon-rotation 6s infinite linear;
+  animation: icon-rotation 6s infinite linear;
 }
 
 .timecontrol-date.loading:before {
-    //content: "\e031";
-    background-image: url('/app/custom/assets/images/icons/loading.svg');
-    left: 5px;
-    position: absolute;
-    -webkit-animation: icon-rotation 6s infinite linear;
-    animation: icon-rotation 6s infinite linear;
+  //content: "\e031";
+  background-image: url("/app/custom/assets/images/icons/loading.svg");
+  left: 5px;
+  position: absolute;
+  -webkit-animation: icon-rotation 6s infinite linear;
+  animation: icon-rotation 6s infinite linear;
 }
 .timecontrol-speed:before {
-    //content: "\e141";
-    background-image: url('/app/custom/assets/images/icons/speed.svg');
-    position: absolute;
+  //content: "\e141";
+  background-image: url("/app/custom/assets/images/icons/speed.svg");
+  position: absolute;
 }
 .timecontrol-stop:before {
-    //content: "\e074";
-    background-image: url('/app/custom/assets/images/icons/stop.svg');
+  //content: "\e074";
+  background-image: url("/app/custom/assets/images/icons/stop.svg");
 }
 .timecontrol-forward:before {
-    //content: "\e075";
-    background-image: url('/app/custom/assets/images/icons/play1hf.svg');
+  //content: "\e075";
+  background-image: url("/app/custom/assets/images/icons/play1hf.svg");
 }
 .timecontrol-backward:before {
-    //content: "\e071";
-    background-image: url('/app/custom/assets/images/icons/play1hb.svg');
+  //content: "\e071";
+  background-image: url("/app/custom/assets/images/icons/play1hb.svg");
 }
 .timecontrol-loop:before {
-    //content: "\e030";
-    background-image: url('/app/custom/assets/images/icons/loop.svg');
+  //content: "\e030";
+  background-image: url("/app/custom/assets/images/icons/loop.svg");
 }
 
 .legenda {
-    margin-left: 11px !important;
+  margin-left: 11px !important;
 }
 
-@media (max-width: 767px){
-    .leaflet-bar-timecontrol .timecontrol-date,
-    .leaflet-bar-timecontrol .timecontrol-slider{
-        clear: both;
-        float: none;
-        border-right: none;
-    }
+@media (max-width: 767px) {
+  .leaflet-bar-timecontrol .timecontrol-date,
+  .leaflet-bar-timecontrol .timecontrol-slider {
+    clear: both;
+    float: none;
+    border-right: none;
+  }
 }
-.leaflet-touch .leaflet-bar-timecontrol .leaflet-control-timecontrol{
-     height: 30px;
-    line-height: 30px;
-
+.leaflet-touch .leaflet-bar-timecontrol .leaflet-control-timecontrol {
+  height: 30px;
+  line-height: 30px;
 }
-.leaflet-touch .timecontrol-slider .slider{
-    margin-top: 10px;
+.leaflet-touch .timecontrol-slider .slider {
+  margin-top: 10px;
 }
-
 
 /*Responsive legende*/
 
 @media screen and (max-height: 640px) {
-    .legenda {
-      width: 53%;
-    }
+  .legenda {
+    width: 53%;
   }
+}
 
-@media screen and (min-height: 1295px) { 
-    .legenda {
-        width: 100%;
-    }
-    
+@media screen and (min-height: 1295px) {
+  .legenda {
+    width: 100%;
+  }
 }
 
 @media screen and (max-width: 785px) {
-    app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
-        width:150px !important;
-    }
+  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
+    width: 150px !important;
+  }
 
+  app-meteo-tiles .timecontrol-slider .slider.has-limits {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
 
-    app-meteo-tiles .timecontrol-slider .slider.has-limits {
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-    }
+  app-meteo-tiles .timecontrol-slider .knob.upper {
+    transform: translate3d(150px, 0px, 0px) !important;
+  }
 
-    app-meteo-tiles .timecontrol-slider .knob.upper {
-      transform: translate3d(150px, 0px, 0px) !important;
-        
-    }
+  app-meteo-tiles .leaflet-bar-timecontrol .leaflet-control-timecontrol {
+    margin-right: 3px !important;
+  }
 
-    app-meteo-tiles .leaflet-bar-timecontrol .leaflet-control-timecontrol {
-        margin-right: 3px !important;
+  app-meteo-tiles .leaflet-bar-timecontrol a.timecontrol-date {
+    width: 168px !important;
+    padding: 0;
+  }
 
-    }
+  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .slider,
+  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .speed {
+    width: 60px;
+  }
 
-
-    app-meteo-tiles .leaflet-bar-timecontrol a.timecontrol-date {
-        width: 168px !important;
-        padding: 0;
-    }
-
-    app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .slider ,
-    app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .speed {
-        width: 60px;
-    }
-
-    .legenda {
-        width: 41%;
-    }
-   
-
+  .legenda {
+    width: 41%;
+  }
 }

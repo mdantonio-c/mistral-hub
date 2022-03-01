@@ -40,8 +40,9 @@
   src: url("../assets/font/Montserrat-Regular.ttf") format("truetype");
 }
 @font-face {
-  font-family: 'CourierPrime-Regular';
-  src: url('/app/custom/assets/font/CourierPrime-Regular.ttf') format('truetype');
+  font-family: "CourierPrime-Regular";
+  src: url("/app/custom/assets/font/CourierPrime-Regular.ttf")
+    format("truetype");
 }
 
 body {
@@ -128,15 +129,15 @@ body {
   font-size: small;
 }
 .btn-primary {
-  background-color: #E49C1E !important;
-  border-color: #E49C1E !important;
+  background-color: #e49c1e !important;
+  border-color: #e49c1e !important;
 }
 
 .btn-primary:not(:disabled):not(.disabled):active:focus {
-      box-shadow: 0 0 0 0.2rem rgb(228 156 30 / 50%) !important;
+  box-shadow: 0 0 0 0.2rem rgb(228 156 30 / 50%) !important;
 }
 
-.btn-primary:disabled{
+.btn-primary:disabled {
   background-color: #707070d0 !important;
   border-color: #707070d0 !important;
 }
@@ -966,7 +967,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .footer-container {
-  display:flex;
+  display: flex;
   align-items: center;
   justify-content: space-between;
 }
@@ -977,18 +978,18 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .card-horizontal .img-square-wrapper img {
-  width:200px !important;
+  width: 200px !important;
 }
 
 customfooter > div {
-  font-size:13px !important;
+  font-size: 13px !important;
 }
 
 .navbar-light .navbar-toggler {
-  color:#fff;
+  color: #fff;
   font-size: 29px;
   letter-spacing: -11px;
-  border:none;
+  border: none;
 }
 
 /* adapt the alert box to the card*/
@@ -999,16 +1000,14 @@ customfooter > div {
 
 /*media query footer*/
 @media screen and (max-width: 574px) {
-
   .footer {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
-  
+
     .footer-container {
-      display:flex;
+      display: flex;
       align-items: center;
       justify-content: space-between;
-    
 
       .card-horizontal .img-square-wrapper img {
         width: 130px !important;

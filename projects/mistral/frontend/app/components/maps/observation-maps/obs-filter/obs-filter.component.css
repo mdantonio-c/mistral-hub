@@ -12,10 +12,10 @@
 }
 
 select {
-  font-family:"Montserrat-semibold";
+  font-family: "Montserrat-semibold";
 }
 
 option {
- font-family:"Montserrat-regular",'Segoe UI', sans-serif;
- font-weight:600;
+  font-family: "Montserrat-regular", "Segoe UI", sans-serif;
+  font-weight: 600;
 }
