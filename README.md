@@ -59,7 +59,7 @@ services: frontend
 in the main section and:
 
 ```
-BACKEND_URI: https://remote.host.url
+BACKEND_URL: https://remote.host.url
 BACKEND_API_PORT: 443
 ```
 
@@ -75,7 +75,7 @@ project_configuration:
   variables:
     env:
       [...]
-      BACKEND_URI: https://remote.host.url
+      BACKEND_URL: https://remote.host.url
       BACKEND_API_PORT: 443
 ```
 
