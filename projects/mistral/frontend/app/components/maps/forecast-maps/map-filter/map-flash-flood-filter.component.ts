@@ -19,12 +19,10 @@ import { NgbActiveModal, NgbModal } from "@ng-bootstrap/ng-bootstrap";
       <h4 class="modal-title">PRODUCTS</h4>
       <button
         type="button"
-        class="close"
+        class="btn-close"
         aria-label="Close"
         (click)="activeModal.dismiss('Cross click')"
-      >
-        <span aria-hidden="true">&times;</span>
-      </button>
+      ></button>
     </div>
     <div class="modal-body">
       <p>

@@ -192,12 +192,10 @@
     <h4 class="modal-title">Terms of use</h4>
     <button
       type="button"
-      class="btn close"
+      class="btn-close"
       aria-label="Close"
       (click)="modal.dismiss()"
-    >
-      <span aria-hidden="true">&times;</span>
-    </button>
+    ></button>
   </div>
   <div class="modal-body">
     <div class="modal-v-scrollable">
@@ -205,11 +203,7 @@
         <div class="list-group">
           <div
             *ngFor="let ds of myRequest.datasets"
-            class="
-              list-group-item list-group-item-action
-              flex-column
-              align-items-start
-            "
+            class="list-group-item list-group-item-action flex-column align-items-start"
           >
             <div class="d-flex w-100 justify-content-between">
               <h5 class="mb-1">{{ ds.name }}</h5>
