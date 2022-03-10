@@ -7,13 +7,13 @@
 ```
 $ git clone https://gitlab.hpc.cineca.it/mistral/meteo-hub.git
 $ cd meteo-hub
-$ git checkout 0.4.5
+$ git checkout 0.4.6
 ```
 
 ### Install the controller
 
 ```
-$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@2.2`
+$ sudo pip3 install --upgrade git+https://github.com/rapydo/do.git@2.3`
 
 $ rapydo install
 ```
