@@ -16,7 +16,6 @@ import { LeafletDrawModule } from "@asymmetrik/ngx-leaflet-draw";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
 import { NgxChartsModule } from "@swimlane/ngx-charts";
 
-import { HomeComponent } from "@app/custom.home";
 import { DataComponent } from "@app/components/data/data.component";
 import { RequestsComponent } from "@app/components/requests/requests.component";
 import { SchedulesComponent } from "@app/components/schedules/schedules.component";
@@ -180,7 +179,6 @@ const appRoutes: Routes = [
     AdminLicensesComponent,
     AdminLicgroupsComponent,
     AdminAttributionsComponent,
-    HomeComponent,
     DataComponent,
     ForecastMapsBaseComponent,
     ForecastMapsComponent,
