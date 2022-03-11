@@ -44,7 +44,7 @@ jobs:
       - name: Production mode
         run: |
           rapydo remove --all
-          rapydo --testing --prod init --force
+          rapydo --testing --prod -e FTP_USER=ftpuser init --force
           rapydo pull --quiet frontend proxy
 
           rapydo start frontend proxy

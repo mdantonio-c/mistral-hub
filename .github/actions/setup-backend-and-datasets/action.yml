@@ -18,6 +18,8 @@ runs:
         mkdir data/user_repo/templates_for_pp;
         wget --quiet ${{ inputs.dataset_url }}/template_for_spare_point.zip -O data/user_repo/templates_for_pp/template_for_spare_point.zip;
 
+        rapydo --testing -e FTP_USER=ftpuser init --force
+
         rapydo pull --quiet;
         rapydo install buildx
         rapydo build --force;
