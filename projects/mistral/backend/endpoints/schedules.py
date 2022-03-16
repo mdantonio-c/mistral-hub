@@ -605,7 +605,7 @@ class SingleSchedule(EndpointResource):
                 log.info("Period settings [{} {}]", every, period)
 
                 # get schedule id in postgres database
-                # as scheduled request name for mongodb
+                # as scheduled request name for celery
                 name_int = SqlApiDbManager.create_schedule_record(
                     db,
                     user,
@@ -658,7 +658,7 @@ class SingleSchedule(EndpointResource):
             elif crontab_settings is not None:
                 log.info("Crontab settings {}", crontab_settings)
                 # get scheduled request id in postgres database
-                # as scheduled request name for mongodb
+                # as scheduled request name for celery
                 name_int = SqlApiDbManager.create_schedule_record(
                     db,
                     user,
@@ -825,10 +825,10 @@ class SingleSchedule(EndpointResource):
 
         schedule = db.Schedule.query.get(schedule_id)
         if schedule.on_data_ready is False:
-            # retrieving mongodb task
+            # retrieving celery task
             task = c.get_periodic_task(name=schedule_id)
             log.debug("Periodic task - {}", task)
-            # disable the schedule deleting it from mongodb
+            # disable the schedule deleting it from celery
             if is_active is False:
                 if task is None:
                     raise Conflict("Scheduled task is already disabled")
@@ -838,11 +838,11 @@ class SingleSchedule(EndpointResource):
                 if task:
                     raise Conflict("Scheduled task is already enabled")
 
-                # recreate the schedule in mongo retrieving the schedule from postgres
+                # recreate the schedule in celery retrieving the schedule from postgres
                 schedule_response = SqlApiDbManager.get_schedule_by_id(db, schedule_id)
                 log.debug("schedule response: {}", schedule_response)
 
-                # recreate the schedule in mongo retrieving the schedule from postgres
+                # recreate the schedule in celery retrieving the schedule from postgres
                 try:
                     request_id = None
                     if "periodic" in schedule_response:
@@ -920,7 +920,7 @@ class SingleSchedule(EndpointResource):
         # check if the schedule exist and is owned by the current user
         self.request_and_owner_check(db, user.id, schedule_id)
 
-        # delete schedule in mongodb
+        # delete schedule in celery
         celery_app.delete_periodic_task(name=schedule_id)
 
         # delete schedule status in database

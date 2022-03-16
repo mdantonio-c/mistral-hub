@@ -31,12 +31,12 @@ First time it takes a while as it builds some docker images. Finally, you should
 
 ```
 ...
-Creating mistral_frontend_1 ... done
-Creating mistral_postgres_1 ... done
-Creating mistral_mongodb_1  ... done
-Creating mistral_rabbit_1   ... done
-Creating mistral_backend_1  ... done
-Creating mistral_celery_1   ... done
+Creating mistral-frontend-1 ... done
+Creating mistral-postgres-1 ... done
+Creating mistral-rabbit-1   ... done
+Creating mistral-redis-1  ... done
+Creating mistral-backend-1  ... done
+Creating mistral-celery-1   ... done
 2019-05-16 15:12:44,631 [INFO    controller.app:1338] Stack started
 ```
 
