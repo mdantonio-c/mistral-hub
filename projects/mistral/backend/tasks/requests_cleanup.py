@@ -31,7 +31,7 @@ def automatic_cleanup(self: Task) -> str:
             continue
 
         if r.archived:
-            log.info("{} already archived", r.id)
+            log.debug("{} already archived", r.id)
             continue
 
         if r.end_date > now - exp:
