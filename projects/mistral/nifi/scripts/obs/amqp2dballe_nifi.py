@@ -24,7 +24,13 @@ DEFAULT_DSN = f"postgresql://{user}:{pw}@{host}:{port}/DBALLE"
 network_filter = sys.argv[1].lower().split()
 print(network_filter)
 
-db = dballe.DB.connect(DEFAULT_DSN)
+try:
+    # if it cannot connect to dballe an error is raised as the incoming file can be saved in error folder)
+    db = dballe.DB.connect(DEFAULT_DSN)
+except BaseException as exc:
+    print(str(exc), file=sys.stderr)
+    sys.exit(111)
+
 importer = dballe.Importer("BUFR")
 
 data_now = datetime.datetime.now()
