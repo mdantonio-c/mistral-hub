@@ -70,6 +70,7 @@ services:
       - ${DATA_DIR}/nifi/provenance_repository:/opt/nifi/nifi-current/provenance_repository
       - ${DATA_DIR}/nifi/state:/opt/nifi/nifi-current/state
       - ${DATA_DIR}/nifi/logs:/opt/nifi/nifi-current/logs
+      - ${DATA_DIR}/nifi/error_flowfiles:/opt/nifi/nifi_error_flowfile
 
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
