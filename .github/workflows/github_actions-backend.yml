@@ -30,6 +30,10 @@ jobs:
           project: ${PROJECT}
           dataset_url: ${{ secrets.DATASET_URL }}
 
+      - name: Test arpaesimc tools
+        run: |
+          rapydo shell backend "bash /code/tests/custom/test_arpaesimc.sh"
+
       - name: Run Pytest
         run: |
           # wait few seconds to let the init process in docker-entrypoint to complete
@@ -46,10 +50,6 @@ jobs:
           repository: projects/${PROJECT}
           project: ${PROJECT}
           step: backend
-
-      - name: Test arpaesimc tools
-        run: |
-          rapydo shell backend "bash /code/tests/custom/test_arpaesimc.sh"
 
       - name: Login to DockerHub
         uses: docker/login-action@v1

@@ -1,4 +1,4 @@
-FROM arpaesimc/centos:8 AS arpaesimc
+FROM arpaesimc/rockylinux:8 AS arpaesimc
 
 FROM rapydo/backend:2.3
 
