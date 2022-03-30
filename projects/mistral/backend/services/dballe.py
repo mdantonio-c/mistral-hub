@@ -1547,7 +1547,19 @@ class BeDballe:
         for p in param_list:
             item = {}
             item["code"] = p
-            item["desc"] = BeDballe.get_description(p, type)
+            if type == "network":
+                # get the dataset description instead of the dballe one
+                dataset_id = arki_service.from_network_to_dataset(p)
+                alchemy_db = sqlalchemy.get_instance()
+                dataset = alchemy_db.Datasets.query.filter_by(
+                    arkimet_id=dataset_id
+                ).first()
+                if dataset:
+                    item["desc"] = dataset.name
+                else:
+                    item["desc"] = BeDballe.get_description(p, type)
+            else:
+                item["desc"] = BeDballe.get_description(p, type)
             list_dic.append(item)
         return list_dic
 

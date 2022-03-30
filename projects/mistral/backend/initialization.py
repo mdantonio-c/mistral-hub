@@ -273,6 +273,10 @@ class Initializer:
                 name=ds["attribution"]
             ).first()
             ds_license = sql.License.query.filter_by(name=ds["license"]).first()
+            if "_name" in ds:
+                dataset_name = ds["name"]
+            else:
+                dataset_name = ds["name"]
             if ds_attribution is None:
                 log.error(
                     "Dataset {} cannot be updated: attribution {} does not exist",
@@ -290,7 +294,7 @@ class Initializer:
             if ds_entry is None:
                 new_ds = sql.Datasets(
                     arkimet_id=ds["id"],
-                    name=ds["name"],
+                    name=dataset_name,
                     description=ds["description"],
                     license_id=ds_license.id,
                     attribution_id=ds_attribution.id,
@@ -304,13 +308,13 @@ class Initializer:
             else:
                 # check if the dataset entry has to be updated
                 if (
-                    ds_entry.name != ds["name"]
+                    ds_entry.name != dataset_name
                     or ds_entry.description != ds["description"]
                     or ds_entry.license_id != ds_license.id
                     or ds_entry.attribution_id != ds_attribution.id
                     or ds_entry.category != ds["category"]
                 ):
-                    ds_entry.name = ds["name"]
+                    ds_entry.name = dataset_name
                     ds_entry.description = ds["description"]
                     ds_entry.license_id = ds_license.id
                     ds_entry.attribution_id = ds_attribution.id
@@ -325,7 +329,11 @@ class Initializer:
         for ds_in_db in dataset_in_db:
             is_in_config = False
             for ds in datasets:
-                if ds["name"] == ds_in_db.name:
+                if "_name" in ds:
+                    dataset_name = ds["name"]
+                else:
+                    dataset_name = ds["name"]
+                if dataset_name == ds_in_db.name:
                     is_in_config = True
                     break
             if not is_in_config:
