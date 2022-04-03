@@ -11,9 +11,9 @@ ENV APIUSER developer
 
 RUN usermod -u $CURRENT_UID $APIUSER
 
-#########################################################
-# Dependencies
-#########################################################
+###############################################################################
+# DEPENDENCIES
+###############################################################################
 
 RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
  && apt-get update -qq \
@@ -37,9 +37,9 @@ ENV DATASET_ROOT="/arkimet/datasets/"
 
 WORKDIR /tmp
 
-#########################################################
+###############################################################################
 # ECCODES
-#########################################################
+###############################################################################
 
 ENV ECCODES_VERSION="2.23.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
@@ -62,9 +62,9 @@ RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/a
   && pip3 install --no-cache-dir eccodes netCDF4 \
   && rm -rf /tmp/eccodes*
 
-#########################################################
-# arpaesimc
-#########################################################
+###############################################################################
+# ARPAESIMC
+###############################################################################
 
 COPY --from=arpaesimc /usr/bin /usr/bin/centos
 
@@ -170,7 +170,10 @@ COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter /usr/local/l
 
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter-0.0.2-py3.6.egg-info /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter-0.0.2-py3.6.egg-info/
 
+###############################################################################
+# NUMPY
 # numpy has to be (re)installed here to prevent issues with shared libraries
-RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6 && pip3 install --upgrade --no-cache-dir numpy
+##############################################################################
+RUN pip3 install --upgrade --no-cache-dir numpy
 
 WORKDIR /code
