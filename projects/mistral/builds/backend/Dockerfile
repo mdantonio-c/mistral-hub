@@ -13,6 +13,8 @@ RUN usermod -u $CURRENT_UID $APIUSER
 
 ###############################################################################
 # DEPENDENCIES
+# Note: the link python3.x -> python3.6 is needed because
+# some arkimet scripts have an hardcoded /usr/bin/python3.6 interpreter
 ###############################################################################
 
 RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
@@ -29,7 +31,8 @@ RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/ap
       gfortran \
  && apt-get autoremove --yes \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6
 
 ENV PATH="$PATH:/usr/bin/centos"
 

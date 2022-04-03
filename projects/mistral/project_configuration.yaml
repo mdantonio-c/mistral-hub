@@ -16,6 +16,8 @@ variables:
   env:
     PYTHON_PATH: /usr/local/lib/python3.8/dist-packages
     BACKEND_BUILD_MODE: backend-legacy
+    # Temporary disabled due to an incompatibility with python 3.8
+    RUN_SCHEMATHESIS: 0
 
     AUTH_SERVICE: sqlalchemy
     FRONTEND_FRAMEWORK: angular
@@ -77,6 +79,3 @@ variables:
     SET_MAX_REQUESTS_PER_SECOND_API: 999
     SET_MAX_REQUESTS_PER_SECOND_AUTH: 5
     SET_MAX_REQUESTS_BURST_AUTH: 5
-
-    # Temporary disabled due to an incompatibility with python 3.8
-    RUN_SCHEMATHESIS: 0
