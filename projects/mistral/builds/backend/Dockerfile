@@ -1,6 +1,6 @@
 FROM arpaesimc/rockylinux:8 AS arpaesimc
 
-FROM rapydo/backend:2.3
+FROM rapydo/backend-legacy:2.3
 
 ARG RAPYDO_VERSION
 RUN test -n "$RAPYDO_VERSION"
@@ -10,18 +10,6 @@ RUN test -n "$CURRENT_UID"
 ENV APIUSER developer
 
 RUN usermod -u $CURRENT_UID $APIUSER
-
-#########################################################
-# Python 3.9 is not working for dballe, let's downgrade to python 3.8
-ENV PYTHON_VERSION="3.8"
-RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 \
-    && curl --silent https://bootstrap.pypa.io/get-pip.py --output get-pip.py \
-    && python3 get-pip.py \
-    && rm get-pip.py \
-    && apt-get update -qq \
-    && apt-get install --yes --no-install-recommends python${PYTHON_VERSION}-dev \
-    && pip3 install --upgrade --no-cache-dir git+https://github.com/rapydo/http-api.git@$RAPYDO_VERSION
-#########################################################
 
 #########################################################
 # Dependencies
