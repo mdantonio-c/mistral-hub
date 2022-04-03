@@ -15,6 +15,7 @@ variables:
 
   env:
     PYTHON_PATH: /usr/local/lib/python3.8/dist-packages
+    BACKEND_BUILD_MODE: backend-legacy
 
     AUTH_SERVICE: sqlalchemy
     FRONTEND_FRAMEWORK: angular
