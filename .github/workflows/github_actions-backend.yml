@@ -91,13 +91,14 @@ jobs:
       - name: Production mode
         run: |
 
-          # Stack already started by setup-backend-and-datasets to init dballe: remove it
-          rapydo remove
+          # Stack already started by setup-backend-and-datasets, also remove volumes
+          rapydo remove --all
 
           rapydo --testing --prod -e FTP_USER=ftpuser init --force
           rapydo pull --quiet
           rapydo ssl --volatile
           rapydo start
+
           sleep 45
           rapydo logs
           curl --insecure -X GET --max-time 5 https://localhost/api/status | grep "Server is alive"
