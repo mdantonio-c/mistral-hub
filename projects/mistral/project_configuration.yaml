@@ -9,9 +9,11 @@ variables:
   roles:
     staff_user: disabled
     institutional: Institutional
+    operational: Operational
 
   roles_descriptions:
     institutional: Institutional User
+    operational: User performing operational procedures
 
   env:
     PYTHON_PATH: /usr/local/lib/python3.8/dist-packages

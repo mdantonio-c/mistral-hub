@@ -12,7 +12,9 @@ from restapi.utilities.logs import log
 
 
 class DataReady(EndpointResource):
-    @decorators.auth.require()
+    private = True
+
+    @decorators.auth.require_any("operational")
     @decorators.use_kwargs(
         {
             "cluster": fields.String(required=True, data_key="Cluster"),
