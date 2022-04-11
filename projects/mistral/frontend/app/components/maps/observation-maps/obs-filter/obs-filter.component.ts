@@ -7,7 +7,12 @@ import {
   ChangeDetectorRef,
 } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { ObsFilter, CodeDescPair, FieldsSummary } from "@app/types";
+import {
+  ObsFilter,
+  CodeDescPair,
+  NetworkCodeDesc,
+  FieldsSummary,
+} from "@app/types";
 import { ObsService } from "../services/obs.service";
 import { LICENSES } from "../services/data";
 import { NgbDateStruct, NgbCalendar } from "@ng-bootstrap/ng-bootstrap";
@@ -36,7 +41,7 @@ export class ObsFilterComponent implements OnInit {
   @Input() network: string;
 
   filterForm: FormGroup;
-  allNetworks: CodeDescPair[];
+  allNetworks: NetworkCodeDesc[];
   allLevels: CodeDescPair[];
   allProducts: CodeDescPair[];
   allTimeranges: CodeDescPair[];
