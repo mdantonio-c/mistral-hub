@@ -139,8 +139,9 @@ def setup_nifi_template(
             body["component"]["parameterContext"] = {}
             body["component"]["parameterContext"]["id"] = context_el["id"]
             data = json.dumps(body)
+            p_group_url = f"{NIFI_API_URI}/process-groups/{p_group['id']}"
             r = requests.put(
-                p_group["uri"], data=data, headers=p_group_header, verify=False
+                p_group_url, data=data, headers=p_group_header, verify=False
             )
             if r.status_code != 200:
                 log.error(
