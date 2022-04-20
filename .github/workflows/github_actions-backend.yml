@@ -23,7 +23,7 @@ jobs:
       - uses: rapydo/actions/install@v1
         with:
           project: ${PROJECT}
-          extra_options: "-e FRONTEND_FRAMEWORK=nofrontend"
+          # extra_options: "-e FRONTEND_FRAMEWORK=nofrontend"
 
       - name: Install backend and datasets
         uses: ./.github/actions/setup-backend-and-datasets
@@ -95,7 +95,7 @@ jobs:
           # Stack already started by setup-backend-and-datasets, also remove volumes
           rapydo remove --all
 
-          rapydo --testing --prod -e FTP_USER=ftpuser -e FRONTEND_FRAMEWORK=nofrontend init --force
+          rapydo --testing --prod -e FTP_USER=ftpuser init --force
           rapydo pull --quiet
           rapydo ssl --volatile
           rapydo start
