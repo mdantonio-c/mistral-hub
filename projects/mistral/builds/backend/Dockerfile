@@ -1,6 +1,6 @@
 FROM arpaesimc/rockylinux:8 AS arpaesimc
 
-FROM rapydo/backend-legacy:2.3
+FROM rapydo/backend-legacy38:2.3
 
 ARG RAPYDO_VERSION
 RUN test -n "$RAPYDO_VERSION"
