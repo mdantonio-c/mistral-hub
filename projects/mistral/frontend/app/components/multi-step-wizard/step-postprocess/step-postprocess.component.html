@@ -12,11 +12,11 @@
         <!-- Summary Stats-->
         <div class="card mst--expansion-panel mst--info-panel">
           <ngx-spinner
+            type="ball-scale-multiple"
             bdColor="rgba(255,255,255,0.8)"
             color="#6c757d"
             zIndex="1000"
             [fullScreen]="false"
-            type="ball-clip-rotate-multiple"
             size="medium"
             name="summary-spinner"
           >
@@ -54,11 +54,11 @@
         <!-- Reftime -->
         <div class="card mst--expansion-panel mst--info-panel">
           <ngx-spinner
+            type="ball-scale-multiple"
             bdColor="rgba(255,255,255,0.8)"
             color="#6c757d"
             zIndex="1000"
             [fullScreen]="false"
-            type="ball-clip-rotate-multiple"
             size="medium"
             name="summary-spinner"
           >
@@ -445,10 +445,7 @@
                           >
                             <button
                               type="button"
-                              class="
-                                btn btn-outline-secondary
-                                dropdown-toggle-split
-                              "
+                              class="btn btn-outline-secondary dropdown-toggle-split"
                               id="crop-type"
                               ngbDropdownToggle
                             ></button>
@@ -535,10 +532,7 @@
                         <div ngbDropdown class="btn-group">
                           <button
                             type="button"
-                            class="
-                              btn btn-outline-secondary
-                              dropdown-toggle-split
-                            "
+                            class="btn btn-outline-secondary dropdown-toggle-split"
                             id="interpolation-type"
                             ngbDropdownToggle
                           ></button>

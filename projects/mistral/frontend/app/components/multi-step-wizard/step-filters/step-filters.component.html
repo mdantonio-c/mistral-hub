@@ -3,23 +3,23 @@
     <h4 class="head text-center">{{ title }}</h4>
     <br />
     <ngx-spinner
+      type="ball-scale-multiple"
       name="sp1"
       bdColor="rgba(255,255,255,0.8)"
       color="#6c757d"
       zIndex="1000"
       [fullScreen]="false"
-      type="ball-clip-rotate-multiple"
       size="medium"
     >
     </ngx-spinner>
     <div *ngIf="filters">
       <ngx-spinner
+        type="ball-scale-multiple"
         name="sp2"
         bdColor="rgba(51,51,51,0.8)"
         size="medium"
         color="#fff"
         zIndex="1000"
-        type="ball-scale-multiple"
       >
         <p style="font-size: 20px; color: white">Updating Filters...</p>
       </ngx-spinner>
