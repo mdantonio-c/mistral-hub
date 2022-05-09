@@ -57,6 +57,7 @@ def data_extract(
     try:
         db = sqlalchemy.get_instance()
         data_size = 0
+        outfile = None
         pp_output: Optional[Path] = None
         double_request = False
         if schedule_id is not None:
@@ -378,12 +379,19 @@ def data_extract(
         EmptyOutputFile,
         InvalidFiltersException,
     ) as exc:
+        # check if a file exists
+        if outfile and outfile.is_file():
+            outfile.unlink()
         request.status = states.FAILURE
         request.error_message = str(exc)
         raise Ignore(str(exc))
 
     except (DeleteScheduleException, JoinObservedExtraction, Exception) as exc:
         # handle all the other exceptions
+        # check if a file exists
+        if outfile and outfile.is_file():
+            outfile.unlink()
+
         request.status = states.FAILURE
         request.error_message = "Failed to extract data"
         # log.exception("Failed to extract data: {}", repr(exc))
