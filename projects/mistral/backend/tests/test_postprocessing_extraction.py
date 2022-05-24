@@ -17,6 +17,7 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi.connectors import sqlalchemy
 from restapi.connectors.celery import Ignore
 from restapi.tests import API_URI, BaseTests, FlaskClient
+from restapi.utilities.logs import log
 
 TASK_NAME = "data_extract"
 
@@ -531,6 +532,8 @@ class TestApp(BaseTests):
         )
         # check that the output file is a json
         assert multiple_2_filepath.suffix == ".json"
+        # check that the fileoutput has been well renamed
+        assert "pp2" and "grib" not in multiple_2_filepath.name
         # delete the request
         self.delete_the_request(client, multiple_2_request_id)
 

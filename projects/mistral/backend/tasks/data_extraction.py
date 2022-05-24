@@ -298,7 +298,7 @@ def data_extract(
 
             # rename the final postprocessors output unless it is a bufr file
             if pp_output:
-                if pp_output.suffix == ".tmp":
+                if "grib" in pp_output.name or pp_output.suffix == ".tmp":
                     log.debug(f"dest: {str(outfile)}")
                     pp_output.rename(outfile)
                 else:
