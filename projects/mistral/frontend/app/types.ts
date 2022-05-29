@@ -29,6 +29,12 @@ export interface CodeDescPair {
   desc?: string;
 }
 
+export interface NetworkCodeDesc {
+  code: string;
+  desc: string;
+  longdesc: string;
+}
+
 export interface Bcode {
   bcode: string;
   description: string;

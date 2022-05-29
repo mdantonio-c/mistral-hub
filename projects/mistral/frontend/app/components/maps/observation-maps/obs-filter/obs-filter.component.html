@@ -105,7 +105,11 @@
       <!--        >Any</option-->
       <!--      >-->
       <option value="">Any</option>
-      <option [ngValue]="n.code" *ngFor="let n of allNetworks">
+      <option
+        [ngValue]="n.code"
+        *ngFor="let n of allNetworks"
+        title="{{ n.longdesc }}"
+      >
         {{ n.desc }}
       </option>
     </select>

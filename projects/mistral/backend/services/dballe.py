@@ -1556,6 +1556,7 @@ class BeDballe:
                 ).first()
                 if dataset:
                     item["desc"] = dataset.name
+                    item["longdesc"] = dataset.description
                 else:
                     item["desc"] = BeDballe.get_description(p, type)
             else:
