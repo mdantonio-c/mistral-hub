@@ -75,7 +75,7 @@
       <h5 class="card-title">
         My Request
         <span
-          class="badge badge-warning font-weight-light"
+          class="badge bg-warning fw-light"
           *ngIf="schedule"
           [ngbTooltip]="tipSchedContent"
           placement="right"
@@ -97,14 +97,14 @@
       </h5>
       <div
         *ngIf="user.allowed_schedule"
-        class="btn-group btn-group-sm float-right"
+        class="btn-group btn-group-sm float-end"
         role="group"
       >
         <button
-          class="btn btn-info btn-sm float-right"
+          class="btn btn-border-classic btn-sm float-end"
           (click)="showSchedule(content)"
         >
-          <i class="fa fa-calendar mr-2"></i>Schedule
+          <i class="fa fa-calendar me-2"></i>Schedule
         </button>
       </div>
     </div>
@@ -114,16 +114,16 @@
     </div>
   </div>
 </div>
-<div class="form-group text-center space-20">
+<div class="mb-3 text-center space-20">
   <button
-    class="btn btn-outline-secondary mr-2"
+    class="btn btn-outline-secondary me-2"
     type="button"
     (click)="goToPrevious()"
   >
     <i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
   </button>
   <button
-    class="btn btn-info"
+    class="btn btn-border-classic"
     [disabled]="
       !isFormValid ||
       emptyName() ||
@@ -146,67 +146,60 @@
       <h4 class="modal-title">Schedule this request</h4>
       <button
         type="button"
-        class="btn-close"
+        class="btn-icon btn-close"
         aria-label="Close"
         (click)="modal.dismiss()"
       ></button>
     </div>
     <div class="modal-body">
       <h5 class="mb-2">Repeat:</h5>
-      <div class="custom-control custom-radio custom-control-inline">
+      <div class="form-check form-check-inline">
         <input
           type="radio"
-          class="custom-control-input"
+          class="form-check-input"
           formControlName="repeatType"
           value="crontab"
           id="crontab"
         />
-        <label class="custom-control-label mst--radio-label" for="crontab"
-          >At time</label
-        >
+        <label class="form-check-label" for="crontab">At time</label>
       </div>
-      <div class="custom-control custom-radio custom-control-inline">
+      <div class="form-check form-check-inline">
         <input
           type="radio"
-          class="custom-control-input"
+          class="form-check-input"
           formControlName="repeatType"
           value="period"
           id="period"
         />
-        <label class="custom-control-label mst--radio-label" for="period"
-          >Periodically</label
-        >
+        <label class="form-check-label" for="period">Periodically</label>
       </div>
-      <div
-        *ngIf="checkDataReady()"
-        class="custom-control custom-radio custom-control-inline"
-      >
+      <div *ngIf="checkDataReady()" class="form-check form-check-inline">
         <input
           type="radio"
-          class="custom-control-input"
+          class="form-check-input"
           formControlName="repeatType"
           value="data-ready"
           id="data-ready"
         />
-        <label class="custom-control-label mst--radio-label" for="data-ready"
-          >On data ready</label
-        >
+        <label class="form-check-label" for="data-ready">On data ready</label>
       </div>
     </div>
-    <div class="ml-3 my-2">
-      <div *ngIf="scheduleForm.get('repeatType').value === 'crontab'">
-        <div class="form-inline">
+    <div class="ms-3">
+      <ng-container *ngIf="scheduleForm.get('repeatType').value === 'crontab'">
+        <div class="align-items-center d-inline-flex">
           Every
-          <select formControlName="cPeriod" class="custom-select mx-2">
+          <select formControlName="cPeriod" class="form-select mx-2">
             <option>day</option>
             <option>week</option>
             <option>month</option></select
-          ><span *ngIf="scheduleForm.get('cPeriod').value === 'day'; else on"
+          ><span
+            *ngIf="scheduleForm.get('cPeriod').value === 'day'; else on"
+            class="pe-2"
             >at:</span
           >
           <ng-template #on>on</ng-template>
           <span *ngIf="scheduleForm.get('cPeriod').value === 'week'">
-            <select formControlName="weekDay" class="custom-select mx-2">
+            <select formControlName="weekDay" class="form-select mx-2">
               <option value="1">Monday</option>
               <option value="2">Tuesday</option>
               <option value="3">Wednesday</option>
@@ -218,25 +211,23 @@
             at
           </span>
           <span *ngIf="scheduleForm.get('cPeriod').value === 'month'">
-            <select formControlName="monthDay" class="custom-select mx-2">
+            <select formControlName="monthDay" class="form-select mx-2">
               <option *ngFor="let n of fillDayofMonths()">{{ n }}</option>
             </select>
             at
           </span>
-        </div>
-        <div>
           <ngb-timepicker formControlName="time"></ngb-timepicker>
         </div>
-      </div>
-      <div *ngIf="scheduleForm.get('repeatType').value === 'period'">
-        <div class="form-inline">
+      </ng-container>
+      <ng-container *ngIf="scheduleForm.get('repeatType').value === 'period'">
+        <div class="align-items-center d-inline-flex my-4">
           Every
           <input
             *ngIf="scheduleForm.get('period').value !== 'minute'"
             type="number"
             formControlName="every"
             min="1"
-            class="form-control ml-2"
+            class="form-control ms-2"
             style="width: 80px"
             required
           />
@@ -245,14 +236,14 @@
             type="number"
             formControlName="every"
             min="15"
-            class="form-control ml-2"
+            class="form-control ms-2"
             style="width: 80px"
             value="15"
             required
           />
           <select
             formControlName="period"
-            class="custom-select mx-2"
+            class="form-select mx-2"
             (change)="onPeriodSelected(scheduleForm.get('period').value)"
           >
             <option>minute</option>
@@ -260,7 +251,7 @@
             <option>day</option>
           </select>
         </div>
-      </div>
+      </ng-container>
       <div *ngIf="scheduleForm.get('repeatType').value === 'data-ready'">
         <!-- nothing -->
       </div>
@@ -291,7 +282,7 @@
       </button>
       <button
         type="submit"
-        class="btn btn-info"
+        class="btn btn-border-classic"
         [disabled]="scheduleForm.invalid"
       >
         Save

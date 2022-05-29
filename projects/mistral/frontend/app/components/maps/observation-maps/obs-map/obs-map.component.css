@@ -6,7 +6,7 @@
  */
 
 .tool-tip .arrow::before {
-  border-right-color: #000000cf;
+  border-end-color: #000000cf;
 }
 .tool-tip .tooltip-inner {
   max-width: 400px;

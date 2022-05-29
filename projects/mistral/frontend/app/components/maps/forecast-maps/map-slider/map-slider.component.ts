@@ -29,7 +29,7 @@ const SLIDER_TICKS = [0, 12, 24, 36, 48, 60, 72];
 @Component({
   selector: "app-map-slider",
   templateUrl: "./map-slider.component.html",
-  styleUrls: ["./map-slider.component.css"],
+  styleUrls: ["./map-slider.component.scss"],
 })
 export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   @Input() filter: MeteoFilter;

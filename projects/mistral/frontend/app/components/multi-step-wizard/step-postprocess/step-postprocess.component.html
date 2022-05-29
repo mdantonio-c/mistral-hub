@@ -7,7 +7,7 @@
     <h4 class="head text-center">{{ title }}</h4>
     <br />
 
-    <div class="row no-gutters">
+    <div class="row g-0">
       <div class="col-md-6 mb-4 mb-md-0">
         <!-- Summary Stats-->
         <div class="card mst--expansion-panel mst--info-panel">
@@ -92,7 +92,7 @@
         </div>
       </div>
     </div>
-    <!-- no postprocessing availables -->
+    <!-- no postprocessing available -->
     <div
       class="row"
       *ngIf="form.value.hasGribDataset && !user.allowed_postprocessing"
@@ -112,7 +112,7 @@
           >&nbsp;<i
             placement="right"
             ngbTooltip="Computes variables not present in the archive on the basis of the variables retrieved by the user. Notice that the list of variables required for computing a particular derived variable is not uniquely determined and it may depend on what is available in a specific dataset, e.g. relative humidity can be computed from temperature and dew-point temperature of from temperature, pressure and specific humidity."
-            class="fa fa-question-circle"
+            class="fa fa-circle-question"
             aria-hidden="true"
           ></i
         ></span>
@@ -159,7 +159,7 @@
           >&nbsp;<i
             placement="right"
             ngbTooltip="Applies an elementary statistical processing on a finite-length time interval to data retrieved by the user. It is typically used for accumulating surface precipitation values on intervals of desired length. Not all the combinations of input and output time-range values make sense."
-            class="fa fa-question-circle"
+            class="fa fa-circle-question"
             aria-hidden="true"
           ></i
         ></span>
@@ -182,7 +182,7 @@
               </div>
               <div class="col-lg-3">
                 <div
-                  class="btn-group mr-3"
+                  class="btn-group me-3"
                   style="width: 100%; padding-right: 30px"
                 >
                   <button type="button" class="btn btn-outline-secondary">
@@ -218,7 +218,7 @@
               </div>
               <div class="col-lg-3">
                 <div
-                  class="btn-group mr-3"
+                  class="btn-group me-3"
                   style="width: 100%; padding-right: 30px"
                 >
                   <button type="button" class="btn btn-outline-secondary">
@@ -272,7 +272,7 @@
               </div>
               <div class="col-lg-3">
                 <div
-                  class="btn-group mr-3"
+                  class="btn-group me-3"
                   style="width: 100%; padding-right: 30px"
                 >
                   <button type="button" class="btn btn-outline-secondary">
@@ -324,13 +324,13 @@
           >&nbsp;<i
             placement="right"
             ngbTooltip="Allows to apply a space transformation such as cropping the grid, interpolating on a different latlon grid, interpolating on sparse points or averaging on polygonal areas."
-            class="fa fa-question-circle"
+            class="fa fa-circle-question"
             aria-hidden="true"
           ></i
         ></span>
       </div>
       <div class="body" [hidden]="!form.value.selectedSpacePP">
-        <ul class="mst--list-columns">
+        <ul>
           <fieldset>
             <label class="mst--radio-label" placement="right" openDelay="2000">
               <input type="radio" formControlName="space_type" value="crop" />
@@ -429,7 +429,7 @@
                       </div>
                       <div class="col" style="padding-left: 0px">
                         <div
-                          class="btn-group mr-3"
+                          class="btn-group me-3"
                           style="width: 100%; padding-right: 30px"
                         >
                           <button
@@ -525,7 +525,7 @@
                       >
                     </div>
                     <div class="col-lg-3">
-                      <div class="btn-group mr-3" style="width: 100%">
+                      <div class="btn-group me-3" style="width: 100%">
                         <button type="button" class="btn btn-outline-secondary">
                           {{ selectedInterpolationType }}
                         </button>
@@ -605,38 +605,26 @@
                         </div>
                         <hr />
                         <span *ngIf="!isMaxGridTemplateNumber">
-                          <div>
-                            <h5>Add new template to your personal area</h5>
-                          </div>
-                          <div class="custom-file">
-                            <input
-                              type="file"
-                              class="custom-file-input"
-                              id="input-grid-template"
-                              aria-describedby="inputGroupFileAddon01"
-                              (change)="loadFile($event.target.files)"
-                            />
+                          <div class="mb-3">
                             <label
-                              class="custom-file-label"
-                              for="inputGroupFile01"
-                              >Select file to upload</label
+                              for="gridTemplateFile"
+                              class="form-label"
+                              [ngClass]="{
+                                'text-muted': isMaxGridTemplateNumber
+                              }"
+                              >Add new template to your personal area</label
                             >
-                          </div>
-                        </span>
-                        <span *ngIf="isMaxGridTemplateNumber">
-                          <div style="color: #6f757d">
-                            <h5>Add new template to your personal area</h5>
-                          </div>
-                          <div class="custom-file">
                             <input
                               class="form-control"
-                              type="text"
-                              placeholder="Select file to upload"
-                              readonly
+                              type="file"
+                              id="gridTemplateFile"
+                              (change)="loadFile($event.target.files)"
+                              [disabled]="isMaxGridTemplateNumber"
                             />
-                          </div>
-                          <div>
-                            <h5 style="color: red">
+                            <h5
+                              class="text-danger"
+                              *ngIf="isMaxGridTemplateNumber"
+                            >
                               The maximum number of custom template in your
                               personal area has been reached.
                             </h5>
@@ -774,7 +762,7 @@
                   >
                 </div>
                 <div class="col-lg-3">
-                  <div class="btn-group mr-3" style="width: 100%">
+                  <div class="btn-group me-3" style="width: 100%">
                     <button type="button" class="btn btn-outline-secondary">
                       {{ selectedInterpolationType }}
                     </button>
@@ -844,46 +832,24 @@
                     </div>
                     <hr />
                     <span *ngIf="!isMaxShpTemplateNumber">
-                      <div>
-                        <h5>
-                          Add new shape or geoJson file to your personal area.
-                          If you upload geoJson this will be converted into a
-                          shape file
-                        </h5>
-                      </div>
-
-                      <div class="custom-file">
-                        <input
-                          type="file"
-                          class="custom-file-input"
-                          id="input-grid-template"
-                          aria-describedby="inputGroupFileAddon01"
-                          (change)="loadFile($event.target.files)"
-                        />
-                        <label class="custom-file-label" for="inputGroupFile01"
-                          >Select file to upload</label
+                      <div class="mb-3">
+                        <label
+                          for="shpTemplateFile"
+                          class="form-label"
+                          [ngClass]="{ 'text-muted': isMaxShpTemplateNumber }"
                         >
-                      </div>
-                    </span>
-                    <span *ngIf="isMaxShpTemplateNumber">
-                      <div style="color: #6f757d">
-                        <h5>
                           Add new shape or geoJson file to your personal area.
                           If you upload geoJson this will be converted into a
                           shape file
-                        </h5>
-                      </div>
-
-                      <div class="custom-file">
+                        </label>
                         <input
                           class="form-control"
-                          type="text"
-                          placeholder="Select file to upload"
-                          readonly
+                          type="file"
+                          id="shpTemplateFile"
+                          (change)="loadFile($event.target.files)"
+                          [disabled]="isMaxShpTemplateNumber"
                         />
-                      </div>
-                      <div>
-                        <h5 style="color: red">
+                        <h5 class="text-danger" *ngIf="isMaxShpTemplateNumber">
                           The maximum number of custom template in your personal
                           area has been reached.
                         </h5>
@@ -908,7 +874,7 @@
           >&nbsp;<i
             placement="right"
             ngbTooltip="Removes from the output those observed data having a quality control attribute indicating that they are unreliable."
-            class="fa fa-question-circle"
+            class="fa fa-circle-question"
             aria-hidden="true"
           ></i
         ></span>
@@ -949,7 +915,7 @@
           >&nbsp;<i
             placement="right"
             ngbTooltip="Allows to convert the output from the binary BUFR format to a textual JSON Lines format with a standard scheme."
-            class="fa fa-question-circle"
+            class="fa fa-circle-question"
             aria-hidden="true"
           ></i
         ></span>
@@ -961,7 +927,7 @@
               <label class="px-4">Format: </label>
             </div>
             <div class="col-lg-3">
-              <div class="btn-group mr-3" style="width: 100%">
+              <div class="btn-group me-3" style="width: 100%">
                 <button type="button" class="btn btn-outline-secondary">
                   {{ selectedConversionFormat }}
                 </button>
@@ -993,15 +959,19 @@
         </div>
       </div>
     </div>
-    <div class="form-group text-center space-20">
+    <div class="mb-3 text-center space-20">
       <button
-        class="btn btn-outline-secondary mr-2"
+        class="btn btn-outline-secondary me-2"
         type="button"
         (click)="goToPrevious()"
       >
         <i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
       </button>
-      <button class="btn btn-info" type="submit" [disabled]="!form.valid">
+      <button
+        class="btn btn-border-classic"
+        type="submit"
+        [disabled]="!form.valid"
+      >
         Next <i class="fa fa-arrow-right" aria-hidden="true"></i>
       </button>
     </div>

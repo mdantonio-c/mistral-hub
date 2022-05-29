@@ -18,6 +18,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 
   li a {
+    text-decoration: none;
     margin-top: 3px;
   }
   li a .nav-text {
@@ -319,7 +320,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   margin-left: 36px;
   margin-right: 8px;
 
-  input {
+  & > label > input {
     margin-left: 10px;
     margin-right: 10px;
     z-index: -1;
@@ -349,6 +350,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     justify-content: space-evenly;
     margin-right: 50px;
     font-family: "Montserrat-semibold";
+    margin-bottom: 0.5rem;
   }
 
   input {
@@ -552,110 +554,90 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   text-decoration: none;
 }
 
-/* style custom-switch borders */
+/* style form-switch borders */
 
-.custom-control-input:focus ~ .custom-control-label::before {
+.form-check-input:focus ~ .form-check-label::before {
   border-color: $light-orange !important;
   box-shadow: 0 0 0 0.2rem $light-orange-shadow !important;
 }
 
-.custom-control-input:checked ~ .custom-control-label::before {
+.form-check-input:checked ~ .form-check-label::before {
   border-color: $light-orange !important;
   background-color: $light-orange;
 }
 
-.custom-control-input:active ~ .custom-control-label::before {
+.form-check-input:active ~ .form-check-label::before {
   background-color: $light-orange;
   border-color: $light-orange !important;
 }
 
-.custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
+.form-check-input:focus:not(:checked) ~ .form-check-label::before {
   border-color: $light-orange !important;
 }
 
-.custom-control-input-green:not(:disabled):active
-  ~ .custom-control-label::before {
+.form-check-input-green:not(:disabled):active ~ .form-check-label::before {
   background-color: $light-orange;
   border-color: $light-orange !important;
 }
 
-/*clouds switch*/
+/* clouds switch */
 .clouds-switch {
-  label {
-    position: relative;
-    left: -23px;
-    top: -4px;
-  }
+  position: relative;
 
   p {
     position: absolute;
     top: 15px;
-    left: 10px;
+    left: 0px;
   }
 
-  .custom-control-input:checked ~ .custom-control-label::before {
+  input {
+    transform: scale(1.3);
+    &.form-check-input:focus {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+  }
+
+  .form-check-input:checked ~ .form-check-label:before {
     border-color: $light-orange !important;
     background-color: $light-orange !important;
   }
 
-  & input[disabled="true"] ~ .custom-control-label::before,
-  & input:checked[disabled="true"] ~ .custom-control-label::before {
+  & input[disabled="true"] ~ .form-check-label:before,
+  & input:checked[disabled="true"] ~ .form-check-label:before {
     background-color: #797e7e !important;
     border-color: #797e7e !important;
   }
-  & input[disabled="true"] ~ .custom-control-label::after {
+  & input[disabled="true"] ~ .form-check-label:after {
     background-color: #616262 !important;
     border-color: #616262 !important;
   }
 }
 
-/*multimodel switch*/
+/* multi model switch */
 .collapsed .mm-switch {
-  padding-left: 35px;
-  padding-top: 18px;
+  padding-left: 25px;
+  padding-top: 14px;
+  margin-bottom: 10px;
 }
 
 .mm-switch {
-  .custom-control-label {
+  .form-check-input {
     transform: rotate(90deg);
-    margin-top: 41px;
-    margin-left: -9px;
-    &:before {
-      opacity: 0.6;
-      left: -48.25px;
-      width: 44px;
-      height: 24px;
-      border-radius: 12.5px;
-      background-color: #9c999a !important;
-      border-color: #9c999a !important;
+    opacity: 0.6;
+    width: 44px;
+    height: 24px;
+    border-radius: 12.5px;
+    background-color: #9c999a !important;
+    border-color: #9c999a !important;
+
+    background-image: url("/app/custom/assets/images/icons/temper2.svg");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+
+    &:checked {
+      background-image: url("/app/custom/assets/images/icons/humidity.svg");
     }
-    &:after {
-      background-color: #e49d2b;
-      border-radius: 2.5rem;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-image: url("/app/custom/assets/images/icons/temper2.svg");
-      top: calc(3.6px + 2px);
-      left: calc(-46.25px + 2px);
-      width: calc(24px - 4px);
-      height: calc(24px - 4px);
-    }
-  }
-
-  .custom-control-input:checked ~ .custom-control-label::after {
-    background-color: #e49d2b;
-    transform: translateX(16.75px) rotate(270deg) !important;
-    background-image: url("/app/custom/assets/images/icons/humidity.svg") !important;
-  }
-
-  & input[disabled="true"] ~ .custom-control-label::after,
-  & input:checked[disabled="true"] ~ .custom-control-label::after {
-    background-color: #545555a9 !important;
-    background-image: none !important;
-  }
-
-  & input[disabled="true"] ~ .custom-control-label::before {
-    border-color: #545555a9 !important;
   }
 }
 

@@ -187,18 +187,16 @@
                 />
                 {{ lvl.value }}
               </label>
-              <div
-                class="custom-control custom-switch clouds-switch d-flex mb-3"
-              >
+              <div class="form-switch clouds-switch d-flex mb-3">
                 <input
                   id="tccSwitch"
                   type="checkbox"
-                  class="custom-control-input"
+                  class="form-check-input"
                   [checked]="showTotalClouds"
                   (change)="toggleTotalClouds()"
                   [attr.disabled]="isLayerActive('cc') ? null : true"
                 />
-                <label class="custom-control-label" for="tccSwitch"></label>
+                <label class="form-check-label" for="tccSwitch"></label>
                 <p>TOTAL</p>
               </div>
             </div>
@@ -225,16 +223,16 @@
         </ng-container>
       </li>
       <li class="sidenav-item last multi-model">
-        <div class="custom-control mm-switch custom-switch">
+        <div class="form-check mm-switch form-switch">
           <input
             type="checkbox"
-            class="custom-control-input"
+            class="form-check-input"
             [checked]="mmProductSwitch"
             [attr.disabled]="isShowedMultiModel ? null : true"
             (change)="switchMMProduct()"
             id="mmSwitch"
           />
-          <label class="custom-control-label" for="mmSwitch"></label>
+          <label class="form-check-label" for="mmSwitch"></label>
         </div>
         <div class="selettore-multimodel" *ngIf="!isCollapsed">
           <a href="#" click-stop-propagation>

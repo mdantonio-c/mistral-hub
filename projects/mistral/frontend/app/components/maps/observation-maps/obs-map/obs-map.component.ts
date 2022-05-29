@@ -150,7 +150,7 @@ export class ObsMapComponent {
         let warn = "";
         if (dirtyCluster) {
           warn =
-            '<i class="fas fa-exclamation-triangle fa-lg dirty-cluster"></i>';
+            '<i class="fas fa-triangle-exclamation fa-lg dirty-cluster"></i>';
         }
         //console.log("marker ",marker)
 

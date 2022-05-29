@@ -1,0 +1,20 @@
+.filter {
+  label {
+    margin-bottom: 0.15rem;
+  }
+  .form-group,
+  .form-row {
+    margin-bottom: 0.5rem;
+  }
+
+  select {
+    font-family: "Montserrat-semibold";
+    option {
+      font-family: "Montserrat-regular", "Segoe UI", sans-serif;
+      font-weight: 600;
+      &[value=""] {
+        color: #ccc !important;
+      }
+    }
+  }
+}

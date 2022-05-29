@@ -127,7 +127,7 @@
                     >
                       <button class="btn p-0" (click)="download(row.filename)">
                         {{ getFileType(row.filename) | uppercase }} data
-                        <i class="fa fa-download ml-2"></i>
+                        <i class="fa fa-download ms-2"></i>
                       </button>
                     </ng-template>
                   </ngx-datatable-column>
@@ -140,10 +140,10 @@
                 can select a filter and customize a bunch of data to download.
               </p>
               <a
-                class="font-weight-bold p-2"
+                class="fw-bold p-2"
                 routerLink=""
                 (click)="goTo('/app/maps/observations')"
-                >Go to map <i class="fas fa-arrow-alt-circle-right"></i
+                >Go to map <i class="fas fa-circle-right"></i
               ></a>
             </ng-container>
             <ng-container *ngSwitchCase="'RAD'">

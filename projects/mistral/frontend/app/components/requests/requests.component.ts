@@ -19,6 +19,7 @@ export interface Request {}
 @Component({
   selector: "app-requests",
   templateUrl: "./requests.component.html",
+  styleUrls: ["./requests.component.scss"],
 })
 export class RequestsComponent extends BasePaginationComponent<Request> {
   protected confirmationModals: ConfirmationModals;

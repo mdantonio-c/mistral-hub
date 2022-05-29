@@ -25,7 +25,7 @@
           <img
             src="/app/custom/assets/images/icon_obs_sm.png"
             alt="OBS"
-            class="mr-1"
+            class="me-1"
           />Observations
         </h5>
         <div class="clearfix">
@@ -52,14 +52,14 @@
                   >{{ datasets[i].description }}</label
                 >
                 <ng-template #tipOBSContent>
-                  <ul class="pl-0 text-left">
+                  <ul class="ps-0 text-start">
                     <li>
                       <!--                                            <i class="fas" [ngClass]="(datasets[i].license === 'CCBY4.0') ? 'fa-closed-captioning' : 'fa-copyright'"></i>-->
-                      <span class="pl-1">{{ datasets[i].license }}</span>
+                      <span class="ps-1">{{ datasets[i].license }}</span>
                     </li>
                     <li>
                       <!--                                            <i class="fab fa-creative-commons-by"></i>-->
-                      <span class="pl-1">{{ datasets[i].attribution }}</span>
+                      <span class="ps-1">{{ datasets[i].attribution }}</span>
                     </li>
                   </ul>
                 </ng-template>
@@ -68,12 +68,12 @@
           </ul>
         </div>
       </div>
-      <div class="col-12 col-lg-4 mb-2 border-right border-left">
+      <div class="col-12 col-lg-4 mb-2 border-end border-start">
         <h5 class="text-center">
           <img
             src="/app/custom/assets/images/icon_for_sm.png"
             alt="FOR"
-            class="mr-1"
+            class="me-1"
           />Forecasts
         </h5>
         <div class="clearfix">
@@ -100,12 +100,12 @@
                   >{{ datasets[i].description }}</label
                 >
                 <ng-template #tipFORContent>
-                  <ul class="pl-0 text-left">
+                  <ul class="ps-0 text-start">
                     <li>
-                      <span class="pl-1">{{ datasets[i].license }}</span>
+                      <span class="ps-1">{{ datasets[i].license }}</span>
                     </li>
                     <li>
-                      <span class="pl-1">{{ datasets[i].attribution }}</span>
+                      <span class="ps-1">{{ datasets[i].attribution }}</span>
                     </li>
                   </ul>
                 </ng-template>
@@ -119,7 +119,7 @@
           <img
             src="/app/custom/assets/images/icon_rad_sm.png"
             alt="RAD"
-            class="mr-1"
+            class="me-1"
           />Radar
         </h5>
         <div class="clearfix">
@@ -146,12 +146,12 @@
                   >{{ datasets[i].description }}</label
                 >
                 <ng-template #tipRADContent>
-                  <ul class="pl-0 text-left">
+                  <ul class="ps-0 text-start">
                     <li>
-                      <span class="pl-1">{{ datasets[i].license }}</span>
+                      <span class="ps-1">{{ datasets[i].license }}</span>
                     </li>
                     <li>
-                      <span class="pl-1">{{ datasets[i].attribution }}</span>
+                      <span class="ps-1">{{ datasets[i].attribution }}</span>
                     </li>
                   </ul>
                 </ng-template>
@@ -161,9 +161,9 @@
         </div>
       </div>
     </div>
-    <div class="form-group text-center">
+    <div class="mb-3 text-center">
       <button
-        class="btn btn-success btn-info"
+        class="btn btn-border-classic"
         type="submit"
         [disabled]="
           !form.valid ||

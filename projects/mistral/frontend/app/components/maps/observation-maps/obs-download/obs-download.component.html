@@ -2,7 +2,7 @@
   <h4 class="modal-title">Download Data</h4>
   <button
     type="button"
-    class="btn-close"
+    class="btn-icon btn-close"
     aria-label="Close"
     (click)="activeModal.dismiss()"
   ></button>
@@ -10,7 +10,7 @@
 <div class="modal-body">
   <div class="download">
     <form #form="ngForm" (ngSubmit)="download()">
-      <div class="form-group">
+      <div class="mb-3">
         <ngb-datepicker
           #dp
           (dateSelect)="onDateSelection($event)"
@@ -38,12 +38,12 @@
         </ng-template>
       </div>
       <!-- Format -->
-      <div class="form-group">
+      <div class="mb-3">
         <label for="format">Format</label>
         <select
           id="format"
           name="format"
-          class="form-control"
+          class="form-select"
           [(ngModel)]="model.format"
         >
           <option *ngFor="let f of allFormats" [ngValue]="f">{{ f }}</option>
@@ -53,7 +53,7 @@
       <div class="text-center mt-4">
         <button
           type="submit"
-          class="btn btn-primary no-rounded ml-2"
+          class="btn btn-primary no-rounded ms-2"
           [disabled]="form.invalid || !filter"
         >
           <i class="fas fa-download"></i>

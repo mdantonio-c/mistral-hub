@@ -18,7 +18,7 @@ import { ObsDownloadComponent } from "./obs-download/obs-download.component";
 @Component({
   selector: "app-observation-maps",
   templateUrl: "./observation-maps.component.html",
-  styleUrls: ["./observation-maps.component.css"],
+  styleUrls: ["./observation-maps.component.scss"],
   encapsulation: ViewEncapsulation.None,
 })
 export class ObservationMapsComponent implements OnInit {

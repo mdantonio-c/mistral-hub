@@ -26,7 +26,7 @@ const LAST_DAYS = +environment.CUSTOM.LASTDAYS || 10;
 @Component({
   selector: "app-obs-filter",
   templateUrl: "./obs-filter.component.html",
-  styleUrls: ["./obs-filter.component.css"],
+  styleUrls: ["./obs-filter.component.scss"],
 })
 export class ObsFilterComponent implements OnInit {
   readonly DEFAULT_PRODUCT = "B12101";

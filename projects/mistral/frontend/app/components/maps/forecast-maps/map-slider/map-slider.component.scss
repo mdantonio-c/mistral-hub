@@ -28,15 +28,9 @@ div.explain {
 
 /* end new */
 
-h4 {
+h5.parameter {
   display: inline;
   padding: 0 2px;
-}
-
-h4.parameter {
-  display: inline;
-  padding: 0 2px;
-  margin: 0 5px 0 0;
 }
 
 #slider-bar {
@@ -56,29 +50,6 @@ h4.parameter {
   }
 }
 
-/**
-.carousel > .carousel-inner > .carousel-item > img {
-  object-fit: contain !important;
-  height: 100% !important;
-}
-
-.carousel > .carousel-inner > .carousel-item {
-  height: 73vh !important;
-}
-
-
-.carousel-item .img-fluid {
-  width:100%;
-  height:100%;
-}
-
-
-@media (max-height: 640px) and (orientation: landscape) {
-  .carousel > .carousel-inner > .carousel-item {
-    height: 50vh;
-  }
-}
-**/
 @media (max-width: 991.98px) {
   .badges {
     margin-bottom: 10px;

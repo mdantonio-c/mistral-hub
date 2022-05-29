@@ -9,16 +9,16 @@
 >
 </ngx-spinner>
 <form class="filter" [formGroup]="filterForm" (ngSubmit)="update()">
-  <div class="form-group">
+  <div class="mb-2">
     <label for="variable">Variable</label>
-    <select id="variable" class="form-control" formControlName="product">
+    <select id="variable" class="form-select" formControlName="product">
       <option [ngValue]="p.code" *ngFor="let p of allProducts">
         {{ p.desc | titlecase }}
       </option>
     </select>
   </div>
   <!-- Date -->
-  <div class="form-group">
+  <div class="mb-2">
     <label for="date">Date</label>
     <div class="input-group">
       <input
@@ -36,35 +36,32 @@
       <ng-template #footerTemplate>
         <hr class="my-0" />
         <button
-          class="btn btn-primary btn-sm m-2 float-left"
+          class="btn btn-primary btn-sm m-2 float-start"
           (click)="filterForm.controls.reftime.setValue(today); d.close()"
         >
           Today
         </button>
         <button
-          class="btn btn-secondary btn-sm m-2 float-right"
+          class="btn btn-secondary btn-sm m-2 float-end"
           (click)="d.close()"
         >
           Close
         </button>
       </ng-template>
-      <div class="input-group-append">
-        <button
-          class="btn btn-outline-secondary"
-          (click)="d.toggle()"
-          type="button"
-        >
-          <i class="fa fa-calendar"></i>
-        </button>
-      </div>
+      <button
+        class="btn btn-outline-secondary"
+        (click)="d.toggle()"
+        type="button"
+      >
+        <i class="fa fa-calendar"></i>
+      </button>
     </div>
     <div class="invalid-feedback" *ngIf="filterForm.controls.reftime.invalid">
       Please choose a date.
     </div>
-    <div class="space-4"></div>
-    <div class="mx-2 mt-4">
+    <div class="mx-2" style="margin-top: 2rem">
       <mv-slider
-        id="mst-slider"
+        class="mst-slider"
         [range]="true"
         [(value)]="rangeValue"
         [min]="minTime"
@@ -76,9 +73,9 @@
     </div>
   </div>
   <!-- Level -->
-  <div class="form-group">
+  <div class="mb-2">
     <label for="level">Level</label>
-    <select id="level" class="form-control" formControlName="level">
+    <select id="level" class="form-select" formControlName="level">
       <!--      <option value="" *ngIf="allLevels && allLevels.length > 0">Any</option>-->
       <option [ngValue]="l.code" *ngFor="let l of allLevels">
         {{ l.desc }}
@@ -86,9 +83,9 @@
     </select>
   </div>
   <!-- Time range -->
-  <div class="form-group">
+  <div class="mb-2">
     <label for="timerange">Time range</label>
-    <select id="timerange" class="form-control" formControlName="timerange">
+    <select id="timerange" class="form-select" formControlName="timerange">
       <!--
       <option value="" *ngIf="allTimeranges && allTimeranges.length > 0"
         >Any</option
@@ -101,9 +98,9 @@
   </div>
   <!-- Area -->
   <!-- Network -->
-  <div class="form-group">
+  <div class="mb-2">
     <label for="network">Network</label>
-    <select id="network" class="form-control" formControlName="network">
+    <select id="network" class="form-select" formControlName="network">
       <!--      <option value="" *ngIf="allNetworks && allNetworks.length > 0"-->
       <!--        >Any</option-->
       <!--      >-->
@@ -114,9 +111,9 @@
     </select>
   </div>
   <!-- License -->
-  <div class="form-group">
+  <div class="mb-2">
     <label for="license">Group of Licenses</label>
-    <select id="license" class="form-control" formControlName="license">
+    <select id="license" class="form-select" formControlName="license">
       <option [ngValue]="l.code" *ngFor="let l of allLicenses">
         {{ l.desc }}
       </option>
@@ -138,14 +135,14 @@
   <div class="text-center mt-4">
     <button
       type="submit"
-      class="btn btn-primary no-rounded ml-2"
+      class="btn btn-primary no-rounded ms-2"
       [disabled]="filterForm.invalid || !isUpdatable"
     >
       Update Map
     </button>
     <button
       type="button"
-      class="btn btn-border-classic no-rounded ml-1"
+      class="btn btn-border-classic no-rounded ms-1"
       [disabled]="!allProducts || allProducts.length === 0"
       (click)="download()"
     >
