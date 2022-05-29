@@ -376,7 +376,7 @@
           class="badge bg-secondary"
           [ngClass]="{
             'bg-success': row.status == 'SUCCESS',
-            'badge-danger': row.status == 'FAILURE',
+            'bg-danger': row.status == 'FAILURE',
             'bg-info': row.status == 'PENDING'
           }"
           [ngbTooltip]="row.status == 'FAILURE' ? tipContent : ''"
