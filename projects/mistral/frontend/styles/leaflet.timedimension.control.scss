@@ -41,6 +41,10 @@
   color: #fff !important;
 }
 
+.leaflet-container a {
+  text-decoration: none;
+}
+
 app-observation-maps .leaflet-top a,
 app-observation-maps .leaflet-bottom a {
   background-color: #6c757d !important;

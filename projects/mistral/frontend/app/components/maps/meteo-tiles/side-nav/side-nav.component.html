@@ -225,16 +225,16 @@
         </ng-container>
       </li>
       <li class="sidenav-item last multi-model">
-        <div class="custom-control mm-switch custom-switch">
+        <div class="custom-control mm-switch form-check form-switch">
           <input
             type="checkbox"
-            class="custom-control-input"
+            class="custom-control-input form-check-input"
             [checked]="mmProductSwitch"
             [attr.disabled]="isShowedMultiModel ? null : true"
             (change)="switchMMProduct()"
-            id="mmSwitch"
+            id="flexSwitchCheckDefault"
           />
-          <label class="custom-control-label" for="mmSwitch"></label>
+          <label class="custom-control-label form-check-label" for="flexSwitchCheckDefault"></label>
         </div>
         <div class="selettore-multimodel" *ngIf="!isCollapsed">
           <a href="#" click-stop-propagation>

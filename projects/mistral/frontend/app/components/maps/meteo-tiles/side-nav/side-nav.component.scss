@@ -354,6 +354,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   input {
     margin-left: 10px;
     margin-right: 10px;
+    margin-bottom:5px;
     z-index: -1;
     position: relative;
     -webkit-appearance: none;
@@ -581,8 +582,11 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 /*clouds switch*/
 .clouds-switch {
+
+    position: relative !important;
+  
   label {
-    position: relative;
+    
     left: -23px;
     top: -4px;
   }
@@ -590,7 +594,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   p {
     position: absolute;
     top: 15px;
-    left: 10px;
+    left: 3px;
   }
 
   .custom-control-input:checked ~ .custom-control-label::before {
@@ -610,16 +614,23 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 }
 
 /*multimodel switch*/
-.collapsed .mm-switch {
+.collapsed .form-switch {
   padding-left: 35px;
   padding-top: 18px;
 }
 
-.mm-switch {
-  .custom-control-label {
-    transform: rotate(90deg);
-    margin-top: 41px;
+
+.form-switch {
+  .form-check-input {
+    background-image: none;
+    background-color:transparent !important;
+    border-color: transparent !important;
+    }
+  .form-check-label {
+    transform: rotate(90deg) !important;
+    margin-top: 41px !important;
     margin-left: -9px;
+    position:relative;
     &:before {
       opacity: 0.6;
       left: -48.25px;
@@ -628,28 +639,33 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
       border-radius: 12.5px;
       background-color: #9c999a !important;
       border-color: #9c999a !important;
+      content:"";
+      position:absolute;
     }
     &:after {
       background-color: #e49d2b;
       border-radius: 2.5rem;
       background-size: contain;
       background-repeat: no-repeat;
+      background-position: center;
       background-image: url("/app/custom/assets/images/icons/temper2.svg");
-      top: calc(3.6px + 2px);
+      top: 1.6px;
       left: calc(-46.25px + 2px);
       width: calc(24px - 4px);
       height: calc(24px - 4px);
+      content:"";
+      position:absolute;
     }
   }
 
-  .custom-control-input:checked ~ .custom-control-label::after {
+  .form-check-input:checked ~ .form-check-label::after {
     background-color: #e49d2b;
     transform: translateX(16.75px) rotate(270deg) !important;
     background-image: url("/app/custom/assets/images/icons/humidity.svg") !important;
   }
 
-  & input[disabled="true"] ~ .custom-control-label::after,
-  & input:checked[disabled="true"] ~ .custom-control-label::after {
+  & input[disabled="true"] ~ .form-check-label::after,
+  & input:checked[disabled="true"] ~ .form-check-label::after {
     background-color: #545555a9 !important;
     background-image: none !important;
   }
@@ -697,7 +713,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 }
 
-@media screen and (max-height: 640px) {
+@media screen and (max-height: 679px) {
   .map-sidenav .toggle {
     width: 30px !important;
     height: 30px !important;
