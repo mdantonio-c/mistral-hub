@@ -113,10 +113,10 @@ export class ObsMapComponent {
           if (dirtyCluster) {
             reliability = 0;
           }
-          c =
-            " mst-marker-color-" +
-            srv.getColor(val, srv.min, srv.max, reliability);
+          let clusterColor = srv.getColor(val, srv.min, srv.max, reliability);
+          c = " mst-marker-color-" + clusterColor;
 
+          var html = ObsMapComponent.drawTheIcon(medians, res, obsService);
           // if the cluster contains data for a single station, bind a tooltip
           let is_single_station = false;
           let station_lng = null;
@@ -149,13 +149,18 @@ export class ObsMapComponent {
         }
         let warn = "";
         if (dirtyCluster) {
-          warn =
-            '<i class="fas fa-exclamation-triangle fa-lg dirty-cluster"></i>';
+          // re-draw the html without the donut pie and with the warning sign on it
+          html =
+            "<div> " +
+            '<i class="fas fa-exclamation-triangle fa-lg dirty-cluster"></i>' +
+            "<span>" +
+            res +
+            "</span></div>";
         }
         //console.log("marker ",marker)
 
         return new L.DivIcon({
-          html: "<div>" + warn + "<span>" + res + "</span></div>",
+          html: html,
           className: "marker-cluster" + c,
           iconSize: new L.Point(40, 40),
         });
@@ -168,6 +173,71 @@ export class ObsMapComponent {
       },
       spiderfyDistanceMultiplier: 1.2,
     };
+  }
+
+  static drawTheIcon(data, medianValue, srv) {
+    let colorList = [];
+    for (let i = 0; i < data.length; i++) {
+      let dataColor = srv.getColor(data[i], srv.min, srv.max);
+      colorList.push(dataColor);
+    }
+    let totalItems = colorList.length;
+
+    let segments = "";
+    let prevPercentage = 0;
+    let prevOffset = 0;
+    // create the different segments of the donut pie
+    for (let i = 0; i < COLORS.length; i++) {
+      let count = colorList.filter((x) => x == COLORS[i]).length;
+      if (count > 0) {
+        let percentage = Math.round((count / totalItems) * 100);
+        // remove the number of pixel needed for the donut slice border
+        let percentageWBorder = percentage - 1;
+        let strokeDasharray =
+          percentageWBorder + " " + (100 - percentageWBorder);
+        let strokeDashoffset = 0;
+        if (prevOffset == 0) {
+          strokeDashoffset = 25;
+          // update the previous offset
+          prevOffset = 25;
+        } else {
+          strokeDashoffset = 100 - prevPercentage + prevOffset;
+          prevOffset = strokeDashoffset;
+        }
+        // update the previous percentage
+        prevPercentage = percentage;
+        //create the segment
+        let newSegment =
+          '<circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" ' +
+          //set the segment color
+          'stroke="#' +
+          COLORS[i] +
+          '" ' +
+          'stroke-width="3" ' +
+          //set the dasharray
+          'stroke-dasharray=" ' +
+          strokeDasharray +
+          '" ' +
+          // set the dashoffset
+          'stroke-dashoffset="' +
+          strokeDashoffset +
+          '"></circle>';
+        segments += newSegment;
+      }
+    }
+    let iconHtml =
+      '<div class="wrapper"> <svg width="50px" height="50px" viewBox="0 0 42 42" class="donut"> ' +
+      '<circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="transparent"></circle> ' +
+      '<circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#fdfdfd ' +
+      'stroke-width="3"></circle> ' +
+      segments +
+      "</svg>" +
+      "<span>" +
+      medianValue +
+      "</span>" +
+      "</div>";
+
+    return iconHtml;
   }
 
   onMapReady(map: L.Map) {

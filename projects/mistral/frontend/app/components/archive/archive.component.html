@@ -1,4 +1,4 @@
-<ngx-spinner [fullScreen]="false"></ngx-spinner>
+<ngx-spinner [fullScreen]="false" type="ball-scale-multiple"></ngx-spinner>
 <!-- no data -->
 <div class="row" *ngIf="!loading && !data?.length">
   <div class="col">
@@ -44,7 +44,7 @@
           <div>
             <strong>Request Details</strong>
             <div
-              class="btn-group btn-group-sm float-right"
+              class="btn-group btn-group-sm float-end"
               role="group"
               *ngIf="row.args | json as prettierJSON"
             >
@@ -75,7 +75,7 @@
                 placement="bottom-right"
                 [ngbTooltip]="tipContent"
               >
-                <i class="fas fa-file-download"></i>
+                <i class="fas fa-file-arrow-down"></i>
               </button>
             </div>
           </div>
@@ -112,7 +112,7 @@
               <dt>Filter(s)</dt>
               <dd>
                 <dl
-                  class="row no-gutters mb-0 px-0 request-summary"
+                  class="row g-0 mb-0 px-0 request-summary"
                   *ngIf="
                     ((row.args.filters | keyvalue) || []).length;
                     else noFilters
@@ -146,7 +146,7 @@
             >
               <dt>Post-Processing</dt>
               <dd>
-                <dl class="row no-gutters mb-0 px-0 request-summary">
+                <dl class="row g-0 mb-0 px-0 request-summary">
                   <ng-container *ngFor="let p of row.args.postprocessors">
                     <dt class="col-sm-3" style="font-weight: normal">
                       {{ p.processor_type.replace("_", " ") }}
@@ -189,7 +189,7 @@
                             }}&maxlat={{ p.boundings.flat }}"
                             target="_blank"
                           >
-                            <i class="fas fa-external-link-alt"></i>
+                            <i class="fas fa-up-right-from-square"></i>
                           </a>
                         </p>
                       </dd>
@@ -216,7 +216,7 @@
                               }}&maxlat={{ p.boundings['y_max'] }}"
                               target="_blank"
                             >
-                              <i class="fas fa-external-link-alt"></i> </a
+                              <i class="fas fa-up-right-from-square"></i> </a
                           ></span>
                           <span *ngIf="p.template !== undefined">
                             <i>template name: </i
@@ -269,7 +269,7 @@
       <ng-template let-column="column" ngx-datatable-header-template>
         <span
           ><i
-            class="fa fa-sync clickable"
+            class="fa fa-arrows-rotate clickable"
             aria-hidden="true"
             (click)="list_and_clear()"
           ></i
@@ -310,7 +310,7 @@
       <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
         <strong>{{ value }}</strong
         ><span
-          class="badge badge-warning"
+          class="badge bg-warning"
           style="margin-left: 2%; box-shadow: 1px 1px #0000003d"
           *ngIf="row.opendata"
           >OPEN DATA</span
@@ -329,7 +329,7 @@
     >
       <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
         <span>{{ value | amFromUtc | date: "yyyy-MM-dd HH:mm:ss" }}</span
-        ><i class="fa fa-calendar ml-2" *ngIf="row.schedule_id"></i>
+        ><i class="fa fa-calendar ms-2" *ngIf="row.schedule_id"></i>
       </ng-template>
     </ngx-datatable-column>
     <!-- End date -->
@@ -360,11 +360,11 @@
     >
       <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
         <span
-          class="badge badge-secondary"
+          class="badge bg-secondary"
           [ngClass]="{
-            'badge-success': row.status == 'SUCCESS',
+            'bg-success': row.status == 'SUCCESS',
             'badge-danger': row.status == 'FAILURE',
-            'badge-info': row.status == 'PENDING'
+            'bg-info': row.status == 'PENDING'
           }"
           [ngbTooltip]="row.status == 'FAILURE' ? tipContent : ''"
           placement="left"
@@ -401,7 +401,7 @@
       </ng-template>
       <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
         <div class="btn-toolbar justify-content-end" role="toolbar">
-          <div class="btn-group mr-1" role="group">
+          <div class="btn-group me-1" role="group">
             <button class="btn p-0" (click)="delete(row.id)">
               <i class="fa fa-trash red"></i>
             </button>

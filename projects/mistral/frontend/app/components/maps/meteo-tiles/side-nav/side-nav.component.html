@@ -187,18 +187,16 @@
                 />
                 {{ lvl.value }}
               </label>
-              <div
-                class="custom-control custom-switch clouds-switch d-flex mb-3"
-              >
+              <div class="form-switch clouds-switch d-flex mb-3">
                 <input
                   id="tccSwitch"
                   type="checkbox"
-                  class="custom-control-input"
+                  class="form-check-input"
                   [checked]="showTotalClouds"
                   (change)="toggleTotalClouds()"
                   [attr.disabled]="isLayerActive('cc') ? null : true"
                 />
-                <label class="custom-control-label" for="tccSwitch"></label>
+                <label class="form-check-label" for="tccSwitch"></label>
                 <p>TOTAL</p>
               </div>
             </div>

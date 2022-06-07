@@ -12,6 +12,9 @@
 @import "button-toggle";
 @import "weather-icons";
 
+$light-orange: #e49c1e;
+$light-orange-shadow: rgba(228, 156, 30, 0.25);
+
 /* customize container width */
 @media (min-width: 1200px) {
   .container,
@@ -50,6 +53,7 @@ body {
 }
 
 .navbar {
+  padding: 0.25rem !important;
   .navbar-brand {
     margin-right: 20px;
 
@@ -72,12 +76,12 @@ body {
       text-transform: uppercase;
       font-size: 0.9rem;
     }
-    &.navbar-right .nav-item a {
-      background-color: $nav-item-icon-bk;
-      border-radius: 25px;
-      margin-right: 5px;
-    }
   }
+}
+.nav.navbar-nav.rpd-menu-controls .nav-item a {
+  background-color: $nav-item-icon-bk;
+  border-radius: 25px;
+  margin-right: 5px;
 }
 
 .footer {
@@ -143,9 +147,11 @@ body {
 }
 .btn:focus,
 .btn:active,
-.form-control:focus,
+.form-select:focus,
 .btn-reset:focus,
-.btn-reset:active {
+.btn-reset:active,
+.btn-close:focus,
+.btn-close:active {
   outline: none !important;
   box-shadow: none;
 }
@@ -194,15 +200,15 @@ body {
 
 .btn-border-classic,
 .btn-icon-border-classic {
-  /*color: #212529;*/
-  background: transparent;
-  border: 1px solid #ccc !important;
+  color: #fff;
+  background-color: #e49c1e;
+  border: 1px solid #e49c1e !important;
 }
 
 .btn-border-classic:hover,
 .btn-icon-border-classic:hover {
   color: #fff;
-  background: #ccc;
+  filter: brightness(85%);
 }
 
 .btn-border-classic:hover i,
@@ -216,6 +222,19 @@ body {
 
 .btn-icon-border-classic i {
   vertical-align: middle;
+}
+
+.btn-success:not(:disabled):not(.disabled):active,
+.btn-success:not(:disabled):not(.disabled).active {
+  color: #fff;
+  background-color: #1e7e34;
+  border-color: #1c7430;
+}
+.btn-warning:not(:disabled):not(.disabled):active,
+.btn-warning:not(:disabled):not(.disabled).active {
+  color: #fff;
+  background-color: #ffca2c;
+  border-color: #ffc720;
 }
 
 /* no results */
@@ -248,41 +267,35 @@ ul {
 
 dl.request-summary {
   padding: 0px 40px;
-}
-
-dl.request-summary p {
-  white-space: normal;
-  margin-left: 1.3em;
-}
-
-dl.request-summary p:before {
-  content: "\f00c"; /* FontAwesome Unicode */
-  font-family: "Font Awesome\ 5 Free";
-  display: inline-block;
-  margin-left: -1.3em;
-  width: 1.3em;
-}
-
-dl.request-summary p:not(:last-child) {
-  margin-bottom: 0;
+  p {
+    white-space: normal;
+    margin-left: 1.3em;
+    &:before {
+      content: "\f00c"; /* FontAwesome Unicode */
+      font-family: "Font Awesome\ 6 Free";
+      display: inline-block;
+      margin-left: -1.3em;
+      width: 1.3em;
+    }
+    &:not(:last-child) {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .comma-list {
   display: inline;
   list-style: none;
   padding: 0px;
-}
-
-.comma-list li {
-  display: inline;
-}
-
-.comma-list li::after {
-  content: ", ";
-}
-
-.comma-list li:last-child::after {
-  content: "";
+  li {
+    display: inline;
+    &:after {
+      content: ", ";
+    }
+    &:last-child::after {
+      content: "";
+    }
+  }
 }
 
 .btn-reset {

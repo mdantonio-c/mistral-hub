@@ -9,12 +9,17 @@ variables:
   roles:
     staff_user: disabled
     institutional: Institutional
+    operational: Operational
 
   roles_descriptions:
     institutional: Institutional User
+    operational: User performing operational procedures
 
   env:
+    BACKEND_BUILD_MODE: backend-legacy38
     PYTHON_PATH: /usr/local/lib/python3.8/dist-packages
+    # Temporary disabled due to an incompatibility with python 3.8
+    RUN_SCHEMATHESIS: 0
 
     AUTH_SERVICE: sqlalchemy
     FRONTEND_FRAMEWORK: angular
@@ -30,9 +35,9 @@ variables:
 
     ACTIVATE_CELERY: 1
     CELERY_ENABLE_CONNECTOR: 1
-    CELERY_BACKEND: REDIS
+    CELERY_BROKER: RABBIT
 
-    ACTIVATE_FLOWER: 1
+    # ACTIVATE_FLOWER: 1
     ACTIVATE_CELERYBEAT: 1
 
     ACTIVATE_NIFI: 0
@@ -76,6 +81,3 @@ variables:
     SET_MAX_REQUESTS_PER_SECOND_API: 999
     SET_MAX_REQUESTS_PER_SECOND_AUTH: 5
     SET_MAX_REQUESTS_BURST_AUTH: 5
-
-    # Temporary disabled due to an incompatibility with python 3.8
-    RUN_SCHEMATHESIS: 0

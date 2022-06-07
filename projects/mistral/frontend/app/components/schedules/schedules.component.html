@@ -1,4 +1,4 @@
-<ngx-spinner [fullScreen]="false"></ngx-spinner>
+<ngx-spinner [fullScreen]="false" type="ball-scale-multiple"></ngx-spinner>
 <!-- no data -->
 <div class="row" *ngIf="!loading && !data?.length">
   <div class="col">
@@ -42,8 +42,8 @@
       >
         <div>
           <div><strong>Schedule Details</strong></div>
-          <div class="row no-gutters">
-            <div class="col-8 pr-3">
+          <div class="row g-0">
+            <div class="col-8 pe-3">
               <ng-container *ngIf="row.args">
                 <div class="my-2"></div>
                 <dl class="mb-0">
@@ -76,7 +76,7 @@
                   <dt>Filter(s)</dt>
                   <dd>
                     <dl
-                      class="row no-gutters mb-0 px-0 request-summary"
+                      class="row g-0 mb-0 px-0 request-summary"
                       *ngIf="
                         ((row.args.filters | keyvalue) || []).length;
                         else noFilters
@@ -112,7 +112,7 @@
                 >
                   <dt>Post-Processing</dt>
                   <dd>
-                    <dl class="row no-gutters mb-0 px-0 request-summary">
+                    <dl class="row g-0 mb-0 px-0 request-summary">
                       <ng-container *ngFor="let p of row.args.postprocessors">
                         <dt class="col-sm-3" style="font-weight: normal">
                           {{ p.processor_type.replace("_", " ") }}
@@ -157,7 +157,7 @@
                                 }}&maxlat={{ p.boundings.flat }}"
                                 target="_blank"
                               >
-                                <i class="fas fa-external-link-alt"></i>
+                                <i class="fas fa-up-right-from-square"></i>
                               </a>
                             </p>
                           </dd>
@@ -184,7 +184,9 @@
                                   }}&maxlat={{ p.boundings['y_max'] }}"
                                   target="_blank"
                                 >
-                                  <i class="fas fa-external-link-alt"></i> </a
+                                  <i
+                                    class="fas fa-up-right-from-square"
+                                  ></i> </a
                               ></span>
                               <span *ngIf="p.template !== undefined">
                                 <i>template name: </i
@@ -224,8 +226,8 @@
                 </ng-container>
               </ng-container>
             </div>
-            <div class="col-4 pl-3" style="border-left: 1px solid #ddd">
-              <i class="fa fa-calendar mr-2"></i>
+            <div class="col-4 ps-3" style="border-start: 1px solid #ddd">
+              <i class="fa fa-calendar me-2"></i>
               <span *ngIf="row.on_data_ready">on data ready&nbsp;</span>
               <span *ngIf="row.periodic">{{ row.periodic_settings }}</span>
               <span *ngIf="row.crontab">
@@ -255,19 +257,19 @@
                   placement="bottom"
                 >
                   <i
-                    class="fa fa-sync"
+                    class="fa fa-arrows-rotate"
                     aria-hidden="true"
                     (click)="loadLastSubmission(row)"
                   ></i>
                 </button>
               </div>
               <ngx-spinner
+                type="ball-scale-multiple"
                 name="last"
                 bdColor="rgba(255,255,255,0.8)"
                 color="#6c757d"
                 zIndex="1000"
                 [fullScreen]="false"
-                type="ball-clip-rotate-multiple"
                 size="small"
               >
               </ngx-spinner>
@@ -277,7 +279,7 @@
                   else notAvailable
                 "
               >
-                <button class="btn p-0 mr-1 mb-2">
+                <button class="btn p-0 me-1 mb-2">
                   <i
                     class="fa fa-download"
                     (click)="download(row.last.fileoutput)"
@@ -312,7 +314,7 @@
       <ng-template let-column="column" ngx-datatable-header-template>
         <span
           ><i
-            class="fa fa-sync clickable"
+            class="fa fa-arrows-rotate clickable"
             aria-hidden="true"
             (click)="list()"
           ></i
@@ -353,7 +355,7 @@
       <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
         <strong>{{ value }}</strong
         ><span
-          class="badge badge-warning"
+          class="badge bg-warning"
           style="margin-left: 2%; box-shadow: 1px 1px #0000003d"
           *ngIf="row.opendata"
           >OPEN DATA</span
@@ -384,7 +386,7 @@
     >
       <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
         <div class="btn-toolbar justify-content-end" role="toolbar">
-          <div class="btn-group mr-1" role="group">
+          <div class="btn-group me-1" role="group">
             <button
               type="button"
               class="btn btn-sm btn-toggle"

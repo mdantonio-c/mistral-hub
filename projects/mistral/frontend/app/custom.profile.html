@@ -27,7 +27,7 @@
   <th>Allowed datasets</th>
   <td>
     <ng-container *ngIf="row.value.length > 0; else noValues">
-      <span class="badge badge-info role-badge" *ngFor="let v of row.value">
+      <span class="badge bg-info role-badge" *ngFor="let v of row.value">
         {{ v.name }}
       </span>
     </ng-container>
@@ -39,7 +39,7 @@
   <th>Allowed licences</th>
   <td>
     <ng-container *ngIf="row.value.length > 0; else noValues">
-      <span class="badge badge-info role-badge" *ngFor="let v of row.value">
+      <span class="badge bg-info role-badge" *ngFor="let v of row.value">
         {{ v.name }}
       </span>
     </ng-container>

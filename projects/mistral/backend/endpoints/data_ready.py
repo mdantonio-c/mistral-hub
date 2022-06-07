@@ -12,7 +12,9 @@ from restapi.utilities.logs import log
 
 
 class DataReady(EndpointResource):
-    @decorators.auth.require()
+    private = True
+
+    @decorators.auth.require_any("operational")
     @decorators.use_kwargs(
         {
             "cluster": fields.String(required=True, data_key="Cluster"),
@@ -170,7 +172,7 @@ class DataReady(EndpointResource):
             }
 
             filters = r["args"].get("filters")
-            processors = r["args"].get("processors")
+            postprocessors = r["args"].get("postprocessors")
             output_format = r["args"].get("output_format")
             pushing_queue = r["args"].get("pushing_queue")
             opendata = r["opendata"]
@@ -188,7 +190,7 @@ class DataReady(EndpointResource):
                         datasets,
                         reftime,
                         filters,
-                        processors,
+                        postprocessors,
                         output_format,
                         request_to_be_created_id,
                         None,

@@ -6,9 +6,9 @@
           <h4 class="d-inline">
             Bindings on <{{data?.exchange || 'n/a'}}> exchange
           </h4>
-          <span class="float-right"
+          <span class="float-end"
             ><i
-              class="fa fa-sync clickable"
+              class="fa fa-arrows-rotate clickable"
               aria-hidden="true"
               (click)="getBindings()"
             ></i
@@ -16,10 +16,10 @@
         </div>
         <div class="card-body">
           <ngx-spinner
+            type="ball-scale-multiple"
             bdColor="rgba(255,255,255,0.8)"
             color="#6c757d"
             [fullScreen]="true"
-            type="ball-clip-rotate-multiple"
             size="medium"
           ></ngx-spinner>
           <div class="table-responsive mb-2" *ngIf="rows?.length">

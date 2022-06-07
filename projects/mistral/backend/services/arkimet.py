@@ -381,7 +381,11 @@ class BeArkimet:
                 lt_to_describe = {
                     "style": lev["style"],
                     "l1": lev["l1"],
+                    "scale1": lev["scale1"],
+                    "value1": lev["value1"],
                     "l2": lev["l2"],
+                    "scale2": lev["scale2"],
+                    "value2": lev["value2"],
                 }
             descr = arki.formatter.level.format_level(lt_to_describe)
             formatted_descr = descr.split("-")[0].rstrip()

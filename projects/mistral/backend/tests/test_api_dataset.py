@@ -120,7 +120,7 @@ class TestApp(BaseTests):
         new_data["open_dataset"] = False
         new_data["datasets"] = data["datasets"]
         r = client.put(
-            f"{API_URI}/admin/users/{uuid}", headers=admin_headers, data=new_data
+            f"{API_URI}/admin/users/{uuid}", headers=admin_headers, json=new_data
         )
         assert r.status_code == 204
 

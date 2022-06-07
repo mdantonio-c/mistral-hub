@@ -1,6 +1,6 @@
-FROM arpaesimc/centos:8 AS arpaesimc
+FROM arpaesimc/rockylinux:8 AS arpaesimc
 
-FROM rapydo/backend:2.3
+FROM rapydo/backend-legacy38:2.3
 
 ARG RAPYDO_VERSION
 RUN test -n "$RAPYDO_VERSION"
@@ -11,21 +11,11 @@ ENV APIUSER developer
 
 RUN usermod -u $CURRENT_UID $APIUSER
 
-#########################################################
-# Python 3.9 is not working for dballe, let's downgrade to python 3.8
-ENV PYTHON_VERSION="3.8"
-RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 \
-    && curl --silent https://bootstrap.pypa.io/get-pip.py --output get-pip.py \
-    && python3 get-pip.py \
-    && rm get-pip.py \
-    && apt-get update -qq \
-    && apt-get install --yes --no-install-recommends python${PYTHON_VERSION}-dev \
-    && pip3 install --upgrade --no-cache-dir git+https://github.com/rapydo/http-api.git@$RAPYDO_VERSION
-#########################################################
-
-#########################################################
-# Dependencies
-#########################################################
+###############################################################################
+# DEPENDENCIES
+# Note: the link python3.x -> python3.6 is needed because
+# some arkimet scripts have an hardcoded /usr/bin/python3.6 interpreter
+###############################################################################
 
 RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
  && apt-get update -qq \
@@ -41,7 +31,8 @@ RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/ap
       gfortran \
  && apt-get autoremove --yes \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6
 
 ENV PATH="$PATH:/usr/bin/centos"
 
@@ -49,9 +40,9 @@ ENV DATASET_ROOT="/arkimet/datasets/"
 
 WORKDIR /tmp
 
-#########################################################
+###############################################################################
 # ECCODES
-#########################################################
+###############################################################################
 
 ENV ECCODES_VERSION="2.23.0"
 ENV ECCODES_DIR="/usr/share/eccodes-build"
@@ -74,9 +65,9 @@ RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/a
   && pip3 install --no-cache-dir eccodes netCDF4 \
   && rm -rf /tmp/eccodes*
 
-#########################################################
-# arpaesimc
-#########################################################
+###############################################################################
+# ARPAESIMC
+###############################################################################
 
 COPY --from=arpaesimc /usr/bin /usr/bin/centos
 
@@ -182,7 +173,10 @@ COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter /usr/local/l
 
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter-0.0.2-py3.6.egg-info /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter-0.0.2-py3.6.egg-info/
 
+###############################################################################
+# NUMPY
 # numpy has to be (re)installed here to prevent issues with shared libraries
-RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6 && pip3 install --upgrade --no-cache-dir numpy
+##############################################################################
+RUN pip3 install --upgrade --no-cache-dir numpy
 
 WORKDIR /code

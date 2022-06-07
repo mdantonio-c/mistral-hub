@@ -1,0 +1,15 @@
+.accordion-header {
+  .accordion-button:not(.collapsed) {
+    color: inherit;
+  }
+  .custom-header {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+    &:after {
+      content: none;
+    }
+  }
+}
+
+.accordion-body {
+  padding: 0.5rem !important;
+}

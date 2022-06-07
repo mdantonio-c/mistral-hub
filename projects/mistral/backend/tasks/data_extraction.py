@@ -57,6 +57,7 @@ def data_extract(
     try:
         db = sqlalchemy.get_instance()
         data_size = 0
+        outfile = None
         pp_output: Optional[Path] = None
         double_request = False
         if schedule_id is not None:
@@ -297,7 +298,7 @@ def data_extract(
 
             # rename the final postprocessors output unless it is a bufr file
             if pp_output:
-                if pp_output.suffix == ".tmp":
+                if "grib" in pp_output.name or pp_output.suffix == ".tmp":
                     log.debug(f"dest: {str(outfile)}")
                     pp_output.rename(outfile)
                 else:
@@ -378,12 +379,19 @@ def data_extract(
         EmptyOutputFile,
         InvalidFiltersException,
     ) as exc:
+        # check if a file exists
+        if outfile and outfile.is_file():
+            outfile.unlink()
         request.status = states.FAILURE
         request.error_message = str(exc)
         raise Ignore(str(exc))
 
     except (DeleteScheduleException, JoinObservedExtraction, Exception) as exc:
         # handle all the other exceptions
+        # check if a file exists
+        if outfile and outfile.is_file():
+            outfile.unlink()
+
         request.status = states.FAILURE
         request.error_message = "Failed to extract data"
         # log.exception("Failed to extract data: {}", repr(exc))

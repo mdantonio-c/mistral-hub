@@ -1,9 +1,9 @@
 <ngx-spinner
+  type="ball-scale-multiple"
   bdColor="rgba(255,255,255,0.8)"
   color="#6c757d"
   zIndex="1000"
   [fullScreen]="false"
-  type="ball-clip-rotate-multiple"
   size="medium"
 ></ngx-spinner>
 <div class="container-fluid">
@@ -68,7 +68,7 @@
         {{ title }}
         <div class="d-inline" *ngIf="user">
           <button
-            class="btn btn-secondary btn-sm float-sm-right mr-4 no-rounded"
+            class="btn btn-secondary btn-sm float-sm-end me-4 no-rounded"
             [routerLink]="['/app/data']"
           >
             <i class="fas fa-filter"></i>
@@ -77,7 +77,7 @@
         </div>
       </h3>
       <div *ngIf="!loading && datasets.length" class="scrollDiv py-1">
-        <div *ngFor="let ds of datasets" class="row no-gutters ds-item">
+        <div *ngFor="let ds of datasets" class="row g-0 ds-item">
           <div
             class="col container-checkbox"
             *ngIf="user && multiSelection && ds.authorized"
@@ -127,7 +127,7 @@
                 </h5>
                 <small *ngIf="ds.is_public"
                   ><i
-                    class="fas fa-share-square clickable"
+                    class="fas fa-share-from-square clickable"
                     (click)="openDataset(ds)"
                   ></i
                 ></small>
@@ -147,7 +147,7 @@
                         class="nav-link clickable p-0 text-secondary"
                         [routerLink]=""
                         (click)="openDataset(ds)"
-                        ><i class="fas fa-share-square"></i> Open Dataset</a
+                        ><i class="fas fa-share-from-square"></i> Open Dataset</a
                       >
                     </li>
                     <li class="nav-item">
@@ -156,7 +156,7 @@
                         [routerLink]=""
                         (click)="openDataset(ds)"
                       >
-                        <i class="fas fa-info-circle"></i> Documentation</a
+                        <i class="fas fa-circle-info"></i> Documentation</a
                       >
                     </li>
                   </ul>

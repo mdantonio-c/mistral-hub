@@ -6,12 +6,12 @@
   height: 2px;
   background: #ddd;
   position: absolute;
-  width: 80%;
+  width: 76%;
   margin: 0 auto;
   left: 0;
   right: 0;
   top: 50%;
-  z-index: 1;
+  /*z-index: 1;*/
 }
 
 .nav-tabs > li.active > a,

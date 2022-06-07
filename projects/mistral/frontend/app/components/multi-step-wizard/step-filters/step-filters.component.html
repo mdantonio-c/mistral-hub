@@ -3,28 +3,28 @@
     <h4 class="head text-center">{{ title }}</h4>
     <br />
     <ngx-spinner
+      type="ball-scale-multiple"
       name="sp1"
       bdColor="rgba(255,255,255,0.8)"
       color="#6c757d"
       zIndex="1000"
       [fullScreen]="false"
-      type="ball-clip-rotate-multiple"
       size="medium"
     >
     </ngx-spinner>
     <div *ngIf="filters">
       <ngx-spinner
+        type="ball-scale-multiple"
         name="sp2"
         bdColor="rgba(51,51,51,0.8)"
         size="medium"
         color="#fff"
         zIndex="1000"
-        type="ball-scale-multiple"
       >
         <p style="font-size: 20px; color: white">Updating Filters...</p>
       </ngx-spinner>
 
-      <div class="row no-gutters">
+      <div class="row g-0">
         <div class="col-md-6 mb-4 mb-md-0">
           <!-- Summary Stats-->
           <div
@@ -36,12 +36,12 @@
 
               <button
                 type="button"
-                class="btn btn-sm ml-2 p-0 mb-1 float-right"
+                class="btn btn-sm ms-2 p-0 mb-1 float-end"
                 (click)="resetFilters()"
                 ngbTooltip="Reset filters"
                 placement="left"
               >
-                <i class="fa fa-undo"></i>
+                <i class="fa fa-arrow-rotate-left"></i>
               </button>
             </div>
             <div class="body">
@@ -88,23 +88,23 @@
       </div>
 
       <!-- Refime  -->
-      <div class="no-gutters">
+      <div class="g-0">
         <div class="card mst--expansion-panel" *ngIf="summaryStats">
           <div class="card-header">
             <h5>reftime</h5>
             <button
               type="button"
-              class="btn btn-sm ml-2 p-0 mb-1"
+              class="btn btn-sm ms-2 p-0 mb-1"
               (click)="editReftime()"
               ngbTooltip="Change reftime"
               triggers="hover"
               placement="right"
             >
-              <i class="fa fa-edit"></i>
+              <i class="fa fa-pen-to-square"></i>
             </button>
           </div>
           <div class="card-body mst--list-filter">
-            <ul class="row no-gutters">
+            <ul class="row g-0">
               <li class="col-sm-12 col-md-6">
                 <label style="margin: 6px 0 0 12px"
                   >From: {{ summaryStats.b | fmtDate }}</label
@@ -133,14 +133,14 @@
                 placement="right"
                 [ngbTooltip]="getFilterTooltip(f.value.name)"
                 tooltipClass="info-fulltext"
-                class="fa fa-question-circle"
+                class="fa fa-circle-question"
                 aria-hidden="true"
               ></i
             ></span>
           </div>
           <div
             *ngIf="f.value.name == 'level' && levelTypes.length !== 0"
-            class="pl-1 mst--expansion-panel"
+            class="ps-1 mst--expansion-panel"
           >
             <button
               class="btn btn-link"
@@ -157,7 +157,7 @@
             </button>
             <div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
               <div #leveltypediv class="card-body">
-                <ul class="row no-gutters">
+                <ul class="row g-0">
                   <li
                     *ngFor="let lt of levelTypes; let i = index"
                     class="col-sm-4"
@@ -178,7 +178,7 @@
               </div>
               <div class="card-footer">
                 <button
-                  class="btn btn-outline-primary mr-2"
+                  class="btn btn-outline-primary me-2"
                   type="button"
                   [disabled]="!selectedLevelTypes.includes(true)"
                   (click)="onLevelTypeChange(i); collapse.toggle()"
@@ -188,16 +188,16 @@
               </div>
             </div>
           </div>
-          <div *ngIf="f.value.name == 'level'" class="ml-4 mb-2 pl-1">
+          <div *ngIf="f.value.name == 'level'" class="ms-4 mb-2 ps-1">
             <button
-              class="btn btn-primary mr-2"
+              class="btn btn-primary me-2"
               type="button"
               (click)="toggleAllLevels(i, 'select')"
             >
               Select all levels
             </button>
             <button
-              class="btn btn-warning mr-2"
+              class="btn btn-warning me-2"
               type="button"
               [disabled]="!isLevelsSelected ? true : null"
               (click)="toggleAllLevels(i, 'deselect')"
@@ -206,7 +206,7 @@
             </button>
           </div>
           <div class="card-body mst--list-filter">
-            <ul class="row no-gutters">
+            <ul class="row g-0">
               <li
                 formArrayName="values"
                 *ngFor="let v of f.controls.values.controls; let j = index"
@@ -228,16 +228,16 @@
           </div>
         </div>
       </div>
-      <div class="form-group text-center space-20">
+      <div class="mb-3 text-center space-20">
         <button
-          class="btn btn-outline-secondary mr-2"
+          class="btn btn-outline-secondary me-2"
           type="button"
           (click)="goToPrevious()"
         >
           <i class="fa fa-arrow-left" aria-hidden="true"></i> Previous
         </button>
         <button
-          class="btn btn-info"
+          class="btn btn-border-classic"
           type="submit"
           [disabled]="!filterForm.valid"
         >

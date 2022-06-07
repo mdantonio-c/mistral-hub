@@ -115,7 +115,7 @@ def purge_nifi_controllers() -> None:
                 # update the revision
                 revision = dis_res["revision"]
             # delete the controller
-            delete_url = f"{el['uri']}?version={revision['version']}"
+            delete_url = f"{NIFI_API_URI}/controller-services/{el['id']}?version={revision['version']}"
             del_r = requests.delete(delete_url, headers=headers, verify=False)
             if del_r.status_code != 200:
                 log.error(

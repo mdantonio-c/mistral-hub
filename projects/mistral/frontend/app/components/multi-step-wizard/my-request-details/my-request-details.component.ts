@@ -10,7 +10,7 @@ import { User, ConfirmationModalOptions } from "@rapydo/types";
 @Component({
   selector: "mst-my-request-details",
   templateUrl: "./my-request-details.component.html",
-  styleUrls: ["./my-request-details.component.css"],
+  styleUrls: ["./my-request-details.component.scss"],
 })
 export class MyRequestDetailsComponent implements OnInit {
   myRequest: FormData;

@@ -310,7 +310,7 @@ export class MeteoTilesComponent {
         this.map.invalidateSize();
         this.spinner.hide();
         // get multi-model products
-        this.getMMProducts();
+        // this.getMMProducts();
       });
   }
 
@@ -1370,7 +1370,7 @@ export class MeteoTilesComponent {
     const template =
       `<h6 class="mb-1" style="font-size: small;">` +
       (name ? `${name.val}` : "n/a") +
-      `<span class="badge badge-secondary ml-2">${val}</span></h6>` +
+      `<span class="badge bg-secondary ms-2">${val}</span></h6>` +
       `<ul class="p-0 m-0"><li><b>Lat</b>: ${station.lat}</li><li><b>Lon</b>: ${station.lon}</li></ul>` +
       `<hr class="my-1"/>` +
       `<span>` +

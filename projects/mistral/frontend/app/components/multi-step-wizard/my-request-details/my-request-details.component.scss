@@ -1,0 +1,10 @@
+.request-summary {
+  & > dt {
+    background: rgba(0, 0, 0, 0.03);
+    margin-bottom: 0.5rem !important;
+  }
+  .mst--input-badge {
+    border-bottom: 1px solid #ddd;
+    padding-right: 0.5rem;
+  }
+}

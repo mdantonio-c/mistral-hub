@@ -4,11 +4,11 @@
       <h4 class="card-title"><strong>PARAMETERS</strong></h4>
       <form [formGroup]="filterForm">
         <!-- FIELD -->
-        <div class="form-group">
+        <div class="mb-3">
           <label class="col-form-label"><strong>FIELDS:</strong></label>
           <div id="fieldGroup">
             <!-- FIELDS -->
-            <div class="form-group">
+            <div>
               <ng-container *ngFor="let f of fields">
                 <label
                   [title]="f.value"
@@ -16,7 +16,7 @@
                   data-toggle="tooltip"
                   [ngClass]="
                     filterForm.get('field').value === f.key
-                      ? 'btn-info'
+                      ? 'btn-icon-border-classic'
                       : 'btn-secondary'
                   "
                 >
@@ -43,18 +43,15 @@
                 </label>
               </ng-container>
             </div>
-            <!-- LEVEL -->
-            <div
-              class="form-group"
-              *ngIf="filterForm.get('field').value === 'percentile'"
-            >
+            <!-- PERCENTILE / PROBABILITY -->
+            <div *ngIf="filterForm.get('field').value === 'percentile'">
               <ng-container *ngFor="let level of levels_pe">
                 <label
                   class="btn-squared"
                   data-toggle="tooltip"
                   [ngClass]="
                     filterForm.get('level_pe').value === level.key
-                      ? 'btn-info'
+                      ? 'btn-icon-border-classic'
                       : 'btn-secondary'
                   "
                 >
@@ -68,10 +65,7 @@
                 </label>
               </ng-container>
             </div>
-            <div
-              class="form-group"
-              *ngIf="filterForm.get('field').value === 'probability'"
-            >
+            <div *ngIf="filterForm.get('field').value === 'probability'">
               <ng-container *ngFor="let level of levels_pr">
                 <label
                   class="btn-squared"
@@ -95,7 +89,7 @@
         </div>
 
         <!-- RUN -->
-        <div class="form-group">
+        <div class="mb-3">
           <label class="col-form-label"><strong>PRODUCTS:</strong></label>
           <button
             style="float: right"
@@ -104,24 +98,7 @@
           >
             <b>?</b>
           </button>
-
-          <!-- <ng-template #content let-c="close" let-d="dismiss">
-              <div class="modal-header">
-                    <h4 class="modal-title" id="modal-basic-title">Hi there!</h4>
-    <button type="button" class="btn-close" aria-label="Close" (click)="d('Cross click')">
-    </button>
-  </div>
-  <div class="modal-body">
-    <p>Hello, World!</p>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-outline-dark" (click)="c('Save click')">Save</button>
-  </div>
-</ng-template>
-
-<button class="btn btn-lg btn-outline-primary" (click)="open(content)">Launch demo modal</button> -->
-
-          <select id="runGroup" formControlName="run" class="form-control">
+          <select id="runGroup" formControlName="run" class="form-select">
             <ng-container *ngFor="let run of runs">
               <option [value]="run.key">
                 {{ run.value }}
@@ -130,69 +107,63 @@
           </select>
         </div>
 
-        <fieldset>
-          <div class="form-group">
-            <label class="col-form-label"
-              ><strong>RESOLUTION (Km):</strong></label
-            >
-            <div id="resolutionGroup">
-              <ng-container *ngFor="let res of resolutions; index as i">
-                <label
-                  class="btn-circle"
-                  *ngIf="
-                    !(
-                      res.key === 'lm2.2' &&
-                      filterForm.get('area').value === 'Area_Mediterranea'
-                    ) &&
-                    !(
-                      !(filterForm.get('area').value === 'Area_Mediterranea') &&
-                      res.key === 'lm5' &&
-                      (filterForm.get('field').value === 'percentile' ||
-                        filterForm.get('field').value === 'probability')
-                    )
-                  "
-                  [ngClass]="
-                    filterForm.get('res').value === res.key
-                      ? 'btn-warning'
-                      : 'btn-secondary'
-                  "
-                >
-                  <input
-                    id="res-input-{{ i }}"
-                    [attr.data-description]="res.value"
-                    type="radio"
-                    formControlName="res"
-                    [value]="res.key"
-                  />
-                  <strong>{{ res.value }}</strong>
-                </label>
-              </ng-container>
-            </div>
+        <!-- RESOLUTION -->
+        <div class="mb-3">
+          <label class="col-form-label"
+            ><strong>RESOLUTION (Km):</strong></label
+          >
+          <div id="resolutionGroup">
+            <ng-container *ngFor="let res of resolutions; index as i">
+              <label
+                class="btn-circle"
+                *ngIf="
+                  !(
+                    res.key === 'lm2.2' &&
+                    filterForm.get('area').value === 'Area_Mediterranea'
+                  ) &&
+                  !(
+                    !(filterForm.get('area').value === 'Area_Mediterranea') &&
+                    res.key === 'lm5' &&
+                    (filterForm.get('field').value === 'percentile' ||
+                      filterForm.get('field').value === 'probability')
+                  )
+                "
+                [ngClass]="
+                  filterForm.get('res').value === res.key
+                    ? 'btn-warning'
+                    : 'btn-secondary'
+                "
+              >
+                <input
+                  id="res-input-{{ i }}"
+                  [attr.data-description]="res.value"
+                  type="radio"
+                  formControlName="res"
+                  [value]="res.key"
+                />
+                <strong>{{ res.value }}</strong>
+              </label>
+            </ng-container>
+          </div>
 
-            <div
-              _ngcontent-ibx-c201=""
-              style="font-size: 90%; margin: 5px"
-              class="ng-star-inserted"
-            >
-              From 0 to 48h: 2.2 km
-              <br _ngcontent-ibx-c201="" />
-              From 48h to 240h (day 10): 18 km
-            </div>
+          <div style="font-size: 90%; margin: 5px">
+            From 0 to 48h: 2.2 km
+            <br />
+            From 48h to 240h (day 10): 18 km
           </div>
-        </fieldset>
+        </div>
+
         <!-- AREA -->
-        <fieldset>
-          <div class="form-group">
-            <label class="col-form-label"><strong>AREA:</strong></label>
-            <select id="areaGroup" formControlName="area" class="form-control">
-              <ng-container *ngFor="let area of areas">
-                <option [value]="area.key">
-                  {{ area.value }}
-                </option>
-              </ng-container>
-            </select>
-          </div>
-        </fieldset>
+        <div class="mb-3">
+          <label class="col-form-label"><strong>AREA:</strong></label>
+          <select id="areaGroup" formControlName="area" class="form-select">
+            <ng-container *ngFor="let area of areas">
+              <option [value]="area.key">
+                {{ area.value }}
+              </option>
+            </ng-container>
+          </select>
+        </div>
       </form>
     </div>
   </div>

@@ -139,8 +139,9 @@ def setup_nifi_template(
             body["component"]["parameterContext"] = {}
             body["component"]["parameterContext"]["id"] = context_el["id"]
             data = json.dumps(body)
+            p_group_url = f"{NIFI_API_URI}/process-groups/{p_group['id']}"
             r = requests.put(
-                p_group["uri"], data=data, headers=p_group_header, verify=False
+                p_group_url, data=data, headers=p_group_header, verify=False
             )
             if r.status_code != 200:
                 log.error(
@@ -290,7 +291,8 @@ def setup_nifi_template(
                 f"{len(processors_to_check)} found in the main process group. Check for more invalid processors in children process groups."
             )
             for p_group in flow_res["processGroupFlow"]["flow"]["processGroups"]:
-                p_r = requests.get(p_group["uri"], headers=headers, verify=False)
+                p_group_url = f"{NIFI_API_URI}/process-groups/{p_group['id']}"
+                p_r = requests.get(p_group_url, headers=headers, verify=False)
                 if p_r.status_code != 200:
                     log.error(
                         f"Error in getting process group children: Status: {p_r.status_code}, Response: {p_r.text}"
@@ -332,7 +334,7 @@ def setup_nifi_template(
             )
             password_params: Dict[str, str] = {}
             for p, values in processor_el["component"]["config"]["properties"].items():
-                if "password" in p.lower():
+                if "password" in p.lower() or p == "Password":
                     new_p = typer.prompt(
                         f"Value for '{p}' in {processor_el['component']['name']} ? (type q to skip)"
                     )

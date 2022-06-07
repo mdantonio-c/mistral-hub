@@ -18,6 +18,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 
   li a {
+    text-decoration: none;
     margin-top: 3px;
   }
   li a .nav-text {
@@ -319,7 +320,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   margin-left: 36px;
   margin-right: 8px;
 
-  input {
+  & > label > input {
     margin-left: 10px;
     margin-right: 10px;
     z-index: -1;
@@ -349,6 +350,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     justify-content: space-evenly;
     margin-right: 50px;
     font-family: "Montserrat-semibold";
+    margin-bottom: 0.5rem;
   }
 
   input {
@@ -553,34 +555,33 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   text-decoration: none;
 }
 
-/* style custom-switch borders */
+/* style form-switch borders */
 
-.custom-control-input:focus ~ .custom-control-label::before {
+.form-check-input:focus ~ .form-check-label::before {
   border-color: $light-orange !important;
   box-shadow: 0 0 0 0.2rem $light-orange-shadow !important;
 }
 
-.custom-control-input:checked ~ .custom-control-label::before {
+.form-check-input:checked ~ .form-check-label::before {
   border-color: $light-orange !important;
   background-color: $light-orange;
 }
 
-.custom-control-input:active ~ .custom-control-label::before {
+.form-check-input:active ~ .form-check-label::before {
   background-color: $light-orange;
   border-color: $light-orange !important;
 }
 
-.custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
+.form-check-input:focus:not(:checked) ~ .form-check-label::before {
   border-color: $light-orange !important;
 }
 
-.custom-control-input-green:not(:disabled):active
-  ~ .custom-control-label::before {
+.form-check-input-green:not(:disabled):active ~ .form-check-label::before {
   background-color: $light-orange;
   border-color: $light-orange !important;
 }
 
-/*clouds switch*/
+/* clouds switch */
 .clouds-switch {
 
     position: relative !important;
@@ -597,30 +598,30 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     left: 3px;
   }
 
-  .custom-control-input:checked ~ .custom-control-label::before {
+  .form-check-input:checked ~ .form-check-label:before {
     border-color: $light-orange !important;
     background-color: $light-orange !important;
   }
 
-  & input[disabled="true"] ~ .custom-control-label::before,
-  & input:checked[disabled="true"] ~ .custom-control-label::before {
+  & input[disabled="true"] ~ .form-check-label:before,
+  & input:checked[disabled="true"] ~ .form-check-label:before {
     background-color: #797e7e !important;
     border-color: #797e7e !important;
   }
-  & input[disabled="true"] ~ .custom-control-label::after {
+  & input[disabled="true"] ~ .form-check-label:after {
     background-color: #616262 !important;
     border-color: #616262 !important;
   }
 }
 
 /*multimodel switch*/
-.collapsed .form-switch {
+.collapsed .multi-model .form-switch {
   padding-left: 35px;
   padding-top: 18px;
 }
 
 
-.form-switch {
+.multi-model .form-switch {
   .form-check-input {
     background-image: none;
     background-color:transparent !important;
@@ -658,7 +659,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     }
   }
 
-  .form-check-input:checked ~ .form-check-label::after {
+  .multi-model .form-check-input:checked ~ .form-check-label::after {
     background-color: #e49d2b;
     transform: translateX(16.75px) rotate(270deg) !important;
     background-image: url("/app/custom/assets/images/icons/humidity.svg") !important;

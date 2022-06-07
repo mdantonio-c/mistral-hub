@@ -10,15 +10,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  frontend-tests:
-    runs-on: ubuntu-20.04
+  Development-mode:
+    runs-on: ubuntu-latest
     timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: "3.10"
 
       - uses: rapydo/actions/install@v1
         with:
@@ -42,9 +42,22 @@ jobs:
           project: ${PROJECT}
           step: frontend
 
+  Production-mode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - uses: rapydo/actions/install@v1
+        with:
+          project: ${PROJECT}
+
       - name: Production mode
         run: |
-          rapydo remove --all
           rapydo --testing --prod -e FTP_USER=ftpuser init --force
           rapydo pull --quiet frontend proxy
 
