@@ -13,3 +13,28 @@
 .accordion-body {
   padding: 0.5rem !important;
 }
+
+.counter {
+  display: flex;
+  justify-content: space-evenly;
+  
+  .number-box {
+    width:30% !important;
+    max-width: 30% !important;
+    display:flex;
+    flex-direction: column;
+
+    span {
+      font-size:15px;
+      margin-bottom:30px;
+      text-align:center;
+
+      &.number {
+        font-size:30px;
+        color: #EB9C08;
+        margin-bottom:0 !important; 
+        margin-top:10px;
+      }
+    }
+  }
+}
