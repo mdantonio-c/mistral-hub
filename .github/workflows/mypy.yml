@@ -13,16 +13,16 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
-      - uses: rapydo/actions/install@v1
+      - uses: rapydo/actions/install@v2
         with:
           project: ${PROJECT}
           submodule: http-api
-      - uses: rapydo/actions/mypy@v1
+      - uses: rapydo/actions/mypy@v2
         with:
           project: ${PROJECT}
           allow_untyped_defs: true
@@ -30,7 +30,7 @@ jobs:
           ignore: arkimet dballe eccodes
 
       - name: Save Report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: mypy-report
           path: report

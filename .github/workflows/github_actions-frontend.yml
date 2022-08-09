@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
@@ -36,7 +36,7 @@ jobs:
           rapydo shell frontend "yarn run test:single"
 
       - name: Coverage
-        uses: rapydo/actions/coverage@v1
+        uses: rapydo/actions/coverage@v2
         with:
           repository: projects/${PROJECT}
           project: ${PROJECT}
@@ -47,12 +47,12 @@ jobs:
     timeout-minutes: 25
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      - uses: rapydo/actions/install@v1
+      - uses: rapydo/actions/install@v2
         with:
           project: ${PROJECT}
 
