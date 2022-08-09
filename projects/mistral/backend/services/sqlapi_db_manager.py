@@ -427,7 +427,7 @@ class SqlApiDbManager:
         r_to_update = request.query.filter(request.task_id == task_id).first()
 
         # ask celery the status of the given request
-        result = AsyncResult(task_id)
+        result: AsyncResult[Any] = AsyncResult(task_id)
         # log.info('status:{}', result.status)
 
         r_to_update.status = result.status
