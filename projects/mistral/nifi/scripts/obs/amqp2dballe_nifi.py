@@ -68,8 +68,8 @@ while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
                             new_msg.set_named("minute", msg.get_named("minute"))
                             new_msg.set_named("second", msg.get_named("second"))
                             new_msg.set_named("rep_memo", msg.report)
-                            new_msg.set_named("longitude", int(msg.coords[0] * 10 ** 5))
-                            new_msg.set_named("latitude", int(msg.coords[1] * 10 ** 5))
+                            new_msg.set_named("longitude", int(msg.coords[0] * 10**5))
+                            new_msg.set_named("latitude", int(msg.coords[1] * 10**5))
                             if msg.ident:
                                 new_msg.set_named("ident", msg.ident)
 

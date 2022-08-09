@@ -546,16 +546,13 @@ class TestApp(BaseTests):
         )
         with dballe_db.transaction() as tr:
             for row in tr.query_data({}):
-                date_to_dt = (
-                    datetime(
-                        row["year"],
-                        row["month"],
-                        row["day"],
-                        row["hour"],
-                        row["min"],
-                    )
-                    + timedelta(hours=1)
-                )
+                date_to_dt = datetime(
+                    row["year"],
+                    row["month"],
+                    row["day"],
+                    row["hour"],
+                    row["min"],
+                ) + timedelta(hours=1)
                 date_from_dt = date_to_dt - timedelta(hours=1)
                 today = datetime.now()
                 last_dballe_date = date_from_dt - timedelta(days=1)

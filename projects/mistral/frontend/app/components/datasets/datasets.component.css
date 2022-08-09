@@ -41,22 +41,22 @@
   border-bottom: 1px solid #bbb;
 }
 .number-box {
-    width:30% !important;
-    max-width: 30% !important;
-    display:flex;
-    flex-direction: column;
+  width: 30% !important;
+  max-width: 30% !important;
+  display: flex;
+  flex-direction: column;
 }
 span {
-      font-size:15px;
-      margin-bottom:30px;
-      text-align:center;
+  font-size: 15px;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
 span.number {
-        font-size:30px;
-        color: #EB9C08;
-        margin-bottom:0 !important; 
-        margin-top:10px;
+  font-size: 30px;
+  color: #eb9c08;
+  margin-bottom: 0 !important;
+  margin-top: 10px;
 }
 
 @media (min-width: 992px) {

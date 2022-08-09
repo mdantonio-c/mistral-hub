@@ -356,7 +356,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   input {
     margin-left: 10px;
     margin-right: 10px;
-    margin-bottom:5px;
+    margin-bottom: 5px;
     z-index: -1;
     position: relative;
     -webkit-appearance: none;
@@ -583,11 +583,9 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 /* clouds switch */
 .clouds-switch {
+  position: relative !important;
 
-    position: relative !important;
-  
   label {
-    
     left: -23px;
     top: -4px;
   }
@@ -613,22 +611,18 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     border-color: #616262 !important;
   }
 
-  
   #tccSwitch {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e");
-  
 
-  &:focus {
-    fill: $light-orange !important;
-    border-color: $light-orange !important;
-    box-shadow: none !important;
-  }
+    &:focus {
+      fill: $light-orange !important;
+      border-color: $light-orange !important;
+      box-shadow: none !important;
+    }
 
-  &:checked {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='white'/%3e%3c/svg%3e");
-  }
-
-  
+    &:checked {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='white'/%3e%3c/svg%3e");
+    }
   }
 
   #tccSwitch[disabled="true"] {
@@ -642,18 +636,17 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   padding-top: 18px;
 }
 
-
 .multi-model .form-switch {
   .form-check-input {
     background-image: none;
-    background-color:transparent !important;
+    background-color: transparent !important;
     border-color: transparent !important;
-    }
+  }
   .form-check-label {
     transform: rotate(90deg) !important;
     margin-top: 41px !important;
     margin-left: -9px;
-    position:relative;
+    position: relative;
     &:before {
       opacity: 0.6;
       left: -48.25px;
@@ -662,8 +655,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
       border-radius: 12.5px;
       background-color: #9c999a !important;
       border-color: #9c999a !important;
-      content:"";
-      position:absolute;
+      content: "";
+      position: absolute;
     }
     &:after {
       background-color: #e49d2b;
@@ -676,8 +669,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
       left: calc(-46.25px + 2px);
       width: calc(24px - 4px);
       height: calc(24px - 4px);
-      content:"";
-      position:absolute;
+      content: "";
+      position: absolute;
     }
   }
 

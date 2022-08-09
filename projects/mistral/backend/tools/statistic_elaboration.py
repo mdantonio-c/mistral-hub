@@ -88,10 +88,10 @@ def pp_statistic_elaboration(
                                     new_msg.set_named("second", msg.get_named("second"))
                                     new_msg.set_named("rep_memo", msg.report)
                                     new_msg.set_named(
-                                        "longitude", int(msg.coords[0] * 10 ** 5)
+                                        "longitude", int(msg.coords[0] * 10**5)
                                     )
                                     new_msg.set_named(
-                                        "latitude", int(msg.coords[1] * 10 ** 5)
+                                        "latitude", int(msg.coords[1] * 10**5)
                                     )
                                     if msg.ident:
                                         new_msg.set_named("ident", msg.ident)

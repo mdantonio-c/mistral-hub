@@ -41,16 +41,13 @@ class TestApp(BaseTests):
                     # get a valid reftime for dballe
                     with db_dballe.transaction() as tr:
                         for row in tr.query_data({"rep_memo": net}):
-                            date_to_dt = (
-                                datetime(
-                                    row["year"],
-                                    row["month"],
-                                    row["day"],
-                                    row["hour"],
-                                    row["min"],
-                                )
-                                + timedelta(hours=1)
-                            )
+                            date_to_dt = datetime(
+                                row["year"],
+                                row["month"],
+                                row["day"],
+                                row["hour"],
+                                row["min"],
+                            ) + timedelta(hours=1)
                             date_from_dt = date_to_dt - timedelta(hours=1)
                             today = datetime.now()
                             last_dballe_date = date_from_dt - timedelta(days=1)
@@ -93,16 +90,13 @@ class TestApp(BaseTests):
                     # get a valid reftime for dballe
                     with db_dballe.transaction() as tr:
                         for row in tr.query_data({"rep_memo": net}):
-                            date_to_dt = (
-                                datetime(
-                                    row["year"],
-                                    row["month"],
-                                    row["day"],
-                                    row["hour"],
-                                    row["min"],
-                                )
-                                + timedelta(hours=1)
-                            )
+                            date_to_dt = datetime(
+                                row["year"],
+                                row["month"],
+                                row["day"],
+                                row["hour"],
+                                row["min"],
+                            ) + timedelta(hours=1)
                             break
 
                     # get a valid reftime for arkimet
@@ -279,10 +273,13 @@ class TestApp(BaseTests):
             assert r.status_code == 200
 
         # only network as argument
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}".format(
-            date_from=q_params["date_from"],
-            date_to=q_params["date_to"],
-            network=q_params["network"],
+        endpoint = (
+            API_URI
+            + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}".format(
+                date_from=q_params["date_from"],
+                date_to=q_params["date_to"],
+                network=q_params["network"],
+            )
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -340,10 +337,13 @@ class TestApp(BaseTests):
         assert not response_data["data"]
 
         # ### only product as argument ####
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product};license:CCBY_COMPLIANT".format(
-            date_from=q_params["date_from"],
-            date_to=q_params["date_to"],
-            product=q_params["product_1"],
+        endpoint = (
+            API_URI
+            + "/observations?q=reftime:>={date_from},<={date_to};product:{product};license:CCBY_COMPLIANT".format(
+                date_from=q_params["date_from"],
+                date_to=q_params["date_to"],
+                product=q_params["product_1"],
+            )
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -357,10 +357,13 @@ class TestApp(BaseTests):
         assert check_product_2 is False
         # check error with random param
         fake_product = "B11111"
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product};license:CCBY_COMPLIANT".format(
-            date_from=q_params["date_from"],
-            date_to=q_params["date_to"],
-            product=fake_product,
+        endpoint = (
+            API_URI
+            + "/observations?q=reftime:>={date_from},<={date_to};product:{product};license:CCBY_COMPLIANT".format(
+                date_from=q_params["date_from"],
+                date_to=q_params["date_to"],
+                product=fake_product,
+            )
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -369,15 +372,18 @@ class TestApp(BaseTests):
         assert not response_data["data"]
 
         # ### all arguments ####
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};product:{product};license:CCBY_COMPLIANT&&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}&networks={network}".format(
-            date_from=q_params["date_from"],
-            date_to=q_params["date_to"],
-            product=q_params["product_1"],
-            lonmin=lonmin,
-            lonmax=lonmax,
-            latmin=latmin,
-            latmax=latmax,
-            network=q_params["network"],
+        endpoint = (
+            API_URI
+            + "/observations?q=reftime:>={date_from},<={date_to};product:{product};license:CCBY_COMPLIANT&&lonmin={lonmin}&lonmax={lonmax}&latmin={latmin}&latmax={latmax}&networks={network}".format(
+                date_from=q_params["date_from"],
+                date_to=q_params["date_to"],
+                product=q_params["product_1"],
+                lonmin=lonmin,
+                lonmax=lonmax,
+                latmin=latmin,
+                latmax=latmax,
+                network=q_params["network"],
+            )
         )
         r = client.get(endpoint, headers=headers)
         response_data = self.get_content(r)
@@ -406,32 +412,41 @@ class TestApp(BaseTests):
         assert not response_data["data"][0]["prod"]
 
         # get station details ####
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
-            date_from=q_params["date_from"],
-            date_to=q_params["date_to"],
-            network=q_params["network"],
-            lat=station_lat_example,
-            lon=station_lon_example,
+        endpoint = (
+            API_URI
+            + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
+                date_from=q_params["date_from"],
+                date_to=q_params["date_to"],
+                network=q_params["network"],
+                lat=station_lat_example,
+                lon=station_lon_example,
+            )
         )
         r = client.get(endpoint, headers=headers)
         # check response code
         assert r.status_code == 200
         # check random network
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
-            date_from=q_params["date_from"],
-            date_to=q_params["date_to"],
-            network=random_net,
-            lat=station_lat_example,
-            lon=station_lon_example,
+        endpoint = (
+            API_URI
+            + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&lat={lat}&lon={lon}&stationDetails=true".format(
+                date_from=q_params["date_from"],
+                date_to=q_params["date_to"],
+                network=random_net,
+                lat=station_lat_example,
+                lon=station_lon_example,
+            )
         )
         r = client.get(endpoint, headers=headers)
         # check response code
         assert r.status_code == 404
         # check missing params
-        endpoint = API_URI + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&stationDetails=true".format(
-            date_from=q_params["date_from"],
-            date_to=q_params["date_to"],
-            network=q_params["network"],
+        endpoint = (
+            API_URI
+            + "/observations?q=reftime:>={date_from},<={date_to};license:CCBY_COMPLIANT&networks={network}&stationDetails=true".format(
+                date_from=q_params["date_from"],
+                date_to=q_params["date_to"],
+                network=q_params["network"],
+            )
         )
         r = client.get(endpoint, headers=headers)
         # check response code
