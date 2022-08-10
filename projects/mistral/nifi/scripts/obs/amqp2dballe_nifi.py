@@ -46,21 +46,24 @@ while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
     # mime = data[0:4]
     # mimeb = mime.decode('UTF-8') # BUFR
     # print(data)
+    malformed_msg_errors = None
     network_errors = None
     reftime_errors = None
     if data:
         with open(flowfileout, "wb") as discarded_msgs:
             importer = dballe.Importer("BUFR")
             exporter = dballe.Exporter("BUFR")
-            try:
-                with importer.from_file(data) as f:
-                    count_messages = 0
-                    for messages in f:
-                        for msg in messages:
-                            count_messages += 1
-                            count_vars = 0
-                            new_msg = dballe.Message("generic")
+            with importer.from_file(data) as f:
+                count_messages = 0
+                for messages in f:
+                    for msg in messages:
+                        message_ok = True
+                        count_messages += 1
+                        count_vars = 0
+                        new_msg = dballe.Message("generic")
 
+                        # check the correctness of the message
+                        try:
                             new_msg.set_named("year", msg.get_named("year"))
                             new_msg.set_named("month", msg.get_named("month"))
                             new_msg.set_named("day", msg.get_named("day"))
@@ -107,33 +110,38 @@ while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
                                 msg.get_named("minute").get(),
                                 msg.get_named("second").get(),
                             )
+                        except BaseException as exc:
+                            message_ok = False
+                            malformed_msg_errors = str(exc)
 
-                            # print(msg.datetime, msg.report)
-                            if msg.report not in network_filter:
-                                network_errors = msg.report
-                                # save the message to the file of discarded messages
-                                count_vars += 1
-                            if (dt is not None) and (
-                                (dt < data_min) or (dt > data_max)
-                            ):
-                                reftime_errors = dt
-                                # save the message to the file of discarded messages
-                                count_vars += 1
-                            # if there is a discarded message save it to the file
-                            if count_vars > 0:
+                        if not message_ok:
+                            # save the message to the file of discarded messages
+                            count_vars += 1
+                        # print(msg.datetime, msg.report)
+                        if msg.report not in network_filter:
+                            network_errors = msg.report
+                            # save the message to the file of discarded messages
+                            count_vars += 1
+                        if (dt is not None) and ((dt < data_min) or (dt > data_max)):
+                            reftime_errors = dt
+                            # save the message to the file of discarded messages
+                            count_vars += 1
+                        # if there is a discarded message save it to the file
+                        if count_vars > 0:
+                            if message_ok:
                                 discarded_msgs.write(exporter.to_binary(new_msg))
-                            # print(msg.report)
                             else:
-                                with db.transaction() as tr:
-                                    tr.import_messages(
-                                        msg,
-                                        overwrite=True,
-                                        update_station=True,
-                                        import_attributes=True,
-                                    )
-            except BaseException as exc:
-                print(str(exc), file=sys.stderr)
-                sys.exit(109)
+                                # save the original message
+                                discarded_msgs.write(exporter.to_binary(msg))
+                        # print(msg.report)
+                        else:
+                            with db.transaction() as tr:
+                                tr.import_messages(
+                                    msg,
+                                    overwrite=True,
+                                    update_station=True,
+                                    import_attributes=True,
+                                )
 
     if network_errors:
         print(f"Not valid report Network: {network_errors}", file=sys.stderr)
@@ -147,6 +155,14 @@ while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
             for m in fileout:
                 sys.stdout.buffer.write(m)
         sys.exit(101)
+    elif malformed_msg_errors:
+        print(
+            f"Not valid messages in this batch: {malformed_msg_errors}", file=sys.stderr
+        )
+        with open(flowfileout, "rb") as fileout:
+            for m in fileout:
+                sys.stdout.buffer.write(m)
+        sys.exit(109)
     elif count_messages == 0:
         print("No messages found in the received file", file=sys.stderr)
         sys.exit(109)

@@ -686,9 +686,9 @@ class SingleSchedule(EndpointResource):
                         task="data_extract",
                         minute=str(crontab_settings.get("minute")),
                         hour=str(crontab_settings.get("hour")),
-                        day_of_week=str(crontab_settings.get("day_of_week")),
-                        day_of_month=str(crontab_settings.get("day_of_month")),
-                        month_of_year=str(crontab_settings.get("month_of_year")),
+                        day_of_week=str(crontab_settings.get("day_of_week", "*")),
+                        day_of_month=str(crontab_settings.get("day_of_month", "*")),
+                        month_of_year=str(crontab_settings.get("month_of_year", "*")),
                         args=[
                             user.id,
                             dataset_names,
