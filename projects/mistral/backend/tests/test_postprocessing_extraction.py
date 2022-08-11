@@ -58,6 +58,7 @@ class TestApp(BaseTests):
         test_failure=False,
         wrong_params={},
         output_format=None,
+        only_reliable=None,
     ):
         request_name = faker.pystr()
         # try a postprocess that does not exists
@@ -95,6 +96,7 @@ class TestApp(BaseTests):
             pp_settings,
             output_format,
             request.id,
+            only_reliable,
         )
         request_filepath = self.check_extraction_success(db, request.id, user_dir)
 
