@@ -641,7 +641,8 @@ def observed_extraction(
         # processed the resulting file
         qc.pp_quality_check_filter(input_file=outfile, output_file=qc_outfile)
         # delete the tmp file
-        outfile.unlink()
+        qc_input = Path(outfile)
+        qc_input.unlink()
 
 
 def notify_by_email(db, user_id, request, extra_msg):
