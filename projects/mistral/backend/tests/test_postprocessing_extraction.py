@@ -665,7 +665,7 @@ class TestApp(BaseTests):
         # delete the request
         self.delete_the_request(client, se_obs_request_id)
 
-        # check multiple postprocessors: derived variable,statistic, output format
+        # check multiple postprocessors: derived variable,statistic, output format, quality checks
         multiple_obs_request_id, multiple_obs_filepath = self.extract_w_postprocessor(
             faker,
             app,
@@ -675,6 +675,7 @@ class TestApp(BaseTests):
             datasets,
             [obs_derived_variable_pp, obs_statistic_elaboration_pp],
             output_format="json",
+            only_reliable=True,
         )
         # check that the output file is a json
         assert multiple_obs_filepath.suffix == ".json"
