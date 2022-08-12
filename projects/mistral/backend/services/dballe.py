@@ -1919,6 +1919,11 @@ class BeDballe:
                     "Failure in data extraction: error in creating the output file for mixed archives"
                 )
 
+        # delete the partial extractions
+        for f in cat_cmd:
+            if Path(f).is_file():
+                Path(f).unlink()
+
     @staticmethod
     def extract_data(
         datasets,
@@ -2065,6 +2070,10 @@ class BeDballe:
                 raise JoinObservedExtraction(
                     "Failure in data extraction: error in creating the output file"
                 )
+        # delete the partial extractions
+        for f in cat_cmd:
+            if Path(f).is_file():
+                Path(f).unlink()
 
     @staticmethod
     def filter_messages(msg, list_of_runs=None, quality_check=False):

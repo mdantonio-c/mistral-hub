@@ -329,6 +329,10 @@ def data_extract(
             # check if the user space is not exceeded:
             # for the observations we can't calculate the esti_data_size
             # so this check is done after the extraction
+            # delete the tmp files before checking the user quota
+            if not opendata:
+                for f in output_dir.glob("*.tmp"):
+                    f.unlink()
             check_user_quota(
                 user_id,
                 output_dir,
@@ -487,6 +491,11 @@ def check_user_quota(
 
         # check for current used space
         used_quota = int(subprocess.check_output(["du", "-sb", user_dir]).split()[0])
+
+        # in case of extimation done after the data extraction, subtract the output file size from the user quota
+        if output_filename:
+            used_quota = used_quota - Path(user_dir, output_filename).stat().st_size
+
         log.info("Current used space: {} ({})", used_quota, human_size(used_quota))
 
         # check for exceeding quota
@@ -640,6 +649,9 @@ def observed_extraction(
     if only_reliable:
         # processed the resulting file
         qc.pp_quality_check_filter(input_file=outfile, output_file=qc_outfile)
+        # delete the tmp file
+        qc_input = Path(outfile)
+        qc_input.unlink()
 
 
 def notify_by_email(db, user_id, request, extra_msg):
