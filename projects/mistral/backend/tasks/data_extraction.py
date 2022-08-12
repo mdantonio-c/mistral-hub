@@ -329,6 +329,10 @@ def data_extract(
             # check if the user space is not exceeded:
             # for the observations we can't calculate the esti_data_size
             # so this check is done after the extraction
+            # delete the tmp files before checking the user quota
+            if not opendata:
+                for f in output_dir.glob("*.tmp"):
+                    f.unlink()
             check_user_quota(
                 user_id,
                 output_dir,
