@@ -39,24 +39,28 @@
   display: flex;
   justify-content: space-evenly;
   border-bottom: 1px solid #bbb;
-}
-.number-box {
-  width: 30% !important;
-  max-width: 30% !important;
-  display: flex;
-  flex-direction: column;
-}
-span {
-  font-size: 15px;
-  margin-bottom: 30px;
-  text-align: center;
-}
 
-span.number {
-  font-size: 30px;
-  color: #eb9c08;
-  margin-bottom: 0 !important;
-  margin-top: 10px;
+  .number-box {
+    width: 30% !important;
+    max-width: 30% !important;
+    display: flex;
+    flex-direction: column;
+    background: lightgray;
+    margin-bottom: 1rem;
+
+    span {
+      font-size: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+
+      &.number {
+        font-size: 30px;
+        color: #eb9c08;
+        margin-bottom: 0 !important;
+        margin-top: 10px;
+      }
+    }
+  }
 }
 
 @media (min-width: 992px) {
