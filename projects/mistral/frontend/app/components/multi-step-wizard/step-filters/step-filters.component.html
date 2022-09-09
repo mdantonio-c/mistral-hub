@@ -69,6 +69,20 @@
                   Size exceeds the allowed one for a single request
                 </li>
               </ul>
+              <ul>
+                <li>
+                  Auto Filtering
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-toggle"
+                    data-toggle="button"
+                    [ngClass]="{ active: autoFiltering }"
+                    (click)="autoFiltering = !autoFiltering"
+                  >
+                    <div class="handle"></div>
+                  </button>
+                </li>
+              </ul>
             </div>
           </div>
         </div>

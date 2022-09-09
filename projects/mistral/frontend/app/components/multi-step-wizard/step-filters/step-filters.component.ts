@@ -38,6 +38,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   levelTypesDescriptions: string[] = [];
   selectedLevelTypes: boolean[] = [];
   isLevelsSelected: boolean = false;
+  autoFiltering: boolean = true;
 
   constructor(
     private fb: FormBuilder,
@@ -92,6 +93,9 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   }
 
   onFilterChange() {
+    if (!this.autoFiltering) {
+      return;
+    }
     this.spinner.show("sp2");
     let selectedFilters = this.getSelectedFilters();
     // console.log('selected filter(s)', selectedFilters);
