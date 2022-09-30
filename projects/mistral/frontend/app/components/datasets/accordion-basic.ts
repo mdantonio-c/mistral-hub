@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'ngbd-accordion-static',
+  selector: 'ngbd-accordion-basic',
   templateUrl: './dataset.component.html'
 })
-export class NgbdAccordionStatic {
+export class NgbdAccordionBasic {
+  expandAll();
 }

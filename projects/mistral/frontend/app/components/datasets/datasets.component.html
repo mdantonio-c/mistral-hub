@@ -25,7 +25,7 @@
   
   <div class="sidenav">
     <form [formGroup]="filterForm">
-      <ngb-accordion [closeOthers]="true" activeIds="static-1">
+      <ngb-accordion #acc="ngbAccordion" activeIds="ngb-panel-0">
         <ngb-panel id="static-1"> 
           <ng-template ngbPanelTitle>
             <h5>Product Type</h5>

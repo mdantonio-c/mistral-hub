@@ -675,7 +675,10 @@ div.board + pre {
 .sidenav .accordion-item {
   border: 1px solid rgba(255, 255, 255, 0) !important;
   .accordion-body {
-    padding: 1rem 0.25rem !important;
+    padding: 0 !important;
+  }
+  .accordion-button {
+    padding: 8px !important;
   }
 }
 
