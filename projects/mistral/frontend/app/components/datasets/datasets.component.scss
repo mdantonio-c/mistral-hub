@@ -24,8 +24,6 @@
   overflow-y: hidden;
 }
 
-
-
 .main {
   margin-left: 220px; /* Same width as the sidebar + left position in px */
   font-size: 28px; /* Increased text to enable scrolling */
@@ -33,7 +31,7 @@
 }
 
 .scrollDiv {
-  max-height: calc(100vh - 238px);
+  max-height: calc(100vh - 328px) !important;
   overflow: auto;
 }
 
@@ -68,6 +66,29 @@
 @media (min-width: 992px) {
   .scrollDiv {
     max-height: calc(100vh - 190px);
+  }
+}
+
+@media (max-width: 992px) {
+  .sidenav {
+    width: 200px !important;
+    
+    .vertical-list li label{
+      font-size: 12px !important;
+    }
+
+    h5 {
+      font-size: 15px !important;
+    }
+  }
+  
+  .page-with-sidebar {
+    padding-left: 210px !important;
+  }
+
+  .scrollDiv{
+    max-height: calc(100vh - 346px) !important;
+  
   }
 }
 
