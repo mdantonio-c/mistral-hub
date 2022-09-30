@@ -1,4 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  ViewChild,
+  AfterViewInit,
+} from "@angular/core";
 import { Dataset } from "../../types";
 import { NotificationService } from "@rapydo/services/notification";
 import { AuthService } from "@rapydo/services/auth";
@@ -9,16 +15,15 @@ import { DatasetDetailsComponent } from "../dataset-details/dataset-details.comp
 import { FormBuilder, FormGroup, FormArray, FormControl } from "@angular/forms";
 import { DataService } from "../../services/data.service";
 import { User } from "@rapydo/types";
+import { ObsMapComponent } from "../maps/observation-maps/obs-map/obs-map.component";
+import { NgbAccordion } from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: "app-datasets",
   templateUrl: "./datasets.component.html",
   styleUrls: ["./datasets.component.scss"],
 })
-
-
-
-export class DatasetsComponent implements OnInit {
+export class DatasetsComponent implements OnInit, AfterViewInit {
   readonly title = "Datasets";
   datasets: Dataset[] = [];
   filterForm: FormGroup;
@@ -31,6 +36,7 @@ export class DatasetsComponent implements OnInit {
 
   private _datasets: Dataset[] = [];
   user: User;
+  @ViewChild("acc") accordionComponent: NgbAccordion;
 
   constructor(
     private dataService: DataService,
@@ -63,6 +69,10 @@ export class DatasetsComponent implements OnInit {
     });
 
     this.load();
+  }
+
+  ngAfterViewInit() {
+    this.accordionComponent.expandAll();
   }
 
   private load() {
@@ -106,7 +116,7 @@ export class DatasetsComponent implements OnInit {
         this.spinner.hide();
       });
   }
-  
+
   openDataset(ds: Dataset) {
     if (!ds.is_public) {
       return;

@@ -24,7 +24,6 @@
   overflow-y: hidden;
 }
 
-
 .main {
   margin-left: 220px; /* Same width as the sidebar + left position in px */
   font-size: 28px; /* Increased text to enable scrolling */
@@ -39,7 +38,7 @@
 .counter {
   display: flex;
   justify-content: space-evenly;
-  border-bottom: 1px solid #bbb;
+  border-bottom: 1px solid #ddd;
 
   .number-box {
     width: 30% !important;
@@ -73,8 +72,8 @@
 @media (max-width: 992px) {
   .sidenav {
     width: 200px !important;
-    
-    .vertical-list li label{
+
+    .vertical-list li label {
       font-size: 12px !important;
     }
 
@@ -93,7 +92,7 @@
       position: absolute;
       transition: 0.6s;
       margin-top: -5px;
-    
+
       &.collapsed {
         margin-left: 8px;
         background-image: url("/app/custom/assets/images/icons/menu_burger.svg");
@@ -106,9 +105,8 @@
     padding-left: 210px !important;
   }
 
-  .scrollDiv{
+  .scrollDiv {
     max-height: calc(100vh - 346px) !important;
-  
   }
 }
 
@@ -190,5 +188,3 @@
   -ms-flex: 0 0 60px;
   flex: 0 0 60px;
 }
-
-

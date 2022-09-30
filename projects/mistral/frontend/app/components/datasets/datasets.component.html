@@ -10,22 +10,22 @@
   <!--counter-->
   <div class="counter">
     <div class="number-box">
-      <span class="number"> 30</span>
+      <span class="number">30</span>
       <span>Datasets</span>
     </div>
     <div class="number-box">
-      <span class="number"> 6 </span>
+      <span class="number">6</span>
       <span>Post-processing</span>
     </div>
     <div class="number-box">
-      <span class="number"> 4 </span>
-      <span>Visualizzation Maps</span>
+      <span class="number">4</span>
+      <span>Visualization Maps</span>
     </div>
   </div>
   <div class="sidenav">
     <form [formGroup]="filterForm">
       <ngb-accordion #acc="ngbAccordion" activeIds="ngb-panel-0">
-        <ngb-panel id="static-1"> 
+        <ngb-panel id="static-1">
           <ng-template ngbPanelTitle>
             <h5>Product Type</h5>
           </ng-template>
@@ -55,7 +55,10 @@
             <ul class="vertical-list px-0">
               <li
                 formArrayName="licenses"
-                *ngFor="let license of licensesFormArray.controls; let i = index"
+                *ngFor="
+                  let license of licensesFormArray.controls;
+                  let i = index
+                "
               >
                 <input
                   class="mst--input-checkbox"
@@ -74,7 +77,10 @@
             <h5>Attribution</h5>
           </ng-template>
           <ng-template ngbPanelContent>
-            <ul class="vertical-list px-0 overflow-auto" style="max-height: 240px">
+            <ul
+              class="vertical-list px-0 overflow-auto"
+              style="max-height: 240px"
+            >
               <li
                 formArrayName="attributions"
                 *ngFor="
@@ -89,11 +95,13 @@
                   id="attribution-{{ i }}"
                   (change)="onFilterChange()"
                 />
-                <label for="attribution-{{ i }}">{{ attributionsData[i] }}</label>
+                <label for="attribution-{{ i }}">{{
+                  attributionsData[i]
+                }}</label>
               </li>
             </ul>
           </ng-template>
-        </ngb-panel> 
+        </ngb-panel>
       </ngb-accordion>
     </form>
   </div>
