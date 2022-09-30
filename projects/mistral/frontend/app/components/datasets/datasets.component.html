@@ -22,59 +22,80 @@
       <span>Visualizzation Maps</span>
     </div>
   </div>
-  <div class="sidenav mt-5">
+  
+  <div class="sidenav">
     <form [formGroup]="filterForm">
-      <h5>Product Type</h5>
-      <ul class="vertical-list px-0">
-        <li
-          formArrayName="types"
-          *ngFor="let t of typesFormArray.controls; let i = index"
-        >
-          <input
-            class="mst--input-checkbox"
-            type="checkbox"
-            [formControlName]="i"
-            id="type-{{ i }}"
-            (change)="onFilterChange()"
-          />
-          <label for="type-{{ i }}">{{ typesData[i] }}</label>
-        </li>
-      </ul>
-      <h5>Product License</h5>
-      <ul class="vertical-list px-0">
-        <li
-          formArrayName="licenses"
-          *ngFor="let license of licensesFormArray.controls; let i = index"
-        >
-          <input
-            class="mst--input-checkbox"
-            type="checkbox"
-            [formControlName]="i"
-            id="license-{{ i }}"
-            (change)="onFilterChange()"
-          />
-          <label for="license-{{ i }}">{{ licensesData[i] }}</label>
-        </li>
-      </ul>
-      <h5>Attribution</h5>
-      <ul class="vertical-list px-0 overflow-auto" style="max-height: 240px">
-        <li
-          formArrayName="attributions"
-          *ngFor="
-            let attribution of attributionsFormArray.controls;
-            let i = index
-          "
-        >
-          <input
-            class="mst--input-checkbox"
-            type="checkbox"
-            [formControlName]="i"
-            id="attribution-{{ i }}"
-            (change)="onFilterChange()"
-          />
-          <label for="attribution-{{ i }}">{{ attributionsData[i] }}</label>
-        </li>
-      </ul>
+      <ngb-accordion [closeOthers]="true" activeIds="static-1">
+        <ngb-panel id="static-1"> 
+          <ng-template ngbPanelTitle>
+            <h5>Product Type</h5>
+          </ng-template>
+          <ng-template ngbPanelContent>
+            <ul class="vertical-list px-0">
+              <li
+                formArrayName="types"
+                *ngFor="let t of typesFormArray.controls; let i = index"
+              >
+                <input
+                  class="mst--input-checkbox"
+                  type="checkbox"
+                  [formControlName]="i"
+                  id="type-{{ i }}"
+                  (change)="onFilterChange()"
+                />
+                <label for="type-{{ i }}">{{ typesData[i] }}</label>
+              </li>
+            </ul>
+          </ng-template>
+        </ngb-panel>
+        <ngb-panel id="static-2">
+          <ng-template ngbPanelTitle>
+            <h5>Product License</h5>
+          </ng-template>
+          <ng-template ngbPanelContent>
+            <ul class="vertical-list px-0">
+              <li
+                formArrayName="licenses"
+                *ngFor="let license of licensesFormArray.controls; let i = index"
+              >
+                <input
+                  class="mst--input-checkbox"
+                  type="checkbox"
+                  [formControlName]="i"
+                  id="license-{{ i }}"
+                  (change)="onFilterChange()"
+                />
+                <label for="license-{{ i }}">{{ licensesData[i] }}</label>
+              </li>
+            </ul>
+          </ng-template>
+        </ngb-panel>
+        <ngb-panel id="static-3">
+          <ng-template ngbPanelTitle>
+            <h5>Attribution</h5>
+          </ng-template>
+          <ng-template ngbPanelContent>
+            <ul class="vertical-list px-0 overflow-auto" style="max-height: 480px">
+              <li
+                formArrayName="attributions"
+                *ngFor="
+                  let attribution of attributionsFormArray.controls;
+                  let i = index
+                "
+              >
+                <input
+                  class="mst--input-checkbox"
+                  type="checkbox"
+                  [formControlName]="i"
+                  id="attribution-{{ i }}"
+                  (change)="onFilterChange()"
+                />
+                <label for="attribution-{{ i }}">{{ attributionsData[i] }}</label>
+              </li>
+            </ul>
+          </ng-template>
+        </ngb-panel> 
+      </ngb-accordion>
     </form>
   </div>
   <div class="row justify-content-md-center page-with-sidebar">

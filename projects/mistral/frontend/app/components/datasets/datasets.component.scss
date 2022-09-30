@@ -1,5 +1,5 @@
 .page-with-sidebar {
-  padding-left: 220px;
+  padding-left: 270px;
 }
 
 .page-with-sidebar > h3 {
@@ -14,8 +14,8 @@
 }
 
 .sidenav {
-  width: 200px;
-  position: fixed;
+  width: 260px;
+  position: absolute;
   z-index: 1;
   left: 10px;
   overflow-x: hidden;
@@ -23,6 +23,8 @@
   max-height: calc(100vh - 180px) !important;
   overflow-y: hidden;
 }
+
+
 
 .main {
   margin-left: 220px; /* Same width as the sidebar + left position in px */
@@ -147,3 +149,5 @@
   -ms-flex: 0 0 60px;
   flex: 0 0 60px;
 }
+
+

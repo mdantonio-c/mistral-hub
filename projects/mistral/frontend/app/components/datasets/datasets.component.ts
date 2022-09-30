@@ -15,13 +15,16 @@ import { User } from "@rapydo/types";
   templateUrl: "./datasets.component.html",
   styleUrls: ["./datasets.component.scss"],
 })
+
+
+
 export class DatasetsComponent implements OnInit {
   readonly title = "Datasets";
   datasets: Dataset[] = [];
   filterForm: FormGroup;
   loading: boolean = false;
   multiSelection: boolean = false;
-
+  //accordion: NgbdAccordionStatic;
   typesData: string[] = [];
   licensesData: string[] = [];
   attributionsData: string[] = [];
@@ -103,7 +106,7 @@ export class DatasetsComponent implements OnInit {
         this.spinner.hide();
       });
   }
-
+  
   openDataset(ds: Dataset) {
     if (!ds.is_public) {
       return;
