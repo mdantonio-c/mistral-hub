@@ -650,6 +650,25 @@ div.board + pre {
   height: 100%;
 }
 
+/* Custom partecipate page style */
+
+.participate h4 {
+  text-align: center !important;
+  color: #E49D2B !important;
+}
+
+.participate h5 {
+  text-transform: uppercase;
+  color: #E49D2B;
+}
+
+.participate ul {
+  list-style-type: initial;
+
+  li::marker {
+    display:none;
+  }
+}
 /* Custom ngx-datatable styles */
 /* --------------------------- */
 .ngx-datatable .datatable-body .datatable-row-detail {
