@@ -23,6 +23,7 @@
       ngbDropdownToggle
       id="navbarDropdownMapsLink"
       role="button"
+      [ngClass]="{'active': collapse}"
     >
       Maps
     </a>
@@ -92,7 +93,7 @@
       >Contact us</a
     >
   </li>
-  <li class="nav-item" ngbDropdown *ngIf="user && user.isAdmin">
+  <li class="nav-item" ngbDropdown *ngIf="user && user.isAdmin" routerLinkActive="active">
     <a
       class="nav-link clickable"
       ngbDropdownToggle

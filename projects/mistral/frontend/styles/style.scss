@@ -76,11 +76,15 @@ body {
       text-transform: uppercase;
       font-size: 0.9rem;
 
-      &.active {
+      &.active{
         color: #E49D2B !important;
       }
     }
   }
+}
+
+.dropdown-item.active, .dropdown-item:active {
+	background-color: #E49D2B !important;
 }
 
 .nav.navbar-nav.rpd-menu-controls .nav-item a {
