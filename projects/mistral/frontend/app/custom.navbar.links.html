@@ -17,17 +17,18 @@
       >My Requests</a
     >
   </li>
-  <li class="nav-item" ngbDropdown>
+  <li class="nav-item" ngbDropdown
+  >
     <a
       class="nav-link clickable"
       ngbDropdownToggle
       id="navbarDropdownMapsLink"
       role="button"
-      [ngClass]="{'active': collapse}"
+      routerLinkActive="active" 
+      [routerLinkActiveOptions]="{exact: true}"
     >
-      Maps
-    </a>
-    <div
+      Maps    
+      <div
       ngbDropdownMenu
       aria-labelledby="navbarDropdownMapsLink"
       class="dropdown-menu"
@@ -53,10 +54,15 @@
         (click)="collapse()"
         >Observations</a
       >
-      <a ngbDropdownItem routerLink="/app/maps/meteotiles" (click)="collapse()"
+      <a ngbDropdownItem 
+      routerLink="/app/maps/meteotiles" 
+      routerLinkActive="active"
+      (click)="collapse()"
         >Multi-layer Map</a
       >
     </div>
+    </a>
+
   </li>
   <li class="nav-item">
     <a
