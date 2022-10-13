@@ -730,15 +730,16 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 }
 
 @media screen and (max-height: 679px) {
-  .map-sidenav .toggle {
-    width: 30px !important;
-    height: 30px !important;
+  .map-sidenav {
+      .toggle {
+        width: 30px !important;
+        height: 30px !important;
 
-    &.collapsed {
-      margin-left: 10px !important;
+      &.collapsed {
+        margin-left: 10px !important;
+      }
     }
   }
-
   .selector {
     overflow-y: scroll !important;
     scrollbar-width: thin;

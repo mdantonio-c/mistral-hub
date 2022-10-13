@@ -1,6 +1,7 @@
 .accordion-header {
   .accordion-button:not(.collapsed) {
     color: inherit;
+    background-color: #eb9c08 !important;
   }
   .custom-header {
     background-color: rgba(0, 0, 0, 0.03) !important;
@@ -17,6 +18,7 @@
 .counter {
   display: flex;
   justify-content: space-evenly;
+  font-family: "Montserrat-semibold";
 
   .number-box {
     width: 30% !important;
@@ -36,6 +38,21 @@
         color: #eb9c08;
         margin-bottom: 0 !important;
         margin-top: 10px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 635px){
+  .counter {
+    .number-box {
+        span {
+          font-size: 10px !important;
+          margin-bottom: 18px !important;
+  
+          &.number {
+            font-size: 19px !important;          
+          }
       }
     }
   }

@@ -39,6 +39,7 @@
   display: flex;
   justify-content: space-evenly;
   border-bottom: 1px solid #ddd;
+  font-family: "Montserrat-semibold";
 
   .number-box {
     width: 30% !important;
@@ -71,7 +72,7 @@
 
 @media (max-width: 992px) {
   .sidenav {
-    width: 200px !important;
+    width: 170px !important;
 
     .vertical-list li label {
       font-size: 12px !important;
@@ -102,7 +103,7 @@
   }
 
   .page-with-sidebar {
-    padding-left: 210px !important;
+    padding-left: 178px !important;
   }
 
   .scrollDiv {
@@ -131,7 +132,6 @@
   height: 60px;
   float: left;
   border: 2px solid #fff;
-  vertical-align: middle;
   position: absolute;
   display: block;
   z-index: 1;
@@ -187,4 +187,16 @@
 .container-picture {
   -ms-flex: 0 0 60px;
   flex: 0 0 60px;
+}
+
+@media screen and (max-width: 574px) {
+  .speciale {
+    max-height: 206px !important;
+  }
+  .container-picture, .ds-item .ds-picture > img {
+    display:none !important;
+  }
+  .ds-body {
+    margin:0;
+  }
 }
