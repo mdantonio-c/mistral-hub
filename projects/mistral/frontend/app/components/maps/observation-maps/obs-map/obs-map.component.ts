@@ -146,6 +146,9 @@ export class ObsMapComponent {
               }
             );
           }
+        } else {
+          // case of stations icons
+          html = "<div> <span>" + res + "</span></div>";
         }
         let warn = "";
         if (dirtyCluster) {
