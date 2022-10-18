@@ -56,8 +56,8 @@ class BeDballe:
             # if there is not datemax for sure the dbtype will be dballe or mixed
             max_days = BeDballe.LASTDAYS - 1
 
-        if min_days > BeDballe.LASTDAYS:
-            if max_days > BeDballe.LASTDAYS:
+        if min_days >= BeDballe.LASTDAYS:
+            if max_days >= BeDballe.LASTDAYS:
                 db_type = "arkimet"
             else:
                 db_type = "mixed"
