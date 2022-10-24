@@ -442,6 +442,13 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           "etc.). It is composed of 3 attributes: a value code (eg instant value, average, accumulation), " +
           "difference between validity time and reference time, duration of statistical processing";
         break;
+      case "auto-filtering":
+        desc =
+          "If you switch OFF the Auto Filtering, dynamic updating of filters at selection stage is disabled " +
+          "making the selection faster but allowing you to select inconsistent combinations of values. " +
+          "It is therefore recommended to set the switch to OFF only for experienced users or in case of data " +
+          "retrievals covering a long time period.";
+        break;
     }
     return desc;
   }
