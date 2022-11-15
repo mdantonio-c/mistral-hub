@@ -358,3 +358,11 @@
 .btn-toggle.btn-secondary.active {
   background-color: #ff8300;
 }
+
+.btn-toggle.active:hover {
+  background-color: #29b5a8 !important;
+}
+
+.btn-toggle:hover, :not(.btn-check) + .btn:hover, .btn:first-child:hover {
+  background-color: #bdc1c8;
+}
