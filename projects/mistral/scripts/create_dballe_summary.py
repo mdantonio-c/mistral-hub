@@ -36,15 +36,16 @@ port = db.variables.get("port")
 for dsn in dsn_list:
     log.debug("summary for {}", dsn)
     DB = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/{dsn}")
+    mobile_db = None
     # check if there is also an associated dsn for mobile stations
-    try:
-        mobile_dsn = f"{dsn}_MOBILE"
-        mobile_db = dballe.DB.connect(
-            f"{engine}://{user}:{pw}@{host}:{port}/{mobile_dsn}"
-        )
-    except OSError:
-        log.debug("{} dsn for mobile station data does not exists", dsn)
-        mobile_db = None
+    # to decomment when we will have mobile data
+    # try:
+    #     mobile_dsn = f"{dsn}_MOBILE"
+    #     mobile_db = dballe.DB.connect(
+    #         f"{engine}://{user}:{pw}@{host}:{port}/{mobile_dsn}"
+    #     )
+    # except OSError:
+    #     log.debug("{} dsn for mobile station data does not exists", dsn)
 
     log.debug("Extracting dballe summary...")
 
