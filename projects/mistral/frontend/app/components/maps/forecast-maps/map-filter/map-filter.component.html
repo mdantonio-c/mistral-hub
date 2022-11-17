@@ -11,7 +11,7 @@
               <div style="display: inline">
                 <label
                   [title]="f.value"
-                  class="btn-circle"
+                  class="btn-circle btn"
                   data-toggle="tooltip"
                   [ngClass]="
                     filterForm.get('field').value === f.key
@@ -91,7 +91,7 @@
           <div id="runGroup">
             <ng-container *ngFor="let run of runs">
               <label
-                class="btn-circle"
+                class="btn-circle btn"
                 [ngClass]="
                   filterForm.get('run').value === run.key
                     ? 'btn-success'
@@ -120,7 +120,7 @@
           <div id="resolutionGroup">
             <ng-container *ngFor="let res of resolutions; index as i">
               <label
-                class="btn-circle"
+                class="btn-circle btn"
                 *ngIf="
                   !(
                     res.key === 'lm2.2' &&

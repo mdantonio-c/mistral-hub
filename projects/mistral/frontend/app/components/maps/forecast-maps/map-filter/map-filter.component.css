@@ -27,22 +27,27 @@
 }
 
 .btn-circle {
-  width: 49px;
-  height: 49px;
+  width: 50px;
+  height: 50px;
   text-align: center;
   /* padding-bottom: 1px; */
   margin: 2px 6px;
-  font-size: 22px;
-  line-height:2;
   border-radius: 30px;
   cursor: pointer;
+  line-height: 2.3;
+
 }
+.wi::before{
+  font-size: 20px;
+}
+.wi-umbrella::before, .wi-snow::before{
+    margin-left: -5px;
+  }
 
 .btn-small-circle {
   width: 20px;
   height: 20px;
   text-align: center;
-  vertical-align: middle;
   /* padding-bottom: 1px; */
   margin: 1px 1px;
   font-size: 10px;
@@ -67,6 +72,9 @@
 .btn-info {
   background-color: #e49c1e;
   border-color: #e49c1e;
+}
+.small {
+  font-size: 10px;
 }
 
 @media (max-width: 801px) {

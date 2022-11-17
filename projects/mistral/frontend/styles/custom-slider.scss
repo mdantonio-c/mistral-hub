@@ -1,5 +1,7 @@
 /* add custom styles for slider */
-
+#slider-bar{
+  margin-top:10px;
+}
 .mst-slider {
   .slider {
     width: 100% !important;
@@ -14,9 +16,11 @@
         }
       }
       .tooltip {
+        position: relative;
+        width: fit-content;
         &.tooltip-main {
           opacity: 1 !important;
-          top: -7px;
+          top: -15px;
           &.top {
             .tooltip-arrow:after {
               content: "";
@@ -27,8 +31,9 @@
               bottom: -10px;
               border: transparent 5px solid;
               border-top: #000 5px solid;
-              left: 43%;
+              left: 42%;
               border-top: #e49c1e 5px solid;
+              top: 31px;
             }
           }
         }
