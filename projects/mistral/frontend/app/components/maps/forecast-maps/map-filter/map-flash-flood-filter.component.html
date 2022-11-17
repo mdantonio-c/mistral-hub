@@ -12,7 +12,7 @@
               <ng-container *ngFor="let f of fields">
                 <label
                   [title]="f.value"
-                  class="btn-circle"
+                  class="btn-circle btn"
                   data-toggle="tooltip"
                   [ngClass]="
                     filterForm.get('field').value === f.key
@@ -47,7 +47,7 @@
             <div *ngIf="filterForm.get('field').value === 'percentile'">
               <ng-container *ngFor="let level of levels_pe">
                 <label
-                  class="btn-squared"
+                  class="btn-squared btn"
                   data-toggle="tooltip"
                   [ngClass]="
                     filterForm.get('level_pe').value === level.key
@@ -68,7 +68,7 @@
             <div *ngIf="filterForm.get('field').value === 'probability'">
               <ng-container *ngFor="let level of levels_pr">
                 <label
-                  class="btn-squared"
+                  class="btn-squared btn"
                   data-toggle="tooltip"
                   [ngClass]="
                     filterForm.get('level_pr').value === level.key
@@ -93,7 +93,7 @@
           <label class="col-form-label"><strong>PRODUCTS:</strong></label>
           <button
             style="float: right"
-            class="btn-small-circle"
+            class="btn-small-circle btn"
             (click)="open()"
           >
             <b>?</b>
@@ -115,7 +115,7 @@
           <div id="resolutionGroup">
             <ng-container *ngFor="let res of resolutions; index as i">
               <label
-                class="btn-circle"
+                class="btn-circle btn"
                 *ngIf="
                   !(
                     res.key === 'lm2.2' &&
