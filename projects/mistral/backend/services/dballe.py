@@ -1069,14 +1069,16 @@ class BeDballe:
             except OSError:
                 raise Exception("Unable to connect to dballe database")
             # connect to the eventual dsn for mobile station
-            mobile_dsn = f"{dballe_dsn}_MOBILE"
-            try:
-                mobile_db = dballe.DB.connect(
-                    f"{engine}://{user}:{pw}@{host}:{port}/{mobile_dsn}"
-                )
-            except OSError:
-                log.debug("{} dsn for mobile station data does not exists", dballe_dsn)
-                mobile_db = None
+            mobile_db = None
+            # to decomment when we will have mobile data
+            # mobile_dsn = f"{dballe_dsn}_MOBILE"
+            # try:
+            #     mobile_db = dballe.DB.connect(
+            #         f"{engine}://{user}:{pw}@{host}:{port}/{mobile_dsn}"
+            #     )
+            # except OSError:
+            #     log.debug("{} dsn for mobile station data does not exists", dballe_dsn)
+            #     mobile_db = None
 
         # if download param, return the db and the query to download the data
         if download:
