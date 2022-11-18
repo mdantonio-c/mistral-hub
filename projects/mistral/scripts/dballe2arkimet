@@ -211,14 +211,15 @@ def dballe2arkimet(date):
         logging.info(f"Start migrating data from {dsn}")
         db = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/{dsn}")
         migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering)
-        try:
-            mobile_dsn = f"{dsn}_MOBILE"
-            mobile_db = dballe.DB.connect(
-                f"{engine}://{user}:{pw}@{host}:{port}/{mobile_dsn}"
-            )
-        except OSError:
-            logging.info(f"{dsn} dsn for mobile station data does not exists")
-            mobile_db = None
+        mobile_db = None
+        # try:
+        #     mobile_dsn = f"{dsn}_MOBILE"
+        #     mobile_db = dballe.DB.connect(
+        #         f"{engine}://{user}:{pw}@{host}:{port}/{mobile_dsn}"
+        #     )
+        # except OSError:
+        #     logging.info(f"{dsn} dsn for mobile station data does not exists")
+        #     mobile_db = None
         if mobile_db:
             migrate_data(mobile_db, dsn, rec, alchemy_db, license_groups_need_filtering)
 
@@ -258,7 +259,7 @@ def migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering):
                     updater.add_messages(f, station_data=False, data=True)
 
             # Write out the general summary
-            with open(json_summary, "wt") as fd:
+            with open(json_summary, "w") as fd:
                 fd.write(general_explorer.to_json())
 
             # check if the dsn needs a filtered summary (multimodel use case)
@@ -278,7 +279,7 @@ def migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering):
                             updater.add_explorer(general_explorer)
 
                 # export the filtered explorer to a json file
-                with open(json_summary_filtered, "wt") as fd:
+                with open(json_summary_filtered, "w") as fd:
                     fd.write(filtered_explorer.to_json())
         else:
             # case of dsn containing different license groups
@@ -318,7 +319,7 @@ def migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering):
                         updater.add_explorer(general_explorer)
 
                 # write the filtered explorer to the file
-                with open(json_summary, "wt") as fd:
+                with open(json_summary, "w") as fd:
                     fd.write(subset_explorer.to_json())
 
         # ---------------------------------------------------------
