@@ -121,3 +121,24 @@
     display: none;
   }
 }
+
+.calendar {
+  .date {
+  width: 14.2%;
+  border-right: solid 1px #6c757d;
+  font-size: 12px;
+  padding: 6px 0 0 8px;
+  height: 26px;
+  margin-top: -6px;
+  
+    &:first-of-type {
+      padding-left:0;
+    }
+
+    &:last-of-type {
+      border: none;
+    }
+  }
+
+}
+
