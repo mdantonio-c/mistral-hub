@@ -1972,10 +1972,8 @@ class BeDballe:
                 fields=fields,
                 license_group=license_group,
             )
-
-        if arkimet_query:
-            # fill the temp db and choose it as the db for extraction
             DB = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
+
         else:
             # get the dsn
             dballe_dsn = license_group.dballe_dsn
