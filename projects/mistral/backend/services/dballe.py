@@ -63,6 +63,32 @@ class BeDballe:
                 db_type = "mixed"
         else:
             db_type = "dballe"
+
+        # the following is the correct way to obtain the db (today - BeDballe.LASTDAYS in the previous method enters the case of mixed db)
+        # but with the previous method is covered the special case of the hours between midnight and the actual migration from dballe to arkimet
+
+        # today = datetime.utcnow().date()
+        # first_arkimet_day = today - timedelta(days=BeDballe.LASTDAYS)
+        # if date_min:
+        #     min_day = date_min.date()
+        # else:
+        #     # if there is not a datemin for sure the dbtype will be arkimet or mixed
+        #     min_day = first_arkimet_day
+        #
+        # if date_max:
+        #     max_day = date_max.date()
+        # else:
+        #     # if there is not datemax for sure the dbtype will be dballe or mixed
+        #     max_day = first_arkimet_day + timedelta(days=1)
+        #
+        # if min_day <= first_arkimet_day:
+        #     if max_day > first_arkimet_day:
+        #         db_type = "mixed"
+        #     else:
+        #         db_type = "arkimet"
+        # else:
+        #     db_type = "dballe"
+
         return db_type
 
     @staticmethod
@@ -1871,6 +1897,7 @@ class BeDballe:
             db_type="dballe",
             queried_reftime=queried_reftime,
             additional_runs=additional_runs,
+            mixed_extraction=True,
         )
 
         # extract data from the arkimet database
@@ -1897,6 +1924,7 @@ class BeDballe:
             arki_outfile,
             db_type="arkimet",
             queried_reftime=queried_reftime_for_arki,
+            mixed_extraction=True,
         )
 
         cat_cmd = ["cat"]
@@ -1935,6 +1963,7 @@ class BeDballe:
         db_type,
         queried_reftime=None,
         additional_runs=None,
+        mixed_extraction=False,
     ):
         # get the license group
         alchemy_db = sqlalchemy.get_instance()
@@ -1972,6 +2001,16 @@ class BeDballe:
                 fields=fields,
                 license_group=license_group,
             )
+            if not arkimet_query:
+                if mixed_extraction:
+                    # break the extraction in order not to create the output file
+                    return
+                else:
+                    raise EmptyOutputFile(
+                        "Failure in data extraction: the query does not give any result"
+                    )
+
+            # log.debug(f" arkimet query: {arkimet_query}")
             DB = BeDballe.fill_db_from_arkimet(datasets, arkimet_query)
 
         else:
@@ -2058,9 +2097,12 @@ class BeDballe:
 
         if counter == 1:
             # any query has given a result
-            raise EmptyOutputFile(
-                "Failure in data extraction: the query does not give any result"
-            )
+            if mixed_extraction:
+                return
+            else:
+                raise EmptyOutputFile(
+                    "Failure in data extraction: the query does not give any result"
+                )
 
         # join all the partial extractions
         with open(outfile, mode="w") as output:

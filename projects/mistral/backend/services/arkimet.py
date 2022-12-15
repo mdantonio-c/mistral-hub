@@ -388,7 +388,10 @@ class BeArkimet:
                     "value2": lev["value2"],
                 }
             descr = arki.formatter.level.format_level(lt_to_describe)
-            formatted_descr = descr.split("-")[0].rstrip()
+            if descr:
+                formatted_descr = descr.split("-")[0].rstrip()
+            else:
+                formatted_descr = lev.get("desc", None)
             if formatted_descr not in leveltype_descriptions:
                 leveltype_descriptions.append(formatted_descr)
         return leveltype_descriptions
