@@ -325,7 +325,13 @@ class ScheduledDataExtraction(Schema):
         return data
 
 
-DATASET_ENABLED_TO_DATAREADY = ["lm2.2", "lm5", "cosmo_2I_fcruc"]
+DATASET_ENABLED_TO_DATAREADY = [
+    "lm2.2",
+    "lm5",
+    "cosmo_2I_fcruc",
+    "WRF_DA_ITA",
+    "WRF_OL",
+]
 MIN_PERIOD = 15  # in minutes
 
 

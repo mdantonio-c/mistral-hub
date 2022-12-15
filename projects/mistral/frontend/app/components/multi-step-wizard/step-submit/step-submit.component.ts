@@ -138,7 +138,13 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       });
   }
   checkDataReady() {
-    let dataReadyDatasets = ["lm2.2", "lm5", "cosmo_2I_fcruc"];
+    let dataReadyDatasets = [
+      "lm2.2",
+      "lm5",
+      "cosmo_2I_fcruc",
+      "WRF_DA_ITA",
+      "WRF_OL",
+    ];
     let requestedDatasets = this.formData.datasets.map((x) => x.id);
     if (
       requestedDatasets.length == 1 &&
