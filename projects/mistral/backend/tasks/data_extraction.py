@@ -616,7 +616,7 @@ def observed_extraction(
                 )
 
     # the estimation of data size can be skipped when pushing data output to amqp queue
-    if db_type == "arkimet":
+    if db_type == "arkimet" or db_type == "mixed":
         # check using arkimet if the estimated filesize does not exceed the disk quota
         query = ""
         if reftime:
