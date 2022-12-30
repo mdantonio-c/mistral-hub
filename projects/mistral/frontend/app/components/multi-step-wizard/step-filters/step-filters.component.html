@@ -161,6 +161,7 @@
               ></i
             ></span>
           </div>
+          <!-- Select by levltype-->
           <div
             *ngIf="f.value.name == 'level' && levelTypes.length !== 0"
             class="ps-1 mst--expansion-panel"
@@ -211,7 +212,103 @@
               </div>
             </div>
           </div>
-          <div *ngIf="f.value.name == 'level'" class="ms-4 mb-2 ps-1">
+
+          <!-- select by timerange-->
+          <div
+            *ngIf="f.value.name == 'timerange' && timerangeTypes.length !== 0"
+            class="ps-1 mst--expansion-panel"
+          >
+            <button
+              class="btn btn-link"
+              type="button"
+              (click)="collapse.toggle()"
+              [attr.aria-expanded]="!isCollapsed"
+              aria-controls="collapseExample"
+            >
+              <i
+                class="fa px-2"
+                [ngClass]="isCollapsed ? 'fa-angle-right' : 'fa-angle-down'"
+              ></i>
+              Select by timerange type
+            </button>
+            <div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
+              <div #timerangetypediv class="card-body">
+                <h5>Timerange types</h5>
+                <ul class="row g-0">
+                  <li
+                    *ngFor="let trtype of timerangeTypes; let i = index"
+                    class="col-sm-4"
+                  >
+                    <input
+                      [id]="'trtype-' + trtype"
+                      class="mst&#45;&#45;input-checkbox"
+                      type="checkbox"
+                      [value]="trtype"
+                      [ngModelOptions]="{ standalone: true }"
+                      [(ngModel)]="selectedTimerangeTypes[i]"
+                    />
+                    <!--                    <label [for]="'lt-' + lt">{{
+                      levelTypesDescriptions[i]
+                    }}</label>-->
+                    <label [for]="'trtype-' + trtype">{{ trtype }}</label>
+                  </li>
+                  <!--</ul>
+                <h5>P1</h5>
+                 <ul class="row g-0">
+                  <li
+                    *ngFor="let p1 of timerangeMin; let i = index"
+                    class="col-sm-4"
+                  >
+                     <input
+                      [id]="'p1-' + p1"
+                      class="mst&#45;&#45;input-checkbox"
+                      type="checkbox"
+                      [value]="p1"
+                    />
+                                        <label [for]="'p1-' + p1">{{
+                      p1
+                    }}</label>
+                  </li>-->
+                </ul>
+                <h5>Final Timerange</h5>
+                <ul class="row g-0">
+                  <li
+                    *ngFor="let ft of timerangeMax; let i = index"
+                    class="col-sm-4"
+                  >
+                    <input
+                      [id]="'ft-' + ft"
+                      class="mst&#45;&#45;input-checkbox"
+                      type="checkbox"
+                      [value]="ft"
+                      [ngModelOptions]="{ standalone: true }"
+                      [(ngModel)]="selectedTimerangeMax[i]"
+                    />
+                    <label [for]="'ft-' + ft">{{ ft }} H</label>
+                  </li>
+                </ul>
+              </div>
+              <div class="card-footer">
+                <button
+                  class="btn btn-outline-primary me-2"
+                  type="button"
+                  [disabled]="
+                    !selectedTimerangeTypes.includes(true) &&
+                    !selectedTimerangeMax.includes(true)
+                  "
+                  (click)="onTimerangeTypeChange(i); collapse.toggle()"
+                >
+                  Select
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- buttons to select/deselect levels -->
+          <div
+            *ngIf="f.value.name == 'level' && levelTypes.length !== 0"
+            class="ms-4 mb-2 ps-1"
+          >
             <button
               class="btn btn-primary me-2"
               type="button"
@@ -251,6 +348,7 @@
           </div>
         </div>
       </div>
+
       <div class="mb-3 text-center space-20">
         <button
           class="btn btn-outline-secondary me-2"

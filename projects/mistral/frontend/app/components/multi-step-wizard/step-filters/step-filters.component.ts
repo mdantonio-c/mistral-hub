@@ -26,8 +26,10 @@ import { AuthService } from "@rapydo/services/auth";
   templateUrl: "./step-filters.component.html",
 })
 export class StepFiltersComponent extends StepComponent implements OnInit {
-  @ViewChild("leveltypediv ", { static: false })
+  @ViewChild("leveltypediv", { static: false })
   public leveltypediv: ElementRef;
+  @ViewChild("timerangetypediv", { static: false })
+  public timerangetypediv: ElementRef;
   title = "Filter your data";
   summaryStats = { b: null, e: null, c: null, s: null };
   filterForm: FormGroup;
@@ -35,9 +37,16 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   user: User;
   public isCollapsed = true;
   levelTypes: string[] = [];
+  timerangeTypes: string[] = [];
+  //timerangeMin : string[] = [];
+  timerangeMax: string[] = [];
   levelTypesDescriptions: string[] = [];
+  timerangeTypesDescriptions: string[] = [];
   selectedLevelTypes: boolean[] = [];
+  selectedTimerangeTypes: boolean[] = [];
+  selectedTimerangeMax: boolean[] = [];
   isLevelsSelected: boolean = false;
+  isTimerangeSelected: boolean = false;
   autoFiltering: boolean = true;
 
   constructor(
@@ -137,8 +146,16 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
             }
           });
           if (this.levelTypes.length !== 0) {
-            // disable the leveltypes
+            // disable the leveltypes that aren't present in the answer
             this.updateLevelType();
+          }
+          if (this.timerangeTypes.length !== 0) {
+            // disable the trange types that aren't present in the answer
+            this.updateTimerangeType();
+          }
+          if (this.timerangeMax.length !== 0) {
+            // disable the trange types that aren't present in the answer
+            this.updateFinalTimerange();
           }
           this.updateSummaryStats(response.items.summarystats);
         },
@@ -188,6 +205,31 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                   //initialize leveltypes
                   this.levelTypesInit();
                 }
+              }
+              if (entry[0] === "timerange") {
+                let types_arr: string[] = [];
+                //let p1_arr: string[] = [];
+                let p2_arr: string[] = [];
+                (<Array<any>>entry[1]).forEach(function (obj) {
+                  if (obj.style == "GRIB1") {
+                    types_arr.push(obj.trange_type);
+                    //p1_arr.push(obj.p1);
+                    p2_arr.push(obj.p2);
+                  }
+                });
+                // @ts-ignore
+                this.timerangeTypes = [...new Set(types_arr)];
+                //this.timerangeMin = [...new Set(p1_arr)];
+                this.timerangeMax = [...new Set(p2_arr)];
+                /*                if (this.timerangeTypes.length > 0 && "descriptions" in response) {
+                  // get descriptions for timerangeTypes
+                  // TODO timerange descriptions
+                  this.timerangeTypesDescriptions =
+                    response.descriptions.timerangetypes;
+                  //initialize leveltypes
+                  this.timerangeTypesInit();
+                }*/
+                this.timerangeTypesInit();
               }
             }
           });
@@ -278,6 +320,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       this.filterForm.controls.validRefTime.setValue(true);
     }
   }
+
   updateLevelType() {
     Object.entries(this.filters).forEach((f) => {
       if (f[0] == "level") {
@@ -291,6 +334,32 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           let levelTypeInput =
             this.leveltypediv.nativeElement.querySelector(levelType);
           levelTypeInput["disabled"] = !obj.active;
+        }
+      }
+    });
+  }
+  updateTimerangeType() {
+    Object.entries(this.filters).forEach((f) => {
+      if (f[0] == "timerange") {
+        for (const obj of <Array<any>>f[1]) {
+          const timerangeType = "#trtype-" + obj.trange_type;
+
+          let timerangeTypeInput =
+            this.timerangetypediv.nativeElement.querySelector(timerangeType);
+          timerangeTypeInput["disabled"] = !obj.active;
+        }
+      }
+    });
+  }
+  updateFinalTimerange() {
+    Object.entries(this.filters).forEach((f) => {
+      if (f[0] == "timerange") {
+        for (const obj of <Array<any>>f[1]) {
+          const finalTimerange = "#ft-" + obj.p2;
+
+          let finalTimerangeInput =
+            this.timerangetypediv.nativeElement.querySelector(finalTimerange);
+          finalTimerangeInput["disabled"] = !obj.active;
         }
       }
     });
@@ -382,6 +451,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       }
     );
     // check if there is any level that is selected
+    //TODO per disabilitare bottone deselect all timeranges
     if (selectedFilters.length) {
       let selectedLevels = selectedFilters.find((x) => x.name === "level");
       if (selectedLevels) {
@@ -459,7 +529,20 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       this.selectedLevelTypes.push(false);
     }
   }
+  timerangeTypesInit() {
+    // init the timerange types
+    this.selectedTimerangeTypes = [];
+    for (let el = 0; el < this.timerangeTypes.length; el++) {
+      this.selectedTimerangeTypes.push(false);
+    }
+    // init the timerange max
+    this.selectedTimerangeMax = [];
+    for (let el = 0; el < this.timerangeMax.length; el++) {
+      this.selectedTimerangeMax.push(false);
+    }
+  }
 
+  //TODO per pulsanti seleziona/deseleziona tutto
   toggleAllLevels(cIndex, action: string) {
     // @ts-ignore
     const level: FormGroup = (
@@ -504,5 +587,62 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     this.onFilterChange();
     // clean the leveltype selection array
     this.levelTypesInit();
+  }
+
+  onTimerangeTypeChange(cIndex) {
+    //console.log(this.selectedTimerangeTypes)
+    //console.log(this.selectedTimerangeMax)
+    // @ts-ignore
+    const timerange: FormGroup = (
+      this.filterForm.controls.filters as FormArray
+    ).controls.at(cIndex);
+    this.filters["timerange"].forEach((t, i) => {
+      if (
+        this.selectedTimerangeTypes.includes(true) &&
+        !this.selectedTimerangeMax.includes(true)
+      ) {
+        // check only timerange types
+        //console.log("check only timerange types")
+        if (
+          this.selectedTimerangeTypes[
+            this.timerangeTypes.indexOf(t["trange_type"])
+          ]
+        ) {
+          (timerange.controls.values as FormArray).controls
+            .at(i)
+            .setValue(true);
+        }
+      } else if (
+        !this.selectedTimerangeTypes.includes(true) &&
+        this.selectedTimerangeMax.includes(true)
+      ) {
+        // check only timerange max
+        //console.log("check only timerange max")
+        if (this.selectedTimerangeMax[this.timerangeMax.indexOf(t["p2"])]) {
+          (timerange.controls.values as FormArray).controls
+            .at(i)
+            .setValue(true);
+        }
+      } else if (
+        this.selectedTimerangeTypes.includes(true) &&
+        this.selectedTimerangeMax.includes(true)
+      ) {
+        // check both
+        //console.log("check both")
+        if (
+          this.selectedTimerangeTypes[
+            this.timerangeTypes.indexOf(t["trange_type"])
+          ] &&
+          this.selectedTimerangeMax[this.timerangeMax.indexOf(t["p2"])]
+        ) {
+          (timerange.controls.values as FormArray).controls
+            .at(i)
+            .setValue(true);
+        }
+      }
+    });
+    this.onFilterChange();
+    // clean the timerangetypes selection array
+    this.timerangeTypesInit();
   }
 }
