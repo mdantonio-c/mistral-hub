@@ -53,7 +53,7 @@ export class FormData {
       from: moment
         .utc()
         .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-        // .subtract(2, "hours")
+        .subtract(3, "days")
         .toDate(),
       to: moment.utc().toDate(),
     };
