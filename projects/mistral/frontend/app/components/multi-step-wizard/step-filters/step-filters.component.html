@@ -325,6 +325,28 @@
               Deselect all levels
             </button>
           </div>
+          <!-- buttons to select/deselect timeranges -->
+          <div
+            *ngIf="f.value.name == 'timerange' && timerangeTypes.length !== 0"
+            class="ms-4 mb-2 ps-1"
+          >
+            <button
+              class="btn btn-primary me-2"
+              type="button"
+              (click)="toggleAllTimeranges(i, 'select')"
+            >
+              Select all timeranges
+            </button>
+            <button
+              class="btn btn-warning me-2"
+              type="button"
+              [disabled]="!isTimerangeSelected ? true : null"
+              (click)="toggleAllTimeranges(i, 'deselect')"
+            >
+              Deselect all timeranges
+            </button>
+          </div>
+
           <div class="card-body mst--list-filter">
             <ul class="row g-0">
               <li

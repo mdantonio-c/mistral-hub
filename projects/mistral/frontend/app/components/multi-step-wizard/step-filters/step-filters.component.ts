@@ -450,18 +450,27 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
         }
       }
     );
-    // check if there is any level that is selected
-    //TODO per disabilitare bottone deselect all timeranges
+
     if (selectedFilters.length) {
+      // check if there is any level that is selected
       let selectedLevels = selectedFilters.find((x) => x.name === "level");
+      let selectedTimeranges = selectedFilters.find(
+        (x) => x.name === "timerange"
+      );
       if (selectedLevels) {
         this.isLevelsSelected = true;
       } else {
         this.isLevelsSelected = false;
       }
+      if (selectedTimeranges) {
+        this.isTimerangeSelected = true;
+      } else {
+        this.isTimerangeSelected = false;
+      }
       //console.log("is any level selected? "+ this.isLevelsSelected)
     } else {
       this.isLevelsSelected = false;
+      this.isTimerangeSelected = false;
     }
 
     return selectedFilters;
@@ -542,7 +551,6 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     }
   }
 
-  //TODO per pulsanti seleziona/deseleziona tutto
   toggleAllLevels(cIndex, action: string) {
     // @ts-ignore
     const level: FormGroup = (
@@ -558,6 +566,26 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       }
       if (action !== "select") {
         (level.controls.values as FormArray).controls.at(i).setValue(false);
+      }
+    });
+    this.onFilterChange();
+  }
+  toggleAllTimeranges(cIndex, action: string) {
+    // @ts-ignore
+    const timerange: FormGroup = (
+      this.filterForm.controls.filters as FormArray
+    ).controls.at(cIndex);
+
+    this.filters["timerange"].forEach((l, i) => {
+      if (
+        action === "select" &&
+        (timerange.controls.values as FormArray).controls.at(i).disabled ==
+          false
+      ) {
+        (timerange.controls.values as FormArray).controls.at(i).setValue(true);
+      }
+      if (action !== "select") {
+        (timerange.controls.values as FormArray).controls.at(i).setValue(false);
       }
     });
     this.onFilterChange();
