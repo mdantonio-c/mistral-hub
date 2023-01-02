@@ -221,14 +221,16 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                 this.timerangeTypes = [...new Set(types_arr)];
                 //this.timerangeMin = [...new Set(p1_arr)];
                 this.timerangeMax = [...new Set(p2_arr)];
-                /*                if (this.timerangeTypes.length > 0 && "descriptions" in response) {
+                if (
+                  this.timerangeTypes.length > 0 &&
+                  "descriptions" in response
+                ) {
                   // get descriptions for timerangeTypes
-                  // TODO timerange descriptions
                   this.timerangeTypesDescriptions =
                     response.descriptions.timerangetypes;
                   //initialize leveltypes
                   this.timerangeTypesInit();
-                }*/
+                }
                 this.timerangeTypesInit();
               }
             }

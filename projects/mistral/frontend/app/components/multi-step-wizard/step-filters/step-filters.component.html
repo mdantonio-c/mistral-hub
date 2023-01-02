@@ -237,7 +237,7 @@
                 <ul class="row g-0">
                   <li
                     *ngFor="let trtype of timerangeTypes; let i = index"
-                    class="col-sm-4"
+                    class="col-sm"
                   >
                     <input
                       [id]="'trtype-' + trtype"
@@ -247,10 +247,9 @@
                       [ngModelOptions]="{ standalone: true }"
                       [(ngModel)]="selectedTimerangeTypes[i]"
                     />
-                    <!--                    <label [for]="'lt-' + lt">{{
-                      levelTypesDescriptions[i]
-                    }}</label>-->
-                    <label [for]="'trtype-' + trtype">{{ trtype }}</label>
+                    <label [for]="'trtype-' + trtype">{{
+                      timerangeTypesDescriptions[i]
+                    }}</label>
                   </li>
                   <!--</ul>
                 <h5>P1</h5>

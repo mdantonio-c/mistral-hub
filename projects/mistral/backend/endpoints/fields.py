@@ -285,6 +285,11 @@ class Fields(EndpointResource):
                     summary["items"]["level"]
                 )
                 summary["descriptions"]["leveltypes"] = leveltype_desc
+                # get the timerange type descriptions
+                trangetype_desc = arki.get_trangetype_descriptions(
+                    summary["items"]["timerange"]
+                )
+                summary["descriptions"]["timerangetypes"] = trangetype_desc
 
         # ######### ONLY ARKIMET SUMMARY ###########
         if onlySummaryStats:

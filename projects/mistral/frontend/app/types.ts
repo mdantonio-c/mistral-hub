@@ -53,6 +53,7 @@ export interface FieldsSummary {
 
 export interface FieldsDescriptionDict {
   leveltypes?: string[];
+  timerangetypes?: string[];
 }
 
 export interface GenericItems {

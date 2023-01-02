@@ -397,6 +397,28 @@ class BeArkimet:
         return leveltype_descriptions
 
     @staticmethod
+    def get_trangetype_descriptions(trange_list):
+        trangetype_descriptions = []
+        for tr in trange_list:
+            if tr["style"] == "GRIB1":
+                tr_to_describe = {
+                    "style": tr["style"],
+                    "trange_type": tr["trange_type"],
+                    "p1": "",
+                    "p2": "",
+                    "unit": "",
+                }
+
+                descr = arki.formatter.timerange.format_timerange(tr_to_describe)
+                if descr:
+                    formatted_descr = descr.split("-")[0].rstrip()
+                else:
+                    formatted_descr = tr.get("desc", None)
+                if formatted_descr not in trangetype_descriptions:
+                    trangetype_descriptions.append(formatted_descr)
+        return trangetype_descriptions
+
+    @staticmethod
     def __decode_area(i):
         if not isinstance(i, dict):
             raise ValueError(f"Unexpected input type for <{type(i).__name__}>")
