@@ -166,7 +166,6 @@ export class MeteoTilesComponent implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe((params: Params) => {
-      console.log(params);
       if (params["view"]) {
         // check for valid view mode
         if (Object.values(ViewModes).includes(params["view"])) {
@@ -174,7 +173,8 @@ export class MeteoTilesComponent implements OnInit {
         } else {
           console.warn(`Invalid view param: ${params["view"]}`);
         }
-      } else if (params["dataset"]) {
+      }
+      if (params["dataset"]) {
         // override the default dataset if given as input
         const found = this.availableDatasets.find(
           (x) => x.code === params["dataset"],
