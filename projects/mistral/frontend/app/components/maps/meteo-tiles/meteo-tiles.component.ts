@@ -1,7 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { environment } from "@rapydo/../environments/environment";
 import { forkJoin, interval } from "rxjs";
-import { filter, scan, takeUntil, catchError } from "rxjs/operators";
+import { catchError, filter, scan, takeUntil } from "rxjs/operators";
 import * as moment from "moment";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
@@ -10,22 +10,22 @@ import { TilesService } from "./services/tiles.service";
 import { ObsService } from "../observation-maps/services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
-import { Router, ActivatedRoute, NavigationEnd, Params } from "@angular/router";
-import { LegendConfig, LEGEND_DATA } from "./services/data";
+import { ActivatedRoute, NavigationEnd, Params, Router } from "@angular/router";
+import { LEGEND_DATA, LegendConfig } from "./services/data";
 import {
-  Observation,
-  ObsData,
-  ObsFilter,
-  Station,
-  RunAvailable,
   CodeDescPair,
+  ObsData,
+  Observation,
+  ObsFilter,
+  RunAvailable,
+  Station,
 } from "../../../types";
 import {
-  MULTI_MODEL_TIME_RANGES,
   DatasetProduct as DP,
-  MultiModelProduct,
   DATASETS,
-  VIEW_MODES,
+  MULTI_MODEL_TIME_RANGES,
+  MultiModelProduct,
+  ViewModes,
 } from "./meteo-tiles.config";
 import { IffRuns } from "../forecast-maps/services/data";
 
@@ -138,7 +138,7 @@ export class MeteoTilesComponent implements OnInit {
   private currentIdx: number = null;
   private currentMMReftime: Date = null;
   private timeLoading: boolean = false;
-  private viewMode: string = VIEW_MODES[0];
+  public viewMode = ViewModes.adv;
 
   constructor(
     private tilesService: TilesService,
@@ -169,9 +169,8 @@ export class MeteoTilesComponent implements OnInit {
       console.log(params);
       if (params["view"]) {
         // check for valid view mode
-        const found = VIEW_MODES.find((x) => x === params["view"]);
-        if (found) {
-          this.viewMode = found;
+        if (Object.values(ViewModes).includes(params["view"])) {
+          this.viewMode = params["view"];
         } else {
           console.warn(`Invalid view param: ${params["view"]}`);
         }
@@ -222,7 +221,9 @@ export class MeteoTilesComponent implements OnInit {
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
-    //console.log(this.bounds);
+
+    // view mode
+    console.log(`view mode: ${this.viewMode}`);
 
     this.loadRunAvailable(this.dataset);
     this.initLegends(this.map);
@@ -339,7 +340,9 @@ export class MeteoTilesComponent implements OnInit {
         this.map.invalidateSize();
         this.spinner.hide();
         // get multi-model products
-        this.getMMProducts();
+        if (this.viewMode === ViewModes.adv) {
+          this.getMMProducts();
+        }
       });
   }
 

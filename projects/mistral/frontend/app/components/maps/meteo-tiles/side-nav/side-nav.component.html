@@ -203,7 +203,7 @@
           </ng-container>
         </li>
       </ng-template>
-      <li class="sidenav-item">
+      <li class="sidenav-item" *ngIf="mode == modes.adv">
         <span class="input"></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#" click-stop-propagation class="dataset">
@@ -222,7 +222,7 @@
           </div>
         </ng-container>
       </li>
-      <li class="sidenav-item last multi-model">
+      <li class="sidenav-item last multi-model" *ngIf="mode == modes.adv">
         <div class="custom-control mm-switch form-check form-switch">
           <input
             type="checkbox"
@@ -256,7 +256,7 @@
         </div>
       </li>
       <!-- base layer map selector -->
-      <li class="sidenav-item last selettore-carte">
+      <li class="sidenav-item last selettore-carte" *ngIf="mode == modes.adv">
         <span class="carte"></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#">
@@ -276,7 +276,7 @@
           </div>
         </ng-container>
       </li>
-      <li class="sidenav-item zoom">
+      <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
         <span
           class="plus clickable"
           [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
@@ -293,7 +293,7 @@
           >
         </a>
       </li>
-      <li class="sidenav-item last">
+      <li class="sidenav-item last" *ngIf="mode == modes.adv">
         <span
           class="minus clickable"
           [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"

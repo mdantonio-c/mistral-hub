@@ -83,4 +83,7 @@ export const DATASETS: CodeDescPair[] = [
   { code: "iff", desc: "IFF" },
 ];
 
-export const VIEW_MODES: string[] = ["adv", "base"];
+export enum ViewModes {
+  base,
+  adv,
+}

@@ -16,6 +16,7 @@ import {
   DATASETS,
   MultiModelProduct,
   MultiModelProductLabel,
+  ViewModes,
 } from "../meteo-tiles.config";
 import * as L from "leaflet";
 import {
@@ -42,10 +43,12 @@ interface ValueLabelChecked extends ValueLabel {
 export class SideNavComponent implements OnInit {
   @Input() baseLayers: L.Control.LayersObject;
   @Input() dataset: string;
+  @Input("viewMode") mode = ViewModes.adv;
   // Reference to the primary map object
   @Input() map: L.Map;
 
   private _overlays: L.Control.LayersObject;
+  modes = ViewModes;
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -103,7 +106,7 @@ export class SideNavComponent implements OnInit {
   constructor(
     private el: ElementRef,
     private renderer: Renderer2,
-    private changeDetector: ChangeDetectorRef
+    private changeDetector: ChangeDetectorRef,
   ) {
     const SUB_LEVELS: { [key: string]: ValueLabel[] } = {
       prp: PRECIPITATION_HOURS,
@@ -248,7 +251,7 @@ export class SideNavComponent implements OnInit {
     event: Event,
     target: ValueLabel,
     layerId: string,
-    multiSelection = false
+    multiSelection = false,
   ) {
     // console.log(`activate layer ${layerId}, value ${target.value}`);
     for (const [key, layer] of Object.entries(this.overlays)) {
@@ -276,7 +279,7 @@ export class SideNavComponent implements OnInit {
         });
         if (!multiSelection) {
           const idx = this.subLevels[layerId].findIndex(
-            (level) => level.value === target.value
+            (level) => level.value === target.value,
           );
           this.subLevels[layerId][idx].checked =
             !this.subLevels[layerId][idx].checked;
