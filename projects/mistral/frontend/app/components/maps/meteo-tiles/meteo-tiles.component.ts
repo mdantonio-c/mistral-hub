@@ -115,6 +115,7 @@ export class MeteoTilesComponent implements OnInit {
     //bounds:
     timeDimensionControlOptions: {
       autoPlay: false,
+      timeZones: ["utc"],
       loopButton: true,
       timeSteps: 1,
       playReverseButton: true,
@@ -124,6 +125,7 @@ export class MeteoTilesComponent implements OnInit {
         transitionTime: 500,
         loop: true,
       },
+      speedSlider: true,
     },
   };
   public runAvailable: RunAvailable;
@@ -166,12 +168,18 @@ export class MeteoTilesComponent implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe((params: Params) => {
-      if (params["view"]) {
+      const view: string = params["view"];
+      if (view) {
         // check for valid view mode
-        if (Object.values(ViewModes).includes(params["view"])) {
-          this.viewMode = params["view"];
+        if (Object.values(ViewModes).includes(view)) {
+          this.viewMode = ViewModes[view];
+          if (this.viewMode === ViewModes.base) {
+            // adapt time dimension options
+            this.options.timeDimensionControlOptions.speedSlider = false;
+            this.options.timeDimensionControlOptions.timeZones = ["local"];
+          }
         } else {
-          console.warn(`Invalid view param: ${params["view"]}`);
+          console.warn(`Invalid view param: ${view}`);
         }
       }
       if (params["dataset"]) {
@@ -223,7 +231,7 @@ export class MeteoTilesComponent implements OnInit {
     this.map.attributionControl.setPrefix("");
 
     // view mode
-    console.log(`view mode: ${this.viewMode}`);
+    console.log(`view mode: ${ViewModes[this.viewMode]}`);
 
     this.loadRunAvailable(this.dataset);
     this.initLegends(this.map);
