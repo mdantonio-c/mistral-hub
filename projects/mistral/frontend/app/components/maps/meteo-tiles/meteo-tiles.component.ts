@@ -66,7 +66,6 @@ export class MeteoTilesComponent implements OnInit {
   private run: string;
   private legends: { [key: string]: L.Control } = {};
   public availableDatasets: CodeDescPair[] = DATASETS;
-  // license = this.license;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
 
   LAYER_OSM = L.tileLayer(
@@ -875,7 +874,7 @@ export class MeteoTilesComponent implements OnInit {
     this.legends = {
       [DP.TM2]: this.createLegendControl("tm2"),
       [DP.PMSL]: this.createLegendControl("pmsl"),
-      // [DP.WIND10M]: this.createLegendControl("ws10m"),
+      [DP.WIND10M]: this.createLegendControl("ws10m"),
       [DP.RH]: this.createLegendControl("rh"),
 
       [DP.PREC1P]: this.createLegendControl("prp"),
@@ -925,7 +924,7 @@ export class MeteoTilesComponent implements OnInit {
       } else if (event["name"] === DP.PMSL) {
         legends[DP.PMSL].addTo(map);
       } else if (event["name"] === DP.WIND10M) {
-        //legends[DP.WIND10M].addTo(map);
+        legends[DP.WIND10M].addTo(map);
       } else if (event["name"] === DP.RH) {
         legends[DP.RH].addTo(map);
       } else if (
