@@ -648,15 +648,15 @@ export class MeteoTilesComponent implements OnInit {
           {},
         ),
         // Wind speed at 10 meters
-        // [DP.WIND10M]: L.timeDimension.layer.tileLayer.portus(
-        //   L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
-        //     minZoom: 5,
-        //     maxZoom: maxZoom,
-        //     tms: false,
-        //     bounds: bounds,
-        //   }),
-        //   {}
-        // ),
+        [DP.WIND10M]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            bounds: bounds,
+          }),
+          {},
+        ),
         // Relative humidity Time Layer
         [DP.RH]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(`${baseUrl}/humidity-r/{d}{h}/{z}/{x}/{y}.png`, {
@@ -924,7 +924,7 @@ export class MeteoTilesComponent implements OnInit {
       } else if (event["name"] === DP.PMSL) {
         legends[DP.PMSL].addTo(map);
       } else if (event["name"] === DP.WIND10M) {
-        legends[DP.WIND10M].addTo(map);
+        //legends[DP.WIND10M].addTo(map);
       } else if (event["name"] === DP.RH) {
         legends[DP.RH].addTo(map);
       } else if (
@@ -985,7 +985,7 @@ export class MeteoTilesComponent implements OnInit {
       } else if (event["name"] === DP.PMSL) {
         map.removeControl(legends[DP.PMSL]);
       } else if (event["name"] === DP.WIND10M) {
-        map.removeControl(legends[DP.WIND10M]);
+        // map.removeControl(legends[DP.WIND10M]);
       } else if (
         // PRECIPITATION
         event["name"] === DP.PREC1P &&
