@@ -195,10 +195,10 @@ export class MeteoTilesComponent implements OnInit {
       }
 
       // clean the url from the query parameters
-      this.router.navigate([], {
+      /*this.router.navigate([], {
         queryParams: { view: null, dataset: null },
         queryParamsHandling: "merge",
-      });
+      });*/
     });
   }
 
@@ -314,14 +314,15 @@ export class MeteoTilesComponent implements OnInit {
             newAvailableTimes,
             "replace",
           );
-          const today = moment.utc();
-          // console.log(`today: ${today.format()}`);
-          if (moment.utc(startTime).isSame(today, "day")) {
-            // console.log(`reftime today! set hour to ${today.hours()}`);
-            startTime.setUTCHours(today.hours());
+          let currentTime = startTime;
+          const now = moment.utc();
+          // console.log(`today: ${now.format()}`);
+          if (now.isBetween(startTime, endTime, "days", "[]")) {
+            // console.log(`reftime includes today: set time to ${now.hours()} UTC`);
+            currentTime = now.toDate();
           }
           this.timeLoading = false;
-          (this.map as any).timeDimension.setCurrentTime(startTime);
+          (this.map as any).timeDimension.setCurrentTime(currentTime);
 
           this.setOverlaysToMap();
 
