@@ -430,13 +430,22 @@ a.timecontrol-play.loading:before {
 
 /*Responsive legende*/
 
-@media screen and (max-height: 640px) {
+
+@media screen and (max-height: 856px) {
   .legenda {
     width: 53%;
+    
   }
 }
 
-@media screen and (min-height: 1295px) {
+@media screen and  (max-height: 667px) {
+  .legenda {
+
+    margin-left: 0 !important;
+  }
+}
+
+@media (min-height: 1295px) {
   .legenda {
     width: 100%;
   }
@@ -470,7 +479,4 @@ a.timecontrol-play.loading:before {
     width: 60px;
   }
 
-  .legenda {
-    width: 41%;
-  }
 }
