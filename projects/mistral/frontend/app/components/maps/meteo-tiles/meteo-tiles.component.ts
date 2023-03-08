@@ -985,7 +985,7 @@ export class MeteoTilesComponent implements OnInit {
       } else if (event["name"] === DP.PMSL) {
         map.removeControl(legends[DP.PMSL]);
       } else if (event["name"] === DP.WIND10M) {
-        // map.removeControl(legends[DP.WIND10M]);
+        map.removeControl(legends[DP.WIND10M]);
       } else if (
         // PRECIPITATION
         event["name"] === DP.PREC1P &&
