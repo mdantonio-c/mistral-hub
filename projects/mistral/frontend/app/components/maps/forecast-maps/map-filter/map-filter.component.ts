@@ -45,14 +45,14 @@ export class MapFilterComponent implements OnInit {
 
   constructor(private fb: FormBuilder, private authService: AuthService) {
     this.filterForm = this.fb.group({
-      field: ["prec3", Validators.required],
+      field: ["t2m", Validators.required],
       level_pe: ["25"],
       level_pr: ["20"],
       run: ["00", Validators.required],
-      res: ["lm5", Validators.required],
+      res: ["lm2.2", Validators.required],
       platform: [""],
       env: [""],
-      area: ["Area_Mediterranea", Validators.required],
+      area: ["Italia", Validators.required],
     });
   }
 
