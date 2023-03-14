@@ -66,7 +66,6 @@ export class MeteoTilesComponent implements OnInit {
   private run: string;
   private legends: { [key: string]: L.Control } = {};
   public availableDatasets: CodeDescPair[] = DATASETS;
-  // license = this.license;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
 
   LAYER_OSM = L.tileLayer(
@@ -115,6 +114,7 @@ export class MeteoTilesComponent implements OnInit {
     //bounds:
     timeDimensionControlOptions: {
       autoPlay: false,
+      timeZones: ["utc"],
       loopButton: true,
       timeSteps: 1,
       playReverseButton: true,
@@ -124,6 +124,7 @@ export class MeteoTilesComponent implements OnInit {
         transitionTime: 500,
         loop: true,
       },
+      speedSlider: true,
     },
   };
   public runAvailable: RunAvailable;
@@ -166,12 +167,18 @@ export class MeteoTilesComponent implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe((params: Params) => {
-      if (params["view"]) {
+      const view: string = params["view"];
+      if (view) {
         // check for valid view mode
-        if (Object.values(ViewModes).includes(params["view"])) {
-          this.viewMode = params["view"];
+        if (Object.values(ViewModes).includes(view)) {
+          this.viewMode = ViewModes[view];
+          if (this.viewMode === ViewModes.base) {
+            // adapt time dimension options
+            this.options.timeDimensionControlOptions.speedSlider = false;
+            this.options.timeDimensionControlOptions.timeZones = ["local"];
+          }
         } else {
-          console.warn(`Invalid view param: ${params["view"]}`);
+          console.warn(`Invalid view param: ${view}`);
         }
       }
       if (params["dataset"]) {
@@ -187,10 +194,10 @@ export class MeteoTilesComponent implements OnInit {
       }
 
       // clean the url from the query parameters
-      this.router.navigate([], {
+      /*this.router.navigate([], {
         queryParams: { view: null, dataset: null },
         queryParamsHandling: "merge",
-      });
+      });*/
     });
   }
 
@@ -223,7 +230,7 @@ export class MeteoTilesComponent implements OnInit {
     this.map.attributionControl.setPrefix("");
 
     // view mode
-    console.log(`view mode: ${this.viewMode}`);
+    console.log(`view mode: ${ViewModes[this.viewMode]}`);
 
     this.loadRunAvailable(this.dataset);
     this.initLegends(this.map);
@@ -306,14 +313,15 @@ export class MeteoTilesComponent implements OnInit {
             newAvailableTimes,
             "replace",
           );
-          const today = moment.utc();
-          // console.log(`today: ${today.format()}`);
-          if (moment.utc(startTime).isSame(today, "day")) {
-            // console.log(`reftime today! set hour to ${today.hours()}`);
-            startTime.setUTCHours(today.hours());
+          let currentTime = startTime;
+          const now = moment.utc();
+          // console.log(`today: ${now.format()}`);
+          if (now.isBetween(startTime, endTime, "days", "[]")) {
+            // console.log(`reftime includes today: set time to ${now.hours()} UTC`);
+            currentTime = now.toDate();
           }
           this.timeLoading = false;
-          (this.map as any).timeDimension.setCurrentTime(startTime);
+          (this.map as any).timeDimension.setCurrentTime(currentTime);
 
           this.setOverlaysToMap();
 
@@ -640,15 +648,15 @@ export class MeteoTilesComponent implements OnInit {
           {},
         ),
         // Wind speed at 10 meters
-        // [DP.WIND10M]: L.timeDimension.layer.tileLayer.portus(
-        //   L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
-        //     minZoom: 5,
-        //     maxZoom: maxZoom,
-        //     tms: false,
-        //     bounds: bounds,
-        //   }),
-        //   {}
-        // ),
+        [DP.WIND10M]: L.timeDimension.layer.tileLayer.portus(
+          L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
+            minZoom: 5,
+            maxZoom: maxZoom,
+            tms: false,
+            bounds: bounds,
+          }),
+          {},
+        ),
         // Relative humidity Time Layer
         [DP.RH]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(`${baseUrl}/humidity-r/{d}{h}/{z}/{x}/{y}.png`, {
@@ -866,7 +874,7 @@ export class MeteoTilesComponent implements OnInit {
     this.legends = {
       [DP.TM2]: this.createLegendControl("tm2"),
       [DP.PMSL]: this.createLegendControl("pmsl"),
-      // [DP.WIND10M]: this.createLegendControl("ws10m"),
+      [DP.WIND10M]: this.createLegendControl("ws10m"),
       [DP.RH]: this.createLegendControl("rh"),
 
       [DP.PREC1P]: this.createLegendControl("prp"),

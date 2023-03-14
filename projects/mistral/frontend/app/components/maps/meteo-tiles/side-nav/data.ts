@@ -52,6 +52,8 @@ export function toLayerCode(title: string): string | null {
       return "prs";
     case DP.RH:
       return "rh";
+    case DP.WIND10M:
+      return "ws10m";
     case DP.PREC1P:
     case DP.PREC3P:
     case DP.PREC6P:
@@ -92,7 +94,7 @@ export function toLayerCode(title: string): string | null {
 
 export function toLayerTitle(
   code: string,
-  lvl: string | number | null = null
+  lvl: string | number | null = null,
 ): string | null {
   if (lvl) {
     lvl = `${lvl}`;

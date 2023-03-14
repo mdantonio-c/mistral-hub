@@ -106,6 +106,22 @@
         </li>
         <li class="sidenav-item">
           <span
+            class="ws10m clickable"
+            (click)="toggleLayer($event, 'ws10m')"
+            placement="left"
+            [ngbTooltip]="'Wind'"
+            [disableTooltip]="!isCollapsed"
+          ></span>
+          <a
+            href="#"
+            *ngIf="!isCollapsed"
+            (click)="toggleLayer($event, 'ws10m')"
+          >
+            <span class="nav-text">Wind</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <span
             class="prp clickable"
             (click)="toggleLayer($event, 'prp')"
             placement="left"

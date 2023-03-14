@@ -145,6 +145,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .t2m,
 .prs,
 .rh,
+.ws10m,
 .prp,
 .sf,
 .cc,
@@ -183,6 +184,10 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 .rh {
   background-image: url("/app/custom/assets/images/icons/humidity.svg");
+}
+
+.ws10m {
+  background-image: url("/app/custom/assets/images/icons/wind.svg");
 }
 
 .prp {
@@ -731,9 +736,9 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 @media screen and (max-height: 679px) {
   .map-sidenav {
-      .toggle {
-        width: 30px !important;
-        height: 30px !important;
+    .toggle {
+      width: 30px !important;
+      height: 30px !important;
 
       &.collapsed {
         margin-left: 10px !important;
