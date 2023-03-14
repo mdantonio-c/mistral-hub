@@ -3,7 +3,7 @@ export interface KeyValuePair {
   value: string;
 }
 
-export const Fields: KeyValuePair[] = [
+export const Fields_cosmo: KeyValuePair[] = [
   { key: "prec1", value: "Accumulated total prec. 1h (kg/m\u00B2)" },
   { key: "prec3", value: "Accumulated total prec. 3h (kg/m\u00B2)" },
   { key: "prec6", value: "Accumulated total prec. 6h (kg/m\u00B2)" },

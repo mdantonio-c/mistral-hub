@@ -108,29 +108,8 @@
         </div>
 
         <!-- RESOLUTION -->
-        <div class="mb-3">
-          <label class="col-form-label"><strong>MODEL:</strong></label>
-          <select id="resolutionGroup" formControlName="res" class="form-select">
-            <ng-container *ngFor="let res of resolutions">
-              <option
-                [value]="res.key"
-                *ngIf="
-                  !(
-                    (res.key === 'Area_Mediterranea' &&
-                      filterForm.get('area').value === 'lm2.2') ||
-                    (!(res.key === 'Italia') &&
-                      (filterForm.get('field').value === 'percentile' ||
-                        filterForm.get('field').value === 'probability'))
-                  )
-                "
-              >
-                {{ res.key }}
-              </option>
-            </ng-container>
-          </select>
-        </div>
 
-        <!-- <div class="mb-3">
+        <div class="mb-3">
           <label class="col-form-label"
             ><strong>RESOLUTION (Km):</strong></label
           >
@@ -173,7 +152,7 @@
             <br />
             From 48h to 240h (day 10): 18 km
           </div>
-        </div> -->
+        </div>
 
         <!-- AREA -->
         <div class="mb-3">

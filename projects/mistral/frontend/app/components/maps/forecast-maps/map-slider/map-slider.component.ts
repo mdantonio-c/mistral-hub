@@ -13,7 +13,7 @@ import { DomSanitizer } from "@angular/platform-browser";
 import { MeteoFilter, MeteoService } from "../services/meteo.service";
 import {
   Areas,
-  Fields,
+  Fields_cosmo,
   FlashFloodFFields,
   Resolutions,
   Runs,
@@ -141,7 +141,16 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.minHour = 6;
       this.maxHour = this.filter.run === "12" ? 216 : 240;
       this.step = 3;
-    } else {
+    }
+    else if (
+      this.filter.res === "WRF_OL" ||
+      this.filter.res === "WRF_DA_ITA"
+    )  {
+      // this.minHour = 6;
+      this.maxHour = 49;
+      // this.step = 1;
+    }
+    else {
       this.maxHour = this.filter.res === "lm2.2" ? 48 : 72;
       if (this.maxHour === 48) {
         this.sliderTicks.slice(this.sliderTicks.length - 2);
@@ -262,7 +271,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   getValue(param: string, key: string) {
     switch (param) {
       case "field":
-        return Fields.concat(FlashFloodFFields).find((f) => f.key === key)
+        return Fields_cosmo.concat(FlashFloodFFields).find((f) => f.key === key)
           .value;
       case "res":
         return Resolutions.find((r) => r.key === key).value;

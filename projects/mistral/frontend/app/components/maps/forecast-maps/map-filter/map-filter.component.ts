@@ -7,7 +7,8 @@ import {
 } from "@angular/forms";
 import {
   KeyValuePair,
-  Fields,
+  Fields_cosmo,
+  Fields_wrf,
   Levels_pe,
   Levels_pr,
   Runs,
@@ -30,7 +31,9 @@ export class MapFilterComponent implements OnInit {
   readonly DEFAULT_ENV = "PROD";
 
   filterForm: FormGroup;
-  fields: KeyValuePair[] = Fields;
+  fields: KeyValuePair[] = [{ key: "lm2.2", value: "2.2" }]; // = []; //Fields;
+  fields_cosmo: KeyValuePair[] = Fields_cosmo;
+  fields_wrf: KeyValuePair[] = Fields_wrf;
   levels_pe: KeyValuePair[] = Levels_pe;
   levels_pr: KeyValuePair[] = Levels_pr;
   runs: KeyValuePair[] = Runs;
@@ -58,6 +61,7 @@ export class MapFilterComponent implements OnInit {
 
   ngOnInit() {
     this.user = this.authService.getUser();
+    this.fields = this.fields_cosmo;
     if (this.user && this.user.isAdmin) {
       (this.filterForm.controls.platform as FormControl).setValue(
         this.DEFAULT_PLATFORM
@@ -75,6 +79,16 @@ export class MapFilterComponent implements OnInit {
       if (val === "Area_Mediterranea") {
         this.filterForm.get("resolution").setValue("lm5", { emitEvent: false });
       }
+    });
+    this.filterForm.valueChanges.subscribe((val) => {
+      this.filter();
+    });
+    this.filterForm.get("res").valueChanges.subscribe((val) => {
+      if (val === "WRF_OL"|| val === "WRF_DA_ITA") {
+        this.fields = this.fields_wrf;
+      }
+      else
+      this.fields = this.fields_cosmo;
     });
     this.filterForm.valueChanges.subscribe((val) => {
       this.filter();
