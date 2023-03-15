@@ -3,6 +3,81 @@
     <div class="card-body">
       <h4 class="card-title"><strong>PARAMETERS</strong></h4>
       <form [formGroup]="filterForm">
+        <!-- RESOLUTION -->
+        <div class="mb-3">
+          <label class="col-form-label"><strong>MODEL:</strong></label>
+          <select id="resolutionGroup" formControlName="res" class="form-select">
+            <ng-container *ngFor="let res of resolutions">
+              <option
+                [value]="res.key"
+                *ngIf="
+                (
+                !(res.key === 'lm2.2' && filterForm.get('area').value === 'Area_Mediterranea') ||
+                (
+                (res.key === 'WRF_OL'||res.key === 'WRF_DA_ITA') && filterForm.get('area').value !== 'Italia')) ||
+                !(
+                !(filterForm.get('area').value === 'Area_Mediterranea') && res.key === 'lm5' &&
+                (filterForm.get('field').value === 'percentile' || filterForm.get('field').value === 'probability')
+                )
+                "
+              >
+                {{ res.value }}
+              </option>
+            </ng-container>
+          </select>
+        </div>
+
+        <!-- AREA -->
+        <div class="mb-3">
+          <label class="col-form-label"><strong>AREA:</strong></label>
+          <select id="areaGroup" formControlName="area" class="form-select">
+            <ng-container *ngFor="let area of areas">
+              <option
+                [value]="area.key"
+                *ngIf="
+                (
+                !(area.key === 'Area_Mediterranea' && filterForm.get('res').value === 'lm2.2') &&
+                !(
+                area.key !== 'Italia' && (filterForm.get('res').value === 'WRF_OL' || filterForm.get('res').value === 'WRF_DA_ITA')) ||
+                (!
+                (area.key === 'Italia') && (filterForm.get('field').value === 'percentile' || filterForm.get('field').value === 'probability'))
+                )
+                "
+              >
+                {{ area.value }}
+              </option>
+            </ng-container>
+          </select>
+        </div>
+
+        <!-- RUN -->
+        <div class="mb-3">
+          <label class="col-form-label"><strong>RUN:</strong></label>
+          <div id="runGroup">
+            <ng-container *ngFor="let run of runs">
+              <label
+                class="btn-circle btn"
+                [ngClass]="
+                  filterForm.get('run').value === run.key
+                    ? 'btn-success'
+                    : 'btn-secondary'
+                "
+                *ngIf="
+                  !(
+                    run.key === '12' &&
+                    (filterForm.get('field').value === 'percentile' ||
+                      filterForm.get('field').value === 'probability')
+                  )
+
+                "
+              >
+                <input type="radio" formControlName="run" [value]="run.key" />
+                <strong>{{ run.key }}</strong>
+              </label>
+            </ng-container>
+          </div>
+        </div>
+
         <!-- FIELD -->
         <div class="mb-3">
           <label class="col-form-label"><strong>FIELDS:</strong></label>
@@ -85,37 +160,12 @@
           </div>
         </div>
 
-        <!-- RUN -->
-        <div class="mb-3">
-          <label class="col-form-label"><strong>RUN:</strong></label>
-          <div id="runGroup">
-            <ng-container *ngFor="let run of runs">
-              <label
-                class="btn-circle btn"
-                [ngClass]="
-                  filterForm.get('run').value === run.key
-                    ? 'btn-success'
-                    : 'btn-secondary'
-                "
-                *ngIf="
-                  !(
-                    run.key === '12' &&
-                    (filterForm.get('field').value === 'percentile' ||
-                      filterForm.get('field').value === 'probability')
-                  )
-                "
-              >
-                <input type="radio" formControlName="run" [value]="run.key" />
-                <strong>{{ run.key }}</strong>
-              </label>
-            </ng-container>
-          </div>
-        </div>
 
-        <!-- RESOLUTION -->
-        <div class="mb-3">
+
+
+        <!-- <div class="mb-3">
           <label class="col-form-label"
-            ><strong>RESOLUTION (Km):</strong></label
+            ><strong>MODEL:</strong></label
           >
           <div id="resolutionGroup">
             <ng-container *ngFor="let res of resolutions; index as i">
@@ -150,30 +200,9 @@
               </label>
             </ng-container>
           </div>
-        </div>
+        </div> -->
 
-        <!-- AREA -->
-        <div class="mb-3">
-          <label class="col-form-label"><strong>AREA:</strong></label>
-          <select id="areaGroup" formControlName="area" class="form-select">
-            <ng-container *ngFor="let area of areas">
-              <option
-                [value]="area.key"
-                *ngIf="
-                  !(
-                    (area.key === 'Area_Mediterranea' &&
-                      filterForm.get('res').value === 'lm2.2') ||
-                    (!(area.key === 'Italia') &&
-                      (filterForm.get('field').value === 'percentile' ||
-                        filterForm.get('field').value === 'probability'))
-                  )
-                "
-              >
-                {{ area.value }}
-              </option>
-            </ng-container>
-          </select>
-        </div>
+
 
         <!-- PLATFORM -->
         <div class="mb-3" *ngIf="user && user.isAdmin">

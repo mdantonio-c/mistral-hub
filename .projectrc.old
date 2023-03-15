@@ -1,0 +1,12 @@
+project: mistral
+# stack: your_custom_stack 
+hostname: localhost
+# production: True
+project_configuration:
+  variables:
+    env:
+      LOG_LEVEL: INFO
+      # SMTP_ADMIN: your@email.org
+      AUTH_DEFAULT_USERNAME: bwkfxhep@nomail.org
+      AUTH_DEFAULT_PASSWORD: dTJl0abXkjNr
+      
