@@ -16,6 +16,7 @@ import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
 import * as _ from "lodash";
+import * as shape from "d3-shape";
 
 const STATION_NAME_CODE = "B01019";
 const MAX_NUMBER_OF_STATIONS = 100;
@@ -38,6 +39,7 @@ export class ObsMeteogramsComponent {
   level: string;
   timerange: string;
   unit: string;
+  curve = shape.curveCardinal.tension(0);
 
   // chart options
   colorScheme = {
@@ -47,7 +49,7 @@ export class ObsMeteogramsComponent {
   constructor(
     private obsService: ObsService,
     private notify: NotificationService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
   ) {}
 
   getUserUnit(varcode: string) {
@@ -73,7 +75,7 @@ export class ObsMeteogramsComponent {
   private getName(station: Station) {
     if (station.details) {
       let nameDetail: StationDetail = station.details.find(
-        (x) => x.var === STATION_NAME_CODE
+        (x) => x.var === STATION_NAME_CODE,
       );
       if (nameDetail) {
         return nameDetail.val;
@@ -94,12 +96,12 @@ export class ObsMeteogramsComponent {
         tap((response: ObservationResponse) => {
           if (response.data.length > MAX_NUMBER_OF_STATIONS) {
             this.notify.showWarning(
-              "As the number of stations exceeds the threshold only a subset of them is shown in the chart"
+              "As the number of stations exceeds the threshold only a subset of them is shown in the chart",
             );
           }
           let data: Observation[] = response.data.slice(
             0,
-            MAX_NUMBER_OF_STATIONS
+            MAX_NUMBER_OF_STATIONS,
           );
           this.descriptions = response.descr;
           this.report = data;
@@ -121,7 +123,7 @@ export class ObsMeteogramsComponent {
         finalize(() => {
           this.spinner.hide();
           this.loading = false;
-        })
+        }),
       )
       .subscribe();
   }

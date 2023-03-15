@@ -15,7 +15,8 @@
     "@asymmetrik/ngx-leaflet-markercluster": "4.0.0",
     "@angular/cdk": "13.3.1",
     "@swimlane/ngx-charts": "20.1.0",
-    "global-mercator": "3.1.0"
+    "global-mercator": "3.1.0",
+    "d3-shape": "3.2.0"
   },
   "devDependencies": {}
 }

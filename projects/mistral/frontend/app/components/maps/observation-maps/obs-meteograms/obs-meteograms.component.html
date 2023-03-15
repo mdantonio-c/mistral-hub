@@ -28,6 +28,7 @@
         [autoScale]="true"
         [legend]="true"
         [legendTitle]="'Stations'"
+        [curve]="curve"
       >
         <ng-template #tooltipTemplate let-model="model">
           {{ model.series }} &bull; {{ TooltipDateFormat(model.name) }}

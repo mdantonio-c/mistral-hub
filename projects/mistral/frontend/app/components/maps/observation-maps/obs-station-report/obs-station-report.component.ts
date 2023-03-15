@@ -13,6 +13,7 @@ import { ObsService } from "../services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
+import * as shape from "d3-shape";
 
 const STATION_NAME_CODE = "B01019";
 
@@ -32,6 +33,7 @@ export class ObsStationReportComponent implements OnInit {
   report: Observation;
   descriptions: DescriptionDict;
   active;
+  curve = shape.curveCardinal.tension(0);
 
   multi: DataSeries[];
   single: DataSeries[];
@@ -45,7 +47,7 @@ export class ObsStationReportComponent implements OnInit {
     private obsService: ObsService,
     public activeModal: NgbActiveModal,
     private notify: NotificationService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
   ) {}
 
   ngOnInit() {
@@ -76,7 +78,7 @@ export class ObsStationReportComponent implements OnInit {
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         setTimeout(() => this.spinner.hide("timeseries-spinner"), 0);
@@ -86,7 +88,7 @@ export class ObsStationReportComponent implements OnInit {
   getName() {
     if (this.report && this.report.stat.details) {
       let nameDetail: StationDetail = this.report.stat.details.find(
-        (x) => x.var === STATION_NAME_CODE
+        (x) => x.var === STATION_NAME_CODE,
       );
       if (nameDetail) {
         return nameDetail.val;

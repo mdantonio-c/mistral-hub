@@ -35,7 +35,7 @@
                   {{
                     descriptions[d.var].descr
                       | titlecase
-                      | replace: "\\(([^\\)]+)\\)":""
+                      | replace : "\\(([^\\)]+)\\)" : ""
                   }}
                 </p>
                 <small>{{ d.val }}</small>
@@ -100,6 +100,7 @@
                 [timeline]="false"
                 [results]="single"
                 [autoScale]="true"
+                [curve]="curve"
               >
               </ngx-charts-line-chart>
             </div>
