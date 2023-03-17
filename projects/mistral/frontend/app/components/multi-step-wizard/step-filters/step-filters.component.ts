@@ -58,7 +58,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     private modalService: NgbModal,
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {
     super(formDataService, router, route);
     const refTime: RefTime = this.formDataService.getReftime();
@@ -94,7 +94,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     values.map((o) => {
       // pre-set actual values from formData
       const control = new FormControl(
-        this.formDataService.isFilterSelected(o, name)
+        this.formDataService.isFilterSelected(o, name),
       );
       (filter.controls.values as FormArray).push(control);
     });
@@ -102,11 +102,11 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   }
 
   onFilterChange() {
+    let selectedFilters = this.getSelectedFilters();
     if (!this.autoFiltering) {
       return;
     }
     this.spinner.show("sp2");
-    let selectedFilters = this.getSelectedFilters();
     // console.log('selected filter(s)', selectedFilters);
     let selectedFilterNames = selectedFilters.map((f) => f.name);
     this.formDataService
@@ -137,7 +137,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                     // equal by desc
                     obj["active"] = _.some(
                       <Array<any>>m[1],
-                      (o, i) => o.desc === obj.desc
+                      (o, i) => o.desc === obj.desc,
                     );
                   }
                 }
@@ -161,7 +161,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
         },
         (error) => {
           this.notify.showError(`Unable to get summary fields`);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide("sp2");
@@ -184,7 +184,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                 obj["active"] = true;
               });
               (this.filterForm.controls.filters as FormArray).push(
-                this.getFilterGroup(entry[0], entry[1])
+                this.getFilterGroup(entry[0], entry[1]),
               );
               // group filter values
               if (entry[0] === "level") {
@@ -242,7 +242,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
         },
         (error) => {
           this.notify.showError(`Unable to get summary fields`);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide("sp1");
@@ -276,10 +276,10 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       });
     }
     (this.filterForm.controls.reftime as FormGroup).controls.fromDate.setValue(
-      from.toDate()
+      from.toDate(),
     );
     (this.filterForm.controls.reftime as FormGroup).controls.fromTime.setValue(
-      from.format("HH:mm")
+      from.format("HH:mm"),
     );
     let to = null;
     if (!this.summaryStats.hasOwnProperty("e")) {
@@ -302,10 +302,10 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       });
     }
     (this.filterForm.controls.reftime as FormGroup).controls.toDate.setValue(
-      to.toDate()
+      to.toDate(),
     );
     (this.filterForm.controls.reftime as FormGroup).controls.toTime.setValue(
-      to.format("HH:mm")
+      to.format("HH:mm"),
     );
     this.formDataService.setReftime({
       from: from.toDate(),
@@ -316,7 +316,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       this.filterForm.controls.validRefTime.setValue(false);
       this.notify.showWarning(
         "The applied reference time does not produce any result. " +
-          "Please choose a different reference time range."
+          "Please choose a different reference time range.",
       );
     } else {
       this.filterForm.controls.validRefTime.setValue(true);
@@ -415,7 +415,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       },
       (reason) => {
         // do nothing
-      }
+      },
     );
   }
 
@@ -437,7 +437,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
             .map((v, j) =>
               v.value
                 ? this.filters[(f as FormGroup).controls.name.value][j]
-                : null
+                : null,
             )
             .filter((v) => v !== null),
           query: "",
@@ -450,14 +450,14 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           }
           selectedFilters.push(res);
         }
-      }
+      },
     );
 
     if (selectedFilters.length) {
       // check if there is any level that is selected
       let selectedLevels = selectedFilters.find((x) => x.name === "level");
       let selectedTimeranges = selectedFilters.find(
-        (x) => x.name === "timerange"
+        (x) => x.name === "timerange",
       );
       if (selectedLevels) {
         this.isLevelsSelected = true;
@@ -627,6 +627,13 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       this.filterForm.controls.filters as FormArray
     ).controls.at(cIndex);
     this.filters["timerange"].forEach((t, i) => {
+      // exception for "Forecast Product Valid At Reference Time " tranges
+      let trange_final_interval = "";
+      if (t["trange_type"] == 0) {
+        trange_final_interval = t["p1"];
+      } else {
+        trange_final_interval = t["p2"];
+      }
       if (
         this.selectedTimerangeTypes.includes(true) &&
         !this.selectedTimerangeMax.includes(true)
@@ -648,7 +655,11 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       ) {
         // check only timerange max
         //console.log("check only timerange max")
-        if (this.selectedTimerangeMax[this.timerangeMax.indexOf(t["p2"])]) {
+        if (
+          this.selectedTimerangeMax[
+            this.timerangeMax.indexOf(trange_final_interval)
+          ]
+        ) {
           (timerange.controls.values as FormArray).controls
             .at(i)
             .setValue(true);
@@ -659,11 +670,14 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       ) {
         // check both
         //console.log("check both")
+        // exception for "Forecast Product Valid At Reference Time " tranges
         if (
           this.selectedTimerangeTypes[
             this.timerangeTypes.indexOf(t["trange_type"])
           ] &&
-          this.selectedTimerangeMax[this.timerangeMax.indexOf(t["p2"])]
+          this.selectedTimerangeMax[
+            this.timerangeMax.indexOf(trange_final_interval)
+          ]
         ) {
           (timerange.controls.values as FormArray).controls
             .at(i)
