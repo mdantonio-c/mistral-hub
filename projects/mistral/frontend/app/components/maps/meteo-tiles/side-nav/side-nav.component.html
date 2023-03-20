@@ -77,7 +77,7 @@
             [disableTooltip]="!isCollapsed"
           ></span>
           <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 't2m')">
-            <span class="nav-text">Temperature</span>
+            <span class="nav-text" i18n>Temperature</span>
           </a>
         </li>
         <li class="sidenav-item">
@@ -89,7 +89,7 @@
             [disableTooltip]="!isCollapsed"
           ></span>
           <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'prs')">
-            <span class="nav-text">Pressure</span>
+            <span class="nav-text" i18n>Pressure</span>
           </a>
         </li>
         <li class="sidenav-item">
@@ -101,7 +101,7 @@
             [disableTooltip]="!isCollapsed"
           ></span>
           <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'rh')">
-            <span class="nav-text">Relative humidity</span>
+            <span class="nav-text" i18n>Relative humidity</span>
           </a>
         </li>
         <li class="sidenav-item">
@@ -117,7 +117,7 @@
             *ngIf="!isCollapsed"
             (click)="toggleLayer($event, 'ws10m')"
           >
-            <span class="nav-text">Wind</span>
+            <span class="nav-text" i18n>Wind</span>
           </a>
         </li>
         <li class="sidenav-item">
@@ -130,7 +130,7 @@
           ></span>
           <ng-container *ngIf="!isCollapsed">
             <a href="#" (click)="toggleLayer($event, 'prp')">
-              <span class="nav-text">precipitation</span>
+              <span class="nav-text" i18n>precipitation</span>
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
@@ -159,7 +159,7 @@
           ></span>
           <ng-container *ngIf="!isCollapsed">
             <a href="#" (click)="toggleLayer($event, 'sf')">
-              <span class="nav-text">Snow Fall</span>
+              <span class="nav-text" i18n>Snow Fall</span>
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
@@ -188,7 +188,7 @@
           ></span>
           <ng-container *ngIf="!isCollapsed">
             <a href (click)="toggleLayer($event, 'cc')">
-              <span class="nav-text">Clouds</span>
+              <span class="nav-text" i18n>Clouds</span>
             </a>
             <div class="selettore-clouds">
               <label *ngFor="let lvl of subLevels['cc']">
@@ -213,7 +213,7 @@
                   [attr.disabled]="isLayerActive('cc') ? null : true"
                 />
                 <label class="form-check-label" for="tccSwitch"></label>
-                <p>TOTAL</p>
+                <p i18n>TOTAL</p>
               </div>
             </div>
           </ng-container>
@@ -223,7 +223,7 @@
         <span class="input"></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#" click-stop-propagation class="dataset">
-            <span class="nav-text">Selected dataset</span>
+            <span class="nav-text" i18n>Selected dataset</span>
           </a>
           <div class="selettore-dataset">
             <ng-container *ngFor="let ds of availableDatasets">
@@ -305,6 +305,7 @@
           <span
             class="nav-text"
             [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+            i18n
             >Zoom in</span
           >
         </a>
@@ -322,6 +323,7 @@
           <span
             class="nav-text"
             [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+            i18n
             >Zoom out</span
           >
         </a>

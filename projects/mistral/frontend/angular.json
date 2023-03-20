@@ -1,6 +1,15 @@
 {
   "projects": {
     "RAPyDo": {
+      "i18n": {
+        "sourceLocale": "en",
+        "locales": {
+          "it": {
+            "translation": "./app/custom/locale/messages.it.xlf",
+            "baseHref": ""
+          }
+        }
+      },
       "architect": {
         "build": {
           "options": {
@@ -14,7 +23,26 @@
             "scripts": [
               "node_modules/bootstrap-slider/dist/bootstrap-slider.min.js",
               "node_modules/iso8601-js-period/iso8601.js"
-            ]
+            ],
+            "localize": true
+          },
+          "configurations": {
+            "en": {
+              "localize": ["en"]
+            },
+            "it": {
+              "localize": ["it"]
+            }
+          }
+        },
+        "serve": {
+          "configurations": {
+            "en": {
+              "browserTarget": "RAPyDo:build:en"
+            },
+            "it": {
+              "browserTarget": "RAPyDo:build:it"
+            }
           }
         }
       }

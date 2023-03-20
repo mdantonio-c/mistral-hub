@@ -1,0 +1,14 @@
+
+# Fallback to default language if no preference defined by browser
+if ($accept_language ~ "^$") {
+    set $accept_language "en";
+}
+
+# Redirect "/" to Angular application in the preferred language of the browser
+rewrite ^/$ /$accept_language permanent;
+
+# Everything under the Angular application is always redirected to Angular in the
+# correct language
+location ~ ^/(en|it) {
+    try_files $uri /$1/index.html?$args;
+}

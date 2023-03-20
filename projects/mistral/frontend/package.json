@@ -18,5 +18,8 @@
     "global-mercator": "3.1.0",
     "d3-shape": "3.2.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "scripts": {
+    "start": "ng serve --host 0.0.0.0 --port 8080 --watch --live-reload --configuration=en"
+  }
 }
