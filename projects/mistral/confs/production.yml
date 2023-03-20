@@ -10,6 +10,10 @@ services:
       - ${RABBITMQ_PORT}:${RABBITMQ_PORT}
       - ${RABBITMQ_MANAGEMENT_PORT}:${RABBITMQ_MANAGEMENT_PORT}
 
+  proxy:
+    volumes:
+      - ${PROJECT_DIR}/confs/i18n.service:/etc/nginx/sites-enabled/i18n.service
+
   nifi:
     ports:
       - 8070:8443
