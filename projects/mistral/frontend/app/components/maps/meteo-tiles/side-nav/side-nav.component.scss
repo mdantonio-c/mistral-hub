@@ -733,7 +733,15 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     margin-left: 5px;
   }
 }
+@media screen and (max-width: 900px)  {
+  .map-sidenav {
+    width: 240px;
 
+    .map-sidenav-menu .toggle {
+      margin-left: 194px;
+    }
+  }
+}
 @media screen and (max-height: 679px) {
   .map-sidenav {
     .toggle {
