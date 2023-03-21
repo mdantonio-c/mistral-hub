@@ -9,7 +9,6 @@ import {
   Renderer2,
   OnInit,
   ChangeDetectorRef,
-  SimpleChanges,
 } from "@angular/core";
 import {
   DatasetProduct as DP,
@@ -97,6 +96,9 @@ export class SideNavComponent implements OnInit {
   zLevel: number;
 
   isCollapsed = false;
+  @Output() onCollapseChange: EventEmitter<boolean> =
+    new EventEmitter<boolean>();
+
   availableDatasets = DATASETS;
 
   subLevels: { [key: string]: ValueLabelChecked[] } = {};
@@ -108,6 +110,7 @@ export class SideNavComponent implements OnInit {
     private renderer: Renderer2,
     private changeDetector: ChangeDetectorRef,
   ) {
+    //this.isCollapsed = false;
     const SUB_LEVELS: { [key: string]: ValueLabel[] } = {
       prp: PRECIPITATION_HOURS,
       sf: SNOW_HOURS,
@@ -121,6 +124,11 @@ export class SideNavComponent implements OnInit {
         level.checked = false;
       });
     });
+  }
+
+  changeCollapse() {
+    this.isCollapsed = !this.isCollapsed;
+    this.onCollapseChange.emit(this.isCollapsed);
   }
 
   ngOnInit() {

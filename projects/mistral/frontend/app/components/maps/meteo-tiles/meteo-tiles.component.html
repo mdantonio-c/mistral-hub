@@ -25,6 +25,7 @@
     (onDatasetChange)="changeDataset($event)"
     (onShowMultiModelChange)="showHideMultiModel()"
     (onMMProductChange)="changeMMProduct($event)"
+    (onCollapseChange)="logo = $event"
   ></map-side-nav>
 
   <div class="leaflet-top leaflet-left" style="left: 10px">
@@ -36,6 +37,16 @@
         Reference Date: {{ printReferenceDate() }}
         Product: {{ printDatasetProduct() }}
       </pre>
+    </div>
+  </div>
+  <div class="leaflet-bottom leaflet-right" *ngIf="logo">
+    <div class="leaflet-control me-5 px-2" style="height: 60px; width: 260px">
+      <img
+        *ngIf="viewMode === modes.base"
+        class="img-fluid img-thumbnail mt-2 bg-transparent border-0"
+        src="/app/custom/assets/images/Logo_Completo_RGB.png"
+        alt="ItaliaMeteo"
+      />
     </div>
   </div>
 </div>

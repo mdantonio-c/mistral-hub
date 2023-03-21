@@ -3,7 +3,7 @@
     <!-- partial collapse -->
     <label
       class="toggle"
-      (click)="isCollapsed = !isCollapsed"
+      (click)="changeCollapse()"
       [class.collapsed]="isCollapsed"
     ></label>
     <ul class="selector">
@@ -219,7 +219,12 @@
           </ng-container>
         </li>
       </ng-template>
-      <img class="img-fluid img-thumbnail mt-2 bg-transparent border-0"  *ngIf="mode== modes.base" src="/app/custom/assets/images/Logo_Completo_RGB.png">
+      <img
+        *ngIf="mode === modes.base && !isCollapsed"
+        class="img-fluid img-thumbnail mt-2 bg-transparent border-0"
+        src="/app/custom/assets/images/Logo_Completo_RGB.png"
+        alt="ItaliaMeteo"
+      />
       <li class="sidenav-item" *ngIf="mode == modes.adv">
         <span class="input"></span>
         <ng-container *ngIf="!isCollapsed">

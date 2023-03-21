@@ -67,6 +67,7 @@ export class MeteoTilesComponent implements OnInit {
   private legends: { [key: string]: L.Control } = {};
   public availableDatasets: CodeDescPair[] = DATASETS;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
+  modes = ViewModes;
 
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -130,6 +131,7 @@ export class MeteoTilesComponent implements OnInit {
   public runAvailable: RunAvailable;
 
   public showed: boolean = true;
+  public logo: boolean = false;
   public mmProduct = MultiModelProduct.TM;
   public MultiModelProduct = MultiModelProduct;
   private markers: L.Marker[] = [];
