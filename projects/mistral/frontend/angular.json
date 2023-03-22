@@ -24,15 +24,7 @@
               "node_modules/bootstrap-slider/dist/bootstrap-slider.min.js",
               "node_modules/iso8601-js-period/iso8601.js"
             ],
-            "localize": true
-          },
-          "configurations": {
-            "en": {
-              "localize": ["en"]
-            },
-            "it": {
-              "localize": ["it"]
-            }
+            "localize": false
           }
         },
         "serve": {
