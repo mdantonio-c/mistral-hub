@@ -74,7 +74,7 @@ export class MeteoTilesComponent implements OnInit {
   public availableDatasets: CodeDescPair[] = DATASETS;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
   modes = ViewModes;
-  variablesConfig: GenericArg = VARIABLES_CONFIG_BASE;
+  variablesConfig: GenericArg = VARIABLES_CONFIG;
 
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -477,7 +477,6 @@ export class MeteoTilesComponent implements OnInit {
 
     if (this.dataset === "iff") {
       this.layersControl["overlays"] = {
-        // let overlays = {
         [DP.TPPERC1]: L.timeDimension.layer.tileLayer.portus(
           L.tileLayer(`${baseUrl}/percentile-perc1/{d}{h}/{z}/{x}/{y}.png`, {
             minZoom: 5,
@@ -697,175 +696,240 @@ export class MeteoTilesComponent implements OnInit {
       /////////// PRECIPITATION //////////
       ////////////////////////////////////
       if ("prp" in this.variablesConfig) {
-        // Total precipitation 1h Time Layer
-        this.layersControl["overlays"][DP.PREC1P] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/prec1-tp/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
-        // Total precipitation 3h Time Layer
-        this.layersControl["overlays"][DP.PREC3P] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/prec3-tp/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
-        // Total precipitation 6h Time Layer
-        this.layersControl["overlays"][DP.PREC6P] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/prec6-tp/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
-        // Total precipitation 6h Time Layer
-        this.layersControl["overlays"][DP.PREC12P] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/prec12-tp/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
-        // Total precipitation 3h Time Layer
-        this.layersControl["overlays"][DP.PREC24P] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/prec24-tp/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
+        if (
+          this.variablesConfig["prp"].length &&
+          this.variablesConfig["prp"].includes(1)
+        ) {
+          // Total precipitation 1h Time Layer
+          this.layersControl["overlays"][DP.PREC1P] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/prec1-tp/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["prp"].length &&
+          this.variablesConfig["prp"].includes(3)
+        ) {
+          // Total precipitation 3h Time Layer
+          this.layersControl["overlays"][DP.PREC3P] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/prec3-tp/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["prp"].length &&
+          this.variablesConfig["prp"].includes(6)
+        ) {
+          // Total precipitation 6h Time Layer
+          this.layersControl["overlays"][DP.PREC6P] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/prec6-tp/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["prp"].length &&
+          this.variablesConfig["prp"].includes(12)
+        ) {
+          // Total precipitation 6h Time Layer
+          this.layersControl["overlays"][DP.PREC12P] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/prec12-tp/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["prp"].length &&
+          this.variablesConfig["prp"].includes(24)
+        ) {
+          // Total precipitation 3h Time Layer
+          this.layersControl["overlays"][DP.PREC24P] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/prec24-tp/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
       }
       ////////////////////////////////////
       ///////////// SNOWFALL /////////////
       ////////////////////////////////////
       if ("sf" in this.variablesConfig) {
-        // Snowfall 1h Time Layer
-        this.layersControl["overlays"][DP.SF1] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/snow1-snow/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
-        // Snowfall 3h Time Layer
-        this.layersControl["overlays"][DP.SF3] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/snow3-snow/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
-        // Snowfall 6h Time Layer
-        this.layersControl["overlays"][DP.SF6] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/snow6-snow/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
-        // Snowfall 12h Time Layer
-        this.layersControl["overlays"][DP.SF12] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/snow12-snow/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
-        // Snowfall 24h Time Layer
-        this.layersControl["overlays"][DP.SF24] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/snow24-snow/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.6,
-              bounds: bounds,
-            }),
-            {},
-          );
+        if (
+          this.variablesConfig["sf"].length &&
+          this.variablesConfig["sf"].includes(1)
+        ) {
+          // Snowfall 1h Time Layer
+          this.layersControl["overlays"][DP.SF1] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/snow1-snow/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["sf"].length &&
+          this.variablesConfig["sf"].includes(3)
+        ) {
+          // Snowfall 3h Time Layer
+          this.layersControl["overlays"][DP.SF3] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/snow3-snow/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["sf"].length &&
+          this.variablesConfig["sf"].includes(6)
+        ) {
+          // Snowfall 6h Time Layer
+          this.layersControl["overlays"][DP.SF6] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/snow6-snow/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["sf"].length &&
+          this.variablesConfig["sf"].includes(12)
+        ) {
+          // Snowfall 12h Time Layer
+          this.layersControl["overlays"][DP.SF12] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/snow12-snow/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["sf"].length &&
+          this.variablesConfig["sf"].includes(24)
+        ) {
+          // Snowfall 24h Time Layer
+          this.layersControl["overlays"][DP.SF24] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/snow24-snow/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.6,
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
       }
       ////////////////////////////////////
       //////////// CLOUD COVER ///////////
       ////////////////////////////////////
       if ("cc" in this.variablesConfig) {
-        // Low Cloud Time Layer
-        this.layersControl["overlays"][DP.LCC] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              opacity: 0.9,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }),
-            {},
-          );
-        // Medium Cloud Time Layer
-        this.layersControl["overlays"][DP.MCC] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              //opacity: 0.6,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }),
-            {},
-          );
-        // High Cloud Time Layer
-        this.layersControl["overlays"][DP.HCC] =
-          L.timeDimension.layer.tileLayer.portus(
-            L.tileLayer(`${baseUrl}/cloud_hml-hcc/{d}{h}/{z}/{x}/{y}.png`, {
-              minZoom: 5,
-              maxZoom: maxZoom,
-              tms: false,
-              //opacity: 0.6,
-              // bounds: [[25.0, -25.0], [50.0, 47.0]],
-              bounds: bounds,
-            }),
-            {},
-          );
+        if (
+          this.variablesConfig["cc"].length &&
+          this.variablesConfig["cc"].includes("low")
+        ) {
+          // Low Cloud Time Layer
+          this.layersControl["overlays"][DP.LCC] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                opacity: 0.9,
+                // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["cc"].length &&
+          this.variablesConfig["cc"].includes("medium")
+        ) {
+          // Medium Cloud Time Layer
+          this.layersControl["overlays"][DP.MCC] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                //opacity: 0.6,
+                // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
+        if (
+          this.variablesConfig["cc"].length &&
+          this.variablesConfig["cc"].includes("high")
+        ) {
+          // High Cloud Time Layer
+          this.layersControl["overlays"][DP.HCC] =
+            L.timeDimension.layer.tileLayer.portus(
+              L.tileLayer(`${baseUrl}/cloud_hml-hcc/{d}{h}/{z}/{x}/{y}.png`, {
+                minZoom: 5,
+                maxZoom: maxZoom,
+                tms: false,
+                //opacity: 0.6,
+                // bounds: [[25.0, -25.0], [50.0, 47.0]],
+                bounds: bounds,
+              }),
+              {},
+            );
+        }
         // Total Cloud Time Layer
         this.layersControl["overlays"][DP.TCC] =
           L.timeDimension.layer.tileLayer.portus(
@@ -1601,11 +1665,11 @@ export class MeteoTilesComponent implements OnInit {
   toggleLayer(obj: Record<string, string | L.Layer>) {
     let layer: L.Layer = obj.layer as L.Layer;
     if (this.map.hasLayer(layer)) {
-      // console.log(`remove layer: ${obj.name}`);
+      console.log(`remove layer: ${obj.name}`);
       this.map.fire("overlayremove", obj);
       this.map.removeLayer(layer);
     } else {
-      // console.log(`add layer : ${obj.name}`);
+      console.log(`add layer : ${obj.name}`);
       this.map.fire("overlayadd", obj);
       layer.addTo(this.map);
     }

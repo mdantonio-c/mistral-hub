@@ -28,7 +28,7 @@ import {
   toLayerTitle,
 } from "./data";
 import { GenericArg, ValueLabel } from "../../../../types";
-import { VARIABLES_CONFIG } from "../services/data";
+//import { VARIABLES_CONFIG } from "../services/data";
 
 interface ValueLabelChecked extends ValueLabel {
   checked?: boolean;
@@ -111,22 +111,7 @@ export class SideNavComponent implements OnInit {
     private el: ElementRef,
     private renderer: Renderer2,
     private changeDetector: ChangeDetectorRef,
-  ) {
-    //this.isCollapsed = false;
-    const SUB_LEVELS: { [key: string]: ValueLabel[] } = {
-      prp: PRECIPITATION_HOURS,
-      sf: SNOW_HOURS,
-      cc: CLOUD_LEVELS,
-      tpperc: IFF_PERCENTILES,
-      tpprob: IFF_PROBABILITIES,
-    };
-    Object.keys(SUB_LEVELS).forEach((key) => {
-      this.subLevels[key] = SUB_LEVELS[key];
-      this.subLevels[key].forEach((level) => {
-        level.checked = false;
-      });
-    });
-  }
+  ) {}
 
   changeCollapse() {
     this.isCollapsed = !this.isCollapsed;
@@ -148,6 +133,24 @@ export class SideNavComponent implements OnInit {
         this.selectedBaseLayer = key;
       }
     }
+
+    const SUB_LEVELS: { [key: string]: ValueLabel[] } = {
+      prp: PRECIPITATION_HOURS,
+      sf: SNOW_HOURS,
+      cc: CLOUD_LEVELS,
+      tpperc: IFF_PERCENTILES,
+      tpprob: IFF_PROBABILITIES,
+    };
+    Object.keys(SUB_LEVELS).forEach((key) => {
+      if (Object.keys(this.varConfig).includes(key)) {
+        this.subLevels[key] = SUB_LEVELS[key].filter((obj) => {
+          return this.varConfig[key].includes(obj.value);
+        });
+        this.subLevels[key].forEach((level) => {
+          level.checked = false;
+        });
+      }
+    });
   }
 
   @HostListener("dblclick", ["$event"])
@@ -182,8 +185,12 @@ export class SideNavComponent implements OnInit {
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);
     const fromActiveState: boolean = el.classList.contains("attivo");
     const op = fromActiveState ? "remove" : "add";
-    console.log(`toggle "${op}" on layer-id "${layerId}"`);
-    if (["prp", "sf", "cc", "tpperc", "tpprob"].includes(layerId)) {
+    // console.log(`toggle "${op}" on layer-id "${layerId}"`);
+    if (
+      ["prp", "sf", "cc", "tpperc", "tpprob"].includes(layerId) &&
+      this.subLevels[layerId].length
+    ) {
+      // expected sub-levels here
       if (op === "remove") {
         // reset sub-level
         this.subLevels[layerId].forEach((level) => {

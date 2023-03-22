@@ -19,7 +19,7 @@ export const CLOUD_LEVELS: ValueLabel[] = [
   { value: "low", label: DP.LCC },
   { value: "medium", label: DP.MCC },
   { value: "high", label: DP.HCC },
-  /*{ value: "total", label: DP.TCC },*/
+  /*{ value: "total", label: DP.TCC }*/
 ];
 export const IFF_PERCENTILES: ValueLabel[] = [
   { value: 1, label: DP.TPPERC1 },

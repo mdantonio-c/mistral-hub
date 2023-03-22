@@ -439,6 +439,8 @@ export const VARIABLES_CONFIG: GenericArg = {
   prp: [1, 3, 6, 12, 24],
   sf: [1, 3, 6, 12, 24],
   cc: ["low", "medium", "high"],
+  tpperc: [1, 10, 25, 50, 70, 75, 80, 90, 95, 99],
+  tpprob: [5, 10, 20, 50],
 };
 
 export const VARIABLES_CONFIG_BASE: GenericArg = {
