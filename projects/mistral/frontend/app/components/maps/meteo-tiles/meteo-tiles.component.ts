@@ -11,9 +11,15 @@ import { ObsService } from "../observation-maps/services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ActivatedRoute, NavigationEnd, Params, Router } from "@angular/router";
-import { LEGEND_DATA, LegendConfig } from "./services/data";
+import {
+  LEGEND_DATA,
+  VARIABLES_CONFIG,
+  VARIABLES_CONFIG_BASE,
+  LegendConfig,
+} from "./services/data";
 import {
   CodeDescPair,
+  GenericArg,
   ObsData,
   Observation,
   ObsFilter,
@@ -68,6 +74,7 @@ export class MeteoTilesComponent implements OnInit {
   public availableDatasets: CodeDescPair[] = DATASETS;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
   modes = ViewModes;
+  variablesConfig: GenericArg = VARIABLES_CONFIG_BASE;
 
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -178,6 +185,8 @@ export class MeteoTilesComponent implements OnInit {
             // adapt time dimension options
             this.options.timeDimensionControlOptions.speedSlider = false;
             this.options.timeDimensionControlOptions.timeZones = ["local"];
+            // adapt variable configuration
+            this.variablesConfig = VARIABLES_CONFIG_BASE;
           }
         } else {
           console.warn(`Invalid view param: ${view}`);
@@ -628,220 +637,249 @@ export class MeteoTilesComponent implements OnInit {
         this.layersControl["overlays"][this.DEFAULT_PRODUCT_IFF];
       tp1prec.addTo(this.map);
     } else {
-      this.layersControl["overlays"] = {
-        [DP.TM2]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/t2m-t2m/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
-        // Pressure at mean sea level
-        [DP.PMSL]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/pressure-pmsl/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            bounds: bounds,
-          }),
-          {},
-        ),
-        // Wind speed at 10 meters
-        [DP.WIND10M]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            bounds: bounds,
-          }),
-          {},
-        ),
-        // Relative humidity Time Layer
-        [DP.RH]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/humidity-r/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.5,
-            // bounds: [[25.0, -25.0], [50.0, 47.0]],
-            bounds: bounds,
-          }),
-          {},
-        ),
-        ////////////////////////////////////
-        /////////// PRECIPITATION //////////
-        ////////////////////////////////////
-
+      this.layersControl["overlays"] = {};
+      // Temperature at 2 meters
+      if ("t2m" in this.variablesConfig) {
+        this.layersControl["overlays"][DP.TM2] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/t2m-t2m/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
+      }
+      // Pressure at mean sea level
+      if ("prs" in this.variablesConfig) {
+        this.layersControl["overlays"][DP.PMSL] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/pressure-pmsl/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              bounds: bounds,
+            }),
+            {},
+          );
+      }
+      // Wind speed at 10 meters
+      if ("ws10m" in this.variablesConfig) {
+        this.layersControl["overlays"][DP.WIND10M] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              bounds: bounds,
+            }),
+            {},
+          );
+      }
+      // Relative humidity Time Layer
+      if ("rh" in this.variablesConfig) {
+        this.layersControl["overlays"][DP.RH] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/humidity-r/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.5,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }),
+            {},
+          );
+      }
+      ////////////////////////////////////
+      /////////// PRECIPITATION //////////
+      ////////////////////////////////////
+      if ("prp" in this.variablesConfig) {
         // Total precipitation 1h Time Layer
-        [DP.PREC1P]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/prec1-tp/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.PREC1P] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/prec1-tp/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
         // Total precipitation 3h Time Layer
-        [DP.PREC3P]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/prec3-tp/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.PREC3P] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/prec3-tp/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
         // Total precipitation 6h Time Layer
-        [DP.PREC6P]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/prec6-tp/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.PREC6P] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/prec6-tp/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
         // Total precipitation 6h Time Layer
-        [DP.PREC12P]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/prec12-tp/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.PREC12P] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/prec12-tp/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
         // Total precipitation 3h Time Layer
-        [DP.PREC24P]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/prec24-tp/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
-        ////////////////////////////////////
-        ///////////// SNOWFALL /////////////
-        ////////////////////////////////////
-
+        this.layersControl["overlays"][DP.PREC24P] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/prec24-tp/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
+      }
+      ////////////////////////////////////
+      ///////////// SNOWFALL /////////////
+      ////////////////////////////////////
+      if ("sf" in this.variablesConfig) {
         // Snowfall 1h Time Layer
-        [DP.SF1]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/snow1-snow/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.SF1] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/snow1-snow/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
         // Snowfall 3h Time Layer
-        [DP.SF3]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/snow3-snow/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.SF3] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/snow3-snow/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
         // Snowfall 6h Time Layer
-        [DP.SF6]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/snow6-snow/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.SF6] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/snow6-snow/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
         // Snowfall 12h Time Layer
-        [DP.SF12]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/snow12-snow/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.SF12] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/snow12-snow/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
         // Snowfall 24h Time Layer
-        [DP.SF24]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/snow24-snow/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.6,
-            bounds: bounds,
-          }),
-          {},
-        ),
-        ////////////////////////////////////
-        //////////// CLOUD COVER ///////////
-        ////////////////////////////////////
-
+        this.layersControl["overlays"][DP.SF24] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/snow24-snow/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.6,
+              bounds: bounds,
+            }),
+            {},
+          );
+      }
+      ////////////////////////////////////
+      //////////// CLOUD COVER ///////////
+      ////////////////////////////////////
+      if ("cc" in this.variablesConfig) {
         // Low Cloud Time Layer
-        [DP.LCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            opacity: 0.9,
-            // bounds: [[25.0, -25.0], [50.0, 47.0]],
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.LCC] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/cloud_hml-lcc/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              opacity: 0.9,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }),
+            {},
+          );
         // Medium Cloud Time Layer
-        [DP.MCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            //opacity: 0.6,
-            // bounds: [[25.0, -25.0], [50.0, 47.0]],
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.MCC] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/cloud_hml-mcc/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              //opacity: 0.6,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }),
+            {},
+          );
         // High Cloud Time Layer
-        [DP.HCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud_hml-hcc/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            //opacity: 0.6,
-            // bounds: [[25.0, -25.0], [50.0, 47.0]],
-            bounds: bounds,
-          }),
-          {},
-        ),
+        this.layersControl["overlays"][DP.HCC] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/cloud_hml-hcc/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              //opacity: 0.6,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }),
+            {},
+          );
         // Total Cloud Time Layer
-        [DP.TCC]: L.timeDimension.layer.tileLayer.portus(
-          L.tileLayer(`${baseUrl}/cloud-tcc/{d}{h}/{z}/{x}/{y}.png`, {
-            minZoom: 5,
-            maxZoom: maxZoom,
-            tms: false,
-            //opacity: 0.6,
-            // bounds: [[25.0, -25.0], [50.0, 47.0]],
-            bounds: bounds,
-          }),
-          {},
-        ),
-      };
+        this.layersControl["overlays"][DP.TCC] =
+          L.timeDimension.layer.tileLayer.portus(
+            L.tileLayer(`${baseUrl}/cloud-tcc/{d}{h}/{z}/{x}/{y}.png`, {
+              minZoom: 5,
+              maxZoom: maxZoom,
+              tms: false,
+              //opacity: 0.6,
+              // bounds: [[25.0, -25.0], [50.0, 47.0]],
+              bounds: bounds,
+            }),
+            {},
+          );
+      }
     }
   }
 

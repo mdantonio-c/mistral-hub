@@ -1,3 +1,5 @@
+import { GenericArg } from "../../../../types";
+
 export interface LegendConfig {
   id: string;
   title: string;
@@ -428,3 +430,21 @@ export const LEGEND_DATA: LegendConfig[] = [
     labels: ["105", "90", "80", "70", "60", "50", "40", "30", "20", "10", "2"],
   },
 ];
+
+export const VARIABLES_CONFIG: GenericArg = {
+  t2m: [],
+  prs: [],
+  rh: [],
+  ws10m: [],
+  prp: [1, 3, 6, 12, 24],
+  sf: [1, 3, 6, 12, 24],
+  cc: ["low", "medium", "high"],
+};
+
+export const VARIABLES_CONFIG_BASE: GenericArg = {
+  t2m: [],
+  ws10m: [],
+  prp: [3, 6, 12, 24],
+  sf: [3, 6],
+  cc: [],
+};

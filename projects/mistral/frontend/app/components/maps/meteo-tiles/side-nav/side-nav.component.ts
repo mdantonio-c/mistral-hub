@@ -27,7 +27,8 @@ import {
   toLayerCode,
   toLayerTitle,
 } from "./data";
-import { ValueLabel } from "../../../../types";
+import { GenericArg, ValueLabel } from "../../../../types";
+import { VARIABLES_CONFIG } from "../services/data";
 
 interface ValueLabelChecked extends ValueLabel {
   checked?: boolean;
@@ -42,6 +43,7 @@ interface ValueLabelChecked extends ValueLabel {
 export class SideNavComponent implements OnInit {
   @Input() baseLayers: L.Control.LayersObject;
   @Input() dataset: string;
+  @Input("variables") varConfig: GenericArg;
   @Input("viewMode") mode = ViewModes.adv;
   // Reference to the primary map object
   @Input() map: L.Map;
@@ -180,7 +182,7 @@ export class SideNavComponent implements OnInit {
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);
     const fromActiveState: boolean = el.classList.contains("attivo");
     const op = fromActiveState ? "remove" : "add";
-    // console.log(`toggle "${op}" on layer-id "${layerId}"`);
+    console.log(`toggle "${op}" on layer-id "${layerId}"`);
     if (["prp", "sf", "cc", "tpperc", "tpprob"].includes(layerId)) {
       if (op === "remove") {
         // reset sub-level

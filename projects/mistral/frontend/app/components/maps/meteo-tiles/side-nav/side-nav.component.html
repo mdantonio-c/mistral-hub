@@ -68,7 +68,7 @@
         </li>
       </ng-template>
       <ng-template #cosmo>
-        <li class="sidenav-item">
+        <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('t2m')">
           <span
             class="t2m clickable"
             (click)="toggleLayer($event, 't2m')"
@@ -80,7 +80,7 @@
             <span class="nav-text" i18n>Temperature</span>
           </a>
         </li>
-        <li class="sidenav-item">
+        <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('prs')">
           <span
             class="prs clickable"
             (click)="toggleLayer($event, 'prs')"
@@ -92,7 +92,7 @@
             <span class="nav-text" i18n>Pressure</span>
           </a>
         </li>
-        <li class="sidenav-item">
+        <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('rh')">
           <span
             class="rh clickable"
             (click)="toggleLayer($event, 'rh')"
@@ -104,7 +104,7 @@
             <span class="nav-text" i18n>Relative humidity</span>
           </a>
         </li>
-        <li class="sidenav-item">
+        <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('ws10m')">
           <span
             class="ws10m clickable"
             (click)="toggleLayer($event, 'ws10m')"
@@ -120,7 +120,7 @@
             <span class="nav-text" i18n>Wind</span>
           </a>
         </li>
-        <li class="sidenav-item">
+        <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('prp')">
           <span
             class="prp clickable"
             (click)="toggleLayer($event, 'prp')"
@@ -134,22 +134,26 @@
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
-                <label *ngFor="let h of subLevels['prp']; let last = last">
-                  <input
-                    type="radio"
-                    name="precipitation"
-                    [attr.disabled]="isLayerActive('prp') ? null : true"
-                    [value]="h.value"
-                    [checked]="h.checked"
-                    (change)="changeSubLevel($event, h, 'prp')"
-                  />
-                  {{ h.value + "h" }}
-                </label>
+                <ng-container
+                  *ngFor="let h of subLevels['prp']; let last = last"
+                >
+                  <label *ngIf="varConfig['prp'].includes(h.value)">
+                    <input
+                      type="radio"
+                      name="precipitation"
+                      [attr.disabled]="isLayerActive('prp') ? null : true"
+                      [value]="h.value"
+                      [checked]="h.checked"
+                      (change)="changeSubLevel($event, h, 'prp')"
+                    />
+                    {{ h.value + "h" }}
+                  </label>
+                </ng-container>
               </div>
             </div>
           </ng-container>
         </li>
-        <li class="sidenav-item">
+        <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('sf')">
           <span
             class="sf clickable"
             (click)="toggleLayer($event, 'sf')"
@@ -163,22 +167,26 @@
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
-                <label *ngFor="let h of subLevels['sf']; let last = last">
-                  <input
-                    type="radio"
-                    name="snow"
-                    [checked]="h.checked"
-                    [attr.disabled]="isLayerActive('sf') ? null : true"
-                    [value]="h.value"
-                    (change)="changeSubLevel($event, h, 'sf')"
-                  />
-                  {{ h.value + "h" }}
-                </label>
+                <ng-container
+                  *ngFor="let h of subLevels['sf']; let last = last"
+                >
+                  <label *ngIf="varConfig['sf'].includes(h.value)">
+                    <input
+                      type="radio"
+                      name="snow"
+                      [checked]="h.checked"
+                      [attr.disabled]="isLayerActive('sf') ? null : true"
+                      [value]="h.value"
+                      (change)="changeSubLevel($event, h, 'sf')"
+                    />
+                    {{ h.value + "h" }}
+                  </label>
+                </ng-container>
               </div>
             </div>
           </ng-container>
         </li>
-        <li class="sidenav-item last">
+        <li class="sidenav-item last" *ngIf="varConfig.hasOwnProperty('cc')">
           <span
             class="cc clickable"
             (click)="toggleLayer($event, 'cc')"
@@ -190,7 +198,7 @@
             <a href (click)="toggleLayer($event, 'cc')">
               <span class="nav-text" i18n>Clouds</span>
             </a>
-            <div class="selettore-clouds">
+            <div class="selettore-clouds" *ngIf="varConfig['cc'].length">
               <label *ngFor="let lvl of subLevels['cc']">
                 <input
                   type="checkbox"
