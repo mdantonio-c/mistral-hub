@@ -27,10 +27,13 @@ import {
   Station,
 } from "../../../types";
 import {
+  CARTODB_LICENSE_HREF,
   DatasetProduct as DP,
   DATASETS,
+  MISTRAL_LICENSE_HREF,
   MULTI_MODEL_TIME_RANGES,
   MultiModelProduct,
+  OSM_LICENSE_HREF,
   ViewModes,
 } from "./meteo-tiles.config";
 import { IffRuns } from "../forecast-maps/services/data";
@@ -62,10 +65,6 @@ export class MeteoTilesComponent implements OnInit {
   readonly DEFAULT_PRODUCT_IFF = DP.TPPERC1;
   readonly LEGEND_POSITION = "bottomleft";
   readonly DEFAULT_DATASET: string = DATASETS[0].code;
-  license =
-    '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">Open Street Map</a> ' +
-    '&copy; <a href="http://cartodb.com/attributions" target="_blank" rel="noopener noreferrer">CartoDB</a> | ' +
-    '&copy; <a href="./app/license#mistral-products" target="_blank" rel="noopener noreferrer">MISTRAL</a>';
 
   map: L.Map;
   dataset: string;
@@ -80,8 +79,7 @@ export class MeteoTilesComponent implements OnInit {
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
-      attribution: this.license,
-      //'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a> &copy; <a href="https://creativecommons.org/licenses/by-nd/4.0/legalcode">Work distributed under License CC BY-ND 4.0</a>'+l_iff,
+      attribution: `&copy; ${OSM_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
       maxZoom: MAX_ZOOM,
       minZoom: MIN_ZOOM,
     },
@@ -90,7 +88,7 @@ export class MeteoTilesComponent implements OnInit {
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
     {
       id: "mapbox.light",
-      attribution: this.license,
+      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
       maxZoom: MAX_ZOOM,
       minZoom: MIN_ZOOM,
     },
@@ -98,7 +96,7 @@ export class MeteoTilesComponent implements OnInit {
   LAYER_DARKMATTER = L.tileLayer(
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png",
     {
-      attribution: this.license,
+      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
       maxZoom: MAX_ZOOM,
       minZoom: MIN_ZOOM,
     },
@@ -120,7 +118,6 @@ export class MeteoTilesComponent implements OnInit {
     timeDimensionControl: true,
     maxBounds: this.bounds,
     maxBoundsViscosity: 1.0,
-    //bounds:
     timeDimensionControlOptions: {
       autoPlay: false,
       timeZones: ["utc"],
@@ -160,7 +157,7 @@ export class MeteoTilesComponent implements OnInit {
     private route: ActivatedRoute,
   ) {
     // set the initial set of displayed layers
-    this.options["layers"] = [this.LAYER_LIGHTMATTER];
+    this.options["layers"] = [this.LAYER_OSM];
     this.dataset = this.DEFAULT_DATASET;
     router.events.subscribe((s) => {
       if (s instanceof NavigationEnd) {

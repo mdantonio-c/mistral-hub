@@ -87,3 +87,10 @@ export enum ViewModes {
   base,
   adv,
 }
+
+export const OSM_LICENSE_HREF =
+    '<a href="http://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">Open Street Map</a>',
+  CARTODB_LICENSE_HREF =
+    '<a href="http://cartodb.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
+  MISTRAL_LICENSE_HREF =
+    '<a href="./app/license#mistral-products" target="_blank" rel="noopener noreferrer">MISTRAL</a>';
