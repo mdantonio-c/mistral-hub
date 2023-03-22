@@ -71,10 +71,11 @@ export class MeteoTilesComponent implements OnInit {
   dataset: string;
   private run: string;
   private legends: { [key: string]: L.Control } = {};
-  public availableDatasets: CodeDescPair[] = DATASETS;
+  availableDatasets: CodeDescPair[] = DATASETS;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
   modes = ViewModes;
   variablesConfig: GenericArg = VARIABLES_CONFIG;
+  lang = "en";
 
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -187,6 +188,8 @@ export class MeteoTilesComponent implements OnInit {
             this.options.timeDimensionControlOptions.timeZones = ["local"];
             // adapt variable configuration
             this.variablesConfig = VARIABLES_CONFIG_BASE;
+            // setup lang
+            this.lang = "it";
           }
         } else {
           console.warn(`Invalid view param: ${view}`);

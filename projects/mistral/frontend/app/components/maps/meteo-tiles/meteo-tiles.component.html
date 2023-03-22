@@ -35,8 +35,12 @@
         {{ printDatasetDescription() }}
       </div>
       <pre *ngIf="runAvailable">
-        Reference Date: {{ printReferenceDate() }}
-        Product: {{ printDatasetProduct() }}
+        {{ "reference date" | translate : lang | titlecase }}: {{
+          printReferenceDate()
+        }}
+        {{ "product" | translate : lang | titlecase }}: {{
+          printDatasetProduct()
+        }}
       </pre>
     </div>
   </div>

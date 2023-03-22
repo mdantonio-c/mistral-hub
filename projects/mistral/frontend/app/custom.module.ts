@@ -73,6 +73,7 @@ import { AdminLicgroupsComponent } from "@app/components/admin-licgroups/admin-l
 import { AdminLicensesComponent } from "@app/components/admin-licenses/admin-licenses";
 import { AdminAttributionsComponent } from "@app/components/admin-attributions/admin-attributions";
 import { AdminDatasetsComponent } from "@app/components/admin-datasets/admin-datasets";
+import { TranslatePipe } from "./pipes/translate.pipe";
 
 const appRoutes: Routes = [
   {
@@ -221,6 +222,7 @@ const appRoutes: Routes = [
     ReplacePipe,
     DisableControlDirective,
     ClickStopPropagation,
+    TranslatePipe,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [

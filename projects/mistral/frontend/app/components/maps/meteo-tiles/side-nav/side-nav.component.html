@@ -73,11 +73,16 @@
             class="t2m clickable"
             (click)="toggleLayer($event, 't2m')"
             placement="left"
-            [ngbTooltip]="'Temperature'"
+            [ngbTooltip]="tipTemperature"
             [disableTooltip]="!isCollapsed"
           ></span>
+          <ng-template #tipTemperature>{{
+            "Temperature" | translate : lang | titlecase
+          }}</ng-template>
           <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 't2m')">
-            <span class="nav-text" i18n>Temperature</span>
+            <span class="nav-text" i18n>
+              {{ "Temperature" | translate : lang }}
+            </span>
           </a>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('prs')">
@@ -85,11 +90,16 @@
             class="prs clickable"
             (click)="toggleLayer($event, 'prs')"
             placement="left"
-            [ngbTooltip]="'Pressure'"
+            [ngbTooltip]="tipPressure"
             [disableTooltip]="!isCollapsed"
           ></span>
+          <ng-template #tipPressure>{{
+            "Pressure" | translate : lang | titlecase
+          }}</ng-template>
           <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'prs')">
-            <span class="nav-text" i18n>Pressure</span>
+            <span class="nav-text" i18n>{{
+              "Pressure" | translate : lang
+            }}</span>
           </a>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('rh')">
@@ -97,11 +107,16 @@
             class="rh clickable"
             (click)="toggleLayer($event, 'rh')"
             placement="left"
-            [ngbTooltip]="'Relative humidity'"
+            [ngbTooltip]="tipRelativeHumidity"
             [disableTooltip]="!isCollapsed"
           ></span>
+          <ng-template #tipRelativeHumidity>{{
+            "Relative humidity" | translate : lang | titlecase
+          }}</ng-template>
           <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'rh')">
-            <span class="nav-text" i18n>Relative humidity</span>
+            <span class="nav-text" i18n>{{
+              "Relative humidity" | translate : lang
+            }}</span>
           </a>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('ws10m')">
@@ -109,15 +124,18 @@
             class="ws10m clickable"
             (click)="toggleLayer($event, 'ws10m')"
             placement="left"
-            [ngbTooltip]="'Wind'"
+            [ngbTooltip]="tipWind"
             [disableTooltip]="!isCollapsed"
           ></span>
+          <ng-template #tipWind>{{
+            "Wind" | translate : lang | titlecase
+          }}</ng-template>
           <a
             href="#"
             *ngIf="!isCollapsed"
             (click)="toggleLayer($event, 'ws10m')"
           >
-            <span class="nav-text" i18n>Wind</span>
+            <span class="nav-text" i18n>{{ "Wind" | translate : lang }}</span>
           </a>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('prp')">
@@ -125,12 +143,17 @@
             class="prp clickable"
             (click)="toggleLayer($event, 'prp')"
             placement="left"
-            [ngbTooltip]="'Precipitation'"
+            [ngbTooltip]="tipPrecipitation"
             [disableTooltip]="!isCollapsed"
           ></span>
+          <ng-template #tipPrecipitation>{{
+            "Precipitation" | translate : lang | titlecase
+          }}</ng-template>
           <ng-container *ngIf="!isCollapsed">
             <a href="#" (click)="toggleLayer($event, 'prp')">
-              <span class="nav-text" i18n>precipitation</span>
+              <span class="nav-text" i18n>{{
+                "precipitation" | translate : lang
+              }}</span>
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
@@ -158,12 +181,17 @@
             class="sf clickable"
             (click)="toggleLayer($event, 'sf')"
             placement="left"
-            [ngbTooltip]="'Snow Fall'"
+            [ngbTooltip]="tipSnowFall"
             [disableTooltip]="!isCollapsed"
           ></span>
+          <ng-template #tipSnowFall>{{
+            "Snow Fall" | translate : lang | titlecase
+          }}</ng-template>
           <ng-container *ngIf="!isCollapsed">
             <a href="#" (click)="toggleLayer($event, 'sf')">
-              <span class="nav-text" i18n>Snow Fall</span>
+              <span class="nav-text" i18n>{{
+                "Snow Fall" | translate : lang
+              }}</span>
             </a>
             <div class="selettore-orario">
               <div class="progressbar">
@@ -191,12 +219,17 @@
             class="cc clickable"
             (click)="toggleLayer($event, 'cc')"
             placement="left"
-            [ngbTooltip]="'Clouds'"
+            [ngbTooltip]="tipClouds"
             [disableTooltip]="!isCollapsed"
           ></span>
+          <ng-template #tipClouds>{{
+            "Clouds" | translate : lang | titlecase
+          }}</ng-template>
           <ng-container *ngIf="!isCollapsed">
             <a href (click)="toggleLayer($event, 'cc')">
-              <span class="nav-text" i18n>Clouds</span>
+              <span class="nav-text" i18n>{{
+                "Clouds" | translate : lang
+              }}</span>
             </a>
             <div class="selettore-clouds" *ngIf="varConfig['cc'].length">
               <label *ngFor="let lvl of subLevels['cc']">

@@ -50,6 +50,7 @@ export class SideNavComponent implements OnInit {
 
   private _overlays: L.Control.LayersObject;
   modes = ViewModes;
+  lang = "en";
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -151,6 +152,10 @@ export class SideNavComponent implements OnInit {
         });
       }
     });
+    // setup lang
+    if (this.mode === ViewModes.base) {
+      this.lang = "it";
+    }
   }
 
   @HostListener("dblclick", ["$event"])
