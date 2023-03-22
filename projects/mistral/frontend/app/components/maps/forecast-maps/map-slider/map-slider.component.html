@@ -102,7 +102,7 @@
         class="dpc-label"
       >
         Forecast model: <b>Italy Flash Flood</b> - Reference date:
-        <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> -
+        <b>{{ timestampRun | amFromUtc | amDateFormat : "YYYY-MM-DD" }}</b> -
         Product: <b>{{ selectedRun.value }}</b>
       </div>
       <div
@@ -111,7 +111,7 @@
       >
         Forecast model: <b>COSMO {{ getValue("res", filter.res) }} Km</b> -
         Reference date:
-        <b>{{ timestampRun | amFromUtc | amDateFormat: "YYYY-MM-DD" }}</b> -
+        <b>{{ timestampRun | amFromUtc | amDateFormat : "YYYY-MM-DD" }}</b> -
         Product: <b>{{ selectedRun.value }}</b>
       </div>
     </div>
@@ -128,7 +128,7 @@
       >
         <ng-template
           ngbSlide
-          *ngFor="let image of images | slice: fromMinImage; index as i"
+          *ngFor="let image of images | slice : fromMinImage; index as i"
           id="slideId-{{ i + fromMinImage }}"
         >
           <div class="carousel-caption">
@@ -139,11 +139,13 @@
                 (click)="toggleUtcTime()"
               >
                 <ng-container *ngIf="utcTime; else noUtc">
-                  {{ timestamp | amFromUtc | amDateFormat: "YYYY-MM-DD HH:00" }}
+                  {{
+                    timestamp | amFromUtc | amDateFormat : "YYYY-MM-DD HH:00"
+                  }}
                   (UTC)
                 </ng-container>
                 <ng-template #noUtc>
-                  {{ timestamp | amDateFormat: "YYYY-MM-DD HH:00 (Z)" }}
+                  {{ timestamp | amDateFormat : "YYYY-MM-DD HH:00 (Z)" }}
                 </ng-template>
               </span>
             </h5>
@@ -260,6 +262,7 @@
             (change)="updateCarousel($event.newValue)"
             placement="top"
           ></mv-slider>
+          <!--
           <div class="calendar d-flex">
             <div class="date">
               Friday 18th
@@ -283,7 +286,8 @@
               Thursday 24th
             </div>
           </div>
-        
+          -->
+        </div>
       </div>
     </div>
   </div>
