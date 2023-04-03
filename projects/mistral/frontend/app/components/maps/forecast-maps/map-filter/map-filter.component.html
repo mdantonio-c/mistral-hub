@@ -64,9 +64,14 @@
                 "
                 *ngIf="
                   !(
-                    run.key === '12' &&
-                    (filterForm.get('field').value === 'percentile' ||
-                      filterForm.get('field').value === 'probability')
+                    (run.key === '12' &&
+                    (
+                    filterForm.get('field').value === 'percentile' ||
+                    filterForm.get('field').value === 'probability'
+                    )
+                    )
+                    ||
+                    run.key === '12' && filterForm.get('res').value === 'WRF_OL'
                   )
 
                 "

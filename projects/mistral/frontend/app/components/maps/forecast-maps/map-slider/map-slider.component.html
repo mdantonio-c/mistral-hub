@@ -109,7 +109,7 @@
         *ngIf="filter.field != 'percentile' && filter.field != 'probability'"
         class="dpc-label"
       >
-        Forecast model: <b>COSMO {{ getValue("res", filter.res) }} Km</b> -
+        Forecast model: <b>{{ getValue("res", filter.res) }} Km</b> -
         Reference date:
         <b>{{ timestampRun | amFromUtc | amDateFormat : "YYYY-MM-DD" }}</b> -
         Product: <b>{{ selectedRun.value }}</b>
