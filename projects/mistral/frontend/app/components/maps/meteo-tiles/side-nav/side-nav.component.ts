@@ -39,6 +39,7 @@ interface ValueLabelChecked extends ValueLabel {
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./side-nav.component.html",
   styleUrls: ["side-nav.component.scss"],
+
 })
 export class SideNavComponent implements OnInit {
   @Input() baseLayers: L.Control.LayersObject;
@@ -51,6 +52,7 @@ export class SideNavComponent implements OnInit {
   private _overlays: L.Control.LayersObject;
   modes = ViewModes;
   lang = "en";
+  width  = window.innerWidth;
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -119,6 +121,19 @@ export class SideNavComponent implements OnInit {
     this.onCollapseChange.emit(this.isCollapsed);
   }
 
+  mobileWidth:number  = 760;
+  isMobile = false;  
+        
+ 
+  isMobileCollapsed() {
+    this.isMobile = this.width < this.mobileWidth;
+    this.onWindowResize(event);
+    if  (this.isMobile == true) {
+      this.changeCollapse();
+    }
+
+  }
+
   ngOnInit() {
     this.zLevel = this.map.getZoom();
     const ref = this;
@@ -156,6 +171,14 @@ export class SideNavComponent implements OnInit {
     if (this.mode === ViewModes.base) {
       this.lang = "it";
     }
+    // setup mobile navbar
+    if (this.isMobile==true){
+      this.isMobileCollapsed();
+    }
+  }
+  @HostListener("window:resize", ["$event"])
+  onWindowResize(event) {
+    this.width = event.target.innerWidth;
   }
 
   @HostListener("dblclick", ["$event"])

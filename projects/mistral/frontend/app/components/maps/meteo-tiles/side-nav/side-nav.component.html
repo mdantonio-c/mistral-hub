@@ -1,10 +1,10 @@
-<nav class="map-sidenav" [class.collapsed]="isCollapsed">
+<nav class="map-sidenav" [class.collapsed]="isCollapsed || isMobileCollapsed()" >
   <div class="map-sidenav-menu">
     <!-- partial collapse -->
     <label
       class="toggle"
       (click)="changeCollapse()"
-      [class.collapsed]="isCollapsed"
+      [class.collapsed]="isCollapsed || isMobileCollapsed()"
     ></label>
     <ul class="selector">
       <ng-container *ngIf="dataset === 'iff'; then iff; else cosmo">
