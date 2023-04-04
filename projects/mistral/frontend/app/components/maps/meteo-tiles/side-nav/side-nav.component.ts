@@ -28,7 +28,6 @@ import {
   toLayerTitle,
 } from "./data";
 import { GenericArg, ValueLabel } from "../../../../types";
-//import { VARIABLES_CONFIG } from "../services/data";
 
 interface ValueLabelChecked extends ValueLabel {
   checked?: boolean;
@@ -39,7 +38,6 @@ interface ValueLabelChecked extends ValueLabel {
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./side-nav.component.html",
   styleUrls: ["side-nav.component.scss"],
-
 })
 export class SideNavComponent implements OnInit {
   @Input() baseLayers: L.Control.LayersObject;
@@ -52,7 +50,6 @@ export class SideNavComponent implements OnInit {
   private _overlays: L.Control.LayersObject;
   modes = ViewModes;
   lang = "en";
-  width  = window.innerWidth;
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -110,6 +107,8 @@ export class SideNavComponent implements OnInit {
   selectedBaseLayer: string;
   showTotalClouds: boolean = false;
 
+  readonly mobileWidth: number = 760;
+
   constructor(
     private el: ElementRef,
     private renderer: Renderer2,
@@ -119,19 +118,6 @@ export class SideNavComponent implements OnInit {
   changeCollapse() {
     this.isCollapsed = !this.isCollapsed;
     this.onCollapseChange.emit(this.isCollapsed);
-  }
-
-  mobileWidth:number  = 760;
-  isMobile = false;  
-        
- 
-  isMobileCollapsed() {
-    this.isMobile = this.width < this.mobileWidth;
-    this.onWindowResize(event);
-    if  (this.isMobile == true) {
-      this.changeCollapse();
-    }
-
   }
 
   ngOnInit() {
@@ -171,14 +157,17 @@ export class SideNavComponent implements OnInit {
     if (this.mode === ViewModes.base) {
       this.lang = "it";
     }
-    // setup mobile navbar
-    if (this.isMobile==true){
-      this.isMobileCollapsed();
+    // setup mobile side-nav
+    if (window.innerWidth < this.mobileWidth) {
+      this.changeCollapse();
     }
   }
+
   @HostListener("window:resize", ["$event"])
   onWindowResize(event) {
-    this.width = event.target.innerWidth;
+    if (event.target.innerWidth < this.mobileWidth && !this.isCollapsed) {
+      this.changeCollapse();
+    }
   }
 
   @HostListener("dblclick", ["$event"])
