@@ -31,6 +31,7 @@ import {
   DatasetProduct as DP,
   DATASETS,
   MISTRAL_LICENSE_HREF,
+  MOBILE_WIDTH,
   MULTI_MODEL_TIME_RANGES,
   MultiModelProduct,
   OSM_LICENSE_HREF,
@@ -50,7 +51,8 @@ const MAP_CENTER = L.latLng(41.879966, 12.28),
   LM5_BOUNDS = {
     southWest: L.latLng(25.8, -30.9),
     northEast: L.latLng(55.5, 47.0),
-  };
+  },
+  LNG_OFFSET = 3;
 
 const MAX_ZOOM = 8;
 const MIN_ZOOM = 5;
@@ -136,7 +138,7 @@ export class MeteoTilesComponent implements OnInit {
   public runAvailable: RunAvailable;
 
   public showed: boolean = true;
-  public logo: boolean = false;
+  public collapsed: boolean = false;
   public mmProduct = MultiModelProduct.TM;
   public MultiModelProduct = MultiModelProduct;
   private markers: L.Marker[] = [];
@@ -1379,13 +1381,18 @@ export class MeteoTilesComponent implements OnInit {
 
   private centerMap() {
     if (this.map) {
+      let lng =
+        this.collapsed || window.innerWidth < MOBILE_WIDTH
+          ? MAP_CENTER.lng
+          : MAP_CENTER.lng + LNG_OFFSET;
+      const mapCenter: L.LatLng = L.latLng(MAP_CENTER.lat, lng);
       switch (this.dataset) {
         case "lm5":
-          this.map.setView(MAP_CENTER, 5);
+          this.map.setView(mapCenter, 5);
           break;
         case "lm2.2":
         case "iff":
-          this.map.setView(MAP_CENTER, 6);
+          this.map.setView(mapCenter, 6);
           break;
       }
     }
@@ -1695,5 +1702,10 @@ export class MeteoTilesComponent implements OnInit {
     }
     let date = this.runAvailable.reftime.substr(0, 8);
     return `${date.substr(0, 4)}-${date.substr(4, 2)}-${date.substr(6, 2)}`;
+  }
+
+  onCollapse(event: boolean) {
+    this.collapsed = event;
+    this.centerMap();
   }
 }

@@ -26,7 +26,7 @@
     (onDatasetChange)="changeDataset($event)"
     (onShowMultiModelChange)="showHideMultiModel()"
     (onMMProductChange)="changeMMProduct($event)"
-    (onCollapseChange)="logo = $event"
+    (onCollapseChange)="onCollapse($event)"
   ></map-side-nav>
 
   <div class="leaflet-top leaflet-left" style="left: 10px">
@@ -44,8 +44,11 @@
       </pre>
     </div>
   </div>
-  <div class="leaflet-bottom leaflet-right" *ngIf="logo">
-    <div class="leaflet-control px-2 " style="height: auto; width: 180px; margin-right: 2.8rem">
+  <div class="leaflet-bottom leaflet-right" *ngIf="collapsed">
+    <div
+      class="leaflet-control px-2"
+      style="height: auto; width: 180px; margin-right: 2.8rem"
+    >
       <img
         *ngIf="viewMode === modes.base"
         class="img-fluid img-thumbnail mt-2 bg-transparent border-0"

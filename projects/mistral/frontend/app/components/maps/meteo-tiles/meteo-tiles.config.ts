@@ -88,6 +88,8 @@ export enum ViewModes {
   adv,
 }
 
+export const MOBILE_WIDTH = 760;
+
 export const OSM_LICENSE_HREF =
     '<a href="http://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">Open Street Map</a>',
   CARTODB_LICENSE_HREF =

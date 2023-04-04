@@ -13,6 +13,7 @@ import {
 import {
   DatasetProduct as DP,
   DATASETS,
+  MOBILE_WIDTH,
   MultiModelProduct,
   MultiModelProductLabel,
   ViewModes,
@@ -107,8 +108,6 @@ export class SideNavComponent implements OnInit {
   selectedBaseLayer: string;
   showTotalClouds: boolean = false;
 
-  readonly mobileWidth: number = 760;
-
   constructor(
     private el: ElementRef,
     private renderer: Renderer2,
@@ -158,14 +157,14 @@ export class SideNavComponent implements OnInit {
       this.lang = "it";
     }
     // setup mobile side-nav
-    if (window.innerWidth < this.mobileWidth) {
+    if (window.innerWidth < MOBILE_WIDTH) {
       this.changeCollapse();
     }
   }
 
   @HostListener("window:resize", ["$event"])
   onWindowResize(event) {
-    if (event.target.innerWidth < this.mobileWidth && !this.isCollapsed) {
+    if (event.target.innerWidth < MOBILE_WIDTH && !this.isCollapsed) {
       this.changeCollapse();
     }
   }
