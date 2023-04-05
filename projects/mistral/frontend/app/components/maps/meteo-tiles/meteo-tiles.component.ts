@@ -73,7 +73,7 @@ export class MeteoTilesComponent implements OnInit {
   private run: string;
   private legends: { [key: string]: L.Control } = {};
   availableDatasets: CodeDescPair[] = DATASETS;
-  bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 40));
+  bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   modes = ViewModes;
   variablesConfig: GenericArg = VARIABLES_CONFIG;
   lang = "en";
