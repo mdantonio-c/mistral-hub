@@ -63,6 +63,7 @@ import { ObsStationReportComponent } from "@app/components/maps/observation-maps
 import { MeteoTilesComponent } from "@app/components/maps/meteo-tiles/meteo-tiles.component";
 import { SideNavComponent } from "./components/maps/meteo-tiles/side-nav/side-nav.component";
 import { BindingsComponent } from "@app/components/bindings/bindings";
+import { LivemapComponent } from "./components/maps/livemap/livemap.component";
 
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
 import { ReplacePipe } from "@app/pipes/replace.pipe";
@@ -117,6 +118,10 @@ const appRoutes: Routes = [
   {
     path: "app/maps/meteotiles",
     component: MeteoTilesComponent,
+  },
+  {
+    path: "app/maps/livemap",
+    component: LivemapComponent,
   },
   {
     path: "app/license",
@@ -196,6 +201,7 @@ const appRoutes: Routes = [
     ObsStationReportComponent,
     MeteoTilesComponent,
     SideNavComponent,
+    LivemapComponent,
     MultiStepWizardComponent,
     MyRequestDetailsComponent,
     NavbarComponent,

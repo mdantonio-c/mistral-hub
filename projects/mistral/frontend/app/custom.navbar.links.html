@@ -17,92 +17,97 @@
       >My Requests</a
     >
   </li>
-  <li class="nav-item" ngbDropdown
-  >
+  <li class="nav-item" ngbDropdown>
     <a
       class="nav-link clickable"
       ngbDropdownToggle
       id="navbarDropdownMapsLink"
       role="button"
-      routerLinkActive="active" 
+      routerLinkActive="active"
       [routerLinkActiveOptions]="{exact: true}"
     >
-      Maps    
+      Maps
       <div
-      ngbDropdownMenu
-      aria-labelledby="navbarDropdownMapsLink"
-      class="dropdown-menu"
-    >
-      <a
-        ngbDropdownItem
-        routerLink="/app/maps/forecasts"
-        routerLinkActive="active"
-        (click)="collapse()"
-        >Forecasts</a
+        ngbDropdownMenu
+        aria-labelledby="navbarDropdownMapsLink"
+        class="dropdown-menu"
       >
-      <a
-        ngbDropdownItem
-        routerLink="/app/maps/flashflood"
-        routerLinkActive="active"
-        (click)="collapse()"
-        >Italy Flash Flood</a
-      >
-      <a
-        ngbDropdownItem
-        routerLink="/app/maps/observations"
-        routerLinkActive="active"
-        (click)="collapse()"
-        >Observations</a
-      >
-      <a ngbDropdownItem 
-      routerLink="/app/maps/meteotiles" 
-      routerLinkActive="active"
-      (click)="collapse()"
-        >Multi-layer Map</a
-      >
-    </div>
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/forecasts"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Forecasts</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/flashflood"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Italy Flash Flood</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/observations"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Observations</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/meteotiles"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Multi-layer Map</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/livemap"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Live Map</a
+        >
+      </div>
     </a>
-
   </li>
-  <li class="nav-item" ngbDropdown
-  >
+  <li class="nav-item" ngbDropdown>
     <a
       class="nav-link clickable"
       ngbDropdownToggle
       id="navbarDropdownDocuLink"
       role="button"
-      routerLinkActive="active" 
+      routerLinkActive="active"
       [routerLinkActiveOptions]="{exact: true}"
     >
-      Documentation    
+      Documentation
       <div
-      ngbDropdownMenu
-      aria-labelledby="navbarDropdownDocuLink"
-      class="dropdown-menu"
-    >
-      <a
-        ngbDropdownItem
-        href= "https://www.mistralportal.it/user-guide/"
-        (click)="collapse()"
-        target="_blank"
-      >User Guide</a>
-      <a
-        ngbDropdownItem
-        routerLink="/app/license"
-        routerLinkActive="active"
-        (click)="collapse()"
-        >Attributions &amp; Licenses</a
+        ngbDropdownMenu
+        aria-labelledby="navbarDropdownDocuLink"
+        class="dropdown-menu"
       >
-      <a
-        ngbDropdownItem
-        routerLink="/public/participate"
-        routerLinkActive="active"
-        (click)="collapse()"
-        >Participate</a
-      >
-    </div>
+        <a
+          ngbDropdownItem
+          href="https://www.mistralportal.it/user-guide/"
+          (click)="collapse()"
+          target="_blank"
+          >User Guide</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/license"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Attributions &amp; Licenses</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/public/participate"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Participate</a
+        >
+      </div>
     </a>
-
   </li>
   <!--<li class="nav-item">
     <a
@@ -140,7 +145,12 @@
       >Contact us</a
     >
   </li>
-  <li class="nav-item" ngbDropdown *ngIf="user && user.isAdmin" routerLinkActive="active">
+  <li
+    class="nav-item"
+    ngbDropdown
+    *ngIf="user && user.isAdmin"
+    routerLinkActive="active"
+  >
     <a
       class="nav-link clickable"
       ngbDropdownToggle
