@@ -38,6 +38,7 @@ import {
   ViewModes,
 } from "./meteo-tiles.config";
 import { IffRuns } from "../forecast-maps/services/data";
+import { BaseMapComponent } from "../base-map.component";
 
 declare module "leaflet" {
   let timeDimension: any;
@@ -62,21 +63,17 @@ const MIN_ZOOM = 5;
   templateUrl: "./meteo-tiles.component.html",
   styleUrls: ["./meteo-tiles.component.scss"],
 })
-export class MeteoTilesComponent implements OnInit {
+export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   readonly DEFAULT_PRODUCT_COSMO = DP.TM2;
   readonly DEFAULT_PRODUCT_IFF = DP.TPPERC1;
   readonly LEGEND_POSITION = "bottomleft";
   readonly DEFAULT_DATASET: string = DATASETS[0].code;
 
-  map: L.Map;
   dataset: string;
   private run: string;
   private legends: { [key: string]: L.Control } = {};
   availableDatasets: CodeDescPair[] = DATASETS;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
-  modes = ViewModes;
-  variablesConfig: GenericArg = VARIABLES_CONFIG;
-  lang = "en";
 
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -138,7 +135,6 @@ export class MeteoTilesComponent implements OnInit {
   public runAvailable: RunAvailable;
 
   public showed: boolean = true;
-  public collapsed: boolean = false;
   public mmProduct = MultiModelProduct.TM;
   public MultiModelProduct = MultiModelProduct;
   private markers: L.Marker[] = [];
@@ -148,16 +144,16 @@ export class MeteoTilesComponent implements OnInit {
   private currentIdx: number = null;
   private currentMMReftime: Date = null;
   private timeLoading: boolean = false;
-  public viewMode = ViewModes.adv;
 
   constructor(
     private tilesService: TilesService,
     private obsService: ObsService,
-    private notify: NotificationService,
-    private spinner: NgxSpinnerService,
+    public notify: NotificationService,
+    public spinner: NgxSpinnerService,
     private router: Router,
     private route: ActivatedRoute,
   ) {
+    super(notify, spinner);
     // set the initial set of displayed layers
     this.options["layers"] = [this.LAYER_OSM];
     this.dataset = this.DEFAULT_DATASET;
@@ -1525,36 +1521,6 @@ export class MeteoTilesComponent implements OnInit {
     return template;
   }
 
-  private reduceOverlapping(markers: L.Marker[]) {
-    let n: L.Marker[] = [];
-    if (this.map.getZoom() === MAX_ZOOM) {
-      return markers;
-    }
-    const radius = 10 * Math.pow(2, 8 - this.map.getZoom());
-    // console.log(`radius: ${radius}`);
-    for (let i = 0; i < markers.length; i++) {
-      let overlapped: boolean = false;
-      if (n.length > 0) {
-        let p1 = markers[i].getLatLng();
-        for (let j = 0; j < n.length; j++) {
-          let p2 = n[j].getLatLng();
-          let distance = this.distance(p1.lat, p1.lng, p2.lat, p2.lng, "K");
-          if (distance < radius) {
-            overlapped = true;
-            break;
-          }
-        }
-        if (!overlapped) {
-          n.push(markers[i]);
-        }
-      } else {
-        n.push(markers[i]);
-      }
-    }
-    // console.log(`number of markers reduced to ${n.length}`);
-    return n;
-  }
-
   /**
    *
    */
@@ -1566,55 +1532,6 @@ export class MeteoTilesComponent implements OnInit {
       this.markers = this.reduceOverlapping(this.allMarkers);
       this.markersGroup = L.layerGroup(this.markers);
       this.markersGroup.addTo(this.map);
-    }
-  }
-
-  /**
-   * This routine calculates the distance between two points (given the
-   * latitude/longitude of those points).
-   *
-   * Definitions:
-   * South latitudes are negative, east longitudes are positive
-   *
-   * @param lat1
-   *   Latitude of point 1 (in decimal degrees)
-   * @param lon1
-   *   Longitude of point 1 (in decimal degrees)
-   * @param lat2
-   *   Latitude of point 2 (in decimal degrees)
-   * @param lon2
-   *   Longitude of point 2 (in decimal degrees)
-   * @param unit
-   *    the unit you desire for results. Allowed values:
-   *    'M' is statute miles (default)
-   *    'K' is kilometers
-   *    'N' is nautical miles
-   * @private
-   */
-  private distance(lat1, lon1, lat2, lon2, unit) {
-    if (lat1 == lat2 && lon1 == lon2) {
-      return 0;
-    } else {
-      const radlat1 = (Math.PI * lat1) / 180;
-      const radlat2 = (Math.PI * lat2) / 180;
-      const theta = lon1 - lon2;
-      const radtheta = (Math.PI * theta) / 180;
-      let dist =
-        Math.sin(radlat1) * Math.sin(radlat2) +
-        Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-      if (dist > 1) {
-        dist = 1;
-      }
-      dist = Math.acos(dist);
-      dist = (dist * 180) / Math.PI;
-      dist = dist * 60 * 1.1515;
-      if (unit == "K") {
-        dist = dist * 1.609344;
-      }
-      if (unit == "N") {
-        dist = dist * 0.8684;
-      }
-      return dist;
     }
   }
 
@@ -1705,7 +1622,7 @@ export class MeteoTilesComponent implements OnInit {
   }
 
   onCollapse(event: boolean) {
-    this.collapsed = event;
+    super.onCollapse(event);
     this.centerMap();
   }
 }

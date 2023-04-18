@@ -3,7 +3,12 @@ import * as L from "leaflet";
 import {
   MISTRAL_LICENSE_HREF,
   OSM_LICENSE_HREF,
+  ViewModes,
 } from "../meteo-tiles/meteo-tiles.config";
+import { BaseMapComponent } from "../base-map.component";
+import { NotificationService } from "@rapydo/services/notification";
+import { NgxSpinnerService } from "ngx-spinner";
+
 const LAYER_OSM = L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   {
@@ -16,8 +21,12 @@ const LAYER_OSM = L.tileLayer(
   templateUrl: "./livemap.component.html",
   styleUrls: ["./livemap.component.scss"],
 })
-export class LivemapComponent implements OnInit {
-  map: L.Map;
+export class LivemapComponent extends BaseMapComponent implements OnInit {
+  layersControl = {
+    baseLayers: {
+      "Openstreet Map": LAYER_OSM,
+    },
+  };
   options = {
     layers: [LAYER_OSM],
     zoomControl: false,
@@ -25,6 +34,14 @@ export class LivemapComponent implements OnInit {
     center: L.latLng(41.88, 12.28),
     maxBoundsViscosity: 1.0,
   };
+  viewMode = ViewModes.adv;
+
+  constructor(
+    public notify: NotificationService,
+    public spinner: NgxSpinnerService,
+  ) {
+    super(notify, spinner);
+  }
 
   ngOnInit() {}
 
@@ -35,5 +52,9 @@ export class LivemapComponent implements OnInit {
 
   onMapZoomEnd($event) {
     console.log(`Map Zoom: ${this.map.getZoom()}`);
+  }
+
+  toggleLayer(obj: Record<string, string | L.Layer>) {
+    console.log("toggle layer");
   }
 }

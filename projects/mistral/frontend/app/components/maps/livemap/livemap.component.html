@@ -4,4 +4,12 @@
   [leafletOptions]="options"
   (leafletMapReady)="onMapReady($event)"
   (leafletMapZoomEnd)="onMapZoomEnd($event)"
-></div>
+>
+  <side-nav-filter
+    [baseLayers]="layersControl['baseLayers']"
+    [map]="map"
+    [viewMode]="viewMode"
+    (onLayerChange)="toggleLayer($event)"
+    (onCollapseChange)="onCollapse($event)"
+  ></side-nav-filter>
+</div>

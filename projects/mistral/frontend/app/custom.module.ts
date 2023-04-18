@@ -64,6 +64,7 @@ import { MeteoTilesComponent } from "@app/components/maps/meteo-tiles/meteo-tile
 import { SideNavComponent } from "./components/maps/meteo-tiles/side-nav/side-nav.component";
 import { BindingsComponent } from "@app/components/bindings/bindings";
 import { LivemapComponent } from "./components/maps/livemap/livemap.component";
+import { SideNavFilterComponent } from "./components/maps/side-nav/side-nav.component";
 
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
 import { ReplacePipe } from "@app/pipes/replace.pipe";
@@ -202,6 +203,7 @@ const appRoutes: Routes = [
     MeteoTilesComponent,
     SideNavComponent,
     LivemapComponent,
+    SideNavFilterComponent,
     MultiStepWizardComponent,
     MyRequestDetailsComponent,
     NavbarComponent,
