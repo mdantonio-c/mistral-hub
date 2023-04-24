@@ -450,3 +450,36 @@ export const VARIABLES_CONFIG_BASE: GenericArg = {
   sf: [3, 6],
   cc: [],
 };
+
+export const VARIABLES_CONFIG_OBS: GenericArg = {
+  t2m: {
+    label: "temperature",
+    code: "B12101",
+    value: [],
+  },
+  prp: {
+    label: "precipitation",
+    code: "B13011",
+    value: [],
+  },
+  /*sf: {
+    label: "snow fall",
+    code: "",
+    value: []
+  },
+  ws10m: {
+    label: "wind",
+    code: "",
+    value: []
+  },*/
+  rh: {
+    label: "relative humidity",
+    code: "B13003",
+    value: [],
+  },
+  prs: {
+    label: "pressure",
+    code: "B10004",
+    value: [],
+  },
+};

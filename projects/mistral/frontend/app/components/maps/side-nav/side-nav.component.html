@@ -6,5 +6,66 @@
       (click)="changeCollapse()"
       [class.collapsed]="isCollapsed"
     ></label>
+    <ul class="selector" *ngIf="varConfig">
+      <li class="sidenav-item" *ngFor="let item of varConfig | keyvalue">
+        <span
+          class="{{ item.key }} clickable"
+          (click)="toggleLayer($event, item.key)"
+          placement="left"
+          [ngbTooltip]="tip"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <ng-template #tip>{{
+          item.value.label | translate : lang | titlecase
+        }}</ng-template>
+        <a
+          href="#"
+          *ngIf="!isCollapsed"
+          (click)="toggleLayer($event, item.key)"
+        >
+          <span class="nav-text" i18n>
+            {{ item.value.label | translate : lang }}
+          </span>
+        </a>
+      </li>
+    </ul>
+    <ul class="selector">
+      <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
+        <span
+          class="plus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+          (click)="zoom($event, 'in')"
+          placement="left"
+          [ngbTooltip]="'Zoom in'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+            i18n
+            >Zoom in</span
+          >
+        </a>
+      </li>
+      <li class="sidenav-item last" *ngIf="mode == modes.adv">
+        <span
+          class="minus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+          (click)="zoom($event, 'out')"
+          placement="left"
+          [ngbTooltip]="'Zoom out'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+            i18n
+            >Zoom out</span
+          >
+        </a>
+      </li>
+    </ul>
   </div>
 </nav>

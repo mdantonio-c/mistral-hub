@@ -6,3 +6,22 @@
   height: 100%;
   padding: 0;
 }
+
+.selected-dataset {
+  font-family: "Montserrat-semibold";
+  font-size: 25px;
+  text-transform: uppercase;
+  border-bottom: solid 2px #363535;
+}
+
+@media screen and (max-height: 640px) {
+  .selected-dataset {
+    font-size: 20px;
+  }
+}
+
+@media screen and (max-width: 770px) {
+  .selected-dataset {
+    font-size: 17px;
+  }
+}

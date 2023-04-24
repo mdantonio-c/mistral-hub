@@ -25,7 +25,7 @@ interface ValueLabelChecked extends ValueLabel {
   styleUrls: ["side-nav.component.scss"],
 })
 export class SideNavFilterComponent implements OnInit {
-  @Input() baseLayers: L.Control.LayersObject;
+  //@Input() baseLayers: L.Control.LayersObject;
   @Input("variables") varConfig: GenericArg;
   @Input("viewMode") mode = ViewModes.adv;
   // Reference to the primary map object
@@ -38,6 +38,8 @@ export class SideNavFilterComponent implements OnInit {
   isCollapsed = false;
   @Output() onCollapseChange: EventEmitter<boolean> =
     new EventEmitter<boolean>();
+  @Output() onLayerChange: EventEmitter<Record<string, string | L.Layer>> =
+    new EventEmitter<Record<string, string | L.Layer>>();
 
   zLevel: number;
 
@@ -128,5 +130,23 @@ export class SideNavFilterComponent implements OnInit {
   changeCollapse() {
     this.isCollapsed = !this.isCollapsed;
     this.onCollapseChange.emit(this.isCollapsed);
+  }
+
+  toggleLayer(event: Event, layerId: string) {
+    event.preventDefault();
+    let el = this.el.nativeElement.querySelector(`span.${layerId}`);
+    const fromActiveState: boolean = el.classList.contains("attivo");
+    const op = fromActiveState ? "remove" : "add";
+    console.log(`toggle "${op}" on layer-id "${layerId}"`);
+
+    this.onLayerChange.emit({
+      layer: layerId,
+      name: layerId,
+    });
+
+    // update active class
+    fromActiveState
+      ? this.renderer.removeClass(el, "attivo")
+      : this.renderer.addClass(el, "attivo");
   }
 }

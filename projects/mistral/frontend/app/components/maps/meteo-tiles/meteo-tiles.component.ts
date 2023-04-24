@@ -171,6 +171,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.variablesConfig = VARIABLES_CONFIG;
     this.route.queryParams.subscribe((params: Params) => {
       const view: string = params["view"];
       if (view) {
@@ -1375,13 +1376,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.centerMap();
   }
 
-  private centerMap() {
+  protected centerMap() {
     if (this.map) {
-      let lng =
-        this.collapsed || window.innerWidth < MOBILE_WIDTH
-          ? MAP_CENTER.lng
-          : MAP_CENTER.lng + LNG_OFFSET;
-      const mapCenter: L.LatLng = L.latLng(MAP_CENTER.lat, lng);
+      const mapCenter = super.getMapCenter();
       switch (this.dataset) {
         case "lm5":
           this.map.setView(mapCenter, 5);
@@ -1418,7 +1415,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   onMapZoomEnd($event) {
-    // console.log(`Map Zoom: ${this.map.getZoom()}`);
+    super.onMapZoomEnd($event);
     if (this.showed && this.markersGroup) {
       this.map.removeLayer(this.markersGroup);
       this.markers = this.reduceOverlapping(this.allMarkers);
@@ -1476,7 +1473,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         m.options["station"] = s.stat;
         m.options["data"] = obsData;
         m.bindTooltip(
-          MeteoTilesComponent.buildTooltipTemplate(
+          BaseMapComponent.buildTooltipTemplate(
             s.stat,
             obsData.val[0].ref,
             val + unit,
@@ -1497,28 +1494,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
     this.markersGroup = L.layerGroup(this.markers);
     this.markersGroup.addTo(this.map);
-  }
-
-  private static buildTooltipTemplate(
-    station: Station,
-    reftime?: string,
-    val?: string,
-  ) {
-    let ident = station.ident || "";
-    let name =
-      station.details && station.details.length
-        ? station.details.find((e) => e.var === "B01019")
-        : undefined;
-    const template =
-      `<h6 class="mb-1" style="font-size: small;">` +
-      (name ? `${name.val}` : "n/a") +
-      `<span class="badge bg-secondary ms-2">${val}</span></h6>` +
-      `<ul class="p-0 m-0"><li><b>Lat</b>: ${station.lat}</li><li><b>Lon</b>: ${station.lon}</li></ul>` +
-      `<hr class="my-1"/>` +
-      `<span>` +
-      (reftime ? `${moment.utc(reftime).format("MMM Do, HH:mm")}` : "n/a") +
-      `</span>`;
-    return template;
   }
 
   /**
@@ -1587,6 +1562,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   toggleLayer(obj: Record<string, string | L.Layer>) {
+    console.log("toggleLayer: ", obj);
     let layer: L.Layer = obj.layer as L.Layer;
     if (this.map.hasLayer(layer)) {
       console.log(`remove layer: ${obj.name}`);

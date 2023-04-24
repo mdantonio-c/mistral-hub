@@ -408,7 +408,7 @@ export interface FiltersArg {
 }
 
 export interface GenericArg {
-  [key: string]: any[];
+  [key: string]: any;
 }
 
 export interface ReftimeArg {
