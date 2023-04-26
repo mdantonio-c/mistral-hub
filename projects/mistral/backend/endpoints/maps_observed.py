@@ -37,6 +37,7 @@ class ObservationsQuery(Schema):
     ident = fields.Str(required=False)
     onlyStations = fields.Bool(required=False)
     stationDetails = fields.Bool(required=False)
+    allStationProducts = fields.Bool(required=False)
     reliabilityCheck = fields.Bool(required=False)
 
 
@@ -88,6 +89,7 @@ class MapsObservations(EndpointResource):
         ident: Optional[str] = None,
         onlyStations: bool = False,
         stationDetails: bool = False,
+        allStationProducts: bool = True,
         reliabilityCheck: bool = False,
     ) -> Response:
         alchemy_db = sqlalchemy.get_instance()
@@ -153,6 +155,8 @@ class MapsObservations(EndpointResource):
                     query_station_data["timerange"] = query["timerange"]
                 if "level" in query:
                     query_station_data["level"] = query["level"]
+                if "product" in query and not allStationProducts:
+                    query_station_data["product"] = query["product"]
                 if "datetimemin" in query:
                     query_station_data["datetimemin"] = query["datetimemin"]
                 if "datetimemax" in query:
