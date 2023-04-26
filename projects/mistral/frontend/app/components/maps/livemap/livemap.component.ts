@@ -9,10 +9,8 @@ import {
 import { BaseMapComponent } from "../base-map.component";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
-import {
-  VARIABLES_CONFIG_BASE,
-  VARIABLES_CONFIG_OBS,
-} from "../meteo-tiles/services/data";
+import { ActivatedRoute, NavigationEnd, Params, Router } from "@angular/router";
+import { VARIABLES_CONFIG_OBS } from "../meteo-tiles/services/data";
 import {
   ObsFilter,
   ObservationResponse,
@@ -22,7 +20,7 @@ import {
 } from "../../../types";
 import { ObsService } from "../observation-maps/services/obs.service";
 
-const MAX_ZOOM = 8;
+const MAX_ZOOM = 12;
 const MIN_ZOOM = 5;
 
 const LAYER_OSM = L.tileLayer(
@@ -66,26 +64,27 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     public notify: NotificationService,
     public spinner: NgxSpinnerService,
     private obsService: ObsService,
+    private router: Router,
+    private route: ActivatedRoute,
   ) {
     super(notify, spinner);
   }
 
   ngOnInit() {
     this.variablesConfig = VARIABLES_CONFIG_OBS;
+    this.route.queryParams.subscribe((params: Params) => {
+      const lang: string = params["lang"];
+      if (["it", "en"].includes(lang)) {
+        this.lang = lang;
+      }
+    });
   }
 
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
 
-    /*
-      temperature B12101
-      rainfall    B13011
-      humidity    B13003
-      pressure    B10004
-      wind        B11001 (direction)
-                  B11002 (speed)
-     */
+    // add default layer
     const filter: ObsFilter = {
       // common parameters
       reftime: new Date(),
@@ -95,9 +94,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       reliabilityCheck: true,
 
       // temperature
-      product: "B12101",
-      timerange: "254,0,0",
-      level: "103,2000,0,0",
+      product: VARIABLES_CONFIG_OBS["t2m"].code,
+      timerange: VARIABLES_CONFIG_OBS["t2m"].timerange,
+      level: VARIABLES_CONFIG_OBS["t2m"].level,
     };
     this.filter = filter;
     this.loadObservations(filter, true);
@@ -122,12 +121,12 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       .subscribe(
         (response: ObservationResponse) => {
           console.log(
-            `---Getting Data elapsed time: ${
+            `elapsed time for '${filter.product}' data retrieval: ${
               (new Date().getTime() - startTime) / 1000
             }s`,
           );
           let data = response.data;
-          this.loadMarkers(data, "B12101");
+          this.loadMarkers(data, filter.product);
           if (data.length === 0) {
             this.notify.showWarning("No observations found.");
           }
@@ -139,7 +138,6 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       .add(() => {
         this.map.invalidateSize();
         this.spinner.hide();
-        // setTimeout(() => this.spinner.hide(), 0);
       });
   }
 
@@ -194,23 +192,33 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       );
       this.allMarkers.push(m);
     });
+    // console.log(`Total markers: ${this.allMarkers.length}`);
 
     // reduce overlapping
     this.markers = this.reduceOverlapping(this.allMarkers);
-    console.info(`Number of markers: ${this.markers.length}`);
-
     this.markersGroup = L.layerGroup(this.markers);
+    this.markersGroup.options = { pane: product };
+
+    this.layersControl["overlays"] = this.markersGroup;
     this.markersGroup.addTo(this.map);
   }
 
-  toggleLayer(obj: Record<string, string | L.Layer>) {
-    console.log(`toggle layer: `, obj);
-    let counter: number = 0;
-    this.map.eachLayer((layer: L.Layer) => {
-      //console.log(layer);
-      counter++;
-    });
-    console.log(`number of layers: ${counter}`);
+  toggleLayer(obj: Record<string, string>) {
+    // console.log(`toggle layer: ${obj.name}`);
+
+    // clean up layers
+    if (this.markersGroup) {
+      this.map.removeLayer(this.markersGroup);
+      this.allMarkers = [];
+      this.markers = [];
+    }
+    // update the filter
+    if (this.variablesConfig[obj.name]) {
+      this.filter.product = this.variablesConfig[obj.name].code;
+      this.filter.timerange = this.variablesConfig[obj.name].timerange;
+      this.filter.level = this.variablesConfig[obj.name].level;
+      this.loadObservations(this.filter, true);
+    }
   }
 
   protected centerMap() {
@@ -227,12 +235,12 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
 
   printDatasetProduct(): string {
     let product: string;
-    Object.keys(VARIABLES_CONFIG_OBS).every((key) => {
+    for (let key in VARIABLES_CONFIG_OBS) {
       if (VARIABLES_CONFIG_OBS[key].code === this.filter.product) {
         product = VARIABLES_CONFIG_OBS[key].label;
-        return false;
+        break;
       }
-    });
+    }
     return product || "n/a";
   }
 

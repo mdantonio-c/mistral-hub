@@ -10,9 +10,9 @@ import {
   OnInit,
   ChangeDetectorRef,
 } from "@angular/core";
+import { KeyValue } from "@angular/common";
 import { GenericArg, ValueLabel } from "../../../types";
 import { MOBILE_WIDTH, ViewModes } from "../meteo-tiles/meteo-tiles.config";
-import { toLayerCode } from "../meteo-tiles/side-nav/data";
 
 interface ValueLabelChecked extends ValueLabel {
   checked?: boolean;
@@ -25,11 +25,14 @@ interface ValueLabelChecked extends ValueLabel {
   styleUrls: ["side-nav.component.scss"],
 })
 export class SideNavFilterComponent implements OnInit {
-  //@Input() baseLayers: L.Control.LayersObject;
+  @Input() baseLayers: L.Control.LayersObject;
   @Input("variables") varConfig: GenericArg;
   @Input("viewMode") mode = ViewModes.adv;
+  @Input() overlap: boolean = true;
   // Reference to the primary map object
   @Input() map: L.Map;
+  @Input() minZoom: number = 5;
+  @Input() maxZoom: number = 12;
 
   private _overlays: L.Control.LayersObject;
   modes = ViewModes;
@@ -43,36 +46,32 @@ export class SideNavFilterComponent implements OnInit {
 
   zLevel: number;
 
-  /*@Input() set overlays(value: L.Control.LayersObject) {
+  @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
     if (!value) return;
-    // reset subLevels
-    for (const [key, value] of Object.entries(this.subLevels)) {
-      this.subLevels[key].forEach((level) => {
-        level.checked = false;
-      });
-    }
     // activate layers
-    for (const [key, layer] of Object.entries(this._overlays)) {
-      let lCode = toLayerCode(key);
-      if (lCode) {
-        const el = this.el.nativeElement.querySelector(`.${lCode}`);
-        this.renderer.removeClass(el, "attivo");
-        if (this.map.hasLayer(layer)) {
-          if (Object.keys(this.subLevels).includes(lCode)) {
-            this.subLevels[lCode][0].checked = true;
-          }
-          setTimeout(() => {
-            this.renderer.addClass(el, "attivo");
-          }, 0);
+    let lCode: string;
+    if (this._overlays.options["pane"]) {
+      const pane = this._overlays.options["pane"];
+      for (const [key, value] of Object.entries(this.varConfig)) {
+        if (value.code && value.code === pane) {
+          lCode = key;
+          break;
         }
+      }
+      const el = this.el.nativeElement.querySelector(`.${lCode}`);
+      if (el) {
+        this.renderer.removeClass(el, "attivo");
+        setTimeout(() => {
+          this.renderer.addClass(el, "attivo");
+        }, 0);
       }
     }
   }
 
   get overlays(): L.Control.LayersObject {
     return this._overlays;
-  }*/
+  }
 
   constructor(
     private el: ElementRef,
@@ -137,7 +136,19 @@ export class SideNavFilterComponent implements OnInit {
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);
     const fromActiveState: boolean = el.classList.contains("attivo");
     const op = fromActiveState ? "remove" : "add";
-    console.log(`toggle "${op}" on layer-id "${layerId}"`);
+    // console.log(`toggle "${op}" on layer-id "${layerId}"`);
+    if (!this.overlap) {
+      if (fromActiveState) {
+        // DO NOTHING
+        return;
+      } else {
+        // deactivate links
+        let matches = this.el.nativeElement.querySelectorAll("span.attivo");
+        matches.forEach((item) => {
+          this.renderer.removeClass(item, "attivo");
+        });
+      }
+    }
 
     this.onLayerChange.emit({
       layer: layerId,
@@ -149,4 +160,12 @@ export class SideNavFilterComponent implements OnInit {
       ? this.renderer.removeClass(el, "attivo")
       : this.renderer.addClass(el, "attivo");
   }
+
+  // Order by ascending order property value
+  valueAscOrder = (
+    a: KeyValue<string, any>,
+    b: KeyValue<string, any>,
+  ): number => {
+    return String(a.value.oder).localeCompare(String(b.value.order));
+  };
 }

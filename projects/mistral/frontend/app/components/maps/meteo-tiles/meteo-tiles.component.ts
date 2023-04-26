@@ -237,6 +237,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
   onMapReady(map: L.Map) {
     this.map = map;
+    //console.log();
     this.map.attributionControl.setPrefix("");
 
     // view mode

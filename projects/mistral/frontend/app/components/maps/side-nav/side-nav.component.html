@@ -7,7 +7,10 @@
       [class.collapsed]="isCollapsed"
     ></label>
     <ul class="selector" *ngIf="varConfig">
-      <li class="sidenav-item" *ngFor="let item of varConfig | keyvalue">
+      <li
+        class="sidenav-item"
+        *ngFor="let item of varConfig | keyvalue : valueAscOrder"
+      >
         <span
           class="{{ item.key }} clickable"
           (click)="toggleLayer($event, item.key)"

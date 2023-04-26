@@ -16,9 +16,13 @@
 >
   <side-nav-filter
     [baseLayers]="layersControl['baseLayers']"
-    [map]="map"
-    [viewMode]="viewMode"
+    [overlays]="layersControl['overlays']"
     [variables]="variablesConfig"
+    [viewMode]="viewMode"
+    [overlap]="false"
+    [map]="map"
+    [minZoom]="minZoom"
+    [maxZoom]="maxZoom"
     (onLayerChange)="toggleLayer($event)"
     (onCollapseChange)="onCollapse($event)"
   ></side-nav-filter>

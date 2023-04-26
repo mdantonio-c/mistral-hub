@@ -1,16 +1,13 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, Input } from "@angular/core";
 import * as L from "leaflet";
 import * as moment from "moment";
 import { MOBILE_WIDTH, ViewModes } from "./meteo-tiles/meteo-tiles.config";
 import { GenericArg, Station } from "../../types";
-import { VARIABLES_CONFIG } from "./meteo-tiles/services/data";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 
 const MAP_CENTER = L.latLng(41.879966, 12.28),
   LNG_OFFSET = 3;
-const MAX_ZOOM = 8;
-const MIN_ZOOM = 5;
 
 @Component({
   selector: "mst-base-map",
@@ -23,6 +20,8 @@ export abstract class BaseMapComponent implements OnInit {
   variablesConfig: GenericArg;
   lang = "en";
   collapsed: boolean = false;
+  @Input() minZoom: number = 5;
+  @Input() maxZoom: number = 12;
 
   protected constructor(
     protected notify: NotificationService,
@@ -42,7 +41,7 @@ export abstract class BaseMapComponent implements OnInit {
 
   protected reduceOverlapping(markers: L.Marker[]) {
     let n: L.Marker[] = [];
-    if (this.map.getZoom() === MAX_ZOOM) {
+    if (this.map.getZoom() === this.maxZoom) {
       return markers;
     }
     const radius = 10 * Math.pow(2, 8 - this.map.getZoom());
@@ -66,7 +65,7 @@ export abstract class BaseMapComponent implements OnInit {
         n.push(markers[i]);
       }
     }
-    // console.log(`number of markers reduced to ${n.length}`);
+    console.log(`number of markers reduced to ${n.length}`);
     return n;
   }
 

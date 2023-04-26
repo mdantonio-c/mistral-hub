@@ -455,12 +455,18 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
   t2m: {
     label: "temperature",
     code: "B12101",
+    timerange: "254,0,0",
+    level: "103,2000,0,0",
     value: [],
+    order: 1,
   },
   prp: {
     label: "precipitation",
     code: "B13011",
+    timerange: "1,0,3600",
+    level: "1,0,0,0",
     value: [],
+    order: 4,
   },
   /*sf: {
     label: "snow fall",
@@ -475,11 +481,17 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
   rh: {
     label: "relative humidity",
     code: "B13003",
+    timerange: "254,0,0",
+    level: "103,2000,0,0",
     value: [],
+    order: 3,
   },
   prs: {
     label: "pressure",
     code: "B10004",
+    timerange: "254,0,0",
+    level: "1,0,0,0",
     value: [],
+    order: 2,
   },
 };
