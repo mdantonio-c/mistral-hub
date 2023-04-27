@@ -196,8 +196,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
 
     // reduce overlapping
     this.markers = this.reduceOverlapping(this.allMarkers);
-    this.markersGroup = L.layerGroup(this.markers);
-    this.markersGroup.options = { pane: product };
+    this.markersGroup = L.layerGroup(this.markers, { pane: product });
 
     this.layersControl["overlays"] = this.markersGroup;
     this.markersGroup.addTo(this.map);
