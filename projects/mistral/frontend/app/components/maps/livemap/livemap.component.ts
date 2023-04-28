@@ -244,7 +244,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   }
 
   printReferenceDate(): string {
-    return `${moment.utc(new Date().getTime()).format("MMM DD, HH:mm")}`;
+    return `${moment.utc(new Date().getTime()).local().format("MMM DD, HH:mm")}`;
   }
 
   reload(): void {

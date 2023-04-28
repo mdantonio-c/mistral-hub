@@ -6,7 +6,11 @@
   height: 100%;
   padding: 0;
 }
-
+.bg-light {
+  background-color: #ffffff6b !important;
+  padding:2px;
+  border-radius:2px !important;
+}
 .selected-dataset {
   font-family: "Montserrat-semibold";
   font-size: 25px;

@@ -32,11 +32,12 @@
       <div class="selected-dataset">
         {{ printDatasetProduct() | translate : lang }}
       </div>
-      <div>
+      <div class="bg-light">
         <i
           class="fa fa-arrows-rotate clickable"
           aria-hidden="true"
           (click)="reload()"
+          placement="bottom" ngbTooltip="Reload"
         ></i>
         <pre class="d-inline" style="white-space: pre-line">
           {{ "reference date" | translate : lang | titlecase }}: {{
@@ -44,6 +45,18 @@
           }}
         </pre>
       </div>
+    </div>
+  </div>
+  <div class="leaflet-bottom leaflet-right">
+    <div
+      class="leaflet-control px-2"
+      style="height: auto; width: 180px; margin-right: 2.8rem"
+    >
+      <img
+        class="img-fluid img-thumbnail mt-2 bg-transparent border-0"
+        src="/app/custom/assets/images/Logo_Completo_RGB.png"
+        alt="ItaliaMeteo"
+      />
     </div>
   </div>
 </div>
