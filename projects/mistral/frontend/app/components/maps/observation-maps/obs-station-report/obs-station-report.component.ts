@@ -14,6 +14,7 @@ import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
 import * as shape from "d3-shape";
+import { ObsData } from "../../../../types";
 
 const STATION_NAME_CODE = "B01019";
 
@@ -60,6 +61,10 @@ export class ObsStationReportComponent implements OnInit {
     this.updateGraphData(changeEvent.nextId);
   }
 
+  getNavItemName(element: ObsData) {
+    return `${element.var}-${element.lev}-${element.trange}`;
+  }
+
   private loadReport() {
     setTimeout(() => this.spinner.show("timeseries-spinner"), 0);
     this.obsService
@@ -73,7 +78,7 @@ export class ObsStationReportComponent implements OnInit {
           Object.assign(this, { multi });
           //console.log(JSON.stringify(this.multi));
           this.single = [multi[0]];
-          this.active = this.single[0].code;
+          this.active = `${this.single[0].code}-${this.single[0].level}-${this.single[0].timerange}`;
           // console.log("single: ", this.single, "multi: ", multi);
         },
         (error) => {
@@ -112,8 +117,10 @@ export class ObsStationReportComponent implements OnInit {
     return moment(val).format("HH:mm");
   }
 
-  private updateGraphData(varcode: string) {
-    this.single = this.multi.filter((x: DataSeries) => x.code === varcode);
+  private updateGraphData(navItemId: string) {
+    this.single = this.multi.filter(
+      (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
+    );
   }
 
   private normalize(data: Observation): DataSeries[] {
@@ -123,6 +130,8 @@ export class ObsStationReportComponent implements OnInit {
         // name: v.description,
         name: "",
         code: v.var,
+        level: v.lev,
+        timerange: v.trange,
         unit: this.descriptions[v.var].unit,
         series: [],
       };
