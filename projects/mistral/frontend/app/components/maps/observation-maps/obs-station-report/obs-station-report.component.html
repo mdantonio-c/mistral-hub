@@ -70,7 +70,7 @@
               style="font-size: small"
             >
               <ng-container *ngFor="let p of report.prod">
-                <li [ngbNavItem]="p.var">
+                <li [ngbNavItem]="getNavItemName(p)">
                   <a ngbNavLink>{{ descriptions[p.var].descr | uppercase }}</a>
                   <ng-template ngbNavContent></ng-template>
                 </li>
@@ -78,11 +78,17 @@
             </ul>
             <div [ngbNavOutlet]="nav"></div>
             <p class="text-justify">
-              <ng-container *ngIf="filter.level">
-                <br /><small>{{ level }}</small>
+              <ng-container>
+                <br /><small>
+                  <b>Level:</b>
+                  {{ descriptions[single[0]["level"]].descr }}</small
+                >
               </ng-container>
-              <ng-container *ngIf="filter.timerange">
-                <br /><small>{{ timerange }}</small>
+              <ng-container>
+                <br /><small>
+                  <b>Timerange:</b>
+                  {{ descriptions[single[0]["timerange"]].descr }}</small
+                >
               </ng-container>
             </p>
             <div #containerRef>

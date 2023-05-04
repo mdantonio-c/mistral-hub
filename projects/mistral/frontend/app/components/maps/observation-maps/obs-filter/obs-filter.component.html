@@ -75,26 +75,51 @@
   <!-- Level -->
   <div class="mb-2">
     <label for="level">Level</label>
-    <select id="level" class="form-select" formControlName="level">
+    <select
+      id="level"
+      class="form-select"
+      formControlName="level"
+      [ngClass]="{
+        'is-invalid': !this.filterForm.get('level').value
+      }"
+    >
       <!--      <option value="" *ngIf="allLevels && allLevels.length > 0">Any</option>-->
+      <!--      Case of multiple timeranges, the default is not present and no one has been selected by the user-->
+      <option value=""></option>
       <option [ngValue]="l.code" *ngFor="let l of allLevels">
         {{ l.desc }}
       </option>
     </select>
+    <div class="invalid-feedback" *ngIf="!this.filterForm.get('level').value">
+      select a level
+    </div>
   </div>
   <!-- Time range -->
   <div class="mb-2">
     <label for="timerange">Time range</label>
-    <select id="timerange" class="form-select" formControlName="timerange">
-      <!--
-      <option value="" *ngIf="allTimeranges && allTimeranges.length > 0"
-        >Any</option
-      >
-      -->
+    <select
+      id="timerange"
+      class="form-select"
+      formControlName="timerange"
+      [ngClass]="{
+        'is-invalid': !this.filterForm.get('timerange').value
+      }"
+    >
+      <!--      <option value="" *ngIf="allTimeranges && allTimeranges.length > 0">Any</option>-->
+
+      <!--      Case of multiple timeranges, the default is not present and no one has been selected by the user-->
+      <option value=""></option>
+
       <option [ngValue]="t.code" *ngFor="let t of allTimeranges">
         {{ t.desc }}
       </option>
     </select>
+    <div
+      class="invalid-feedback"
+      *ngIf="!this.filterForm.get('timerange').value"
+    >
+      select a timerange
+    </div>
   </div>
   <!-- Area -->
   <!-- Network -->

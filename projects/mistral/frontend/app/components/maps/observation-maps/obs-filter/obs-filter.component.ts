@@ -78,7 +78,7 @@ export class ObsFilterComponent implements OnInit {
     private spinner: NgxSpinnerService,
     private local_storage: LocalStorageService,
     private authService: AuthService,
-    private ref: ChangeDetectorRef
+    private ref: ChangeDetectorRef,
   ) {
     this.filterForm = this.fb.group({
       product: [this.DEFAULT_PRODUCT, Validators.required],
@@ -165,7 +165,7 @@ export class ObsFilterComponent implements OnInit {
               license: f.license || "CCBY_COMPLIANT",
               reliabilityCheck: true,
             },
-            { emitEvent: false }
+            { emitEvent: false },
           );
 
           let items = data.items;
@@ -202,11 +202,16 @@ export class ObsFilterComponent implements OnInit {
               this.filterForm.controls.level.setValue(f.level, {
                 emitEvent: false,
               });
-            }
-            if (this.allLevels.length === 1) {
+            } else if (this.allLevels.length === 1) {
               this.filterForm.controls.level.setValue(this.allLevels[0].code, {
                 emitEvent: false,
               });
+            } else {
+              // set the option empty and give an invalid feedback to the user
+              this.filterForm.controls.timerange.setValue("", {
+                emitEvent: false,
+              });
+              this.isUpdatable = false;
             }
           }
           if (items.timerange) {
@@ -215,12 +220,17 @@ export class ObsFilterComponent implements OnInit {
               this.filterForm.controls.timerange.setValue(f.timerange, {
                 emitEvent: false,
               });
-            }
-            if (this.allTimeranges.length === 1) {
+            } else if (this.allTimeranges.length === 1) {
               this.filterForm.controls.timerange.setValue(
                 this.allTimeranges[0].code,
-                { emitEvent: false }
+                { emitEvent: false },
               );
+            } else {
+              // set the option empty and give an invalid feedback to the user
+              this.filterForm.controls.timerange.setValue("", {
+                emitEvent: false,
+              });
+              this.isUpdatable = false;
             }
           }
           if (initialize) {
@@ -230,7 +240,7 @@ export class ObsFilterComponent implements OnInit {
             });
             this.filterForm.controls.timerange.setValue(
               this.DEFAULT_TIMERANGE,
-              { emitEvent: false }
+              { emitEvent: false },
             );
             // set default license
             this.filterForm.controls.license.setValue(this.DEFAULT_LICENSE, {
@@ -239,7 +249,7 @@ export class ObsFilterComponent implements OnInit {
             // emit filter update
             if (this.filterForm.invalid) {
               this.notify.showError(
-                "Invalid filter: no data loaded on the map."
+                "Invalid filter: no data loaded on the map.",
               );
               return;
             }
@@ -255,14 +265,14 @@ export class ObsFilterComponent implements OnInit {
                 ? " network or "
                 : " ";
             this.notify.showWarning(
-              `No data available. Try selecting a different${extraMsg}reference date.`
+              `No data available. Try selecting a different${extraMsg}reference date.`,
             );
             this.isUpdatable = false;
           }
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         setTimeout(() => this.spinner.hide("filter-spinner"), 0);
@@ -327,6 +337,6 @@ export class ObsFilterComponent implements OnInit {
   formatter = (val: number[]) =>
     `${String(val[0]).padStart(2, "0")}:00 - ${String(val[1]).padStart(
       2,
-      "0"
+      "0",
     )}:59`;
 }
