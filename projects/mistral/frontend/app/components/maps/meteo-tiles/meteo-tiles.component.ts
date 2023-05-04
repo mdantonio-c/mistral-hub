@@ -111,7 +111,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   };
   options = {
     zoomControl: false,
-    zoom: MIN_ZOOM,
+    minZoom: MIN_ZOOM,
+    maxZoom: MAX_ZOOM - 1,
     center: L.latLng([46.879966, 11.726909]),
     timeDimension: true,
     timeDimensionControl: true,
@@ -1382,10 +1383,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       const mapCenter = super.getMapCenter();
       switch (this.dataset) {
         case "lm5":
+          this.map.setMaxZoom(MAX_ZOOM - 1);
           this.map.setView(mapCenter, 5);
           break;
         case "lm2.2":
         case "iff":
+          this.map.setMaxZoom(MAX_ZOOM);
           this.map.setView(mapCenter, 6);
           break;
       }
