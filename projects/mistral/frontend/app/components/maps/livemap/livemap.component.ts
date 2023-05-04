@@ -167,7 +167,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       const lastObs: ObsValue = obsData.val.pop();
       const val = ObsService.showData(lastObs.val, product);
       let icon = L.divIcon({
-        html: `<div class="mstObsIcon"><span>${val}` + "</span></div>",
+        html: `<div class="mstObsIcon"><span>${val}` + '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>',
         iconSize: [24, 6],
         className: `mst-marker-icon
           mst-obs-marker-color-${this.obsService.getColor(
