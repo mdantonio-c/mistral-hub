@@ -39,6 +39,7 @@ class ObservationsQuery(Schema):
     stationDetails = fields.Bool(required=False)
     allStationProducts = fields.Bool(required=False)
     reliabilityCheck = fields.Bool(required=False)
+    last = fields.Bool(required=False)
 
 
 class ObservationsDownloader(Schema):
@@ -91,6 +92,7 @@ class MapsObservations(EndpointResource):
         stationDetails: bool = False,
         allStationProducts: bool = True,
         reliabilityCheck: bool = False,
+        last: bool = False,
     ) -> Response:
         alchemy_db = sqlalchemy.get_instance()
         query: Dict[str, Any] = {}
@@ -224,6 +226,9 @@ class MapsObservations(EndpointResource):
                     raise Unauthorized("user is not authorized to access archived data")
                 db_type = "mixed"
 
+        if last and db_type == "mixed":
+            # only the most recent data is needed. In case of mixed dbs for sure this data will be on dballe
+            db_type = "dballe"
         log.debug("type of database: {}", db_type)
 
         if interval:
@@ -259,7 +264,7 @@ class MapsObservations(EndpointResource):
                 "no dballe DSN configured for the requested license group"
             )
         # parse the response
-        res = dballe.parse_obs_maps_response(raw_res)
+        res = dballe.parse_obs_maps_response(raw_res, last)
 
         if not res and stationDetails:
             raise NotFound("Station data not found")

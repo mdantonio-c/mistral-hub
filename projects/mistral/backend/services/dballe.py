@@ -1007,7 +1007,7 @@ class BeDballe:
         else:
             response = {}
         # choose the right query for the right situation
-        # (station details responseor default one)
+        # (station details response or default one)
         query = {}
         if query_station_data:
             parsed_query = BeDballe.parse_query_for_maps(query_station_data)
@@ -1257,7 +1257,7 @@ class BeDballe:
         return response
 
     @staticmethod
-    def parse_obs_maps_response(raw_res):
+    def parse_obs_maps_response(raw_res, only_last_data=False):
         log.debug("start parsing response for maps")
         response: Dict[str, Any] = {}
         response_data = []
@@ -1283,7 +1283,14 @@ class BeDballe:
                         product_el = {}
                         if type(prod_key) != tuple:
                             product_el["var"] = prod_key
-                            product_el["val"] = prod_value
+                            if only_last_data:
+                                sorted_values = sorted(
+                                    prod_value, key=lambda d: d["ref"], reverse=True
+                                )
+                                # log.debug(product_el["val"])
+                                product_el["val"] = [sorted_values[0]]
+                            else:
+                                product_el["val"] = prod_value
                             if prod_key not in product_varcodes:
                                 product_varcodes.append(prod_key)
                         else:
