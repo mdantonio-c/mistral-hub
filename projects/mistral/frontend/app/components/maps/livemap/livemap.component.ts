@@ -10,7 +10,11 @@ import { BaseMapComponent } from "../base-map.component";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ActivatedRoute, NavigationEnd, Params, Router } from "@angular/router";
-import { VARIABLES_CONFIG_OBS } from "../meteo-tiles/services/data";
+import { 
+  VARIABLES_CONFIG_OBS,
+  LEGEND_DATA, 
+  LegendConfig,
+} from "../meteo-tiles/services/data";
 import {
   ObsFilter,
   ObservationResponse,
@@ -38,6 +42,7 @@ const LAYER_OSM = L.tileLayer(
   styleUrls: ["./livemap.component.scss"],
 })
 export class LivemapComponent extends BaseMapComponent implements OnInit {
+  readonly LEGEND_POSITION = "bottomleft";
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   layersControl = {
     baseLayers: {
@@ -57,6 +62,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private markers: L.Marker[] = [];
   private allMarkers: L.Marker[] = [];
   private markersGroup: L.LayerGroup;
+  private legends: { [key: string]: L.Control } = {};
+  private currentProduct: string;
 
   private filter: ObsFilter;
 
@@ -101,7 +108,45 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     this.filter = filter;
     this.loadObservations(filter, true);
     this.centerMap();
+
+    this.legends = {
+      't2m': this.createLegendControl("tm2"),
+      'pmsl': this.createLegendControl("pmsl"),
+      'wind10m': this.createLegendControl("ws10m"),
+      'rh': this.createLegendControl("rh"),
+      'prp': this.createLegendControl("prp"),
+    };
+
+    this.legends['t2m'].addTo(map);
+    this.currentProduct= 't2m';
   }
+     
+  private createLegendControl(id: string): L.Control {
+    let config: LegendConfig = LEGEND_DATA.find((x) => x.id === id);
+    if (!config) {
+      console.error(`Legend data NOT found for ID<${id}>`);
+      this.notify.showError("Bad legend configuration");
+      return;
+    }
+  
+    const legend = new L.Control({ position: this.LEGEND_POSITION });
+    legend.onAdd = () => {
+      let div = L.DomUtil.create("div");
+      div.style.clear = "unset";
+      div.innerHTML += `<img class="legenda" src="/app/custom/assets/images/${id}.svg">`;
+      // for (let i = 0; i < config.labels.length; i++) {
+      //   div.innerHTML +=
+      //     '<i style="background:' +
+      //     config.colors[i] +
+      //     '"></i><span>' +
+      //     config.labels[i] +
+      //     "</span><br>";
+      // }
+      return div;
+    };
+    return legend;
+  }
+
 
   onMapZoomEnd($event) {
     super.onMapZoomEnd($event);
@@ -166,8 +211,14 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       // get the last value
       const lastObs: ObsValue = obsData.val.pop();
       const val = ObsService.showData(lastObs.val, product);
+      let htmlIcon = ''; 
+      if ('ws10m' in this.variablesConfig && this.variablesConfig['ws10m'].code === product){
+        htmlIcon = `<div class="mstObsIcon"><span>${val}` + '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
+      } else {
+        htmlIcon = `<div class="mstObsIcon"><span>${val}` + '</span></div>';
+      }
       let icon = L.divIcon({
-        html: `<div class="mstObsIcon"><span>${val}` + '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>',
+        html: htmlIcon,
         iconSize: [24, 6],
         className: `mst-marker-icon
           mst-obs-marker-color-${this.obsService.getColor(
@@ -203,7 +254,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   }
 
   toggleLayer(obj: Record<string, string>) {
-    // console.log(`toggle layer: ${obj.name}`);
+  console.log(`toggle layer: ${obj.name}`);
 
     // clean up layers
     if (this.markersGroup) {
@@ -218,6 +269,14 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       this.filter.level = this.variablesConfig[obj.name].level;
       this.loadObservations(this.filter, true);
     }
+  
+    this.map.removeControl(this.legends[this.currentProduct]);
+    if (this.legends[obj.name]) {
+      //console.log(this.legends[obj.name]);
+      this.legends[obj.name].addTo(this.map);
+    }
+
+    this.currentProduct = obj.name;
   }
 
   protected centerMap() {
