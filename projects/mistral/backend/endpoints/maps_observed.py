@@ -1,5 +1,6 @@
 import datetime
-from typing import Any, Dict, Optional
+import itertools
+from typing import Any, Dict, List, Optional
 
 from flask import Response as FlaskResponse
 from flask import stream_with_context
@@ -126,6 +127,7 @@ class MapsObservations(EndpointResource):
         # parse the query
         if q:
             parsed_query = dballe.from_query_to_dic(q)
+            log.debug(f"complete query: {parsed_query}")
             for key, value in parsed_query.items():
                 query[key] = value
 
@@ -153,12 +155,6 @@ class MapsObservations(EndpointResource):
 
             # since timerange and level are mandatory, add to the query for meteograms
             if query:
-                if "timerange" in query:
-                    query_station_data["timerange"] = query["timerange"]
-                if "level" in query:
-                    query_station_data["level"] = query["level"]
-                if "product" in query and not allStationProducts:
-                    query_station_data["product"] = query["product"]
                 if "datetimemin" in query:
                     query_station_data["datetimemin"] = query["datetimemin"]
                 if "datetimemax" in query:
@@ -241,22 +237,64 @@ class MapsObservations(EndpointResource):
                         "the requested interval is greater than the requested timerange"
                     )
         try:
-            if db_type == "mixed":
-                raw_res = dballe.get_maps_response_for_mixed(
-                    query,
-                    onlyStations,
-                    query_station_data=query_station_data,
-                    dsn_subset=dsn_subset,
-                )
+            query_list: Optional[List[Dict[str, Any]]] = []
+            if query:
+                # check if there are filters with multiple queries
+                single_params = {}
+                list_params = {}
+                for k, v in query.items():
+                    if not isinstance(v, list) or len(v) == 1:
+                        single_params[k] = v
+                    else:
+                        list_params[k] = v
+                if not list_params:
+                    # not multiple queries, append the original query to the query list
+                    query_list.append(single_params)
+                else:
+                    # prepare the multiple queries
+                    fields = []
+                    queries = []
+                    for k, v in list_params.items():
+                        fields.append(k)
+                        queries.append(v)
+                    all_queries = list(itertools.product(*queries))
+                    for q in all_queries:
+                        single_query = {**single_params}
+                        for k, v in zip(fields, q):
+                            single_query[k] = [v]
+                        query_list.append(single_query)
             else:
-                raw_res = dballe.get_maps_response(
-                    query,
-                    onlyStations,
-                    interval=interval,
-                    db_type=db_type,
-                    query_station_data=query_station_data,
-                    dsn_subset=dsn_subset,
-                )
+                # you need to iterate over query list to extract data, so add an empty element to the list
+                query_list.append(None)
+
+            raw_res: Optional[Any] = None
+            for q in query_list:
+                if q and query_station_data:
+                    # add the params that can be multiple to the query for station details
+                    if "timerange" in q:
+                        query_station_data["timerange"] = q["timerange"]
+                    if "level" in q:
+                        query_station_data["level"] = q["level"]
+                    if "product" in q and not allStationProducts:
+                        query_station_data["product"] = q["product"]
+                if db_type == "mixed":
+                    raw_res = dballe.get_maps_response_for_mixed(
+                        q,
+                        onlyStations,
+                        query_station_data=query_station_data,
+                        dsn_subset=dsn_subset,
+                        previous_res=raw_res,
+                    )
+                else:
+                    raw_res = dballe.get_maps_response(
+                        q,
+                        onlyStations,
+                        interval=interval,
+                        db_type=db_type,
+                        query_station_data=query_station_data,
+                        dsn_subset=dsn_subset,
+                        previous_res=raw_res,
+                    )
         except AccessToDatasetDenied:
             raise ServerError("Access to dataset denied")
         except WrongDbConfiguration:

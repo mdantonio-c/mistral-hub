@@ -863,6 +863,7 @@ class BeDballe:
         query_station_data=None,
         interval=None,
         dsn_subset=[],
+        previous_res=None,
     ):
         # get data from the dballe database
         log.debug("mixed dbs: get data from dballe")
@@ -912,6 +913,7 @@ class BeDballe:
                 interval=interval,
                 db_type="dballe",
                 dsn_subset=dsn_subset,
+                previous_res=previous_res,
             )
         else:
             dballe_maps_data = BeDballe.get_maps_response(
@@ -920,6 +922,7 @@ class BeDballe:
                 interval=interval,
                 db_type="dballe",
                 dsn_subset=dsn_subset,
+                previous_res=previous_res,
             )
 
         if query_for_dballe:
@@ -1627,7 +1630,7 @@ class BeDballe:
     @staticmethod
     def parse_query_for_maps(query):
         query_data = {}
-        # TODO: now query does not support multiple values for a single param
+        # now parse query does not support multiple values for a single param. This use case is supported by maps_observed api instead
         # adapt the query to the dballe syntax and add the params to the general query
         to_parse = [
             "level",
@@ -1656,7 +1659,6 @@ class BeDballe:
             "ident",
             "rep_memo",
         ]
-
         for key, value in query.items():
             if key in to_parse:
                 key_index = to_parse.index(key)
