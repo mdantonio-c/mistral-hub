@@ -302,6 +302,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
     //console.log(meteogramsFilter)
     // get the data
+    modalRef.componentInstance.selectedProduct = this.filter;
     modalRef.componentInstance.filter = meteogramsFilter;
     // need to trigger resize event
     window.dispatchEvent(new Event("resize"));

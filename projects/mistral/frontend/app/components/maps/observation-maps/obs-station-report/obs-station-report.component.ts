@@ -26,6 +26,7 @@ const STATION_NAME_CODE = "B01019";
 export class ObsStationReportComponent implements OnInit {
   @Input() station: Station;
   @Input() filter: ObsFilter;
+  @Input() selectedProduct: ObsFilter;
 
   name: string;
   level: string;
@@ -77,8 +78,18 @@ export class ObsStationReportComponent implements OnInit {
           let multi = this.normalize(data[0]);
           Object.assign(this, { multi });
           //console.log(JSON.stringify(this.multi));
-          this.single = [multi[0]];
-          this.active = `${this.single[0].code}-${this.single[0].level}-${this.single[0].timerange}`;
+          let meteogramToShow: string;
+          if (this.selectedProduct) {
+            // it means that the filter contains multiple products
+            meteogramToShow = `${this.selectedProduct.product}-${this.selectedProduct.level}-${this.selectedProduct.timerange}`;
+          } else {
+            meteogramToShow = `${this.filter.product}-${this.filter.level}-${this.filter.timerange}`;
+          }
+          this.single = this.multi.filter(
+            (x: DataSeries) =>
+              `${x.code}-${x.level}-${x.timerange}` === meteogramToShow,
+          );
+          this.active = meteogramToShow;
           // console.log("single: ", this.single, "multi: ", multi);
         },
         (error) => {
