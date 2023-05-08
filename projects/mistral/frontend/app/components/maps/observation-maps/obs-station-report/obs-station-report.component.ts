@@ -101,7 +101,8 @@ export class ObsStationReportComponent implements OnInit {
     }
   }
 
-  getUserUnit(varcode: string) {
+  getUserUnit(elementId: string) {
+    const varcode = elementId.split("-")[0];
     const unit: string = this.single[0].unit;
     return ObsService.showUserUnit(varcode, unit);
   }
