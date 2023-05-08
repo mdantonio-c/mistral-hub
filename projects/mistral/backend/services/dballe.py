@@ -1152,7 +1152,7 @@ class BeDballe:
             count_data = tr.query_data(query).remaining
             # log.debug('count {}',count_data)
             if count_data == 0:
-                return []
+                return response
             # check if an extended response is requested:
             extend_res = False
             if query:
