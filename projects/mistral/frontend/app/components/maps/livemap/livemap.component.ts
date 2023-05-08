@@ -287,7 +287,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     );
     //console.log(`all products : ${meteogramProducts}, all levels : ${meteogramLevels}, all tranges : ${meteogramTimeranges}`)
     // create the filter to get all the livemap products
-    let meteogramsFilter: ObsFilter = this.filter;
+    let meteogramsFilter: ObsFilter = Object.assign({}, this.filter);
     // delete "last" parameter
     meteogramsFilter.last = false;
     // add the param to insert the product in the query
