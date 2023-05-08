@@ -212,46 +212,50 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     });
     data.forEach((s) => {
       obsData = s.prod.find((x) => x.var === product);
-      // get the last value
-      const lastObs: ObsValue = obsData.val.pop();
-      const val = ObsService.showData(lastObs.val, product);
-      let htmlIcon = "";
-      if (
-        "ws10m" in this.variablesConfig &&
-        this.variablesConfig["ws10m"].code === product
-      ) {
-        htmlIcon =
-          `<div class="mstObsIcon"><span>${val}` +
-          '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
-      } else {
-        htmlIcon = `<div class="mstObsIcon"><span>${val}` + "</span></div>";
-      }
-      let icon = L.divIcon({
-        html: htmlIcon,
-        iconSize: [24, 6],
-        className: `mst-marker-icon
+      // filter the data to get only reliable data
+      obsData.val = obsData.val.filter((v) => v.rel === 1);
+      if (obsData.val.length > 0) {
+        const lastObs: ObsValue = obsData.val.pop();
+        //console.log(lastObs)
+        const val = ObsService.showData(lastObs.val, product);
+        let htmlIcon = "";
+        if (
+          "ws10m" in this.variablesConfig &&
+          this.variablesConfig["ws10m"].code === product
+        ) {
+          htmlIcon =
+            `<div class="mstObsIcon"><span>${val}` +
+            '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
+        } else {
+          htmlIcon = `<div class="mstObsIcon"><span>${val}` + "</span></div>";
+        }
+        let icon = L.divIcon({
+          html: htmlIcon,
+          iconSize: [24, 6],
+          className: `mst-marker-icon
           mst-obs-marker-color-${this.obsService.getColor(
             lastObs.val,
             min,
             max,
           )}`,
-      });
-      const m = new L.Marker([s.stat.lat, s.stat.lon], {
-        icon: icon,
-      });
-      m.options["station"] = s.stat;
-      m.options["data"] = obsData;
-      m.bindTooltip(
-        BaseMapComponent.buildTooltipTemplate(s.stat, lastObs.ref, val),
-        {
-          direction: "top",
-          offset: [4, -2],
-          opacity: 0.75,
-          className: "leaflet-tooltip mst-obs-tooltip",
-        },
-      );
-      m.on("click", this.openStationReport.bind(this, s.stat));
-      this.allMarkers.push(m);
+        });
+        const m = new L.Marker([s.stat.lat, s.stat.lon], {
+          icon: icon,
+        });
+        m.options["station"] = s.stat;
+        m.options["data"] = obsData;
+        m.bindTooltip(
+          BaseMapComponent.buildTooltipTemplate(s.stat, lastObs.ref, val),
+          {
+            direction: "top",
+            offset: [4, -2],
+            opacity: 0.75,
+            className: "leaflet-tooltip mst-obs-tooltip",
+          },
+        );
+        m.on("click", this.openStationReport.bind(this, s.stat));
+        this.allMarkers.push(m);
+      }
     });
     // console.log(`Total markers: ${this.allMarkers.length}`);
 
