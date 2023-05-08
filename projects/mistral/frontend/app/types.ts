@@ -283,6 +283,8 @@ export interface ObsFilter {
   onlyStations?: boolean;
   reliabilityCheck?: boolean;
   interval?: number;
+  last?: boolean;
+  allStationProducts?: boolean;
 }
 
 export interface Network {

@@ -33,7 +33,7 @@ export class ObsService {
       q: `${ObsService.parseReftime(
         filter.reftime,
         filter.reftime,
-        filter.time
+        filter.time,
       )};product:${filter.product};license:${filter.license}`,
       SummaryStats: false,
       allAvailableProducts: true,
@@ -70,13 +70,13 @@ export class ObsService {
    */
   getStationTimeSeries(
     filter: ObsFilter,
-    station: Station
+    station: Station,
   ): Observable<ObservationResponse> {
     let params = {
       q: `${ObsService.parseReftime(
         filter.reftime,
         filter.reftime,
-        filter.time
+        filter.time,
       )}`,
       lat: station.lat,
       lon: station.lon,
@@ -91,6 +91,12 @@ export class ObsService {
     }
     if (filter.license && filter.license !== "") {
       params["q"] += `;license:${filter.license}`;
+    }
+    if (filter.product && filter.product !== "") {
+      params["q"] += `;product:${filter.product}`;
+    }
+    if (filter.allStationProducts == false) {
+      params["allStationProducts"] = filter.allStationProducts;
     }
     return this.api.get("/api/observations", params);
     //.pipe(map((data: Observation[], descriptions: Descriptions[]) => (data.data, data.descr)));
@@ -109,7 +115,7 @@ export class ObsService {
         } else {
           return this.loadObservations(filter);
         }
-      })
+      }),
     );
   }
 
@@ -124,7 +130,7 @@ export class ObsService {
       q: `${ObsService.parseReftime(
         filter.reftime,
         filter.reftime,
-        filter.time
+        filter.time,
       )};product:${filter.product};license:${filter.license}`,
     };
     if (filter.reliabilityCheck) {
@@ -152,6 +158,9 @@ export class ObsService {
     if (filter.interval) {
       params["interval"] = filter.interval;
     }
+    if (filter.last) {
+      params["last"] = filter.last;
+    }
     // console.log(`q: ${params.q}`);
     return this.api
       .get<ObservationResponse>("/api/observations", params)
@@ -162,7 +171,7 @@ export class ObsService {
     filter: ObsFilter,
     from: Date,
     to: Date,
-    format: string
+    format: string,
   ): Observable<Blob> {
     let params = {
       q: `${ObsService.parseReftime(from, to, filter.time)};product:${
@@ -215,7 +224,7 @@ export class ObsService {
     let delta = (max - min) / COLORS.length;
     return Math.max(
       0,
-      Math.min(COLORS.length - 1, Math.floor((d - min) / delta))
+      Math.min(COLORS.length - 1, Math.floor((d - min) / delta)),
     );
   }
 

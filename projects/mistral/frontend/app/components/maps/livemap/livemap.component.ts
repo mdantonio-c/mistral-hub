@@ -10,9 +10,9 @@ import { BaseMapComponent } from "../base-map.component";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ActivatedRoute, NavigationEnd, Params, Router } from "@angular/router";
-import { 
+import {
   VARIABLES_CONFIG_OBS,
-  LEGEND_DATA, 
+  LEGEND_DATA,
   LegendConfig,
 } from "../meteo-tiles/services/data";
 import {
@@ -21,8 +21,11 @@ import {
   ObsData,
   Observation,
   ObsValue,
+  Station,
 } from "../../../types";
 import { ObsService } from "../observation-maps/services/obs.service";
+import { ObsStationReportComponent } from "../observation-maps/obs-station-report/obs-station-report.component";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 
 const MAX_ZOOM = 12;
 const MIN_ZOOM = 5;
@@ -73,6 +76,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     private obsService: ObsService,
     private router: Router,
     private route: ActivatedRoute,
+    private modalService: NgbModal,
   ) {
     super(notify, spinner);
   }
@@ -99,6 +103,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       time: [0, 23],
       onlyStations: false,
       reliabilityCheck: true,
+      last: true,
 
       // temperature
       product: VARIABLES_CONFIG_OBS["t2m"].code,
@@ -110,17 +115,17 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     this.centerMap();
 
     this.legends = {
-      't2m': this.createLegendControl("tm2"),
-      'pmsl': this.createLegendControl("pmsl"),
-      'wind10m': this.createLegendControl("ws10m"),
-      'rh': this.createLegendControl("rh"),
-      'prp': this.createLegendControl("prp"),
+      t2m: this.createLegendControl("tm2"),
+      pmsl: this.createLegendControl("pmsl"),
+      wind10m: this.createLegendControl("ws10m"),
+      rh: this.createLegendControl("rh"),
+      prp: this.createLegendControl("prp"),
     };
 
-    this.legends['t2m'].addTo(map);
-    this.currentProduct= 't2m';
+    this.legends["t2m"].addTo(map);
+    this.currentProduct = "t2m";
   }
-     
+
   private createLegendControl(id: string): L.Control {
     let config: LegendConfig = LEGEND_DATA.find((x) => x.id === id);
     if (!config) {
@@ -128,7 +133,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       this.notify.showError("Bad legend configuration");
       return;
     }
-  
+
     const legend = new L.Control({ position: this.LEGEND_POSITION });
     legend.onAdd = () => {
       let div = L.DomUtil.create("div");
@@ -146,7 +151,6 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     };
     return legend;
   }
-
 
   onMapZoomEnd($event) {
     super.onMapZoomEnd($event);
@@ -211,11 +215,16 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       // get the last value
       const lastObs: ObsValue = obsData.val.pop();
       const val = ObsService.showData(lastObs.val, product);
-      let htmlIcon = ''; 
-      if ('ws10m' in this.variablesConfig && this.variablesConfig['ws10m'].code === product){
-        htmlIcon = `<div class="mstObsIcon"><span>${val}` + '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
+      let htmlIcon = "";
+      if (
+        "ws10m" in this.variablesConfig &&
+        this.variablesConfig["ws10m"].code === product
+      ) {
+        htmlIcon =
+          `<div class="mstObsIcon"><span>${val}` +
+          '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
       } else {
-        htmlIcon = `<div class="mstObsIcon"><span>${val}` + '</span></div>';
+        htmlIcon = `<div class="mstObsIcon"><span>${val}` + "</span></div>";
       }
       let icon = L.divIcon({
         html: htmlIcon,
@@ -241,6 +250,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
           className: "leaflet-tooltip mst-obs-tooltip",
         },
       );
+      m.on("click", this.openStationReport.bind(this, s.stat));
       this.allMarkers.push(m);
     });
     // console.log(`Total markers: ${this.allMarkers.length}`);
@@ -253,8 +263,48 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     this.markersGroup.addTo(this.map);
   }
 
+  private openStationReport(station: Station) {
+    const modalRef = this.modalService.open(ObsStationReportComponent, {
+      size: "xl",
+      centered: true,
+    });
+    modalRef.componentInstance.station = station;
+    // get the query parameters for all the products
+    let meteogramProducts: string[] = [];
+    let meteogramLevels: string[] = [];
+    let meteogramTimeranges: string[] = [];
+    for (let key in this.variablesConfig) {
+      meteogramProducts.push(this.variablesConfig[key]["code"]);
+      meteogramLevels.push(this.variablesConfig[key]["level"]);
+      meteogramTimeranges.push(this.variablesConfig[key]["timerange"]);
+    }
+    // delete duplicates
+    meteogramLevels = meteogramLevels.filter(
+      (value, index) => meteogramLevels.indexOf(value) === index,
+    );
+    meteogramTimeranges = meteogramTimeranges.filter(
+      (value, index) => meteogramTimeranges.indexOf(value) === index,
+    );
+    //console.log(`all products : ${meteogramProducts}, all levels : ${meteogramLevels}, all tranges : ${meteogramTimeranges}`)
+    // create the filter to get all the livemap products
+    let meteogramsFilter: ObsFilter = this.filter;
+    // delete "last" parameter
+    meteogramsFilter.last = false;
+    // add the param to insert the product in the query
+    meteogramsFilter.allStationProducts = false;
+    // update with the query parameters for all the products
+    meteogramsFilter.product = meteogramProducts.join(" or ");
+    meteogramsFilter.level = meteogramLevels.join(" or ");
+    meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
+    //console.log(meteogramsFilter)
+    // get the data
+    modalRef.componentInstance.filter = meteogramsFilter;
+    // need to trigger resize event
+    window.dispatchEvent(new Event("resize"));
+  }
+
   toggleLayer(obj: Record<string, string>) {
-  console.log(`toggle layer: ${obj.name}`);
+    console.log(`toggle layer: ${obj.name}`);
 
     // clean up layers
     if (this.markersGroup) {
@@ -269,7 +319,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       this.filter.level = this.variablesConfig[obj.name].level;
       this.loadObservations(this.filter, true);
     }
-  
+
     this.map.removeControl(this.legends[this.currentProduct]);
     if (this.legends[obj.name]) {
       //console.log(this.legends[obj.name]);
@@ -303,7 +353,10 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   }
 
   printReferenceDate(): string {
-    return `${moment.utc(new Date().getTime()).local().format("MMM DD, HH:mm")}`;
+    return `${moment
+      .utc(new Date().getTime())
+      .local()
+      .format("MMM DD, HH:mm")}`;
   }
 
   reload(): void {
