@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, OnInit, Input, OnDestroy } from "@angular/core";
 import * as L from "leaflet";
 import * as moment from "moment";
 import { MOBILE_WIDTH, ViewModes } from "./meteo-tiles/meteo-tiles.config";
@@ -13,7 +13,7 @@ const MAP_CENTER = L.latLng(41.879966, 12.28),
   selector: "mst-base-map",
   template: "",
 })
-export abstract class BaseMapComponent implements OnInit {
+export abstract class BaseMapComponent implements OnInit, OnDestroy {
   map: L.Map;
   modes = ViewModes;
   viewMode = ViewModes.adv;
@@ -29,6 +29,12 @@ export abstract class BaseMapComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {}
+
+  ngOnDestroy() {
+    if (null != this.map) {
+      this.map.remove();
+    }
+  }
 
   protected abstract onMapReady(map: L.Map);
 
