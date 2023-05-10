@@ -3,6 +3,7 @@ import * as L from "leaflet";
 import * as moment from "moment";
 import {
   MISTRAL_LICENSE_HREF,
+  MOBILE_WIDTH,
   OSM_LICENSE_HREF,
   ViewModes,
 } from "../meteo-tiles/meteo-tiles.config";
@@ -214,7 +215,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       if (obsData.val.length > 0) {
         const lastObs: ObsValue = obsData.val.pop();
         const val = ObsService.showData(lastObs.val, product);
-        console.log(lastObs.val, val, localMin, max);
+        // console.log(lastObs.val, val, localMin, max);
         if (lastObs.val < max && lastObs.val > min) {
           let htmlIcon = "";
           let color: string = "";
@@ -499,11 +500,6 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       const mapCenter = super.getMapCenter();
       this.map.setView(mapCenter, 6);
     }
-  }
-
-  onCollapse(event: boolean) {
-    super.onCollapse(event);
-    this.centerMap();
   }
 
   printDatasetProduct(): string {

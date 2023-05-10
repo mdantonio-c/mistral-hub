@@ -7,7 +7,7 @@ import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 
 const MAP_CENTER = L.latLng(41.879966, 12.28),
-  LNG_OFFSET = 3;
+  LNG_OFFSET = 2.3;
 
 @Component({
   selector: "mst-base-map",
@@ -126,6 +126,11 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
 
   onCollapse(event: boolean) {
     this.collapsed = event;
+    if (this.map && window.innerWidth > MOBILE_WIDTH) {
+      const panelWidth = 100;
+      let lngOffset = this.collapsed ? panelWidth : -panelWidth;
+      this.panToOffset(this.map.getCenter(), [lngOffset, 0], { animate: true });
+    }
   }
 
   protected static buildTooltipTemplate(
@@ -166,4 +171,16 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
 
   public abstract printReferenceDate(): string;
   public abstract printDatasetProduct(): string;
+
+  public panToOffset(
+    latlng: L.LatLng,
+    offset,
+    options: L.PanOptions,
+  ): L.LatLng {
+    let x = this.map.latLngToContainerPoint(latlng).x - offset[0];
+    let y = this.map.latLngToContainerPoint(latlng).y - offset[1];
+    let point = this.map.containerPointToLatLng([x, y]);
+    this.map.panTo(point, options);
+    return point;
+  }
 }

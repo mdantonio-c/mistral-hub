@@ -1600,9 +1600,4 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     let date = this.runAvailable.reftime.substr(0, 8);
     return `${date.substr(0, 4)}-${date.substr(4, 2)}-${date.substr(6, 2)}`;
   }
-
-  onCollapse(event: boolean) {
-    super.onCollapse(event);
-    this.centerMap();
-  }
 }
