@@ -354,10 +354,24 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               }
             };
 
-            if (
-              "ws10m" in this.variablesConfig &&
-              this.variablesConfig["ws10m"].code === product
-            ) {
+            if ("ws10m" in this.variablesConfig && this.variablesConfig["ws10m"].code === product) {
+              if (lastObs.val >= 70){
+                color= "#9600FE";
+              } else if (lastObs.val >= 50 && lastObs.val < 70) {
+              color = "#EE82EE";
+              } else if (lastObs.val >= 30 && lastObs.val < 50) {
+                color = "#FF0000";
+              }  else if (lastObs.val >= 20 && lastObs.val < 30) {
+                color = "#FFFF00";
+              }  else if (lastObs.val >= 10 && lastObs.val < 20) {
+                color = "#FFA600";
+              } else if (lastObs.val >= 5 && lastObs.val < 10) {
+                color = "#0000FE"; 
+              } else if (lastObs.val >= 2 && lastObs.val < 5) {
+                color = "#54878C";
+              } else if (lastObs.val >= 0 && lastObs.val < 2) {
+                color = "#457D00";
+              }
               htmlIcon =
                 `<div class="mstObsIcon" ><span>${val}` +
                 '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
