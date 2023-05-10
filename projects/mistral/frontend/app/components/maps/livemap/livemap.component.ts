@@ -214,7 +214,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       if (obsData.val.length > 0) {
         const lastObs: ObsValue = obsData.val.pop();
         const val = ObsService.showData(lastObs.val, product);
-        console.log(lastObs.val, localMin, max);
+        console.log(lastObs.val, val, localMin, max);
           if (lastObs.val < max && lastObs.val > min){
             let htmlIcon = "";
             let color: string = '';
@@ -299,8 +299,61 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
                 color = "#ffcc00";
               };
             };
+            if ("prp" in this.variablesConfig && this.variablesConfig['prp'].code === product) {
+              if (lastObs.val >= 300){
+                color= "#4897D9";
+              } else if (lastObs.val >= 200 && lastObs.val < 300) {
+              color = "#A2A4D6";
+              } else if (lastObs.val >= 100 && lastObs.val < 200) {
+                color ="#B887C0";
+              } else if (lastObs.val >= 75 && lastObs.val < 100) {
+                color = "#D6A1CC";
+              } else if (lastObs.val >= 50 && lastObs.val < 75) {
+                color = "#E7BDDA";
+              } else if (lastObs.val >= 40 && lastObs.val < 50) {
+                color = "#E57D9A";
+              } else if (lastObs.val >= 30 && lastObs.val < 40) {
+                color = "#DA4C4D";
+              } else if (lastObs.val >= 25 && lastObs.val < 30) {
+                color = "#EE5A5C";
+              } else if (lastObs.val >= 20 && lastObs.val < 25) {
+                color = "#F6A15C";
+              } else if (lastObs.val >= 15 && lastObs.val < 20) {
+                color = "#FCD48E";
+              } else if (lastObs.val >= 10 && lastObs.val < 15) {
+                color = "#FFE073";
+              } else if (lastObs.val >= 8 && lastObs.val < 10) {
+                color = "#FDFD81";
+              } else if (lastObs.val >= 6 && lastObs.val < 8) {
+                color = "#FFFFC6";
+              } else if (lastObs.val >= 5 && lastObs.val < 6) {
+                color = "#F2F2A0";
+              } else if (lastObs.val >= 4 && lastObs.val < 5) {
+                color = "#D2EBA3";
+              } else if (lastObs.val >= 3 && lastObs.val < 4) {
+                color = "#C2E5D7";
+              } else if (lastObs.val >= 2 && lastObs.val < 3) {
+                color = "#C7E7EF";
+              }else if (lastObs.val >= 0 && lastObs.val < 2) {
+                color = "#CFEAF6";
+              }
+            };
+            if ("rh" in this.variablesConfig && this.variablesConfig['rh'].code === product) {
+              if (lastObs.val >= 110){
+                color= "blue";
+              } else if (lastObs.val >= 100 && lastObs.val < 110) {
+              color = "cyan";
+              } else if (lastObs.val >= 90 && lastObs.val < 100) {
+                color = "green";
+              }  else if (lastObs.val >= 80 && lastObs.val < 90) {
+                color = "yellow";
+              }  else if (lastObs.val >= 70 && lastObs.val < 80) {
+                color = "orange";
+              } else if (lastObs.val >= 60 && lastObs.val < 70) {
+                color = "red";
+              }
+            };
 
-            
             if (
               "ws10m" in this.variablesConfig &&
               this.variablesConfig["ws10m"].code === product
