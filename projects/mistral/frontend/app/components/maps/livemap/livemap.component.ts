@@ -209,52 +209,131 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       if (!max || localMax > max) {
         max = localMax;
       }
-    });
-    data.forEach((s) => {
-      obsData = s.prod.find((x) => x.var === product);
       // filter the data to get only reliable data
       obsData.val = obsData.val.filter((v) => v.rel === 1);
       if (obsData.val.length > 0) {
         const lastObs: ObsValue = obsData.val.pop();
-        //console.log(lastObs)
         const val = ObsService.showData(lastObs.val, product);
-        let htmlIcon = "";
-        if (
-          "ws10m" in this.variablesConfig &&
-          this.variablesConfig["ws10m"].code === product
-        ) {
-          htmlIcon =
-            `<div class="mstObsIcon"><span>${val}` +
-            '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
-        } else {
-          htmlIcon = `<div class="mstObsIcon"><span>${val}` + "</span></div>";
-        }
-        let icon = L.divIcon({
-          html: htmlIcon,
-          iconSize: [24, 6],
-          className: `mst-marker-icon
-          mst-obs-marker-color-${this.obsService.getColor(
-            lastObs.val,
-            min,
-            max,
-          )}`,
-        });
-        const m = new L.Marker([s.stat.lat, s.stat.lon], {
-          icon: icon,
-        });
-        m.options["station"] = s.stat;
-        m.options["data"] = obsData;
-        m.bindTooltip(
-          BaseMapComponent.buildTooltipTemplate(s.stat, lastObs.ref, val),
-          {
-            direction: "top",
-            offset: [4, -2],
-            opacity: 0.75,
-            className: "leaflet-tooltip mst-obs-tooltip",
-          },
-        );
-        m.on("click", this.openStationReport.bind(this, s.stat));
-        this.allMarkers.push(m);
+        console.log(lastObs.val, localMin, max);
+          if (lastObs.val < max && lastObs.val > min){
+            let htmlIcon = "";
+            let color: string = '';
+            if ("t2m" in this.variablesConfig && this.variablesConfig['t2m'].code === product) {
+              if (lastObs.val >= 319.15){
+                  color= "#ff9900";
+              } else if (lastObs.val >= 317.15 && lastObs.val < 319.15) {
+                color = "#ffcc00";
+              } else if (lastObs.val >= 315.15 && lastObs.val < 317.15) {
+                color = "#7200ff";
+              } else if (lastObs.val >= 313.15 && lastObs.val < 315.15) {
+                color = "#bf00ff";
+              } else if (lastObs.val >= 311.15 && lastObs.val < 313.15) {
+                color = "#ff00ff";
+              } else if (lastObs.val >= 309.15 && lastObs.val < 311.15) {
+                color= "#cc00cc";
+              } else if (lastObs.val >= 307.15 && lastObs.val < 309.15) {
+                color = "#990099";
+              } else if (lastObs.val >= 305.15 && lastObs.val < 307.15) {
+                color = "#660066";
+              } else if (lastObs.val >= 303.15 && lastObs.val < 305.15) {
+                color = "#660000";
+              } else if (lastObs.val >= 301.15 && lastObs.val < 303.15) {
+                color= "#990000";
+              } else if (lastObs.val >= 299.15 && lastObs.val < 301.15) {
+                color= "#cc0000";
+              } else if (lastObs.val >= 297.15 && lastObs.val < 299.15) {
+                color= "#ff0000";
+              } else if (lastObs.val >= 295.15 && lastObs.val < 297.15) {
+                color= "#ff6600";
+              } else if (lastObs.val >= 293.15 && lastObs.val <  295.15) {
+                color = "#ff9900";
+              } else if (lastObs.val >= 291.15 && lastObs.val < 293.15) {
+                color= "#ffcc00";
+              } else if (lastObs.val >= 289.15 && lastObs.val < 291.16) {
+                color = "#ffff00";
+              } else if (lastObs.val >= 287.15 && lastObs.val < 289.15) {
+                color= "#cce500";
+              } else if (lastObs.val >= 285.15 && lastObs.val < 287.15) {
+                color = "#7fcc00";
+              } else if (lastObs.val >= 283.15 && lastObs.val < 285.15) {
+                color = "#00b200";
+              }  else if (lastObs.val >= 281.15 && lastObs.val < 283.15) {
+                color = "#00cc7f";
+              } else if (lastObs.val >= 279.15 && lastObs.val < 281.15) {
+                color = "#00e5cc";
+              } else if (lastObs.val >= 277.15 && lastObs.val < 279.15) {
+                color = "#00ffff";
+              } else if (lastObs.val >= 275.15 && lastObs.val < 277.15) {
+                color = "#00bfff";
+              }   else if (lastObs.val >= 273.15 && lastObs.val < 275.15) {
+                color = "#008cff";
+              } else if (lastObs.val >= 271.15 && lastObs.val < 273.15) {
+                color = "#0059ff";
+              }  else if (lastObs.val >= 269.15 && lastObs.val < 271.15) {
+                color= "#0000ff";
+              } else if (lastObs.val >= 267.15 && lastObs.val < 269.15) {
+                color = "#7200ff";
+              } else if (lastObs.val >= 265.15 && lastObs.val < 267.15) {
+                color = "#bf00ff";
+              } else if (lastObs.val >= 263.15 && lastObs.val < 265.15) {
+                color = "#ff00ff";
+              } else if (lastObs.val >= 261.15 && lastObs.val < 263.15) {
+                color = "#cc00cc";
+              } else if (lastObs.val >= 259.15 && lastObs.val < 261.15) {
+                color = "#990099";
+              } else if (lastObs.val >= 257.15 && lastObs.val < 259.15) {
+                color = "#660066";
+              } else if (lastObs.val >= 255.15 && lastObs.val < 257.15) {
+                color = "#660000";
+              } else if (lastObs.val >= 253.15 && lastObs.val < 255.15) {
+                color= "#990000";
+              } else if (lastObs.val >= 251.15 && lastObs.val < 253.15) {
+                color = "#cc0000";
+              } else if (lastObs.val >= 249.15 && lastObs.val < 251.15) {
+                color = "#ff0000";
+              } else if (lastObs.val >= 247.15 && lastObs.val < 249.15) {
+                color = "#ff6600";
+              }else if (lastObs.val >= 245.15 && lastObs.val < 247.15) {
+                color = "#ff9900";
+              } else if (lastObs.val >= 243.15 && lastObs.val < 245.15) {
+                color = "#ffcc00";
+              };
+            };
+
+            
+            if (
+              "ws10m" in this.variablesConfig &&
+              this.variablesConfig["ws10m"].code === product
+            ) {
+              htmlIcon =
+                `<div class="mstObsIcon" ><span>${val}` +
+                '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
+            } else {
+              htmlIcon = `<div class="mstObsIcon rounded" style="background-color: ${color};"><span>${val}` + "</span></div>";
+            }
+            let icon = L.divIcon({
+              html: htmlIcon,
+              iconSize: [24, 6],
+              className: `mst-marker-icon
+              mst-obs-marker-color-${color}`,
+            });
+            const m = new L.Marker([s.stat.lat, s.stat.lon], {
+              icon: icon,
+            });
+            m.options["station"] = s.stat;
+            m.options["data"] = obsData;
+            m.bindTooltip(
+              BaseMapComponent.buildTooltipTemplate(s.stat, lastObs.ref, val),
+              {
+                direction: "top",
+                offset: [4, -2],
+                opacity: 0.75,
+                className: "leaflet-tooltip mst-obs-tooltip",
+              },
+            );
+            m.on("click", this.openStationReport.bind(this, s.stat));
+            this.allMarkers.push(m);
+          }
       }
     });
     // console.log(`Total markers: ${this.allMarkers.length}`);
