@@ -40,7 +40,7 @@ export class ObsMapComponent {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> | ' +
         '&copy; <a href="/app/license#mistral-contributors" target="_blank" rel="noopener noreferrer">MISTRAL data contributor</a>',
-    }
+    },
   );
 
   // Marker cluster stuff
@@ -66,7 +66,7 @@ export class ObsMapComponent {
     private obsService: ObsService,
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
   ) {
     // custom cluster options
     this.markerClusterOptions = {
@@ -138,12 +138,12 @@ export class ObsMapComponent {
           if (is_single_station) {
             cluster.bindTooltip(
               ObsMapComponent.buildTooltipTemplate(
-                childMarkers[0].options["station"]
+                childMarkers[0].options["station"],
               ),
               {
                 direction: "top",
                 offset: [3, -8],
-              }
+              },
             );
           }
         } else {
@@ -272,13 +272,13 @@ export class ObsMapComponent {
           this.loadMarkers(data, filter.product, filter.onlyStations);
           if (data.length === 0) {
             this.notify.showWarning(
-              "No results found. Try applying a different filter."
+              "No results found. Try applying a different filter.",
             );
           }
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         setTimeout(() => this.spinner.hide(), 0);
@@ -303,7 +303,7 @@ export class ObsMapComponent {
   private loadMarkers(
     data: Observation[],
     product: string,
-    onlyStations = false
+    onlyStations = false,
   ) {
     const markers: L.Marker[] = [];
     let min: number, max: number;
@@ -315,13 +315,13 @@ export class ObsMapComponent {
       data.forEach((s) => {
         obsData = s.prod.find((x) => x.var === product);
         let localMin = Math.min(
-          ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val)
+          ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val),
         );
         if (!min || localMin < min) {
           min = localMin;
         }
         let localMax = Math.max(
-          ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val)
+          ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val),
         );
         if (!max || localMax > max) {
           max = localMax;
@@ -350,7 +350,7 @@ export class ObsMapComponent {
             icon = L.divIcon({
               html: `<div class="mstDataIcon"><span>${ObsService.showData(
                 val,
-                product
+                product,
               )}</span></div>`,
               iconSize: [24, 6],
               className:
@@ -361,7 +361,7 @@ export class ObsMapComponent {
             icon = L.divIcon({
               html: `<div style="width:31px;height:31px"><span>${ObsService.showData(
                 val,
-                product
+                product,
               )}</span></div>`,
               iconSize: [40, 40],
               className:
@@ -379,20 +379,20 @@ export class ObsMapComponent {
             marker.bindTooltip(
               !single_observation
                 ? ObsMapComponent.buildDataTooltip(
-                    singleObsData.val.ref
+                    singleObsData.val.ref,
                     // singleObsData.value.level_desc,
                     // singleObsData.value.timerange_desc
                   )
                 : ObsMapComponent.buildTooltipTemplate(
                     s.stat,
-                    singleObsData.val.ref
+                    singleObsData.val.ref,
                     // singleObsData.value.level_desc,
                     // singleObsData.value.timerange_desc
                   ),
               {
                 direction: "top",
                 offset: [3, -8],
-              }
+              },
             );
             marker.on("click", this.openStationReport.bind(this, s.stat));
           }
@@ -456,7 +456,7 @@ export class ObsMapComponent {
     station: Station,
     reftime?: string,
     level?: string,
-    timerange?: string
+    timerange?: string,
   ) {
     let ident = station.ident || "";
     let name =
@@ -502,7 +502,7 @@ export class ObsMapComponent {
   private static buildDataTooltip(
     reftime: string,
     level?: string,
-    timerange?: string
+    timerange?: string,
   ) {
     const template =
       `<ul class="p-1 m-0">
@@ -518,8 +518,8 @@ export class ObsMapComponent {
     this.legend.onAdd = function (map, service = srv) {
       console.log(
         `add legend for product ${product} (${min.toFixed(2)}, ${max.toFixed(
-          2
-        )})`
+          2,
+        )})`,
       );
       let div = L.DomUtil.create("div", "info mst-legend");
       let halfDelta = (max - min) / (COLORS.length * 2);

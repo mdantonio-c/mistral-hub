@@ -66,7 +66,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   constructor(
     private sanitizer: DomSanitizer,
     private meteoService: MeteoService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
   ) {}
 
   ngOnInit() {
@@ -110,14 +110,14 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
           for (let i = 0; i < this.offsets.length; i++) {
             this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
-              URL.createObjectURL(blobs[i])
+              URL.createObjectURL(blobs[i]),
             );
             //console.log(`ngOnChanges: i=${i}`);
           }
         },
         (error) => {
           console.log(error);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide(this.IMAGE_SPINNER);
@@ -141,16 +141,14 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.minHour = 6;
       this.maxHour = this.filter.run === "12" ? 216 : 240;
       this.step = 3;
-    }
-    else if (
+    } else if (
       this.filter.res === "WRF_OL" ||
       this.filter.res === "WRF_DA_ITA"
-    )  {
+    ) {
       // this.minHour = 6;
       this.maxHour = 49;
       // this.step = 1;
-    }
-    else {
+    } else {
       this.maxHour = this.filter.res === "lm2.2" ? 48 : 72;
       if (this.maxHour === 48) {
         this.sliderTicks.slice(this.sliderTicks.length - 2);
@@ -165,12 +163,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       .subscribe(
         (blob) => {
           this.legendToShow = this.sanitizer.bypassSecurityTrustUrl(
-            URL.createObjectURL(blob)
+            URL.createObjectURL(blob),
           );
         },
         (error) => {
           console.log(error);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide(this.LEGEND_SPINNER);

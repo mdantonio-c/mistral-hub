@@ -13,7 +13,7 @@ export class RequestHourlyReportComponent implements OnInit {
 
   constructor(
     private dataService: DataService,
-    private notify: NotificationService
+    private notify: NotificationService,
   ) {}
 
   ngOnInit() {
@@ -30,7 +30,7 @@ export class RequestHourlyReportComponent implements OnInit {
 
       (error) => {
         this.notify.showError(error);
-      }
+      },
     );
   }
 }

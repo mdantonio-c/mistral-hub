@@ -42,7 +42,7 @@ export class FlashFloodMapsComponent
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         this.loading = false;

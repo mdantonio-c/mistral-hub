@@ -37,7 +37,7 @@ export class MeteoService {
   getMapset(params: MeteoFilter): Observable<MeteoMapset> {
     return this.api.get(
       `${this.maps_url}/api/maps/ready`,
-      this.get_params(params)
+      this.get_params(params),
     );
   }
 
@@ -50,7 +50,7 @@ export class MeteoService {
     return this.api.get(
       `${this.maps_url}/api/maps/legend`,
       this.get_params(params),
-      options
+      options,
     );
   }
 
@@ -63,7 +63,7 @@ export class MeteoService {
     return this.api.get(
       `${this.maps_url}/api/maps/offset/${offset}`,
       this.get_params(params),
-      options
+      options,
     );
   }
 

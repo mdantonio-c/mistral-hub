@@ -26,7 +26,7 @@ export class MyRequestDetailsComponent implements OnInit {
     public dataService: DataService,
     private modalService: NgbModal,
     private confirmationModals: ConfirmationModals,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -48,7 +48,7 @@ export class MyRequestDetailsComponent implements OnInit {
       },
       (reason) => {
         // do nothing
-      }
+      },
     );
   }
 
@@ -66,7 +66,7 @@ export class MyRequestDetailsComponent implements OnInit {
       (result) => {
         this.onCancel.emit();
       },
-      (reason) => {}
+      (reason) => {},
     );
   }
 

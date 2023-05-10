@@ -45,7 +45,7 @@ for d in datasets:
     total_count += newly_imported_data_count
     # Write out
     log.info("Exporting in JSON ...")
-    with open(json_summary, "wt") as fd:
+    with open(json_summary, "w") as fd:
         fd.write(complete_explorer.to_json())
 
     if d not in dballe_service.MAPS_NETWORK_FILTER:
@@ -57,7 +57,7 @@ for d in datasets:
                     updater.add_json(fd.read())
             with temp_db.transaction() as tr:
                 updater.add_db(tr)
-        with open(json_summary_filtered, "wt") as fd:
+        with open(json_summary_filtered, "w") as fd:
             fd.write(filtered_explorer.to_json())
 
     log.info("#####################################")

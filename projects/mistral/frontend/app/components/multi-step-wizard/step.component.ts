@@ -12,7 +12,7 @@ export class StepComponent {
   constructor(
     protected formDataService: FormDataService,
     protected router: Router,
-    protected route: ActivatedRoute
+    protected route: ActivatedRoute,
   ) {}
 
   cancel() {

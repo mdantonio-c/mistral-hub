@@ -71,7 +71,7 @@ export class FormDataService {
 
   constructor(
     private workflowService: WorkflowService,
-    private dataService: DataService
+    private dataService: DataService,
   ) {}
 
   getDatasets(): Observable<Dataset[]> {
@@ -109,7 +109,7 @@ export class FormDataService {
     return this.dataService.getSummary(
       this.formData.datasets.map((x) => x.id),
       false,
-      q
+      q,
     );
   }
 
@@ -124,12 +124,14 @@ export class FormDataService {
         arr.push(
           `>=${moment
             .utc(this.formData.reftime.from)
-            .format("YYYY-MM-DD HH:mm")}`
+            .format("YYYY-MM-DD HH:mm")}`,
         );
       }
       if (this.formData.reftime.to) {
         arr.push(
-          `<=${moment.utc(this.formData.reftime.to).format("YYYY-MM-DD HH:mm")}`
+          `<=${moment
+            .utc(this.formData.reftime.to)
+            .format("YYYY-MM-DD HH:mm")}`,
         );
       }
       query = `reftime: ${arr.join(",")}`;
@@ -166,7 +168,7 @@ export class FormDataService {
     return this.dataService.getSummary(
       this.formData.datasets.map((x) => x.id),
       true,
-      q
+      q,
     );
   }
 

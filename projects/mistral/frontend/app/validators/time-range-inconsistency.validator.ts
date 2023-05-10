@@ -2,7 +2,7 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 
 /** From time can't be greater than To time */
 export const timeRangeInconsistencyValidator: ValidatorFn = (
-  control: AbstractControl
+  control: AbstractControl,
 ): ValidationErrors | null => {
   const fromTime = control.get("fromTime");
   const toTime = control.get("toTime");

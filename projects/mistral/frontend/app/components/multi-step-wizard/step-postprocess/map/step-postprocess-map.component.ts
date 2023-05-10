@@ -67,7 +67,7 @@ export class StepPostprocessMapComponent {
     formControls.forEach((control) =>
       control.valueChanges.subscribe((val) => {
         this.updateRectangle();
-      })
+      }),
     );
     let poly = this.updateRectangle();
     if (poly) {
@@ -98,8 +98,8 @@ export class StepPostprocessMapComponent {
       const poly = new L.Rectangle(
         L.latLngBounds(
           L.latLng(this.ilatControl.value, this.ilonControl.value),
-          L.latLng(this.flatControl.value, this.flonControl.value)
-        )
+          L.latLng(this.flatControl.value, this.flonControl.value),
+        ),
       );
       // this.drawControl.options.edit.featureGroup.addLayer(poly);
       // this.mapView.addLayer(poly);
@@ -126,7 +126,7 @@ export class StepPostprocessMapComponent {
     const ref = this;
     e.layers.eachLayer(function (
       layer,
-      comp: StepPostprocessMapComponent = ref
+      comp: StepPostprocessMapComponent = ref,
     ) {
       if (layer instanceof L.Rectangle) {
         const coords = (layer as L.Rectangle).getLatLngs();

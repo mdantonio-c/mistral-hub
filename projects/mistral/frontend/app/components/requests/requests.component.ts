@@ -36,7 +36,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   constructor(
     protected injector: Injector,
     public dataService: DataService,
-    private router: Router
+    private router: Router,
   ) {
     super(injector);
     this.init("request", "/api/requests", null);
@@ -85,7 +85,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
         },
         (error) => {
           this.notify.showError(`Unable to clone request: ${request.id}`);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide();
@@ -113,7 +113,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
       },
       (error) => {
         this.notify.showError(`Unable to download file: ${filename}`);
-      }
+      },
     );
   }
 
@@ -126,7 +126,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
           this.delete(uuid);
         }
       },
-      (reason) => {}
+      (reason) => {},
     );
   }
 
@@ -134,7 +134,7 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
     uuid: string,
     text: string = null,
     title: string = null,
-    subText: string = null
+    subText: string = null,
   ): void {
     text = `Are you really sure you want to archive this request?`;
     subText = `
@@ -154,16 +154,16 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
           this.dataService.archiveRequest(uuid).subscribe(
             (response) => {
               this.notify.showSuccess(
-                `Confirmation: request successfully archived`
+                `Confirmation: request successfully archived`,
               );
               this.list();
             },
             (error) => {
               this.notify.showError(error);
-            }
+            },
           );
         },
-        (reason) => {}
+        (reason) => {},
       );
   }
 

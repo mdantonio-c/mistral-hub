@@ -36,7 +36,7 @@ describe("AdminDatasetsComponent", () => {
     fixture.detectChanges();
 
     const req = httpMock.expectOne(
-      environment.backendURI + "/api/admin/datasets"
+      environment.backendURI + "/api/admin/datasets",
     );
     expect(req.request.method).toEqual("GET");
     req.flush(datasets);

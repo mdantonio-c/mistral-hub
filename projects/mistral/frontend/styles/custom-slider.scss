@@ -1,6 +1,6 @@
 /* add custom styles for slider */
-#slider-bar{
-  margin-top:10px;
+#slider-bar {
+  margin-top: 10px;
 }
 .mst-slider {
   .slider {
@@ -124,21 +124,19 @@
 
 .calendar {
   .date {
-  width: 14.2%;
-  border-right: solid 1px #6c757d;
-  font-size: 12px;
-  padding: 6px 0 0 8px;
-  height: 26px;
-  margin-top: -6px;
-  
+    width: 14.2%;
+    border-right: solid 1px #6c757d;
+    font-size: 12px;
+    padding: 6px 0 0 8px;
+    height: 26px;
+    margin-top: -6px;
+
     &:first-of-type {
-      padding-left:0;
+      padding-left: 0;
     }
 
     &:last-of-type {
       border: none;
     }
   }
-
 }
-

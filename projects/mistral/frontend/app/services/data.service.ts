@@ -57,17 +57,17 @@ export class DataService {
   getSummary(
     datasets: string[],
     onlyStats?: boolean,
-    query?: string
+    query?: string,
   ): Observable<FieldsSummary>;
   getSummary(
     datasets: string[],
     onlyStats: false,
-    query?: string
+    query?: string,
   ): Observable<FieldsSummary>;
   getSummary(
     datasets: string[],
     onlyStats: true,
-    query?: string
+    query?: string,
   ): Observable<SummaryStats>;
   /**
    * Get summary fields for a give list of datasets.
@@ -76,7 +76,7 @@ export class DataService {
   getSummary(
     datasets: string[],
     onlyStats?: boolean,
-    query?: string
+    query?: string,
   ): Observable<FieldsSummary | SummaryStats> {
     let params = { datasets: datasets.join() };
     if (query) {
@@ -127,7 +127,7 @@ export class DataService {
     outputformat?: string,
     push?: boolean,
     opendata?: boolean,
-    only_reliable?: boolean
+    only_reliable?: boolean,
   ) {
     let data = {
       request_name: request_name,
@@ -154,11 +154,11 @@ export class DataService {
           };
           if (schedule.repeat === RepeatEvery.WEEK) {
             data["crontab-settings"]["day_of_week"] = parseInt(
-              schedule.day_of_week
+              schedule.day_of_week,
             );
           } else if (schedule.repeat === RepeatEvery.MONTH) {
             data["crontab-settings"]["day_of_month"] = parseInt(
-              schedule.day_of_month
+              schedule.day_of_month,
             );
           }
           break;
@@ -208,7 +208,7 @@ export class DataService {
 
   toggleScheduleActiveState(
     scheduleId,
-    toState: boolean
+    toState: boolean,
   ): Observable<OnOffSchedule> {
     const data = {
       is_active: toState,
@@ -220,7 +220,7 @@ export class DataService {
     return this.api.get(
       `schedules/${scheduleId}/requests`,
       { last: true },
-      { rawError: true }
+      { rawError: true },
     );
   }
 
@@ -241,7 +241,7 @@ export class DataService {
   getVariableDescription(code): string {
     if (this._derivedVariables === undefined) {
       console.warn(
-        `Derived variables undefined so description cannot be retrieved for code ${code}`
+        `Derived variables undefined so description cannot be retrieved for code ${code}`,
       );
       return;
     }
@@ -270,7 +270,7 @@ export class DataService {
           this._derivedVariables = this.extractConfig(response);
           return this._derivedVariables;
         }),
-        share()
+        share(),
       );
   }
 

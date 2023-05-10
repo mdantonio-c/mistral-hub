@@ -64,7 +64,7 @@ export class MapFilterComponent implements OnInit {
     this.fields = this.fields_cosmo;
     if (this.user && this.user.isAdmin) {
       (this.filterForm.controls.platform as FormControl).setValue(
-        this.DEFAULT_PLATFORM
+        this.DEFAULT_PLATFORM,
       );
       (this.filterForm.controls.env as FormControl).setValue(this.DEFAULT_ENV);
     }
@@ -84,11 +84,9 @@ export class MapFilterComponent implements OnInit {
       this.filter();
     });
     this.filterForm.get("res").valueChanges.subscribe((val) => {
-      if (val === "WRF_OL"|| val === "WRF_DA_ITA") {
+      if (val === "WRF_OL" || val === "WRF_DA_ITA") {
         this.fields = this.fields_wrf;
-      }
-      else
-      this.fields = this.fields_cosmo;
+      } else this.fields = this.fields_cosmo;
     });
     this.filterForm.valueChanges.subscribe((val) => {
       this.filter();

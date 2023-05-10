@@ -6,19 +6,27 @@
         <!-- RESOLUTION -->
         <div class="mb-3">
           <label class="col-form-label"><strong>MODEL:</strong></label>
-          <select id="resolutionGroup" formControlName="res" class="form-select">
+          <select
+            id="resolutionGroup"
+            formControlName="res"
+            class="form-select"
+          >
             <ng-container *ngFor="let res of resolutions">
               <option
                 [value]="res.key"
                 *ngIf="
-                (
-                !(res.key === 'lm2.2' && filterForm.get('area').value === 'Area_Mediterranea') ||
-                (
-                (res.key === 'WRF_OL'||res.key === 'WRF_DA_ITA') && filterForm.get('area').value !== 'Italia')) ||
-                !(
-                !(filterForm.get('area').value === 'Area_Mediterranea') && res.key === 'lm5' &&
-                (filterForm.get('field').value === 'percentile' || filterForm.get('field').value === 'probability')
-                )
+                  !(
+                    res.key === 'lm2.2' &&
+                    filterForm.get('area').value === 'Area_Mediterranea'
+                  ) ||
+                  ((res.key === 'WRF_OL' || res.key === 'WRF_DA_ITA') &&
+                    filterForm.get('area').value !== 'Italia') ||
+                  !(
+                    !(filterForm.get('area').value === 'Area_Mediterranea') &&
+                    res.key === 'lm5' &&
+                    (filterForm.get('field').value === 'percentile' ||
+                      filterForm.get('field').value === 'probability')
+                  )
                 "
               >
                 {{ res.value }}
@@ -35,13 +43,18 @@
               <option
                 [value]="area.key"
                 *ngIf="
-                (
-                !(area.key === 'Area_Mediterranea' && filterForm.get('res').value === 'lm2.2') &&
-                !(
-                area.key !== 'Italia' && (filterForm.get('res').value === 'WRF_OL' || filterForm.get('res').value === 'WRF_DA_ITA')) ||
-                (!
-                (area.key === 'Italia') && (filterForm.get('field').value === 'percentile' || filterForm.get('field').value === 'probability'))
-                )
+                  (!(
+                    area.key === 'Area_Mediterranea' &&
+                    filterForm.get('res').value === 'lm2.2'
+                  ) &&
+                    !(
+                      area.key !== 'Italia' &&
+                      (filterForm.get('res').value === 'WRF_OL' ||
+                        filterForm.get('res').value === 'WRF_DA_ITA')
+                    )) ||
+                  (!(area.key === 'Italia') &&
+                    (filterForm.get('field').value === 'percentile' ||
+                      filterForm.get('field').value === 'probability'))
                 "
               >
                 {{ area.value }}
@@ -65,15 +78,11 @@
                 *ngIf="
                   !(
                     (run.key === '12' &&
-                    (
-                    filterForm.get('field').value === 'percentile' ||
-                    filterForm.get('field').value === 'probability'
-                    )
-                    )
-                    ||
-                    run.key === '12' && filterForm.get('res').value === 'WRF_OL'
+                      (filterForm.get('field').value === 'percentile' ||
+                        filterForm.get('field').value === 'probability')) ||
+                    (run.key === '12' &&
+                      filterForm.get('res').value === 'WRF_OL')
                   )
-
                 "
               >
                 <input type="radio" formControlName="run" [value]="run.key" />
@@ -165,9 +174,6 @@
           </div>
         </div>
 
-
-
-
         <!-- <div class="mb-3">
           <label class="col-form-label"
             ><strong>MODEL:</strong></label
@@ -206,8 +212,6 @@
             </ng-container>
           </div>
         </div> -->
-
-
 
         <!-- PLATFORM -->
         <div class="mb-3" *ngIf="user && user.isAdmin">

@@ -87,10 +87,10 @@
             <p>
               crop type:
               {{ p["sub_type"] }}, boundings:
-              {{ p.boundings.ilon | number: "1.3-3" }},
-              {{ p.boundings.ilat | number: "1.3-3" }},
-              {{ p.boundings.flon | number: "1.3-3" }},
-              {{ p.boundings.flat | number: "1.3-3" }}
+              {{ p.boundings.ilon | number : "1.3-3" }},
+              {{ p.boundings.ilat | number : "1.3-3" }},
+              {{ p.boundings.flon | number : "1.3-3" }},
+              {{ p.boundings.flat | number : "1.3-3" }}
               <a
                 href="http://openstreetmap.org/?minlon={{
                   p.boundings.ilon
@@ -111,10 +111,10 @@
               {{ p["sub_type"] }},
               <span *ngIf="p.boundings !== undefined"
                 ><i>nodes: nx=</i>{{ p.nodes.nx }}; <i>ny=</i>{{ p.nodes.ny }},
-                <i>boundings: </i>{{ p.boundings["x-min"] | number: "1.3-3" }},
-                {{ p.boundings["y-min"] | number: "1.3-3" }},
-                {{ p.boundings["x-max"] | number: "1.3-3" }},
-                {{ p.boundings["y-max"] | number: "1.3-3" }}
+                <i>boundings: </i>{{ p.boundings["x-min"] | number : "1.3-3" }},
+                {{ p.boundings["y-min"] | number : "1.3-3" }},
+                {{ p.boundings["x-max"] | number : "1.3-3" }},
+                {{ p.boundings["y-max"] | number : "1.3-3" }}
                 <a
                   href="http://openstreetmap.org/?minlon={{
                     p.boundings['x-min']

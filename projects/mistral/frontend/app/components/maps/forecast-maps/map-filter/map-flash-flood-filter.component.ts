@@ -90,7 +90,7 @@ export class MapFlashFloodFilterComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private modalService: NgbModal // ##################################################### // config: MapFlashFloodFilterComponent, private modalService: NgbModal // #####################################################
+    private modalService: NgbModal, // ##################################################### // config: MapFlashFloodFilterComponent, private modalService: NgbModal // #####################################################
   ) {
     this.filterForm = this.fb.group({
       field: ["percentile", Validators.required],

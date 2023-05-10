@@ -36,7 +36,7 @@ describe("AdminLicensesComponent", () => {
     fixture.detectChanges();
 
     const req = httpMock.expectOne(
-      environment.backendURI + "/api/admin/licenses"
+      environment.backendURI + "/api/admin/licenses",
     );
     expect(req.request.method).toEqual("GET");
     req.flush(licenses);

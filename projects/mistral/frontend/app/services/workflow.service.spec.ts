@@ -13,6 +13,6 @@ describe("WorkflowService", () => {
     [WorkflowService],
     (service: WorkflowService) => {
       expect(service).toBeTruthy();
-    }
+    },
   ));
 });

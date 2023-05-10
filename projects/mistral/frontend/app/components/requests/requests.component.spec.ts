@@ -44,14 +44,14 @@ class ApiServiceStub extends ApiService {
       {} as Router,
       {} as LocalStorageService,
       {} as NotificationService,
-      {} as SSRService
+      {} as SSRService,
     );
   }
 
   get(
     endpoint: string,
     data: Record<string, unknown> = {},
-    options: Record<string, unknown> = {}
+    options: Record<string, unknown> = {},
   ) {
     if (data["get_total"] === true) {
       return of(MockRequestsTotalResponse);

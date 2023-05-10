@@ -44,7 +44,7 @@ describe("AdminLicgroupsComponent", () => {
     fixture.detectChanges();
 
     const req = httpMock.expectOne(
-      environment.backendURI + "/api/admin/licensegroups"
+      environment.backendURI + "/api/admin/licensegroups",
     );
     expect(req.request.method).toEqual("GET");
     req.flush(licgroups);

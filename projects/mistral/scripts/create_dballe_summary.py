@@ -76,7 +76,7 @@ for dsn in dsn_list:
             dsn_license_group_list[0].replace(" ", "_"),
         )
         # export the complete explorer to the json file
-        with open(complete_json_summary, "wt") as fd:
+        with open(complete_json_summary, "w") as fd:
             fd.write(explorer.to_json())
 
         # check that the json summary is complete
@@ -110,7 +110,7 @@ for dsn in dsn_list:
                         updater.add_explorer(explorer)
 
             # export the filtered explorer to a json file
-            with open(filtered_json_summary, "wt") as fd:
+            with open(filtered_json_summary, "w") as fd:
                 fd.write(filtered_explorer.to_json())
     else:
         # case of dsn containing different license groups
@@ -138,7 +138,7 @@ for dsn in dsn_list:
                 subset_explorer.reports,
             )
             # write the filtered explorer to the file
-            with open(complete_json_summary, "wt") as fd:
+            with open(complete_json_summary, "w") as fd:
                 fd.write(subset_explorer.to_json())
 
         """

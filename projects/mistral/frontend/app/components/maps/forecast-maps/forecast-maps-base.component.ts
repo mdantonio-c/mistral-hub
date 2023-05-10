@@ -14,7 +14,7 @@ export class ForecastMapsBaseComponent implements OnInit {
   constructor(
     protected meteoService: MeteoService,
     protected notify: NotificationService,
-    protected spinner: NgxSpinnerService
+    protected spinner: NgxSpinnerService,
   ) {}
 
   ngOnInit() {

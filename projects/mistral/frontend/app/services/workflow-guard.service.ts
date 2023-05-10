@@ -15,7 +15,7 @@ export class WorkflowGuard implements CanActivate {
     private router: Router,
     private workflowService: WorkflowService,
     private formDataService: FormDataService,
-    private arkimetService: ArkimetService
+    private arkimetService: ArkimetService,
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
@@ -67,7 +67,7 @@ export class WorkflowGuard implements CanActivate {
     let firstPath = this.workflowService.getFirstInvalidStep(path);
     if (!presetForm && firstPath.length > 0) {
       console.log(
-        `Redirected to '${firstPath}' path which is the first invalid step.`
+        `Redirected to '${firstPath}' path which is the first invalid step.`,
       );
       let url = `/app/data/${firstPath}`;
       this.router.navigate([url]);

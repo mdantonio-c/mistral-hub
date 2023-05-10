@@ -33,7 +33,7 @@ export class ObservationMapsComponent implements OnInit {
   constructor(
     private modalService: NgbModal,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
   ) {}
 
   @ViewChild(ObsMapComponent) map: ObsMapComponent;

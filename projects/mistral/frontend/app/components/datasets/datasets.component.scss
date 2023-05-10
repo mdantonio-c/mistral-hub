@@ -193,10 +193,11 @@
   .speciale {
     max-height: 206px !important;
   }
-  .container-picture, .ds-item .ds-picture > img {
-    display:none !important;
+  .container-picture,
+  .ds-item .ds-picture > img {
+    display: none !important;
   }
   .ds-body {
-    margin:0;
+    margin: 0;
   }
 }

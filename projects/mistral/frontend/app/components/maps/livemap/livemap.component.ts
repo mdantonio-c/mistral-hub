@@ -215,192 +215,206 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
         const lastObs: ObsValue = obsData.val.pop();
         const val = ObsService.showData(lastObs.val, product);
         console.log(lastObs.val, val, localMin, max);
-          if (lastObs.val < max && lastObs.val > min){
-            let htmlIcon = "";
-            let color: string = '';
-            if ("t2m" in this.variablesConfig && this.variablesConfig['t2m'].code === product) {
-              if (lastObs.val >= 319.15){
-                  color= "#ff9900";
-              } else if (lastObs.val >= 317.15 && lastObs.val < 319.15) {
-                color = "#ffcc00";
-              } else if (lastObs.val >= 315.15 && lastObs.val < 317.15) {
-                color = "#7200ff";
-              } else if (lastObs.val >= 313.15 && lastObs.val < 315.15) {
-                color = "#bf00ff";
-              } else if (lastObs.val >= 311.15 && lastObs.val < 313.15) {
-                color = "#ff00ff";
-              } else if (lastObs.val >= 309.15 && lastObs.val < 311.15) {
-                color= "#cc00cc";
-              } else if (lastObs.val >= 307.15 && lastObs.val < 309.15) {
-                color = "#990099";
-              } else if (lastObs.val >= 305.15 && lastObs.val < 307.15) {
-                color = "#660066";
-              } else if (lastObs.val >= 303.15 && lastObs.val < 305.15) {
-                color = "#660000";
-              } else if (lastObs.val >= 301.15 && lastObs.val < 303.15) {
-                color= "#990000";
-              } else if (lastObs.val >= 299.15 && lastObs.val < 301.15) {
-                color= "#cc0000";
-              } else if (lastObs.val >= 297.15 && lastObs.val < 299.15) {
-                color= "#ff0000";
-              } else if (lastObs.val >= 295.15 && lastObs.val < 297.15) {
-                color= "#ff6600";
-              } else if (lastObs.val >= 293.15 && lastObs.val <  295.15) {
-                color = "#ff9900";
-              } else if (lastObs.val >= 291.15 && lastObs.val < 293.15) {
-                color= "#ffcc00";
-              } else if (lastObs.val >= 289.15 && lastObs.val < 291.16) {
-                color = "#ffff00";
-              } else if (lastObs.val >= 287.15 && lastObs.val < 289.15) {
-                color= "#cce500";
-              } else if (lastObs.val >= 285.15 && lastObs.val < 287.15) {
-                color = "#7fcc00";
-              } else if (lastObs.val >= 283.15 && lastObs.val < 285.15) {
-                color = "#00b200";
-              }  else if (lastObs.val >= 281.15 && lastObs.val < 283.15) {
-                color = "#00cc7f";
-              } else if (lastObs.val >= 279.15 && lastObs.val < 281.15) {
-                color = "#00e5cc";
-              } else if (lastObs.val >= 277.15 && lastObs.val < 279.15) {
-                color = "#00ffff";
-              } else if (lastObs.val >= 275.15 && lastObs.val < 277.15) {
-                color = "#00bfff";
-              }   else if (lastObs.val >= 273.15 && lastObs.val < 275.15) {
-                color = "#008cff";
-              } else if (lastObs.val >= 271.15 && lastObs.val < 273.15) {
-                color = "#0059ff";
-              }  else if (lastObs.val >= 269.15 && lastObs.val < 271.15) {
-                color= "#0000ff";
-              } else if (lastObs.val >= 267.15 && lastObs.val < 269.15) {
-                color = "#7200ff";
-              } else if (lastObs.val >= 265.15 && lastObs.val < 267.15) {
-                color = "#bf00ff";
-              } else if (lastObs.val >= 263.15 && lastObs.val < 265.15) {
-                color = "#ff00ff";
-              } else if (lastObs.val >= 261.15 && lastObs.val < 263.15) {
-                color = "#cc00cc";
-              } else if (lastObs.val >= 259.15 && lastObs.val < 261.15) {
-                color = "#990099";
-              } else if (lastObs.val >= 257.15 && lastObs.val < 259.15) {
-                color = "#660066";
-              } else if (lastObs.val >= 255.15 && lastObs.val < 257.15) {
-                color = "#660000";
-              } else if (lastObs.val >= 253.15 && lastObs.val < 255.15) {
-                color= "#990000";
-              } else if (lastObs.val >= 251.15 && lastObs.val < 253.15) {
-                color = "#cc0000";
-              } else if (lastObs.val >= 249.15 && lastObs.val < 251.15) {
-                color = "#ff0000";
-              } else if (lastObs.val >= 247.15 && lastObs.val < 249.15) {
-                color = "#ff6600";
-              }else if (lastObs.val >= 245.15 && lastObs.val < 247.15) {
-                color = "#ff9900";
-              } else if (lastObs.val >= 243.15 && lastObs.val < 245.15) {
-                color = "#ffcc00";
-              };
-            };
-            if ("prp" in this.variablesConfig && this.variablesConfig['prp'].code === product) {
-              if (lastObs.val >= 300){
-                color= "#4897D9";
-              } else if (lastObs.val >= 200 && lastObs.val < 300) {
-              color = "#A2A4D6";
-              } else if (lastObs.val >= 100 && lastObs.val < 200) {
-                color ="#B887C0";
-              } else if (lastObs.val >= 75 && lastObs.val < 100) {
-                color = "#D6A1CC";
-              } else if (lastObs.val >= 50 && lastObs.val < 75) {
-                color = "#E7BDDA";
-              } else if (lastObs.val >= 40 && lastObs.val < 50) {
-                color = "#E57D9A";
-              } else if (lastObs.val >= 30 && lastObs.val < 40) {
-                color = "#DA4C4D";
-              } else if (lastObs.val >= 25 && lastObs.val < 30) {
-                color = "#EE5A5C";
-              } else if (lastObs.val >= 20 && lastObs.val < 25) {
-                color = "#F6A15C";
-              } else if (lastObs.val >= 15 && lastObs.val < 20) {
-                color = "#FCD48E";
-              } else if (lastObs.val >= 10 && lastObs.val < 15) {
-                color = "#FFE073";
-              } else if (lastObs.val >= 8 && lastObs.val < 10) {
-                color = "#FDFD81";
-              } else if (lastObs.val >= 6 && lastObs.val < 8) {
-                color = "#FFFFC6";
-              } else if (lastObs.val >= 5 && lastObs.val < 6) {
-                color = "#F2F2A0";
-              } else if (lastObs.val >= 4 && lastObs.val < 5) {
-                color = "#D2EBA3";
-              } else if (lastObs.val >= 3 && lastObs.val < 4) {
-                color = "#C2E5D7";
-              } else if (lastObs.val >= 2 && lastObs.val < 3) {
-                color = "#C7E7EF";
-              }else if (lastObs.val >= 0 && lastObs.val < 2) {
-                color = "#CFEAF6";
-              }
-            };
-            if ("rh" in this.variablesConfig && this.variablesConfig['rh'].code === product) {
-              if (lastObs.val >= 110){
-                color= "#3F57B0";
-              } else if (lastObs.val >= 100 && lastObs.val < 110) {
-              color = "#6FC9DC";
-              } else if (lastObs.val >= 90 && lastObs.val < 100) {
-                color = "#0B7F3F";
-              }  else if (lastObs.val >= 80 && lastObs.val < 90) {
-                color = "#FCFC1E";
-              }  else if (lastObs.val >= 70 && lastObs.val < 80) {
-                color = "#F7A426";
-              } else if (lastObs.val >= 60 && lastObs.val < 70) {
-                color = "#EC2426";
-              }
-            };
-
-            if ("ws10m" in this.variablesConfig && this.variablesConfig["ws10m"].code === product) {
-              if (lastObs.val >= 70){
-                color= "#9600FE";
-              } else if (lastObs.val >= 50 && lastObs.val < 70) {
-              color = "#EE82EE";
-              } else if (lastObs.val >= 30 && lastObs.val < 50) {
-                color = "#FF0000";
-              }  else if (lastObs.val >= 20 && lastObs.val < 30) {
-                color = "#FFFF00";
-              }  else if (lastObs.val >= 10 && lastObs.val < 20) {
-                color = "#FFA600";
-              } else if (lastObs.val >= 5 && lastObs.val < 10) {
-                color = "#0000FE"; 
-              } else if (lastObs.val >= 2 && lastObs.val < 5) {
-                color = "#54878C";
-              } else if (lastObs.val >= 0 && lastObs.val < 2) {
-                color = "#457D00";
-              }
-              htmlIcon =
-                `<div class="mstObsIcon" ><span>${val}` +
-                '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
-            } else {
-              htmlIcon = `<div class="mstObsIcon rounded" style="background-color: ${color};"><span>${val}` + "</span></div>";
+        if (lastObs.val < max && lastObs.val > min) {
+          let htmlIcon = "";
+          let color: string = "";
+          if (
+            "t2m" in this.variablesConfig &&
+            this.variablesConfig["t2m"].code === product
+          ) {
+            if (lastObs.val >= 319.15) {
+              color = "#ff9900";
+            } else if (lastObs.val >= 317.15 && lastObs.val < 319.15) {
+              color = "#ffcc00";
+            } else if (lastObs.val >= 315.15 && lastObs.val < 317.15) {
+              color = "#7200ff";
+            } else if (lastObs.val >= 313.15 && lastObs.val < 315.15) {
+              color = "#bf00ff";
+            } else if (lastObs.val >= 311.15 && lastObs.val < 313.15) {
+              color = "#ff00ff";
+            } else if (lastObs.val >= 309.15 && lastObs.val < 311.15) {
+              color = "#cc00cc";
+            } else if (lastObs.val >= 307.15 && lastObs.val < 309.15) {
+              color = "#990099";
+            } else if (lastObs.val >= 305.15 && lastObs.val < 307.15) {
+              color = "#660066";
+            } else if (lastObs.val >= 303.15 && lastObs.val < 305.15) {
+              color = "#660000";
+            } else if (lastObs.val >= 301.15 && lastObs.val < 303.15) {
+              color = "#990000";
+            } else if (lastObs.val >= 299.15 && lastObs.val < 301.15) {
+              color = "#cc0000";
+            } else if (lastObs.val >= 297.15 && lastObs.val < 299.15) {
+              color = "#ff0000";
+            } else if (lastObs.val >= 295.15 && lastObs.val < 297.15) {
+              color = "#ff6600";
+            } else if (lastObs.val >= 293.15 && lastObs.val < 295.15) {
+              color = "#ff9900";
+            } else if (lastObs.val >= 291.15 && lastObs.val < 293.15) {
+              color = "#ffcc00";
+            } else if (lastObs.val >= 289.15 && lastObs.val < 291.16) {
+              color = "#ffff00";
+            } else if (lastObs.val >= 287.15 && lastObs.val < 289.15) {
+              color = "#cce500";
+            } else if (lastObs.val >= 285.15 && lastObs.val < 287.15) {
+              color = "#7fcc00";
+            } else if (lastObs.val >= 283.15 && lastObs.val < 285.15) {
+              color = "#00b200";
+            } else if (lastObs.val >= 281.15 && lastObs.val < 283.15) {
+              color = "#00cc7f";
+            } else if (lastObs.val >= 279.15 && lastObs.val < 281.15) {
+              color = "#00e5cc";
+            } else if (lastObs.val >= 277.15 && lastObs.val < 279.15) {
+              color = "#00ffff";
+            } else if (lastObs.val >= 275.15 && lastObs.val < 277.15) {
+              color = "#00bfff";
+            } else if (lastObs.val >= 273.15 && lastObs.val < 275.15) {
+              color = "#008cff";
+            } else if (lastObs.val >= 271.15 && lastObs.val < 273.15) {
+              color = "#0059ff";
+            } else if (lastObs.val >= 269.15 && lastObs.val < 271.15) {
+              color = "#0000ff";
+            } else if (lastObs.val >= 267.15 && lastObs.val < 269.15) {
+              color = "#7200ff";
+            } else if (lastObs.val >= 265.15 && lastObs.val < 267.15) {
+              color = "#bf00ff";
+            } else if (lastObs.val >= 263.15 && lastObs.val < 265.15) {
+              color = "#ff00ff";
+            } else if (lastObs.val >= 261.15 && lastObs.val < 263.15) {
+              color = "#cc00cc";
+            } else if (lastObs.val >= 259.15 && lastObs.val < 261.15) {
+              color = "#990099";
+            } else if (lastObs.val >= 257.15 && lastObs.val < 259.15) {
+              color = "#660066";
+            } else if (lastObs.val >= 255.15 && lastObs.val < 257.15) {
+              color = "#660000";
+            } else if (lastObs.val >= 253.15 && lastObs.val < 255.15) {
+              color = "#990000";
+            } else if (lastObs.val >= 251.15 && lastObs.val < 253.15) {
+              color = "#cc0000";
+            } else if (lastObs.val >= 249.15 && lastObs.val < 251.15) {
+              color = "#ff0000";
+            } else if (lastObs.val >= 247.15 && lastObs.val < 249.15) {
+              color = "#ff6600";
+            } else if (lastObs.val >= 245.15 && lastObs.val < 247.15) {
+              color = "#ff9900";
+            } else if (lastObs.val >= 243.15 && lastObs.val < 245.15) {
+              color = "#ffcc00";
             }
-            let icon = L.divIcon({
-              html: htmlIcon,
-              iconSize: [24, 6],
-              className: `mst-marker-icon
-              mst-obs-marker-color-${color}`,
-            });
-            const m = new L.Marker([s.stat.lat, s.stat.lon], {
-              icon: icon,
-            });
-            m.options["station"] = s.stat;
-            m.options["data"] = obsData;
-            m.bindTooltip(
-              BaseMapComponent.buildTooltipTemplate(s.stat, lastObs.ref, val),
-              {
-                direction: "top",
-                offset: [4, -2],
-                opacity: 0.75,
-                className: "leaflet-tooltip mst-obs-tooltip",
-              },
-            );
-            m.on("click", this.openStationReport.bind(this, s.stat));
-            this.allMarkers.push(m);
           }
+          if (
+            "prp" in this.variablesConfig &&
+            this.variablesConfig["prp"].code === product
+          ) {
+            if (lastObs.val >= 300) {
+              color = "#4897D9";
+            } else if (lastObs.val >= 200 && lastObs.val < 300) {
+              color = "#A2A4D6";
+            } else if (lastObs.val >= 100 && lastObs.val < 200) {
+              color = "#B887C0";
+            } else if (lastObs.val >= 75 && lastObs.val < 100) {
+              color = "#D6A1CC";
+            } else if (lastObs.val >= 50 && lastObs.val < 75) {
+              color = "#E7BDDA";
+            } else if (lastObs.val >= 40 && lastObs.val < 50) {
+              color = "#E57D9A";
+            } else if (lastObs.val >= 30 && lastObs.val < 40) {
+              color = "#DA4C4D";
+            } else if (lastObs.val >= 25 && lastObs.val < 30) {
+              color = "#EE5A5C";
+            } else if (lastObs.val >= 20 && lastObs.val < 25) {
+              color = "#F6A15C";
+            } else if (lastObs.val >= 15 && lastObs.val < 20) {
+              color = "#FCD48E";
+            } else if (lastObs.val >= 10 && lastObs.val < 15) {
+              color = "#FFE073";
+            } else if (lastObs.val >= 8 && lastObs.val < 10) {
+              color = "#FDFD81";
+            } else if (lastObs.val >= 6 && lastObs.val < 8) {
+              color = "#FFFFC6";
+            } else if (lastObs.val >= 5 && lastObs.val < 6) {
+              color = "#F2F2A0";
+            } else if (lastObs.val >= 4 && lastObs.val < 5) {
+              color = "#D2EBA3";
+            } else if (lastObs.val >= 3 && lastObs.val < 4) {
+              color = "#C2E5D7";
+            } else if (lastObs.val >= 2 && lastObs.val < 3) {
+              color = "#C7E7EF";
+            } else if (lastObs.val >= 0 && lastObs.val < 2) {
+              color = "#CFEAF6";
+            }
+          }
+          if (
+            "rh" in this.variablesConfig &&
+            this.variablesConfig["rh"].code === product
+          ) {
+            if (lastObs.val >= 110) {
+              color = "#3F57B0";
+            } else if (lastObs.val >= 100 && lastObs.val < 110) {
+              color = "#6FC9DC";
+            } else if (lastObs.val >= 90 && lastObs.val < 100) {
+              color = "#0B7F3F";
+            } else if (lastObs.val >= 80 && lastObs.val < 90) {
+              color = "#FCFC1E";
+            } else if (lastObs.val >= 70 && lastObs.val < 80) {
+              color = "#F7A426";
+            } else if (lastObs.val >= 60 && lastObs.val < 70) {
+              color = "#EC2426";
+            }
+          }
+
+          if (
+            "ws10m" in this.variablesConfig &&
+            this.variablesConfig["ws10m"].code === product
+          ) {
+            if (lastObs.val >= 70) {
+              color = "#9600FE";
+            } else if (lastObs.val >= 50 && lastObs.val < 70) {
+              color = "#EE82EE";
+            } else if (lastObs.val >= 30 && lastObs.val < 50) {
+              color = "#FF0000";
+            } else if (lastObs.val >= 20 && lastObs.val < 30) {
+              color = "#FFFF00";
+            } else if (lastObs.val >= 10 && lastObs.val < 20) {
+              color = "#FFA600";
+            } else if (lastObs.val >= 5 && lastObs.val < 10) {
+              color = "#0000FE";
+            } else if (lastObs.val >= 2 && lastObs.val < 5) {
+              color = "#54878C";
+            } else if (lastObs.val >= 0 && lastObs.val < 2) {
+              color = "#457D00";
+            }
+            htmlIcon =
+              `<div class="mstObsIcon" ><span>${val}` +
+              '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
+          } else {
+            htmlIcon =
+              `<div class="mstObsIcon rounded" style="background-color: ${color};"><span>${val}` +
+              "</span></div>";
+          }
+          let icon = L.divIcon({
+            html: htmlIcon,
+            iconSize: [24, 6],
+            className: `mst-marker-icon
+              mst-obs-marker-color-${color}`,
+          });
+          const m = new L.Marker([s.stat.lat, s.stat.lon], {
+            icon: icon,
+          });
+          m.options["station"] = s.stat;
+          m.options["data"] = obsData;
+          m.bindTooltip(
+            BaseMapComponent.buildTooltipTemplate(s.stat, lastObs.ref, val),
+            {
+              direction: "top",
+              offset: [4, -2],
+              opacity: 0.75,
+              className: "leaflet-tooltip mst-obs-tooltip",
+            },
+          );
+          m.on("click", this.openStationReport.bind(this, s.stat));
+          this.allMarkers.push(m);
+        }
       }
     });
     // console.log(`Total markers: ${this.allMarkers.length}`);

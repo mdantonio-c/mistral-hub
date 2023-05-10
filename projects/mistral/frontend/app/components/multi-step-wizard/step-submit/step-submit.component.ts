@@ -44,7 +44,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     private modalService: NgbModal,
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {
     super(formDataService, router, route);
     this.scheduleForm = this.formBuilder.group({
@@ -71,7 +71,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
           if (this.summaryStats.c === 0) {
             this.notify.showWarning(
               "The applied filter do not produce any result. " +
-                "Please choose different filters."
+                "Please choose different filters.",
             );
           }
           if (
@@ -80,13 +80,13 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
             this.summaryStats.s > this.user.max_output_size
           ) {
             this.notify.showWarning(
-              "Size exceeds the allowed one for a single request"
+              "Size exceeds the allowed one for a single request",
             );
           }
         },
         (error) => {
           this.notify.showError("Error loading summary stats");
-        }
+        },
       )
       .add(() => {
         this.spinner.hide("summary-spinner");
@@ -95,7 +95,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       this.requestReport = response;
       if (this.requestReport && this.requestReport.remaining === 0) {
         this.notify.showError(
-          "The max number of requests par hour has been reached: Please wait next hour to submit new requests "
+          "The max number of requests par hour has been reached: Please wait next hour to submit new requests ",
         );
       }
     });
@@ -117,9 +117,9 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
             this.formData.output_format,
             this.formData.push,
             this.formData.opendata,
-            this.formData.only_reliable
-          )
-        )
+            this.formData.only_reliable,
+          ),
+        ),
       )
       .subscribe(
         (resp) => {
@@ -131,7 +131,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide();
@@ -206,7 +206,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       },
       (reason) => {
         // do nothing
-      }
+      },
     );
   }
 

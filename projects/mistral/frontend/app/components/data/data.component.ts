@@ -12,7 +12,7 @@ export class DataComponent {
 
   constructor(
     protected api: ApiService,
-    protected notify: NotificationService
+    protected notify: NotificationService,
   ) {}
 
   private get_data() {
@@ -23,7 +23,7 @@ export class DataComponent {
       },
       (error) => {
         this.notify.showError(error);
-      }
+      },
     );
   }
 }

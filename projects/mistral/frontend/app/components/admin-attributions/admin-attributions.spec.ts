@@ -49,7 +49,7 @@ describe("AdminAttributionsComponent", () => {
     fixture.detectChanges();
 
     const req = httpMock.expectOne(
-      environment.backendURI + "/api/admin/attributions"
+      environment.backendURI + "/api/admin/attributions",
     );
     expect(req.request.method).toEqual("GET");
     req.flush(attributions);

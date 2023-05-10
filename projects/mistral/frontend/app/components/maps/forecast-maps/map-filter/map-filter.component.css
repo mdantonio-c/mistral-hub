@@ -5,8 +5,8 @@
 }
 
 #fieldGroup > div:first-of-type {
-    display: flex;
-    justify-content: space-evenly;
+  display: flex;
+  justify-content: space-evenly;
 }
 .card-footer,
 .card-header {
@@ -35,14 +35,14 @@
   border-radius: 30px;
   cursor: pointer;
   line-height: 2.3;
-
 }
-.wi::before{
+.wi::before {
   font-size: 20px;
 }
-.wi-umbrella::before, .wi-snow::before{
-    margin-left: -5px;
-  }
+.wi-umbrella::before,
+.wi-snow::before {
+  margin-left: -5px;
+}
 
 .btn-small-circle {
   width: 20px;
@@ -66,7 +66,7 @@
   line-height: 1.8;
   cursor: pointer;
   border-radius: 14px;
-  padding:0;
+  padding: 0;
   font-weight: 800;
 }
 
@@ -79,7 +79,6 @@
 }
 
 @media (max-width: 801px) {
-  
   .btn-circle {
     width: 40px;
     height: 40px;
@@ -100,8 +99,8 @@
     margin: 2px 2px;
     cursor: pointer;
     font-size: 16px;
-	  line-height: 2.1;
-	  border-radius: 33px;
+    line-height: 2.1;
+    border-radius: 33px;
   }
 
   #fieldGroup > div:first-of-type {
@@ -109,8 +108,8 @@
     justify-content: flex-start;
   }
 
-  #resolutionGroup > .btn-circle, #runGroup > .btn-circle {
+  #resolutionGroup > .btn-circle,
+  #runGroup > .btn-circle {
     line-height: 2;
   }
-
 }

@@ -12,7 +12,7 @@ export class AuthServiceStub extends AuthService {
     super(
       {} as LocalStorageService,
       {} as ApiService,
-      {} as NotificationService
+      {} as NotificationService,
     );
   }
 

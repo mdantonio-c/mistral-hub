@@ -21,6 +21,6 @@ describe("FormDataService", () => {
     [FormDataService],
     (service: FormDataService) => {
       expect(service).toBeTruthy();
-    }
+    },
   ));
 });

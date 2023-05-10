@@ -126,7 +126,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     private notify: NotificationService,
     private confirmationModals: ConfirmationModals,
     private authService: AuthService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
   ) {
     super(formDataService, router, route);
     this.form = this.formBuilder.group({
@@ -159,7 +159,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     }
     this.vars.map((v) => {
       const control = this.formBuilder.control(
-        presetVariables.includes(v.code)
+        presetVariables.includes(v.code),
       );
       (this.form.controls.derived_variables as FormArray).push(control);
     });
@@ -169,17 +169,17 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     const pt = this.formDataService
       .getFormData()
       .postprocessors.filter(
-        (p) => p.processor_type === "statistic_elaboration"
+        (p) => p.processor_type === "statistic_elaboration",
       );
     if (pt && pt.length) {
       this.form.controls["selectedTimePP"].setValue(true);
       this.selectedStepUnit = pt[0].interval; //'interval': this.selectedStepUnit,
       this.form.controls["timeStep"].setValue(pt[0].step); //'step': this.form.value.timeStep
       this.selectedInputTimeRange = this.timeRanges.filter(
-        (t) => t.code == pt[0]["input_timerange"]
+        (t) => t.code == pt[0]["input_timerange"],
       )[0];
       this.selectedOutputTimeRange = this.timeRanges.filter(
-        (t) => t.code == pt[0]["output_timerange"]
+        (t) => t.code == pt[0]["output_timerange"],
       )[0];
     } else {
       this.form.controls["timeStep"].setValue(1);
@@ -204,13 +204,13 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       this.form.controls["selectedSpacePP"].setValue(true);
       this.form.controls["space_type"].setValue("crop");
       this.selectedCropType = this.cropTypes.filter(
-        (c) => c.desc === pt[0]["sub_type"]
+        (c) => c.desc === pt[0]["sub_type"],
       )[0];
       const boundings = pt[0].boundings;
       this.space_crop_boundings.map((bound) => {
         const control = this.formBuilder.control(
           boundings[bound.code],
-          bound.validators
+          bound.validators,
         );
         (this.form.controls.space_crop as FormArray).push(control);
       });
@@ -234,7 +234,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       this.form.controls["selectedSpacePP"].setValue(true);
       this.form.controls["space_type"].setValue("grid");
       this.selectedInterpolationType = this.interpolationTypes.filter(
-        (i) => i === pt[0]["sub_type"]
+        (i) => i === pt[0]["sub_type"],
       )[0];
       const boundings = pt[0].boundings;
       if (boundings) {
@@ -242,7 +242,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
         this.space_grid_boundings.map((bound) => {
           const control = this.formBuilder.control(
             boundings[bound.code],
-            bound.validators
+            bound.validators,
           );
           (this.form.controls.space_grid as FormArray).push(control);
         });
@@ -250,17 +250,17 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
         this.interpolation_nodes.map((node) => {
           const control = this.formBuilder.control(
             nodes[node.code],
-            node.validators
+            node.validators,
           );
           (this.form.controls.interpolationNodes as FormArray).push(control);
         });
       } else {
         this.form.controls["gridInterpolationType"].setValue("template");
         const selectedTemplate = this.gridInterpolationTemplates.filter(
-          (t) => t.filepath === pt[0].template
+          (t) => t.filepath === pt[0].template,
         )[0];
         this.form.controls["selectedGITemplate"].setValue(
-          selectedTemplate.filepath
+          selectedTemplate.filepath,
         );
         this.space_grid_boundings.map((bound) => {
           const control = this.formBuilder.control(0, bound.validators);
@@ -288,19 +288,19 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     const pt = this.formDataService
       .getFormData()
       .postprocessors.filter(
-        (p) => p.processor_type === "spare_point_interpolation"
+        (p) => p.processor_type === "spare_point_interpolation",
       );
     if (pt && pt.length) {
       this.form.controls["selectedSpacePP"].setValue(true);
       this.form.controls["space_type"].setValue("points");
       this.selectedInterpolationType = this.interpolationTypes.filter(
-        (i) => i === pt[0]["sub_type"]
+        (i) => i === pt[0]["sub_type"],
       )[0];
       const selectedTemplate = this.sparePointsTemplates.filter(
-        (t) => t.filepath === pt[0]["coord_filepath"]
+        (t) => t.filepath === pt[0]["coord_filepath"],
       )[0];
       this.form.controls["selectedSPTemplate"].setValue(
-        selectedTemplate.filepath
+        selectedTemplate.filepath,
       );
     } else {
       this.selectedInterpolationType = "-";
@@ -331,7 +331,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       },
       (error) => {
         this.notify.showError("Unable to load templates");
-      }
+      },
     );
 
     // spare points templates
@@ -350,17 +350,17 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
             if (this.uploadedFileName) {
               let extractExtensionRegex = new RegExp("(?:.([^.]+))?$");
               let fileExtension = extractExtensionRegex.exec(
-                this.uploadedFileName
+                this.uploadedFileName,
               )[1];
               if (fileExtension === "geojson") {
                 this.uploadedFileName = this.uploadedFileName.replace(
                   "geojson",
-                  "shp"
+                  "shp",
                 );
               } else if (fileExtension === "zip") {
                 this.uploadedFileName = this.uploadedFileName.replace(
                   "zip",
-                  "shp"
+                  "shp",
                 );
               }
               if (label === this.uploadedFileName)
@@ -373,7 +373,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       },
       (error) => {
         this.notify.showError("Unable to load templates");
-      }
+      },
     );
   }
 
@@ -381,7 +381,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     template_name: string,
     text: string = null,
     title: string = null,
-    subText: string = null
+    subText: string = null,
   ) {
     text = `Are you really sure you want to delete the template ${template_name} from your personal space?`;
     this.confirmationModals
@@ -391,16 +391,16 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
           this.dataService.deleteTemplates(template_name).subscribe(
             (response) => {
               this.notify.showSuccess(
-                "Confirmation: " + template_name + " successfully deleted"
+                "Confirmation: " + template_name + " successfully deleted",
               );
               this.buildTemplates();
             },
             (error) => {
               this.notify.showError("Unable to delete the selected template");
-            }
+            },
           );
         },
-        (reason) => {}
+        (reason) => {},
       );
   }
 
@@ -416,10 +416,10 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
   private checkDatasetFormat() {
     const selectedDataset = this.formDataService.getFormData().datasets;
     this.form.controls["hasBufrDataset"].setValue(
-      selectedDataset.some((d) => d.format === "bufr")
+      selectedDataset.some((d) => d.format === "bufr"),
     );
     this.form.controls["hasGribDataset"].setValue(
-      selectedDataset.some((d) => d.format === "grib")
+      selectedDataset.some((d) => d.format === "grib"),
     );
   }
 
@@ -436,7 +436,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
         },
         (error) => {
           this.notify.showError("Error loading summary stats");
-        }
+        },
       )
       .add(() => {
         this.spinner.hide("summary-spinner");
@@ -450,7 +450,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       },
       (error) => {
         this.notify.showError("Unable to load derived variables configuration");
-      }
+      },
     );
     this.buildTemplates();
     this.buildTimePostProcess();
@@ -476,7 +476,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       },
       (error) => {
         this.notify.showError(error.error);
-      }
+      },
     );
   }
 
@@ -500,7 +500,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     if (this.form.value.selectedTimePP) {
       this.validateTimePostProcessor();
       let timeValidationItem = this.validationResults.filter(
-        (v) => v.type == "time"
+        (v) => v.type == "time",
       )[0];
       if (!timeValidationItem) {
         selectedProcessors.push(this.calculateTimePostProcessor());
@@ -518,7 +518,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
         case "crop": {
           this.validateAreaCrop();
           let areaValidationItem = this.validationResults.filter(
-            (v) => v.type == "area"
+            (v) => v.type == "area",
           )[0];
           if (!areaValidationItem) {
             selectedProcessors.push(this.calculateSpaceCrop());
@@ -528,7 +528,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
         case "grid": {
           this.validateGridInterpolation();
           let gridAreaValidationItem = this.validationResults.filter(
-            (v) => v.type == "grid"
+            (v) => v.type == "grid",
           )[0];
           if (!gridAreaValidationItem) {
             selectedProcessors.push(this.calculateSpaceGridCoord());
@@ -539,7 +539,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
         case "points": {
           this.validateSparePoints();
           let sparePointsValidationItem = this.validationResults.filter(
-            (v) => v.type == "spare_points"
+            (v) => v.type == "spare_points",
           )[0];
           if (!sparePointsValidationItem) {
             selectedProcessors.push(this.calculateSparePoints());
@@ -627,7 +627,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
       processor_type: "spare_point_interpolation",
       coord_filepath: this.form.value.selectedSPTemplate,
       format: this.sparePointsTemplates.find(
-        (t) => t.filepath == this.form.value.selectedSPTemplate
+        (t) => t.filepath == this.form.value.selectedSPTemplate,
       ).format,
       sub_type: this.selectedInterpolationType,
     };
@@ -681,7 +681,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
         !timeStepRegex.test(this.form.value.timeStep))
     ) {
       validationItem.messages.push(
-        " - Step value must be a positive integer<br/>"
+        " - Step value must be a positive integer<br/>",
       );
     }
 
@@ -743,7 +743,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     } else {
       if (!this.form.value.selectedGITemplate) {
         validationItem.messages.push(
-          " - at least one template must be selected<br/>"
+          " - at least one template must be selected<br/>",
         );
       }
     }
@@ -769,7 +769,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
 
     if (!this.form.value.selectedSPTemplate) {
       validationItem.messages.push(
-        " - at least one template must be selected<br/>"
+        " - at least one template must be selected<br/>",
       );
     }
 

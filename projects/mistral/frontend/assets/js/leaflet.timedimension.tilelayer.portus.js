@@ -14,7 +14,7 @@ L.TimeDimension.Layer.TileLayer.Portus = L.TimeDimension.Layer.TileLayer.extend(
       L.TimeDimension.Layer.TileLayer.prototype.initialize.call(
         this,
         layer,
-        options
+        options,
       );
       this._layers = {};
       this._defaultTime = 0;
@@ -31,7 +31,7 @@ L.TimeDimension.Layer.TileLayer.Portus = L.TimeDimension.Layer.TileLayer.extend(
           this.fire("timeload", {
             time: this._defaultTime,
           });
-        }.bind(this)
+        }.bind(this),
       );
     },
 
@@ -44,7 +44,7 @@ L.TimeDimension.Layer.TileLayer.Portus = L.TimeDimension.Layer.TileLayer.extend(
       return L.TimeDimension.Layer.TileLayer.prototype.eachLayer.call(
         this,
         method,
-        context
+        context,
       );
     },
 
@@ -87,7 +87,7 @@ L.TimeDimension.Layer.TileLayer.Portus = L.TimeDimension.Layer.TileLayer.extend(
     setOpacity: function (opacity) {
       L.TimeDimension.Layer.TileLayer.prototype.setOpacity.apply(
         this,
-        arguments
+        arguments,
       );
       // apply to all preloaded caches
       for (var prop in this._layers) {
@@ -103,7 +103,7 @@ L.TimeDimension.Layer.TileLayer.Portus = L.TimeDimension.Layer.TileLayer.extend(
     setZIndex: function (zIndex) {
       L.TimeDimension.Layer.TileLayer.prototype.setZIndex.apply(
         this,
-        arguments
+        arguments,
       );
       // apply to all preloaded caches
       for (var prop in this._layers) {
@@ -198,7 +198,7 @@ L.TimeDimension.Layer.TileLayer.Portus = L.TimeDimension.Layer.TileLayer.extend(
           this.fire("timeload", {
             time: time,
           });
-        }.bind(this, newLayer, time)
+        }.bind(this, newLayer, time),
       );
 
       // Hack to hide the layer when added to the map.
@@ -276,12 +276,12 @@ L.TimeDimension.Layer.TileLayer.Portus = L.TimeDimension.Layer.TileLayer.extend(
         console.log("Search layer time: " + new Date(time).toISOString());
         console.log(
           "Return layer time: " +
-            new Date(this._availableTimes[index]).toISOString()
+            new Date(this._availableTimes[index]).toISOString(),
         );
       }
       return this._availableTimes[index];
     },
-  }
+  },
 );
 
 L.timeDimension.layer.tileLayer.portus = function (layer, options) {

@@ -13,6 +13,6 @@ describe("ArkimetService", () => {
     [ArkimetService],
     (service: ArkimetService) => {
       expect(service).toBeTruthy();
-    }
+    },
   ));
 });

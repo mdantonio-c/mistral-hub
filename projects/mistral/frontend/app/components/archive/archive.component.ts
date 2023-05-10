@@ -29,7 +29,7 @@ export class ArchiveComponent extends BasePaginationComponent<Request> {
   constructor(
     protected injector: Injector,
     public dataService: DataService,
-    private router: Router
+    private router: Router,
   ) {
     super(injector);
     this.init("request", "/api/requests", null);
@@ -79,7 +79,7 @@ export class ArchiveComponent extends BasePaginationComponent<Request> {
         },
         (error) => {
           this.notify.showError(`Unable to clone request: ${request.id}`);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide();

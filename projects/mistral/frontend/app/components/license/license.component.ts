@@ -19,7 +19,7 @@ export class LicenseComponent implements OnInit {
     private dataService: DataService,
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
-    private router: Router
+    private router: Router,
   ) {
     this.router.events.subscribe((event: any) => {
       if (event instanceof Scroll && event.anchor) {
@@ -68,7 +68,7 @@ export class LicenseComponent implements OnInit {
           // console.log('Data loaded', this.data);
           if (this.data.length === 0) {
             this.notify.showWarning(
-              "Unexpected result. The list of datasets is empty."
+              "Unexpected result. The list of datasets is empty.",
             );
           }
           let attr_description = null;
@@ -130,7 +130,7 @@ export class LicenseComponent implements OnInit {
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide();

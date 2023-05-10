@@ -13,7 +13,7 @@ export class AdminService {
     return this.api.get<ExchangeBindings>(
       "outbindings",
       {},
-      { validationSchema: "ExchangeBindings" }
+      { validationSchema: "ExchangeBindings" },
     );
   }
 

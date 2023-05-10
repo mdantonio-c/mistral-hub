@@ -29,7 +29,7 @@ export class BindingsComponent implements OnInit {
     private spinner: NgxSpinnerService,
     private adminService: AdminService,
     private auth: AuthService,
-    private notify: NotificationService
+    private notify: NotificationService,
   ) {}
 
   ngOnInit() {
@@ -62,7 +62,7 @@ export class BindingsComponent implements OnInit {
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide();
@@ -83,7 +83,7 @@ export class BindingsComponent implements OnInit {
           },
           (error) => {
             this.notify.showError(error);
-          }
+          },
         )
         .add(() => {
           this.spinner.hide();
@@ -98,7 +98,7 @@ export class BindingsComponent implements OnInit {
           },
           (error) => {
             this.notify.showError(error);
-          }
+          },
         )
         .add(() => {
           this.spinner.hide();

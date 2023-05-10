@@ -46,7 +46,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
     private modalService: NgbModal,
-    private ref: ChangeDetectorRef
+    private ref: ChangeDetectorRef,
   ) {
     this.filterForm = this.fb.group({
       types: new FormArray([]),
@@ -95,13 +95,13 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
           ];
           // init form data with empty checkboxes
           this.typesData.forEach(() =>
-            this.typesFormArray.push(new FormControl(false))
+            this.typesFormArray.push(new FormControl(false)),
           );
           this.licensesData.forEach(() =>
-            this.licensesFormArray.push(new FormControl(false))
+            this.licensesFormArray.push(new FormControl(false)),
           );
           this.attributionsData.forEach(() =>
-            this.attributionsFormArray.push(new FormControl(false))
+            this.attributionsFormArray.push(new FormControl(false)),
           );
 
           // copy datasets to display
@@ -109,7 +109,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         this.loading = false;
@@ -137,7 +137,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
     if (selectedTypeIds.length) {
       // apply type filter
       this.datasets = this.datasets.filter((ds) =>
-        selectedTypeIds.includes(ds.category)
+        selectedTypeIds.includes(ds.category),
       );
     }
     const selectedLicenseIds = this.filterForm.value.licenses
@@ -147,7 +147,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
     if (selectedLicenseIds.length) {
       // apply type filter
       this.datasets = this.datasets.filter((ds) =>
-        selectedLicenseIds.includes(ds.license)
+        selectedLicenseIds.includes(ds.license),
       );
     }
     const selectedAttributionIds = this.filterForm.value.attributions
@@ -157,7 +157,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
     if (selectedAttributionIds.length) {
       // apply type filter
       this.datasets = this.datasets.filter((ds) =>
-        selectedAttributionIds.includes(ds.attribution)
+        selectedAttributionIds.includes(ds.attribution),
       );
     }
   }

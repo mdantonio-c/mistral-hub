@@ -26,7 +26,7 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
     protected route: ActivatedRoute,
     protected formDataService: FormDataService,
     private notify: NotificationService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
   ) {
     super(formDataService, router, route);
     this.form = this.formBuilder.group({
@@ -44,20 +44,20 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
           // console.log('Dataset(s) loaded', this.datasets);
           if (this.datasets.length === 0) {
             this.notify.showWarning(
-              "Unexpected result. The list of datasets is empty."
+              "Unexpected result. The list of datasets is empty.",
             );
             return;
           }
           this.datasets.map((ds, i) => {
             const control = new FormControl(
-              this.formDataService.isDatasetSelected(ds.id)
+              this.formDataService.isDatasetSelected(ds.id),
             );
             (this.form.controls.datasets as FormArray).push(control);
           });
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         this.spinner.hide();
@@ -72,7 +72,7 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
         .map((v, i) => (v ? this.datasets[i].category : null))
         .filter((v) => v !== null);
       this.selectedCategories = categories.filter(
-        (v, i) => categories.indexOf(v) === i
+        (v, i) => categories.indexOf(v) === i,
       );
       if (this.selectedCategories.length > 1) {
         this.notify
@@ -84,7 +84,7 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
         .map((v, i) => (v ? this.datasets[i].group_license : null))
         .filter((v) => v !== null);
       this.selectedLicenseGroups = license_groups.filter(
-        (v, i) => license_groups.indexOf(v) === i
+        (v, i) => license_groups.indexOf(v) === i,
       );
       if (this.selectedLicenseGroups.length > 1) {
         this.notify
@@ -100,7 +100,7 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
         selected_datasets.length > 1
       ) {
         this.notify.showWarning(
-          `The selection of multiple datasets is not supported if Multi-Model Ensemble is included.`
+          `The selection of multiple datasets is not supported if Multi-Model Ensemble is included.`,
         );
       }
     });
@@ -112,7 +112,7 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
     }
 
     this.formDataService.setDatasets(
-      this.datasets.filter((x) => selectedDatasetsIds.includes(x.id))
+      this.datasets.filter((x) => selectedDatasetsIds.includes(x.id)),
     );
     return true;
   }

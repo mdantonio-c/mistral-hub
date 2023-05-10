@@ -21,7 +21,7 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
   constructor(
     protected injector: Injector,
     public dataService: DataService,
-    private el: ElementRef
+    private el: ElementRef,
   ) {
     super(injector);
     this.init("schedule", "/api/schedules", null);
@@ -55,7 +55,7 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
             // show reason
             this.notify.showError(error);
           }
-        }
+        },
       )
       .add(() => {
         this.loadingLast = false;
@@ -82,7 +82,7 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
       },
       (error) => {
         this.notify.showError(`Unable to download file: ${filename}`);
-      }
+      },
     );
   }
 
@@ -92,13 +92,13 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
 
     const action = !row.enabled ? "Activate" : "Deactivate";
     console.log(
-      `${action} schedule [ID:${row.id}]. Current state: ${row.enabled}`
+      `${action} schedule [ID:${row.id}]. Current state: ${row.enabled}`,
     );
     this.dataService.toggleScheduleActiveState(row.id, !row.enabled).subscribe(
       (response) => {
         row.enabled = response.enabled;
         let toggleBtn = this.el.nativeElement.querySelector(
-          "#act-btn-" + row.id
+          "#act-btn-" + row.id,
         );
         row.enabled
           ? toggleBtn.classList.add("active")
@@ -106,7 +106,7 @@ export class SchedulesComponent extends BasePaginationComponent<Schedule> {
       },
       (error) => {
         this.notify.showError(error);
-      }
+      },
     );
   }
   getFileName(path) {

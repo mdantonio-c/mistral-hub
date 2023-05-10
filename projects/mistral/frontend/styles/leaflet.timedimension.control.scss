@@ -430,17 +430,14 @@ a.timecontrol-play.loading:before {
 
 /*Responsive legende*/
 
-
 @media screen and (max-height: 856px) {
   .legenda {
     width: 53%;
-    
   }
 }
 
-@media screen and  (max-height: 667px) {
+@media screen and (max-height: 667px) {
   .legenda {
-
     margin-left: 0 !important;
   }
 }
@@ -478,5 +475,4 @@ a.timecontrol-play.loading:before {
   app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .speed {
     width: 60px;
   }
-
 }

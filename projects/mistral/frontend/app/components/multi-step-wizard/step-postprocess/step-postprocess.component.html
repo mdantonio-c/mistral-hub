@@ -32,7 +32,7 @@
               <li *ngIf="summaryStats">
                 <strong>Size:</strong>
                 {{
-                  summaryStats.s != null ? (summaryStats.s | bytes: 2) : "n/a"
+                  summaryStats.s != null ? (summaryStats.s | bytes : 2) : "n/a"
                 }}
               </li>
             </ul>

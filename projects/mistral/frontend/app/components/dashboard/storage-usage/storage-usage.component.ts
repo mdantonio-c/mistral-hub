@@ -13,7 +13,7 @@ export class StorageUsageComponent implements OnInit {
 
   constructor(
     private dataService: DataService,
-    private notify: NotificationService
+    private notify: NotificationService,
   ) {}
 
   ngOnInit() {
@@ -28,7 +28,7 @@ export class StorageUsageComponent implements OnInit {
       },
       (error) => {
         this.notify.showError(error);
-      }
+      },
     );
   }
 }

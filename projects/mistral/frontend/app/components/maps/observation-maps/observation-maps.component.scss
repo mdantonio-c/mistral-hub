@@ -43,16 +43,16 @@
   }
 }
 
-@media screen and (max-width: 635px){
+@media screen and (max-width: 635px) {
   .counter {
     .number-box {
-        span {
-          font-size: 10px !important;
-          margin-bottom: 18px !important;
-  
-          &.number {
-            font-size: 19px !important;          
-          }
+      span {
+        font-size: 10px !important;
+        margin-bottom: 18px !important;
+
+        &.number {
+          font-size: 19px !important;
+        }
       }
     }
   }

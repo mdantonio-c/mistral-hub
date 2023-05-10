@@ -47,7 +47,7 @@ export class ObsDownloadComponent implements OnInit {
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
     private calendar: NgbCalendar,
-    public formatter: NgbDateParserFormatter
+    public formatter: NgbDateParserFormatter,
   ) {
     this.maxDate = calendar.getToday();
     this.fromDate = calendar.getToday();
@@ -126,12 +126,12 @@ export class ObsDownloadComponent implements OnInit {
     this.model.fromDate = new Date(
       this.fromDate.year,
       this.fromDate.month - 1,
-      this.fromDate.day
+      this.fromDate.day,
     );
     this.model.toDate = new Date(
       this.toDate.year,
       this.toDate.month - 1,
-      this.toDate.day
+      this.toDate.day,
     );
     this.spinner.show();
     let fileExtension = "";
@@ -151,7 +151,7 @@ export class ObsDownloadComponent implements OnInit {
         this.filter,
         this.model.fromDate,
         this.model.toDate,
-        this.model.format
+        this.model.format,
       )
       .subscribe(
         (blob) => {
@@ -160,7 +160,7 @@ export class ObsDownloadComponent implements OnInit {
         (error) => {
           console.error(error);
           this.notify.showError("Unable to download data");
-        }
+        },
       )
       .add(() => {
         this.spinner.hide();

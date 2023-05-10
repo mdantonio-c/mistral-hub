@@ -32,7 +32,7 @@ export class DatasetDetailsComponent implements OnInit {
     public activeModal: NgbActiveModal,
     private router: Router,
     private notify: NotificationService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
   ) {}
 
   ngOnInit() {
@@ -49,7 +49,7 @@ export class DatasetDetailsComponent implements OnInit {
           },
           (error) => {
             this.notify.showError(error);
-          }
+          },
         )
         .add(() => {
           this.loading = false;

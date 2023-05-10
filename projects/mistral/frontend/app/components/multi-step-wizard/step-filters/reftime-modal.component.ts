@@ -105,6 +105,6 @@ function getReftime(value): FormGroup {
     },
     {
       validators: [timeRangeInconsistencyValidator],
-    }
+    },
   );
 }

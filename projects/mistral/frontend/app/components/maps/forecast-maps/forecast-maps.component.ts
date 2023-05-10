@@ -48,7 +48,7 @@ export class ForecastMapsComponent
         },
         (error) => {
           this.notify.showError(error);
-        }
+        },
       )
       .add(() => {
         this.loading = false;
