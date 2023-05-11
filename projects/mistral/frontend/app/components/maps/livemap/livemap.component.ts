@@ -422,7 +422,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
                 `</span>&nbsp<span style="color: ${color};"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle: ${directionWindLastValue}deg;"></i></span></div>`;
             } else {
               // icon ith only wind speed
-              htmlIcon = `<div class="mstObsIcon rounded" style="background-color: ${color};" ><span>${val}</span></div>`;
+              htmlIcon = `<div class="mstObsIcon rounded" style="background-color:#fff;" ><span>${val}</span>&nbsp<span style="color: ${color};"><i class="fa-solid fa-circle></i></span></div>`;
             }
           } else {
             htmlIcon =
