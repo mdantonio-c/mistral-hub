@@ -118,7 +118,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     this.legends = {
       t2m: this.createLegendControl("tm2"),
       prs: this.createLegendControl("pmsl"),
-      wind10m: this.createLegendControl("ws10m"),
+      ws10m: this.createLegendControl("ws10m"),
       rh: this.createLegendControl("rh"),
       prp: this.createLegendControl("prp"),
     };
@@ -197,7 +197,11 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     let min: number, max: number;
     // min and max needed before data marker creation
     data.forEach((s) => {
-      obsData = s.prod.find((x) => x.var === product);
+      // create a product list to manage cases with multiple products (wind use case)
+      const productList: string[] = product
+        .split(" or ")
+        .map((item: string) => item.trim());
+      obsData = s.prod.find((x) => x.var === productList[0]);
       let localMin = Math.min(
         ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val),
       );
@@ -214,14 +218,14 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       obsData.val = obsData.val.filter((v) => v.rel === 1);
       if (obsData.val.length > 0) {
         const lastObs: ObsValue = obsData.val.pop();
-        const val = ObsService.showData(lastObs.val, product);
+        const val = ObsService.showData(lastObs.val, productList[0]);
         // console.log(lastObs.val, val, localMin, max);
         if (lastObs.val < max && lastObs.val > min) {
           let htmlIcon = "";
           let color: string = "";
           if (
             "t2m" in this.variablesConfig &&
-            this.variablesConfig["t2m"].code === product
+            this.variablesConfig["t2m"].code.includes(productList[0])
           ) {
             if (lastObs.val >= 319.15) {
               color = "#ff9900";
@@ -305,9 +309,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
           }
           if (
             "prp" in this.variablesConfig &&
-            this.variablesConfig["prp"].code === product
+            this.variablesConfig["prp"].code.includes(productList[0])
           ) {
-            if (lastObs.val < max && lastObs.val > min){
+            if (lastObs.val < max && lastObs.val > min) {
               if (lastObs.val >= 300) {
                 color = "#4897D9";
               } else if (lastObs.val >= 200 && lastObs.val < 300) {
@@ -345,11 +349,11 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               } else if (lastObs.val >= 0 && lastObs.val < 2) {
                 color = "#CFEAF6";
               }
-            };
+            }
           }
           if (
             "rh" in this.variablesConfig &&
-            this.variablesConfig["rh"].code === product
+            this.variablesConfig["rh"].code.includes(productList[0])
           ) {
             if (lastObs.val >= 110) {
               color = "#3F57B0";
@@ -365,13 +369,16 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               color = "#EC2426";
             }
           }
-          if ("prs" in this.variablesConfig && this.variablesConfig["prs"].code === product ) { 
-            color= "#7da4eb;";
-          };
+          if (
+            "prs" in this.variablesConfig &&
+            this.variablesConfig["prs"].code === product
+          ) {
+            color = "#7da4eb;";
+          }
 
           if (
             "ws10m" in this.variablesConfig &&
-            this.variablesConfig["ws10m"].code === product
+            this.variablesConfig["ws10m"].code.includes(productList[0])
           ) {
             if (lastObs.val >= 70) {
               color = "#9600FE";
@@ -390,9 +397,33 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
             } else if (lastObs.val >= 0 && lastObs.val < 2) {
               color = "#457D00";
             }
-            htmlIcon =
-              `<div class="mstObsIcon" ><span>${val}` +
-              '</span>&nbsp<span style="color: yellow"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle:45deg;"></i></span></div>';
+            // get the direction data
+            // wind use case
+            const secondObsData: ObsData = s.prod.find(
+              (x) => x.var === productList[1],
+            );
+            // filter the data to get only reliable data
+            secondObsData.val = secondObsData.val.filter((v) => v.rel === 1);
+            let directionWindLastValue: string;
+            if (secondObsData.val.length > 0) {
+              const directionWindLastObs = secondObsData.val.pop();
+              // check that the reference time is the same
+              if (directionWindLastObs.ref == directionWindLastObs.ref) {
+                directionWindLastValue = ObsService.showData(
+                  directionWindLastObs.val,
+                  productList[1],
+                );
+              }
+            }
+            if (directionWindLastValue) {
+              // icon with arrow for the wind direction
+              htmlIcon =
+                `<div class="mstObsIcon rounded" style="background-color: #fff;" ><span>${val}` +
+                `</span>&nbsp<span style="color: ${color};"><i class="fa-solid fa-circle-arrow-up fa-rotate-by" style="--fa-rotate-angle: ${directionWindLastValue}deg;"></i></span></div>`;
+            } else {
+              // icon ith only wind speed
+              htmlIcon = `<div class="mstObsIcon rounded" style="background-color: ${color};" ><span>${val}</span></div>`;
+            }
           } else {
             htmlIcon =
               `<div class="mstObsIcon rounded" style="background-color: ${color};"><span>${val}` +
@@ -468,6 +499,11 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
     //console.log(meteogramsFilter)
     // get the data
+    // use product list to cope with wind use case
+    const productList: string[] = this.filter.product
+      .split(" or ")
+      .map((item: string) => item.trim());
+    this.filter.product = productList[0];
     modalRef.componentInstance.selectedProduct = this.filter;
     modalRef.componentInstance.filter = meteogramsFilter;
     // need to trigger resize event

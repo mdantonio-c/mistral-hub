@@ -465,12 +465,14 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     label: "snow fall",
     code: "",
     value: []
-  },
+  },*/
   ws10m: {
     label: "wind",
-    code: "",
-    value: []
-  },*/
+    code: "B11002 or B11001",
+    timerange: "254,0,0",
+    level: "103,10000,0,0",
+    value: [],
+  },
   rh: {
     label: "relative humidity",
     code: "B13003",
