@@ -189,13 +189,6 @@ export const LEGEND_DATA: LegendConfig[] = [
     ],
   },
   {
-    id: "pmsl",
-    legend_type: "legend_pmsl",
-    title: "",
-    colors: [],
-    labels: [],
-  },
-  {
     id: "rh",
     legend_type: "legend_rh",
     title: "RH [%]",

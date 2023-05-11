@@ -117,7 +117,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
 
     this.legends = {
       t2m: this.createLegendControl("tm2"),
-      pmsl: this.createLegendControl("pmsl"),
+      prs: this.createLegendControl("pmsl"),
       wind10m: this.createLegendControl("ws10m"),
       rh: this.createLegendControl("rh"),
       prp: this.createLegendControl("prp"),
@@ -363,6 +363,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               color = "#EC2426";
             }
           }
+          if ("prs" in this.variablesConfig && this.variablesConfig["prs"].code === product ) { 
+            color= "#7da4eb;";
+          };
 
           if (
             "ws10m" in this.variablesConfig &&
