@@ -72,12 +72,22 @@ export class ObsService {
     filter: ObsFilter,
     station: Station,
   ): Observable<ObservationResponse> {
-    let params = {
-      q: `${ObsService.parseReftime(
+    let parsedReftime = "";
+    if (filter.dateInterval && filter.dateInterval.length > 0) {
+      parsedReftime = `${ObsService.parseReftime(
+        filter.dateInterval[0],
+        filter.dateInterval[1],
+        filter.time,
+      )}`;
+    } else {
+      parsedReftime = `${ObsService.parseReftime(
         filter.reftime,
         filter.reftime,
         filter.time,
-      )}`,
+      )}`;
+    }
+    let params = {
+      q: parsedReftime,
       lat: station.lat,
       lon: station.lon,
       networks: station.net,

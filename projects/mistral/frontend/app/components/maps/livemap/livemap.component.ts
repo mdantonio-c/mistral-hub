@@ -497,6 +497,17 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.product = meteogramProducts.join(" or ");
     meteogramsFilter.level = meteogramLevels.join(" or ");
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
+    // get the reftime to and reftime from
+    const reftimeTo = moment.utc(new Date().getTime()).local();
+    const reftimeFrom = moment
+      .utc(new Date().getTime())
+      .local()
+      .subtract({ hours: 24 });
+    /*// TODO deccoment when the grafic of 24h meteogram is fixed
+    meteogramsFilter.dateInterval = [reftimeFrom.toDate(),reftimeTo.toDate()]
+    meteogramsFilter.time = [reftimeFrom.hour(),reftimeTo.hour()]*/
+
+    //console.log(moment.utc(new Date().getTime()).local().date())
     //console.log(meteogramsFilter)
     // get the data
     // use product list to cope with wind use case

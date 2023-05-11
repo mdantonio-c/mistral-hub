@@ -90,7 +90,7 @@ export class ObsStationReportComponent implements OnInit {
               `${x.code}-${x.level}-${x.timerange}` === meteogramToShow,
           );
           this.active = meteogramToShow;
-          // console.log("single: ", this.single, "multi: ", multi);
+          //console.log("single: ", this.single, "multi: ", multi);
         },
         (error) => {
           this.notify.showError(error);
@@ -119,8 +119,26 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   xAxisLabelFormatting() {
-    return moment(this.filter.reftime).format("MMMM Do YYYY");
+    if (this.filter.dateInterval && this.filter.dateInterval.length > 0) {
+      if (
+        this.filter.dateInterval[0].getDay() !=
+        this.filter.dateInterval[1].getDay()
+      ) {
+        return `${moment(this.filter.dateInterval[0]).format(
+          "MMMM Do YYYY",
+        )} - ${moment(this.filter.dateInterval[1]).format("MMMM Do YYYY")}`;
+      } else {
+        return `${moment(this.filter.dateInterval[0]).format("MMMM Do YYYY")}`;
+      }
+    } else {
+      return moment(this.filter.reftime).format("MMMM Do YYYY");
+    }
   }
+
+  /*xAxisLabelFormatting() {
+    return moment(this.filter.reftime).format("MMMM Do YYYY");
+
+  }*/
 
   xAxisTickFormattingFn = this.xAxisTickFormatting.bind(this);
 

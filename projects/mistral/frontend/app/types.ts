@@ -274,6 +274,7 @@ export interface Templates {
 export interface ObsFilter {
   product: string;
   reftime: Date;
+  dateInterval?: Date[]; // expected 2 values (from, to). Used to query reftime that covers different days
   time?: number[]; // expected 2 values (from, to)
   license?: string;
   network?: string;
