@@ -39,7 +39,7 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
   protected abstract onMapReady(map: L.Map);
 
   protected onMapZoomEnd($event) {
-    // console.log(`Map Zoom: ${this.map.getZoom()}`);
+    console.log(`Map Zoom: ${this.map.getZoom()}`);
     // DO NOTHING
   }
 

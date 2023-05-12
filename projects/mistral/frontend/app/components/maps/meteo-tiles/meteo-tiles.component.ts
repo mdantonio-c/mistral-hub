@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, Input } from "@angular/core";
 import { environment } from "@rapydo/../environments/environment";
 import { forkJoin, interval } from "rxjs";
 import { catchError, filter, scan, takeUntil } from "rxjs/operators";
@@ -31,7 +31,6 @@ import {
   DatasetProduct as DP,
   DATASETS,
   MISTRAL_LICENSE_HREF,
-  MOBILE_WIDTH,
   MULTI_MODEL_TIME_RANGES,
   MultiModelProduct,
   OSM_LICENSE_HREF,
@@ -55,9 +54,6 @@ const MAP_CENTER = L.latLng(41.879966, 12.28),
   },
   LNG_OFFSET = 3;
 
-const MAX_ZOOM = 8;
-const MIN_ZOOM = 5;
-
 @Component({
   selector: "app-meteo-tiles",
   templateUrl: "./meteo-tiles.component.html",
@@ -68,6 +64,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   readonly DEFAULT_PRODUCT_IFF = DP.TPPERC1;
   readonly LEGEND_POSITION = "bottomleft";
   readonly DEFAULT_DATASET: string = DATASETS[0].code;
+  @Input() minZoom: number = 5;
+  @Input() maxZoom: number = 8;
 
   dataset: string;
   private run: string;
@@ -79,8 +77,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
       attribution: `&copy; ${OSM_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
-      maxZoom: MAX_ZOOM,
-      minZoom: MIN_ZOOM,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
     },
   );
   LAYER_LIGHTMATTER = L.tileLayer(
@@ -88,16 +86,16 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     {
       id: "mapbox.light",
       attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
-      maxZoom: MAX_ZOOM,
-      minZoom: MIN_ZOOM,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
     },
   );
   LAYER_DARKMATTER = L.tileLayer(
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png",
     {
       attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
-      maxZoom: MAX_ZOOM,
-      minZoom: MIN_ZOOM,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
     },
   );
 
@@ -111,8 +109,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   };
   options = {
     zoomControl: false,
-    minZoom: MIN_ZOOM,
-    maxZoom: MAX_ZOOM - 1,
+    minZoom: this.minZoom,
+    maxZoom: this.maxZoom - 1,
     center: L.latLng([46.879966, 11.726909]),
     timeDimension: true,
     timeDimensionControl: true,
@@ -1383,12 +1381,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       const mapCenter = super.getMapCenter();
       switch (this.dataset) {
         case "lm5":
-          this.map.setMaxZoom(MAX_ZOOM - 1);
+          this.map.setMaxZoom(this.maxZoom - 1);
           this.map.setView(mapCenter, 5);
           break;
         case "lm2.2":
         case "iff":
-          this.map.setMaxZoom(MAX_ZOOM);
+          this.map.setMaxZoom(this.maxZoom);
           this.map.setView(mapCenter, 6);
           break;
       }

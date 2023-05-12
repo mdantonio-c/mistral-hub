@@ -1,9 +1,8 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, Input } from "@angular/core";
 import * as L from "leaflet";
 import * as moment from "moment";
 import {
   MISTRAL_LICENSE_HREF,
-  MOBILE_WIDTH,
   OSM_LICENSE_HREF,
   ViewModes,
 } from "../meteo-tiles/meteo-tiles.config";
@@ -28,18 +27,6 @@ import { ObsService } from "../observation-maps/services/obs.service";
 import { ObsStationReportComponent } from "../observation-maps/obs-station-report/obs-station-report.component";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 
-const MAX_ZOOM = 12;
-const MIN_ZOOM = 5;
-
-const LAYER_OSM = L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {
-    attribution: `&copy; ${OSM_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
-    maxZoom: MAX_ZOOM,
-    minZoom: MIN_ZOOM,
-  },
-);
-
 @Component({
   selector: "app-livemap",
   templateUrl: "./livemap.component.html",
@@ -47,14 +34,24 @@ const LAYER_OSM = L.tileLayer(
 })
 export class LivemapComponent extends BaseMapComponent implements OnInit {
   readonly LEGEND_POSITION = "bottomleft";
+  @Input() minZoom: number = 5;
+  @Input() maxZoom: number = 12;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
+  LAYER_OSM = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      attribution: `&copy; ${OSM_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
+    },
+  );
   layersControl = {
     baseLayers: {
-      "Openstreet Map": LAYER_OSM,
+      "Openstreet Map": this.LAYER_OSM,
     },
   };
   options = {
-    layers: [LAYER_OSM],
+    layers: [this.LAYER_OSM],
     zoomControl: false,
     zoom: 6,
     center: L.latLng(41.88, 12.28),
