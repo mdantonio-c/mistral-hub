@@ -580,6 +580,17 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     return product || "n/a";
   }
 
+  printDatasetDescription = (): string => {
+    let product: string;
+    for (let key in VARIABLES_CONFIG_OBS) {
+      if (this.filter.product.includes(VARIABLES_CONFIG_OBS[key].code)) {
+        product = VARIABLES_CONFIG_OBS[key].desc;
+        break;
+      }
+    }
+    return product || "";
+  };
+
   printReferenceDate(): string {
     return `${moment
       .utc(new Date().getTime())

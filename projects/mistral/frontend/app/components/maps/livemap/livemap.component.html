@@ -21,6 +21,7 @@
     [viewMode]="viewMode"
     [overlap]="false"
     [map]="map"
+    [lang]="lang"
     [minZoom]="minZoom"
     [maxZoom]="maxZoom"
     (onLayerChange)="toggleLayer($event)"
@@ -32,6 +33,10 @@
       <div class="selected-dataset">
         {{ printDatasetProduct() | translate : lang }}
       </div>
+      <pre class="d-inline" style="white-space: pre-line">
+          {{ printDatasetDescription() | translate : lang }}
+        </pre
+      >
       <div class="bg-light">
         <i
           class="fa fa-arrows-rotate clickable"

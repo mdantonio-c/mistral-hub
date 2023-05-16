@@ -28,6 +28,7 @@ export class SideNavFilterComponent implements OnInit {
   @Input() baseLayers: L.Control.LayersObject;
   @Input("variables") varConfig: GenericArg;
   @Input("viewMode") mode = ViewModes.adv;
+  @Input() lang = "en";
   @Input() overlap: boolean = true;
   // Reference to the primary map object
   @Input() map: L.Map;
@@ -36,7 +37,7 @@ export class SideNavFilterComponent implements OnInit {
 
   private _overlays: L.Control.LayersObject;
   modes = ViewModes;
-  lang = "en";
+  //lang = "en";
 
   isCollapsed = false;
   @Output() onCollapseChange: EventEmitter<boolean> =
