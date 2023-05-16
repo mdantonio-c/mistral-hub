@@ -27,6 +27,7 @@ export class ObsStationReportComponent implements OnInit {
   @Input() station: Station;
   @Input() filter: ObsFilter;
   @Input() selectedProduct: ObsFilter;
+  @Input() localTimeData: boolean = false;
 
   name: string;
   level: string;
@@ -144,7 +145,11 @@ export class ObsStationReportComponent implements OnInit {
 
   private xAxisTickFormatting(val) {
     // val: 2020-09-07T04:00:00
-    return moment(val).format("HH:mm");
+    if (this.localTimeData) {
+      return moment.utc(val).local().format("HH:mm");
+    } else {
+      return moment(val).format("HH:mm");
+    }
   }
 
   private updateGraphData(navItemId: string) {

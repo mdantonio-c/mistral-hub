@@ -93,10 +93,11 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     this.map = map;
     this.map.attributionControl.setPrefix("");
 
+    //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
     // add default layer
     const filter: ObsFilter = {
       // common parameters
-      reftime: new Date(),
+      reftime: moment.utc(new Date()).toDate(),
       license: "CCBY_COMPLIANT",
       time: [0, 23],
       onlyStations: false,
@@ -437,8 +438,15 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
           });
           m.options["station"] = s.stat;
           m.options["data"] = obsData;
+          const localReferenceTime = moment
+            .utc(lastObs.ref, "YYYY-MM-DDTHH:mm")
+            .toDate();
           m.bindTooltip(
-            BaseMapComponent.buildTooltipTemplate(s.stat, lastObs.ref, val),
+            BaseMapComponent.buildTooltipTemplate(
+              s.stat,
+              localReferenceTime.toString(),
+              val,
+            ),
             {
               direction: "top",
               offset: [4, -2],
@@ -494,18 +502,26 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.product = meteogramProducts.join(" or ");
     meteogramsFilter.level = meteogramLevels.join(" or ");
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
+    /*    // TODO deccoment when the grafic of 24h meteogram is fixed
     // get the reftime to and reftime from
-    const reftimeTo = moment.utc(new Date().getTime()).local();
+    const reftimeTo = moment.utc(new Date().getTime());
     const reftimeFrom = moment
       .utc(new Date().getTime())
-      .local()
-      .subtract({ hours: 24 });
-    /*// TODO deccoment when the grafic of 24h meteogram is fixed
-    meteogramsFilter.dateInterval = [reftimeFrom.toDate(),reftimeTo.toDate()]
-    meteogramsFilter.time = [reftimeFrom.hour(),reftimeTo.hour()]*/
+      .subtract({ hours: 24 });*/
 
-    //console.log(moment.utc(new Date().getTime()).local().date())
-    //console.log(meteogramsFilter)
+    const reftimeTo = new Date();
+    // get reftime from according to local time
+    let reftimeFrom = new Date();
+    reftimeFrom.setHours(0);
+    reftimeFrom.setMinutes(0);
+
+    meteogramsFilter.dateInterval = [reftimeFrom, reftimeTo];
+    //meteogramsFilter.time = [reftimeFrom.hour(),reftimeTo.hour()]
+    meteogramsFilter.time = [
+      reftimeFrom.getUTCHours(),
+      reftimeTo.getUTCHours(),
+    ];
+
     // get the data
     // use product list to cope with wind use case
     const productList: string[] = this.filter.product
@@ -514,6 +530,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     this.filter.product = productList[0];
     modalRef.componentInstance.selectedProduct = this.filter;
     modalRef.componentInstance.filter = meteogramsFilter;
+    // get meteograms and label with local time
+    modalRef.componentInstance.localTimeData = true;
     // need to trigger resize event
     window.dispatchEvent(new Event("resize"));
   }

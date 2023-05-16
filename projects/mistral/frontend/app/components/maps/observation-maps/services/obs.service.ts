@@ -74,6 +74,7 @@ export class ObsService {
   ): Observable<ObservationResponse> {
     let parsedReftime = "";
     if (filter.dateInterval && filter.dateInterval.length > 0) {
+      //console.log(filter.dateInterval)
       parsedReftime = `${ObsService.parseReftime(
         filter.dateInterval[0],
         filter.dateInterval[1],
@@ -212,14 +213,14 @@ export class ObsService {
 
   private static parseReftime(from: Date, to: Date, time?: number[]): string {
     let fDate = [
-      `${from.getFullYear()}`,
-      `${from.getMonth() + 1}`.padStart(2, "0"),
-      `${from.getDate()}`.padStart(2, "0"),
+      `${from.getUTCFullYear()}`,
+      `${from.getUTCMonth() + 1}`.padStart(2, "0"),
+      `${from.getUTCDate()}`.padStart(2, "0"),
     ].join("-");
     let tDate = [
-      `${to.getFullYear()}`,
-      `${to.getMonth() + 1}`.padStart(2, "0"),
-      `${to.getDate()}`.padStart(2, "0"),
+      `${to.getUTCFullYear()}`,
+      `${to.getUTCMonth() + 1}`.padStart(2, "0"),
+      `${to.getUTCDate()}`.padStart(2, "0"),
     ].join("-");
     let fromTime = "00:00";
     let toTime = "23:59";
