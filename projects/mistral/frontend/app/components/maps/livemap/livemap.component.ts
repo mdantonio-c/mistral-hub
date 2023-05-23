@@ -128,6 +128,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private createLegendControl(id: string): L.Control {
     let config: LegendConfig = LEGEND_DATA.find((x) => x.id === id);
     if (!config) {
+      
       console.error(`Legend data NOT found for ID<${id}>`);
       this.notify.showError("Bad legend configuration");
       return;
@@ -137,7 +138,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     legend.onAdd = () => {
       let div = L.DomUtil.create("div");
       div.style.clear = "unset";
-      div.innerHTML += `<img class="legenda" src="/app/custom/assets/images/${id}.svg">`;
+      div.innerHTML += `<img class="legenda" src="/app/custom/assets/images/legends/${id}.svg">`;
+
+      
       // for (let i = 0; i < config.labels.length; i++) {
       //   div.innerHTML +=
       //     '<i style="background:' +
