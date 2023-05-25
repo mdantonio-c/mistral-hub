@@ -163,6 +163,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   ngOnInit() {
+    super.ngOnInit();
     this.variablesConfig = VARIABLES_CONFIG;
     this.route.queryParams.subscribe((params: Params) => {
       const view: string = params["view"];
