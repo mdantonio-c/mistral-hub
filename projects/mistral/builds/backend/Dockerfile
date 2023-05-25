@@ -165,7 +165,7 @@ COPY --from=arpaesimc /usr/lib64/python3.6/site-packages/_arkimet* /usr/lib64/py
 
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/arkimet /usr/local/lib/python${PYTHON_VERSION}/dist-packages/arkimet/
 
-COPY --from=arpaesimc /usr/lib/python3.6/site-packages/wreport /usr/local/lib/python${PYTHON_VERSION}/dist-packages/wreport/
+COPY --from=arpaesimc /usr/lib64/python3.6/site-packages/wreport /usr/local/lib/python${PYTHON_VERSION}/dist-packages/wreport/
 
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dballe /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dballe/
 
