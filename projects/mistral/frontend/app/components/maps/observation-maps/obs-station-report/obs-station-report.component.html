@@ -70,7 +70,7 @@
               style="font-size: small"
             >
               <ng-container *ngFor="let p of report.prod">
-                <li [ngbNavItem]="getNavItemName(p)">
+                <li class="border border-primary rounded m-1"[ngbNavItem]="getNavItemName(p)">
                   <a ngbNavLink>{{ descriptions[p.var].descr | uppercase }}</a>
                   <ng-template ngbNavContent></ng-template>
                 </li>

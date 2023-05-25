@@ -30,14 +30,14 @@
 
   <div class="leaflet-top leaflet-left" style="left: 10px">
     <div class="leaflet-control" style="height: 20px">
-      <div class="selected-dataset">
+      <div class="selected-dataset ">
         {{ printDatasetProduct() | translate : lang }}
       </div>
-      <pre class="d-inline" style="white-space: pre-line">
-          {{ printDatasetDescription() | translate : lang }}
-        </pre
-      >
+      
       <div class="bg-light">
+        <pre class="d-inline" style="white-space: pre-line">
+          {{ printDatasetDescription() | translate : lang }}
+        </pre>
         <i
           class="fa fa-arrows-rotate clickable"
           aria-hidden="true"
