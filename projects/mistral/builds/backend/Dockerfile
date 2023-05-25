@@ -32,7 +32,8 @@ RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/ap
  && apt-get autoremove --yes \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
- && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6
+ && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6 \
+ && ln -sf /usr/lib/x86_64-linux-gnu/libpython${PYTHON_VERSION}.so.1.0 /usr/lib/x86_64-linux-gnu/libpython3.6m.so.1.0
 
 ENV PATH="$PATH:/usr/bin/centos"
 
@@ -166,6 +167,7 @@ COPY --from=arpaesimc /usr/lib64/python3.6/site-packages/_arkimet* /usr/lib64/py
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/arkimet /usr/local/lib/python${PYTHON_VERSION}/dist-packages/arkimet/
 
 COPY --from=arpaesimc /usr/lib64/python3.6/site-packages/wreport /usr/local/lib/python${PYTHON_VERSION}/dist-packages/wreport/
+RUN cp /usr/local/lib/python${PYTHON_VERSION}/dist-packages/_wreport.cpython-36m-x86_64-linux-gnu.so /usr/local/lib/python${PYTHON_VERSION}/dist-packages/_wreport.so
 
 COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dballe /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dballe/
 
