@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, OnInit, Input, Injector } from "@angular/core";
 import * as L from "leaflet";
 import * as moment from "moment";
 import {
@@ -7,9 +7,7 @@ import {
   ViewModes,
 } from "../meteo-tiles/meteo-tiles.config";
 import { BaseMapComponent } from "../base-map.component";
-import { NotificationService } from "@rapydo/services/notification";
-import { NgxSpinnerService } from "ngx-spinner";
-import { ActivatedRoute, NavigationEnd, Params, Router } from "@angular/router";
+import { Params } from "@angular/router";
 import {
   VARIABLES_CONFIG_OBS,
   LEGEND_DATA,
@@ -69,17 +67,15 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private filter: ObsFilter;
 
   constructor(
-    public notify: NotificationService,
-    public spinner: NgxSpinnerService,
+    injector: Injector,
     private obsService: ObsService,
-    private router: Router,
-    private route: ActivatedRoute,
     private modalService: NgbModal,
   ) {
-    super(notify, spinner);
+    super(injector);
   }
 
   ngOnInit() {
+    super.ngOnInit();
     this.variablesConfig = VARIABLES_CONFIG_OBS;
     this.route.queryParams.subscribe((params: Params) => {
       const lang: string = params["lang"];

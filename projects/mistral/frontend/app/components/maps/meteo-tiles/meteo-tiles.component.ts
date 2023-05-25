@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, OnInit, Input, Injector } from "@angular/core";
 import { environment } from "@rapydo/../environments/environment";
 import { forkJoin, interval } from "rxjs";
 import { catchError, filter, scan, takeUntil } from "rxjs/operators";
@@ -8,8 +8,6 @@ import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
 import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import { TilesService } from "./services/tiles.service";
 import { ObsService } from "../observation-maps/services/obs.service";
-import { NotificationService } from "@rapydo/services/notification";
-import { NgxSpinnerService } from "ngx-spinner";
 import { ActivatedRoute, NavigationEnd, Params, Router } from "@angular/router";
 import {
   LEGEND_DATA,
@@ -19,12 +17,10 @@ import {
 } from "./services/data";
 import {
   CodeDescPair,
-  GenericArg,
   ObsData,
   Observation,
   ObsFilter,
   RunAvailable,
-  Station,
 } from "../../../types";
 import {
   CARTODB_LICENSE_HREF,
@@ -145,20 +141,17 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   private timeLoading: boolean = false;
 
   constructor(
+    injector: Injector,
     private tilesService: TilesService,
     private obsService: ObsService,
-    public notify: NotificationService,
-    public spinner: NgxSpinnerService,
-    private router: Router,
-    private route: ActivatedRoute,
   ) {
-    super(notify, spinner);
+    super(injector);
     // set the initial set of displayed layers
     this.options["layers"] = [this.LAYER_OSM];
     this.dataset = this.DEFAULT_DATASET;
-    router.events.subscribe((s) => {
+    this.router.events.subscribe((s) => {
       if (s instanceof NavigationEnd) {
-        const tree = router.parseUrl(router.url);
+        const tree = this.router.parseUrl(this.router.url);
         if (tree.fragment) {
           const element = document.querySelector("#" + tree.fragment);
           if (element) {

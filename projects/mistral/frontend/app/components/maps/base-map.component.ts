@@ -1,10 +1,20 @@
-import { Component, OnInit, Input, OnDestroy } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  Input,
+  OnDestroy,
+  Injector,
+  Output,
+  EventEmitter,
+} from "@angular/core";
 import * as L from "leaflet";
 import * as moment from "moment";
 import { MOBILE_WIDTH, ViewModes } from "./meteo-tiles/meteo-tiles.config";
 import { GenericArg, Station } from "../../types";
 import { NotificationService } from "@rapydo/services/notification";
+import { SharedService } from "@rapydo/services/shared-service";
 import { NgxSpinnerService } from "ngx-spinner";
+import { ActivatedRoute, Params, Router } from "@angular/router";
 
 const MAP_CENTER = L.latLng(41.879966, 12.28),
   LNG_OFFSET = 2.3;
@@ -17,18 +27,35 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
   map: L.Map;
   modes = ViewModes;
   viewMode = ViewModes.adv;
+  iframeMode = false;
   variablesConfig: GenericArg;
   lang = "en";
   collapsed: boolean = false;
   @Input() minZoom: number = 5;
   @Input() maxZoom: number = 12;
 
-  protected constructor(
-    protected notify: NotificationService,
-    protected spinner: NgxSpinnerService,
-  ) {}
+  protected notify: NotificationService;
+  protected spinner: NgxSpinnerService;
+  protected router: Router;
+  protected route: ActivatedRoute;
+  protected sharedService: SharedService;
 
-  ngOnInit(): void {}
+  protected constructor(injector: Injector) {
+    this.notify = injector.get(NotificationService);
+    this.spinner = injector.get(NgxSpinnerService);
+    this.router = injector.get(Router);
+    this.route = injector.get(ActivatedRoute);
+    this.sharedService = injector.get(SharedService);
+  }
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe((params: Params) => {
+      this.iframeMode = params["iframe"] || false;
+      if (this.iframeMode) {
+        this.sharedService.emitChange(true);
+      }
+    });
+  }
 
   ngOnDestroy() {
     if (null != this.map) {
@@ -39,7 +66,7 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
   protected abstract onMapReady(map: L.Map);
 
   protected onMapZoomEnd($event) {
-    console.log(`Map Zoom: ${this.map.getZoom()}`);
+    // console.log(`Map Zoom: ${this.map.getZoom()}`);
     // DO NOTHING
   }
 
