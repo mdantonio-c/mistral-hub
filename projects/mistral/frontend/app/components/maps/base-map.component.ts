@@ -1,12 +1,4 @@
-import {
-  Component,
-  OnInit,
-  Input,
-  OnDestroy,
-  Injector,
-  Output,
-  EventEmitter,
-} from "@angular/core";
+import { Component, OnInit, Input, OnDestroy, Injector } from "@angular/core";
 import * as L from "leaflet";
 import * as moment from "moment";
 import { MOBILE_WIDTH, ViewModes } from "./meteo-tiles/meteo-tiles.config";
@@ -15,6 +7,7 @@ import { NotificationService } from "@rapydo/services/notification";
 import { SharedService } from "@rapydo/services/shared-service";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ActivatedRoute, Params, Router } from "@angular/router";
+import { map } from "rxjs";
 
 const MAP_CENTER = L.latLng(41.879966, 12.28),
   LNG_OFFSET = 2.3;
@@ -49,12 +42,17 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe((params: Params) => {
-      this.iframeMode = params["iframe"] || false;
-      if (this.iframeMode) {
+    this.route.queryParamMap
+      .pipe(
+        map((params) => {
+          const value = params.get("iframe");
+          return value ? value.toLocaleLowerCase() === "true" : false;
+        }),
+      )
+      .subscribe((iframe) => {
+        if (!iframe) return;
         this.sharedService.emitChange(true);
-      }
-    });
+      });
   }
 
   ngOnDestroy() {
