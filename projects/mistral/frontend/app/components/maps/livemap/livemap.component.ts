@@ -88,8 +88,10 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
-
     //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
+
+    // default product: temperature
+    const defaultProduct: string = "t2m";
     // add default layer
     const filter: ObsFilter = {
       // common parameters
@@ -99,11 +101,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       onlyStations: false,
       reliabilityCheck: true,
       last: true,
-
-      // temperature
-      product: VARIABLES_CONFIG_OBS["t2m"].code,
-      timerange: VARIABLES_CONFIG_OBS["t2m"].timerange,
-      level: VARIABLES_CONFIG_OBS["t2m"].level,
+      product: VARIABLES_CONFIG_OBS[defaultProduct].code,
+      timerange: VARIABLES_CONFIG_OBS[defaultProduct].timerange,
+      level: VARIABLES_CONFIG_OBS[defaultProduct].level,
     };
     this.filter = filter;
     this.loadObservations(filter, true);
@@ -124,7 +124,6 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private createLegendControl(id: string): L.Control {
     let config: LegendConfig = LEGEND_DATA.find((x) => x.id === id);
     if (!config) {
-      
       console.error(`Legend data NOT found for ID<${id}>`);
       this.notify.showError("Bad legend configuration");
       return;
@@ -136,7 +135,6 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       div.style.clear = "unset";
       div.innerHTML += `<img class="legenda" src="/app/custom/assets/images/legends/${id}.svg">`;
 
-      
       // for (let i = 0; i < config.labels.length; i++) {
       //   div.innerHTML +=
       //     '<i style="background:' +
@@ -217,7 +215,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
         const lastObs: ObsValue = obsData.val.pop();
         const val = ObsService.showData(lastObs.val, productList[0]);
         // console.log(lastObs.val, val, localMin, max);
-        if (lastObs.val < max && lastObs.val > min) {
+        if (lastObs.val < max && lastObs.val >= min) {
           let htmlIcon = "";
           let color: string = "";
           if (
@@ -308,7 +306,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
             "prp" in this.variablesConfig &&
             this.variablesConfig["prp"].code.includes(productList[0])
           ) {
-            if (lastObs.val < max && lastObs.val > min) {
+            if (lastObs.val < max && lastObs.val >= min) {
               if (lastObs.val >= 300) {
                 color = "#4897D9";
               } else if (lastObs.val >= 200 && lastObs.val < 300) {
