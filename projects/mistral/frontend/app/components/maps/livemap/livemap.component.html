@@ -30,10 +30,10 @@
 
   <div class="leaflet-top leaflet-left" style="left: 10px">
     <div class="leaflet-control" style="height: 20px">
-      <div class="selected-dataset ">
+      <div class="selected-dataset">
         {{ printDatasetProduct() | translate : lang }}
       </div>
-      
+
       <div class="bg-light">
         <pre class="d-inline" style="white-space: pre-line">
           {{ printDatasetDescription() | translate : lang }}
@@ -46,9 +46,7 @@
           ngbTooltip="Reload"
         ></i>
         <pre class="d-inline" style="white-space: pre-line">
-          {{ "reference date" | translate : lang | titlecase }}: {{
-            printReferenceDate()
-          }}
+          {{ printReferenceDate() }}
         </pre>
       </div>
     </div>

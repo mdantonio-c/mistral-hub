@@ -593,7 +593,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     return `${moment
       .utc(new Date().getTime())
       .local()
-      .format("MMM DD, HH:mm")}`;
+      .format("DD-MM-YYYY, HH:mm")}`;
   }
 
   reload(): void {
