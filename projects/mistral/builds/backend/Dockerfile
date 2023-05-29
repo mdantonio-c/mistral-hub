@@ -1,6 +1,6 @@
-FROM arpaesimc/rockylinux:8 AS arpaesimc
+FROM arpaesimc/ubuntu:jammy AS arpaesimc
 
-FROM rapydo/backend-legacy38:2.4
+FROM rapydo/backend:2.4
 
 ARG RAPYDO_VERSION
 RUN test -n "$RAPYDO_VERSION"
@@ -13,29 +13,22 @@ RUN usermod -u $CURRENT_UID $APIUSER
 
 ###############################################################################
 # DEPENDENCIES
-# Note: the link python3.x -> python3.6 is needed because
-# some arkimet scripts have an hardcoded /usr/bin/python3.6 interpreter
 ###############################################################################
 
-RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list \
+RUN echo "deb http://security.ubuntu.com/ubuntu jammy-security main" >> /etc/apt/sources.list \
  && apt-get update -qq \
  && apt-get install --yes --no-install-recommends \
-      libssl1.0.0 \
-      libssl-dev \
+      libssl3 \
       libpopt-dev \
       liblzo2-2 \
       libx11-6 \
-      libzip5 \
+      libzip4 \
       gdal-bin \
       cmake \
       gfortran \
  && apt-get autoremove --yes \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
- && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3.6 \
- && ln -sf /usr/lib/x86_64-linux-gnu/libpython${PYTHON_VERSION}.so.1.0 /usr/lib/x86_64-linux-gnu/libpython3.6m.so.1.0
-
-ENV PATH="$PATH:/usr/bin/centos"
+ && rm -rf /var/lib/apt/lists/*
 
 ENV DATASET_ROOT="/arkimet/datasets/"
 
@@ -66,116 +59,134 @@ RUN wget --no-check-certificate --quiet "https://confluence.ecmwf.int/download/a
   && pip3 install --no-cache-dir eccodes netCDF4 \
   && rm -rf /tmp/eccodes*
 
-###############################################################################
-# ARPAESIMC
-###############################################################################
-
-COPY --from=arpaesimc /usr/bin /usr/bin/centos
+################################################################################
+## ARPAESIMC
+################################################################################
 
 COPY --from=arpaesimc /etc/arkimet /etc/arkimet
 COPY --from=arpaesimc /usr/share/eccodes-simc/definitions/ /usr/share/eccodes-simc/definitions/
 COPY --from=arpaesimc /usr/share/libsim/ /usr/share/libsim/
 COPY --from=arpaesimc /usr/share/wreport/ /usr/share/wreport/
 
+COPY --from=arpaesimc \
+    /usr/bin/arki-query \
+    /usr/bin/vg6d_transform \
+    /usr/bin/v7d_transform \
+    /usr/bin/arki-scan \
+    /usr/bin/dbadb \
+    /usr/bin/dba_qcfilter \
+    /usr/bin/
+
 # Split in multiple parts to mitigate preflight timeouts
-COPY --from=arpaesimc \
-  /usr/lib64/libarkimet.* \
-  /usr/lib64/libdballe.* \
-  /usr/lib64/libmeteo-vm2.* \
-  /usr/lib64/libwreport.* \
-  /usr/lib64/libeccodes.* \
-  /usr/lib64/libeccodes_f90.* \
-  /usr/lib64/libsim_* \
-  /usr/lib64/libdballef.* \
+ COPY --from=arpaesimc \
+  /usr/lib/x86_64-linux-gnu/libarkimet.* \
+  /usr/lib/x86_64-linux-gnu/libdballe.* \
+  /usr/lib/x86_64-linux-gnu/libmeteo-vm2.* \
+  /usr/lib/x86_64-linux-gnu/libwreport.* \
+  /usr/lib/x86_64-linux-gnu/libeccodes.* \
+  /usr/lib/x86_64-linux-gnu/libeccodes_f90.* \
+  /usr/lib/x86_64-linux-gnu/libsim_* \
+#  /usr/lib/x86_64-linux-gnu/libdballef.* \
   /usr/lib/x86_64-linux-gnu/
 
 COPY --from=arpaesimc \
-  /usr/lib64/libnetcdff.* \
-  /usr/lib64/libnetcdf.* \
-  /usr/lib64/libgeos-3.7.2.* \
-  /usr/lib64/libgeotiff.* \
-  /usr/lib64/libgdal.* \
-  /usr/lib64/libproj.* \
-  /usr/lib64/libshp.* \
+  /usr/lib/x86_64-linux-gnu/libnetcdff.* \
+  /usr/lib/x86_64-linux-gnu/libnetcdf.* \
+  /usr/lib/x86_64-linux-gnu/libgeos.* \
+  /usr/lib/x86_64-linux-gnu/libgeotiff.* \
+  /usr/lib/libgdal.* \
+  /usr/lib/x86_64-linux-gnu/libproj.* \
+  /usr/lib/x86_64-linux-gnu/libshp.* \
   /usr/lib/x86_64-linux-gnu/
 
 COPY --from=arpaesimc \
-  /usr/lib64/libgif.* \
-  /usr/lib64/libopenjp2.* \
-  /usr/lib64/libjpeg.* \
-  /usr/lib64/libpng16.* \
-  /usr/lib64/liblog4c.* \
-  /usr/lib64/libarmadillo.* \
-  /usr/lib64/libcfitsio.* \
+  /usr/lib/x86_64-linux-gnu/libgif.* \
+  /usr/lib/x86_64-linux-gnu/libopenjp2.* \
+  /usr/lib/x86_64-linux-gnu/libjpeg.* \
+  /usr/lib/x86_64-linux-gnu/libpng16.* \
+  /usr/lib/x86_64-linux-gnu/liblog4c.* \
+  /usr/lib/libarmadillo.* \
+  /usr/lib/x86_64-linux-gnu/libcfitsio.* \
+  /usr/lib/x86_64-linux-gnu/
+
+#COPY --from=arpaesimc \
+#  /usr/lib/x86_64-linux-gnu/libfreexl.* \
+#  /usr/lib/x86_64-linux-gnu/libodbc.* \
+#  /usr/lib/x86_64-linux-gnu/libodbcinst.* \
+#  /usr/lib/libogdi.* \
+#  /usr/lib/x86_64-linux-gnu/
+
+#COPY --from=arpaesimc \
+#  /usr/lib/x86_64-linux-gnu/libpcre.* \
+#  /usr/lib/x86_64-linux-gnu/libpoppler.* \
+#  /usr/lib/x86_64-linux-gnu/libwebp.* \
+#  /usr/lib/x86_64-linux-gnu/libxerces-c-3.2.* \
+#  /usr/lib/x86_64-linux-gnu/libsuperlu.* \
+#  /usr/lib/x86_64-linux-gnu/liblcms2.* \
+#  /usr/lib/x86_64-linux-gnu/libcrypto.* \
+#  /usr/lib/x86_64-linux-gnu/libssl.* \
+#  /usr/lib/x86_64-linux-gnu/
+
+RUN apt-get install --yes --no-install-recommends \
+    libfreexl1 \
+    libodbc2 \
+    libodbcinst2 \
+    libogdi4.1 \
+    libpcre2-8-0 \
+    libpcre3 \
+    libpoppler118 \
+    libwebp7 \
+    libxerces-c3.2 \
+    libsuperlu5 \
+    liblcms2-2
+
+COPY --from=arpaesimc \
+  /usr/lib/x86_64-linux-gnu/libarchive.so.13* \
+  /usr/lib/x86_64-linux-gnu/libxapian.so.30* \
+  /usr/lib/x86_64-linux-gnu/libreadline.so.* \
   /usr/lib/x86_64-linux-gnu/
 
 COPY --from=arpaesimc \
-  /usr/lib64/libdap.so.* \
-  /usr/lib64/libdapclient.* \
-  /usr/lib64/libdapserver.* \
-  /usr/lib64/libfreexl.* \
-  /usr/lib64/libgta.* \
-  /usr/lib64/libodbc.* \
-  /usr/lib64/libodbcinst.* \
-  /usr/lib64/libogdi.* \
+  /usr/lib/libmfhdfalt.so.0* \
+  /usr/lib/libdfalt.so.0* \
+  /usr/lib/
+
+COPY --from=arpaesimc \
+  /usr/lib/x86_64-linux-gnu/libhdf5* \
+  /usr/lib/x86_64-linux-gnu/libtirpc.so.3* \
+  /usr/lib/x86_64-linux-gnu/libpq.so.5* \
+  /usr/lib/x86_64-linux-gnu/liblog4fortran.* \
+  /usr/lib/x86_64-linux-gnu/libfortrangis.* \
+  /usr/lib/x86_64-linux-gnu/libfortranc.* \
+  /usr/lib/x86_64-linux-gnu/libgfortran.* \
   /usr/lib/x86_64-linux-gnu/
 
 COPY --from=arpaesimc \
-  /usr/lib64/libpcre.* \
-  /usr/lib64/libpoppler.* \
-  /usr/lib64/libwebp.* \
-  /usr/lib64/libxerces-c-3.2.* \
-  /usr/lib64/libsuperlu.* \
-  /usr/lib64/liblcms2.* \
-  /usr/lib64/libcrypto.* \
-  /usr/lib64/libssl.* \
+  /usr/lib/x86_64-linux-gnu/liblua5.1.so* \
+  /usr/lib/x86_64-linux-gnu/liblapack.* \
+  /usr/lib/x86_64-linux-gnu/libarpack.* \
+  /usr/lib/x86_64-linux-gnu/libblas.so.3 \
   /usr/lib/x86_64-linux-gnu/
 
 COPY --from=arpaesimc \
-  /usr/lib64/libarchive.so.13* \
-  /usr/lib64/libmariadb.so.3* \
-  /usr/lib64/libxapian.so.30* \
-  /usr/lib64/libreadline.so.7* \
-  /usr/lib64/libjasper.so.4* \
-  /usr/lib64/libmfhdf.so.0* \
-  /usr/lib64/libdf.so.0* \
-  /usr/lib/x86_64-linux-gnu/
+  /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3* \
+  /usr/lib/x86_64-linux-gnu/lapack/
 
 COPY --from=arpaesimc \
-  /usr/lib64/libhdf5_hl.so.100* \
-  /usr/lib64/libhdf5.so.103* \
-  /usr/lib64/libtirpc.so.3* \
-  /usr/lib64/libpq.so.5* \
-  /usr/lib64/liblog4fortran.* \
-  /usr/lib64/libfortrangis.* \
-  /usr/lib64/libfortranc.* \
-  /usr/lib64/libgfortran.* \
-  /usr/lib/x86_64-linux-gnu/
+  /usr/lib/x86_64-linux-gnu/blas/libblas.so.3* \
+  /usr/lib/x86_64-linux-gnu/blas/
 
-COPY --from=arpaesimc \
-  /usr/lib64/liblua-5.3.so* \
-  /usr/lib64/libopenblasp.so.0* \
-  /usr/lib64/libopenblaso.* \
-  /usr/lib64/liblapack.* \
-  /usr/lib64/libarpack.* \
-  /usr/lib64/libblas.* \
-  /usr/lib64/atlas \
-  /usr/lib/x86_64-linux-gnu/
+COPY --from=arpaesimc /usr/lib/python3/dist-packages/_arkimet* /usr/lib/python3/dist-packages/_dballe* /usr/lib/python3/dist-packages/_wreport* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/
 
-COPY --from=arpaesimc /usr/lib64/python3.6/site-packages/_arkimet* /usr/lib64/python3.6/site-packages/_dballe* /usr/lib64/python3.6/site-packages/_wreport* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/
+COPY --from=arpaesimc /usr/lib/python3/dist-packages/arkimet /usr/local/lib/python${PYTHON_VERSION}/dist-packages/arkimet/
 
-COPY --from=arpaesimc /usr/lib/python3.6/site-packages/arkimet /usr/local/lib/python${PYTHON_VERSION}/dist-packages/arkimet/
+COPY --from=arpaesimc /usr/lib/python3/dist-packages/wreport /usr/local/lib/python${PYTHON_VERSION}/dist-packages/wreport/
 
-COPY --from=arpaesimc /usr/lib64/python3.6/site-packages/wreport /usr/local/lib/python${PYTHON_VERSION}/dist-packages/wreport/
-RUN cp /usr/local/lib/python${PYTHON_VERSION}/dist-packages/_wreport.cpython-36m-x86_64-linux-gnu.so /usr/local/lib/python${PYTHON_VERSION}/dist-packages/_wreport.so
+COPY --from=arpaesimc /usr/lib/python3/dist-packages/dballe /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dballe/
 
-COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dballe /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dballe/
+COPY --from=arpaesimc /usr/lib/python3.10/dist-packages/dba_qcfilter /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter/
 
-COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter/
-
-COPY --from=arpaesimc /usr/lib/python3.6/site-packages/dba_qcfilter-0.0.2-py3.6.egg-info /usr/local/lib/python${PYTHON_VERSION}/dist-packages/dba_qcfilter-0.0.2-py3.6.egg-info/
-
-###############################################################################
+##############################################################################
 # NUMPY
 # numpy has to be (re)installed here to prevent issues with shared libraries
 ##############################################################################

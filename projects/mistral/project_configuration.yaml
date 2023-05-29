@@ -16,8 +16,8 @@ variables:
     operational: User performing operational procedures
 
   env:
-    BACKEND_BUILD_MODE: backend-legacy38
-    PYTHON_PATH: /usr/local/lib/python3.8/dist-packages
+    # BACKEND_BUILD_MODE: backend-legacy38
+    # PYTHON_PATH: /usr/local/lib/python3.8/dist-packages
     # Temporary disabled due to an incompatibility with python 3.8
     RUN_SCHEMATHESIS: 0
 
