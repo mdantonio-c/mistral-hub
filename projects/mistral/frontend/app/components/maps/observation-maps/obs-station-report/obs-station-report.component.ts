@@ -8,13 +8,13 @@ import {
   DataSeries,
   ObservationResponse,
   DescriptionDict,
+  ObsData,
 } from "@app/types";
 import { ObsService } from "../services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
 import * as shape from "d3-shape";
-import { ObsData } from "../../../../types";
 
 const STATION_NAME_CODE = "B01019";
 

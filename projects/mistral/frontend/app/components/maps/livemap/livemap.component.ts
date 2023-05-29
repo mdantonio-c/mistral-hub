@@ -20,7 +20,7 @@ import {
   Observation,
   ObsValue,
   Station,
-} from "../../../types";
+} from "@app/types";
 import { ObsService } from "../observation-maps/services/obs.service";
 import { ObsStationReportComponent } from "../observation-maps/obs-station-report/obs-station-report.component";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
@@ -133,7 +133,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     legend.onAdd = () => {
       let div = L.DomUtil.create("div");
       div.style.clear = "unset";
-      div.innerHTML += `<img class="legenda" src="/app/custom/assets/images/legends/${id}.svg">`;
+      div.innerHTML += `<img class="legenda" alt="legend" src="/app/custom/assets/images/legends/${id}.svg">`;
 
       // for (let i = 0; i < config.labels.length; i++) {
       //   div.innerHTML +=
@@ -215,12 +215,12 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
         const lastObs: ObsValue = obsData.val.pop();
         const val = ObsService.showData(lastObs.val, productList[0]);
         // console.log(lastObs.val, val, localMin, max);
-        if (lastObs.val < max && lastObs.val >= min) {
+        if (lastObs.val >= min && lastObs.val <= max) {
           let htmlIcon = "";
           let color: string = "";
           if (
             "t2m" in this.variablesConfig &&
-            this.variablesConfig["t2m"].code.includes(productList[0])
+            this.variablesConfig["t2m"].code === productList[0]
           ) {
             if (lastObs.val >= 319.15) {
               color = "#ff9900";
@@ -304,9 +304,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
           }
           if (
             "prp" in this.variablesConfig &&
-            this.variablesConfig["prp"].code.includes(productList[0])
+            this.variablesConfig["prp"].code === productList[0]
           ) {
-            if (lastObs.val < max && lastObs.val >= min) {
+            if (lastObs.val >= min && lastObs.val <= max) {
               if (lastObs.val >= 300) {
                 color = "#4897D9";
               } else if (lastObs.val >= 200 && lastObs.val < 300) {
@@ -348,7 +348,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
           }
           if (
             "rh" in this.variablesConfig &&
-            this.variablesConfig["rh"].code.includes(productList[0])
+            this.variablesConfig["rh"].code === productList[0]
           ) {
             if (lastObs.val >= 110) {
               color = "#3F57B0";
@@ -371,6 +371,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
             color = "#7da4eb;";
           }
 
+          //  for the wind we expect two variables configured in "code"
           if (
             "ws10m" in this.variablesConfig &&
             this.variablesConfig["ws10m"].code.includes(productList[0])
@@ -499,7 +500,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.product = meteogramProducts.join(" or ");
     meteogramsFilter.level = meteogramLevels.join(" or ");
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
-    /*    // TODO deccoment when the grafic of 24h meteogram is fixed
+    /*    // TODO uncomment when the 24h meteogram graph is fixed
     // get the reftime to and reftime from
     const reftimeTo = moment.utc(new Date().getTime());
     const reftimeFrom = moment
