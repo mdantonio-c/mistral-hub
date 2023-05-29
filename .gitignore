@@ -3,11 +3,12 @@
 ########################
 
 # data
-uploads
+/uploads
 /data
 /node_modules
 projects/mistral/scripts/dballe2arkimet_old
 projects/mistral/frontend/assets/images/tiles
+tsconfig.json
 
 ########################
 ##  Host configuration  ##
