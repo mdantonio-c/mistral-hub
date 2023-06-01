@@ -350,18 +350,18 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
             "rh" in this.variablesConfig &&
             this.variablesConfig["rh"].code === productList[0]
           ) {
-            if (lastObs.val >= 110) {
-              color = "#3F57B0";
-            } else if (lastObs.val >= 100 && lastObs.val < 110) {
-              color = "#6FC9DC";
-            } else if (lastObs.val >= 90 && lastObs.val < 100) {
-              color = "#0B7F3F";
-            } else if (lastObs.val >= 80 && lastObs.val < 90) {
-              color = "#FCFC1E";
-            } else if (lastObs.val >= 70 && lastObs.val < 80) {
-              color = "#F7A426";
-            } else if (lastObs.val >= 60 && lastObs.val < 70) {
-              color = "#EC2426";
+            if (lastObs.val >= 100) {
+              color = "#1000FD";
+            } else if (lastObs.val >= 80 && lastObs.val < 100) {
+              color = "#21FEFF";
+            } else if (lastObs.val >= 60 && lastObs.val < 80) {
+              color = "#19FF24";
+            } else if (lastObs.val >= 40 && lastObs.val < 60) {
+              color = "#FEFF27";
+            } else if (lastObs.val >= 20 && lastObs.val < 40) {
+              color = "#FE8A12";
+            } else if (lastObs.val >= 0 && lastObs.val < 20) {
+              color = "#FD1506";
             }
           }
           if (
