@@ -218,6 +218,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
         if (lastObs.val >= min && lastObs.val <= max) {
           let htmlIcon = "";
           let color: string = "";
+          let textColor: string = "#453822";
           if (
             "t2m" in this.variablesConfig &&
             this.variablesConfig["t2m"].code === productList[0]
@@ -352,8 +353,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
           ) {
             if (lastObs.val >= 100) {
               color = "#1000FD";
+              textColor = "#fff";         
             } else if (lastObs.val >= 80 && lastObs.val < 100) {
-              color = "#21FEFF";
+              color = "#21FEFF";  
             } else if (lastObs.val >= 60 && lastObs.val < 80) {
               color = "#19FF24";
             } else if (lastObs.val >= 40 && lastObs.val < 60) {
@@ -422,7 +424,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
             }
           } else {
             htmlIcon =
-              `<div class="mstObsIcon rounded" style="background-color: ${color};"><span>${val}` +
+              `<div class="mstObsIcon rounded" style="background-color: ${color};"><span style="color: ${textColor} !important;">${val}` +
               "</span></div>";
           }
           let icon = L.divIcon({
