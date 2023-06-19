@@ -165,7 +165,7 @@ class Template(EndpointResource, Uploader):
         try:
             upload_response = self.upload(subfolder=subfolder)
             log.debug("upload response: {}", upload_response)
-            upload_filename = upload_response["filename"]  # type: ignore
+            upload_filename = upload_response[0]["filename"]  # type: ignore
             upload_filepath = subfolder.joinpath(upload_filename)
             log.debug("File uploaded. Filepath : {}", upload_filepath)
         except Exception as error:
