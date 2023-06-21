@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from flask import request
 from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
+from osgeo import gdal
 from restapi import decorators
 from restapi.config import DATA_PATH
 from restapi.connectors import sqlalchemy
@@ -331,19 +332,13 @@ class Template(EndpointResource, Uploader):
     @staticmethod
     def convert_to_shapefile(filepath: Path) -> Path:
         output_file = filepath.with_suffix(".shp")
-        cmd: List[Union[str, Path]] = [
-            "ogr2ogr",
-            "-f",
-            "ESRI Shapefile",
-            output_file,
-            filepath,
-        ]
         try:
-            proc = subprocess.Popen(cmd)
-            # wait for the process to terminate
-            if proc.wait() != 0:
-                raise ServerError("Errors in converting the uploaded file")
+            gdal.VectorTranslate(
+                str(output_file), str(filepath), format="ESRI Shapefile"
+            )
             return output_file
+        except Exception:
+            raise ServerError("Errors in converting the uploaded file")
 
         finally:
             # remove the source file

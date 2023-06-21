@@ -11,6 +11,6 @@ RUN usermod -u $CURRENT_UID $APIUSER
 
 RUN echo "deb [trusted=yes] https://simc.arpae.it/packages/debian jammy main" > /etc/apt/sources.list.d/arpae-simc.list \
     && apt-get update -qq \
-    && apt-get install -y python3-wreport dballe python3-dballe arkimet libsim python3-eccodes eccodes-simc dba-qcfilter
+    && apt-get install -y python3-wreport dballe python3-dballe arkimet libsim python3-eccodes eccodes-simc dba-qcfilter gdal-bin
 
 WORKDIR /code
