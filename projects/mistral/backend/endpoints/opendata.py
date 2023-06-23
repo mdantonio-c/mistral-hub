@@ -47,6 +47,7 @@ class OpendataFileList(EndpointResource):
         reftime: Dict[str, date] = {}
         # add dataset to query
         query["datasets"] = [ds_entry.arkimet_id]
+
         if q:
             # q=reftime: >=2019-06-21 00:00,<=2019-06-22 15:46;run:MINUTE,00:00
             # parse the query
@@ -65,19 +66,21 @@ class OpendataFileList(EndpointResource):
                     for ref in reftimes:
                         if ref.startswith(">"):
                             date_min = ref.strip(">=")
+                            log.info(date_min)
                             reftime["from"] = datetime.strptime(
                                 date_min, "%Y-%m-%d %H:%M"
-                            ).date()
+                            )
                         if ref.startswith("<"):
                             date_max = ref.strip("<=")
+                            log.info(date_max)
                             reftime["to"] = datetime.strptime(
                                 date_max, "%Y-%m-%d %H:%M"
-                            ).date()
+                            )
                         if ref.startswith("="):
                             ref_date = ref.strip("=")
                             reftime["from"] = reftime["to"] = datetime.strptime(
                                 ref_date, "%Y-%m-%d %H:%M"
-                            ).date()
+                            )
 
         log.debug("opendata query {}", query)
         # get the available opendata requests
@@ -92,10 +95,10 @@ class OpendataFileList(EndpointResource):
             # get the reftime
             reftime_from = datetime.strptime(
                 r.args["reftime"]["from"], "%Y-%m-%dT%H:%M:%S.%fZ"
-            ).date()
+            )
             reftime_to = datetime.strptime(
                 r.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
-            ).date()
+            )
             # check if there is a requested reftime
             if reftime:
                 if reftime_from < reftime["from"] or reftime_to > reftime["to"]:
