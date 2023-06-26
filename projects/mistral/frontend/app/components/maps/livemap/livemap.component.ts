@@ -229,8 +229,10 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               color = "#ffcc00";
             } else if (lastObs.val >= 315.15 && lastObs.val < 317.15) {
               color = "#7200ff";
+              textColor = "#fff"; 
             } else if (lastObs.val >= 313.15 && lastObs.val < 315.15) {
               color = "#bf00ff";
+               textColor = "#fff"; 
             } else if (lastObs.val >= 311.15 && lastObs.val < 313.15) {
               color = "#ff00ff";
               textColor = "#fff"; 
@@ -242,6 +244,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               textColor = "#fff"; 
             } else if (lastObs.val >= 305.15 && lastObs.val < 307.15) {
               color = "#660066";
+              textColor = "#fff"; 
             } else if (lastObs.val >= 303.15 && lastObs.val < 305.15) {
               color = "#660000";
               textColor = "#fff"; 
