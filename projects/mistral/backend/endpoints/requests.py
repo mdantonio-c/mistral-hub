@@ -161,6 +161,9 @@ class UserRequests(EndpointResource):
 
 
 class CloneUserRequests(EndpointResource):
+
+    labels = ["requests"]
+
     @decorators.auth.require()
     @decorators.endpoint(
         path="/requests/<request_id>/clone",
