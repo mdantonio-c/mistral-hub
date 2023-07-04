@@ -2,14 +2,43 @@ from faker import Faker
 from restapi.tests import API_URI, BaseTests, FlaskClient
 from restapi.connectors import sqlalchemy
 import json
-from mistral.endpoints import OPENDATA_DIR
+import shutil
+from pathlib import Path
+from typing import Any, Dict
+from mistral.endpoints import OPENDATA_DIR,DOWNLOAD_DIR
 from datetime import datetime, timedelta
 import time
+
 
 __author__ = "Mattia Carello (m.carello@cineca.it)"
 
 
 class TestApp(BaseTests):
+
+    @staticmethod
+    def delete_all_schedules_requests_orphan_files(db):
+        requests_list= db.Request.query.all()
+        for row in requests_list:
+            request=db.Request.query.get(row.id)
+            if request.fileoutput:
+                db.session.delete(request.fileoutput)
+            db.session.delete(request)
+        schedule_list = db.Schedule.query.all()
+        for row in schedule_list:
+            schedule=db.Schedule.query.get(row.id)
+            db.session.delete(schedule)
+        db.session.commit()
+        for dir in DOWNLOAD_DIR.iterdir():
+            if dir.is_dir():
+                user_dir = dir.joinpath("outputs")
+                if user_dir.exists():
+                    for f in user_dir.iterdir():
+                        if f.is_file():
+                            file_object = db.FileOutput.query.filter_by(filename=f.name).first()
+                            if not file_object:
+                                f.unlink()
+                                continue
+
 
     # check if a dataset does not exist
     def test_check_wrong_dataset_name(self):
@@ -25,7 +54,6 @@ class TestApp(BaseTests):
     def test_check_not_plubic_license(self, client: FlaskClient, faker: Faker):
         # get admin token
         admin_headers, _ = BaseTests.do_login(client, None, None)
-        print(admin_headers)
         fake = Faker()
         # create a new not open license group
         body = {
@@ -34,11 +62,37 @@ class TestApp(BaseTests):
             'is_public': 'false'
         }
         body = json.dumps(body)
+
+        # create an admin_root user
+        db = sqlalchemy.get_instance()
+        forecast_dataset_name = "lm5"
+        forecast_dataset = db.Datasets.query.filter_by(
+            name=forecast_dataset_name
+        ).first()
+        data: Dict[str, Any] = {}
+        data["disk_quota"] = 1073741824
+        data["max_output_size"] = 1073741824
+        data["allowed_postprocessing"] = True
+        data["open_dataset"] = True
+        data["datasets"] = [str(forecast_dataset.id)]
+        data["datasets"] = json.dumps(data["datasets"])
+        uuid, data = self.create_user(client, data, ["admin_root"])
+        # Will be used to delete the user after the tests
+        self.save("user_uuid", uuid)
+        user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
+        self.save("user_header", user_header)
+        # create a request on the db
+        user = db.User.query.filter_by(uuid=uuid).first()
+        user_id = user.id
+        user_dir = Path(DOWNLOAD_DIR, uuid, "outputs")
+
+
+        # create the licensegroups
         endpoint = API_URI + "/admin/licensegroups"
-        r = client.post(endpoint, headers=admin_headers, data=body, content_type='application/json')
+        r = client.post(endpoint, headers=user_header, data=body, content_type='application/json')
         assert r.status_code == 200
         id_license_group = self.get_content(r)
-        r = client.get(endpoint, headers=admin_headers)
+        r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response_data = self.get_content(r)
         for i in response_data:
@@ -52,7 +106,7 @@ class TestApp(BaseTests):
         }
         body = json.dumps(body)
         endpoint = API_URI + "/admin/licenses"
-        r = client.post(endpoint, headers=admin_headers, data=body, content_type='application/json')
+        r = client.post(endpoint, headers=user_header, data=body, content_type='application/json')
         assert r.status_code == 200
         id_license = self.get_content(r)
         # create a not public dataset
@@ -69,7 +123,7 @@ class TestApp(BaseTests):
         }
         body = json.dumps(body)
         endpoint = API_URI + "/admin/datasets"
-        r = client.post(endpoint, headers=admin_headers, data=body, content_type='application/json')
+        r = client.post(endpoint, headers=user_header, data=body, content_type='application/json')
         assert r.status_code == 200
         dataset_id = self.get_content(r)
         # test if dataset is not public
@@ -80,16 +134,26 @@ class TestApp(BaseTests):
             id=license.group_license_id
         ).first()
         assert not group_license.is_public
+
+
         # delete entities
         endpoint = API_URI + "/admin/datasets" + "/" + str(dataset_id)
-        r = client.delete(endpoint, headers=admin_headers)
+        r = client.delete(endpoint, headers=user_header)
         assert r.status_code == 204
         endpoint = API_URI + "/admin/licenses" + "/" + str(id_license)
-        r = client.delete(endpoint, headers=admin_headers)
+        r = client.delete(endpoint, headers=user_header)
         assert r.status_code == 204
         endpoint = API_URI + "/admin/licensegroups" + "/" + str(id_license_group)
-        r = client.delete(endpoint, headers=admin_headers)
+        r = client.delete(endpoint, headers=user_header)
         assert r.status_code == 204
+        # delete the user
+        r = client.delete(f"{API_URI}/admin/users/{uuid}", headers=admin_headers)
+        assert r.status_code == 204
+        # delete the user folder
+        dir_to_delete = user_dir.parent
+        shutil.rmtree(dir_to_delete, ignore_errors=True)
+        # check folder deletion
+        assert not dir_to_delete.exists()
 
     # check  file downloaded doesn't exist
     def test_opendata_download(self, faker: Faker):
@@ -100,12 +164,74 @@ class TestApp(BaseTests):
     def test_check_reftime_and_run(self, client: FlaskClient):
         # get admin token
         admin_headers, _ = BaseTests.do_login(client, None, None)
+        # create admin user
+        db = sqlalchemy.get_instance()
+        # useful to delete all schedules and requests
+        #self.delete_all_requests_orphan_files(db)
+        forecast_dataset_name = "lm5"
+        forecast_dataset = db.Datasets.query.filter_by(
+            name=forecast_dataset_name
+        ).first()
+        data: Dict[str, Any] = {}
+        data["disk_quota"] = 1073741824
+        data["max_output_size"] = 1073741824
+        data["allowed_postprocessing"] = True
+        data["allowed_schedule"] = True
+        data["open_dataset"] = True
+        data["datasets"] = [str(forecast_dataset.id)]
+        data["datasets"] = json.dumps(data["datasets"])
+        uuid, data = self.create_user(client, data, ["admin_root"])
+        # Will be used to delete the user after the tests
+        self.save("user_uuid", uuid)
+        user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
+        self.save("user_header", user_header)
+        # create a request on the db
+        user = db.User.query.filter_by(uuid=uuid).first()
+        user_id = user.id
+        user_dir = Path(DOWNLOAD_DIR, uuid, "outputs")
+
+        # check if there are other schedules associated to the user, and in that case it deletes them
+        endpoint = API_URI + "/schedules"
+        r = client.get(endpoint, headers=user_header)
+        assert r.status_code == 200
+        response = self.get_content(r)
+        if response:
+            for e in response:
+                schedule_id = e.get("schedule_id")
+                endpoint = API_URI + "/schedules/" + str(schedule_id)
+                r = client.delete(endpoint, headers= user_header)
+                assert r.status_code == 200
+            endpoint = API_URI + "/schedules"
+            r = client.get(endpoint, headers=user_header)
+            assert r.status_code == 200
+            response = self.get_content(r)
+            assert not response
+
+        # check if there are other requests associated to the user, and in that case it deletes them
+        endpoint = API_URI + "/requests"
+        r = client.get(endpoint, headers= user_header)
+        assert r.status_code == 200
+        response = self.get_content(r)
+        if response:
+            for e in response:
+                request_id = e.get("id")
+                endpoint = API_URI + "/requests/" + str(request_id)
+                r = client.delete(endpoint, headers=user_header)
+                assert r.status_code == 200
+            endpoint = API_URI + "/requests"
+            r = client.get(endpoint, headers=user_header)
+            assert r.status_code == 200
+            response = self.get_content(r)
+            assert not response
+
+
+
         # get metadata of the dataset
         endpoint = API_URI + "/fields"
         dataset_name = "lm5"
         question_mark = "?"
         endpoint = endpoint + question_mark + "datasets=" + dataset_name
-        r = client.get(endpoint, headers=admin_headers)
+        r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response = self.get_content(r)
 
@@ -149,9 +275,13 @@ class TestApp(BaseTests):
             "opendata": True
         }
 
+
+
+
+
         body = json.dumps(body)
         endpoint = API_URI + "/schedules"
-        r = client.post(endpoint, headers=admin_headers, data=body, content_type='application/json')
+        r = client.post(endpoint, headers=user_header, data=body, content_type='application/json')
         assert r.status_code == 202
         response = self.get_content(r)
         # get schedule id for delete
@@ -181,7 +311,7 @@ class TestApp(BaseTests):
 
         body = json.dumps(body)
         endpoint = API_URI + "/schedules"
-        r = client.post(endpoint, headers=admin_headers, data=body, content_type='application/json')
+        r = client.post(endpoint, headers=user_header, data=body, content_type='application/json')
         assert r.status_code == 202
         response = self.get_content(r)
         schedule_id.append(response.get("schedule_id"))
@@ -189,8 +319,9 @@ class TestApp(BaseTests):
         # wait for the request
         time.sleep(60)
 
+
         endpoint = API_URI + "/requests"
-        r = client.get(endpoint, headers=admin_headers)
+        r = client.get(endpoint, headers=user_header)
         r.status_code == 200
         response = self.get_content(r)
         requests_id = []
@@ -204,11 +335,14 @@ class TestApp(BaseTests):
         #test only run
         q = "q=run:" + ref_run[0].get("style") + "," + ref_run[0].get("desc")[7:12]
         endpoint = API_URI + "/datasets/" + dataset_name + "/opendata" + question_mark + q
-        r = client.get(endpoint, headers=admin_headers)
+        print('ENDPOINT:',endpoint)
+        r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response = self.get_content(r)
         n_response = sum(1 for d in response if isinstance(d, dict))
         assert n_response == 1
+
+
         # test only ref time
         date_from_2 = (ref_from + timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M")
         date_to_2 = ref_to.strftime("%Y-%m-%d %H:%M")
@@ -218,11 +352,13 @@ class TestApp(BaseTests):
             date_from=date_from_2, date_to=date_to_2, dataset=dataset_name)
         )
 
-        r = client.get(endpoint, headers=admin_headers)
+        r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response = self.get_content(r)
         n_response = sum(1 for d in response if isinstance(d, dict))
         assert n_response == 1
+
+
         # test ref time + run
         date_from_3 = ref_from.strftime("%Y-%m-%d %H:%M")
         date_to_3 = (ref_to - timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M")
@@ -232,7 +368,7 @@ class TestApp(BaseTests):
             date_from=date_from_3, date_to=date_to_3, dataset=dataset_name, minute=ref_run[0].get("style"), run=ref_run[1].get("desc")[7:12])
         )
 
-        r = client.get(endpoint, headers=admin_headers)
+        r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response = self.get_content(r)
         n_response = sum(1 for d in response if isinstance(d, dict))
@@ -243,10 +379,19 @@ class TestApp(BaseTests):
         # delete entities
         for i in range(len(schedule_id)):
             endpoint = API_URI + "/schedules/" + str(schedule_id[i])
-            r = client.delete(endpoint, headers=admin_headers)
+            r = client.delete(endpoint, headers=user_header)
             assert r.status_code == 200
 
         for i in range(n_response_init):
             endpoint = API_URI + "/requests/" + str(requests_id[i])
-            r = client.delete(endpoint, headers=admin_headers)
+            r = client.delete(endpoint, headers=user_header)
             assert r.status_code == 200
+
+
+        r = client.delete(f"{API_URI}/admin/users/{uuid}", headers=admin_headers)
+        assert r.status_code == 204
+        # delete the user folder
+        dir_to_delete = user_dir.parent
+        shutil.rmtree(dir_to_delete, ignore_errors=True)
+        # check folder deletion
+        assert not dir_to_delete.exists()
