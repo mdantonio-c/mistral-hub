@@ -696,7 +696,64 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 }
 
-/*scrollbar*/
+/*switch base-view live-map*/
+.switch {
+  .nav-text {
+    margin-left:8px  !important;
+  }
+  .form-switch {
+    .form-check-input {
+      background-image: none;
+      background-color: transparent !important;
+      border-color: transparent !important;
+    }
+    .form-check-label {
+      transform: rotate(90deg) !important;
+      margin-top: 41px !important;
+      margin-left: -9px;
+      position: relative;
+      &:before {
+        opacity: 0.6;
+        left: -40.25px;
+        width: 40px;
+        height: 20px;
+        border-radius: 12.5px;
+        background-color: #9c999a !important;
+        border-color: #9c999a !important;
+        content: "";
+        position: absolute;
+      }
+      &:after {
+        background-color: #e49d2b;
+        border-radius: 2.5rem;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        top: 1.6px;
+        left: calc(-38.25px + 2px);
+        width: calc(20px - 4px);
+        height: calc(20px - 4px);
+        content: "";
+        position: absolute;
+      }
+    }
+  
+    .form-check-input:checked ~ .form-check-label::after {
+      background-color: #e49d2b;
+      transform: translateX(16.75px) rotate(270deg) !important;
+    }
+  
+    & input[disabled="true"] ~ .form-check-label::after,
+    & input:checked[disabled="true"] ~ .form-check-label::after {
+      background-color: #545555a9 !important;
+      background-image: none !important;
+    }
+  
+    & input[disabled="true"] ~ .custom-control-label::before {
+      border-color: #545555a9 !important;
+    }
+  }
+}
 
 /* Responsive*/
 
