@@ -62,6 +62,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   readonly DEFAULT_DATASET: string = DATASETS[0].code;
   @Input() minZoom: number = 5;
   @Input() maxZoom: number = 8;
+  @Input() isShowedMultiModel: boolean;
 
   dataset: string;
   private run: string;
@@ -428,7 +429,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       let productRH$ = this.obsService.getData(filterRH, true);
       forkJoin([productTM$, productRH$]).subscribe(
         (results) => {
-          if (results[0].data.length === 0 && results[1].data.length === 0) {
+          if (this.isShowedMultiModel === true && results[0].data.length === 0 && results[1].data.length === 0) {
             this.notify.showWarning("No Multi-Model data found.");
             return;
           }

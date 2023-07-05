@@ -77,6 +77,8 @@ import { AdminAttributionsComponent } from "@app/components/admin-attributions/a
 import { AdminDatasetsComponent } from "@app/components/admin-datasets/admin-datasets";
 import { TranslatePipe } from "./pipes/translate.pipe";
 
+import { UserGuideComponent } from "./components/user-guide/user-guide.component";
+
 const appRoutes: Routes = [
   {
     path: "app/data",
@@ -127,6 +129,10 @@ const appRoutes: Routes = [
   {
     path: "app/license",
     component: LicenseComponent,
+  },
+  {
+    path: "app/user-guide",
+    component: UserGuideComponent,
   },
   {
     path: "app/admin/bindings",
