@@ -130,7 +130,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   };
   public runAvailable: RunAvailable;
 
-  public showed: boolean = true;
+  public showed: boolean = false;
   public mmProduct = MultiModelProduct.TM;
   public MultiModelProduct = MultiModelProduct;
   private markers: L.Marker[] = [];
@@ -429,7 +429,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       let productRH$ = this.obsService.getData(filterRH, true);
       forkJoin([productTM$, productRH$]).subscribe(
         (results) => {
-          if (this.isShowedMultiModel === true && results[0].data.length === 0 && results[1].data.length === 0) {
+          if (this.isShowedMultiModel && results[0].data.length === 0 && results[1].data.length === 0) {
             this.notify.showWarning("No Multi-Model data found.");
             return;
           }

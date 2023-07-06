@@ -88,7 +88,7 @@ export class SideNavComponent implements OnInit {
   @Output() onDatasetChange: EventEmitter<string> = new EventEmitter<string>();
 
   // Multi Model Ensemble
-  @Input() isShowedMultiModel: boolean;
+  @Input() isShowedMultiModel: boolean = false;
   @Output() onShowMultiModelChange: EventEmitter<boolean> =
     new EventEmitter<boolean>();
   @Output() onMMProductChange: EventEmitter<MultiModelProduct> =
