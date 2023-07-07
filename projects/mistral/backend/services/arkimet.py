@@ -632,7 +632,7 @@ class BeArkimet:
         # the notation is the old one: convert the name of the keys to the new notation
         if not style:
             style = i.get("s")
-            i["type"] = i.get("ty", "")
+            i["trange_type"] = i.get("ty", "")
             i["unit"] = i.get("un", "")
             i["step_unit"] = i.get("su", -1)
             i["step_len"] = i.get("sl", -1)
@@ -657,7 +657,7 @@ class BeArkimet:
                 254: "s",
             }
             return "GRIB1,{type},{p1}{un},{p2}{un}".format(
-                type=i.get("type", -1),
+                type=i.get("trange_type", -1),
                 p1=i.get("p1", -1),
                 p2=i.get("p2", -1),
                 un=un[i.get("unit", -1)],
@@ -679,7 +679,7 @@ class BeArkimet:
                 254: "s",
             }
             return "GRIB2,{type},{p1}{un},{p2}{un}".format(
-                type=i.get("type", -1),
+                type=i.get("trange_type", -1),
                 p1=i.get("p1", -1),
                 p2=i.get("p2", -1),
                 un=un[i.get("unit", -1)],

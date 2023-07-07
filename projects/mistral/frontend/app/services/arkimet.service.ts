@@ -208,7 +208,14 @@ export class ArkimetService {
           254: "s",
         };
         return (
-          "GRIB1," + i.type + "," + i.p1 + un[i.unit] + "," + i.p2 + un[i.unit]
+          "GRIB1," +
+          i.trange_type +
+          "," +
+          i.p1 +
+          un[i.unit] +
+          "," +
+          i.p2 +
+          un[i.unit]
         );
       case "GRIB2":
         un = {
@@ -226,7 +233,14 @@ export class ArkimetService {
           254: "s",
         };
         return (
-          "GRIB2," + i.type + "," + i.p1 + un[i.unit] + "," + i.p2 + un[i.unit]
+          "GRIB2," +
+          i.trange_type +
+          "," +
+          i.p1 +
+          un[i.unit] +
+          "," +
+          i.p2 +
+          un[i.unit]
         );
       case "Timedef":
         un = {
