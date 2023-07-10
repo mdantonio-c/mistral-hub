@@ -1,0 +1,113 @@
+
+.title, li a, button::after, h2, a, thead {
+    color: #e49d2b;
+}
+
+.submenu span {
+    font-size: 14px;
+    color: rgb(51, 51, 51);
+}
+.col {
+    max-width: 80%;
+    .content {
+      max-width:90%;
+    }
+}
+
+.highlight {
+  background-color: #E5E5E5;
+}
+.sticky-top {
+    top: 10px;
+}
+
+.feature {
+    list-style: disc;
+}
+.toggle {
+    cursor: pointer;
+    background-image: url("/app/custom/assets/images/icons/mb_exit_orange.svg");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    width: 35px;
+    height: 35px;
+    transition: 0.6s;
+    margin-left: 18px;
+    display: none;
+    position: absolute;
+    top: 0;
+    z-index: 99999;
+  
+    &.collapsed {
+      margin-left: 8px;
+      background-image: url("/app/custom/assets/images/icons/menu_burger_orange.svg");
+      left: 0;
+      display: none;
+    }
+  }
+  .sidebar-container {
+    position: relative;
+    .sidebar{
+      .collapse:not(.collapsed) {
+        display: block;
+        top: 44px;
+        transition: 0.6s;
+        width: 100%;
+        word-break: break-word;
+      }
+    }
+  }
+  
+  /* Custom responsive for applications pages*/
+  @media (max-width: 991.98px) {
+    .sidebar-container {
+      min-width: 50%;
+      flex: 0 0 100%;
+      position: absolute;
+      z-index: 1002;
+      max-width: 30px;
+      left:0;
+      background-color: #fff;
+      .sidebar {
+        display: block !important;
+        margin-top: 21px;
+        background-color: #fff;
+        border:0 !important;
+        &.collapsed {
+          z-index: 99999;
+          display: none !important;
+        }
+        &.collapse + .toggle {
+          display: block;
+        }
+      }
+      .toggle {
+        display: block;
+      }
+      .toggle.collapsed {
+        margin-left: 18px;
+      }
+    }
+  }
+ /* 
+  @media (max-width: 496px) {
+    .filters {
+      min-width: 84% !important;
+    }
+  }
+  
+@media (max-width: 1200px) { 
+   .content {
+        max-width: 86%;
+    }
+}
+@media (max-width: 992px) { 
+    .sidebar-container, .sidebar {
+        width: 30px !important;
+        .sidebar {
+            display:none;
+        }
+    }
+    
+ }*/

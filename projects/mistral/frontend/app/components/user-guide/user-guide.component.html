@@ -1,0 +1,322 @@
+<div class="container-fluid">
+    <div class="row flex-nowrap text-justify">
+        <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 sidebar-container">
+            <div class="d-flex flex-column align-items-center align-items-sm-start  text-white sticky-top w-100 border rounded px-3 pt-2 min-vh-100 sidebar" [class.collapsed]="isCollapsed" >
+                <h4 class="title my-3 text-uppercase">User Guide</h4>
+                <ul class="nav nav-pills  border-top flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+                    <li class="nav-item">
+                        <a (click)="onClickScroll('interface')" class="nav-link px-0 mt-0 mb-0 pb-0 me-md-auto dropdown-toggle"> 
+                        <span  class="clickable px-0 ms-1 md-sm-inline  text-uppercase"><b>Web Interface</b></span>
+                        </a>
+                        <ul class="submenu bg-white border-0 flex-column ms-1 pt-0  px-0 mt-0"
+                        id="submenu1">
+                            <li class="w-100">
+                                <a (click)="onClickScroll('data-extraction')" class="nav-link px-0 mt-0 mb-md-0 me-md-auto"> <span class="clickable px-0 ms-1 d-sm-inline">Data Extraction Feature</span></a>
+                            </li>
+                            <li>
+                                <a (click)="onClickScroll('packages')"  class="nav-link px-0 mt-0"> <span class="clickable px-0 ms-1 d-sm-inline">Download packages of open data</span> </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a (click)="onClickScroll('client')" class="nav-link px-0 mt-0">
+                        <span class="clickable px-0 ms-1 d-sm-inline  text-uppercase"><b>Meteo-Hub Client</b></span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a
+                        (click)="onClickScroll('api')"
+                        class="nav-link align-middle px-0 dropdown-toggle mb-0 pb-0"
+                        >
+                        <span class="clickable px-0 ms-1 d-sm-inline text-uppercase"><b>API</b></span>
+                    </a>
+                        <ul class="submenu bg-white border-0 flex-column ms-1 px-0 pt-0 mt-0"  id="submenu2">
+                            <li class="w-100">
+                                <a (click)="onClickScroll('downloadopendata')" class="nav-link px-0 mt-0"> <span class="d-sm-inline clickable">Download the open data using the API</span></a>
+                            </li>
+                            <li>
+                                <a (click)="onClickScroll('token')" class="nav-link px-0 mt-0"> <span class=" d-sm-inline clickable">Get an access token</span> </a>
+                            </li>
+                            <li>
+                                <a (click)="onClickScroll('extraction')" class="nav-link px-0 mt-0"> <span class=" d-sm-inline clickable">Data extraction request using API</span> </a>
+                            </li>
+                            <li>
+                                <a (click)="onClickScroll('schedule')" class="nav-link px-0 mt-0"> <span class=" d-sm-inline clickable">Scheduled data extraction request using API</span> </a>
+                            </li>
+                            <li>
+                                <a (click)="onClickScroll('downloadapi')" class="nav-link px-0 mt-0"> <span class=" d-sm-inline clickable">Download data using API</span> </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <label
+                class="toggle sticky-top"
+                (click)="isCollapsed = !isCollapsed"
+                [class.collapsed]="isCollapsed"
+            ></label>
+        </div>
+        <div class="col overflow-hidden">
+            <div class="content ms-0 me-2">
+                <h2>Different methods of data download</h2>
+                <p>There are different ways to download data from Meteo-Hub portal</p>
+        
+                <div id="interface" class="border-bottom my-4">
+                    <h3>Web Interface</h3>
+                    <p>
+                        A registered user can obtain data from one or more datasets of the platform using the Data Extraction feature on <a href="https://meteohub.mistralportal.it/app/data/datasets" target="_blank"><b>Meteo-Hub Web Interface </b></a>.
+                    </p>
+                    <section id="data-extraction">
+                        <h4>How to use Data Extraction Feature</h4>
+                        <p>
+                            In the first step, the user must select one or more datasets (multiple selection is allowed only with datasets of the same category: observation, forecast, radar). 
+                        </p>
+                        <p>
+                            In the second step, the user can filter respect the provided parameters that are specific for the dataset category: 
+                        </p>
+                        <table class="table table-striped my-4">
+                            <thead>
+                            <tr>
+                                <th scope="col">Category</th>
+                                <th scope="col">Filter</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <th scope="row">Observation</th>
+                                <td>Reftime, Level, Product, Timerange </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Forecast </th>
+                                <td>Reftime, Area, Level, Origin, Proddef, Product, Run, Timerange </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Radar</th>
+                                <td>Reftime, Area, Level, Origin, Proddef, Product, Run, Timerange </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <p>
+                            If the user is allowed to use post-processing tools, they can be applied in the third step. The set of post-processing tools are specific for the dataset category: 
+                        </p>
+                        <table class="table table-striped my-4">
+                            <thead>
+                            <tr>
+                                <th scope="col">Category</th>
+                                <th scope="col">Post-processing</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <th scope="row">Observation</th>
+                                <td>Derived Variables, Time Post Processing, Quality Control Filter, Format Conversion  </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Forecast </th>
+                                <td>	Derived Variables, Time Post Processing, Space Post Process  </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Radar</th>
+                                <td>Derived Variables, Time Post Processing, Space Post Process </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <p>In the fourth and last step, the user must enter a name for the current request and submit the request to the    system. Before submitting the request, it is also possible to schedule it using the “Schedule” button.  
+                        </p>
+                        <p>
+                            After submitting a request, the user is led to the “My Requests” page where, once the extraction has been completed, the output data can be downloaded. 
+                        </p>
+                        <p>
+                            A video tutorial illustrating the four steps of construction and submission of the request is available on MISTRAL project YouTube channel: 
+                            
+                        </p>
+                        <div class="container d-flex justify-content-center w-100 my-4">
+                            <iframe width="760" height="480" src="https://www.youtube.com/embed/bAQD-IjS8oQ" title="Mistral - Tutorial n.2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                        <p>
+                            A tutorial (Italian language) with further information on data extraction is available:
+                        </p>
+                        <div class="container d-flex justify-content-center w-100 my-4">
+                            <iframe width="760" height="480" src="https://www.youtube.com/embed/bAQD-IjS8oQ" title="Mistral - Tutorial n.2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                    </section>
+                    <section id="packages" class="my-4">
+                        <h4>How to download packages of open data</h4>
+                        <div>
+                            <p>For all users, even those not logged in, it is possible to download packages of open data. The packages are produced daily and are available on the <a href="https://meteohub.mistralportal.it/app/datasets" target="_blank"><b>Meteo-Hub datasets page</b></a>.
+                            </p>
+                            <p>
+                                Currently this feature is available for the following datasets: 
+                             </p>    
+                             <ul class="feature">
+                                <li><b>COSMO-2I</b>: COSMO at 2.2km – Italy area </li>
+                                <li><b>COSMO-5M</b>: COSMO at 5km – Mediterranean Region </li>
+                                <li><b>Multimodel ensemble forecast</b> by Arpa Piemonte </li>
+                                <li><b>Surface Rainfall Intensity </b>from Radar-DPC </li>
+                                <li><b>Italy Flash Flood</b> </li>
+                            </ul>
+                            <p>
+                                The open data from the observational datasets can be downloaded from the map of <a href="https://meteohub.mistralportal.it/app/maps/observations" target="_blank"><b>Observations webpage</b></a>.
+                            </p>
+                        </div>
+                    </section>
+                </div>
+                <div id="client" class="border-bottom my-4">
+                    <h3>Meteo-Hub Client</h3>
+                    <p>
+                        A client application that allows users to perform the main operations on the Meteo-Hub platform from the command line is available in this <a href="https://meteohub.mistralportal.it/app/data/datasets" target="_blank"><b>GITLab repository</b></a>.
+                    </p>
+                    <p>
+                        The application allows users to download data extracted by an immediate or scheduled request prepared interactively on the Meteo-Hub web interface. It also provides a wait-and-download functionality for users having access to an AMQP data-ready queue. To have further information on how to have access to an AMQP data-ready queue please contact the Mistral technical team at <a href="mailto:mistral-support@cineca.it" target="_blank"><b>mistral-support@cineca.it</b></a>.
+                    </p>
+                    <p>At the moment, the command-line client does not allow to perform or schedule requests for data extraction that must be prepared interactively through the web interface. </p> 
+                    <p>
+                        A tutorial (Italian language) on how to use the Meteo-Hub client is available:
+                    </p>
+                    <div class="container d-flex justify-content-center w-100 my-4">
+                        <iframe width="760" height="480" src="https://www.youtube.com/embed/nX4q2O-Lswo" title="MODULO 9 Meteo Hub FORMAZIONE - Command Line Client - Davide Cesari Arpae Emilia Romagna" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div id="api" class="border-bottom my-4">
+                    <h3>API</h3>
+                    <p>Users can directly use Meteo-Hub APIs to create and schedule requests of data extraction and to download the output data. The API are documented using the swagger definition at this <a href="https://meteohub.mistralportal.it:7777/" target="_blank"><b>URL</b></a></p>
+                    <section id="downloadopendata" class="my-4">
+                        <h4>How to download the open data using the API </h4>
+                        <div>
+                            <p>In order to get the list of all the packages of open data for a specific dataset this API has to be used:
+                            </p>
+                            <p class="text-center"><b>GET</b><a href=" https://meteohub.mistralportal.it/api/datasets/{dataset_name}/opendata" target="_blank"><b> https://meteohub.mistralportal.it/api/datasets/{{ '{' }}dataset_name{{ '}' }}/opendata  </b></a></p>
+                            <p>
+                                Where the query parameter <i>dataset_name</i> is the name of the dataset of which the packages list is referred. The currently parameters available for this functionality are: 
+                             </p>    
+                             <ul class="feature">
+                                <li><b>COSMO-2I</b>: refers to COSMO at 2.2km – Italy area dataset  </li>
+                                <li><b>COSMO-5M</b>:  refers to COSMO at 5km – Mediterranean Region dataset </li>
+                                <li><b>multim-forecast</b>: refers to Multimodel ensemble forecast by Arpa Piemonte dataset  </li>
+                                <li><b>radar_dpc</b>: refers to Surface Rainfall Intensity from Radar-DPC dataset /li>
+                                <li><b>COSMO-2Ipp_ecPoint</b>: refers to Italy Flash Flood dataset </li>
+                            </ul>
+                            <p> To ask for download a specific package of open data this API has to be useed:</p>
+                            <p class="text-center"><b>GET</b><a href="https://meteohub.mistralportal.it/api/opendata/%7Bfilename" target="_blank"><b> https://meteohub.mistralportal.it/api/opendata/{{ '{' }}filename{{ '}' }}  </b></a>.</p>
+                            <p>
+                                Where the query parameter filename is the name of the package to download.<br>
+
+                                No authentication is required to use these previously described APIs.
+                            </p>
+                        </div>
+                    </section>
+                    <section id="token" class="my-4">
+                        <h4>How to get an access token</h4>
+                            <p>In order to use the authenticated API the user has to provide an access token. The token is obtained as a response to the login API. 
+                            </p>
+                            <p class="text-center"><b>POST</b><a href=" https://meteohub.mistralportal.it/auth/login" target="_blank"><b> https://meteohub.mistralportal.it/auth/login  </b></a></p>
+                            <p>
+                                Example of the request body:
+                            </p>
+                            <div class="highlight">
+    <pre><code>
+    {{ '{' }}
+        "username": "user@example.com", 
+        "password": "string", 
+    {{ '}' }}
+        </code></pre>
+                            </div>
+                    </section>
+                    <section id="extraction" class="my-4">
+                        <h4>How to create a request of data extraction using APIs </h4>
+                            <p>In order to create a request of data extraction the following API has to be used:  
+                            </p>
+                            <p class="text-center"><b>POST</b><a href="https://meteohub.mistralportal.it/api/data" target="_blank"><b> https://meteohub.mistralportal.it/api/data</b></a></p>
+                            <p>
+                                Example of the request body:
+                            </p>
+                            <div class="highlight">
+    <pre><code>
+    {{ '{' }}
+        "request_name": name of the request, 
+        "reftime": {{ '{' }}
+            "from": "2022-01-10T11:04:54.615Z", 
+            "to": "2022-01-10T11:04:54.615Z" 
+        {{ '}' }},
+        "dataset_names": [ 
+        list of datasets 
+        ],
+        "filters": {{ '{' }}
+        "area": [{{ '{' }}{{ '}' }}],
+        "level": [{{ '{' }}{{ '}' }}],
+        "origin": [{{ '{' }}{{ '}' }}],
+        "proddef":[{{ '{' }}{{ '}' }}],
+        "product":[{{ '{' }}{{ '}' }}],
+        "quantity": [{{ '{' }}{{ '}' }}],
+        "run": [{{ '{' }}{{ '}' }}],
+        "task": [{{ '{' }}{{ '}' }},
+        "timerange": [{{ '{' }}{{ '}' }}],
+        "network": [{{ '{' }}{{ '}' }}],
+        {{ '}' }},
+        "output_format": "json"/null, 
+        "only_reliable": true/false, 
+        "postprocessors": [ object ] //list of requested postprocessors with their specific configuration 
+    {{ '}' }}
+    </code></pre>
+                            </div>
+                            <p>In the request body the metadata related to the desired data has to be specified. The filters are specific for the dataset category (see table in the previous chapter “Download data from web interface”). <i>Output_format</i> and <i>only_reliable</i> are parameters specific for observations data: the first specifies if the user wants the ouput data in json format instead of the default format (BUFR). The second one specifies if the user wants to download only validated data<br>
+                            To use the previously described API an authentication is required. The access token get from the login API has to be included as Authorization in the request Header . </p>
+                    </section>
+                    <section id="schedule" class="my-4">
+                        <h4>How to create a scheduled request of data extraction using APIs </h4>
+                            <p>In order to create a scheduled request the following API has to be used: </p>
+                            <p class="text-center"><b>POST</b><a href="https://meteohub.mistralportal.it/api/schedules" target="_blank"><b> https://meteohub.mistralportal.it/api/schedules</b></a></p>
+                            <p>
+                                The request body, where all the metadata related to the request are specified, is similar to the one described in the previous chapter “How to create a request of data extraction”. Additional parameters has to be added in order to specify the scheduling interval. The available scheduling methods are:   
+                            </p> 
+                            <ul class="feature">
+                                <li>Periodical request: data are extracted at specific time intervals </li>
+                            </ul>
+                            <div class="highlight">
+    <pre><code>
+    "period-settings": {{ '{' }}
+    "every": number,  //specifies the time interval of the extraction,    
+    "period": string  //specifies the time period. Choose one of "hours”,"days",”months”,”years”  
+    {{ '}' }}
+        
+    </code></pre>
+                            </div>
+                            <ul class="feature">
+                                <li>At-time request: data are extracted on specific days at a specific time </li>
+                            </ul>
+                            <div class="highlight">
+<pre><code>
+    "crontab-settings":{{ '{' }}
+        "minute": number //range between 0-59,     
+        "hour": number  //range between 0-23,     
+        "day_of_week": number	//range between 0-7 where 0 and 7 refers to sunday, 1 to monday, and so on,    
+        "day_of_month": number  //range between 0-31,     
+        "month_of_year": number //range between 1-12 where 1 refers to january and 12 refers to december  
+    {{ '}' }}
+    </code></pre>
+                            </div>
+                            <ul class="feature">
+                                <li>On-data-ready request: data are extracted as soon as they are available on the platform. This option is available only for  COSMO-2I and COSMO-5M datasets. </li>
+                            </ul>
+                            <div class="highlight">
+<pre><code>
+    "on-data-ready": true, 
+    </code></pre>
+                            </div>
+                            <p>To use the previously described API an authentication is required. The access token get from the login API has to be included as Authorization in the request Header.</p>
+                    </section>
+                    <section id="downloadapi" class="my-4">
+                        <h4>How to download data using APIs </h4>
+                            <p>In order to get the list of all the submitted requests and their status this API has to be used
+                            </p>
+                            <p class="text-center"><b>GET</b><a href="https://meteohub.mistralportal.it/api/requests" target="_blank"><b>https://meteohub.mistralportal.it/api/requests</b></a></p>
+                            <p>
+                                If the data extraction has been completed the <i>fileoutput</i> parameter in the response indicates the name of the output file. 
+                            </p>
+                            <p>To download the output data the following API has to be used: </p>
+                            <p class="text-center"><b>GET</b><a href="https://meteohub.mistralportal.it/api/data/%7Bfilename" target="_blank"><b> https://meteohub.mistralportal.it/api/data/{{ '{' }}filename{{ '}' }}  </b></a></p>
+                    </section>
+                </div>
+        </div>
+    </div>
+  </div>
+  
