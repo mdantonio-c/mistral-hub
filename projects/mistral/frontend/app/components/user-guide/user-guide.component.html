@@ -1,5 +1,5 @@
 <div class="container-fluid">
-    <div class="row flex-nowrap text-justify">
+    <div class="row flex-nowrap text-justify mx-4">
         <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 sidebar-container">
             <div class="d-flex flex-column align-items-center align-items-sm-start  text-white sticky-top w-100 border rounded px-3 pt-2 min-vh-100 sidebar" [class.collapsed]="isCollapsed" >
                 <h4 class="title my-3 text-uppercase">User Guide</h4>
@@ -184,7 +184,7 @@
                         <div>
                             <p>In order to get the list of all the packages of open data for a specific dataset this API has to be used:
                             </p>
-                            <p class="text-center"><b>GET</b><a href=" https://meteohub.mistralportal.it/api/datasets/{dataset_name}/opendata" target="_blank"><b> https://meteohub.mistralportal.it/api/datasets/{{ '{' }}dataset_name{{ '}' }}/opendata  </b></a></p>
+                            <p class="text-center"><b>GET</b><a href="https://meteohub.mistralportal.it/api/datasets/{dataset_name}/opendata" target="_blank"><b> https://meteohub.mistralportal.it/api/datasets/{{ '{' }}dataset_name{{ '}' }}/opendata  </b></a></p>
                             <p>
                                 Where the query parameter <i>dataset_name</i> is the name of the dataset of which the packages list is referred. The currently parameters available for this functionality are: 
                              </p>    
@@ -208,7 +208,7 @@
                         <h4>How to get an access token</h4>
                             <p>In order to use the authenticated API the user has to provide an access token. The token is obtained as a response to the login API. 
                             </p>
-                            <p class="text-center"><b>POST</b><a href=" https://meteohub.mistralportal.it/auth/login" target="_blank"><b> https://meteohub.mistralportal.it/auth/login  </b></a></p>
+                            <p class="text-center"><b>POST</b><a href="https://meteohub.mistralportal.it/auth/login" target="_blank"><b> https://meteohub.mistralportal.it/auth/login  </b></a></p>
                             <p>
                                 Example of the request body:
                             </p>
