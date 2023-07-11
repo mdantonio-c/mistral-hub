@@ -1,0 +1,32 @@
+.video-gallery {
+    max-width:80%;
+}
+.video-container {
+    width: 400px !important;
+    iframe {
+        width: 400px;
+        height: 210px;
+    background-color: #e5e5e5a2 !important;
+    }
+    .didascalia {
+        width: 400px !important;
+        background-color: #e5e5e5a2 !important;
+        padding-top: 10px;
+        margin-top: -10px;
+
+        .titolo-video {
+            font-size:16px !important;
+            color: #e49d2b;
+            text-decoration: none;
+            margin-bottom: 2px;
+        }
+        .sottotitolo-video, .file {
+            font-size: 14px !important;
+            margin-bottom: 2px;
+        }
+    }
+}
+a, h2 {
+        color: #e49d2b !important;
+        text-decoration: none;
+}

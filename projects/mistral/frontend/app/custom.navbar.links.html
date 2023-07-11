@@ -104,11 +104,18 @@
         class="dropdown-menu"
       >
         <a
+        ngbDropdownItem
+        routerLink="/app/user-guide"
+        routerLinkActive="active"
+        (click)="collapse()"
+        >User Guide</a
+        >
+        <a
           ngbDropdownItem
-          href="https://www.mistralportal.it/user-guide/"
+          routerLink="/app/tutorial"
+          routerLinkActive="active"
           (click)="collapse()"
-          target="_blank"
-          >User Guide</a
+          >Tutorial & Training</a
         >
         <a
           ngbDropdownItem

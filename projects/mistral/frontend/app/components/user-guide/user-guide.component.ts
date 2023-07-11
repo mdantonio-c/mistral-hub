@@ -1,4 +1,5 @@
 import { Component,  EventEmitter, Output} from '@angular/core';
+import { environment } from "@rapydo/../environments/environment";
 import { ViewportScroller } from '@angular/common';
 @Component({
     selector: "app-user-guide",
@@ -13,8 +14,6 @@ export class UserGuideComponent{
     constructor(
       private viewportScroller: ViewportScroller
     ) { }
-
-
 
     public onClickScroll(elementId: string): void { 
       this.viewportScroller.scrollToAnchor(elementId);

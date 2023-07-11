@@ -78,7 +78,7 @@ import { AdminDatasetsComponent } from "@app/components/admin-datasets/admin-dat
 import { TranslatePipe } from "./pipes/translate.pipe";
 
 import { UserGuideComponent } from "./components/user-guide/user-guide.component";
-
+import { TutorialComponent } from "./components/tutorial/tutorial.component";
 const appRoutes: Routes = [
   {
     path: "app/data",
@@ -133,6 +133,10 @@ const appRoutes: Routes = [
   {
     path: "app/user-guide",
     component: UserGuideComponent,
+  },
+  {
+    path: "app/tutorial",
+    component: TutorialComponent,
   },
   {
     path: "app/admin/bindings",
@@ -237,6 +241,8 @@ const appRoutes: Routes = [
     DisableControlDirective,
     ClickStopPropagation,
     TranslatePipe,
+    UserGuideComponent,
+    TutorialComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
