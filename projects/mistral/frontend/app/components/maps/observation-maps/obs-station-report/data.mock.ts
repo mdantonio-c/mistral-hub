@@ -1,4 +1,22 @@
-import { DataSeries } from "./obs-station-report.component";
+import { DataSeries, Observation } from "../../../../types";
+
+/**
+ * Custom method to generate random precipitation data
+ * @param data
+ */
+export const randomize = (data: Observation[]) => {
+  let obs: Observation = data[0];
+  if (obs) {
+    obs.prod.forEach((p) => {
+      if (p.var === "B13011") {
+        p.val.forEach((v) => {
+          v.val = Math.floor(Math.random() * 20);
+        });
+      }
+    });
+  }
+  return data;
+};
 
 export const MockStationTimeSeries: DataSeries[] = [
   {

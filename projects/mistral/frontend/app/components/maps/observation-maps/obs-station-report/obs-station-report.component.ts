@@ -15,6 +15,7 @@ import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
 import * as shape from "d3-shape";
+import { randomize } from "./data.mock";
 
 const STATION_NAME_CODE = "B01019";
 
@@ -42,8 +43,12 @@ export class ObsStationReportComponent implements OnInit {
   single: DataSeries[];
 
   // chart options
-  colorScheme = {
+  multiColorScheme = {
     domain: ["#5AA454", "#E44D25", "#CFC0BB", "#7aa3e5", "#a8385d", "#aae3f5"],
+  };
+
+  monoColorScheme = {
+    domain: ["#87a7e7"],
   };
 
   constructor(
@@ -74,11 +79,12 @@ export class ObsStationReportComponent implements OnInit {
       .subscribe(
         (response: ObservationResponse) => {
           let data = response.data;
+          // data = randomize(data);
           this.descriptions = response.descr;
           this.report = data[0];
           let multi = this.normalize(data[0]);
           Object.assign(this, { multi });
-          //console.log(JSON.stringify(this.multi));
+          // console.log(JSON.stringify(this.multi));
           let meteogramToShow: string;
           if (this.selectedProduct) {
             // it means that the filter contains multiple products
@@ -138,7 +144,6 @@ export class ObsStationReportComponent implements OnInit {
 
   /*xAxisLabelFormatting() {
     return moment(this.filter.reftime).format("MMMM Do YYYY");
-
   }*/
 
   xAxisTickFormattingFn = this.xAxisTickFormatting.bind(this);
@@ -162,8 +167,7 @@ export class ObsStationReportComponent implements OnInit {
     let res: DataSeries[] = [];
     data.prod.forEach((v) => {
       let s: DataSeries = {
-        // name: v.description,
-        name: "",
+        name: this.descriptions[v.var].descr || "n/a",
         code: v.var,
         level: v.lev,
         timerange: v.trange,

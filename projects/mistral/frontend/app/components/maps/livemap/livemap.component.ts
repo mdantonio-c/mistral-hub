@@ -117,8 +117,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       prp: this.createLegendControl("prp"),
     };
 
-    this.legends["t2m"].addTo(map);
-    this.currentProduct = "t2m";
+    this.legends[defaultProduct].addTo(map);
+    this.currentProduct = defaultProduct;
   }
 
   private createLegendControl(id: string): L.Control {
@@ -229,34 +229,34 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               color = "#ffcc00";
             } else if (lastObs.val >= 315.15 && lastObs.val < 317.15) {
               color = "#7200ff";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 313.15 && lastObs.val < 315.15) {
               color = "#bf00ff";
-               textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 311.15 && lastObs.val < 313.15) {
               color = "#ff00ff";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 309.15 && lastObs.val < 311.15) {
               color = "#cc00cc";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 307.15 && lastObs.val < 309.15) {
               color = "#990099";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 305.15 && lastObs.val < 307.15) {
               color = "#660066";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 303.15 && lastObs.val < 305.15) {
               color = "#660000";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 301.15 && lastObs.val < 303.15) {
               color = "#990000";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 299.15 && lastObs.val < 301.15) {
               color = "#cc0000";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 297.15 && lastObs.val < 299.15) {
               color = "#ff0000";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 295.15 && lastObs.val < 297.15) {
               color = "#ff6600";
             } else if (lastObs.val >= 293.15 && lastObs.val < 295.15) {
@@ -297,13 +297,13 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               color = "#990099";
             } else if (lastObs.val >= 257.15 && lastObs.val < 259.15) {
               color = "#660066";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 255.15 && lastObs.val < 257.15) {
               color = "#660000";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 253.15 && lastObs.val < 255.15) {
               color = "#990000";
-              textColor = "#fff"; 
+              textColor = "#fff";
             } else if (lastObs.val >= 251.15 && lastObs.val < 253.15) {
               color = "#cc0000";
             } else if (lastObs.val >= 249.15 && lastObs.val < 251.15) {
@@ -366,9 +366,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
           ) {
             if (lastObs.val >= 100) {
               color = "#1000FD";
-              textColor = "#fff";         
+              textColor = "#fff";
             } else if (lastObs.val >= 80 && lastObs.val < 100) {
-              color = "#21FEFF";  
+              color = "#21FEFF";
             } else if (lastObs.val >= 60 && lastObs.val < 80) {
               color = "#19FF24";
             } else if (lastObs.val >= 40 && lastObs.val < 60) {

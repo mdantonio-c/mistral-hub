@@ -70,7 +70,10 @@
               style="font-size: small"
             >
               <ng-container *ngFor="let p of report.prod">
-                <li class="border border-primary rounded m-1"[ngbNavItem]="getNavItemName(p)">
+                <li
+                  class="border border-primary rounded m-1"
+                  [ngbNavItem]="getNavItemName(p)"
+                >
                   <a ngbNavLink>{{ descriptions[p.var].descr | uppercase }}</a>
                   <ng-template ngbNavContent></ng-template>
                 </li>
@@ -91,24 +94,53 @@
                 >
               </ng-container>
             </p>
+            <!--<pre>{{nav.activeId}}</pre>-->
             <div #containerRef>
-              <ngx-charts-line-chart
-                [view]="[containerRef.offsetWidth, 400]"
-                [animations]="true"
-                [scheme]="colorScheme"
-                [xAxis]="true"
-                [yAxis]="true"
-                [showXAxisLabel]="true"
-                [showYAxisLabel]="true"
-                [xAxisLabel]="xAxisLabelFormatting()"
-                [yAxisLabel]="getUserUnit(active) || 'n/a'"
-                [xAxisTickFormatting]="xAxisTickFormattingFn"
-                [timeline]="false"
-                [results]="single"
-                [autoScale]="true"
-                [curve]="curve"
+              <ng-container
+                *ngIf="
+                  nav.activeId.split('-')[0] !== 'B13011';
+                  then lineChart;
+                  else verticalChart
+                "
               >
-              </ngx-charts-line-chart>
+              </ng-container>
+              <ng-template #lineChart>
+                <ngx-charts-line-chart
+                  [view]="[containerRef.offsetWidth, 400]"
+                  [animations]="true"
+                  [scheme]="multiColorScheme"
+                  [xAxis]="true"
+                  [yAxis]="true"
+                  [showXAxisLabel]="true"
+                  [showYAxisLabel]="true"
+                  [xAxisLabel]="xAxisLabelFormatting()"
+                  [yAxisLabel]="getUserUnit(active) || 'n/a'"
+                  [xAxisTickFormatting]="xAxisTickFormattingFn"
+                  [timeline]="false"
+                  [results]="single"
+                  [autoScale]="true"
+                  [curve]="curve"
+                >
+                </ngx-charts-line-chart>
+              </ng-template>
+              <ng-template #verticalChart>
+                <ngx-charts-bar-vertical
+                  [view]="[containerRef.offsetWidth, 400]"
+                  [animations]="true"
+                  [scheme]="monoColorScheme"
+                  [xAxis]="true"
+                  [yAxis]="true"
+                  [showXAxisLabel]="true"
+                  [showYAxisLabel]="true"
+                  [xAxisLabel]="xAxisLabelFormatting()"
+                  [xAxisTickFormatting]="xAxisTickFormattingFn"
+                  [yAxisLabel]="getUserUnit(active) || 'n/a'"
+                  [results]="single[0].series"
+                  [gradient]="false"
+                  [legend]="false"
+                >
+                </ngx-charts-bar-vertical>
+              </ng-template>
             </div>
           </div>
         </div>
