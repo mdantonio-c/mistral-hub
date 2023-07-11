@@ -158,6 +158,19 @@ export class ObsStationReportComponent implements OnInit {
     return m === 0 && h % 2 === 0 ? time.format(dateFormat) : "";
   }
 
+  dateChangeNgStyleFn = this.dateChangeNgStyle.bind(this);
+  private dateChangeNgStyle(tick) {
+    const reftime = moment.utc(tick).local().format("HH:mm");
+    const minutes = moment.utc(tick).local().format("mm");
+    let lineStyle = null;
+    if (reftime === "00:00") {
+      lineStyle = { stroke: "#009", "stroke-dasharray": "10" };
+    } else if (minutes === "00") {
+      lineStyle = { stroke: "#e4e4e4" };
+    }
+    return lineStyle;
+  }
+
   private updateGraphData(navItemId: string) {
     this.single = this.multi.filter(
       (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,

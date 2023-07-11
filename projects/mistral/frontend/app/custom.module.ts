@@ -60,6 +60,10 @@ import { ObsNavbarComponent } from "@app/components/maps/observation-maps/obs-na
 import { ObsMapComponent } from "@app/components/maps/observation-maps/obs-map/obs-map.component";
 import { ObsMeteogramsComponent } from "@app/components/maps/observation-maps/obs-meteograms/obs-meteograms.component";
 import { ObsStationReportComponent } from "@app/components/maps/observation-maps/obs-station-report/obs-station-report.component";
+import { CustomLineChart } from "@app/components/custom-charts/line-chart-custom.component";
+import { CustomBarChart } from "@app/components/custom-charts/bar-chart-custom.component";
+import { CustomXAxis } from "@app/components/custom-charts/x-axis-custom.component";
+import { CustomXAxisTick } from "@app/components/custom-charts/x-axis-tick-custom.component";
 import { MeteoTilesComponent } from "@app/components/maps/meteo-tiles/meteo-tiles.component";
 import { SideNavComponent } from "./components/maps/meteo-tiles/side-nav/side-nav.component";
 import { BindingsComponent } from "@app/components/bindings/bindings";
@@ -206,6 +210,10 @@ const appRoutes: Routes = [
     ObsMapComponent,
     ObsMeteogramsComponent,
     ObsStationReportComponent,
+    CustomLineChart,
+    CustomBarChart,
+    CustomXAxis,
+    CustomXAxisTick,
     MeteoTilesComponent,
     SideNavComponent,
     LivemapComponent,

@@ -518,8 +518,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
 
     // get the reftime to and reftime from
     const reftimeTo = new Date();
-    let reftimeFrom = new Date()
-    reftimeFrom.setHours(reftimeTo.getHours() -24);
+    let reftimeFrom = new Date();
+    reftimeFrom.setHours(reftimeTo.getHours() - 24);
 
     meteogramsFilter.dateInterval = [reftimeFrom, reftimeTo];
     //meteogramsFilter.time = [reftimeFrom.hour(),reftimeTo.hour()]
