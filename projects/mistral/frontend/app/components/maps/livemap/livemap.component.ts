@@ -515,18 +515,11 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.product = meteogramProducts.join(" or ");
     meteogramsFilter.level = meteogramLevels.join(" or ");
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
-    /*    // TODO uncomment when the 24h meteogram graph is fixed
-    // get the reftime to and reftime from
-    const reftimeTo = moment.utc(new Date().getTime());
-    const reftimeFrom = moment
-      .utc(new Date().getTime())
-      .subtract({ hours: 24 });*/
 
+    // get the reftime to and reftime from
     const reftimeTo = new Date();
-    // get reftime from according to local time
-    let reftimeFrom = new Date();
-    reftimeFrom.setHours(0);
-    reftimeFrom.setMinutes(0);
+    let reftimeFrom = new Date()
+    reftimeFrom.setHours(reftimeTo.getHours() -24);
 
     meteogramsFilter.dateInterval = [reftimeFrom, reftimeTo];
     //meteogramsFilter.time = [reftimeFrom.hour(),reftimeTo.hour()]
