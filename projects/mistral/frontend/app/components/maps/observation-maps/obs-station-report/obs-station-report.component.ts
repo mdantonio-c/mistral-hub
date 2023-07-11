@@ -142,19 +142,20 @@ export class ObsStationReportComponent implements OnInit {
     }
   }
 
-  /*xAxisLabelFormatting() {
-    return moment(this.filter.reftime).format("MMMM Do YYYY");
-  }*/
-
   xAxisTickFormattingFn = this.xAxisTickFormatting.bind(this);
 
-  private xAxisTickFormatting(val) {
-    // val: 2020-09-07T04:00:00
-    if (this.localTimeData) {
-      return moment.utc(val).local().format("HH:mm");
-    } else {
-      return moment(val).format("HH:mm");
-    }
+  /**
+   * Format date ticks.
+   * Only shows times that are multiples of 2.
+   * @param val date string (eg. 2020-09-07T04:00:00)
+   * @param dateFormat
+   * @private
+   */
+  private xAxisTickFormatting(val, dateFormat = "HH:mm") {
+    const time = this.localTimeData ? moment.utc(val).local() : moment(val);
+    const h = time.hour();
+    const m = time.minute();
+    return m === 0 && h % 2 === 0 ? time.format(dateFormat) : "";
   }
 
   private updateGraphData(navItemId: string) {
