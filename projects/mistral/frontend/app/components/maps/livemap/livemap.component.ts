@@ -159,17 +159,17 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   }
 
   loadObservations(filter: ObsFilter, update = false) {
-    const startTime = new Date().getTime();
+    //const startTime = new Date().getTime();
     this.spinner.show();
     this.obsService
       .getData(filter, update)
       .subscribe(
         (response: ObservationResponse) => {
-          console.log(
+          /*console.log(
             `elapsed time for '${filter.product}' data retrieval: ${
               (new Date().getTime() - startTime) / 1000
             }s`,
-          );
+          );*/
           let data = response.data;
           this.loadMarkers(data, filter.product);
           if (data.length === 0) {
@@ -542,8 +542,19 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     window.dispatchEvent(new Event("resize"));
   }
 
-  toggleLayer(obj: Record<string, string>) {
-    console.log(`toggle layer: ${obj.name}`);
+  toggleLayer(obj?: Record<string, string>) {
+    if (!obj && !this.currentProduct) {
+      this.notify.showError("No product selected");
+      return;
+    }
+    if (!obj) {
+      // default to current product
+      obj = {
+        name: this.currentProduct,
+        layer: this.currentProduct,
+      };
+    }
+    // console.log(`toggle layer: ${obj.name}`);
 
     // clean up layers
     if (this.markersGroup) {
@@ -602,9 +613,5 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       .utc(new Date().getTime())
       .local()
       .format("DD-MM-YYYY, HH:mm")}`;
-  }
-
-  reload(): void {
-    this.loadObservations(this.filter, true);
   }
 }

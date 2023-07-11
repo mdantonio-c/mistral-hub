@@ -96,7 +96,7 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
         n.push(markers[i]);
       }
     }
-    console.log(`number of markers reduced to ${n.length}`);
+    // console.log(`number of markers reduced to ${n.length}`);
     return n;
   }
 
