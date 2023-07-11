@@ -105,7 +105,7 @@
               >
               </ng-container>
               <ng-template #lineChart>
-                <ngx-charts-line-chart
+                <custom-ngx-charts-line-chart
                   [view]="[containerRef.offsetWidth, 400]"
                   [animations]="true"
                   [scheme]="multiColorScheme"
@@ -116,15 +116,16 @@
                   [xAxisLabel]="xAxisLabelFormatting()"
                   [yAxisLabel]="getUserUnit(active) || 'n/a'"
                   [xAxisTickFormatting]="xAxisTickFormattingFn"
+                  [gridLineNgStyleByXAxisTick]="dateChangeNgStyleFn"
                   [timeline]="false"
                   [results]="single"
                   [autoScale]="true"
                   [curve]="curve"
                 >
-                </ngx-charts-line-chart>
+                </custom-ngx-charts-line-chart>
               </ng-template>
               <ng-template #verticalChart>
-                <ngx-charts-bar-vertical
+                <custom-ngx-charts-bar-vertical
                   [view]="[containerRef.offsetWidth, 400]"
                   [animations]="true"
                   [scheme]="monoColorScheme"
@@ -134,12 +135,13 @@
                   [showYAxisLabel]="true"
                   [xAxisLabel]="xAxisLabelFormatting()"
                   [xAxisTickFormatting]="xAxisTickFormattingFn"
+                  [gridLineNgStyleByXAxisTick]="dateChangeNgStyleFn"
                   [yAxisLabel]="getUserUnit(active) || 'n/a'"
                   [results]="single[0].series"
                   [gradient]="false"
                   [legend]="false"
                 >
-                </ngx-charts-bar-vertical>
+                </custom-ngx-charts-bar-vertical>
               </ng-template>
             </div>
           </div>
