@@ -29,6 +29,7 @@ export class ObsStationReportComponent implements OnInit {
   @Input() filter: ObsFilter;
   @Input() selectedProduct: ObsFilter;
   @Input() localTimeData: boolean = false;
+  @Input() lang: string;
 
   name: string;
   level: string;
@@ -131,14 +132,34 @@ export class ObsStationReportComponent implements OnInit {
         this.filter.dateInterval[0].getDay() !=
         this.filter.dateInterval[1].getDay()
       ) {
-        return `${moment(this.filter.dateInterval[0]).format(
-          "MMMM Do YYYY",
-        )} - ${moment(this.filter.dateInterval[1]).format("MMMM Do YYYY")}`;
+        if (this.lang === "it") {
+          return `${moment(this.filter.dateInterval[0])
+            .locale("it")
+            .format("D MMMM YYYY")} - ${moment(this.filter.dateInterval[1])
+            .locale("it")
+            .format("D MMMM YYYY")}`;
+        } else {
+          return `${moment(this.filter.dateInterval[0]).format(
+            "MMMM Do YYYY",
+          )} - ${moment(this.filter.dateInterval[1]).format("MMMM Do YYYY")}`;
+        }
       } else {
-        return `${moment(this.filter.dateInterval[0]).format("MMMM Do YYYY")}`;
+        if (this.lang === "it") {
+          return `${moment(this.filter.dateInterval[0])
+            .locale("it")
+            .format("D MMMM YYYY")}`;
+        } else {
+          return `${moment(this.filter.dateInterval[0]).format(
+            "MMMM Do YYYY",
+          )}`;
+        }
       }
     } else {
-      return moment(this.filter.reftime).format("MMMM Do YYYY");
+      if (this.lang === "it") {
+        return moment(this.filter.reftime).locale("it").format("D MMMM YYYY");
+      } else {
+        return moment(this.filter.reftime).format("MMMM Do YYYY");
+      }
     }
   }
 

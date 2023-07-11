@@ -454,11 +454,13 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
           const localReferenceTime = moment
             .utc(lastObs.ref, "YYYY-MM-DDTHH:mm")
             .toDate();
+          const language = this.lang;
           m.bindTooltip(
             BaseMapComponent.buildTooltipTemplate(
               s.stat,
               localReferenceTime.toString(),
               val,
+              language,
             ),
             {
               direction: "top",
@@ -487,6 +489,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       size: "xl",
       centered: true,
     });
+    // pass the requested language
+    modalRef.componentInstance.lang = this.lang;
     modalRef.componentInstance.station = station;
     // get the query parameters for all the products
     let meteogramProducts: string[] = [];
