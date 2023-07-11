@@ -475,6 +475,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     timerange: "254,0,0",
     level: "103,10000,0,0",
     value: [],
+    order: 5,
   },
   rh: {
     label: "relative humidity",

@@ -167,6 +167,6 @@ export class SideNavFilterComponent implements OnInit {
     a: KeyValue<string, any>,
     b: KeyValue<string, any>,
   ): number => {
-    return String(a.value.oder).localeCompare(String(b.value.order));
+    return String(a.value.order).localeCompare(String(b.value.order));
   };
 }
