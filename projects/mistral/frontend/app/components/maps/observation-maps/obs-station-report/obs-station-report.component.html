@@ -139,7 +139,7 @@
                 <custom-ngx-charts-bar-vertical
                   [view]="[containerRef.offsetWidth, 400]"
                   [animations]="true"
-                  [scheme]="monoColorScheme"
+                  [scheme]="monoBarScheme"
                   [xAxis]="true"
                   [yAxis]="true"
                   [showXAxisLabel]="true"
@@ -157,8 +157,8 @@
               <ng-template #comboChart>
                 <combo-chart-component
                   [view]="[containerRef.offsetWidth - 100, 400]"
-                  [scheme]="monoColorScheme"
-                  [colorSchemeLine]="multiColorScheme"
+                  [scheme]="monoBarScheme"
+                  [colorSchemeLine]="monoLineScheme"
                   [results]="single[0].series"
                   [animations]="true"
                   [lineChart]="accumulatedSeries"
@@ -175,9 +175,21 @@
                   [showRightYAxisLabel]="true"
                   [xAxisLabel]="xAxisLabelFormatting()"
                   [xAxisTickFormatting]="xAxisTickFormattingFn"
-                  [yAxisLabel]="getUserUnit(active) || 'n/a'"
-                  [yAxisLabelRight]="'Accumulated'"
+                  [yAxisLabel]="'Precipitazione cumulata su 1h (mm)'"
+                  [yAxisLabelRight]="accumulatedSeries[0].name + ' (mm)'"
                 >
+                  <ng-template #tooltipTemplate let-model="model">
+                    <span class="d-block">{{
+                      model.name | fmtLabelDate : lang : true
+                    }}</span>
+                    <span class="d-block"
+                      >{{ model.series }}: {{ model.value }} (mm)</span
+                    >
+                  </ng-template>
+                  <!--<ng-template #seriesTooltipTemplate let-model="model">
+                    TODO This is vertical line tooltip template
+                    <pre>{{model|json}}</pre>
+                  </ng-template>-->
                 </combo-chart-component>
               </ng-template>
             </div>

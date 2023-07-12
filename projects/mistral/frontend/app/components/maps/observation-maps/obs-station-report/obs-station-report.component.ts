@@ -52,8 +52,11 @@ export class ObsStationReportComponent implements OnInit {
     domain: ["#5AA454", "#E44D25", "#CFC0BB", "#7aa3e5", "#a8385d", "#aae3f5"],
   };
 
-  monoColorScheme = {
+  monoBarScheme = {
     domain: ["#87a7e7"],
+  };
+  monoLineScheme = {
+    domain: ["#E44D25"],
   };
 
   constructor(
@@ -221,6 +224,7 @@ export class ObsStationReportComponent implements OnInit {
       });
       if (v.var === "B13011") {
         let obj = Object.assign({}, s);
+        obj.name = "Data cumulato";
         obj.series = this.accumulated(v);
         this.accumulatedSeries = [obj];
       }

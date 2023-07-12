@@ -71,6 +71,7 @@ import { LivemapComponent } from "./components/maps/livemap/livemap.component";
 import { SideNavFilterComponent } from "./components/maps/side-nav/side-nav.component";
 
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
+import { FormatLabelDatePipe } from "@app/pipes/format-data-label.pipe";
 import { ReplacePipe } from "@app/pipes/replace.pipe";
 import { WorkflowGuard } from "@app/services/workflow-guard.service";
 
@@ -245,6 +246,7 @@ const appRoutes: Routes = [
     BindingsComponent,
     ReftimeModalContent,
     FormatDatePipe,
+    FormatLabelDatePipe,
     ReplacePipe,
     DisableControlDirective,
     ClickStopPropagation,
