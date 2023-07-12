@@ -10,13 +10,14 @@
 >
   <svg:g [attr.transform]="transform" class="bar-chart chart">
     <svg:g
-      ngx-charts-x-axis
+      custom-ngx-x-axis
       *ngIf="xAxis"
       [xScale]="xScale"
       [dims]="dims"
       [showLabel]="showXAxisLabel"
       [labelText]="xAxisLabel"
       [tickFormatting]="xAxisTickFormatting"
+      [gridLineNgStyleByAxisTick]="gridLineNgStyleByXAxisTick"
       (dimensionsChanged)="updateXAxisHeight($event)"
     ></svg:g>
     <svg:g

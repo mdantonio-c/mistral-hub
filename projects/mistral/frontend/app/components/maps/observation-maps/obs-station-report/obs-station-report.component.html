@@ -133,26 +133,15 @@
                   [autoScale]="true"
                   [curve]="curve"
                 >
+                  <ng-template #tooltipTemplate let-model="model">
+                    <span class="d-block">{{
+                      model.name | fmtLabelDate : lang : true
+                    }}</span>
+                    <span class="d-block"
+                      >{{ model.series }}: {{ model.value }} (mm)</span
+                    >
+                  </ng-template>
                 </custom-ngx-charts-line-chart>
-              </ng-template>
-              <ng-template #verticalChart>
-                <custom-ngx-charts-bar-vertical
-                  [view]="[containerRef.offsetWidth, 400]"
-                  [animations]="true"
-                  [scheme]="monoBarScheme"
-                  [xAxis]="true"
-                  [yAxis]="true"
-                  [showXAxisLabel]="true"
-                  [showYAxisLabel]="true"
-                  [xAxisLabel]="xAxisLabelFormatting()"
-                  [xAxisTickFormatting]="xAxisTickFormattingFn"
-                  [gridLineNgStyleByXAxisTick]="dateChangeNgStyleFn"
-                  [yAxisLabel]="getUserUnit(active) || 'n/a'"
-                  [results]="single[0].series"
-                  [gradient]="false"
-                  [legend]="false"
-                >
-                </custom-ngx-charts-bar-vertical>
               </ng-template>
               <ng-template #comboChart>
                 <combo-chart-component
@@ -175,21 +164,54 @@
                   [showRightYAxisLabel]="true"
                   [xAxisLabel]="xAxisLabelFormatting()"
                   [xAxisTickFormatting]="xAxisTickFormattingFn"
-                  [yAxisLabel]="'Precipitazione cumulata su 1h (mm)'"
-                  [yAxisLabelRight]="accumulatedSeries[0].name + ' (mm)'"
+                  [yAxisLabel]="
+                    ('accumulated precipitation over 1h'
+                      | translate : lang
+                      | titlecase) + ' (mm)'
+                  "
+                  [yAxisLabelRight]="
+                    (accumulatedSeries[0].name | translate : lang | titlecase) +
+                    ' (mm)'
+                  "
+                  [gridLineNgStyleByXAxisTick]="dateChangeNgStyleFn"
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block">{{
                       model.name | fmtLabelDate : lang : true
                     }}</span>
                     <span class="d-block"
-                      >{{ model.series }}: {{ model.value }} (mm)</span
+                      >{{ model.series | translate : lang }}:
+                      {{ model.value }} (mm)</span
                     >
                   </ng-template>
-                  <!--<ng-template #seriesTooltipTemplate let-model="model">
-                    TODO This is vertical line tooltip template
-                    <pre>{{model|json}}</pre>
-                  </ng-template>-->
+                  <ng-template #seriesTooltipTemplate let-model="model">
+                    <div class="area-tooltip-container">
+                      <span class="d-block"
+                        ><b>{{
+                          model[0].name | fmtLabelDate : lang : true
+                        }}</b></span
+                      >
+                      <div
+                        *ngFor="let tooltipItem of model"
+                        class="tooltip-item"
+                      >
+                        <span
+                          class="tooltip-item-color"
+                          [style.background-color]="
+                            !tooltipItem.series.includes('1h')
+                              ? tooltipItem.color
+                              : monoBarScheme.domain[0]
+                          "
+                        ></span>
+                        {{
+                          tooltipItem.series
+                            | replace : "\\(([^\\)]+)\\)" : ""
+                            | translate : lang
+                            | titlecase
+                        }}: <b>{{ tooltipItem.value }}</b> (mm)
+                      </div>
+                    </div>
+                  </ng-template>
                 </combo-chart-component>
               </ng-template>
             </div>

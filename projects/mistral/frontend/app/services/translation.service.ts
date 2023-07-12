@@ -51,6 +51,8 @@ export class TranslationService {
         "analysis or observation, istantaneous value":
           "Analisi o osservazione istantanea",
         "accumulation over 1h at forecast time 0": "Cumulato su 1h",
+        "accumulated data": "dato cumulato",
+        "accumulated precipitation over 1h": "precipitazione cumulata su 1h",
       },
     },
   };

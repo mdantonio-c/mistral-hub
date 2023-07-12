@@ -225,7 +225,7 @@ export class ObsStationReportComponent implements OnInit {
       });
       if (v.var === "B13011") {
         let obj = Object.assign({}, s);
-        obj.name = "Data cumulato";
+        obj.name = "accumulated data";
         obj.series = this.accumulated(v);
         this.accumulatedSeries = [obj];
       }
