@@ -488,6 +488,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
   },
   prs: {
     label: "pressure",
+    desc: "instant at ground",
     code: "B10004",
     timerange: "254,0,0",
     level: "1,0,0,0",

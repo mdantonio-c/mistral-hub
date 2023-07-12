@@ -31,6 +31,7 @@ export class ObsStationReportComponent implements OnInit {
   @Input() selectedProduct: ObsFilter;
   @Input() localTimeData: boolean = false;
   @Input() lang: string;
+  @Input() extendedVisualization: boolean = true;
 
   name: string;
   level: string;

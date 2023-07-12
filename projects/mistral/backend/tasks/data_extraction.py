@@ -2,6 +2,7 @@ import datetime
 import json
 import subprocess
 import tarfile
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -34,6 +35,9 @@ from restapi.connectors import rabbitmq, smtp, sqlalchemy
 from restapi.connectors.celery import CeleryExt
 from restapi.connectors.smtp.notifications import get_html_template
 from restapi.utilities.logs import log
+
+MAX_RETRIES = 3
+SLEEP_TIME = 10
 
 
 @CeleryExt.task(idempotent=False)
@@ -663,12 +667,26 @@ def notify_by_email(db, user_id, request, extra_msg):
 
     replaces = {"title": request.name, "status": request.status, "message": body_msg}
     body, plain = get_html_template("data_extraction_result.html", replaces)
-    with smtp.get_instance(retries=5, retry_wait=10) as smtp_client:
-        if not body:
-            body = " "
-        smtp_client.send(
-            body, "MeteoHub: data extraction completed", user_email, plain_body=plain
-        )
+    for i in range(MAX_RETRIES):
+        try:
+            with smtp.get_instance(retries=5, retry_wait=10) as smtp_client:
+                if not body:
+                    body = " "
+                smtp_client.send(
+                    body,
+                    "MeteoHub: data extraction completed",
+                    user_email,
+                    plain_body=plain,
+                )
+            break
+        except Exception as e:
+            if i < MAX_RETRIES:
+                log.error(
+                    f"Failure in sending the email notification. The following exception was raised: {e}"
+                )
+                log.info(f"Retry n.{i + 1} will be done in {SLEEP_TIME} seconds")
+                time.sleep(SLEEP_TIME)
+                continue
 
 
 def notify_by_amqp_queue(amqp_queue, request):
