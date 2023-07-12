@@ -18,12 +18,15 @@
   padding: 2px;
   padding: 2px;
   border-radius: 2px !important;
+  pre {
+    font-weight: bolder;
+  }
 }
 .selected-dataset {
   font-family: "Montserrat-semibold";
   font-size: 25px;
   text-transform: uppercase;
-  border-bottom: solid 2px #363535;
+  border-bottom: solid 2px #fff;
 }
 
 @media screen and (max-height: 640px) {
