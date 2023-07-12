@@ -162,12 +162,23 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
     station: Station,
     reftime?: string,
     val?: string,
+    language?: string,
   ) {
     let ident = station.ident || "";
     let name =
       station.details && station.details.length
         ? station.details.find((e) => e.var === "B01019")
         : undefined;
+    let formattedDate = null;
+    if (language && language === "it") {
+      formattedDate = reftime
+        ? `${moment.utc(reftime).locale("it").format("D MMMM, HH:mm")}`
+        : "n/a";
+    } else {
+      formattedDate = reftime
+        ? `${moment.utc(reftime).format("MMM Do, HH:mm")}`
+        : "n/a";
+    }
     const template =
       `<h6 class="mb-1" style="font-size: small;">` +
       (name ? `${name.val}` : "n/a") +
@@ -175,7 +186,7 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
       `<ul class="p-0 m-0"><li><b>Lat</b>: ${station.lat}</li><li><b>Lon</b>: ${station.lon}</li></ul>` +
       `<hr class="my-1"/>` +
       `<span>` +
-      (reftime ? `${moment.utc(reftime).format("MMM Do, HH:mm")}` : "n/a") +
+      formattedDate +
       `</span>`;
     return template;
   }

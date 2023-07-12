@@ -10,7 +10,9 @@
 </ngx-spinner>
 <div *ngIf="report">
   <div class="modal-header">
-    <h4 class="modal-title">Station: {{ getName() || "n/a" }}</h4>
+    <h4 class="modal-title">
+      {{ "Station" | translate : lang }} : {{ getName() || "n/a" }}
+    </h4>
     <button
       type="button"
       class="btn-close"
@@ -23,7 +25,8 @@
       <div class="col-lg-3 mb-2">
         <div class="card mb-3" style="max-width: 18rem">
           <div class="card-header">
-            <i class="fas fa-circle-info me-1"></i>Station details
+            <i class="fas fa-circle-info me-1"></i
+            >{{ "Station details" | translate : lang }}
           </div>
           <div class="card-body text-dark px-3 py-1">
             <ul class="list-group list-group-flush">
@@ -34,8 +37,9 @@
                 <p class="h6 my-0">
                   {{
                     descriptions[d.var].descr
-                      | titlecase
                       | replace : "\\(([^\\)]+)\\)" : ""
+                      | translate : lang
+                      | titlecase
                   }}
                 </p>
                 <small>{{ d.val }}</small>
@@ -74,7 +78,9 @@
                   class="border border-primary rounded m-1"
                   [ngbNavItem]="getNavItemName(p)"
                 >
-                  <a ngbNavLink>{{ descriptions[p.var].descr | uppercase }}</a>
+                  <a ngbNavLink>{{
+                    descriptions[p.var].descr | translate : lang | uppercase
+                  }}</a>
                   <ng-template ngbNavContent></ng-template>
                 </li>
               </ng-container>
@@ -83,14 +89,19 @@
             <p class="text-justify">
               <ng-container>
                 <br /><small>
-                  <b>Level:</b>
-                  {{ descriptions[single[0]["level"]].descr }}</small
+                  <b>{{ "Level" | translate : lang }}:</b>
+                  {{
+                    descriptions[single[0]["level"]].descr | translate : lang
+                  }}</small
                 >
               </ng-container>
               <ng-container>
                 <br /><small>
-                  <b>Timerange:</b>
-                  {{ descriptions[single[0]["timerange"]].descr }}</small
+                  <b>{{ "Timerange" | translate : lang }}:</b>
+                  {{
+                    descriptions[single[0]["timerange"]].descr
+                      | translate : lang
+                  }}</small
                 >
               </ng-container>
             </p>
