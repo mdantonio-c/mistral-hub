@@ -87,7 +87,7 @@
             </ul>
             <div [ngbNavOutlet]="nav"></div>
             <p class="text-justify">
-              <ng-container>
+              <ng-container *ngIf="extendedVisualization">
                 <br /><small>
                   <b>{{ "Level" | translate : lang }}:</b>
                   {{
@@ -95,7 +95,7 @@
                   }}</small
                 >
               </ng-container>
-              <ng-container>
+              <ng-container *ngIf="extendedVisualization">
                 <br /><small>
                   <b>{{ "Timerange" | translate : lang }}:</b>
                   {{

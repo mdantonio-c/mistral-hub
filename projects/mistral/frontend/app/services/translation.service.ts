@@ -23,6 +23,7 @@ export class TranslationService {
         pressure: "pressione",
         "relative humidity": "umidità relativa",
         "instant at 2m above the ground": "istantanea a 2m dal suolo",
+        "instant at ground": "istantanea al suolo",
         "cumulated at ground on previous 1h": "cumulata al suolo su 1h",
         "instant speed and direction at 10m above the ground":
           "velocità media e direzione istantanea a 10m dal suolo",

@@ -491,6 +491,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     });
     // pass the requested language
     modalRef.componentInstance.lang = this.lang;
+    // clear the timerange and level details in the visualization
+    modalRef.componentInstance.extendedVisualization = false;
     modalRef.componentInstance.station = station;
     // get the query parameters for all the products
     let meteogramProducts: string[] = [];
