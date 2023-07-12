@@ -12,7 +12,10 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   text-align: center;
   width: 280px;
   cursor: auto;
-
+  .dropdown-menu.show {
+    position:relative !important;
+    transform: none !important;
+  }
   &.collapsed {
     width: 50px !important;
   }
