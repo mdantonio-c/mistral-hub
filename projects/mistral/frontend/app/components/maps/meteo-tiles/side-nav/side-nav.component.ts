@@ -51,6 +51,7 @@ export class SideNavComponent implements OnInit {
   private _overlays: L.Control.LayersObject;
   modes = ViewModes;
   lang = "en";
+  datasetTooltip: string = "Dataset";
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;

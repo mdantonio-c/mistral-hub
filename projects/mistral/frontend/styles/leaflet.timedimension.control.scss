@@ -432,13 +432,14 @@ a.timecontrol-play.loading:before {
 
 @media screen and (max-height: 856px) {
   .legenda {
-    width: 53%;
+    width: 60%;
   }
 }
 
 @media screen and (max-height: 667px) {
   .legenda {
     margin-left: 0 !important;
+    margin-bottom: -10px !important;
   }
 }
 

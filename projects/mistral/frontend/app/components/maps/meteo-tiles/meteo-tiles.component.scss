@@ -8,9 +8,13 @@
 }
 
 .bg-light {
-  background-color: #ffffffad !important;
+  background-color: rgba(38,35,43,.745) !important;
   padding: 2px;
   border-radius: 2px !important;
+  color: #fff; 
+  pre {
+    font-weight: bolder;
+  }
 }
 
 .legenda {
@@ -23,7 +27,7 @@
   font-family: "Montserrat-semibold";
   font-size: 25px;
   text-transform: uppercase;
-  border-bottom: solid 2px #363535;
+  border-bottom: solid 1px #fff;
 }
 /*.legend {
   padding: 6px 8px;
