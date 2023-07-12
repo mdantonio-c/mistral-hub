@@ -9,6 +9,7 @@ import {
   ObservationResponse,
   DescriptionDict,
   ObsData,
+  SeriesItem,
 } from "@app/types";
 import { ObsService } from "../services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
@@ -41,6 +42,9 @@ export class ObsStationReportComponent implements OnInit {
 
   multi: DataSeries[];
   single: DataSeries[];
+
+  // Combo Chart
+  accumulatedSeries: DataSeries[];
 
   // chart options
   multiColorScheme = {
@@ -97,7 +101,7 @@ export class ObsStationReportComponent implements OnInit {
               `${x.code}-${x.level}-${x.timerange}` === meteogramToShow,
           );
           this.active = meteogramToShow;
-          //console.log("single: ", this.single, "multi: ", multi);
+          // console.log("single: ", this.single, "multi: ", multi);
         },
         (error) => {
           this.notify.showError(error);
@@ -194,8 +198,39 @@ export class ObsStationReportComponent implements OnInit {
           value: ObsService.showData(obs.val, v.var),
         });
       });
+      if (v.var === "B13011") {
+        let obj = Object.assign({}, s);
+        obj.series = this.accumulated(v);
+        this.accumulatedSeries = [obj];
+      }
       res.push(s);
     });
     return res;
+  }
+
+  /**
+   * Return accumulated values
+   * @param v
+   * @private
+   */
+  private accumulated(v: ObsData): SeriesItem[] {
+    let series: SeriesItem[] = [];
+    let counter = 0;
+    v.val.forEach((obs) => {
+      counter += +ObsService.showData(obs.val, v.var);
+      series.push({
+        name: obs.ref,
+        value: counter,
+      });
+    });
+    return series;
+  }
+
+  yLeftAxisScale(min, max) {
+    return { min: `${min}`, max: `${max}` };
+  }
+
+  yRightAxisScale(min, max) {
+    return { min: `${min}`, max: `${max}` };
   }
 }

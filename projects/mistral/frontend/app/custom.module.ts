@@ -82,6 +82,10 @@ import { AdminDatasetsComponent } from "@app/components/admin-datasets/admin-dat
 import { TranslatePipe } from "./pipes/translate.pipe";
 
 import { UserGuideComponent } from "./components/user-guide/user-guide.component";
+import {
+  ComboChartComponent,
+  ComboSeriesVerticalComponent,
+} from "./components/custom-charts/combo-chart";
 
 const appRoutes: Routes = [
   {
@@ -245,6 +249,8 @@ const appRoutes: Routes = [
     DisableControlDirective,
     ClickStopPropagation,
     TranslatePipe,
+    ComboChartComponent,
+    ComboSeriesVerticalComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
