@@ -127,7 +127,7 @@
                   [xAxisLabel]="xAxisLabelFormatting()"
                   [yAxisLabel]="getUserUnit(active) || 'n/a'"
                   [xAxisTickFormatting]="xAxisTickFormattingFn"
-                  [gridLineNgStyleByXAxisTick]="dateChangeNgStyleFn"
+                  [gridLineNgStyleByXAxisTick]="xAxisNgStyleFn"
                   [timeline]="false"
                   [results]="single"
                   [autoScale]="true"
@@ -173,7 +173,7 @@
                     (accumulatedSeries[0].name | translate : lang | titlecase) +
                     ' (mm)'
                   "
-                  [gridLineNgStyleByXAxisTick]="dateChangeNgStyleFn"
+                  [gridLineNgStyleByXAxisTick]="onlyDateChangeNgStyleFn"
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block">{{

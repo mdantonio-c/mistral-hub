@@ -187,8 +187,8 @@ export class ObsStationReportComponent implements OnInit {
     return m === 0 && h % 2 === 0 ? time.format(dateFormat) : "";
   }
 
-  dateChangeNgStyleFn = this.dateChangeNgStyle.bind(this);
-  private dateChangeNgStyle(tick) {
+  xAxisNgStyleFn = this.xAxisNgStyle.bind(this);
+  private xAxisNgStyle(tick) {
     const reftime = moment.utc(tick).local().format("HH:mm");
     const minutes = moment.utc(tick).local().format("mm");
     let lineStyle = null;
@@ -198,6 +198,14 @@ export class ObsStationReportComponent implements OnInit {
       lineStyle = { stroke: "#e4e4e4" };
     }
     return lineStyle;
+  }
+
+  onlyDateChangeNgStyleFn = this.onlyDateChangeNgStyle.bind(this);
+  private onlyDateChangeNgStyle(tick) {
+    console.log("only data change");
+    const reftime = moment.utc(tick).local().format("HH:mm");
+    const isMidnight = reftime === "00:00";
+    return isMidnight ? { stroke: "#009", "stroke-dasharray": "10" } : null;
   }
 
   private updateGraphData(navItemId: string) {
