@@ -254,7 +254,7 @@ export class ObsStationReportComponent implements OnInit {
       accumulated += obs.val;
       series.push({
         name: obs.ref,
-        value: accumulated,
+        value: +accumulated.toFixed(2),
       });
     });
     return series;
