@@ -15,7 +15,7 @@ import { ObsService } from "../services/obs.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
-import * as shape from "d3-shape";
+import { curveMonotoneX } from "d3-shape";
 import { randomize } from "./data.mock";
 
 const STATION_NAME_CODE = "B01019";
@@ -40,7 +40,7 @@ export class ObsStationReportComponent implements OnInit {
   report: Observation;
   descriptions: DescriptionDict;
   active;
-  curve = shape.curveCardinal.tension(0);
+  curve = curveMonotoneX;
 
   multi: DataSeries[];
   single: DataSeries[];
