@@ -601,7 +601,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   printDatasetProduct(): string {
     let product: string;
     for (let key in VARIABLES_CONFIG_OBS) {
-      if (this.filter.product.includes(VARIABLES_CONFIG_OBS[key].code)) {
+      if (VARIABLES_CONFIG_OBS[key].code.includes(this.filter.product)) {
         product = VARIABLES_CONFIG_OBS[key].label;
         break;
       }
@@ -612,7 +612,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   printDatasetDescription = (): string => {
     let product: string;
     for (let key in VARIABLES_CONFIG_OBS) {
-      if (this.filter.product.includes(VARIABLES_CONFIG_OBS[key].code)) {
+      if (VARIABLES_CONFIG_OBS[key].code.includes(this.filter.product)) {
         product = VARIABLES_CONFIG_OBS[key].desc;
         break;
       }
