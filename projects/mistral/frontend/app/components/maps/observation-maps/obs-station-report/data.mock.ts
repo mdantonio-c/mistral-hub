@@ -1,16 +1,25 @@
 import { DataSeries, Observation } from "../../../../types";
 
 /**
- * Custom method to generate random precipitation data
+ * Custom method to generate random precipitation data.
+ * min and max can be used to change the range values to be generated.
  * @param data
+ * @param min default 0.5
+ * @param max default 20.5
+ * @param decimals number of decimal digits. Default 1
  */
-export const randomize = (data: Observation[]) => {
+export const randomize = (
+  data: Observation[],
+  min: number = 0.5,
+  max: number = 20.5,
+  decimals: number = 1,
+): Observation[] => {
   let obs: Observation = data[0];
   if (obs) {
     obs.prod.forEach((p) => {
       if (p.var === "B13011") {
         p.val.forEach((v) => {
-          v.val = Math.floor(Math.random() * 20);
+          v.val = +(Math.random() * (max - min) + min).toFixed(decimals);
         });
       }
     });
