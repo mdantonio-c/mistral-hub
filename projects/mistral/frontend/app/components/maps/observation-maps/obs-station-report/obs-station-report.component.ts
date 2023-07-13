@@ -234,7 +234,7 @@ export class ObsStationReportComponent implements OnInit {
       if (v.var === "B13011") {
         let obj = Object.assign({}, s);
         obj.name = "accumulated data";
-        obj.series = this.accumulated(v);
+        obj.series = this.calculateAccumulated(v);
         this.accumulatedSeries = [obj];
       }
       res.push(s);
@@ -247,14 +247,14 @@ export class ObsStationReportComponent implements OnInit {
    * @param v
    * @private
    */
-  private accumulated(v: ObsData): SeriesItem[] {
+  private calculateAccumulated(v: ObsData): SeriesItem[] {
     let series: SeriesItem[] = [];
-    let counter = 0;
+    let accumulated = 0;
     v.val.forEach((obs) => {
-      counter += +ObsService.showData(obs.val, v.var);
+      accumulated += obs.val;
       series.push({
         name: obs.ref,
-        value: counter,
+        value: accumulated,
       });
     });
     return series;
