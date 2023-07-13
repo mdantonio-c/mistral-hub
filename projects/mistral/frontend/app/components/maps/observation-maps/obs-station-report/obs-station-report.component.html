@@ -141,7 +141,7 @@
                     >
                     <span class="d-block"
                       >{{ model.series | translate : lang }}:
-                      {{ model.value }} (mm)</span
+                      {{ model.value }}</span
                     >
                   </ng-template>
                   <ng-template #seriesTooltipTemplate let-model="model">
@@ -161,7 +161,7 @@
                             | replace : "\\(([^\\)]+)\\)" : ""
                             | translate : lang
                             | titlecase
-                        }}: <b>{{ model[0].value }}</b> (mm)
+                        }}: <b>{{ model[0].value }}</b>
                       </div>
                     </div>
                   </ng-template>
