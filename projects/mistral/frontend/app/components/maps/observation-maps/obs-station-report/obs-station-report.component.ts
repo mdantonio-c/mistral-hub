@@ -184,6 +184,7 @@ export class ObsStationReportComponent implements OnInit {
     const time = this.localTimeData ? moment.utc(val).local() : moment(val);
     const h = time.hour();
     const m = time.minute();
+    //console.log(`ora: ${h} minuto: ${m} vero? ${(m === 0 && h % 2 === 0)} timeformat: ${time.format(dateFormat)}`)
     return m === 0 && h % 2 === 0 ? time.format(dateFormat) : "";
   }
 
@@ -196,7 +197,10 @@ export class ObsStationReportComponent implements OnInit {
       lineStyle = { stroke: "#009", "stroke-dasharray": "10" };
     } else if (minutes === "00") {
       lineStyle = { stroke: "#e4e4e4" };
+    } else {
+      lineStyle = { "stroke-opacity": 0 };
     }
+
     return lineStyle;
   }
 
@@ -205,7 +209,10 @@ export class ObsStationReportComponent implements OnInit {
     console.log("only data change");
     const reftime = moment.utc(tick).local().format("HH:mm");
     const isMidnight = reftime === "00:00";
-    return isMidnight ? { stroke: "#009", "stroke-dasharray": "10" } : null;
+    console.log(`is midnight? ${isMidnight}`);
+    return isMidnight
+      ? { stroke: "#009", "stroke-dasharray": "10" }
+      : { "stroke-opacity": 0 };
   }
 
   private updateGraphData(navItemId: string) {
