@@ -197,6 +197,10 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
         .split(" or ")
         .map((item: string) => item.trim());
       obsData = s.prod.find((x) => x.var === productList[0]);
+      if (!obsData) {
+        //console.log(s.stat)
+        return;
+      }
       let localMin = Math.min(
         ...obsData.val.filter((v) => v.rel === 1).map((v) => v.val),
       );
@@ -414,16 +418,18 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               (x) => x.var === productList[1],
             );
             // filter the data to get only reliable data
-            secondObsData.val = secondObsData.val.filter((v) => v.rel === 1);
             let directionWindLastValue: string;
-            if (secondObsData.val.length > 0) {
-              const directionWindLastObs = secondObsData.val.pop();
-              // check that the reference time is the same
-              if (directionWindLastObs.ref == directionWindLastObs.ref) {
-                directionWindLastValue = ObsService.showData(
-                  directionWindLastObs.val,
-                  productList[1],
-                );
+            if (secondObsData) {
+              secondObsData.val = secondObsData.val.filter((v) => v.rel === 1);
+              if (secondObsData.val.length > 0) {
+                const directionWindLastObs = secondObsData.val.pop();
+                // check that the reference time is the same
+                if (directionWindLastObs.ref == directionWindLastObs.ref) {
+                  directionWindLastValue = ObsService.showData(
+                    directionWindLastObs.val,
+                    productList[1],
+                  );
+                }
               }
             }
             if (directionWindLastValue) {
