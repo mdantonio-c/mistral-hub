@@ -134,12 +134,36 @@
                   [curve]="curve"
                 >
                   <ng-template #tooltipTemplate let-model="model">
-                    <span class="d-block">{{
-                      model.name | fmtLabelDate : lang : true
-                    }}</span>
                     <span class="d-block"
-                      >{{ model.series }}: {{ model.value }} (mm)</span
+                      ><b>{{
+                        model.name | fmtLabelDate : lang : true
+                      }}</b></span
                     >
+                    <span class="d-block"
+                      >{{ model.series | translate : lang }}:
+                      {{ model.value }} (mm)</span
+                    >
+                  </ng-template>
+                  <ng-template #seriesTooltipTemplate let-model="model">
+                    <div class="area-tooltip-container">
+                      <span class="d-block"
+                        ><b>{{
+                          model[0].name | fmtLabelDate : lang : true
+                        }}</b></span
+                      >
+                      <div class="tooltip-item">
+                        <span
+                          class="tooltip-item-color"
+                          [style.background-color]="model[0].color"
+                        ></span>
+                        {{
+                          model[0].series
+                            | replace : "\\(([^\\)]+)\\)" : ""
+                            | translate : lang
+                            | titlecase
+                        }}: <b>{{ model[0].value }}</b> (mm)
+                      </div>
+                    </div>
                   </ng-template>
                 </custom-ngx-charts-line-chart>
               </ng-template>
