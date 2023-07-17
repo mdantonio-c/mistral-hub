@@ -37,9 +37,12 @@
                 <p class="h6 my-0">
                   {{
                     descriptions[d.var].descr
+                      .toLowerCase()
+                      .charAt(0)
+                      .toUpperCase() +
+                      descriptions[d.var].descr.toLowerCase().slice(1)
                       | replace : "\\(([^\\)]+)\\)" : ""
                       | translate : lang
-                      | titlecase
                   }}
                 </p>
                 <small>{{ d.val }}</small>
