@@ -1157,9 +1157,10 @@ customfooter > div {
 
   .footer {
     .footer-container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      .container-left {
+        flex-direction: column !important;
+        line-height: 1em;
+      }
 
       & > div {
         font-size: 10px !important;
@@ -1167,7 +1168,6 @@ customfooter > div {
 
       .card-horizontal .img-square-wrapper img {
         width: 130px !important;
-        margin-right: -32px;
       }
     }
   }
@@ -1230,10 +1230,13 @@ customfooter > div {
   }
 }
 
+
 @media screen and (max-height: 635px) {
   .footer {
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
+
+    
   }
 
   .navbar .navbar-nav .nav-link {

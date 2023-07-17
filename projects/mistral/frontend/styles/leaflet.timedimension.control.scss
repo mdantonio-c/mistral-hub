@@ -410,6 +410,7 @@ a.timecontrol-play.loading:before {
 
 .legenda {
   margin-left: 11px !important;
+  width:  auto !important;
 }
 
 @media (max-width: 767px) {
@@ -429,23 +430,36 @@ a.timecontrol-play.loading:before {
 }
 
 /*Responsive legende*/
-
-@media screen and (max-height: 856px) {
+@media screen and (max-width: 766px) {
   .legenda {
-    width: 60%;
+    max-width: 70% !important;
   }
 }
 
-@media screen and (max-height: 667px) {
+@media screen and (max-width: 595px) {
   .legenda {
-    margin-left: 0 !important;
-    
+    max-width: 60% !important;
+  }
+}
+@media(max-height: 812px)  {
+  .legenda {
+    max-width: 56% !important;
+  }
+}
+@media(max-height: 760px) {
+ .legenda {
+    max-width: 50% !important;
+  }
+}
+@media(max-height: 667px) {
+  .legenda {
+    max-width: 40% !important;
   }
 }
 
 @media (min-height: 1295px) {
   .legenda {
-    width: 100%;
+    max-width: 100%;
   }
 }
 
@@ -476,4 +490,5 @@ a.timecontrol-play.loading:before {
   app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .speed {
     width: 60px;
   }
+ 
 }
