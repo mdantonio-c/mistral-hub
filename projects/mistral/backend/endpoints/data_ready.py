@@ -5,10 +5,15 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import celery, sqlalchemy
 from restapi.env import Env
-from restapi.models import fields
+from restapi.models import fields,validate
 from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
 from restapi.utilities.logs import log
+
+OK_VARIABLES = [
+    "g100",
+    "galileo",
+    "meucci" ]
 
 
 class DataReady(EndpointResource):
@@ -17,7 +22,7 @@ class DataReady(EndpointResource):
     @decorators.auth.require_any("operational")
     @decorators.use_kwargs(
         {
-            "cluster": fields.String(required=True, data_key="Cluster"),
+            "cluster": fields.String(required=True, data_key="Cluster", validate=validate.OneOf(OK_VARIABLES)),
             "model": fields.String(required=True, data_key="Model"),
             "rundate": fields.DateTime(required=True, format="%Y%m%d%H"),
         }
@@ -35,6 +40,7 @@ class DataReady(EndpointResource):
         # check which cluster is currently exported on filesystem
         if cluster == "g100" or cluster == "galileo" or cluster == "meucci":
             exported_platform = Env.get("PLATFORM", "G100").lower()
+
             if exported_platform != cluster:
                 log.debug(
                     "The endpoint was called by {} while the exported platform is {}",
@@ -43,14 +49,13 @@ class DataReady(EndpointResource):
                 )
                 return self.response("1", code=202)
 
-        db = sqlalchemy.get_instance()
 
+        db = sqlalchemy.get_instance()
         schedules_list = db.Schedule.query.all()
         log.debug("rundate type: {}", type(rundate))
         log.debug("reftime {}", rundate.isoformat())
         for row in schedules_list:
             r = SqlApiDbManager._get_schedule_response(row)
-
             # e.g. 13
             request_id = r["id"]
 
@@ -58,9 +63,9 @@ class DataReady(EndpointResource):
             request_name = r["name"]
 
             name = f"{request_name} (id={request_id})"
-
             # e.g. True
             enabled = r["enabled"]
+
             if not enabled:
                 log.debug("Skipping {}: schedule is not enabled", name)
                 continue
@@ -76,7 +81,6 @@ class DataReady(EndpointResource):
 
             # e.g. ['lm5']
             datasets = r["args"]["datasets"]
-
             if len(datasets) == 0:
                 log.warning(
                     "Schedule {} requires no dataset: {}, skipping", name, datasets
@@ -118,13 +122,18 @@ class DataReady(EndpointResource):
 
             # check if there are others schedule params
             if r["period"] or r["crontab_set"]:
+
                 req_date = datetime.strptime(rundate.isoformat(), "%Y-%m-%dT%H:%M:%S")
+
                 # get the last request
                 last_req = SqlApiDbManager.get_last_scheduled_request(db, r["id"])
+
                 if last_req:
+
                     submission_date = datetime.strptime(
                         last_req["submission_date"], "%Y-%m-%dT%H:%M:%S.%f"
                     ).date()
+
                 else:
                     # if there aren't any previous requests consider
                     # the submission date of the schedule itself
@@ -165,7 +174,6 @@ class DataReady(EndpointResource):
                             continue
 
             log.info("Checking schedule: {}\n{}", name, r)
-
             reftime = {
                 "from": rundate.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                 "to": rundate.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
