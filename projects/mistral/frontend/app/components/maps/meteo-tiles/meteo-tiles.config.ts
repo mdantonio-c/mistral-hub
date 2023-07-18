@@ -80,7 +80,7 @@ export const MultiModelProductLabel = new Map<string, string>([
 export const DATASETS: CodeDescPair[] = [
   { code: "lm5", desc: "Cosmo-5M" },
   { code: "lm2.2", desc: "Cosmo-2I" },
-  { code: "iff", desc: "IFF" },
+  { code: "iff", desc: "Italy Flash Flood" },
 ];
 
 export enum ViewModes {

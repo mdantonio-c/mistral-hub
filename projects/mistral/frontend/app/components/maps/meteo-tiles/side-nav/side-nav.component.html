@@ -7,6 +7,32 @@
       [class.collapsed]="isCollapsed"
     ></label>
     <ul class="selector">
+      <li class="sidenav-item last pb-1" ngbDropdown>
+        <span 
+          class="input clickable"
+          placement="left"
+          [ngbTooltip]="'Dataset'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#" click-stop-propagation class="dataset" id="dropdownBasic1" ngbDropdownToggle>
+            <span class="nav-text" i18n >Dataset</span>
+          </a>
+          <div class="position-relative text-start submenu selettore-dataset" ngbDropdownMenu aria-labelledby="dropdownBasic1">
+            <ng-container *ngFor="let ds of availableDatasets">
+              <a
+                class="p-0"
+                id="{{ ds.code }}"
+                href="#"
+                (click)="changeDataset($event, ds.code)"
+                [ngClass]="{ selected: dataset === ds.code }"
+                ngbDropdownItem
+                >{{ ds.desc }}</a
+              >
+            </ng-container>
+          </div>
+        </ng-container>
+      </li>
       <ng-container *ngIf="dataset === 'iff'; then iff; else cosmo">
       </ng-container>
       <ng-template #iff>
@@ -260,7 +286,7 @@
           </ng-container>
         </li>
       </ng-template>
-      <li class="sidenav-item" *ngIf="mode == modes.adv">
+      <!--<li class="sidenav-item" *ngIf="mode == modes.adv">
         <span class="input"></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#" click-stop-propagation class="dataset">
@@ -278,8 +304,8 @@
             </ng-container>
           </div>
         </ng-container>
-      </li>
-      <li class="sidenav-item last multi-model" *ngIf="mode == modes.adv">
+      </li>-->
+      <li class="sidenav-item multi-model" *ngIf="mode == modes.adv">
         <div class="custom-control mm-switch form-check form-switch">
           <input
             type="checkbox"

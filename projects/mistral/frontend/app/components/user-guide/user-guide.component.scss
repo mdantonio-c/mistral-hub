@@ -2,18 +2,30 @@
 .title, li a, button::after, h2, a, thead {
     color: #e49d2b;
 }
+.submenu {
+  transform: translate(0px, 0px) !important;
+  margin-left:10px !important;
 
+  background-color: transparent !important;
+  border: none !important;
+  font-size: 12px !important;
+} 
 .submenu span {
     font-size: 14px;
     color: rgb(51, 51, 51);
 }
 
-
+.nav-pills .show > .nav-link{
+  color: #e49d2b !important;
+  background-color: transparent !important;
+  text-align: left !important;
+}
 .highlight {
   background-color: #E5E5E5;
 }
 .sticky-top {
     top: 10px;
+    z-index: 0;
 }
 
 .feature {

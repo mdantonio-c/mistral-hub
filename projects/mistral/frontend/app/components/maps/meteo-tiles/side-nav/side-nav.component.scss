@@ -12,6 +12,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   text-align: center;
   width: 280px;
   cursor: auto;
+  
 
   &.collapsed {
     width: 50px !important;
@@ -30,86 +31,134 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     margin-left: 14px;
     font-family: "Montserrat-semibold";
   }
+  .sidenav-item.dropdown {
+    .dropdown-toggle {
+      &::after {
+      color: $light-orange !important;
+      }
+      .nav-text {
+        margin-top:2px;
+      }
+      
+    }
+    .dropdown-item {
+      width: fit-content;
+    }
+    .submenu {
+    transform: translate(0px, 0px) !important;
+    margin-left:40px !important;
+    margin-top:-14px !important;
+    background-color: transparent !important;
+    border: none !important;
+    font-size: 12px !important;
+  } 
 
-  li a:hover .nav-text {
-    text-decoration: none;
-    border-bottom: 1px solid #fff;
+}
+  
+li a:hover .nav-text {
+  text-decoration: none;
+  border-bottom: 1px solid #fff;
+}
+
+.map-sidenav-menu {
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+  background-color: #26232bbe;
+  position: relative;
+  z-index: 800;
+  pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+  pointer-events: auto;
+  //padding: 6px 10px 6px 6px;
+  padding: 10px;
+  color: #fff;
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: center;
+  
+
+  .toggle {
+    cursor: pointer;
+    margin-left: 212px;
+    background-image: url("/app/custom/assets/images/icons/mb_exit.svg");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    transition: 0.6s;
+    margin-top: -5px;
+
+    &.collapsed {
+      margin-left: 8px;
+      background-image: url("/app/custom/assets/images/icons/menu_burger.svg");
+      left: 0;
+    }
   }
 
-  .map-sidenav-menu {
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
-    background-color: #26232bbe;
-    position: relative;
-    z-index: 800;
-    pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
-    pointer-events: auto;
-    //padding: 6px 10px 6px 6px;
-    padding: 10px;
-    color: #fff;
-    height: 100%;
-    margin: 0;
+  .sidenav-item {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+
+    & > .attivo {
+      background-color: $light-orange;
+      border-radius: 25px;
+    }
+  }
+
+  .sidenav-item:first-of-type {
+    border-top: 1px solid rgba(255, 255, 255, 0.349);
+  }
+
+  .selector {
+    padding: 0;
+    list-style: none;
+    width: 100%;
+    overflow-x: hidden;
+    margin-top: 34px;
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
-    align-content: center;
+    justify-content: flex-start;
     align-items: center;
+    flex-wrap: nowrap;
+    //border-bottom: 1px solid rgba(255, 255, 255, 0.349);
+    overflow-y: scroll !important;
+    scrollbar-width: thin;
+    scrollbar-color: #e49c1e rgba(56, 56, 56, 0.473);
 
-    .toggle {
-      cursor: pointer;
-      margin-left: 212px;
-      background-image: url("/app/custom/assets/images/icons/mb_exit.svg");
-      background-position: center center;
-      background-repeat: no-repeat;
-      background-size: contain;
-      width: 35px;
-      height: 35px;
-      position: absolute;
-      transition: 0.6s;
-      margin-top: -5px;
-
-      &.collapsed {
-        margin-left: 8px;
-        background-image: url("/app/custom/assets/images/icons/menu_burger.svg");
-        left: 0;
-      }
+    &::-webkit-scrollbar {
+      width: 7px;
     }
-
-    .sidenav-item {
-      width: 100%;
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      flex-wrap: wrap;
-
-      & > .attivo {
-        background-color: $light-orange;
-        border-radius: 25px;
-      }
+    &::-webkit-scrollbar-track {
+      border-radius: 20px;
+      background-color: rgba(56, 56, 56, 0.473);
     }
-
-    .sidenav-item:first-of-type {
-      border-top: 1px solid rgba(255, 255, 255, 0.349);
+    &::-webkit-scrollbar-thumb {
+      background: #e49c1e;
+      border-radius: 20px;
+    } 
+    .last {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.349);
+      padding-bottom: 6px;
     }
+  }
+}
+}
 
-    .selector {
-      padding: 0;
-      list-style: none;
-      width: 100%;
-      overflow-y: hidden;
-      overflow-x: hidden;
-      margin-top: 34px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
-      flex-wrap: nowrap;
-      //border-bottom: 1px solid rgba(255, 255, 255, 0.349);
+.collapsed .selector {
+  overflow-y: hidden !important;
 
-      .last {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.349);
-        padding-bottom: 6px;
-      }
-    }
+  &::-webkit-scrollbar-track {
+    display: none;
+  }
+  &::-webkit-scrollbar-thumb {
+    display: none;
   }
 }
 
@@ -231,18 +280,33 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 /* time, clouds and datasets selectors */
 
 .selettore-orario,
-.selettore-clouds,
-.selettore-dataset {
+.selettore-clouds{
   height: 30px;
   width: 100%;
   margin-left: 28px;
 }
 
+
 .selettore-dataset {
-  display: flex;
-  width: 200px;
-  margin-top: -5px;
-  margin-left: 32px;
+  width: 100px;
+  & > a {
+  color: #fff;
+  text-transform: uppercase;
+  font-family: "Montserrat-semibold";
+  font-size: 12px;
+  margin-top: 7px;
+  }
+  & .selected,
+  & .selected:hover {
+  color: $light-orange !important;
+  border-bottom: 1px solid $light-orange;
+  font-family: "Montserrat-semibold";
+  }
+
+  & a:hover {
+  border-bottom: 1px solid #fff;
+  text-decoration: none;
+  }
 }
 
 .selettore-percentile {
@@ -489,17 +553,6 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   font-family: "Montserrat-semibold";
 }
 
-.selettore-dataset a,
-.selettore-multimodel p {
-  color: #fff;
-  text-transform: uppercase;
-  font-family: "Montserrat-semibold";
-  font-size: 9px;
-  margin-top: 1px;
-  margin-left: 10px;
-  height: 15px;
-}
-
 .dataset {
   margin-top: 10x !important;
 }
@@ -509,18 +562,26 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   display: flex;
   align-items: flex-start;
   flex-direction: column;
+  margin-top: 10px;
 
   .nav-text {
     margin-left: 0;
   }
   p {
-    font-size: 9px;
+
     align-self: flex-start;
+    color: #fff;
+    text-transform: uppercase;
+    font-family: "Montserrat-semibold";
+    font-size: 9px;
+    margin-top: 1px;
+    margin-left: 10px;
+    height: 15px
   }
   input {
     position: absolute;
     right: -30px;
-    top: 10px;
+    top: 6px;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -536,17 +597,6 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 }
 
-.selettore-dataset .selected,
-.selettore-dataset .selected:hover {
-  color: $light-orange;
-  border-bottom: 1px solid $light-orange;
-  font-family: "Montserrat-semibold";
-}
-
-.selettore-dataset a:hover {
-  border-bottom: 1px solid #fff;
-  text-decoration: none;
-}
 .zoom {
   margin-top: 4px;
 }
@@ -637,11 +687,13 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 /*multimodel switch*/
 .collapsed .multi-model .form-switch {
-  padding-left: 35px;
-  padding-top: 18px;
+  padding-left: 31px; 
+  padding-top: 6px;
 }
 
 .multi-model .form-switch {
+  margin-top: 12px;
+  margin-bottom: 0 !important;
   .form-check-input {
     background-image: none;
     background-color: transparent !important;
@@ -810,38 +862,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
       }
     }
   }
-  .selector {
-    overflow-y: scroll !important;
-    scrollbar-width: thin;
-    scrollbar-color: #e49c1e rgba(56, 56, 56, 0.473);
-
-    &::-webkit-scrollbar {
-      width: 7px;
-    }
-  }
-
-  .selector::-webkit-scrollbar-track {
-    border-radius: 20px;
-    background-color: rgba(56, 56, 56, 0.473);
-  }
-
-  .selector::-webkit-scrollbar-thumb {
-    background: #e49c1e;
-    border-radius: 20px;
-  }
-
-  .collapsed .selector {
-    overflow-y: hidden !important;
-  }
-
-  .collapsed .selector::-webkit-scrollbar-track {
-    display: none;
-  }
-
-  .collapsed .selector::-webkit-scrollbar-thumb {
-    display: none;
-  }
-
+ 
   .t2m,
   .prs,
   .rh,
