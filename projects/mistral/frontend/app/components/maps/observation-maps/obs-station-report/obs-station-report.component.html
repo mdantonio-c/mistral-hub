@@ -161,9 +161,12 @@
                         ></span>
                         {{
                           model[0].series
+                            .toLowerCase()
+                            .charAt(0)
+                            .toUpperCase() +
+                            model[0].series.toLowerCase().slice(1)
                             | replace : "\\(([^\\)]+)\\)" : ""
                             | translate : lang
-                            | titlecase
                         }}: <b>{{ model[0].value }}</b>
                       </div>
                     </div>
@@ -192,13 +195,16 @@
                   [xAxisLabel]="xAxisLabelFormatting()"
                   [xAxisTickFormatting]="xAxisTickFormattingFn"
                   [yAxisLabel]="
-                    ('accumulated precipitation over 1h'
-                      | translate : lang
-                      | titlecase) + ' (mm)'
+                    ('Accumulated precipitation over 1h' | translate : lang) +
+                    ' (mm)'
                   "
                   [yAxisLabelRight]="
-                    (accumulatedSeries[0].name | translate : lang | titlecase) +
-                    ' (mm)'
+                    (accumulatedSeries[0].name
+                      .toLowerCase()
+                      .charAt(0)
+                      .toUpperCase() +
+                      accumulatedSeries[0].name.toLowerCase().slice(1)
+                      | translate : lang) + ' (mm)'
                   "
                   [gridLineNgStyleByXAxisTick]="onlyDateChangeNgStyleFn"
                 >
@@ -232,9 +238,12 @@
                         ></span>
                         {{
                           tooltipItem.series
+                            .toLowerCase()
+                            .charAt(0)
+                            .toUpperCase() +
+                            tooltipItem.series.toLowerCase().slice(1)
                             | replace : "\\(([^\\)]+)\\)" : ""
                             | translate : lang
-                            | titlecase
                         }}: <b>{{ tooltipItem.value }}</b> (mm)
                       </div>
                     </div>
