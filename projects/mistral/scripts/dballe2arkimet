@@ -210,7 +210,17 @@ def dballe2arkimet(date):
     for dsn in dsn_list:
         logging.info(f"Start migrating data from {dsn}")
         db = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/{dsn}")
-        migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering)
+        try:
+            migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering)
+        except Exception as exc:
+            # sent alert by mail
+            smtp_client = smtp.get_instance()
+            host = get_backend_url()
+            smtp_client.send(
+                f"Migrate data from dballe to arkimet raised the following exception: {exc}",
+                f"Alert from {host} : Migration error",
+                to_address="mistral-support@cineca.it",
+            )
         mobile_db = None
         # try:
         #     mobile_dsn = f"{dsn}_MOBILE"
