@@ -144,6 +144,10 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       "cosmo_2I_fcruc",
       "WRF_DA_ITA",
       "WRF_OL",
+      "BOLAM",
+      "GLOBO",
+      "MOLOCH",
+      "PRECIP_BLENDED",
     ];
     let requestedDatasets = this.formData.datasets.map((x) => x.id);
     if (

@@ -331,6 +331,10 @@ DATASET_ENABLED_TO_DATAREADY = [
     "cosmo_2I_fcruc",
     "WRF_DA_ITA",
     "WRF_OL",
+    "BOLAM",
+    "GLOBO",
+    "MOLOCH",
+    "PRECIP_BLENDED",
 ]
 MIN_PERIOD = 15  # in minutes
 
