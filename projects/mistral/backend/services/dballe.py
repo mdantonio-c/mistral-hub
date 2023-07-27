@@ -32,6 +32,7 @@ class BeDballe:
 
     # base path to json file where metadata of observed data in arkimet are stored
     # the complete path name is  EX. /arkimet/config/dballe_summary_<license group name>.json
+    SUMMARY_PATH = "/arkimet/config"
     ARKI_JSON_SUMMARY_PATH = "/arkimet/config/arkimet_summary"
     ARKI_JSON_SUMMARY_PATH_FILTERED = "/arkimet/config/arkimet_summary_filtered"
     DBALLE_JSON_SUMMARY_PATH = "/arkimet/config/dballe_summary"

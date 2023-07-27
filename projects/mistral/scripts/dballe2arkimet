@@ -247,6 +247,9 @@ def migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering):
             x.name
             for x in alchemy_db.GroupLicense.query.filter_by(dballe_dsn=dsn).all()
         ]
+        tmp_json_summary = None
+        tmp_json_summary_filtered = None
+        json_summary_filtered = None
         if len(dsn_license_group_list) == 1:
             # path to json_summary_file
             json_summary = "{}_{}.json".format(
@@ -268,8 +271,9 @@ def migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering):
                     # for the new version
                     updater.add_messages(f, station_data=False, data=True)
 
-            # Write out the general summary
-            with open(json_summary, "w") as fd:
+            # Write out the general summary to a tmp file
+            tmp_json_summary = f"{json_summary}.tmp"
+            with open(tmp_json_summary, "w") as fd:
                 fd.write(general_explorer.to_json())
 
             # check if the dsn needs a filtered summary (multimodel use case)
@@ -288,8 +292,9 @@ def migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering):
                         with filtered_explorer.update() as updater:
                             updater.add_explorer(general_explorer)
 
-                # export the filtered explorer to a json file
-                with open(json_summary_filtered, "w") as fd:
+                # export the filtered explorer to a tmp json file
+                tmp_json_summary_filtered = f"{json_summary_filtered}.tmp"
+                with open(tmp_json_summary_filtered, "w") as fd:
                     fd.write(filtered_explorer.to_json())
         else:
             # case of dsn containing different license groups
@@ -328,8 +333,9 @@ def migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering):
                     with subset_explorer.update() as updater:
                         updater.add_explorer(general_explorer)
 
-                # write the filtered explorer to the file
-                with open(json_summary, "w") as fd:
+                # write the filtered explorer to the tmp file
+                tmp_json_summary = f"{json_summary}.tmp"
+                with open(tmp_json_summary, "w") as fd:
                     fd.write(subset_explorer.to_json())
 
         # ---------------------------------------------------------
@@ -354,6 +360,20 @@ def migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering):
             logging.info("Start to delete data from dballe")
             tr.remove_data(rec)
             logging.info("End to delete data from dballe")
+            # replace the summaries with the tmp one
+            if tmp_json_summary and os.path.exists(tmp_json_summary):
+                shutil.copyfile(tmp_json_summary, json_summary)
+            if (
+                tmp_json_summary_filtered
+                and os.path.exists(tmp_json_summary_filtered)
+                and json_summary_filtered
+                and os.path.exists(json_summary_filtered)
+            ):
+                shutil.copyfile(tmp_json_summary_filtered, json_summary_filtered)
+            # remove the tmp files
+            for f in BeDballe.SUMMARY_PATH.glob("*.tmp"):
+                f.unlink()
+
         else:
             tr.rollback()
             logging.error("Error migrate data from dballe to arkimet")
