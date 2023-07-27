@@ -384,7 +384,7 @@ def migrate_data(db, dsn, rec, alchemy_db, license_groups_need_filtering):
             smtp_client.send(
                 "Error migrate data from dballe to arkimet: data not deleted from DBalle",
                 f"Alert from {host} : Migration error",
-                to_address="b.chiavarini@cineca.it",
+                to_address="mistral-support@cineca.it",
             )
 
 
