@@ -148,6 +148,13 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       "GLOBO",
       "MOLOCH",
       "PRECIP_BLENDED",
+      "swan-cam",
+      "swan-emr",
+      "swan-ita",
+      "swan-mar",
+      "swan-med",
+      "swan-sud",
+      "swan-tos",
     ];
     let requestedDatasets = this.formData.datasets.map((x) => x.id);
     if (

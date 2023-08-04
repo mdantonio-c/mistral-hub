@@ -335,6 +335,13 @@ DATASET_ENABLED_TO_DATAREADY = [
     "GLOBO",
     "MOLOCH",
     "PRECIP_BLENDED",
+    "swan-cam",
+    "swan-emr",
+    "swan-ita",
+    "swan-mar",
+    "swan-med",
+    "swan-sud",
+    "swan-tos",
 ]
 MIN_PERIOD = 15  # in minutes
 
