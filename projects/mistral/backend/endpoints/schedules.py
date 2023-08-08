@@ -342,6 +342,7 @@ DATASET_ENABLED_TO_DATAREADY = [
     "swan-med",
     "swan-sud",
     "swan-tos",
+    "cosmo_2i_fcens",
 ]
 MIN_PERIOD = 15  # in minutes
 

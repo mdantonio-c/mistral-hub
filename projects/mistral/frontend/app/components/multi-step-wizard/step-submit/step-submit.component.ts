@@ -155,6 +155,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       "swan-med",
       "swan-sud",
       "swan-tos",
+      "cosmo_2i_fcens",
     ];
     let requestedDatasets = this.formData.datasets.map((x) => x.id);
     if (
