@@ -36,7 +36,7 @@
       </div>
       <div class="bg-light p-2 pt-0">
         <pre class="d-inline" style="white-space: pre-line" *ngIf="runAvailable">
-          {{
+          {{ "reference date" | translate : lang | titlecase }}: {{
             printReferenceDate()
           }}
           {{ "product" | translate : lang | titlecase }}: {{
