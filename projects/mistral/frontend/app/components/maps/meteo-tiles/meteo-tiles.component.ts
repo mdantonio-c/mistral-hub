@@ -1590,9 +1590,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     if (!this.runAvailable) {
       return;
     }
-    return `${moment
-      .utc(new Date().getTime())
-      .local()
-      .format("DD-MM-YYYY, HH:mm")}`;
+    let date = this.runAvailable.reftime.substr(0, 8);
+    console.log ('reftime:' + this.runAvailable.reftime);
+    return `${date.substr(6, 2)}-${date.substr(4, 2)}-${date.substr(0, 4)}`;
+
   }
 }
