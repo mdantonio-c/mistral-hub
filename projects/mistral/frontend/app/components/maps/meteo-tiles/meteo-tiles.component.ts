@@ -429,7 +429,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       let productRH$ = this.obsService.getData(filterRH, true);
       forkJoin([productTM$, productRH$]).subscribe(
         (results) => {
-          if (this.isShowedMultiModel && results[0].data.length === 0 && results[1].data.length === 0) {
+          if (
+            this.isShowedMultiModel &&
+            results[0].data.length === 0 &&
+            results[1].data.length === 0
+          ) {
             this.notify.showWarning("No Multi-Model data found.");
             return;
           }
@@ -1591,8 +1595,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       return;
     }
     let date = this.runAvailable.reftime.substr(0, 8);
-    console.log ('reftime:' + this.runAvailable.reftime);
+    // console.log(`reftime: ${this.runAvailable.reftime}`);
     return `${date.substr(6, 2)}-${date.substr(4, 2)}-${date.substr(0, 4)}`;
-
   }
 }
