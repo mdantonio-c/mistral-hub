@@ -79,6 +79,7 @@ import { TranslatePipe } from "./pipes/translate.pipe";
 
 import { UserGuideComponent } from "./components/user-guide/user-guide.component";
 import { TutorialComponent } from "./components/tutorial/tutorial.component";
+import { ContactComponent } from "./components/contact/contact.component";
 const appRoutes: Routes = [
   {
     path: "app/data",
@@ -137,6 +138,10 @@ const appRoutes: Routes = [
   {
     path: "app/tutorial",
     component: TutorialComponent,
+  },
+  {
+    path: "app/contact",
+    component: ContactComponent,
   },
   {
     path: "app/admin/bindings",
@@ -243,6 +248,7 @@ const appRoutes: Routes = [
     TranslatePipe,
     UserGuideComponent,
     TutorialComponent,
+    ContactComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [

@@ -1,0 +1,43 @@
+h2 {
+    color: #e49d2b !important;
+    font-weight: bold;
+}
+.sottotitolo{
+    color: #26232B !important;
+}
+.twocolordiv  {
+    position: relative;
+    z-index: 9;
+    background: repeating-linear-gradient(
+        45deg,
+        #26232B,
+        #26232B 50%,
+        #E49D2B 25%,
+        #E49D2B,
+        );
+    width:1000px;
+    height:500px;
+
+    .text-container {
+        width:45% !important;
+    }
+
+    a {
+        color: #fff !important;
+        text-decoration: none !important;
+        font-family: "Montserrat-semibold";
+        box-shadow: inset 0 0 0 0 transparent;
+        margin: 0 -.25rem;
+        padding: 0 .25rem;
+        transition: color .3s ease-in-out, box-shadow .3s ease-in-out;
+        
+        &.link-support:hover {
+            box-shadow: inset 220px 0 0 0 #26232B;
+            color: white;
+        }
+
+        &.link-info:hover {
+            box-shadow: inset 220px 0 0 0 #E49D2B;
+        }
+    }
+}

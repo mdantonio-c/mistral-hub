@@ -203,7 +203,7 @@ li a:hover .nav-text {
 .minus,
 .carte,
 .tpperc,
-.tpprob {
+.tpprob, .modes {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
@@ -277,15 +277,24 @@ li a:hover .nav-text {
   background-image: url("/app/custom/assets/images/icons/map_style.svg");
 }
 
+.modes {
+  background-image: url("/app/custom/assets/images/icons/modes.svg");
+}
+
 /* time, clouds and datasets selectors */
 
 .selettore-orario,
-.selettore-clouds{
+.selettore-clouds, .selettore-modality{
   height: 30px;
   width: 100%;
   margin-left: 28px;
 }
 
+.selettore-modality {
+  margin-left: 40px;
+  height: 10px;
+  margin-bottom:5px;
+}
 
 .selettore-dataset {
   width: 100px;
@@ -519,7 +528,8 @@ li a:hover .nav-text {
 .selettore-orario input:checked,
 .selettore-percentile input:checked,
 .selettore-probabilita input:checked,
-.selettore-mappa input:checked {
+.selettore-mappa input:checked, 
+.mode-switch input:checked {
   background-color: $light-orange;
   border-color: $light-orange !important;
 }
@@ -684,6 +694,56 @@ li a:hover .nav-text {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e");
   }
 }
+
+/*mode switch*/
+.mode-switch {
+  position: relative !important;
+
+  label {
+    left: -23px;
+    top: -4px;
+  }
+
+  p {
+    position: absolute;
+    top: 15px;
+    left: 0;
+  }
+
+  .form-check-input:checked ~ .form-check-label:before {
+    border-color: $light-orange !important;
+    background-color: $light-orange !important;
+  }
+
+  & input[disabled="true"] ~ .form-check-label:before,
+  & input:checked[disabled="true"] ~ .form-check-label:before {
+    background-color: #797e7e !important;
+    border-color: #797e7e !important;
+  }
+  & input[disabled="true"] ~ .form-check-label:after {
+    background-color: #616262 !important;
+    border-color: #616262 !important;
+  }
+
+  #modeSwitch{
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e");
+
+    &:focus {
+      fill: $light-orange !important;
+      border-color: $light-orange !important;
+      box-shadow: none !important;
+    }
+
+    &:checked {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='white'/%3e%3c/svg%3e");
+    }
+  }
+
+  #modeSwitch[disabled="true"] {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e");
+  }
+}
+
 
 /*multimodel switch*/
 .collapsed .multi-model .form-switch {
