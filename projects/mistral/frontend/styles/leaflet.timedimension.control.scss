@@ -430,9 +430,14 @@ a.timecontrol-play.loading:before {
 }
 
 /*Responsive legende*/
-@media screen and (max-width: 766px) {
+@media screen and (max-width: 768px) {
   .legenda {
     max-width: 70% !important;
+  }
+  app-meteo-tiles {
+    .legenda{
+        max-width: 57% !important;
+    }
   }
 }
 
@@ -441,11 +446,12 @@ a.timecontrol-play.loading:before {
     max-width: 60% !important;
   }
 }
-@media(max-height: 812px)  {
+@media(min-height: 800px)  {
   .legenda {
-    max-width: 56% !important;
+    max-width: 70% !important;
   }
 }
+
 @media(max-height: 760px) {
  .legenda {
     max-width: 50% !important;
