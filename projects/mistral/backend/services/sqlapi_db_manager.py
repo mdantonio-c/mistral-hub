@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from celery.result import AsyncResult
+from celery.states import READY_STATES
 from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import NotFound, Unauthorized
@@ -70,6 +71,15 @@ class SqlApiDbManager:
             log.debug("look for schedule with ID {}", schedule_id)
             res = db.Schedule.query.get(int(schedule_id))
         return True if res is not None else False
+
+    @staticmethod
+    def check_request_is_pending(db, request_id=None):
+        res = None
+        if request_id is not None:
+            log.debug("look for request with ID {}", request_id)
+            res = db.Request.query.get(int(request_id))
+
+        return True if res.status not in READY_STATES else False
 
     @staticmethod
     def count_user_requests(db, user_id, archived):
