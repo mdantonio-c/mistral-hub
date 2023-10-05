@@ -382,5 +382,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     for(let i=0;i<6;i++){
       six_date_stamp.push(`${day_stamp[i]} ${date_stamp[i]}${date_nomenclature[i]}`)
     }
+
+    console.log(six_date_stamp);
+  }
+
+  isSelected = false;
+  selectDate() {
+    this.isSelected = !this.isSelected;
   }
 }

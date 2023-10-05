@@ -262,11 +262,11 @@
             (change)="updateCarousel($event.newValue)"
             placement="top"
           ></mv-slider>
-          <!--< MODIFICA MIA -->
+          <!--< MODIFICA MIA / copiata alla riga 296
           <div class="calendar d-flex">
             <div class="date" *ngFor="let data of six_days_behind_stamp">
               {{data}}
-            </div>
+            </div>-->
             <!--<div class="date">
               Saturday 19th
             </div>
@@ -286,9 +286,21 @@
               Thursday 24th
             </div>-->
           </div>
-
         </div>
       </div>
+      <div class="row calendar-container">
+      <p class="mb-0 fs-6 text-uppercase">Forecasts up to six days</p>
+      <div class="calendar d-flex">
+        <div class="date" *ngFor="let data of six_days_behind_stamp, let i = index">
+          <span 
+          id="{{i}}"
+          class="clickable"
+          [ngClass]="{ selected: i === 'id' }"
+          (click)="selectDate()"
+          >{{data}}</span>
+        </div>
     </div>
+    </div>
+    
   </div>
 </div>
