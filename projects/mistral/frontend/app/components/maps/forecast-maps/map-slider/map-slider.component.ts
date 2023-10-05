@@ -55,6 +55,9 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   public readonly IMAGE_SPINNER = "imageSpinner";
   selectedRun: KeyValuePair;
 
+  //MIA MODIFICA
+  six_days_behind_stamp : string[] = [];
+
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
   private lastRunAt: moment.Moment;
@@ -70,10 +73,16 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   ) {}
 
   ngOnInit() {
+    //console.log('FILTER_RUN',this.filter.run)
+    //console.log('RUNS',Runs)
     this.selectedRun =
       this.filter.field == "percentile" || this.filter.field == "probability"
         ? IffRuns.find((x) => this.filter.run === x.key)
         : Runs.find((x) => this.filter.run === x.key);
+    //MODIFICA MIA
+    this.six_days_behid(this.six_days_behind_stamp);
+
+  //console.log('SELECTED_RUN',this.selectedRun)
   }
 
   setInputSliderFormatter(value) {
@@ -103,6 +112,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     //}
     //console.log(`ngOnChanges: offsets=${this.offsets}`);
 
+
+
     this.meteoService
       .getAllMapImages(this.filter, this.offsets)
       .subscribe(
@@ -128,6 +139,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
     this.step = 1;
     // parseInt at end of string to get the min hour (e.g prec6 -> 6)
+
     const matchedValue = this.filter.field.match(/(\d+)$/);
     if (matchedValue) {
       this.minHour = parseInt(matchedValue[0], 10);
@@ -156,6 +168,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     }
     this.sid = this.minHour;
 
+
     // get legend from service
     this.spinner.show(this.LEGEND_SPINNER);
     this.meteoService
@@ -173,6 +186,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       .add(() => {
         this.spinner.hide(this.LEGEND_SPINNER);
       });
+
   }
 
   ngAfterViewInit() {
@@ -235,6 +249,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    */
   updateCarousel(index: number) {
     // console.log(`updateCarousel: index=${index}`);
+
     let indexImage = index;
     if (
       this.filter.field === "percentile" ||
@@ -331,5 +346,41 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    */
   forward() {
     this.carousel.next();
+  }
+
+  // MODIFICA MIA
+  six_days_behid(six_date_stamp: string[]): void {
+    const nth = (d:number) => {
+      if (d > 3 && d < 21) return 'th';
+      switch (d % 10) {
+        case 1:  return "st";
+        case 2:  return "nd";
+        case 3:  return "rd";
+        default: return "th";
+      }
+    };
+    let date_nomenclature : Array<string> = []
+    let day_stamp : Array<string>= [];
+    let date_stamp : Array<string>= [];
+    let now_date= new Date();
+    let tmp_date= new Date();
+    const weekday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    for(let i=0;i<6;i++)
+    {
+      if((now_date.getDay()-i) < 0){
+      day_stamp.push(weekday[now_date.getDay() -i+ 7])
+      } else {
+      day_stamp.push(weekday[now_date.getDay() -i])
+      }
+      tmp_date.setDate(now_date.getDate()-i)
+      date_stamp.push(tmp_date.getDate().toString())
+      date_nomenclature.push(nth(tmp_date.getDate()))
+    }
+    day_stamp=day_stamp.reverse()
+    date_stamp=date_stamp.reverse()
+    date_nomenclature=date_nomenclature.reverse()
+    for(let i=0;i<6;i++){
+      six_date_stamp.push(`${day_stamp[i]} ${date_stamp[i]}${date_nomenclature[i]}`)
+    }
   }
 }
