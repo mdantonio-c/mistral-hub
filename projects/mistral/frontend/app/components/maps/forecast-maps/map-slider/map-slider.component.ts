@@ -54,6 +54,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   public readonly LEGEND_SPINNER = "legendSpinner";
   public readonly IMAGE_SPINNER = "imageSpinner";
   selectedRun: KeyValuePair;
+  clicked: any;
+  /* string vector to be viewed */
+  sixDaysBehindStamp: string[] = [];
+  /* flag to know if a day different to the current day is selected */
+  isClicked: boolean = false;
+  behindDays: number;
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
@@ -70,10 +76,16 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   ) {}
 
   ngOnInit() {
+    //console.log('FILTER_RUN',this.filter.run)
+    //console.log('RUNS',Runs)
     this.selectedRun =
       this.filter.field == "percentile" || this.filter.field == "probability"
         ? IffRuns.find((x) => this.filter.run === x.key)
         : Runs.find((x) => this.filter.run === x.key);
+
+    this.sixDaysBehind(this.sixDaysBehindStamp);
+
+    //console.log('SELECTED_RUN',this.selectedRun)
   }
 
   setInputSliderFormatter(value) {
@@ -128,6 +140,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
     this.step = 1;
     // parseInt at end of string to get the min hour (e.g prec6 -> 6)
+
     const matchedValue = this.filter.field.match(/(\d+)$/);
     if (matchedValue) {
       this.minHour = parseInt(matchedValue[0], 10);
@@ -235,6 +248,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    */
   updateCarousel(index: number) {
     // console.log(`updateCarousel: index=${index}`);
+
     let indexImage = index;
     if (
       this.filter.field === "percentile" ||
@@ -257,7 +271,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     // console.log(`updateCarousel: indexImage=${indexImage}`);
     setTimeout(() => {
       this.carousel.select(`slideId-${indexImage}`);
-      this.updateTimestamp(index);
+      if (!this.isClicked) {
+        this.updateTimestamp(index);
+      } else {
+        this.updateTimestmapOldDays(index, this.behindDays);
+      }
     });
   }
 
@@ -285,6 +303,17 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    */
   private updateTimestamp(amount: number) {
     let a = this.lastRunAt.clone().add(amount, "hours");
+    this.timestamp = a.format();
+  }
+  /**
+   * Update the date and time to be displayed at the bottom center of the map when other days are selected.
+   * @param amount the value to be added to the reference time
+   * @param days the value to be subtracted to the reference date
+   * @private
+   */
+  private updateTimestmapOldDays(amount: number, days: number) {
+    let a = this.lastRunAt.clone().subtract(days, "day");
+    a = a.clone().add(amount, "hours");
     this.timestamp = a.format();
   }
 
@@ -331,5 +360,133 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    */
   forward() {
     this.carousel.next();
+  }
+
+  /**
+   * Provides static forecasts at varying of the day of the current week
+   */
+  changeDate(id: number, isToday: boolean, c: number) {
+    let weekday = this.sixDaysBehindStamp[id].split(" ")[0].toLowerCase();
+    let weekdays = {
+      sunday: "6",
+      monday: "0",
+      tuesday: "1",
+      wednesday: "2",
+      thursday: "3",
+      friday: "4",
+      saturday: "5",
+    };
+
+    if (!isToday) {
+      this.isClicked = true;
+      // add the weekday field
+      this.filter.weekday = weekdays[weekday];
+
+      this.meteoService
+        .getAllMapImages(this.filter, this.offsets)
+        .subscribe(
+          (blobs) => {
+            //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
+            for (let i = 0; i < this.offsets.length; i++) {
+              this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
+                URL.createObjectURL(blobs[i]),
+              );
+              //console.log(`ngOnChanges: i=${i}`);
+            }
+          },
+          (error) => {
+            console.log(error);
+          },
+        )
+        .add(() => {
+          this.spinner.hide(this.IMAGE_SPINNER);
+          this.isImageLoading = false;
+          // once the maps have been loaded I can preset the carousel
+          this.presetSlider();
+        });
+      let tmp_date: moment.Moment | string = this.lastRunAt;
+      this.behindDays = c - id - 1;
+      tmp_date = moment(tmp_date).subtract(this.behindDays, "day").format();
+      this.timestampRun = tmp_date;
+      this.updateTimestmapOldDays(this.sid, this.behindDays);
+    } else {
+      this.isClicked = false;
+      this.timestampRun = this.lastRunAt.format();
+      this.timestamp = this.lastRunAt.format();
+      // remove the weekday field to get last static forecasts
+      delete this.filter["weekday"];
+      this.meteoService
+        .getAllMapImages(this.filter, this.offsets)
+        .subscribe(
+          (blobs) => {
+            //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
+            for (let i = 0; i < this.offsets.length; i++) {
+              this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
+                URL.createObjectURL(blobs[i]),
+              );
+              //console.log(`ngOnChanges: i=${i}`);
+            }
+          },
+          (error) => {
+            console.log(error);
+          },
+        )
+        .add(() => {
+          this.spinner.hide(this.IMAGE_SPINNER);
+          this.isImageLoading = false;
+          // once the maps have been loaded I can preset the carousel
+          this.presetSlider();
+        });
+    }
+  }
+
+  /**
+   * Provides the nomenclature of the six days of the current week, the last day is the current day
+   * @param sixDateStamp vector string to be populated with the nomenclature
+   */
+  sixDaysBehind(sixDateStamp: string[]): void {
+    const nth = (d: number) => {
+      if (d > 3 && d < 21) return "th";
+      switch (d % 10) {
+        case 1:
+          return "st";
+        case 2:
+          return "nd";
+        case 3:
+          return "rd";
+        default:
+          return "th";
+      }
+    };
+    let dateNomenclature: Array<string> = [];
+    let dayStamp: Array<string> = [];
+    let dateStamp: Array<string> = [];
+    let nowDate = new Date();
+    let tmpDate = new Date();
+    const weekday = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    for (let i = 0; i < 6; i++) {
+      if (nowDate.getDay() - i < 0) {
+        dayStamp.push(weekday[nowDate.getDay() - i + 7]);
+      } else {
+        dayStamp.push(weekday[nowDate.getDay() - i]);
+      }
+      tmpDate.setDate(nowDate.getDate() - i);
+      dateStamp.push(tmpDate.getDate().toString());
+      dateNomenclature.push(nth(tmpDate.getDate()));
+    }
+    dayStamp = dayStamp.reverse();
+    dateStamp = dateStamp.reverse();
+    dateNomenclature = dateNomenclature.reverse();
+    for (let i = 0; i < 6; i++) {
+      sixDateStamp.push(`${dayStamp[i]} ${dateStamp[i]}${dateNomenclature[i]}`);
+    }
   }
 }
