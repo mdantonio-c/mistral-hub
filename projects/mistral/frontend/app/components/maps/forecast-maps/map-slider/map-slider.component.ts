@@ -54,6 +54,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   public readonly LEGEND_SPINNER = "legendSpinner";
   public readonly IMAGE_SPINNER = "imageSpinner";
   selectedRun: KeyValuePair;
+  clicked: any;
 
   //MIA MODIFICA
   six_days_behind_stamp : string[] = [];
@@ -384,10 +385,5 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     }
 
     console.log(six_date_stamp);
-  }
-
-  isSelected = false;
-  selectDate() {
-    this.isSelected = !this.isSelected;
   }
 }
