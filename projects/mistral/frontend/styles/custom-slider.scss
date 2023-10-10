@@ -97,7 +97,7 @@
       top: 6px;
       left: 7px;
       width: 4px;
-      height: 8px;
+      height: 20px;
       border: 1px solid;
       border-width: 0 1px;
       border-color: inherit;
@@ -129,14 +129,19 @@
     font-family: "Montserrat-semibold";
   } 
   .calendar {
-    border-top: 2px solid #6c757d;
     padding-left: 0;
     padding-right: 0;
+    border: solid 1px #6c757d;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius:20px;
     .date {
       padding:0;
       width: 100%;
       border: solid 1px #6c757d;
-      border-top:0;
+      border-top: 0;
+      border-bottom: 0;
       font-size: 12px;
       box-shadow: 0 .125rem .25rem rgba($black, .075);
       font-family: "Montserrat-semibold";
@@ -144,6 +149,24 @@
         padding-top: 5px;
         height: 26px;
       }
+
+      &:first-of-type {
+        border-left:0;
+        & > div {
+          border-top-left-radius: 20px;
+          border-bottom-left-radius: 20px;
+          
+        }
+      }
+      &:last-of-type { 
+        border-right: 0;
+        & > div {
+          border-top-right-radius: 20px;
+          border-bottom-right-radius: 20px;
+         
+        }
+      }
+     
       & > .selected {
         background-color: #e49c1e;
         text-transform: uppercase;
