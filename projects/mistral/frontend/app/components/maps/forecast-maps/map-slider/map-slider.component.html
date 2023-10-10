@@ -295,7 +295,7 @@
           <div 
           id="{{i}}"
           class="clickable text-center"
-          [ngClass]="(clicked === i || !clicked && isToday) ? 'selected' : null"
+          [ngClass]="(clicked === i || !clicked && isToday) ? 'selected' : 'not-selected'"
           (click)="clicked = (clicked === i ? null :i)"
           (click)="changedate(i,isToday,c)"
           placement="bottom" 
