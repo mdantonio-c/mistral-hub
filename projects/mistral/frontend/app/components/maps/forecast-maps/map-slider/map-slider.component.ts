@@ -55,9 +55,9 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   public readonly IMAGE_SPINNER = "imageSpinner";
   selectedRun: KeyValuePair;
   clicked: any;
-  six_days_behind_stamp : string[] = [];
-  isClicked :boolean = false;
-  behindDays : number;
+  six_days_behind_stamp: string[] = [];
+  isClicked: boolean = false;
+  behindDays: number;
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
@@ -83,7 +83,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
     this.six_days_behind(this.six_days_behind_stamp);
 
-  //console.log('SELECTED_RUN',this.selectedRun)
+    //console.log('SELECTED_RUN',this.selectedRun)
   }
 
   setInputSliderFormatter(value) {
@@ -112,8 +112,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     //    this.offsets = this.offsets.slice(0,15);
     //}
     //console.log(`ngOnChanges: offsets=${this.offsets}`);
-
-
 
     this.meteoService
       .getAllMapImages(this.filter, this.offsets)
@@ -169,7 +167,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     }
     this.sid = this.minHour;
 
-
     // get legend from service
     this.spinner.show(this.LEGEND_SPINNER);
     this.meteoService
@@ -187,7 +184,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       .add(() => {
         this.spinner.hide(this.LEGEND_SPINNER);
       });
-
   }
 
   ngAfterViewInit() {
@@ -273,7 +269,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     // console.log(`updateCarousel: indexImage=${indexImage}`);
     setTimeout(() => {
       this.carousel.select(`slideId-${indexImage}`);
-      if (!this.isClicked){ this.updateTimestamp(index) } else {this.updateTimestmapOldDays(index,this.behindDays) }
+      if (!this.isClicked) {
+        this.updateTimestamp(index);
+      } else {
+        this.updateTimestmapOldDays(index, this.behindDays);
+      }
     });
   }
 
@@ -304,9 +304,9 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     this.timestamp = a.format();
   }
 
-  private updateTimestmapOldDays(amount:number,days:number){
-    let a = this.lastRunAt.clone().subtract(days,'day');
-    a = a.clone().add(amount,'hours');
+  private updateTimestmapOldDays(amount: number, days: number) {
+    let a = this.lastRunAt.clone().subtract(days, "day");
+    a = a.clone().add(amount, "hours");
     this.timestamp = a.format();
   }
 
@@ -355,29 +355,29 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     this.carousel.next();
   }
 
-  changedate(id:number,isToday:boolean,c :number){
-    let weekday = this.six_days_behind_stamp[id].split(' ')[0].toLowerCase()
-    //console.log(weekday)
+  changedate(id: number, isToday: boolean, c: number) {
+    let weekday = this.six_days_behind_stamp[id].split(" ")[0].toLowerCase();
     let weekdays = {
-        "sunday" : "6",
-        "monday" : "0",
-        "tuesday" : "1",
-        "wednesday" : "2",
-        "thursday" : "3",
-        "friday" : "4",
-        "saturday" : "5"
+      sunday: "6",
+      monday: "0",
+      tuesday: "1",
+      wednesday: "2",
+      thursday: "3",
+      friday: "4",
+      saturday: "5",
     };
-    if(!isToday) {
+    if (!isToday) {
       this.isClicked = true;
       this.filter.weekday = weekdays[weekday];
-      //console.log('weekday', weekday, "NUOVO FILTER WEEKDAYS", this.filter)
-      //console.log('filter', this.filter, 'offset', this.offsets)
-      this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
+
+      this.meteoService
+        .getAllMapImages(this.filter, this.offsets)
+        .subscribe(
           (blobs) => {
             //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
             for (let i = 0; i < this.offsets.length; i++) {
               this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
-                  URL.createObjectURL(blobs[i]),
+                URL.createObjectURL(blobs[i]),
               );
               //console.log(`ngOnChanges: i=${i}`);
             }
@@ -385,30 +385,31 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           (error) => {
             console.log(error);
           },
-      )
-          .add(() => {
-            this.spinner.hide(this.IMAGE_SPINNER);
-            this.isImageLoading = false;
-            // once the maps have been loaded I can preset the carousel
-            this.presetSlider();
-          });
+        )
+        .add(() => {
+          this.spinner.hide(this.IMAGE_SPINNER);
+          this.isImageLoading = false;
+          // once the maps have been loaded I can preset the carousel
+          this.presetSlider();
+        });
       let tmp_date: moment.Moment | string = this.lastRunAt;
-      this.behindDays = c-id-1;
-      tmp_date = moment(tmp_date).subtract(this.behindDays,'day').format();
+      this.behindDays = c - id - 1;
+      tmp_date = moment(tmp_date).subtract(this.behindDays, "day").format();
       this.timestampRun = tmp_date;
-      this.updateTimestmapOldDays(this.sid,this.behindDays )
-
+      this.updateTimestmapOldDays(this.sid, this.behindDays);
     } else {
       this.isClicked = false;
       this.timestampRun = this.lastRunAt.format();
-      this. timestamp = this.lastRunAt.format();
-      delete this.filter['weekday']
-      this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
+      this.timestamp = this.lastRunAt.format();
+      delete this.filter["weekday"];
+      this.meteoService
+        .getAllMapImages(this.filter, this.offsets)
+        .subscribe(
           (blobs) => {
             //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
             for (let i = 0; i < this.offsets.length; i++) {
               this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
-                  URL.createObjectURL(blobs[i]),
+                URL.createObjectURL(blobs[i]),
               );
               //console.log(`ngOnChanges: i=${i}`);
             }
@@ -416,49 +417,60 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           (error) => {
             console.log(error);
           },
-      )
-          .add(() => {
-            this.spinner.hide(this.IMAGE_SPINNER);
-            this.isImageLoading = false;
-            // once the maps have been loaded I can preset the carousel
-            this.presetSlider();
-          });
-
+        )
+        .add(() => {
+          this.spinner.hide(this.IMAGE_SPINNER);
+          this.isImageLoading = false;
+          // once the maps have been loaded I can preset the carousel
+          this.presetSlider();
+        });
     }
   }
   six_days_behind(six_date_stamp: string[]): void {
-    const nth = (d:number) => {
-      if (d > 3 && d < 21) return 'th';
+    const nth = (d: number) => {
+      if (d > 3 && d < 21) return "th";
       switch (d % 10) {
-        case 1:  return "st";
-        case 2:  return "nd";
-        case 3:  return "rd";
-        default: return "th";
+        case 1:
+          return "st";
+        case 2:
+          return "nd";
+        case 3:
+          return "rd";
+        default:
+          return "th";
       }
     };
-    let date_nomenclature : Array<string> = []
-    let day_stamp : Array<string>= [];
-    let date_stamp : Array<string>= [];
-    let now_date= new Date();
-    let tmp_date= new Date();
-    const weekday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    for(let i=0;i<6;i++)
-    {
-      if((now_date.getDay()-i) < 0){
-      day_stamp.push(weekday[now_date.getDay() -i+ 7])
+    let date_nomenclature: Array<string> = [];
+    let day_stamp: Array<string> = [];
+    let date_stamp: Array<string> = [];
+    let now_date = new Date();
+    let tmp_date = new Date();
+    const weekday = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    for (let i = 0; i < 6; i++) {
+      if (now_date.getDay() - i < 0) {
+        day_stamp.push(weekday[now_date.getDay() - i + 7]);
       } else {
-      day_stamp.push(weekday[now_date.getDay() -i])
+        day_stamp.push(weekday[now_date.getDay() - i]);
       }
-      tmp_date.setDate(now_date.getDate()-i)
-      date_stamp.push(tmp_date.getDate().toString())
-      date_nomenclature.push(nth(tmp_date.getDate()))
+      tmp_date.setDate(now_date.getDate() - i);
+      date_stamp.push(tmp_date.getDate().toString());
+      date_nomenclature.push(nth(tmp_date.getDate()));
     }
-    day_stamp=day_stamp.reverse()
-    date_stamp=date_stamp.reverse()
-    date_nomenclature=date_nomenclature.reverse()
-    for(let i=0;i<6;i++){
-      six_date_stamp.push(`${day_stamp[i]} ${date_stamp[i]}${date_nomenclature[i]}`)
+    day_stamp = day_stamp.reverse();
+    date_stamp = date_stamp.reverse();
+    date_nomenclature = date_nomenclature.reverse();
+    for (let i = 0; i < 6; i++) {
+      six_date_stamp.push(
+        `${day_stamp[i]} ${date_stamp[i]}${date_nomenclature[i]}`,
+      );
     }
   }
-
 }
