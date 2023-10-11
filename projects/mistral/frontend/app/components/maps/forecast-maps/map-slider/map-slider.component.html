@@ -132,10 +132,10 @@
           id="slideId-{{ i + fromMinImage }}"
         >
           <div class="carousel-caption">
-            <!--                                 <h3>Image[{{i+fromMinImage}}] - slice {{fromMinImage}}</h3>  -->
+            <!--<h3>Image[{{i+fromMinImage}}] - slice {{fromMinImage}}</h3>  -->
             <h5>
               <span
-                class="badge bg-secondary label-time"
+                class="badge bg-secondary label-time clickable"
                 (click)="toggleUtcTime()"
               >
                 <ng-container *ngIf="utcTime; else noUtc">
