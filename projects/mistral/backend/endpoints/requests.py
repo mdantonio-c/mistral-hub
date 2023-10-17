@@ -2,7 +2,7 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.endpoints.schemas import TotalSchema
-from restapi.exceptions import NotFound, Unauthorized
+from restapi.exceptions import Forbidden, NotFound, Unauthorized
 from restapi.models import fields
 from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
@@ -111,20 +111,22 @@ class UserRequests(EndpointResource):
             raise NotFound("The request doesn't exist")
 
         # check if the current user is the owner of the request
-        if repo.check_owner(db, user.id, request_id=request_id):
-
-            # delete request and fileoutput entry from database.
-            # Delete fileoutput from user folder
-            repo.delete_request_record(db, user, request_id)
-            # Mark the request as archived
-            request = db.Request.query.get(request_id)
-            request.archived = True
-            db.session.commit()
-
-            return self.response(f"Archived request {request_id}")
-        else:
-            # should be Forbidden...
+        if not repo.check_owner(db, user.id, request_id=request_id):
             raise Unauthorized("This request doesn't come from the request's owner")
+
+        # check if the request is pending (i.e. status is not a READY_STATE)
+        if repo.check_request_is_pending(db, request_id=request_id):
+            raise Forbidden("You cannot archive a pending request")
+
+        # delete request and fileoutput entry from database.
+        # Delete fileoutput from user folder
+        repo.delete_request_record(db, user, request_id)
+        # Mark the request as archived
+        request = db.Request.query.get(request_id)
+        request.archived = True
+        db.session.commit()
+
+        return self.response(f"Archived request {request_id}")
 
     @decorators.auth.require()
     @decorators.endpoint(
@@ -144,20 +146,21 @@ class UserRequests(EndpointResource):
             raise NotFound("The request doesn't exist")
 
         # check if the current user is the owner of the request
-        if repo.check_owner(db, user.id, request_id=request_id):
-
-            # delete request and fileoutput entry from database.
-            # Delete fileoutput from user folder
-            repo.delete_request_record(db, user, request_id)
-            # Delete the request from the db
-            request = db.Request.query.get(request_id)
-            db.session.delete(request)
-            db.session.commit()
-
-            return self.response(f"Removed request {request_id}")
-        else:
-            # should be Forbidden...
+        if not repo.check_owner(db, user.id, request_id=request_id):
             raise Unauthorized("This request doesn't come from the request's owner")
+
+        # check if the request is pending (i.e. status is not a READY_STATE)
+        if repo.check_request_is_pending(db, request_id=request_id):
+            raise Forbidden("You cannot delete a pending request")
+
+        # delete request and fileoutput entry from database.
+        # Delete fileoutput from user folder
+        repo.delete_request_record(db, user, request_id)
+        # Delete the request from the db
+        request = db.Request.query.get(request_id)
+        db.session.delete(request)
+        db.session.commit()
+        return self.response(f"Removed request {request_id}")
 
 
 class CloneUserRequests(EndpointResource):
