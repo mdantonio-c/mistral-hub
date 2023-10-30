@@ -17,6 +17,7 @@ import { environment } from "@rapydo/../environments/environment";
 export class CustomNavbarComponent {
   @Input() user: User;
   @Output() onClick: EventEmitter<null> = new EventEmitter<null>();
+  projectHome: string = environment.CUSTOM.PROJECT_HOME;
 
   constructor() {}
 
@@ -31,12 +32,13 @@ export class CustomNavbarComponent {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomBrandComponent {
-  public myproject: string;
+  projectTitle: string;
+  projectHome: string = environment.CUSTOM.PROJECT_HOME;
 
   constructor() {
-    var t = environment.projectTitle;
+    let t = environment.projectTitle;
     t = t.replace(/^'/, "");
     t = t.replace(/'$/, "");
-    this.myproject = t;
+    this.projectTitle = t;
   }
 }

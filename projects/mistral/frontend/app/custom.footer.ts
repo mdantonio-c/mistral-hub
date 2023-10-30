@@ -9,6 +9,7 @@ import { environment } from "@rapydo/../environments/environment";
 export class CustomFooterComponent {
   public project: string;
   public version: string;
+  public projectHome: string = environment.CUSTOM.PROJECT_HOME;
   public from_year: number = 2019;
   public to_year = moment().year();
 

@@ -73,6 +73,7 @@ variables:
     PLATFORM: G100
     MAPS_URL:
     TILES_URL:
+    PROJECT_HOME: "https://www.mistralportal.it"
     FRONTEND_DEBUG: 0
 
     CORS_ALLOWED_ORIGIN: "*"
