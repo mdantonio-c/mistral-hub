@@ -74,6 +74,7 @@ variables:
     MAPS_URL:
     TILES_URL:
     PROJECT_HOME: "https://www.mistralportal.it"
+    COOKIE_POLICY_URL: "https://www.cineca.it/privacy/cookies-cineca"
     FRONTEND_DEBUG: 0
 
     CORS_ALLOWED_ORIGIN: "*"
