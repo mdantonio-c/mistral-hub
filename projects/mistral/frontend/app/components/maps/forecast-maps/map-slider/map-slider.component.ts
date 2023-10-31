@@ -55,7 +55,9 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   public readonly IMAGE_SPINNER = "imageSpinner";
   selectedRun: KeyValuePair;
   clicked: any;
-  six_days_behind_stamp: string[] = [];
+  /* string vector to be viewed */
+  sixDaysBehindStamp: string[] = [];
+  /* flag to know if a day different to the current day is selected */
   isClicked: boolean = false;
   behindDays: number;
 
@@ -81,7 +83,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
         ? IffRuns.find((x) => this.filter.run === x.key)
         : Runs.find((x) => this.filter.run === x.key);
 
-    this.six_days_behind(this.six_days_behind_stamp);
+    this.sixDaysBehind(this.sixDaysBehindStamp);
 
     //console.log('SELECTED_RUN',this.selectedRun)
   }
@@ -303,7 +305,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     let a = this.lastRunAt.clone().add(amount, "hours");
     this.timestamp = a.format();
   }
-
+  /**
+   * Update the date and time to be displayed at the bottom center of the map when other days are selected.
+   * @param amount the value to be added to the reference time
+   * @param days the value to be subtracted to the reference date
+   * @private
+   */
   private updateTimestmapOldDays(amount: number, days: number) {
     let a = this.lastRunAt.clone().subtract(days, "day");
     a = a.clone().add(amount, "hours");
@@ -355,8 +362,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     this.carousel.next();
   }
 
-  changedate(id: number, isToday: boolean, c: number) {
-    let weekday = this.six_days_behind_stamp[id].split(" ")[0].toLowerCase();
+  /**
+   * Provides static forecasts at varying of the day of the current week
+   */
+  changeDate(id: number, isToday: boolean, c: number) {
+    let weekday = this.sixDaysBehindStamp[id].split(" ")[0].toLowerCase();
     let weekdays = {
       sunday: "6",
       monday: "0",
@@ -366,8 +376,10 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       friday: "4",
       saturday: "5",
     };
+
     if (!isToday) {
       this.isClicked = true;
+      // add the weekday field
       this.filter.weekday = weekdays[weekday];
 
       this.meteoService
@@ -401,6 +413,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.isClicked = false;
       this.timestampRun = this.lastRunAt.format();
       this.timestamp = this.lastRunAt.format();
+      // remove the weekday field to get last static forecasts
       delete this.filter["weekday"];
       this.meteoService
         .getAllMapImages(this.filter, this.offsets)
@@ -426,7 +439,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
         });
     }
   }
-  six_days_behind(six_date_stamp: string[]): void {
+
+  /**
+   * Provides the nomenclature of the six days of the current week, the last day is the current day
+   * @param sixDateStamp vector string to be populated with the nomenclature
+   */
+  sixDaysBehind(sixDateStamp: string[]): void {
     const nth = (d: number) => {
       if (d > 3 && d < 21) return "th";
       switch (d % 10) {
@@ -440,11 +458,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           return "th";
       }
     };
-    let date_nomenclature: Array<string> = [];
-    let day_stamp: Array<string> = [];
-    let date_stamp: Array<string> = [];
-    let now_date = new Date();
-    let tmp_date = new Date();
+    let dateNomenclature: Array<string> = [];
+    let dayStamp: Array<string> = [];
+    let dateStamp: Array<string> = [];
+    let nowDate = new Date();
+    let tmpDate = new Date();
     const weekday = [
       "Sunday",
       "Monday",
@@ -455,22 +473,20 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       "Saturday",
     ];
     for (let i = 0; i < 6; i++) {
-      if (now_date.getDay() - i < 0) {
-        day_stamp.push(weekday[now_date.getDay() - i + 7]);
+      if (nowDate.getDay() - i < 0) {
+        dayStamp.push(weekday[nowDate.getDay() - i + 7]);
       } else {
-        day_stamp.push(weekday[now_date.getDay() - i]);
+        dayStamp.push(weekday[nowDate.getDay() - i]);
       }
-      tmp_date.setDate(now_date.getDate() - i);
-      date_stamp.push(tmp_date.getDate().toString());
-      date_nomenclature.push(nth(tmp_date.getDate()));
+      tmpDate.setDate(nowDate.getDate() - i);
+      dateStamp.push(tmpDate.getDate().toString());
+      dateNomenclature.push(nth(tmpDate.getDate()));
     }
-    day_stamp = day_stamp.reverse();
-    date_stamp = date_stamp.reverse();
-    date_nomenclature = date_nomenclature.reverse();
+    dayStamp = dayStamp.reverse();
+    dateStamp = dateStamp.reverse();
+    dateNomenclature = dateNomenclature.reverse();
     for (let i = 0; i < 6; i++) {
-      six_date_stamp.push(
-        `${day_stamp[i]} ${date_stamp[i]}${date_nomenclature[i]}`,
-      );
+      sixDateStamp.push(`${dayStamp[i]} ${dateStamp[i]}${dateNomenclature[i]}`);
     }
   }
 }
