@@ -13,7 +13,6 @@ export interface MeteoFilter {
   platform?: string;
   env?: string;
   area: string;
-  weekday?: string;
 }
 
 export interface MeteoMapset {

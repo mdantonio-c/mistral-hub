@@ -55,9 +55,9 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   public readonly IMAGE_SPINNER = "imageSpinner";
   selectedRun: KeyValuePair;
   clicked: any;
+
+  //MIA MODIFICA
   six_days_behind_stamp : string[] = [];
-  isClicked :boolean = false;
-  behindDays : number;
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
@@ -80,8 +80,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.filter.field == "percentile" || this.filter.field == "probability"
         ? IffRuns.find((x) => this.filter.run === x.key)
         : Runs.find((x) => this.filter.run === x.key);
-
-    this.six_days_behind(this.six_days_behind_stamp);
+    //MODIFICA MIA
+    this.six_days_behid(this.six_days_behind_stamp);
 
   //console.log('SELECTED_RUN',this.selectedRun)
   }
@@ -273,7 +273,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     // console.log(`updateCarousel: indexImage=${indexImage}`);
     setTimeout(() => {
       this.carousel.select(`slideId-${indexImage}`);
-      if (!this.isClicked){ this.updateTimestamp(index) } else {this.updateTimestmapOldDays(index,this.behindDays) }
+      this.updateTimestamp(index);
     });
   }
 
@@ -301,12 +301,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    */
   private updateTimestamp(amount: number) {
     let a = this.lastRunAt.clone().add(amount, "hours");
-    this.timestamp = a.format();
-  }
-
-  private updateTimestmapOldDays(amount:number,days:number){
-    let a = this.lastRunAt.clone().subtract(days,'day');
-    a = a.clone().add(amount,'hours');
     this.timestamp = a.format();
   }
 
@@ -355,78 +349,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     this.carousel.next();
   }
 
-  changedate(id:number,isToday:boolean,c :number){
-    let weekday = this.six_days_behind_stamp[id].split(' ')[0].toLowerCase()
-    //console.log(weekday)
-    let weekdays = {
-        "sunday" : "6",
-        "monday" : "0",
-        "tuesday" : "1",
-        "wednesday" : "2",
-        "thursday" : "3",
-        "friday" : "4",
-        "saturday" : "5"
-    };
-    if(!isToday) {
-      this.isClicked = true;
-      this.filter.weekday = weekdays[weekday];
-      //console.log('weekday', weekday, "NUOVO FILTER WEEKDAYS", this.filter)
-      //console.log('filter', this.filter, 'offset', this.offsets)
-      this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
-          (blobs) => {
-            //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
-            for (let i = 0; i < this.offsets.length; i++) {
-              this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
-                  URL.createObjectURL(blobs[i]),
-              );
-              //console.log(`ngOnChanges: i=${i}`);
-            }
-          },
-          (error) => {
-            console.log(error);
-          },
-      )
-          .add(() => {
-            this.spinner.hide(this.IMAGE_SPINNER);
-            this.isImageLoading = false;
-            // once the maps have been loaded I can preset the carousel
-            this.presetSlider();
-          });
-      let tmp_date: moment.Moment | string = this.lastRunAt;
-      this.behindDays = c-id-1;
-      tmp_date = moment(tmp_date).subtract(this.behindDays,'day').format();
-      this.timestampRun = tmp_date;
-      this.updateTimestmapOldDays(this.sid,this.behindDays )
-
-    } else {
-      this.isClicked = false;
-      this.timestampRun = this.lastRunAt.format();
-      this. timestamp = this.lastRunAt.format();
-      delete this.filter['weekday']
-      this.meteoService.getAllMapImages(this.filter, this.offsets).subscribe(
-          (blobs) => {
-            //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
-            for (let i = 0; i < this.offsets.length; i++) {
-              this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
-                  URL.createObjectURL(blobs[i]),
-              );
-              //console.log(`ngOnChanges: i=${i}`);
-            }
-          },
-          (error) => {
-            console.log(error);
-          },
-      )
-          .add(() => {
-            this.spinner.hide(this.IMAGE_SPINNER);
-            this.isImageLoading = false;
-            // once the maps have been loaded I can preset the carousel
-            this.presetSlider();
-          });
-
-    }
-  }
-  six_days_behind(six_date_stamp: string[]): void {
+  // MODIFICA MIA
+  six_days_behid(six_date_stamp: string[]): void {
     const nth = (d:number) => {
       if (d > 3 && d < 21) return 'th';
       switch (d % 10) {
@@ -459,6 +383,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     for(let i=0;i<6;i++){
       six_date_stamp.push(`${day_stamp[i]} ${date_stamp[i]}${date_nomenclature[i]}`)
     }
-  }
 
+    console.log(six_date_stamp);
+  }
 }
