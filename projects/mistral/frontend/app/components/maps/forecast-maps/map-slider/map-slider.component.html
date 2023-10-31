@@ -289,21 +289,15 @@
         </div>
       </div>
       <div class="row calendar-container">
-      <p class="mb-0 fs-6 text-uppercase">Forecasts produced in the previous six days
-        <i class="fa-regular fa-circle-question" 
-        placement="right" 
-        ngbTooltip="Spiegazione previsioni"></i>
-      </p>
-      <div class="calendar d-flex justify-content-evenly align-items-center">
+      <p class="mb-0 fs-6 text-uppercase">Forecasts up to six days</p>
+      <div class="calendar d-flex">
         <div class="date" *ngFor="let data of six_days_behind_stamp, let i = index">
-          <div 
+          <span 
           id="{{i}}"
-          class="clickable text-center"
-          [class.selected]="isSelected"
+          class="clickable"
+          [ngClass]="{ selected: i === 'id' }"
           (click)="selectDate()"
-          placement="bottom" 
-          ngbTooltip="Forecast for {{data}}"
-          >{{data}}</div>
+          >{{data}}</span>
         </div>
     </div>
     </div>
