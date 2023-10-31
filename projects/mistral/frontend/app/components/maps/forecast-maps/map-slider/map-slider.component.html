@@ -299,8 +299,8 @@
           <div 
           id="{{i}}"
           class="clickable text-center"
-          [class.selected]="clicked === i" 
-          (click)="clicked = (clicked === i ? null :i)"
+          [class.selected]="isSelected"
+          (click)="selectDate()"
           placement="bottom" 
           ngbTooltip="Forecast for {{data}}"
           >{{data}}</div>
