@@ -122,11 +122,6 @@
   }
 }
 
-.calendar-container {
-  p {
-  border-bottom: 2px solid #6c757d;
-  font-family: "Montserrat-semibold";
-} 
 .calendar {
   .date {
     width: 14.2%;
@@ -135,11 +130,6 @@
     padding: 6px 0 0 8px;
     height: 26px;
     margin-top: -6px;
-    & > .selected {
-      border-bottom:2px solid #e49c1e;
-      text-transform: uppercase;
-      color: #e49c1e;
-    }
 
     &:first-of-type {
       padding-left: 0;
@@ -149,5 +139,4 @@
       border: none;
     }
   }
-}
 }
