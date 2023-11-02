@@ -132,10 +132,10 @@
           id="slideId-{{ i + fromMinImage }}"
         >
           <div class="carousel-caption">
-            <!--                                 <h3>Image[{{i+fromMinImage}}] - slice {{fromMinImage}}</h3>  -->
+            <!--<h3>Image[{{i+fromMinImage}}] - slice {{fromMinImage}}</h3>  -->
             <h5>
               <span
-                class="badge bg-secondary label-time"
+                class="badge bg-secondary label-time clickable"
                 (click)="toggleUtcTime()"
               >
                 <ng-container *ngIf="utcTime; else noUtc">
@@ -262,12 +262,12 @@
             (change)="updateCarousel($event.newValue)"
             placement="top"
           ></mv-slider>
-          <!--
+          <!--< MODIFICA MIA / copiata alla riga 296
           <div class="calendar d-flex">
-            <div class="date">
-              Friday 18th
-            </div>
-            <div class="date">
+            <div class="date" *ngFor="let data of sixDaysBehindStamp">
+              {{data}}
+            </div>-->
+          <!--<div class="date">
               Saturday 19th
             </div>
             <div class="date">
@@ -284,9 +284,39 @@
             </div>
             <div class="date">
               Thursday 24th
-            </div>
+            </div>-->
+        </div>
+      </div>
+    </div>
+    <div class="row calendar-container">
+      <p class="mb-0 fs-6 text-uppercase">
+        Forecasts produced in the previous five days
+      </p>
+      <div class="calendar d-flex justify-content-evenly align-items-center">
+        <div
+          class="date"
+          *ngFor="
+            let data of sixDaysBehindStamp;
+            let i = index;
+            let isToday = last;
+            let c = count
+          "
+        >
+          <div
+            id="{{ i }}"
+            class="clickable text-center"
+            [ngClass]="
+              clicked === i || (!clicked && isToday)
+                ? 'selected'
+                : 'not-selected'
+            "
+            (click)="clicked = clicked === i ? null : i"
+            (click)="changeDate(i, isToday, c)"
+            placement="bottom"
+            ngbTooltip="Forecast produced on {{ data }}"
+          >
+            {{ data }}
           </div>
-          -->
         </div>
       </div>
     </div>
