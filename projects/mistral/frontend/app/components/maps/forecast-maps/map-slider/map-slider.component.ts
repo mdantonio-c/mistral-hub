@@ -368,6 +368,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    * Provides static forecasts at varying of the day of the current week
    */
   changeDate(id: number, isToday: boolean, c: number) {
+    this.spinner.show(this.IMAGE_SPINNER);
     this.today = false;
     let weekday = this.sixDaysBehindStamp[id].split(" ")[0].toLowerCase();
     let weekdays = {
