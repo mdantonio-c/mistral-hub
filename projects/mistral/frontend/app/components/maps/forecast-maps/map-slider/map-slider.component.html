@@ -264,10 +264,10 @@
           ></mv-slider>
           <!--< MODIFICA MIA / copiata alla riga 296
           <div class="calendar d-flex">
-            <div class="date" *ngFor="let data of six_days_behind_stamp">
+            <div class="date" *ngFor="let data of sixDaysBehindStamp">
               {{data}}
             </div>-->
-            <!--<div class="date">
+          <!--<div class="date">
               Saturday 19th
             </div>
             <div class="date">
@@ -285,22 +285,38 @@
             <div class="date">
               Thursday 24th
             </div>-->
-          </div>
         </div>
       </div>
-      <div class="row calendar-container">
-      <p class="mb-0 fs-6 text-uppercase">Forecasts produced in the previous five days</p>
+    </div>
+    <div class="row calendar-container">
+      <p class="mb-0 fs-6 text-uppercase">
+        Forecasts produced in the previous five days
+      </p>
       <div class="calendar d-flex justify-content-evenly align-items-center">
-        <div class="date" *ngFor="let data of six_days_behind_stamp, let i = index, let isToday = last, let c = count">
-          <div 
-          id="{{i}}"
-          class="clickable text-center"
-          [ngClass]="(clicked === i || !clicked && isToday) ? 'selected' : 'not-selected'"
-          (click)="clicked = (clicked === i ? null :i)"
-          (click)="changedate(i,isToday,c)"
-          placement="bottom" 
-          ngbTooltip="Forecast produced on {{data}}"
-          >{{data}}</div>
+        <div
+          class="date"
+          *ngFor="
+            let data of sixDaysBehindStamp;
+            let i = index;
+            let isToday = last;
+            let c = count
+          "
+        >
+          <div
+            id="{{ i }}"
+            class="clickable text-center"
+            [ngClass]="
+              clicked === i || (!clicked && isToday)
+                ? 'selected'
+                : 'not-selected'
+            "
+            (click)="clicked = clicked === i ? null : i"
+            (click)="changeDate(i, isToday, c)"
+            placement="bottom"
+            ngbTooltip="Forecast produced on {{ data }}"
+          >
+            {{ data }}
+          </div>
         </div>
     </div>
     </div>
