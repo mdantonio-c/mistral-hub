@@ -60,6 +60,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   /* flag to know if a day different to the current day is selected */
   isClicked: boolean = false;
   behindDays: number;
+  today: boolean = false;
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
@@ -84,6 +85,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
         : Runs.find((x) => this.filter.run === x.key);
 
     this.sixDaysBehind(this.sixDaysBehindStamp);
+    this.today = true;
 
     //console.log('SELECTED_RUN',this.selectedRun)
   }
@@ -114,8 +116,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     //    this.offsets = this.offsets.slice(0,15);
     //}
     //console.log(`ngOnChanges: offsets=${this.offsets}`);
-
-
 
     this.meteoService
       .getAllMapImages(this.filter, this.offsets)
@@ -171,7 +171,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     }
     this.sid = this.minHour;
 
-
     // get legend from service
     this.spinner.show(this.LEGEND_SPINNER);
     this.meteoService
@@ -189,7 +188,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       .add(() => {
         this.spinner.hide(this.LEGEND_SPINNER);
       });
-
   }
 
   ngAfterViewInit() {
@@ -370,6 +368,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    * Provides static forecasts at varying of the day of the current week
    */
   changeDate(id: number, isToday: boolean, c: number) {
+    this.today = false;
     let weekday = this.sixDaysBehindStamp[id].split(" ")[0].toLowerCase();
     let weekdays = {
       sunday: "6",
@@ -383,13 +382,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
     if (!isToday) {
       this.isClicked = true;
-      console.log(
-        "not today ",
-        "clicked:",
-        this.clicked,
-        " !isToday:",
-        !isToday,
-      );
 
       // add the weekday field
       this.filter.weekday = weekdays[weekday];
@@ -423,7 +415,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.updateTimestmapOldDays(this.sid, this.behindDays);
     } else {
       this.isClicked = false;
-      console.log("today ", "clicked:", this.clicked, " !isToday:", !isToday);
       this.timestampRun = this.lastRunAt.format();
       this.timestamp = this.lastRunAt.format();
       // remove the weekday field to get last static forecasts

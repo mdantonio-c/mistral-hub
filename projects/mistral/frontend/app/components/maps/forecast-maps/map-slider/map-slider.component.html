@@ -306,11 +306,9 @@
             id="{{ i }}"
             class="clickable text-center"
             [ngClass]="
-              clicked === i || (!clicked && isToday)
-                ? 'selected'
-                : 'not-selected'
+              clicked === i || (today && isToday) ? 'selected' : 'not-selected'
             "
-            (click)="clicked = clicked === i ? null : i"
+            (click)="clicked = i"
             (click)="changeDate(i, isToday, c)"
             placement="bottom"
             ngbTooltip="Forecast produced on {{ data }}"
@@ -318,8 +316,7 @@
             {{ data }}
           </div>
         </div>
+      </div>
     </div>
-    </div>
-    
   </div>
 </div>
