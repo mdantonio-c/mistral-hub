@@ -379,6 +379,14 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
     if (!isToday) {
       this.isClicked = true;
+      console.log(
+        "not today ",
+        "clicked:",
+        this.clicked,
+        " !isToday:",
+        !isToday,
+      );
+
       // add the weekday field
       this.filter.weekday = weekdays[weekday];
 
@@ -411,6 +419,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.updateTimestmapOldDays(this.sid, this.behindDays);
     } else {
       this.isClicked = false;
+      console.log("today ", "clicked:", this.clicked, " !isToday:", !isToday);
       this.timestampRun = this.lastRunAt.format();
       this.timestamp = this.lastRunAt.format();
       // remove the weekday field to get last static forecasts
@@ -442,7 +451,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
   /**
    * Provides the nomenclature of the six days of the current week, the last day is the current day
-   * @param sixDateStamp vector string to be populated with the nomenclature
+   * @param sixDateStamp vector string to be populated with the date
+   * nomenclature
    */
   sixDaysBehind(sixDateStamp: string[]): void {
     const nth = (d: number) => {
@@ -458,11 +468,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           return "th";
       }
     };
-    let dateNomenclature: Array<string> = [];
-    let dayStamp: Array<string> = [];
-    let dateStamp: Array<string> = [];
-    let nowDate = new Date();
-    let tmpDate = new Date();
     const weekday = [
       "Sunday",
       "Monday",
@@ -472,21 +477,24 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       "Friday",
       "Saturday",
     ];
+    let now: Date = new Date();
+    let date: string[] = [];
+    let dayWeek: string[] = [];
+    let nomenclature: string[] = [];
+
     for (let i = 0; i < 6; i++) {
-      if (nowDate.getDay() - i < 0) {
-        dayStamp.push(weekday[nowDate.getDay() - i + 7]);
-      } else {
-        dayStamp.push(weekday[nowDate.getDay() - i]);
-      }
-      tmpDate.setDate(nowDate.getDate() - i);
-      dateStamp.push(tmpDate.getDate().toString());
-      dateNomenclature.push(nth(tmpDate.getDate()));
+      let tmpDate: Date = new Date();
+
+      tmpDate.setDate(now.getDate() - i);
+      date.push(tmpDate.getDate().toString());
+      dayWeek.push(weekday[tmpDate.getDay()]);
+      nomenclature.push(nth(tmpDate.getDate()));
     }
-    dayStamp = dayStamp.reverse();
-    dateStamp = dateStamp.reverse();
-    dateNomenclature = dateNomenclature.reverse();
+    date = date.reverse();
+    dayWeek = dayWeek.reverse();
+    nomenclature = nomenclature.reverse();
     for (let i = 0; i < 6; i++) {
-      sixDateStamp.push(`${dayStamp[i]} ${dateStamp[i]}${dateNomenclature[i]}`);
+      sixDateStamp.push(`${dayWeek[i]} ${date[i]}${nomenclature[i]}`);
     }
   }
 }
