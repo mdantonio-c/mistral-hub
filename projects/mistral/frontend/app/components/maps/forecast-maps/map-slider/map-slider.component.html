@@ -132,6 +132,7 @@
         [showNavigationIndicators]="false"
         [keyboard]="false"
         (slide)="onSlide($event)"
+        [class.notavaliable]="!mapAvailable"
       >
         <ng-template
           ngbSlide
@@ -186,8 +187,8 @@
               </div>
             </div>
             <div class="no-results" *ngIf="!mapAvailable">
-              <h2>No Maps Available</h2>
-              <p>Try to apply a different set of filters</p>
+              <h2>No Maps Available <i class="fa-regular fa-face-frown" style="color: #e49c1e;"></i></h2>
+              <p>The map for the selected day is temporarily unavailable. <br> Please select another date.</p>
             </div>
             <div
               *ngIf="
