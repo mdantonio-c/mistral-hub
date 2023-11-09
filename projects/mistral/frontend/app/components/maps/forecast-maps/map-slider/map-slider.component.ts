@@ -59,8 +59,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   sixDaysBehindStamp: string[] = [];
   /* flag to know if a day different to the current day is selected */
   isClicked: boolean = false;
-  behindDays: number;
+  /* flag used to make selected the current date at the initialization of the page*/
   today: boolean = false;
+  /* variable used to store the id of the selected day after OnInit*/
+  id_date: any;
+  mapAvailable: boolean = true;
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
@@ -79,13 +82,26 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   ngOnInit() {
     //console.log('FILTER_RUN',this.filter.run)
     //console.log('RUNS',Runs)
+    //console.log('ngOnInit mapavailable:',this.mapAvailable)
     this.selectedRun =
       this.filter.field == "percentile" || this.filter.field == "probability"
         ? IffRuns.find((x) => this.filter.run === x.key)
         : Runs.find((x) => this.filter.run === x.key);
 
     this.sixDaysBehind(this.sixDaysBehindStamp);
-    this.today = true;
+    if (!this.filter.weekday || this.filter.weekday === "") {
+      this.today = true;
+      localStorage.removeItem("id");
+      localStorage.removeItem("behindDays");
+      //console.log('today',this.today)
+    } else {
+      this.today = false;
+      this.id_date = parseInt(localStorage.getItem("id"));
+      //console.log('today',this.today)
+    }
+
+    //console.log('HO CALLATO ngONINIT')
+    //console.log(this.filter)
 
     //console.log('SELECTED_RUN',this.selectedRun)
   }
@@ -97,11 +113,18 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   ngOnChanges(): void {
     // parse reftime as utc date
     // console.log(`reference time ${this.reftime}`);
+    //console.log('FILTER in OnChanges map-slider-component',this.filter)
+    //console.log('________________________________________________')
+    // prevent to store behindDay if user reload page
+    if (!this.filter.weekday || this.filter.weekday === "") {
+      localStorage.removeItem("behindDays");
+    }
+    //console.log('ngOnChanges mapavailable:',this.mapAvailable)
     this.lastRunAt = moment.utc(`${this.reftime}`, "YYYYMMDDHH");
-    // console.log(`last run at ${this.lastRunAt}`);
     this.timestamp = this.lastRunAt.format();
     this.timestampRun = this.lastRunAt.format();
 
+    this.checkIfReftimeIsOk();
     this.grid_num = this.filter.res === "lm2.2" ? 4 : 6;
 
     this.images.length = 0;
@@ -273,11 +296,13 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     // console.log(`updateCarousel: indexImage=${indexImage}`);
     setTimeout(() => {
       this.carousel.select(`slideId-${indexImage}`);
-      if (!this.isClicked) {
-        this.updateTimestamp(index);
-      } else {
-        this.updateTimestmapOldDays(index, this.behindDays);
-      }
+      // if (!this.isClicked) {
+      //   this.updateTimestamp(index);
+      // }
+      // else {
+      //   this.updateTimestmapOldDays(index, this.behindDays);
+      // }
+      this.updateTimestamp(index);
     });
   }
 
@@ -314,11 +339,52 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    * @private
    */
   private updateTimestmapOldDays(amount: number, days: number) {
-    let a = this.lastRunAt.clone().subtract(days, "day");
-    a = a.clone().add(amount, "hours");
-    this.timestamp = a.format();
+    let tmpDateString = moment().format("YYYYMMDD");
+    if (
+      this.filter.field == "percentile" ||
+      this.filter.field == "probability"
+    ) {
+      tmpDateString = tmpDateString + "00";
+    } else {
+      tmpDateString = tmpDateString + this.filter.run;
+    }
+    let tmpDate = moment.utc(`${tmpDateString}`, "YYYYMMDDHH");
+    let b = tmpDate.clone().subtract(days, "day");
+    b = b.clone().add(amount, "hours");
+    // let a = this.lastRunAt.clone().subtract(days, "day");
+    // a = a.clone().add(amount, "hours");
+    //this.timestamp = a.format();
+    this.timestamp = b.format();
   }
 
+  /**
+   * Check if the last available reftime is the same of day selected
+   * otherwise show not available map
+   * @private
+   */
+  private checkIfReftimeIsOk() {
+    let behindDays = parseInt(localStorage.getItem("behindDays"));
+    let tmpDateString = moment().format("YYYYMMDD");
+    if (
+      this.filter.field == "percentile" ||
+      this.filter.field == "probability"
+    ) {
+      /* since this field are always produced at 00  */
+      tmpDateString = tmpDateString + "00";
+    } else {
+      tmpDateString = tmpDateString + this.filter.run;
+    }
+    let tmpDate = moment.utc(`${tmpDateString}`, "YYYYMMDDHH");
+
+    let tmpString = tmpDate.clone().subtract(behindDays, "days").format();
+    if (this.timestamp !== tmpString) {
+      console.log("È DIVERSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+      console.log(this.timestamp, tmpString, behindDays);
+      this.mapAvailable = false;
+    }
+
+    //localStorage.removeItem('behindDays')
+  }
   /**
    * Preset the carousel and the slider on the nearest current hour.
    */
@@ -366,9 +432,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
   /**
    * Provides static forecasts at varying of the day of the current week
+   * @param id id-number of the selected button
+   * @param isToday
    */
   changeDate(id: number, isToday: boolean, c: number) {
     this.spinner.show(this.IMAGE_SPINNER);
+    /* flag deactivated since another date different by current day is selected */
     this.today = false;
     let weekday = this.sixDaysBehindStamp[id].split(" ")[0].toLowerCase();
     let weekdays = {
@@ -380,7 +449,10 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       friday: "4",
       saturday: "5",
     };
-
+    /* store the value of id to allow day selection after OnInit */
+    localStorage.setItem("id", id.toString());
+    const behindDays = (c - id - 1).toString();
+    localStorage.setItem("behindDays", behindDays);
     if (!isToday) {
       this.isClicked = true;
 
@@ -409,11 +481,14 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           // once the maps have been loaded I can preset the carousel
           this.presetSlider();
         });
-      let tmp_date: moment.Moment | string = this.lastRunAt;
-      this.behindDays = c - id - 1;
-      tmp_date = moment(tmp_date).subtract(this.behindDays, "day").format();
-      this.timestampRun = tmp_date;
-      this.updateTimestmapOldDays(this.sid, this.behindDays);
+      //let tmp_date: moment.Moment | string = this.lastRunAt;
+      //console.log('lastRunAt in change date', this.lastRunAt);
+      //console.log('gg indietro in change date:', this.behindDays);
+      //tmp_date = moment(tmp_date).subtract(this.behindDays, "day").format();
+      //console.log('tmpdate in change date', tmp_date);
+      //this.timestampRun = tmp_date;
+      //this.updateTimestmapOldDays(this.sid, this.behindDays);
+      //console.log('FILTER QUANDO CAMBI GIORNO',this.filter)
     } else {
       this.isClicked = false;
       this.timestampRun = this.lastRunAt.format();
@@ -442,6 +517,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           // once the maps have been loaded I can preset the carousel
           this.presetSlider();
         });
+      //console.log('FILTER QUANDO NON CAMBI GIORNO', this.filter)
     }
   }
 

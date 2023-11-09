@@ -98,7 +98,10 @@
 
     <div class="dpc-container">
       <div
-        *ngIf="filter.field == 'percentile' || filter.field == 'probability'"
+        *ngIf="
+          (filter.field == 'percentile' || filter.field == 'probability') &&
+          mapAvailable
+        "
         class="dpc-label"
       >
         Forecast model: <b>Italy Flash Flood</b> - Reference date:
@@ -106,7 +109,11 @@
         Product: <b>{{ selectedRun.value }}</b>
       </div>
       <div
-        *ngIf="filter.field != 'percentile' && filter.field != 'probability'"
+        *ngIf="
+          filter.field != 'percentile' &&
+          filter.field != 'probability' &&
+          mapAvailable
+        "
         class="dpc-label"
       >
         Forecast model: <b>{{ getValue("res", filter.res) }} Km</b> - Reference
@@ -131,7 +138,7 @@
           *ngFor="let image of images | slice : fromMinImage; index as i"
           id="slideId-{{ i + fromMinImage }}"
         >
-          <div class="carousel-caption">
+          <div class="carousel-caption" *ngIf="mapAvailable">
             <!--<h3>Image[{{i+fromMinImage}}] - slice {{fromMinImage}}</h3>  -->
             <h5>
               <span
@@ -155,10 +162,13 @@
               [src]="image"
               alt="map"
               class="mx-auto d-block carousel-img"
-              *ngIf="image"
+              *ngIf="image && mapAvailable"
             />
             <div
-              *ngIf="filter.field == 'prec3' || filter.field == 't2m'"
+              *ngIf="
+                (filter.field == 'prec3' || filter.field == 't2m') &&
+                mapAvailable
+              "
               style="font-size: 90%; margin: 5px"
             >
               <div class="mst--data-attribution">
@@ -175,9 +185,15 @@
                 </a>
               </div>
             </div>
+            <div class="no-results" *ngIf="!mapAvailable">
+              <h2>No Maps Available</h2>
+              <p>Try to apply a different set of filters</p>
+            </div>
             <div
               *ngIf="
-                filter.field == 'percentile' || filter.field == 'probability'
+                (filter.field == 'percentile' ||
+                  filter.field == 'probability') &&
+                mapAvailable
               "
               style="font-size: 90%; margin: 5px"
             >
@@ -306,7 +322,7 @@
             id="{{ i }}"
             class="clickable text-center"
             [ngClass]="
-              clicked === i || (today && isToday) ? 'selected' : 'not-selected'
+              i === id_date || (today && isToday) ? 'selected' : 'not-selected'
             "
             (click)="clicked = i"
             (click)="changeDate(i, isToday, c)"
