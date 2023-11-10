@@ -187,8 +187,14 @@
               </div>
             </div>
             <div class="no-results" *ngIf="!mapAvailable">
-              <h2>No Maps Available <i class="fa-regular fa-face-frown" style="color: #e49c1e;"></i></h2>
-              <p>The map for the selected day is temporarily unavailable. <br> Please select another date.</p>
+              <h2>
+                No Maps Available
+                <i class="fa-regular fa-face-frown" style="color: #e49c1e"></i>
+              </h2>
+              <p>
+                The map for the selected day is temporarily unavailable. <br />
+                Please select another date.
+              </p>
             </div>
             <div
               *ngIf="
@@ -279,12 +285,12 @@
             (change)="updateCarousel($event.newValue)"
             placement="top"
           ></mv-slider>
-          <!--< MODIFICA MIA / copiata alla riga 296
+          <!--
           <div class="calendar d-flex">
-            <div class="date" *ngFor="let data of sixDaysBehindStamp">
-              {{data}}
-            </div>-->
-          <!--<div class="date">
+            <div class="date">
+              Friday 18th
+            </div>
+            <div class="date">
               Saturday 19th
             </div>
             <div class="date">
@@ -332,6 +338,7 @@
           >
             {{ data }}
           </div>
+          -->
         </div>
       </div>
     </div>

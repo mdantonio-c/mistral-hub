@@ -80,9 +80,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   ) {}
 
   ngOnInit() {
-    //console.log('FILTER_RUN',this.filter.run)
-    //console.log('RUNS',Runs)
-    //console.log('ngOnInit mapavailable:',this.mapAvailable)
     this.selectedRun =
       this.filter.field == "percentile" || this.filter.field == "probability"
         ? IffRuns.find((x) => this.filter.run === x.key)
@@ -121,6 +118,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     }
     //console.log('ngOnChanges mapavailable:',this.mapAvailable)
     this.lastRunAt = moment.utc(`${this.reftime}`, "YYYYMMDDHH");
+    // console.log(`last run at ${this.lastRunAt}`);
     this.timestamp = this.lastRunAt.format();
     this.timestampRun = this.lastRunAt.format();
 
@@ -165,7 +163,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
     this.step = 1;
     // parseInt at end of string to get the min hour (e.g prec6 -> 6)
-
     const matchedValue = this.filter.field.match(/(\d+)$/);
     if (matchedValue) {
       this.minHour = parseInt(matchedValue[0], 10);
@@ -273,7 +270,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    */
   updateCarousel(index: number) {
     // console.log(`updateCarousel: index=${index}`);
-
     let indexImage = index;
     if (
       this.filter.field === "percentile" ||
@@ -296,12 +292,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     // console.log(`updateCarousel: indexImage=${indexImage}`);
     setTimeout(() => {
       this.carousel.select(`slideId-${indexImage}`);
-      // if (!this.isClicked) {
-      //   this.updateTimestamp(index);
-      // }
-      // else {
-      //   this.updateTimestmapOldDays(index, this.behindDays);
-      // }
       this.updateTimestamp(index);
     });
   }

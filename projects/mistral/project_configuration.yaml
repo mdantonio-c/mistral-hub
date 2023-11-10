@@ -2,7 +2,7 @@
 project:
   title: Meteo-Hub
   description: "Mistral Meteo Hub"
-  version: "0.4.8"
+  version: "0.4.9"
   rapydo: "2.4"
 
 variables:
@@ -73,6 +73,8 @@ variables:
     PLATFORM: G100
     MAPS_URL:
     TILES_URL:
+    PROJECT_HOME: "https://www.mistralportal.it"
+    COOKIE_POLICY_URL: "https://www.cineca.it/privacy/cookies-cineca"
     FRONTEND_DEBUG: 0
 
     CORS_ALLOWED_ORIGIN: "*"

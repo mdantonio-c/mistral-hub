@@ -5,12 +5,14 @@ import { BaseProjectOptions } from "@rapydo/base.project.options";
 import { BytesPipe } from "@rapydo/pipes/bytes";
 import { YesNoPipe } from "@rapydo/pipes/yes_or_no";
 import { AdminMenu, User } from "@rapydo/types";
+import { environment } from "@rapydo/../environments/environment";
 
 @Injectable()
 export class ProjectOptions extends BaseProjectOptions {
   private policy_it: string;
   private policy_en: string;
   private participate_en: string;
+  private cookiePolicyUrl: string = environment.CUSTOM.COOKIE_POLICY_URL;
 
   constructor() {
     super();
@@ -59,7 +61,12 @@ export class ProjectOptions extends BaseProjectOptions {
   }
 
   cookie_law_text(): string {
-    return "We uses cookies to ensure you get the best experience on our website. If you continue to use this site you accept to receive cookies, otherwise you can leave this page. If you need more information you can read <a target='_blank' rel='noopener noreferrer' href='https://www.cineca.it/privacy/cookies-cineca'>privacy and cookie policy</a>";
+    return (
+      "We use cookies to ensure you get the best experience on our website. " +
+      "If you continue to use this site you accept to receive cookies, otherwise you " +
+      "can leave this page. If you need more information you can read " +
+      `<a target='_blank' rel='noopener noreferrer' href='${this.cookiePolicyUrl}'>privacy and cookie policy</a>`
+    );
   }
 
   cookie_law_button(): string {
@@ -89,7 +96,7 @@ La presente informativa, resa ai sensi del Regolamento (UE) 2016/679 (di seguito
 <ul>
     <li>mistralportal.eu</li>
     <li>mistralportal.it</li>
-    <li>meteo-hub.hpc.cineca.it</li>
+    <li>meteohub.mistralportal.it</li>
 </ul>
 La presente informativa è resa unicamente per coloro che accedono ed interagiscono con i siti sopra riportati e non per tutti gli altri siti web eventualmente consultati dall'utente tramite i collegamenti ipertestuali presenti nel sito, per cui Cineca non è responsabile.<br/>
 <br/>
@@ -139,7 +146,7 @@ Il web server del Cineca è configurato in maniera tale da non consentire l'iden
 <br/>
 <h5>L'UTILIZZO DI COOKIES E ALTRI SISTEMI DI TRACCIAMENTO</h5>
 Si veda l'informativa disponibile al seguente URL:
-https://www.cineca.it/privacy/cookies-cineca<br/> 
+${this.cookiePolicyUrl}<br/> 
 <br/>
 
 <h5>DESTINATARI DEI DATI</h5>
@@ -177,7 +184,7 @@ This information, made pursuant to Regulation (EU) 2016/679 (hereinafter the "Re
 <ul>
     <li>mistralportal.eu</li>
     <li>mistralportal.it</li>
-    <li>meteo-hub.hpc.cineca.it</li>
+    <li>meteohub.mistralportal.it</li>
 </ul>
 This information is provided solely for those who access and interact with the sites listed above and not for all other websites that may be consulted by the user through hypertext links on the site, for which Cineca is not responsible.<br/>
 <br/>
@@ -224,7 +231,7 @@ The Cineca web server is configured in such a way as not to allow the identifica
 
 <h5>THE USE OF COOKIES AND OTHER TRACKING SYSTEMS</h5>
 See the information available at the following URL:
-https://www.cineca.it/privacy/cookies-cineca<br/>
+${this.cookiePolicyUrl}<br/>
 <br/>
 
 <h5>DATA RECIPIENTS</h5>

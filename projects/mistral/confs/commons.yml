@@ -24,6 +24,8 @@ services:
       INJECT_PLATFORM: ${PLATFORM}
       INJECT_MAPS_URL: ${MAPS_URL}
       INJECT_TILES_URL: ${TILES_URL}
+      INJECT_PROJECT_HOME: ${PROJECT_HOME}
+      INJECT_COOKIE_POLICY_URL: ${COOKIE_POLICY_URL}
     # volumes:
     #   - ${DATA_DIR}/maps:/meteo
 
