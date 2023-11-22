@@ -59,6 +59,8 @@ export class ObsStationReportComponent implements OnInit {
   monoLineScheme = {
     domain: ["#E44D25"],
   };
+  /* flag to track if there are wind products in the selected groundstation */
+  existMixWindProduct: boolean = false;
 
   constructor(
     private obsService: ObsService,
@@ -73,7 +75,7 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   onNavChange(changeEvent: NgbNavChangeEvent) {
-    // console.log(`nav changed to varcode: ${changeEvent.nextId}`);
+    console.log(`nav changed to varcode: ${changeEvent.nextId}`);
     this.updateGraphData(changeEvent.nextId);
   }
 
@@ -91,7 +93,13 @@ export class ObsStationReportComponent implements OnInit {
           // data = randomize(data);
           this.descriptions = response.descr;
           this.report = data[0];
+          //console.log('response',response)
+          //console.log('DESCR-response.descr',this.descriptions);
+          //console.log('DATA-response.data',data);
+          //console.log('REPORT-data[0]',this.report);
+          //console.log('numero di prodotti della stazione',data[0].prod.length)
           let multi = this.normalize(data[0]);
+          this.checkWindMixProductAvailable(this.report);
           Object.assign(this, { multi });
           // console.log(JSON.stringify(this.multi));
           let meteogramToShow: string;
@@ -106,7 +114,7 @@ export class ObsStationReportComponent implements OnInit {
               `${x.code}-${x.level}-${x.timerange}` === meteogramToShow,
           );
           this.active = meteogramToShow;
-          // console.log("single: ", this.single, "multi: ", multi);
+          console.log("single: ", this.single, "multi: ", multi);
         },
         (error) => {
           this.notify.showError(error);
@@ -216,9 +224,33 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   private updateGraphData(navItemId: string) {
-    this.single = this.multi.filter(
-      (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
-    );
+    if (navItemId === "mixwind-0") {
+      this.single = this.multi.filter(
+        (x: DataSeries) =>
+          `${x.code}-${x.level}-${x.timerange}` ===
+            "B11002-103,2000,0,0-254,0,0" ||
+          `${x.code}-${x.level}-${x.timerange}` ===
+            "B11001-103,2000,0,0-254,0,0",
+      );
+      console.log("SINGLE", this.single[0], this.single[1]);
+      let prova: Object[] = [];
+      let i = 0;
+      this.single[0].series.forEach((v) => {
+        let s: Object = {
+          name: "direction-" + `${i}`,
+          x: v.name,
+          y: v.value,
+          r: 2,
+        };
+        prova.push(s);
+        i += 1;
+      });
+      console.log("PROVA", prova);
+    } else {
+      this.single = this.multi.filter(
+        (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
+      );
+    }
   }
 
   private normalize(data: Observation): DataSeries[] {
@@ -273,5 +305,24 @@ export class ObsStationReportComponent implements OnInit {
 
   yRightAxisScale(min, max) {
     return { min: `${min}`, max: `${max}` };
+  }
+
+  /*
+   * Check if wind speed and wind direction is present in the
+   * groundstation report
+   */
+  private checkWindMixProductAvailable(data: Observation): void {
+    let i: number = 0;
+    data.prod.forEach((v) => {
+      if (v.var == "B11001" || v.var == "B11002") {
+        i = i + 1;
+      }
+    });
+
+    if (i == 2) {
+      this.existMixWindProduct = true;
+    } else {
+      this.existMixWindProduct = false;
+    }
   }
 }

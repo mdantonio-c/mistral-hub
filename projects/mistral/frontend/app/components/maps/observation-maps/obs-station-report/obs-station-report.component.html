@@ -87,6 +87,14 @@
                   <ng-template ngbNavContent></ng-template>
                 </li>
               </ng-container>
+              <li
+                ngbNavItem="mixwind-0"
+                class="border border-primary rounded m-1"
+                *ngIf="existMixWindProduct"
+              >
+                <a ngbNavLink>WIND MIX</a>
+                <ng-template ngbNavContent></ng-template>
+              </li>
             </ul>
             <div [ngbNavOutlet]="nav"></div>
             <p class="text-justify">
@@ -110,13 +118,18 @@
             </p>
             <!--<pre>{{nav.activeId}}</pre>-->
             <div #containerRef>
-              <ng-container
-                *ngIf="
-                  nav.activeId.split('-')[0] !== 'B13011';
-                  then lineChart;
-                  else comboChart
-                "
-              >
+              <ng-container [ngSwitch]="nav.activeId.split('-')[0]">
+                <div *ngSwitchCase="'B13011'">
+                  <ng-container *ngTemplateOutlet="comboChart"></ng-container>
+                </div>
+                <div *ngSwitchCase="'mixwind'">
+                  <ng-container
+                    *ngTemplateOutlet="comboChartWind"
+                  ></ng-container>
+                </div>
+                <div *ngSwitchDefault>
+                  <ng-container *ngTemplateOutlet="lineChart"></ng-container>
+                </div>
               </ng-container>
               <ng-template #lineChart>
                 <custom-ngx-charts-line-chart
@@ -206,6 +219,72 @@
                       accumulatedSeries[0].name.toLowerCase().slice(1)
                       | translate : lang) + ' (mm)'
                   "
+                  [gridLineNgStyleByXAxisTick]="onlyDateChangeNgStyleFn"
+                >
+                  <ng-template #tooltipTemplate let-model="model">
+                    <span class="d-block">{{
+                      model.name | fmtLabelDate : lang : true
+                    }}</span>
+                    <span class="d-block"
+                      >{{ model.series | translate : lang }}:
+                      {{ model.value }} (mm)</span
+                    >
+                  </ng-template>
+                  <ng-template #seriesTooltipTemplate let-model="model">
+                    <div class="area-tooltip-container">
+                      <span class="d-block"
+                        ><b>{{
+                          model[0].name | fmtLabelDate : lang : true
+                        }}</b></span
+                      >
+                      <div
+                        *ngFor="let tooltipItem of model"
+                        class="tooltip-item"
+                      >
+                        <span
+                          class="tooltip-item-color"
+                          [style.background-color]="
+                            !tooltipItem.series.includes('1h')
+                              ? tooltipItem.color
+                              : monoBarScheme.domain[0]
+                          "
+                        ></span>
+                        {{
+                          tooltipItem.series
+                            .toLowerCase()
+                            .charAt(0)
+                            .toUpperCase() +
+                            tooltipItem.series.toLowerCase().slice(1)
+                            | replace : "\\(([^\\)]+)\\)" : ""
+                            | translate : lang
+                        }}: <b>{{ tooltipItem.value }}</b> (mm)
+                      </div>
+                    </div>
+                  </ng-template>
+                </combo-chart-component>
+              </ng-template>
+
+              <ng-template #comboChartWind>
+                <combo-chart-component
+                  [view]="[containerRef.offsetWidth - 100, 400]"
+                  [scheme]="monoBarScheme"
+                  [colorSchemeLine]="monoLineScheme"
+                  [results]="single"
+                  [animations]="true"
+                  [lineChart]="single[1].series"
+                  [tooltipDisabled]="false"
+                  [yLeftAxisScaleFactor]="yLeftAxisScale"
+                  [gradient]="false"
+                  [xAxis]="true"
+                  [yAxis]="true"
+                  [legend]="false"
+                  [showGridLines]="true"
+                  [showXAxisLabel]="true"
+                  [showYAxisLabel]="true"
+                  [xAxisLabel]="xAxisLabelFormatting()"
+                  [xAxisTickFormatting]="xAxisTickFormattingFn"
+                  [yAxisLabel]="'m/s'"
+                  [curve]="curve"
                   [gridLineNgStyleByXAxisTick]="onlyDateChangeNgStyleFn"
                 >
                   <ng-template #tooltipTemplate let-model="model">
