@@ -31,7 +31,7 @@ export class ForecastMapsComponent
     this.filter = filter;
     this.offsets.length = 0;
     //console.log(filter);
-
+    //console.log('FILTER IN APPLY FILTER',filter);
     // get data
     this.meteoService
       .getMapset(filter)
@@ -54,5 +54,6 @@ export class ForecastMapsComponent
         this.loading = false;
         this.spinner.hide();
       });
+    //console.log('SONO IN APPLY FILTER')
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from "@angular/core";
+import { Component, OnInit, Output, EventEmitter, Input } from "@angular/core";
 import {
   FormBuilder,
   FormGroup,
@@ -45,6 +45,8 @@ export class MapFilterComponent implements OnInit {
 
   @Output()
   onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<MeteoFilter>();
+  // @Input()
+  // weekday : string;
 
   constructor(private fb: FormBuilder, private authService: AuthService) {
     this.filterForm = this.fb.group({
@@ -56,6 +58,7 @@ export class MapFilterComponent implements OnInit {
       platform: [""],
       env: [""],
       area: ["Italia", Validators.required],
+      weekday: [""],
     });
   }
 
@@ -71,7 +74,17 @@ export class MapFilterComponent implements OnInit {
     // subscribe for form value changes
     this.onChanges();
     // apply filter the first time
+    //console.log('STO CALLANDO FILTER DA NGONINIT')
     this.filter();
+  }
+
+  _weekday: string;
+  get weekday(): string {
+    return this._weekday;
+  }
+  @Input() set weekday(value: string) {
+    this._weekday = value;
+    this.filterForm.get("weekday").setValue(this.weekday);
   }
 
   private onChanges(): void {
@@ -81,6 +94,7 @@ export class MapFilterComponent implements OnInit {
       }
     });
     this.filterForm.valueChanges.subscribe((val) => {
+      //console.log('STO CALLANDO IL METODO FILTER')
       this.filter();
     });
     this.filterForm.get("res").valueChanges.subscribe((val) => {
@@ -88,19 +102,27 @@ export class MapFilterComponent implements OnInit {
         this.fields = this.fields_wrf;
       } else this.fields = this.fields_cosmo;
     });
-    this.filterForm.valueChanges.subscribe((val) => {
-      this.filter();
-    });
+
+    //this.filterForm.get("weekday").setValue(this.weekday)
+    // this.filterForm.valueChanges.subscribe((val) => {
+    //   this.filter();
+    //   });
   }
 
   private filter() {
     let filter: MeteoFilter = this.filterForm.value;
+    if (!filter.weekday || filter.weekday === "") {
+      delete filter["weekday"];
+    }
     if (filter.env === "") {
       delete filter["env"];
     }
     if (filter.platform === "") {
       delete filter["platform"];
     }
+    //console.log('WEEKDAY',this.weekday)
+    //console.log(filter)
     this.onFilterChange.emit(filter);
+    //console.log('SONO IN FILTER')
   }
 }
