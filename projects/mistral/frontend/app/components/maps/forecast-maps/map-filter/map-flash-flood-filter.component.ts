@@ -100,6 +100,7 @@ export class MapFlashFloodFilterComponent implements OnInit {
 
       res: ["lm2.2", Validators.required],
       area: ["Italia", Validators.required],
+      weekday: [""],
     });
     //  config.backdrop = 'static';
     // config.keyboard = false;
@@ -118,6 +119,15 @@ export class MapFlashFloodFilterComponent implements OnInit {
   // }
   // #####################################################
 
+  _weekday: string;
+  get weekday(): string {
+    return this._weekday;
+  }
+  @Input() set weekday(value: string) {
+    this._weekday = value;
+    this.filterForm.get("weekday").setValue(this.weekday);
+  }
+
   private onChanges(): void {
     this.filterForm.valueChanges.subscribe((val) => {
       this.filter();
@@ -132,6 +142,9 @@ export class MapFlashFloodFilterComponent implements OnInit {
 
   private filter() {
     let filter: MeteoFilter = this.filterForm.value;
+    if (!filter.weekday || filter.weekday === "") {
+      delete filter["weekday"];
+    }
     this.onFilterChange.emit(filter);
   }
 }

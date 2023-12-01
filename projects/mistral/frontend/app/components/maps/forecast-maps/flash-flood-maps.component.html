@@ -5,6 +5,7 @@
         class="collapse"
         id="filters"
         [ngbCollapse]="isFilterCollapsed"
+        [weekday]="filter?.weekday"
         (onFilterChange)="applyFilter($event)"
       ></app-map-flash-flood-filter>
     </div>

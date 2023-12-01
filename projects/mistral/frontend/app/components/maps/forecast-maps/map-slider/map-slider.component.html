@@ -98,7 +98,10 @@
 
     <div class="dpc-container">
       <div
-        *ngIf="filter.field == 'percentile' || filter.field == 'probability'"
+        *ngIf="
+          (filter.field == 'percentile' || filter.field == 'probability') &&
+          mapAvailable
+        "
         class="dpc-label"
       >
         Forecast model: <b>Italy Flash Flood</b> - Reference date:
@@ -106,7 +109,11 @@
         Product: <b>{{ selectedRun.value }}</b>
       </div>
       <div
-        *ngIf="filter.field != 'percentile' && filter.field != 'probability'"
+        *ngIf="
+          filter.field != 'percentile' &&
+          filter.field != 'probability' &&
+          mapAvailable
+        "
         class="dpc-label"
       >
         Forecast model: <b>{{ getValue("res", filter.res) }} Km</b> - Reference
@@ -125,13 +132,14 @@
         [showNavigationIndicators]="false"
         [keyboard]="false"
         (slide)="onSlide($event)"
+        [class.notavaliable]="!mapAvailable"
       >
         <ng-template
           ngbSlide
           *ngFor="let image of images | slice : fromMinImage; index as i"
           id="slideId-{{ i + fromMinImage }}"
         >
-          <div class="carousel-caption">
+          <div class="carousel-caption" *ngIf="mapAvailable">
             <!--<h3>Image[{{i+fromMinImage}}] - slice {{fromMinImage}}</h3>  -->
             <h5>
               <span
@@ -155,10 +163,13 @@
               [src]="image"
               alt="map"
               class="mx-auto d-block carousel-img"
-              *ngIf="image"
+              *ngIf="image && mapAvailable"
             />
             <div
-              *ngIf="filter.field == 'prec3' || filter.field == 't2m'"
+              *ngIf="
+                (filter.field == 'prec3' || filter.field == 't2m') &&
+                mapAvailable
+              "
               style="font-size: 90%; margin: 5px"
             >
               <div class="mst--data-attribution">
@@ -175,9 +186,21 @@
                 </a>
               </div>
             </div>
+            <div class="no-results" *ngIf="!mapAvailable">
+              <h2>
+                No Maps Available
+                <i class="fa-regular fa-face-frown" style="color: #e49c1e"></i>
+              </h2>
+              <p>
+                The map for the selected day is temporarily unavailable. <br />
+                Please select another date.
+              </p>
+            </div>
             <div
               *ngIf="
-                filter.field == 'percentile' || filter.field == 'probability'
+                (filter.field == 'percentile' ||
+                  filter.field == 'probability') &&
+                mapAvailable
               "
               style="font-size: 90%; margin: 5px"
             >
@@ -262,12 +285,12 @@
             (change)="updateCarousel($event.newValue)"
             placement="top"
           ></mv-slider>
-          <!--< MODIFICA MIA / copiata alla riga 296
+          <!--
           <div class="calendar d-flex">
-            <div class="date" *ngFor="let data of sixDaysBehindStamp">
-              {{data}}
-            </div>-->
-          <!--<div class="date">
+            <div class="date">
+              Friday 18th
+            </div>
+            <div class="date">
               Saturday 19th
             </div>
             <div class="date">
@@ -306,11 +329,9 @@
             id="{{ i }}"
             class="clickable text-center"
             [ngClass]="
-              clicked === i || (!clicked && isToday)
-                ? 'selected'
-                : 'not-selected'
+              i === id_date || (today && isToday) ? 'selected' : 'not-selected'
             "
-            (click)="clicked = clicked === i ? null : i"
+            (click)="clicked = i"
             (click)="changeDate(i, isToday, c)"
             placement="bottom"
             ngbTooltip="Forecast produced on {{ data }}"
