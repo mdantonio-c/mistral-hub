@@ -1,5 +1,7 @@
 import { Component, OnInit, Input, Injector } from "@angular/core";
 import * as L from "leaflet";
+import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
+import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import * as moment from "moment";
 import {
   MISTRAL_LICENSE_HREF,
@@ -55,6 +57,26 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     center: L.latLng(41.88, 12.28),
     maxBoundsViscosity: 1.0,
     maxBounds: this.bounds,
+    timeDimension: true,
+    timeDimensionOptions: {
+      timeInterval: this.timeIntervalTimeLine(),
+      period: "PT60M", // ISO8601 duration, step of 60 min
+    },
+    timeDimensionControl: true,
+    timeDimensionControlOptions: {
+      autoPlay: false,
+      timeZones: ["Local"],
+      loopButton: false,
+      timeSteps: 1,
+      playReverseButton: false,
+      limitSliders: true,
+      playerOptions: {
+        buffer: 0,
+        transitionTime: 500,
+        loop: false,
+      },
+      speedSlider: false,
+    },
   };
   viewMode = ViewModes.adv;
 
@@ -63,9 +85,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private markersGroup: L.LayerGroup;
   private legends: { [key: string]: L.Control } = {};
   private currentProduct: string;
+  private now: number; // to track time when layer changes
 
   private filter: ObsFilter;
-
   constructor(
     injector: Injector,
     private obsService: ObsService,
@@ -88,8 +110,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
-    //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
 
+    //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
     // default product: temperature
     const defaultProduct: string = "t2m";
     // add default layer
@@ -109,6 +131,40 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     this.loadObservations(filter, true);
     this.centerMap();
 
+    /* cacht event timeload on the timebar */
+    (map as any).timeDimension.on("timeload", () => {
+      /* delete previous markers on the map */
+      if (this.markersGroup) {
+        map.removeLayer(this.markersGroup);
+        this.markers = [];
+        this.allMarkers = [];
+      }
+
+      let isMidNight: boolean = false;
+      let selectedDate = new Date((map as any).timeDimension.getCurrentTime());
+      let startDate = new Date(selectedDate);
+      startDate.setHours(selectedDate.getHours() - 1);
+
+      /* For data that refer to the previous day */
+      if (startDate.getUTCDate() != selectedDate.getUTCDate()) {
+        isMidNight = true;
+      }
+
+      const filter: ObsFilter = {
+        reftime: !isMidNight ? selectedDate : startDate,
+        time: [startDate.getUTCHours(), startDate.getUTCHours()],
+        license: this.filter.license,
+        onlyStations: false,
+        reliabilityCheck: true,
+        last: true,
+        product: this.filter.product,
+        timerange: this.filter.timerange,
+        level: this.filter.level,
+      };
+
+      this.loadObservations(filter, true);
+    });
+
     this.legends = {
       t2m: this.createLegendControl("tm2"),
       prs: this.createLegendControl("pmsl"),
@@ -119,6 +175,23 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
 
     this.legends[defaultProduct].addTo(map);
     this.currentProduct = defaultProduct;
+  }
+  /*
+   * Define time interval of timeline following ISO standard
+   * dayToSubtract defines the start date
+   */
+  private timeIntervalTimeLine() {
+    const dayToSubtract: number = 2;
+    const now = new Date();
+    const nowIsoDate: string = now.toISOString();
+    let behindDate = new Date(now);
+    behindDate.setDate(now.getDate() - dayToSubtract);
+    behindDate.setHours(1);
+    behindDate.setMinutes(0);
+    behindDate.setSeconds(0);
+    behindDate.setMilliseconds(0);
+    const behindIsoDate: string = behindDate.toISOString();
+    return `${behindIsoDate}/${nowIsoDate}`;
   }
 
   private createLegendControl(id: string): L.Control {
@@ -157,7 +230,6 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       this.markersGroup.addTo(this.map);
     }
   }
-
   loadObservations(filter: ObsFilter, update = false) {
     //const startTime = new Date().getTime();
     this.spinner.show();
@@ -579,6 +651,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       this.filter.product = this.variablesConfig[obj.name].code;
       this.filter.timerange = this.variablesConfig[obj.name].timerange;
       this.filter.level = this.variablesConfig[obj.name].level;
+      (this.map as any).timeDimension.setCurrentTime(this.now);
       this.loadObservations(this.filter, true);
     }
 
@@ -621,6 +694,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   };
 
   printReferenceDate(): string {
+    const now: number = new Date().getTime();
+    this.now = now;
     return `${moment
       .utc(new Date().getTime())
       .local()
