@@ -406,8 +406,10 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               textColor = "#fff";
             } else if (lastObs.val >= 267.15 && lastObs.val < 269.15) {
               color = "#7200ff";
+              textColor = "#fff";
             } else if (lastObs.val >= 265.15 && lastObs.val < 267.15) {
               color = "#bf00ff";
+              textColor = "#fff";
             } else if (lastObs.val >= 263.15 && lastObs.val < 265.15) {
               color = "#ff00ff";
             } else if (lastObs.val >= 261.15 && lastObs.val < 263.15) {

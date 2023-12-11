@@ -454,22 +454,20 @@ a.timecontrol-play.loading:before {
 
  app-livemap .timecontrol-slider {
     width: 150px !important;
-      .slider {
-        width: 100% !important;
-      }
+    .timecontrol-slider .knob.upper, .timecontrol-slider .knob.main{
+      transform: translate3d(150px, 0px, 0px) !important;
+    }
   }
-  
 }
 
 @media screen and (min-width: 624px) and (max-width: 999px) {
   app-livemap .timecontrol-slider {
     width: 270px !important;
-      .slider {
-        width: 100% !important;
-      }
+    .knob.upper, .knob.main {
+      transform: translate3d(270px, 0px, 0px) !important;
+    }
   }
 }
-
 
 @media (min-height: 800px) {
   .legenda {
@@ -499,8 +497,6 @@ a.timecontrol-play.loading:before {
     width: 150px !important;
   }
  
-  
-
   app-meteo-tiles .timecontrol-slider .slider.has-limits {
     margin-left: 0 !important;
     margin-right: 0 !important;
