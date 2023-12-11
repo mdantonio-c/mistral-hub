@@ -434,7 +434,7 @@ a.timecontrol-play.loading:before {
   margin-top: 10px;
 }
 
-/*Responsive legende*/
+/*Responsive legende e timebar*/
 @media screen and (max-width: 768px) {
   .legenda {
     max-width: 70% !important;
@@ -444,13 +444,33 @@ a.timecontrol-play.loading:before {
       max-width: 57% !important;
     }
   }
+ 
 }
 
 @media screen and (max-width: 595px) {
   .legenda {
     max-width: 60% !important;
   }
+
+ app-livemap .timecontrol-slider {
+    width: 150px !important;
+      .slider {
+        width: 100% !important;
+      }
+  }
+  
 }
+
+@media screen and (min-width: 624px) and (max-width: 999px) {
+  app-livemap .timecontrol-slider {
+    width: 270px !important;
+      .slider {
+        width: 100% !important;
+      }
+  }
+}
+
+
 @media (min-height: 800px) {
   .legenda {
     max-width: 70% !important;
@@ -478,6 +498,8 @@ a.timecontrol-play.loading:before {
   app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
     width: 150px !important;
   }
+ 
+  
 
   app-meteo-tiles .timecontrol-slider .slider.has-limits {
     margin-left: 0 !important;
@@ -502,3 +524,5 @@ a.timecontrol-play.loading:before {
     width: 60px;
   }
 }
+
+
