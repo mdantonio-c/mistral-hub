@@ -177,7 +177,12 @@ app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol {
 /**
 * Slider/Knobs styles
 */
-
+app-livemap .timecontrol-slider {
+  width: 500px !important;
+  .slider {
+    width: 100% !important;
+  }
+}
 .timecontrol-slider .slider {
   position: relative;
   height: 12px;
@@ -410,7 +415,7 @@ a.timecontrol-play.loading:before {
 
 .legenda {
   margin-left: 11px !important;
-  width:  auto !important;
+  width: auto !important;
 }
 
 @media (max-width: 767px) {
@@ -435,8 +440,8 @@ a.timecontrol-play.loading:before {
     max-width: 70% !important;
   }
   app-meteo-tiles {
-    .legenda{
-        max-width: 57% !important;
+    .legenda {
+      max-width: 57% !important;
     }
   }
 }
@@ -446,18 +451,18 @@ a.timecontrol-play.loading:before {
     max-width: 60% !important;
   }
 }
-@media(min-height: 800px)  {
+@media (min-height: 800px) {
   .legenda {
     max-width: 70% !important;
   }
 }
 
-@media(max-height: 760px) {
- .legenda {
+@media (max-height: 760px) {
+  .legenda {
     max-width: 50% !important;
   }
 }
-@media(max-height: 667px) {
+@media (max-height: 667px) {
   .legenda {
     max-width: 40% !important;
   }
@@ -496,5 +501,4 @@ a.timecontrol-play.loading:before {
   app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .speed {
     width: 60px;
   }
- 
 }
