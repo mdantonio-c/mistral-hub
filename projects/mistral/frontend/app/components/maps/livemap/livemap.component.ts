@@ -72,8 +72,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       limitSliders: true,
       playerOptions: {
         buffer: 0,
-        transitionTime: 500,
-        loop: false,
+        transitionTime: 1000,
+        loop: true,
+        startOver: true,
       },
       speedSlider: false,
     },
@@ -86,8 +87,12 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private legends: { [key: string]: L.Control } = {};
   private currentProduct: string;
   private now: number; // to track time when layer changes
-
+  private myNow: Date; // now date for timeline
+  private myRefTime: Date; // to allow when changing layer to set to previous selected time
+  private myTime: number[]; // to allow when changing layer to set to previous selected hour
+  private refTimeToTimeLine: Date | null = null; // to track time selected on the timebar
   private filter: ObsFilter;
+
   constructor(
     injector: Injector,
     private obsService: ObsService,
@@ -110,16 +115,38 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
-
+    // to catch forward button click
+    const forwardButton = document.querySelector('[title="Forward"]');
+    forwardButton.addEventListener("click", () => {
+      //console.log('forward button clicked');
+    });
+    let beforeOneHour: Date = new Date();
+    beforeOneHour.setUTCHours(beforeOneHour.getUTCHours() - 1);
+    beforeOneHour.setUTCMinutes(0);
+    beforeOneHour.setUTCSeconds(0);
+    beforeOneHour.setUTCMilliseconds(0);
+    this.myNow = beforeOneHour;
     //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
+
     // default product: temperature
     const defaultProduct: string = "t2m";
     // add default layer
+    // const filter: ObsFilter = {
+    //   // common parameters
+    //   reftime: moment.utc(new Date()).toDate(),
+    //   license: "CCBY_COMPLIANT",
+    //   time: [0, 23],
+    //   onlyStations: false,
+    //   reliabilityCheck: true,
+    //   last: true,
+    //   product: VARIABLES_CONFIG_OBS[defaultProduct].code,
+    //   timerange: VARIABLES_CONFIG_OBS[defaultProduct].timerange,
+    //   level: VARIABLES_CONFIG_OBS[defaultProduct].level,
+    // };
     const filter: ObsFilter = {
-      // common parameters
-      reftime: moment.utc(new Date()).toDate(),
+      reftime: beforeOneHour,
       license: "CCBY_COMPLIANT",
-      time: [0, 23],
+      time: [beforeOneHour.getUTCHours() - 1, beforeOneHour.getUTCHours() - 1],
       onlyStations: false,
       reliabilityCheck: true,
       last: true,
@@ -128,7 +155,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       level: VARIABLES_CONFIG_OBS[defaultProduct].level,
     };
     this.filter = filter;
+
     this.loadObservations(filter, true);
+    (map as any).timeDimension.setCurrentTime(beforeOneHour);
     this.centerMap();
 
     /* cacht event timeload on the timebar */
@@ -142,6 +171,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
 
       let isMidNight: boolean = false;
       let selectedDate = new Date((map as any).timeDimension.getCurrentTime());
+      this.refTimeToTimeLine = selectedDate;
       let startDate = new Date(selectedDate);
       startDate.setHours(selectedDate.getHours() - 1);
 
@@ -161,7 +191,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
         timerange: this.filter.timerange,
         level: this.filter.level,
       };
-
+      this.myRefTime = filter["reftime"];
+      this.myTime = filter["time"];
       this.loadObservations(filter, true);
     });
 
@@ -183,6 +214,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private timeIntervalTimeLine() {
     const dayToSubtract: number = 2;
     const now = new Date();
+    now.setUTCMinutes(0);
+    now.setUTCSeconds(0);
+    now.setUTCMilliseconds(0);
     const nowIsoDate: string = now.toISOString();
     let behindDate = new Date(now);
     behindDate.setDate(now.getDate() - dayToSubtract);
@@ -193,7 +227,6 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     const behindIsoDate: string = behindDate.toISOString();
     return `${behindIsoDate}/${nowIsoDate}`;
   }
-
   private createLegendControl(id: string): L.Control {
     let config: LegendConfig = LEGEND_DATA.find((x) => x.id === id);
     if (!config) {
@@ -232,7 +265,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   }
   loadObservations(filter: ObsFilter, update = false) {
     //const startTime = new Date().getTime();
-    this.spinner.show();
+    //this.spinner.show();
     this.obsService
       .getData(filter, update)
       .subscribe(
@@ -242,6 +275,12 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               (new Date().getTime() - startTime) / 1000
             }s`,
           );*/
+          // to avoid markers overlapping
+          if (this.markersGroup) {
+            this.map.removeLayer(this.markersGroup);
+            this.markers = [];
+            this.allMarkers = [];
+          }
           let data = response.data;
           this.loadMarkers(data, filter.product);
           if (data.length === 0) {
@@ -600,11 +639,19 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.level = meteogramLevels.join(" or ");
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
 
+    // set reftime from one hour before the time selected on the timebar
+    if (this.refTimeToTimeLine) {
+      this.refTimeToTimeLine.setHours(this.refTimeToTimeLine.getHours() - 1);
+    }
     // get the reftime to and reftime from
     const reftimeTo = new Date();
-    let reftimeFrom = new Date();
-    reftimeFrom.setHours(reftimeTo.getHours() - 24);
-
+    let reftimeFrom = this.refTimeToTimeLine
+      ? this.refTimeToTimeLine
+      : new Date();
+    // set reftime from 24 hour before
+    if (!this.refTimeToTimeLine) {
+      reftimeFrom.setHours(reftimeTo.getHours() - 24);
+    }
     meteogramsFilter.dateInterval = [reftimeFrom, reftimeTo];
     //meteogramsFilter.time = [reftimeFrom.hour(),reftimeTo.hour()]
     meteogramsFilter.time = [
@@ -631,27 +678,26 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       this.notify.showError("No product selected");
       return;
     }
+    // when reload button
     if (!obj) {
       // default to current product
       obj = {
         name: this.currentProduct,
         layer: this.currentProduct,
       };
+      (this.map as any).timeDimension.setCurrentTime(this.myNow.getTime());
     }
     // console.log(`toggle layer: ${obj.name}`);
-
-    // clean up layers
-    if (this.markersGroup) {
-      this.map.removeLayer(this.markersGroup);
-      this.allMarkers = [];
-      this.markers = [];
-    }
     // update the filter
     if (this.variablesConfig[obj.name]) {
       this.filter.product = this.variablesConfig[obj.name].code;
       this.filter.timerange = this.variablesConfig[obj.name].timerange;
       this.filter.level = this.variablesConfig[obj.name].level;
-      (this.map as any).timeDimension.setCurrentTime(this.now);
+      this.filter.reftime = this.myRefTime;
+      this.filter.time = this.myTime;
+      (this.map as any).timeDimension.setCurrentTime(
+        this.refTimeToTimeLine.getTime(),
+      );
       this.loadObservations(this.filter, true);
     }
 
