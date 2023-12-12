@@ -72,7 +72,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       limitSliders: true,
       playerOptions: {
         buffer: 0,
-        transitionTime: 1000,
+        transitionTime: 1500,
         loop: true,
         startOver: true,
       },
@@ -91,6 +91,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private myRefTime: Date; // to allow when changing layer to set to previous selected time
   private myTime: number[]; // to allow when changing layer to set to previous selected hour
   private refTimeToTimeLine: Date | null = null; // to track time selected on the timebar
+  private playControl: boolean = false; // to deactivate spinner when animation starts
   private filter: ObsFilter;
 
   constructor(
@@ -115,11 +116,24 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
+    let tControl = (map as any).timeDimensionControl;
     // to catch forward button click
     const forwardButton = document.querySelector('[title="Forward"]');
     forwardButton.addEventListener("click", () => {
-      //console.log('forward button clicked');
+      tControl._player.stop();
     });
+    const backwardButton: Element =
+      document.querySelector('[title="Backward"]');
+    backwardButton.addEventListener("click", () => {
+      tControl._player.stop();
+    });
+    tControl._player.on("play", () => {
+      this.playControl = true;
+    });
+    tControl._player.on("stop", () => {
+      this.playControl = false;
+    });
+
     let beforeOneHour: Date = new Date();
     beforeOneHour.setUTCHours(beforeOneHour.getUTCHours() - 1);
     beforeOneHour.setUTCMinutes(0);
@@ -143,6 +157,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     //   timerange: VARIABLES_CONFIG_OBS[defaultProduct].timerange,
     //   level: VARIABLES_CONFIG_OBS[defaultProduct].level,
     // };
+    // add default layer and filter
     const filter: ObsFilter = {
       reftime: beforeOneHour,
       license: "CCBY_COMPLIANT",
@@ -155,20 +170,12 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       level: VARIABLES_CONFIG_OBS[defaultProduct].level,
     };
     this.filter = filter;
-
     this.loadObservations(filter, true);
     (map as any).timeDimension.setCurrentTime(beforeOneHour);
     this.centerMap();
 
-    /* cacht event timeload on the timebar */
+    /* cacht event timeload on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
-      /* delete previous markers on the map */
-      if (this.markersGroup) {
-        map.removeLayer(this.markersGroup);
-        this.markers = [];
-        this.allMarkers = [];
-      }
-
       let isMidNight: boolean = false;
       let selectedDate = new Date((map as any).timeDimension.getCurrentTime());
       this.refTimeToTimeLine = selectedDate;
@@ -265,7 +272,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   }
   loadObservations(filter: ObsFilter, update = false) {
     //const startTime = new Date().getTime();
-    //this.spinner.show();
+    if (!this.playControl) {
+      this.spinner.show();
+    }
     this.obsService
       .getData(filter, update)
       .subscribe(
@@ -644,19 +653,16 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.product = meteogramProducts.join(" or ");
     meteogramsFilter.level = meteogramLevels.join(" or ");
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
-
+    // get the reftime to and reftime from
+    const reftimeTo = new Date();
+    let reftimeFrom: Date;
     // set reftime from one hour before the time selected on the timebar
     if (this.refTimeToTimeLine) {
       this.refTimeToTimeLine.setHours(this.refTimeToTimeLine.getHours() - 1);
-    }
-    // get the reftime to and reftime from
-    const reftimeTo = new Date();
-    let reftimeFrom = this.refTimeToTimeLine
-      ? this.refTimeToTimeLine
-      : new Date();
-    // set reftime from 24 hour before
-    if (!this.refTimeToTimeLine) {
-      reftimeFrom.setHours(reftimeTo.getHours() - 24);
+      reftimeFrom = this.refTimeToTimeLine;
+    } else {
+      reftimeFrom = reftimeTo;
+      reftimeFrom.setHours(reftimeFrom.getHours() - 2);
     }
     meteogramsFilter.dateInterval = [reftimeFrom, reftimeTo];
     //meteogramsFilter.time = [reftimeFrom.hour(),reftimeTo.hour()]
@@ -701,9 +707,13 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       this.filter.level = this.variablesConfig[obj.name].level;
       this.filter.reftime = this.myRefTime;
       this.filter.time = this.myTime;
-      (this.map as any).timeDimension.setCurrentTime(
-        this.refTimeToTimeLine.getTime(),
-      );
+      if (this.refTimeToTimeLine) {
+        (this.map as any).timeDimension.setCurrentTime(
+          this.refTimeToTimeLine.getTime(),
+        );
+      } else {
+        (this.map as any).timeDimension.setCurrentTime(this.myNow.getTime());
+      }
       this.loadObservations(this.filter, true);
     }
 
