@@ -15,7 +15,7 @@
  *
  */
 
-@font-face {
+ @font-face {
   font-family: "Glyphicons Halflings";
   src: url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot");
   src: url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot?#iefix")
@@ -177,7 +177,6 @@ app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol {
 /**
 * Slider/Knobs styles
 */
-
 .timecontrol-slider .slider {
   position: relative;
   height: 12px;
@@ -410,7 +409,7 @@ a.timecontrol-play.loading:before {
 
 .legenda {
   margin-left: 11px !important;
-  width:  auto !important;
+  width: auto !important;
 }
 
 @media (max-width: 767px) {
@@ -429,43 +428,26 @@ a.timecontrol-play.loading:before {
   margin-top: 10px;
 }
 
-/*Responsive legende*/
+/*Responsive legende e timebar*/
 @media screen and (max-width: 768px) {
   .legenda {
-    max-width: 70% !important;
-  }
-  app-meteo-tiles {
-    .legenda{
-        max-width: 57% !important;
-    }
+    max-width: 57% !important;
   }
 }
-
 @media screen and (max-width: 595px) {
   .legenda {
     max-width: 60% !important;
   }
 }
-@media(min-height: 800px)  {
+@media (max-height: 667px) {
   .legenda {
-    max-width: 70% !important;
+    max-width: 30% !important;
   }
 }
 
-@media(max-height: 760px) {
- .legenda {
+@media (max-height: 799px) {
+  .legenda {
     max-width: 50% !important;
-  }
-}
-@media(max-height: 667px) {
-  .legenda {
-    max-width: 40% !important;
-  }
-}
-
-@media (min-height: 1295px) {
-  .legenda {
-    max-width: 100%;
   }
 }
 
@@ -496,5 +478,23 @@ a.timecontrol-play.loading:before {
   app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .speed {
     width: 60px;
   }
- 
+}
+
+
+@media (min-height: 800px) {
+  .legenda {
+    max-width: 60% !important;
+  }
+}
+
+@media (min-height: 900px) {
+  .legenda {
+    max-width: 70% !important;
+  }
+}
+
+@media (min-height: 1295px) {
+  .legenda {
+    max-width: 100%;
+  }
 }
