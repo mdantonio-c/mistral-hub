@@ -182,6 +182,9 @@ app-livemap .timecontrol-slider {
   .slider {
     width: 100% !important;
   }
+  .knob.upper {
+    transform: translate3d(500px, 0px, 0px) !important;
+  }
 }
 .timecontrol-slider .slider {
   position: relative;
@@ -444,7 +447,7 @@ a.timecontrol-play.loading:before {
 @media screen and (min-width: 596px) and (max-width: 1060px) {
   app-livemap .timecontrol-slider {
     width: 270px !important;
-    .knob.upper, .knob.main {
+    .knob.upper {
       transform: translate3d(270px, 0px, 0px) !important;
     }
   }
@@ -456,7 +459,7 @@ a.timecontrol-play.loading:before {
 
   app-livemap .timecontrol-slider {
     width: 150px !important;
-    .knob.upper, .knob.main{
+    .knob.upper {
       transform: translate3d(150px, 0px, 0px) !important;
     }
   }
