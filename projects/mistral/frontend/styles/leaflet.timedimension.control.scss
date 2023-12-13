@@ -15,7 +15,7 @@
  *
  */
 
-@font-face {
+ @font-face {
   font-family: "Glyphicons Halflings";
   src: url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot");
   src: url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot?#iefix")
@@ -442,81 +442,81 @@ a.timecontrol-play.loading:before {
 }
 
 @media screen and (min-width: 596px) and (max-width: 1060px) {
-app-livemap .timecontrol-slider {
-  width: 270px !important;
-  .knob.upper, .knob.main {
-    transform: translate3d(270px, 0px, 0px) !important;
+  app-livemap .timecontrol-slider {
+    width: 270px !important;
+    .knob.upper, .knob.main {
+      transform: translate3d(270px, 0px, 0px) !important;
+    }
   }
-}
 }
 @media screen and (max-width: 595px) {
-.legenda {
-  max-width: 60% !important;
-}
+  .legenda {
+    max-width: 60% !important;
+  }
 
-app-livemap .timecontrol-slider {
-  width: 150px !important;
-  .knob.upper, .knob.main{
-    transform: translate3d(150px, 0px, 0px) !important;
+  app-livemap .timecontrol-slider {
+    width: 150px !important;
+    .knob.upper, .knob.main{
+      transform: translate3d(150px, 0px, 0px) !important;
+    }
   }
 }
-}
 @media (max-height: 667px) {
-.legenda {
-  max-width: 30% !important;
-}
+  .legenda {
+    max-width: 30% !important;
+  }
 }
 
 @media (max-height: 799px) {
-.legenda {
-  max-width: 50% !important;
-}
+  .legenda {
+    max-width: 50% !important;
+  }
 }
 
 @media screen and (max-width: 785px) {
-app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
-  width: 150px !important;
-}
+  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
+    width: 150px !important;
+  }
 
-app-meteo-tiles .timecontrol-slider .slider.has-limits {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
+  app-meteo-tiles .timecontrol-slider .slider.has-limits {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
 
-app-meteo-tiles .timecontrol-slider .knob.upper {
-  transform: translate3d(150px, 0px, 0px) !important;
-}
+  app-meteo-tiles .timecontrol-slider .knob.upper {
+    transform: translate3d(150px, 0px, 0px) !important;
+  }
 
-app-meteo-tiles .leaflet-bar-timecontrol .leaflet-control-timecontrol {
-  margin-right: 3px !important;
-}
+  app-meteo-tiles .leaflet-bar-timecontrol .leaflet-control-timecontrol {
+    margin-right: 3px !important;
+  }
 
-app-meteo-tiles .leaflet-bar-timecontrol a.timecontrol-date {
-  width: 168px !important;
-  padding: 0;
-}
+  app-meteo-tiles .leaflet-bar-timecontrol a.timecontrol-date {
+    width: 168px !important;
+    padding: 0;
+  }
 
-app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .slider,
-app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .speed {
-  width: 60px;
-}
+  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .slider,
+  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-speed .speed {
+    width: 60px;
+  }
 }
 
 
 @media (min-height: 800px) {
-.legenda {
-  max-width: 60% !important;
-}
+  .legenda {
+    max-width: 60% !important;
+  }
 }
 
 @media (min-height: 900px) {
-.legenda {
-  max-width: 70% !important;
-}
+  .legenda {
+    max-width: 70% !important;
+  }
 }
 
 @media (min-height: 1295px) {
-.legenda {
-  max-width: 100%;
-}
+  .legenda {
+    max-width: 100%;
+  }
 }
