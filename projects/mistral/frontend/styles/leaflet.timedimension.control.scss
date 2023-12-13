@@ -441,7 +441,7 @@ a.timecontrol-play.loading:before {
   }
 }
 
-@media screen and (min-width: 596px) and (max-width: 999px) {
+@media screen and (min-width: 596px) and (max-width: 1060px) {
 app-livemap .timecontrol-slider {
   width: 270px !important;
   .knob.upper, .knob.main {
@@ -456,7 +456,7 @@ app-livemap .timecontrol-slider {
 
 app-livemap .timecontrol-slider {
   width: 150px !important;
-  .timecontrol-slider .knob.upper, .timecontrol-slider .knob.main{
+  .knob.upper, .knob.main{
     transform: translate3d(150px, 0px, 0px) !important;
   }
 }
