@@ -168,6 +168,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.variablesConfig = VARIABLES_CONFIG;
     this.route.queryParams.subscribe((params: Params) => {
       const view: string = params["view"];
+      const lang: string = params["lang"];
       if (view) {
         // check for valid view mode
         if (Object.values(ViewModes).includes(view)) {
@@ -178,8 +179,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             this.options.timeDimensionControlOptions.timeZones = ["local"];
             // adapt variable configuration
             this.variablesConfig = VARIABLES_CONFIG_BASE;
-            // setup lang
+            // setup default lang
             this.lang = "it";
+            // override if any lang provided
+            if (["it", "en"].includes(lang)) {
+              this.lang = lang;
+            }
+            console.log(`lang: ${this.lang}`);
           }
         } else {
           console.warn(`Invalid view param: ${view}`);
