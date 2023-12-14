@@ -112,7 +112,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       "Carto Map Light": this.LAYER_LIGHTMATTER,
       "Carto Map Dark": this.LAYER_DARKMATTER,
       "Openstreet Map": this.LAYER_OSM,
-      "Stadia Smooth": this.LAYER_STADIA_SMOOTH,
+      //"Stadia Smooth": this.LAYER_STADIA_SMOOTH,
     },
   };
   options = {
@@ -159,7 +159,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   ) {
     super(injector);
     // set the initial set of displayed layers
-    this.options["layers"] = [this.LAYER_STADIA_SMOOTH];
+    this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.dataset = this.DEFAULT_DATASET;
     this.router.events.subscribe((s) => {
       if (s instanceof NavigationEnd) {

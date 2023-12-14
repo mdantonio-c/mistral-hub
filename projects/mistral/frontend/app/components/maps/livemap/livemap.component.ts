@@ -73,7 +73,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     },
   };
   options = {
-    layers: [this.LAYER_STADIA_SMOOTH],
+    layers: [this.LAYER_LIGHTMATTER],
     zoomControl: false,
     zoom: 6,
     center: L.latLng(41.88, 12.28),
