@@ -4,7 +4,9 @@ import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
 import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import * as moment from "moment";
 import {
+  CARTODB_LICENSE_HREF,
   MISTRAL_LICENSE_HREF,
+  STADIA_LICENSE_HREF,
   OSM_LICENSE_HREF,
   ViewModes,
 } from "../meteo-tiles/meteo-tiles.config";
@@ -45,13 +47,33 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       minZoom: this.minZoom,
     },
   );
+  LAYER_LIGHTMATTER = L.tileLayer(
+    "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
+    {
+      id: "mapbox.light",
+      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
+    },
+  );
+  LAYER_STADIA_SMOOTH = L.tileLayer(
+    "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+    {
+      id: "stadia.alidade.smooth",
+      attribution: `&copy; ${STADIA_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
+    },
+  );
   layersControl = {
     baseLayers: {
       "Openstreet Map": this.LAYER_OSM,
+      "Carto Map Light": this.LAYER_LIGHTMATTER,
+      "Stadia Alidade Smooth": this.LAYER_STADIA_SMOOTH,
     },
   };
   options = {
-    layers: [this.LAYER_OSM],
+    layers: [this.LAYER_STADIA_SMOOTH],
     zoomControl: false,
     zoom: 6,
     center: L.latLng(41.88, 12.28),
@@ -108,6 +130,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       const lang: string = params["lang"];
       if (["it", "en"].includes(lang)) {
         this.lang = lang;
+      }
+      if (this.lang === "it") {
+        // TODO
       }
     });
   }
