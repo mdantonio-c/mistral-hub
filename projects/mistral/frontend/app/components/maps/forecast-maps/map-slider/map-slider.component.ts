@@ -64,7 +64,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   /* variable used to store the id of the selected day after OnInit*/
   id_date: any;
   mapAvailable: boolean = true;
-
+  noMapExist: boolean = false;
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
   private lastRunAt: moment.Moment;
@@ -123,6 +123,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     this.timestampRun = this.lastRunAt.format();
 
     this.checkIfReftimeIsOk();
+    this.checkIfMapExist();
     this.grid_num = this.filter.res === "lm2.2" ? 4 : 6;
 
     this.images.length = 0;
@@ -368,12 +369,19 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
     let tmpString = tmpDate.clone().subtract(behindDays, "days").format();
     if (this.timestamp !== tmpString) {
-      console.log("È DIVERSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
       console.log(this.timestamp, tmpString, behindDays);
       this.mapAvailable = false;
     }
-
-    //localStorage.removeItem('behindDays')
+  }
+  /*
+   * check if ready file exist, otherwise hide spinner to show a msg*/
+  private checkIfMapExist(): void {
+    this.meteoService.getMapset(this.filter).subscribe(
+      () => {},
+      (error) => {
+        this.spinner.hide(this.IMAGE_SPINNER);
+      },
+    );
   }
   /**
    * Preset the carousel and the slider on the nearest current hour.
@@ -471,6 +479,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           // once the maps have been loaded I can preset the carousel
           this.presetSlider();
         });
+
       //let tmp_date: moment.Moment | string = this.lastRunAt;
       //console.log('lastRunAt in change date', this.lastRunAt);
       //console.log('gg indietro in change date:', this.behindDays);
