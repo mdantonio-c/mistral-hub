@@ -127,7 +127,7 @@
     padding-left: 0;
     padding-right: 0;
     font-family: "Montserrat-semibold";
-  } 
+  }
   .calendar {
     padding-left: 0;
     padding-right: 0;
@@ -135,15 +135,15 @@
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
     border-top-right-radius: 20px;
-    border-bottom-right-radius:20px;
+    border-bottom-right-radius: 20px;
     .date {
-      padding:0;
+      padding: 0;
       width: 100%;
       border: solid 1px #6c757d;
       border-top: 0;
       border-bottom: 0;
       font-size: 12px;
-      box-shadow: 0 .125rem .25rem rgba($black, .075);
+      box-shadow: 0 0.125rem 0.25rem rgba($black, 0.075);
       font-family: "Montserrat-semibold";
       & > div {
         padding-top: 5px;
@@ -151,28 +151,26 @@
       }
 
       &:first-of-type {
-        border-left:0;
+        border-left: 0;
         & > div {
           border-top-left-radius: 20px;
           border-bottom-left-radius: 20px;
-          
         }
       }
-      &:last-of-type { 
+      &:last-of-type {
         border-right: 0;
         & > div {
           border-top-right-radius: 20px;
           border-bottom-right-radius: 20px;
-         
         }
       }
-     
+
       & > .selected {
         background-color: #e49c1e;
         text-transform: uppercase;
         color: #fff;
         border: solid 1px #e49c1e;
-        box-shadow:  0 .5rem 1rem rgba($black, .15);
+        box-shadow: 0 0.5rem 1rem rgba($black, 0.15);
       }
     }
   }
