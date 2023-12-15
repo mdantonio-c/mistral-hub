@@ -49,8 +49,11 @@
           <pre class="d-inline" style="white-space: pre-line">
             {{ printReferenceDate() }}
           </pre>
-          <pre class="d-inline fw-normal local-hour" style="white-space: pre-line">
-            Dates are expressed in local time {{ checkHours() | translate : lang }}
+          <pre
+            class="d-inline fw-normal local-hour"
+            style="white-space: pre-line"
+          >
+            {{ printHoursDescription() | translate : lang }} {{ checkHours() }}
           </pre>
         </div>
       </div>

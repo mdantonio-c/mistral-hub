@@ -61,7 +61,6 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     timeDimensionOptions: {
       timeInterval: this.timeIntervalTimeLine(),
       period: "PT60M", // ISO8601 duration, step of 60 min
-      
     },
     timeDimensionControl: true,
     timeDimensionControlOptions: {
@@ -787,7 +786,9 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     }
     return product || "";
   };
-
+  printHoursDescription = (): string => {
+    return "dates are expressed in local time";
+  };
   printReferenceDate(): string {
     const now: number = new Date().getTime();
     this.now = now;
