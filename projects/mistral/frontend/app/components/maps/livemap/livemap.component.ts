@@ -687,15 +687,15 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
     // get the reftime to and reftime from
     const reftimeTo = new Date();
-    let reftimeFrom: Date;
+    let reftimeFrom: Date = this.fromDate;
     // set reftime from one hour before the time selected on the timebar
-    if (this.refTimeToTimeLine) {
-      this.refTimeToTimeLine.setHours(this.refTimeToTimeLine.getHours() - 1);
-      reftimeFrom = this.refTimeToTimeLine;
-    } else {
-      reftimeFrom = reftimeTo;
-      reftimeFrom.setHours(reftimeFrom.getHours() - 2);
-    }
+    // if (this.refTimeToTimeLine) {
+    //   this.refTimeToTimeLine.setHours(this.refTimeToTimeLine.getHours() - 1);
+    //   reftimeFrom = this.refTimeToTimeLine;
+    // } else {
+    //   reftimeFrom = reftimeTo;
+    //   reftimeFrom.setHours(reftimeFrom.getHours() - 2);
+    // }
     meteogramsFilter.dateInterval = [reftimeFrom, reftimeTo];
     //meteogramsFilter.time = [reftimeFrom.hour(),reftimeTo.hour()]
     meteogramsFilter.time = [
