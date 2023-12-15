@@ -182,8 +182,8 @@ const appRoutes: Routes = [
   { path: "app/license", component: LicenseComponent },
   { path: "public/privacy", component: PrivacyComponent },
   { path: "public/participate", component: ParticipateComponent },
-  { path: "app", redirectTo: "/app/datasets", pathMatch: "full" },
-  { path: "", redirectTo: "/app/datasets", pathMatch: "full" },
+  { path: "app", redirectTo: "app/maps/meteotiles", pathMatch: "full" },
+  { path: "", redirectTo: "app/maps/meteotiles", pathMatch: "full" },
 ];
 
 @NgModule({
