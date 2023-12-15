@@ -47,10 +47,10 @@ export class SideNavComponent implements OnInit {
   @Input("viewMode") mode = ViewModes.adv;
   // Reference to the primary map object
   @Input() map: L.Map;
+  @Input() lang = "en";
 
   private _overlays: L.Control.LayersObject;
   modes = ViewModes;
-  lang = "en";
   datasetTooltip: string = "Dataset";
 
   @Input() set overlays(value: L.Control.LayersObject) {
@@ -153,10 +153,6 @@ export class SideNavComponent implements OnInit {
         });
       }
     });
-    // setup lang
-    if (this.mode === ViewModes.base) {
-      this.lang = "it";
-    }
     // setup mobile side-nav
     if (window.innerWidth < MOBILE_WIDTH) {
       this.changeCollapse();

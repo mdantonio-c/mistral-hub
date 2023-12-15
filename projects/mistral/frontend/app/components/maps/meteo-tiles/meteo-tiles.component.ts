@@ -30,6 +30,7 @@ import {
   MULTI_MODEL_TIME_RANGES,
   MultiModelProduct,
   OSM_LICENSE_HREF,
+  STADIA_LICENSE_HREF,
   ViewModes,
 } from "./meteo-tiles.config";
 import { IffRuns } from "../forecast-maps/services/data";
@@ -95,6 +96,15 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       minZoom: this.minZoom,
     },
   );
+  LAYER_STADIA_SMOOTH = L.tileLayer(
+    "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+    {
+      id: "stadia.alidade.smooth",
+      attribution: `&copy; ${STADIA_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
+    },
+  );
 
   // Values to bind to Leaflet Directive
   layersControl = {
@@ -102,6 +112,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       "Carto Map Light": this.LAYER_LIGHTMATTER,
       "Carto Map Dark": this.LAYER_DARKMATTER,
       "Openstreet Map": this.LAYER_OSM,
+      //"Stadia Smooth": this.LAYER_STADIA_SMOOTH,
     },
   };
   options = {
@@ -148,7 +159,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   ) {
     super(injector);
     // set the initial set of displayed layers
-    this.options["layers"] = [this.LAYER_OSM];
+    this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.dataset = this.DEFAULT_DATASET;
     this.router.events.subscribe((s) => {
       if (s instanceof NavigationEnd) {
@@ -168,6 +179,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.variablesConfig = VARIABLES_CONFIG;
     this.route.queryParams.subscribe((params: Params) => {
       const view: string = params["view"];
+      const lang: string = params["lang"];
       if (view) {
         // check for valid view mode
         if (Object.values(ViewModes).includes(view)) {
@@ -178,8 +190,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             this.options.timeDimensionControlOptions.timeZones = ["local"];
             // adapt variable configuration
             this.variablesConfig = VARIABLES_CONFIG_BASE;
-            // setup lang
+            // setup default lang
             this.lang = "it";
+            // override if any lang provided
+            if (["it", "en"].includes(lang)) {
+              this.lang = lang;
+            }
+            console.log(`lang: ${this.lang}`);
           }
         } else {
           console.warn(`Invalid view param: ${view}`);
