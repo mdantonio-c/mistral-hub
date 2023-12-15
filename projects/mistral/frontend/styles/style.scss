@@ -839,21 +839,38 @@ input[type="number"]::-webkit-outer-spin-button {
   }
 }
 
-/*custom style for carousel when map not avaliable*/
+/*custom style for carousel when map not avaliable and no ready file founded*/
+
+.noreadyfile {
+  min-height: 587px;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  & + .carousel {
+      display:none !important;
+      height: 0 !important;
+  }
+  .no-results {
+    height:188px !important;
+  }
+}
+
+
 .notavaliable {
   min-height: 532px;
-  display: flex !important;
-
-  .carousel-inner .carousel-item {
+  display:flex !important;
+  
+  .carousel-inner .carousel-item{
     min-height: 532px !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-
+    
     .picsum-img-wrapper {
       height: 100% !important;
       width: 100% !important;
-      position: relative !important;
+      position:  relative !important;
       display: flex;
       justify-content: center;
 
