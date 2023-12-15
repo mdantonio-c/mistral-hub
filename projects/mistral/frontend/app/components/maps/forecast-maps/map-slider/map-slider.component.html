@@ -124,7 +124,10 @@
     </div>
 
     <div id="map-container">
-      <div [class.noreadyfile]="!offsets?.length || offsets.length == 0" *ngIf="!offsets?.length || offsets.length == 0">
+      <div
+        [class.noreadyfile]="!offsets?.length || offsets.length == 0"
+        *ngIf="!offsets?.length || offsets.length == 0"
+      >
         <div class="no-results">
           <h2>
             No Maps Available
