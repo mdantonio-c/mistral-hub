@@ -218,8 +218,10 @@ def run_statistic_elaboration(
                 params.get("input_timerange"), params.get("output_timerange")
             )
         )
-        if params.get("input_timerange") == 254: # or "254"?
-            post_proc_cmd.append("--comp-frac-valid=0.01") # allow for e.g. 2h/24h "hole"
+        if params.get("input_timerange") == 254:  # or "254"?
+            post_proc_cmd.append(
+                "--comp-frac-valid=0.01"
+            )  # allow for e.g. 2h/24h "hole"
         post_proc_cmd.append(f"--comp-step={step}")
         if not fileformat.startswith("grib"):
             post_proc_cmd.append("--input-format=BUFR")
