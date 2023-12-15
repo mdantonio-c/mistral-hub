@@ -15,7 +15,7 @@
  *
  */
 
- @font-face {
+@font-face {
   font-family: "Glyphicons Halflings";
   src: url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot");
   src: url("//netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/glyphicons-halflings-regular.eot?#iefix")
@@ -177,12 +177,6 @@ app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol {
 /**
 * Slider/Knobs styles
 */
-app-livemap .timecontrol-slider {
-  width: 500px !important;
-  .slider {
-    width: 100% !important;
-  }
-}
 .timecontrol-slider .slider {
   position: relative;
   height: 12px;
@@ -440,25 +434,9 @@ a.timecontrol-play.loading:before {
     max-width: 57% !important;
   }
 }
-
-@media screen and (min-width: 596px) and (max-width: 1060px) {
-  app-livemap .timecontrol-slider {
-    width: 270px !important;
-    .knob.upper, .knob.main {
-      transform: translate3d(270px, 0px, 0px) !important;
-    }
-  }
-}
 @media screen and (max-width: 595px) {
   .legenda {
     max-width: 60% !important;
-  }
-
-  app-livemap .timecontrol-slider {
-    width: 150px !important;
-    .knob.upper, .knob.main{
-      transform: translate3d(150px, 0px, 0px) !important;
-    }
   }
 }
 @media (max-height: 667px) {
@@ -501,7 +479,6 @@ a.timecontrol-play.loading:before {
     width: 60px;
   }
 }
-
 
 @media (min-height: 800px) {
   .legenda {
