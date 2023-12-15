@@ -30,13 +30,13 @@
 
   <div class="leaflet-top leaflet-left" style="left: 10px">
     <div class="leaflet-control" style="height: 14px">
-      <div class="selected-dataset-container bg-light ">
+      <div class="selected-dataset-container bg-light">
         <div class="selected-dataset p-2 pb-0">
           {{ printDatasetProduct() | translate : lang }}
         </div>
 
-        <div class="p-2 pt-0" style="max-width: 240px !important;">
-          <pre class="d-inline" style="white-space: pre-line; ">
+        <div class="p-2 pt-0" style="max-width: 240px !important">
+          <pre class="d-inline" style="white-space: pre-line">
             {{ printDatasetDescription() | translate : lang }}
           </pre>
           <i
@@ -48,6 +48,9 @@
           ></i>
           <pre class="d-inline" style="white-space: pre-line">
             {{ printReferenceDate() }}
+          </pre>
+          <pre class="d-inline" style="white-space: pre-line">
+            ora locale {{ checkHours() }}
           </pre>
         </div>
       </div>

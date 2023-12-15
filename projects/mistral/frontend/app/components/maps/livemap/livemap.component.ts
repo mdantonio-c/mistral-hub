@@ -93,6 +93,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private myTime: number[]; // to allow when changing layer to set to previous selected hour
   private refTimeToTimeLine: Date | null = null; // to track time selected on the timebar
   private playControl: boolean = false; // to deactivate spinner when animation starts
+  private fromDate: Date;
   private filter: ObsFilter;
 
   constructor(
@@ -122,11 +123,27 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     const forwardButton = document.querySelector('[title="Forward"]');
     forwardButton.addEventListener("click", () => {
       tControl._player.stop();
+      const currentTime: number = (map as any).timeDimension.getCurrentTime();
+      const now = new Date();
+      now.setUTCMinutes(0);
+      now.setUTCSeconds(0);
+      now.setUTCMilliseconds(0);
+      if (currentTime == now.getTime()) {
+        (map as any).timeDimension.setCurrentTime(this.fromDate.getTime());
+      }
     });
     const backwardButton: Element =
       document.querySelector('[title="Backward"]');
     backwardButton.addEventListener("click", () => {
       tControl._player.stop();
+      const currentTime: number = (map as any).timeDimension.getCurrentTime();
+      const now = new Date();
+      now.setUTCMinutes(0);
+      now.setUTCSeconds(0);
+      now.setUTCMilliseconds(0);
+      if (currentTime == this.fromDate.getTime()) {
+        (map as any).timeDimension.setCurrentTime(now.getTime());
+      }
     });
     tControl._player.on("play", () => {
       this.playControl = true;
@@ -232,6 +249,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     behindDate.setMinutes(0);
     behindDate.setSeconds(0);
     behindDate.setMilliseconds(0);
+    this.fromDate = behindDate;
     const behindIsoDate: string = behindDate.toISOString();
     return `${behindIsoDate}/${nowIsoDate}`;
   }
@@ -620,7 +638,17 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     this.layersControl["overlays"] = this.markersGroup;
     this.markersGroup.addTo(this.map);
   }
-
+  checkHours(): string {
+    const now = moment();
+    const isDST = now.isDST();
+    if (isDST) {
+      //console.log('legal (UTC+2)');
+      return "(UTC+2)";
+    } else {
+      //console.log('solar (UTC+1)');
+      return "(UTC+1)";
+    }
+  }
   private openStationReport(station: Station) {
     const modalRef = this.modalService.open(ObsStationReportComponent, {
       size: "xl",
