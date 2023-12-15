@@ -20,7 +20,6 @@ export class ForecastMapsComponent
   filter: MeteoFilter;
   offsets: string[] = [];
   reftime: string; // YYYYMMDD
-
   ngOnInit() {
     super.ngOnInit();
   }

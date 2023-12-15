@@ -25,13 +25,13 @@
           [offsets]="offsets"
           [reftime]="reftime"
           (onCollapse)="toggleCollapse()"
-          *ngIf="!loading && offsets.length > 0"
+          *ngIf="!loading && offsets.length >= 0"
         ></app-map-slider>
         <!-- no maps -->
-        <div class="no-results" *ngIf="!loading && !offsets?.length">
-          <h2>No Maps Available</h2>
-          <p>Try to apply a different set of filters</p>
-        </div>
+        <!--        <div class="no-results" *ngIf="!loading && !offsets?.length">-->
+        <!--          <h2>No Maps Available</h2>-->
+        <!--          <p>Try to apply a different set of filters</p>-->
+        <!--        </div>-->
       </div>
     </div>
   </div>

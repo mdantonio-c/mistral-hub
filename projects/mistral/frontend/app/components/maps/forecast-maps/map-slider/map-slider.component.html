@@ -124,6 +124,18 @@
     </div>
 
     <div id="map-container">
+      <div [class.noreadyfile]="!offsets?.length || offsets.length == 0" *ngIf="!offsets?.length || offsets.length == 0">
+        <div class="no-results">
+          <h2>
+            No Maps Available
+            <i class="fa-regular fa-face-frown" style="color: #e49c1e"></i>
+          </h2>
+          <p>
+            The map for the selected day is temporarily unavailable. <br />
+            Please select another date.
+          </p>
+        </div>
+      </div>
       <ngb-carousel
         #carousel
         interval="300"
@@ -275,7 +287,7 @@
         <div class="w-100">
           <mv-slider
             #timeSlider
-            class="mst-slider"
+            class="mst-slider ms-2"
             [(value)]="sid"
             [min]="minHour"
             [max]="maxHour"
