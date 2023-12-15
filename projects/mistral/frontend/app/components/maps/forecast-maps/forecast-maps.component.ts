@@ -20,7 +20,6 @@ export class ForecastMapsComponent
   filter: MeteoFilter;
   offsets: string[] = [];
   reftime: string; // YYYYMMDD
-
   ngOnInit() {
     super.ngOnInit();
   }
@@ -55,5 +54,6 @@ export class ForecastMapsComponent
         this.spinner.hide();
       });
     //console.log('SONO IN APPLY FILTER')
+    console.log("offset", this.offsets, "reftime", this.reftime);
   }
 }
