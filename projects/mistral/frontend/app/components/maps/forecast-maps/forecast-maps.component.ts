@@ -54,6 +54,5 @@ export class ForecastMapsComponent
         this.spinner.hide();
       });
     //console.log('SONO IN APPLY FILTER')
-    console.log("offset", this.offsets, "reftime", this.reftime);
   }
 }

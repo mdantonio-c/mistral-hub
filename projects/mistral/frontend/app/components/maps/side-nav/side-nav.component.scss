@@ -652,7 +652,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 .switch {
   .nav-text {
-    margin-left:8px  !important;
+    margin-left: 8px !important;
   }
   .form-switch {
     .form-check-input {
@@ -690,18 +690,18 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
         position: absolute;
       }
     }
-  
+
     .form-check-input:checked ~ .form-check-label::after {
       background-color: #e49d2b;
       transform: translateX(16.75px) rotate(270deg) !important;
     }
-  
+
     & input[disabled="true"] ~ .form-check-label::after,
     & input:checked[disabled="true"] ~ .form-check-label::after {
       background-color: #545555a9 !important;
       background-image: none !important;
     }
-  
+
     & input[disabled="true"] ~ .custom-control-label::before {
       border-color: #545555a9 !important;
     }

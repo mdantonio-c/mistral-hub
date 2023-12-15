@@ -1,8 +1,12 @@
 import { Component, OnInit, Input, Injector } from "@angular/core";
 import * as L from "leaflet";
+import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
+import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import * as moment from "moment";
 import {
+  CARTODB_LICENSE_HREF,
   MISTRAL_LICENSE_HREF,
+  STADIA_LICENSE_HREF,
   OSM_LICENSE_HREF,
   ViewModes,
 } from "../meteo-tiles/meteo-tiles.config";
@@ -43,18 +47,59 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       minZoom: this.minZoom,
     },
   );
+  LAYER_LIGHTMATTER = L.tileLayer(
+    "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
+    {
+      id: "mapbox.light",
+      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
+    },
+  );
+  LAYER_STADIA_SMOOTH = L.tileLayer(
+    "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+    {
+      id: "stadia.alidade.smooth",
+      attribution: `&copy; ${STADIA_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
+    },
+  );
   layersControl = {
     baseLayers: {
       "Openstreet Map": this.LAYER_OSM,
+      "Carto Map Light": this.LAYER_LIGHTMATTER,
+      "Stadia Alidade Smooth": this.LAYER_STADIA_SMOOTH,
     },
   };
   options = {
-    layers: [this.LAYER_OSM],
+    layers: [this.LAYER_LIGHTMATTER],
     zoomControl: false,
     zoom: 6,
     center: L.latLng(41.88, 12.28),
     maxBoundsViscosity: 1.0,
     maxBounds: this.bounds,
+    timeDimension: true,
+    timeDimensionOptions: {
+      timeInterval: this.timeIntervalTimeLine(),
+      period: "PT60M", // ISO8601 duration, step of 60 min
+    },
+    timeDimensionControl: true,
+    timeDimensionControlOptions: {
+      autoPlay: false,
+      timeZones: ["Local"],
+      loopButton: false,
+      timeSteps: 1,
+      playReverseButton: false,
+      limitSliders: true,
+      playerOptions: {
+        buffer: 0,
+        transitionTime: 1500,
+        loop: true,
+        startOver: true,
+      },
+      speedSlider: false,
+    },
   };
   viewMode = ViewModes.adv;
 
@@ -63,9 +108,13 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private markersGroup: L.LayerGroup;
   private legends: { [key: string]: L.Control } = {};
   private currentProduct: string;
-
+  private now: number; // to track time when layer changes
+  private myNow: Date; // now date for timeline
+  private myRefTime: Date; // to allow when changing layer to set to previous selected time
+  private myTime: number[]; // to allow when changing layer to set to previous selected hour
+  private refTimeToTimeLine: Date | null = null; // to track time selected on the timebar
+  private playControl: boolean = false; // to deactivate spinner when animation starts
   private filter: ObsFilter;
-
   constructor(
     injector: Injector,
     private obsService: ObsService,
@@ -82,22 +131,62 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       if (["it", "en"].includes(lang)) {
         this.lang = lang;
       }
+      if (this.lang === "it") {
+        // TODO
+      }
     });
   }
 
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
+    let tControl = (map as any).timeDimensionControl;
+    // to catch forward button click
+    const forwardButton = document.querySelector('[title="Forward"]');
+    forwardButton.addEventListener("click", () => {
+      tControl._player.stop();
+    });
+    const backwardButton: Element =
+      document.querySelector('[title="Backward"]');
+    backwardButton.addEventListener("click", () => {
+      tControl._player.stop();
+    });
+    tControl._player.on("play", () => {
+      this.playControl = true;
+    });
+    tControl._player.on("stop", () => {
+      this.playControl = false;
+    });
+
+    let beforeOneHour: Date = new Date();
+    beforeOneHour.setUTCHours(beforeOneHour.getUTCHours() - 1);
+    beforeOneHour.setUTCMinutes(0);
+    beforeOneHour.setUTCSeconds(0);
+    beforeOneHour.setUTCMilliseconds(0);
+    this.myNow = beforeOneHour;
     //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
 
+    //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
     // default product: temperature
     const defaultProduct: string = "t2m";
     // add default layer
+    // const filter: ObsFilter = {
+    //   // common parameters
+    //   reftime: moment.utc(new Date()).toDate(),
+    //   license: "CCBY_COMPLIANT",
+    //   time: [0, 23],
+    //   onlyStations: false,
+    //   reliabilityCheck: true,
+    //   last: true,
+    //   product: VARIABLES_CONFIG_OBS[defaultProduct].code,
+    //   timerange: VARIABLES_CONFIG_OBS[defaultProduct].timerange,
+    //   level: VARIABLES_CONFIG_OBS[defaultProduct].level,
+    // };
+    // add default layer and filter
     const filter: ObsFilter = {
-      // common parameters
-      reftime: moment.utc(new Date()).toDate(),
+      reftime: beforeOneHour,
       license: "CCBY_COMPLIANT",
-      time: [0, 23],
+      time: [beforeOneHour.getUTCHours() - 1, beforeOneHour.getUTCHours() - 1],
       onlyStations: false,
       reliabilityCheck: true,
       last: true,
@@ -107,7 +196,37 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     };
     this.filter = filter;
     this.loadObservations(filter, true);
+    (map as any).timeDimension.setCurrentTime(beforeOneHour);
     this.centerMap();
+
+    /* cacht event timeload on the timebar, a timeload event is any injection of time in the timebar */
+    (map as any).timeDimension.on("timeload", () => {
+      let isMidNight: boolean = false;
+      let selectedDate = new Date((map as any).timeDimension.getCurrentTime());
+      this.refTimeToTimeLine = selectedDate;
+      let startDate = new Date(selectedDate);
+      startDate.setHours(selectedDate.getHours() - 1);
+
+      /* For data that refer to the previous day */
+      if (startDate.getUTCDate() != selectedDate.getUTCDate()) {
+        isMidNight = true;
+      }
+
+      const filter: ObsFilter = {
+        reftime: !isMidNight ? selectedDate : startDate,
+        time: [startDate.getUTCHours(), startDate.getUTCHours()],
+        license: this.filter.license,
+        onlyStations: false,
+        reliabilityCheck: true,
+        last: true,
+        product: this.filter.product,
+        timerange: this.filter.timerange,
+        level: this.filter.level,
+      };
+      this.myRefTime = filter["reftime"];
+      this.myTime = filter["time"];
+      this.loadObservations(filter, true);
+    });
 
     this.legends = {
       t2m: this.createLegendControl("tm2"),
@@ -120,7 +239,26 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     this.legends[defaultProduct].addTo(map);
     this.currentProduct = defaultProduct;
   }
-
+  /*
+   * Define time interval of timeline following ISO standard
+   * dayToSubtract defines the start date
+   */
+  private timeIntervalTimeLine() {
+    const dayToSubtract: number = 2;
+    const now = new Date();
+    now.setUTCMinutes(0);
+    now.setUTCSeconds(0);
+    now.setUTCMilliseconds(0);
+    const nowIsoDate: string = now.toISOString();
+    let behindDate = new Date(now);
+    behindDate.setDate(now.getDate() - dayToSubtract);
+    behindDate.setHours(1);
+    behindDate.setMinutes(0);
+    behindDate.setSeconds(0);
+    behindDate.setMilliseconds(0);
+    const behindIsoDate: string = behindDate.toISOString();
+    return `${behindIsoDate}/${nowIsoDate}`;
+  }
   private createLegendControl(id: string): L.Control {
     let config: LegendConfig = LEGEND_DATA.find((x) => x.id === id);
     if (!config) {
@@ -157,10 +295,11 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       this.markersGroup.addTo(this.map);
     }
   }
-
   loadObservations(filter: ObsFilter, update = false) {
     //const startTime = new Date().getTime();
-    this.spinner.show();
+    if (!this.playControl) {
+      this.spinner.show();
+    }
     this.obsService
       .getData(filter, update)
       .subscribe(
@@ -170,6 +309,12 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               (new Date().getTime() - startTime) / 1000
             }s`,
           );*/
+          // to avoid markers overlapping
+          if (this.markersGroup) {
+            this.map.removeLayer(this.markersGroup);
+            this.markers = [];
+            this.allMarkers = [];
+          }
           let data = response.data;
           this.loadMarkers(data, filter.product);
           if (data.length === 0) {
@@ -283,22 +428,29 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               color = "#00ffff";
             } else if (lastObs.val >= 275.15 && lastObs.val < 277.15) {
               color = "#00bfff";
+              textColor = "#fff";
             } else if (lastObs.val >= 273.15 && lastObs.val < 275.15) {
               color = "#008cff";
+              textColor = "#fff";
             } else if (lastObs.val >= 271.15 && lastObs.val < 273.15) {
               color = "#0059ff";
+              textColor = "#fff";
             } else if (lastObs.val >= 269.15 && lastObs.val < 271.15) {
               color = "#0000ff";
+              textColor = "#fff";
             } else if (lastObs.val >= 267.15 && lastObs.val < 269.15) {
               color = "#7200ff";
+              textColor = "#fff";
             } else if (lastObs.val >= 265.15 && lastObs.val < 267.15) {
               color = "#bf00ff";
+              textColor = "#fff";
             } else if (lastObs.val >= 263.15 && lastObs.val < 265.15) {
               color = "#ff00ff";
             } else if (lastObs.val >= 261.15 && lastObs.val < 263.15) {
               color = "#cc00cc";
             } else if (lastObs.val >= 259.15 && lastObs.val < 261.15) {
               color = "#990099";
+              textColor = "#fff";
             } else if (lastObs.val >= 257.15 && lastObs.val < 259.15) {
               color = "#660066";
               textColor = "#fff";
@@ -310,10 +462,13 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
               textColor = "#fff";
             } else if (lastObs.val >= 251.15 && lastObs.val < 253.15) {
               color = "#cc0000";
+              textColor = "#fff";
             } else if (lastObs.val >= 249.15 && lastObs.val < 251.15) {
               color = "#ff0000";
+              textColor = "#fff";
             } else if (lastObs.val >= 247.15 && lastObs.val < 249.15) {
               color = "#ff6600";
+              textColor = "#fff";
             } else if (lastObs.val >= 245.15 && lastObs.val < 247.15) {
               color = "#ff9900";
             } else if (lastObs.val >= 243.15 && lastObs.val < 245.15) {
@@ -527,12 +682,17 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     meteogramsFilter.product = meteogramProducts.join(" or ");
     meteogramsFilter.level = meteogramLevels.join(" or ");
     meteogramsFilter.timerange = meteogramTimeranges.join(" or ");
-
     // get the reftime to and reftime from
     const reftimeTo = new Date();
-    let reftimeFrom = new Date();
-    reftimeFrom.setHours(reftimeTo.getHours() - 24);
-
+    let reftimeFrom: Date;
+    // set reftime from one hour before the time selected on the timebar
+    if (this.refTimeToTimeLine) {
+      this.refTimeToTimeLine.setHours(this.refTimeToTimeLine.getHours() - 1);
+      reftimeFrom = this.refTimeToTimeLine;
+    } else {
+      reftimeFrom = reftimeTo;
+      reftimeFrom.setHours(reftimeFrom.getHours() - 2);
+    }
     meteogramsFilter.dateInterval = [reftimeFrom, reftimeTo];
     //meteogramsFilter.time = [reftimeFrom.hour(),reftimeTo.hour()]
     meteogramsFilter.time = [
@@ -559,26 +719,30 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
       this.notify.showError("No product selected");
       return;
     }
+    // when reload button
     if (!obj) {
       // default to current product
       obj = {
         name: this.currentProduct,
         layer: this.currentProduct,
       };
+      (this.map as any).timeDimension.setCurrentTime(this.myNow.getTime());
     }
     // console.log(`toggle layer: ${obj.name}`);
-
-    // clean up layers
-    if (this.markersGroup) {
-      this.map.removeLayer(this.markersGroup);
-      this.allMarkers = [];
-      this.markers = [];
-    }
     // update the filter
     if (this.variablesConfig[obj.name]) {
       this.filter.product = this.variablesConfig[obj.name].code;
       this.filter.timerange = this.variablesConfig[obj.name].timerange;
       this.filter.level = this.variablesConfig[obj.name].level;
+      this.filter.reftime = this.myRefTime;
+      this.filter.time = this.myTime;
+      if (this.refTimeToTimeLine) {
+        (this.map as any).timeDimension.setCurrentTime(
+          this.refTimeToTimeLine.getTime(),
+        );
+      } else {
+        (this.map as any).timeDimension.setCurrentTime(this.myNow.getTime());
+      }
       this.loadObservations(this.filter, true);
     }
 
@@ -621,6 +785,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   };
 
   printReferenceDate(): string {
+    const now: number = new Date().getTime();
+    this.now = now;
     return `${moment
       .utc(new Date().getTime())
       .local()

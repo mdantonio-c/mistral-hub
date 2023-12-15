@@ -498,6 +498,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           // once the maps have been loaded I can preset the carousel
           this.presetSlider();
         });
+      //console.log('FILTER QUANDO NON CAMBI GIORNO', this.filter)
     }
   }
 
