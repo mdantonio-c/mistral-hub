@@ -29,6 +29,9 @@
   border-bottom: solid 2px #fff;
 }
 
+.local-hour {
+  font-size: 0.7em;
+}
 @media screen and (max-height: 640px) {
   .selected-dataset {
     font-size: 20px;

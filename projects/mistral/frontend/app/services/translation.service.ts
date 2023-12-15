@@ -53,6 +53,8 @@ export class TranslationService {
         "accumulation over 1h at forecast time 0": "Cumulato su 1h",
         "accumulated data": "Dato cumulato",
         "accumulated precipitation over 1h": "Precipitazione cumulata su 1h",
+        "dates are expressed in local time":
+          "le date sono espresse in ora locale",
       },
     },
   };
