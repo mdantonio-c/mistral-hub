@@ -1517,8 +1517,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   /**
    *
    */
-  showHideMultiModel() {
-    this.showed = !this.showed;
+  showHideMultiModel(val: boolean) {
+    console.log(`show multi-model? ${val}`);
+    this.showed = val;
     if (!this.showed) {
       this.map.removeLayer(this.markersGroup);
     } else {
@@ -1584,14 +1585,14 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   toggleLayer(obj: Record<string, string | L.Layer>) {
-    //console.log("toggleLayer: ", obj);
+    console.log("toggleLayer: ", obj);
     let layer: L.Layer = obj.layer as L.Layer;
     if (this.map.hasLayer(layer)) {
-      //console.log(`remove layer: ${obj.name}`);
+      console.log(`remove layer: ${obj.name}`);
       this.map.fire("overlayremove", obj);
       this.map.removeLayer(layer);
     } else {
-      //console.log(`add layer : ${obj.name}`);
+      console.log(`add layer : ${obj.name}`);
       this.map.fire("overlayadd", obj);
       layer.addTo(this.map);
     }

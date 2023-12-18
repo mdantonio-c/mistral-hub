@@ -319,7 +319,7 @@
             class="clickable"
             [ngClass]="{ active: isShowedMultiModel }"
             [(ngModel)]="isShowedMultiModel"
-            (click)="toggleMultiModel()"
+            (change)="toggleMultiModel()"
           />
           <p>
             Selected: <span></span

@@ -387,8 +387,8 @@ export class SideNavComponent implements OnInit {
   }
 
   toggleMultiModel() {
-    /*const op = this.isShowedMultiModel ? 'off' : 'on';
-    console.log(`Turn ${op} Multi Model Ensemble`);*/
+    const op = this.isShowedMultiModel ? "off" : "on";
+    console.log(`Turn ${op} Multi Model Ensemble`);
     this.onShowMultiModelChange.emit(this.isShowedMultiModel);
   }
 
