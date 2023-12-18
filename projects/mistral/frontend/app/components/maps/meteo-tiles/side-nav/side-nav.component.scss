@@ -30,7 +30,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   li a .nav-text {
     color: #fff;
     text-transform: uppercase;
-    font-size: 12px;
+    font-size: 10px;
     width: 100%;
     position: relative;
     margin-left: 14px;
@@ -58,7 +58,11 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
       margin-top: -14px !important;
       background-color: transparent !important;
       border: none !important;
-      font-size: 12px !important;
+      font-size: 9px !important;
+
+      &.show {
+        height: 100%;
+      }
     }
   }
 
@@ -270,11 +274,30 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   margin-left: 28px;
 }
 
+
 .selettore-dataset {
-  display: flex;
-  width: 200px;
-  margin-top: -5px;
-  margin-left: 32px;
+  width: 100px;
+  & > a {
+  color: #fff;
+  text-transform: uppercase;
+  font-family: "Montserrat-semibold";
+  font-size: 12px;
+  margin-top: 7px;
+  }
+  & .selected,
+  & .selected:hover {
+  color: $light-orange !important;
+  border-bottom: 1px solid $light-orange;
+  font-family: "Montserrat-semibold";
+  }
+
+  & a:hover {
+  border-bottom: 1px solid #fff;
+  text-decoration: none;
+  }
+  .dropdown-item {
+    font-size: 10px !important;
+  }
 }
 
 .selettore-percentile {
@@ -381,6 +404,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
   label {
     display: flex;
+    flex-direction: column !important;
     color: #fff;
     text-transform: uppercase;
     font-size: 10px;
@@ -388,6 +412,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     margin-right: 50px;
     font-family: "Montserrat-semibold";
     margin-bottom: 0.5rem;
+   
   }
 
   input {
@@ -409,15 +434,18 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 .selettore-carte {
   margin-bottom: -6px;
+  width: 100%;
 
   label {
     display: flex;
+    flex-direction: row !important;
     color: #fff;
     text-transform: uppercase;
     font-size: 9px;
     justify-content: space-evenly;
     margin-left: 32px;
     font-family: "Montserrat-semibold";
+   
   }
 
   input {
@@ -543,8 +571,12 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   align-items: flex-start;
   flex-direction: column;
 
+  a{
+    margin-top: 6px !important;
+  }
   .nav-text {
     margin-left: 0;
+   
   }
 
   p {
@@ -678,7 +710,12 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   padding-top: 18px;
 }
 
+.multi-model {
+  padding-top:6px;
+  padding-bottom: 0 !important;
+}
 .multi-model .form-switch {
+  margin-bottom: -7px;
   .form-check-input {
     background-image: none;
     background-color: transparent !important;
@@ -800,6 +837,37 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 }
 
 /* Responsive*/
+.selector {
+  overflow-y: scroll !important;
+  scrollbar-width: thin;
+  scrollbar-color: #e49c1e rgba(56, 56, 56, 0.473);
+
+  &::-webkit-scrollbar {
+    width: 7px;
+  }
+}
+
+.selector::-webkit-scrollbar-track {
+  border-radius: 20px;
+  background-color: rgba(56, 56, 56, 0.473);
+}
+
+.selector::-webkit-scrollbar-thumb {
+  background: #e49c1e;
+  border-radius: 20px;
+}
+
+.collapsed .selector {
+  overflow-y: hidden !important;
+}
+
+.collapsed .selector::-webkit-scrollbar-track {
+  display: none;
+}
+
+.collapsed .selector::-webkit-scrollbar-thumb {
+  display: none;
+}
 
 @media screen and (max-width: 1295px) {
   .map-sidenav li .nav-text {
@@ -907,3 +975,4 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     margin-left: 5px;
   }
 }
+      
