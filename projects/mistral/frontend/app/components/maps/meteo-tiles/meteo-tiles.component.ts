@@ -290,7 +290,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           comp.map.removeLayer(comp.markersGroup);
         }
         if (comp.showed) {
-          console.log("sono qui");
           comp.loadMarkers(index);
         }
       },
@@ -390,6 +389,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           .toDate();
     if (moment(this.currentMMReftime).isSame(reftime, "day")) {
       // do nothing if the reftime does NOT change
+      this.spinner.hide();
       return;
     }
     this.currentMMReftime = reftime;
@@ -474,8 +474,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
               });
               // (this.map as any).timeDimension.setCurrentTime(current);
               // (this.map as any).timeDimension.nextTime();
-              // force timeload
-              this.map.fire("timeload");
             }
           },
           (error) => {
@@ -1451,7 +1449,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   private loadMarkers(timerangeIdx = 0) {
-    console.log("load markers!");
     this.currentIdx = timerangeIdx;
     const idx = this.mmProduct === MultiModelProduct.TM ? 0 : 1;
     if (
@@ -1459,10 +1456,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       !this.mmProductsData[idx] ||
       !this.mmProductsData[idx][timerangeIdx]
     ) {
-      // console.log("No data to load");
+      this.notify.showWarning("No data to display");
       return;
     }
-    // console.log(`load markers. timerange IDX: ${timerangeIdx}`);
+    console.log(`load markers. timerange IDX: ${timerangeIdx}`);
     this.allMarkers = [];
     let obsData: ObsData;
     const unit: string =
