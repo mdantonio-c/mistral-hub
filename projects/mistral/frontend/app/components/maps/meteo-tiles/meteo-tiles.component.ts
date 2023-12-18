@@ -370,7 +370,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.map.invalidateSize();
         this.spinner.hide();
         // get multi-model products
-        if (this.viewMode === ViewModes.adv) {
+        if (this.viewMode === ViewModes.adv && this.showed) {
           this.getMMProducts();
         }
       });
@@ -1522,9 +1522,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     if (!this.showed) {
       this.map.removeLayer(this.markersGroup);
     } else {
-      this.markers = this.reduceOverlapping(this.allMarkers);
-      this.markersGroup = L.layerGroup(this.markers);
-      this.markersGroup.addTo(this.map);
+      if (!this.allMarkers.length) {
+        this.getMMProducts();
+      } else {
+        this.markers = this.reduceOverlapping(this.allMarkers);
+        this.markersGroup = L.layerGroup(this.markers);
+        this.markersGroup.addTo(this.map);
+      }
     }
   }
 
