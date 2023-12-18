@@ -838,7 +838,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 /* Responsive*/
 .selector {
-  overflow-y: scroll !important;
+  overflow-y: auto !important;
   scrollbar-width: thin;
   scrollbar-color: #e49c1e rgba(56, 56, 56, 0.473);
 
