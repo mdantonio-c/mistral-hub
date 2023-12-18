@@ -290,6 +290,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           comp.map.removeLayer(comp.markersGroup);
         }
         if (comp.showed) {
+          console.log("sono qui");
           comp.loadMarkers(index);
         }
       },
@@ -376,7 +377,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       });
   }
 
-  private getMMProducts() {
+  private getMMProducts(showSpinner: boolean = false) {
+    if (showSpinner) this.spinner.show();
     let reftime: Date = this.runAvailable
       ? moment
           .utc(this.runAvailable.reftime.substr(0, 8), "YYYYMMDD")
@@ -422,63 +424,69 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       takeUntil(maxNumbers),
     );
 
-    loadMultipleData$.subscribe((val) => {
-      let interval = this.runAvailable.end_offset + 24 || 72;
-      const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
-      // console.log(`timerange: ${timerange} : ${val}`);
-      let filterTM: ObsFilter = {
-        product: MultiModelProduct.TM,
-        reftime: reftime,
-        network: "multim-forecast",
-        license: "CCBY_COMPLIANT",
-        timerange: timerange,
-        interval: interval,
-      };
-      let filterRH: ObsFilter = {
-        product: MultiModelProduct.RH,
-        reftime: reftime,
-        network: "multim-forecast",
-        license: "CCBY_COMPLIANT",
-        timerange: timerange,
-        interval: interval,
-      };
-      let productTM$ = this.obsService.getData(filterTM, true);
-      let productRH$ = this.obsService.getData(filterRH, true);
-      forkJoin([productTM$, productRH$]).subscribe(
-        (results) => {
-          if (
-            this.isShowedMultiModel &&
-            results[0].data.length === 0 &&
-            results[1].data.length === 0
-          ) {
-            this.notify.showWarning("No Multi-Model data found.");
-            return;
-          }
-          const offset = parseInt(timerange.toString().split(",")[1]) / 3600;
-          const idx = Math.floor((offset - 27) / 3);
-          // console.log(`offset: +${offset}h, idx: ${idx}`);
+    loadMultipleData$
+      .subscribe((val) => {
+        let interval = this.runAvailable.end_offset + 24 || 72;
+        const timerange = Object.values(MULTI_MODEL_TIME_RANGES)[val];
+        // console.log(`timerange: ${timerange} : ${val}`);
+        let filterTM: ObsFilter = {
+          product: MultiModelProduct.TM,
+          reftime: reftime,
+          network: "multim-forecast",
+          license: "CCBY_COMPLIANT",
+          timerange: timerange,
+          interval: interval,
+        };
+        let filterRH: ObsFilter = {
+          product: MultiModelProduct.RH,
+          reftime: reftime,
+          network: "multim-forecast",
+          license: "CCBY_COMPLIANT",
+          timerange: timerange,
+          interval: interval,
+        };
+        let productTM$ = this.obsService.getData(filterTM, true);
+        let productRH$ = this.obsService.getData(filterRH, true);
+        forkJoin([productTM$, productRH$]).subscribe(
+          (results) => {
+            if (
+              this.isShowedMultiModel &&
+              results[0].data.length === 0 &&
+              results[1].data.length === 0
+            ) {
+              this.notify.showWarning("No Multi-Model data found.");
+              return;
+            }
+            const offset = parseInt(timerange.toString().split(",")[1]) / 3600;
+            const idx = Math.floor((offset - 27) / 3);
+            // console.log(`offset: +${offset}h, idx: ${idx}`);
 
-          this.mmProductsData[0][idx] = results[0].data;
-          this.mmProductsData[1][idx] = results[1].data;
+            this.mmProductsData[0][idx] = results[0].data;
+            this.mmProductsData[1][idx] = results[1].data;
 
-          const today = moment.utc();
-          const current = moment.utc(
-            (this.map as any).timeDimension.getCurrentTime(),
-          );
-          if (moment(current).isSame(today, "day")) {
-            (this.map as any).timeDimension.fire("timeload", {
-              time: current,
-            });
-            // (this.map as any).timeDimension.setCurrentTime(current);
-            // (this.map as any).timeDimension.nextTime();
-          }
-        },
-        (error) => {
-          this.notify.showError(error);
-          throw error;
-        },
-      );
-    });
+            const today = moment.utc();
+            const current = moment.utc(
+              (this.map as any).timeDimension.getCurrentTime(),
+            );
+            if (moment(current).isSame(today, "day")) {
+              (this.map as any).timeDimension.fire("timeload", {
+                time: current,
+              });
+              // (this.map as any).timeDimension.setCurrentTime(current);
+              // (this.map as any).timeDimension.nextTime();
+              // force timeload
+              this.map.fire("timeload");
+            }
+          },
+          (error) => {
+            this.notify.showError(error);
+            throw error;
+          },
+        );
+      })
+      .add(() => {
+        if (showSpinner) this.spinner.hide();
+      });
   }
 
   private setOverlaysToMap() {
@@ -1443,6 +1451,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   private loadMarkers(timerangeIdx = 0) {
+    console.log("load markers!");
     this.currentIdx = timerangeIdx;
     const idx = this.mmProduct === MultiModelProduct.TM ? 0 : 1;
     if (
@@ -1524,7 +1533,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       this.map.removeLayer(this.markersGroup);
     } else {
       if (!this.allMarkers.length) {
-        this.getMMProducts();
+        this.getMMProducts(true);
       } else {
         this.markers = this.reduceOverlapping(this.allMarkers);
         this.markersGroup = L.layerGroup(this.markers);
