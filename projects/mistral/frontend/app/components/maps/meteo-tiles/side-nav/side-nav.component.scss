@@ -12,10 +12,12 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   text-align: center;
   width: 280px;
   cursor: auto;
+
   .dropdown-menu.show {
     position: relative !important;
     transform: none !important;
   }
+
   &.collapsed {
     width: 50px !important;
   }
@@ -24,6 +26,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     text-decoration: none;
     margin-top: 3px;
   }
+
   li a .nav-text {
     color: #fff;
     text-transform: uppercase;
@@ -32,6 +35,31 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     position: relative;
     margin-left: 14px;
     font-family: "Montserrat-semibold";
+  }
+
+  .sidenav-item.dropdown {
+    .dropdown-toggle {
+      &::after {
+        color: $light-orange !important;
+      }
+
+      .nav-text {
+        margin-top: 2px;
+      }
+    }
+
+    .dropdown-item {
+      width: fit-content;
+    }
+
+    .submenu {
+      transform: translate(0px, 0px) !important;
+      margin-left: 40px !important;
+      margin-top: -14px !important;
+      background-color: transparent !important;
+      border: none !important;
+      font-size: 12px !important;
+    }
   }
 
   li a:hover .nav-text {
@@ -123,8 +151,9 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 }
 
 .multi-model {
-  display: flex !important ;
+  display: flex !important;
   flex-wrap: nowrap !important;
+
   .nav-text {
     width: 80% !important;
     margin-left: 10px !important;
@@ -487,6 +516,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   text-align: center;
   margin-top: 2px;
 }
+
 .selettore-orario label {
   align-items: center;
   font-family: "Montserrat-semibold";
@@ -516,10 +546,12 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   .nav-text {
     margin-left: 0;
   }
+
   p {
     font-size: 9px;
     align-self: flex-start;
   }
+
   input {
     position: absolute;
     right: -30px;
@@ -550,6 +582,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   border-bottom: 1px solid #fff;
   text-decoration: none;
 }
+
 .zoom {
   margin-top: 4px;
 }
@@ -614,6 +647,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     background-color: #797e7e !important;
     border-color: #797e7e !important;
   }
+
   & input[disabled="true"] ~ .form-check-label:after {
     background-color: #616262 !important;
     border-color: #616262 !important;
@@ -650,11 +684,13 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     background-color: transparent !important;
     border-color: transparent !important;
   }
+
   .form-check-label {
     transform: rotate(90deg) !important;
     margin-top: 41px !important;
     margin-left: -9px;
     position: relative;
+
     &:before {
       opacity: 0.6;
       left: -48.25px;
@@ -666,6 +702,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
       content: "";
       position: absolute;
     }
+
     &:after {
       background-color: #e49d2b;
       border-radius: 2.5rem;
@@ -704,17 +741,20 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   .nav-text {
     margin-left: 8px !important;
   }
+
   .form-switch {
     .form-check-input {
       background-image: none;
       background-color: transparent !important;
       border-color: transparent !important;
     }
+
     .form-check-label {
       transform: rotate(90deg) !important;
       margin-top: 41px !important;
       margin-left: -9px;
       position: relative;
+
       &:before {
         opacity: 0.6;
         left: -40.25px;
@@ -726,6 +766,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
         content: "";
         position: absolute;
       }
+
       &:after {
         background-color: #e49d2b;
         border-radius: 2.5rem;
@@ -793,6 +834,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     margin-left: 5px;
   }
 }
+
 @media screen and (max-width: 900px) {
   .map-sidenav {
     width: 240px;
@@ -802,6 +844,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     }
   }
 }
+
 @media screen and (max-height: 679px) {
   .map-sidenav {
     .toggle {

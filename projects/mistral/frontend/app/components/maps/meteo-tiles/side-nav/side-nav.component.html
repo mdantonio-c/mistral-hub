@@ -7,6 +7,42 @@
       [class.collapsed]="isCollapsed"
     ></label>
     <ul class="selector">
+      <li class="sidenav-item last pb-1" *ngIf="mode == modes.adv" ngbDropdown>
+        <span
+          class="input clickable"
+          placement="left"
+          [ngbTooltip]="'Dataset'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a
+            href="#"
+            click-stop-propagation
+            class="dataset"
+            id="dropdownDataset"
+            ngbDropdownToggle
+          >
+            <span class="nav-text" i18n>Dataset</span>
+          </a>
+          <div
+            class="position-relative text-start submenu selettore-dataset"
+            ngbDropdownMenu
+            aria-labelledby="dropdownDataset"
+          >
+            <ng-container *ngFor="let ds of availableDatasets">
+              <a
+                class="p-0"
+                id="{{ ds.code }}"
+                href="#"
+                (click)="changeDataset($event, ds.code)"
+                [ngClass]="{ selected: dataset === ds.code }"
+                ngbDropdownItem
+                >{{ ds.desc }}</a
+              >
+            </ng-container>
+          </div>
+        </ng-container>
+      </li>
       <ng-container *ngIf="dataset === 'iff'; then iff; else cosmo">
       </ng-container>
       <ng-template #iff>
@@ -76,9 +112,9 @@
             [ngbTooltip]="tipTemperature"
             [disableTooltip]="!isCollapsed"
           ></span>
-          <ng-template #tipTemperature>{{
-            "Temperature" | translate : lang | titlecase
-          }}</ng-template>
+          <ng-template #tipTemperature
+            >{{ "Temperature" | translate : lang | titlecase }}
+          </ng-template>
           <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 't2m')">
             <span class="nav-text" i18n>
               {{ "Temperature" | translate : lang }}
@@ -93,9 +129,9 @@
             [ngbTooltip]="tipPressure"
             [disableTooltip]="!isCollapsed"
           ></span>
-          <ng-template #tipPressure>{{
-            "Pressure" | translate : lang | titlecase
-          }}</ng-template>
+          <ng-template #tipPressure
+            >{{ "Pressure" | translate : lang | titlecase }}
+          </ng-template>
           <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'prs')">
             <span class="nav-text" i18n>{{
               "Pressure" | translate : lang
@@ -110,9 +146,9 @@
             [ngbTooltip]="tipRelativeHumidity"
             [disableTooltip]="!isCollapsed"
           ></span>
-          <ng-template #tipRelativeHumidity>{{
-            "Relative humidity" | translate : lang | titlecase
-          }}</ng-template>
+          <ng-template #tipRelativeHumidity
+            >{{ "Relative humidity" | translate : lang | titlecase }}
+          </ng-template>
           <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'rh')">
             <span class="nav-text" i18n>{{
               "Relative humidity" | translate : lang
@@ -127,9 +163,9 @@
             [ngbTooltip]="tipWind"
             [disableTooltip]="!isCollapsed"
           ></span>
-          <ng-template #tipWind>{{
-            "Wind" | translate : lang | titlecase
-          }}</ng-template>
+          <ng-template #tipWind
+            >{{ "Wind" | translate : lang | titlecase }}
+          </ng-template>
           <a
             href="#"
             *ngIf="!isCollapsed"
@@ -146,9 +182,9 @@
             [ngbTooltip]="tipPrecipitation"
             [disableTooltip]="!isCollapsed"
           ></span>
-          <ng-template #tipPrecipitation>{{
-            "Precipitation" | translate : lang | titlecase
-          }}</ng-template>
+          <ng-template #tipPrecipitation
+            >{{ "Precipitation" | translate : lang | titlecase }}
+          </ng-template>
           <ng-container *ngIf="!isCollapsed">
             <a href="#" (click)="toggleLayer($event, 'prp')">
               <span class="nav-text" i18n>{{
@@ -184,9 +220,9 @@
             [ngbTooltip]="tipSnowFall"
             [disableTooltip]="!isCollapsed"
           ></span>
-          <ng-template #tipSnowFall>{{
-            "Snow Fall" | translate : lang | titlecase
-          }}</ng-template>
+          <ng-template #tipSnowFall
+            >{{ "Snow Fall" | translate : lang | titlecase }}
+          </ng-template>
           <ng-container *ngIf="!isCollapsed">
             <a href="#" (click)="toggleLayer($event, 'sf')">
               <span class="nav-text" i18n>{{
@@ -222,9 +258,9 @@
             [ngbTooltip]="tipClouds"
             [disableTooltip]="!isCollapsed"
           ></span>
-          <ng-template #tipClouds>{{
-            "Clouds" | translate : lang | titlecase
-          }}</ng-template>
+          <ng-template #tipClouds
+            >{{ "Clouds" | translate : lang | titlecase }}
+          </ng-template>
           <ng-container *ngIf="!isCollapsed">
             <a href (click)="toggleLayer($event, 'cc')">
               <span class="nav-text" i18n>{{
@@ -260,25 +296,7 @@
           </ng-container>
         </li>
       </ng-template>
-      <li class="sidenav-item" *ngIf="mode == modes.adv">
-        <span class="input"></span>
-        <ng-container *ngIf="!isCollapsed">
-          <a href="#" click-stop-propagation class="dataset">
-            <span class="nav-text" i18n>Selected dataset</span>
-          </a>
-          <div class="selettore-dataset">
-            <ng-container *ngFor="let ds of availableDatasets">
-              <a
-                id="{{ ds.code }}"
-                href="#"
-                (click)="changeDataset($event, ds.code)"
-                [ngClass]="{ selected: dataset === ds.code }"
-                >{{ ds.desc }}</a
-              >
-            </ng-container>
-          </div>
-        </ng-container>
-      </li>
+      <!-- multi-model -->
       <li class="sidenav-item last multi-model" *ngIf="mode == modes.adv">
         <div class="custom-control mm-switch form-check form-switch">
           <input
@@ -333,6 +351,7 @@
           </div>
         </ng-container>
       </li>
+      <!-- zoom-in -->
       <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
         <span
           class="plus clickable"
@@ -351,6 +370,7 @@
           >
         </a>
       </li>
+      <!-- zoom-out -->
       <li class="sidenav-item last" *ngIf="mode == modes.adv">
         <span
           class="minus clickable"
@@ -369,23 +389,6 @@
           >
         </a>
       </li>
-      <!--
-      <li class="sidenav-item d-flex flex-wrap last switch mt-2" *ngIf="mode == modes.base" >
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
-          <label class="form-check-label" for="flexSwitchCheckDefault"></label>
-        </div>
-        <div class="selettore-multimodel w-75" *ngIf="!isCollapsed">
-          <a href="#" click-stop-propagation>
-            <span class="nav-text">Observations</span>
-          </a>
-          <p>
-            Selected: <span></span
-            >
-          </p>
-        </div>
-      </li>
-      -->
     </ul>
   </div>
 </nav>
