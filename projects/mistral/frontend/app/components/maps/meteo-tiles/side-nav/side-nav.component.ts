@@ -272,7 +272,7 @@ export class SideNavComponent implements OnInit {
   }
 
   /**
-   * Activate / Deactivate a layer with sub levels
+   * Activate / Deactivate a layer with sub-levels
    * @param event
    * @param target
    * @param layerId
@@ -284,6 +284,12 @@ export class SideNavComponent implements OnInit {
     multiSelection = false,
   ) {
     // console.log(`activate layer ${layerId}, value ${target.value}`);
+    // force active state to the parent layer element
+    let el = this.el.nativeElement.querySelector(`span.${layerId}`);
+    const isActive: boolean = el.classList.contains("attivo");
+    if (!isActive) {
+      this.renderer.addClass(el, "attivo");
+    }
     for (const [key, layer] of Object.entries(this.overlays)) {
       // need to clean up
       if (
@@ -320,6 +326,12 @@ export class SideNavComponent implements OnInit {
   }
 
   toggleTotalClouds() {
+    // force active state to the parent layer element
+    let el = this.el.nativeElement.querySelector("span.cc");
+    const isActive: boolean = el.classList.contains("attivo");
+    if (!isActive) {
+      this.renderer.addClass(el, "attivo");
+    }
     this.showTotalClouds = !this.showTotalClouds;
     if (this.showTotalClouds) {
       // remove active layers for cloud sub-levels

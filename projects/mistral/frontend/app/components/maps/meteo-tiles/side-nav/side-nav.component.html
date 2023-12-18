@@ -60,12 +60,11 @@
             </a>
             <span class="nav-sub-text">(mm)</span>
             <div class="selettore-percentile">
-              <label *ngFor="let p of subLevels['tpperc']">
+              <label *ngFor="let p of subLevels['tpperc']" class="clickable">
                 <input
                   type="radio"
                   name="iff_percentile"
                   [checked]="p.checked"
-                  [attr.disabled]="isLayerActive('tpperc') ? null : true"
                   [value]="p.value"
                   (change)="changeSubLevel($event, p, 'tpperc')"
                 />
@@ -88,12 +87,11 @@
             </a>
             <span class="nav-sub-text">(%)</span>
             <div class="selettore-probabilita">
-              <label *ngFor="let p of subLevels['tpprob']">
+              <label *ngFor="let p of subLevels['tpprob']" class="clickable">
                 <input
                   type="radio"
                   name="iff_probability"
                   [checked]="p.checked"
-                  [attr.disabled]="isLayerActive('tpprob') ? null : true"
                   [value]="p.value"
                   (change)="changeSubLevel($event, p, 'tpprob')"
                 />
@@ -200,7 +198,7 @@
                     <input
                       type="radio"
                       name="precipitation"
-                      [attr.disabled]="isLayerActive('prp') ? null : true"
+                      class="clickable"
                       [value]="h.value"
                       [checked]="h.checked"
                       (change)="changeSubLevel($event, h, 'prp')"
@@ -238,8 +236,8 @@
                     <input
                       type="radio"
                       name="snow"
+                      class="clickable"
                       [checked]="h.checked"
-                      [attr.disabled]="isLayerActive('sf') ? null : true"
                       [value]="h.value"
                       (change)="changeSubLevel($event, h, 'sf')"
                     />
@@ -271,12 +269,12 @@
               <label *ngFor="let lvl of subLevels['cc']">
                 <input
                   type="checkbox"
+                  class="clickable"
                   [name]="lvl.value"
                   [(ngModel)]="lvl.checked"
                   [value]="lvl.value"
                   (change)="changeSubLevel($event, lvl, 'cc', true)"
                   (click)="preventActions($event, lvl, 'cc')"
-                  [attr.disabled]="isLayerActive('cc') ? null : true"
                 />
                 {{ lvl.value }}
               </label>
@@ -284,10 +282,9 @@
                 <input
                   id="tccSwitch"
                   type="checkbox"
-                  class="form-check-input"
+                  class="form-check-input clickable"
                   [checked]="showTotalClouds"
                   (change)="toggleTotalClouds()"
-                  [attr.disabled]="isLayerActive('cc') ? null : true"
                 />
                 <label class="form-check-label" for="tccSwitch"></label>
                 <p i18n>TOTAL</p>
