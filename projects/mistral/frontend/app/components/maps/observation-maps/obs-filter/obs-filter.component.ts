@@ -147,7 +147,6 @@ export class ObsFilterComponent implements OnInit {
 
   private loadFilter(f: ObsFilter, initialize = false) {
     setTimeout(() => this.spinner.show("filter-spinner"), 0);
-    console.log("load filter", f);
     this.obsService
       .getFields(f)
       .subscribe(
@@ -321,7 +320,6 @@ export class ObsFilterComponent implements OnInit {
 
   update() {
     let filter: ObsFilter = this.toObsFilter();
-    console.log("emit update filter", filter);
     this.filterUpdate.emit(filter);
     this.isUpdatable = false;
   }

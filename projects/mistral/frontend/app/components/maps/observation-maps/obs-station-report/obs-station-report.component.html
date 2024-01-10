@@ -77,16 +77,32 @@
               style="font-size: small"
             >
               <ng-container *ngFor="let p of report.prod">
-                <li
-                  class="border border-primary rounded m-1"
-                  [ngbNavItem]="getNavItemName(p)"
+                <ng-container
+                  *ngIf="
+                    existMixWindProduct &&
+                    p.var !== 'B11001' &&
+                    p.var !== 'B11002'
+                  "
                 >
-                  <a ngbNavLink>{{
-                    descriptions[p.var].descr | translate : lang | uppercase
-                  }}</a>
-                  <ng-template ngbNavContent></ng-template>
-                </li>
+                  <li
+                    class="border border-primary rounded m-1"
+                    [ngbNavItem]="getNavItemName(p)"
+                  >
+                    <a ngbNavLink>{{
+                      descriptions[p.var].descr | translate : lang | uppercase
+                    }}</a>
+                    <ng-template ngbNavContent></ng-template>
+                  </li>
+                </ng-container>
               </ng-container>
+              <li
+                ngbNavItem="mixwind-0"
+                class="border border-primary rounded m-1"
+                *ngIf="existMixWindProduct"
+              >
+                <a ngbNavLink>{{ "Wind" | translate : lang | uppercase }}</a>
+                <ng-template ngbNavContent></ng-template>
+              </li>
             </ul>
             <div [ngbNavOutlet]="nav"></div>
             <p class="text-justify">
@@ -110,13 +126,18 @@
             </p>
             <!--<pre>{{nav.activeId}}</pre>-->
             <div #containerRef>
-              <ng-container
-                *ngIf="
-                  nav.activeId.split('-')[0] !== 'B13011';
-                  then lineChart;
-                  else comboChart
-                "
-              >
+              <ng-container [ngSwitch]="nav.activeId.split('-')[0]">
+                <div *ngSwitchCase="'B13011'">
+                  <ng-container *ngTemplateOutlet="comboChart"></ng-container>
+                </div>
+                <div *ngSwitchCase="'mixwind'">
+                  <ng-container
+                    *ngTemplateOutlet="comboChartWind"
+                  ></ng-container>
+                </div>
+                <div *ngSwitchDefault>
+                  <ng-container *ngTemplateOutlet="lineChart"></ng-container>
+                </div>
               </ng-container>
               <ng-template #lineChart>
                 <custom-ngx-charts-line-chart
@@ -249,6 +270,67 @@
                     </div>
                   </ng-template>
                 </combo-chart-component>
+              </ng-template>
+
+              <ng-template #comboChartWind>
+                <combo-chart-wind-component
+                  [view]="[containerRef.offsetWidth, 400]"
+                  [curve]="curve"
+                  [scheme]="monoBarScheme"
+                  [colorSchemeLine]="monoLineScheme"
+                  [animations]="true"
+                  [results]="windDirectionSeries"
+                  [lineChart]="single"
+                  [tooltipDisabled]="false"
+                  [yLeftAxisScaleFactor]="yLeftAxisScale"
+                  [gradient]="false"
+                  [xAxis]="true"
+                  [yAxis]="true"
+                  [legend]="false"
+                  [showXAxisLabel]="true"
+                  [showYAxisLabel]="true"
+                  [xAxisLabel]="xAxisLabelFormatting()"
+                  [xAxisTickFormatting]="xAxisTickFormattingFn"
+                  [yAxisLabel]="('Wind speed' | translate : lang) + ' (m/s)'"
+                  [gridLineNgStyleByXAxisTick]="xAxisNgStyleFn"
+                >
+                  <ng-template #seriesTooltipTemplate let-model="model">
+                    <div class="area-tooltip-container">
+                      <span class="d-block"
+                        ><b>{{
+                          model[0].name | fmtLabelDate : lang : true
+                        }}</b></span
+                      >
+                      <div
+                        *ngFor="let tooltipItem of model"
+                        class="tooltip-item"
+                      >
+                        <span
+                          class="tooltip-item-color"
+                          [style.background-color]="
+                            tooltipItem.series.includes('DIRECTION')
+                              ? monoBarScheme.domain[0]
+                              : monoLineScheme.domain[0]
+                          "
+                        ></span>
+                        {{
+                          tooltipItem.series
+                            .toLowerCase()
+                            .charAt(0)
+                            .toUpperCase() +
+                            tooltipItem.series.toLowerCase().slice(1)
+                            | replace : "\\(([^\\)]+)\\)" : ""
+                            | translate : lang
+                        }}: <b>{{ tooltipItem.value }}</b>
+                        {{
+                          tooltipItem.series.includes("DIRECTION")
+                            ? " (°)"
+                            : " (m/s)"
+                        }}
+                      </div>
+                    </div>
+                  </ng-template>
+                </combo-chart-wind-component>
               </ng-template>
             </div>
           </div>
