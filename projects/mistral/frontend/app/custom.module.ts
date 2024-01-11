@@ -87,7 +87,10 @@ import {
   ComboChartComponent,
   ComboSeriesVerticalComponent,
 } from "./components/custom-charts/combo-chart";
-
+import {
+  BubbleLineChartComponent,
+  ComboBubbleSeriesComponent,
+} from "./components/custom-charts/combo-chart-wind";
 const appRoutes: Routes = [
   {
     path: "app/data",
@@ -182,16 +185,8 @@ const appRoutes: Routes = [
   { path: "app/license", component: LicenseComponent },
   { path: "public/privacy", component: PrivacyComponent },
   { path: "public/participate", component: ParticipateComponent },
-  {
-    path: "app",
-    redirectTo: "/app/maps/meteotiles?dataset=lm2.2",
-    pathMatch: "full",
-  },
-  {
-    path: "",
-    redirectTo: "/app/maps/meteotiles?dataset=lm2.2",
-    pathMatch: "full",
-  },
+  { path: "app", redirectTo: "/app/datasets", pathMatch: "full" },
+  { path: "", redirectTo: "/app/datasets", pathMatch: "full" },
 ];
 
 @NgModule({
@@ -261,6 +256,8 @@ const appRoutes: Routes = [
     TranslatePipe,
     ComboChartComponent,
     ComboSeriesVerticalComponent,
+    BubbleLineChartComponent,
+    ComboBubbleSeriesComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
