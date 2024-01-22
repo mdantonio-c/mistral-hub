@@ -79,9 +79,10 @@
               <ng-container *ngFor="let p of report.prod">
                 <ng-container
                   *ngIf="
-                    existMixWindProduct &&
-                    p.var !== 'B11001' &&
-                    p.var !== 'B11002'
+                    (existMixWindProduct &&
+                      p.var !== 'B11001' &&
+                      p.var !== 'B11002') ||
+                    !existMixWindProduct
                   "
                 >
                   <li
@@ -272,65 +273,73 @@
                 </combo-chart-component>
               </ng-template>
 
-              <ng-template #comboChartWind>
-                <combo-chart-wind-component
-                  [view]="[containerRef.offsetWidth, 400]"
-                  [curve]="curve"
-                  [scheme]="monoBarScheme"
-                  [colorSchemeLine]="monoLineScheme"
-                  [animations]="true"
-                  [results]="windDirectionSeries"
-                  [lineChart]="single"
-                  [tooltipDisabled]="false"
-                  [yLeftAxisScaleFactor]="yLeftAxisScale"
-                  [gradient]="false"
-                  [xAxis]="true"
-                  [yAxis]="true"
-                  [legend]="false"
-                  [showXAxisLabel]="true"
-                  [showYAxisLabel]="true"
-                  [xAxisLabel]="xAxisLabelFormatting()"
-                  [xAxisTickFormatting]="xAxisTickFormattingFn"
-                  [yAxisLabel]="('Wind speed' | translate : lang) + ' (m/s)'"
-                  [gridLineNgStyleByXAxisTick]="xAxisNgStyleFn"
-                >
-                  <ng-template #seriesTooltipTemplate let-model="model">
-                    <div class="area-tooltip-container">
-                      <span class="d-block"
-                        ><b>{{
-                          model[0].name | fmtLabelDate : lang : true
-                        }}</b></span
-                      >
-                      <div
-                        *ngFor="let tooltipItem of model"
-                        class="tooltip-item"
-                      >
-                        <span
-                          class="tooltip-item-color"
-                          [style.background-color]="
-                            tooltipItem.series.includes('DIRECTION')
-                              ? monoBarScheme.domain[0]
-                              : monoLineScheme.domain[0]
-                          "
-                        ></span>
-                        {{
-                          tooltipItem.series
-                            .toLowerCase()
-                            .charAt(0)
-                            .toUpperCase() +
-                            tooltipItem.series.toLowerCase().slice(1)
-                            | replace : "\\(([^\\)]+)\\)" : ""
-                            | translate : lang
-                        }}: <b>{{ tooltipItem.value }}</b>
-                        {{
-                          tooltipItem.series.includes("DIRECTION")
-                            ? " (°)"
-                            : " (m/s)"
-                        }}
+              <ng-template #comboChartWind
+                >￼
+                <div style="max-width: 800px; overflow: auto">
+                  <combo-chart-wind-component
+                    [view]="[
+                      widhtOfWindData()
+                        ? widhtOfWindData()
+                        : containerRef.offsetWidth,
+                      400
+                    ]"
+                    [curve]="curve"
+                    [scheme]="monoBarScheme"
+                    [colorSchemeLine]="monoLineScheme"
+                    [animations]="true"
+                    [results]="windDirectionSeries"
+                    [lineChart]="single"
+                    [tooltipDisabled]="false"
+                    [yLeftAxisScaleFactor]="yLeftAxisScale"
+                    [gradient]="false"
+                    [xAxis]="true"
+                    [yAxis]="true"
+                    [legend]="false"
+                    [showXAxisLabel]="true"
+                    [showYAxisLabel]="true"
+                    [xAxisLabel]="xAxisLabelFormatting()"
+                    [xAxisTickFormatting]="xAxisTickFormattingFn"
+                    [yAxisLabel]="('Wind speed' | translate : lang) + ' (m/s)'"
+                    [gridLineNgStyleByXAxisTick]="xAxisNgStyleFn"
+                  >
+                    <ng-template #seriesTooltipTemplate let-model="model">
+                      <div class="area-tooltip-container">
+                        <span class="d-block"
+                          ><b>{{
+                            model[0].name | fmtLabelDate : lang : true
+                          }}</b></span
+                        >
+                        <div
+                          *ngFor="let tooltipItem of model"
+                          class="tooltip-item"
+                        >
+                          <span
+                            class="tooltip-item-color"
+                            [style.background-color]="
+                              tooltipItem.series.includes('DIRECTION')
+                                ? monoBarScheme.domain[0]
+                                : monoLineScheme.domain[0]
+                            "
+                          ></span>
+                          {{
+                            tooltipItem.series
+                              .toLowerCase()
+                              .charAt(0)
+                              .toUpperCase() +
+                              tooltipItem.series.toLowerCase().slice(1)
+                              | replace : "\\(([^\\)]+)\\)" : ""
+                              | translate : lang
+                          }}: <b>{{ tooltipItem.value }}</b>
+                          {{
+                            tooltipItem.series.includes("DIRECTION")
+                              ? " (°)"
+                              : " (m/s)"
+                          }}
+                        </div>
                       </div>
-                    </div>
-                  </ng-template>
-                </combo-chart-wind-component>
+                    </ng-template>
+                  </combo-chart-wind-component>
+                </div>
               </ng-template>
             </div>
           </div>

@@ -16,6 +16,7 @@ import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
 import { curveMonotoneX } from "d3-shape";
+
 import { randomize } from "./data.mock";
 
 const STATION_NAME_CODE = "B01019";
@@ -62,6 +63,7 @@ export class ObsStationReportComponent implements OnInit {
 
   /* flag to track if there are wind products in the selected groundstation */
   existMixWindProduct: boolean = false;
+  onlyWindProduct: boolean = false;
 
   constructor(
     private obsService: ObsService,
@@ -110,10 +112,17 @@ export class ObsStationReportComponent implements OnInit {
           } else {
             meteogramToShow = `${this.filter.product}-${this.filter.level}-${this.filter.timerange}`;
           }
+
           this.single = this.multi.filter(
             (x: DataSeries) =>
               `${x.code}-${x.level}-${x.timerange}` === meteogramToShow,
           );
+
+          // to manage the case when for a station only wind products are available
+          if (this.onlyWindProduct) {
+            meteogramToShow = "mixwind-0";
+            this.buildWindProduct();
+          }
           this.active = meteogramToShow;
         },
         (error) => {
@@ -224,59 +233,66 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   private updateGraphData(navItemId: string) {
-    // managing of wind
+    // managing of wind products
     if (navItemId === "mixwind-0") {
-      this.single = this.multi.filter(
-        (x: DataSeries) =>
-          `${x.code}-${x.level}-${x.timerange}` ===
-          "B11002-103,2000,0,0-254,0,0",
-      );
-      // to manage 10 m above ground level  case
-      if (this.single.length == 0) {
-        this.single = this.multi.filter(
-          (x: DataSeries) =>
-            `${x.code}-${x.level}-${x.timerange}` ===
-            "B11002-103,10000,0,0-254,0,0",
-        );
-      }
-
-      const windSpeedValues = this.single[0].series.map((v) => v.value);
-      let windDirection = this.multi.filter(
-        (x: DataSeries) =>
-          `${x.code}-${x.level}-${x.timerange}` ===
-          "B11001-103,2000,0,0-254,0,0",
-      );
-      // to manage 10 m above ground case
-      if (windDirection.length == 0) {
-        windDirection = this.multi.filter(
-          (x: DataSeries) =>
-            `${x.code}-${x.level}-${x.timerange}` ===
-            "B11001-103,10000,0,0-254,0,0",
-        );
-      }
-      let bubbleWindDirection = Object.assign({}, windDirection);
-      let t = [];
-      bubbleWindDirection[0].series.forEach((v, index) => {
-        let s;
-        // data for bubble series, in value is stored wind direction
-        s = {
-          name: v.name,
-          x: v.name,
-          y: parseFloat(windSpeedValues[index]),
-          r: 5,
-          value: v.value,
-        };
-        t.push(s);
-      });
-      bubbleWindDirection[0].series = t;
-      this.windDirectionSeries = [bubbleWindDirection[0]];
-      //console.log('single',this.single);
-      //console.log('winddirectionseries',this.windDirectionSeries);
+      this.buildWindProduct();
     } else {
       this.single = this.multi.filter(
         (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
       );
     }
+  }
+
+  private buildWindProduct() {
+    let flag10m = false;
+    this.single = this.multi.filter(
+      (x: DataSeries) =>
+        `${x.code}-${x.level}-${x.timerange}` === "B11002-103,2000,0,0-254,0,0",
+    );
+    //to manage 10 m above ground level  case
+    if (this.single.length == 0) {
+      this.single = this.multi.filter(
+        (x: DataSeries) =>
+          `${x.code}-${x.level}-${x.timerange}` ===
+          "B11002-103,10000,0,0-254,0,0",
+      );
+      flag10m = true;
+    }
+    const windSpeedValues = this.single[0].series.map((v) => v.value);
+    let windDirection;
+    if (!flag10m) {
+      windDirection = this.multi.filter(
+        (x: DataSeries) =>
+          `${x.code}-${x.level}-${x.timerange}` ===
+          "B11001-103,2000,0,0-254,0,0",
+      );
+    } else {
+      // to manage 10 m above ground case
+      windDirection = this.multi.filter(
+        (x: DataSeries) =>
+          `${x.code}-${x.level}-${x.timerange}` ===
+          "B11001-103,10000,0,0-254,0,0",
+      );
+    }
+
+    let bubbleWindDirection = Object.assign({}, windDirection);
+    let t = [];
+    bubbleWindDirection[0].series.forEach((v, index) => {
+      let s;
+      // data for bubble series, in value is stored wind direction
+      s = {
+        name: v.name,
+        x: v.name,
+        y: parseFloat(windSpeedValues[index]),
+        r: 2.5,
+        value: v.value,
+      };
+      t.push(s);
+    });
+    bubbleWindDirection[0].series = t;
+    this.windDirectionSeries = [bubbleWindDirection[0]];
+    //console.log('single',this.single);
+    //console.log('winddirectionseries',this.windDirectionSeries);
   }
 
   private normalize(data: Observation): DataSeries[] {
@@ -339,16 +355,39 @@ export class ObsStationReportComponent implements OnInit {
    */
   private checkWindMixProductAvailable(data: Observation): void {
     let i: number = 0;
+    let j: number = 0;
     data.prod.forEach((v) => {
       if (v.var == "B11001" || v.var == "B11002") {
         i = i + 1;
+      } else {
+        j = j + 1;
       }
     });
-
-    if (i == 2) {
+    // wind and direction data should have the same lenght
+    let windProductSameLenght = true;
+    let n, m;
+    data.prod.forEach((v) => {
+      if (v.var == "B11001") {
+        n = v.val.length;
+      }
+      if (v.var == "B11002") {
+        m = v.val.length;
+      }
+    });
+    if (n !== m) windProductSameLenght = false;
+    if (i == 2 && windProductSameLenght) {
+      if (j == 0) {
+        this.onlyWindProduct = true;
+      }
       this.existMixWindProduct = true;
     } else {
       this.existMixWindProduct = false;
+    }
+  }
+
+  widhtOfWindData(): number {
+    if (this.single[0].series.length > 30) {
+      return this.single[0].series.length * 15;
     }
   }
 }

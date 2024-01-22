@@ -72,33 +72,46 @@ interface BubbleChartSeries {
     </svg:g>
     <svg:g *ngFor="let arrow of arrows; let i = index; trackBy: trackBy">
       <svg:g [attr.transform]="arrow.transform">
+        <!--        <svg-->
+        <!--          viewBox="0 -5 40 10"-->
+        <!--          width="40"-->
+        <!--          height="10"-->
+        <!--          style="overflow: visible;"-->
+        <!--        >-->
         <svg
-          viewBox="0 -5 40 10"
-          width="40"
+          viewBox="0 -5 20 10"
+          width="20"
           height="10"
           style="overflow: visible;"
         >
           <line
             x1="0"
             y1="-5"
-            x2="35"
+            x2="15"
             y2="-5"
             stroke="#E08352"
             stroke-width="2"
           />
-          <polygon points="40,-5 30,-10 30,0" fill="#E08352" />
+          <!--          <polygon points="40,-5 30,-10 30,0" fill="#E08352" />-->
+          <polygon points="18,-5 15,-7.5 15,-2.5" fill="#E08352" />
         </svg>
       </svg:g>
     </svg:g>
     <svg:g *ngFor="let arrow of arrows; let i = index; trackBy: trackBy">
       <svg:g [attr.transform]="arrow.windNameTransform">
+        <!--        <svg-->
+        <!--          viewBox="0 -5 40 10"-->
+        <!--          width="40"-->
+        <!--          height="10"-->
+        <!--          style="overflow: visible;"-->
+        <!--        >-->
         <svg
-          viewBox="0 -5 40 10"
-          width="40"
+          viewBox="0 -5 20 10"
+          width="20"
           height="10"
           style="overflow: visible;"
         >
-          <text x="0" y="-5" fill="#E08352" font-size="10">
+          <text x="0" y="-5" fill="#D57042" font-size="8">
             {{ windNames[i] }}
           </text>
         </svg>
@@ -151,8 +164,8 @@ export class ComboBubbleSeriesComponent implements OnChanges {
   update(): void {
     this.circles = this.getCircles();
     this.arrows = this.getArrows();
-    //console.log('arrows',this.arrows);
-    //console.log('circle',this.circles);
+    // console.log('arrows',this.arrows);
+    // console.log('circle',this.circles);
   }
   getArrows(): any[] {
     const seriesName = this.data[0].name;
@@ -167,6 +180,7 @@ export class ComboBubbleSeriesComponent implements OnChanges {
           this.windNames.push(this.windNomenclature(angle));
           const cx = this.xScale(d.x);
           const cy = this.yScale(Number(d.y));
+
           const isActive = !this.activeEntries.length
             ? true
             : this.isActive({ name: seriesName });
@@ -230,6 +244,7 @@ export class ComboBubbleSeriesComponent implements OnChanges {
           const cx = this.xScale(x);
           //const cy = this.yScaleType === ScaleType.Linear ? this.yScale(Number(y)) : this.yScale(y);
           const cy = this.yScale(Number(y));
+
           const color =
             this.colors.scaleType === ScaleType.Linear
               ? this.colors.getColor(r)
