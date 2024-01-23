@@ -350,7 +350,7 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   /*
-   * Check if wind speed and wind direction is present in the
+   * Check if there are wind speed and wind direction in the
    * groundstation report
    */
   private checkWindMixProductAvailable(data: Observation): void {
@@ -363,7 +363,7 @@ export class ObsStationReportComponent implements OnInit {
         j = j + 1;
       }
     });
-    // wind and direction data should have the same lenght
+    // wind and direction data should have the same lenght in order to bild the combined graph
     let windProductSameLenght = true;
     let n, m;
     data.prod.forEach((v) => {
@@ -386,8 +386,8 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   widhtOfWindData(): number {
-    if (this.single[0].series.length > 30) {
-      return this.single[0].series.length * 15;
+    if (this.single[0].series.length > 35) {
+      return this.single[0].series.length * 11;
     }
   }
 }
