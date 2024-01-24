@@ -12,6 +12,7 @@ import {
 
 import { curveLinear } from "d3-shape";
 import { scaleBand, scaleLinear, scalePoint, scaleTime } from "d3-scale";
+
 import {
   BaseChartComponent,
   LineSeriesComponent,
@@ -267,9 +268,8 @@ export class BubbleLineChartComponent extends BaseChartComponent {
 
     let min = Math.min(...domain);
     const max = Math.max(...domain);
-
     //min = Math.min(0, min);
-    //console.log('yDomain line series',[min,max]);
+    //console.log('yDomain line series',[min-1,max+1]);
     //return [min, max];
     // add a pad to max and min to manage top/down limit case due to the arrows
     return [min - 1, max + 1];
@@ -315,7 +315,7 @@ export class BubbleLineChartComponent extends BaseChartComponent {
 
     // define a spacing otherwise value do not catch x-tick values
     const spacing = 1;
-    //console.log(this.xDomain);
+    //console.log('xDomain bubble series',this.xDomain);
     // get scale
     return scaleBand()
       .range([0, this.dims.width])
@@ -345,6 +345,7 @@ export class BubbleLineChartComponent extends BaseChartComponent {
     const values = this.results[0].series.map((d) => d.y);
     //console.log('values',values);
     //const min = Math.min(0, ...values);
+
     const min = Math.min(...values);
     const max = Math.max(...values);
     if (this.yLeftAxisScaleFactor) {
