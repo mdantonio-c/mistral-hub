@@ -35,7 +35,7 @@ enum BarOrientation {
       ngx-charts-bar
       *ngFor="let bar of bars; trackBy: trackBy"
       [@animationState]="'active'"
-      [width]="bar.width"
+      [width]="bar.width + 5.5"
       [height]="bar.height"
       [x]="bar.x"
       [y]="bar.y"
