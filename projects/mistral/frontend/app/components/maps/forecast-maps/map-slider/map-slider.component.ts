@@ -65,6 +65,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   id_date: any;
   mapAvailable: boolean = true;
   noMapExist: boolean = false;
+
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
   private lastRunAt: moment.Moment;
@@ -444,7 +445,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     localStorage.setItem("behindDays", behindDays);
     if (!isToday) {
       this.isClicked = true;
-
+      console.log("clicked", this.clicked);
       // add the weekday field
       this.filter.weekday = weekdays[weekday];
 
@@ -472,6 +473,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
         });
     } else {
       this.isClicked = false;
+      console.log("clicked", this.clicked);
       this.timestampRun = this.lastRunAt.format();
       this.timestamp = this.lastRunAt.format();
       // remove the weekday field to get last static forecasts
@@ -498,7 +500,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           // once the maps have been loaded I can preset the carousel
           this.presetSlider();
         });
-      //console.log('FILTER QUANDO NON CAMBI GIORNO', this.filter)
     }
   }
 
