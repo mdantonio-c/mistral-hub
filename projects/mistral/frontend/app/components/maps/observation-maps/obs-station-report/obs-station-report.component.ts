@@ -54,13 +54,19 @@ export class ObsStationReportComponent implements OnInit {
     domain: ["#5AA454", "#E44D25", "#CFC0BB", "#7aa3e5", "#a8385d", "#aae3f5"],
   };
 
-  monoBarScheme = {
+  monoBarSchemeWind = {
     domain: ["#F9BF8F"],
   };
-  monoLineScheme = {
+  monoLineSchemeWind = {
     domain: ["#5AA454"],
   };
 
+  monoBarSchemeRain = {
+    domain: ["#ADD8E6"],
+  };
+  monoLineSchemeRain = {
+    domain: ["#FF0000"],
+  };
   /* flag to track if there are wind products in the selected groundstation */
   existMixWindProduct: boolean = false;
   onlyWindProduct: boolean = false;
@@ -243,12 +249,14 @@ export class ObsStationReportComponent implements OnInit {
     }
   }
 
+  /* Build and filter data to display combined wind graph */
   private buildWindProduct() {
     let flag10m = false;
     this.single = this.multi.filter(
       (x: DataSeries) =>
         `${x.code}-${x.level}-${x.timerange}` === "B11002-103,2000,0,0-254,0,0",
     );
+
     //to manage 10 m above ground level  case
     if (this.single.length == 0) {
       this.single = this.multi.filter(
@@ -258,7 +266,7 @@ export class ObsStationReportComponent implements OnInit {
       );
       flag10m = true;
     }
-    const windSpeedValues = this.single[0].series.map((v) => v.value);
+    //console.log('wind speed',this.single);
     let windDirection;
     if (!flag10m) {
       windDirection = this.multi.filter(
@@ -274,8 +282,27 @@ export class ObsStationReportComponent implements OnInit {
           "B11001-103,10000,0,0-254,0,0",
       );
     }
+    //console.log('wind direction',windDirection);
 
-    let bubbleWindDirection = Object.assign({}, windDirection);
+    // combined wind graph must have the same number of data for direction and speed wind
+    const commonNames = this.single[0].series
+      .map((obj1) => obj1.name)
+      .filter((name1) =>
+        windDirection[0].series.some((obj2) => obj2.name == name1),
+      );
+    //console.log(commonNames);
+    //console.log(this.single[0].series.filter(obj => commonNames.includes(obj.name)),windDirection[0].series.filter(obj => commonNames.includes(obj.name)));
+    this.single[0].series = this.single[0].series.filter((obj) =>
+      commonNames.includes(obj.name),
+    );
+    windDirection[0].series = windDirection[0].series.filter((obj) =>
+      commonNames.includes(obj.name),
+    );
+
+    const windSpeedValues = this.single[0].series.map((v) => v.value);
+
+    // let bubbleWindDirection = Object.assign({}, windDirection);
+    let bubbleWindDirection = JSON.parse(JSON.stringify(windDirection));
     let t = [];
     bubbleWindDirection[0].series.forEach((v, index) => {
       let s;
@@ -291,8 +318,6 @@ export class ObsStationReportComponent implements OnInit {
     });
     bubbleWindDirection[0].series = t;
     this.windDirectionSeries = [bubbleWindDirection[0]];
-    //console.log('single',this.single);
-    //console.log('winddirectionseries',this.windDirectionSeries);
   }
 
   private normalize(data: Observation): DataSeries[] {
@@ -356,6 +381,7 @@ export class ObsStationReportComponent implements OnInit {
   private checkWindMixProductAvailable(data: Observation): void {
     let i: number = 0;
     let j: number = 0;
+
     data.prod.forEach((v) => {
       if (v.var == "B11001" || v.var == "B11002") {
         i = i + 1;
@@ -363,19 +389,8 @@ export class ObsStationReportComponent implements OnInit {
         j = j + 1;
       }
     });
-    // wind and direction data should have the same lenght in order to bild the combined graph
-    let windProductSameLenght = true;
-    let n, m;
-    data.prod.forEach((v) => {
-      if (v.var == "B11001") {
-        n = v.val.length;
-      }
-      if (v.var == "B11002") {
-        m = v.val.length;
-      }
-    });
-    if (n !== m) windProductSameLenght = false;
-    if (i == 2 && windProductSameLenght) {
+
+    if (i == 2) {
       if (j == 0) {
         this.onlyWindProduct = true;
       }
