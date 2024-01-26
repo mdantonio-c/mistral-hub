@@ -111,6 +111,7 @@ export class ObsStationReportComponent implements OnInit {
           this.checkWindMixProductAvailable(this.report);
           Object.assign(this, { multi });
           // console.log(JSON.stringify(this.multi));
+          console.log(this.selectedProduct);
           let meteogramToShow: string;
           if (this.selectedProduct) {
             // it means that the filter contains multiple products
@@ -118,12 +119,17 @@ export class ObsStationReportComponent implements OnInit {
           } else {
             meteogramToShow = `${this.filter.product}-${this.filter.level}-${this.filter.timerange}`;
           }
-
           this.single = this.multi.filter(
             (x: DataSeries) =>
               `${x.code}-${x.level}-${x.timerange}` === meteogramToShow,
           );
-
+          if (
+            this.selectedProduct.product == "B11002" ||
+            this.selectedProduct.product == "B11001"
+          ) {
+            meteogramToShow = "mixwind-0";
+            this.buildWindProduct();
+          }
           // to manage the case when for a station only wind products are available
           if (this.onlyWindProduct) {
             meteogramToShow = "mixwind-0";
