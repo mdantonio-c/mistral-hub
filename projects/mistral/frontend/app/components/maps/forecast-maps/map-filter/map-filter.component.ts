@@ -100,7 +100,7 @@ export class MapFilterComponent implements OnInit {
         this.fields = this.fields_wrf;
       } else this.fields = this.fields_cosmo;
     });
-    console.log(this.filterForm.value);
+    //console.log(this.filterForm.value);
     //this.filterForm.get("weekday").setValue(this.weekday)
     // this.filterForm.valueChanges.subscribe((val) => {
     //   this.filter();

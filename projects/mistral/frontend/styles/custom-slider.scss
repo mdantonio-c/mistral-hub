@@ -139,7 +139,7 @@
     .date {
       padding: 0;
       width: 100%;
-      border: solid 1px #6c757d;
+
       border-top: 0;
       border-bottom: 0;
       font-size: 12px;
@@ -148,6 +148,7 @@
       & > div {
         padding-top: 5px;
         height: 26px;
+        border: solid 1px #6c757d;
       }
 
       &:first-of-type {
