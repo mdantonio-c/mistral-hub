@@ -74,8 +74,7 @@ export class MapFilterComponent implements OnInit {
     // subscribe for form value changes
     this.onChanges();
     // apply filter the first time
-    //console.log('STO CALLANDO FILTER DA NGONINIT')
-    this.filter();
+    this.firstFilter();
   }
 
   _weekday: string;
@@ -94,7 +93,6 @@ export class MapFilterComponent implements OnInit {
       }
     });
     this.filterForm.valueChanges.subscribe((val) => {
-      //console.log('STO CALLANDO IL METODO FILTER')
       this.filter();
     });
     this.filterForm.get("res").valueChanges.subscribe((val) => {
@@ -102,7 +100,7 @@ export class MapFilterComponent implements OnInit {
         this.fields = this.fields_wrf;
       } else this.fields = this.fields_cosmo;
     });
-
+    //console.log(this.filterForm.value);
     //this.filterForm.get("weekday").setValue(this.weekday)
     // this.filterForm.valueChanges.subscribe((val) => {
     //   this.filter();
@@ -120,9 +118,25 @@ export class MapFilterComponent implements OnInit {
     if (filter.platform === "") {
       delete filter["platform"];
     }
-    //console.log('WEEKDAY',this.weekday)
-    //console.log(filter)
+
+    //this.onFilterChange.emit(filter);
+  }
+  pushBotton() {
+    let filter: MeteoFilter = this.filterForm.value;
     this.onFilterChange.emit(filter);
-    //console.log('SONO IN FILTER')
+  }
+  private firstFilter() {
+    let filter: MeteoFilter = this.filterForm.value;
+    if (!filter.weekday || filter.weekday === "") {
+      delete filter["weekday"];
+    }
+    if (filter.env === "") {
+      delete filter["env"];
+    }
+    if (filter.platform === "") {
+      delete filter["platform"];
+    }
+
+    this.onFilterChange.emit(filter);
   }
 }
