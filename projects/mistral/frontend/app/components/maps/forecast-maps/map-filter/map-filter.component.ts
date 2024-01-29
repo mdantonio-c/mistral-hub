@@ -93,7 +93,6 @@ export class MapFilterComponent implements OnInit {
       }
     });
     this.filterForm.valueChanges.subscribe((val) => {
-      //console.log('STO CALLANDO IL METODO FILTER')
       this.filter();
     });
     this.filterForm.get("res").valueChanges.subscribe((val) => {

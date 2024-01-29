@@ -426,7 +426,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    * @param isToday
    */
   changeDate(id: number, isToday: boolean, c: number) {
-    this.spinner.show(this.IMAGE_SPINNER);
+    //this.spinner.show(this.IMAGE_SPINNER);
     /* flag deactivated since another date different by current day is selected */
     this.today = false;
     let weekday = this.sixDaysBehindStamp[id].split(" ")[0].toLowerCase();
@@ -466,10 +466,10 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           },
         )
         .add(() => {
-          this.spinner.hide(this.IMAGE_SPINNER);
+          //this.spinner.hide(this.IMAGE_SPINNER);
           this.isImageLoading = false;
           // once the maps have been loaded I can preset the carousel
-          this.presetSlider();
+          //this.presetSlider();
         });
     } else {
       this.isClicked = false;
