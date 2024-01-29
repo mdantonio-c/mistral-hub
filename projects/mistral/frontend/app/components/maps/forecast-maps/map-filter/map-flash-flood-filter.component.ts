@@ -111,7 +111,7 @@ export class MapFlashFloodFilterComponent implements OnInit {
     // subscribe for form value changes
     this.onChanges();
     // apply filter the first time
-    this.filter();
+    this.firstFilter();
   }
   // #####################################################
   // open(content) {
@@ -141,6 +141,17 @@ export class MapFlashFloodFilterComponent implements OnInit {
   // #####################################################
 
   private filter() {
+    let filter: MeteoFilter = this.filterForm.value;
+    if (!filter.weekday || filter.weekday === "") {
+      delete filter["weekday"];
+    }
+    //this.onFilterChange.emit(filter);
+  }
+  pushBotton() {
+    let filter: MeteoFilter = this.filterForm.value;
+    this.onFilterChange.emit(filter);
+  }
+  private firstFilter() {
     let filter: MeteoFilter = this.filterForm.value;
     if (!filter.weekday || filter.weekday === "") {
       delete filter["weekday"];

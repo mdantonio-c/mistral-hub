@@ -60,11 +60,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   /* flag to know if a day different to the current day is selected */
   isClicked: boolean = false;
   /* flag used to make selected the current date at the initialization of the page*/
-  today: boolean = false;
+  today: boolean = true;
   /* variable used to store the id of the selected day after OnInit*/
   id_date: any;
   mapAvailable: boolean = true;
   noMapExist: boolean = false;
+
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
 
   private lastRunAt: moment.Moment;
@@ -87,8 +88,9 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
 
     this.sixDaysBehind(this.sixDaysBehindStamp);
     if (!this.filter.weekday || this.filter.weekday === "") {
-      this.today = true;
-      localStorage.removeItem("id");
+      //localStorage.removeItem("id");
+      //this.id_date = parseInt(localStorage.getItem("id"));
+      this.id_date = 5;
       localStorage.removeItem("behindDays");
     } else {
       this.today = false;
@@ -425,9 +427,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
    * @param isToday
    */
   changeDate(id: number, isToday: boolean, c: number) {
-    this.spinner.show(this.IMAGE_SPINNER);
-    /* flag deactivated since another date different by current day is selected */
-    this.today = false;
+    //this.spinner.show(this.IMAGE_SPINNER);
+
     let weekday = this.sixDaysBehindStamp[id].split(" ")[0].toLowerCase();
     let weekdays = {
       sunday: "6",
@@ -443,11 +444,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     const behindDays = (c - id - 1).toString();
     localStorage.setItem("behindDays", behindDays);
     if (!isToday) {
+      /* flag deactivated since another date different by current day is selected */
+      this.today = false;
       this.isClicked = true;
-
+      //console.log("clicked", this.clicked);
       // add the weekday field
       this.filter.weekday = weekdays[weekday];
-
       this.meteoService
         .getAllMapImages(this.filter, this.offsets)
         .subscribe(
@@ -465,13 +467,14 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           },
         )
         .add(() => {
-          this.spinner.hide(this.IMAGE_SPINNER);
-          this.isImageLoading = false;
+          //this.spinner.hide(this.IMAGE_SPINNER);
+          //this.isImageLoading = false;
           // once the maps have been loaded I can preset the carousel
-          this.presetSlider();
+          //this.presetSlider();
         });
     } else {
       this.isClicked = false;
+      //console.log("clicked", this.clicked);
       this.timestampRun = this.lastRunAt.format();
       this.timestamp = this.lastRunAt.format();
       // remove the weekday field to get last static forecasts
@@ -493,12 +496,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
           },
         )
         .add(() => {
-          this.spinner.hide(this.IMAGE_SPINNER);
-          this.isImageLoading = false;
+          //this.spinner.hide(this.IMAGE_SPINNER);
+          //this.isImageLoading = false;
           // once the maps have been loaded I can preset the carousel
-          this.presetSlider();
+          //this.presetSlider();
         });
-      //console.log('FILTER QUANDO NON CAMBI GIORNO', this.filter)
     }
   }
 
