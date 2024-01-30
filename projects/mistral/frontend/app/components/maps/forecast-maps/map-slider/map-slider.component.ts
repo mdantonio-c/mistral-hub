@@ -67,7 +67,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   noMapExist: boolean = false;
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
-
   private lastRunAt: moment.Moment;
   timestamp: string;
   timestampRun: string;

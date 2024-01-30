@@ -42,6 +42,8 @@ export class MapFilterComponent implements OnInit {
   envs: KeyValuePair[] = Envs;
   areas: KeyValuePair[] = Areas;
   user;
+  isUpdatable: boolean = false;
+  isFirstChange: boolean = true;
 
   @Output()
   onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<MeteoFilter>();
@@ -71,8 +73,10 @@ export class MapFilterComponent implements OnInit {
       );
       (this.filterForm.controls.env as FormControl).setValue(this.DEFAULT_ENV);
     }
+
     // subscribe for form value changes
     this.onChanges();
+
     // apply filter the first time
     this.firstFilter();
   }
@@ -93,7 +97,12 @@ export class MapFilterComponent implements OnInit {
       }
     });
     this.filterForm.valueChanges.subscribe((val) => {
-      this.filter();
+      if (this.isFirstChange) {
+        this.isFirstChange = false;
+      } else {
+        this.filter();
+        this.isUpdatable = true;
+      }
     });
     this.filterForm.get("res").valueChanges.subscribe((val) => {
       if (val === "WRF_OL" || val === "WRF_DA_ITA") {
@@ -118,12 +127,12 @@ export class MapFilterComponent implements OnInit {
     if (filter.platform === "") {
       delete filter["platform"];
     }
-
     //this.onFilterChange.emit(filter);
   }
   pushBotton() {
     let filter: MeteoFilter = this.filterForm.value;
     this.onFilterChange.emit(filter);
+    this.isUpdatable = false;
   }
   private firstFilter() {
     let filter: MeteoFilter = this.filterForm.value;
@@ -136,7 +145,6 @@ export class MapFilterComponent implements OnInit {
     if (filter.platform === "") {
       delete filter["platform"];
     }
-
     this.onFilterChange.emit(filter);
   }
 }
