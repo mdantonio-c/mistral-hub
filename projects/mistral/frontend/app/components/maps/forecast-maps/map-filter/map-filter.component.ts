@@ -47,6 +47,11 @@ export class MapFilterComponent implements OnInit {
 
   @Output()
   onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<MeteoFilter>();
+  @Output()
+  onIsUpdatableChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output()
+  onIsFirstChangeChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+
   // @Input()
   // weekday : string;
 
@@ -79,6 +84,8 @@ export class MapFilterComponent implements OnInit {
 
     // apply filter the first time
     this.firstFilter();
+    this.onIsUpdatableChange.emit(this.isUpdatable);
+    this.onIsFirstChangeChange.emit(this.isFirstChange);
   }
 
   _weekday: string;
@@ -99,9 +106,12 @@ export class MapFilterComponent implements OnInit {
     this.filterForm.valueChanges.subscribe((val) => {
       if (this.isFirstChange) {
         this.isFirstChange = false;
+        this.onIsFirstChangeChange.emit(this.isFirstChange);
       } else {
         this.filter();
         this.isUpdatable = true;
+        this.onIsUpdatableChange.emit(this.isUpdatable);
+        this.onIsFirstChangeChange.emit(this.isFirstChange);
       }
     });
     this.filterForm.get("res").valueChanges.subscribe((val) => {
@@ -133,6 +143,7 @@ export class MapFilterComponent implements OnInit {
     let filter: MeteoFilter = this.filterForm.value;
     this.onFilterChange.emit(filter);
     this.isUpdatable = false;
+    this.onIsUpdatableChange.emit(this.isUpdatable);
   }
   private firstFilter() {
     let filter: MeteoFilter = this.filterForm.value;

@@ -177,10 +177,10 @@
             <img
               [src]="image"
               alt="map"
-              class="mx-auto d-block carousel-img "
+              class="mx-auto d-block carousel-img"
               *ngIf="image && mapAvailable"
             />
-            <div [class.overlay]="true"></div>
+            <div [class.overlay]="isUpdatable"></div>
             <div
               *ngIf="
                 (filter.field == 'prec3' || filter.field == 't2m') &&
@@ -204,7 +204,7 @@
             </div>
             <div class="no-results" *ngIf="!mapAvailable">
               <h2>
-                No Maps Availablemst-slider.disabled 
+                No Maps Available
                 <i class="fa-regular fa-face-frown" style="color: #e49c1e"></i>
               </h2>
               <p>
@@ -263,8 +263,8 @@
           class="btn btn-icon-border-classic btn-sm me-1"
           (click)="backward()"
           title="Backward"
-          [disabled]="true"
-       >
+          [disabled]="isUpdatable"
+        >
           <span class="fas fa-backward"></span>
         </button>
 
@@ -274,7 +274,7 @@
           class="btn btn-icon-border-classic btn-sm me-2"
           (click)="forward()"
           title="Forward"
-          [disabled]="true"
+          [disabled]="isUpdatable"
         >
           <span class="fas fa-forward"></span>
         </button>
@@ -284,7 +284,7 @@
           id="play-button"
           class="btn btn-icon-border-classic btn-sm me-2"
           (click)="togglePaused()"
-          [disabled]="true"
+          [disabled]="isUpdatable"
         >
           <span
             class="fas"
@@ -295,7 +295,7 @@
           <mv-slider
             #timeSlider
             class="mst-slider ms-2"
-            [class.disabled]="true"
+            [class.disabled]="isUpdatable"
             [(value)]="sid"
             [min]="minHour"
             [max]="maxHour"
