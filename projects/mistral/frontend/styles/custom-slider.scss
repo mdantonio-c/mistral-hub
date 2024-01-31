@@ -189,7 +189,7 @@
     }
     .slider-handle {
       background-color: #9CA2A7;
-      border-color: #9CA2A7;
+      border-color: #9CA2A7 !important;
       pointer-events: none;
       &:after,
       &:before { 

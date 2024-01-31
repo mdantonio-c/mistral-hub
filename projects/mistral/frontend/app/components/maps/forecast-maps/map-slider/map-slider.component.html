@@ -180,7 +180,7 @@
               class="mx-auto d-block carousel-img "
               *ngIf="image && mapAvailable"
             />
-            <div class="overlay"></div>
+            <div [class.overlay]="true"></div>
             <div
               *ngIf="
                 (filter.field == 'prec3' || filter.field == 't2m') &&
@@ -204,7 +204,7 @@
             </div>
             <div class="no-results" *ngIf="!mapAvailable">
               <h2>
-                No Maps Available
+                No Maps Availablemst-slider.disabled 
                 <i class="fa-regular fa-face-frown" style="color: #e49c1e"></i>
               </h2>
               <p>
@@ -294,7 +294,8 @@
         <div class="w-100">
           <mv-slider
             #timeSlider
-            class="mst-slider ms-2 disabled"
+            class="mst-slider ms-2"
+            [class.disabled]="true"
             [(value)]="sid"
             [min]="minHour"
             [max]="maxHour"
