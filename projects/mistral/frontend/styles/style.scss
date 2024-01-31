@@ -1296,3 +1296,37 @@ customfooter > div {
   padding: 0.6rem !important;
   margin-left: -5px !important;
 }
+
+/*custom style forecast and iff*/
+app-forecast-maps {
+  background-color: #F7F7F7 !important;
+.container-fluid {
+  background-color: #F7F7F7 !important;
+  padding-bottom: 1.3rem !important;
+    .card {
+        border-color: #f7f7f7 !important;
+      .card-header {
+      border: solid 1px var(--bs-border-color-translucent);
+      }
+      .card-footer {
+      border-top: 0;
+      }
+    }
+  }
+}
+app-flash-flood-maps {
+  background-color: #F7F7F7 !important;
+.container-fluid {
+  background-color: #F7F7F7 !important;
+  padding-bottom: 1.3rem !important;
+    .card {
+        border-color: #f7f7f7 !important;
+      .card-header {
+      border: solid 1px var(--bs-border-color-translucent);
+      }
+      .card-footer {
+      border-top: 0;
+      }
+    }
+  }
+}

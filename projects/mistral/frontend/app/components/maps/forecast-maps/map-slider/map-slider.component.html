@@ -180,6 +180,7 @@
               class="mx-auto d-block carousel-img"
               *ngIf="image && mapAvailable"
             />
+            <div [class.overlay]="isUpdatable"></div>
             <div
               *ngIf="
                 (filter.field == 'prec3' || filter.field == 't2m') &&
@@ -262,6 +263,7 @@
           class="btn btn-icon-border-classic btn-sm me-1"
           (click)="backward()"
           title="Backward"
+          [disabled]="isUpdatable"
         >
           <span class="fas fa-backward"></span>
         </button>
@@ -272,6 +274,7 @@
           class="btn btn-icon-border-classic btn-sm me-2"
           (click)="forward()"
           title="Forward"
+          [disabled]="isUpdatable"
         >
           <span class="fas fa-forward"></span>
         </button>
@@ -281,6 +284,7 @@
           id="play-button"
           class="btn btn-icon-border-classic btn-sm me-2"
           (click)="togglePaused()"
+          [disabled]="isUpdatable"
         >
           <span
             class="fas"
@@ -291,6 +295,7 @@
           <mv-slider
             #timeSlider
             class="mst-slider ms-2"
+            [class.disabled]="isUpdatable"
             [(value)]="sid"
             [min]="minHour"
             [max]="maxHour"
@@ -300,29 +305,6 @@
             (change)="updateCarousel($event.newValue)"
             placement="top"
           ></mv-slider>
-          <!--
-          <div class="calendar d-flex">
-            <div class="date">
-              Friday 18th
-            </div>
-            <div class="date">
-              Saturday 19th
-            </div>
-            <div class="date">
-              Sunday 20th
-            </div>
-            <div class="date">
-              Monday  21st
-            </div>
-            <div class="date">
-              Tuesday 22nd
-            </div>
-            <div class="date">
-              Wednesday 23rd
-            </div>
-            <div class="date">
-              Thursday 24th
-            </div>-->
         </div>
       </div>
     </div>

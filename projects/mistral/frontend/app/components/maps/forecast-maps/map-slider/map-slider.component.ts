@@ -8,6 +8,7 @@ import {
   AfterViewInit,
   EventEmitter,
   HostListener,
+  SimpleChanges,
 } from "@angular/core";
 import { DomSanitizer } from "@angular/platform-browser";
 import { MeteoFilter, MeteoService } from "../services/meteo.service";
@@ -23,7 +24,6 @@ import {
 import { NgbCarousel, NgbSlideEvent } from "@ng-bootstrap/ng-bootstrap";
 import * as moment from "moment";
 import { NgxSpinnerService } from "ngx-spinner";
-
 const SLIDER_TICKS = [0, 12, 24, 36, 48, 60, 72];
 
 @Component({
@@ -35,6 +35,8 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   @Input() filter: MeteoFilter;
   @Input() offsets: string[];
   @Input() reftime: string;
+  @Input() isUpdatable: boolean = false;
+  @Input() isFirstChange: boolean = true;
 
   images: any[] = [];
   paused = true;
@@ -67,7 +69,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   noMapExist: boolean = false;
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
-
   private lastRunAt: moment.Moment;
   timestamp: string;
   timestampRun: string;
@@ -96,29 +97,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.today = false;
       this.id_date = parseInt(localStorage.getItem("id"));
     }
-  }
-
-  setInputSliderFormatter(value) {
-    return `+${value}h`;
-  }
-
-  ngOnChanges(): void {
-    // parse reftime as utc date
-    // console.log(`reference time ${this.reftime}`);
-
-    // prevent to store behindDay if user reload page
-    if (!this.filter.weekday || this.filter.weekday === "") {
-      localStorage.removeItem("behindDays");
-    }
-
-    this.lastRunAt = moment.utc(`${this.reftime}`, "YYYYMMDDHH");
-    // console.log(`last run at ${this.lastRunAt}`);
-    this.timestamp = this.lastRunAt.format();
-    this.timestampRun = this.lastRunAt.format();
-
-    this.checkIfReftimeIsOk();
-    this.checkIfMapExist();
-    this.grid_num = this.filter.res === "lm2.2" ? 4 : 6;
 
     this.images.length = 0;
     setTimeout(() => {
@@ -126,13 +104,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     }, 0);
 
     this.isImageLoading = true;
-
-    //if(this.filter.field === 'percentile' || this.filter.field === 'probability'){
-    //    // take only till 0048, the first 15 images
-    //    this.offsets = this.offsets.slice(0,15);
-    //}
-    //console.log(`ngOnChanges: offsets=${this.offsets}`);
-
     this.meteoService
       .getAllMapImages(this.filter, this.offsets)
       .subscribe(
@@ -155,6 +126,115 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
         // once the maps have been loaded I can preset the carousel
         this.presetSlider();
       });
+
+    this.spinner.show(this.LEGEND_SPINNER);
+    this.meteoService
+      .getMapLegend(this.filter)
+      .subscribe(
+        (blob) => {
+          this.legendToShow = this.sanitizer.bypassSecurityTrustUrl(
+            URL.createObjectURL(blob),
+          );
+        },
+        (error) => {
+          console.log(error);
+        },
+      )
+      .add(() => {
+        this.spinner.hide(this.LEGEND_SPINNER);
+      });
+  }
+
+  setInputSliderFormatter(value) {
+    return `+${value}h`;
+  }
+  sentValue(v: any) {
+    console.log(v);
+  }
+  ngOnChanges(changes: SimpleChanges): void {
+    // prevent ngOnChanges when isUpdatable and isFirstChange changes
+    if (changes["isUpdatable"] || changes["isFirstChange"]) {
+      //this.spinner.show(this.LEGEND_SPINNER);
+      this.meteoService
+        .getMapLegend(this.filter)
+        .subscribe(
+          (blob) => {
+            this.legendToShow = this.sanitizer.bypassSecurityTrustUrl(
+              URL.createObjectURL(blob),
+            );
+          },
+          (error) => {
+            console.log(error);
+          },
+        )
+        .add(() => {
+          //this.spinner.hide(this.LEGEND_SPINNER);
+        });
+      //console.log('Skipping ngOnChanges due to isUpdatable or isFirstChange');
+      return;
+    }
+    for (const propName in changes) {
+      if (changes.hasOwnProperty(propName)) {
+        const change = changes[propName];
+        const currentValue = JSON.stringify(change.currentValue);
+        const previousValue = JSON.stringify(change.previousValue);
+
+        console.log(
+          `${propName}: currentValue = ${currentValue}, previousValue = ${previousValue}`,
+        );
+      }
+    }
+    // parse reftime as utc date
+    // console.log(`reference time ${this.reftime}`);
+    // prevent to store behindDay if user reload page
+    if (!this.filter.weekday || this.filter.weekday === "") {
+      localStorage.removeItem("behindDays");
+    }
+
+    this.lastRunAt = moment.utc(`${this.reftime}`, "YYYYMMDDHH");
+    // console.log(`last run at ${this.lastRunAt}`);
+    this.timestamp = this.lastRunAt.format();
+    this.timestampRun = this.lastRunAt.format();
+
+    this.checkIfReftimeIsOk();
+    this.checkIfMapExist();
+    this.grid_num = this.filter.res === "lm2.2" ? 4 : 6;
+
+    // this.images.length = 0;
+    // setTimeout(() => {
+    //   this.spinner.show(this.IMAGE_SPINNER);
+    // }, 0);
+    //
+    // this.isImageLoading = true;
+
+    //if(this.filter.field === 'percentile' || this.filter.field === 'probability'){
+    //    // take only till 0048, the first 15 images
+    //    this.offsets = this.offsets.slice(0,15);
+    //}
+    //console.log(`ngOnChanges: offsets=${this.offsets}`);
+
+    // this.meteoService
+    //   .getAllMapImages(this.filter, this.offsets)
+    //   .subscribe(
+    //     (blobs) => {
+    //       //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
+    //       for (let i = 0; i < this.offsets.length; i++) {
+    //         this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
+    //           URL.createObjectURL(blobs[i]),
+    //         );
+    //         //console.log(`ngOnChanges: i=${i}`);
+    //       }
+    //     },
+    //     (error) => {
+    //       console.log(error);
+    //     },
+    //   )
+    //   .add(() => {
+    //     this.spinner.hide(this.IMAGE_SPINNER);
+    //     this.isImageLoading = false;
+    //     // once the maps have been loaded I can preset the carousel
+    //     this.presetSlider();
+    //   });
 
     this.step = 1;
     // parseInt at end of string to get the min hour (e.g prec6 -> 6)
@@ -187,22 +267,22 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     this.sid = this.minHour;
 
     // get legend from service
-    this.spinner.show(this.LEGEND_SPINNER);
-    this.meteoService
-      .getMapLegend(this.filter)
-      .subscribe(
-        (blob) => {
-          this.legendToShow = this.sanitizer.bypassSecurityTrustUrl(
-            URL.createObjectURL(blob),
-          );
-        },
-        (error) => {
-          console.log(error);
-        },
-      )
-      .add(() => {
-        this.spinner.hide(this.LEGEND_SPINNER);
-      });
+    // this.spinner.show(this.LEGEND_SPINNER);
+    // this.meteoService
+    //   .getMapLegend(this.filter)
+    //   .subscribe(
+    //     (blob) => {
+    //       this.legendToShow = this.sanitizer.bypassSecurityTrustUrl(
+    //         URL.createObjectURL(blob),
+    //       );
+    //     },
+    //     (error) => {
+    //       console.log(error);
+    //     },
+    //   )
+    //   .add(() => {
+    //     //this.spinner.hide(this.LEGEND_SPINNER);
+    //   });
   }
 
   ngAfterViewInit() {
