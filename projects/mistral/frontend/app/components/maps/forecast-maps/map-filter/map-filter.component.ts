@@ -42,9 +42,16 @@ export class MapFilterComponent implements OnInit {
   envs: KeyValuePair[] = Envs;
   areas: KeyValuePair[] = Areas;
   user;
+  isUpdatable: boolean = false;
+  isFirstChange: boolean = true;
 
   @Output()
   onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<MeteoFilter>();
+  @Output()
+  onIsUpdatableChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output()
+  onIsFirstChangeChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+
   // @Input()
   // weekday : string;
 
@@ -71,10 +78,14 @@ export class MapFilterComponent implements OnInit {
       );
       (this.filterForm.controls.env as FormControl).setValue(this.DEFAULT_ENV);
     }
+
     // subscribe for form value changes
     this.onChanges();
+
     // apply filter the first time
     this.firstFilter();
+    this.onIsUpdatableChange.emit(this.isUpdatable);
+    this.onIsFirstChangeChange.emit(this.isFirstChange);
   }
 
   _weekday: string;
@@ -93,7 +104,15 @@ export class MapFilterComponent implements OnInit {
       }
     });
     this.filterForm.valueChanges.subscribe((val) => {
-      this.filter();
+      if (this.isFirstChange) {
+        this.isFirstChange = false;
+        this.onIsFirstChangeChange.emit(this.isFirstChange);
+      } else {
+        this.filter();
+        this.isUpdatable = true;
+        this.onIsUpdatableChange.emit(this.isUpdatable);
+        this.onIsFirstChangeChange.emit(this.isFirstChange);
+      }
     });
     this.filterForm.get("res").valueChanges.subscribe((val) => {
       if (val === "WRF_OL" || val === "WRF_DA_ITA") {
@@ -118,12 +137,13 @@ export class MapFilterComponent implements OnInit {
     if (filter.platform === "") {
       delete filter["platform"];
     }
-
     //this.onFilterChange.emit(filter);
   }
   pushBotton() {
     let filter: MeteoFilter = this.filterForm.value;
     this.onFilterChange.emit(filter);
+    this.isUpdatable = false;
+    this.onIsUpdatableChange.emit(this.isUpdatable);
   }
   private firstFilter() {
     let filter: MeteoFilter = this.filterForm.value;
@@ -136,7 +156,6 @@ export class MapFilterComponent implements OnInit {
     if (filter.platform === "") {
       delete filter["platform"];
     }
-
     this.onFilterChange.emit(filter);
   }
 }

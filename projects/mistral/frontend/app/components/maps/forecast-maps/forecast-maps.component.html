@@ -7,6 +7,8 @@
         [ngbCollapse]="isFilterCollapsed"
         [weekday]="filter?.weekday"
         (onFilterChange)="applyFilter($event)"
+        (onIsUpdatableChange)="onIsUpdatableChange($event)"
+        (onIsFirstChangeChange)="onIsFirstChangeChange($event)"
       ></app-map-filter>
     </div>
     <div class="col-lg-10">
@@ -24,6 +26,8 @@
           [filter]="filter"
           [offsets]="offsets"
           [reftime]="reftime"
+          [isUpdatable]="isUpdatable"
+          [isFirstChange]="isFirstChange"
           (onCollapse)="toggleCollapse()"
           *ngIf="!loading && offsets.length >= 0"
         ></app-map-slider>

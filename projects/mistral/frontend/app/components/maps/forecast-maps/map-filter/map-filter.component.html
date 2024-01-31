@@ -242,12 +242,13 @@
       <button
         type="submit"
         class="btn btn-primary no-rounded ms-2"
+        [disabled]="filterForm.invalid || !isUpdatable"
         (click)="pushBotton()"
       >
         Update Map
       </button>
     </div>
-    <p class="text-center text-danger py-2 small">
+    <p class="text-center text-danger py-2 small" *ngIf="isUpdatable">
       Click the "Update Map" button to apply changes
     </p>
   </div>

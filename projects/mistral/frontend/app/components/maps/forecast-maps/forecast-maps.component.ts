@@ -1,13 +1,13 @@
 import {
   Component,
   OnInit,
+  Input,
   ViewChild,
   ElementRef,
   HostListener,
 } from "@angular/core";
 import { MeteoFilter, MeteoService } from "./services/meteo.service";
 import { ForecastMapsBaseComponent } from "./forecast-maps-base.component";
-
 @Component({
   selector: "app-forecast-maps",
   templateUrl: "./forecast-maps.component.html",
@@ -20,8 +20,18 @@ export class ForecastMapsComponent
   filter: MeteoFilter;
   offsets: string[] = [];
   reftime: string; // YYYYMMDD
+  @Input() isUpdatable: boolean;
+  @Input() isFirstChange: boolean;
+
   ngOnInit() {
     super.ngOnInit();
+  }
+  onIsUpdatableChange(value: boolean) {
+    this.isUpdatable = value;
+  }
+
+  onIsFirstChangeChange(value: boolean) {
+    this.isFirstChange = value;
   }
 
   applyFilter(filter: MeteoFilter) {
