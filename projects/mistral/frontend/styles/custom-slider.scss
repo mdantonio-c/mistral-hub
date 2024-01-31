@@ -176,3 +176,24 @@
     }
   }
 }
+
+/*disabled slider for forecast maps and iff*/
+.mst-slider.disabled {
+  pointer-events: none;
+    .slider-selection{
+      background-color: #8b98a3 !important;
+    }
+
+    .tooltip {
+      display: none;
+    }
+    .slider-handle {
+      background-color: #9CA2A7;
+      border-color: #9CA2A7;
+      pointer-events: none;
+      &:after,
+      &:before { 
+      border-color: #9CA2A7 !important;
+    }
+  }
+}
