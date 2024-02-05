@@ -162,7 +162,38 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
         this.presetSlider();
       });
 
-    this.spinner.show(this.LEGEND_SPINNER);
+    this.step = 1;
+    // parseInt at end of string to get the min hour (e.g prec6 -> 6)
+    const matchedValue = this.filter.field.match(/(\d+)$/);
+    if (matchedValue) {
+      this.minHour = parseInt(matchedValue[0], 10);
+      this.fromMinImage = this.minHour;
+    }
+
+    if (
+      this.filter.field === "percentile" ||
+      this.filter.field === "probability"
+    ) {
+      this.minHour = 6;
+      this.maxHour = this.filter.run === "12" ? 216 : 240;
+      this.step = 3;
+    } else if (
+      this.filter.res === "WRF_OL" ||
+      this.filter.res === "WRF_DA_ITA"
+    ) {
+      // this.minHour = 6;
+      this.maxHour = 49;
+      // this.step = 1;
+    } else {
+      this.maxHour = this.filter.res === "lm2.2" ? 48 : 72;
+      if (this.maxHour === 48) {
+        this.sliderTicks.slice(this.sliderTicks.length - 2);
+      }
+    }
+    this.sid = this.minHour;
+
+    // get legend from service
+    //this.spinner.show(this.LEGEND_SPINNER);
     this.meteoService
       .getMapLegend(this.filter)
       .subscribe(
@@ -176,14 +207,9 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
         },
       )
       .add(() => {
-        this.spinner.hide(this.LEGEND_SPINNER);
+        //this.spinner.hide(this.LEGEND_SPINNER);
       });
   }
-
-  sentValue(v: any) {
-    console.log(v);
-  }
-
   ngAfterViewInit() {
     this.carousel.pause();
   }
