@@ -83,9 +83,16 @@ export class MapFlashFloodFilterComponent implements OnInit {
     { key: "Sud_Italia", value: "Southern Italy" },
   ];
   user;
+  isUpdatable: boolean = false;
+  isFirstChange: boolean = true;
+  submit = false;
 
   @Output() onFilterChange: EventEmitter<MeteoFilter> =
     new EventEmitter<MeteoFilter>();
+  @Output()
+  onIsUpdatableChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output()
+  onSubmit: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   constructor(
     private fb: FormBuilder,
@@ -112,6 +119,7 @@ export class MapFlashFloodFilterComponent implements OnInit {
     this.onChanges();
     // apply filter the first time
     this.firstFilter();
+    this.onIsUpdatableChange.emit(this.isUpdatable);
   }
   // #####################################################
   // open(content) {
@@ -130,7 +138,13 @@ export class MapFlashFloodFilterComponent implements OnInit {
 
   private onChanges(): void {
     this.filterForm.valueChanges.subscribe((val) => {
-      this.filter();
+      if (this.isFirstChange) {
+        this.isFirstChange = false;
+      } else {
+        this.filter();
+        this.isUpdatable = true;
+        this.onIsUpdatableChange.emit(this.isUpdatable);
+      }
     });
   }
   // #####################################################
@@ -150,6 +164,11 @@ export class MapFlashFloodFilterComponent implements OnInit {
   pushBotton() {
     let filter: MeteoFilter = this.filterForm.value;
     this.onFilterChange.emit(filter);
+    this.isUpdatable = false;
+    this.onIsUpdatableChange.emit(this.isUpdatable);
+    // submit control to verify map availability
+    this.submit = true;
+    this.onSubmit.emit(this.submit);
   }
   private firstFilter() {
     let filter: MeteoFilter = this.filterForm.value;

@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, Input } from "@angular/core";
 import { ForecastMapsBaseComponent } from "./forecast-maps-base.component";
 import { MeteoFilter } from "./services/meteo.service";
 
@@ -14,11 +14,20 @@ export class FlashFloodMapsComponent
   filter: MeteoFilter;
   offsets: string[] = [];
   reftime: string; // YYYYMMDD
+  @Input() isUpdatable: boolean;
+  @Input() submit: boolean;
 
   ngOnInit() {
     super.ngOnInit();
   }
 
+  onIsUpdatableChange(value: boolean) {
+    this.isUpdatable = value;
+  }
+
+  onSubmitChange(value: boolean) {
+    this.submit = value;
+  }
   applyFilter(filter: MeteoFilter) {
     this.loading = true;
     this.spinner.show();

@@ -7,6 +7,8 @@
         [ngbCollapse]="isFilterCollapsed"
         [weekday]="filter?.weekday"
         (onFilterChange)="applyFilter($event)"
+        (onIsUpdatableChange)="onIsUpdatableChange($event)"
+        (onSubmit)="onSubmitChange($event)"
       ></app-map-flash-flood-filter>
     </div>
     <div class="col-lg-10">
@@ -25,6 +27,8 @@
           [offsets]="offsets"
           [reftime]="reftime"
           (onCollapse)="toggleCollapse()"
+          [isUpdatable]="isUpdatable"
+          [submit]
           *ngIf="!loading && offsets.length >= 0"
         ></app-map-slider>
         <!-- no maps -->

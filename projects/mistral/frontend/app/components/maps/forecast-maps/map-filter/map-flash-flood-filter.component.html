@@ -171,6 +171,7 @@
       <button
         type="submit"
         class="btn btn-primary no-rounded ms-2"
+        [disabled]="filterForm.invalid || !isUpdatable"
         (click)="pushBotton()"
       >
         Update Map
