@@ -8,7 +8,7 @@
         [weekday]="filter?.weekday"
         (onFilterChange)="applyFilter($event)"
         (onIsUpdatableChange)="onIsUpdatableChange($event)"
-        (onIsFirstChangeChange)="onIsFirstChangeChange($event)"
+        (onSubmit)="onSubmitChange($event)"
       ></app-map-filter>
     </div>
     <div class="col-lg-10">
@@ -27,7 +27,7 @@
           [offsets]="offsets"
           [reftime]="reftime"
           [isUpdatable]="isUpdatable"
-          [isFirstChange]="isFirstChange"
+          [submit]="submit"
           (onCollapse)="toggleCollapse()"
           *ngIf="!loading && offsets.length >= 0"
         ></app-map-slider>

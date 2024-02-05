@@ -35,8 +35,10 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   @Input() filter: MeteoFilter;
   @Input() offsets: string[];
   @Input() reftime: string;
+  // useful to take control of buttons
   @Input() isUpdatable: boolean = false;
-  @Input() isFirstChange: boolean = true;
+  // submit control to verify map availability and avoid unuseful refresh page
+  @Input() submit: boolean;
 
   images: any[] = [];
   paused = true;
@@ -97,13 +99,46 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.today = false;
       this.id_date = parseInt(localStorage.getItem("id"));
     }
+    this.loadImages();
+  }
 
-    this.images.length = 0;
-    setTimeout(() => {
-      this.spinner.show(this.IMAGE_SPINNER);
-    }, 0);
+  setInputSliderFormatter(value) {
+    return `+${value}h`;
+  }
 
-    this.isImageLoading = true;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.submit) this.loadImages();
+  }
+  /* simple routine to load map images*/
+  private loadImages() {
+    // parse reftime as utc date
+    // console.log(`reference time ${this.reftime}`);
+    // prevent to store behindDay if user reload page
+    if (!this.filter.weekday || this.filter.weekday === "") {
+      localStorage.removeItem("behindDays");
+    }
+    this.lastRunAt = moment.utc(`${this.reftime}`, "YYYYMMDDHH");
+    // console.log(`last run at ${this.lastRunAt}`);
+    this.timestamp = this.lastRunAt.format();
+    this.timestampRun = this.lastRunAt.format();
+
+    if (this.submit) this.checkIfReftimeIsOk();
+    if (this.submit) this.checkIfMapExist();
+    this.grid_num = this.filter.res === "lm2.2" ? 4 : 6;
+
+    // this.images.length = 0;
+    // setTimeout(() => {
+    //   this.spinner.show(this.IMAGE_SPINNER);
+    // }, 0);
+    //
+    //this.isImageLoading = true;
+
+    // if(this.filter.field === 'percentile' || this.filter.field === 'probability'){
+    //    // take only till 0048, the first 15 images
+    //    this.offsets = this.offsets.slice(0,15);
+    // }
+    // console.log(`ngOnChanges: offsets=${this.offsets}`);
+    this.spinner.show(this.IMAGE_SPINNER);
     this.meteoService
       .getAllMapImages(this.filter, this.offsets)
       .subscribe(
@@ -122,7 +157,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       )
       .add(() => {
         this.spinner.hide(this.IMAGE_SPINNER);
-        this.isImageLoading = false;
+        //this.isImageLoading = false;
         // once the maps have been loaded I can preset the carousel
         this.presetSlider();
       });
@@ -267,24 +302,23 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     this.sid = this.minHour;
 
     // get legend from service
-    // this.spinner.show(this.LEGEND_SPINNER);
-    // this.meteoService
-    //   .getMapLegend(this.filter)
-    //   .subscribe(
-    //     (blob) => {
-    //       this.legendToShow = this.sanitizer.bypassSecurityTrustUrl(
-    //         URL.createObjectURL(blob),
-    //       );
-    //     },
-    //     (error) => {
-    //       console.log(error);
-    //     },
-    //   )
-    //   .add(() => {
-    //     //this.spinner.hide(this.LEGEND_SPINNER);
-    //   });
+    //this.spinner.show(this.LEGEND_SPINNER);
+    this.meteoService
+      .getMapLegend(this.filter)
+      .subscribe(
+        (blob) => {
+          this.legendToShow = this.sanitizer.bypassSecurityTrustUrl(
+            URL.createObjectURL(blob),
+          );
+        },
+        (error) => {
+          console.log(error);
+        },
+      )
+      .add(() => {
+        //this.spinner.hide(this.LEGEND_SPINNER);
+      });
   }
-
   ngAfterViewInit() {
     this.carousel.pause();
   }
@@ -440,11 +474,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       tmpDateString = tmpDateString + this.filter.run;
     }
     let tmpDate = moment.utc(`${tmpDateString}`, "YYYYMMDDHH");
-
     let tmpString = tmpDate.clone().subtract(behindDays, "days").format();
     if (this.timestamp !== tmpString) {
       this.mapAvailable = false;
     }
+    this.submit = false;
   }
   /*
    * check if ready file exist, otherwise hide spinner to show a msg*/
@@ -530,28 +564,30 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       //console.log("clicked", this.clicked);
       // add the weekday field
       this.filter.weekday = weekdays[weekday];
-      this.meteoService
-        .getAllMapImages(this.filter, this.offsets)
-        .subscribe(
-          (blobs) => {
-            //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
-            for (let i = 0; i < this.offsets.length; i++) {
-              this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
-                URL.createObjectURL(blobs[i]),
-              );
-              //console.log(`ngOnChanges: i=${i}`);
-            }
-          },
-          (error) => {
-            console.log(error);
-          },
-        )
-        .add(() => {
-          //this.spinner.hide(this.IMAGE_SPINNER);
-          //this.isImageLoading = false;
-          // once the maps have been loaded I can preset the carousel
-          //this.presetSlider();
-        });
+      if (this.submit) {
+        this.meteoService
+          .getAllMapImages(this.filter, this.offsets)
+          .subscribe(
+            (blobs) => {
+              //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
+              for (let i = 0; i < this.offsets.length; i++) {
+                this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
+                  URL.createObjectURL(blobs[i]),
+                );
+                //console.log(`ngOnChanges: i=${i}`);
+              }
+            },
+            (error) => {
+              console.log(error);
+            },
+          )
+          .add(() => {
+            //this.spinner.hide(this.IMAGE_SPINNER);
+            //this.isImageLoading = false;
+            // once the maps have been loaded I can preset the carousel
+            //this.presetSlider();
+          });
+      }
     } else {
       this.isClicked = false;
       //console.log("clicked", this.clicked);
@@ -559,28 +595,30 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       this.timestamp = this.lastRunAt.format();
       // remove the weekday field to get last static forecasts
       delete this.filter["weekday"];
-      this.meteoService
-        .getAllMapImages(this.filter, this.offsets)
-        .subscribe(
-          (blobs) => {
-            //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
-            for (let i = 0; i < this.offsets.length; i++) {
-              this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
-                URL.createObjectURL(blobs[i]),
-              );
-              //console.log(`ngOnChanges: i=${i}`);
-            }
-          },
-          (error) => {
-            console.log(error);
-          },
-        )
-        .add(() => {
-          //this.spinner.hide(this.IMAGE_SPINNER);
-          //this.isImageLoading = false;
-          // once the maps have been loaded I can preset the carousel
-          //this.presetSlider();
-        });
+      if (this.submit) {
+        this.meteoService
+          .getAllMapImages(this.filter, this.offsets)
+          .subscribe(
+            (blobs) => {
+              //console.log(`ngOnChanges: offsets length=${this.offsets.length}`);
+              for (let i = 0; i < this.offsets.length; i++) {
+                this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
+                  URL.createObjectURL(blobs[i]),
+                );
+                //console.log(`ngOnChanges: i=${i}`);
+              }
+            },
+            (error) => {
+              console.log(error);
+            },
+          )
+          .add(() => {
+            //this.spinner.hide(this.IMAGE_SPINNER);
+            //this.isImageLoading = false;
+            // once the maps have been loaded I can preset the carousel
+            //this.presetSlider();
+          });
+      }
     }
   }
 

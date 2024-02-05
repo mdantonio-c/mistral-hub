@@ -21,8 +21,7 @@ export class ForecastMapsComponent
   offsets: string[] = [];
   reftime: string; // YYYYMMDD
   @Input() isUpdatable: boolean;
-  @Input() isFirstChange: boolean;
-
+  @Input() submit: boolean;
   ngOnInit() {
     super.ngOnInit();
   }
@@ -30,8 +29,8 @@ export class ForecastMapsComponent
     this.isUpdatable = value;
   }
 
-  onIsFirstChangeChange(value: boolean) {
-    this.isFirstChange = value;
+  onSubmitChange(value: boolean) {
+    this.submit = value;
   }
 
   applyFilter(filter: MeteoFilter) {

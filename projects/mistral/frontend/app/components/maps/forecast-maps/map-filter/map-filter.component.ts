@@ -44,13 +44,13 @@ export class MapFilterComponent implements OnInit {
   user;
   isUpdatable: boolean = false;
   isFirstChange: boolean = true;
-
+  submit = false;
   @Output()
   onFilterChange: EventEmitter<MeteoFilter> = new EventEmitter<MeteoFilter>();
   @Output()
   onIsUpdatableChange: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output()
-  onIsFirstChangeChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+  onSubmit: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   // @Input()
   // weekday : string;
@@ -85,7 +85,6 @@ export class MapFilterComponent implements OnInit {
     // apply filter the first time
     this.firstFilter();
     this.onIsUpdatableChange.emit(this.isUpdatable);
-    this.onIsFirstChangeChange.emit(this.isFirstChange);
   }
 
   _weekday: string;
@@ -106,12 +105,10 @@ export class MapFilterComponent implements OnInit {
     this.filterForm.valueChanges.subscribe((val) => {
       if (this.isFirstChange) {
         this.isFirstChange = false;
-        this.onIsFirstChangeChange.emit(this.isFirstChange);
       } else {
         this.filter();
         this.isUpdatable = true;
         this.onIsUpdatableChange.emit(this.isUpdatable);
-        this.onIsFirstChangeChange.emit(this.isFirstChange);
       }
     });
     this.filterForm.get("res").valueChanges.subscribe((val) => {
@@ -144,6 +141,9 @@ export class MapFilterComponent implements OnInit {
     this.onFilterChange.emit(filter);
     this.isUpdatable = false;
     this.onIsUpdatableChange.emit(this.isUpdatable);
+    // submit control to verify map availability
+    this.submit = true;
+    this.onSubmit.emit(this.submit);
   }
   private firstFilter() {
     let filter: MeteoFilter = this.filterForm.value;
