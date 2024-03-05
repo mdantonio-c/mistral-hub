@@ -32,6 +32,8 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
   scheduleForm: FormGroup;
   schedule: TaskSchedule = null;
   user: User;
+  category: string;
+  initial_format: string;
 
   @ViewChild("submitButton", { static: true }) submitButton: ElementRef;
 
@@ -61,6 +63,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
   ngOnInit() {
     this.user = this.authService.getUser();
     this.formData = this.formDataService.getFormData();
+    this.initial_format = this.formData.output_format;
     this.isFormValid = this.formDataService.isFormValid();
     this.spinner.show("summary-spinner");
     this.formDataService
@@ -68,6 +71,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       .subscribe(
         (response) => {
           this.summaryStats = response;
+          this.isJsonFormat();
           if (this.summaryStats.c === 0) {
             this.notify.showWarning(
               "The applied filter do not produce any result. " +
@@ -136,6 +140,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       .add(() => {
         this.spinner.hide();
       });
+    this.receiveCategory();
   }
   checkDataReady() {
     let dataReadyDatasets = [
@@ -293,5 +298,40 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       range.push(i);
     }
     return range;
+  }
+
+  receiveCategory() {
+    const datasetNameSelected =
+      this.formDataService.getFormData().datasets[0].name;
+    this.formDataService.getDatasets().subscribe((datasets) => {
+      this.category = datasets.filter(
+        (dataset) => dataset.name == datasetNameSelected,
+      )[0].category;
+    });
+  }
+
+  onlyOBS(): boolean {
+    if (this.category == "OBS") return true;
+    else return false;
+  }
+
+  getFilterTooltip(key: string) {
+    let desc = "Add helpful info about this filter";
+    switch (key) {
+      case "size-estimation-obs":
+        desc =
+          "This is just an estimation of the real number of messages and the true size of the selected " +
+          "data. Be aware that if the actual size exceeds the user's disk quota, it will not be possible to download " +
+          "the data, even if the request is submitted successfully.";
+        break;
+    }
+    return desc;
+  }
+
+  isJsonFormat() {
+    if (this.initial_format === "json") {
+      console.log("this.initial_format", this.initial_format);
+      this.summaryStats.s *= 2.8;
+    }
   }
 }

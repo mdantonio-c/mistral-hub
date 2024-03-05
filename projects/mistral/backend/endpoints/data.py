@@ -1,15 +1,20 @@
+import math
+import subprocess
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from marshmallow import ValidationError, pre_load
-from mistral.endpoints import PostProcessorsType
+from mistral.endpoints import DOWNLOAD_DIR, PostProcessorsType
+from mistral.exceptions import DiskQuotaException, MaxOutputSizeExceeded
 from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.dballe import BeDballe as dballe
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
+from mistral.tasks import data_extraction as data_ext
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
 from restapi.connectors import celery, rabbitmq, sqlalchemy
-from restapi.exceptions import (
+from restapi.exceptions import (  # ServerError
     BadRequest,
     Forbidden,
     NotFound,
@@ -254,6 +259,13 @@ class DataExtraction(Schema):
             "description": "Apply one or more post-processing to the filtered data."
         },
     )
+    force_obs_download = fields.Bool(
+        required=False,
+        metadata={
+            "description": "If set to True, download of observed data will be attempted even if the"
+            " estimated data size exceeds the allowed user quota."
+        },
+    )
 
     @pre_load
     def check_postprocessors_unique_type(self, data, **kwargs):
@@ -289,6 +301,7 @@ class Data(EndpointResource, Uploader):
         responses={
             202: "Data extraction request queued",
             400: "Parameters for post processing are not correct",
+            403: "Requested data exceeds allowed size",
             500: "File for spare point interpolation post processor is corrupted",
         },
     )
@@ -303,6 +316,7 @@ class Data(EndpointResource, Uploader):
         only_reliable: bool = False,
         postprocessors: Optional[List[PostProcessorsType]] = None,
         push: bool = False,
+        force_obs_download: bool = False,
     ) -> Response:
 
         db = sqlalchemy.get_instance()
@@ -426,13 +440,44 @@ class Data(EndpointResource, Uploader):
             if not rabbit.queue_exists(pushing_queue):
                 raise Forbidden("User's queue for push notification does not exists")
 
+        data_type = arki.get_datasets_category(dataset_names)
+
         if only_reliable:
-            # check if the option is possible for the selecte datasets
-            data_type = arki.get_datasets_category(dataset_names)
+            # check if the option is possible for the selected datasets
             if data_type != "OBS" and "multim-forecast" not in dataset_names:
                 raise BadRequest(
-                    "The chosen datasets does not support 'only quality controlled data' option "
+                    "The chosen datasets do not support 'only quality controlled data' option "
                 )
+
+        # In a future size estimation may be implemented for multim-forecast dataset data as well
+        if data_type == "OBS" and not force_obs_download:
+            esti_obs_data_size = None
+
+            try:
+
+                esti_obs_data_size = get_observed_data_size_count(
+                    parsed_reftime, dataset_names, filters, license_group, output_format
+                )
+
+            except Exception as e:
+                log.debug(f"Unable to get summary stats: {e}")
+                # raise ServerError(f"Unable to get summary stats: {e}")
+
+            if esti_obs_data_size:
+                try:
+
+                    check_user_quota_for_observed_data(user.id, db, esti_obs_data_size)
+
+                except DiskQuotaException:
+                    raise Forbidden(
+                        "The requested data size is estimated to exceed the available user quota."
+                    )
+
+                except MaxOutputSizeExceeded:
+                    raise Forbidden(
+                        "The requested data size is estimated to exceed the maximum limit for output size."
+                    )
+
         # run the following steps in a transaction
         task = None
         try:
@@ -464,6 +509,10 @@ class Data(EndpointResource, Uploader):
                     request.id,
                     only_reliable,
                     pushing_queue,
+                    None,
+                    False,
+                    False,
+                    force_obs_download,
                 ),
                 countdown=1,
             )
@@ -483,3 +532,72 @@ class Data(EndpointResource, Uploader):
 
         r = {"task_id": task.id}
         return self.response(r, code=202)
+
+
+def get_observed_data_size_count(
+    parsed_reftime, dataset_names, filters, license_group, output_format
+):
+
+    dballe_fields, dballe_queries = dballe.parse_query_for_data_extraction(
+        dataset_names, filters, parsed_reftime
+    )
+
+    db_type = dballe.get_db_type(
+        dballe_queries[dballe_fields.index("datetimemin")][0],
+        dballe_queries[dballe_fields.index("datetimemax")][0],
+    )
+
+    explorer = dballe.build_explorer(
+        db_type, license_group=license_group, network_list=dataset_names
+    )
+
+    summary = dballe.get_summary(
+        dataset_names, explorer, None, fields=dballe_fields, queries=dballe_queries
+    )
+
+    if summary and "s" in summary:
+        esti_obs_data_size = (
+            summary["s"] if output_format != "json" else math.floor(summary["s"] * 2.8)
+        )
+    else:
+        esti_obs_data_size = None
+
+    log.debug(f"estimated observed data size for the request: {esti_obs_data_size}")
+
+    return esti_obs_data_size
+
+
+def check_user_quota_for_observed_data(user_id, db, esti_obs_data_size):
+
+    user = db.User.query.filter_by(id=user_id).first()
+
+    max_output_size = repo.get_user_permissions(user, param="output_size")
+    log.debug(f"user max_output_size: {max_output_size}")
+
+    if max_output_size and esti_obs_data_size > max_output_size:
+        message = (
+            "The resulting output size exceed the size allowed for a single request"
+        )
+        raise MaxOutputSizeExceeded(message)
+
+    # check for exceeding quota
+    max_user_quota = db.session.query(db.User.disk_quota).filter_by(id=user_id).scalar()
+
+    user_dir = DOWNLOAD_DIR.joinpath(user.uuid, "outputs")
+
+    # check for current used space
+    used_quota = (
+        int(subprocess.check_output(["du", "-sb", user_dir]).split()[0])
+        if user_dir.exists()
+        else 0
+    )
+    log.debug(f"user used disk quota: {used_quota}")
+
+    if used_quota + esti_obs_data_size > max_user_quota:
+        free_space = max(max_user_quota - used_quota, 0)
+        log.debug(f"user free disk space: {free_space}")
+
+        message = "Disk quota exceeded: required size {}; remaining space {}".format(
+            data_ext.human_size(esti_obs_data_size), data_ext.human_size(free_space)
+        )
+        raise DiskQuotaException(message)

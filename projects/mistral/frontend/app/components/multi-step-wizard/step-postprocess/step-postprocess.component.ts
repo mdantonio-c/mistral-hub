@@ -109,6 +109,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
   ];
 
   formatTypes = ["-", "json"];
+  current_format: string;
 
   selectedInputTimeRange;
   selectedOutputTimeRange;
@@ -116,6 +117,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
   selectedInterpolationType;
   selectedConversionFormat;
   selectedCropType;
+  category: string;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -427,11 +429,13 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     this.user = this.authService.getUser();
     window.scroll(0, 0);
     this.spinner.show("summary-spinner");
+    this.current_format = this.formDataService.getFormData().output_format;
     this.formDataService
       .getSummaryStats()
       .subscribe(
         (response) => {
           this.summaryStats = response;
+          this.isJsonFormatAtEntry();
           //console.log('ngOnInit: this.summaryStats=', this.summaryStats);
         },
         (error) => {
@@ -456,6 +460,7 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     this.buildTimePostProcess();
     this.buildSpaceCrop();
     this.buildOutputFormat();
+    this.receiveCategory();
   }
   toggleOnlyReliable() {
     this.form.value.onlyReliable = !this.form.value.onlyReliable;
@@ -779,7 +784,21 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
   }
 
   goToPrevious() {
-    // Navigate to the dataset page
+    // Navigate to the filters page
+    if (
+      this.selectedConversionFormat != null &&
+      this.selectedConversionFormat != "-" &&
+      (this.form.value.hasBufrDataset ||
+        (this.form.value.hasGribDataset &&
+          this.form.value.selectedSpacePP &&
+          this.form.value.space_type === "points"))
+    ) {
+      this.formDataService.setOutputFormat(this.selectedConversionFormat);
+    } else {
+      this.formDataService.setOutputFormat("");
+    }
+    this.formDataService.setQCFilter(this.form.value.onlyReliable);
+
     this.router.navigate(["../", "filters"], { relativeTo: this.route });
   }
 
@@ -812,5 +831,63 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
 
   setConversionFormat(format) {
     this.selectedConversionFormat = format;
+  }
+  receiveCategory() {
+    const datasetNameSelected =
+      this.formDataService.getFormData().datasets[0].name;
+    this.formDataService.getDatasets().subscribe((datasets) => {
+      this.category = datasets.filter(
+        (dataset) => dataset.name == datasetNameSelected,
+      )[0].category;
+    });
+  }
+
+  onlyOBS(): boolean {
+    if (this.category == "OBS") return true;
+    else return false;
+  }
+
+  getFilterTooltip(key: string) {
+    let desc = "Add helpful info about this filter";
+    switch (key) {
+      case "size-estimation-obs":
+        desc =
+          "This is just an estimation of the real number of messages and the true size of the selected " +
+          "data. Be aware that if the actual size exceeds the user's disk quota, it will not be possible to download " +
+          "the data, even if the request is submitted successfully.";
+        break;
+      case "json-format-obs":
+        desc =
+          "Please note that the size of a JSON file is approximately " +
+          "three times larger than that of the BUFR format.";
+        break;
+    }
+    return desc;
+  }
+
+  isJsonFormatAtEntry() {
+    if (this.current_format === "json") {
+      this.summaryStats.s *= 2.8;
+    } else {
+      this.current_format = "-";
+    }
+  }
+
+  changeSize(new_format) {
+    if (this.current_format != new_format) {
+      if (new_format == "json") {
+        this.summaryStats.s *= 2.8;
+      } else {
+        this.summaryStats.s /= 2.8;
+      }
+      this.current_format = new_format;
+    }
+  }
+  isJsonFormat(): boolean {
+    if (this.current_format === "json") {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

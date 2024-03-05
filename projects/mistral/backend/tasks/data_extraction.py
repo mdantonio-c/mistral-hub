@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Union
 
 from celery import states
 from celery.exceptions import Ignore
-from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR, PostProcessorsType
+from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR, PostProcessorsType, data
 from mistral.exceptions import (
     AccessToDatasetDenied,
     DeleteScheduleException,
@@ -55,6 +55,7 @@ def data_extract(
     schedule_id=None,
     data_ready=False,
     opendata=False,
+    force_obs_download=False,
 ):
 
     log.info("Start task [{}:{}]", self.request.id, self.name)
@@ -196,10 +197,19 @@ def data_extract(
                 schedule_id=schedule_id,
                 opendata=opendata,
             )
-        # Observed data, in a future
-        # the if statement will be for data using arkimet and data using dballe
-        else:
-            log.debug("observation in dballe")
+        # in a future size estimation may be implemented for multim-forecast dataset data as well
+        elif data_type == "OBS" and not force_obs_download:
+            esti_obs_data_size = None
+
+            try:
+                esti_obs_data_size = data.get_observed_data_size_count(
+                    reftime, datasets, filters, license_group, output_format
+                )
+            except Exception as e:
+                log.debug(f"Unable to get summary stats: {e}")
+
+            if esti_obs_data_size:
+                data.check_user_quota_for_observed_data(user_id, db, esti_obs_data_size)
 
         # ########################################## #
         # ##### EXTRACTION FROM ARKIMET/DBALLE ##### #
@@ -472,9 +482,7 @@ def check_user_quota(
     if not opendata:
         if max_output_size and esti_data_size > max_output_size:
             # save error message in db
-            message = (
-                "The resulting output size exceed the size allowed for a single request"
-            )
+            message = "The resulting output size exceeds the size allowed for a single request"
             # check if this request comes from a schedule. If so deactivate the schedule.
             if schedule_id is not None:
                 # load schedule for this request

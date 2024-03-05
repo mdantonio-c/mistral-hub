@@ -1,4 +1,5 @@
 import itertools
+import math
 import subprocess
 import tempfile
 from datetime import datetime, time, timedelta
@@ -8,6 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import arkimet as arki
 import dateutil
 import dballe
+import wreport
 from mistral.exceptions import (
     EmptyOutputFile,
     InvalidFiltersException,
@@ -40,6 +42,74 @@ class BeDballe:
 
     # dballe codes for quality check attributes to consider for quality check filters
     QC_CODES = ["B33007", "B33192"]
+
+    ################################################
+    # CONSTANTS USEFUL FOR MESSAGES AND SIZE COUNT #
+    ################################################
+
+    # This dictionary is used to identify when the current cursor is the reference one.
+    # This becomes necessary when a different method of size counting is required, as explained later.
+    IS_REF_CUR_CHECKS = [
+        ("trange", "ref_trange"),
+        ("var", "ref_var"),
+        ("level", "ref_level"),
+    ]
+
+    # This dictionary is used to identify newly covered attributes by the cursor when it is not the reference cursor.
+    # This becomes necessary when a different method of size counting is required, as explained later.
+    NEW_ATTR_COVERED_CHECKS = [
+        ("pindicator", "tranges_covered", "pind"),  # is_a_new_trange_attr_type
+        ("p1", "tranges_covered", "p1"),  # is_a_new_trange_attr_p1_
+        ("p2", "tranges_covered", "p2"),  # is_a_new_trange_attr_p2
+        ("leveltype1", "levels_covered", "ltype1"),  # is_a_new_level_l1_attr_type
+        ("l1", "levels_covered", "l1"),  # is_a_new_level_l1_attr_value
+        ("leveltype2", "levels_covered", "ltype2"),  # is_a_new_level_l2_attr_type
+        ("l2", "levels_covered", "l2"),  # is_a_new_level_l2_attr_value
+    ]
+
+    # This dictionary is used to retrieve additional bits for newly covered attributes when a different size
+    # counting method is needed (as explained later).
+    NEW_ATTR_BITS = {
+        "pindicator": 26,  # bits_attr_encoding += 10 ; bits_section_3 += 16 (i.e.: 2 Bytes)
+        "p1": 47,  # bits_attr_encoding += 31 ; bits_section_3 += 16 (i.e.: 2 Bytes)
+        "p2": 47,  # bits_attr_encoding += 31 ; bits_section_3 += 16 (i.e.: 2 Bytes)
+        "leveltype1": 26,  # bits_attr_encoding += 10 ; bits_section_3 += 16 (i.e.: 2 Bytes)
+        "l1": 47,  # bits_attr_encoding += 31 ; bits_section_3 += 16 (i.e.: 2 Bytes)
+        "leveltype2": 47,  # bits_attr_encoding += 31 ; bits_section_3 += 16 (i.e.: 2 Bytes)
+        "l2": 47,  # bits_attr_encoding += 31 ; bits_section_3 += 16 (i.e.: 2 Bytes)
+    }
+
+    LEVEL_ATTR_CUR_KEYS = ("l1", "leveltype2", "l2")
+    LEVEL_AND_TRANGES_CUR_KEYS = (
+        "pindicator",
+        "p1",
+        "p2",
+        "leveltype1",
+        "l1",
+        "leveltype2",
+        "l2",
+    )
+
+    # STANDARD BITS FOR BUFR MESSAGES' SIZE COUNT
+    # Explanation of fixed byte/bits values used later for size count.
+    # The analysis was done by analyzing the contents of many BUFR files;
+    # BUFR messages are divided into different sections covering descriptors, attribute encoding, etc.
+
+    # STANDARD_FIXED_BITS = 45 extra fixed bytes for each message:
+    # 8 "general header" + 22 "SECTION_1" + 7 "SECTION_3" + 4 "SECTION_4" + 4 "SECTION_5".
+    # The "* 8" is for "byte -> bit" conversion.
+    STANDARD_FIXED_BITS = 360  # = 45 * 8
+
+    # STANDARD_SECTION_3_BITS -> 15 attributes of the average message, each carry 2 extra bytes in "SECTION_3"
+    # (include descriptors of various attributes). In "SECTION_3" there is also 1 extra byte,
+    # for unknown reasons. The "* 8" is for byte -> bit conversion.
+    # N.B.: If we considered the (often present) attribute "barometer height above sea level," it should be:
+    # STANDARD_SECTION_3_BITS = 264 = (16 * 2 + 1) * 8
+    STANDARD_SECTION_3_BITS = 248  # = (15 * 2 + 1) * 8
+
+    # STANDARD_ATTR_ENCODING_BITS = 573 -> these are the bits for encoding anagraphic attributes
+    # for an average message in "SECTION_4".
+    STANDARD_ATTR_ENCODING_BITS = 573
 
     @staticmethod
     def get_db_type(date_min=None, date_max=None):
@@ -309,86 +379,753 @@ class BeDballe:
         return explorer
 
     @staticmethod
-    def get_summary(params, explorer, query=None):
-        if params and "network" not in query:
-            query["network"] = params
-        fields, queries = BeDballe.from_query_to_lists(query)
+    def get_summary(params, explorer, query=None, fields=None, queries=None):
+        """
+        SUMMARY MESSAGES AND SIZE COUNT BRIEF EXPLANATION.
+        If no timerange, or level, or product were chosen in the query, messages and size count works differently,
+        and we have to define a reference cursor for every station and every query
+        (it shall be the one with maximum message count).
+        In this case, it is necessary to adopt a different ("non-standard") method for size counting:
+        "BeDballe.get_non_standard_size_and_message_count()".
+        This is necessary to avoid counting messages twice during the iteration on query cursors:
+        DBAllE employs an internal mechanism to aggregate data from variables with identical demographic attributes.
+        Only reference cursors add their number of messages and their anagraphical attributes bits to the total count.
+        Non-reference cursors only contribute bits for the physical variables and for any newly-covered attributes.
+        If at least one filter is chosen for timerange, level, and product there's no need for a "non-standard" method
+        for size counting (further details in "__get_query_important_params" method's documentation).
+        In the case where the "multimodel-forecast" dataset has been selected, size count is not available and the old
+        message count method will be used. In the future, reliable size and message count methods may be implemented
+        for the "multimodel-forecast" case as well.
+        ITA:
+        Se non è stato definito nessun timerange, o livello o prodotto nella query, la messages e size count
+        funziona in maniera diversa e dobbiamo stabilire un cursore di riferimento per ogni stazione e per ogni query
+        (sarà quello con la message count massima).
+        In questo caso, bisogna adottare il metodo "non-standard" per calcolare la size count
+        "BeDballe.get_non_standard_size_and_message_count()".
+        Questo è necessario al fine di non contare doppiamente i messaggi quando scorriamo tra i cursori della query:
+        DBAllE ha un meccanismo interno di aggregazione dei dati di variabili con uguali attributi anagrafici.
+        Solo i cursori di riferimento aggiungono il loro numero di messaggi e i bit dei loro attributi anagrafici al
+        conteggio totale, mentre i cursori non di riferimento contribuiscono solo con i bit per le variabili fisiche e
+        per eventuali nuovi attributi coperti.
+        Se almeno un filtro è selezionato per ogni tipo, non c'è bisogno di un metodo "non-standard" per il
+        conteggio delle dimensioni (maggiori dettagli nella documentazione del metodo "__get_query_important_params").
+        Nel caso in cui sia stato selezionato il dataset "multimodel-forecast", il conteggio della size
+        non sarà possibile e verrà utilizzato il vecchio metodo di conteggio dei messaggi. In futuro si potrebbero
+        implementare metodi di size e message count affidabili anche per il caso "multimodel-forecast".
+        """
+
+        # When get_summary is called by data API, fields and queries are already given
+        if not fields or not queries:
+            if params and "network" not in query:
+                query["network"] = params
+            fields, queries = BeDballe.from_query_to_lists(query)
+
         log.debug("Counting messages: fields: {}, queries: {}", fields, queries)
 
         # get all the possible combinations of queries to count the messages
         all_queries = list(itertools.product(*queries))
-        message_count = 0
-        min_date: Optional[datetime] = None
-        max_date: Optional[datetime] = None
-        for q in all_queries:
-            dballe_query = {}
-            for k, v in zip(fields, q):
-                dballe_query[k] = v
-            dballe_query["query"] = "details"
-            explorer.set_filter(dballe_query)
-            # count the items for each query
-            log.debug("counting query: {}", dballe_query)
-            for cur in explorer.query_summary(dballe_query):
-                # count the items for each query
-                message_count += cur["count"]
 
-                datetimemin = datetime(
-                    cur["yearmin"],
-                    cur["monthmin"],
-                    cur["daymin"],
-                    cur["hourmin"],
-                    cur["minumin"],
-                    cur["secmin"],
+        # "query_important_params" contains info and flags that lead us to the correct way of counting messages and
+        # size, as explained in the comments of the method
+        query_important_params = BeDballe.__get_query_important_params(
+            params, fields, queries
+        )
+
+        # Obtaining the Vartables containing all BUFR variable codes
+        principal_vartable = None
+        secondary_vartable = None
+        try:
+            principal_vartable = wreport.Vartable.get_bufr(
+                master_table_version_number=31
+            )
+        except Exception as e:
+            log.debug(
+                f"It was not possible to obtain principal Vartable with master_table_version_number=31, {e}"
+            )
+        # the secondary Vartable serves as an additional method in case the first one fails to include all possible
+        # B variables
+        try:
+            secondary_vartable = wreport.Vartable.get_bufr(basename="dballe")
+        except Exception as e:
+            log.debug(
+                f"It was not possible to obtain secondary Vartable with basename=dballe, {e}"
+            )
+
+        if not principal_vartable and not secondary_vartable:
+            log.debug(
+                "Physical variables' encoding bits will not be considered for size count as it was not possible "
+                "to retrieve Vartables from wreport folder: 'usr/share/wreport'"
+            )
+
+        vartables = {
+            "principal_vartable": principal_vartable,
+            "secondary_vartable": secondary_vartable,
+        }
+
+        # dictionary to be populated with bits accounting for physical variables (as total bits needed for encoding
+        # and descriptor in BUFR messages)
+        physical_variable_bits_dict: {str: int} = {}
+
+        # messages and size counters
+        message_count = 0
+        size_count = 0
+
+        # date boundaries for Summary
+        summary_min_date: Optional[datetime] = None
+        summary_max_date: Optional[datetime] = None
+
+        for q in all_queries:
+            dballe_query = {k: v for k, v in zip(fields, q)}
+            dballe_query["query"] = "details"
+
+            explorer.set_filter(dballe_query)
+            log.debug("counting query: {}", dballe_query)
+
+            all_stations_reference_data = {}
+            cursor_effective_datetime_dict = {}
+
+            if any(
+                not query_field
+                for query_field in [
+                    explorer.varcodes,
+                    explorer.tranges,
+                    explorer.levels,
+                ]
+            ):
+                # If any query_field is empty, query returns no data so no further logic is needed for this cursor
+                continue
+
+            if query_important_params["is_multim_forecast"]:
+                # Size count is currently not available for multimodel case, we can only count the number of messages
+                for cur in explorer.query_summary(dballe_query):
+                    (
+                        message_count,
+                        summary_min_date,
+                        summary_max_date,
+                    ) = BeDballe.__get_message_count_for_multimodel_forecast(
+                        cur, message_count, summary_min_date, summary_max_date
+                    )
+                continue
+
+            if query_important_params["need_different_size_count"]:
+                # We need to populate 'all_stations_reference_data' in order to compute the non-standard size and
+                # message count
+                for cur in explorer.query_summary(dballe_query):
+                    cur_original_dt_interval = (cur["datetimemin"], cur["datetimemax"])
+
+                    effective_messages = BeDballe.__get_effective_messages_number(
+                        cur["count"],
+                        cur_original_dt_interval,
+                        query_important_params["query_original_dt_interval"],
+                        cursor_effective_datetime_dict,
+                    )
+
+                    if effective_messages > 0:
+
+                        cur_effective_dt_interval = cursor_effective_datetime_dict[
+                            cur_original_dt_interval
+                        ]["cur_effective_dt_interval"]
+
+                        BeDballe.__populate_all_stations_reference_data(
+                            cur,
+                            effective_messages,
+                            query_important_params["selected_filters_keys"],
+                            all_stations_reference_data,
+                        )
+
+            for cur in explorer.query_summary(dballe_query):
+                cur_original_dt_interval = (cur["datetimemin"], cur["datetimemax"])
+
+                effective_messages = BeDballe.__get_effective_messages_number(
+                    cur["count"],
+                    cur_original_dt_interval,
+                    query_important_params["query_original_dt_interval"],
+                    cursor_effective_datetime_dict,
                 )
-                datetimemax = datetime(
-                    cur["yearmax"],
-                    cur["monthmax"],
-                    cur["daymax"],
-                    cur["hourmax"],
-                    cur["minumax"],
-                    cur["secmax"],
-                )
-                # log.debug(datetimemax)
-                # log.debug(datetimemin)
-                # these notations still cause segfault
-                # datetimemin = cur["datetimemin"]
-                # datetimemin = cur["datetimemax"]
-                if min_date:
-                    if datetimemin < min_date:
-                        min_date = datetimemin
-                else:
-                    min_date = datetimemin
-                if max_date:
-                    if datetimemax > max_date:
-                        max_date = datetimemax
-                else:
-                    max_date = datetimemax
+
+                # Message and size counts, as well as summary time interval boundaries, are updated only when the cursor
+                # effectively contributes messages.
+                if effective_messages > 0:
+                    cur_effective_dt_interval = cursor_effective_datetime_dict[
+                        cur_original_dt_interval
+                    ]["cur_effective_dt_interval"]
+
+                    message_count, size_count, = BeDballe.__get_messages_and_size_count(
+                        cur,
+                        effective_messages,
+                        physical_variable_bits_dict,
+                        query_important_params,
+                        all_stations_reference_data,
+                        vartables,
+                        size_count,
+                        message_count,
+                    )
+
+                    (
+                        summary_min_date,
+                        summary_max_date,
+                    ) = BeDballe.__adjust_summary_time_interval_boundaries(
+                        cur_effective_dt_interval, summary_min_date, summary_max_date
+                    )
+
         # create the summary
-        summary: Dict[str, Union[int, List[str]]] = {}
+        summary: Dict[str, Union[int, List[str], List[int], type(None)]] = {}
+
+        log.debug("message_count: " + str(message_count))
+        log.debug("bits_size_count: " + str(math.floor(size_count / 8)))
+        log.critical("message_count: " + str(message_count))  # TODO REMOVE
+        log.critical(
+            "bits_size_count: " + str(math.floor(size_count / 8))
+        )  # TODO REMOVE
+
         if not message_count:
             return summary
-        summary["c"] = message_count
-        if fields and "datetimemin" in fields:
-            q_dtmin_index = fields.index("datetimemin")
-            q_dtmin = queries[q_dtmin_index][0]
-            if min_date > q_dtmin:
-                summary["b"] = BeDballe.from_datetime_to_list(min_date)
-            else:
-                summary["b"] = BeDballe.from_datetime_to_list(q_dtmin)
         else:
-            summary["b"] = BeDballe.from_datetime_to_list(min_date)
-
-        if fields and "datetimemax" in fields:
-            q_dtmax_index = fields.index("datetimemax")
-            q_dtmax = queries[q_dtmax_index][0]
-            if max_date < q_dtmax:
-                summary["e"] = BeDballe.from_datetime_to_list(max_date)
+            summary["c"] = message_count
+            if not query_important_params["is_multim_forecast"]:
+                summary["s"] = math.floor(size_count / 8)
             else:
-                summary["e"] = BeDballe.from_datetime_to_list(q_dtmax)
-        else:
-            summary["e"] = BeDballe.from_datetime_to_list(max_date)
+                # Multimodel forecast size count is not available, so size count shall be None
+                summary["s"] = None
 
-        return summary
+            # Probably, if the multim-forecast case had been managed, the next block could be substituted by
+            # the following line of code:
+            # summary["b"] = BeDballe.from_datetime_to_list(summary_min_date)
+            if fields and "datetimemin" in fields:
+                q_dtmin_index = fields.index("datetimemin")
+                q_dtmin = queries[q_dtmin_index][0]
+                if summary_min_date and summary_min_date > q_dtmin:
+                    summary["b"] = BeDballe.from_datetime_to_list(summary_min_date)
+                else:
+                    summary["b"] = BeDballe.from_datetime_to_list(q_dtmin)
+            else:
+                summary["b"] = BeDballe.from_datetime_to_list(summary_min_date)
+
+            # Probably, if the multim-forecast case had been managed, the next block could be substituted by
+            # the following line of code:
+            # summary["e"] = BeDballe.from_datetime_to_list(summary_max_date)
+            if fields and "datetimemax" in fields:
+                q_dtmax_index = fields.index("datetimemax")
+                q_dtmax = queries[q_dtmax_index][0]
+                if summary_max_date and summary_max_date < q_dtmax:
+                    summary["e"] = BeDballe.from_datetime_to_list(summary_max_date)
+                else:
+                    summary["e"] = BeDballe.from_datetime_to_list(q_dtmax)
+            else:
+                summary["e"] = BeDballe.from_datetime_to_list(summary_max_date)
+
+            return summary
+
+    @staticmethod
+    def __get_message_count_for_multimodel_forecast(
+        cursor, message_count, summary_min_date, summary_max_date
+    ):
+        """
+        This is the old method of counting the number of messages for multimodel-forecast.
+        Size count is not currently available for multimodel-forecast.
+        """
+
+        message_count += cursor["count"]
+
+        datetimemin = cursor["datetimemin"]
+        datetimemax = cursor["datetimemax"]
+
+        if summary_min_date:
+            if datetimemin < summary_min_date:
+                summary_min_date = datetimemin
+        else:
+            summary_min_date = datetimemin
+        if summary_max_date:
+            if datetimemax > summary_max_date:
+                summary_max_date = datetimemax
+        else:
+            summary_max_date = datetimemax
+
+        return message_count, summary_min_date, summary_max_date
+
+    @staticmethod
+    def __get_query_important_params(params, fields, queries):
+        """
+        ENG:
+        The boolean 'need_different_size_count' precisely distinguishes the case where it is necessary to adopt
+        a different ("non-standard") method for size counting: "BeDballe.get_non_standard_size_and_message_count()".
+        If filters for time range, level, or product type are selected, 'selected_filters_keys' will capture the
+        chosen filter types.
+        This is necessary because we will require reference cursors for every possible combination of the
+        selected filter variable values.
+        If at least one filter is chosen for each type, 'selected_filters_keys' will be empty.
+        In this scenario, there's no need for a "non-standard" method for size counting,
+        and 'need_different_size_count' will be set to false.
+        ITA:
+        Il booleano "need_different_size_count" distingue appunto il caso in cui bisogna adottare il
+        metodo "non-standard" per calcolare la size count: "BeDballe.get_non_standard_size_and_message_count()".
+        Se sono selezionati filtri per l'intervallo di tempo, il livello o il tipo di prodotto,
+        'selected_filters_keys' catturerà i tipi di filtri scelti.
+        Questo è necessario perché avremo bisogno di cursori di riferimento per ogni possibile combinazione dei
+        valori delle variabili dei filtri selezionati.
+        Se almeno un filtro è selezionato per ogni tipo, allora 'selected_filters_keys' sarà vuoto.
+        In questo scenario, non c'è bisogno di un metodo "non-standard" per il conteggio delle dimensioni,
+        e 'need_different_size_count' sarà impostato su false.
+        """
+        query_important_params = {
+            "query_original_dt_interval": {},
+            "selected_filters_keys": [],
+            "need_different_size_count": any(
+                query_field not in fields for query_field in ["trange", "level", "var"]
+            ),
+            "is_multim_forecast": "multim-forecast" in params,
+        }
+
+        # datetime interval of the query
+        if fields:
+            if "datetimemin" in fields:
+                query_important_params["query_original_dt_interval"][
+                    "datetimemin"
+                ] = queries[fields.index("datetimemin")][0]
+            if "datetimemax" in fields:
+                query_important_params["query_original_dt_interval"][
+                    "datetimemax"
+                ] = queries[fields.index("datetimemax")][0]
+
+        if query_important_params["need_different_size_count"]:
+            query_important_params["selected_filters_keys"] = [
+                query_key
+                for query_key in ["trange", "level", "var"]
+                if (query_key in fields and queries[fields.index(query_key)][0])
+            ]
+
+        return query_important_params
+
+    @staticmethod
+    def __populate_all_stations_reference_data(
+        cur, effective_messages, selected_filters_keys, all_stations_reference_data
+    ):
+        """
+        The purpose of this function is to find, for each station, which cursor to consider as a reference for every
+        combination of parameters selected as filters in the query (time_range, level, product).
+        For each station and for every combination of filter parameters, the reference cursor will be the one
+        with the highest number of messages.
+        Non-reference cursors' do not increase the number of messages and need a different size count because their
+        (new) data is aggregated into messages of the reference cursors, sharing same demographic attributes.
+        """
+
+        filters_values = (
+            "no_filters_selected"
+            if not selected_filters_keys
+            else tuple(cur[key] for key in selected_filters_keys)
+        )
+
+        # Update all_stations_reference_data if station ID is already in the dictionary
+        if cur["ana_id"] not in all_stations_reference_data:
+            all_stations_reference_data[cur["ana_id"]] = {}
+
+        if (
+            filters_values not in all_stations_reference_data[cur["ana_id"]]
+            or effective_messages
+            > all_stations_reference_data[cur["ana_id"]][filters_values][
+                "ref_eff_mex_count"
+            ]
+        ):
+            all_stations_reference_data[cur["ana_id"]][filters_values] = {
+                "ref_trange": cur["trange"],
+                "ref_var": cur["var"],
+                "ref_level": cur["level"],
+                "ref_eff_mex_count": effective_messages,
+                # 'datetimes_covered': [list(cur_effective_dt_interval)],
+                "tranges_covered": [cur["trange"]],
+                "levels_covered": [cur["level"]],
+            }
+        else:
+            pass
+
+    @staticmethod
+    def __get_effective_messages_number(
+        cursor_messages,
+        cur_original_dt_interval,
+        query_original_dt_interval,
+        cursor_effective_datetime_dict,
+    ):
+        """
+        If cursor's datetime interval is not the same as query's one (if present), we have to consider just a fraction
+        of cursor's messages count.
+
+        The 'cursor_effective_datetime_dict' dictionary is populated with important cursor data gathered during the
+        run. This dictionary consists of original cursor datetime intervals as keys and another dictionary as values.
+        For each entry in the 'cursor_effective_datetime_dict' dictionary, we can access the values of the keys,
+        'cur_vs_query_dtime_ratio' and 'cur_effective_dt_interval', which respectively indicate how much the cursor
+        'effectively' contributes messages to the final count and the 'effective'
+        portion of the cursor's datetime interval.
+        """
+
+        if cur_original_dt_interval not in cursor_effective_datetime_dict:
+
+            cursor_effective_datetime_dict[
+                cur_original_dt_interval
+            ] = BeDballe.__populate_cursor_effective_datetime_dict(
+                cur_original_dt_interval, query_original_dt_interval
+            )
+
+        cur_vs_query_dtime_ratio = cursor_effective_datetime_dict[
+            cur_original_dt_interval
+        ]["cur_vs_query_dtime_ratio"]
+
+        # cur_vs_query_dtime_ratio = -1 -> refers to the case "query_dtime_interval"
+        # is not an actual interval but just a point on the timeline.
+        # Thus, we shall consider this cursor's message count equal to 1
+        effective_messages = (
+            math.floor(cursor_messages * cur_vs_query_dtime_ratio)
+            if cur_vs_query_dtime_ratio >= 0
+            else 1
+        )
+
+        return effective_messages
+
+    @staticmethod
+    def __populate_cursor_effective_datetime_dict(cur_original_dt, query_original_dt):
+        """
+        This function compares cursor's datetime interval to query's one.
+        This is needed to obtain a coefficient which is used to get the number of effective messages
+        the cursor brings to the final count.
+        While doing so, we trim cursor's original datetime interval to make it fit within the query datetime
+        interval.
+        """
+
+        if not cur_original_dt:
+            return {"cur_vs_query_dtime_ratio": 0, "cur_effective_dt_interval": []}
+        else:
+            original_cur_dt_int_duration = (
+                cur_original_dt[1] - cur_original_dt[0]
+            ).total_seconds()
+
+        if not query_original_dt:
+
+            return {
+                "cur_vs_query_dtime_ratio": 1
+                if original_cur_dt_int_duration != 0
+                else -1,
+                "cur_effective_dt_interval": list(cur_original_dt),
+            }
+        else:
+            if all(
+                date_key in query_original_dt
+                for date_key in ("datetimemin", "datetimemax")
+            ):
+                query_dt = [
+                    query_original_dt["datetimemin"],
+                    query_original_dt["datetimemax"],
+                ]
+            elif "datetimemin" not in query_original_dt:
+                if cur_original_dt[0] <= query_original_dt["datetimemax"]:
+                    query_dt = [cur_original_dt[0], query_original_dt["datetimemax"]]
+                else:
+                    query_dt = [
+                        query_original_dt["datetimemax"],
+                        query_original_dt["datetimemax"],
+                    ]
+            # if 'datetimemax' is missing and only 'datetimemin' is in query_original_dt
+            else:
+                if cur_original_dt[1] >= query_original_dt["datetimemin"]:
+                    query_dt = [query_original_dt["datetimemin"], cur_original_dt[1]]
+                else:
+                    query_dt = [
+                        query_original_dt["datetimemin"],
+                        query_original_dt["datetimemin"],
+                    ]
+
+        # Check if cursor time interval is external to query time interval
+        if query_dt[1] < cur_original_dt[0] or cur_original_dt[1] < query_dt[0]:
+            return {
+                "cur_vs_query_dtime_ratio": 0,
+                "cur_effective_dt_interval": list(cur_original_dt),
+            }
+
+        # Check if the cursor time interval is within query time interval
+        elif query_dt[0] <= cur_original_dt[0] <= cur_original_dt[1] <= query_dt[1]:
+            return {
+                "cur_vs_query_dtime_ratio": -1
+                if original_cur_dt_int_duration == 0
+                else 1,
+                "cur_effective_dt_interval": list(cur_original_dt),
+            }
+
+        # Check if the query time interval is entirely within the cursor time interval
+        elif cur_original_dt[0] <= query_dt[0] <= query_dt[1] <= cur_original_dt[1]:
+            cur_effective_dt_interval = [dtime for dtime in query_dt]
+        else:
+            # this is the case cur_original_dt overlaps the query_dt,
+            # the cursor effective time interval is given by just the overlapping region
+            if query_dt[0] <= cur_original_dt[0] <= query_dt[1]:
+                # cur_original_dt overlaps from right
+                cur_effective_dt_interval = [cur_original_dt[0], query_dt[1]]
+            else:  # condition: query_dt[0] <= cur_original_dt[1] <= query_dt[1]
+                # cur_original_dt overlaps from left
+                cur_effective_dt_interval = [query_dt[0], cur_original_dt[1]]
+
+        # We compute the ratio between the effective time interval of this cursor and the total datetime of the
+        # original cursor
+        effective_cur_dt_int_duration = (
+            cur_effective_dt_interval[1] - cur_effective_dt_interval[0]
+        ).total_seconds()
+
+        cur_vs_query_dtime_ratio = (
+            -1
+            if effective_cur_dt_int_duration == 0
+            else effective_cur_dt_int_duration / original_cur_dt_int_duration
+        )
+
+        return {
+            "cur_vs_query_dtime_ratio": cur_vs_query_dtime_ratio,
+            "cur_effective_dt_interval": cur_effective_dt_interval,
+        }
+
+    @staticmethod
+    def __get_messages_and_size_count(
+        cur,
+        effective_messages,
+        physical_variable_bits_dict,
+        query_important_params,
+        all_stations_reference_data,
+        vartables,
+        size_count,
+        message_count,
+    ):
+
+        is_this_cursor_the_reference = False
+        new_attr_covered_flags = None
+
+        need_different_size_count = query_important_params["need_different_size_count"]
+
+        if need_different_size_count:
+            # We check if the current cursor is the reference one. If it isn't, we obtain flags to keep track for bits
+            # compensation when a new attribute is covered by a non-reference cursor.
+            (
+                is_this_cursor_the_reference,
+                new_attr_covered_flags,
+            ) = BeDballe.__check_is_this_cursor_reference_or_new_attributes_are_covered(
+                cur,
+                query_important_params["selected_filters_keys"],
+                all_stations_reference_data,
+            )
+
+        if not need_different_size_count or is_this_cursor_the_reference:
+            # This is the standard way of counting the size for the average type of message.
+            size_count, message_count = BeDballe.__get_standard_size_and_message_count(
+                cur,
+                effective_messages,
+                physical_variable_bits_dict,
+                vartables,
+                size_count,
+                message_count,
+            )
+        else:
+            # The following is the way of counting messages and size in case the query had no timerange
+            # or level or product parameter (and current cursor is not the reference one for the station).
+            (
+                size_count,
+                message_count,
+            ) = BeDballe.get_non_standard_size_and_message_count(
+                cur,
+                effective_messages,
+                physical_variable_bits_dict,
+                new_attr_covered_flags,
+                vartables,
+                size_count,
+                message_count,
+            )
+
+        return message_count, size_count
+
+    @staticmethod
+    def __check_is_this_cursor_reference_or_new_attributes_are_covered(
+        cur, selected_filters_keys, all_stations_reference_data
+    ):
+
+        new_attr_flags = {}
+
+        filter_values = (
+            "no_filters_selected"
+            if not (selected_filters_keys)
+            else tuple([cur[key] for key in selected_filters_keys])
+        )
+
+        station_summary_data = all_stations_reference_data[cur["ana_id"]][
+            filter_values
+        ]  # cur['ana_id'] is station ID
+
+        is_this_cursor_the_reference = all(
+            cur[cur_field_key] == station_summary_data[reference_field_key]
+            for cur_field_key, reference_field_key in BeDballe.IS_REF_CUR_CHECKS
+        )
+
+        if not is_this_cursor_the_reference:
+            # We now obtain flags to keep track for bits compensation when a new attribute is covered by
+            # a non-reference cursor.
+            for cur_key, covered_fields, field_attr in BeDballe.NEW_ATTR_COVERED_CHECKS:
+                if cur[cur_key] is None:
+                    new_attr_flags[cur_key] = False
+                else:
+                    new_attr_flags[cur_key] = BeDballe.__check_new_attr_covered(
+                        station_summary_data[covered_fields], field_attr, cur[cur_key]
+                    )
+
+            # Updating covered attributes lists for the station_summary_data (i.e. for the current station_id and
+            # the set of filter_values at hand)
+            for cursor_field, covered_fields in [
+                (cur["trange"], "tranges_covered"),
+                (cur["level"], "levels_covered"),
+            ]:
+                if cursor_field not in station_summary_data[covered_fields]:
+                    station_summary_data[covered_fields].append(cursor_field)
+
+        return is_this_cursor_the_reference, new_attr_flags
+
+    @staticmethod
+    def __check_new_attr_covered(covered_fields, field_attr, cursor_attribute):
+        for field in covered_fields:
+            if getattr(field, field_attr) == cursor_attribute:
+                return False
+        else:
+            return True
+
+    @staticmethod
+    def __get_standard_size_and_message_count(
+        cursor,
+        effective_messages,
+        physical_variable_bits_dict,
+        vartables,
+        size_count,
+        message_count,
+    ):
+
+        # If additional level attributes are present, we add bits accounting for encoding and descriptor
+        # of those as the sum of: bits_section_3 += 16, bits_attr_encoding += 31
+        add_level_bits = 0
+        for cur_key in BeDballe.LEVEL_ATTR_CUR_KEYS:
+            add_level_bits += 47 if cursor[cur_key] else 0
+
+        # Total number of bits for the physical variable
+        phys_var_total_bits = BeDballe.__get_physical_variable_bits(
+            vartables, physical_variable_bits_dict, cursor["var"]
+        )
+
+        total_bits_per_message = (
+            BeDballe.STANDARD_FIXED_BITS
+            + BeDballe.STANDARD_SECTION_3_BITS
+            + BeDballe.STANDARD_ATTR_ENCODING_BITS
+            + add_level_bits
+            + phys_var_total_bits
+        )
+
+        size_count += total_bits_per_message * effective_messages
+
+        message_count += effective_messages
+
+        return size_count, message_count
+
+    @staticmethod
+    def __get_physical_variable_bits(vartables, physical_variable_bits_dict, var_code):
+        """
+        This method calculates the number of bits needed to encode the value of the physical variable. It then adds 16
+        to this number, representing the bits required for the variable in SECTION 3 of the BUFR message.
+        Consequently, the method returns the total bit count for the physical variable.
+        """
+        phys_var_encoding_bits = 0
+        principal_vartable = vartables["principal_vartable"]
+        secondary_vartable = vartables["secondary_vartable"]
+
+        if not principal_vartable and not secondary_vartable:
+            # It was not possible to retrieve Vartables from wreport folder 'usr/share/wreport'
+            phys_var_total_bits = 16  # 16 + phys_var_encoding_bits = 16 + 0 = 16
+            return phys_var_total_bits
+
+        if var_code not in physical_variable_bits_dict:
+            b_table_variable = None
+
+            if principal_vartable:
+                try:
+                    b_table_variable = principal_vartable[var_code]
+                except KeyError as e:
+                    log.debug(
+                        f"B code {var_code} variable's bit size cannot be obtained from principal Vartable. "
+                        f"KeyError Exception message: {e}"
+                    )
+
+            if not b_table_variable and secondary_vartable:
+                try:
+                    b_table_variable = secondary_vartable[var_code]
+                    log.debug(
+                        "Variable's bit size was obtained from secondary Vartable."
+                    )
+                except KeyError as e:
+                    log.debug(
+                        f"B code {var_code} variable's bit size cannot be obtained from secondary Vartable. "
+                        f"KeyError Exception message: {e}"
+                    )
+
+            if b_table_variable:
+                # Retrieving the physical variable
+                phys_variable = wreport.Var(b_table_variable)
+                # Bits that account for the physical variable encoding
+                phys_var_encoding_bits = phys_variable.info.bit_len
+
+            # Total number of bits for the physical variable as sum of encoding-bits and 16 bits for SECTION 3
+            physical_variable_bits_dict[var_code] = 16 + phys_var_encoding_bits
+
+        phys_var_total_bits = physical_variable_bits_dict[var_code]
+
+        if phys_var_total_bits == 16:
+            log.debug(
+                f"Variable encoding bits will not be considered for size count as variable {var_code} "
+                f"was not found in the wreport Vartables: '{principal_vartable}' and "
+                f"'{secondary_vartable}'."
+            )
+
+        return phys_var_total_bits
+
+    @staticmethod
+    def get_non_standard_size_and_message_count(
+        cur,
+        effective_messages,
+        physical_variable_bits_dict,
+        new_attr_covered_flags,
+        vartables,
+        size_count,
+        message_count,
+    ):
+        # If any of the new_attr_covered_flags is true, the current cursor extends to include
+        # attributes not covered by the reference cursor. We add bits for encoding and descriptors accordingly.
+        # The number of bits is determined by the 'NEW_ATTR_BITS' dictionary.
+        add_new_attr_bits = 0
+        for cur_key in BeDballe.LEVEL_AND_TRANGES_CUR_KEYS:
+            add_new_attr_bits += (
+                BeDballe.NEW_ATTR_BITS[cur_key]
+                if new_attr_covered_flags[cur_key]
+                else 0
+            )
+
+        # Total number of bits for the physical variable
+        phys_var_total_bits = BeDballe.__get_physical_variable_bits(
+            vartables, physical_variable_bits_dict, cur["var"]
+        )
+
+        size_count += (add_new_attr_bits + phys_var_total_bits) * effective_messages
+
+        return size_count, message_count
+
+    @staticmethod
+    def __adjust_summary_time_interval_boundaries(
+        cur_effective_dt_interval, min_date, max_date
+    ):
+
+        if not min_date or cur_effective_dt_interval[0] < min_date:
+            # extend the left boundary min_date with datetimemin of the cursor row
+            min_date = cur_effective_dt_interval[0]
+
+        if not max_date or cur_effective_dt_interval[1] > max_date:
+            # extend the right boundary max_date with datetimemax of the cursor row
+            max_date = cur_effective_dt_interval[1]
+
+        return min_date, max_date
 
     @staticmethod
     def load_filters(

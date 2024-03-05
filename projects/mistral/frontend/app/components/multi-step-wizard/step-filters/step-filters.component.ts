@@ -48,6 +48,8 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   isLevelsSelected: boolean = false;
   isTimerangeSelected: boolean = false;
   autoFiltering: boolean = true;
+  initial_format: string;
+  category: string;
 
   constructor(
     private fb: FormBuilder,
@@ -81,8 +83,10 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
 
   ngOnInit() {
     this.user = this.authService.getUser();
+    this.initial_format = this.formDataService.getFormData().output_format;
     this.loadFilters();
     window.scroll(0, 0);
+    this.receiveCategory();
   }
 
   private getFilterGroup(name: string, values: any): FormGroup {
@@ -253,8 +257,8 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   }
 
   private updateSummaryStats(summaryStats) {
-    // console.log(summaryStats);
     this.summaryStats = summaryStats;
+    this.isJsonFormatAtEntry();
     let from = null;
     if (!this.summaryStats.hasOwnProperty("b")) {
       from = moment(this.formDataService.getReftime().from).utc();
@@ -530,6 +534,12 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           "It is therefore recommended to set the switch to OFF only for experienced users or in case of data " +
           "retrievals covering a long time period.";
         break;
+      case "size-estimation-obs":
+        desc =
+          "This is just an estimation of the real number of messages and the true size of the selected " +
+          "data. Be aware that if the actual size exceeds the user's disk quota, it will not be possible to download " +
+          "the data, even if the request is submitted successfully.";
+        break;
     }
     return desc;
   }
@@ -688,5 +698,26 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     this.onFilterChange();
     // clean the timerangetypes selection array
     this.timerangeTypesInit();
+  }
+
+  receiveCategory() {
+    const datasetNameSelected =
+      this.formDataService.getFormData().datasets[0].name;
+    this.formDataService.getDatasets().subscribe((datasets) => {
+      this.category = datasets.filter(
+        (dataset) => dataset.name == datasetNameSelected,
+      )[0].category;
+    });
+  }
+
+  onlyOBS(): boolean {
+    return this.category === "OBS";
+  }
+
+  isJsonFormatAtEntry() {
+    if (this.initial_format === "json") {
+      console.log("this.initial_format", this.initial_format);
+      this.summaryStats.s *= 2.8;
+    }
   }
 }
