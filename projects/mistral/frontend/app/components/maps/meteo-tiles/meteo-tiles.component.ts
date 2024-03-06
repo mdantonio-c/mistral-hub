@@ -5,6 +5,8 @@ import { catchError, filter, scan, takeUntil } from "rxjs/operators";
 import * as moment from "moment";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
+import * as d3 from "d3";
+import "ih-leaflet-canvaslayer-field/dist/leaflet.canvaslayer.field.js";
 import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import { TilesService } from "./services/tiles.service";
 import { ObsService } from "../observation-maps/services/obs.service";
