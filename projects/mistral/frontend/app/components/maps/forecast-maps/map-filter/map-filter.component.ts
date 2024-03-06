@@ -106,7 +106,6 @@ export class MapFilterComponent implements OnInit {
       if (this.isFirstChange) {
         this.isFirstChange = false;
       } else {
-        this.filter();
         this.isUpdatable = true;
         this.onIsUpdatableChange.emit(this.isUpdatable);
       }
@@ -114,6 +113,7 @@ export class MapFilterComponent implements OnInit {
     this.filterForm.get("res").valueChanges.subscribe((val) => {
       if (val === "WRF_OL" || val === "WRF_DA_ITA") {
         this.fields = this.fields_wrf;
+        this.filterForm.get("area").setValue("Italia");
       } else this.fields = this.fields_cosmo;
     });
     //console.log(this.filterForm.value);
@@ -123,7 +123,7 @@ export class MapFilterComponent implements OnInit {
     //   });
   }
 
-  private filter() {
+  pushBotton() {
     let filter: MeteoFilter = this.filterForm.value;
     if (!filter.weekday || filter.weekday === "") {
       delete filter["weekday"];
@@ -134,10 +134,7 @@ export class MapFilterComponent implements OnInit {
     if (filter.platform === "") {
       delete filter["platform"];
     }
-    //this.onFilterChange.emit(filter);
-  }
-  pushBotton() {
-    let filter: MeteoFilter = this.filterForm.value;
+    console.log("push botton", filter);
     this.onFilterChange.emit(filter);
     this.isUpdatable = false;
     this.onIsUpdatableChange.emit(this.isUpdatable);
