@@ -115,6 +115,11 @@ export class MapFilterComponent implements OnInit {
         this.fields = this.fields_wrf;
         this.filterForm.get("area").setValue("Italia");
       } else this.fields = this.fields_cosmo;
+      if (val === "lm2.2") {
+        if (this.filterForm.get("area").value === "Area_Mediterranea") {
+          this.filterForm.get("area").setValue("Italia");
+        }
+      }
     });
     //console.log(this.filterForm.value);
     //this.filterForm.get("weekday").setValue(this.weekday)
