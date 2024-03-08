@@ -460,7 +460,7 @@ class Data(EndpointResource, Uploader):
                 )
 
             except Exception as e:
-                log.debug(f"Unable to get summary stats: {e}")
+                log.warning(f"Unable to get summary stats: {e}")
                 # raise ServerError(f"Unable to get summary stats: {e}")
 
             if esti_obs_data_size:
@@ -562,7 +562,10 @@ def get_observed_data_size_count(
     else:
         esti_obs_data_size = None
 
-    log.debug(f"estimated observed data size for the request: {esti_obs_data_size}")
+    log.debug(
+        f"estimated observed data size for the request: {esti_obs_data_size} "
+        f"({data_ext.human_size(esti_obs_data_size)})"
+    )
 
     return esti_obs_data_size
 
@@ -572,7 +575,9 @@ def check_user_quota_for_observed_data(user_id, db, esti_obs_data_size):
     user = db.User.query.filter_by(id=user_id).first()
 
     max_output_size = repo.get_user_permissions(user, param="output_size")
-    log.debug(f"user max_output_size: {max_output_size}")
+    log.info(
+        f"user max_output_size: {max_output_size} ({data_ext.human_size(max_output_size)})"
+    )
 
     if max_output_size and esti_obs_data_size > max_output_size:
         message = (
@@ -591,11 +596,13 @@ def check_user_quota_for_observed_data(user_id, db, esti_obs_data_size):
         if user_dir.exists()
         else 0
     )
-    log.debug(f"user used disk quota: {used_quota}")
+    log.info(f"user used disk quota: {used_quota} ({data_ext.human_size(used_quota)})")
 
     if used_quota + esti_obs_data_size > max_user_quota:
         free_space = max(max_user_quota - used_quota, 0)
-        log.debug(f"user free disk space: {free_space}")
+        log.info(
+            f"user free disk space: {free_space} ({data_ext.human_size(free_space)})"
+        )
 
         message = "Disk quota exceeded: required size {}; remaining space {}".format(
             data_ext.human_size(esti_obs_data_size), data_ext.human_size(free_space)

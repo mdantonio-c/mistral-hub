@@ -206,7 +206,7 @@ def data_extract(
                     reftime, datasets, filters, license_group, output_format
                 )
             except Exception as e:
-                log.debug(f"Unable to get summary stats: {e}")
+                log.warning(f"Unable to get summary stats: {e}")
 
             if esti_obs_data_size:
                 data.check_user_quota_for_observed_data(user_id, db, esti_obs_data_size)

@@ -430,39 +430,11 @@ class BeDballe:
         query_important_params = BeDballe.__get_query_important_params(
             params, fields, queries
         )
+        # Obtaining the Vartables containing all BUFR variable codes.
+        # This is necessary to retrieve physical variables' encoding bits.
+        vartables = BeDballe.get_wreport_vartables()
 
-        # Obtaining the Vartables containing all BUFR variable codes
-        principal_vartable = None
-        secondary_vartable = None
-        try:
-            principal_vartable = wreport.Vartable.get_bufr(
-                master_table_version_number=31
-            )
-        except Exception as e:
-            log.debug(
-                f"It was not possible to obtain principal Vartable with master_table_version_number=31, {e}"
-            )
-        # the secondary Vartable serves as an additional method in case the first one fails to include all possible
-        # B variables
-        try:
-            secondary_vartable = wreport.Vartable.get_bufr(basename="dballe")
-        except Exception as e:
-            log.debug(
-                f"It was not possible to obtain secondary Vartable with basename=dballe, {e}"
-            )
-
-        if not principal_vartable and not secondary_vartable:
-            log.debug(
-                "Physical variables' encoding bits will not be considered for size count as it was not possible "
-                "to retrieve Vartables from wreport folder: 'usr/share/wreport'"
-            )
-
-        vartables = {
-            "principal_vartable": principal_vartable,
-            "secondary_vartable": secondary_vartable,
-        }
-
-        # dictionary to be populated with bits accounting for physical variables (as total bits needed for encoding
+        # Dictionary to be populated with bits accounting for physical variables (as total bits needed for encoding
         # and descriptor in BUFR messages)
         physical_variable_bits_dict: {str: int} = {}
 
@@ -522,10 +494,6 @@ class BeDballe:
 
                     if effective_messages > 0:
 
-                        cur_effective_dt_interval = cursor_effective_datetime_dict[
-                            cur_original_dt_interval
-                        ]["cur_effective_dt_interval"]
-
                         BeDballe.__populate_all_stations_reference_data(
                             cur,
                             effective_messages,
@@ -573,10 +541,6 @@ class BeDballe:
 
         log.debug("message_count: " + str(message_count))
         log.debug("bits_size_count: " + str(math.floor(size_count / 8)))
-        log.critical("message_count: " + str(message_count))  # TODO REMOVE
-        log.critical(
-            "bits_size_count: " + str(math.floor(size_count / 8))
-        )  # TODO REMOVE
 
         if not message_count:
             return summary
@@ -695,6 +659,45 @@ class BeDballe:
             ]
 
         return query_important_params
+
+    @staticmethod
+    def get_wreport_vartables():
+
+        principal_vartable = None
+        secondary_vartable = None
+        master_table_version_number = 31
+        try:
+            principal_vartable = wreport.Vartable.get_bufr(
+                master_table_version_number=master_table_version_number
+            )
+        except Exception as e:
+            log.warning(
+                f"It was not possible to obtain principal Vartable with "
+                f"master_table_version_number={master_table_version_number}, {e}"
+            )
+        # the secondary Vartable serves as an additional method in case the first one fails to include all possible
+        # B variables
+        try:
+            secondary_vartable = wreport.Vartable.get_bufr(basename="dballe")
+        except Exception as e:
+            log.warning(
+                f"It was not possible to obtain secondary Vartable with basename=dballe, {e}"
+            )
+
+        if not isinstance(principal_vartable, wreport.Vartable) and not isinstance(
+            secondary_vartable, wreport.Vartable
+        ):
+            log.warning(
+                "Physical variables' encoding bits will not be considered for size count as it was not possible "
+                "to retrieve Vartables from wreport folder: 'usr/share/wreport'"
+            )
+
+        vartables = {
+            "principal_vartable": principal_vartable,
+            "secondary_vartable": secondary_vartable,
+        }
+
+        return vartables
 
     @staticmethod
     def __populate_all_stations_reference_data(
@@ -1033,7 +1036,9 @@ class BeDballe:
         principal_vartable = vartables["principal_vartable"]
         secondary_vartable = vartables["secondary_vartable"]
 
-        if not principal_vartable and not secondary_vartable:
+        if not isinstance(principal_vartable, wreport.Vartable) and not isinstance(
+            secondary_vartable, wreport.Vartable
+        ):
             # It was not possible to retrieve Vartables from wreport folder 'usr/share/wreport'
             phys_var_total_bits = 16  # 16 + phys_var_encoding_bits = 16 + 0 = 16
             return phys_var_total_bits
@@ -1041,23 +1046,25 @@ class BeDballe:
         if var_code not in physical_variable_bits_dict:
             b_table_variable = None
 
-            if principal_vartable:
+            if isinstance(principal_vartable, wreport.Vartable):
                 try:
                     b_table_variable = principal_vartable[var_code]
                 except KeyError as e:
-                    log.debug(
+                    log.warning(
                         f"B code {var_code} variable's bit size cannot be obtained from principal Vartable. "
                         f"KeyError Exception message: {e}"
                     )
 
-            if not b_table_variable and secondary_vartable:
+            if not b_table_variable and isinstance(
+                secondary_vartable, wreport.Vartable
+            ):
                 try:
                     b_table_variable = secondary_vartable[var_code]
-                    log.debug(
-                        "Variable's bit size was obtained from secondary Vartable."
+                    log.info(
+                        f"Variable {var_code} bit size was obtained from secondary Vartable: {secondary_vartable}"
                     )
                 except KeyError as e:
-                    log.debug(
+                    log.warning(
                         f"B code {var_code} variable's bit size cannot be obtained from secondary Vartable. "
                         f"KeyError Exception message: {e}"
                     )
@@ -1072,13 +1079,6 @@ class BeDballe:
             physical_variable_bits_dict[var_code] = 16 + phys_var_encoding_bits
 
         phys_var_total_bits = physical_variable_bits_dict[var_code]
-
-        if phys_var_total_bits == 16:
-            log.debug(
-                f"Variable encoding bits will not be considered for size count as variable {var_code} "
-                f"was not found in the wreport Vartables: '{principal_vartable}' and "
-                f"'{secondary_vartable}'."
-            )
 
         return phys_var_total_bits
 
