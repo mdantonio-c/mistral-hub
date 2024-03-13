@@ -163,7 +163,18 @@
   </dd>
   <ng-container *ngIf="myRequest.output_format">
     <dt>Output Format</dt>
-    <dd>{{ myRequest.output_format | uppercase }}</dd>
+    <dd>
+      {{ myRequest.output_format | uppercase }}
+      <span class="info-help" *ngIf="myRequest.output_format === 'json'"
+        >&nbsp;<i
+          placement="bottom"
+          [ngbTooltip]="getFilterTooltip('json-format-obs')"
+          tooltipClass="info-fulltext"
+          class="fa fa-info-circle"
+          aria-hidden="true"
+        ></i
+      ></span>
+    </dd>
   </ng-container>
   <ng-container *ngIf="onSubmitStep && user && user.amqp_queue">
     <hr />

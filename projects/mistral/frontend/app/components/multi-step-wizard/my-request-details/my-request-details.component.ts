@@ -20,6 +20,7 @@ export class MyRequestDetailsComponent implements OnInit {
   PP_TIME_RANGES = PP_TIME_RANGES;
   decode = decode;
   user: User;
+  category: string;
 
   constructor(
     private formDataService: FormDataService,
@@ -32,6 +33,7 @@ export class MyRequestDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.user = this.authService.getUser();
     this.myRequest = this.formDataService.getFormData();
+    this.receiveCategory();
   }
 
   emptyName() {
@@ -91,5 +93,26 @@ export class MyRequestDetailsComponent implements OnInit {
   getFileName(path) {
     let filepath = path.split("/");
     return filepath[filepath.length - 1];
+  }
+
+  receiveCategory() {
+    const datasetNameSelected = this.myRequest.datasets[0].name;
+    this.formDataService.getDatasets().subscribe((datasets) => {
+      this.category = datasets.filter(
+        (dataset) => dataset.name == datasetNameSelected,
+      )[0].category;
+    });
+  }
+
+  getFilterTooltip(key: string) {
+    let desc = "Add helpful info about this filter";
+    switch (key) {
+      case "json-format-obs":
+        desc =
+          "Please note that the size of a JSON file is approximately " +
+          "three times larger than that of the BUFR format.";
+        break;
+    }
+    return desc;
   }
 }

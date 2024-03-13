@@ -46,15 +46,34 @@
             </div>
             <div class="body">
               <ul>
-                <li><strong>Count:</strong> {{ summaryStats.c }}</li>
+                <li>
+                  <strong>Count:</strong>
+                  {{
+                    onlyOBS() && summaryStats.c != 0
+                      ? "~" + summaryStats.c
+                      : summaryStats.c
+                  }}
+                </li>
                 <li>
                   <strong>Size:</strong>
                   {{
-                    summaryStats.s === null ||
-                    (summaryStats.s === 0 && summaryStats.c > 0)
-                      ? "n/a"
-                      : (summaryStats.s | bytes : 2)
+                    summaryStats.s != null
+                      ? onlyOBS() && summaryStats.s != 0
+                        ? "~" + (summaryStats.s | bytes : 2)
+                        : (summaryStats.s | bytes : 2)
+                      : "n/a"
                   }}
+                  <span
+                    class="info-help"
+                    *ngIf="onlyOBS() && summaryStats.s !== 0"
+                    >&nbsp;<i
+                      placement="bottom"
+                      [ngbTooltip]="getFilterTooltip('size-estimation-obs')"
+                      tooltipClass="info-fulltext"
+                      class="fa fa-exclamation-circle"
+                      aria-hidden="true"
+                    ></i
+                  ></span>
                 </li>
               </ul>
               <ul
