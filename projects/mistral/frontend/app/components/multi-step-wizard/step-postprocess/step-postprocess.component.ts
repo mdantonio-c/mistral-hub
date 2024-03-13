@@ -833,13 +833,15 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
     this.selectedConversionFormat = format;
   }
   receiveCategory() {
-    const datasetNameSelected =
-      this.formDataService.getFormData().datasets[0].name;
-    this.formDataService.getDatasets().subscribe((datasets) => {
-      this.category = datasets.filter(
-        (dataset) => dataset.name == datasetNameSelected,
-      )[0].category;
-    });
+    if (this.formDataService.getFormData().datasets[0]) {
+      const datasetNameSelected =
+        this.formDataService.getFormData().datasets[0].name;
+      this.formDataService.getDatasets().subscribe((datasets) => {
+        this.category = datasets.filter(
+          (dataset) => dataset.name == datasetNameSelected,
+        )[0].category;
+      });
+    }
   }
 
   onlyOBS(): boolean {

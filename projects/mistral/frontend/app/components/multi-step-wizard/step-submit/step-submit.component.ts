@@ -301,13 +301,15 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
   }
 
   receiveCategory() {
-    const datasetNameSelected =
-      this.formDataService.getFormData().datasets[0].name;
-    this.formDataService.getDatasets().subscribe((datasets) => {
-      this.category = datasets.filter(
-        (dataset) => dataset.name == datasetNameSelected,
-      )[0].category;
-    });
+    if (this.formDataService.getFormData().datasets[0]) {
+      const datasetNameSelected =
+        this.formDataService.getFormData().datasets[0].name;
+      this.formDataService.getDatasets().subscribe((datasets) => {
+        this.category = datasets.filter(
+          (dataset) => dataset.name == datasetNameSelected,
+        )[0].category;
+      });
+    }
   }
 
   onlyOBS(): boolean {
