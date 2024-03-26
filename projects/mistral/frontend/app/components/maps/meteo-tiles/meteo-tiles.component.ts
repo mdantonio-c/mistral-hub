@@ -4,8 +4,9 @@ import { forkJoin, interval } from "rxjs";
 import { catchError, filter, scan, takeUntil } from "rxjs/operators";
 import * as moment from "moment";
 import * as L from "leaflet";
-import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
 import * as d3 from "d3";
+import * as chroma from "chroma-js";
+import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
 import "ih-leaflet-canvaslayer-field/dist/leaflet.canvaslayer.field.js";
 import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import { TilesService } from "./services/tiles.service";
@@ -40,6 +41,8 @@ import { BaseMapComponent } from "../base-map.component";
 
 declare module "leaflet" {
   let timeDimension: any;
+  let VectorField: any;
+  let canvasLayer: any;
 }
 
 const MAP_CENTER = L.latLng(41.879966, 12.28),
@@ -248,11 +251,93 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     return baseUrl;
   }
 
+  addWindComp(map: L.Map, minZoom: number, dataset: string) {
+    let t = "";
+    if (dataset === "lm5") {
+      t = "5";
+    } else if (dataset == "lm2") {
+      t = "2";
+    } else {
+      return;
+    }
+    // useful to build color scale
+    function createCustomColorScale(colorStops) {
+      const domainValues = colorStops.map((stop) => stop.value);
+      const colors = colorStops.map((stop) => stop.color);
+      return chroma.scale(colors).domain(domainValues);
+    }
+
+    // take from the wind legend of meteohub
+    const colorStops = [
+      { value: 0, color: "#457d00" },
+      { value: 1, color: "#54878c" },
+      { value: 5, color: "#0000fe" },
+      { value: 10, color: "#ffa600" },
+      { value: 20, color: "#ffff00" },
+      { value: 30, color: "#ff0000" },
+      { value: 50, color: "#ee82ee" },
+      { value: 70, color: "#9600fe" },
+    ];
+
+    d3.text(
+      "./app/custom/assets/images/u_comp_cosmo" + t + "_lasco.asc",
+      function (u) {
+        d3.text(
+          "./app/custom/assets/images/v_comp_cosmo" + t + "_lasco.asc",
+          function (v) {
+            let n = (window.innerHeight * window.innerWidth) / 2073600;
+            const vf = L.VectorField.fromASCIIGrids(u, v);
+            const s = vf.getScalarField("magnitude");
+
+            const customColorScale = createCustomColorScale(colorStops);
+            const magnitude = L.canvasLayer
+              .scalarField(s, {
+                color: customColorScale,
+                opacity: 0.4,
+              })
+              .addTo(map);
+            // by construction 5<=zoom<=8, for this reason vectors length is 8
+            const vectors = [5e3, 5e3, 5e3, 5e3, 5e3, 5e3, 3e3, 2e3, 1e3];
+            let zoomLvl = minZoom;
+            let r = vectors[zoomLvl] * n;
+            const layer = L.canvasLayer
+              .vectorFieldAnim(vf, {
+                color: "black",
+                paths: r,
+                fade: 0.92,
+                velocityScale: 0.001,
+              })
+              .addTo(map);
+            map.fitBounds(layer.getBounds());
+
+            layer.on("click", function (e) {
+              if (e.value !== null) {
+                let vector = e.value;
+                let v = vector.magnitude().toFixed(2);
+                let d = vector.directionTo().toFixed(0);
+                let html = `<span>${v} m/s to ${d}&deg</span>`;
+                let popup = L.popup()
+                  .setLatLng(e.latlng)
+                  .setContent(html)
+                  .openOn(map);
+              }
+            });
+
+            map.on("zoom", function (event) {
+              n = (window.innerHeight * window.innerWidth) / 2073600;
+              zoomLvl = event.target.getZoom();
+              r = vectors[zoomLvl] * n;
+              layer.options.paths = r;
+            });
+          },
+        );
+      },
+    );
+  }
+
   onMapReady(map: L.Map) {
     this.map = map;
-    //console.log();
     this.map.attributionControl.setPrefix("");
-
     // view mode
     console.log(`view mode: ${ViewModes[this.viewMode]}`);
 
@@ -296,6 +381,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         }
       },
     );
+    this.addWindComp(this.map, this.minZoom, this.dataset);
   }
 
   private loadRunAvailable(dataset: string) {
@@ -1600,9 +1686,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       this.map.fire("overlayremove", obj);
       this.map.removeLayer(layer);
     } else {
+      //if(obj.name === 'Wind speed at 10 meters'){ this.addWindComp(this.map,this.minZoom,this.dataset);} else {
       console.log(`add layer : ${obj.name}`);
       this.map.fire("overlayadd", obj);
       layer.addTo(this.map);
+      //}
     }
   }
 
