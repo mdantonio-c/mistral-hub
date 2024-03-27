@@ -122,7 +122,12 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     this.timestamp = this.lastRunAt.format();
     this.timestampRun = this.lastRunAt.format();
 
-    if (this.submit) this.checkIfReftimeIsOk();
+    if (
+      this.submit ||
+      this.filter.field == "percentile" ||
+      this.filter.field == "probability"
+    )
+      this.checkIfReftimeIsOk();
     if (this.submit) this.checkIfMapExist();
     this.grid_num = this.filter.res === "lm2.2" ? 4 : 6;
 

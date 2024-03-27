@@ -28,7 +28,7 @@
           [reftime]="reftime"
           (onCollapse)="toggleCollapse()"
           [isUpdatable]="isUpdatable"
-          [submit]
+          [submit]="submit"
           *ngIf="!loading && offsets.length >= 0"
         ></app-map-slider>
         <!-- no maps -->
