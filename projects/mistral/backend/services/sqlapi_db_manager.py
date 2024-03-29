@@ -7,9 +7,13 @@ from celery.result import AsyncResult
 from celery.states import READY_STATES
 from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from restapi.connectors import sqlalchemy
+from restapi.env import Env
 from restapi.exceptions import NotFound, Unauthorized
 from restapi.services.authentication import User
 from restapi.utilities.logs import log
+
+grace_period_days = Env.get_int("GRACE_PERIOD", 2)
+GRACE_PERIOD = datetime.timedelta(days=grace_period_days)
 
 
 class SqlApiDbManager:
@@ -73,13 +77,20 @@ class SqlApiDbManager:
         return True if res is not None else False
 
     @staticmethod
-    def check_request_is_pending(db, request_id=None):
-        res = None
+    def check_request_is_pending_within_grace_period(db, request_id=None):
         if request_id is not None:
             log.debug("look for request with ID {}", request_id)
-            res = db.Request.query.get(int(request_id))
+            req = db.Request.query.get(int(request_id))
 
-        return True if res.status not in READY_STATES else False
+            forbidden_delete_time = datetime.datetime.now() - GRACE_PERIOD
+
+            # Verificare se la data di sottomissione è all'interno della finestra del grace period
+            if req.submission_date > forbidden_delete_time:
+                return True if req.status not in READY_STATES else False
+            else:
+                return False
+
+        return False
 
     @staticmethod
     def count_user_requests(db, user_id, archived):

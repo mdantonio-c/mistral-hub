@@ -31,6 +31,10 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   decode = decode;
   autoSync = false;
   interval: any;
+  READY_STATES = ["SUCCESS", "FAILURE", "REVOKED"];
+  GRACE_PERIOD = +environment.CUSTOM.GRACE_PERIOD || 2;
+  forbiddenTime: number;
+
   readonly intervalStep = 20; // seconds
 
   constructor(
@@ -45,9 +49,10 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   }
 
   ngOnInit() {
+    const now = new Date();
+    this.forbiddenTime = now.setDate(now.getDate() - this.GRACE_PERIOD);
     // make sure the derived variables have been loaded
     this.dataService.getDerivedVariables().subscribe();
-
     this.activateAutoSync();
   }
 
@@ -201,5 +206,17 @@ export class RequestsComponent extends BasePaginationComponent<Request> {
   getFileName(path) {
     let filepath = path.split("/");
     return filepath[filepath.length - 1];
+  }
+
+  isNotDeletable(request) {
+    // this is to disable the delete button for pending/started requests
+    const epochSubmDate = Date.parse(request.submission_date);
+    if (
+      !this.READY_STATES.includes(request.status) &&
+      epochSubmDate > this.forbiddenTime
+    ) {
+      return true;
+    }
+    return false;
   }
 }

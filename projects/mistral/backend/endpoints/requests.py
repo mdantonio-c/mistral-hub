@@ -1,13 +1,19 @@
+from datetime import timedelta
+
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.endpoints.schemas import TotalSchema
+from restapi.env import Env
 from restapi.exceptions import Forbidden, NotFound, Unauthorized
 from restapi.models import fields
 from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
 from restapi.utilities.logs import log
 from sqlalchemy.orm import joinedload
+
+grace_period_days = Env.get_int("GRACE_PERIOD", 2)
+GRACE_PERIOD = timedelta(days=grace_period_days)
 
 
 class UserRequests(EndpointResource):
@@ -150,8 +156,11 @@ class UserRequests(EndpointResource):
             raise Unauthorized("This request doesn't come from the request's owner")
 
         # check if the request is pending (i.e. status is not a READY_STATE)
-        if repo.check_request_is_pending(db, request_id=request_id):
-            raise Forbidden("You cannot delete a pending request")
+        if repo.check_request_is_pending_within_grace_period(db, request_id=request_id):
+            raise Forbidden(
+                f"You cannot delete an unterminated request unless grace period (of {GRACE_PERIOD.days} "
+                f"days) has expired."
+            )
 
         # delete request and fileoutput entry from database.
         # Delete fileoutput from user folder

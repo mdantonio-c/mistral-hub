@@ -5,10 +5,13 @@ from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi.connectors import sqlalchemy
 from restapi.connectors.celery import CeleryExt, Task
+from restapi.env import Env
 from restapi.utilities.logs import log
 
 # period after that the pending requests and files are considered as ended in error
-GRACE_PERIOD = timedelta(days=2)
+
+grace_period_days = Env.get_int("GRACE_PERIOD", 2)
+GRACE_PERIOD = timedelta(days=grace_period_days)
 
 
 @CeleryExt.task(idempotent=False)
@@ -26,20 +29,24 @@ def automatic_cleanup(self: Task[[], str]) -> str:
     now = datetime.now()
     requests = db.Request.query.all()
     for r in requests:
-        if not (exp := users_settings.get(r.user_id)):
-            log.debug("{}: user {} disabled requests auto-cleaning", r.id, r.user_id)
-            continue
 
         if not r.end_date:
             log.info("{} not completed yet?", r.id)
             # check if the grace period has passed
-            if r.status == "STARTED" and now - GRACE_PERIOD > r.submission_date:
+            if (
+                r.status not in states.READY_STATES
+                and now - GRACE_PERIOD > r.submission_date
+            ):
                 # mark the request as error
                 log.info("{} submitted on {} marked as error ", r.id, r.submission_date)
                 r.end_date = now
+                r.error_message = f"request in {r.status} status for more than {GRACE_PERIOD.days} days"
                 r.status = states.FAILURE
-                r.error_message = f"request in 'STARTED' status for more than {GRACE_PERIOD.days} days"
                 db.session.commit()
+            continue
+
+        if not (exp := users_settings.get(r.user_id)):
+            log.debug("{}: user {} disabled requests auto-cleaning", r.id, r.user_id)
             continue
 
         if r.archived:

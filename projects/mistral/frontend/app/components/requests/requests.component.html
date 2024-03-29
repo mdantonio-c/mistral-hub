@@ -422,7 +422,11 @@
             >
               <i class="fa fa-download"></i>
             </button>
-            <button class="btn p-0" (click)="delete_or_archive(row.id)">
+            <button
+              [disabled]="isNotDeletable(row)"
+              class="btn p-0 border-0"
+              (click)="delete_or_archive(row.id)"
+            >
               <i class="fa fa-trash red"></i>
             </button>
           </div>

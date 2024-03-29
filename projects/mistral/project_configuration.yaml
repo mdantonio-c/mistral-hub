@@ -69,6 +69,7 @@ variables:
 
     DATA_PATH: /data
 
+    GRACE_PERIOD: 2
     LASTDAYS: 10
     PLATFORM: G100
     MAPS_URL:

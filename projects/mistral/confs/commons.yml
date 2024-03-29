@@ -16,6 +16,7 @@ services:
     environment:
       LASTDAYS: ${LASTDAYS}
       PLATFORM: ${PLATFORM}
+      GRACE_PERIOD: ${GRACE_PERIOD}
 
   frontend:
     environment:
@@ -26,6 +27,7 @@ services:
       INJECT_TILES_URL: ${TILES_URL}
       INJECT_PROJECT_HOME: ${PROJECT_HOME}
       INJECT_COOKIE_POLICY_URL: ${COOKIE_POLICY_URL}
+      INJECT_GRACE_PERIOD: ${GRACE_PERIOD}
     # volumes:
     #   - ${DATA_DIR}/maps:/meteo
 
@@ -48,6 +50,7 @@ services:
     environment:
       LASTDAYS: ${LASTDAYS}
       PLATFORM: ${PLATFORM}
+      GRACE_PERIOD: ${GRACE_PERIOD}
 
   celerybeat:
     build: ${PROJECT_DIR}/builds/backend
