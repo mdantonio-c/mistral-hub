@@ -56,6 +56,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
   .navbar .navbar-brand {
     margin-right: 6px !important;
+
+    
   }
 }
 
@@ -1329,4 +1331,8 @@ app-flash-flood-maps {
       }
     }
   }
+}
+
+.ngb-dp-month, ngb-datepicker.dropdown-menu{
+  background-color: #fff !important;
 }
