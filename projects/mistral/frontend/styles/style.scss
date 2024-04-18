@@ -49,6 +49,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
   .navbar .navbar-brand img {
     height: 34px !important;
+    margin-bottom: -8px !important;
   }
   .nav.navbar-nav.rpd-menu-controls .nav-item a {
     margin-right: 0 !important;
@@ -56,8 +57,10 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
   .navbar .navbar-brand {
     margin-right: 6px !important;
-
-    
+    small {
+      font-size: 14px !important;
+    }
+  
   }
 }
 
@@ -97,6 +100,7 @@ h6 {
     img {
       height: 48px;
       color: rgba(255, 255, 255, 0.5) !important;
+      margin-bottom: -10px;
     }
 
     .project-title {
