@@ -62,9 +62,11 @@ export class SideNavComponent implements OnInit {
         level.checked = false;
       });
     }
+    console.log(this._overlays);
     // activate layers
     for (const [key, layer] of Object.entries(this._overlays)) {
       let lCode = toLayerCode(key);
+      console.log("lcode", lCode);
       if (lCode) {
         const el = this.el.nativeElement.querySelector(`.${lCode}`);
         this.renderer.removeClass(el, "attivo");
@@ -77,6 +79,9 @@ export class SideNavComponent implements OnInit {
           }, 0);
         }
       }
+      // work around to force deactivation of the wind icon when changhing dataset
+      const fooEl = this.el.nativeElement.querySelector(`.ws10m`);
+      this.renderer.removeClass(fooEl, "attivo");
     }
   }
 
@@ -198,7 +203,7 @@ export class SideNavComponent implements OnInit {
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);
     const fromActiveState: boolean = el.classList.contains("attivo");
     const op = fromActiveState ? "remove" : "add";
-    // console.log(`toggle "${op}" on layer-id "${layerId}"`);
+    console.log(`toggle "${op}" on layer-id "${layerId}"`);
     if (
       ["prp", "sf", "cc", "tpperc", "tpprob"].includes(layerId) &&
       this.subLevels[layerId].length
@@ -240,13 +245,20 @@ export class SideNavComponent implements OnInit {
     fromActiveState
       ? this.renderer.removeClass(el, "attivo")
       : this.renderer.addClass(el, "attivo");
+    console.log(el);
   }
 
   changeDataset(event, datasetId) {
     event.preventDefault();
     // clear layers
+    /*this.map.eachLayer((l)=>{
+      if(this.map.hasLayer(l)) {
+        console.log('LAYER ATTIVO',l);
+      }
+    });*/
     for (const [key, layer] of Object.entries(this.overlays)) {
       if (this.map.hasLayer(layer)) {
+        console.log("name", key, "layer", layer);
         this.onLayerChange.emit({
           layer: layer,
           name: key,

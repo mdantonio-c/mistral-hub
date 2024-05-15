@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Injector } from "@angular/core";
+import { Component, Injector, Input, OnInit } from "@angular/core";
 import { environment } from "@rapydo/../environments/environment";
 import { forkJoin, interval } from "rxjs";
 import { catchError, filter, scan, takeUntil } from "rxjs/operators";
@@ -11,12 +11,12 @@ import "ih-leaflet-canvaslayer-field/dist/leaflet.canvaslayer.field.js";
 import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import { TilesService } from "./services/tiles.service";
 import { ObsService } from "../observation-maps/services/obs.service";
-import { ActivatedRoute, NavigationEnd, Params, Router } from "@angular/router";
+import { NavigationEnd, Params } from "@angular/router";
 import {
   LEGEND_DATA,
+  LegendConfig,
   VARIABLES_CONFIG,
   VARIABLES_CONFIG_BASE,
-  LegendConfig,
 } from "./services/data";
 import {
   CodeDescPair,
@@ -75,6 +75,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   private legends: { [key: string]: L.Control } = {};
   availableDatasets: CodeDescPair[] = DATASETS;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
+  tmpStringHourCode: string;
 
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -287,11 +288,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           function (v) {
             let n = (window.innerHeight * window.innerWidth) / 2073600;
             const vf = L.VectorField.fromASCIIGrids(u, v);
-            const s = vf.getScalarField("magnitude");
+            const sf = vf.getScalarField("magnitude");
 
             const customColorScale = createCustomColorScale(colorStops);
             const magnitude = L.canvasLayer
-              .scalarField(s, {
+              .scalarField(sf, {
                 color: customColorScale,
                 opacity: 0.4,
               })
@@ -335,6 +336,165 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     );
   }
 
+  async addWindLayer(minZoom: number, dataset: string) {
+    if (dataset != "lm5" && dataset != "lm2.2") {
+      return;
+    }
+    let resLayer: L.Layer;
+    let t = "";
+    if (dataset === "lm5") {
+      t = "5";
+    }
+    if (dataset == "lm2.2") {
+      t = "2";
+    }
+    // useful to build color scale
+    function createCustomColorScale(colorStops) {
+      const domainValues = colorStops.map((stop) => stop.value);
+      const colors = colorStops.map((stop) => stop.color);
+      return chroma.scale(colors).domain(domainValues);
+    }
+
+    // taken from livemap ranges
+    const colorStops = [
+      { value: 0, color: "#457d00" },
+      { value: 2, color: "#54878c" },
+      { value: 5, color: "#0000fe" },
+      { value: 10, color: "#ffa600" },
+      { value: 20, color: "#ffff00" },
+      { value: 30, color: "#ff0000" },
+      { value: 50, color: "#ee82ee" },
+      { value: 70, color: "#9600fe" },
+    ];
+    let resolveBarrier;
+    let barrier = new Promise((resolve, reject) => {
+      resolveBarrier = resolve;
+    });
+
+    d3.text(
+      "./app/custom/assets/images/u_comp_cosmo" + t + "_lasco.asc",
+      function (u) {
+        d3.text(
+          "./app/custom/assets/images/v_comp_cosmo" + t + "_lasco.asc",
+          function (v) {
+            let n = (window.innerHeight * window.innerWidth) / 2073600;
+            const vf = L.VectorField.fromASCIIGrids(u, v);
+            const sf = vf.getScalarField("magnitude");
+
+            const customColorScale = createCustomColorScale(colorStops);
+            const magnitude = L.canvasLayer.scalarField(sf, {
+              color: customColorScale,
+              opacity: 0.4,
+            });
+            // by construction 5<=zoom<=8, for this reason vectors length is 8
+            const vectors = [5e3, 5e3, 5e3, 5e3, 5e3, 5e3, 3e3, 2e3, 1e3];
+            let r = vectors[minZoom] * n;
+            const layer = L.canvasLayer.vectorFieldAnim(vf, {
+              color: "black",
+              paths: r,
+              fade: 0.92,
+              velocityScale: 0.001,
+            });
+            resLayer = L.layerGroup([magnitude, layer]);
+            resolveBarrier();
+          },
+        );
+      },
+    );
+
+    await barrier;
+
+    return resLayer;
+  }
+
+  async addWindLayer2(
+    minZoom: number,
+    dataset: string,
+    hour = "",
+    onlyWind = false,
+  ) {
+    if (!dataset || (dataset != "lm5" && dataset != "lm2.2")) {
+      return;
+    }
+    let resLayer: L.Layer;
+    let t = "";
+    if (dataset === "lm5") {
+      t = "5";
+    }
+    if (dataset == "lm2.2") {
+      t = "2";
+    }
+    let now = new Date().getUTCHours().toString();
+    if (now.length === 1) {
+      now = "0" + now;
+    }
+    // initialization useful for the first load of wind layer
+    let s: string = "00" + now + "0000";
+    if (hour) s = hour;
+    console.log(s);
+    // useful to build color scale
+    function createCustomColorScale(colorStops) {
+      const domainValues = colorStops.map((stop) => stop.value);
+      const colors = colorStops.map((stop) => stop.color);
+      return chroma.scale(colors).domain(domainValues);
+    }
+
+    // taken from livemap ranges
+    const colorStops = [
+      { value: 0, color: "#457d00" },
+      { value: 2, color: "#54878c" },
+      { value: 5, color: "#0000fe" },
+      { value: 10, color: "#ffa600" },
+      { value: 20, color: "#ffff00" },
+      { value: 30, color: "#ff0000" },
+      { value: 50, color: "#ee82ee" },
+      { value: 70, color: "#9600fe" },
+    ];
+
+    try {
+      const uResponseUrl =
+        "./app/custom/assets/images/cosmo" +
+        t +
+        "_windComp/u_comp_" +
+        s +
+        ".asc";
+      const vResponseUrl =
+        "./app/custom/assets/images/cosmo" +
+        t +
+        "_windComp/v_comp_" +
+        s +
+        ".asc";
+      const uResponse = await fetch(uResponseUrl);
+      const vResponse = await fetch(vResponseUrl);
+      const u = await uResponse.text();
+      const v = await vResponse.text();
+      console.log(uResponseUrl, vResponseUrl);
+      let n = (window.innerHeight * window.innerWidth) / 2073600;
+      const vf = L.VectorField.fromASCIIGrids(u, v);
+      const sf = vf.getScalarField("magnitude");
+
+      const customColorScale = createCustomColorScale(colorStops);
+      const magnitude = L.canvasLayer.scalarField(sf, {
+        color: customColorScale,
+        opacity: 0.4,
+      });
+      // by construction 5<=zoom<=8, for this reason vectors length is 8
+      const vectors = [5e3, 5e3, 5e3, 5e3, 5e3, 5e3, 3e3, 2e3, 1e3];
+      let r = vectors[minZoom] * n;
+      const layer = L.canvasLayer.vectorFieldAnim(vf, {
+        color: "black",
+        paths: r,
+        fade: 0.92,
+        velocityScale: 0.001,
+      });
+
+      if (onlyWind) resLayer = L.layerGroup([magnitude, layer]);
+      else resLayer = layer;
+      return resLayer;
+    } catch (error) {
+      console.error("Error while loading data:", error);
+    }
+  }
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
@@ -371,8 +531,58 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           // do nothing
           return;
         }
+        const now = moment.utc();
+        const nowDay = now.date();
+        const currentDay = current.date();
+        const currentHourFormat = current.format("HH");
 
-        // clean up multi-model layer
+        if (currentDay === nowDay) {
+          comp.tmpStringHourCode = "00" + currentHourFormat + "0000";
+          console.log(comp.tmpStringHourCode);
+        }
+        if (currentDay > nowDay) {
+          if (currentDay - nowDay === 1) {
+            comp.tmpStringHourCode = "01" + currentHourFormat + "0000";
+            console.log(comp.tmpStringHourCode);
+          }
+          if (currentDay - nowDay === 2) {
+            comp.tmpStringHourCode = "02" + currentHourFormat + "0000";
+            console.log(comp.tmpStringHourCode);
+          }
+          if (currentDay - nowDay === 3) {
+            comp.tmpStringHourCode = "03" + currentHourFormat + "0000";
+            console.log(comp.tmpStringHourCode);
+          }
+        }
+        let elements = document.querySelectorAll("span.attivo");
+        let onlyWind: boolean = false;
+        if (
+          elements.length === 1 &&
+          elements[0].className === "ws10m clickable attivo"
+        )
+          onlyWind = true;
+        if (
+          comp.layersControl["overlays"] &&
+          comp.map.hasLayer(
+            comp.layersControl["overlays"]["Wind speed at 10 meters"],
+          )
+        ) {
+          comp
+            .addWindLayer2(
+              comp.minZoom,
+              comp.dataset,
+              comp.tmpStringHourCode,
+              onlyWind,
+            )
+            .then((l) => {
+              comp.map.removeLayer(
+                comp.layersControl["overlays"]["Wind speed at 10 meters"],
+              );
+              l.addTo(comp.map);
+              comp.layersControl["overlays"]["Wind speed at 10 meters"] = l;
+            });
+        }
+        // clean up multi-model layer01
         if (comp.markersGroup) {
           comp.map.removeLayer(comp.markersGroup);
         }
@@ -381,7 +591,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         }
       },
     );
-    this.addWindComp(this.map, this.minZoom, this.dataset);
+    //this.addWindComp(this.map, this.minZoom, this.dataset);
   }
 
   private loadRunAvailable(dataset: string) {
@@ -432,7 +642,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           }
           this.timeLoading = false;
           (this.map as any).timeDimension.setCurrentTime(currentTime);
-
           this.setOverlaysToMap();
 
           this.dataset = runAvailable.dataset;
@@ -576,8 +785,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   private setOverlaysToMap() {
+    console.log("WIIIIIIIND");
     const baseUrl = this.getTilesUrl();
-
     let bounds =
       this.dataset === "lm5"
         ? L.latLngBounds(LM5_BOUNDS["southWest"], LM5_BOUNDS["northEast"])
@@ -775,7 +984,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       }
       // Wind speed at 10 meters
       if ("ws10m" in this.variablesConfig) {
-        this.layersControl["overlays"][DP.WIND10M] =
+        /*this.layersControl["overlays"][DP.WIND10M] =
           L.timeDimension.layer.tileLayer.portus(
             L.tileLayer(`${baseUrl}/wind-vmax_10m/{d}{h}/{z}/{x}/{y}.png`, {
               minZoom: 5,
@@ -784,7 +993,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
               bounds: bounds,
             }),
             {},
-          );
+          )*/
+        this.addWindLayer2(this.minZoom, this.dataset).then((l) => {
+          this.layersControl["overlays"][DP.WIND10M] = l;
+        });
       }
       // Relative humidity Time Layer
       if ("rh" in this.variablesConfig) {
@@ -1137,7 +1349,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       } else if (event["name"] === DP.PMSL) {
         legends[DP.PMSL].addTo(map);
       } else if (event["name"] === DP.WIND10M) {
-        legends[DP.WIND10M].addTo(map);
+        //legends[DP.WIND10M].addTo(map);
       } else if (event["name"] === DP.RH) {
         legends[DP.RH].addTo(map);
       } else if (
@@ -1681,16 +1893,96 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   toggleLayer(obj: Record<string, string | L.Layer>) {
     console.log("toggleLayer: ", obj);
     let layer: L.Layer = obj.layer as L.Layer;
+    let numbLayers = [];
     if (this.map.hasLayer(layer)) {
       console.log(`remove layer: ${obj.name}`);
       this.map.fire("overlayremove", obj);
       this.map.removeLayer(layer);
+      // useful to manage new wind layer
+      for (const key of Object.keys(this.layersControl["overlays"])) {
+        if (this.map.hasLayer(this.layersControl["overlays"][key]))
+          numbLayers.push(key);
+      }
+      if (
+        numbLayers.length === 1 &&
+        numbLayers[0] === "Wind speed at 10 meters"
+      ) {
+        this.addWindLayer2(
+          this.minZoom,
+          this.dataset,
+          this.tmpStringHourCode,
+          true,
+        ).then((l) => {
+          this.map.removeLayer(
+            this.layersControl["overlays"]["Wind speed at 10 meters"],
+          );
+          l.addTo(this.map);
+          this.layersControl["overlays"]["Wind speed at 10 meters"] = l;
+          this.legends[DP.WIND10M].addTo(this.map);
+        });
+      }
+      /*let elements =document.querySelectorAll("span.attivo");
+      console.log(elements);
+      if(elements.length==2) {
+          elements.forEach((n)=> {
+              if(n.className==="ws10m clickable attivo") {
+                  this.addWindLayer2(this.minZoom,this.dataset,this.tmpStringHourCode,true).then((l)=> {
+              this.map.removeLayer(this.layersControl["overlays"]['Wind speed at 10 meters']);
+              l.addTo(this.map);
+              this.layersControl["overlays"]['Wind speed at 10 meters']=l;
+          })
+              }
+          });
+
+      }
+    */
     } else {
-      //if(obj.name === 'Wind speed at 10 meters'){ this.addWindComp(this.map,this.minZoom,this.dataset);} else {
       console.log(`add layer : ${obj.name}`);
       this.map.fire("overlayadd", obj);
-      layer.addTo(this.map);
-      //}
+      // useful to manage new wind layer
+      console.log(this.layersControl["overlays"]["Wind speed at 10 meters"]);
+      if (this.layersControl["overlays"]["Wind speed at 10 meters"]) {
+        if (this.layersControl["overlays"]["Wind speed at 10 meters"]._layers) {
+          const windLayerToRemove = Object.keys(
+            this.layersControl["overlays"]["Wind speed at 10 meters"]._layers,
+          )[0];
+          this.map.removeLayer(
+            this.layersControl["overlays"]["Wind speed at 10 meters"]._layers[
+              windLayerToRemove
+            ],
+          );
+          this.map.removeControl(this.legends[DP.WIND10M]);
+        }
+      }
+      if (obj.name === "Wind speed at 10 meters") {
+        for (const key of Object.keys(this.layersControl["overlays"])) {
+          if (this.map.hasLayer(this.layersControl["overlays"][key]))
+            numbLayers.push(key);
+        }
+        if (numbLayers.length === 0) {
+          this.addWindLayer2(
+            this.minZoom,
+            this.dataset,
+            this.tmpStringHourCode,
+            true,
+          ).then((l) => {
+            l.addTo(this.map);
+            this.layersControl["overlays"]["Wind speed at 10 meters"] = l;
+            this.legends[DP.WIND10M].addTo(this.map);
+          });
+        } else {
+          this.addWindLayer2(
+            this.minZoom,
+            this.dataset,
+            this.tmpStringHourCode,
+          ).then((l) => {
+            l.addTo(this.map);
+            this.layersControl["overlays"]["Wind speed at 10 meters"] = l;
+          });
+        }
+      } else {
+        layer.addTo(this.map);
+      }
     }
   }
 
