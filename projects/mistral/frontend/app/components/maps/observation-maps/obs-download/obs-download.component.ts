@@ -127,11 +127,13 @@ export class ObsDownloadComponent implements OnInit {
       this.fromDate.year,
       this.fromDate.month - 1,
       this.fromDate.day,
+      this.filter.reftime.getHours(),
     );
     this.model.toDate = new Date(
       this.toDate.year,
       this.toDate.month - 1,
       this.toDate.day,
+      this.filter.reftime.getHours(),
     );
     this.spinner.show();
     let fileExtension = "";
@@ -146,12 +148,6 @@ export class ObsDownloadComponent implements OnInit {
       `${this.filter.product}_` +
       `${this.fromDate.year}${this.fromDate.month}${this.fromDate.day}-` +
       `${this.toDate.year}${this.toDate.month}${this.toDate.day}`;
-    let tmpStamp = this.model.fromDate.getTime();
-    let tmpStampTomorrow = 1000 * 60 * 60 * 24 + tmpStamp;
-    this.model.fromDate = new Date(tmpStampTomorrow);
-    tmpStamp = this.model.toDate.getTime();
-    tmpStampTomorrow = tmpStamp + 1000 * 60 * 60 * 24;
-    this.model.toDate = new Date(tmpStampTomorrow);
     this.obsService
       .download(
         this.filter,
