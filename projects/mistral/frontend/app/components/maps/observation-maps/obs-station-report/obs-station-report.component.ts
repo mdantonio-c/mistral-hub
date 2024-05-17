@@ -92,6 +92,23 @@ export class ObsStationReportComponent implements OnInit {
     return `${element.var}-${element.lev}-${element.trange}`;
   }
 
+  checkLocalTime(data) {
+    if (data[0] && data[0].prod[0] && data[0].prod[0].val) {
+      let UTCProd = data[0].prod[0].val;
+      let UTCDatesString: string[] = [];
+      let LocalDates: Date[] = [];
+      for (let i = 0; i < UTCProd.length; i++) {
+        UTCDatesString.push(UTCProd[i].ref);
+      }
+      UTCDatesString.forEach((v) => {
+        const dateUTC = new Date(v);
+        const offset = new Date().getTimezoneOffset() * 60 * 1000;
+        const dateLocal = new Date(dateUTC.getTime() + offset);
+        LocalDates.push(dateLocal);
+      });
+      return LocalDates;
+    }
+  }
   private loadReport() {
     setTimeout(() => this.spinner.show("timeseries-spinner"), 0);
     this.obsService
@@ -102,6 +119,8 @@ export class ObsStationReportComponent implements OnInit {
           // data = randomize(data);
           this.descriptions = response.descr;
           this.report = data[0];
+          const locasting = this.checkLocalTime(data);
+          console.log(data[0].prod[0].val, locasting);
           //console.log('response',response)
           //console.log('DESCR-response.descr',this.descriptions);
           //console.log('DATA-response.data',data);
@@ -348,6 +367,7 @@ export class ObsStationReportComponent implements OnInit {
         let obj = Object.assign({}, s);
         obj.name = "accumulated data";
         obj.series = this.calculateAccumulated(v);
+        console.log(this.station.details[0].val, obj);
         this.accumulatedSeries = [obj];
       }
       res.push(s);
