@@ -124,14 +124,10 @@ export class ObsDownloadComponent implements OnInit {
 
   download() {
     this.model.fromDate = new Date(
-      this.fromDate.year,
-      this.fromDate.month - 1,
-      this.fromDate.day,
+      Date.UTC(this.fromDate.year, this.fromDate.month - 1, this.fromDate.day),
     );
     this.model.toDate = new Date(
-      this.toDate.year,
-      this.toDate.month - 1,
-      this.toDate.day,
+      Date.UTC(this.toDate.year, this.toDate.month - 1, this.toDate.day),
     );
     this.spinner.show();
     let fileExtension = "";
