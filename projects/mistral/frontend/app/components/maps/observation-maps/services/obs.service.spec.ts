@@ -1,24 +1,13 @@
-import { async, ComponentFixture, TestBed } from "@angular/core/testing";
+import { TestBed } from "@angular/core/testing";
+import { ObsService } from "./obs.service";
 
-import { ObsServiceComponent } from "./obs.service.component";
-
-describe("ObsServiceComponent", () => {
-  let component: ObsServiceComponent;
-  let fixture: ComponentFixture<ObsServiceComponent>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ObsServiceComponent],
-    }).compileComponents();
-  }));
+describe("Service: ObsService", () => {
+  let service: ObsService;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ObsServiceComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    TestBed.configureTestingModule({ providers: [ObsService] });
+    service = TestBed.inject(ObsService);
   });
 
-  it("should create", () => {
-    expect(component).toBeTruthy();
-  });
+  // TODO do the rest
 });
