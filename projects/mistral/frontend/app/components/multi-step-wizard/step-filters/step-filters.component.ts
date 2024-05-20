@@ -50,6 +50,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   autoFiltering: boolean = true;
   initial_format: string;
   category: string;
+  isMultimodel: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -87,6 +88,13 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     this.loadFilters();
     window.scroll(0, 0);
     this.receiveCategory();
+    setTimeout(() => {
+      if (this.category == "FOR" && !this.isMultimodel) {
+        this.notify.showWarning(
+          "Due to technical issues related to maintenance of the storage components, historical forecast data are not available at the moment.",
+        );
+      }
+    }, 500);
   }
 
   private getFilterGroup(name: string, values: any): FormGroup {
@@ -709,6 +717,9 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           (dataset) => dataset.name == datasetNameSelected,
         )[0].category;
       });
+      if (datasetNameSelected === "multim-forecast") {
+        this.isMultimodel = true;
+      }
     }
   }
 
