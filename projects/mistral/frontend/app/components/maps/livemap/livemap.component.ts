@@ -269,7 +269,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
     const nowIsoDate: string = now.toISOString();
     let behindDate = new Date(now);
     behindDate.setDate(now.getDate() - dayToSubtract);
-    behindDate.setHours(1);
+    behindDate.setHours(moment().utcOffset() / 60);
     behindDate.setMinutes(0);
     behindDate.setSeconds(0);
     behindDate.setMilliseconds(0);
