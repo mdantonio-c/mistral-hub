@@ -190,7 +190,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .minus,
 .carte,
 .tpperc,
-.tpprob {
+.tpprob, .modes {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
@@ -264,16 +264,24 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   background-image: url("/app/custom/assets/images/icons/map_style.svg");
 }
 
-/* time, clouds and datasets selectors */
+.modes {
+  background-image: url("/app/custom/assets/images/icons/modality.svg");
+}
+/* time, clouds, modality and datasets selectors */
 
 .selettore-orario,
 .selettore-clouds,
-.selettore-dataset {
+.selettore-dataset, .selettore-modality {
   height: 30px;
   width: 100%;
   margin-left: 28px;
 }
 
+.selettore-modality {
+  margin-left: 40px;
+  height: 10px;
+  margin-bottom:5px;
+}
 
 .selettore-dataset {
   width: 100px;
@@ -515,7 +523,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .selettore-orario input:checked,
 .selettore-percentile input:checked,
 .selettore-probabilita input:checked,
-.selettore-mappa input:checked {
+.selettore-mappa input:checked, .selettore-modality input:checked {
   background-color: $light-orange;
   border-color: $light-orange !important;
 }
@@ -773,68 +781,56 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 }
 
-/*switch base-view live-map*/
-.switch {
-  .nav-text {
-    margin-left: 8px !important;
+
+/*mode switch*/
+.mode-switch {
+  position: relative !important;
+
+  label {
+    left: -23px;
+    top: -4px;
   }
 
-  .form-switch {
-    .form-check-input {
-      background-image: none;
-      background-color: transparent !important;
-      border-color: transparent !important;
+  p {
+    position: absolute;
+    top: 15px;
+    left: 0;
+  }
+
+  .form-check-input:checked ~ .form-check-label:before {
+    border-color: $light-orange !important;
+    background-color: $light-orange !important;
+  }
+
+  & input[disabled="true"] ~ .form-check-label:before,
+  & input:checked[disabled="true"] ~ .form-check-label:before {
+    background-color: #797e7e !important;
+    border-color: #797e7e !important;
+  }
+  & input[disabled="true"] ~ .form-check-label:after {
+    background-color: #616262 !important;
+    border-color: #616262 !important;
+  }
+
+  #modeSwitch{
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e");
+
+    &:focus {
+      fill: $light-orange !important;
+      border-color: $light-orange !important;
+      box-shadow: none !important;
     }
 
-    .form-check-label {
-      transform: rotate(90deg) !important;
-      margin-top: 41px !important;
-      margin-left: -9px;
-      position: relative;
-
-      &:before {
-        opacity: 0.6;
-        left: -40.25px;
-        width: 40px;
-        height: 20px;
-        border-radius: 12.5px;
-        background-color: #9c999a !important;
-        border-color: #9c999a !important;
-        content: "";
-        position: absolute;
-      }
-
-      &:after {
-        background-color: #e49d2b;
-        border-radius: 2.5rem;
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        top: 1.6px;
-        left: calc(-38.25px + 2px);
-        width: calc(20px - 4px);
-        height: calc(20px - 4px);
-        content: "";
-        position: absolute;
-      }
+    &:checked {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='white'/%3e%3c/svg%3e");
     }
+  }
 
-    .form-check-input:checked ~ .form-check-label::after {
-      background-color: #e49d2b;
-      transform: translateX(16.75px) rotate(270deg) !important;
-    }
-
-    & input[disabled="true"] ~ .form-check-label::after,
-    & input:checked[disabled="true"] ~ .form-check-label::after {
-      background-color: #545555a9 !important;
-      background-image: none !important;
-    }
-
-    & input[disabled="true"] ~ .custom-control-label::before {
-      border-color: #545555a9 !important;
-    }
+  #modeSwitch[disabled="true"] {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e");
   }
 }
+
 
 /* Responsive*/
 .selector {
@@ -894,7 +890,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   .minus,
   .carte,
   .tpperc,
-  .tpprob {
+  .tpprob, .modes{
     margin-top: 5px;
     padding: 10px;
     width: 22px;
@@ -967,7 +963,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   .minus,
   .carte,
   .tpperc,
-  .tpprob {
+  .tpprob, .modes {
     margin-top: 5px;
     padding: 10px;
     width: 22px;
