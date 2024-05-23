@@ -364,31 +364,16 @@ export class ObsStationReportComponent implements OnInit {
   private calculateAccumulated(v: ObsData): SeriesItem[] {
     let series: SeriesItem[] = [];
     let accumulated = 0;
-    let zeroStart = false;
-
-    // check if from reftime is equal to the first record reftime of the timeseries,
-    // otherwise it starts by summing from first available value
-    if (this.filter.dateInterval) {
-      if (
-        this.filter.dateInterval[0].toISOString().split(".")[0] === v.val[0].ref
-      ) {
-        zeroStart = true;
-      }
-    } else if (this.filter.time.length > 1) {
-      let firstRecordDate = this.filter.reftime;
-      firstRecordDate.setUTCHours(this.filter.time[0]);
-      firstRecordDate.setUTCMinutes(0);
-      firstRecordDate.setUTCSeconds(0);
-      firstRecordDate.setUTCMilliseconds(0);
-
-      if (firstRecordDate.toISOString().split(".")[0] === v.val[0].ref) {
-        zeroStart = true;
-      }
-    }
-
-    v.val.forEach((obs, index) => {
-      if (index === 0 && zeroStart) {
+    // get first timestamp of the request, if it is equals to the first record timestamp, then it starts by 0
+    const fromTimeStamp = this.filter.reftime
+      ? new Date(this.filter.reftime.setUTCHours(this.filter.time[0], 0, 0, 0))
+          .toISOString()
+          .split(".")[0]
+      : this.filter.dateInterval[0].toISOString().split(".")[0];
+    v.val.forEach((obs) => {
+      if (obs.ref === fromTimeStamp) {
         accumulated += 0.0;
+        console.log("sno entrato");
       } else {
         accumulated += obs.val;
       }
