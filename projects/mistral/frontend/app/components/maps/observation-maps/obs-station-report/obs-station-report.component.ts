@@ -346,6 +346,7 @@ export class ObsStationReportComponent implements OnInit {
       });
       if (v.var === "B13011") {
         let obj = Object.assign({}, s);
+        console.log(v.val);
         obj.name = "accumulated data";
         obj.series = this.calculateAccumulated(v);
         this.accumulatedSeries = [obj];
@@ -363,8 +364,30 @@ export class ObsStationReportComponent implements OnInit {
   private calculateAccumulated(v: ObsData): SeriesItem[] {
     let series: SeriesItem[] = [];
     let accumulated = 0;
+    let zeroStart = false;
+
+    // check if from reftime is equal to the first record reftime of the timeseries,
+    // otherwise it starts by summing from first available value
+    if (this.filter.dateInterval) {
+      if (
+        this.filter.dateInterval[0].toISOString().split(".")[0] === v.val[0].ref
+      ) {
+        zeroStart = true;
+      }
+    } else if (this.filter.time.length > 1) {
+      let firstRecordDate = this.filter.reftime;
+      firstRecordDate.setUTCHours(this.filter.time[0]);
+      firstRecordDate.setUTCMinutes(0);
+      firstRecordDate.setUTCSeconds(0);
+      firstRecordDate.setUTCMilliseconds(0);
+
+      if (firstRecordDate.toISOString().split(".")[0] === v.val[0].ref) {
+        zeroStart = true;
+      }
+    }
+
     v.val.forEach((obs, index) => {
-      if (index === 0) {
+      if (index === 0 && zeroStart) {
         accumulated += 0.0;
       } else {
         accumulated += obs.val;
