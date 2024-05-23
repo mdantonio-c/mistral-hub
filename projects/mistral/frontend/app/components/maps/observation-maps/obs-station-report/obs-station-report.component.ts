@@ -346,7 +346,6 @@ export class ObsStationReportComponent implements OnInit {
       });
       if (v.var === "B13011") {
         let obj = Object.assign({}, s);
-        console.log(v.val);
         obj.name = "accumulated data";
         obj.series = this.calculateAccumulated(v);
         this.accumulatedSeries = [obj];
@@ -373,7 +372,6 @@ export class ObsStationReportComponent implements OnInit {
     v.val.forEach((obs) => {
       if (obs.ref === fromTimeStamp) {
         accumulated += 0.0;
-        console.log("sno entrato");
       } else {
         accumulated += obs.val;
       }
