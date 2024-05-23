@@ -7,6 +7,32 @@
       [class.collapsed]="isCollapsed"
     ></label>
     <ul class="selector">
+      <li class="sidenav-item">
+        <span
+          class="modes clickable"
+          placement="left"
+          [ngbTooltip]="'Modality'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#" click-stop-propagation class="mode">
+            <span class="nav-text" i18n >Modality</span>
+          </a>
+          <div class="selettore-modality d-flex">
+            <div class="form-switch mode-switch d-flex mb-3">
+              <input
+                id="modeSwitch"
+                type="checkbox"
+                class="form-check-input"
+              />
+            </div>
+            <p class="nav-sub-text">
+                Selected: <span>{{ modes[1] }}</span
+                >
+              </p>
+          </div>
+        </ng-container>
+      </li>
       <li class="sidenav-item last pb-1" *ngIf="mode == modes.adv" ngbDropdown>
         <span
           class="input clickable"
