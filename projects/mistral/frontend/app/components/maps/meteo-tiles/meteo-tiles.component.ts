@@ -455,13 +455,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       const uResponseUrl =
         "./app/custom/assets/images/cosmo" +
         t +
-        "_windComp/u_comp_" +
+        "_windComp_old/u_comp_" +
         s +
         ".asc";
       const vResponseUrl =
         "./app/custom/assets/images/cosmo" +
         t +
-        "_windComp/v_comp_" +
+        "_windComp_old/v_comp_" +
         s +
         ".asc";
       const uResponse = await fetch(uResponseUrl);
