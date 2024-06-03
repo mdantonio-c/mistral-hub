@@ -260,19 +260,15 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
    * Define time interval of timeline following ISO standard
    * dayToSubtract defines the start date
    */
+
   private timeIntervalTimeLine() {
     const dayToSubtract: number = 2;
     const now = new Date();
-    now.setUTCMinutes(0);
-    now.setUTCSeconds(0);
-    now.setUTCMilliseconds(0);
+    now.setUTCMinutes(0, 0, 0);
     const nowIsoDate: string = now.toISOString();
     let behindDate = new Date(now);
-    behindDate.setDate(now.getDate() - dayToSubtract);
-    behindDate.setHours(1);
-    behindDate.setMinutes(0);
-    behindDate.setSeconds(0);
-    behindDate.setMilliseconds(0);
+    behindDate.setUTCDate(now.getUTCDate() - dayToSubtract);
+    behindDate.setUTCHours(0, 0, 0, 0);
     this.fromDate = behindDate;
     const behindIsoDate: string = behindDate.toISOString();
     return `${behindIsoDate}/${nowIsoDate}`;

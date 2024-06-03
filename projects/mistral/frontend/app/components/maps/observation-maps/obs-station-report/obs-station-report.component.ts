@@ -363,8 +363,18 @@ export class ObsStationReportComponent implements OnInit {
   private calculateAccumulated(v: ObsData): SeriesItem[] {
     let series: SeriesItem[] = [];
     let accumulated = 0;
+    // get first timestamp of the request, if it is equals to the first record timestamp, then it starts by 0
+    const fromTimeStamp = this.filter.reftime
+      ? new Date(this.filter.reftime.setUTCHours(this.filter.time[0], 0, 0, 0))
+          .toISOString()
+          .split(".")[0]
+      : this.filter.dateInterval[0].toISOString().split(".")[0];
     v.val.forEach((obs) => {
-      accumulated += obs.val;
+      if (obs.ref === fromTimeStamp) {
+        accumulated += 0.0;
+      } else {
+        accumulated += obs.val;
+      }
       series.push({
         name: obs.ref,
         value: +accumulated.toFixed(2),
