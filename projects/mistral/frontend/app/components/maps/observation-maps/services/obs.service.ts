@@ -74,7 +74,6 @@ export class ObsService {
   ): Observable<ObservationResponse> {
     let parsedReftime = "";
     if (filter.dateInterval && filter.dateInterval.length > 0) {
-      //console.log(filter.dateInterval)
       parsedReftime = `${ObsService.parseReftime(
         filter.dateInterval[0],
         filter.dateInterval[1],
