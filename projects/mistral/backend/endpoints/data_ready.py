@@ -5,15 +5,12 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import celery, sqlalchemy
 from restapi.env import Env
-from restapi.models import fields,validate
+from restapi.models import fields, validate
 from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
-OK_VARIABLES = [
-    "g100",
-    "galileo",
-    "meucci" ]
+SUPPORTED_PLATFORMS = ["g100", "galileo", "meucci"]
 
 
 class DataReady(EndpointResource):
@@ -22,7 +19,11 @@ class DataReady(EndpointResource):
     @decorators.auth.require_any("operational")
     @decorators.use_kwargs(
         {
-            "cluster": fields.String(required=True, data_key="Cluster", validate=validate.OneOf(OK_VARIABLES)),
+            "cluster": fields.String(
+                required=True,
+                data_key="Cluster",
+                validate=validate.OneOf(SUPPORTED_PLATFORMS),
+            ),
             "model": fields.String(required=True, data_key="Model"),
             "rundate": fields.DateTime(required=True, format="%Y%m%d%H"),
         }
@@ -48,7 +49,6 @@ class DataReady(EndpointResource):
                     exported_platform,
                 )
                 return self.response("1", code=202)
-
 
         db = sqlalchemy.get_instance()
         schedules_list = db.Schedule.query.all()
