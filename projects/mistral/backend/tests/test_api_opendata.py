@@ -1,19 +1,24 @@
+import io
 import json
 import shutil
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict
+from zipfile import ZipFile
 
 from faker import Faker
 from mistral.endpoints import DOWNLOAD_DIR, OPENDATA_DIR
 from restapi.connectors import sqlalchemy
+from restapi.services.authentication import BaseAuthentication
 from restapi.tests import API_URI, BaseTests, FlaskClient
 
 __author__ = "Mattia Carello (m.carello@cineca.it)"
 
 
 class TestApp(BaseTests):
+    DATASET_FOR_TEST_NAME = "lm5"
+
     @staticmethod
     def delete_all_schedules_requests_orphan_files(db):
         requests_list = db.Request.query.all()
@@ -41,29 +46,34 @@ class TestApp(BaseTests):
                                 continue
 
     # check if a dataset does not exist
-    def test_check_wrong_dataset_name(self):
-        fake = Faker()
+    def test_check_wrong_dataset_name(self, client: FlaskClient, faker: Faker):
         # fake name
-        dataset_name = fake.name()
+        dataset_name = faker.name()
         db = sqlalchemy.get_instance()
         # get fake entry
         ds_entry = db.Datasets.query.filter_by(name=dataset_name).first()
         assert ds_entry is None
+        # check the opendata api
+        endpoint = f"{API_URI}/datasets/{dataset_name}/opendata"
+        r = client.get(endpoint)
+        assert r.status_code == 404
+        # check the opendata download api
+        endpoint = f"{API_URI}/opendata/{dataset_name}/download"
+        r = client.get(endpoint)
+        assert r.status_code == 404
 
     # check if a license is private
     def test_check_not_plubic_license(self, client: FlaskClient, faker: Faker):
         # get admin token
         admin_headers, _ = BaseTests.do_login(client, None, None)
-        fake = Faker()
         # create a new not open license group
-        body = {"name": fake.name(), "descr": fake.name(), "is_public": "false"}
+        body = {"name": faker.name(), "descr": faker.name(), "is_public": "false"}
         body = json.dumps(body)
 
         # create an admin_root user
         db = sqlalchemy.get_instance()
-        forecast_dataset_name = "lm5"
         forecast_dataset = db.Datasets.query.filter_by(
-            name=forecast_dataset_name
+            name=self.DATASET_FOR_TEST_NAME
         ).first()
         data: Dict[str, Any] = {}
         data["disk_quota"] = 1073741824
@@ -78,8 +88,6 @@ class TestApp(BaseTests):
         user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
         self.save("user_header", user_header)
         # create a request on the db
-        user = db.User.query.filter_by(uuid=uuid).first()
-        user_id = user.id
         user_dir = Path(DOWNLOAD_DIR, uuid, "outputs")
 
         # create the licensegroups
@@ -97,8 +105,8 @@ class TestApp(BaseTests):
                 assert i["is_open"] == "false"
         # create a not open license belonging to the previous group
         body = {
-            "name": fake.name(),
-            "descr": fake.name(),
+            "name": faker.name(),
+            "descr": faker.pystr(),
             "group_license": str(id_license_group),
         }
         body = json.dumps(body)
@@ -109,7 +117,7 @@ class TestApp(BaseTests):
         assert r.status_code == 200
         id_license = self.get_content(r)
         # create a not public dataset
-        fake_name = fake.name()
+        fake_name = faker.name()
         body = {
             "arkimet_id": fake_name,
             "name": fake_name,
@@ -135,6 +143,15 @@ class TestApp(BaseTests):
             id=license.group_license_id
         ).first()
         assert not group_license.is_public
+
+        # check that opendata are not available for that dataset
+        endpoint = f"{API_URI}/datasets/{fake_name}/opendata"
+        r = client.get(endpoint)
+        assert r.status_code == 400
+        # check the opendata download api
+        endpoint = f"{API_URI}/opendata/{fake_name}/download"
+        r = client.get(endpoint)
+        assert r.status_code == 400
 
         # delete entities
         endpoint = API_URI + "/admin/datasets" + "/" + str(dataset_id)
@@ -168,9 +185,8 @@ class TestApp(BaseTests):
         db = sqlalchemy.get_instance()
         # useful to delete all schedules and requests
         # self.delete_all_requests_orphan_files(db)
-        forecast_dataset_name = "lm5"
         forecast_dataset = db.Datasets.query.filter_by(
-            name=forecast_dataset_name
+            name=self.DATASET_FOR_TEST_NAME
         ).first()
         data: Dict[str, Any] = {}
         data["disk_quota"] = 1073741824
@@ -186,8 +202,6 @@ class TestApp(BaseTests):
         user_header, _ = self.do_login(client, data.get("email"), data.get("password"))
         self.save("user_header", user_header)
         # create a request on the db
-        user = db.User.query.filter_by(uuid=uuid).first()
-        user_id = user.id
         user_dir = Path(DOWNLOAD_DIR, uuid, "outputs")
 
         # check if there are other schedules associated to the user, and in that case it deletes them
@@ -226,9 +240,7 @@ class TestApp(BaseTests):
 
         # get metadata of the dataset
         endpoint = API_URI + "/fields"
-        dataset_name = "lm5"
-        question_mark = "?"
-        endpoint = endpoint + question_mark + "datasets=" + dataset_name
+        endpoint = f"{endpoint}?datasets={self.DATASET_FOR_TEST_NAME}"
         r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response = self.get_content(r)
@@ -253,7 +265,7 @@ class TestApp(BaseTests):
         body = {
             "request_name": "test",
             "reftime": {"from": date_from, "to": date_to},
-            "dataset_names": [dataset_name],
+            "dataset_names": [self.DATASET_FOR_TEST_NAME],
             "filters": {"run": [ref_run[0]]},
             "crontab-settings": {"hour": now_hour, "minute": now_minute},
             "opendata": True,
@@ -277,7 +289,7 @@ class TestApp(BaseTests):
         body = {
             "request_name": "test",
             "reftime": {"from": date_to, "to": date_to},
-            "dataset_names": [dataset_name],
+            "dataset_names": [self.DATASET_FOR_TEST_NAME],
             "filters": {"run": [ref_run[1]]},
             "crontab-settings": {"hour": now_hour, "minute": now_minute},
             "opendata": True,
@@ -318,10 +330,8 @@ class TestApp(BaseTests):
 
         # test only run
         q = "q=run:" + ref_run[0].get("style") + "," + ref_run[0].get("desc")[7:12]
-        endpoint = (
-            API_URI + "/datasets/" + dataset_name + "/opendata" + question_mark + q
-        )
-        print("ENDPOINT:", endpoint)
+        endpoint = f"{API_URI}/datasets/{self.DATASET_FOR_TEST_NAME}/opendata?{q}"
+        # print("ENDPOINT:", endpoint)
         r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response = self.get_content(r)
@@ -334,7 +344,9 @@ class TestApp(BaseTests):
         endpoint = (
             API_URI
             + "/datasets/{dataset}/opendata?q=reftime:>={date_from},<={date_to}".format(
-                date_from=date_from_2, date_to=date_to_2, dataset=dataset_name
+                date_from=date_from_2,
+                date_to=date_to_2,
+                dataset=self.DATASET_FOR_TEST_NAME,
             )
         )
 
@@ -352,7 +364,7 @@ class TestApp(BaseTests):
             + "/datasets/{dataset}/opendata?q=reftime:>={date_from},<={date_to};run:{minute},{run}".format(
                 date_from=date_from_3,
                 date_to=date_to_3,
-                dataset=dataset_name,
+                dataset=self.DATASET_FOR_TEST_NAME,
                 minute=ref_run[0].get("style"),
                 run=ref_run[1].get("desc")[7:12],
             )
@@ -382,3 +394,257 @@ class TestApp(BaseTests):
         shutil.rmtree(dir_to_delete, ignore_errors=True)
         # check folder deletion
         assert not dir_to_delete.exists()
+
+    def create_fake_opendata_result(self, request_owner_id, args, file_content):
+        faker = Faker()
+        # create the request
+        db = sqlalchemy.get_instance()
+        request_name = faker.pystr()
+        r = db.Request(
+            user_id=request_owner_id,
+            name=request_name,
+            args=args,
+            status="SUCCESS",
+            opendata=True,
+        )
+        db.session.add(r)
+        db.session.commit()
+        # get the request id
+        request_in_db = db.Request.query.filter_by(name=request_name).first()
+        request_id = request_in_db.id
+        requests_to_delete = self.get("request_to_delete_list")
+        requests_to_delete.append(request_id)
+        self.save("request_to_delete_list", requests_to_delete)
+
+        # create the fileoutput
+        filename = f"{faker.pystr()}.grib"
+        output_path = Path(OPENDATA_DIR, filename)
+        with output_path.open("w") as f:
+            f.write(file_content)
+        # save the fileoutput record in db
+        fileoutput_entry = db.FileOutput(
+            user_id=request_owner_id,
+            filename=filename,
+            request_id=request_id,
+        )
+        db.session.add(fileoutput_entry)
+        db.session.commit()
+
+    def create_environment_download_by_dataset(self, faker: Faker):
+        reftime_1 = datetime.strptime(faker.date(), "%Y-%m-%d").strftime(
+            "%Y-%m-%dT%H:%M:%S.%fZ"
+        )
+        reftime_2 = datetime.strptime(faker.date(), "%Y-%m-%d").strftime(
+            "%Y-%m-%dT%H:%M:%S.%fZ"
+        )
+        run_00 = "00:00"
+        filters_run_00 = {
+            "run": [
+                {
+                    "s": "MINUTE",
+                    "va": 0,
+                    "desc": f"MINUTE({run_00})",
+                    "value": 0,
+                    "active": True,
+                }
+            ],
+        }
+        run_12 = "12:00"
+        filters_run_12 = {
+            "run": [
+                {
+                    "s": "MINUTE",
+                    "va": 0,
+                    "desc": f"MINUTE({run_12})",
+                    "value": 0,
+                    "active": True,
+                }
+            ],
+        }
+
+        # get admin user id
+        admin_username = BaseAuthentication.load_default_user()
+        if not admin_username:
+            admin_username = BaseAuthentication.default_user
+        db = sqlalchemy.get_instance()
+        user = db.User.query.filter_by(email=admin_username).first()
+        request_owner_id = user.id
+        self.save("opendata_owner", request_owner_id)
+        requests_to_delete = []
+        self.save("request_to_delete_list", requests_to_delete)
+
+        args_req_1 = {
+            "filters": filters_run_00,
+            "reftime": {"from": reftime_1, "to": reftime_1},
+            "datasets": [self.DATASET_FOR_TEST_NAME],
+        }
+        opendata_content_1 = f"{self.DATASET_FOR_TEST_NAME}-{reftime_1}-{run_00}"
+        # create the elements in db
+        self.create_fake_opendata_result(
+            request_owner_id, args_req_1, opendata_content_1
+        )
+
+        args_req_2 = {
+            "filters": filters_run_12,
+            "reftime": {"from": reftime_1, "to": reftime_1},
+            "datasets": [self.DATASET_FOR_TEST_NAME],
+        }
+        opendata_content_2 = f"{self.DATASET_FOR_TEST_NAME}-{reftime_1}-{run_12}"
+        self.create_fake_opendata_result(
+            request_owner_id, args_req_2, opendata_content_2
+        )
+
+        args_req_3 = {
+            "filters": filters_run_00,
+            "reftime": {"from": reftime_2, "to": reftime_2},
+            "datasets": [self.DATASET_FOR_TEST_NAME],
+        }
+        opendata_content_3 = f"{self.DATASET_FOR_TEST_NAME}-{reftime_2}-{run_00}"
+        self.create_fake_opendata_result(
+            request_owner_id, args_req_3, opendata_content_3
+        )
+
+        return (
+            reftime_1,
+            reftime_2,
+            run_00,
+            run_12,
+            opendata_content_1,
+            opendata_content_2,
+            opendata_content_3,
+        )
+
+    def test_download_by_dataset(self, client: FlaskClient, faker: Faker):
+        # check reftime validation
+        wrong_reftime = datetime.strptime(faker.date(), "%Y-%m-%d").strftime("%Y/%d/%m")
+        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?reftime={wrong_reftime}"
+        r = client.get(endpoint)
+        assert r.status_code == 400
+        response = self.get_content(r)
+        assert response["reftime"]
+        # check run validation
+        wrong_run = "2500"
+        endpoint = (
+            f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?run={wrong_run}"
+        )
+        r = client.get(endpoint)
+        assert r.status_code == 400
+        response = self.get_content(r)
+        assert "run format not supported" in response["_schema"][0]
+
+        # check response in case opendata are not available
+        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download"
+        r = client.get(endpoint)
+        assert r.status_code == 404
+        response = self.get_content(r)
+        assert "No opendata found" in response
+        # create the test environment
+        (
+            reftime_1,
+            reftime_2,
+            run_00,
+            run_12,
+            opendata_content_1,
+            opendata_content_2,
+            opendata_content_3,
+        ) = self.create_environment_download_by_dataset(faker)
+
+        reftime_1_formatted = datetime.strptime(
+            reftime_1, "%Y-%m-%dT%H:%M:%S.%fZ"
+        ).strftime("%Y-%m-%d")
+        reftime_1_formatted_2 = datetime.strptime(
+            reftime_1, "%Y-%m-%dT%H:%M:%S.%fZ"
+        ).strftime("%Y%m%d")
+        reftime_2_formatted = datetime.strptime(
+            reftime_2, "%Y-%m-%dT%H:%M:%S.%fZ"
+        ).strftime("%Y-%m-%d")
+
+        # check opendata not found requested by reftime
+        reftime_3_formatted = datetime.strptime(faker.date(), "%Y-%m-%d").strftime(
+            "%Y%m%d"
+        )
+        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?reftime={reftime_3_formatted}"
+        r = client.get(endpoint)
+        assert r.status_code == 404
+        # check opendata not found requested by run
+        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?run=15:00"
+        r = client.get(endpoint)
+        assert r.status_code == 404
+        # check opendata not found request by reftime and run
+        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?reftime={reftime_2_formatted}&run={run_12}"
+        r = client.get(endpoint)
+        assert r.status_code == 404
+
+        # request all opendata of a dataset
+        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download"
+        r = client.get(endpoint)
+        assert r.status_code == 200
+        # check it is a zipfile
+        assert r.mimetype == "application/zip"
+        # check filename
+        zipfile_name = (
+            r.headers["Content-Disposition"].split("filename=")[-1].strip('"')
+        )
+        assert zipfile_name == f"opendata_{self.DATASET_FOR_TEST_NAME}.zip"
+        # check content
+        resulting_file = io.BytesIO(r.get_data())
+        with ZipFile(resulting_file, "r") as zip_file:
+            file_list = zip_file.namelist()
+            assert len(file_list) == 3
+
+        # request opendata by reftime
+        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?reftime={reftime_1_formatted}"
+        r = client.get(endpoint)
+        assert r.status_code == 200
+        # check it is a zipfile
+        assert r.mimetype == "application/zip"
+        # check filename
+        zipfile_name = (
+            r.headers["Content-Disposition"].split("filename=")[-1].strip('"')
+        )
+        assert (
+            zipfile_name
+            == f"opendata_{self.DATASET_FOR_TEST_NAME}_reftime_{reftime_1_formatted}.zip"
+        )
+        # check content
+        resulting_file = io.BytesIO(r.get_data())
+        with ZipFile(resulting_file, "r") as zip_file:
+            file_list = zip_file.namelist()
+            assert len(file_list) == 2
+
+        # request opendata by run
+        endpoint = (
+            f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?run={run_00}"
+        )
+        r = client.get(endpoint)
+        assert r.status_code == 200
+        # check it is a zipfile
+        assert r.mimetype == "application/zip"
+        # check filename
+        zipfile_name = (
+            r.headers["Content-Disposition"].split("filename=")[-1].strip('"')
+        )
+        assert zipfile_name == f"opendata_{self.DATASET_FOR_TEST_NAME}_run_{run_00}.zip"
+        # check content
+        resulting_file = io.BytesIO(r.get_data())
+        with ZipFile(resulting_file, "r") as zip_file:
+            file_list = zip_file.namelist()
+            assert len(file_list) == 2
+
+        # request opendata by reftime and run
+        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?reftime={reftime_1_formatted_2}&run={run_12}"
+        r = client.get(endpoint)
+        assert r.status_code == 200
+        # check it is a single file
+        assert r.mimetype == "application/octet-stream"
+        # check content
+        response_content = r.get_data().decode("utf-8")
+        assert response_content == opendata_content_2
+
+        # delete all the fake requests and fake files
+        admin_headers, _ = BaseTests.do_login(client, None, None)
+        requests_to_delete = self.get("request_to_delete_list")
+        for r_id in requests_to_delete:
+            endpoint = API_URI + "/requests/" + str(r_id)
+            r = client.delete(endpoint, headers=admin_headers)
+            assert r.status_code == 200

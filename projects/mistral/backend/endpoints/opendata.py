@@ -1,13 +1,16 @@
+import io
+import zipfile
 from datetime import date, datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from flask import send_from_directory
+from flask import send_file, send_from_directory
+from marshmallow import ValidationError, pre_load
 from mistral.endpoints import OPENDATA_DIR
 from mistral.services.arkimet import BeArkimet as arki
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import BadRequest, NotFound
-from restapi.models import fields
+from restapi.models import Schema, fields
 from restapi.rest.definition import EndpointResource, Response
 from restapi.utilities.logs import log
 
@@ -141,9 +144,9 @@ class OpendataFileList(EndpointResource):
         return self.response(res)
 
 
-class OpendataDownload(EndpointResource):
+class OpendataDownloadFile(EndpointResource):
 
-    labels = ["opendata_download"]
+    labels = ["opendata_download_file"]
 
     @decorators.endpoint(
         path="/opendata/<filename>",
@@ -162,3 +165,133 @@ class OpendataDownload(EndpointResource):
 
         # download the file as a response attachment
         return send_from_directory(OPENDATA_DIR, filename, as_attachment=True)
+
+
+class Reftime(fields.Date):
+    # from string to date using two different supported formats
+    def _deserialize(self, value, attr, data, **kwargs):
+        if value:
+            try:
+                # string with format YYYYmmdd are supported
+                valid_reftime = datetime.strptime(value, "%Y%m%d").date()
+                value = valid_reftime
+            except Exception:
+                try:
+                    # string with format YYYY-mm-dd are supported
+                    valid_reftime = datetime.strptime(value, "%Y-%m-%d").date()
+                    value = valid_reftime
+                except Exception:
+                    raise ValidationError(
+                        "reftime format not supported. Supported formats are YYYYMMDD or YYYY-mm-dd"
+                    )
+        return value
+
+
+class OpenDataDownloadQuery(Schema):
+    reftime = Reftime(required=False)
+    run = fields.Str(required=False)
+
+    @pre_load
+    def validate_run(self, data, **kwargs):
+        run = data.get("run", None)
+        if run:
+            try:
+                # check if the string is a valid time
+                run_time = datetime.strptime(run, "%H:%M").time()
+                log.debug(run_time)
+            except Exception:
+                raise ValidationError(
+                    "run format not supported. Supported format is HH:MM"
+                )
+        return data
+
+
+class OpendataDownload(EndpointResource):
+
+    labels = ["opendata_download"]
+
+    @decorators.use_kwargs(OpenDataDownloadQuery, location="query")
+    @decorators.endpoint(
+        path="/opendata/<dataset_name>/download",
+        summary="Download opendata related to a dataset",
+        responses={
+            200: "Found files to download",
+            404: "No files to download for the requested dataset",
+        },
+    )
+    def get(
+        self,
+        dataset_name: str,
+        reftime: Optional[date] = None,
+        run: Optional[str] = None,
+    ) -> Response:
+        log.debug(f"request for {dataset_name}, reftime: {reftime}, run: {run}")
+        # check if the dataset exists
+        db = sqlalchemy.get_instance()
+        ds_entry = db.Datasets.query.filter_by(name=dataset_name).first()
+        if not ds_entry:
+            raise NotFound(f"Dataset not found for name: {dataset_name}")
+        # check if the dataset is public
+        license = db.License.query.filter_by(id=ds_entry.license_id).first()
+        group_license = db.GroupLicense.query.filter_by(
+            id=license.group_license_id
+        ).first()
+        if not group_license.is_public:
+            raise BadRequest(f"Dataset {dataset_name} is not public")
+
+        # create the query for the db
+        query: Dict[str, Any] = {}
+
+        query["datasets"] = [ds_entry.arkimet_id]
+        if run:
+            query["filters"] = {"run": [{"desc": f"MINUTE({run})"}]}
+
+        opendata_req = db.Request.query.filter(
+            db.Request.args.contains(query),
+            db.Request.opendata.is_(True),
+            db.Request.archived.is_(False),
+        )
+        filenames: Optional[List[str]] = []
+        # if no reftime and no run is specified return all the opendata of the specified dataset all zipped
+        # if only reftime or only run are specified return all the opendata with the requested reftime or the requested run all zipped
+        for r in opendata_req:
+            if reftime:
+                # check if reftime from and to correspond to the requested reftime
+                reftime_from = datetime.strptime(
+                    r.args["reftime"]["from"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                ).date()
+                reftime_to = datetime.strptime(
+                    r.args["reftime"]["to"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                ).date()
+                if reftime_from == reftime and reftime_to == reftime:
+                    filenames.append(r.fileoutput.filename)
+            else:
+                filenames.append(r.fileoutput.filename)
+
+        if not filenames:
+            raise NotFound("No opendata found for the requested query")
+        elif len(filenames) == 1:
+            # download the single file as a response attachment
+            OPENDATA_DIR.joinpath(filenames[0])
+            if not OPENDATA_DIR.joinpath(filenames[0]).exists():
+                raise NotFound("Requested opendata file not found")
+            return send_from_directory(OPENDATA_DIR, filenames[0], as_attachment=True)
+        else:
+            # create a zipfile in memory containing all the requested opendata and download it as a response attachment
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for filename in filenames:
+                    filepath = OPENDATA_DIR.joinpath(filename)
+                    if not filepath.exists():
+                        log.warning(f"File {filepath} not found for {filename}")
+                        continue
+                    zip_file.write(filepath, arcname=filename)
+            # restore the pointer to the beginning
+            zip_buffer.seek(0)
+            zipfile_name = f"opendata_{dataset_name}{f'_reftime_{reftime}'if reftime else ''}{f'_run_{run}'if run else ''}.zip"
+            return send_file(
+                zip_buffer,
+                download_name=zipfile_name,
+                as_attachment=True,
+                mimetype="application/zip",
+            )
