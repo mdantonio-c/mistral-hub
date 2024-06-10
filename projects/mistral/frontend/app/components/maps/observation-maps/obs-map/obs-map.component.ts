@@ -69,6 +69,7 @@ export class ObsMapComponent {
     private modalService: NgbModal,
   ) {
     // custom cluster options
+    let usefuldata: number[] = new Array(8).fill(0);
     this.markerClusterOptions = {
       maxClusterRadius: 50,
       iconCreateFunction: function (cluster, srv = obsService) {
@@ -107,7 +108,6 @@ export class ObsMapComponent {
               : ((dirtyCluster = true), ObsService.median(dirtyMedians));
           //res = ObsService.showData(val, type, 3);
           res = ObsService.showData(val, type); // default precision is 5
-
           // custom background color of cluster
           let reliability = 1;
           if (dirtyCluster) {
@@ -117,6 +117,7 @@ export class ObsMapComponent {
           c = " mst-marker-color-" + clusterColor;
 
           var html = ObsMapComponent.drawTheIcon(medians, res, obsService);
+
           // if the cluster contains data for a single station, bind a tooltip
           let is_single_station = false;
           let station_lng = null;
@@ -178,7 +179,7 @@ export class ObsMapComponent {
     };
   }
 
-  static drawTheIcon(data, medianValue, srv) {
+  static drawTheIcon(data, medianValue, srv): string {
     let colorList = [];
     for (let i = 0; i < data.length; i++) {
       let dataColor = srv.getColor(data[i], srv.min, srv.max);
@@ -189,15 +190,82 @@ export class ObsMapComponent {
     let segments = "";
     let prevPercentage = 0;
     let prevOffset = 0;
-    // create the different segments of the donut pie
+
+    // data preparation to manage very small percentage values
+    // and preserve anomaly single values
+    let percExact: number[] = new Array(COLORS.length);
+    let percEdited: number[] = new Array(COLORS.length);
+    let zeroIndices: boolean[] = new Array(COLORS.length).fill(false);
+    let normPerc: number[] = new Array(COLORS.length).fill(-1);
+    let normPercTrunc: number[] = new Array(COLORS.length).fill(0);
+    let finallyPerc: number[] = new Array(COLORS.length).fill(2);
+
     for (let i = 0; i < COLORS.length; i++) {
       let count = colorList.filter((x) => x == COLORS[i]).length;
       if (count > 0) {
         let percentage = Math.round((count / totalItems) * 100);
+        if (percentage === 0) zeroIndices[i] = true;
+        percExact[i] = percentage;
+      }
+    }
+    const totPercExact = percExact.reduce(
+      (accumulator, currentValue) => accumulator + currentValue,
+      0,
+    );
+    for (let i = 0; i < COLORS.length; i++) {
+      let count = colorList.filter((x) => x == COLORS[i]).length;
+      if (count > 0) {
+        let percentage = Math.round((count / totalItems) * 100);
+        if (percentage === 0) percentage = 2;
+        percEdited[i] = percentage;
+      }
+    }
+    const totPercEdited = percEdited.reduce(
+      (accumulator, currentValue) => accumulator + currentValue,
+      0,
+    );
+    const deltaPerc = totPercEdited - totPercExact;
+
+    for (let i = 0; i < COLORS.length; i++) {
+      if (!zeroIndices[i]) {
+        normPerc[i] = (percEdited[i] / totPercExact) * deltaPerc;
+      }
+    }
+
+    let percReduce = 0;
+    for (let j = 0; j < COLORS.length && percReduce <= deltaPerc; j++) {
+      for (let i = 0; i < COLORS.length; i++) {
+        if (!zeroIndices[i]) {
+          if (j < i) {
+            normPercTrunc[i] = Math.ceil(normPerc[i]);
+          } else {
+            normPercTrunc[i] = Math.floor(normPerc[i]);
+          }
+        }
+      }
+      percReduce = normPercTrunc.reduce(
+        (accumulator, currentValue) => accumulator + currentValue,
+        0,
+      );
+    }
+
+    for (let i = 0; i < COLORS.length; i++) {
+      if (!zeroIndices[i]) {
+        finallyPerc[i] = percEdited[i] - normPercTrunc[i];
+      }
+    }
+
+    // create the different segments of the donut pie
+    for (let i = 0; i < COLORS.length; i++) {
+      let count = colorList.filter((x) => x == COLORS[i]).length;
+      if (count > 0) {
+        let percentage = finallyPerc[i];
+
         // remove the number of pixel needed for the donut slice border
         let percentageWBorder = percentage - 1;
         let strokeDasharray =
           percentageWBorder + " " + (100 - percentageWBorder);
+
         let strokeDashoffset = 0;
         if (prevOffset == 0) {
           strokeDashoffset = 25;
@@ -210,8 +278,9 @@ export class ObsMapComponent {
         // update the previous percentage
         prevPercentage = percentage;
         //create the segment
+
         let newSegment =
-          '<circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" ' +
+          `<circle id=${COLORS[i]} class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" ` +
           //set the segment color
           'stroke="#' +
           COLORS[i] +
@@ -339,6 +408,7 @@ export class ObsMapComponent {
         if (count === 1) {
           single_observation = true;
         }
+
         for (let i = 0; i < obsData.val.length; i++) {
           // create an object for each value of obsData
           singleObsData = {
