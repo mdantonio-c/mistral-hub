@@ -513,11 +513,62 @@ def gen_top_reqs_ranking_stats(db):
             u.first_login IS NOT NULL
         GROUP BY
             u.id
+    ),
+    "forec_reqs" AS
+    (
+        SELECT
+            COUNT(r.id) AS reqs,
+            u.id AS user
+        FROM
+            "user" u
+        LEFT JOIN "request" r
+            ON u.id = r.user_id
+        LEFT JOIN "datasets" d ON jsonb_array_element_text(r.args->'datasets', 0) = d.arkimet_id
+        WHERE
+            u.first_login IS NOT NULL
+            AND d.category = 'FOR'
+        GROUP BY
+            u.id
+    ),
+    "obs_reqs" AS
+    (
+        SELECT
+            COUNT(r.id) AS reqs,
+            u.id AS user
+        FROM
+            "user" u
+        LEFT JOIN "request" r
+            ON u.id = r.user_id
+        LEFT JOIN "datasets" d ON jsonb_array_element_text(r.args->'datasets', 0) = d.arkimet_id
+        WHERE
+            u.first_login IS NOT NULL
+            AND d.category = 'OBS'
+        GROUP BY
+            u.id
+    ),
+    "rad_reqs" AS
+    (
+        SELECT
+            COUNT(r.id) AS reqs,
+            u.id AS user
+        FROM
+            "user" u
+        LEFT JOIN "request" r
+            ON u.id = r.user_id
+        LEFT JOIN "datasets" d ON jsonb_array_element_text(r.args->'datasets', 0) = d.arkimet_id
+        WHERE
+            u.first_login IS NOT NULL
+            AND d.category = 'RAD'
+        GROUP BY
+            u.id
     )
     SELECT
         COALESCE(dr.reqs + sr.reqs, 0) AS reqs,
         COALESCE(dr.reqs, 0) AS dir_reqs,
         COALESCE(sr.reqs, 0) AS sched_reqs,
+        COALESCE(fcr.reqs, 0) AS forec_reqs,
+        COALESCE(obr.reqs, 0) AS obs_reqs,
+        COALESCE(rar.reqs, 0) AS rad_reqs,
         u.id AS user,
         u.name,
         u.surname,
@@ -533,6 +584,12 @@ def gen_top_reqs_ranking_stats(db):
         ON dr.user = u.id
     LEFT JOIN "sched_reqs" sr
         ON sr.user = u.id
+    LEFT JOIN "forec_reqs" fcr
+        ON fcr.user = u.id
+    LEFT JOIN "obs_reqs" obr
+        ON obr.user = u.id
+    LEFT JOIN "rad_reqs" rar
+        ON rar.user = u.id
     WHERE
         u.first_login IS NOT NULL
         AND rl.description IN {roles_to_analyze}
