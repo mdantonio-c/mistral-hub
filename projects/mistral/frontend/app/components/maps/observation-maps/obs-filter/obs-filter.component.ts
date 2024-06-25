@@ -259,14 +259,16 @@ export class ObsFilterComponent implements OnInit {
           }
 
           if (!this.allProducts || this.allProducts.length === 0) {
-            let extraMsg =
-              f.network !== undefined && f.network !== ""
-                ? " network or "
-                : " ";
-            this.notify.showWarning(
-              `No data available. Try selecting a different${extraMsg}reference date.`,
-            );
-            this.isUpdatable = false;
+            if (f.network !== undefined && f.network !== "") {
+              this.filterForm.controls.network.setValue("", {
+                emitEvent: true,
+              });
+            } else {
+              this.notify.showWarning(
+                `No data available. Try selecting a different reference date.`,
+              );
+              this.isUpdatable = false;
+            }
           }
         },
         (error) => {
