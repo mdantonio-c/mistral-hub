@@ -18,6 +18,7 @@ import { fromEvent } from "rxjs";
 import { exhaustMap, tap } from "rxjs/operators";
 import { NgxSpinnerService } from "ngx-spinner";
 import { AuthService } from "@rapydo/services/auth";
+import { environment } from "@rapydo/../environments/environment";
 
 @Component({
   selector: "step-submit",
@@ -143,25 +144,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     this.receiveCategory();
   }
   checkDataReady() {
-    let dataReadyDatasets = [
-      "lm2.2",
-      "lm5",
-      "cosmo_2I_fcruc",
-      "WRF_DA_ITA",
-      "WRF_OL",
-      "BOLAM",
-      "GLOBO",
-      "MOLOCH",
-      "PRECIP_BLENDED",
-      "swan-cam",
-      "swan-emr",
-      "swan-ita",
-      "swan-mar",
-      "swan-med",
-      "swan-sud",
-      "swan-tos",
-      "cosmo_2i_fcens",
-    ];
+    let dataReadyDatasets = environment.CUSTOM.ON_DATA_READY_DATASETS.split(",");
     let requestedDatasets = this.formData.datasets.map((x) => x.id);
     if (
       requestedDatasets.length == 1 &&

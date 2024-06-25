@@ -9,6 +9,7 @@ from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
 from restapi.connectors import celery, rabbitmq, sqlalchemy
 from restapi.endpoints.schemas import TotalSchema
+from restapi.env import Env
 from restapi.exceptions import (
     BadRequest,
     Conflict,
@@ -325,25 +326,6 @@ class ScheduledDataExtraction(Schema):
         return data
 
 
-DATASET_ENABLED_TO_DATAREADY = [
-    "lm2.2",
-    "lm5",
-    "cosmo_2I_fcruc",
-    "WRF_DA_ITA",
-    "WRF_OL",
-    "BOLAM",
-    "GLOBO",
-    "MOLOCH",
-    "PRECIP_BLENDED",
-    "swan-cam",
-    "swan-emr",
-    "swan-ita",
-    "swan-mar",
-    "swan-med",
-    "swan-sud",
-    "swan-tos",
-    "cosmo_2i_fcens",
-]
 MIN_PERIOD = 15  # in minutes
 
 
@@ -391,6 +373,9 @@ class Schedules(EndpointResource):
 
 
 class SingleSchedule(EndpointResource):
+    # get the list of dataset enabled to data-ready schedule
+    ON_DATA_READY_DATASETS = Env.get("ON_DATA_READY_DATASETS", "").split(",")
+
     labels = ["schedule"]
 
     @decorators.auth.require()
@@ -471,7 +456,7 @@ class SingleSchedule(EndpointResource):
 
         if data_ready:
             # check if data ready function is enabled for the requested datasets
-            if not all(elem in DATASET_ENABLED_TO_DATAREADY for elem in dataset_names):
+            if not all(elem in self.ON_DATA_READY_DATASETS for elem in dataset_names):
                 raise BadRequest(
                     "Data-ready service is not available for the selected datasets"
                 )

@@ -17,6 +17,7 @@ services:
       LASTDAYS: ${LASTDAYS}
       PLATFORM: ${PLATFORM}
       GRACE_PERIOD: ${GRACE_PERIOD}
+      ON_DATA_READY_DATASETS: ${ON_DATA_READY_DATASETS}
 
   frontend:
     environment:
@@ -28,6 +29,7 @@ services:
       INJECT_PROJECT_HOME: ${PROJECT_HOME}
       INJECT_COOKIE_POLICY_URL: ${COOKIE_POLICY_URL}
       INJECT_GRACE_PERIOD: ${GRACE_PERIOD}
+      INJECT_ON_DATA_READY_DATASETS: ${ON_DATA_READY_DATASETS}
     # volumes:
     #   - ${DATA_DIR}/maps:/meteo
 
