@@ -63,7 +63,7 @@ class TestApp(BaseTests):
         assert r.status_code == 404
 
     # check if a license is private
-    def test_check_not_plubic_license(self, client: FlaskClient, faker: Faker):
+    def test_check_not_public_license(self, client: FlaskClient, faker: Faker):
         # get admin token
         admin_headers, _ = BaseTests.do_login(client, None, None)
         # create a new not open license group
@@ -144,14 +144,70 @@ class TestApp(BaseTests):
         ).first()
         assert not group_license.is_public
 
-        # check that opendata are not available for that dataset
-        endpoint = f"{API_URI}/datasets/{fake_name}/opendata"
-        r = client.get(endpoint)
-        assert r.status_code == 400
-        # check the opendata download api
-        endpoint = f"{API_URI}/opendata/{fake_name}/download"
-        r = client.get(endpoint)
-        assert r.status_code == 400
+        # check that opendata are not available for that dataset for unauthenticated users
+        opendata_list_endpoint = f"{API_URI}/datasets/{fake_name}/opendata"
+        r = client.get(opendata_list_endpoint)
+        assert r.status_code == 401
+        # check for unauthorized users
+        r = client.get(opendata_list_endpoint, headers=user_header)
+        assert r.status_code == 401
+
+        # check the opendata download api for unauthenticated users
+        opendata_download_endpoint = f"{API_URI}/opendata/{fake_name}/download"
+        r = client.get(opendata_download_endpoint)
+        assert r.status_code == 401
+        # check for unauthorized users
+        r = client.get(opendata_download_endpoint, headers=user_header)
+        assert r.status_code == 401
+
+        # create an opendata request in db
+        # get admin user id
+        admin_username = BaseAuthentication.load_default_user()
+        if not admin_username:
+            admin_username = BaseAuthentication.default_user
+        db = sqlalchemy.get_instance()
+        user = db.User.query.filter_by(email=admin_username).first()
+        request_owner_id = user.id
+        args = {
+            "filters": None,
+            "reftime": {
+                "from": (datetime.now() - timedelta(hours=1)).strftime(
+                    "%Y-%m-%dT%H:%M:%S.000Z"
+                ),
+                "to": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+            },
+            "datasets": [fake_name],
+        }
+        file_content = f"Dataset-{fake_name}_content"
+        requests_to_delete = []
+        self.save("request_to_delete_list", requests_to_delete)
+        filename = self.create_fake_opendata_result(
+            request_owner_id, args, file_content
+        )
+        # check download for file related to a not public dataset for unauthenticated users
+        download_endpoint = f"{API_URI}/opendata/{filename}"
+        r = client.get(download_endpoint)
+        assert r.status_code == 401
+        # check download for file related to a not public dataset for unauthorized users
+        r = client.get(download_endpoint, headers=user_header)
+        assert r.status_code == 401
+
+        # authorize the user to the private dataset
+        user_entry = db.User.query.filter_by(uuid=uuid).first()
+        fake_dataset = db.Datasets.query.filter_by(name=fake_name).first()
+        user_entry.datasets.append(fake_dataset)
+        db.session.add(user_entry)
+        db.session.commit()
+        # check authorized user
+        # get opendata list
+        r = client.get(opendata_list_endpoint, headers=user_header)
+        assert r.status_code == 200
+        # get download by dataset
+        r = client.get(opendata_download_endpoint, headers=user_header)
+        assert r.status_code == 200
+        # get file download
+        r = client.get(download_endpoint, headers=user_header)
+        assert r.status_code == 200
 
         # delete entities
         endpoint = API_URI + "/admin/datasets" + "/" + str(dataset_id)
@@ -163,6 +219,12 @@ class TestApp(BaseTests):
         endpoint = API_URI + "/admin/licensegroups" + "/" + str(id_license_group)
         r = client.delete(endpoint, headers=user_header)
         assert r.status_code == 204
+        # delete the request
+        requests_to_delete = self.get("request_to_delete_list")
+        for r_id in requests_to_delete:
+            endpoint = API_URI + "/requests/" + str(r_id)
+            r = client.delete(endpoint, headers=admin_headers)
+            assert r.status_code == 200
         # delete the user
         r = client.delete(f"{API_URI}/admin/users/{uuid}", headers=admin_headers)
         assert r.status_code == 204
@@ -429,6 +491,7 @@ class TestApp(BaseTests):
         )
         db.session.add(fileoutput_entry)
         db.session.commit()
+        return filename
 
     def create_environment_download_by_dataset(self, faker: Faker):
         reftime_1 = datetime.strptime(faker.date(), "%Y-%m-%d").strftime(

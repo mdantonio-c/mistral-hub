@@ -7,11 +7,13 @@ from flask import send_file, send_from_directory
 from marshmallow import ValidationError, pre_load
 from mistral.endpoints import OPENDATA_DIR
 from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
 from restapi.connectors import sqlalchemy
-from restapi.exceptions import BadRequest, NotFound
+from restapi.exceptions import BadRequest, NotFound, ServerError, Unauthorized
 from restapi.models import Schema, fields
 from restapi.rest.definition import EndpointResource, Response
+from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
 
@@ -19,6 +21,7 @@ class OpendataFileList(EndpointResource):
 
     labels = ["opendata_filelist"]
 
+    @decorators.auth.optional()
     @decorators.use_kwargs({"q": fields.Str(required=False)}, location="query")
     @decorators.endpoint(
         path="/datasets/<dataset_name>/opendata",
@@ -26,11 +29,11 @@ class OpendataFileList(EndpointResource):
         description="Get the list of opendata files for that dataset",
         responses={
             200: "Filelist successfully retrieved",
-            400: "Requested dataset is private",
+            401: "Requested dataset is private",
             404: "Requested dataset not found",
         },
     )
-    def get(self, dataset_name: str, q: str = "") -> Response:
+    def get(self, user: Optional[User], dataset_name: str, q: str = "") -> Response:
         """Get all the opendata filenames and metadata for that dataset"""
         log.debug("requested for {}", dataset_name)
         # check if the dataset exists
@@ -44,7 +47,12 @@ class OpendataFileList(EndpointResource):
             id=license.group_license_id
         ).first()
         if not group_license.is_public:
-            raise BadRequest(f"Dataset {dataset_name} is not public")
+            # check user authorization
+            is_authorized = SqlApiDbManager.check_dataset_authorization(
+                db, dataset_name, user
+            )
+            if not is_authorized:
+                raise Unauthorized(f"Dataset {dataset_name} is not public")
 
         query: Dict[str, Any] = {}
         reftime: Dict[str, date] = {}
@@ -148,6 +156,7 @@ class OpendataDownloadFile(EndpointResource):
 
     labels = ["opendata_download_file"]
 
+    @decorators.auth.optional()
     @decorators.endpoint(
         path="/opendata/<filename>",
         summary="Download the opendata file",
@@ -156,8 +165,23 @@ class OpendataDownloadFile(EndpointResource):
             404: "File not found",
         },
     )
-    def get(self, filename: str) -> Response:
+    def get(self, user: Optional[User], filename: str) -> Response:
+        # check the dataset related to the opendata file
+        db = sqlalchemy.get_instance()
+        fileoutput_entry = db.FileOutput.query.filter_by(filename=filename).first()
+        if not fileoutput_entry:
+            raise NotFound("File not found")
+        opendata_req_id = fileoutput_entry.request_id
+        opendata_req_entry = db.Request.query.get(opendata_req_id)
+        if not opendata_req_entry:
+            raise ServerError(f"Opendata request related to file {filename} not found")
+        datasets_names = opendata_req_entry.args.get("datasets")
+        for d in datasets_names:
+            is_authorized = SqlApiDbManager.check_dataset_authorization(db, d, user)
+            if not is_authorized:
+                raise Unauthorized(f"Dataset {d} is not public")
 
+        # TODO check if the opendata is public, if not check if the user can access it
         OPENDATA_DIR.joinpath(filename)
         # check if the requested file exists
         if not OPENDATA_DIR.joinpath(filename).exists():
@@ -210,6 +234,7 @@ class OpendataDownload(EndpointResource):
 
     labels = ["opendata_download"]
 
+    @decorators.auth.optional()
     @decorators.use_kwargs(OpenDataDownloadQuery, location="query")
     @decorators.endpoint(
         path="/opendata/<dataset_name>/download",
@@ -221,6 +246,7 @@ class OpendataDownload(EndpointResource):
     )
     def get(
         self,
+        user: Optional[User],
         dataset_name: str,
         reftime: Optional[date] = None,
         run: Optional[str] = None,
@@ -237,7 +263,12 @@ class OpendataDownload(EndpointResource):
             id=license.group_license_id
         ).first()
         if not group_license.is_public:
-            raise BadRequest(f"Dataset {dataset_name} is not public")
+            # check user authorization
+            is_authorized = SqlApiDbManager.check_dataset_authorization(
+                db, dataset_name, user
+            )
+            if not is_authorized:
+                raise Unauthorized(f"Dataset {dataset_name} is not public")
 
         # create the query for the db
         query: Dict[str, Any] = {}
