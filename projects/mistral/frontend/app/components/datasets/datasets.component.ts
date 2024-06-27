@@ -118,9 +118,6 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   }
 
   openDataset(ds: Dataset) {
-    if (!ds.is_public) {
-      return;
-    }
     const modalRef = this.modalService.open(DatasetDetailsComponent, {
       size: "lg",
       centered: true,

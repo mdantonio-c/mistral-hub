@@ -513,6 +513,10 @@ class SqlApiDbManager:
                 else:
                     if not open_dataset:
                         continue
+            else:
+                # discard the not public datasets
+                if not group_license_obj.is_public:
+                    continue
 
             dataset_el["id"] = ds.arkimet_id
             dataset_el["name"] = ds.name

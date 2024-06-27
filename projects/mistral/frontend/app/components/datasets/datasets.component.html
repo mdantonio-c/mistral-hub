@@ -163,12 +163,12 @@
               <div class="d-flex w-100 justify-content-between">
                 <h5
                   class="ds-heading"
-                  [ngClass]="{ clickable: ds.is_public }"
+                  [ngClass]="{ clickable: true }"
                   (click)="openDataset(ds)"
                 >
                   {{ ds.name }}
                 </h5>
-                <small *ngIf="ds.is_public"
+                <small
                   ><i
                     class="fas fa-share-from-square clickable"
                     (click)="openDataset(ds)"

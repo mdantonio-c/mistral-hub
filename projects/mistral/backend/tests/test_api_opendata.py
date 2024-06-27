@@ -48,7 +48,7 @@ class TestApp(BaseTests):
     # check if a dataset does not exist
     def test_check_wrong_dataset_name(self, client: FlaskClient, faker: Faker):
         # fake name
-        dataset_name = faker.name()
+        dataset_name = faker.pystr()
         db = sqlalchemy.get_instance()
         # get fake entry
         ds_entry = db.Datasets.query.filter_by(name=dataset_name).first()
@@ -67,7 +67,7 @@ class TestApp(BaseTests):
         # get admin token
         admin_headers, _ = BaseTests.do_login(client, None, None)
         # create a new not open license group
-        body = {"name": faker.name(), "descr": faker.name(), "is_public": "false"}
+        body = {"name": faker.pystr(), "descr": faker.pystr(), "is_public": "false"}
         body = json.dumps(body)
 
         # create an admin_root user
@@ -105,7 +105,7 @@ class TestApp(BaseTests):
                 assert i["is_open"] == "false"
         # create a not open license belonging to the previous group
         body = {
-            "name": faker.name(),
+            "name": faker.pystr(),
             "descr": faker.pystr(),
             "group_license": str(id_license_group),
         }
@@ -117,7 +117,7 @@ class TestApp(BaseTests):
         assert r.status_code == 200
         id_license = self.get_content(r)
         # create a not public dataset
-        fake_name = faker.name()
+        fake_name = faker.pystr()
         body = {
             "arkimet_id": fake_name,
             "name": fake_name,

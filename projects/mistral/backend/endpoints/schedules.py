@@ -487,7 +487,7 @@ class SingleSchedule(EndpointResource):
                 id=license.group_license_id
             ).first()
             if not group_license.is_public:
-                raise BadRequest(
+                log.warning(
                     "the dataset requested for opendata schedule is not an open dataset"
                 )
 

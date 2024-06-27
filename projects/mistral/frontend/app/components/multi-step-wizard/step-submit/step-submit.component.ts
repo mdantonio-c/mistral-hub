@@ -269,7 +269,6 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       this.user &&
       this.user.roles.admin_root &&
       this.formData.datasets.length == 1 &&
-      this.formData.datasets[0].is_public &&
       this.formData.datasets[0].category !== "OBS"
     ) {
       return true;
