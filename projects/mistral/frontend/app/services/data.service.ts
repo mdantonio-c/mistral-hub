@@ -218,7 +218,7 @@ export class DataService {
 
   getLastScheduledRequest(scheduleId): Observable<any> {
     return this.api.get(
-      `schedules/${scheduleId}/requests`,
+      `/api/schedules/${scheduleId}/requests`,
       { last: true },
       { rawError: true },
     );
