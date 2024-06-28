@@ -576,7 +576,7 @@ class SqlApiDbManager:
             if not user:
                 # anonymous user and private dataset
                 return False
-            user_datasets_auth = [ds.name for ds in user.datasets]
+            user_datasets_auth = [ds.arkimet_id for ds in user.datasets]
             if dataset_name in user_datasets_auth:
                 return True
             else:
