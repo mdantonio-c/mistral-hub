@@ -49,7 +49,7 @@ class OpendataFileList(EndpointResource):
         if not group_license.is_public:
             # check user authorization
             is_authorized = SqlApiDbManager.check_dataset_authorization(
-                db, dataset_name, user
+                db, ds_entry.arkimet_id, user
             )
             if not is_authorized:
                 raise Unauthorized(f"Dataset {dataset_name} is not public")
@@ -177,7 +177,11 @@ class OpendataDownloadFile(EndpointResource):
             raise ServerError(f"Opendata request related to file {filename} not found")
         datasets_names = opendata_req_entry.args.get("datasets")
         for d in datasets_names:
-            is_authorized = SqlApiDbManager.check_dataset_authorization(db, d, user)
+            # get arkimet id
+            ds_entry = db.Datasets.query.filter_by(name=d).first()
+            is_authorized = SqlApiDbManager.check_dataset_authorization(
+                db, ds_entry.arkimet_id, user
+            )
             if not is_authorized:
                 raise Unauthorized(f"Dataset {d} is not public")
 
@@ -265,7 +269,7 @@ class OpendataDownload(EndpointResource):
         if not group_license.is_public:
             # check user authorization
             is_authorized = SqlApiDbManager.check_dataset_authorization(
-                db, dataset_name, user
+                db, ds_entry.arkimet_id, user
             )
             if not is_authorized:
                 raise Unauthorized(f"Dataset {dataset_name} is not public")

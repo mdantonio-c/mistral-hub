@@ -561,6 +561,10 @@ class SqlApiDbManager:
     @staticmethod
     def check_dataset_authorization(db, dataset_name, user):
         ds_object = db.Datasets.query.filter_by(arkimet_id=dataset_name).first()
+        if not ds_object:
+            raise NotFound(
+                f"Dataset with the following arkimet id {dataset_name} not found"
+            )
         license = db.License.query.filter_by(id=ds_object.license_id).first()
         group_license = db.GroupLicense.query.filter_by(
             id=license.group_license_id
