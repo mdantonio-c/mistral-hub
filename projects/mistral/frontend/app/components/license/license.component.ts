@@ -112,7 +112,7 @@ export class LicenseComponent implements OnInit {
               license_url:
                 "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
             },
-            {
+            /*{
               name: "IFF Map",
               description:
                 "Graphic representation of forecast model Italy Flash Flood",
@@ -121,7 +121,7 @@ export class LicenseComponent implements OnInit {
               license_description: "CC BY 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by/4.0/legalcode",
-            },
+            },*/
           ];
           // append iff dataset in mistral products
           this.mistral_products.push(iff_dataset);
