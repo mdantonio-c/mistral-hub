@@ -399,11 +399,11 @@ class BeArkimet:
                     last_description_element_to_include = len(splitted_description) - 1
                     if bool(re.match(pattern, splitted_description[-1])):
                         # this element should not be included in the description
-                        last_description_element_to_include = -1
+                        last_description_element_to_include -= 1
                         # check also if there is level one
                         if bool(re.match(pattern, splitted_description[-2])):
                             # neither this element should be included in the description
-                            last_description_element_to_include = -1
+                            last_description_element_to_include -= 1
                     formatted_descr = " ".join(
                         splitted_description[0:last_description_element_to_include]
                     )
