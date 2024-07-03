@@ -1,6 +1,7 @@
 import io
 import json
 import math
+import re
 import shlex
 import subprocess
 from typing import List
@@ -390,6 +391,25 @@ class BeArkimet:
             descr = arki.formatter.level.format_level(lt_to_describe)
             if descr:
                 formatted_descr = descr.split("-")[0].rstrip()
+                if "GRIB2" in lev["style"]:
+                    # for grib2 the value of the levels are hardcoded in the description but here we need the general description
+                    splitted_description = descr.split(" ")
+                    # check if the last two values are integer (so if they are hardcoded levels)
+                    pattern = r"^[+-]?\d+$"
+                    last_description_element_to_include = len(splitted_description) - 1
+                    if bool(re.match(pattern, splitted_description[-1])):
+                        # this element should not be included in the description
+                        last_description_element_to_include = -1
+                    if bool(
+                        re.match(pattern, splitted_description[-2])
+                    ) and last_description_element_to_include < len(
+                        splitted_description
+                    ):
+                        # neither this element should be included in the description
+                        last_description_element_to_include = -1
+                    formatted_descr = " ".join(
+                        splitted_description[0:last_description_element_to_include]
+                    )
             else:
                 formatted_descr = lev.get("desc", None)
             if formatted_descr not in leveltype_descriptions:
