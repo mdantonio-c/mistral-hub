@@ -175,13 +175,9 @@ class OpendataDownloadFile(EndpointResource):
         opendata_req_entry = db.Request.query.get(opendata_req_id)
         if not opendata_req_entry:
             raise ServerError(f"Opendata request related to file {filename} not found")
-        datasets_names = opendata_req_entry.args.get("datasets")
-        for d in datasets_names:
-            # get arkimet id
-            ds_entry = db.Datasets.query.filter_by(name=d).first()
-            is_authorized = SqlApiDbManager.check_dataset_authorization(
-                db, ds_entry.arkimet_id, user
-            )
+        datasets_ids = opendata_req_entry.args.get("datasets")
+        for d in datasets_ids:
+            is_authorized = SqlApiDbManager.check_dataset_authorization(db, d, user)
             if not is_authorized:
                 raise Unauthorized(f"Dataset {d} is not public")
 
