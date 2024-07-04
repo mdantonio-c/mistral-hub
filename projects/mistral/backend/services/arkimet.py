@@ -364,14 +364,16 @@ class BeArkimet:
 
     @staticmethod
     def get_leveltype_descriptions(level_list):
-        leveltype_descriptions = []
+        leveltype_dictionary = {}
         for lev in level_list:
             if lev["style"] == "GRIB1":
+                lt_code = f'{lev["style"]}-{lev["level_type"]}'
                 lt_to_describe = {
                     "style": lev["style"],
                     "level_type": lev["level_type"],
                 }
             elif lev["style"] == "GRIB2S":
+                lt_code = f'{lev["style"]}-{lev["level_type"]}'
                 lt_to_describe = {
                     "style": lev["style"],
                     "level_type": lev["level_type"],
@@ -379,6 +381,7 @@ class BeArkimet:
                     "value": lev["value"],
                 }
             elif lev["style"] == "GRIB2D":
+                lt_code = f'{lev["style"]}-{lev["l1"]}-{lev["l2"]}'
                 lt_to_describe = {
                     "style": lev["style"],
                     "l1": lev["l1"],
@@ -409,8 +412,9 @@ class BeArkimet:
                     )
             else:
                 formatted_descr = lev.get("desc", None)
-            if formatted_descr not in leveltype_descriptions:
-                leveltype_descriptions.append(formatted_descr)
+            if lt_code not in leveltype_dictionary.keys():
+                leveltype_dictionary[lt_code] = formatted_descr
+        leveltype_descriptions = [x for x in leveltype_dictionary.values()]
         return leveltype_descriptions
 
     @staticmethod
