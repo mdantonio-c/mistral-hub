@@ -205,7 +205,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                   if (obj.style == "GRIB1" || obj.style == "GRIB2S") {
                     arr.push(obj.level_type);
                   } else if (obj.style == "GRIB2D") {
-                    arr.push(obj.l1 + "," + obj.l2);
+                    arr.push(obj.l1 + "-" + obj.l2);
                   }
                 });
                 // @ts-ignore
@@ -343,7 +343,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           if (obj.style == "GRIB1" || obj.style == "GRIB2S") {
             levelType = "#lt-" + obj.level_type;
           } else if (obj.style == "GRIB2D") {
-            levelType = "#lt-" + obj.l1 + "," + obj.l2;
+            levelType = "#lt-" + obj.l1 + "-" + obj.l2;
           }
           let levelTypeInput =
             this.leveltypediv.nativeElement.querySelector(levelType);
@@ -625,7 +625,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       } else if (l["style"] == "GRIB2D") {
         if (
           this.selectedLevelTypes[
-            this.levelTypes.indexOf(l["l1"] + "," + l["l2"])
+            this.levelTypes.indexOf(l["l1"] + "-" + l["l2"])
           ]
         ) {
           (level.controls.values as FormArray).controls.at(i).setValue(true);
