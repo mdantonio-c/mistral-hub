@@ -67,15 +67,15 @@ export class ArkimetService {
           "GRIB2D," +
           i.l1 +
           "," +
-          i.s1 +
+          i.scale1 +
           "," +
-          i.v1 +
+          i.value1 +
           "," +
           i.l2 +
           "," +
-          i.s2 +
+          i.scale2 +
           "," +
-          i.v2
+          i.value2
         );
       case "ODIMH5":
         return "ODIMH5,range " + i.mi + " " + i.ma;

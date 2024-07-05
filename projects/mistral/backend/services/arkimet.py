@@ -493,11 +493,11 @@ class BeArkimet:
         elif style == "GRIB2D":
             return "GRIB2D,{l1},{s1},{v1},{l2},{s2},{v2}".format(
                 l1=i.get("l1", ""),
-                s1=i.get("s1", ""),
-                v1=i.get("v1", ""),
+                s1=i.get("scale1", ""),
+                v1=i.get("value1", ""),
                 l2=i.get("l2", ""),
-                s2=i.get("s2", ""),
-                v2=i.get("v2", ""),
+                s2=i.get("scale2", ""),
+                v2=i.get("value2", ""),
             )
         elif style == "ODIMH5":
             return "ODIMH5,range {mi} {ma}".format(
