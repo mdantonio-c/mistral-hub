@@ -86,9 +86,11 @@
       <!--      <option value="" *ngIf="allLevels && allLevels.length > 0">Any</option>-->
       <!--      Case of multiple timeranges, the default is not present and no one has been selected by the user-->
       <option value=""></option>
-      <option [ngValue]="l.code" *ngFor="let l of allLevels">
-        {{ l.desc }}
-      </option>
+      <ng-container *ngIf="allProducts && allProducts.length > 0">
+        <option [ngValue]="l.code" *ngFor="let l of allLevels">
+          {{ l.desc }}
+        </option>
+      </ng-container>
     </select>
     <div class="invalid-feedback" *ngIf="!this.filterForm.get('level').value">
       select a level
@@ -109,10 +111,11 @@
 
       <!--      Case of multiple timeranges, the default is not present and no one has been selected by the user-->
       <option value=""></option>
-
-      <option [ngValue]="t.code" *ngFor="let t of allTimeranges">
-        {{ t.desc }}
-      </option>
+      <ng-container *ngIf="allProducts && allProducts.length > 0">
+        <option [ngValue]="t.code" *ngFor="let t of allTimeranges">
+          {{ t.desc }}
+        </option>
+      </ng-container>
     </select>
     <div
       class="invalid-feedback"
@@ -130,13 +133,15 @@
       <!--        >Any</option-->
       <!--      >-->
       <option value="">Any</option>
-      <option
-        [ngValue]="n.code"
-        *ngFor="let n of allNetworks"
-        title="{{ n.longdesc }}"
-      >
-        {{ n.desc }}
-      </option>
+      <ng-container *ngIf="allProducts && allProducts.length > 0">
+        <option
+          [ngValue]="n.code"
+          *ngFor="let n of allNetworks"
+          title="{{ n.longdesc }}"
+        >
+          {{ n.desc }}
+        </option>
+      </ng-container>
     </select>
   </div>
   <!-- License -->

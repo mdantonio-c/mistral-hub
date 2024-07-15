@@ -265,7 +265,7 @@ export class ObsFilterComponent implements OnInit {
               });
             } else {
               this.notify.showWarning(
-                `No data available. Try selecting a different reference date.`,
+                `No data available. Try selecting a different reference date or check the applied filters.`,
               );
               this.isUpdatable = false;
             }
