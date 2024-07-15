@@ -88,13 +88,15 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     this.loadFilters();
     window.scroll(0, 0);
     this.receiveCategory();
+    // alert useful for techincal issues of the forecast storage
+    /*
     setTimeout(() => {
       if (this.category == "FOR" && !this.isMultimodel) {
         this.notify.showWarning(
           "Due to technical issues related to maintenance of the storage components, historical forecast data are not available at the moment.",
         );
       }
-    }, 500);
+    }, 500);*/
   }
 
   private getFilterGroup(name: string, values: any): FormGroup {
