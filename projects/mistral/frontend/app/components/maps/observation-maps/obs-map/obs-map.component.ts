@@ -61,6 +61,8 @@ export class ObsMapComponent {
   private filter: ObsFilter;
   hourFrom: number;
   hourTo: number;
+  // useful to set the standard view when loading the page
+  resetView: boolean = false;
 
   constructor(
     private obsService: ObsService,
@@ -315,6 +317,8 @@ export class ObsMapComponent {
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
+    this.addResetView(this.map);
+    this.resetView = true;
   }
 
   markerClusterReady(group: L.MarkerClusterGroup) {
@@ -506,9 +510,13 @@ export class ObsMapComponent {
 
     // need to trigger resize event
     window.dispatchEvent(new Event("resize"));
-    setTimeout(() => {
-      this.fitBounds();
-    }, 0);
+    // need to remain in the previously selected map area
+    if (this.resetView) {
+      setTimeout(() => {
+        this.fitBounds();
+      }, 0);
+      this.resetView = false;
+    }
   }
 
   private openStationReport(station: Station) {
@@ -624,5 +632,37 @@ export class ObsMapComponent {
       return div;
     };
     this.legend.addTo(this.map);
+  }
+  addResetView(map: L.Map) {
+    this.map = map;
+    var self = this;
+    var button = L.Control.extend({
+      onAdd: function (map: L.Map) {
+        var container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+        var resetButton = L.DomUtil.create(
+          "a",
+          "leaflet-control-button",
+          container,
+        );
+
+        resetButton.innerHTML = '<i class="fa-solid fa-rotate-right"></i>';
+        resetButton.title = "Reset view";
+        L.DomEvent.disableClickPropagation(resetButton);
+        L.DomEvent.on(resetButton, "click", () => {
+          self.fitBounds();
+        });
+
+        return container;
+      },
+    });
+
+    var buttonOpt = function (opts: L.ControlOptions | undefined) {
+      return new button(opts);
+    };
+    let buttonItem = buttonOpt({
+      position: "topleft",
+    });
+    buttonItem.addTo(map);
+    return buttonItem;
   }
 }
