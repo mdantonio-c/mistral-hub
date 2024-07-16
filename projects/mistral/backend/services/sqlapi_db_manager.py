@@ -620,7 +620,11 @@ class SqlApiDbManager:
                 if user and not user.open_dataset:
                     continue
                 else:
-                    auth_license_groups.append(lg.name)
+                    ds_per_license_group = (
+                        SqlApiDbManager.retrieve_dataset_by_license_group(db, lg.name)
+                    )
+                    if ds_per_license_group:
+                        auth_license_groups.append(lg.name)
             else:
                 if not user:
                     # to see private dataset the user has to be logged
