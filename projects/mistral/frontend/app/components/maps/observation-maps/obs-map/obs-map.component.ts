@@ -15,7 +15,19 @@ import {
 } from "@app/types";
 import { ObsService } from "../services/obs.service";
 import { ObsStationReportComponent } from "../obs-station-report/obs-station-report.component";
-import { COLORS, obsData, VAR_TABLE } from "../services/data";
+import {
+  COLORS,
+  obsData,
+  VAR_TABLE,
+  COLORS_RH,
+  COLORS_WIND,
+  COLORS_PREC,
+  COLORS_TEMP,
+  RANGES_TEMP_LENGEND,
+  RANGES_PREC_LEGEND,
+  RANGES_WIND_LEGEND,
+  RANGES_RH_LEGEND,
+} from "../services/data";
 import { NotificationService } from "@rapydo/services/notification";
 import { NgxSpinnerService } from "ngx-spinner";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
@@ -49,7 +61,13 @@ export class ObsMapComponent {
   markerClusterOptions: L.MarkerClusterGroupOptions;
   map: L.Map;
   legend = new L.Control({ position: "bottomright" });
-
+  codeToColorList = {
+    B13003: [COLORS_RH, this.setRhColor, RANGES_RH_LEGEND],
+    B11002: [COLORS_WIND, this.setWindColor, RANGES_WIND_LEGEND],
+    B13011: [COLORS_PREC, this.setPrecColor, RANGES_PREC_LEGEND],
+    B12101: [COLORS_TEMP, this.setTempColor, RANGES_TEMP_LENGEND],
+  };
+  codeToColorListKeys = Object.keys(this.codeToColorList);
   // Set the initial set of displayed layers
   options = {
     layers: [this.streetMaps],
@@ -71,12 +89,15 @@ export class ObsMapComponent {
     private modalService: NgbModal,
   ) {
     // custom cluster options
-    let usefuldata: number[] = new Array(8).fill(0);
+    const ref = this;
     this.markerClusterOptions = {
       maxClusterRadius: 50,
       iconCreateFunction: function (cluster, srv = obsService) {
         const childCount = cluster.getChildCount();
         const childMarkers: L.Marker[] = cluster.getAllChildMarkers();
+        let productCode = childMarkers[0].options["data"]
+          ? childMarkers[0].options["data"].var
+          : undefined;
         let res: string = "" + childCount;
         let c = " marker-cluster-";
         let dirtyCluster = false;
@@ -115,10 +136,25 @@ export class ObsMapComponent {
           if (dirtyCluster) {
             reliability = 0;
           }
-          let clusterColor = srv.getColor(val, srv.min, srv.max, reliability);
+          let clusterColor: string;
+          if (ref.codeToColorListKeys.includes(productCode)) {
+            //if(productCode == 'B13003') {clusterColor = ref.setRhColor(val,reliability);}
+            clusterColor = ref.codeToColorList[productCode][1](
+              val,
+              reliability,
+            );
+          } else {
+            clusterColor = srv.getColor(val, srv.min, srv.max, reliability);
+          }
           c = " mst-marker-color-" + clusterColor;
 
-          var html = ObsMapComponent.drawTheIcon(medians, res, obsService);
+          var html = ObsMapComponent.drawTheIcon(
+            medians,
+            res,
+            obsService,
+            productCode,
+            ref,
+          );
 
           // if the cluster contains data for a single station, bind a tooltip
           let is_single_station = false;
@@ -181,41 +217,79 @@ export class ObsMapComponent {
     };
   }
 
-  static drawTheIcon(data, medianValue, srv): string {
+  static drawTheIcon(data, medianValue, srv, code = undefined, ref): string {
     let colorList = [];
     for (let i = 0; i < data.length; i++) {
-      let dataColor = srv.getColor(data[i], srv.min, srv.max);
+      let dataColor: string;
+
+      if (ref.codeToColorListKeys.includes(code)) {
+        /*if (code == 'B13003') {
+          dataColor = ref.setRhColor(data[i], 1);
+        }*/
+        dataColor = ref.codeToColorList[code][1](data[i], 1);
+      } else {
+        dataColor = srv.getColor(data[i], srv.min, srv.max);
+      }
       colorList.push(dataColor);
     }
-    let totalItems = colorList.length;
 
+    let totalItems = colorList.length;
     let segments = "";
     let prevPercentage = 0;
     let prevOffset = 0;
-
+    let colorsVectorLenght: number;
+    if (ref.codeToColorListKeys.includes(code)) {
+      /*if (code == 'B13003') {
+        colorsVectorLenght = COLORS_RH.length
+      }*/
+      colorsVectorLenght = ref.codeToColorList[code][0].length;
+    } else {
+      colorsVectorLenght = COLORS.length;
+    }
     // data preparation to manage very small percentage values
     // and preserve anomaly single values
-    let percExact: number[] = new Array(COLORS.length);
-    let percEdited: number[] = new Array(COLORS.length);
-    let zeroIndices: boolean[] = new Array(COLORS.length).fill(false);
-    let normPerc: number[] = new Array(COLORS.length).fill(-1);
-    let normPercTrunc: number[] = new Array(COLORS.length).fill(0);
-    let finallyPerc: number[] = new Array(COLORS.length).fill(2);
+    let percExact: number[] = new Array(colorsVectorLenght);
+    let percEdited: number[] = new Array(colorsVectorLenght);
+    let zeroIndices: boolean[] = new Array(colorsVectorLenght).fill(false);
+    let normPerc: number[] = new Array(colorsVectorLenght).fill(-1);
+    let normPercTrunc: number[] = new Array(colorsVectorLenght).fill(0);
+    let finallyPerc: number[] = new Array(colorsVectorLenght).fill(2);
 
-    for (let i = 0; i < COLORS.length; i++) {
-      let count = colorList.filter((x) => x == COLORS[i]).length;
+    for (let i = 0; i < colorsVectorLenght; i++) {
+      let count: number;
+      if (ref.codeToColorListKeys.includes(code)) {
+        /*     if (code == 'B13003') {
+          count = colorList.filter((x) => x == COLORS_RH[i]).length;
+        }*/
+        count = colorList.filter(
+          (x) => x == ref.codeToColorList[code][0][i],
+        ).length;
+      } else {
+        count = colorList.filter((x) => x == COLORS[i]).length;
+      }
       if (count > 0) {
         let percentage = Math.round((count / totalItems) * 100);
         if (percentage === 0) zeroIndices[i] = true;
         percExact[i] = percentage;
       }
     }
+
     const totPercExact = percExact.reduce(
       (accumulator, currentValue) => accumulator + currentValue,
       0,
     );
-    for (let i = 0; i < COLORS.length; i++) {
-      let count = colorList.filter((x) => x == COLORS[i]).length;
+    for (let i = 0; i < colorsVectorLenght; i++) {
+      let count: number;
+      if (ref.codeToColorListKeys.includes(code)) {
+        /*        if (code == 'B13003') {
+          count = colorList.filter((x) => x == COLORS_RH[i]).length;
+        }*/
+        count = colorList.filter(
+          (x) => x == ref.codeToColorList[code][0][i],
+        ).length;
+      } else {
+        count = colorList.filter((x) => x == COLORS[i]).length;
+      }
       if (count > 0) {
         let percentage = Math.round((count / totalItems) * 100);
         if (percentage === 0) percentage = 2;
@@ -228,15 +302,15 @@ export class ObsMapComponent {
     );
     const deltaPerc = totPercEdited - totPercExact;
 
-    for (let i = 0; i < COLORS.length; i++) {
+    for (let i = 0; i < colorsVectorLenght; i++) {
       if (!zeroIndices[i]) {
         normPerc[i] = (percEdited[i] / totPercExact) * deltaPerc;
       }
     }
 
     let percReduce = 0;
-    for (let j = 0; j < COLORS.length && percReduce <= deltaPerc; j++) {
-      for (let i = 0; i < COLORS.length; i++) {
+    for (let j = 0; j < colorsVectorLenght && percReduce <= deltaPerc; j++) {
+      for (let i = 0; i < colorsVectorLenght; i++) {
         if (!zeroIndices[i]) {
           if (j < i) {
             normPercTrunc[i] = Math.ceil(normPerc[i]);
@@ -251,15 +325,26 @@ export class ObsMapComponent {
       );
     }
 
-    for (let i = 0; i < COLORS.length; i++) {
+    for (let i = 0; i < colorsVectorLenght; i++) {
       if (!zeroIndices[i]) {
         finallyPerc[i] = percEdited[i] - normPercTrunc[i];
+        if (finallyPerc[i] == 0) finallyPerc[i] = 1;
       }
     }
 
     // create the different segments of the donut pie
-    for (let i = 0; i < COLORS.length; i++) {
-      let count = colorList.filter((x) => x == COLORS[i]).length;
+    for (let i = 0; i < colorsVectorLenght; i++) {
+      let count: number;
+      if (ref.codeToColorListKeys.includes(code)) {
+        /*        if (code == 'B13003') {
+          count = colorList.filter((x) => x == COLORS_RH[i]).length;
+        }*/
+        count = colorList.filter(
+          (x) => x == ref.codeToColorList[code][0][i],
+        ).length;
+      } else {
+        count = colorList.filter((x) => x == COLORS[i]).length;
+      }
       if (count > 0) {
         let percentage = finallyPerc[i];
 
@@ -280,12 +365,17 @@ export class ObsMapComponent {
         // update the previous percentage
         prevPercentage = percentage;
         //create the segment
-
+        let selectedScaleColor;
+        if (ref.codeToColorListKeys.includes(code)) {
+          selectedScaleColor = ref.codeToColorList[code][0];
+        } else {
+          selectedScaleColor = COLORS;
+        }
         let newSegment =
-          `<circle id=${COLORS[i]} class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" ` +
+          `<circle id=${selectedScaleColor[i]} class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" ` +
           //set the segment color
           'stroke="#' +
-          COLORS[i] +
+          selectedScaleColor[i] +
           '" ' +
           'stroke-width="3" ' +
           //set the dasharray
@@ -317,8 +407,8 @@ export class ObsMapComponent {
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
-    this.addResetView(this.map);
-    this.resetView = true;
+    //this.addResetView(this.map);
+    //this.resetView = true;
   }
 
   markerClusterReady(group: L.MarkerClusterGroup) {
@@ -382,6 +472,7 @@ export class ObsMapComponent {
     let min: number, max: number;
     let obsData: ObsData;
     let singleObsData: SingleObsData;
+    let selectedAMainVariable = this.codeToColorListKeys.includes(product);
     // const startTime_1 = new Date().getTime();
     if (!onlyStations) {
       // min and max needed before data marker creation
@@ -420,6 +511,20 @@ export class ObsMapComponent {
             val: obsData.val[i],
           };
           const val = singleObsData.val.val;
+          let colorClass;
+          if (selectedAMainVariable) {
+            colorClass = this.codeToColorList[product][1](
+              val,
+              obsData.val[i].rel,
+            );
+          } else {
+            colorClass = this.obsService.getColor(
+              val,
+              min,
+              max,
+              obsData.val[i].rel,
+            );
+          }
           if (!single_observation) {
             icon = L.divIcon({
               html: `<div class="mstDataIcon"><span>${ObsService.showData(
@@ -429,7 +534,9 @@ export class ObsMapComponent {
               iconSize: [24, 6],
               className:
                 "leaflet-marker-icon mst-marker-color-" +
-                this.obsService.getColor(val, min, max, obsData.val[i].rel),
+                //this.obsService.getColor(val, min, max, obsData.val[i].rel),
+                //selectedAMainVariable ? this.codeToColorList[product][1](val,obsData.val[i].rel) : this.obsService.getColor(val, min, max, obsData.val[i].rel)
+                colorClass,
             });
           } else {
             icon = L.divIcon({
@@ -440,7 +547,9 @@ export class ObsMapComponent {
               iconSize: [40, 40],
               className:
                 "leaflet-marker-icon mst-marker-color-" +
-                this.obsService.getColor(val, min, max, obsData.val[i].rel) +
+                //this.obsService.getColor(val, min, max, obsData.val[i].rel) +
+                //selectedAMainVariable ? this.codeToColorList[product][1](val,obsData.val[i].rel) : this.obsService.getColor(val, min, max, obsData.val[i].rel) +
+                colorClass +
                 " marker-cluster",
             });
           }
@@ -511,12 +620,12 @@ export class ObsMapComponent {
     // need to trigger resize event
     window.dispatchEvent(new Event("resize"));
     // need to remain in the previously selected map area
-    if (this.resetView) {
+    /*    if (this.resetView) {
       setTimeout(() => {
         this.fitBounds();
       }, 0);
       this.resetView = false;
-    }
+    }*/
   }
 
   private openStationReport(station: Station) {
@@ -593,15 +702,25 @@ export class ObsMapComponent {
 
   private buildLegend(product: string, min: number, max: number) {
     let srv = this.obsService;
+    const ref = this;
     this.legend.onAdd = function (map, service = srv) {
       console.log(
         `add legend for product ${product} (${min.toFixed(2)}, ${max.toFixed(
           2,
         )})`,
       );
+
       let div = L.DomUtil.create("div", "info mst-legend");
-      let halfDelta = (max - min) / (COLORS.length * 2);
       let bcode = VAR_TABLE.find((x) => x.bcode === product);
+      let colorVectorLength: number;
+      if (ref.codeToColorListKeys.includes(product)) {
+        colorVectorLength = ref.codeToColorList[product][0].length;
+      } else {
+        colorVectorLength = COLORS.length;
+      }
+
+      //let halfDelta = (max - min) / (COLORS.length * 2);
+      let halfDelta = (max - min) / (colorVectorLength * 2);
       let title = product,
         scale = 1,
         offset = 0,
@@ -617,16 +736,142 @@ export class ObsMapComponent {
 
       div.innerHTML += `<h6>${title} [${userunit}]</h6>`;
       let legendTemp = "";
-      for (let i = 0; i < COLORS.length; i++) {
-        let grade = min + halfDelta * (i * 2 + 1);
+      //for (let i = 0; i < COLORS.length; i++) {
+      if (ref.codeToColorListKeys.includes(product)) {
+        /*let backgroundColor=[];
+      for (let i = 0; i <= colorVectorLength; i++) {
+        let grade = min + halfDelta * (i * 2);
+        let value = grade*scale+offset;
+
+        backgroundColor.push(ref.codeToColorList[product][1](grade,1));
+
+        if(i!==0) {
+          if (backgroundColor[i - 1] == ref.codeToColorList[product][1](grade, 1)) {
+            continue;
+          }
+        }
+        //let displayValue = ref.getDisplayValue(value,min,max,colorVectorLength);//(halfDelta*2<1) ? value.toFixed(1): Math.floor(grade*scale+offset);
+        let displayValue = Math.floor(value);
+        //if((max-min)<1) {displayValue=value.toFixed(2)};
         legendTemp =
           '<i style="background:#' +
-          service.getColor(grade, min, max) +
+          //service.getColor(grade, min, max) +
+            ref.codeToColorList[product][1](grade,1)+
           '"></i><span>' +
           // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
-          Math.floor(grade * scale + offset) +
+          //Math.floor(grade * scale + offset) +
+            displayValue+
           "</span><br>" +
-          legendTemp;
+          legendTemp;*/
+        let displayValue = "";
+        for (let i = 0; i < colorVectorLength; i++) {
+          if (product == "B12101") {
+            displayValue =
+              (ref.codeToColorList[product][2][i][0] + offset).toString() +
+              " - " +
+              (ref.codeToColorList[product][2][i][1] + offset).toString();
+            if (i == 0)
+              displayValue =
+                "< " +
+                (ref.codeToColorList[product][2][i][0] + offset).toString();
+            if (i == colorVectorLength - 1)
+              displayValue =
+                "> " +
+                (ref.codeToColorList[product][2][i][0] + offset).toString();
+            legendTemp =
+              '<i style="background:#' +
+              //service.getColor(grade, min, max) +
+              ref.codeToColorList[product][0][i] +
+              '"></i><span>' +
+              displayValue +
+              // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
+              //Math.floor(grade * scale + offset) +
+              "</span><br>" +
+              legendTemp;
+          } else if (product == "B13011") {
+            if (i != colorVectorLength - 1) {
+              displayValue =
+                ref.codeToColorList[product][2][i][0].toString() +
+                " - " +
+                ref.codeToColorList[product][2][i][1].toString();
+            } else {
+              displayValue =
+                "> " + ref.codeToColorList[product][2][i][0].toString();
+            }
+            legendTemp =
+              '<i style="background:#' +
+              //service.getColor(grade, min, max) +
+              ref.codeToColorList[product][0][i] +
+              '"></i><span>' +
+              displayValue +
+              // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
+              //Math.floor(grade * scale + offset) +
+              "</span><br>" +
+              legendTemp;
+          } else if (product == "B11002") {
+            if (i != colorVectorLength - 1) {
+              displayValue =
+                ref.codeToColorList[product][2][i][0].toString() +
+                " - " +
+                ref.codeToColorList[product][2][i][1].toString();
+            } else {
+              displayValue =
+                "> " + ref.codeToColorList[product][2][i][0].toString();
+            }
+            legendTemp =
+              '<i style="background:#' +
+              //service.getColor(grade, min, max) +
+              ref.codeToColorList[product][0][i] +
+              '"></i><span>' +
+              displayValue +
+              // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
+              //Math.floor(grade * scale + offset) +
+              "</span><br>" +
+              legendTemp;
+          } else if (product == "B13003") {
+            if (i != colorVectorLength - 1) {
+              displayValue =
+                ref.codeToColorList[product][2][i][0].toString() +
+                " - " +
+                ref.codeToColorList[product][2][i][1].toString();
+            } else {
+              displayValue = ref.codeToColorList[product][2][i][0].toString();
+            }
+            legendTemp =
+              '<i style="background:#' +
+              //service.getColor(grade, min, max) +
+              ref.codeToColorList[product][0][i] +
+              '"></i><span>' +
+              displayValue +
+              // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
+              //Math.floor(grade * scale + offset) +
+              "</span><br>" +
+              legendTemp;
+          }
+        }
+      } else {
+        for (let i = 0; i < colorVectorLength; i++) {
+          let grade = min + halfDelta * (i * 2 + 1);
+          let value = grade * scale + offset;
+          let displayValue = ref.getDisplayValue(
+            value,
+            min,
+            max,
+            colorVectorLength,
+          );
+          //= (halfDelta*2<1) ? value.toFixed(1): Math.floor(grade*scale+offset);
+          //if((max-min)<1) {displayValue=value.toFixed(2)};
+
+          legendTemp =
+            '<i style="background:#' +
+            service.getColor(grade, min, max) +
+            '"></i><span>' +
+            // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
+            //Math.floor(grade * scale + offset) +
+            displayValue +
+            "</span><br>" +
+            legendTemp;
+        }
       }
       div.innerHTML += legendTemp;
       return div;
@@ -671,84 +916,48 @@ export class ObsMapComponent {
     if (rel == 0) {
       return "undefined";
     } else {
-      if (val >= 319.15) {
-        color = "#ff9900";
-      } else if (val >= 317.15 && val < 319.15) {
-        color = "#ffcc00";
-      } else if (val >= 315.15 && val < 317.15) {
-        color = "#7200ff";
-      } else if (val >= 313.15 && val < 315.15) {
-        color = "#bf00ff";
-      } else if (val >= 311.15 && val < 313.15) {
-        color = "#ff00ff";
-      } else if (val >= 309.15 && val < 311.15) {
-        color = "#cc00cc";
-      } else if (val >= 307.15 && val < 309.15) {
-        color = "#990099";
-      } else if (val >= 305.15 && val < 307.15) {
-        color = "#660066";
-      } else if (val >= 303.15 && val < 305.15) {
-        color = "#660000";
-      } else if (val >= 301.15 && val < 303.15) {
-        color = "#990000";
-      } else if (val >= 299.15 && val < 301.15) {
-        color = "#cc0000";
-      } else if (val >= 297.15 && val < 299.15) {
-        color = "#ff0000";
-      } else if (val >= 295.15 && val < 297.15) {
-        color = "#ff6600";
-      } else if (val >= 293.15 && val < 295.15) {
-        color = "#ff9900";
-      } else if (val >= 291.15 && val < 293.15) {
-        color = "#ffcc00";
-      } else if (val >= 289.15 && val < 291.16) {
-        color = "#ffff00";
-      } else if (val >= 287.15 && val < 289.15) {
-        color = "#cce500";
-      } else if (val >= 285.15 && val < 287.15) {
-        color = "#7fcc00";
-      } else if (val >= 283.15 && val < 285.15) {
-        color = "#00b200";
-      } else if (val >= 281.15 && val < 283.15) {
-        color = "#00cc7f";
-      } else if (val >= 279.15 && val < 281.15) {
-        color = "#00e5cc";
-      } else if (val >= 277.15 && val < 279.15) {
-        color = "#00ffff";
-      } else if (val >= 275.15 && val < 277.15) {
-        color = "#00bfff";
+      if (val < 263.15) {
+        color = "1e4bff";
+      } else if (val >= 263.15 && val < 268.15) {
+        color = "1e56ff";
+      } else if (val >= 268.15 && val < 273.15) {
+        color = "1e78ff";
       } else if (val >= 273.15 && val < 275.15) {
-        color = "#008cff";
-      } else if (val >= 271.15 && val < 273.15) {
-        color = "#0059ff";
-      } else if (val >= 269.15 && val < 271.15) {
-        color = "#0000ff";
-      } else if (val >= 267.15 && val < 269.15) {
-        color = "#7200ff";
-      } else if (val >= 265.15 && val < 267.15) {
-        color = "#bf00ff";
-      } else if (val >= 263.15 && val < 265.15) {
-        color = "#ff00ff";
-      } else if (val >= 261.15 && val < 263.15) {
-        color = "#cc00cc";
-      } else if (val >= 259.15 && val < 261.15) {
-        color = "#990099";
-      } else if (val >= 257.15 && val < 259.15) {
-        color = "#660066";
-      } else if (val >= 255.15 && val < 257.15) {
-        color = "#660000";
-      } else if (val >= 253.15 && val < 255.15) {
-        color = "#990000";
-      } else if (val >= 251.15 && val < 253.15) {
-        color = "#cc0000";
-      } else if (val >= 249.15 && val < 251.15) {
-        color = "#ff0000";
-      } else if (val >= 247.15 && val < 249.15) {
-        color = "#ff6600";
-      } else if (val >= 245.15 && val < 247.15) {
-        color = "#ff9900";
-      } else if (val >= 243.15 && val < 245.15) {
-        color = "#ffcc00";
+        color = "1e9eff";
+      } else if (val >= 275.15 && val < 277.15) {
+        color = "1ecbff";
+      } else if (val >= 277.15 && val < 279.15) {
+        color = "1ee1ff";
+      } else if (val >= 279.15 && val < 281.15) {
+        color = "1effff";
+      } else if (val >= 281.15 && val < 283.15) {
+        color = "1effce";
+      } else if (val >= 283.15 && val < 285.15) {
+        color = "1eff9a";
+      } else if (val >= 285.15 && val < 287.15) {
+        color = "1eff43";
+      } else if (val >= 287.15 && val < 289.15) {
+        color = "78ff1e";
+      } else if (val >= 289.15 && val < 291.15) {
+        color = "9eff1e";
+      } else if (val >= 291.15 && val < 293.15) {
+        color = "d6ff1e";
+      } else if (val >= 293.15 && val < 295.15) {
+        color = "f4ff1e";
+      } else if (val >= 295.15 && val < 297.15) {
+        color = "ffec1e";
+      } else if (val >= 297.15 && val < 299.15) {
+        color = "ffce1e";
+      } else if (val >= 299.15 && val < 301.15) {
+        color = "ffb01e";
+      } else if (val >= 301.15 && val < 303.15) {
+        color = "ff9a1e";
+      } else if (val >= 303.15 && val < 308.15) {
+        color = "ff741e";
+      } else if (val >= 308.15 && val < 313.15) {
+        color = "ff4d1e";
+      } else if (val >= 313.15) {
+        color = "ff261e";
       }
       return color;
     }
@@ -759,41 +968,41 @@ export class ObsMapComponent {
       return "undefined";
     } else {
       if (val >= 300) {
-        color = "#4897D9";
+        color = "4897D9";
       } else if (val >= 200 && val < 300) {
-        color = "#A2A4D6";
+        color = "A2A4D6";
       } else if (val >= 100 && val < 200) {
-        color = "#B887C0";
+        color = "B887C0";
       } else if (val >= 75 && val < 100) {
-        color = "#D6A1CC";
+        color = "D6A1CC";
       } else if (val >= 50 && val < 75) {
-        color = "#E7BDDA";
+        color = "E7BDDA";
       } else if (val >= 40 && val < 50) {
-        color = "#E57D9A";
+        color = "E57D9A";
       } else if (val >= 30 && val < 40) {
-        color = "#DA4C4D";
+        color = "DA4C4D";
       } else if (val >= 25 && val < 30) {
-        color = "#EE5A5C";
+        color = "EE5A5C";
       } else if (val >= 20 && val < 25) {
-        color = "#F6A15C";
+        color = "F6A15C";
       } else if (val >= 15 && val < 20) {
-        color = "#FCD48E";
+        color = "FCD48E";
       } else if (val >= 10 && val < 15) {
-        color = "#FFE073";
+        color = "FFE073";
       } else if (val >= 8 && val < 10) {
-        color = "#FDFD81";
+        color = "FDFD81";
       } else if (val >= 6 && val < 8) {
-        color = "#FFFFC6";
+        color = "FFFFC6";
       } else if (val >= 5 && val < 6) {
-        color = "#F2F2A0";
+        color = "F2F2A0";
       } else if (val >= 4 && val < 5) {
-        color = "#D2EBA3";
+        color = "D2EBA3";
       } else if (val >= 3 && val < 4) {
-        color = "#C2E5D7";
+        color = "C2E5D7";
       } else if (val >= 2 && val < 3) {
-        color = "#C7E7EF";
+        color = "C7E7EF";
       } else if (val >= 0 && val < 2) {
-        color = "#CFEAF6";
+        color = "CFEAF6";
       }
       return color;
     }
@@ -804,17 +1013,17 @@ export class ObsMapComponent {
       return "undefined";
     } else {
       if (val >= 100) {
-        color = "#1000FD";
+        color = "1000FD";
       } else if (val >= 80 && val < 100) {
-        color = "#21FEFF";
+        color = "21FEFF";
       } else if (val >= 60 && val < 80) {
-        color = "#19FF24";
+        color = "19FF24";
       } else if (val >= 40 && val < 60) {
-        color = "#FEFF27";
+        color = "FEFF27";
       } else if (val >= 20 && val < 40) {
-        color = "#FE8A12";
+        color = "FE8A12";
       } else if (val >= 0 && val < 20) {
-        color = "#FD1506";
+        color = "FD1506";
       }
       return color;
     }
@@ -825,23 +1034,47 @@ export class ObsMapComponent {
       return "undefined";
     } else {
       if (val >= 70) {
-        color = "#9600FE";
+        color = "9600FE";
       } else if (val >= 50 && val < 70) {
-        color = "#EE82EE";
+        color = "EE82EE";
       } else if (val >= 30 && val < 50) {
-        color = "#FF0000";
+        color = "FF0000";
       } else if (val >= 20 && val < 30) {
-        color = "#FFFF00";
+        color = "FFFF00";
       } else if (val >= 10 && val < 20) {
-        color = "#FFA600";
+        color = "FFA600";
       } else if (val >= 5 && val < 10) {
-        color = "#0000FE";
+        color = "0000FE";
       } else if (val >= 2 && val < 5) {
-        color = "#54878C";
+        color = "54878C";
       } else if (val >= 0 && val < 2) {
-        color = "#457D00";
+        color = "457D00";
       }
       return color;
     }
+  }
+  getDisplayValue(value, min, max, vectorlen) {
+    const range = max - min;
+    let decimalPlaces;
+
+    if (range < 0.0001) {
+      decimalPlaces = 6;
+    } else if (range < 0.001) {
+      decimalPlaces = 5;
+    } else if (range < 0.01) {
+      decimalPlaces = 4;
+    } else if (range < 0.1) {
+      decimalPlaces = 3;
+    } else if (range < 1) {
+      decimalPlaces = 2;
+    } else {
+      if (vectorlen > range) {
+        decimalPlaces = 1;
+      } else {
+        decimalPlaces = 0;
+      }
+    }
+
+    return value.toFixed(decimalPlaces);
   }
 }
