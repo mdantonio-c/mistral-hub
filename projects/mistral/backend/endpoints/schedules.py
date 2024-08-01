@@ -139,6 +139,7 @@ class GCProcessor(Schema):
         CropBoundings, metadata={"description": "boundings of the cropped grid"}
     )
     sub_type = fields.Str(required=True, validate=validate.OneOf(["coord", "bbox"]))
+    trans_type = fields.Str(required=False, validate=validate.OneOf(["zoom"]))
 
 
 class InterpolBoundings(Schema):
