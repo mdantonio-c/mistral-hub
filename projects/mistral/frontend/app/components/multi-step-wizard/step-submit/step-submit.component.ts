@@ -67,12 +67,17 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
     this.initial_format = this.formData.output_format;
     this.isFormValid = this.formDataService.isFormValid();
     this.spinner.show("summary-spinner");
+    this.receiveCategory();
     this.formDataService
       .getSummaryStats()
       .subscribe(
         (response) => {
           this.summaryStats = response;
           this.isJsonFormat();
+          if (this.formData.postprocessors.length != 0 && this.onlyOBS()) {
+            // do not consider the size
+            this.summaryStats.s = null;
+          }
           if (this.summaryStats.c === 0) {
             this.notify.showWarning(
               "The applied filter do not produce any result. " +
@@ -141,10 +146,10 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
       .add(() => {
         this.spinner.hide();
       });
-    this.receiveCategory();
   }
   checkDataReady() {
-    let dataReadyDatasets = environment.CUSTOM.ON_DATA_READY_DATASETS.split(",");
+    let dataReadyDatasets =
+      environment.CUSTOM.ON_DATA_READY_DATASETS.split(",");
     let requestedDatasets = this.formData.datasets.map((x) => x.id);
     if (
       requestedDatasets.length == 1 &&

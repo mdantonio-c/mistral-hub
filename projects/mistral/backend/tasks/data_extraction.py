@@ -186,7 +186,8 @@ def data_extract(
         log.debug("outfile: {}", outfile)
 
         # the estimation of data size can be skipped
-        # when pushing data output to amqp queue
+        # when pushing data output to amqp queue.
+        # In a future size estimation may be implemented for multim-forecast dataset data as well.
         if data_type != "OBS" and "multim-forecast" not in datasets:
             esti_data_size = check_user_quota(
                 user_id,
@@ -197,8 +198,11 @@ def data_extract(
                 schedule_id=schedule_id,
                 opendata=opendata,
             )
-        # in a future size estimation may be implemented for multim-forecast dataset data as well
-        elif data_type == "OBS" and not force_obs_download:
+
+        # In case of postprocessing, we skip size estimation for observed data:
+        # this allows users to aggregate precipitation data, which might otherwise be too large to download and exceed
+        # the quota.
+        elif data_type == "OBS" and not postprocessors and not force_obs_download:
             esti_obs_data_size = None
 
             try:

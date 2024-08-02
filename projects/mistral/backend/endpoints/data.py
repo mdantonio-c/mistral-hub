@@ -451,7 +451,7 @@ class Data(EndpointResource, Uploader):
                 )
 
         # In a future size estimation may be implemented for multim-forecast dataset data as well
-        if data_type == "OBS" and not force_obs_download:
+        if data_type == "OBS" and not postprocessors and not force_obs_download:
             esti_obs_data_size = None
 
             try:
