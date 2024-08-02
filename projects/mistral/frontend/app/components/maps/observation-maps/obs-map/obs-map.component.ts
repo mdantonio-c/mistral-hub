@@ -61,11 +61,13 @@ export class ObsMapComponent {
   markerClusterOptions: L.MarkerClusterGroupOptions;
   map: L.Map;
   legend = new L.Control({ position: "bottomright" });
+  // main variables require a fixed colors and legend
+  // dictionary={ key=bcode, value=[color vector, routine color, legend text] }
   codeToColorList = {
-    B13003: [COLORS_RH, this.setRhColor, RANGES_RH_LEGEND],
-    B11002: [COLORS_WIND, this.setWindColor, RANGES_WIND_LEGEND],
-    B13011: [COLORS_PREC, this.setPrecColor, RANGES_PREC_LEGEND],
-    B12101: [COLORS_TEMP, this.setTempColor, RANGES_TEMP_LENGEND],
+    B13003: [COLORS_RH, this.setRhColor, RANGES_RH_LEGEND], //relative humidity
+    B11002: [COLORS_WIND, this.setWindColor, RANGES_WIND_LEGEND], // wind speed
+    B13011: [COLORS_PREC, this.setPrecColor, RANGES_PREC_LEGEND], // total precipitation
+    B12101: [COLORS_TEMP, this.setTempColor, RANGES_TEMP_LENGEND], // temperature
   };
   codeToColorListKeys = Object.keys(this.codeToColorList);
   // Set the initial set of displayed layers
