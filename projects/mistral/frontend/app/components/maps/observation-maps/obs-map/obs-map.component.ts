@@ -409,8 +409,6 @@ export class ObsMapComponent {
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
-    //this.addResetView(this.map);
-    //this.resetView = true;
   }
 
   markerClusterReady(group: L.MarkerClusterGroup) {
@@ -534,11 +532,7 @@ export class ObsMapComponent {
                 product,
               )}</span></div>`,
               iconSize: [24, 6],
-              className:
-                "leaflet-marker-icon mst-marker-color-" +
-                //this.obsService.getColor(val, min, max, obsData.val[i].rel),
-                //selectedAMainVariable ? this.codeToColorList[product][1](val,obsData.val[i].rel) : this.obsService.getColor(val, min, max, obsData.val[i].rel)
-                colorClass,
+              className: "leaflet-marker-icon mst-marker-color-" + colorClass,
             });
           } else {
             icon = L.divIcon({
@@ -549,8 +543,6 @@ export class ObsMapComponent {
               iconSize: [40, 40],
               className:
                 "leaflet-marker-icon mst-marker-color-" +
-                //this.obsService.getColor(val, min, max, obsData.val[i].rel) +
-                //selectedAMainVariable ? this.codeToColorList[product][1](val,obsData.val[i].rel) : this.obsService.getColor(val, min, max, obsData.val[i].rel) +
                 colorClass +
                 " marker-cluster",
             });
@@ -621,13 +613,6 @@ export class ObsMapComponent {
 
     // need to trigger resize event
     window.dispatchEvent(new Event("resize"));
-    // need to remain in the previously selected map area
-    /*    if (this.resetView) {
-      setTimeout(() => {
-        this.fitBounds();
-      }, 0);
-      this.resetView = false;
-    }*/
   }
 
   private openStationReport(station: Station) {
@@ -738,33 +723,7 @@ export class ObsMapComponent {
 
       div.innerHTML += `<h6>${title} [${userunit}]</h6>`;
       let legendTemp = "";
-      //for (let i = 0; i < COLORS.length; i++) {
       if (ref.codeToColorListKeys.includes(product)) {
-        /*let backgroundColor=[];
-      for (let i = 0; i <= colorVectorLength; i++) {
-        let grade = min + halfDelta * (i * 2);
-        let value = grade*scale+offset;
-
-        backgroundColor.push(ref.codeToColorList[product][1](grade,1));
-
-        if(i!==0) {
-          if (backgroundColor[i - 1] == ref.codeToColorList[product][1](grade, 1)) {
-            continue;
-          }
-        }
-        //let displayValue = ref.getDisplayValue(value,min,max,colorVectorLength);//(halfDelta*2<1) ? value.toFixed(1): Math.floor(grade*scale+offset);
-        let displayValue = Math.floor(value);
-        //if((max-min)<1) {displayValue=value.toFixed(2)};
-        legendTemp =
-          '<i style="background:#' +
-          //service.getColor(grade, min, max) +
-            ref.codeToColorList[product][1](grade,1)+
-          '"></i><span>' +
-          // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
-          //Math.floor(grade * scale + offset) +
-            displayValue+
-          "</span><br>" +
-          legendTemp;*/
         let displayValue = "";
         for (let i = 0; i < colorVectorLength; i++) {
           if (product == "B12101") {
@@ -782,12 +741,9 @@ export class ObsMapComponent {
                 (ref.codeToColorList[product][2][i][0] + offset).toString();
             legendTemp =
               '<i style="background:#' +
-              //service.getColor(grade, min, max) +
               ref.codeToColorList[product][0][i] +
               '"></i><span>' +
               displayValue +
-              // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
-              //Math.floor(grade * scale + offset) +
               "</span><br>" +
               legendTemp;
           } else if (product == "B13011") {
@@ -802,12 +758,9 @@ export class ObsMapComponent {
             }
             legendTemp =
               '<i style="background:#' +
-              //service.getColor(grade, min, max) +
               ref.codeToColorList[product][0][i] +
               '"></i><span>' +
               displayValue +
-              // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
-              //Math.floor(grade * scale + offset) +
               "</span><br>" +
               legendTemp;
           } else if (product == "B11002") {
@@ -822,12 +775,9 @@ export class ObsMapComponent {
             }
             legendTemp =
               '<i style="background:#' +
-              //service.getColor(grade, min, max) +
               ref.codeToColorList[product][0][i] +
               '"></i><span>' +
               displayValue +
-              // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
-              //Math.floor(grade * scale + offset) +
               "</span><br>" +
               legendTemp;
           } else if (product == "B13003") {
@@ -841,12 +791,9 @@ export class ObsMapComponent {
             }
             legendTemp =
               '<i style="background:#' +
-              //service.getColor(grade, min, max) +
               ref.codeToColorList[product][0][i] +
               '"></i><span>' +
               displayValue +
-              // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
-              //Math.floor(grade * scale + offset) +
               "</span><br>" +
               legendTemp;
           }
@@ -861,15 +808,11 @@ export class ObsMapComponent {
             max,
             colorVectorLength,
           );
-          //= (halfDelta*2<1) ? value.toFixed(1): Math.floor(grade*scale+offset);
-          //if((max-min)<1) {displayValue=value.toFixed(2)};
 
           legendTemp =
             '<i style="background:#' +
             service.getColor(grade, min, max) +
             '"></i><span>' +
-            // (grade*scale+offset).toPrecision(5).replace(/\.?0+$/,"")
-            //Math.floor(grade * scale + offset) +
             displayValue +
             "</span><br>" +
             legendTemp;
