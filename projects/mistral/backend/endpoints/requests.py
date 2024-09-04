@@ -121,7 +121,7 @@ class UserRequests(EndpointResource):
             raise Unauthorized("This request doesn't come from the request's owner")
 
         # check if the request is pending (i.e. status is not a READY_STATE)
-        if repo.check_request_is_pending(db, request_id=request_id):
+        if repo.check_request_is_pending_within_grace_period(db, request_id=request_id):
             raise Forbidden("You cannot archive a pending request")
 
         # delete request and fileoutput entry from database.
