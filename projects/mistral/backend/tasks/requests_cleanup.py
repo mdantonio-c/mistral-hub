@@ -27,8 +27,21 @@ def automatic_cleanup(self: Task[[], str]) -> str:
             users[u.id] = u
 
     now = datetime.now()
-    requests = db.Request.query.all()
-    for r in requests:
+
+    # Retrieve all request IDs in order to iterate over them.
+    request_ids = (r_id for r_id, in db.session.query(db.Request.id).all())
+
+    for r_id in request_ids:
+        # The request object is retrieved at the beginning of each iteration using the ID.
+        # This is necessary because commits made during the iteration may detach request objects
+        # from the actual rows in the database.
+        r = db.session.query(db.Request).get(r_id)
+
+        if r is None:
+            log.warning(
+                f"Request with id '{r_id}' no longer exists, skipping to next request."
+            )
+            continue
 
         if not r.end_date:
             log.info("{} not completed yet?", r.id)
