@@ -64,7 +64,9 @@ services:
       args:
         CURRENT_UID: ${CURRENT_UID}
         CURRENT_GID: ${CURRENT_GID}
-    image: meteohub/nifi:${RAPYDO_VERSION}
+    #legacy image until issue #410 is not solved
+    image: meteohub/nifi-legacy:${RAPYDO_VERSION}
+    #image: meteohub/nifi:${RAPYDO_VERSION}
     restart: always
     volumes:
       - ${PROJECT_DIR}/nifi/scripts:/home/nifi/ingest
