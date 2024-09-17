@@ -1,0 +1,8 @@
+location = /weather/ {
+  return 301 /weather/ICON_2I;
+}
+
+location /weather/ICON_2I {
+   alias /grib_extraction/;
+   autoindex on;
+}
