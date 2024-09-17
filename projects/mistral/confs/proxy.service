@@ -1,4 +1,4 @@
-location = /weather/ {
+location ~ /weather/?$ {
   return 301 /weather/ICON_2I;
 }
 
