@@ -168,12 +168,22 @@
                 >
                   {{ ds.name }}
                 </h5>
-                <small
-                  ><i
-                    class="fas fa-share-from-square clickable"
-                    (click)="openDataset(ds)"
-                  ></i
-                ></small>
+                <span>
+                  <small
+                    *ngIf="ds.id === 'ICON_2I_all2km'"
+                    style="padding-right: 8px"
+                    ><i
+                      class="fa-solid fa-folder-tree clickable"
+                      (click)="openFileBrowsing()"
+                    ></i
+                  ></small>
+                  <small
+                    ><i
+                      class="fas fa-share-from-square clickable"
+                      (click)="openDataset(ds)"
+                    ></i
+                  ></small>
+                </span>
                 <!--
                 <small
                   ><i
