@@ -174,12 +174,16 @@
                     style="padding-right: 8px"
                     ><i
                       class="fa-solid fa-folder-tree clickable"
+                      placement="bottom-end"
+                      [ngbTooltip]="'Browse single variable files'"
                       (click)="openFileBrowsing()"
                     ></i
                   ></small>
                   <small
                     ><i
-                      class="fas fa-share-from-square clickable"
+                      class="fa-solid fa-download clickable"
+                      placement="bottom-end"
+                      [ngbTooltip]="'Download data bundle'"
                       (click)="openDataset(ds)"
                     ></i
                   ></small>
