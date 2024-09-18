@@ -182,7 +182,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
 
   get filteredDatasets() {
     if (!this.searchTerm.trim()) {
-      return this.datasets; // Se la barra di ricerca è vuota, mostra tutti i dataset
+      return this.datasets;
     }
 
     return this.datasets.filter((ds) =>
