@@ -119,13 +119,13 @@
           </button>
         </div>
       </h3>
+      <input
+        type="text"
+        placeholder="Search for dataset..."
+        [(ngModel)]="searchTerm"
+        class="form-control mb-3"
+      />
       <div *ngIf="!loading && datasets.length" class="scrollDiv py-1">
-        <input
-          type="text"
-          placeholder="Search for dataset..."
-          [(ngModel)]="searchTerm"
-          class="form-control mb-3"
-        />
         <div *ngFor="let ds of filteredDatasets" class="row g-0 ds-item">
           <div
             class="col container-checkbox"
