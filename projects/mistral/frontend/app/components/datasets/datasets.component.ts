@@ -17,7 +17,7 @@ import { DataService } from "../../services/data.service";
 import { User } from "@rapydo/types";
 import { ObsMapComponent } from "../maps/observation-maps/obs-map/obs-map.component";
 import { NgbAccordion } from "@ng-bootstrap/ng-bootstrap";
-
+import { FormsModule } from "@angular/forms";
 @Component({
   selector: "app-datasets",
   templateUrl: "./datasets.component.html",
@@ -33,6 +33,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   typesData: string[] = [];
   licensesData: string[] = [];
   attributionsData: string[] = [];
+  searchTerm: string = "";
 
   private _datasets: Dataset[] = [];
   user: User;
@@ -177,5 +178,15 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   // @ts-ignore
   get attributionsFormArray() {
     return this.filterForm.controls.attributions as FormArray;
+  }
+
+  get filteredDatasets() {
+    if (!this.searchTerm.trim()) {
+      return this.datasets; // Se la barra di ricerca è vuota, mostra tutti i dataset
+    }
+
+    return this.datasets.filter((ds) =>
+      ds.name.toLowerCase().includes(this.searchTerm.toLowerCase()),
+    );
   }
 }
