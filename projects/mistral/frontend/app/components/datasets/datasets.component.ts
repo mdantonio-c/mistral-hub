@@ -17,7 +17,7 @@ import { DataService } from "../../services/data.service";
 import { User } from "@rapydo/types";
 import { ObsMapComponent } from "../maps/observation-maps/obs-map/obs-map.component";
 import { NgbAccordion } from "@ng-bootstrap/ng-bootstrap";
-import { FormsModule } from "@angular/forms";
+
 @Component({
   selector: "app-datasets",
   templateUrl: "./datasets.component.html",
