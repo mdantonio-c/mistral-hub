@@ -185,35 +185,39 @@ def data_extract(
         outfile = output_dir.joinpath(output_file_name)
         log.debug("outfile: {}", outfile)
 
-        # the estimation of data size can be skipped
-        # when pushing data output to amqp queue.
-        # In a future size estimation may be implemented for multim-forecast dataset data as well.
-        if data_type != "OBS" and "multim-forecast" not in datasets:
-            esti_data_size = check_user_quota(
-                user_id,
-                output_dir,
-                db,
-                datasets=datasets,
-                query=query,
-                schedule_id=schedule_id,
-                opendata=opendata,
-            )
-
-        # In case of postprocessing, we skip size estimation for observed data:
-        # this allows users to aggregate precipitation data, which might otherwise be too large to download and exceed
-        # the quota.
-        elif data_type == "OBS" and not postprocessors and not force_obs_download:
-            esti_obs_data_size = None
-
-            try:
-                esti_obs_data_size = data.get_observed_data_size_count(
-                    reftime, datasets, filters, license_group, output_format
+        # When postprocessing is involved, we skip the prior size estimation step.
+        # This is necessary because postprocessing can reduce the actual data size,
+        # whereas a prior size estimation could block the download due to an overestimated size.
+        esti_data_size = None
+        if not postprocessors:
+            # the estimation of data size can be skipped
+            # when pushing data output to amqp queue.
+            # In a future size estimation may be implemented for multim-forecast dataset data as well.
+            if data_type != "OBS" and "multim-forecast" not in datasets:
+                esti_data_size = check_user_quota(
+                    user_id,
+                    output_dir,
+                    db,
+                    datasets=datasets,
+                    query=query,
+                    schedule_id=schedule_id,
+                    opendata=opendata,
                 )
-            except Exception as e:
-                log.warning(f"Unable to get summary stats: {e}")
 
-            if esti_obs_data_size:
-                data.check_user_quota_for_observed_data(user_id, db, esti_obs_data_size)
+            elif data_type == "OBS" and not force_obs_download:
+                esti_obs_data_size = None
+
+                try:
+                    esti_obs_data_size = data.get_observed_data_size_count(
+                        reftime, datasets, filters, license_group, output_format
+                    )
+                except Exception as e:
+                    log.warning(f"Unable to get summary stats: {e}")
+
+                if esti_obs_data_size:
+                    data.check_user_quota_for_observed_data(
+                        user_id, db, esti_obs_data_size
+                    )
 
         # ########################################## #
         # ##### EXTRACTION FROM ARKIMET/DBALLE ##### #
@@ -337,16 +341,25 @@ def data_extract(
         # get the actual data size
         data_size = output_dir.joinpath(output_file_name).stat().st_size
         log.debug(f"Actual resulting data size: {data_size}")
-        if data_type != "OBS" and "multim-forecast" not in datasets:
+
+        # If no post-processing option was selected in the request,
+        # the data size check and any restrictions were performed beforehand,
+        # with a precise size calculation for forecasting data (for datasets other than "multim-forecast").
+        if (
+            not postprocessors
+            and data_type != "OBS"
+            and "multim-forecast" not in datasets
+        ):
             if data_size > esti_data_size:
                 log.warning(
                     "Actual resulting data exceeds estimation of {}",
                     human_size(data_size - esti_data_size),
                 )
         else:
-            # check if the user space is not exceeded:
-            # for the observations we can't calculate the esti_data_size
-            # so this check is done after the extraction
+            # If post-processing was applied,
+            # or if the previous data size calculation was an estimate (as is the case for observational data),
+            # a new check is performed to ensure the file does not exceed the user's quota.
+
             # delete the tmp files before checking the user quota
             if not opendata:
                 for f in output_dir.glob("*.tmp"):
