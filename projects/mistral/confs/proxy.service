@@ -1,8 +1,8 @@
-location ~ /weather/?$ {
-  return 301 /weather/ICON_2I;
+location ~ /nwp/?$ {
+  return 301 /nwp/ICON-2I_all2km;
 }
 
-location /weather/ICON_2I {
+location /nwp/ICON-2I_all2km {
    alias /grib_extraction/;
    autoindex on;
 }

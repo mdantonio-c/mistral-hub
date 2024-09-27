@@ -166,7 +166,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   }
 
   openFileBrowsing() {
-    window.open(`${environment.backendURI}/weather`, "_blank");
+    window.open(`${environment.backendURI}/nwp`, "_blank");
   }
 
   // @ts-ignore
