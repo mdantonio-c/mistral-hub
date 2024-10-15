@@ -185,8 +185,10 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
       return this.datasets;
     }
 
-    return this.datasets.filter((ds) =>
-      ds.name.toLowerCase().includes(this.searchTerm.toLowerCase()),
+    return this.datasets.filter(
+      (ds) =>
+        ds.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        ds.description.toLowerCase().includes(this.searchTerm.toLowerCase()),
     );
   }
 }
