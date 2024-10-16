@@ -119,8 +119,14 @@
           </button>
         </div>
       </h3>
+      <input
+        type="text"
+        placeholder="Search for dataset..."
+        [(ngModel)]="searchTerm"
+        class="form-control mb-3"
+      />
       <div *ngIf="!loading && datasets.length" class="scrollDiv py-1">
-        <div *ngFor="let ds of datasets" class="row g-0 ds-item">
+        <div *ngFor="let ds of filteredDatasets" class="row g-0 ds-item">
           <div
             class="col container-checkbox"
             *ngIf="user && multiSelection && ds.authorized"
@@ -215,7 +221,13 @@
         </div>
       </div>
       <!-- no datasets -->
-      <div class="no-results" *ngIf="!loading && datasets.length === 0">
+      <div
+        class="no-results"
+        *ngIf="
+          (!loading && datasets.length === 0) ||
+          (!loading && filteredDatasets.length === 0 && searchTerm.trim())
+        "
+      >
         <h2>No Datasets</h2>
         <p>Your filter returned no results</p>
       </div>
