@@ -33,7 +33,6 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   typesData: string[] = [];
   licensesData: string[] = [];
   attributionsData: string[] = [];
-  searchTerm: string = "";
 
   private _datasets: Dataset[] = [];
   user: User;

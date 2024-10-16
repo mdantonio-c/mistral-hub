@@ -231,11 +231,15 @@ export class ObsService {
   }
 
   private getColorIndex(d, min, max) {
-    let delta = (max - min) / COLORS.length;
-    return Math.max(
-      0,
-      Math.min(COLORS.length - 1, Math.floor((d - min) / delta)),
-    );
+    if (max != min) {
+      let delta = (max - min) / COLORS.length;
+      return Math.max(
+        0,
+        Math.min(COLORS.length - 1, Math.floor((d - min) / delta)),
+      );
+    } else {
+      return 0;
+    }
   }
 
   getColor(d, min, max, rel = 1) {
