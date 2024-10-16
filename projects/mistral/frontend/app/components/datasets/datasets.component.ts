@@ -178,4 +178,16 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   get attributionsFormArray() {
     return this.filterForm.controls.attributions as FormArray;
   }
+
+  get filteredDatasets() {
+    if (!this.searchTerm.trim()) {
+      return this.datasets;
+    }
+
+    return this.datasets.filter(
+      (ds) =>
+        ds.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        ds.description.toLowerCase().includes(this.searchTerm.toLowerCase()),
+    );
+  }
 }
