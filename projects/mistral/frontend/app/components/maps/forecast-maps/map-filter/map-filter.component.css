@@ -1,9 +1,12 @@
 @media (min-width: 992px) {
   .card-title {
-    font-size: 1.7vw !important;
+    font-size: 1.5vw !important;
   }
 }
 
+label {
+  font-size:14px;
+}
 #fieldGroup > div:first-of-type {
   display: flex;
   justify-content: space-evenly;

@@ -784,7 +784,15 @@ div.board + pre {
     padding: 0 !important;
   }
   .accordion-button {
-    padding: 8px !important;
+    padding: 6px !important;
+
+    h6 {
+      margin-top: 0.5rem;
+    }
+  }
+
+  label {
+    font-size: 14px;
   }
 }
 

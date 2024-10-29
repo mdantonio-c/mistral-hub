@@ -74,7 +74,7 @@ export class StepSubmitComponent extends StepComponent implements OnInit {
         (response) => {
           this.summaryStats = response;
           this.isJsonFormat();
-          if (this.formData.postprocessors.length != 0 && this.onlyOBS()) {
+          if (this.formData.postprocessors.length != 0) {
             // do not consider the size
             this.summaryStats.s = null;
           }
