@@ -115,7 +115,24 @@ class OpendataFileList(EndpointResource):
                 if reftime_from < reftime["from"] or reftime_to > reftime["to"]:
                     continue
 
-            if reftime_from == reftime_to:
+            upper_threshold_for_daily_extr = datetime.strptime("23:50", "%H:%M").time()
+            lower_threshold_for_daily_extr = datetime.strptime("00:10", "%H:%M").time()
+
+            # Intermediate conditions on reftimes
+            same_date = reftime_from.date() == reftime_to.date()
+            same_time = reftime_from.time() == reftime_to.time()
+            within_daily_extraction_thresholds = (
+                reftime_from.time() <= lower_threshold_for_daily_extr
+                and reftime_to.time() >= upper_threshold_for_daily_extr
+            )
+
+            # Final conditions on reftimes
+            equal_whole_reftimes = same_date and same_time
+            # equal_date_different_times = same_date and not same_time
+            # daily_extraction = equal_date_different_times and within_daily_extraction_thresholds
+            daily_extraction = same_date and within_daily_extraction_thresholds
+
+            if equal_whole_reftimes or daily_extraction:
                 ref_date = reftime_from.strftime("%Y-%m-%d")
             else:
                 ref_date = "from {} to {}".format(
