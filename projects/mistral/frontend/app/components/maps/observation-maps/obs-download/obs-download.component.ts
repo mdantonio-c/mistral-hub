@@ -31,7 +31,8 @@ export class ObsDownloadComponent implements OnInit {
   toDate: NgbDate | null;
   maxDate: NgbDate | null;
   minDate: NgbDateStruct | null;
-  downloadMessage: string = "You can select a single date and then click Download to get the data. Or you can select two different dates to identify a range of days and then click Download.";
+  downloadMessage: string =
+    "You can select a single date and then click Download to get the data. Or you can select two different dates to identify a range of days and then click Download.";
   allFormats: string[] = ["JSON", "BUFR"];
   model: any = {
     format: "JSON",
@@ -123,6 +124,10 @@ export class ObsDownloadComponent implements OnInit {
   }
 
   download() {
+    if (!this.toDate) {
+      // in order to manage a single date selected
+      this.toDate = this.fromDate;
+    }
     this.model.fromDate = new Date(
       Date.UTC(this.fromDate.year, this.fromDate.month - 1, this.fromDate.day),
     );
