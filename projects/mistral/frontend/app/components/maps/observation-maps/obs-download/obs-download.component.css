@@ -31,3 +31,20 @@
 .custom-day.faded {
   background-color: rgba(2, 117, 216, 0.5);
 }
+.icon-info {
+  background-color:#6C757D;
+  border-radius:20px;
+  color: #fff;
+  font-size: 12px;
+  line-height: 20px;
+  width: 20px;
+  height:20px;
+  text-align: center;
+  margin-left:4px;
+}
+
+.icon-info:hover{
+  background-color: #EB9C08;
+}
+
+
