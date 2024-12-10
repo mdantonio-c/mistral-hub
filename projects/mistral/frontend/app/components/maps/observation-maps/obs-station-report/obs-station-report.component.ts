@@ -211,7 +211,7 @@ export class ObsStationReportComponent implements OnInit {
    * @private
    */
   private xAxisTickFormatting(val, dateFormat = "HH:mm") {
-    const time = this.localTimeData ? moment.utc(val).local() : moment(val);
+    const time = moment.utc(val).local();
     const h = time.hour();
     const m = time.minute();
     //console.log(`ora: ${h} minuto: ${m} vero? ${(m === 0 && h % 2 === 0)} timeformat: ${time.format(dateFormat)}`)
