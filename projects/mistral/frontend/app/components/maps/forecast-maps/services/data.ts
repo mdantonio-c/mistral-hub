@@ -3,6 +3,25 @@ export interface KeyValuePair {
   value: string;
 }
 
+export const Fields_icon: KeyValuePair[] = [
+  { key: "prec1", value: "Accumulated total prec. 1h (kg/m\u00B2)" },
+  { key: "prec3", value: "Accumulated total prec. 3h (kg/m\u00B2)" },
+  { key: "prec6", value: "Accumulated total prec. 6h (kg/m\u00B2)" },
+  { key: "prec12", value: "Accumulated total prec. 12h (kg/m\u00B2)" },
+  { key: "prec24", value: "Accumulated total prec. 24h (kg/m\u00B2)" },
+  { key: "t2m", value: "Temperature at 2 meters (C°)" },
+  { key: "wind", value: "Wind at 10 meters (m/s)" },
+  { key: "pressure", value: "Pressure at mean sea level (hPa)" },
+  { key: "cloud", value: "Cloud coverage (%)" },
+  { key: "cloud_hml", value: "Cloud coverage high, medium, low (%)" },
+  { key: "humidity", value: "Relative humidity (%)" },
+  { key: "snow1", value: "Accumulated total snow prec. 1h (kg/m\u00B2)" },
+  { key: "snow3", value: "Accumulated total snow prec. 3h (kg/m\u00B2)" },
+  { key: "snow6", value: "Accumulated total snow prec. 6h (kg/m\u00B2)" },
+  { key: "snow12", value: "Accumulated total snow prec. 12h (kg/m\u00B2)" },
+  { key: "snow24", value: "Accumulated total snow prec. 24h (kg/m\u00B2)" },
+];
+
 export const Fields_cosmo: KeyValuePair[] = [
   { key: "prec1", value: "Accumulated total prec. 1h (kg/m\u00B2)" },
   { key: "prec3", value: "Accumulated total prec. 3h (kg/m\u00B2)" },
@@ -81,6 +100,7 @@ export const Resolutions: KeyValuePair[] = [
   { key: "lm5", value: "COSMO 5" },
   { key: "WRF_OL", value: "WRF 1.5" },
   { key: "WRF_DA_ITA", value: " WRF 2.5" },
+  { key: "icon", value: "ICON-2I 2.2" },
 ];
 
 export const Platforms: KeyValuePair[] = [

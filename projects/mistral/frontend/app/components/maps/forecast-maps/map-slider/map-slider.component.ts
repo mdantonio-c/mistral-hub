@@ -20,6 +20,7 @@ import {
   Runs,
   IffRuns,
   KeyValuePair,
+  Fields_icon,
 } from "../services/data";
 import { NgbCarousel, NgbSlideEvent } from "@ng-bootstrap/ng-bootstrap";
 import * as moment from "moment";
@@ -309,8 +310,9 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   getValue(param: string, key: string) {
     switch (param) {
       case "field":
-        return Fields_cosmo.concat(FlashFloodFFields).find((f) => f.key === key)
-          .value;
+        return Fields_cosmo.concat(FlashFloodFFields)
+          .concat(Fields_icon)
+          .find((f) => f.key === key).value;
       case "res":
         return Resolutions.find((r) => r.key === key).value;
       case "area":

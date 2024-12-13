@@ -45,7 +45,8 @@
                 *ngIf="
                   (!(
                     area.key === 'Area_Mediterranea' &&
-                    filterForm.get('res').value === 'lm2.2'
+                    (filterForm.get('res').value === 'lm2.2' ||
+                      filterForm.get('res').value === 'icon')
                   ) &&
                     !(
                       area.key !== 'Italia' &&
@@ -126,7 +127,12 @@
                         f.key === 'prec6' ||
                         f.key === 'prec12' ||
                         f.key === 'prec24',
-                      'wi-snow': f.key === 'snow3' || f.key === 'snow6',
+                      'wi-snow':
+                        f.key === 'snow1' ||
+                        f.key === 'snow3' ||
+                        f.key === 'snow6' ||
+                        f.key === 'snow12' ||
+                        f.key === 'snow24',
                       'wi-sandstorm': f.key === 'maxwind',
                       'wi-strong-wind': f.key === 'wind',
                       'wi-humidity': f.key === 'humidity',
@@ -135,7 +141,9 @@
                       'wi-thermometer': f.key === 't2m_0c' || f.key === 't2m'
                     }"
                   >
-                    <small class="verySmallText" *ngIf="f.key === 'prec1'"
+                    <small
+                      class="verySmallText"
+                      *ngIf="f.key === 'prec1' || f.key === 'snow1'"
                       >1h</small
                     >
                     <small
@@ -148,10 +156,14 @@
                       *ngIf="f.key === 'prec6' || f.key === 'snow6'"
                       >6h</small
                     >
-                    <small class="verySmallText" *ngIf="f.key === 'prec12'"
+                    <small
+                      class="verySmallText"
+                      *ngIf="f.key === 'prec12' || f.key === 'snow12'"
                       >12h</small
                     >
-                    <small class="verySmallText" *ngIf="f.key === 'prec24'"
+                    <small
+                      class="verySmallText"
+                      *ngIf="f.key === 'prec24' || f.key === 'snow24'"
                       >24h</small
                     >
                     <small class="verySmallText" *ngIf="f.key === 't2m_0c'"

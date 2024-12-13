@@ -7,6 +7,7 @@ import {
 } from "@angular/forms";
 import {
   KeyValuePair,
+  Fields_icon,
   Fields_cosmo,
   Fields_wrf,
   Levels_pe,
@@ -32,6 +33,7 @@ export class MapFilterComponent implements OnInit {
 
   filterForm: FormGroup;
   fields: KeyValuePair[] = [{ key: "lm2.2", value: "2.2" }]; // = []; //Fields;
+  fields_icon: KeyValuePair[] = Fields_icon;
   fields_cosmo: KeyValuePair[] = Fields_cosmo;
   fields_wrf: KeyValuePair[] = Fields_wrf;
   levels_pe: KeyValuePair[] = Levels_pe;
@@ -114,8 +116,17 @@ export class MapFilterComponent implements OnInit {
       if (val === "WRF_OL" || val === "WRF_DA_ITA") {
         this.fields = this.fields_wrf;
         this.filterForm.get("area").setValue("Italia");
-      } else this.fields = this.fields_cosmo;
+      } else if (val === "lm2.2" || val === "lm5") {
+        this.fields = this.fields_cosmo;
+      } else if (val === "icon") {
+        this.fields = this.fields_icon;
+      }
       if (val === "lm2.2") {
+        if (this.filterForm.get("area").value === "Area_Mediterranea") {
+          this.filterForm.get("area").setValue("Italia");
+        }
+      }
+      if (val === "icon") {
         if (this.filterForm.get("area").value === "Area_Mediterranea") {
           this.filterForm.get("area").setValue("Italia");
         }
