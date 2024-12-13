@@ -24,7 +24,7 @@ from restapi.services.authentication import User
 from restapi.utilities.logs import log
 from restapi.utilities.time import AllowedTimedeltaPeriods
 
-OUTPUT_FORMATS = ["json", "bufr", "grib"]
+OUTPUT_FORMATS = ["json", "bufr"]
 DERIVED_VARIABLES = [
     "B12194",  # Air density
     "B12107",  # Virtual temperature
@@ -270,7 +270,7 @@ class ScheduledDataExtraction(Schema):
     filters = fields.Nested(
         Filters, metadata={"description": "Apply different filtering criteria."}
     )
-    output_format = fields.Str(validate=validate.OneOf(OUTPUT_FORMATS))
+    output_format = fields.Str(required=False)
     only_reliable = fields.Bool(required=False)
     postprocessors = fields.List(
         Postprocessors(metadata={"description": "Post-processing request details"}),
@@ -299,6 +299,15 @@ class ScheduledDataExtraction(Schema):
             "description": "Schedule for data available in opendata folder for all users"
         },
     )
+
+    @pre_load
+    def check_output_format(self, data, **kwargs):
+        if "output_format" in data and data["output_format"] not in OUTPUT_FORMATS:
+            raise ValidationError(
+                f"Invalid 'output_format'. Allowed values are: {OUTPUT_FORMATS}. For forecast "
+                f"datasets, do not include the 'output_format' parameter (it defaults to 'grib')."
+            )
+        return data
 
     @pre_load
     def validate_schedule(self, data, **kwargs):
@@ -539,27 +548,14 @@ class SingleSchedule(EndpointResource):
             postprocessors_list = []
             if postprocessors:
                 postprocessors_list = [i.get("processor_type") for i in postprocessors]
-            if dataset_format != output_format:
-                # spare point interpolation has only bufr as output format
-                if (
-                    dataset_format == "grib"
-                    and "spare_point_interpolation" not in postprocessors_list
-                ):
-                    raise BadRequest(
-                        f"This dataset does not support {output_format} output format"
-                    )
-                if dataset_format == "bufr" and output_format == "grib":
-                    raise BadRequest(
-                        f"This dataset does not support {output_format} output format"
-                    )
-            else:
-                if (
-                    dataset_format == "grib"
-                    and "spare_point_interpolation" in postprocessors_list
-                ):
-                    raise BadRequest(
-                        f"This postprocessor does not support {output_format} format",
-                    )
+            # spare point interpolation has only bufr as output format
+            if (
+                dataset_format == "grib"
+                and "spare_point_interpolation" not in postprocessors_list
+            ):
+                raise BadRequest(
+                    f"The chosen datasets does not support {output_format} output format"
+                )
 
         # WE NEED THIS APPROXIMATION OF ON DATA READY
         # OR WE WILL USE ONLY THE DATA-READY FLAG OF THE FRONTEND?
