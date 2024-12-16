@@ -27,7 +27,7 @@ from restapi.services.authentication import User
 from restapi.services.uploader import Uploader
 from restapi.utilities.logs import log
 
-OUTPUT_FORMATS = ["json", "bufr", "grib"]
+OUTPUT_FORMATS = ["json", "bufr"]
 
 DERIVED_VARIABLES = [
     "B12194",  # Air density
@@ -252,7 +252,7 @@ class DataExtraction(Schema):
     filters = fields.Nested(
         Filters, metadata={"description": "Apply different filtering criteria."}
     )
-    output_format = fields.Str(validate=validate.OneOf(OUTPUT_FORMATS))
+    output_format = fields.Str(required=False)
     only_reliable = fields.Bool(required=False)
     postprocessors = fields.List(
         Postprocessors(metadata={"description": "Post-processing request details"}),
@@ -267,6 +267,15 @@ class DataExtraction(Schema):
             " estimated data size exceeds the allowed user quota."
         },
     )
+
+    @pre_load
+    def check_output_format(self, data, **kwargs):
+        if "output_format" in data and data["output_format"] not in OUTPUT_FORMATS:
+            raise ValidationError(
+                f"Invalid 'output_format'. Allowed values are: {OUTPUT_FORMATS}. For forecast "
+                f"datasets, do not include the 'output_format' parameter (it defaults to 'grib')."
+            )
+        return data
 
     @pre_load
     def check_postprocessors_unique_type(self, data, **kwargs):
@@ -412,25 +421,14 @@ class Data(EndpointResource, Uploader):
             postprocessors_list = []
             if postprocessors:
                 postprocessors_list = [i.get("processor_type") for i in postprocessors]
-            if dataset_format != output_format:
-                if dataset_format == "grib":
-                    # spare point interpolation has bufr as output format
-                    if "spare_point_interpolation" not in postprocessors_list:
-                        raise BadRequest(
-                            f"The chosen datasets does not support {output_format} output format"
-                        )
-                if dataset_format == "bufr" and output_format == "grib":
-                    raise BadRequest(
-                        f"The chosen datasets does not support {output_format} output format"
-                    )
-            else:
-                if (
-                    dataset_format == "grib"
-                    and "spare_point_interpolation" in postprocessors_list
-                ):
-                    raise BadRequest(
-                        f"The chosen postprocessor does not support {output_format} output format",
-                    )
+            # spare point interpolation has bufr as output format
+            if (
+                dataset_format == "grib"
+                and "spare_point_interpolation" not in postprocessors_list
+            ):
+                raise BadRequest(
+                    f"The chosen datasets does not support {output_format} output format"
+                )
 
         # get queue for pushing notifications
         pushing_queue = None
