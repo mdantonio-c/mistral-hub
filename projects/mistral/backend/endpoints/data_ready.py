@@ -10,7 +10,7 @@ from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
-SUPPORTED_PLATFORMS = ["g100", "galileo", "meucci"]
+SUPPORTED_PLATFORMS = ["g100", "galileo", "meucci", "leonardo"]
 
 
 class DataReady(EndpointResource):

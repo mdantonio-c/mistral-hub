@@ -17,6 +17,7 @@ import { DataService } from "../../services/data.service";
 import { User } from "@rapydo/types";
 import { ObsMapComponent } from "../maps/observation-maps/obs-map/obs-map.component";
 import { NgbAccordion } from "@ng-bootstrap/ng-bootstrap";
+import { environment } from "@rapydo/../environments/environment";
 
 @Component({
   selector: "app-datasets",
@@ -163,6 +164,10 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   selectDataset($event) {
     // TODO
     console.log($event);
+  }
+
+  openFileBrowsing() {
+    window.open(`${environment.backendURI}/nwp`, "_blank");
   }
 
   // @ts-ignore

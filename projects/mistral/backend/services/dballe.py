@@ -1049,23 +1049,25 @@ class BeDballe:
             if isinstance(principal_vartable, wreport.Vartable):
                 try:
                     b_table_variable = principal_vartable[var_code]
-                except KeyError as e:
-                    log.warning(
-                        f"B code {var_code} variable's bit size cannot be obtained from principal Vartable. "
-                        f"KeyError Exception message: {e}"
-                    )
+                except KeyError:
+                    pass
+                    # log.warning(
+                    #     f"B code {var_code} variable's bit size cannot be obtained from principal Vartable. "
+                    #     f"KeyError Exception message: {e}"
+                    # )
 
             if not b_table_variable and isinstance(
                 secondary_vartable, wreport.Vartable
             ):
                 try:
                     b_table_variable = secondary_vartable[var_code]
-                    log.info(
-                        f"Variable {var_code} bit size was obtained from secondary Vartable: {secondary_vartable}"
-                    )
+                    # log.info(
+                    #     f"Variable {var_code} bit size was obtained from secondary Vartable: {secondary_vartable}"
+                    # )
                 except KeyError as e:
                     log.warning(
-                        f"B code {var_code} variable's bit size cannot be obtained from secondary Vartable. "
+                        f"B code {var_code} variable's bit size cannot be obtained from either the primary or the "
+                        f"secondary Vartable. "
                         f"KeyError Exception message: {e}"
                     )
 

@@ -39,3 +39,8 @@ services:
       TRUSTSTORE_TYPE: PKCS12
       TRUSTSTORE_PASSWORD: ${NIFI_KEYSTORE_PASSWORD}
       SSL_TRUSTORE_FILENAME: "${SSL_TRUSTORE_FILENAME}"
+
+  proxy:
+    volumes:
+      - ${DATA_DIR}/grib_extraction:/grib_extraction
+      - ${PROJECT_DIR}/confs/proxy.service:/etc/nginx/sites-enabled/proxy.service
