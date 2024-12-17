@@ -100,7 +100,7 @@ export const Resolutions: KeyValuePair[] = [
   { key: "lm5", value: "COSMO 5" },
   { key: "WRF_OL", value: "WRF 1.5" },
   { key: "WRF_DA_ITA", value: " WRF 2.5" },
-  { key: "icon", value: "ICON-2I 2.2" },
+  { key: "icon", value: "ICON-2I" },
 ];
 
 export const Platforms: KeyValuePair[] = [

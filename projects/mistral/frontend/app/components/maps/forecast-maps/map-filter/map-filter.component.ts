@@ -63,7 +63,7 @@ export class MapFilterComponent implements OnInit {
       level_pe: ["25"],
       level_pr: ["20"],
       run: ["00", Validators.required],
-      res: ["lm2.2", Validators.required],
+      res: ["icon", Validators.required],
       platform: [""],
       env: [""],
       area: ["Italia", Validators.required],
@@ -72,6 +72,11 @@ export class MapFilterComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.resolutions.sort((a, b) =>
+      a.value
+        .trim()
+        .localeCompare(b.value.trim(), undefined, { sensitivity: "base" }),
+    );
     this.user = this.authService.getUser();
     this.fields = this.fields_cosmo;
     if (this.user && this.user.isAdmin) {
