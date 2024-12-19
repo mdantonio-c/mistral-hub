@@ -78,7 +78,7 @@ export class MapFilterComponent implements OnInit {
         .localeCompare(b.value.trim(), undefined, { sensitivity: "base" }),
     );
     this.user = this.authService.getUser();
-    this.fields = this.fields_cosmo;
+    this.fields = this.fields_icon;
     if (this.user && this.user.isAdmin) {
       (this.filterForm.controls.platform as FormControl).setValue(
         this.DEFAULT_PLATFORM,
