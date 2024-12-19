@@ -40,7 +40,9 @@ class OpendataFileList(EndpointResource):
         db = sqlalchemy.get_instance()
         ds_entry = db.Datasets.query.filter_by(name=dataset_name).first()
         if not ds_entry:
-            raise NotFound(f"Dataset not found for name: {dataset_name}")
+            return self.response(
+                f"Dataset not found for name: {dataset_name}", code=404
+            )
         # check if the dataset is public
         license = db.License.query.filter_by(id=ds_entry.license_id).first()
         group_license = db.GroupLicense.query.filter_by(
@@ -52,7 +54,7 @@ class OpendataFileList(EndpointResource):
                 db, ds_entry.arkimet_id, user
             )
             if not is_authorized:
-                raise Unauthorized(f"Dataset {dataset_name} is not public")
+                return self.response(f"Dataset {dataset_name} is not public", code=401)
 
         query: Dict[str, Any] = {}
         reftime: Dict[str, date] = {}
