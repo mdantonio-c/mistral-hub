@@ -94,7 +94,6 @@ export class ProjectOptions extends BaseProjectOptions {
 
 La presente informativa, resa ai sensi del Regolamento (UE) 2016/679 (di seguito "Regolamento"), descrive le modalità di trattamento dei dati personali degli utenti che consultano il sito web o accedono alla piattaforma meteo-hub del progetto Mistral (Progetto europeo CEF 2014-2020 AGREEMENT No INEA/CEF/ICT/A2017/1567101) accessibile per via telematica ai seguenti indirizzi web:<br/>
 <ul>
-    <li>mistralportal.eu</li>
     <li>mistralportal.it</li>
     <li>meteohub.mistralportal.it</li>
 </ul>
@@ -152,7 +151,7 @@ ${this.cookiePolicyUrl}<br/>
 <h5>DESTINATARI DEI DATI</h5>
 I destinatari dei dati raccolti a seguito della compilazione di form o invio di e-mail o sottoscrizione al sito sono gli eventuali Responsabili del trattamento nominati dal Titolare, nonché le persone fisiche all’interno del Cineca autorizzate al trattamento dei dati per le finalità sopra riportate.
 <br/>
-I dati della navigazione (indirizzo IP, sito di provenienza, browser utilizzati, S.O utilizzato, pagine visitate, tempo di permanenza nelle singole pagine ecc. ) alle pagine del sito mistralportal.eu e mistralportal.it sono unicamente trasmessi alla società Google che fornisce al Cineca il servizio denominato Google Analytics  (http://www.google.com/analytics/): si tratta di un servizio di elaborazione statistica degli accessi al sito, che vengono utilizzati unicamente all’interno del progetto Mistral,  per analizzare l'utilizzo del sito da parte degli utenti in un'ottica di miglioramento del servizio offerto e per rendere più rapido e facilmente accessibile l'utilizzo del sito.<br/> 
+I dati della navigazione (indirizzo IP, sito di provenienza, browser utilizzati, S.O utilizzato, pagine visitate, tempo di permanenza nelle singole pagine ecc. ) alle pagine del sito mistralportal.it sono unicamente trasmessi alla società Google che fornisce al Cineca il servizio denominato Google Analytics  (http://www.google.com/analytics/): si tratta di un servizio di elaborazione statistica degli accessi al sito, che vengono utilizzati unicamente all’interno del progetto Mistral,  per analizzare l'utilizzo del sito da parte degli utenti in un'ottica di miglioramento del servizio offerto e per rendere più rapido e facilmente accessibile l'utilizzo del sito.<br/> 
 <br/>
 Tali dati non vengono in alcun modo trattati per definire il profilo o la personalità dell'interessato, o per analizzare abitudini o scelte di consumo a fini commerciali.
 <br/> 
@@ -182,7 +181,6 @@ Il Titolare del trattamento è tenuto a fornirle una risposta entro un mese dall
 <h5>WHY THIS INFORMATION</h5>
 This information, made pursuant to Regulation (EU) 2016/679 (hereinafter the "Regulation"), describes the methods of processing of personal data of users who consult the Mistral project website or access the meteo-hub platform, accessible electronically to the following web addresses:<br/>
 <ul>
-    <li>mistralportal.eu</li>
     <li>mistralportal.it</li>
     <li>meteohub.mistralportal.it</li>
 </ul>
@@ -237,7 +235,7 @@ ${this.cookiePolicyUrl}<br/>
 <h5>DATA RECIPIENTS</h5>
 The recipients of the data collected after completing the form or sending an e-mail or subscription to the site are any Data Processors appointed by the Data Controller, as well as the physical persons within the Cineca authorized to process the data for the purposes indicated above.<br/>
 <br/>
-The browsing data (IP address, site of origin, browser used, OS used, pages visited, time spent on individual pages, etc.) on the pages of the website mistralportal.eu and mistralportal.it are only transmitted to the Google company that provides the Cineca the service called Google Analytics (http://www.google.com/analytics/): it is a service of statistical processing of site accesses, which are used only within the mistral project, to analyze usage of the site by users in order to improve the service offered and to make the use of the site quicker and easier to access.<br/>
+The browsing data (IP address, site of origin, browser used, OS used, pages visited, time spent on individual pages, etc.) on the pages of the website  mistralportal.it are only transmitted to the Google company that provides the Cineca the service called Google Analytics (http://www.google.com/analytics/): it is a service of statistical processing of site accesses, which are used only within the mistral project, to analyze usage of the site by users in order to improve the service offered and to make the use of the site quicker and easier to access.<br/>
 These data are not processed in any way to define the profile or personality of the person concerned, or to analyze habits or consumption choices for commercial purposes.<br/>
 Your personal data will not be subject to disclosure.<br/>
 <br/>
