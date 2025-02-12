@@ -94,7 +94,6 @@ export class ProjectOptions extends BaseProjectOptions {
 
 La presente informativa, resa ai sensi del Regolamento (UE) 2016/679 (di seguito "Regolamento"), descrive le modalità di trattamento dei dati personali degli utenti che consultano il sito web o accedono alla piattaforma meteo-hub del progetto Mistral (Progetto europeo CEF 2014-2020 AGREEMENT No INEA/CEF/ICT/A2017/1567101) accessibile per via telematica ai seguenti indirizzi web:<br/>
 <ul>
-    <li>mistralportal.eu</li>
     <li>mistralportal.it</li>
     <li>meteohub.mistralportal.it</li>
 </ul>
