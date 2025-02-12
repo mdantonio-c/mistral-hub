@@ -14,15 +14,11 @@ import {
   DatasetProduct as DP,
   DATASETS,
   MOBILE_WIDTH,
-  MultiModelProduct,
-  MultiModelProductLabel,
   ViewModes,
 } from "../meteo-tiles.config";
 import * as L from "leaflet";
 import {
   CLOUD_LEVELS,
-  IFF_PERCENTILES,
-  IFF_PROBABILITIES,
   PRECIPITATION_HOURS,
   SNOW_HOURS,
   toLayerCode,
@@ -62,11 +58,11 @@ export class SideNavComponent implements OnInit {
         level.checked = false;
       });
     }
-    console.log(this._overlays);
+    //console.log(this._overlays);
     // activate layers
     for (const [key, layer] of Object.entries(this._overlays)) {
       let lCode = toLayerCode(key);
-      console.log("lcode", lCode);
+
       if (lCode) {
         const el = this.el.nativeElement.querySelector(`.${lCode}`);
         this.renderer.removeClass(el, "attivo");
@@ -93,15 +89,6 @@ export class SideNavComponent implements OnInit {
     new EventEmitter<Record<string, string | L.Layer>>();
   @Output() onDatasetChange: EventEmitter<string> = new EventEmitter<string>();
 
-  // Multi Model Ensemble
-  @Input() isShowedMultiModel: boolean = false;
-  @Output() onShowMultiModelChange: EventEmitter<boolean> =
-    new EventEmitter<boolean>();
-  @Output() onMMProductChange: EventEmitter<MultiModelProduct> =
-    new EventEmitter<MultiModelProduct>();
-  mmProduct: MultiModelProduct = MultiModelProduct.TM;
-  mmProductSwitch: boolean = false;
-  MultiModelProductLabel = MultiModelProductLabel;
   zLevel: number;
 
   isCollapsed = false;
@@ -113,6 +100,12 @@ export class SideNavComponent implements OnInit {
   subLevels: { [key: string]: ValueLabelChecked[] } = {};
   selectedBaseLayer: string;
   showTotalClouds: boolean = false;
+  @Output() showScalarWindChange = new EventEmitter<boolean>();
+  showScalarWind: boolean = false;
+  selectedLayers: string[] = ["t2m"]; //default layer
+  @Output() selectedCumulateChange = new EventEmitter<string[]>();
+  selectedCumulate: string[] = ["", ""];
+  maxLayers = 4;
 
   constructor(
     private el: ElementRef,
@@ -145,8 +138,6 @@ export class SideNavComponent implements OnInit {
       prp: PRECIPITATION_HOURS,
       sf: SNOW_HOURS,
       cc: CLOUD_LEVELS,
-      tpperc: IFF_PERCENTILES,
-      tpprob: IFF_PROBABILITIES,
     };
     Object.keys(SUB_LEVELS).forEach((key) => {
       if (Object.keys(this.varConfig).includes(key)) {
@@ -197,8 +188,26 @@ export class SideNavComponent implements OnInit {
     }
   }
 
+  max4Layer(layerId) {
+    const index = this.selectedLayers.indexOf(layerId);
+    if (index > -1) {
+      this.selectedLayers.splice(index, 1);
+    } else {
+      if (this.selectedLayers.length >= this.maxLayers) {
+        return true;
+      }
+      this.selectedLayers.push(layerId);
+    }
+    return false;
+  }
+
+  // force active state to the parent layer element
   toggleLayer(event: Event, layerId: string) {
     event.preventDefault();
+
+    // max 4 fields at time
+    if (this.max4Layer(layerId)) return;
+    console.log(this.selectedLayers);
     // can we do better with multi layer products? (i.e. prp)
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);
     const fromActiveState: boolean = el.classList.contains("attivo");
@@ -245,7 +254,7 @@ export class SideNavComponent implements OnInit {
     fromActiveState
       ? this.renderer.removeClass(el, "attivo")
       : this.renderer.addClass(el, "attivo");
-    console.log(el);
+    //console.log(el);
   }
 
   changeDataset(event, datasetId) {
@@ -295,9 +304,15 @@ export class SideNavComponent implements OnInit {
     layerId: string,
     multiSelection = false,
   ) {
-    // console.log(`activate layer ${layerId}, value ${target.value}`);
+    // max 4 fields at time
+    if (this.max4Layer(layerId)) return;
+    console.log(this.selectedLayers);
+
+    console.log(`activate layer ${layerId}, value ${target.value}`);
     // force active state to the parent layer element
+
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);
+
     const isActive: boolean = el.classList.contains("attivo");
     if (!isActive) {
       this.renderer.addClass(el, "attivo");
@@ -321,6 +336,7 @@ export class SideNavComponent implements OnInit {
     }
     for (const [key, layer] of Object.entries(this.overlays)) {
       if (layerId === toLayerCode(key) && key === target.label) {
+        console.log(layerId, toLayerCode(key), target.label, key);
         this.onLayerChange.emit({
           layer: layer,
           name: toLayerTitle(layerId, target.value),
@@ -337,7 +353,19 @@ export class SideNavComponent implements OnInit {
     }
   }
 
-  toggleTotalClouds() {
+  setFirstCumulated(event: Event, value: string, layerId: string) {
+    this.selectedCumulate = [layerId, value];
+    this.selectedCumulateChange.emit(this.selectedCumulate);
+  }
+
+  toggleScalarWind() {
+    this.showScalarWind = !this.showScalarWind;
+    this.showScalarWindChange.emit(this.showScalarWind);
+  }
+  toggleTotalClouds(layerId: string) {
+    // max 4 layers at time
+    if (this.max4Layer(layerId)) return;
+    console.log(this.selectedLayers);
     // force active state to the parent layer element
     let el = this.el.nativeElement.querySelector("span.cc");
     const isActive: boolean = el.classList.contains("attivo");
@@ -396,24 +424,6 @@ export class SideNavComponent implements OnInit {
       }
     }
     return active;
-  }
-
-  toggleMultiModel() {
-    const op = this.isShowedMultiModel ? "off" : "on";
-    console.log(`Turn ${op} Multi Model Ensemble`);
-    this.onShowMultiModelChange.emit(this.isShowedMultiModel);
-  }
-
-  /**
-   * Switch Multi Model Ensemble from one value to the other.
-   */
-  switchMMProduct() {
-    this.mmProductSwitch = !this.mmProductSwitch;
-    this.mmProduct = this.mmProductSwitch
-      ? MultiModelProduct.RH
-      : MultiModelProduct.TM;
-    // console.log(`change Multi Model Ensemble to ${MultiModelProductLabel.get(this.mmProduct)}`);
-    this.onMMProductChange.emit(this.mmProduct);
   }
 
   changeBaseLayer(newVal: string) {
