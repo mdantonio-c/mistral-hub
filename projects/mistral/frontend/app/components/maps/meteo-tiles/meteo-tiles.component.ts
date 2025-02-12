@@ -865,7 +865,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           comp.layersControl["overlays"] &&
           comp.map.hasLayer(comp.layersControl["overlays"][DP.PMSL])
         ) {
-          console.log("pressure");
           comp
             .addScalarField(
               comp.minZoom,
@@ -1051,7 +1050,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     colorStop,
     hour: string = "",
   ) {
-    let resLayer: L.Layer;
     let pane;
     let now = new Date().getUTCHours().toString();
     if (now.length === 1) now = "0" + now;
@@ -1082,7 +1080,16 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     ) {
       magnitude.options.pane = pane;
     }
-
+    if (folderName == "pressure-pmsl" && componentName == "pmsl") {
+      let url =
+        `./app/custom/assets/images/icon/${folderName}/${componentName}_comp_` +
+        s +
+        ".geojson";
+      const response = await fetch(url);
+      const data = await response.json();
+      let isobars: L.Layer = L.geoJSON(data);
+      return L.layerGroup([magnitude, isobars]);
+    }
     return magnitude;
   }
 
