@@ -1087,9 +1087,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   addIconBorderLayer() {
-    fetch(
-      "./app/custom/assets/images/icon/geoJson/coastlines_border_lines.geojson",
-    )
+    fetch("./app/custom/assets/images/geoJson/coastlines_border_lines.geojson")
       .then((response) => response.json())
       .then((data) => {
         L.geoJSON(data, {
