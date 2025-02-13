@@ -214,7 +214,7 @@ export class SideNavComponent implements OnInit {
     const op = fromActiveState ? "remove" : "add";
     console.log(`toggle "${op}" on layer-id "${layerId}"`);
     if (
-      ["prp", "sf", "cc", "tpperc", "tpprob"].includes(layerId) &&
+      ["prp", "sf", "cc", "tpperc", "tpprob", "ws10m"].includes(layerId) &&
       this.subLevels[layerId].length
     ) {
       // expected sub-levels here
@@ -361,7 +361,14 @@ export class SideNavComponent implements OnInit {
   toggleScalarWind() {
     this.showScalarWind = !this.showScalarWind;
     this.showScalarWindChange.emit(this.showScalarWind);
+    let el = this.el.nativeElement.querySelector("span.ws10m");
+    const isActive: boolean = el.classList.contains("attivo");
+    this.renderer.removeClass(el, "attivo");
+    if (!isActive) {
+      this.renderer.addClass(el, "attivo");
+    };
   }
+
   toggleTotalClouds(layerId: string) {
     // max 4 layers at time
     if (this.max4Layer(layerId)) return;
