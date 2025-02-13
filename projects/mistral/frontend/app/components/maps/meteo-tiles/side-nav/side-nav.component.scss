@@ -666,7 +666,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 }
 
 /* clouds switch */
-.clouds-switch {
+.clouds-switch, .wind-switch {
   position: relative !important;
 
   label {
@@ -696,8 +696,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     border-color: #616262 !important;
   }
 
-  #tccSwitch {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e");
+  #tccSwitch, #windSwitch {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e") !important;
 
     &:focus {
       fill: $light-orange !important;
@@ -706,31 +706,17 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     }
 
     &:checked {
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='white'/%3e%3c/svg%3e");
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='white'/%3e%3c/svg%3e") !important;
     }
   }
 
-  #tccSwitch[disabled="true"] {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e");
+  #tccSwitch[disabled="true"], #windSwitch[disabled="true"] {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e") !important;
   }
-
-  #windSwitch {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e");
-
-    &:focus {
-      fill: $light-orange !important;
-      border-color: $light-orange !important;
-      box-shadow: none !important;
-    }
-
-    &:checked {
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='white'/%3e%3c/svg%3e");
-    }
-  }
-
-  #windSwitch[disabled="true"] {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e");
-  }
+   #windSwitch.form-check-input:checked {
+    background-color: $light-orange !important;
+    border-color: $light-orange !important;
+   }
 }
 
 /*multimodel switch*/

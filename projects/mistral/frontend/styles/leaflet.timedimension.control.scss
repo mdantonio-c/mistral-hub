@@ -98,9 +98,6 @@ app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol {
   border-radius: 30px;
 }
 
-.leaflet-control img[src*="pmsl.svg"] {
-  display: none !important;
-}
 
 /*.leaflet-bar-timecontrol .leaflet-control-timecontrol:first-child {
     border-radius: 24px;// 0 0 4px;
@@ -482,13 +479,19 @@ a.timecontrol-play.loading:before {
 
 @media (min-height: 800px) {
   .legenda {
-    max-width: 60% !important;
+    max-width: 62% !important;
+  }
+  app-livemap .legenda {
+    max-width: 60% !important; 
   }
 }
 
 @media (min-height: 900px) {
   .legenda {
-    max-width: 70% !important;
+    max-width: 72%;
+  }
+  app-livemap .legenda {
+    max-width: 70% !important; 
   }
 }
 
