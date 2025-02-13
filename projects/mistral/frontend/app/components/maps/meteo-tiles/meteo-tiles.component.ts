@@ -1081,13 +1081,50 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       magnitude.options.pane = pane;
     }
     if (folderName == "pressure-pmsl" && componentName == "pmsl") {
+      let lastLabelPos = null;
       let url =
         `./app/custom/assets/images/icon/${folderName}/${componentName}_comp_` +
         s +
         ".geojson";
+      //let url = "./app/custom/assets/images/isobare.geojson"
       const response = await fetch(url);
       const data = await response.json();
-      let isobars: L.Layer = L.geoJSON(data);
+      let isobars: L.Layer = L.geoJSON(data, {
+        style: function () {
+          return {
+            color: "red",
+            weight: 1,
+            opacity: 0.8,
+          };
+        },
+        onEachFeature: function (feature, layer) {
+          if (feature.properties && feature.properties.label) {
+            let coords = null;
+            if (feature.geometry.type === "LineString") {
+              coords = feature.geometry.coordinates[0];
+            } else if (feature.geometry.type === "MultiLineString") {
+              coords = feature.geometry.coordinates[0][0];
+            }
+            if (coords) {
+              let minDistance = 10;
+              if (
+                !lastLabelPos ||
+                Math.abs(coords[0] - lastLabelPos[0]) > minDistance ||
+                Math.abs(coords[1] - lastLabelPos[1]) > minDistance
+              ) {
+                layer.bindTooltip(feature.properties.label, {
+                  permanent: true,
+                  direction: "center",
+                  className: "isobar-label",
+                  opacity: 1,
+                });
+                lastLabelPos = coords;
+              }
+            }
+          }
+        },
+      });
+
       return L.layerGroup([magnitude, isobars]);
     }
     return magnitude;
@@ -1597,7 +1634,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     let layers = this.layersControl["overlays"];
     this.legends = {
       [DP.TM2]: this.createLegendControl("tm2"),
-      [DP.PMSL]: this.createLegendControl("pmsl_1"),
+      [DP.PMSL]: this.createLegendControl("pmsl"),
       [DP.WIND10M]: this.createLegendControl("ws10m"),
       [DP.RH]: this.createLegendControl("rh"),
 
