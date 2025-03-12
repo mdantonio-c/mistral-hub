@@ -35,6 +35,8 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   licensesData: string[] = [];
   attributionsData: string[] = [];
   searchTerm: string = "";
+  warningMsg: string | null = null;
+  showAlert = false;
 
   private _datasets: Dataset[] = [];
   user: User;
@@ -55,6 +57,8 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
       licenses: new FormArray([]),
       attributions: new FormArray([]),
     });
+    this.warningMsg = environment.CUSTOM.WARNING_MSG;
+    this.showAlert = this.warningMsg && this.warningMsg.trim().length > 0;
   }
 
   ngOnInit() {

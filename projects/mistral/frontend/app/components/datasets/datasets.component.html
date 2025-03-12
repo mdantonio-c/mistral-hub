@@ -7,6 +7,13 @@
   size="medium"
 ></ngx-spinner>
 <div class="container-fluid">
+  <div
+    *ngIf="showAlert"
+    class="alert alert-warning alert-dismissible fade show"
+    role="alert"
+  >
+    <strong>Warning!</strong> {{ warningMsg }}
+  </div>
   <!--counter-->
   <div class="counter">
     <div class="number-box">
