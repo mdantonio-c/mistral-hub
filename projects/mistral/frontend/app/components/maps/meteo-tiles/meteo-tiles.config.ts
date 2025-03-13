@@ -77,12 +77,7 @@ export const MultiModelProductLabel = new Map<string, string>([
   [MultiModelProduct.RH, "Relative Humidity"],
 ]);
 
-export const DATASETS: CodeDescPair[] = [
-  { code: "lm5", desc: "Cosmo-5M" },
-  { code: "lm2.2", desc: "Cosmo-2I" },
-  { code: "iff", desc: "Italy Flash Flood" },
-  { code: "icon", desc: "ICON-2I" },
-];
+export const DATASETS: CodeDescPair[] = [{ code: "icon", desc: "ICON-2I" }];
 
 export enum ViewModes {
   base,

@@ -1,31 +1,29 @@
 import { Component, Injector, Input, OnInit } from "@angular/core";
-import { environment } from "@rapydo/../environments/environment";
 import { forkJoin, interval } from "rxjs";
-import { catchError, filter, scan, takeUntil } from "rxjs/operators";
 import * as moment from "moment";
 import * as L from "leaflet";
 import * as chroma from "chroma-js";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
 import { GeoTIFF } from "geotiff";
 import "ih-leaflet-canvaslayer-field/dist/leaflet.canvaslayer.field.js";
-import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
 import { TilesService } from "./services/tiles.service";
-import { ObsService } from "../observation-maps/services/obs.service";
 import { NavigationEnd, Params } from "@angular/router";
+import { Subscription } from "rxjs";
+// useful to explore another solution in terms of efficiency
+// import parseGeoraster from "georaster";
+// import GeoRasterLayer from 'georaster-layer-for-leaflet' // version 3.5
+/*declare module "georaster-layer-for-leaflet"{
+    let GeoRasterLayer:any;
+}*/
 
 import {
   LEGEND_DATA,
   LegendConfig,
   VARIABLES_CONFIG,
   VARIABLES_CONFIG_BASE,
+  COLORSTOPS,
 } from "./services/data";
-import {
-  CodeDescPair,
-  ObsData,
-  Observation,
-  ObsFilter,
-  RunAvailable,
-} from "../../../types";
+import { CodeDescPair, RunAvailable } from "../../../types";
 import {
   CARTODB_LICENSE_HREF,
   DatasetProduct as DP,
@@ -39,6 +37,7 @@ import { BaseMapComponent } from "../base-map.component";
 
 declare module "leaflet" {
   let timeDimension: any;
+  let timeDimensionControl: any;
   let VectorField: any;
   let canvasLayer: any;
   let ScalarField: any;
@@ -48,178 +47,6 @@ const ICON_BOUNDS = {
   southWest: L.latLng(33.69, 2.9875),
   northEast: L.latLng(48.91, 22.0125),
 };
-
-const t2mColorStops = [
-  { value: -30, color: "#64007fe0" },
-  { value: -28, color: "#78048de0" },
-  { value: -26, color: "#870898e0" },
-  { value: -24, color: "#b414b9e0" },
-  { value: -22, color: "#d41dd1e0" },
-  { value: -20, color: "#f627ebe0" },
-  { value: -18, color: "#57007fe0" },
-  { value: -16, color: "#3e007fe0" },
-  { value: -14, color: "#00287fe0" },
-  { value: -12, color: "#003c7fe0" },
-  { value: -10, color: "#00467fe0" },
-  { value: -8, color: "#00528fe0" },
-  { value: -6, color: "#0062afe0" },
-  { value: -4, color: "#0082efe0" },
-  { value: -2, color: "#259affe0" },
-  { value: 0, color: "#5bb4ffe0" },
-  { value: 2, color: "#bbffe2e0" },
-  { value: 4, color: "#9feec8e0" },
-  { value: 6, color: "#87d3abe0" },
-  { value: 8, color: "#62af88e0" },
-  { value: 10, color: "#07a127e0" },
-  { value: 12, color: "#21bb0ee0" },
-  { value: 14, color: "#52ca0be0" },
-  { value: 16, color: "#9ce106e0" },
-  { value: 18, color: "#cef003e0" },
-  { value: 20, color: "#f3fb01e0" },
-  { value: 22, color: "#f4d90be0" },
-  { value: 24, color: "#f4bd0be0" },
-  { value: 26, color: "#f4880be0" },
-  { value: 28, color: "#f46d0be0" },
-  { value: 30, color: "#e83709e0" },
-  { value: 32, color: "#c41a0ae0" },
-  { value: 34, color: "#af0f14e0" },
-  { value: 36, color: "#7c0000e0" },
-  { value: 38, color: "#640000e0" },
-  { value: 40, color: "#b46464e0" },
-  { value: 42, color: "#f0a0a0e0" },
-  { value: 44, color: "#ffb4b4e0" },
-  { value: 46, color: "#ffdcdce0" },
-];
-
-const prsColorStops = [
-  { value: 98800, color: "#235a95" },
-  { value: 99200, color: "#2e6fb8" },
-  { value: 99600, color: "#548ece" },
-  { value: 100000, color: "#79aade" },
-  { value: 100400, color: "#9cc1e7" },
-  { value: 100800, color: "#bdd5ef" },
-  { value: 101200, color: "#deeaf7" },
-  { value: 101600, color: "#F8E8E8" },
-  { value: 102000, color: "#ffdcdc" },
-  { value: 102400, color: "#ffb4b4" },
-  { value: 102800, color: "#f0a0a0" },
-  { value: 103200, color: "#ee5a5c" },
-  { value: 103600, color: "#da4c4d" },
-  { value: 104000, color: "#CB2A2A" },
-  { value: 104400, color: "#981F1F" },
-  { value: 104800, color: "#661515" },
-];
-const prp_1_3_ColorStops = [
-  { value: 0, color: "#deeaf700" },
-  { value: 1, color: "#deeaf7" },
-  { value: 2, color: "#bdd5ef" },
-  { value: 4, color: "#9cc1e7" },
-  { value: 6, color: "#79aade" },
-  { value: 8, color: "#548ece" },
-  { value: 10, color: "#2e6fb8" },
-  { value: 15, color: "#235a95" },
-  { value: 20, color: "#173a62" },
-  { value: 25, color: "#f7ec31" },
-  { value: 30, color: "#e1d52d" },
-  { value: 40, color: "#e86411" },
-  { value: 50, color: "#e22208" },
-  { value: 75, color: "#961405" },
-  { value: 100, color: "#6e0e04" },
-];
-const prp_6_12_24_ColorStops = [
-  { value: 0, color: "#deeaf700" },
-  { value: 1, color: "#deeaf7" },
-  { value: 2, color: "#bdd5ef" },
-  { value: 5, color: "#9cc1e7" },
-  { value: 10, color: "#79aade" },
-  { value: 15, color: "#548ece" },
-  { value: 20, color: "#2e6fb8" },
-  { value: 25, color: "#235a95" },
-  { value: 30, color: "#173a62" },
-  { value: 40, color: "#f7ec31" },
-  { value: 50, color: "#e1d52d" },
-  { value: 75, color: "#e86411" },
-  { value: 100, color: "#e22208" },
-  { value: 150, color: "#961405" },
-  { value: 200, color: "#6e0e04" },
-];
-const sf_1_3_ColorStops = [
-  { value: 0, color: "#90619200" },
-  { value: 0.5, color: "#906192" },
-  { value: 1, color: "#b67bb9" },
-  { value: 2, color: "#b68cbb" },
-  { value: 5, color: "#dbc5dd" },
-  { value: 10, color: "#e7d8e8" },
-  { value: 15, color: "#feedff" },
-  { value: 20, color: "#cdcdcd" },
-  { value: 25, color: "#dadada" },
-  { value: 30, color: "#f2f2f2" },
-  { value: 50, color: "#ffffff" },
-];
-const sf_6_12_24_ColorStops = [
-  { value: 0, color: "#90619200" },
-  { value: 1, color: "#906192" },
-  { value: 2, color: "#b67bb9" },
-  { value: 5, color: "#b68cbb" },
-  { value: 10, color: "#dbc5dd" },
-  { value: 15, color: "#e7d8e8" },
-  { value: 20, color: "#feedff" },
-  { value: 30, color: "#cdcdcd" },
-  { value: 50, color: "#dadada" },
-  { value: 75, color: "#f2f2f2" },
-  { value: 100, color: "#ffffff" },
-];
-const tccColorStops = [
-  { value: 50, color: "#ecefe9" },
-  { value: 60, color: "#dde7dc" },
-  { value: 70, color: "#cbded1" },
-  { value: 80, color: "#b3d0c7" },
-  { value: 90, color: "#9bc4c7" },
-  { value: 100, color: "#82a1ba" },
-];
-const hccColorStops = [
-  { value: 50, color: "#fafdf900" },
-  { value: 60, color: "#ecf7ea" },
-  { value: 70, color: "#d6eed4" },
-  { value: 80, color: "#c4e6c0" },
-  { value: 90, color: "#b0deab" },
-  { value: 100, color: "#9dd797" },
-];
-const mccColorStops = [
-  { value: 50, color: "#fafafd00" },
-  { value: 60, color: "#ececf7" },
-  { value: 70, color: "#d8d7ee" },
-  { value: 80, color: "#c4c5e6" },
-  { value: 90, color: "#b0b2dd" },
-  { value: 100, color: "#9fa1d5" },
-];
-const lccColorStops = [
-  { value: 50, color: "#fffafa00" },
-  { value: 60, color: "#fdebeb" },
-  { value: 70, color: "#fbd5d6" },
-  { value: 80, color: "#f9c1c2" },
-  { value: 90, color: "#f6abad" },
-  { value: 100, color: "#f49799" },
-];
-
-const rhColorStops = [
-  { value: 0, color: "#ff000099" },
-  { value: 20, color: "#ff8c0099" },
-  { value: 40, color: "#ffff0099" },
-  { value: 60, color: "#00ff0099" },
-  { value: 80, color: "#00ffff99" },
-  { value: 100, color: "#0000ff99" },
-];
-const ws10mColorStops = [
-  { value: 1, color: "#8bd8f999" },
-  { value: 2, color: "#7070ff99" },
-  { value: 5, color: "#4bcf4f99" },
-  { value: 10, color: "#ffff0099" },
-  { value: 20, color: "#fec60199" },
-  { value: 30, color: "#ff333399" },
-  { value: 50, color: "#ee82ee99" },
-  { value: 70, color: "#ff00c399" },
-];
 
 @Component({
   selector: "app-meteo-tiles",
@@ -274,36 +101,34 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     maxZoom: this.maxZoom - 1,
     //center: L.latLng([46.879966, 11.726909]),
     center: L.latLng([41.3, 12.5]),
-    timeDimension: true,
-    timeDimensionControl: true,
     maxBounds: this.bounds,
     maxBoundsViscosity: 1.0,
+    timeDimension: true,
+    timeDimensionControl: true,
     timeDimensionControlOptions: {
-      autoPlay: false,
       timeZones: ["utc"],
-      loopButton: true,
       timeSteps: 1,
-      playReverseButton: true,
       limitSliders: true,
+      speedSlider: false,
+      maxSpeed: 2,
       playerOptions: {
         buffer: 0,
         transitionTime: 1000,
         loop: true,
       },
-      speedSlider: true,
     },
   };
   public runAvailable: RunAvailable;
-
+  private subscriptions: Subscription[] = [];
   private currentIdx: number = null;
   private timeLoading: boolean = false;
   public onlyWind: boolean = false;
+  private endOffset = 72; // initial setting for ICON
+  private observer: MutationObserver;
+  private activeSpans;
+  private messageShown = false;
 
-  constructor(
-    injector: Injector,
-    private tilesService: TilesService,
-    private obsService: ObsService,
-  ) {
+  constructor(injector: Injector, private tilesService: TilesService) {
     super(injector);
     // set the initial set of displayed layers
     this.options["layers"] = [this.LAYER_LIGHTMATTER];
@@ -323,9 +148,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
-    // please do not erase this line, it is useful to import GeoTIFF variable and read geotif files
+    // please do not erase this line, it is useful to import GeoTIFF variable and read geotiff files
     if (false) console.log(GeoTIFF);
-    // please do not erase this line, it is useful to import GeoTIFF variable and read geotif files
+    // please do not erase this line, it is useful to import GeoTIFF variable and read geotiff files
+    this.startObserving(); // mutation observer on html DOM, useful to know which variable is selected
     this.variablesConfig = VARIABLES_CONFIG;
     this.route.queryParams.subscribe((params: Params) => {
       const view: string = params["view"];
@@ -366,10 +192,18 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
       // clean the url from the query parameters
       /*this.router.navigate([], {
-              queryParams: { view: null, dataset: null },
-              queryParamsHandling: "merge",
-            });*/
+                    queryParams: { view: null, dataset: null },
+                    queryParamsHandling: "merge",
+                  });*/
     });
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 
   onMapReady(map: L.Map) {
@@ -386,524 +220,507 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.map.getPane("high").style.zIndex = "3000";
 
     this.loadRunAvailable(this.dataset);
-    this.addIconBorderLayer();
+    if (this.dataset === "icon") this.addIconBorderLayer();
     this.initLegends(this.map);
     this.centerMap();
-    this.map.attributionControl.setPrefix("");
 
+    this.map.attributionControl.setPrefix("");
     // pass a reference to this MeteoTilesComponent
     const ref = this;
+    // console.log((this.map as any).timeDimensionControl);
+
+    // dict with all available layers
+    const layersToUpdate = [
+      {
+        layer: DP.TM2,
+        field: "t2m-t2m",
+        variable: "t2m",
+        colorStop: COLORSTOPS.t2mColorStops,
+      },
+      {
+        layer: DP.PMSL,
+        field: "pressure-pmsl",
+        variable: "pmsl",
+        colorStop: COLORSTOPS.prsColorStops,
+      },
+      {
+        layer: DP.TCC,
+        field: "cloud-tcc",
+        variable: "tcc",
+        colorStop: COLORSTOPS.tccColorStops,
+      },
+      {
+        layer: DP.RH,
+        field: "humidity-r",
+        variable: "r",
+        colorStop: COLORSTOPS.rhColorStops,
+      },
+      {
+        layer: DP.PREC1P,
+        field: "prec1-tp",
+        variable: "tp",
+        colorStop: COLORSTOPS.prp_1_3_ColorStops,
+        offset: 1,
+      },
+      {
+        layer: DP.PREC3P,
+        field: "prec3-tp",
+        variable: "tp",
+        colorStop: COLORSTOPS.prp_1_3_ColorStops,
+        offset: 3,
+      },
+      {
+        layer: DP.PREC6P,
+        field: "prec6-tp",
+        variable: "tp",
+        colorStop: COLORSTOPS.prp_6_12_24_ColorStops,
+        offset: 6,
+      },
+      {
+        layer: DP.PREC12P,
+        field: "prec12-tp",
+        variable: "tp",
+        colorStop: COLORSTOPS.prp_6_12_24_ColorStops,
+        offset: 12,
+      },
+      {
+        layer: DP.PREC24P,
+        field: "prec24-tp",
+        variable: "tp",
+        colorStop: COLORSTOPS.prp_6_12_24_ColorStops,
+        offset: 24,
+      },
+      {
+        layer: DP.SF1,
+        field: "snow1-snow",
+        variable: "snow",
+        colorStop: COLORSTOPS.sf_1_3_ColorStops,
+        offset: 1,
+      },
+      {
+        layer: DP.SF3,
+        field: "snow3-snow",
+        variable: "snow",
+        colorStop: COLORSTOPS.sf_1_3_ColorStops,
+        offset: 3,
+      },
+      {
+        layer: DP.SF6,
+        field: "snow6-snow",
+        variable: "snow",
+        colorStop: COLORSTOPS.sf_6_12_24_ColorStops,
+        offset: 6,
+      },
+      {
+        layer: DP.SF12,
+        field: "snow12-snow",
+        variable: "snow",
+        colorStop: COLORSTOPS.sf_6_12_24_ColorStops,
+        offset: 12,
+      },
+      {
+        layer: DP.SF24,
+        field: "snow24-snow",
+        variable: "snow",
+        colorStop: COLORSTOPS.sf_6_12_24_ColorStops,
+        offset: 24,
+      },
+      {
+        layer: DP.LCC,
+        field: "cloud_hml-lcc",
+        variable: "lcc",
+        colorStop: COLORSTOPS.lccColorStops,
+      },
+      {
+        layer: DP.MCC,
+        field: "cloud_hml-mcc",
+        variable: "mcc",
+        colorStop: COLORSTOPS.mccColorStops,
+      },
+      {
+        layer: DP.HCC,
+        field: "cloud_hml-hcc",
+        variable: "hcc",
+        colorStop: COLORSTOPS.hccColorStops,
+      },
+      {
+        layer: DP.WIND10M,
+        field: "wind",
+        variable: "10uv",
+        colorStop: COLORSTOPS.ws10mColorStops,
+      },
+    ];
+
+    //////////////////////////////
+    /////// LAYERS DYNAMIC  /////
+    /////////////////////////////
     (map as any).timeDimension.on(
       "timeload",
       function (data, comp: MeteoTilesComponent = ref) {
         if (comp.timeLoading) {
           return;
         }
-
-        const start = moment.utc(
-          (map as any).timeDimension.getAvailableTimes()[0],
-        );
-        const current = moment.utc((map as any).timeDimension.getCurrentTime());
-        const now = moment.utc();
-        const nowDay = now.date();
-        const currentDay = current.date();
-        const currentHourFormat = current.format("HH");
-        if (currentDay === nowDay) {
-          comp.tmpStringHourCode = "00" + currentHourFormat + "0000";
-          console.log(comp.tmpStringHourCode);
-        }
-        if (currentDay > nowDay) {
-          if (currentDay - nowDay === 1) {
-            comp.tmpStringHourCode = "01" + currentHourFormat + "0000";
-            console.log(comp.tmpStringHourCode);
-          }
-          if (currentDay - nowDay === 2) {
-            comp.tmpStringHourCode = "02" + currentHourFormat + "0000";
-            console.log(comp.tmpStringHourCode);
-          }
-          if (currentDay - nowDay === 3) {
-            comp.tmpStringHourCode = "03" + currentHourFormat + "0000";
-            console.log(comp.tmpStringHourCode);
-          }
-        }
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(
-            comp.layersControl["overlays"]["Wind speed at 10 meters"],
-          )
-        ) {
-          comp
-            .addWindLayer(
-              comp.minZoom,
-              comp.dataset,
-              comp.tmpStringHourCode,
-              comp.onlyWind,
-            )
-            .then((l) => {
-              comp.map.removeLayer(
-                comp.layersControl["overlays"]["Wind speed at 10 meters"],
-              );
-              l.addTo(comp.map);
-              comp.layersControl["overlays"]["Wind speed at 10 meters"] = l;
-              if (comp.onlyWind) {
-                comp.legends[DP.WIND10M].addTo(comp.map);
+        comp.setHourTimeStamp(map);
+        const overlays = comp.layersControl["overlays"];
+        if (!overlays) return;
+        layersToUpdate.forEach(
+          ({ layer, field, variable, colorStop, offset = 0 }) => {
+            if (comp.map.hasLayer(overlays[layer])) {
+              if (layer === DP.WIND10M) {
+                comp
+                  .addWindLayer(
+                    comp.minZoom,
+                    comp.dataset,
+                    comp.tmpStringHourCode,
+                    comp.onlyWind,
+                  )
+                  .then((l) => {
+                    comp.map.removeLayer(overlays[layer]);
+                    l.addTo(comp.map);
+                    overlays[layer] = l;
+                    if (comp.onlyWind) {
+                      if (!comp.legends[layer])
+                        comp.legends[layer].addTo(comp.map);
+                    } else {
+                      comp.map.removeControl(comp.legends[layer]);
+                    }
+                  });
+              } else if (variable === "tp" || variable === "snow") {
+                const stringHourToExclude = comp.stringHourToExclude(offset);
+                if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
+                  comp
+                    .addScalarField(
+                      comp.dataset,
+                      field,
+                      variable,
+                      colorStop,
+                      comp.tmpStringHourCode,
+                    )
+                    .then((l) => {
+                      comp.map.removeLayer(overlays[layer]);
+                      overlays[layer] = l;
+                      l.addTo(comp.map);
+                    });
+                } else {
+                  comp.map.removeLayer(overlays[layer]);
+                  const emptyLayer = L.canvas();
+                  overlays[layer] = emptyLayer;
+                  emptyLayer.addTo(comp.map);
+                }
               } else {
-                comp.map.removeControl(comp.legends[DP.WIND10M]);
+                comp
+                  .addScalarField(
+                    comp.dataset,
+                    field,
+                    variable,
+                    colorStop,
+                    comp.tmpStringHourCode,
+                  )
+                  .then((l) => {
+                    comp.map.removeLayer(overlays[layer]);
+                    l.addTo(comp.map);
+                    overlays[layer] = l;
+                  });
               }
-            });
-        }
-        // temperature
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.TM2])
-        ) {
-          comp
-            .addScalarField(
-              comp.minZoom,
-              comp.dataset,
-              "t2m-t2m",
-              "t2m",
-              t2mColorStops,
-              comp.tmpStringHourCode,
-            )
-            .then((l) => {
-              comp.map.removeLayer(comp.layersControl["overlays"][DP.TM2]);
-              l.addTo(comp.map);
-              comp.layersControl["overlays"][DP.TM2] = l;
-            });
-        }
-        // total cloud
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.TCC])
-        ) {
-          comp
-            .addScalarField(
-              comp.minZoom,
-              comp.dataset,
-              "cloud-tcc",
-              "tcc",
-              tccColorStops,
-              comp.tmpStringHourCode,
-            )
-            .then((l) => {
-              comp.map.removeLayer(comp.layersControl["overlays"][DP.TCC]);
-              l.addTo(comp.map);
-              comp.layersControl["overlays"][DP.TCC] = l;
-            });
-        }
-
-        // rh
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.RH])
-        ) {
-          comp
-            .addScalarField(
-              comp.minZoom,
-              comp.dataset,
-              "humidity-r",
-              "r",
-              rhColorStops,
-              comp.tmpStringHourCode,
-            )
-            .then((l) => {
-              comp.map.removeLayer(comp.layersControl["overlays"][DP.RH]);
-              l.addTo(comp.map);
-              comp.layersControl["overlays"][DP.RH] = l;
-            });
-        }
-
-        // prec 1
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.PREC1P])
-        ) {
-          console.log("prec1");
-          const stringHourToExclude = comp.stringHourToExclude(1);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "prec1-tp",
-                "tp",
-                prp_1_3_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(comp.layersControl["overlays"][DP.PREC1P]);
-                comp.layersControl["overlays"][DP.PREC1P] = l;
-                l.addTo(comp.map);
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.PREC1P]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.PREC1P] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // prec 3
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.PREC3P])
-        ) {
-          const stringHourToExclude = comp.stringHourToExclude(3);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "prec3-tp",
-                "tp",
-                prp_1_3_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(comp.layersControl["overlays"][DP.PREC3P]);
-                l.addTo(comp.map);
-                comp.layersControl["overlays"][DP.PREC3P] = l;
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.PREC3P]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.PREC3P] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // prec 6
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.PREC6P])
-        ) {
-          const stringHourToExclude = comp.stringHourToExclude(6);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "prec6-tp",
-                "tp",
-                prp_6_12_24_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(comp.layersControl["overlays"][DP.PREC6P]);
-                l.addTo(comp.map);
-                comp.layersControl["overlays"][DP.PREC6P] = l;
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.PREC6P]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.PREC6P] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // prec 12
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.PREC12P])
-        ) {
-          const stringHourToExclude = comp.stringHourToExclude(12);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "prec12-tp",
-                "tp",
-                prp_6_12_24_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(
-                  comp.layersControl["overlays"][DP.PREC12P],
-                );
-                l.addTo(comp.map);
-                comp.layersControl["overlays"][DP.PREC12P] = l;
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.PREC12P]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.PREC12P] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // prec 24
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.PREC24P])
-        ) {
-          const stringHourToExclude = comp.stringHourToExclude(24);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "prec24-tp",
-                "tp",
-                prp_6_12_24_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(
-                  comp.layersControl["overlays"][DP.PREC24P],
-                );
-                l.addTo(comp.map);
-                comp.layersControl["overlays"][DP.PREC24P] = l;
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.PREC24P]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.PREC24P] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // snow 1
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.SF1])
-        ) {
-          const stringHourToExclude = comp.stringHourToExclude(1);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "snow1-snow",
-                "snow",
-                sf_1_3_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(comp.layersControl["overlays"][DP.SF1]);
-                l.addTo(comp.map);
-                comp.layersControl["overlays"][DP.SF1] = l;
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.SF1]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.SF1] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // snow 3
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.SF3])
-        ) {
-          const stringHourToExclude = comp.stringHourToExclude(3);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "snow3-snow",
-                "snow",
-                sf_1_3_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(comp.layersControl["overlays"][DP.SF3]);
-                l.addTo(comp.map);
-                comp.layersControl["overlays"][DP.SF3] = l;
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.SF3]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.SF3] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // snow 6
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.SF6])
-        ) {
-          const stringHourToExclude = comp.stringHourToExclude(6);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "snow6-snow",
-                "snow",
-                sf_6_12_24_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(comp.layersControl["overlays"][DP.SF6]);
-                l.addTo(comp.map);
-                comp.layersControl["overlays"][DP.SF6] = l;
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.SF6]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.SF6] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // snow 12
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.SF12])
-        ) {
-          const stringHourToExclude = comp.stringHourToExclude(12);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "snow12-snow",
-                "snow",
-                sf_6_12_24_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(comp.layersControl["overlays"][DP.SF12]);
-                l.addTo(comp.map);
-                comp.layersControl["overlays"][DP.SF12] = l;
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.SF12]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.SF12] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // snow 24
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.SF24])
-        ) {
-          const stringHourToExclude = comp.stringHourToExclude(24);
-          if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-            comp
-              .addScalarField(
-                comp.minZoom,
-                comp.dataset,
-                "snow24-snow",
-                "snow",
-                sf_6_12_24_ColorStops,
-                comp.tmpStringHourCode,
-              )
-              .then((l) => {
-                comp.map.removeLayer(comp.layersControl["overlays"][DP.SF24]);
-                l.addTo(comp.map);
-                comp.layersControl["overlays"][DP.SF24] = l;
-              });
-          } else {
-            comp.map.removeLayer(comp.layersControl["overlays"][DP.SF24]);
-            const emptyLayer = L.canvas();
-            comp.layersControl["overlays"][DP.SF24] = emptyLayer;
-            emptyLayer.addTo(comp.map);
-          }
-        }
-        // low cloud
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.LCC])
-        ) {
-          comp
-            .addScalarField(
-              comp.minZoom,
-              comp.dataset,
-              "cloud_hml-lcc",
-              "lcc",
-              lccColorStops,
-              comp.tmpStringHourCode,
-            )
-            .then((l) => {
-              comp.map.removeLayer(comp.layersControl["overlays"][DP.LCC]);
-              l.addTo(comp.map);
-              comp.layersControl["overlays"][DP.LCC] = l;
-            });
-        }
-        // medium cc
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.MCC])
-        ) {
-          comp
-            .addScalarField(
-              comp.minZoom,
-              comp.dataset,
-              "cloud_hml-mcc",
-              "mcc",
-              mccColorStops,
-              comp.tmpStringHourCode,
-            )
-            .then((l) => {
-              comp.map.removeLayer(comp.layersControl["overlays"][DP.MCC]);
-              l.addTo(comp.map);
-              comp.layersControl["overlays"][DP.MCC] = l;
-            });
-        }
-        // high cc
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.HCC])
-        ) {
-          comp
-            .addScalarField(
-              comp.minZoom,
-              comp.dataset,
-              "cloud_hml-hcc",
-              "hcc",
-              hccColorStops,
-              comp.tmpStringHourCode,
-            )
-            .then((l) => {
-              comp.map.removeLayer(comp.layersControl["overlays"][DP.HCC]);
-              l.addTo(comp.map);
-              comp.layersControl["overlays"][DP.HCC] = l;
-            });
-        }
-
-        // pressure
-        if (
-          comp.layersControl["overlays"] &&
-          comp.map.hasLayer(comp.layersControl["overlays"][DP.PMSL])
-        ) {
-          comp
-            .addScalarField(
-              comp.minZoom,
-              comp.dataset,
-              "pressure-pmsl",
-              "pmsl",
-              prsColorStops,
-              comp.tmpStringHourCode,
-            )
-            .then((l) => {
-              comp.map.removeLayer(comp.layersControl["overlays"][DP.PMSL]);
-              l.addTo(comp.map);
-              comp.layersControl["overlays"][DP.PMSL] = l;
-              comp.legends[DP.PMSL].addTo(comp.map);
-            });
-          /*comp.addPressureField(comp.dataset, "pressure-pmsl", "pmsl", comp.tmpStringHourCode).then((l) => {
-                        comp.map.removeLayer(comp.layersControl["overlays"][DP.PMSL]);
-                        //l.addTo(comp.map);
-                        //comp.layersControl["overlays"][DP.PMSL] = l;
-                        fetch("./app/custom/assets/images/icon/geoJson/isobare.geojson").then(
-                        response => response.json()
-                    ).then(data => {
-                        L.geoJSON(data,{
-                            onEachFeature: function (feature,layer){
-                                if (feature.properties && feature.properties.label){
-/!*                                    layer.bindTooltip(feature.properties.label, {
-                                        permanent: true,
-                                        direction: 'center',
-                                        className : 'isobar-label',
-                                        opacity: 1
-                                    })*!/
-                                }
-                            }
-                        }).addTo(comp.map);
-                    })
-                    })*/
-        }
+            }
+          },
+        );
       },
     );
+    // play button click event
+    document
+      .querySelector(".leaflet-control-timecontrol.timecontrol-play.play")
+      ?.addEventListener("click", (event) => {
+        // add a pause before starting animation
+        const button = event.currentTarget as HTMLElement;
+        // prevent pointers event on side menu while animation
+        const menuDiv = document.querySelector(".map-sidenav-menu");
+        (menuDiv as HTMLElement).style.pointerEvents = "none";
+        if (!button.classList.contains("pause")) {
+          (menuDiv as HTMLElement).style.pointerEvents = "auto";
+          return;
+        }
+        (this.map as any).timeDimensionControl._player.stop();
+        setTimeout(() => this.spinner.show(), 0);
+        this.tilesService.resetCache();
+
+        const startTime = (map as any).timeDimension.getAvailableTimes()[0];
+        const currentTime = (map as any).timeDimension.getCurrentTime();
+        const diffTime = currentTime - startTime;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        let HH = new Date(currentTime).getUTCHours();
+
+        if (diffDays === 1) {
+          HH = HH + 24;
+        }
+        if (diffDays === 2) {
+          HH = HH + 48;
+        }
+        if (diffDays === 3) {
+          HH = HH + 72;
+        }
+        //console.log(HH);
+        const activeProducts = [];
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.TM2])) {
+          activeProducts.push(["t2m-t2m", "t2m"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.WIND10M])) {
+          activeProducts.push(["wind-10u", "10u"]);
+          activeProducts.push(["wind-10v", "10v"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.TCC])) {
+          activeProducts.push(["cloud-tcc", "tcc"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.RH])) {
+          activeProducts.push(["humidity-r", "r"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.LCC])) {
+          activeProducts.push(["cloud_hml-lcc", "lcc"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.MCC])) {
+          activeProducts.push(["cloud_hml-mcc", "mcc"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.HCC])) {
+          activeProducts.push(["cloud_hml-hcc", "hcc"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PMSL])) {
+          activeProducts.push(["pressure-pmsl", "pmsl"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC1P])) {
+          activeProducts.push(["prec1-tp", "tp"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC3P])) {
+          activeProducts.push(["prec3-tp", "tp"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC6P])) {
+          activeProducts.push(["pre6-tp", "tp"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC12P])) {
+          activeProducts.push(["prec12-tp", "tp"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC24P])) {
+          activeProducts.push(["prec24-tp", "tp"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF1])) {
+          activeProducts.push(["snow1-snow", "snow"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF3])) {
+          activeProducts.push(["snow3-snow", "snow"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF6])) {
+          activeProducts.push(["snow6-snow", "snow"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF12])) {
+          activeProducts.push(["snow12-snow", "snow"]);
+        }
+        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF24])) {
+          activeProducts.push(["snow24-snow", "snow"]);
+        }
+
+        let requests = [];
+
+        activeProducts.forEach((v) => {
+          // v : [foldername,compname]
+          const trav = this.traverseDictionary(
+            this.generateForecastTimestamp(v[1]),
+            HH,
+          );
+          trav.forEach((name) => {
+            if (v[0] === "prec1-tp") {
+              if (
+                this.stringHourToExclude(1).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            if (v[0] === "prec3-tp") {
+              if (
+                this.stringHourToExclude(3).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            if (v[0] === "prec6-tp") {
+              if (
+                this.stringHourToExclude(6).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            if (v[0] === "prec12-tp") {
+              if (
+                this.stringHourToExclude(12).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            if (v[0] === "prec24-tp") {
+              if (
+                this.stringHourToExclude(24).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            if (v[0] === "snow1-snow") {
+              if (
+                this.stringHourToExclude(1).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            if (v[0] === "snow3-snow") {
+              if (
+                this.stringHourToExclude(3).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            if (v[0] === "snow6-snow") {
+              if (
+                this.stringHourToExclude(6).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            if (v[0] === "snow12-snow") {
+              if (
+                this.stringHourToExclude(12).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            if (v[0] === "snow24-snow") {
+              if (
+                this.stringHourToExclude(24).some((substring) =>
+                  name.includes(substring),
+                )
+              ) {
+                return;
+              }
+            }
+            requests.push(
+              this.tilesService.getImgComponentCached(
+                this.dataset,
+                v[0],
+                name,
+                true,
+              ),
+            );
+
+            if (v[0] === "pressure-pmsl") {
+              const isobarsName = name.split(".")[0] + ".geojson";
+              requests.push(
+                this.tilesService.getGeoJsonComponentCached(
+                  this.dataset,
+                  v[0],
+                  isobarsName,
+                  true,
+                ),
+              );
+            }
+          });
+        });
+        requests.forEach((obs) => obs.subscribe());
+        // number of requests to be made before removing the spinner
+        const firstReq = requests.slice(0, 10 * activeProducts.length);
+        forkJoin(firstReq).subscribe({
+          next: (results) => {
+            setTimeout(() => {
+              //(this.map as any).timeDimensionControl._buttonPlayClicked
+              (this.map as any).timeDimensionControl._player.start();
+              this.spinner.hide();
+            }, 500);
+          },
+          error: (err) => {
+            this.spinner.hide();
+          },
+        });
+      });
+  }
+
+  addPlayButton() {
+    const element = document.querySelector(
+      "a.leaflet-control-timecontrol.timecontrol-play.play",
+    );
+    if (element) {
+      (element as HTMLElement).style.display = "block";
+    }
+  }
+  removePlayButton() {
+    const element = document.querySelector(
+      "a.leaflet-control-timecontrol.timecontrol-play.play",
+    );
+    if (element) {
+      (element as HTMLElement).style.display = "none";
+    }
+  }
+
+  startObserving() {
+    // useful to show/hide play button to prevent animation with multiple layers
+    this.observer = new MutationObserver((mutationsList, observer) => {
+      mutationsList.forEach((mutation) => {
+        if (mutation.type === "childList") {
+          // selected layers
+          this.activeSpans = document.querySelectorAll('span[class*="attivo"]');
+          if (this.activeSpans.length === 1) {
+            this.addPlayButton();
+          } else if (this.activeSpans.length > 1) {
+            // remove when there will be future improvements with animation
+            this.removePlayButton();
+          }
+          if (this.activeSpans.length === 4 && !this.messageShown) {
+            this.notify.showWarning(
+              "You reached the maximum number of contemporary layers",
+            );
+            this.messageShown = true;
+          }
+          if (this.activeSpans.length != 4) this.messageShown = false;
+        }
+      });
+    });
+    // MutationObserver is configured to detect changes in child nodes  and all descendants
+    this.observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  getDiscreteColor(value: number, stops) {
+    // useful for geoRasterLayer
+    for (let i = stops.length - 1; i >= 0; i--) {
+      if (value >= stops[i].value) {
+        return stops[i].color;
+      }
+    }
+    return stops[0].color;
+  }
+  setHourTimeStamp(map) {
+    // change timestamp based on current time
+    const now = moment.utc();
+    const current = moment.utc((map as any).timeDimension.getCurrentTime());
+    const currentHourFormat = current.format("HH");
+    const diffDays = current.startOf("day").diff(now.startOf("day"), "days");
+    let prefix = diffDays.toString().padStart(2, "0");
+    this.tmpStringHourCode = prefix + currentHourFormat + "0000";
+    console.log(this.tmpStringHourCode);
   }
 
   private loadRunAvailable(dataset: string) {
@@ -917,7 +734,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         (runAvailable: RunAvailable) => {
           // runAvailable.reftime : 2020051100
           this.runAvailable = runAvailable;
-          console.log(runAvailable);
+          // console.log(runAvailable);
           //console.log(`Last Available Run [${dataset}]`, runAvailable);
           let reftime = runAvailable.reftime;
           this.run = reftime.substr(8, 2);
@@ -932,6 +749,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             .utc(reftime, "YYYYMMDDHH")
             .add(runAvailable.end_offset, "hours")
             .toDate();
+          this.endOffset = runAvailable.end_offset;
           // console.log(`endTime ${moment.utc(endTime).format()}`);
 
           // add time dimension
@@ -955,40 +773,19 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           }
           this.timeLoading = false;
           (this.map as any).timeDimension.setCurrentTime(currentTime);
+          // initial setting up of layersControl["overlays"]
           this.setOverlaysToMap();
 
           this.dataset = runAvailable.dataset;
 
-          // add default layer
-          const current = moment.utc(
-            (this.map as any).timeDimension.getCurrentTime(),
-          );
-          const nowDay = now.date();
-          const currentDay = current.date();
-          const currentHourFormat = current.format("HH");
-          let tmpStringHourCode: string;
-          if (currentDay === nowDay) {
-            tmpStringHourCode = "00" + currentHourFormat + "0000";
-          }
-          if (currentDay > nowDay) {
-            if (currentDay - nowDay === 1) {
-              tmpStringHourCode = "01" + currentHourFormat + "0000";
-            }
-            if (currentDay - nowDay === 2) {
-              tmpStringHourCode = "02" + currentHourFormat + "0000";
-            }
-            if (currentDay - nowDay === 3) {
-              tmpStringHourCode = "03" + currentHourFormat + "0000";
-            }
-          }
+          this.setHourTimeStamp(this.map);
           // add default layer and legend, activate t2m span button
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "t2m-t2m",
             "t2m",
-            t2mColorStops,
-            tmpStringHourCode,
+            COLORSTOPS.t2mColorStops,
+            this.tmpStringHourCode,
           ).then((l) => {
             this.layersControl["overlays"][DP.TM2] = l;
             l.addTo(this.map);
@@ -1009,30 +806,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       });
   }
 
-  getTilesUrl() {
-    let baseUrl = "";
-    let production = false;
-    if (environment.CUSTOM.TILES_URL !== "") {
-      baseUrl = `${environment.CUSTOM.TILES_URL}/tiles/`;
-      production = true;
-    } else if (
-      environment.production ||
-      environment.backendURI.startsWith("https")
-    ) {
-      baseUrl = `${environment.backendURI}/resources/tiles/`;
-      production = true;
-    } else {
-      baseUrl = `${environment.backendURI}/app/custom/assets/images/tiles/`;
-      production = false;
-    }
-
-    baseUrl += `${this.run}-${this.dataset}`;
-    if (production) {
-      baseUrl += `/${this.runAvailable.area}`;
-    }
-    return baseUrl;
-  }
-
   createCustomColorScale(colorStops) {
     const domainValues = colorStops.map((stop) => stop.value);
     const colors = colorStops.map((stop) => stop.color);
@@ -1042,95 +815,223 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     //return chroma.scale(colors).domain(domainValues);
   }
 
-  async addScalarField(
-    minZoom: number,
+  addScalarField(
     dataset: string,
     folderName: string,
     componentName: string,
     colorStop,
     hour: string = "",
-  ) {
-    let pane;
+  ): Promise<L.Layer | L.LayerGroup> {
+    let pane, data;
     let now = new Date().getUTCHours().toString();
     if (now.length === 1) now = "0" + now;
     let s: string = "00" + now + "0000";
     if (hour) s = hour;
     const customColorScale = this.createCustomColorScale(colorStop);
-    //const ResponseUrl = `./app/custom/assets/images/icon/${folderName}/${componentName}_comp_` + s + ".asc"
-    const ResponseUrl =
-      `./app/custom/assets/images/icon/${folderName}/${componentName}_comp_` +
-      s +
-      ".tif";
-    const Response = await fetch(ResponseUrl);
-    //const variable = await Response.text();
-    const variable = await Response.arrayBuffer();
-    //const sf = L.ScalarField.fromASCIIGrid(variable);
-    const sf = L.ScalarField.fromGeoTIFF(variable);
-    const magnitude = L.canvasLayer.scalarField(sf, {
-      color: customColorScale,
-      opacity: 0.6,
-    });
-    if (folderName == "cloud_hml-lcc") pane = "low";
-    if (folderName == "cloud_hml-mcc") pane = "medium";
-    if (folderName == "cloud_hml-hcc") pane = "high";
-    if (
-      folderName == "cloud_hml-lcc" ||
-      folderName == "cloud_hml-mcc" ||
-      folderName == "cloud_hml-hcc"
-    ) {
-      magnitude.options.pane = pane;
-    }
-    if (folderName == "pressure-pmsl" && componentName == "pmsl") {
-      let lastLabelPos = null;
-      let url =
-        `./app/custom/assets/images/icon/${folderName}/${componentName}_comp_` +
-        s +
-        ".geojson";
-      //let url = "./app/custom/assets/images/isobare.geojson"
-      const response = await fetch(url);
-      const data = await response.json();
-      let isobars: L.Layer = L.geoJSON(data, {
-        style: function () {
-          return {
-            color: "red",
-            weight: 1,
-            opacity: 0.8,
-          };
-        },
-        onEachFeature: function (feature, layer) {
-          if (feature.properties && feature.properties.label) {
-            let coords = null;
-            if (feature.geometry.type === "LineString") {
-              coords = feature.geometry.coordinates[0];
-            } else if (feature.geometry.type === "MultiLineString") {
-              coords = feature.geometry.coordinates[0][0];
-            }
-            if (coords) {
-              let minDistance = 10;
-              if (
-                !lastLabelPos ||
-                Math.abs(coords[0] - lastLabelPos[0]) > minDistance ||
-                Math.abs(coords[1] - lastLabelPos[1]) > minDistance
-              ) {
-                layer.bindTooltip(feature.properties.label, {
-                  permanent: true,
-                  direction: "center",
-                  className: "isobar-label",
-                  opacity: 1,
-                });
-                lastLabelPos = coords;
-              }
-            }
-          }
-        },
-      });
+    const comp_name = `${componentName}_comp_` + s + ".tif";
+    const ref = this;
 
-      return L.layerGroup([magnitude, isobars]);
+    if (folderName != "pressure-pmsl" && componentName != "pmsl") {
+      return new Promise((resolve, reject) => {
+        //console.time('getImgComponent');
+        const subscription = this.tilesService
+          .getImgComponentCached(dataset, folderName, comp_name)
+          .subscribe({
+            next: (arrayBuffer) => {
+              //const bufferCopy = arrayBuffer.slice(0);
+              //const colorStopSort = colorStop.sort((a,b)=> a.value-b.value);
+
+              /*parseGeoraster(bufferCopy).then(georaster=>{
+
+                            const layer = new GeoRasterLayer({
+                                georaster: georaster,
+                                opacity: 0.6,
+                                pixelValuesToColorFn: (pixelValue)=> {
+                                    return this.getDiscreteColor(pixelValue[0],colorStopSort)
+                                },
+                                resolution: 128
+                            })
+                        if (folderName == "cloud_hml-lcc") pane = "low";
+                        if (folderName == "cloud_hml-mcc") pane = "medium";
+                        if (folderName == "cloud_hml-hcc") pane = "high";
+                        if (
+                            folderName == "cloud_hml-lcc" ||
+                            folderName == "cloud_hml-mcc" ||
+                            folderName == "cloud_hml-hcc"
+                        ) {
+
+                            layer.options.pane = pane;
+                        }
+                        resolve(layer);
+                        })*/
+
+              const sf = L.ScalarField.fromGeoTIFF(arrayBuffer);
+              const magnitude = L.canvasLayer.scalarField(sf, {
+                color: customColorScale,
+                opacity: 0.6,
+              });
+              if (folderName == "cloud_hml-lcc") pane = "low";
+              if (folderName == "cloud_hml-mcc") pane = "medium";
+              if (folderName == "cloud_hml-hcc") pane = "high";
+              if (
+                folderName == "cloud_hml-lcc" ||
+                folderName == "cloud_hml-mcc" ||
+                folderName == "cloud_hml-hcc"
+              ) {
+                magnitude.options.pane = pane;
+              }
+
+              resolve(magnitude);
+            },
+            //complete: ()=> {console.timeEnd('getImgComponent')},
+            error: (error) => {
+              console.error(
+                `Error while downloading/processing ${comp_name} file`,
+                error,
+              );
+              reject(error);
+            },
+          });
+        this.subscriptions.push(subscription);
+      });
+    } else {
+      const geoJcomp_name = `${componentName}_comp_` + s + ".geojson";
+      return new Promise((resolve, reject, refMap = ref) => {
+        //console.time('getgeoJson');
+        const subscription = forkJoin({
+          prs: this.tilesService.getImgComponentCached(
+            dataset,
+            folderName,
+            comp_name,
+          ),
+          geoJson: this.tilesService.getGeoJsonComponentCached(
+            dataset,
+            folderName,
+            geoJcomp_name,
+          ),
+        }).subscribe({
+          next: ({ prs, geoJson }) => {
+            //const bufferCopy = prs.slice(0);
+            //const colorStopSort = colorStop.sort((a,b)=> a.value-b.value);
+            const sf = L.ScalarField.fromGeoTIFF(prs);
+            const magnitude = L.canvasLayer.scalarField(sf, {
+              color: customColorScale,
+              opacity: 0.6,
+            });
+
+            /*parseGeoraster(bufferCopy).then(georaster=>{
+                           let isobars: L.Layer =
+                            L.geoJSON(geoJson, {
+                                style: function () {
+                                    return {
+                                        color: "grey",
+                                        weight: 1,
+                                        opacity: 0.8,
+                                    };
+                                },
+                                onEachFeature: function (feature, layer) {
+
+                                    let invisibleLayer = L.geoJSON(feature, {
+                                        style: function () {
+                                            return {
+                                                color: "transparent",
+                                                weight: 6,
+                                                opacity: 0,
+                                                interactive: true
+                                            };
+                                        }
+                                    }).addTo(refMap.map);
+
+
+                                    invisibleLayer.on("mouseover", function (e) {
+
+                                        layer.bindTooltip(feature.properties.label + ' hPa', {
+                                            permanent: true,
+                                            direction: "top",
+                                            className: "isobar-label",
+                                            opacity: 1,
+                                            offset: L.point(0, -10)
+                                        }).openTooltip(e.latlng);
+                                    });
+                                    invisibleLayer.on("mousemove", function (e) {
+                                        layer.openTooltip(e.latlng);
+                                    });
+                                    invisibleLayer.on("mouseout", function () {
+                                        layer.closeTooltip();
+                                    });
+                                }
+                            });
+
+
+
+                           const magnitude = new GeoRasterLayer({
+                               georaster: georaster,
+                               opacity: 0.6,
+                               pixelValuesToColorFn: (pixelValue)=> {
+                                   return this.getDiscreteColor(pixelValue[0],colorStopSort)
+                               },
+                               resolution:128
+                           })
+                           resolve(L.layerGroup([magnitude, isobars]));
+                       })*/
+            let isobars: L.Layer = L.geoJSON(geoJson, {
+              style: function () {
+                return {
+                  color: "grey",
+                  weight: 1,
+                  opacity: 0.8,
+                };
+              },
+              onEachFeature: function (feature, layer) {
+                let invisibleLayer = L.geoJSON(feature, {
+                  style: function () {
+                    return {
+                      color: "transparent",
+                      weight: 6,
+                      opacity: 0,
+                      interactive: true,
+                    };
+                  },
+                }).addTo(refMap.map);
+
+                invisibleLayer.on("mouseover", function (e) {
+                  layer
+                    .bindTooltip(feature.properties.label + " hPa", {
+                      permanent: false,
+                      direction: "top",
+                      className: "isobar-label",
+                      opacity: 1,
+                      offset: L.point(0, -10),
+                    })
+                    .openTooltip(e.latlng);
+                });
+                invisibleLayer.on("mousemove", function (e) {
+                  layer.openTooltip(e.latlng);
+                });
+                invisibleLayer.on("mouseout", function () {
+                  layer.closeTooltip();
+                });
+              },
+            });
+
+            resolve(L.layerGroup([magnitude, isobars]));
+          },
+          //complete:()=>{console.timeEnd('getgeoJson')},
+          error: (error) => {
+            console.error(
+              `Error while downloading/processing ${comp_name} or ${geoJcomp_name} files`,
+              error,
+            );
+            reject(error);
+          },
+        });
+        this.subscriptions.push(subscription);
+      });
     }
-    return magnitude;
   }
 
   addIconBorderLayer() {
+    // add border layer for ICON model
     fetch("./app/custom/assets/images/geoJson/coastlines_border_lines.geojson")
       .then((response) => response.json())
       .then((data) => {
@@ -1144,9 +1045,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       });
   }
 
-  stringHourToExclude(targetHour: number) {
+  stringHourToExclude(targetHour: number): string[] {
+    // return timestamp until targetHour-1
     if (targetHour < 0 || targetHour > 24) {
-      return "Error: target hour must be between 0 and 24.";
+      return ["Error: target hour must be between 0 and 24."];
     }
     const strings = [];
     for (let i = 0; i < targetHour; i++) {
@@ -1155,13 +1057,54 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     return strings;
   }
 
-  async addWindLayer(
+  generateForecastTimestamp(compName: string) {
+    let forecastMap: Record<string, string> = {};
+    let index = 0;
+    const maxDaysForecasts = this.endOffset / 24;
+
+    for (let D = 0; D <= maxDaysForecasts; D++) {
+      for (let HH = 0; HH < 24; HH++) {
+        if (index > this.endOffset) break;
+        let forecastKey = (index + parseInt(this.run))
+          .toString()
+          .padStart(2, "0");
+        forecastMap[
+          forecastKey
+        ] = `${compName}_comp_0${D}${HH.toString().padStart(2, "0")}0000.tif`;
+        index++;
+      }
+    }
+    return forecastMap;
+  }
+
+  traverseDictionary(dict: Record<string, any>, start: number): string[] {
+    const keys = Object.keys(dict)
+      .map(Number)
+      .sort((a, b) => a - b);
+    const result: string[] = [];
+
+    for (let i = start; i <= this.endOffset; i++) {
+      const key = i.toString().padStart(2, "0");
+      if (key in dict) result.push(dict[key]);
+    }
+
+    if (start !== 0) {
+      for (let i = 0; i < start; i++) {
+        const key = i.toString().padStart(2, "0");
+        if (key in dict) result.push(dict[key]);
+      }
+    }
+
+    return result;
+  }
+
+  addWindLayer(
     minZoom: number,
     dataset: string,
     hour = "",
     onlyWind = false,
-  ) {
-    if (!dataset || (dataset != "lm5" && dataset != "lm2.2")) {
+  ): Promise<L.Layer | L.LayerGroup> {
+    if (!dataset) {
       return;
     }
     let resLayer: L.Layer;
@@ -1172,52 +1115,57 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     // initialization useful for the first load of wind layer
     let s: string = "00" + now + "0000";
     if (hour) s = hour;
-    try {
-      let uResponseUrl, vResponseUrl;
 
-      //uResponseUrl = "./app/custom/assets/images/icon/wind-10u/10u_comp_" + s + ".asc"
-      //vResponseUrl = "./app/custom/assets/images/icon/wind-10v/10v_comp_" + s + ".asc"
-      uResponseUrl =
-        "./app/custom/assets/images/icon/wind-10u/10u_comp_" + s + ".tif";
-      vResponseUrl =
-        "./app/custom/assets/images/icon/wind-10v/10v_comp_" + s + ".tif";
-      const uResponse = await fetch(uResponseUrl);
-      const vResponse = await fetch(vResponseUrl);
-      // const u = await uResponse.text();
-      // const v = await vResponse.text();
-      const u = await uResponse.arrayBuffer();
-      const v = await vResponse.arrayBuffer();
+    const u_name = "10u_comp_" + s + ".tif";
+    const v_name = "10v_comp_" + s + ".tif";
 
-      //console.log(uResponseUrl, vResponseUrl);
-      let n = (window.innerHeight * window.innerWidth) / 2073600;
-      //const vf = L.VectorField.fromASCIIGrids(u, v);
-      const vf = L.VectorField.fromGeoTIFFs(u, v);
-      const sf = vf.getScalarField("magnitude");
+    return new Promise((resolve, reject) => {
+      //console.time('addwindlayer');
+      const subscription = forkJoin({
+        u: this.tilesService.getImgComponentCached(dataset, "wind-10u", u_name),
+        v: this.tilesService.getImgComponentCached(dataset, "wind-10v", v_name),
+      }).subscribe({
+        next: ({ u, v }) => {
+          let n = (window.innerHeight * window.innerWidth) / 2073600;
+          const vf = L.VectorField.fromGeoTIFFs(u, v);
+          const sf = vf.getScalarField("magnitude");
 
-      const customColorScale = this.createCustomColorScale(ws10mColorStops);
-      const magnitude = L.canvasLayer.scalarField(sf, {
-        color: customColorScale,
-        opacity: 0.4,
+          const customColorScale = this.createCustomColorScale(
+            COLORSTOPS.ws10mColorStops,
+          );
+          const magnitude = L.canvasLayer.scalarField(sf, {
+            color: customColorScale,
+            opacity: 0.4,
+          });
+          // by construction 5<=zoom<=8, for this reason vectors length is 8
+          const vectors = [5e3, 5e3, 5e3, 5e3, 5e3, 5e3, 3e3, 2e3, 1e3];
+          let r = vectors[minZoom] * n;
+          const layer = L.canvasLayer.vectorFieldAnim(vf, {
+            color: "black",
+            paths: r,
+            fade: 0.92,
+            velocityScale: 0.001,
+          });
+
+          if (onlyWind) resLayer = L.layerGroup([magnitude, layer]);
+          else resLayer = layer;
+          resolve(resLayer);
+        },
+        //complete: ()=> {console.timeEnd('addwindlayer')},
+        error: (error) => {
+          console.error(
+            `Error while downloading/processing ${u_name} or ${v_name} files`,
+            error,
+          );
+          reject(error);
+        },
       });
-      // by construction 5<=zoom<=8, for this reason vectors length is 8
-      const vectors = [5e3, 5e3, 5e3, 5e3, 5e3, 5e3, 3e3, 2e3, 1e3];
-      let r = vectors[minZoom] * n;
-      const layer = L.canvasLayer.vectorFieldAnim(vf, {
-        color: "black",
-        paths: r,
-        fade: 0.92,
-        velocityScale: 0.001,
-      });
-
-      if (onlyWind) resLayer = L.layerGroup([magnitude, layer]);
-      else resLayer = layer;
-      return resLayer;
-    } catch (error) {
-      console.error("Error while loading data:", error);
-    }
+      this.subscriptions.push(subscription);
+    });
   }
 
   updateCumulatedFields(field) {
+    // in the case of cumulated field go to the nearest available hour
     if (field[0] === "prp" || field[0] === "sf") {
       const n = parseInt(field[1]);
       const targetHr = parseInt(this.tmpStringHourCode.slice(2, 4));
@@ -1276,68 +1224,50 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     if (now.length === 1) now = "0" + now;
     const s = "00" + now + "0000";
 
-    let bounds = L.latLngBounds(
-      ICON_BOUNDS["southWest"],
-      ICON_BOUNDS["northEast"],
-    );
-
     this.layersControl["overlays"] = {};
-    // Temperature at 2 meters
+    ////////////////////////////////////
+    /////////// TEMPERATURE //////////
+    ////////////////////////////////////
     if ("t2m" in this.variablesConfig) {
       this.addScalarField(
-        this.minZoom,
         this.dataset,
         "t2m-t2m",
         "t2m",
-        t2mColorStops,
+        COLORSTOPS.t2mColorStops,
       ).then((l: L.Layer) => {
         this.layersControl["overlays"][DP.TM2] = l;
       });
     }
-    // Pressure at mean sea level
+    ////////////////////////////////////
+    /////////// PRESSURE //////////
+    ////////////////////////////////////
     if ("prs" in this.variablesConfig) {
-      /*         this.addPressureField(this.dataset,"pressure-pmsl","pmsl").then((l)=>{
-                         //this.layersControl["overlays"][DP.PMSL] =l;
-                         this.layersControl["overlays"][DP.PMSL]= fetch("./app/custom/assets/images/icon/geoJson/isobare.geojson").then(
-                             response => response.json()
-                         ).then(data => {
-                             L.geoJSON(data,{
-                                 onEachFeature: function (feature,layer){
-                                     if (feature.properties && feature.properties.label){
-                   /!*                      layer.bindTooltip(feature.properties.label, {
-                                             permanent: true,
-                                             direction: 'center',
-                                             className : 'isobar-label'
-                                         })*!/
-                                     }
-                                 }
-                             }).addTo(this.map);
-                         })
-                     })*/
       this.addScalarField(
-        this.minZoom,
         this.dataset,
         "pressure-pmsl",
         "pmsl",
-        prsColorStops,
+        COLORSTOPS.prsColorStops,
       ).then((l) => {
         this.layersControl["overlays"][DP.PMSL] = l;
       });
     }
-    // Wind speed at 10 meters
+    ////////////////////////////////////
+    /////////// WIND //////////
+    ////////////////////////////////////
     if ("ws10m" in this.variablesConfig) {
       this.addWindLayer(this.minZoom, this.dataset).then((l) => {
         this.layersControl["overlays"][DP.WIND10M] = l;
       });
     }
-    // Relative humidity Time Layer
+    ////////////////////////////////////
+    /////////// RELATIVE HUMIDITY //////////
+    ////////////////////////////////////
     if ("rh" in this.variablesConfig) {
       this.addScalarField(
-        this.minZoom,
         this.dataset,
         "humidity-r",
         "r",
-        rhColorStops,
+        COLORSTOPS.rhColorStops,
       ).then((l) => {
         this.layersControl["overlays"][DP.RH] = l;
       });
@@ -1350,14 +1280,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.variablesConfig["prp"].length &&
         this.variablesConfig["prp"].includes(1)
       ) {
-        const stringHoursToExlude = this.stringHourToExclude(1);
-        if (!stringHoursToExlude.includes(s)) {
+        const stringHoursToExclude = this.stringHourToExclude(1);
+        if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "prec1-tp",
             "tp",
-            prp_1_3_ColorStops,
+            COLORSTOPS.prp_1_3_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.PREC1P] = l;
           });
@@ -1373,11 +1302,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const stringHoursToExclude = this.stringHourToExclude(3);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "prec3-tp",
             "tp",
-            prp_1_3_ColorStops,
+            COLORSTOPS.prp_1_3_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.PREC3P] = l;
           });
@@ -1393,11 +1321,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const stringHoursToExclude = this.stringHourToExclude(6);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "prec6-tp",
             "tp",
-            prp_6_12_24_ColorStops,
+            COLORSTOPS.prp_6_12_24_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.PREC6P] = l;
           });
@@ -1413,11 +1340,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const stringHoursToExclude = this.stringHourToExclude(12);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "prec12-tp",
             "tp",
-            prp_6_12_24_ColorStops,
+            COLORSTOPS.prp_6_12_24_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.PREC12P] = l;
           });
@@ -1433,11 +1359,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const stringHoursToExclude = this.stringHourToExclude(24);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "prec24-tp",
             "tp",
-            prp_6_12_24_ColorStops,
+            COLORSTOPS.prp_6_12_24_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.PREC24P] = l;
           });
@@ -1458,11 +1383,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const stringHoursToExclude = this.stringHourToExclude(1);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "snow1-snow",
             "snow",
-            sf_1_3_ColorStops,
+            COLORSTOPS.sf_1_3_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.SF1] = l;
           });
@@ -1478,11 +1402,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const stringHoursToExclude = this.stringHourToExclude(3);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "snow3-snow",
             "snow",
-            sf_1_3_ColorStops,
+            COLORSTOPS.sf_1_3_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.SF3] = l;
           });
@@ -1498,11 +1421,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const stringHoursToExclude = this.stringHourToExclude(6);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "snow6-snow",
             "snow",
-            sf_6_12_24_ColorStops,
+            COLORSTOPS.sf_6_12_24_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.SF6] = l;
           });
@@ -1518,11 +1440,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const stringHoursToExclude = this.stringHourToExclude(12);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "snow12-snow",
             "snow",
-            sf_6_12_24_ColorStops,
+            COLORSTOPS.sf_6_12_24_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.SF12] = l;
           });
@@ -1538,11 +1459,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const stringHoursToExclude = this.stringHourToExclude(24);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
-            this.minZoom,
             this.dataset,
             "snow24-snow",
             "snow",
-            sf_6_12_24_ColorStops,
+            COLORSTOPS.sf_6_12_24_ColorStops,
           ).then((l) => {
             this.layersControl["overlays"][DP.SF24] = l;
           });
@@ -1561,11 +1481,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.variablesConfig["cc"].includes("low")
       ) {
         this.addScalarField(
-          this.minZoom,
           this.dataset,
           "cloud_hml-lcc",
           "lcc",
-          lccColorStops,
+          COLORSTOPS.lccColorStops,
         ).then((l) => {
           this.layersControl["overlays"][DP.LCC] = l;
         });
@@ -1575,11 +1494,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.variablesConfig["cc"].includes("medium")
       ) {
         this.addScalarField(
-          this.minZoom,
           this.dataset,
           "cloud_hml-mcc",
           "mcc",
-          mccColorStops,
+          COLORSTOPS.mccColorStops,
         ).then((l) => {
           this.layersControl["overlays"][DP.MCC] = l;
         });
@@ -1589,22 +1507,20 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.variablesConfig["cc"].includes("high")
       ) {
         this.addScalarField(
-          this.minZoom,
           this.dataset,
           "cloud_hml-hcc",
           "hcc",
-          hccColorStops,
+          COLORSTOPS.hccColorStops,
         ).then((l) => {
           this.layersControl["overlays"][DP.HCC] = l;
         });
       }
 
       this.addScalarField(
-        this.minZoom,
         this.dataset,
         "cloud-tcc",
         "tcc",
-        tccColorStops,
+        COLORSTOPS.tccColorStops,
       ).then((l) => {
         this.layersControl["overlays"][DP.TCC] = l;
       });
@@ -1824,9 +1740,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   protected centerMap() {
     if (this.map) {
       //const mapCenter = super.getMapCenter();
+      // map center for ICON
       const mapCenter = L.latLng(41.3, 12.5);
       switch (this.dataset) {
-        case "lm5":
+        case "icon":
           this.map.setMaxZoom(this.maxZoom - 1);
           //this.map.setView(mapCenter, 6);
           this.map.fitBounds(this.bounds);
@@ -1847,30 +1764,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       console.log(`remove layer: ${obj.name}`);
       this.map.fire("overlayremove", obj);
       this.map.removeLayer(layer);
-      /*
-            // useful to manage new wind layer
-            for (const key of Object.keys(this.layersControl["overlays"])) {
-                if (this.map.hasLayer(this.layersControl["overlays"][key]))
-                    numbLayers.push(key);
-            }
-            if (
-                numbLayers.length === 1 &&
-                numbLayers[0] === "Wind speed at 10 meters"
-            ) {
-                this.addWindLayer(
-                    this.minZoom,
-                    this.dataset,
-                    this.tmpStringHourCode,
-                    true,
-                ).then((l) => {
-                    this.map.removeLayer(
-                        this.layersControl["overlays"]["Wind speed at 10 meters"],
-                    );
-                    l.addTo(this.map);
-                    this.layersControl["overlays"]["Wind speed at 10 meters"] = l;
-                    this.legends[DP.WIND10M].addTo(this.map);
-                });
-            }*/
     } else {
       console.log(`add layer : ${obj.name}`);
       this.map.fire("overlayadd", obj);
@@ -1890,22 +1783,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         }
       }
       if (obj.name === "Wind speed at 10 meters") {
-        /*       for (const key of Object.keys(this.layersControl["overlays"])) {
-                           if (this.map.hasLayer(this.layersControl["overlays"][key]))
-                               numbLayers.push(key);
-                       }*/
-        /*       if (numbLayers.length === 0) {
-                           this.addWindLayer(
-                               this.minZoom,
-                               this.dataset,
-                               this.tmpStringHourCode,
-                               true,
-                           ).then((l) => {
-                               l.addTo(this.map);
-                               this.layersControl["overlays"]["Wind speed at 10 meters"] = l;
-                               this.legends[DP.WIND10M].addTo(this.map);
-                           });
-                       } */
         this.addWindLayer(
           this.minZoom,
           this.dataset,
