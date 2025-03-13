@@ -134,6 +134,11 @@
           <span
             class="t2m clickable"
             (click)="toggleLayer($event, 't2m')"
+            [ngClass]="{
+              disabled:
+                selectedLayers.length >= maxLayers &&
+                !selectedLayers.includes('t2m')
+            }"
             placement="left"
             [ngbTooltip]="tipTemperature"
             [disableTooltip]="!isCollapsed"
@@ -151,6 +156,11 @@
           <span
             class="prs clickable"
             (click)="toggleLayer($event, 'prs')"
+            [ngClass]="{
+              disabled:
+                selectedLayers.length >= maxLayers &&
+                !selectedLayers.includes('prs')
+            }"
             placement="left"
             [ngbTooltip]="tipPressure"
             [disableTooltip]="!isCollapsed"
@@ -168,6 +178,11 @@
           <span
             class="rh clickable"
             (click)="toggleLayer($event, 'rh')"
+            [ngClass]="{
+              disabled:
+                selectedLayers.length >= maxLayers &&
+                !selectedLayers.includes('rh')
+            }"
             placement="left"
             [ngbTooltip]="tipRelativeHumidity"
             [disableTooltip]="!isCollapsed"
@@ -185,6 +200,11 @@
           <span
             class="ws10m clickable"
             (click)="toggleLayer($event, 'ws10m')"
+            [ngClass]="{
+              disabled:
+                selectedLayers.length >= maxLayers &&
+                !selectedLayers.includes('ws10m')
+            }"
             placement="left"
             [ngbTooltip]="tipWind"
             [disableTooltip]="!isCollapsed"
@@ -199,11 +219,32 @@
           >
             <span class="nav-text" i18n>{{ "Wind" | translate : lang }}</span>
           </a>
+          <div
+            class="form-switch wind-switch justify-content-center ms-3 d-flex mb-3"
+          >
+            <input
+              id="windSwitch"
+              type="checkbox"
+              class="form-check-input clickable"
+              [checked]="showScalarWind"
+              (change)="toggleScalarWind()"
+              [disabled]="disabledRuleScalarWindButton()"
+            />
+            <label class="form-check-label" for="windSwitch"></label>
+            <p i18n style="font-family: 'Montserrat-semibold'; font-size: 8px">
+              SCALAR FIELD
+            </p>
+          </div>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('prp')">
           <span
             class="prp clickable"
             (click)="toggleLayer($event, 'prp')"
+            [ngClass]="{
+              disabled:
+                selectedLayers.length >= maxLayers &&
+                !selectedLayers.includes('prp')
+            }"
             placement="left"
             [ngbTooltip]="tipPrecipitation"
             [disableTooltip]="!isCollapsed"
@@ -229,7 +270,11 @@
                       class="clickable"
                       [value]="h.value"
                       [checked]="h.checked"
-                      (change)="changeSubLevel($event, h, 'prp')"
+                      (change)="
+                        changeSubLevel($event, h, 'prp');
+                        setFirstCumulated($event, h.value, 'prp')
+                      "
+                      [disabled]="selectedLayers.length >= maxLayers"
                     />
                     {{ h.value + "h" }}
                   </label>
@@ -242,6 +287,11 @@
           <span
             class="sf clickable"
             (click)="toggleLayer($event, 'sf')"
+            [ngClass]="{
+              disabled:
+                selectedLayers.length >= maxLayers &&
+                !selectedLayers.includes('sf')
+            }"
             placement="left"
             [ngbTooltip]="tipSnowFall"
             [disableTooltip]="!isCollapsed"
@@ -267,7 +317,11 @@
                       class="clickable"
                       [checked]="h.checked"
                       [value]="h.value"
-                      (change)="changeSubLevel($event, h, 'sf')"
+                      (change)="
+                        changeSubLevel($event, h, 'sf');
+                        setFirstCumulated($event, h.value, 'sf')
+                      "
+                      [disabled]="selectedLayers.length >= maxLayers"
                     />
                     {{ h.value + "h" }}
                   </label>
@@ -280,6 +334,11 @@
           <span
             class="cc clickable"
             (click)="toggleLayer($event, 'cc')"
+            [ngClass]="{
+              disabled:
+                selectedLayers.length >= maxLayers &&
+                !selectedLayers.includes('cc')
+            }"
             placement="left"
             [ngbTooltip]="tipClouds"
             [disableTooltip]="!isCollapsed"
@@ -303,6 +362,7 @@
                   [value]="lvl.value"
                   (change)="changeSubLevel($event, lvl, 'cc', true)"
                   (click)="preventActions($event, lvl, 'cc')"
+                  [disabled]="selectedLayers.length >= maxLayers"
                 />
                 {{ lvl.value }}
               </label>
@@ -312,7 +372,8 @@
                   type="checkbox"
                   class="form-check-input clickable"
                   [checked]="showTotalClouds"
-                  (change)="toggleTotalClouds()"
+                  (change)="toggleTotalClouds('cc')"
+                  [disabled]="selectedLayers.length >= maxLayers"
                 />
                 <label class="form-check-label" for="tccSwitch"></label>
                 <p i18n>TOTAL</p>
@@ -321,40 +382,6 @@
           </ng-container>
         </li>
       </ng-template>
-      <!-- multi-model -->
-      <li class="sidenav-item last multi-model" *ngIf="mode == modes.adv">
-        <div class="custom-control mm-switch form-check form-switch">
-          <input
-            type="checkbox"
-            class="custom-control-input form-check-input"
-            [checked]="mmProductSwitch"
-            [attr.disabled]="isShowedMultiModel ? null : true"
-            (change)="switchMMProduct()"
-            id="flexSwitchCheckDefault"
-          />
-          <label
-            class="custom-control-label form-check-label"
-            for="flexSwitchCheckDefault"
-          ></label>
-        </div>
-        <div class="selettore-multimodel" *ngIf="!isCollapsed">
-          <a href="#" click-stop-propagation>
-            <span class="nav-text">Multi-model ensemble</span>
-          </a>
-          <input
-            id="show-mm-ensemble"
-            type="checkbox"
-            class="clickable"
-            [ngClass]="{ active: isShowedMultiModel }"
-            [(ngModel)]="isShowedMultiModel"
-            (change)="toggleMultiModel()"
-          />
-          <p>
-            Selected: <span></span
-            >{{ MultiModelProductLabel.get(this.mmProduct) }}
-          </p>
-        </div>
-      </li>
       <!-- base layer map selector -->
       <li class="sidenav-item last selettore-carte" *ngIf="mode == modes.adv">
         <span class="carte"></span>

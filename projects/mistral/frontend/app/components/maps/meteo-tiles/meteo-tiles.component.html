@@ -19,15 +19,14 @@
     [overlays]="layersControl['overlays']"
     [dataset]="dataset"
     [variables]="variablesConfig"
-    [isShowedMultiModel]="showed"
     [map]="map"
     [lang]="lang"
     [viewMode]="viewMode"
     (onLayerChange)="toggleLayer($event)"
     (onDatasetChange)="changeDataset($event)"
-    (onShowMultiModelChange)="showHideMultiModel($event)"
-    (onMMProductChange)="changeMMProduct($event)"
     (onCollapseChange)="onCollapse($event)"
+    (showScalarWindChange)="updateScalarWind($event)"
+    (selectedCumulateChange)="updateCumulatedFields($event)"
   ></map-side-nav>
 
   <div class="leaflet-top leaflet-left rounded" style="left: 10px">

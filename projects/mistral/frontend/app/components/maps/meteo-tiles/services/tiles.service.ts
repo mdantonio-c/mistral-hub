@@ -3,6 +3,8 @@ import { ApiService } from "@rapydo/services/api";
 import { Observable, forkJoin, of } from "rxjs";
 import { RunAvailable } from "@app/types";
 import { environment } from "@rapydo/../environments/environment";
+import { HttpClient } from "@angular/common/http";
+import { shareReplay } from "rxjs/operators";
 
 @Injectable({
   providedIn: "root",
@@ -10,8 +12,11 @@ import { environment } from "@rapydo/../environments/environment";
 export class TilesService {
   // private tiles_url: string = "";
   private maps_url: string = "";
+  // dicts to allow caching
+  private _imgCache: Map<string, Observable<ArrayBuffer>> = new Map();
+  private _geoJsonCache: Map<string, Observable<any>> = new Map();
 
-  constructor(private api: ApiService) {
+  constructor(private api: ApiService, private http: HttpClient) {
     // this.tiles_url = environment.CUSTOM.TILES_URL;
     // this.external_url = this.tiles_url != "";
     this.maps_url = environment.CUSTOM.MAPS_URL;
@@ -34,6 +39,87 @@ export class TilesService {
       validationSchema: "RunAvailable",
     };
 
-    return this.api.get(`${this.maps_url}/api/tiles`, params, options);
+    return this.api.get(`${this.maps_url}/api/windy`, params, options);
+  }
+
+  resetCache() {
+    this._imgCache.clear();
+    this._geoJsonCache.clear();
+  }
+
+  getImgComponent(
+    dataset: string,
+    foldername: string,
+    filename: string,
+    stream: boolean = false,
+  ): Observable<ArrayBuffer> {
+    let params = {
+      dataset: dataset,
+      foldername: foldername,
+      filename: filename,
+      strea: stream,
+    };
+
+    return this.http.get(`${this.maps_url}/api/windy`, {
+      params,
+      responseType: "arraybuffer",
+    });
+  }
+
+  getImgComponentCached(
+    dataset: string,
+    foldername: string,
+    filename: string,
+    stream: boolean = false,
+  ): Observable<ArrayBuffer> {
+    const key = `${dataset}_${foldername}_${filename}`;
+    if (!this._imgCache.has(key)) {
+      const obs = this.http
+        .get(`${this.maps_url}/api/windy`, {
+          params: { dataset, foldername, filename, stream },
+          responseType: "arraybuffer",
+        })
+        .pipe(shareReplay(1));
+      this._imgCache.set(key, obs);
+    }
+    return this._imgCache.get(key)!;
+  }
+
+  getGeoJsonComponent(
+    dataset: string,
+    foldername: string,
+    filename: string,
+    stream: boolean = false,
+  ): Observable<any> {
+    let params = {
+      dataset: dataset,
+      foldername: foldername,
+      filename: filename,
+      stream: stream,
+    };
+
+    return this.api.get(`${this.maps_url}/api/windy`, params);
+  }
+
+  getGeoJsonComponentCached(
+    dataset: string,
+    foldername: string,
+    filename: string,
+    stream: boolean = false,
+  ): Observable<any> {
+    const key = `${dataset}_${foldername}_${filename}`;
+    if (!this._geoJsonCache.has(key)) {
+      const params = {
+        dataset: dataset,
+        foldername: foldername,
+        filename: filename,
+        stream: stream,
+      };
+      const obs = this.api
+        .get(`${this.maps_url}/api/windy`, params)
+        .pipe(shareReplay(1));
+      this._geoJsonCache.set(key, obs);
+    }
+    return this._geoJsonCache.get(key)!;
   }
 }

@@ -1,7 +1,6 @@
 $light-orange: #e49c1e;
 $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
-
 #iff {
   display: none;
 }
@@ -194,7 +193,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .minus,
 .carte,
 .tpperc,
-.tpprob, .modes {
+.tpprob,
+.modes {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
@@ -275,7 +275,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 .selettore-orario,
 .selettore-clouds,
-.selettore-dataset, .selettore-modality {
+.selettore-dataset,
+.selettore-modality {
   height: 30px;
   width: 100%;
   margin-left: 28px;
@@ -284,28 +285,28 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .selettore-modality {
   margin-left: 40px;
   height: 10px;
-  margin-bottom:5px;
+  margin-bottom: 5px;
 }
 
 .selettore-dataset {
   width: 100px;
   & > a {
-  color: #fff;
-  text-transform: uppercase;
-  font-family: "Montserrat-semibold";
-  font-size: 12px;
-  margin-top: 7px;
+    color: #fff;
+    text-transform: uppercase;
+    font-family: "Montserrat-semibold";
+    font-size: 12px;
+    margin-top: 7px;
   }
   & .selected,
   & .selected:hover {
-  color: $light-orange !important;
-  border-bottom: 1px solid $light-orange;
-  font-family: "Montserrat-semibold";
+    color: $light-orange !important;
+    border-bottom: 1px solid $light-orange;
+    font-family: "Montserrat-semibold";
   }
 
   & a:hover {
-  border-bottom: 1px solid #fff;
-  text-decoration: none;
+    border-bottom: 1px solid #fff;
+    text-decoration: none;
   }
   .dropdown-item {
     font-size: 10px !important;
@@ -424,7 +425,6 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     margin-right: 50px;
     font-family: "Montserrat-semibold";
     margin-bottom: 0.5rem;
-   
   }
 
   input {
@@ -457,7 +457,6 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     justify-content: space-evenly;
     margin-left: 32px;
     font-family: "Montserrat-semibold";
-   
   }
 
   input {
@@ -527,7 +526,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .selettore-orario input:checked,
 .selettore-percentile input:checked,
 .selettore-probabilita input:checked,
-.selettore-mappa input:checked, .selettore-modality input:checked {
+.selettore-mappa input:checked,
+.selettore-modality input:checked {
   background-color: $light-orange;
   border-color: $light-orange !important;
 }
@@ -583,12 +583,11 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   align-items: flex-start;
   flex-direction: column;
 
-  a{
+  a {
     margin-top: 6px !important;
   }
   .nav-text {
     margin-left: 0;
-   
   }
 
   p {
@@ -667,7 +666,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 }
 
 /* clouds switch */
-.clouds-switch {
+.clouds-switch, .wind-switch {
   position: relative !important;
 
   label {
@@ -697,8 +696,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     border-color: #616262 !important;
   }
 
-  #tccSwitch {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e");
+  #tccSwitch, #windSwitch {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e") !important;
 
     &:focus {
       fill: $light-orange !important;
@@ -707,13 +706,17 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     }
 
     &:checked {
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='white'/%3e%3c/svg%3e");
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='white'/%3e%3c/svg%3e") !important;
     }
   }
 
-  #tccSwitch[disabled="true"] {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e");
+  #tccSwitch[disabled="true"], #windSwitch[disabled="true"] {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e") !important;
   }
+   #windSwitch.form-check-input:checked {
+    background-color: $light-orange !important;
+    border-color: $light-orange !important;
+   }
 }
 
 /*multimodel switch*/
@@ -723,7 +726,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 }
 
 .multi-model {
-  padding-top:6px;
+  padding-top: 6px;
   padding-bottom: 0 !important;
 }
 .multi-model .form-switch {
@@ -785,7 +788,6 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 }
 
-
 /*mode switch*/
 .mode-switch {
   position: relative !important;
@@ -816,7 +818,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     border-color: #616262 !important;
   }
 
-  #modeSwitch{
+  #modeSwitch {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e");
 
     &:focus {
@@ -834,7 +836,6 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e");
   }
 }
-
 
 /* Responsive*/
 .selector {
@@ -894,7 +895,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   .minus,
   .carte,
   .tpperc,
-  .tpprob, .modes{
+  .tpprob,
+  .modes {
     margin-top: 5px;
     padding: 10px;
     width: 22px;
@@ -967,7 +969,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   .minus,
   .carte,
   .tpperc,
-  .tpprob, .modes {
+  .tpprob,
+  .modes {
     margin-top: 5px;
     padding: 10px;
     width: 22px;
@@ -975,4 +978,3 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     margin-left: 5px;
   }
 }
-      
