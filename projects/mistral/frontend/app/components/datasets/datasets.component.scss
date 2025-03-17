@@ -31,7 +31,7 @@
 }
 
 .scrollDiv {
-  max-height: calc(100vh - 328px) !important;
+  max-height: calc(100vh - 274px) !important;
   overflow: auto;
 }
 
@@ -56,7 +56,7 @@
 
       &.number {
         font-size: 24px;
-        color: #eb9c08;
+        color: #004080;
         margin-bottom: 0 !important;
         margin-top: 10px;
       }
@@ -107,7 +107,7 @@
   }
 
   .scrollDiv {
-    max-height: calc(100vh - 346px) !important;
+    max-height: calc(100vh - 274px) !important;
   }
 }
 

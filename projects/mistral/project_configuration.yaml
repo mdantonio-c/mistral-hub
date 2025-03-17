@@ -1,7 +1,7 @@
 ---
 project:
-  title: Meteo-Hub
-  description: "Mistral Meteo Hub"
+  title: MeteoHub
+  description: "MeteoHub"
   version: "0.4.11"
   rapydo: "2.4"
 

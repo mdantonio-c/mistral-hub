@@ -32,7 +32,7 @@
               border: transparent 5px solid;
               border-top: #000 5px solid;
               left: 42%;
-              border-top: #e49c1e 5px solid;
+              border-top: #157ACC 5px solid;
               top: 31px;
             }
           }
@@ -46,7 +46,7 @@
       text-shadow: none;
       padding: 0;
       border-radius: 30px;
-      background: #e49c1e;
+      background: #157ACC;
       height: 25px;
       padding: 1px 10px;
       font-family: "Montserrat-semibold";
@@ -68,7 +68,7 @@
     }
   }
   .slider-selection {
-    background: #e49c1e;
+    background: #157ACC;
   }
   .slider-track-high {
     background: #6c757d;
@@ -85,7 +85,7 @@
     border-radius: 0;
     line-height: 2.2em;
     text-align: center;
-    border-color: #e49c1e !important;
+    border-color: #157ACC !important;
     outline: 0 !important;
     border-radius: 30px !important;
 
@@ -167,10 +167,10 @@
       }
 
       & > .selected {
-        background-color: #e49c1e;
+        background-color: #157ACC;
         text-transform: uppercase;
         color: #fff;
-        border: solid 1px #e49c1e;
+        border: solid 1px #157ACC;
         box-shadow: 0 0.5rem 1rem rgba($black, 0.15);
       }
     }

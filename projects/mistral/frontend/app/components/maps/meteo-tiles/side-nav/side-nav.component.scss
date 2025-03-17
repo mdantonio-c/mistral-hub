@@ -1,5 +1,7 @@
 $light-orange: #e49c1e;
 $light-orange-shadow: rgba(228, 156, 30, 0.25);
+$light-blue: #157ACC;
+$dark-blue: #004080;
 
 #iff {
   display: none;
@@ -37,13 +39,13 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     width: 100%;
     position: relative;
     margin-left: 14px;
-    font-family: "Montserrat-semibold";
+    font-family: "TitilliumWeb-SemiBold";
   }
 
   .sidenav-item.dropdown {
     .dropdown-toggle {
       &::after {
-        color: $light-orange !important;
+        color: $light-blue !important;
       }
 
       .nav-text {
@@ -76,7 +78,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
   .map-sidenav-menu {
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
-    background-color: #26232bbe;
+    background-color: #DADADA;
     position: relative;
     z-index: 800;
     pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
@@ -120,7 +122,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
       flex-wrap: wrap;
 
       & > .attivo {
-        background-color: $light-orange;
+        background-color: $light-blue;
         border-radius: 25px;
       }
     }
@@ -154,7 +156,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .nav-sub-text {
   margin-left: 4px;
   font-size: 10px;
-  font-family: "Montserrat-semibold";
+  font-family: "TitilliumWen-SemiBold";
 }
 
 .multi-model {
@@ -293,15 +295,15 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   & > a {
     color: #fff;
     text-transform: uppercase;
-    font-family: "Montserrat-semibold";
+    font-family: "TitilliumWeb-SemiBold";
     font-size: 12px;
     margin-top: 7px;
   }
   & .selected,
   & .selected:hover {
-    color: $light-orange !important;
-    border-bottom: 1px solid $light-orange;
-    font-family: "Montserrat-semibold";
+    color: $light-blue !important;
+    border-bottom: 1px solid $light-blue;
+    font-family: "TitilloiumWeb-SemiBold";
   }
 
   & a:hover {
@@ -329,7 +331,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     text-align: center;
     margin-top: 2px;
     font-size: 10px;
-    font-family: "Montserrat-semibold";
+    font-family: "TitilliumWeb-SemiBold";
   }
 
   input {
@@ -363,7 +365,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     text-align: center;
     margin-top: 2px;
     font-size: 9px;
-    font-family: "Montserrat-semibold";
+    font-family: "TitilliumWeb-SemiBold";
   }
 
   input {
@@ -423,7 +425,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     font-size: 10px;
     justify-content: space-evenly;
     margin-right: 50px;
-    font-family: "Montserrat-semibold";
+    font-family: "TitilliumWeb-SemiBold";
     margin-bottom: 0.5rem;
   }
 
@@ -456,7 +458,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     font-size: 9px;
     justify-content: space-evenly;
     margin-left: 32px;
-    font-family: "Montserrat-semibold";
+    font-family: "TitilliumWeb-SemiBold";
   }
 
   input {
@@ -512,12 +514,12 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 
   input:checked {
-    border: 6px solid $light-orange;
+    border: 6px solid $light-blue;
   }
 
   input:checked + span {
-    border-color: $light-orange;
-    background-color: $light-orange;
+    border-color: $light-blue;
+    background-color: $light-blue;
   }
 }
 
@@ -528,8 +530,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .selettore-probabilita input:checked,
 .selettore-mappa input:checked,
 .selettore-modality input:checked {
-  background-color: $light-orange;
-  border-color: $light-orange !important;
+  background-color: $light-blue;
+  border-color: $light-blue !important;
 }
 
 .selettore-clouds label,
@@ -540,7 +542,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   font-size: 9px;
   text-transform: uppercase;
   color: #fff;
-  font-family: "Montserrat-semibold";
+  font-family: "TitilliumWeb-SemiBold";
   text-align: center;
   margin-top: 2px;
 }
@@ -552,21 +554,21 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   font-size: 9px;
   text-transform: uppercase;
   color: #fff;
-  font-family: "Montserrat-semibold";
+  font-family: "TilliumWeb-SemiBold";
   text-align: center;
   margin-top: 2px;
 }
 
 .selettore-orario label {
   align-items: center;
-  font-family: "Montserrat-semibold";
+  font-family: "TilliumWeb-SemiBold";
 }
 
 .selettore-dataset a,
 .selettore-multimodel p {
   color: #fff;
   text-transform: uppercase;
-  font-family: "Montserrat-semibold";
+  font-family: "TilliumWeb-SemiBold";
   font-size: 9px;
   margin-top: 1px;
   margin-left: 10px;
@@ -616,9 +618,9 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 .selettore-dataset .selected,
 .selettore-dataset .selected:hover {
-  color: $light-orange;
-  border-bottom: 1px solid $light-orange;
-  font-family: "Montserrat-semibold";
+  color: $light-blue;
+  border-bottom: 1px solid $light-blue;
+  font-family: "TitilliumWeb-SemiBold";
 }
 
 .selettore-dataset a:hover {
@@ -642,27 +644,27 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 /* style form-switch borders */
 
 .form-check-input:focus ~ .form-check-label::before {
-  border-color: $light-orange !important;
-  box-shadow: 0 0 0 0.2rem $light-orange-shadow !important;
+  border-color: $light-blue !important;
+  box-shadow: 0 0 0 0.2rem #0040807e !important;
 }
 
 .form-check-input:checked ~ .form-check-label::before {
-  border-color: $light-orange !important;
-  background-color: $light-orange;
+  border-color: $light-blue !important;
+  background-color: $light-blue;
 }
 
 .form-check-input:active ~ .form-check-label::before {
-  background-color: $light-orange;
-  border-color: $light-orange !important;
+  background-color: $light-blue;
+  border-color: $light-blue !important;
 }
 
 .form-check-input:focus:not(:checked) ~ .form-check-label::before {
-  border-color: $light-orange !important;
+  border-color: $light-blue !important;
 }
 
 .form-check-input-green:not(:disabled):active ~ .form-check-label::before {
-  background-color: $light-orange;
-  border-color: $light-orange !important;
+  background-color: $light-blue;
+  border-color: $light-blue !important;
 }
 
 /* clouds switch */
@@ -681,8 +683,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 
   .form-check-input:checked ~ .form-check-label:before {
-    border-color: $light-orange !important;
-    background-color: $light-orange !important;
+    border-color: $light-blue !important;
+    background-color: $light-blue !important;
   }
 
   & input[disabled="true"] ~ .form-check-label:before,
@@ -697,11 +699,11 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 
   #tccSwitch, #windSwitch {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e") !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='blue'/%3e%3c/svg%3e") !important;
 
     &:focus {
-      fill: $light-orange !important;
-      border-color: $light-orange !important;
+      fill: $light-blue !important;
+      border-color: $light-blue !important;
       box-shadow: none !important;
     }
 
@@ -714,8 +716,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='darkgrey'/%3e%3c/svg%3e") !important;
   }
    #windSwitch.form-check-input:checked {
-    background-color: $light-orange !important;
-    border-color: $light-orange !important;
+    background-color: $light-blue !important;
+    border-color: $light-blue !important;
    }
 }
 
@@ -756,7 +758,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     }
 
     &:after {
-      background-color: #e49d2b;
+      background-color: $light-blue;
       border-radius: 2.5rem;
       background-size: contain;
       background-repeat: no-repeat;
@@ -772,7 +774,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 
   .form-check-input:checked ~ .form-check-label::after {
-    background-color: #e49d2b;
+    background-color: $light-blue;
     transform: translateX(16.75px) rotate(270deg) !important;
     background-image: url("/app/custom/assets/images/icons/humidity.svg") !important;
   }
@@ -804,8 +806,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 
   .form-check-input:checked ~ .form-check-label:before {
-    border-color: $light-orange !important;
-    background-color: $light-orange !important;
+    border-color: $light-blue !important;
+    background-color: $light-blue !important;
   }
 
   & input[disabled="true"] ~ .form-check-label:before,
@@ -822,8 +824,8 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='orange'/%3e%3c/svg%3e");
 
     &:focus {
-      fill: $light-orange !important;
-      border-color: $light-orange !important;
+      fill: $light-blue !important;
+      border-color: $light-blue !important;
       box-shadow: none !important;
     }
 
@@ -841,7 +843,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .selector {
   overflow-y: auto !important;
   scrollbar-width: thin;
-  scrollbar-color: #e49c1e rgba(56, 56, 56, 0.473);
+  scrollbar-color: $light-blue rgba(56, 56, 56, 0.473);
 
   &::-webkit-scrollbar {
     width: 7px;
@@ -854,7 +856,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 }
 
 .selector::-webkit-scrollbar-thumb {
-  background: #e49c1e;
+  background: $light-blue;
   border-radius: 20px;
 }
 
@@ -929,7 +931,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   .selector {
     overflow-y: scroll !important;
     scrollbar-width: thin;
-    scrollbar-color: #e49c1e rgba(56, 56, 56, 0.473);
+    scrollbar-color: $light-blue rgba(56, 56, 56, 0.473);
 
     &::-webkit-scrollbar {
       width: 7px;
@@ -942,7 +944,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   }
 
   .selector::-webkit-scrollbar-thumb {
-    background: #e49c1e;
+    background: $light-blue;
     border-radius: 20px;
   }
 

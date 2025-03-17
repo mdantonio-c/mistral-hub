@@ -14,6 +14,8 @@
 
 $light-orange: #e49c1e;
 $light-orange-shadow: rgba(228, 156, 30, 0.25);
+$light-blue: #157ACC;
+$dark-blue: #004080;
 
 /* customize container width */
 @media (min-width: 1200px) {
@@ -62,7 +64,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 
 .subtitle {
       font-size: 14px !important;
-      color: #e49d2b !important;
+      color: $light-blue !important;
       text-transform: uppercase;
 }
 
@@ -79,9 +81,20 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   src: url("/app/custom/assets/font/CourierPrime-Regular.ttf")
     format("truetype");
 }
-
+@font-face {
+  font-family: "TitilliumWeb-Regular";
+  src: url("../assets/font/TitilliumWeb-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "TitilliumWeb-SemiBold";
+  src: url("../assets/font/TitilliumWeb-SemiBold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Prompt-Bold";
+  src: url("../assets/font/Prompt-Bold.ttf") format("truetype");
+}
 body {
-  font-family: "Montserrat-regular";
+  font-family: "TitilliumWeb-Regular";
 }
 
 strong,
@@ -91,14 +104,14 @@ h4,
 h5,
 h5 > span,
 h6 {
-  font-family: "Montserrat-semibold";
+  font-family: "Prompt-Bold";
 }
 .navbar {
-  font-family: "Montserrat-semibold";
+  font-family: "Prompt-Bold";
   padding: 0.25rem !important;
   .navbar-brand {
     margin-right: 20px;
-    font-family: "Montserrat-regular";
+    font-family: "TitilliumWeb-Regular";
 
     img {
       height: 48px;
@@ -108,7 +121,7 @@ h6 {
 
     .project-title {
       /*font-family: 'Manjari Bold';*/
-      font-family: "Roboto Condensed";
+      font-family: "TitilliumWeb-Regular";
       top: 9px;
       position: relative;
       font-size: large;
@@ -121,7 +134,7 @@ h6 {
       font-size: 0.9rem;
 
       &.active {
-        color: #e49d2b !important;
+        text-decoration: underline;
       }
       &.btn.active {
         color: #fff !important;
@@ -134,7 +147,7 @@ h6 {
 }
 
 .dropdown-menu {
-  background-color: #26232b !important;
+  background-color: $light-blue !important;
 
   .dropdown-item {
     color: #fff !important;
@@ -153,7 +166,6 @@ h6 {
 .dropdown-item:active {
   text-decoration: underline;
   background-color: transparent !important;
-  color: #e49d2b !important;
 }
 
 .nav.navbar-nav.rpd-menu-controls .nav-item a {
@@ -164,7 +176,7 @@ h6 {
 }
 
 h3 {
-  color: #e49c1e !important;
+  color: $light-blue !important;
 }
 
 .footer {
@@ -174,6 +186,7 @@ h3 {
 .spacer {
   min-height: 0rem;
   height: 0rem;
+  display: none !important;
 }
 
 [hidden] {
@@ -216,12 +229,12 @@ h3 {
   font-size: small;
 }
 .btn-primary {
-  background-color: #e49c1e !important;
-  border-color: #e49c1e !important;
+  background-color: $light-blue !important;
+  border-color: $light-blue !important;
 }
 
 .btn-primary:not(:disabled):not(.disabled):active:focus {
-  box-shadow: 0 0 0 0.2rem rgb(228 156 30 / 50%) !important;
+  box-shadow: 0 0 0 0.2rem #0040807e !important;
 }
 
 .btn-primary:disabled {
@@ -284,8 +297,8 @@ h3 {
 .btn-border-classic,
 .btn-icon-border-classic {
   color: #fff;
-  background-color: #e49c1e;
-  border: 1px solid #e49c1e !important;
+  background-color: $light-blue;
+  border: 1px solid $light-blue!important;
 }
 
 .btn-border-classic:hover,
@@ -316,8 +329,8 @@ h3 {
 .btn-warning:not(:disabled):not(.disabled):active,
 .btn-warning:not(:disabled):not(.disabled).active {
   color: #fff;
-  background-color: #ffca2c;
-  border-color: #ffc720;
+  background-color: $light-blue;
+  border-color: $light-blue;
 }
 
 /* no results */
@@ -402,7 +415,7 @@ dl.request-summary {
 }
 
 .datatable-body-cell-label a {
-  color: #e49d2b;
+  color: $light-blue;
 }
 
 .mst--input {
@@ -736,12 +749,12 @@ div.board + pre {
 /* Custom partecipate page style */
 
 .participate h4 {
-  color: #e49d2b !important;
+  color: $light-blue !important;
 }
 
 .participate h5 {
   text-transform: uppercase;
-  color: #e49d2b;
+  color: $light-blue;
 }
 
 .participate ul {
@@ -798,14 +811,14 @@ div.board + pre {
 
 .accordion-button:focus {
   z-index: 3;
-  border-color: #e49d2b !important;
+  border-color: $light-blue !important;
   outline: 0;
-  box-shadow: 0 0 0 0.25rem #e49d2b56 !important;
+  box-shadow: 0 0 0 0.25rem #0040807e !important;
 }
 
 .accordion-button:not(.collapsed) {
   color: #fff !important;
-  background-color: #e49d2b !important;
+  background-color: $light-blue !important;
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.125);
 }
 
@@ -1177,7 +1190,8 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .card-horizontal .img-square-wrapper img {
-  width: 195px !important;
+  max-width: 150px;
+  height: auto;
 }
 
 customfooter > div {
@@ -1259,7 +1273,6 @@ customfooter > div {
       &.active,
       &:active {
         text-decoration: underline;
-        color: #e49d2b !important;
       }
     }
   }
