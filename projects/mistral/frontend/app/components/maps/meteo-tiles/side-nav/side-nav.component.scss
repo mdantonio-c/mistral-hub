@@ -6,6 +6,7 @@ $dark-blue: #004080;
 #iff {
   display: none;
 }
+
 .map-sidenav {
   top: 0;
   right: 0;
@@ -17,6 +18,8 @@ $dark-blue: #004080;
   text-align: center;
   width: 280px;
   cursor: auto;
+
+  
 
   .dropdown-menu.show {
     position: relative !important;
@@ -78,7 +81,7 @@ $dark-blue: #004080;
 
   .map-sidenav-menu {
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
-    background-color: #DADADA;
+    background-color: #2b2b2be0;
     position: relative;
     z-index: 800;
     pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
@@ -303,7 +306,7 @@ $dark-blue: #004080;
   & .selected:hover {
     color: $light-blue !important;
     border-bottom: 1px solid $light-blue;
-    font-family: "TitilloiumWeb-SemiBold";
+    font-family: "TitilliumWeb-SemiBold";
   }
 
   & a:hover {
@@ -554,21 +557,21 @@ $dark-blue: #004080;
   font-size: 9px;
   text-transform: uppercase;
   color: #fff;
-  font-family: "TilliumWeb-SemiBold";
+  font-family: "TitilliumWeb-SemiBold";
   text-align: center;
   margin-top: 2px;
 }
 
 .selettore-orario label {
   align-items: center;
-  font-family: "TilliumWeb-SemiBold";
+  font-family: "TitilliumWeb-SemiBold";
 }
 
 .selettore-dataset a,
 .selettore-multimodel p {
   color: #fff;
   text-transform: uppercase;
-  font-family: "TilliumWeb-SemiBold";
+  font-family: "TitilliumWeb-SemiBold";
   font-size: 9px;
   margin-top: 1px;
   margin-left: 10px;
