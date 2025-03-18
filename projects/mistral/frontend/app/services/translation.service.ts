@@ -18,7 +18,7 @@ export class TranslationService {
         precipitation: "precipitazione",
         "snow fall": "neve",
         clouds: "nuvolosità",
-        product: "prodotto",
+        product: "run",
         "reference date": "data",
         pressure: "pressione",
         "relative humidity": "umidità relativa",

@@ -351,7 +351,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       },
     ];
     if (this.viewMode === ViewModes.base) {
-      console.log("SONO ENTRATO");
+      // in base view mode only VARIABLES_CONFIG_BASE
       const layerToRemove = [
         DP.PREC1P,
         DP.HCC,
