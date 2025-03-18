@@ -57,7 +57,7 @@ export class TilesService {
       dataset: dataset,
       foldername: foldername,
       filename: filename,
-      strea: stream,
+      stream: stream,
     };
 
     return this.http.get(`${this.maps_url}/api/windy`, {

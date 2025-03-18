@@ -398,8 +398,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     l.addTo(comp.map);
                     overlays[layer] = l;
                     if (comp.onlyWind) {
-                      if (!comp.legends[layer])
+                      if (!comp.legends[layer]) {
                         comp.legends[layer].addTo(comp.map);
+                      }
                     } else {
                       comp.map.removeControl(comp.legends[layer]);
                     }
@@ -440,6 +441,17 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     comp.map.removeLayer(overlays[layer]);
                     l.addTo(comp.map);
                     overlays[layer] = l;
+                    if (variable === "pmsl") {
+                      if (comp.onlyPrs) {
+                        if (!comp.legends[layer]) {
+                          comp.legends[layer].addTo(comp.map);
+                        }
+                      } else {
+                        if (comp.legends[layer]) {
+                          comp.map.removeControl(comp.legends[layer]);
+                        }
+                      }
+                    }
                   });
               }
             }
@@ -1270,7 +1282,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         "pmsl",
         COLORSTOPS.prsColorStops,
         this.tmpStringHourCode,
-        newValue,
+        this.onlyPrs,
       ).then((l) => {
         this.map.removeLayer(this.layersControl["overlays"][DP.PMSL]);
         l.addTo(this.map);
@@ -1858,6 +1870,19 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           l.addTo(this.map);
           this.layersControl["overlays"]["Wind speed at 10 meters"] = l;
           if (this.onlyWind) this.legends[DP.WIND10M].addTo(this.map);
+        });
+      } else if (obj.name === DP.PMSL) {
+        this.addScalarField(
+          this.dataset,
+          "pressure-pmsl",
+          "pmsl",
+          COLORSTOPS.prsColorStops,
+          this.tmpStringHourCode,
+          this.onlyPrs,
+        ).then((l) => {
+          l.addTo(this.map);
+          this.layersControl["overlays"][DP.PMSL] = l;
+          if (this.onlyPrs) this.legends[DP.PMSL].addTo(this.map);
         });
       } else {
         layer.addTo(this.map);
