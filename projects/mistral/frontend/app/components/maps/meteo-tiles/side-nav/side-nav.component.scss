@@ -681,7 +681,7 @@ $dark-blue: #004080;
 }
 
 /* clouds switch */
-.clouds-switch, .wind-switch {
+.clouds-switch, .wind-switch, .prs-switch {
   position: relative !important;
 
   label {
@@ -693,6 +693,7 @@ $dark-blue: #004080;
     position: absolute;
     top: 15px;
     left: 0;
+    font-family: "TitilliumWeb-SemiBold";
   }
 
   .form-check-input:checked ~ .form-check-label:before {
@@ -711,8 +712,8 @@ $dark-blue: #004080;
     border-color: #616262 !important;
   }
 
-  #tccSwitch, #windSwitch {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='blue'/%3e%3c/svg%3e") !important;
+  #tccSwitch, #windSwitch, #prsSwitch {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='dodgerblue'/%3e%3c/svg%3e") !important;
 
     &:focus {
       fill: $light-blue !important;
