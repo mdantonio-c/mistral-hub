@@ -192,9 +192,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
       // clean the url from the query parameters
       /*this.router.navigate([], {
-                    queryParams: { view: null, dataset: null },
-                    queryParamsHandling: "merge",
-                  });*/
+                          queryParams: { view: null, dataset: null },
+                          queryParamsHandling: "merge",
+                        });*/
     });
   }
 
@@ -350,7 +350,25 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         colorStop: COLORSTOPS.ws10mColorStops,
       },
     ];
-
+    if (this.viewMode === ViewModes.base) {
+      console.log("SONO ENTRATO");
+      const layerToRemove = [
+        DP.PREC1P,
+        DP.HCC,
+        DP.MCC,
+        DP.LCC,
+        DP.SF1,
+        DP.SF12,
+        DP.SF24,
+        DP.PMSL,
+        DP.RH,
+      ];
+      for (let i = layersToUpdate.length - 1; i >= 0; i--) {
+        if (layerToRemove.includes(layersToUpdate[i].layer)) {
+          layersToUpdate.splice(i, 1);
+        }
+      }
+    }
     //////////////////////////////
     /////// LAYERS DYNAMIC  /////
     /////////////////////////////
@@ -460,6 +478,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           HH = HH + 72;
         }
         //console.log(HH);
+
         const activeProducts = [];
         if (ref.map.hasLayer(ref.layersControl["overlays"][DP.TM2])) {
           activeProducts.push(["t2m-t2m", "t2m"]);
@@ -471,24 +490,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         if (ref.map.hasLayer(ref.layersControl["overlays"][DP.TCC])) {
           activeProducts.push(["cloud-tcc", "tcc"]);
         }
-        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.RH])) {
-          activeProducts.push(["humidity-r", "r"]);
-        }
-        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.LCC])) {
-          activeProducts.push(["cloud_hml-lcc", "lcc"]);
-        }
-        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.MCC])) {
-          activeProducts.push(["cloud_hml-mcc", "mcc"]);
-        }
-        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.HCC])) {
-          activeProducts.push(["cloud_hml-hcc", "hcc"]);
-        }
-        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PMSL])) {
-          activeProducts.push(["pressure-pmsl", "pmsl"]);
-        }
-        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC1P])) {
-          activeProducts.push(["prec1-tp", "tp"]);
-        }
+
         if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC3P])) {
           activeProducts.push(["prec3-tp", "tp"]);
         }
@@ -501,20 +503,42 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC24P])) {
           activeProducts.push(["prec24-tp", "tp"]);
         }
-        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF1])) {
-          activeProducts.push(["snow1-snow", "snow"]);
-        }
+
         if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF3])) {
           activeProducts.push(["snow3-snow", "snow"]);
         }
         if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF6])) {
           activeProducts.push(["snow6-snow", "snow"]);
         }
-        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF12])) {
-          activeProducts.push(["snow12-snow", "snow"]);
-        }
-        if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF24])) {
-          activeProducts.push(["snow24-snow", "snow"]);
+
+        if (this.viewMode != ViewModes.base) {
+          if (ref.map.hasLayer(ref.layersControl["overlays"][DP.RH])) {
+            activeProducts.push(["humidity-r", "r"]);
+          }
+          if (ref.map.hasLayer(ref.layersControl["overlays"][DP.LCC])) {
+            activeProducts.push(["cloud_hml-lcc", "lcc"]);
+          }
+          if (ref.map.hasLayer(ref.layersControl["overlays"][DP.MCC])) {
+            activeProducts.push(["cloud_hml-mcc", "mcc"]);
+          }
+          if (ref.map.hasLayer(ref.layersControl["overlays"][DP.HCC])) {
+            activeProducts.push(["cloud_hml-hcc", "hcc"]);
+          }
+          if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PMSL])) {
+            activeProducts.push(["pressure-pmsl", "pmsl"]);
+          }
+          if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC1P])) {
+            activeProducts.push(["prec1-tp", "tp"]);
+          }
+          if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF1])) {
+            activeProducts.push(["snow1-snow", "snow"]);
+          }
+          if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF12])) {
+            activeProducts.push(["snow12-snow", "snow"]);
+          }
+          if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF24])) {
+            activeProducts.push(["snow24-snow", "snow"]);
+          }
         }
 
         let requests = [];
@@ -664,6 +688,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       (element as HTMLElement).style.display = "block";
     }
   }
+
   removePlayButton() {
     const element = document.querySelector(
       "a.leaflet-control-timecontrol.timecontrol-play.play",
@@ -712,6 +737,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     }
     return stops[0].color;
   }
+
   setHourTimeStamp(map) {
     // change timestamp based on current time
     const now = moment.utc();
@@ -843,27 +869,27 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
               /*parseGeoraster(bufferCopy).then(georaster=>{
 
-                            const layer = new GeoRasterLayer({
-                                georaster: georaster,
-                                opacity: 0.6,
-                                pixelValuesToColorFn: (pixelValue)=> {
-                                    return this.getDiscreteColor(pixelValue[0],colorStopSort)
-                                },
-                                resolution: 128
-                            })
-                        if (folderName == "cloud_hml-lcc") pane = "low";
-                        if (folderName == "cloud_hml-mcc") pane = "medium";
-                        if (folderName == "cloud_hml-hcc") pane = "high";
-                        if (
-                            folderName == "cloud_hml-lcc" ||
-                            folderName == "cloud_hml-mcc" ||
-                            folderName == "cloud_hml-hcc"
-                        ) {
+                                          const layer = new GeoRasterLayer({
+                                              georaster: georaster,
+                                              opacity: 0.6,
+                                              pixelValuesToColorFn: (pixelValue)=> {
+                                                  return this.getDiscreteColor(pixelValue[0],colorStopSort)
+                                              },
+                                              resolution: 128
+                                          })
+                                      if (folderName == "cloud_hml-lcc") pane = "low";
+                                      if (folderName == "cloud_hml-mcc") pane = "medium";
+                                      if (folderName == "cloud_hml-hcc") pane = "high";
+                                      if (
+                                          folderName == "cloud_hml-lcc" ||
+                                          folderName == "cloud_hml-mcc" ||
+                                          folderName == "cloud_hml-hcc"
+                                      ) {
 
-                            layer.options.pane = pane;
-                        }
-                        resolve(layer);
-                        })*/
+                                          layer.options.pane = pane;
+                                      }
+                                      resolve(layer);
+                                      })*/
 
               const sf = L.ScalarField.fromGeoTIFF(arrayBuffer);
               const magnitude = L.canvasLayer.scalarField(sf, {
@@ -920,60 +946,60 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             });
 
             /*parseGeoraster(bufferCopy).then(georaster=>{
-                           let isobars: L.Layer =
-                            L.geoJSON(geoJson, {
-                                style: function () {
-                                    return {
-                                        color: "grey",
-                                        weight: 1,
-                                        opacity: 0.8,
-                                    };
-                                },
-                                onEachFeature: function (feature, layer) {
+                                       let isobars: L.Layer =
+                                        L.geoJSON(geoJson, {
+                                            style: function () {
+                                                return {
+                                                    color: "grey",
+                                                    weight: 1,
+                                                    opacity: 0.8,
+                                                };
+                                            },
+                                            onEachFeature: function (feature, layer) {
 
-                                    let invisibleLayer = L.geoJSON(feature, {
-                                        style: function () {
-                                            return {
-                                                color: "transparent",
-                                                weight: 6,
-                                                opacity: 0,
-                                                interactive: true
-                                            };
-                                        }
-                                    }).addTo(refMap.map);
-
-
-                                    invisibleLayer.on("mouseover", function (e) {
-
-                                        layer.bindTooltip(feature.properties.label + ' hPa', {
-                                            permanent: true,
-                                            direction: "top",
-                                            className: "isobar-label",
-                                            opacity: 1,
-                                            offset: L.point(0, -10)
-                                        }).openTooltip(e.latlng);
-                                    });
-                                    invisibleLayer.on("mousemove", function (e) {
-                                        layer.openTooltip(e.latlng);
-                                    });
-                                    invisibleLayer.on("mouseout", function () {
-                                        layer.closeTooltip();
-                                    });
-                                }
-                            });
+                                                let invisibleLayer = L.geoJSON(feature, {
+                                                    style: function () {
+                                                        return {
+                                                            color: "transparent",
+                                                            weight: 6,
+                                                            opacity: 0,
+                                                            interactive: true
+                                                        };
+                                                    }
+                                                }).addTo(refMap.map);
 
 
+                                                invisibleLayer.on("mouseover", function (e) {
 
-                           const magnitude = new GeoRasterLayer({
-                               georaster: georaster,
-                               opacity: 0.6,
-                               pixelValuesToColorFn: (pixelValue)=> {
-                                   return this.getDiscreteColor(pixelValue[0],colorStopSort)
-                               },
-                               resolution:128
-                           })
-                           resolve(L.layerGroup([magnitude, isobars]));
-                       })*/
+                                                    layer.bindTooltip(feature.properties.label + ' hPa', {
+                                                        permanent: true,
+                                                        direction: "top",
+                                                        className: "isobar-label",
+                                                        opacity: 1,
+                                                        offset: L.point(0, -10)
+                                                    }).openTooltip(e.latlng);
+                                                });
+                                                invisibleLayer.on("mousemove", function (e) {
+                                                    layer.openTooltip(e.latlng);
+                                                });
+                                                invisibleLayer.on("mouseout", function () {
+                                                    layer.closeTooltip();
+                                                });
+                                            }
+                                        });
+
+
+
+                                       const magnitude = new GeoRasterLayer({
+                                           georaster: georaster,
+                                           opacity: 0.6,
+                                           pixelValuesToColorFn: (pixelValue)=> {
+                                               return this.getDiscreteColor(pixelValue[0],colorStopSort)
+                                           },
+                                           resolution:128
+                                       })
+                                       resolve(L.layerGroup([magnitude, isobars]));
+                                   })*/
             let isobars: L.Layer = L.geoJSON(geoJson, {
               style: function () {
                 return {
@@ -1225,6 +1251,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     const s = "00" + now + "0000";
 
     this.layersControl["overlays"] = {};
+
     ////////////////////////////////////
     /////////// TEMPERATURE //////////
     ////////////////////////////////////
@@ -1280,6 +1307,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.variablesConfig["prp"].length &&
         this.variablesConfig["prp"].includes(1)
       ) {
+        console.log("1");
         const stringHoursToExclude = this.stringHourToExclude(1);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
