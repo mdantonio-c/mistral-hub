@@ -1,4 +1,5 @@
 <nav class="map-sidenav" [class.collapsed]="isCollapsed">
+  <div id="overlay" class="sidenav-overlay"></div>
   <div class="map-sidenav-menu">
     <!-- partial collapse -->
     <label
@@ -173,6 +174,22 @@
               "Pressure" | translate : lang
             }}</span>
           </a>
+          <div
+            class="form-switch wind-switch justify-content-center ms-3 d-flex mb-3"
+          >
+            <input
+              id="prsSwitch"
+              type="checkbox"
+              class="form-check-input clickable"
+              [checked]="showScalarWind"
+              (change)="toggleScalarWind()"
+              [disabled]="disabledRuleScalarWindButton()"
+            />
+            <label class="form-check-label" for="windSwitch"></label>
+            <p i18n style="font-family: 'Montserrat-semibold'; font-size: 8px">
+              SCALAR FIELD
+            </p>
+          </div>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('rh')">
           <span
@@ -443,4 +460,5 @@
       </li>
     </ul>
   </div>
+
 </nav>

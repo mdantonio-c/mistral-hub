@@ -8,9 +8,9 @@
   }
 
   select {
-    font-family: "Montserrat-semibold";
+    font-family: "Prompt-SemiBold";
     option {
-      font-family: "Montserrat-regular", "Segoe UI", sans-serif;
+      font-family: "TitilliumWeb-Regular", "Segoe UI", sans-serif;
       font-weight: 600;
       &[value=""] {
         color: #ccc !important;

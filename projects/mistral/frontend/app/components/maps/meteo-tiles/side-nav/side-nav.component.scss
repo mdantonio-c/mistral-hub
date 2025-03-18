@@ -7,10 +7,20 @@ $dark-blue: #004080;
   display: none;
 }
 
+.sidenav-overlay{
+  height: 100%;
+  background-color:rgba(48, 48, 48, 0.658);
+  width: 100%;
+  position: absolute;
+  z-index:2000;
+  display: none;
+}
+
+
 .map-sidenav {
   top: 0;
   right: 0;
-  position: absolute;
+  position: relative;
   z-index: 1000;
   pointer-events: none;
   float: right;

@@ -29,7 +29,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     width: 100%;
     position: relative;
     margin-left: 14px;
-    font-family: "Montserrat-semibold";
+    font-family: "Prompt-SemiBold";
   }
 
   li a:hover .nav-text {
@@ -125,7 +125,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .nav-sub-text {
   margin-left: 4px;
   font-size: 10px;
-  font-family: "Montserrat-semibold";
+  font-family: "Prompt-SemiBold";
 }
 
 .multi-model {
@@ -270,7 +270,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     text-align: center;
     margin-top: 2px;
     font-size: 10px;
-    font-family: "Montserrat-semibold";
+    font-family: "Prompt-SemiBold";
   }
 
   input {
@@ -304,7 +304,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     text-align: center;
     margin-top: 2px;
     font-size: 9px;
-    font-family: "Montserrat-semibold";
+    font-family: "Prompt-SemiBold";
   }
 
   input {
@@ -363,7 +363,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     font-size: 10px;
     justify-content: space-evenly;
     margin-right: 50px;
-    font-family: "Montserrat-semibold";
+    font-family: "Prompt-SemiBold";
     margin-bottom: 0.5rem;
   }
 
@@ -394,7 +394,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
     font-size: 9px;
     justify-content: space-evenly;
     margin-left: 32px;
-    font-family: "Montserrat-semibold";
+    font-family: "Prompt-SemiBold";
   }
 
   input {
@@ -477,7 +477,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   font-size: 9px;
   text-transform: uppercase;
   color: #fff;
-  font-family: "Montserrat-semibold";
+  font-family: "Prompt-SemiBold";
   text-align: center;
   margin-top: 2px;
 }
@@ -489,20 +489,20 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
   font-size: 9px;
   text-transform: uppercase;
   color: #fff;
-  font-family: "Montserrat-semibold";
+  font-family: "Prompt-SemiBold";
   text-align: center;
   margin-top: 2px;
 }
 .selettore-orario label {
   align-items: center;
-  font-family: "Montserrat-semibold";
+  font-family: "Prompt-SemiBold";
 }
 
 .selettore-dataset a,
 .selettore-multimodel p {
   color: #fff;
   text-transform: uppercase;
-  font-family: "Montserrat-semibold";
+  font-family: "Prompt-SemiBold";
   font-size: 9px;
   margin-top: 1px;
   margin-left: 10px;
@@ -549,7 +549,7 @@ $light-orange-shadow: rgba(228, 156, 30, 0.25);
 .selettore-dataset .selected:hover {
   color: $light-orange;
   border-bottom: 1px solid $light-orange;
-  font-family: "Montserrat-semibold";
+  font-family: "Prompt-SemiBold";
 }
 
 .selettore-dataset a:hover {

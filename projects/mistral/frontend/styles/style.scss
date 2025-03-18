@@ -93,6 +93,10 @@ $dark-blue: #004080;
   font-family: "Prompt-Bold";
   src: url("../assets/font/Prompt-Bold.ttf") format("truetype");
 }
+@font-face {
+  font-family: "Prompt-SemiBold";
+  src: url("../assets/font/Prompt-SemiBold.ttf") format("truetype");
+}
 body {
   font-family: "TitilliumWeb-Regular";
 }
@@ -104,10 +108,10 @@ h4,
 h5,
 h5 > span,
 h6 {
-  font-family: "Prompt-Bold";
+  font-family: "Prompt-SemiBold";
 }
 .navbar {
-  font-family: "Prompt-Bold";
+  font-family: "Prompt-SemiBold";
   padding: 0.25rem !important;
   .navbar-brand {
     margin-right: 20px;
