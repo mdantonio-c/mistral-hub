@@ -123,6 +123,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   private currentIdx: number = null;
   private timeLoading: boolean = false;
   public onlyWind: boolean = false;
+  public onlyPrs: boolean = false;
   private endOffset = 72; // initial setting for ICON
   private observer: MutationObserver;
   private activeSpans;
@@ -433,6 +434,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     variable,
                     colorStop,
                     comp.tmpStringHourCode,
+                    comp.onlyPrs,
                   )
                   .then((l) => {
                     comp.map.removeLayer(overlays[layer]);
@@ -453,9 +455,16 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         const button = event.currentTarget as HTMLElement;
         // prevent pointers event on side menu while animation
         const menuDiv = document.querySelector(".map-sidenav-menu");
-        (menuDiv as HTMLElement).style.pointerEvents = "none";
+        if (menuDiv) {
+          (menuDiv as HTMLElement).style.pointerEvents = "none";
+        }
+        const divOverlay = document.getElementById("overlay");
+        if (divOverlay) {
+          divOverlay.style.display = "block";
+        }
         if (!button.classList.contains("pause")) {
           (menuDiv as HTMLElement).style.pointerEvents = "auto";
+          divOverlay.style.display = "none";
           return;
         }
         (this.map as any).timeDimensionControl._player.stop();
@@ -847,6 +856,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     componentName: string,
     colorStop,
     hour: string = "",
+    scalarPressure = false,
   ): Promise<L.Layer | L.LayerGroup> {
     let pane, data;
     let now = new Date().getUTCHours().toString();
@@ -1039,8 +1049,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                 });
               },
             });
-
-            resolve(L.layerGroup([magnitude, isobars]));
+            if (scalarPressure) {
+              resolve(L.layerGroup([magnitude, isobars]));
+            } else {
+              resolve(isobars);
+            }
           },
           //complete:()=>{console.timeEnd('getgeoJson')},
           error: (error) => {
@@ -1245,6 +1258,32 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     }
   }
 
+  updateScalarPrs(newValue: boolean) {
+    this.onlyPrs = newValue;
+    if (
+      this.layersControl["overlays"] &&
+      this.map.hasLayer(this.layersControl["overlays"][DP.PMSL])
+    ) {
+      this.addScalarField(
+        this.dataset,
+        "pressure-pmsl",
+        "pmsl",
+        COLORSTOPS.prsColorStops,
+        this.tmpStringHourCode,
+        newValue,
+      ).then((l) => {
+        this.map.removeLayer(this.layersControl["overlays"][DP.PMSL]);
+        l.addTo(this.map);
+        this.layersControl["overlays"][DP.PMSL] = l;
+        if (newValue) {
+          this.legends[DP.PMSL].addTo(this.map);
+        } else {
+          this.map.removeControl(this.legends[DP.PMSL]);
+        }
+      });
+    }
+  }
+
   private setOverlaysToMap() {
     let now = new Date().getUTCHours().toString();
     if (now.length === 1) now = "0" + now;
@@ -1307,7 +1346,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.variablesConfig["prp"].length &&
         this.variablesConfig["prp"].includes(1)
       ) {
-        console.log("1");
         const stringHoursToExclude = this.stringHourToExclude(1);
         if (!stringHoursToExclude.includes(s)) {
           this.addScalarField(
@@ -1608,7 +1646,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       if (event["name"] === DP.TM2) {
         legends[DP.TM2].addTo(map);
       } else if (event["name"] === DP.PMSL) {
-        legends[DP.PMSL].addTo(map);
+        //legends[DP.PMSL].addTo(map);
       } else if (event["name"] === DP.WIND10M) {
         //legends[DP.WIND10M].addTo(map);
       } else if (event["name"] === DP.RH) {

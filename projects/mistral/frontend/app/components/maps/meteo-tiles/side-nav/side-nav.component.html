@@ -181,11 +181,11 @@
               id="prsSwitch"
               type="checkbox"
               class="form-check-input clickable"
-              [checked]="showScalarWind"
-              (change)="toggleScalarWind()"
-              [disabled]="disabledRuleScalarWindButton()"
+              [checked]="showPrsScalarField"
+              (change)="toggleScalarPrs()"
+              [disabled]="disableRuleScalarPrsButton()"
             />
-            <label class="form-check-label" for="windSwitch"></label>
+            <label class="form-check-label" for="prsSwitch"></label>
             <p i18n style="font-family: 'Montserrat-semibold'; font-size: 8px">
               SCALAR FIELD
             </p>
@@ -460,5 +460,4 @@
       </li>
     </ul>
   </div>
-
 </nav>

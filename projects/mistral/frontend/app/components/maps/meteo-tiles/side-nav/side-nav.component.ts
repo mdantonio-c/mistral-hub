@@ -102,6 +102,8 @@ export class SideNavComponent implements OnInit {
   showTotalClouds: boolean = false;
   @Output() showScalarWindChange = new EventEmitter<boolean>();
   showScalarWind: boolean = false;
+  @Output() showPrsScalarFieldChange = new EventEmitter<boolean>();
+  showPrsScalarField: boolean = false;
   selectedLayers: string[] = ["t2m"]; //default layer
   @Output() selectedCumulateChange = new EventEmitter<string[]>();
   selectedCumulate: string[] = ["", ""];
@@ -188,6 +190,17 @@ export class SideNavComponent implements OnInit {
     }
   }
 
+  disableRuleScalarPrsButton() {
+    const fooEl = this.el.nativeElement.querySelectorAll("span.prs");
+    let bool = true;
+    if (fooEl) {
+      if (fooEl[0].className === "prs clickable") {
+        return bool;
+      } else {
+        return !bool;
+      }
+    }
+  }
   disabledRuleScalarWindButton() {
     const fooEl = this.el.nativeElement.querySelectorAll("span.ws10m");
     let bool = true;
@@ -372,6 +385,11 @@ export class SideNavComponent implements OnInit {
   toggleScalarWind() {
     this.showScalarWind = !this.showScalarWind;
     this.showScalarWindChange.emit(this.showScalarWind);
+  }
+
+  toggleScalarPrs() {
+    this.showPrsScalarField = !this.showPrsScalarField;
+    this.showPrsScalarFieldChange.emit(this.showPrsScalarField);
   }
 
   toggleTotalClouds(layerId: string) {
