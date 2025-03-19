@@ -149,6 +149,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
+    this.spinner.show();
     // please do not erase this line, it is useful to import GeoTIFF variable and read geotiff files
     if (false) console.log(GeoTIFF);
     // please do not erase this line, it is useful to import GeoTIFF variable and read geotiff files
@@ -219,7 +220,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.map.getPane("low").style.zIndex = "1000";
     this.map.getPane("medium").style.zIndex = "2000";
     this.map.getPane("high").style.zIndex = "3000";
-
     this.loadRunAvailable(this.dataset);
     if (this.dataset === "icon") this.addIconBorderLayer();
     this.initLegends(this.map);
@@ -463,9 +463,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     document
       .querySelector(".leaflet-control-timecontrol.timecontrol-play.play")
       ?.addEventListener("click", (event) => {
-        // add a pause before starting animation
+        // prevent pointers event on side menu and others buttons while animation
         const button = event.currentTarget as HTMLElement;
-        // prevent pointers event on side menu while animation
+        button.style.pointerEvents = "none";
         const menuDiv = document.querySelector(".map-sidenav-menu");
         if (menuDiv) {
           (menuDiv as HTMLElement).style.pointerEvents = "none";
@@ -474,11 +474,35 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         if (divOverlay) {
           divOverlay.style.display = "block";
         }
+        const backwardButton = document.querySelector(
+          ".leaflet-control-timecontrol.timecontrol-backward",
+        );
+        if (backwardButton) {
+          (backwardButton as HTMLElement).style.pointerEvents = "none";
+        }
+        const forwardButton = document.querySelector(
+          ".leaflet-control-timecontrol.timecontrol-forward",
+        );
+        if (forwardButton) {
+          (forwardButton as HTMLElement).style.pointerEvents = "none";
+        }
+        const dateSlider = document.querySelector(
+          ".leaflet-control-timecontrol.timecontrol-slider.timecontrol-dateslider",
+        );
+        if (dateSlider) {
+          (dateSlider as HTMLElement).style.pointerEvents = "none";
+        }
+        //
         if (!button.classList.contains("pause")) {
           (menuDiv as HTMLElement).style.pointerEvents = "auto";
           divOverlay.style.display = "none";
+          (backwardButton as HTMLElement).style.pointerEvents = "auto";
+          (forwardButton as HTMLElement).style.pointerEvents = "auto";
+          (dateSlider as HTMLElement).style.pointerEvents = "auto";
+          (button as HTMLElement).style.pointerEvents = "auto";
           return;
         }
+        // add a pause before starting animation
         (this.map as any).timeDimensionControl._player.stop();
         setTimeout(() => this.spinner.show(), 0);
         this.tilesService.resetCache();
@@ -690,12 +714,14 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           next: (results) => {
             setTimeout(() => {
               //(this.map as any).timeDimensionControl._buttonPlayClicked
+              (button as HTMLElement).style.pointerEvents = "auto";
               (this.map as any).timeDimensionControl._player.start();
               this.spinner.hide();
             }, 500);
           },
           error: (err) => {
             this.spinner.hide();
+            (button as HTMLElement).style.pointerEvents = "auto";
           },
         });
       });
@@ -771,11 +797,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   private loadRunAvailable(dataset: string) {
-    this.spinner.show();
     this.timeLoading = true;
     // need to get last run available
     const lastRun$ = this.tilesService.getLastRun(dataset);
-    // and the download the MultiModel data
     lastRun$
       .subscribe(
         (runAvailable: RunAvailable) => {
@@ -838,6 +862,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             l.addTo(this.map);
           });
           this.legends[DP.TM2].addTo(this.map);
+          setTimeout(() => this.spinner.hide(), 800);
           let element = document.querySelectorAll("span.t2m");
           if (element) {
             element[0].classList.add("attivo");
@@ -849,7 +874,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       )
       .add(() => {
         this.map.invalidateSize();
-        this.spinner.hide();
       });
   }
 
@@ -1246,9 +1270,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.onlyWind = newValue;
     if (
       this.layersControl["overlays"] &&
-      this.map.hasLayer(
-        this.layersControl["overlays"]["Wind speed at 10 meters"],
-      )
+      this.map.hasLayer(this.layersControl["overlays"][DP.WIND10M])
     ) {
       this.addWindLayer(
         this.minZoom,
@@ -1256,11 +1278,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.tmpStringHourCode,
         this.onlyWind,
       ).then((l) => {
-        this.map.removeLayer(
-          this.layersControl["overlays"]["Wind speed at 10 meters"],
-        );
+        this.map.removeLayer(this.layersControl["overlays"][DP.WIND10M]);
         l.addTo(this.map);
-        this.layersControl["overlays"]["Wind speed at 10 meters"] = l;
+        this.layersControl["overlays"][DP.WIND10M] = l;
         if (this.onlyWind) {
           this.legends[DP.WIND10M].addTo(this.map);
         } else {
@@ -1845,22 +1865,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     } else {
       console.log(`add layer : ${obj.name}`);
       this.map.fire("overlayadd", obj);
-      // useful to manage new wind layer
-      //console.log(this.layersControl["overlays"]["Wind speed at 10 meters"]);
-      if (this.layersControl["overlays"]["Wind speed at 10 meters"]) {
-        if (this.layersControl["overlays"]["Wind speed at 10 meters"]._layers) {
-          const windLayerToRemove = Object.keys(
-            this.layersControl["overlays"]["Wind speed at 10 meters"]._layers,
-          )[0];
-          this.map.removeLayer(
-            this.layersControl["overlays"]["Wind speed at 10 meters"]._layers[
-              windLayerToRemove
-            ],
-          );
-          this.map.removeControl(this.legends[DP.WIND10M]);
-        }
-      }
-      if (obj.name === "Wind speed at 10 meters") {
+
+      if (obj.name === DP.WIND10M) {
         this.addWindLayer(
           this.minZoom,
           this.dataset,
@@ -1868,7 +1874,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.onlyWind,
         ).then((l) => {
           l.addTo(this.map);
-          this.layersControl["overlays"]["Wind speed at 10 meters"] = l;
+          this.layersControl["overlays"][DP.WIND10M] = l;
           if (this.onlyWind) this.legends[DP.WIND10M].addTo(this.map);
         });
       } else if (obj.name === DP.PMSL) {
