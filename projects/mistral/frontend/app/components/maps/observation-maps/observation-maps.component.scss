@@ -1,10 +1,10 @@
 .accordion-header {
   .accordion-button:not(.collapsed) {
     color: inherit;
-    background-color: #157ACC !important;
+    background-color: #004080;
   }
   .custom-header {
-    background-color: rgba(0, 0, 0, 0.03) !important;
+    background-color: rgba(0, 0, 0, 0.03);
     &:after {
       content: none;
     }

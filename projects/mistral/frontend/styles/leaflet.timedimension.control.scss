@@ -59,7 +59,7 @@ app-meteo-tiles .leaflet-bottom:has(.leaflet-control-attribution) {
 }
 
 .leaflet-bar a:hover {
-  background-color: #e49d2b !important;
+  background-color: #004080 !important;
   height: 29px !important;
   width: 29px !important;
 }
@@ -224,7 +224,7 @@ app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol {
   width: 11px;
   height: 20px;
   border: none;
-  background-color: #157ACC;
+  background-color: #004080;
 }
 .timecontrol-slider .knob.upper {
   margin-top: -5px;
@@ -317,7 +317,7 @@ timecontrol-slider .knob.lower:before {
 .timecontrol-stop:hover,
 .timecontrol-play:hover,
 .timecontrol-loop:hover {
-  background-color: #e49d2b !important;
+  background-color: #004080 !important;
 }
 
 .timecontrol-backward:before,

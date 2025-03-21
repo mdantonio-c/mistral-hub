@@ -18,6 +18,7 @@
       .tooltip {
         position: relative;
         width: fit-content;
+        font-family: "TitilliumWeb-Regular" !important;
         &.tooltip-main {
           opacity: 1 !important;
           top: -15px;
@@ -32,7 +33,7 @@
               border: transparent 5px solid;
               border-top: #000 5px solid;
               left: 42%;
-              border-top: #157ACC 5px solid;
+              border-top: #004080 5px solid;
               top: 31px;
             }
           }
@@ -46,10 +47,10 @@
       text-shadow: none;
       padding: 0;
       border-radius: 30px;
-      background: #157ACC;
+      background: #004080;
       height: 25px;
       padding: 1px 10px;
-      font-family: "Prompt-Semiold";
+      font-family: "TitilliumWeb-Regular";
     }
     .tooltip {
       z-index: unset;
@@ -68,7 +69,7 @@
     }
   }
   .slider-selection {
-    background: #157ACC;
+    background: #004080;
   }
   .slider-track-high {
     background: #6c757d;
@@ -85,7 +86,7 @@
     border-radius: 0;
     line-height: 2.2em;
     text-align: center;
-    border-color: #157ACC !important;
+    border-color: #004080 !important;
     outline: 0 !important;
     border-radius: 30px !important;
 
@@ -144,7 +145,7 @@
       border-bottom: 0;
       font-size: 12px;
       box-shadow: 0 0.125rem 0.25rem rgba($black, 0.075);
-      font-family: "Prompt-SemiBold";
+      font-family: "TitilliumWeb-Regular";
       & > div {
         padding-top: 5px;
         height: 26px;
@@ -167,10 +168,10 @@
       }
 
       & > .selected {
-        background-color: #157ACC;
+        background-color: #004080;
         text-transform: uppercase;
         color: #fff;
-        border: solid 1px #157ACC;
+        border: solid 1px #004080;
         box-shadow: 0 0.5rem 1rem rgba($black, 0.15);
       }
     }

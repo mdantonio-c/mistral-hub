@@ -35,7 +35,7 @@
           </div>
         </ng-container>
       </li>
-      -->
+      
       <li class="sidenav-item last pb-1" *ngIf="mode == modes.adv" ngbDropdown>
         <span
           class="input clickable"
@@ -71,7 +71,7 @@
             </ng-container>
           </div>
         </ng-container>
-      </li>
+      </li>-->
       <ng-container *ngIf="dataset === 'iff'; then iff; else cosmo">
       </ng-container>
       <ng-template #iff>
@@ -186,7 +186,7 @@
               [disabled]="disableRuleScalarPrsButton()"
             />
             <label class="form-check-label" for="prsSwitch"></label>
-            <p i18n style="font-size: 8px">SCALAR FIELD</p>
+            <p i18n style="font-size: 8px">Scalar Field</p>
           </div>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('rh')">
@@ -246,7 +246,7 @@
               [disabled]="disabledRuleScalarWindButton()"
             />
             <label class="form-check-label" for="windSwitch"></label>
-            <p i18n style="font-size: 8px">SCALAR FIELD</p>
+            <p i18n style="font-size: 8px">Scala Field</p>
           </div>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('prp')">
@@ -268,7 +268,7 @@
           <ng-container *ngIf="!isCollapsed">
             <a href="#" (click)="toggleLayer($event, 'prp')">
               <span class="nav-text" i18n>{{
-                "precipitation" | translate : lang
+                "Precipitation" | translate : lang
               }}</span>
             </a>
             <div class="selettore-orario">
@@ -389,7 +389,7 @@
                   [disabled]="selectedLayers.length >= maxLayers"
                 />
                 <label class="form-check-label" for="tccSwitch"></label>
-                <p i18n>TOTAL</p>
+                <p i18n>Total</p>
               </div>
             </div>
           </ng-container>

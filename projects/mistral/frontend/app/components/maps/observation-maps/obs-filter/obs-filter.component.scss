@@ -1,4 +1,10 @@
-.filter {
+.light-blue{
+  color: #157ACC; 
+ } 
+ .dark-blue{
+  color:  #004080;
+ }
+ .filter {
   label {
     margin-bottom: 0.15rem;
   }
@@ -8,7 +14,7 @@
   }
 
   select {
-    font-family: "Prompt-SemiBold";
+    font-family: "TitilliumWeb-Regular";
     option {
       font-family: "TitilliumWeb-Regular", "Segoe UI", sans-serif;
       font-weight: 600;
