@@ -128,6 +128,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   private observer: MutationObserver;
   private activeSpans;
   private messageShown = false;
+  private beginTime;
 
   constructor(injector: Injector, private tilesService: TilesService) {
     super(injector);
@@ -370,6 +371,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         }
       }
     }
+
     //////////////////////////////
     /////// LAYERS DYNAMIC  /////
     /////////////////////////////
@@ -459,6 +461,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         );
       },
     );
+
     // play button click event
     document
       .querySelector(".leaflet-control-timecontrol.timecontrol-play.play")
@@ -790,7 +793,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     const now = moment.utc();
     const current = moment.utc((map as any).timeDimension.getCurrentTime());
     const currentHourFormat = current.format("HH");
-    const diffDays = current.startOf("day").diff(now.startOf("day"), "days");
+    let referenceDate = now;
+    if (this.beginTime.date() != now.date()) {
+      referenceDate = this.beginTime;
+    }
+    const diffDays = current
+      .startOf("day")
+      .diff(referenceDate.startOf("day"), "days");
     let prefix = diffDays.toString().padStart(2, "0");
     this.tmpStringHourCode = prefix + currentHourFormat + "0000";
     console.log(this.tmpStringHourCode);
@@ -815,6 +824,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             .utc(reftime, "YYYYMMDDHH")
             .add(runAvailable.start_offset, "hours")
             .toDate();
+          this.beginTime = moment.utc(reftime, "YYYYMMDDHH");
           // console.log(`startTime: ${moment.utc(startTime).format()}`);
           let endTime = moment
             .utc(reftime, "YYYYMMDDHH")
@@ -870,6 +880,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         },
         (error) => {
           this.notify.showError(error);
+          this.spinner.hide();
         },
       )
       .add(() => {
@@ -1262,6 +1273,49 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       } else if (n === 24 && targetHr < n) {
         const newTime = start.add(24, "hour");
         (this.map as any).timeDimension.setCurrentTime(newTime);
+      }
+    }
+  }
+
+  onCollapse(newValue: boolean) {
+    // hide/show scalar field buttons
+    if (newValue) {
+      const prsSwictch = document.querySelector(
+        ".form-switch.prs-switch.justify-content-center.ms-3.d-flex.mb-3",
+      );
+      if (prsSwictch) {
+        (prsSwictch as HTMLElement).setAttribute(
+          "style",
+          "display: none !important;",
+        );
+      }
+      const windSwittch = document.querySelector(
+        ".form-switch.wind-switch.justify-content-center.ms-3.d-flex.mb-3",
+      );
+      if (windSwittch) {
+        (windSwittch as HTMLElement).setAttribute(
+          "style",
+          "display: none !important;",
+        );
+      }
+    } else {
+      const prsSwictch = document.querySelector(
+        ".form-switch.prs-switch.justify-content-center.ms-3.d-flex.mb-3",
+      );
+      if (prsSwictch) {
+        (prsSwictch as HTMLElement).setAttribute(
+          "style",
+          "display: block !important;",
+        );
+      }
+      const windSwittch = document.querySelector(
+        ".form-switch.wind-switch.justify-content-center.ms-3.d-flex.mb-3",
+      );
+      if (windSwittch) {
+        (windSwittch as HTMLElement).setAttribute(
+          "style",
+          "display: block !important;",
+        );
       }
     }
   }
