@@ -649,9 +649,10 @@ export const COLORSTOPS = {
   ],
   rhColorStops: [
     { value: 20, color: "#ff0000CC" },
-    { value: 40, color: "#ffff00CC" },
-    { value: 60, color: "#00ff00CC" },
-    { value: 80, color: "#00ffffCC" },
+    { value: 40, color: "#ff8c00CC" },
+    { value: 60, color: "#ffff00CC" },
+    { value: 80, color: "#00ff00CC" },
+    { value: 90, color: "#00ffffCC" },
     { value: 100, color: "#0000ffCC" },
   ],
   ws10mColorStops: [
