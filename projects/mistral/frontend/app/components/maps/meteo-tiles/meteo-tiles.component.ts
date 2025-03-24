@@ -861,16 +861,25 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
           this.setHourTimeStamp(this.map);
           // add default layer and legend, activate t2m span button
-          this.addScalarField(
-            this.dataset,
-            "t2m-t2m",
-            "t2m",
-            COLORSTOPS.t2mColorStops,
-            this.tmpStringHourCode,
-          ).then((l) => {
-            this.layersControl["overlays"][DP.TM2] = l;
-            l.addTo(this.map);
+          // this.addScalarField(
+          //   this.dataset,
+          //   "t2m-t2m",
+          //   "t2m",
+          //   COLORSTOPS.t2mColorStops,
+          //   this.tmpStringHourCode,
+          // ).then((l) => {
+          //   this.layersControl["overlays"][DP.TM2] = l;
+          //   l.addTo(this.map);
+          // });
+
+          let fileName = "";
+          let wmsPath = "http://localhost:8081/geoserver/meteohub/wms";
+          this.layersControl["overlays"][DP.TM2] = L.tileLayer.wms(wmsPath, {
+            layers: "meteohub:tiff_store_10u_comp_00000000",
+            transparent: true,
           });
+          this.layersControl["overlays"][DP.TM2].addTo(this.map);
+
           this.legends[DP.TM2].addTo(this.map);
           setTimeout(() => this.spinner.hide(), 800);
           let element = document.querySelectorAll("span.t2m");
@@ -1381,14 +1390,19 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     /////////// TEMPERATURE //////////
     ////////////////////////////////////
     if ("t2m" in this.variablesConfig) {
-      this.addScalarField(
+      let fileName = "";
+      let wmsPath = "http://localhost:8081/geoserver/meteohub/wms";
+      this.layersControl["overlays"][DP.TM2] = L.tileLayer.wms(wmsPath, {
+        layers: "meteohub:tiff_store_10u_comp_00000000",
+      });
+      /*this.addScalarField(
         this.dataset,
         "t2m-t2m",
         "t2m",
         COLORSTOPS.t2mColorStops,
       ).then((l: L.Layer) => {
         this.layersControl["overlays"][DP.TM2] = l;
-      });
+      });*/
     }
     ////////////////////////////////////
     /////////// PRESSURE //////////
