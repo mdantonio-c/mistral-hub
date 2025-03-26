@@ -156,6 +156,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.route.queryParams.subscribe((params: Params) => {
       const view: string = params["view"];
       const lang: string = params["lang"];
+      // override if any lang provided
+      if (["it", "en"].includes(lang)) {
+        this.lang = lang;
+      }
+      //console.log(`lang: ${this.lang}`);
       if (view) {
         // check for valid view mode
         if (Object.values(ViewModes).includes(view)) {
@@ -1028,10 +1033,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     ////////////////////////////////////
     if ("t2m" in this.variablesConfig) {
       let comp_name = this.getFileName("t2m", this.tmpStringHourCode);
-      this.layersControl["overlays"][DP.TM2] = this.getWMSTileWithOptions(
-        this.wmsPath,
-        "meteohub:tiff_store_" + comp_name,
-      );
+      this.layersControl["overlays"][DP.TM2] = L.tileLayer.wms(this.wmsPath, {
+        layers: "meteohub:tiff_store_" + comp_name,
+      });
     }
     ////////////////////////////////////
     /////////// PRESSURE //////////
