@@ -432,17 +432,18 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     comp.tmpStringHourCode,
                   );
                   geoJcomp_name = geoJcomp_name + ".geojson";
+                  let comp_name = comp.getFileName(
+                    variable,
+                    comp.tmpStringHourCode,
+                  );
                   if (comp.onlyPrs) {
                     comp.map.removeLayer(overlays[layer]);
-                    let comp_name = comp.getFileName(
-                      variable,
-                      comp.tmpStringHourCode,
-                    );
-                    overlays[layer] = comp.getWMSTileWithOptions(
+
+                    /*overlays[layer] = comp.getWMSTileWithOptions(
                       comp.wmsPath,
                       "meteohub:tiff_store_" + comp_name,
-                    );
-                    overlays[layer].addTo(comp.map);
+                    );*/
+                    //overlays[layer].addTo(comp.map);
                     if (!comp.legends[layer])
                       comp.legends[layer].addTo(comp.map);
                   }
@@ -456,7 +457,17 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                       .subscribe({
                         next: (geoJson) => {
                           let isobars = comp.addIsobars(geoJson, comp.map);
-                          overlays[layer] = isobars;
+                          if (comp.onlyPrs) {
+                            overlays[layer] = L.layerGroup([
+                              isobars,
+                              comp.getWMSTileWithOptions(
+                                comp.wmsPath,
+                                "meteohub:tiff_store_" + comp_name,
+                              ),
+                            ]);
+                          } else {
+                            overlays[layer] = isobars;
+                          }
                           //if (comp.legends[layer]) comp.map.removeControl(comp.legends[layer]);
                           overlays[layer].addTo(comp.map);
                         },
@@ -954,6 +965,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       } else {
         if (this.legends[DP.PMSL])
           this.map.removeControl(this.legends[DP.PMSL]);
+        console.log("sono qui");
         return new Promise((resolve, reject) => {
           const subscription = this.tilesService
             .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
@@ -976,6 +988,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.subscriptions.push(subscription);
         });
       }
+      console.log("e poi qui");
       let comp = this;
       return new Promise((resolve, reject) => {
         const subscription = this.tilesService
