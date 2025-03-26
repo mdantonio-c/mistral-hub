@@ -1560,13 +1560,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       } else if (obj.name === DP.PMSL) {
         let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
         geoJcomp_name = geoJcomp_name + ".geojson";
+        let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
         if (this.onlyPrs) {
-          let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
-          this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
+          /*this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
             this.wmsPath,
             "meteohub:tiff_store_" + comp_name,
           );
-          this.layersControl["overlays"][DP.PMSL].addTo(this.map);
+          this.layersControl["overlays"][DP.PMSL].addTo(this.map);*/
           if (!this.legends[DP.PMSL]) this.legends[DP.PMSL].addTo(this.map);
         }
         if (this.legends[DP.PMSL])
@@ -1577,8 +1577,18 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             .subscribe({
               next: (geoJson) => {
                 let isobars = this.addIsobars(geoJson, comp.map);
-                this.layersControl["overlays"][DP.PMSL] = isobars;
-
+                if (comp.onlyPrs) {
+                  this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
+                    isobars,
+                    this.getWMSTileWithOptions(
+                      this.wmsPath,
+                      "meteohub:tiff_store_" + comp_name,
+                    ),
+                  ]);
+                } else {
+                  this.layersControl["overlays"][DP.PMSL] = isobars;
+                }
+                //this.layersControl["overlays"][DP.PMSL] = isobars;
                 this.layersControl["overlays"][DP.PMSL].addTo(comp.map);
               },
               error: (error) => {
