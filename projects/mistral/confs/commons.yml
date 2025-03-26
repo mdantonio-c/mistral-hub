@@ -65,14 +65,14 @@ services:
         CURRENT_UID: ${CURRENT_UID}
         CURRENT_GID: ${CURRENT_GID}
     #legacy image until issue #410 is not solved
-    image: meteohub/nifi-legacy:${RAPYDO_VERSION}
-    #image: meteohub/nifi:${RAPYDO_VERSION}
+    #image: meteohub/nifi-legacy:${RAPYDO_VERSION}
+    image: meteohub/nifi:${RAPYDO_VERSION}
     restart: always
     volumes:
       - ${PROJECT_DIR}/nifi/scripts:/home/nifi/ingest
       - ${DATA_DIR}/arkimet:/arkimet/datasets
       # - ${DATA_DIR}/nifi:/opt/nifi
-      - ${DATA_DIR}/nifi/conf:/opt/nifi/nifi-current/conf
+      #- ${DATA_DIR}/nifi/conf:/opt/nifi/nifi-current/conf
       - ${DATA_DIR}/nifi/database_repository:/opt/nifi/nifi-current/database_repository
       - ${DATA_DIR}/nifi/flowfile_repository:/opt/nifi/nifi-current/flowfile_repository
       - ${DATA_DIR}/nifi/content_repository:/opt/nifi/nifi-current/content_repository

@@ -18,6 +18,32 @@ fi
 if [ "${APP_MODE}" == "production" ]; then
    openssl pkcs12 -export -out ${KEYSTORE_PATH} -in /ssl/real/fullchain1.pem -inkey /ssl/real/privkey1.pem -passin pass:${KEYSTORE_PASSWORD} -passout pass:${KEYSTORE_PASSWORD}
    chown nifi ${KEYSTORE_PATH}
+else
+  # add lines related to the http configuration in the original start.sh file
+ START_SCRIPT="/opt/nifi/scripts/start.sh"
+
+# Define the multiline HTTP configuration to insert
+HTTP_CONFIGURATION="if [ -n '${NIFI_WEB_HTTP_PORT}' ]; then
+    prop_replace 'nifi.web.https.port'                        ''
+    prop_replace 'nifi.web.https.host'                        ''
+    prop_replace 'nifi.web.http.port'                         '${NIFI_WEB_HTTP_PORT}'
+    prop_replace 'nifi.web.http.host'                         '${NIFI_WEB_HTTP_HOST:-\$HOSTNAME}'
+    prop_replace 'nifi.remote.input.secure'                   'false'
+    prop_replace 'nifi.cluster.protocol.is.secure'            'false'
+    prop_replace 'nifi.security.keystore'                     ''
+    prop_replace 'nifi.security.keystoreType'                 ''
+    prop_replace 'nifi.security.truststore'                   ''
+    prop_replace 'nifi.security.truststoreType'               ''
+    prop_replace 'nifi.security.user.login.identity.provider' ''
+    prop_replace 'keystore'                                   '' ${nifi_toolkit_props_file}
+    prop_replace 'keystoreType'                               '' ${nifi_toolkit_props_file}
+    prop_replace 'truststore'                                 '' ${nifi_toolkit_props_file}
+    prop_replace 'truststoreType'                             '' ${nifi_toolkit_props_file}
+    prop_replace 'baseUrl' 'http://${NIFI_WEB_HTTP_HOST:-\$HOSTNAME}:${NIFI_WEB_HTTP_PORT}' ${nifi_toolkit_props_file}
+fi"
+
+# Insert the HTTP configuration after line 60 in start.sh
+sed -i "61i \# Custom HTTP Configuration \n${HTTP_CONFIGURATION}" $START_SCRIPT
 fi
 
 if [ -z "$(ls ${NIFI_HOME}/conf)" ]; then
