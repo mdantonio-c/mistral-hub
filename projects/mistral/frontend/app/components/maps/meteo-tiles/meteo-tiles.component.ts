@@ -1028,9 +1028,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     ////////////////////////////////////
     if ("t2m" in this.variablesConfig) {
       let comp_name = this.getFileName("t2m", this.tmpStringHourCode);
-      this.layersControl["overlays"][DP.TM2] = L.tileLayer.wms(this.wmsPath, {
-        layers: "meteohub:tiff_store_" + comp_name,
-      });
+      this.layersControl["overlays"][DP.TM2] = this.getWMSTileWithOptions(
+        this.wmsPath,
+        "meteohub:tiff_store_" + comp_name,
+      );
     }
     ////////////////////////////////////
     /////////// PRESSURE //////////
