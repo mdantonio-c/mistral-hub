@@ -965,7 +965,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       } else {
         if (this.legends[DP.PMSL])
           this.map.removeControl(this.legends[DP.PMSL]);
-        console.log("sono qui");
         return new Promise((resolve, reject) => {
           const subscription = this.tilesService
             .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
@@ -988,7 +987,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.subscriptions.push(subscription);
         });
       }
-      console.log("e poi qui");
       let comp = this;
       return new Promise((resolve, reject) => {
         const subscription = this.tilesService
