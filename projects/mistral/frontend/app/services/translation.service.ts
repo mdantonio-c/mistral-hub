@@ -13,11 +13,11 @@ export class TranslationService {
     it: {
       language: "it",
       values: {
-        temperature: "temperatura",
-        wind: "vento",
-        precipitation: "precipitazione",
-        "snow fall": "neve",
-        clouds: "nuvolosità",
+        temperature: "Temperatura",
+        wind: "Vento",
+        precipitation: "Precipitazione",
+        snowfall: "Neve",
+        clouds: "Nuvolosità",
         product: "run",
         "reference date": "data",
         pressure: "pressione",

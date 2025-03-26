@@ -1,5 +1,5 @@
 import { Component, Injector, Input, OnInit } from "@angular/core";
-import { forkJoin, interval } from "rxjs";
+import { forkJoin } from "rxjs";
 import * as moment from "moment";
 import * as L from "leaflet";
 import * as chroma from "chroma-js";
@@ -9,12 +9,6 @@ import "ih-leaflet-canvaslayer-field/dist/leaflet.canvaslayer.field.js";
 import { TilesService } from "./services/tiles.service";
 import { NavigationEnd, Params } from "@angular/router";
 import { Subscription } from "rxjs";
-// useful to explore another solution in terms of efficiency
-// import parseGeoraster from "georaster";
-// import GeoRasterLayer from 'georaster-layer-for-leaflet' // version 3.5
-/*declare module "georaster-layer-for-leaflet"{
-    let GeoRasterLayer:any;
-}*/
 
 import {
   LEGEND_DATA,
@@ -130,6 +124,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   private messageShown = false;
   private beginTime;
   private wmsPath: string;
+
   constructor(injector: Injector, private tilesService: TilesService) {
     super(injector);
     // set the initial set of displayed layers
@@ -197,9 +192,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
       // clean the url from the query parameters
       /*this.router.navigate([], {
-                          queryParams: { view: null, dataset: null },
-                          queryParamsHandling: "merge",
-                        });*/
+                                queryParams: { view: null, dataset: null },
+                                queryParamsHandling: "merge",
+                              });*/
     });
   }
 
@@ -227,6 +222,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     if (this.dataset === "icon") this.addIconBorderLayer();
     this.initLegends(this.map);
     this.centerMap();
+    let pane;
 
     this.map.attributionControl.setPrefix("");
     // pass a reference to this MeteoTilesComponent
@@ -412,24 +408,15 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
               } else if (variable === "tp" || variable === "snow") {
                 const stringHourToExclude = comp.stringHourToExclude(offset);
                 if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-                  // comp
-                  //   .addScalarField(
-                  //     comp.dataset,
-                  //     field,
-                  //     variable,
-                  //     colorStop,
-                  //     comp.tmpStringHourCode,
-                  //   )
-                  //   .then((l) => {
-                  //     comp.map.removeLayer(overlays[layer]);
-                  //     overlays[layer] = l;
-                  //     l.addTo(comp.map);
-                  //   });
                   comp.map.removeLayer(overlays[layer]);
-                  let comp_name = comp.getFileName(variable, comp.tmpStringHourCode)
+                  let comp_name = comp.getFileName(
+                    variable,
+                    comp.tmpStringHourCode,
+                  );
                   overlays[layer] = comp.getWMSTileWithOptions(
                     comp.wmsPath,
-                    "meteohub:tiff_store_" + comp_name)
+                    "meteohub:tiff_store_" + comp_name,
+                  );
                   overlays[layer].addTo(comp.map);
                 } else {
                   comp.map.removeLayer(overlays[layer]);
@@ -438,49 +425,72 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                   emptyLayer.addTo(comp.map);
                 }
               } else {
-                // comp
-                //   .addScalarField(
-                //     comp.dataset,
-                //     field,
-                //     variable,
-                //     colorStop,
-                //     comp.tmpStringHourCode,
-                //     comp.onlyPrs,
-                //   )
-                //   .then((l) => {
-                //     comp.map.removeLayer(overlays[layer]);
-                //     l.addTo(comp.map);
-                //     overlays[layer] = l;
-                //     if (variable === "pmsl") {
-                //       if (comp.onlyPrs) {
-                //         if (!comp.legends[layer]) {
-                //           comp.legends[layer].addTo(comp.map);
-                //         }
-                //       } else {
-                //         if (comp.legends[layer]) {
-                //           comp.map.removeControl(comp.legends[layer]);
-                //         }
-                //       }
-                //     }
-                //   });
-                comp.map.removeLayer(overlays[layer]);
-                let comp_name = comp.getFileName(variable, comp.tmpStringHourCode)
-                overlays[layer] = comp.getWMSTileWithOptions(
-                  comp.wmsPath,
-                  "meteohub:tiff_store_" + comp_name)
-                overlays[layer].addTo(comp.map);
                 if (variable === "pmsl") {
+                  comp.map.removeLayer(overlays[layer]);
+                  let geoJcomp_name = comp.getFileName(
+                    variable,
+                    comp.tmpStringHourCode,
+                  );
+                  geoJcomp_name = geoJcomp_name + ".geojson";
                   if (comp.onlyPrs) {
-                    if (comp.onlyPrs) {
-                      if (!comp.legends[layer]) {
-                        comp.legends[layer].addTo(comp.map);
-                      }
-                    } else {
-                      if (comp.legends[layer]) {
-                        comp.map.removeControl(comp.legends[layer]);
-                      }
-                    }
+                    comp.map.removeLayer(overlays[layer]);
+                    let comp_name = comp.getFileName(
+                      variable,
+                      comp.tmpStringHourCode,
+                    );
+                    overlays[layer] = comp.getWMSTileWithOptions(
+                      comp.wmsPath,
+                      "meteohub:tiff_store_" + comp_name,
+                    );
+                    overlays[layer].addTo(comp.map);
+                    if (!comp.legends[layer])
+                      comp.legends[layer].addTo(comp.map);
                   }
+                  return new Promise((resolve, reject) => {
+                    const subscription = comp.tilesService
+                      .getGeoJsonComponent(
+                        comp.dataset,
+                        "pressure-pmsl",
+                        geoJcomp_name,
+                      )
+                      .subscribe({
+                        next: (geoJson) => {
+                          let isobars = comp.addIsobars(geoJson, comp.map);
+                          overlays[layer] = isobars;
+                          //if (comp.legends[layer]) comp.map.removeControl(comp.legends[layer]);
+                          overlays[layer].addTo(comp.map);
+                        },
+                        error: (error) => {
+                          console.error(
+                            `Error while downloading/processing ${geoJcomp_name} file`,
+                            error,
+                          );
+                          reject(error);
+                        },
+                      });
+                    comp.subscriptions.push(subscription);
+                  });
+                } else {
+                  comp.map.removeLayer(overlays[layer]);
+                  let comp_name = comp.getFileName(
+                    variable,
+                    comp.tmpStringHourCode,
+                  );
+                  overlays[layer] = comp.getWMSTileWithOptions(
+                    comp.wmsPath,
+                    "meteohub:tiff_store_" + comp_name,
+                  );
+                  if (variable === "lcc") pane = "low";
+                  if (variable === "mcc") pane = "medium";
+                  if (variable === "hcc") pane = "high";
+                  if (
+                    variable === "lcc" ||
+                    variable === "mcc" ||
+                    variable === "hcc"
+                  ) {
+                    overlays[layer].options.pane = pane;
+                  }
+                  overlays[layer].addTo(comp.map);
                 }
               }
             }
@@ -488,275 +498,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         );
       },
     );
-
-    // play button click event
-    // document
-    //   .querySelector(".leaflet-control-timecontrol.timecontrol-play.play")
-    //   ?.addEventListener("click", (event) => {
-    //     // prevent pointers event on side menu and others buttons while animation
-    //     const button = event.currentTarget as HTMLElement;
-    //     button.style.pointerEvents = "none";
-    //     const menuDiv = document.querySelector(".map-sidenav-menu");
-    //     if (menuDiv) {
-    //       (menuDiv as HTMLElement).style.pointerEvents = "none";
-    //     }
-    //     const divOverlay = document.getElementById("overlay");
-    //     if (divOverlay) {
-    //       divOverlay.style.display = "block";
-    //     }
-    //     const backwardButton = document.querySelector(
-    //       ".leaflet-control-timecontrol.timecontrol-backward",
-    //     );
-    //     if (backwardButton) {
-    //       (backwardButton as HTMLElement).style.pointerEvents = "none";
-    //     }
-    //     const forwardButton = document.querySelector(
-    //       ".leaflet-control-timecontrol.timecontrol-forward",
-    //     );
-    //     if (forwardButton) {
-    //       (forwardButton as HTMLElement).style.pointerEvents = "none";
-    //     }
-    //     const dateSlider = document.querySelector(
-    //       ".leaflet-control-timecontrol.timecontrol-slider.timecontrol-dateslider",
-    //     );
-    //     if (dateSlider) {
-    //       (dateSlider as HTMLElement).style.pointerEvents = "none";
-    //     }
-    //     //
-    //     if (!button.classList.contains("pause")) {
-    //       (menuDiv as HTMLElement).style.pointerEvents = "auto";
-    //       divOverlay.style.display = "none";
-    //       (backwardButton as HTMLElement).style.pointerEvents = "auto";
-    //       (forwardButton as HTMLElement).style.pointerEvents = "auto";
-    //       (dateSlider as HTMLElement).style.pointerEvents = "auto";
-    //       (button as HTMLElement).style.pointerEvents = "auto";
-    //       return;
-    //     }
-    //     // add a pause before starting animation
-    //     (this.map as any).timeDimensionControl._player.stop();
-    //     setTimeout(() => this.spinner.show(), 0);
-    //     this.tilesService.resetCache();
-
-    //     const startTime = (map as any).timeDimension.getAvailableTimes()[0];
-    //     const currentTime = (map as any).timeDimension.getCurrentTime();
-    //     const diffTime = currentTime - startTime;
-    //     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    //     let HH = new Date(currentTime).getUTCHours();
-
-    //     if (diffDays === 1) {
-    //       HH = HH + 24;
-    //     }
-    //     if (diffDays === 2) {
-    //       HH = HH + 48;
-    //     }
-    //     if (diffDays === 3) {
-    //       HH = HH + 72;
-    //     }
-    //     //console.log(HH);
-
-    //     const activeProducts = [];
-    //     if (ref.map.hasLayer(ref.layersControl["overlays"][DP.TM2])) {
-    //       activeProducts.push(["t2m-t2m", "t2m"]);
-    //     }
-    //     if (ref.map.hasLayer(ref.layersControl["overlays"][DP.WIND10M])) {
-    //       activeProducts.push(["wind-10u", "10u"]);
-    //       activeProducts.push(["wind-10v", "10v"]);
-    //     }
-    //     if (ref.map.hasLayer(ref.layersControl["overlays"][DP.TCC])) {
-    //       activeProducts.push(["cloud-tcc", "tcc"]);
-    //     }
-
-    //     if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC3P])) {
-    //       activeProducts.push(["prec3-tp", "tp"]);
-    //     }
-    //     if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC6P])) {
-    //       activeProducts.push(["pre6-tp", "tp"]);
-    //     }
-    //     if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC12P])) {
-    //       activeProducts.push(["prec12-tp", "tp"]);
-    //     }
-    //     if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC24P])) {
-    //       activeProducts.push(["prec24-tp", "tp"]);
-    //     }
-
-    //     if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF3])) {
-    //       activeProducts.push(["snow3-snow", "snow"]);
-    //     }
-    //     if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF6])) {
-    //       activeProducts.push(["snow6-snow", "snow"]);
-    //     }
-
-    //     if (this.viewMode != ViewModes.base) {
-    //       if (ref.map.hasLayer(ref.layersControl["overlays"][DP.RH])) {
-    //         activeProducts.push(["humidity-r", "r"]);
-    //       }
-    //       if (ref.map.hasLayer(ref.layersControl["overlays"][DP.LCC])) {
-    //         activeProducts.push(["cloud_hml-lcc", "lcc"]);
-    //       }
-    //       if (ref.map.hasLayer(ref.layersControl["overlays"][DP.MCC])) {
-    //         activeProducts.push(["cloud_hml-mcc", "mcc"]);
-    //       }
-    //       if (ref.map.hasLayer(ref.layersControl["overlays"][DP.HCC])) {
-    //         activeProducts.push(["cloud_hml-hcc", "hcc"]);
-    //       }
-    //       if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PMSL])) {
-    //         activeProducts.push(["pressure-pmsl", "pmsl"]);
-    //       }
-    //       if (ref.map.hasLayer(ref.layersControl["overlays"][DP.PREC1P])) {
-    //         activeProducts.push(["prec1-tp", "tp"]);
-    //       }
-    //       if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF1])) {
-    //         activeProducts.push(["snow1-snow", "snow"]);
-    //       }
-    //       if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF12])) {
-    //         activeProducts.push(["snow12-snow", "snow"]);
-    //       }
-    //       if (ref.map.hasLayer(ref.layersControl["overlays"][DP.SF24])) {
-    //         activeProducts.push(["snow24-snow", "snow"]);
-    //       }
-    //     }
-
-    //     let requests = [];
-
-    //     activeProducts.forEach((v) => {
-    //       // v : [foldername,compname]
-    //       const trav = this.traverseDictionary(
-    //         this.generateForecastTimestamp(v[1]),
-    //         HH,
-    //       );
-    //       trav.forEach((name) => {
-    //         if (v[0] === "prec1-tp") {
-    //           if (
-    //             this.stringHourToExclude(1).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         if (v[0] === "prec3-tp") {
-    //           if (
-    //             this.stringHourToExclude(3).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         if (v[0] === "prec6-tp") {
-    //           if (
-    //             this.stringHourToExclude(6).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         if (v[0] === "prec12-tp") {
-    //           if (
-    //             this.stringHourToExclude(12).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         if (v[0] === "prec24-tp") {
-    //           if (
-    //             this.stringHourToExclude(24).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         if (v[0] === "snow1-snow") {
-    //           if (
-    //             this.stringHourToExclude(1).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         if (v[0] === "snow3-snow") {
-    //           if (
-    //             this.stringHourToExclude(3).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         if (v[0] === "snow6-snow") {
-    //           if (
-    //             this.stringHourToExclude(6).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         if (v[0] === "snow12-snow") {
-    //           if (
-    //             this.stringHourToExclude(12).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         if (v[0] === "snow24-snow") {
-    //           if (
-    //             this.stringHourToExclude(24).some((substring) =>
-    //               name.includes(substring),
-    //             )
-    //           ) {
-    //             return;
-    //           }
-    //         }
-    //         requests.push(
-    //           this.tilesService.getImgComponentCached(
-    //             this.dataset,
-    //             v[0],
-    //             name,
-    //             true,
-    //           ),
-    //         );
-
-    //         if (v[0] === "pressure-pmsl") {
-    //           const isobarsName = name.split(".")[0] + ".geojson";
-    //           requests.push(
-    //             this.tilesService.getGeoJsonComponentCached(
-    //               this.dataset,
-    //               v[0],
-    //               isobarsName,
-    //               true,
-    //             ),
-    //           );
-    //         }
-    //       });
-    //     });
-    //     requests.forEach((obs) => obs.subscribe());
-    //     // number of requests to be made before removing the spinner
-    //     const firstReq = requests.slice(0, 10 * activeProducts.length);
-    //     forkJoin(firstReq).subscribe({
-    //       next: (results) => {
-    //         setTimeout(() => {
-    //           //(this.map as any).timeDimensionControl._buttonPlayClicked
-    //           (button as HTMLElement).style.pointerEvents = "auto";
-    //           (this.map as any).timeDimensionControl._player.start();
-    //           this.spinner.hide();
-    //         }, 500);
-    //       },
-    //       error: (err) => {
-    //         this.spinner.hide();
-    //         (button as HTMLElement).style.pointerEvents = "auto";
-    //       },
-    //     });
-    //   });
     this.spinner.hide();
-
   }
 
   addPlayButton() {
@@ -805,16 +547,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       childList: true,
       subtree: true,
     });
-  }
-
-  getDiscreteColor(value: number, stops) {
-    // useful for geoRasterLayer
-    for (let i = stops.length - 1; i >= 0; i--) {
-      if (value >= stops[i].value) {
-        return stops[i].color;
-      }
-    }
-    return stops[0].color;
   }
 
   setHourTimeStamp(map) {
@@ -889,29 +621,20 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.dataset = runAvailable.dataset;
 
           this.setHourTimeStamp(this.map);
-          // add default layer and legend, activate t2m span button
-          // this.addScalarField(
-          //   this.dataset,
-          //   "t2m-t2m",
-          //   "t2m",
-          //   COLORSTOPS.t2mColorStops,
-          //   this.tmpStringHourCode,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.TM2] = l;
-          //   l.addTo(this.map);
-          // });
 
           let componentName = "t2m";
-          let comp_name = this.getFileName(componentName, this.tmpStringHourCode)
+          let comp_name = this.getFileName(
+            componentName,
+            this.tmpStringHourCode,
+          );
 
-          // let wmsPath = "http://localhost:8081/geoserver/meteohub/wms";
           this.layersControl["overlays"][DP.TM2] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name
+            "meteohub:tiff_store_" + comp_name,
           );
           this.layersControl["overlays"][DP.TM2].addTo(this.map);
 
-          // this.legends[DP.TM2].addTo(this.map);
+          this.legends[DP.TM2].addTo(this.map);
           setTimeout(() => this.spinner.hide(), 800);
           let element = document.querySelectorAll("span.t2m");
           if (element) {
@@ -946,232 +669,47 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     return comp_name;
   }
 
-  // addScalarField(
-  //   dataset: string,
-  //   folderName: string,
-  //   componentName: string,
-  //   colorStop,
-  //   hour: string = "",
-  //   scalarPressure = false,
-  // ): Promise<L.Layer | L.LayerGroup> {
-  //   let pane, data;
-  //   let now = new Date().getUTCHours().toString();
-  //   if (now.length === 1) now = "0" + now;
-  //   let s: string = "00" + now + "0000";
-  //   if (hour) s = hour;
-  //   const customColorScale = this.createCustomColorScale(colorStop);
-  //   const comp_name = `${componentName}_comp_` + s + ".tif";
-  //   const ref = this;
+  addIsobars(geoJson, map) {
+    return L.geoJSON(geoJson, {
+      style: function () {
+        return {
+          color: "grey",
+          weight: 1,
+          opacity: 0.8,
+        };
+      },
+      onEachFeature: function (feature, layer) {
+        let invisibleLayer = L.geoJSON(feature, {
+          style: function () {
+            return {
+              color: "transparent",
+              weight: 6,
+              opacity: 0,
+              interactive: true,
+            };
+          },
+        }).addTo(map);
 
-  //   // if (folderName != "pressure-pmsl" && componentName != "pmsl") {
-  //   //   return new Promise((resolve, reject) => {
-  //   //     //console.time('getImgComponent');
-  //   //     const subscription = this.tilesService
-  //   //       .getImgComponentCached(dataset, folderName, comp_name)
-  //   //       .subscribe({
-  //   //         next: (arrayBuffer) => {
-  //   //           //const bufferCopy = arrayBuffer.slice(0);
-  //   //           //const colorStopSort = colorStop.sort((a,b)=> a.value-b.value);
-
-  //   //           /*parseGeoraster(bufferCopy).then(georaster=>{
-
-  //   //                                       const layer = new GeoRasterLayer({
-  //   //                                           georaster: georaster,
-  //   //                                           opacity: 0.6,
-  //   //                                           pixelValuesToColorFn: (pixelValue)=> {
-  //   //                                               return this.getDiscreteColor(pixelValue[0],colorStopSort)
-  //   //                                           },
-  //   //                                           resolution: 128
-  //   //                                       })
-  //   //                                   if (folderName == "cloud_hml-lcc") pane = "low";
-  //   //                                   if (folderName == "cloud_hml-mcc") pane = "medium";
-  //   //                                   if (folderName == "cloud_hml-hcc") pane = "high";
-  //   //                                   if (
-  //   //                                       folderName == "cloud_hml-lcc" ||
-  //   //                                       folderName == "cloud_hml-mcc" ||
-  //   //                                       folderName == "cloud_hml-hcc"
-  //   //                                   ) {
-
-  //   //                                       layer.options.pane = pane;
-  //   //                                   }
-  //   //                                   resolve(layer);
-  //   //                                   })*/
-
-  //   //           const sf = L.ScalarField.fromGeoTIFF(arrayBuffer);
-  //   //           const magnitude = L.canvasLayer.scalarField(sf, {
-  //   //             color: customColorScale,
-  //   //             opacity: 0.6,
-  //   //           });
-  //   //           if (folderName == "cloud_hml-lcc") pane = "low";
-  //   //           if (folderName == "cloud_hml-mcc") pane = "medium";
-  //   //           if (folderName == "cloud_hml-hcc") pane = "high";
-  //   //           if (
-  //   //             folderName == "cloud_hml-lcc" ||
-  //   //             folderName == "cloud_hml-mcc" ||
-  //   //             folderName == "cloud_hml-hcc"
-  //   //           ) {
-  //   //             magnitude.options.pane = pane;
-  //   //           }
-
-  //   //           resolve(magnitude);
-  //   //         },
-  //   //         //complete: ()=> {console.timeEnd('getImgComponent')},
-  //   //         error: (error) => {
-  //   //           console.error(
-  //   //             `Error while downloading/processing ${comp_name} file`,
-  //   //             error,
-  //   //           );
-  //   //           reject(error);
-  //   //         },
-  //   //       });
-  //   //     this.subscriptions.push(subscription);
-  //   //   });
-  //   // } else {
-  //   //   const geoJcomp_name = `${componentName}_comp_` + s + ".geojson";
-  //   //   return new Promise((resolve, reject, refMap = ref) => {
-  //   //     //console.time('getgeoJson');
-  //   //     const subscription = forkJoin({
-  //   //       prs: this.tilesService.getImgComponentCached(
-  //   //         dataset,
-  //   //         folderName,
-  //   //         comp_name,
-  //   //       ),
-  //   //       geoJson: this.tilesService.getGeoJsonComponentCached(
-  //   //         dataset,
-  //   //         folderName,
-  //   //         geoJcomp_name,
-  //   //       ),
-  //   //     }).subscribe({
-  //   //       next: ({ prs, geoJson }) => {
-  //   //         //const bufferCopy = prs.slice(0);
-  //   //         //const colorStopSort = colorStop.sort((a,b)=> a.value-b.value);
-  //   //         const sf = L.ScalarField.fromGeoTIFF(prs);
-  //   //         const magnitude = L.canvasLayer.scalarField(sf, {
-  //   //           color: customColorScale,
-  //   //           opacity: 0.6,
-  //   //         });
-
-  //   //         /*parseGeoraster(bufferCopy).then(georaster=>{
-  //   //                                    let isobars: L.Layer =
-  //   //                                     L.geoJSON(geoJson, {
-  //   //                                         style: function () {
-  //   //                                             return {
-  //   //                                                 color: "grey",
-  //   //                                                 weight: 1,
-  //   //                                                 opacity: 0.8,
-  //   //                                             };
-  //   //                                         },
-  //   //                                         onEachFeature: function (feature, layer) {
-
-  //   //                                             let invisibleLayer = L.geoJSON(feature, {
-  //   //                                                 style: function () {
-  //   //                                                     return {
-  //   //                                                         color: "transparent",
-  //   //                                                         weight: 6,
-  //   //                                                         opacity: 0,
-  //   //                                                         interactive: true
-  //   //                                                     };
-  //   //                                                 }
-  //   //                                             }).addTo(refMap.map);
-
-
-  //   //                                             invisibleLayer.on("mouseover", function (e) {
-
-  //   //                                                 layer.bindTooltip(feature.properties.label + ' hPa', {
-  //   //                                                     permanent: true,
-  //   //                                                     direction: "top",
-  //   //                                                     className: "isobar-label",
-  //   //                                                     opacity: 1,
-  //   //                                                     offset: L.point(0, -10)
-  //   //                                                 }).openTooltip(e.latlng);
-  //   //                                             });
-  //   //                                             invisibleLayer.on("mousemove", function (e) {
-  //   //                                                 layer.openTooltip(e.latlng);
-  //   //                                             });
-  //   //                                             invisibleLayer.on("mouseout", function () {
-  //   //                                                 layer.closeTooltip();
-  //   //                                             });
-  //   //                                         }
-  //   //                                     });
-
-
-
-  //   //                                    const magnitude = new GeoRasterLayer({
-  //   //                                        georaster: georaster,
-  //   //                                        opacity: 0.6,
-  //   //                                        pixelValuesToColorFn: (pixelValue)=> {
-  //   //                                            return this.getDiscreteColor(pixelValue[0],colorStopSort)
-  //   //                                        },
-  //   //                                        resolution:128
-  //   //                                    })
-  //   //                                    resolve(L.layerGroup([magnitude, isobars]));
-  //   //                                })*/
-  //   //         let isobars: L.Layer = L.geoJSON(geoJson, {
-  //   //           style: function () {
-  //   //             return {
-  //   //               color: "grey",
-  //   //               weight: 1,
-  //   //               opacity: 0.8,
-  //   //             };
-  //   //           },
-  //   //           onEachFeature: function (feature, layer) {
-  //   //             let invisibleLayer = L.geoJSON(feature, {
-  //   //               style: function () {
-  //   //                 return {
-  //   //                   color: "transparent",
-  //   //                   weight: 6,
-  //   //                   opacity: 0,
-  //   //                   interactive: true,
-  //   //                 };
-  //   //               },
-  //   //             }).addTo(refMap.map);
-
-  //   //             invisibleLayer.on("mouseover", function (e) {
-  //   //               layer
-  //   //                 .bindTooltip(feature.properties.label + " hPa", {
-  //   //                   permanent: false,
-  //   //                   direction: "top",
-  //   //                   className: "isobar-label",
-  //   //                   opacity: 1,
-  //   //                   offset: L.point(0, -10),
-  //   //                 })
-  //   //                 .openTooltip(e.latlng);
-  //   //             });
-  //   //             invisibleLayer.on("mousemove", function (e) {
-  //   //               layer.openTooltip(e.latlng);
-  //   //             });
-  //   //             invisibleLayer.on("mouseout", function () {
-  //   //               layer.closeTooltip();
-  //   //             });
-  //   //           },
-  //   //         });
-  //   //         if (scalarPressure) {
-  //   //           resolve(L.layerGroup([magnitude, isobars]));
-  //   //         } else {
-  //   //           resolve(isobars);
-  //   //         }
-  //   //       },
-  //   //       //complete:()=>{console.timeEnd('getgeoJson')},
-  //   //       error: (error) => {
-  //   //         console.error(
-  //   //           `Error while downloading/processing ${comp_name} or ${geoJcomp_name} files`,
-  //   //           error,
-  //   //         );
-  //   //         reject(error);
-  //   //       },
-  //   //     });
-  //   //     this.subscriptions.push(subscription);
-  //   //   });
-  //   // }
-  //   return new Promise((resolve, reject) => {
-  //     let res = L.tileLayer.wms("http://localhost:8081/geoserver/meteohub/wms", {
-  //       layers: "meteohub:tiff_store_10u_comp_00000000",
-  //       transparent: true,
-  //     });
-  //     resolve(res);
-  //   });
-  // }
-
+        invisibleLayer.on("mouseover", function (e) {
+          layer
+            .bindTooltip(feature.properties.label + " hPa", {
+              permanent: false,
+              direction: "top",
+              className: "isobar-label",
+              opacity: 1,
+              offset: L.point(0, -10),
+            })
+            .openTooltip(e.latlng);
+        });
+        invisibleLayer.on("mousemove", function (e) {
+          layer.openTooltip(e.latlng);
+        });
+        invisibleLayer.on("mouseout", function () {
+          layer.closeTooltip();
+        });
+      },
+    });
+  }
   addIconBorderLayer() {
     // add border layer for ICON model
     fetch("./app/custom/assets/images/geoJson/coastlines_border_lines.geojson")
@@ -1406,34 +944,64 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       this.layersControl["overlays"] &&
       this.map.hasLayer(this.layersControl["overlays"][DP.PMSL])
     ) {
-      // this.addScalarField(
-      //   this.dataset,
-      //   "pressure-pmsl",
-      //   "pmsl",
-      //   COLORSTOPS.prsColorStops,
-      //   this.tmpStringHourCode,
-      //   this.onlyPrs,
-      // ).then((l) => {
-      //   this.map.removeLayer(this.layersControl["overlays"][DP.PMSL]);
-      //   l.addTo(this.map);
-      //   this.layersControl["overlays"][DP.PMSL] = l;
-      //   if (newValue) {
-      //     this.legends[DP.PMSL].addTo(this.map);
-      //   } else {
-      //     this.map.removeControl(this.legends[DP.PMSL]);
-      //   }
-      // });
       this.map.removeLayer(this.layersControl["overlays"][DP.PMSL]);
-      let comp_name = this.getFileName("pmsl", this.tmpStringHourCode)
-      this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
-        this.wmsPath,
-        "meteohub:tiff_store_" + comp_name)
-      this.layersControl["overlays"][DP.PMSL].addTo(this.map);
+      let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
+      geoJcomp_name = geoJcomp_name + ".geojson";
+      let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
+
       if (newValue) {
         this.legends[DP.PMSL].addTo(this.map);
       } else {
-        this.map.removeControl(this.legends[DP.PMSL]);
+        if (this.legends[DP.PMSL])
+          this.map.removeControl(this.legends[DP.PMSL]);
+        return new Promise((resolve, reject) => {
+          const subscription = this.tilesService
+            .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
+            .subscribe({
+              next: (geoJson) => {
+                this.layersControl["overlays"][DP.PMSL] = this.addIsobars(
+                  geoJson,
+                  this.map,
+                );
+                this.layersControl["overlays"][DP.PMSL].addTo(this.map);
+              },
+              error: (error) => {
+                console.error(
+                  `Error while downloading/processing ${geoJcomp_name} file`,
+                  error,
+                );
+                reject(error);
+              },
+            });
+          this.subscriptions.push(subscription);
+        });
       }
+      let comp = this;
+      return new Promise((resolve, reject) => {
+        const subscription = this.tilesService
+          .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
+          .subscribe({
+            next: (geoJson) => {
+              let isobars = this.addIsobars(geoJson, comp.map);
+              this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
+                this.getWMSTileWithOptions(
+                  this.wmsPath,
+                  "meteohub:tiff_store_" + comp_name,
+                ),
+                isobars,
+              ]);
+              this.layersControl["overlays"][DP.PMSL].addTo(this.map);
+            },
+            error: (error) => {
+              console.error(
+                `Error while downloading/processing ${geoJcomp_name} file`,
+                error,
+              );
+              reject(error);
+            },
+          });
+        this.subscriptions.push(subscription);
+      });
     }
   }
 
@@ -1448,60 +1016,38 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     /////////// TEMPERATURE //////////
     ////////////////////////////////////
     if ("t2m" in this.variablesConfig) {
-      let comp_name = this.getFileName("t2m", this.tmpStringHourCode)
+      let comp_name = this.getFileName("t2m", this.tmpStringHourCode);
       this.layersControl["overlays"][DP.TM2] = L.tileLayer.wms(this.wmsPath, {
         layers: "meteohub:tiff_store_" + comp_name,
       });
-      /*this.addScalarField(
-        this.dataset,
-        "t2m-t2m",
-        "t2m",
-        COLORSTOPS.t2mColorStops,
-      ).then((l: L.Layer) => {
-        this.layersControl["overlays"][DP.TM2] = l;
-      });*/
     }
     ////////////////////////////////////
     /////////// PRESSURE //////////
     ////////////////////////////////////
     if ("prs" in this.variablesConfig) {
-      // this.addScalarField(
-      //   this.dataset,
-      //   "pressure-pmsl",
-      //   "pmsl",
-      //   COLORSTOPS.prsColorStops,
-      // ).then((l) => {
-      //   this.layersControl["overlays"][DP.PMSL] = l;
-      // });
-      let comp_name = this.getFileName("pmsl", this.tmpStringHourCode)
+      let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
       this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
         this.wmsPath,
-        "meteohub:tiff_store_" + comp_name)
+        "meteohub:tiff_store_" + comp_name,
+      );
     }
     ////////////////////////////////////
     /////////// WIND //////////
     ////////////////////////////////////
     if ("ws10m" in this.variablesConfig) {
-      // this.addWindLayer(this.minZoom, this.dataset).then((l) => {
-      //   this.layersControl["overlays"][DP.WIND10M] = l;
-      // });
+      this.addWindLayer(this.minZoom, this.dataset).then((l) => {
+        this.layersControl["overlays"][DP.WIND10M] = l;
+      });
     }
     ////////////////////////////////////
     /////////// RELATIVE HUMIDITY //////////
     ////////////////////////////////////
     if ("rh" in this.variablesConfig) {
-      // this.addScalarField(
-      //   this.dataset,
-      //   "humidity-r",
-      //   "r",
-      //   COLORSTOPS.rhColorStops,
-      // ).then((l) => {
-      //   this.layersControl["overlays"][DP.RH] = l;
-      // });
-      let comp_name = this.getFileName("r", this.tmpStringHourCode)
+      let comp_name = this.getFileName("r", this.tmpStringHourCode);
       this.layersControl["overlays"][DP.RH] = this.getWMSTileWithOptions(
         this.wmsPath,
-        "meteohub:tiff_store_" + comp_name)
+        "meteohub:tiff_store_" + comp_name,
+      );
     }
     ////////////////////////////////////
     /////////// PRECIPITATION //////////
@@ -1513,18 +1059,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(1);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "prec1-tp",
-          //   "tp",
-          //   COLORSTOPS.prp_1_3_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.PREC1P] = l;
-          // });
-          let comp_name = this.getFileName("tp")
-          this.layersControl["overlays"][DP.PREC1P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+          let comp_name = this.getFileName("tp");
+          this.layersControl["overlays"][DP.PREC1P] =
+            this.getWMSTileWithOptions(
+              this.wmsPath,
+              "meteohub:tiff_store_" + comp_name,
+            );
         } else {
           const emptyLayer = L.canvas();
           this.layersControl["overlays"][DP.PREC1P] = emptyLayer;
@@ -1536,18 +1076,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(3);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "prec3-tp",
-          //   "tp",
-          //   COLORSTOPS.prp_1_3_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.PREC3P] = l;
-          // });
-          let comp_name = this.getFileName("tp", "00030000")
-          this.layersControl["overlays"][DP.PREC3P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+          let comp_name = this.getFileName("tp");
+          this.layersControl["overlays"][DP.PREC3P] =
+            this.getWMSTileWithOptions(
+              this.wmsPath,
+              "meteohub:tiff_store_" + comp_name,
+            );
         } else {
           const emptyLayer = L.canvas();
           this.layersControl["overlays"][DP.PREC3P] = emptyLayer;
@@ -1559,18 +1093,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(6);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "prec6-tp",
-          //   "tp",
-          //   COLORSTOPS.prp_6_12_24_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.PREC6P] = l;
-          // });
-          let comp_name = this.getFileName("tp", "00060000")
-          this.layersControl["overlays"][DP.PREC6P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+          let comp_name = this.getFileName("tp");
+          this.layersControl["overlays"][DP.PREC6P] =
+            this.getWMSTileWithOptions(
+              this.wmsPath,
+              "meteohub:tiff_store_" + comp_name,
+            );
         } else {
           const emptyLayer = L.canvas();
           this.layersControl["overlays"][DP.PREC6P] = emptyLayer;
@@ -1582,18 +1110,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(12);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "prec12-tp",
-          //   "tp",
-          //   COLORSTOPS.prp_6_12_24_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.PREC12P] = l;
-          // });
-          let comp_name = this.getFileName("tp", "00120000")
-          this.layersControl["overlays"][DP.PREC12P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+          let comp_name = this.getFileName("tp");
+          this.layersControl["overlays"][DP.PREC12P] =
+            this.getWMSTileWithOptions(
+              this.wmsPath,
+              "meteohub:tiff_store_" + comp_name,
+            );
         } else {
           const emptyLayer = L.canvas();
           this.layersControl["overlays"][DP.PREC12P] = emptyLayer;
@@ -1605,18 +1127,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(24);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "prec24-tp",
-          //   "tp",
-          //   COLORSTOPS.prp_6_12_24_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.PREC24P] = l;
-          // });
-          let comp_name = this.getFileName("tp", "00240000")
-          this.layersControl["overlays"][DP.PREC24P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+          let comp_name = this.getFileName("tp");
+          this.layersControl["overlays"][DP.PREC24P] =
+            this.getWMSTileWithOptions(
+              this.wmsPath,
+              "meteohub:tiff_store_" + comp_name,
+            );
         } else {
           const emptyLayer = L.canvas();
           this.layersControl["overlays"][DP.PREC24P] = emptyLayer;
@@ -1633,18 +1149,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(1);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "snow1-snow",
-          //   "snow",
-          //   COLORSTOPS.sf_1_3_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.SF1] = l;
-          // });
-          let comp_name = this.getFileName("snow", "00010000")
+          let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF1] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+            "meteohub:tiff_store_" + comp_name,
+          );
         } else {
           const emptyLayer = L.canvas();
           this.layersControl["overlays"][DP.SF1] = emptyLayer;
@@ -1656,18 +1165,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(3);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "snow3-snow",
-          //   "snow",
-          //   COLORSTOPS.sf_1_3_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.SF3] = l;
-          // });
-          let comp_name = this.getFileName("snow", "00030000")
+          let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF3] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+            "meteohub:tiff_store_" + comp_name,
+          );
         } else {
           const emptyLayer = L.canvas();
           this.layersControl["overlays"][DP.SF3] = emptyLayer;
@@ -1679,18 +1181,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(6);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "snow6-snow",
-          //   "snow",
-          //   COLORSTOPS.sf_6_12_24_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.SF6] = l;
-          // });
-          let comp_name = this.getFileName("snow", "00060000")
+          let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF6] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+            "meteohub:tiff_store_" + comp_name,
+          );
         }
       } else {
         const emptyLayer = L.canvas();
@@ -1702,18 +1197,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(12);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "snow12-snow",
-          //   "snow",
-          //   COLORSTOPS.sf_6_12_24_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.SF12] = l;
-          // });
-          let comp_name = this.getFileName("snow", "00120000")
+          let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF12] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+            "meteohub:tiff_store_" + comp_name,
+          );
         } else {
           const emptyLayer = L.canvas();
           this.layersControl["overlays"][DP.SF12] = emptyLayer;
@@ -1725,18 +1213,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       ) {
         const stringHoursToExclude = this.stringHourToExclude(24);
         if (!stringHoursToExclude.includes(s)) {
-          // this.addScalarField(
-          //   this.dataset,
-          //   "snow24-snow",
-          //   "snow",
-          //   COLORSTOPS.sf_6_12_24_ColorStops,
-          // ).then((l) => {
-          //   this.layersControl["overlays"][DP.SF24] = l;
-          // });
-          let comp_name = this.getFileName("snow", "00240000")
+          let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF24] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name)
+            "meteohub:tiff_store_" + comp_name,
+          );
         } else {
           const emptyLayer = L.canvas();
           this.layersControl["overlays"][DP.SF24] = emptyLayer;
@@ -1751,67 +1232,38 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.variablesConfig["cc"].length &&
         this.variablesConfig["cc"].includes("low")
       ) {
-        // this.addScalarField(
-        //   this.dataset,
-        //   "cloud_hml-lcc",
-        //   "lcc",
-        //   COLORSTOPS.lccColorStops,
-        // ).then((l) => {
-        //   this.layersControl["overlays"][DP.LCC] = l;
-        // });
-        let comp_name = this.getFileName("lcc", this.tmpStringHourCode)
+        let comp_name = this.getFileName("lcc", this.tmpStringHourCode);
         this.layersControl["overlays"][DP.LCC] = this.getWMSTileWithOptions(
           this.wmsPath,
-          "meteohub:tiff_store_" + comp_name)
+          "meteohub:tiff_store_" + comp_name,
+        );
       }
       if (
         this.variablesConfig["cc"].length &&
         this.variablesConfig["cc"].includes("medium")
       ) {
-        // this.addScalarField(
-        //   this.dataset,
-        //   "cloud_hml-mcc",
-        //   "mcc",
-        //   COLORSTOPS.mccColorStops,
-        // ).then((l) => {
-        //   this.layersControl["overlays"][DP.MCC] = l;
-        // });
-        let comp_name = this.getFileName("mcc", this.tmpStringHourCode)
+        let comp_name = this.getFileName("mcc", this.tmpStringHourCode);
         this.layersControl["overlays"][DP.MCC] = this.getWMSTileWithOptions(
           this.wmsPath,
-          "meteohub:tiff_store_" + comp_name)
+          "meteohub:tiff_store_" + comp_name,
+        );
       }
       if (
         this.variablesConfig["cc"].length &&
         this.variablesConfig["cc"].includes("high")
       ) {
-        // this.addScalarField(
-        //   this.dataset,
-        //   "cloud_hml-hcc",
-        //   "hcc",
-        //   COLORSTOPS.hccColorStops,
-        // ).then((l) => {
-        //   this.layersControl["overlays"][DP.HCC] = l;
-        // });
-        let comp_name = this.getFileName("hcc", this.tmpStringHourCode)
+        let comp_name = this.getFileName("hcc", this.tmpStringHourCode);
         this.layersControl["overlays"][DP.HCC] = this.getWMSTileWithOptions(
           this.wmsPath,
-          "meteohub:tiff_store_" + comp_name
-        )
+          "meteohub:tiff_store_" + comp_name,
+        );
       }
 
-      // this.addScalarField(
-      //   this.dataset,
-      //   "cloud-tcc",
-      //   "tcc",
-      //   COLORSTOPS.tccColorStops,
-      // ).then((l) => {
-      //   this.layersControl["overlays"][DP.TCC] = l;
-      // });
-      let comp_name = this.getFileName("tcc", this.tmpStringHourCode)
+      let comp_name = this.getFileName("tcc", this.tmpStringHourCode);
       this.layersControl["overlays"][DP.TCC] = this.getWMSTileWithOptions(
         this.wmsPath,
-        "meteohub:tiff_store_" + comp_name)
+        "meteohub:tiff_store_" + comp_name,
+      );
     }
   }
 
@@ -1826,6 +1278,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     const legend = new L.Control({ position: this.LEGEND_POSITION });
     legend.onAdd = () => {
       let div = L.DomUtil.create("div");
+      if (id === "psmli") {
+        div.style.display = "none";
+        return div;
+      }
       div.style.clear = "unset";
       div.innerHTML += `<img class="legenda" src="/app/custom/assets/images/${id}.svg">`;
       return div;
@@ -1837,7 +1293,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   getWMSTileWithOptions(
     url: string,
     layer: string,
-    options: Record<string, any> | null = null) {
+    options: Record<string, any> | null = null,
+  ) {
     if (options !== null) {
       return L.tileLayer.wms(url, {
         layers: layer,
@@ -1847,7 +1304,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       return L.tileLayer.wms(url, {
         layers: layer,
         transparent: true,
-        format: 'image/png',
+        format: "image/png",
         opacity: 0.6,
       });
     }
@@ -1881,7 +1338,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
     let legends = this.legends;
     let currentActiveLayers = [];
-
+    let comp = this;
     map.on("overlayadd", function (event) {
       currentActiveLayers.push(event["name"]);
       if (event["name"] === DP.TM2) {
@@ -2065,6 +1522,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
   toggleLayer(obj: Record<string, string | L.Layer>) {
     console.log("toggleLayer: ", obj);
+    let comp = this;
     let layer: L.Layer = obj.layer as L.Layer;
     let numbLayers = [];
     if (this.map.hasLayer(layer)) {
@@ -2087,24 +1545,39 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           if (this.onlyWind) this.legends[DP.WIND10M].addTo(this.map);
         });
       } else if (obj.name === DP.PMSL) {
-        // this.addScalarField(
-        //   this.dataset,
-        //   "pressure-pmsl",
-        //   "pmsl",
-        //   COLORSTOPS.prsColorStops,
-        //   this.tmpStringHourCode,
-        //   this.onlyPrs,
-        // ).then((l) => {
-        //   l.addTo(this.map);
-        //   this.layersControl["overlays"][DP.PMSL] = l;
-        //   if (this.onlyPrs) this.legends[DP.PMSL].addTo(this.map);
-        // });
-        let comp_name = this.getFileName("pmsl", this.tmpStringHourCode)
-        this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
-          this.wmsPath,
-          "meteohub:tiff_store_" + comp_name)
-        this.layersControl["overlays"][DP.PMSL].addTo(this.map);
-        if (this.onlyPrs) this.legends[DP.PMSL].addTo(this.map);
+        let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
+        geoJcomp_name = geoJcomp_name + ".geojson";
+        if (this.onlyPrs) {
+          let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
+          this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_" + comp_name,
+          );
+          this.layersControl["overlays"][DP.PMSL].addTo(this.map);
+          if (!this.legends[DP.PMSL]) this.legends[DP.PMSL].addTo(this.map);
+        }
+        if (this.legends[DP.PMSL])
+          comp.map.removeControl(this.legends[DP.PMSL]);
+        return new Promise((resolve, reject) => {
+          const subscription = this.tilesService
+            .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
+            .subscribe({
+              next: (geoJson) => {
+                let isobars = this.addIsobars(geoJson, comp.map);
+                this.layersControl["overlays"][DP.PMSL] = isobars;
+
+                this.layersControl["overlays"][DP.PMSL].addTo(comp.map);
+              },
+              error: (error) => {
+                console.error(
+                  `Error while downloading/processing ${geoJcomp_name} file`,
+                  error,
+                );
+                reject(error);
+              },
+            });
+          this.subscriptions.push(subscription);
+        });
       } else {
         layer.addTo(this.map);
       }
