@@ -12,14 +12,19 @@ import { shareReplay } from "rxjs/operators";
 export class TilesService {
   // private tiles_url: string = "";
   private maps_url: string = "";
+  private wms_url: string = "";
   // dicts to allow caching
   private _imgCache: Map<string, Observable<ArrayBuffer>> = new Map();
   private _geoJsonCache: Map<string, Observable<any>> = new Map();
-
   constructor(private api: ApiService, private http: HttpClient) {
     // this.tiles_url = environment.CUSTOM.TILES_URL;
     // this.external_url = this.tiles_url != "";
     this.maps_url = environment.CUSTOM.MAPS_URL;
+    this.wms_url = environment.CUSTOM.TILES_URL;
+  }
+
+  getWMSUrl() {
+    return this.wms_url;
   }
 
   /**
@@ -38,6 +43,22 @@ export class TilesService {
     const options = {
       validationSchema: "RunAvailable",
     };
+
+    // const mockData: RunAvailable = {  // TODO: remove mock data
+    //   dataset: dataset,
+    //   reftime: "2023-01-01T00:00:00Z",
+    //   platform: "mock-platform",
+    //   area: "mock-area",
+    //   start_offset: 0,
+    //   end_offset: 24,
+    //   step: 1,
+    //   boundaries: {
+    //     SW: [10], 
+    //     NE: [20] 
+    //   },
+    // };
+
+    // return of(mockData);
 
     return this.api.get(`${this.maps_url}/api/windy`, params, options);
   }
