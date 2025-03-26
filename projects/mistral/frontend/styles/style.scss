@@ -50,7 +50,7 @@ $dark-blue: #004080;
     }
   }
   .navbar .navbar-brand img {
-    height: 34px !important;
+    height: 42px !important;
     margin-bottom: -8px !important;
   }
   .nav.navbar-nav.rpd-menu-controls .nav-item a {
@@ -112,7 +112,7 @@ h6 {
 }
 .navbar {
   font-family: "TitilliumWeb-SemiBold";
-  padding: 0.30rem !important;
+  height: 93px !important;
   .navbar-brand {
     margin-right: 20px;
     font-family: "TitilliumWeb-Regular";
@@ -135,8 +135,8 @@ h6 {
     .nav-link {
       color: white !important;
       text-transform: uppercase;
-      font-size: 1rem;
-      margin-left: 10px;
+      font-size: 1.1rem;
+      margin-left: 12px;
 
       &.active {
         text-decoration: underline;

@@ -613,7 +613,7 @@ export const COLORSTOPS = {
     { value: 30, color: "#bb56aa" },  
     { value: 50, color: "#d08ac5" },  
     { value: 75, color: "#e4beee" },  
-    { value: 100, color: "#ffffff" }
+    { value: 100, color: "#ffffff" },
   ],
   tccColorStops: [
     { value: 50, color: "#ecefe9" },
