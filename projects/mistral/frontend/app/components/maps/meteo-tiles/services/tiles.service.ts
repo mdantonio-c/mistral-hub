@@ -44,21 +44,21 @@ export class TilesService {
       validationSchema: "RunAvailable",
     };
 
-    // const mockData: RunAvailable = {  // TODO: remove mock data
-    //   dataset: dataset,
-    //   reftime: "2023-01-01T00:00:00Z",
-    //   platform: "mock-platform",
-    //   area: "mock-area",
-    //   start_offset: 0,
-    //   end_offset: 24,
-    //   step: 1,
-    //   boundaries: {
-    //     SW: [10], 
-    //     NE: [20] 
-    //   },
-    // };
+    const mockData: RunAvailable = {  // TODO: remove mock data
+      dataset: dataset,
+      reftime: "2023-01-01T00:00:00Z",
+      platform: "mock-platform",
+      area: "mock-area",
+      start_offset: 0,
+      end_offset: 24,
+      step: 1,
+      boundaries: {
+        SW: [10], 
+        NE: [20] 
+      },
+    };
 
-    // return of(mockData);
+    return of(mockData);
 
     return this.api.get(`${this.maps_url}/api/windy`, params, options);
   }
