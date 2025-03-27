@@ -18,7 +18,8 @@ import {
 } from "../meteo-tiles.config";
 import * as L from "leaflet";
 import {
-  CLOUD_LEVELS,
+  CLOUD_LEVELS_EN,
+  CLOUD_LEVELS_IT,
   PRECIPITATION_HOURS,
   SNOW_HOURS,
   toLayerCode,
@@ -136,11 +137,16 @@ export class SideNavComponent implements OnInit {
       }
     }
 
-    const SUB_LEVELS: { [key: string]: ValueLabel[] } = {
+    let SUB_LEVELS: { [key: string]: ValueLabel[] } = {
       prp: PRECIPITATION_HOURS,
       sf: SNOW_HOURS,
-      cc: CLOUD_LEVELS,
     };
+    if (this.lang === "it") {
+      SUB_LEVELS.cc = CLOUD_LEVELS_IT;
+    } else {
+      SUB_LEVELS.cc = CLOUD_LEVELS_EN;
+    }
+
     Object.keys(SUB_LEVELS).forEach((key) => {
       if (Object.keys(this.varConfig).includes(key)) {
         this.subLevels[key] = SUB_LEVELS[key].filter((obj) => {
