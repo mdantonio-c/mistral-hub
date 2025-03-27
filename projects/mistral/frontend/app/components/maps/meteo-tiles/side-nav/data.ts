@@ -15,10 +15,16 @@ export const SNOW_HOURS: ValueLabel[] = [
   { value: 12, label: DP.SF12 },
   { value: 24, label: DP.SF24 },
 ];
-export const CLOUD_LEVELS: ValueLabel[] = [
+export const CLOUD_LEVELS_EN: ValueLabel[] = [
   { value: "low", label: DP.LCC },
   { value: "medium", label: DP.MCC },
   { value: "high", label: DP.HCC },
+  /*{ value: "total", label: DP.TCC }*/
+];
+export const CLOUD_LEVELS_IT: ValueLabel[] = [
+  { value: "bassa", label: DP.LCC },
+  { value: "media", label: DP.MCC },
+  { value: "alta", label: DP.HCC },
   /*{ value: "total", label: DP.TCC }*/
 ];
 export const IFF_PERCENTILES: ValueLabel[] = [

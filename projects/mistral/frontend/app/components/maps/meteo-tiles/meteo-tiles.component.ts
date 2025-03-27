@@ -156,6 +156,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.route.queryParams.subscribe((params: Params) => {
       const view: string = params["view"];
       const lang: string = params["lang"];
+      // override if any lang provided
+      if (["it", "en"].includes(lang)) {
+        this.lang = lang;
+      }
+      this.options.timeDimensionControlOptions.timeZones = ["local"];
+      //console.log(`lang: ${this.lang}`);
       if (view) {
         // check for valid view mode
         if (Object.values(ViewModes).includes(view)) {
@@ -163,7 +169,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           if (this.viewMode === ViewModes.base) {
             // adapt time dimension options
             this.options.timeDimensionControlOptions.speedSlider = false;
-            this.options.timeDimensionControlOptions.timeZones = ["local"];
             // adapt variable configuration
             this.variablesConfig = VARIABLES_CONFIG_BASE;
             // setup default lang
@@ -538,7 +543,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           // selected layers
           this.activeSpans = document.querySelectorAll('span[class*="attivo"]');
           if (this.activeSpans.length === 1) {
-            this.addPlayButton();
+            const onlyActive = this.activeSpans[0];
+            if (onlyActive.classList.contains("ws10m")) {
+              this.removePlayButton();
+            } else {
+              this.addPlayButton();
+            }
           } else if (this.activeSpans.length > 1) {
             // remove when there will be future improvements with animation
             this.removePlayButton();
@@ -666,7 +676,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     const domainValues = colorStops.map((stop) => stop.value);
     const colors = colorStops.map((stop) => stop.color);
     // discrete color scale
-    return chroma.scale(colors).domain(domainValues).classes(domainValues);
+    return chroma.scale(colors).classes(domainValues);
     // continue color scale
     //return chroma.scale(colors).domain(domainValues);
   }
@@ -1028,10 +1038,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     ////////////////////////////////////
     if ("t2m" in this.variablesConfig) {
       let comp_name = this.getFileName("t2m", this.tmpStringHourCode);
-      this.layersControl["overlays"][DP.TM2] = this.getWMSTileWithOptions(
-        this.wmsPath,
-        "meteohub:tiff_store_" + comp_name,
-      );
+      this.layersControl["overlays"][DP.TM2] = L.tileLayer.wms(this.wmsPath, {
+        layers: "meteohub:tiff_store_" + comp_name,
+      });
     }
     ////////////////////////////////////
     /////////// PRESSURE //////////
@@ -1566,10 +1575,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             "meteohub:tiff_store_" + comp_name,
           );
           this.layersControl["overlays"][DP.PMSL].addTo(this.map);*/
-          if (!this.legends[DP.PMSL]) this.legends[DP.PMSL].addTo(this.map);
         }
-        if (this.legends[DP.PMSL])
-          comp.map.removeControl(this.legends[DP.PMSL]);
+
         return new Promise((resolve, reject) => {
           const subscription = this.tilesService
             .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
@@ -1584,8 +1591,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                       "meteohub:tiff_store_" + comp_name,
                     ),
                   ]);
+                  this.legends[DP.PMSL].addTo(this.map);
                 } else {
                   this.layersControl["overlays"][DP.PMSL] = isobars;
+                  if (this.legends[DP.PMSL])
+                    comp.map.removeControl(this.legends[DP.PMSL]);
                 }
                 //this.layersControl["overlays"][DP.PMSL] = isobars;
                 this.layersControl["overlays"][DP.PMSL].addTo(comp.map);
