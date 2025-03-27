@@ -160,6 +160,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       if (["it", "en"].includes(lang)) {
         this.lang = lang;
       }
+      this.options.timeDimensionControlOptions.timeZones = ["local"];
       //console.log(`lang: ${this.lang}`);
       if (view) {
         // check for valid view mode
@@ -168,7 +169,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           if (this.viewMode === ViewModes.base) {
             // adapt time dimension options
             this.options.timeDimensionControlOptions.speedSlider = false;
-            this.options.timeDimensionControlOptions.timeZones = ["local"];
             // adapt variable configuration
             this.variablesConfig = VARIABLES_CONFIG_BASE;
             // setup default lang
@@ -228,13 +228,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.initLegends(this.map);
     this.centerMap();
     let pane;
-    // add a tooltip on the timeline date
-    const timeControl = document.querySelector(
-      ".leaflet-control-timecontrol.timecontrol-date",
-    );
-    if (timeControl) {
-      timeControl.setAttribute("title", "UTC timezone");
-    }
 
     this.map.attributionControl.setPrefix("");
     // pass a reference to this MeteoTilesComponent
