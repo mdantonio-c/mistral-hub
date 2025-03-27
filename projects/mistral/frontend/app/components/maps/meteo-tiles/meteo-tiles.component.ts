@@ -228,6 +228,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.initLegends(this.map);
     this.centerMap();
     let pane;
+    // add a tooltip on the timeline date
+    const timeControl = document.querySelector(
+      ".leaflet-control-timecontrol.timecontrol-date",
+    );
+    if (timeControl) {
+      timeControl.setAttribute("title", "UTC timezone");
+    }
 
     this.map.attributionControl.setPrefix("");
     // pass a reference to this MeteoTilesComponent
