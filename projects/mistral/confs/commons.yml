@@ -18,6 +18,7 @@ services:
       PLATFORM: ${PLATFORM}
       GRACE_PERIOD: ${GRACE_PERIOD}
       ON_DATA_READY_DATASETS: ${ON_DATA_READY_DATASETS}
+      MAPS_URL: ${MAPS_URL}
 
   frontend:
     environment:
