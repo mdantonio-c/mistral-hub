@@ -553,7 +553,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             // remove when there will be future improvements with animation
             this.removePlayButton();
           }
-          console.log(this.activeSpans);
           if (this.activeSpans.length === 4 && !this.messageShown) {
             this.notify.showWarning(
               "You reached the maximum number of contemporary layers",
