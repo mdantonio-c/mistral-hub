@@ -538,11 +538,17 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           // selected layers
           this.activeSpans = document.querySelectorAll('span[class*="attivo"]');
           if (this.activeSpans.length === 1) {
-            this.addPlayButton();
+            const onlyActive = this.activeSpans[0];
+            if (onlyActive.classList.contains("ws10m")) {
+              this.removePlayButton();
+            } else {
+              this.addPlayButton();
+            }
           } else if (this.activeSpans.length > 1) {
             // remove when there will be future improvements with animation
             this.removePlayButton();
           }
+          console.log(this.activeSpans);
           if (this.activeSpans.length === 4 && !this.messageShown) {
             this.notify.showWarning(
               "You reached the maximum number of contemporary layers",
@@ -1565,10 +1571,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             "meteohub:tiff_store_" + comp_name,
           );
           this.layersControl["overlays"][DP.PMSL].addTo(this.map);*/
-          if (!this.legends[DP.PMSL]) this.legends[DP.PMSL].addTo(this.map);
         }
-        if (this.legends[DP.PMSL])
-          comp.map.removeControl(this.legends[DP.PMSL]);
+
         return new Promise((resolve, reject) => {
           const subscription = this.tilesService
             .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
@@ -1583,8 +1587,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                       "meteohub:tiff_store_" + comp_name,
                     ),
                   ]);
+                  this.legends[DP.PMSL].addTo(this.map);
                 } else {
                   this.layersControl["overlays"][DP.PMSL] = isobars;
+                  if (this.legends[DP.PMSL])
+                    comp.map.removeControl(this.legends[DP.PMSL]);
                 }
                 //this.layersControl["overlays"][DP.PMSL] = isobars;
                 this.layersControl["overlays"][DP.PMSL].addTo(comp.map);
