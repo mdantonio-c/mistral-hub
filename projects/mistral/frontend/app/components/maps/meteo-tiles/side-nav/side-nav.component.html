@@ -186,7 +186,9 @@
               [disabled]="disableRuleScalarPrsButton()"
             />
             <label class="form-check-label" for="prsSwitch"></label>
-            <p i18n style="font-size: 8px">Scalar Field</p>
+            <p i18n style="font-size: 8px">
+              {{ "Scalar Field" | translate : lang }}
+            </p>
           </div>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('rh')">
@@ -246,7 +248,9 @@
               [disabled]="disabledRuleScalarWindButton()"
             />
             <label class="form-check-label" for="windSwitch"></label>
-            <p i18n style="font-size: 8px">Scalar Field</p>
+            <p i18n style="font-size: 8px">
+              {{ "Scalar Field" | translate : lang }}
+            </p>
           </div>
         </li>
         <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('prp')">
@@ -389,7 +393,7 @@
                   [disabled]="selectedLayers.length >= maxLayers"
                 />
                 <label class="form-check-label" for="tccSwitch"></label>
-                <p i18n>Total</p>
+                <p i18n>{{ "Total" | translate : lang }}</p>
               </div>
             </div>
           </ng-container>
@@ -400,7 +404,7 @@
         <span class="carte"></span>
         <ng-container *ngIf="!isCollapsed">
           <a href="#">
-            <span class="nav-text">Map Style</span>
+            <span class="nav-text">{{ "Map Style" | translate : lang }}</span>
           </a>
           <div class="selettore-mappa">
             <label *ngFor="let baseLayer of baseLayers | keyvalue">

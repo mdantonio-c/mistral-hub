@@ -156,6 +156,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.route.queryParams.subscribe((params: Params) => {
       const view: string = params["view"];
       const lang: string = params["lang"];
+      // override if any lang provided
+      if (["it", "en"].includes(lang)) {
+        this.lang = lang;
+      }
+      //console.log(`lang: ${this.lang}`);
       if (view) {
         // check for valid view mode
         if (Object.values(ViewModes).includes(view)) {

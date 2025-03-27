@@ -55,6 +55,9 @@ export class TranslationService {
         "accumulated precipitation over 1h": "Precipitazione cumulata su 1h",
         "dates are expressed in local time":
           "le date sono espresse in ora locale",
+        "Scalar Field": "Campo scalare",
+        total: "Totale",
+        "Map Style": "stile mappa",
       },
     },
   };
