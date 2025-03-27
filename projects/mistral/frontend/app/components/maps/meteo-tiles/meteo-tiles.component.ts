@@ -676,7 +676,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     const domainValues = colorStops.map((stop) => stop.value);
     const colors = colorStops.map((stop) => stop.color);
     // discrete color scale
-    return chroma.scale(colors).domain(domainValues).classes(domainValues);
+    return chroma.scale(colors).classes(domainValues);
     // continue color scale
     //return chroma.scale(colors).domain(domainValues);
   }
