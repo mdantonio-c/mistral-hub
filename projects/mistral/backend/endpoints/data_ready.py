@@ -218,7 +218,7 @@ class DataReady(EndpointResource):
             
             maps_url = Env.get("MAPS_URL", None)
             if maps_url:
-                url = f"{maps_url}/api/data/ready"
+                url = f"{maps_url}/api/data/ready/{runhour[:2]}"
                 headers = {"Content-Type": "application/json"}
 
                 try:
