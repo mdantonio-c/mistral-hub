@@ -197,9 +197,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
       // clean the url from the query parameters
       /*this.router.navigate([], {
-                                queryParams: { view: null, dataset: null },
-                                queryParamsHandling: "merge",
-                              });*/
+                                      queryParams: { view: null, dataset: null },
+                                      queryParamsHandling: "merge",
+                                    });*/
     });
   }
 
@@ -446,9 +446,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     comp.map.removeLayer(overlays[layer]);
 
                     /*overlays[layer] = comp.getWMSTileWithOptions(
-                      comp.wmsPath,
-                      "meteohub:tiff_store_" + comp_name,
-                    );*/
+                                          comp.wmsPath,
+                                          "meteohub:tiff_store_" + comp_name,
+                                        );*/
                     //overlays[layer].addTo(comp.map);
                     if (!comp.legends[layer])
                       comp.legends[layer].addTo(comp.map);
@@ -621,7 +621,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     // change timestamp based on current time
     const now = moment.utc();
     const current = moment.utc((map as any).timeDimension.getCurrentTime());
-    const currentHourFormat = current.format("HH");
+    let currentHourFormat = current.format("HH");
     let referenceDate = now;
     if (this.beginTime.date() != now.date()) {
       referenceDate = this.beginTime;
@@ -630,6 +630,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       .startOf("day")
       .diff(referenceDate.startOf("day"), "days");
     let prefix = diffDays.toString().padStart(2, "0");
+    if (this.run === "12") {
+      let hourNumber = parseInt(currentHourFormat, 10);
+      hourNumber = (hourNumber + 24 - 12) % 24;
+      currentHourFormat = hourNumber.toString().padStart(2, "0");
+    }
     this.tmpStringHourCode = prefix + currentHourFormat + "0000";
     console.log(this.tmpStringHourCode);
   }
@@ -778,6 +783,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       },
     });
   }
+
   addIconBorderLayer() {
     // add border layer for ICON model
     fetch("./app/custom/assets/images/geoJson/coastlines_border_lines.geojson")
@@ -1618,10 +1624,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
         if (this.onlyPrs) {
           /*this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            "meteohub:tiff_store_" + comp_name,
-          );
-          this.layersControl["overlays"][DP.PMSL].addTo(this.map);*/
+                      this.wmsPath,
+                      "meteohub:tiff_store_" + comp_name,
+                    );
+                    this.layersControl["overlays"][DP.PMSL].addTo(this.map);*/
         }
 
         return new Promise((resolve, reject) => {
