@@ -418,9 +418,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     variable,
                     comp.tmpStringHourCode,
                   );
+
                   overlays[layer] = comp.getWMSTileWithOptions(
                     comp.wmsPath,
-                    "meteohub:tiff_store_" + comp_name,
+                    `meteohub:tiff_store_${field}_` + comp_name,
                   );
                   overlays[layer].addTo(comp.map);
                 } else {
@@ -467,7 +468,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                               isobars,
                               comp.getWMSTileWithOptions(
                                 comp.wmsPath,
-                                "meteohub:tiff_store_" + comp_name,
+                                "meteohub:tiff_store_pressure-pmsl_" +
+                                  comp_name,
                               ),
                             ]);
                           } else {
@@ -494,7 +496,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                   );
                   overlays[layer] = comp.getWMSTileWithOptions(
                     comp.wmsPath,
-                    "meteohub:tiff_store_" + comp_name,
+                    `meteohub:tiff_store_${field}` + comp_name,
                   );
                   if (variable === "lcc") pane = "low";
                   if (variable === "mcc") pane = "medium";
@@ -1039,7 +1041,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     if ("t2m" in this.variablesConfig) {
       let comp_name = this.getFileName("t2m", this.tmpStringHourCode);
       this.layersControl["overlays"][DP.TM2] = L.tileLayer.wms(this.wmsPath, {
-        layers: "meteohub:tiff_store_" + comp_name,
+        layers: "meteohub:tiff_store_t2m-t2m_" + comp_name,
       });
     }
     ////////////////////////////////////
@@ -1049,7 +1051,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
       this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
         this.wmsPath,
-        "meteohub:tiff_store_" + comp_name,
+        "meteohub:tiff_store_pressure-pmsl_" + comp_name,
       );
     }
     ////////////////////////////////////
@@ -1067,7 +1069,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       let comp_name = this.getFileName("r", this.tmpStringHourCode);
       this.layersControl["overlays"][DP.RH] = this.getWMSTileWithOptions(
         this.wmsPath,
-        "meteohub:tiff_store_" + comp_name,
+        "meteohub:tiff_store_humidity-r_" + comp_name,
       );
     }
     ////////////////////////////////////
@@ -1084,7 +1086,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.layersControl["overlays"][DP.PREC1P] =
             this.getWMSTileWithOptions(
               this.wmsPath,
-              "meteohub:tiff_store_" + comp_name,
+              "meteohub:tiff_store_prec1-tp_" + comp_name,
             );
         } else {
           const emptyLayer = L.canvas();
@@ -1101,7 +1103,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.layersControl["overlays"][DP.PREC3P] =
             this.getWMSTileWithOptions(
               this.wmsPath,
-              "meteohub:tiff_store_" + comp_name,
+              "meteohub:tiff_store_prec3-tp_" + comp_name,
             );
         } else {
           const emptyLayer = L.canvas();
@@ -1118,7 +1120,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.layersControl["overlays"][DP.PREC6P] =
             this.getWMSTileWithOptions(
               this.wmsPath,
-              "meteohub:tiff_store_" + comp_name,
+              "meteohub:tiff_store_prec6-tp_" + comp_name,
             );
         } else {
           const emptyLayer = L.canvas();
@@ -1135,7 +1137,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.layersControl["overlays"][DP.PREC12P] =
             this.getWMSTileWithOptions(
               this.wmsPath,
-              "meteohub:tiff_store_" + comp_name,
+              "meteohub:tiff_store_prec12-tp_" + comp_name,
             );
         } else {
           const emptyLayer = L.canvas();
@@ -1152,7 +1154,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.layersControl["overlays"][DP.PREC24P] =
             this.getWMSTileWithOptions(
               this.wmsPath,
-              "meteohub:tiff_store_" + comp_name,
+              "meteohub:tiff_store_prec24-tp_" + comp_name,
             );
         } else {
           const emptyLayer = L.canvas();
@@ -1173,7 +1175,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF1] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name,
+            "meteohub:tiff_store_snow1-snow_" + comp_name,
           );
         } else {
           const emptyLayer = L.canvas();
@@ -1189,7 +1191,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF3] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name,
+            "meteohub:tiff_store_snow3-snow_" + comp_name,
           );
         } else {
           const emptyLayer = L.canvas();
@@ -1205,7 +1207,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF6] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name,
+            "meteohub:tiff_store_snow6-snow_" + comp_name,
           );
         }
       } else {
@@ -1221,7 +1223,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF12] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name,
+            "meteohub:tiff_store_snow12-snow_" + comp_name,
           );
         } else {
           const emptyLayer = L.canvas();
@@ -1237,7 +1239,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           let comp_name = this.getFileName("snow");
           this.layersControl["overlays"][DP.SF24] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name,
+            "meteohub:tiff_store_snow24-snow_" + comp_name,
           );
         } else {
           const emptyLayer = L.canvas();
@@ -1256,7 +1258,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         let comp_name = this.getFileName("lcc", this.tmpStringHourCode);
         this.layersControl["overlays"][DP.LCC] = this.getWMSTileWithOptions(
           this.wmsPath,
-          "meteohub:tiff_store_" + comp_name,
+          "meteohub:tiff_store_cloud_hml-lcc_" + comp_name,
         );
       }
       if (
@@ -1266,7 +1268,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         let comp_name = this.getFileName("mcc", this.tmpStringHourCode);
         this.layersControl["overlays"][DP.MCC] = this.getWMSTileWithOptions(
           this.wmsPath,
-          "meteohub:tiff_store_" + comp_name,
+          "meteohub:tiff_store_cloud_hml-mcc_" + comp_name,
         );
       }
       if (
@@ -1276,14 +1278,14 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         let comp_name = this.getFileName("hcc", this.tmpStringHourCode);
         this.layersControl["overlays"][DP.HCC] = this.getWMSTileWithOptions(
           this.wmsPath,
-          "meteohub:tiff_store_" + comp_name,
+          "meteohub:tiff_store_cloud_hml-hcc_" + comp_name,
         );
       }
 
       let comp_name = this.getFileName("tcc", this.tmpStringHourCode);
       this.layersControl["overlays"][DP.TCC] = this.getWMSTileWithOptions(
         this.wmsPath,
-        "meteohub:tiff_store_" + comp_name,
+        "meteohub:tiff_store_cloud-tcc_" + comp_name,
       );
     }
   }
