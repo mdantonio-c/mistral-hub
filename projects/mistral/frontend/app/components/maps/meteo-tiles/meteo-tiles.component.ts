@@ -496,7 +496,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                   );
                   overlays[layer] = comp.getWMSTileWithOptions(
                     comp.wmsPath,
-                    `meteohub:tiff_store_${field}` + comp_name,
+                    `meteohub:tiff_store_${field}_` + comp_name,
                   );
                   if (variable === "lcc") pane = "low";
                   if (variable === "mcc") pane = "medium";
