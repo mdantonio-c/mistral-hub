@@ -516,6 +516,51 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         );
       },
     );
+
+    document
+      .querySelector(".leaflet-control-timecontrol.timecontrol-play.play")
+      ?.addEventListener("click", (event) => {
+        // prevent pointers event on side menu and others buttons while animation
+        const button = event.currentTarget as HTMLElement;
+        // button.style.pointerEvents = "none";
+        const menuDiv = document.querySelector(".map-sidenav-menu");
+        if (menuDiv) {
+          (menuDiv as HTMLElement).style.pointerEvents = "none";
+        }
+        const divOverlay = document.getElementById("overlay");
+        if (divOverlay) {
+          divOverlay.style.display = "block";
+        }
+        const backwardButton = document.querySelector(
+          ".leaflet-control-timecontrol.timecontrol-backward",
+        );
+        if (backwardButton) {
+          (backwardButton as HTMLElement).style.pointerEvents = "none";
+        }
+        const forwardButton = document.querySelector(
+          ".leaflet-control-timecontrol.timecontrol-forward",
+        );
+        if (forwardButton) {
+          (forwardButton as HTMLElement).style.pointerEvents = "none";
+        }
+        const dateSlider = document.querySelector(
+          ".leaflet-control-timecontrol.timecontrol-slider.timecontrol-dateslider",
+        );
+        if (dateSlider) {
+          (dateSlider as HTMLElement).style.pointerEvents = "none";
+        }
+        //
+        if (!button.classList.contains("pause")) {
+          (menuDiv as HTMLElement).style.pointerEvents = "auto";
+          divOverlay.style.display = "none";
+          (backwardButton as HTMLElement).style.pointerEvents = "auto";
+          (forwardButton as HTMLElement).style.pointerEvents = "auto";
+          (dateSlider as HTMLElement).style.pointerEvents = "auto";
+          (button as HTMLElement).style.pointerEvents = "auto";
+          return;
+        }
+      });
+
     this.spinner.hide();
   }
 
