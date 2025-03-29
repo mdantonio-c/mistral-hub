@@ -626,13 +626,25 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     if (this.beginTime.date() != now.date()) {
       referenceDate = this.beginTime;
     }
-    const diffDays = current
+    let diffDays = current
       .startOf("day")
       .diff(referenceDate.startOf("day"), "days");
     let prefix = diffDays.toString().padStart(2, "0");
+
     if (this.run === "12") {
       let hourNumber = parseInt(currentHourFormat, 10);
-      hourNumber = (hourNumber + 24 - 12) % 24;
+      if (hourNumber - 12 < 0) hourNumber = hourNumber - 12 + 24;
+      else hourNumber = hourNumber - 12;
+      if (diffDays === 1 && hourNumber > 11) {
+        diffDays = diffDays - 1;
+      }
+      if (diffDays === 2 && hourNumber > 11) {
+        diffDays = 1;
+      }
+      if (diffDays === 3 && hourNumber > 11) {
+        diffDays = 2;
+      }
+      prefix = diffDays.toString().padStart(2, "0");
       currentHourFormat = hourNumber.toString().padStart(2, "0");
     }
     this.tmpStringHourCode = prefix + currentHourFormat + "0000";
