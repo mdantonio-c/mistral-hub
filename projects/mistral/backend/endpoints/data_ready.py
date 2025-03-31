@@ -104,6 +104,7 @@ class DataReady(EndpointResource):
                 continue
 
             # check if schedule is requesting a runhour
+            runhour = str(rundate.time())[0:5]
             filters = r["args"]["filters"]
             if filters and "run" in filters:
                 requested_runs = []
@@ -112,7 +113,6 @@ class DataReady(EndpointResource):
                     splitted_run = run_arg.split(",")
                     requested_runs.append(splitted_run[1])
                 log.debug("runs: {}", requested_runs)
-                runhour = str(rundate.time())[0:5]
                 if runhour not in requested_runs:
                     log.debug(
                         "Skipping {}: schedule is requesting {} runhour",
