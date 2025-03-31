@@ -444,12 +444,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                   );
                   if (comp.onlyPrs) {
                     comp.map.removeLayer(overlays[layer]);
-
-                    /*overlays[layer] = comp.getWMSTileWithOptions(
-                                          comp.wmsPath,
-                                          "meteohub:tiff_store_" + comp_name,
-                                        );*/
-                    //overlays[layer].addTo(comp.map);
                     if (!comp.legends[layer])
                       comp.legends[layer].addTo(comp.map);
                   }
@@ -661,7 +655,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           // runAvailable.reftime : 2020051100
           this.runAvailable = runAvailable;
           // console.log(runAvailable);
-          //console.log(`Last Available Run [${dataset}]`, runAvailable);
+          console.log(`Last Available Run [${dataset}]`, runAvailable);
           let reftime = runAvailable.reftime;
           this.run = reftime.substr(8, 2);
 
@@ -715,7 +709,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
           this.layersControl["overlays"][DP.TM2] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name,
+            "meteohub:tiff_store_t2m-t2m_" + comp_name,
           );
           this.layersControl["overlays"][DP.TM2].addTo(this.map);
 
@@ -1034,7 +1028,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
       geoJcomp_name = geoJcomp_name + ".geojson";
       let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
-
       if (newValue) {
         this.legends[DP.PMSL].addTo(this.map);
       } else {
@@ -1070,11 +1063,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             next: (geoJson) => {
               let isobars = this.addIsobars(geoJson, comp.map);
               this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
+                isobars,
                 this.getWMSTileWithOptions(
                   this.wmsPath,
-                  "meteohub:tiff_store_" + comp_name,
+                  "meteohub:tiff_store_pressure-pmsl_" + comp_name,
                 ),
-                isobars,
               ]);
               this.layersControl["overlays"][DP.PMSL].addTo(this.map);
             },
@@ -1653,7 +1646,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     isobars,
                     this.getWMSTileWithOptions(
                       this.wmsPath,
-                      "meteohub:tiff_store_" + comp_name,
+                      "meteohub:tiff_store_pressure-pmsl_" + comp_name,
                     ),
                   ]);
                   this.legends[DP.PMSL].addTo(this.map);
