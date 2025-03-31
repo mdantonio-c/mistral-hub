@@ -197,9 +197,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
       // clean the url from the query parameters
       /*this.router.navigate([], {
-                                queryParams: { view: null, dataset: null },
-                                queryParamsHandling: "merge",
-                              });*/
+                                      queryParams: { view: null, dataset: null },
+                                      queryParamsHandling: "merge",
+                                    });*/
     });
   }
 
@@ -444,12 +444,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                   );
                   if (comp.onlyPrs) {
                     comp.map.removeLayer(overlays[layer]);
-
-                    /*overlays[layer] = comp.getWMSTileWithOptions(
-                      comp.wmsPath,
-                      "meteohub:tiff_store_" + comp_name,
-                    );*/
-                    //overlays[layer].addTo(comp.map);
                     if (!comp.legends[layer])
                       comp.legends[layer].addTo(comp.map);
                   }
@@ -516,6 +510,51 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         );
       },
     );
+
+    document
+      .querySelector(".leaflet-control-timecontrol.timecontrol-play.play")
+      ?.addEventListener("click", (event) => {
+        // prevent pointers event on side menu and others buttons while animation
+        const button = event.currentTarget as HTMLElement;
+        // button.style.pointerEvents = "none";
+        const menuDiv = document.querySelector(".map-sidenav-menu");
+        if (menuDiv) {
+          (menuDiv as HTMLElement).style.pointerEvents = "none";
+        }
+        const divOverlay = document.getElementById("overlay");
+        if (divOverlay) {
+          divOverlay.style.display = "block";
+        }
+        const backwardButton = document.querySelector(
+          ".leaflet-control-timecontrol.timecontrol-backward",
+        );
+        if (backwardButton) {
+          (backwardButton as HTMLElement).style.pointerEvents = "none";
+        }
+        const forwardButton = document.querySelector(
+          ".leaflet-control-timecontrol.timecontrol-forward",
+        );
+        if (forwardButton) {
+          (forwardButton as HTMLElement).style.pointerEvents = "none";
+        }
+        const dateSlider = document.querySelector(
+          ".leaflet-control-timecontrol.timecontrol-slider.timecontrol-dateslider",
+        );
+        if (dateSlider) {
+          (dateSlider as HTMLElement).style.pointerEvents = "none";
+        }
+        //
+        if (!button.classList.contains("pause")) {
+          (menuDiv as HTMLElement).style.pointerEvents = "auto";
+          divOverlay.style.display = "none";
+          (backwardButton as HTMLElement).style.pointerEvents = "auto";
+          (forwardButton as HTMLElement).style.pointerEvents = "auto";
+          (dateSlider as HTMLElement).style.pointerEvents = "auto";
+          (button as HTMLElement).style.pointerEvents = "auto";
+          return;
+        }
+      });
+
     this.spinner.hide();
   }
 
@@ -576,15 +615,32 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     // change timestamp based on current time
     const now = moment.utc();
     const current = moment.utc((map as any).timeDimension.getCurrentTime());
-    const currentHourFormat = current.format("HH");
+    let currentHourFormat = current.format("HH");
     let referenceDate = now;
     if (this.beginTime.date() != now.date()) {
       referenceDate = this.beginTime;
     }
-    const diffDays = current
+    let diffDays = current
       .startOf("day")
       .diff(referenceDate.startOf("day"), "days");
     let prefix = diffDays.toString().padStart(2, "0");
+
+    if (this.run === "12") {
+      let hourNumber = parseInt(currentHourFormat, 10);
+      if (hourNumber - 12 < 0) hourNumber = hourNumber - 12 + 24;
+      else hourNumber = hourNumber - 12;
+      if (diffDays === 1 && hourNumber > 11) {
+        diffDays = diffDays - 1;
+      }
+      if (diffDays === 2 && hourNumber > 11) {
+        diffDays = 1;
+      }
+      if (diffDays === 3 && hourNumber > 11) {
+        diffDays = 2;
+      }
+      prefix = diffDays.toString().padStart(2, "0");
+      currentHourFormat = hourNumber.toString().padStart(2, "0");
+    }
     this.tmpStringHourCode = prefix + currentHourFormat + "0000";
     console.log(this.tmpStringHourCode);
   }
@@ -599,7 +655,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           // runAvailable.reftime : 2020051100
           this.runAvailable = runAvailable;
           // console.log(runAvailable);
-          //console.log(`Last Available Run [${dataset}]`, runAvailable);
+          console.log(`Last Available Run [${dataset}]`, runAvailable);
           let reftime = runAvailable.reftime;
           this.run = reftime.substr(8, 2);
 
@@ -653,7 +709,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
           this.layersControl["overlays"][DP.TM2] = this.getWMSTileWithOptions(
             this.wmsPath,
-            "meteohub:tiff_store_" + comp_name,
+            "meteohub:tiff_store_t2m-t2m_" + comp_name,
           );
           this.layersControl["overlays"][DP.TM2].addTo(this.map);
 
@@ -733,6 +789,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       },
     });
   }
+
   addIconBorderLayer() {
     // add border layer for ICON model
     fetch("./app/custom/assets/images/geoJson/coastlines_border_lines.geojson")
@@ -971,7 +1028,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
       geoJcomp_name = geoJcomp_name + ".geojson";
       let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
-
       if (newValue) {
         this.legends[DP.PMSL].addTo(this.map);
       } else {
@@ -1007,11 +1063,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             next: (geoJson) => {
               let isobars = this.addIsobars(geoJson, comp.map);
               this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
+                isobars,
                 this.getWMSTileWithOptions(
                   this.wmsPath,
-                  "meteohub:tiff_store_" + comp_name,
+                  "meteohub:tiff_store_pressure-pmsl_" + comp_name,
                 ),
-                isobars,
               ]);
               this.layersControl["overlays"][DP.PMSL].addTo(this.map);
             },
@@ -1573,10 +1629,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
         if (this.onlyPrs) {
           /*this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            "meteohub:tiff_store_" + comp_name,
-          );
-          this.layersControl["overlays"][DP.PMSL].addTo(this.map);*/
+                      this.wmsPath,
+                      "meteohub:tiff_store_" + comp_name,
+                    );
+                    this.layersControl["overlays"][DP.PMSL].addTo(this.map);*/
         }
 
         return new Promise((resolve, reject) => {
@@ -1590,7 +1646,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     isobars,
                     this.getWMSTileWithOptions(
                       this.wmsPath,
-                      "meteohub:tiff_store_" + comp_name,
+                      "meteohub:tiff_store_pressure-pmsl_" + comp_name,
                     ),
                   ]);
                   this.legends[DP.PMSL].addTo(this.map);
