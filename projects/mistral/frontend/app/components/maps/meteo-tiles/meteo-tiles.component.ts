@@ -503,6 +503,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     overlays[layer].options.pane = pane;
                   }
                   overlays[layer].addTo(comp.map);
+                  console.log(comp_name);
                 }
               }
             }
@@ -928,7 +929,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     // in the case of cumulated field go to the nearest available hour
     if (field[0] === "prp" || field[0] === "sf") {
       const n = parseInt(field[1]);
-      const targetHr = parseInt(this.tmpStringHourCode.slice(2, 4));
+      let targetHr = parseInt(this.tmpStringHourCode.slice(2, 4));
+      const d = parseInt(this.tmpStringHourCode.slice(0, 2));
+      if (d > 0) return; // because it means that more than 24h have passed
       const start = moment.utc(
         (this.map as any).timeDimension.getAvailableTimes()[0],
       );
@@ -1265,10 +1268,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             this.wmsPath,
             "meteohub:tiff_store_snow6-snow_" + comp_name,
           );
+        } else {
+          const emptyLayer = L.canvas();
+          this.layersControl["overlays"][DP.SF6] = emptyLayer;
         }
-      } else {
-        const emptyLayer = L.canvas();
-        this.layersControl["overlays"][DP.SF6] = emptyLayer;
       }
       if (
         this.variablesConfig["sf"].length &&
@@ -1600,10 +1603,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   }
 
   toggleLayer(obj: Record<string, string | L.Layer>) {
-    console.log("toggleLayer: ", obj);
+    //console.log("toggleLayer: ", obj);
     let comp = this;
     let layer: L.Layer = obj.layer as L.Layer;
-    let numbLayers = [];
     if (this.map.hasLayer(layer)) {
       console.log(`remove layer: ${obj.name}`);
       this.map.fire("overlayremove", obj);
@@ -1611,7 +1613,8 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     } else {
       console.log(`add layer : ${obj.name}`);
       this.map.fire("overlayadd", obj);
-
+      console.log(this.tmpStringHourCode);
+      const overlays = comp.layersControl["overlays"];
       if (obj.name === DP.WIND10M) {
         this.addWindLayer(
           this.minZoom,
@@ -1627,14 +1630,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
         geoJcomp_name = geoJcomp_name + ".geojson";
         let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
-        if (this.onlyPrs) {
-          /*this.layersControl["overlays"][DP.PMSL] = this.getWMSTileWithOptions(
-                      this.wmsPath,
-                      "meteohub:tiff_store_" + comp_name,
-                    );
-                    this.layersControl["overlays"][DP.PMSL].addTo(this.map);*/
-        }
-
         return new Promise((resolve, reject) => {
           const subscription = this.tilesService
             .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
@@ -1655,7 +1650,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                   if (this.legends[DP.PMSL])
                     comp.map.removeControl(this.legends[DP.PMSL]);
                 }
-                //this.layersControl["overlays"][DP.PMSL] = isobars;
                 this.layersControl["overlays"][DP.PMSL].addTo(comp.map);
               },
               error: (error) => {
@@ -1668,8 +1662,204 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             });
           this.subscriptions.push(subscription);
         });
-      } else {
-        layer.addTo(this.map);
+      } else if (obj.name === DP.RH) {
+        let comp_name = this.getFileName("r", this.tmpStringHourCode);
+        overlays[DP.RH] = this.getWMSTileWithOptions(
+          this.wmsPath,
+          "meteohub:tiff_store_humidity-r_" + comp_name,
+        );
+        overlays[DP.RH].addTo(this.map);
+        console.log(overlays[DP.RH]);
+      } else if (obj.name === DP.TM2) {
+        let comp_name = this.getFileName("t2m", this.tmpStringHourCode);
+        overlays[DP.TM2] = this.getWMSTileWithOptions(
+          this.wmsPath,
+          "meteohub:tiff_store_t2m-t2m_" + comp_name,
+        );
+        overlays[DP.TM2].addTo(this.map);
+        console.log(overlays[DP.TM2]);
+      } else if (obj.name === DP.TCC) {
+        let comp_name = this.getFileName("tcc", this.tmpStringHourCode);
+        overlays[DP.TCC] = this.getWMSTileWithOptions(
+          this.wmsPath,
+          "meteohub:tiff_store_cloud-tcc_" + comp_name,
+        );
+        overlays[DP.TCC].addTo(this.map);
+        console.log(overlays[DP.TCC]);
+      } else if (obj.name === DP.LCC) {
+        let comp_name = this.getFileName("lcc", this.tmpStringHourCode);
+        overlays[DP.LCC] = this.getWMSTileWithOptions(
+          this.wmsPath,
+          "meteohub:tiff_store_cloud_hml-lcc_" + comp_name,
+        );
+        overlays[DP.LCC].addTo(this.map);
+        console.log(overlays[DP.LCC]);
+      } else if (obj.name === DP.MCC) {
+        let comp_name = this.getFileName("mcc", this.tmpStringHourCode);
+        overlays[DP.MCC] = this.getWMSTileWithOptions(
+          this.wmsPath,
+          "meteohub:tiff_store_cloud_hml-mcc_" + comp_name,
+        );
+        overlays[DP.MCC].addTo(this.map);
+        console.log(overlays[DP.MCC]);
+      } else if (obj.name === DP.HCC) {
+        let comp_name = this.getFileName("hcc", this.tmpStringHourCode);
+        overlays[DP.HCC] = this.getWMSTileWithOptions(
+          this.wmsPath,
+          "meteohub:tiff_store_cloud_hml-hcc_" + comp_name,
+        );
+        overlays[DP.HCC].addTo(this.map);
+        console.log(overlays[DP.HCC]);
+      } else if (obj.name === DP.PREC1P) {
+        const stringHoursToExclude = this.stringHourToExclude(1);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
+          overlays[DP.PREC1P] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_prec1-tp_" + comp_name,
+          );
+          overlays[DP.PREC1P].addTo(this.map);
+          console.log(overlays[DP.PREC1P]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.PREC1P] = emptyLayer;
+          overlays[DP.PREC1P].addTo(this.map);
+        }
+      } else if (obj.name === DP.PREC3P) {
+        const stringHoursToExclude = this.stringHourToExclude(3);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
+          overlays[DP.PREC3P] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_prec3-tp_" + comp_name,
+          );
+          overlays[DP.PREC3P].addTo(this.map);
+          console.log(overlays[DP.PREC3P]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.PREC3P] = emptyLayer;
+          overlays[DP.PREC3P].addTo(this.map);
+        }
+      } else if (obj.name === DP.PREC6P) {
+        const stringHoursToExclude = this.stringHourToExclude(6);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
+          overlays[DP.PREC6P] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_prec6-tp_" + comp_name,
+          );
+          overlays[DP.PREC6P].addTo(this.map);
+          console.log(overlays[DP.PREC6P]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.PREC6P] = emptyLayer;
+          overlays[DP.PREC6P].addTo(this.map);
+        }
+      } else if (obj.name === DP.PREC12P) {
+        const stringHoursToExclude = this.stringHourToExclude(12);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
+          overlays[DP.PREC12P] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_prec12-tp_" + comp_name,
+          );
+          overlays[DP.PREC12P].addTo(this.map);
+          console.log(overlays[DP.PREC12P]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.PREC12P] = emptyLayer;
+          overlays[DP.PREC12P].addTo(this.map);
+        }
+      } else if (obj.name === DP.PREC24P) {
+        const stringHoursToExclude = this.stringHourToExclude(24);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
+          overlays[DP.PREC24P] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_prec24-tp_" + comp_name,
+          );
+          overlays[DP.PREC24P].addTo(this.map);
+          console.log(overlays[DP.PREC24P]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.PREC24P] = emptyLayer;
+          overlays[DP.PREC24P].addTo(this.map);
+        }
+      } else if (obj.name === DP.SF1) {
+        const stringHoursToExclude = this.stringHourToExclude(1);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
+          overlays[DP.SF1] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_snow1-snow_" + comp_name,
+          );
+          overlays[DP.SF1].addTo(this.map);
+          console.log(overlays[DP.SF1]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.SF1] = emptyLayer;
+          overlays[DP.SF1].addTo(this.map);
+        }
+      } else if (obj.name === DP.SF3) {
+        const stringHoursToExclude = this.stringHourToExclude(3);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
+          overlays[DP.SF3] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_snow3-snow_" + comp_name,
+          );
+          overlays[DP.SF3].addTo(this.map);
+          console.log(overlays[DP.SF3]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.SF3] = emptyLayer;
+          overlays[DP.SF3].addTo(this.map);
+        }
+      } else if (obj.name === DP.SF6) {
+        const stringHoursToExclude = this.stringHourToExclude(6);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
+          overlays[DP.SF6] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_snow6-snow_" + comp_name,
+          );
+          overlays[DP.SF6].addTo(this.map);
+          console.log(overlays[DP.SF6]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.SF6] = emptyLayer;
+          overlays[DP.SF6].addTo(this.map);
+        }
+      } else if (obj.name === DP.SF12) {
+        const stringHoursToExclude = this.stringHourToExclude(12);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
+          overlays[DP.SF12] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_snow12-snow_" + comp_name,
+          );
+          overlays[DP.SF12].addTo(this.map);
+          console.log(overlays[DP.SF12]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.SF12] = emptyLayer;
+          overlays[DP.SF12].addTo(this.map);
+        }
+      } else if (obj.name === DP.SF24) {
+        const stringHoursToExclude = this.stringHourToExclude(24);
+        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
+          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
+          overlays[DP.SF24] = this.getWMSTileWithOptions(
+            this.wmsPath,
+            "meteohub:tiff_store_snow24-snow_" + comp_name,
+          );
+          overlays[DP.SF24].addTo(this.map);
+          console.log(overlays[DP.SF24]);
+        } else {
+          const emptyLayer = L.canvas();
+          overlays[DP.SF24] = emptyLayer;
+          overlays[DP.SF24].addTo(this.map);
+        }
       }
     }
   }
