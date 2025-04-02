@@ -1,5 +1,5 @@
 import { GenericArg } from "../../../../types";
-
+import { DatasetProduct as DP } from "./../meteo-tiles.config";
 export interface LegendConfig {
   id: string;
   title: string;
@@ -666,3 +666,44 @@ export const COLORSTOPS = {
     { value: 70, color: "#ff00c3" },
   ],
 };
+
+export const layerMap = {
+  [DP.TM2]: "meteohub:tiff_store_t2m-t2m_",
+  [DP.PMSL]: "meteohub:tiff_store_pressure-pmsl_",
+  [DP.RH]: "meteohub:tiff_store_humidity-r_",
+  [DP.PREC1P]: "meteohub:tiff_store_prec1-tp_",
+  [DP.PREC3P]: "meteohub:tiff_store_prec3-tp_",
+  [DP.PREC6P]: "meteohub:tiff_store_prec6-tp_",
+  [DP.PREC12P]: "meteohub:tiff_store_prec12-tp_",
+  [DP.PREC24P]: "meteohub:tiff_store_prec24-tp_",
+  [DP.SF1]: "meteohub:tiff_store_snow1-snow_",
+  [DP.SF3]: "meteohub:tiff_store_snow3-snow_",
+  [DP.SF6]: "meteohub:tiff_store_snow6-snow_",
+  [DP.SF12]: "meteohub:tiff_store_snow12-snow_",
+  [DP.SF24]: "meteohub:tiff_store_snow24-snow_",
+  [DP.TCC]: "meteohub:tiff_store_cloud-tcc_",
+  [DP.LCC]: "meteohub:tiff_store_cloud_hml-lcc_",
+  [DP.MCC]: "meteohub:tiff_store_cloud_hml-mcc_",
+  [DP.HCC]: "meteohub:tiff_store_cloud_hml-hcc_",
+};
+
+export const layersToUpdate = [
+  { layer: DP.TM2, field: "t2m-t2m", variable: "t2m" },
+  { layer: DP.PMSL, field: "pressure-pmsl", variable: "pmsl" },
+  { layer: DP.TCC, field: "cloud-tcc", variable: "tcc" },
+  { layer: DP.RH, field: "humidity-r", variable: "r" },
+  { layer: DP.PREC1P, field: "prec1-tp", variable: "tp", offset: 1 },
+  { layer: DP.PREC3P, field: "prec3-tp", variable: "tp", offset: 3 },
+  { layer: DP.PREC6P, field: "prec6-tp", variable: "tp", offset: 6 },
+  { layer: DP.PREC12P, field: "prec12-tp", variable: "tp", offset: 12 },
+  { layer: DP.PREC24P, field: "prec24-tp", variable: "tp", offset: 24 },
+  { layer: DP.SF1, field: "snow1-snow", variable: "snow", offset: 1 },
+  { layer: DP.SF3, field: "snow3-snow", variable: "snow", offset: 3 },
+  { layer: DP.SF6, field: "snow6-snow", variable: "snow", offset: 6 },
+  { layer: DP.SF12, field: "snow12-snow", variable: "snow", offset: 12 },
+  { layer: DP.SF24, field: "snow24-snow", variable: "snow", offset: 24 },
+  { layer: DP.LCC, field: "cloud_hml-lcc", variable: "lcc" },
+  { layer: DP.MCC, field: "cloud_hml-mcc", variable: "mcc" },
+  { layer: DP.HCC, field: "cloud_hml-hcc", variable: "hcc" },
+  { layer: DP.WIND10M, field: "wind", variable: "10uv" },
+];
