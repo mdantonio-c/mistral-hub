@@ -96,8 +96,8 @@ export const IffRuns: KeyValuePair[] = [
 ];
 
 export const Resolutions: KeyValuePair[] = [
-  { key: "lm2.2", value: "COSMO 2.2" },
-  { key: "lm5", value: "COSMO 5" },
+  //{ key: "lm2.2", value: "COSMO 2.2" },
+  //{ key: "lm5", value: "COSMO 5" },
   { key: "WRF_OL", value: "WRF 1.5" },
   { key: "WRF_DA_ITA", value: " WRF 2.5" },
   { key: "icon", value: "ICON-2I" },
