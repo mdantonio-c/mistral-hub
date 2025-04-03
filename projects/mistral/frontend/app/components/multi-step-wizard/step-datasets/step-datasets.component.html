@@ -20,7 +20,7 @@
         </ul>
         -->
     <div class="row justify-content-md-center">
-      <div class="col-12 col-lg-4 mb-2">
+      <div class="col-12 col-lg-3 mb-2">
         <h5 class="text-center">
           <img
             src="/app/custom/assets/images/icon_obs_sm.png"
@@ -68,7 +68,7 @@
           </ul>
         </div>
       </div>
-      <div class="col-12 col-lg-4 mb-2 border-end border-start">
+      <div class="col-12 col-lg-3 mb-2 border-end border-start">
         <h5 class="text-center">
           <img
             src="/app/custom/assets/images/icon_for_sm.png"
@@ -114,7 +114,54 @@
           </ul>
         </div>
       </div>
-      <div class="col-12 col-lg-4 mb-2">
+      <div class="col-12 col-lg-3 mb-2 border-end border-start">
+        <h5 class="text-center">
+          <!-- TODO add the right icon -->
+          <img
+            src="/app/custom/assets/images/icon_for_sm.png"
+            alt="SEA"
+            class="me-1"
+          />Marine Forecasts
+        </h5>
+        <div class="clearfix">
+          <ul class="vertical-list px-0">
+            <ng-container
+              *ngFor="
+                let ds of form.controls.datasets['controls'];
+                let i = index
+              "
+            >
+              <li
+                formArrayName="datasets"
+                *ngIf="datasets[i].category === 'SEA'"
+              >
+                <input
+                  class="mst--input-checkbox"
+                  type="checkbox"
+                  [formControlName]="i"
+                  id="SEA-{{ datasets[i].id }}"
+                />
+                <label
+                  for="SEA-{{ datasets[i].id }}"
+                  [ngbTooltip]="tipSEAContent"
+                  >{{ datasets[i].description }}</label
+                >
+                <ng-template #tipSEAContent>
+                  <ul class="ps-0 text-start">
+                    <li>
+                      <span class="ps-1">{{ datasets[i].license }}</span>
+                    </li>
+                    <li>
+                      <span class="ps-1">{{ datasets[i].attribution }}</span>
+                    </li>
+                  </ul>
+                </ng-template>
+              </li>
+            </ng-container>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-lg-3 mb-2">
         <h5 class="text-center">
           <img
             src="/app/custom/assets/images/icon_rad_sm.png"

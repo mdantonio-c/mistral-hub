@@ -184,6 +184,8 @@ export interface AdminDataset {
   fileformat: string;
   /** @nullable */
   bounding: string;
+  /** @nullable */
+  sort_index: number;
   license: SimpleLicense;
   attribution: SimpleAttribution;
 }

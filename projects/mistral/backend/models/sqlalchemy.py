@@ -82,7 +82,7 @@ class Schedule(db.Model):  # type: ignore
     is_crontab = db.Column(db.Boolean)
     period = db.Column(db.Enum(PeriodEnum))
     every = db.Column(db.Integer)
-    #crontab_settings = db.Column(db.String(64))
+    # crontab_settings = db.Column(db.String(64))
     crontab_settings = db.Column(db.Text())
     on_data_ready = db.Column(db.Boolean, default=False)
     time_delta = db.Column(db.Interval)
@@ -131,6 +131,7 @@ class DatasetCategories(enum.Enum):
     FOR = 1
     OBS = 2
     RAD = 3
+    SEA = 4
 
 
 dataset_user_association_table = db.Table(
@@ -150,6 +151,7 @@ class Datasets(db.Model):  # type: ignore
     category = db.Column(db.Enum(DatasetCategories))
     fileformat = db.Column(db.String)
     bounding = db.Column(db.String)
+    sort_index = db.Column(db.Integer, nullable=True)
     users = db.relationship(
         "User",
         secondary=dataset_user_association_table,

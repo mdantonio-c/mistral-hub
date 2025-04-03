@@ -1,5 +1,6 @@
 from typing import Any, Dict, Optional, Union
 
+from marshmallow import pre_load
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import Conflict, DatabaseDuplicatedEntry, NotFound
@@ -20,6 +21,14 @@ class Attribution(Schema):
     descr = fields.Str()
 
 
+class DatasetInput(Schema):
+    @pre_load
+    def null_sort_index(self, data, **kwargs):
+        if "sort_index" in data and data["sort_index"] == "":
+            data["sort_index"] = None
+        return data
+
+
 def get_output_schema():
     # as defined in Marshmallow.schema.from_dict
     attributes: Dict[str, Union[fields.Field, type]] = {}
@@ -28,9 +37,12 @@ def get_output_schema():
     attributes["arkimet_id"] = fields.Str()
     attributes["name"] = fields.Str()
     attributes["description"] = fields.Str()
-    attributes["category"] = fields.Str(validate=validate.OneOf(["FOR", "OBS", "RAD"]))
+    attributes["category"] = fields.Str(
+        validate=validate.OneOf(["FOR", "OBS", "RAD", "SEA"])
+    )
     attributes["fileformat"] = fields.Str()
     attributes["bounding"] = fields.Str()
+    attributes["sort_index"] = fields.Int(allow_none=True)
 
     attributes["license"] = fields.Nested(License)
     attributes["attribution"] = fields.Nested(Attribution)
@@ -60,10 +72,18 @@ def getInputSchema(request, is_post):
     attributes["description"] = fields.Str(required=is_post)
     attributes["category"] = fields.Str(
         required=is_post,
-        validate=validate.OneOf(["FOR", "OBS", "RAD"]),
+        validate=validate.OneOf(["FOR", "OBS", "RAD", "SEA"]),
     )
     attributes["fileformat"] = fields.Str(required=is_post)
     attributes["bounding"] = fields.Str(required=False)
+    attributes["sort_index"] = fields.Int(
+        required=False,
+        allow_none=True,
+        metadata={
+            "label": "Sort index",
+            "description": "Number used to sort the datasets in dataset list. If empty the default sorting is alphabetical",
+        },
+    )
 
     license_keys = []
     license_labels = []
@@ -111,7 +131,7 @@ def getInputSchema(request, is_post):
         },
     )
 
-    return Schema.from_dict(attributes, name="AttributionDefinition")
+    return DatasetInput.from_dict(attributes, name="AttributionDefinition")
 
 
 def getPOSTInputSchema(request):
@@ -146,6 +166,7 @@ class AdminDatasets(EndpointResource):
                 "category": d.category.name,
                 "fileformat": d.fileformat,
                 "bounding": d.bounding,
+                "sort_index": d.sort_index,
             }
             license = db.License.query.filter_by(id=d.license_id).first()
             el["license"] = {
