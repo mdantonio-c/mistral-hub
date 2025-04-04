@@ -36,7 +36,7 @@ export class DatasetDetailsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    if (["FOR", "RAD"].includes(this.dataset.category)) {
+    if (["FOR", "RAD", "SEA"].includes(this.dataset.category)) {
       this.spinner.show();
       this.loading = true;
       this.dataService

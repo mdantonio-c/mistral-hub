@@ -524,6 +524,7 @@ class SqlApiDbManager:
             dataset_el["category"] = ds.category.name
             dataset_el["format"] = ds.fileformat
             dataset_el["bounding"] = ds.bounding
+            dataset_el["sort_index"] = ds.sort_index
             dataset_el["is_public"] = group_license_obj.is_public
 
             if licenceSpecs:

@@ -40,7 +40,12 @@ class Datasets(EndpointResource):
         sorted_datasets = None
         if datasets:
             sorted_datasets = sorted(
-                datasets, key=lambda k: k["description"]  # type:ignore
+                datasets,
+                key=lambda k: (
+                    k.get("sort_index") is None,
+                    k.get("sort_index", float("inf")),
+                    k["description"],
+                ),  # type:ignore
             )
 
         return self.response(sorted_datasets)

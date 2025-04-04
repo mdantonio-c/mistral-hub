@@ -28,6 +28,7 @@ export class AdminDatasetsComponent extends BasePaginationComponent<AdminDataset
       { name: "Description", prop: "description", flexGrow: 1 },
       { name: "License", prop: "license.name", flexGrow: 0.2 },
       { name: "Attribution", prop: "attribution.name", flexGrow: 0.2 },
+      { name: "Sort Index", prop: "sort_index", flexGrow: 0.2 },
       {
         name: "controls",
         prop: "controls",
