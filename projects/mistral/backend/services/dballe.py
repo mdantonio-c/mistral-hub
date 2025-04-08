@@ -27,7 +27,7 @@ from restapi.utilities.logs import log
 
 
 class BeDballe:
-    MAPS_NETWORK_FILTER = ["multim-forecast"]
+    MAPS_NETWORK_FILTER = []  # ["multim-forecast"]
     explorer = None
     # number of days after which data pass in Arkimet
     LASTDAYS = Env.get_int("LASTDAYS", 10)
