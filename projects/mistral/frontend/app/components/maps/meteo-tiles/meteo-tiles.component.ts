@@ -713,7 +713,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
     const u_name = "10u_comp_" + s + ".tif";
     const v_name = "10v_comp_" + s + ".tif";
-
+    const uv_name = "vmax_10m_comp_" + s;
     return new Promise((resolve, reject) => {
       //console.time('addwindlayer');
       const subscription = forkJoin({
@@ -723,15 +723,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         next: ({ u, v }) => {
           let n = (window.innerHeight * window.innerWidth) / 2073600;
           const vf = L.VectorField.fromGeoTIFFs(u, v);
-          const sf = vf.getScalarField("magnitude");
-
-          const customColorScale = this.createCustomColorScale(
-            COLORSTOPS.ws10mColorStops,
-          );
-          const magnitude = L.canvasLayer.scalarField(sf, {
-            color: customColorScale,
-            opacity: 1,
-          });
           // by construction 5<=zoom<=8, for this reason vectors length is 8
           const vectors = [5e3, 5e3, 5e3, 5e3, 5e3, 5e3, 3e3, 2e3, 1e3];
           let r = vectors[minZoom] * n;
@@ -742,8 +733,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             velocityScale: 0.001,
           });
 
-          if (onlyWind) resLayer = L.layerGroup([magnitude, layer]);
-          else resLayer = layer;
+          if (onlyWind) {
+            const magnitude = this.getWMSTileWithOptions(
+              this.wmsPath,
+              layerMap[DP.WIND10M] + uv_name,
+            );
+            resLayer = L.layerGroup([magnitude, layer]);
+          } else resLayer = layer;
           resolve(resLayer);
         },
         //complete: ()=> {console.timeEnd('addwindlayer')},

@@ -685,6 +685,7 @@ export const layerMap = {
   [DP.LCC]: "meteohub:tiff_store_cloud_hml-lcc_",
   [DP.MCC]: "meteohub:tiff_store_cloud_hml-mcc_",
   [DP.HCC]: "meteohub:tiff_store_cloud_hml-hcc_",
+  [DP.WIND10M]: "meteohub:tiff_store_wind-vmax_10m_",
 };
 
 export const layersToUpdate = [
