@@ -318,7 +318,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                 geoJcomp_name = geoJcomp_name + ".geojson";
 
                 if (comp.onlyPrs) {
-                  comp.map.removeLayer(overlays[layer]);
                   if (!comp.legends[layer]) comp.legends[layer].addTo(comp.map);
                 }
                 return new Promise((resolve, reject) => {
@@ -978,19 +977,19 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     ////////////////////////////////////
     if ("cc" in this.variablesConfig) {
       if (this.variablesConfig["cc"].includes("low")) {
-        this.addLayerWithErrorHandling(overlays, DP.LCC);
+        this.addLayerWithErrorHandling(overlays, DP.LCC, 100);
       } else {
         overlays[DP.LCC] = L.canvas(); // Placeholder
       }
 
       if (this.variablesConfig["cc"].includes("medium")) {
-        this.addLayerWithErrorHandling(overlays, DP.MCC);
+        this.addLayerWithErrorHandling(overlays, DP.MCC, 200);
       } else {
         overlays[DP.MCC] = L.canvas(); // Placeholder
       }
 
       if (this.variablesConfig["cc"].includes("high")) {
-        this.addLayerWithErrorHandling(overlays, DP.HCC);
+        this.addLayerWithErrorHandling(overlays, DP.HCC, 300);
       } else {
         overlays[DP.HCC] = L.canvas(); // Placeholder
       }
@@ -999,10 +998,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     }
   }
 
-  addLayerWithErrorHandling(overlays, key: DP) {
+  addLayerWithErrorHandling(overlays, key: DP, zIndex: number | null = null) {
     try {
       console.log(layerMap[key]);
-      const layer = this.getWMSTileWithOptions(this.wmsPath, layerMap[key]);
+      const layer = this.getWMSTileWithOptions(this.wmsPath, layerMap[key], zIndex);
 
       layer.on("tileerror", () => {
         console.error(`Errore while downloading ${key}`);
@@ -1042,6 +1041,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   getWMSTileWithOptions(
     url: string,
     layer: string,
+    zIndex: number | null = null,
     options: Record<string, any> | null = null,
     tileLayer: L.TileLayer | null = null,
   ) {
@@ -1059,6 +1059,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           format: "image/png",
           tileSize: 1024,
           opacity: 0.6,
+          zIndex: zIndex ?? 1,
         }),
       );
     }
@@ -1324,6 +1325,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       overlays[layerName] = this.getWMSTileWithOptions(
         this.wmsPath,
         layerMap[layerName],
+        layerName === DP.LCC ? 100 : layerName === DP.MCC ? 200 : layerName === DP.HCC ? 300 : null
       );
       overlays[layerName].addTo(this.map);
       return;
