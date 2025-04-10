@@ -109,7 +109,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       maxSpeed: 2,
       playerOptions: {
         buffer: 0,
-        transitionTime: 2000,
+        transitionTime: 500,
         loop: true,
       },
     },
@@ -289,7 +289,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                   }
                 });
             } else if (variable === "tp" || variable === "snow") {
-              const stringHourToExclude = comp.stringHourToExclude(offset);
+              /* const stringHourToExclude = comp.stringHourToExclude(offset);
               if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
                 comp.map.removeLayer(overlays[layer]);
                 let comp_name = comp.getFileName(
@@ -307,7 +307,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                 const emptyLayer = L.canvas();
                 overlays[layer] = emptyLayer;
                 emptyLayer.addTo(comp.map);
-              }
+              }*/
             } else {
               if (variable === "pmsl") {
                 comp.map.removeLayer(overlays[layer]);
@@ -316,10 +316,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                   comp.tmpStringHourCode,
                 );
                 geoJcomp_name = geoJcomp_name + ".geojson";
-                let comp_name = comp.getFileName(
-                  variable,
-                  comp.tmpStringHourCode,
-                );
+
                 if (comp.onlyPrs) {
                   comp.map.removeLayer(overlays[layer]);
                   if (!comp.legends[layer]) comp.legends[layer].addTo(comp.map);
@@ -339,7 +336,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                             isobars,
                             comp.getWMSTileWithOptions(
                               comp.wmsPath,
-                              layerMap[DP.PMSL] + comp_name,
+                              layerMap[DP.PMSL],
                             ),
                           ]);
                         } else {
@@ -359,27 +356,27 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                   comp.subscriptions.push(subscription);
                 });
               } else {
-                comp.map.removeLayer(overlays[layer]);
-                let comp_name = comp.getFileName(
-                  variable,
-                  comp.tmpStringHourCode,
-                );
-                overlays[layer] = comp.getWMSTileWithOptions(
-                  comp.wmsPath,
-                  `meteohub:tiff_store_${field}_` + comp_name,
-                );
-                if (variable === "lcc") pane = "low";
-                if (variable === "mcc") pane = "medium";
-                if (variable === "hcc") pane = "high";
-                if (
-                  variable === "lcc" ||
-                  variable === "mcc" ||
-                  variable === "hcc"
-                ) {
-                  overlays[layer].options.pane = pane;
-                }
-                overlays[layer].addTo(comp.map);
-                console.log(comp_name);
+                // comp.map.removeLayer(overlays[layer]);
+                // let comp_name = comp.getFileName(
+                //   variable,
+                //   comp.tmpStringHourCode,
+                // );
+                // overlays[layer] = comp.getWMSTileWithOptions(
+                //   comp.wmsPath,
+                //   `meteohub:tiff_store_${field}_` + comp_name,
+                // );
+                // if (variable === "lcc") pane = "low";
+                // if (variable === "mcc") pane = "medium";
+                // if (variable === "hcc") pane = "high";
+                // if (
+                //   variable === "lcc" ||
+                //   variable === "mcc" ||
+                //   variable === "hcc"
+                // ) {
+                //   overlays[layer].options.pane = pane;
+                // }
+                // overlays[layer].addTo(comp.map);
+                //console.log(comp_name);
               }
             }
           }
@@ -577,15 +574,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
           this.setHourTimeStamp(this.map);
 
-          let componentName = "t2m";
-          let comp_name = this.getFileName(
-            componentName,
-            this.tmpStringHourCode,
-          );
-
           this.layersControl["overlays"][DP.TM2] = this.getWMSTileWithOptions(
             this.wmsPath,
-            layerMap[DP.TM2] + comp_name,
+            layerMap[DP.TM2],
           );
           this.layersControl["overlays"][DP.TM2].addTo(this.map);
 
@@ -713,7 +704,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
     const u_name = "10u_comp_" + s + ".tif";
     const v_name = "10v_comp_" + s + ".tif";
-    const uv_name = "vmax_10m_comp_" + s;
     return new Promise((resolve, reject) => {
       //console.time('addwindlayer');
       const subscription = forkJoin({
@@ -736,7 +726,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           if (onlyWind) {
             const magnitude = this.getWMSTileWithOptions(
               this.wmsPath,
-              layerMap[DP.WIND10M] + uv_name,
+              layerMap[DP.WIND10M],
             );
             resLayer = L.layerGroup([magnitude, layer]);
           } else resLayer = layer;
@@ -860,7 +850,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       this.map.removeLayer(this.layersControl["overlays"][DP.PMSL]);
       let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
       geoJcomp_name = geoJcomp_name + ".geojson";
-      let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
       if (newValue) {
         this.legends[DP.PMSL].addTo(this.map);
       } else {
@@ -897,10 +886,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
               let isobars = this.addIsobars(geoJson, comp.map);
               this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
                 isobars,
-                this.getWMSTileWithOptions(
-                  this.wmsPath,
-                  layerMap[DP.PMSL] + comp_name,
-                ),
+                this.getWMSTileWithOptions(this.wmsPath, layerMap[DP.PMSL]),
               ]);
               this.layersControl["overlays"][DP.PMSL].addTo(this.map);
             },
@@ -928,15 +914,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     /////////// TEMPERATURE //////////
     ////////////////////////////////////
     if ("t2m" in this.variablesConfig) {
-      let comp_name = this.getFileName("t2m", this.tmpStringHourCode);
-      this.addLayerWithErrorHandling(overlays, DP.TM2, comp_name);
+      this.addLayerWithErrorHandling(overlays, DP.TM2);
     }
     ////////////////////////////////////
     /////////// PRESSURE //////////
     ////////////////////////////////////
     if ("prs" in this.variablesConfig) {
-      let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
-      this.addLayerWithErrorHandling(overlays, DP.PMSL, comp_name);
+      this.addLayerWithErrorHandling(overlays, DP.PMSL);
     }
     ////////////////////////////////////
     /////////// WIND //////////
@@ -955,8 +939,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     /////////// RELATIVE HUMIDITY //////////
     ////////////////////////////////////
     if ("rh" in this.variablesConfig) {
-      let comp_name = this.getFileName("r", this.tmpStringHourCode);
-      this.addLayerWithErrorHandling(overlays, DP.RH, comp_name);
+      this.addLayerWithErrorHandling(overlays, DP.RH);
     }
     ////////////////////////////////////
     /////////// PRECIPITATION //////////
@@ -966,12 +949,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.variablesConfig["prp"].forEach((period) => {
           const stringHoursToExclude = this.stringHourToExclude(period);
           if (!stringHoursToExclude.includes(s)) {
-            let comp_name = this.getFileName("tp");
-            this.addLayerWithErrorHandling(
-              overlays,
-              DP[`PREC${period}P`],
-              comp_name,
-            );
+            this.addLayerWithErrorHandling(overlays, DP[`PREC${period}P`]);
           } else {
             const emptyLayer = L.canvas(); // Placeholder for missing data
             overlays[DP[`PREC${period}P`]] = emptyLayer;
@@ -987,12 +965,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         this.variablesConfig["sf"].forEach((period) => {
           const stringHoursToExclude = this.stringHourToExclude(period);
           if (!stringHoursToExclude.includes(s)) {
-            let comp_name = this.getFileName("snow");
-            this.addLayerWithErrorHandling(
-              overlays,
-              DP[`SF${period}`],
-              comp_name,
-            );
+            this.addLayerWithErrorHandling(overlays, DP[`SF${period}`]);
           } else {
             const emptyLayer = L.canvas(); // Placeholder for missing data
             overlays[DP[`SF${period}`]] = emptyLayer;
@@ -1005,36 +978,31 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     ////////////////////////////////////
     if ("cc" in this.variablesConfig) {
       if (this.variablesConfig["cc"].includes("low")) {
-        let comp_name = this.getFileName("lcc", this.tmpStringHourCode);
-        this.addLayerWithErrorHandling(overlays, DP.LCC, comp_name);
+        this.addLayerWithErrorHandling(overlays, DP.LCC);
       } else {
         overlays[DP.LCC] = L.canvas(); // Placeholder
       }
 
       if (this.variablesConfig["cc"].includes("medium")) {
-        let comp_name = this.getFileName("mcc", this.tmpStringHourCode);
-        this.addLayerWithErrorHandling(overlays, DP.MCC, comp_name);
+        this.addLayerWithErrorHandling(overlays, DP.MCC);
       } else {
         overlays[DP.MCC] = L.canvas(); // Placeholder
       }
 
       if (this.variablesConfig["cc"].includes("high")) {
-        let comp_name = this.getFileName("hcc", this.tmpStringHourCode);
-        this.addLayerWithErrorHandling(overlays, DP.HCC, comp_name);
+        this.addLayerWithErrorHandling(overlays, DP.HCC);
       } else {
         overlays[DP.HCC] = L.canvas(); // Placeholder
       }
 
-      let comp_name = this.getFileName("tcc", this.tmpStringHourCode);
-      this.addLayerWithErrorHandling(overlays, DP.TCC, comp_name);
+      this.addLayerWithErrorHandling(overlays, DP.TCC);
     }
   }
 
-  addLayerWithErrorHandling(overlays, key: DP, compName: string) {
+  addLayerWithErrorHandling(overlays, key: DP) {
     try {
-      const layer = L.tileLayer.wms(this.wmsPath, {
-        layers: layerMap[key] + compName,
-      });
+      console.log(layerMap[key]);
+      const layer = this.getWMSTileWithOptions(this.wmsPath, layerMap[key]);
 
       layer.on("tileerror", () => {
         console.error(`Errore while downloading ${key}`);
@@ -1075,6 +1043,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     url: string,
     layer: string,
     options: Record<string, any> | null = null,
+    tileLayer: L.TileLayer | null = null,
   ) {
     if (options !== null) {
       return L.tileLayer.wms(url, {
@@ -1082,12 +1051,16 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         ...options,
       });
     } else {
-      return L.tileLayer.wms(url, {
-        layers: layer,
-        transparent: true,
-        format: "image/png",
-        opacity: 0.6,
-      });
+      console.log(layer);
+      return L.timeDimension.layer.wms(
+        L.tileLayer.wms(url, {
+          layers: layer,
+          transparent: true,
+          format: "image/png",
+          tileSize: 1024,
+          opacity: 0.6,
+        }),
+      );
     }
   }
 
@@ -1350,10 +1323,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       );
       overlays[layerName] = this.getWMSTileWithOptions(
         this.wmsPath,
-        layerMap[layerName] + comp_name,
+        layerMap[layerName],
       );
       overlays[layerName].addTo(this.map);
-      console.log(overlays[layerName]);
       return;
     }
     if (layerName === DP.WIND10M) {
@@ -1382,19 +1354,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     ];
     const snowLayers = [DP.SF1, DP.SF3, DP.SF6, DP.SF12, DP.SF24];
     if (precipitationLayers.includes(layerName as DP)) {
-      this.handlePrecipitationLayer(
-        layerName,
-        "tp",
-        "meteohub:tiff_store_prec",
-      );
+      this.handlePrecipitationLayer(layerName, "tp", "meteohub:prec");
       return;
     }
     if (snowLayers.includes(layerName as DP)) {
-      this.handlePrecipitationLayer(
-        layerName,
-        "snow",
-        "meteohub:tiff_store_snow",
-      );
+      this.handlePrecipitationLayer(layerName, "snow", "meteohub:snow");
       return;
     }
   }
@@ -1402,7 +1366,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   handlePMSLLayer() {
     let geoJcomp_name =
       this.getFileName("pmsl", this.tmpStringHourCode) + ".geojson";
-    let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
 
     return new Promise((resolve, reject) => {
       const subscription = this.tilesService
@@ -1413,10 +1376,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             let layerGroup = this.onlyPrs
               ? L.layerGroup([
                   isobars,
-                  this.getWMSTileWithOptions(
-                    this.wmsPath,
-                    layerMap[DP.PMSL] + comp_name,
-                  ),
+                  this.getWMSTileWithOptions(this.wmsPath, layerMap[DP.PMSL]),
                 ])
               : isobars;
 
@@ -1444,10 +1404,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     const excludedHours = this.stringHourToExclude(duration);
 
     if (!excludedHours.includes(this.tmpStringHourCode)) {
-      let comp_name = this.getFileName(prefix, this.tmpStringHourCode);
       this.layersControl["overlays"][layerName] = this.getWMSTileWithOptions(
         this.wmsPath,
-        `${basePath}${duration}-${prefix}_` + comp_name,
+        `${basePath}${duration}-${prefix}`,
       );
       this.layersControl["overlays"][layerName].addTo(this.map);
       console.log(this.layersControl["overlays"][layerName]);
@@ -1455,268 +1414,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       const emptyLayer = L.canvas();
       this.layersControl["overlays"][layerName] = emptyLayer;
       emptyLayer.addTo(this.map);
-    }
-  }
-
-  toggleLayer3(obj: Record<string, string | L.Layer>) {
-    //console.log("toggleLayer: ", obj);
-    let comp = this;
-    let layer: L.Layer = obj.layer as L.Layer;
-    if (this.map.hasLayer(layer)) {
-      console.log(`remove layer: ${obj.name}`);
-      this.map.fire("overlayremove", obj);
-      this.map.removeLayer(layer);
-    } else {
-      console.log(`add layer : ${obj.name}`);
-      this.map.fire("overlayadd", obj);
-      console.log(this.tmpStringHourCode);
-      const overlays = comp.layersControl["overlays"];
-      if (obj.name === DP.WIND10M) {
-        this.addWindLayer(
-          this.minZoom,
-          this.dataset,
-          this.tmpStringHourCode,
-          this.onlyWind,
-        ).then((l) => {
-          l.addTo(this.map);
-          this.layersControl["overlays"][DP.WIND10M] = l;
-          if (this.onlyWind) this.legends[DP.WIND10M].addTo(this.map);
-        });
-      } else if (obj.name === DP.PMSL) {
-        let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
-        geoJcomp_name = geoJcomp_name + ".geojson";
-        let comp_name = this.getFileName("pmsl", this.tmpStringHourCode);
-        return new Promise((resolve, reject) => {
-          const subscription = this.tilesService
-            .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
-            .subscribe({
-              next: (geoJson) => {
-                let isobars = this.addIsobars(geoJson, comp.map);
-                if (comp.onlyPrs) {
-                  this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
-                    isobars,
-                    this.getWMSTileWithOptions(
-                      this.wmsPath,
-                      layerMap[DP.PMSL] + comp_name,
-                    ),
-                  ]);
-                  this.legends[DP.PMSL].addTo(this.map);
-                } else {
-                  this.layersControl["overlays"][DP.PMSL] = isobars;
-                  if (this.legends[DP.PMSL])
-                    comp.map.removeControl(this.legends[DP.PMSL]);
-                }
-                this.layersControl["overlays"][DP.PMSL].addTo(comp.map);
-              },
-              error: (error) => {
-                console.error(
-                  `Error while downloading/processing ${geoJcomp_name} file`,
-                  error,
-                );
-                reject(error);
-              },
-            });
-          this.subscriptions.push(subscription);
-        });
-      } else if (obj.name === DP.RH) {
-        let comp_name = this.getFileName("r", this.tmpStringHourCode);
-        overlays[DP.RH] = this.getWMSTileWithOptions(
-          this.wmsPath,
-          layerMap[DP.RH] + comp_name,
-        );
-        overlays[DP.RH].addTo(this.map);
-        console.log(overlays[DP.RH]);
-      } else if (obj.name === DP.TM2) {
-        let comp_name = this.getFileName("t2m", this.tmpStringHourCode);
-        overlays[DP.TM2] = this.getWMSTileWithOptions(
-          this.wmsPath,
-          layerMap[DP.TM2] + comp_name,
-        );
-        overlays[DP.TM2].addTo(this.map);
-        console.log(overlays[DP.TM2]);
-      } else if (obj.name === DP.TCC) {
-        let comp_name = this.getFileName("tcc", this.tmpStringHourCode);
-        overlays[DP.TCC] = this.getWMSTileWithOptions(
-          this.wmsPath,
-          layerMap[DP.TCC] + comp_name,
-        );
-        overlays[DP.TCC].addTo(this.map);
-        console.log(overlays[DP.TCC]);
-      } else if (obj.name === DP.LCC) {
-        let comp_name = this.getFileName("lcc", this.tmpStringHourCode);
-        overlays[DP.LCC] = this.getWMSTileWithOptions(
-          this.wmsPath,
-          layerMap[DP.LCC] + comp_name,
-        );
-        overlays[DP.LCC].addTo(this.map);
-        console.log(overlays[DP.LCC]);
-      } else if (obj.name === DP.MCC) {
-        let comp_name = this.getFileName("mcc", this.tmpStringHourCode);
-        overlays[DP.MCC] = this.getWMSTileWithOptions(
-          this.wmsPath,
-          layerMap[DP.MCC] + comp_name,
-        );
-        overlays[DP.MCC].addTo(this.map);
-        console.log(overlays[DP.MCC]);
-      } else if (obj.name === DP.HCC) {
-        let comp_name = this.getFileName("hcc", this.tmpStringHourCode);
-        overlays[DP.HCC] = this.getWMSTileWithOptions(
-          this.wmsPath,
-          layerMap[DP.HCC] + comp_name,
-        );
-        overlays[DP.HCC].addTo(this.map);
-        console.log(overlays[DP.HCC]);
-      } else if (obj.name === DP.PREC1P) {
-        const stringHoursToExclude = this.stringHourToExclude(1);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
-          overlays[DP.PREC1P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.PREC1P] + comp_name,
-          );
-          overlays[DP.PREC1P].addTo(this.map);
-          console.log(overlays[DP.PREC1P]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.PREC1P] = emptyLayer;
-          overlays[DP.PREC1P].addTo(this.map);
-        }
-      } else if (obj.name === DP.PREC3P) {
-        const stringHoursToExclude = this.stringHourToExclude(3);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
-          overlays[DP.PREC3P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.PREC3P] + comp_name,
-          );
-          overlays[DP.PREC3P].addTo(this.map);
-          console.log(overlays[DP.PREC3P]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.PREC3P] = emptyLayer;
-          overlays[DP.PREC3P].addTo(this.map);
-        }
-      } else if (obj.name === DP.PREC6P) {
-        const stringHoursToExclude = this.stringHourToExclude(6);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
-          overlays[DP.PREC6P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.PREC6P] + comp_name,
-          );
-          overlays[DP.PREC6P].addTo(this.map);
-          console.log(overlays[DP.PREC6P]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.PREC6P] = emptyLayer;
-          overlays[DP.PREC6P].addTo(this.map);
-        }
-      } else if (obj.name === DP.PREC12P) {
-        const stringHoursToExclude = this.stringHourToExclude(12);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
-          overlays[DP.PREC12P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.PREC12P] + comp_name,
-          );
-          overlays[DP.PREC12P].addTo(this.map);
-          console.log(overlays[DP.PREC12P]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.PREC12P] = emptyLayer;
-          overlays[DP.PREC12P].addTo(this.map);
-        }
-      } else if (obj.name === DP.PREC24P) {
-        const stringHoursToExclude = this.stringHourToExclude(24);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("tp", this.tmpStringHourCode);
-          overlays[DP.PREC24P] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.PREC24P] + comp_name,
-          );
-          overlays[DP.PREC24P].addTo(this.map);
-          console.log(overlays[DP.PREC24P]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.PREC24P] = emptyLayer;
-          overlays[DP.PREC24P].addTo(this.map);
-        }
-      } else if (obj.name === DP.SF1) {
-        const stringHoursToExclude = this.stringHourToExclude(1);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
-          overlays[DP.SF1] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.SF1] + comp_name,
-          );
-          overlays[DP.SF1].addTo(this.map);
-          console.log(overlays[DP.SF1]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.SF1] = emptyLayer;
-          overlays[DP.SF1].addTo(this.map);
-        }
-      } else if (obj.name === DP.SF3) {
-        const stringHoursToExclude = this.stringHourToExclude(3);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
-          overlays[DP.SF3] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.SF3] + comp_name,
-          );
-          overlays[DP.SF3].addTo(this.map);
-          console.log(overlays[DP.SF3]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.SF3] = emptyLayer;
-          overlays[DP.SF3].addTo(this.map);
-        }
-      } else if (obj.name === DP.SF6) {
-        const stringHoursToExclude = this.stringHourToExclude(6);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
-          overlays[DP.SF6] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.SF6] + comp_name,
-          );
-          overlays[DP.SF6].addTo(this.map);
-          console.log(overlays[DP.SF6]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.SF6] = emptyLayer;
-          overlays[DP.SF6].addTo(this.map);
-        }
-      } else if (obj.name === DP.SF12) {
-        const stringHoursToExclude = this.stringHourToExclude(12);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
-          overlays[DP.SF12] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.SF12] + comp_name,
-          );
-          overlays[DP.SF12].addTo(this.map);
-          console.log(overlays[DP.SF12]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.SF12] = emptyLayer;
-          overlays[DP.SF12].addTo(this.map);
-        }
-      } else if (obj.name === DP.SF24) {
-        const stringHoursToExclude = this.stringHourToExclude(24);
-        if (!stringHoursToExclude.includes(this.tmpStringHourCode)) {
-          let comp_name = this.getFileName("snow", this.tmpStringHourCode);
-          overlays[DP.SF24] = this.getWMSTileWithOptions(
-            this.wmsPath,
-            layerMap[DP.SF24] + comp_name,
-          );
-          overlays[DP.SF24].addTo(this.map);
-          console.log(overlays[DP.SF24]);
-        } else {
-          const emptyLayer = L.canvas();
-          overlays[DP.SF24] = emptyLayer;
-          overlays[DP.SF24].addTo(this.map);
-        }
-      }
     }
   }
 
