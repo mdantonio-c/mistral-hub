@@ -1,5 +1,5 @@
 import { GenericArg } from "../../../../types";
-
+import { DatasetProduct as DP } from "./../meteo-tiles.config";
 export interface LegendConfig {
   id: string;
   title: string;
@@ -666,3 +666,45 @@ export const COLORSTOPS = {
     { value: 70, color: "#ff00c3" },
   ],
 };
+
+export const layerMap = {
+  [DP.TM2]: "meteohub:t2m-t2m",
+  [DP.PMSL]: "meteohub:pressure-pmsl",
+  [DP.RH]: "meteohub:humidity-r",
+  [DP.PREC1P]: "meteohub:prec1-tp",
+  [DP.PREC3P]: "meteohub:prec3-tp",
+  [DP.PREC6P]: "meteohub:prec6-tp",
+  [DP.PREC12P]: "meteohub:prec12-tp",
+  [DP.PREC24P]: "meteohub:prec24-tp",
+  [DP.SF1]: "meteohub:snow1-snow",
+  [DP.SF3]: "meteohub:snow3-snow",
+  [DP.SF6]: "meteohub:snow6-snow",
+  [DP.SF12]: "meteohub:snow12-snow",
+  [DP.SF24]: "meteohub:snow24-snow",
+  [DP.TCC]: "meteohub:cloud-tcc",
+  [DP.LCC]: "meteohub:cloud_hml-lcc",
+  [DP.MCC]: "meteohub:cloud_hml-mcc",
+  [DP.HCC]: "meteohub:cloud_hml-hcc",
+  [DP.WIND10M]: "meteohub:wind-vmax_10m",
+};
+
+export const layersToUpdate = [
+  { layer: DP.TM2, field: "t2m-t2m", variable: "t2m" },
+  { layer: DP.PMSL, field: "pressure-pmsl", variable: "pmsl" },
+  { layer: DP.TCC, field: "cloud-tcc", variable: "tcc" },
+  { layer: DP.RH, field: "humidity-r", variable: "r" },
+  { layer: DP.PREC1P, field: "prec1-tp", variable: "tp", offset: 1 },
+  { layer: DP.PREC3P, field: "prec3-tp", variable: "tp", offset: 3 },
+  { layer: DP.PREC6P, field: "prec6-tp", variable: "tp", offset: 6 },
+  { layer: DP.PREC12P, field: "prec12-tp", variable: "tp", offset: 12 },
+  { layer: DP.PREC24P, field: "prec24-tp", variable: "tp", offset: 24 },
+  { layer: DP.SF1, field: "snow1-snow", variable: "snow", offset: 1 },
+  { layer: DP.SF3, field: "snow3-snow", variable: "snow", offset: 3 },
+  { layer: DP.SF6, field: "snow6-snow", variable: "snow", offset: 6 },
+  { layer: DP.SF12, field: "snow12-snow", variable: "snow", offset: 12 },
+  { layer: DP.SF24, field: "snow24-snow", variable: "snow", offset: 24 },
+  { layer: DP.LCC, field: "cloud_hml-lcc", variable: "lcc" },
+  { layer: DP.MCC, field: "cloud_hml-mcc", variable: "mcc" },
+  { layer: DP.HCC, field: "cloud_hml-hcc", variable: "hcc" },
+  { layer: DP.WIND10M, field: "wind", variable: "10uv" },
+];
