@@ -27,7 +27,7 @@ from restapi.utilities.logs import log
 
 
 class BeDballe:
-    MAPS_NETWORK_FILTER = ["multim-forecast"]
+    MAPS_NETWORK_FILTER = []  # ["multim-forecast"]
     explorer = None
     # number of days after which data pass in Arkimet
     LASTDAYS = Env.get_int("LASTDAYS", 10)
@@ -326,14 +326,16 @@ class BeDballe:
 
     @staticmethod
     def build_explorer(db_type, license_group=None, network_list=None):
-        need_filtered = True
+        # Patch provvisoria per far funzionare le mappe, in attesa di fixare per bene il summary filtered (che non
+        # dovrebbe piùà servire
+        need_filtered = False
         if network_list:
-            match_nets = next(
-                (net for net in network_list if net in BeDballe.MAPS_NETWORK_FILTER),
-                None,
-            )
-            if match_nets:
-                need_filtered = False
+            # match_nets = next(
+            #     (net for net in network_list if net in BeDballe.MAPS_NETWORK_FILTER),
+            #     None,
+            # )
+            # if match_nets:
+            #     need_filtered = False
             if not license_group:
                 alchemy_db = sqlalchemy.get_instance()
                 license_group = SqlApiDbManager.get_license_group(
