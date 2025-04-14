@@ -106,6 +106,9 @@ export class SideNavComponent implements OnInit {
   @Output() showPrsScalarFieldChange = new EventEmitter<boolean>();
   showPrsScalarField: boolean = false;
   selectedLayers: string[] = ["t2m"]; //default layer
+  @Output() onSelectedLayerChange: EventEmitter<string[]> = new EventEmitter<
+    string[]
+  >();
   @Output() selectedCumulateChange = new EventEmitter<string[]>();
   selectedCumulate: string[] = ["", ""];
   maxLayers = 4;
@@ -237,6 +240,7 @@ export class SideNavComponent implements OnInit {
 
     // max 4 fields at time
     if (this.max4Layer(layerId)) return;
+    this.onSelectedLayerChange.emit(this.selectedLayers);
     console.log(this.selectedLayers);
     // can we do better with multi layer products? (i.e. prp)
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);

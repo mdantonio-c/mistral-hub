@@ -455,17 +455,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
         if (mutation.type === "childList") {
           // selected layers
           this.activeSpans = document.querySelectorAll('span[class*="attivo"]');
-          if (this.activeSpans.length === 1) {
-            const onlyActive = this.activeSpans[0];
-            if (onlyActive.classList.contains("ws10m")) {
-              this.removePlayButton();
-            } else {
-              this.addPlayButton();
-            }
-          } else if (this.activeSpans.length > 1) {
-            // remove when there will be future improvements with animation
-            this.removePlayButton();
-          }
           if (this.activeSpans.length === 4 && !this.messageShown) {
             this.notify.showWarning(
               "You reached the maximum number of contemporary layers",
@@ -481,6 +470,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       childList: true,
       subtree: true,
     });
+  }
+  fetchSelectedLayers(event) {
+    if (event.includes("ws10m")) {
+      this.removePlayButton();
+    } else this.addPlayButton();
   }
 
   setHourTimeStamp(map) {
@@ -1001,7 +995,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   addLayerWithErrorHandling(overlays, key: DP, zIndex: number | null = null) {
     try {
       console.log(layerMap[key]);
-      const layer = this.getWMSTileWithOptions(this.wmsPath, layerMap[key], zIndex);
+      const layer = this.getWMSTileWithOptions(
+        this.wmsPath,
+        layerMap[key],
+        zIndex,
+      );
 
       layer.on("tileerror", () => {
         console.error(`Errore while downloading ${key}`);
@@ -1325,7 +1323,13 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       overlays[layerName] = this.getWMSTileWithOptions(
         this.wmsPath,
         layerMap[layerName],
-        layerName === DP.LCC ? 100 : layerName === DP.MCC ? 200 : layerName === DP.HCC ? 300 : null
+        layerName === DP.LCC
+          ? 100
+          : layerName === DP.MCC
+          ? 200
+          : layerName === DP.HCC
+          ? 300
+          : null,
       );
       overlays[layerName].addTo(this.map);
       return;
