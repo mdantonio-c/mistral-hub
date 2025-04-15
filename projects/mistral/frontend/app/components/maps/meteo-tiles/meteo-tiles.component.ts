@@ -109,7 +109,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       maxSpeed: 2,
       playerOptions: {
         buffer: 0,
-        transitionTime: 500,
+        transitionTime: 750,
         loop: true,
       },
     },
