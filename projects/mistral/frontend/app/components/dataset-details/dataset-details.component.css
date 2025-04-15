@@ -3,6 +3,7 @@
   position: absolute;
   display: block;
   z-index: 1;
+  max-width:60px;
 }
 
 .ds-body {
