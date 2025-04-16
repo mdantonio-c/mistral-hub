@@ -6,3 +6,8 @@ location /nwp/ICON-2I_all2km {
    alias /grib_extraction/;
    autoindex on;
 }
+
+location = /catalog.rdf {
+    alias /catalog/catalog.rdf;
+    default_type application/rdf+xml;
+}

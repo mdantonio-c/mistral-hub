@@ -43,4 +43,5 @@ services:
   proxy:
     volumes:
       - ${DATA_DIR}/grib_extraction:/grib_extraction
+      - ${DATA_DIR}/catalog:/catalog
       - ${PROJECT_DIR}/confs/proxy.service:/etc/nginx/sites-enabled/proxy.service
