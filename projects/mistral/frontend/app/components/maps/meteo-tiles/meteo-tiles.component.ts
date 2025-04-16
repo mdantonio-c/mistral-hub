@@ -657,18 +657,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       });
   }
 
-  stringHourToExclude(targetHour: number): string[] {
-    // return timestamp until targetHour-1
-    if (targetHour < 0 || targetHour > 24) {
-      return ["Error: target hour must be between 0 and 24."];
-    }
-    const strings = [];
-    for (let i = 0; i < targetHour; i++) {
-      strings.push("00" + i.toString().padStart(2, "0") + "0000");
-    }
-    return strings;
-  }
-
   addWindLayer(
     minZoom: number,
     dataset: string,
@@ -929,32 +917,22 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     ////////////////////////////////////
     /////////// PRECIPITATION //////////
     ////////////////////////////////////
+
     if ("prp" in this.variablesConfig) {
       if (this.variablesConfig["prp"].length) {
         this.variablesConfig["prp"].forEach((period) => {
-          const stringHoursToExclude = this.stringHourToExclude(period);
-          if (!stringHoursToExclude.includes(s)) {
-            this.addLayerWithErrorHandling(overlays, DP[`PREC${period}P`]);
-          } else {
-            const emptyLayer = L.canvas(); // Placeholder for missing data
-            overlays[DP[`PREC${period}P`]] = emptyLayer;
-          }
+          this.addLayerWithErrorHandling(overlays, DP[`PREC${period}P`]);
         });
       }
     }
     ////////////////////////////////////
     ///////////// SNOWFALL /////////////
     ////////////////////////////////////
+
     if ("sf" in this.variablesConfig) {
       if (this.variablesConfig["sf"].length) {
         this.variablesConfig["sf"].forEach((period) => {
-          const stringHoursToExclude = this.stringHourToExclude(period);
-          if (!stringHoursToExclude.includes(s)) {
-            this.addLayerWithErrorHandling(overlays, DP[`SF${period}`]);
-          } else {
-            const emptyLayer = L.canvas(); // Placeholder for missing data
-            overlays[DP[`SF${period}`]] = emptyLayer;
-          }
+          this.addLayerWithErrorHandling(overlays, DP[`SF${period}`]);
         });
       }
     }
@@ -986,20 +964,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
   addLayerWithErrorHandling(overlays, key: DP, zIndex: number | null = null) {
     try {
-      console.log(layerMap[key]);
       if (layerMap[key].includes("snow")) {
         const layer = this.getWMSTileWithOptions(
           this.wmsPath,
           layerMap[key],
           zIndex,
-          {
-            layers: layerMap[key],
-            transparent: true,
-            format: "image/png",
-            tileSize: 1024,
-            opacity: 1,
-            zIndex: 3,
-          },
+          1,
         );
 
         layer.on("tileerror", () => {
@@ -1055,10 +1025,12 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     url: string,
     layer: string,
     zIndex: number | null = null,
+    opacity: number | null = null,
     options: Record<string, any> | null = null,
     tileLayer: L.TileLayer | null = null,
   ) {
     if (options !== null) {
+      console.log(layer);
       return L.tileLayer.wms(url, {
         layers: layer,
         ...options,
@@ -1071,7 +1043,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           transparent: true,
           format: "image/png",
           tileSize: 1024,
-          opacity: 0.6,
+          opacity: opacity ?? 0.6,
           zIndex: zIndex ?? 1,
         }),
       );
@@ -1422,37 +1394,21 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
   handlePrecipitationLayer(layerName, prefix, basePath) {
     const duration = parseInt(layerName.replace(/\D/g, ""), 10);
-    const excludedHours = this.stringHourToExclude(duration);
-
-    if (!excludedHours.includes(this.tmpStringHourCode)) {
-      if (prefix === "snow") {
-        this.layersControl["overlays"][layerName] = this.getWMSTileWithOptions(
-          this.wmsPath,
-          `${basePath}${duration}-${prefix}`,
-          null,
-          {
-            layers: `${basePath}${duration}-${prefix}`,
-            transparent: true,
-            format: "image/png",
-            tileSize: 1024,
-            opacity: 1,
-            zIndex: 3,
-          },
-        );
-      } else {
-        this.layersControl["overlays"][layerName] = this.getWMSTileWithOptions(
-          this.wmsPath,
-          `${basePath}${duration}-${prefix}`,
-        );
-      }
-
-      this.layersControl["overlays"][layerName].addTo(this.map);
-      console.log(this.layersControl["overlays"][layerName]);
+    if (prefix != "snow") {
+      this.layersControl["overlays"][layerName] = this.getWMSTileWithOptions(
+        this.wmsPath,
+        `${basePath}${duration}-${prefix}`,
+      );
     } else {
-      const emptyLayer = L.canvas();
-      this.layersControl["overlays"][layerName] = emptyLayer;
-      emptyLayer.addTo(this.map);
+      this.layersControl["overlays"][layerName] = this.getWMSTileWithOptions(
+        this.wmsPath,
+        `${basePath}${duration}-${prefix}`,
+        3,
+        1,
+      );
     }
+    this.layersControl["overlays"][layerName].addTo(this.map);
+    //console.log(this.layersControl["overlays"][layerName]);
   }
 
   printDatasetDescription(): string {
