@@ -102,10 +102,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     timeDimension: true,
     timeDimensionControl: true,
     timeDimensionControlOptions: {
-      timeZones: ["utc"],
+      timeZones: ["utc", "local"],
       timeSteps: 1,
       limitSliders: true,
-      speedSlider: false,
+      speedSlider: true,
       maxSpeed: 2,
       playerOptions: {
         buffer: 0,
@@ -162,7 +162,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       if (["it", "en"].includes(lang)) {
         this.lang = lang;
       }
-      this.options.timeDimensionControlOptions.timeZones = ["local"];
       //console.log(`lang: ${this.lang}`);
       if (view) {
         // check for valid view mode
@@ -218,18 +217,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.map.attributionControl.setPrefix("");
     // view mode
     console.log(`view mode: ${ViewModes[this.viewMode]}`);
-    // define panes in order to have an overlapping order for cloud fields
-    this.map.createPane("low");
-    this.map.createPane("medium");
-    this.map.createPane("high");
-    this.map.getPane("low").style.zIndex = "1000";
-    this.map.getPane("medium").style.zIndex = "2000";
-    this.map.getPane("high").style.zIndex = "3000";
+
     this.loadRunAvailable(this.dataset);
     if (this.dataset === "icon") this.addIconBorderLayer();
     this.initLegends(this.map);
     this.centerMap();
-    let pane;
 
     this.map.attributionControl.setPrefix("");
     // pass a reference to this MeteoTilesComponent
@@ -995,18 +987,41 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   addLayerWithErrorHandling(overlays, key: DP, zIndex: number | null = null) {
     try {
       console.log(layerMap[key]);
-      const layer = this.getWMSTileWithOptions(
-        this.wmsPath,
-        layerMap[key],
-        zIndex,
-      );
+      if (layerMap[key].includes("snow")) {
+        const layer = this.getWMSTileWithOptions(
+          this.wmsPath,
+          layerMap[key],
+          zIndex,
+          {
+            layers: layerMap[key],
+            transparent: true,
+            format: "image/png",
+            tileSize: 1024,
+            opacity: 1,
+            zIndex: 3,
+          },
+        );
 
-      layer.on("tileerror", () => {
-        console.error(`Errore while downloading ${key}`);
-        overlays[key] = L.canvas();
-      });
+        layer.on("tileerror", () => {
+          console.error(`Errore while downloading ${key}`);
+          overlays[key] = L.canvas();
+        });
 
-      overlays[key] = layer;
+        overlays[key] = layer;
+      } else {
+        const layer = this.getWMSTileWithOptions(
+          this.wmsPath,
+          layerMap[key],
+          zIndex,
+        );
+
+        layer.on("tileerror", () => {
+          console.error(`Errore while downloading ${key}`);
+          overlays[key] = L.canvas();
+        });
+
+        overlays[key] = layer;
+      }
     } catch (error) {
       console.error(`Error while creation of layer  ${key}: `, error);
       overlays[key] = L.canvas();
@@ -1410,10 +1425,27 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     const excludedHours = this.stringHourToExclude(duration);
 
     if (!excludedHours.includes(this.tmpStringHourCode)) {
-      this.layersControl["overlays"][layerName] = this.getWMSTileWithOptions(
-        this.wmsPath,
-        `${basePath}${duration}-${prefix}`,
-      );
+      if (prefix === "snow") {
+        this.layersControl["overlays"][layerName] = this.getWMSTileWithOptions(
+          this.wmsPath,
+          `${basePath}${duration}-${prefix}`,
+          null,
+          {
+            layers: `${basePath}${duration}-${prefix}`,
+            transparent: true,
+            format: "image/png",
+            tileSize: 1024,
+            opacity: 1,
+            zIndex: 3,
+          },
+        );
+      } else {
+        this.layersControl["overlays"][layerName] = this.getWMSTileWithOptions(
+          this.wmsPath,
+          `${basePath}${duration}-${prefix}`,
+        );
+      }
+
       this.layersControl["overlays"][layerName].addTo(this.map);
       console.log(this.layersControl["overlays"][layerName]);
     } else {
