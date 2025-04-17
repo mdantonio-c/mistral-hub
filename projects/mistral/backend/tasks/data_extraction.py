@@ -65,6 +65,7 @@ def data_extract(
         outfile = None
         pp_output: Optional[Path] = None
         double_request = False
+        output_dir = None
         if schedule_id is not None:
             # load schedule for this request
             schedule = db.Schedule.query.get(schedule_id)
