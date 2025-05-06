@@ -728,7 +728,7 @@ class BeArkimet:
                 s = "".join(
                     [s, ",{}{}".format(i.get("step_len"), un[i.get("step_unit", -1)])]
                 )
-            if i.get("stat_type"):
+            if "stat_type" in i.keys():
                 s = "".join([s, ",{}".format(i.get("stat_type"))])
             else:
                 """
@@ -745,7 +745,7 @@ class BeArkimet:
             If stat unit is 255, then proclen = "-"
             (see arki / types / timerange.cc:1408).
             """
-            if i.get("stat_unit", -1):
+            if "stat_unit" in i.keys():
                 s = "".join(
                     [s, ",{}{}".format(i.get("stat_len"), un[i.get("stat_unit", -1)])]
                 )
