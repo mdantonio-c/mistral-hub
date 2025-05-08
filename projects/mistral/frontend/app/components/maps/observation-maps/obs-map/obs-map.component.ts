@@ -51,7 +51,7 @@ export class ObsMapComponent {
       detectRetina: true,
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> | ' +
-        '&copy; <a href="/app/license#mistral-contributors" target="_blank" rel="noopener noreferrer">MISTRAL data contributor</a>',
+        '&copy; <a href="/app/license#meteohub-contributors" target="_blank" rel="noopener noreferrer">CINECA data contributor</a>',
     },
   );
 

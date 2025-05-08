@@ -41,7 +41,8 @@ $dark-blue: #004080;
   }
 
   .navbar .navbar-nav:first-of-type {
-    margin-left: -6px;
+    margin-left: -12px;
+    margin-right: -12px;
 
     .nav-link {
       font-size: 0.65rem !important;
@@ -50,7 +51,7 @@ $dark-blue: #004080;
     }
   }
   .navbar .navbar-brand img {
-    height: 42px !important;
+    height: 66px !important;
     margin-bottom: -8px !important;
   }
   .nav.navbar-nav.rpd-menu-controls .nav-item a {
@@ -1226,11 +1227,20 @@ customfooter > div {
     padding-right: 14px;
     margin-top: 10px;
     margin-bottom: 10px;
+    background-color:$light-blue;
   }
 
   .rpd-menu-controls {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
     flex-direction: row;
+    -webkit-box-pack: end;
     justify-content: end;
+    background-color: #157ACC;
+    margin-top: -10px;
+    margin-left: -12px !important;
+    margin-right: -12px !important;
+    padding: 9px;
   }
 
   .footer {

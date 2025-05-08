@@ -14,7 +14,7 @@
       <div class="row" *ngIf="!loading && !data?.length">
         <div class="col">
           <div class="no-results">
-            <h4>Attributions &amp; Licenses - Mistral Contributors</h4>
+            <h4>Attributions &amp; Licenses - MeteoHub Contributors</h4>
             <p>No information available</p>
           </div>
         </div>
@@ -22,8 +22,8 @@
 
       <ng-container *ngIf="data?.length">
         <section>
-          <h3 id="mistral-contributors">
-            Attributions &amp; Licenses - Mistral Contributors
+          <h3 id="meteohub-contributors">
+            Attributions &amp; Licenses - MeteoHub Contributors
           </h3>
           <!-- load dataset licenses in the table -->
           <div class="table-responsive" *ngIf="data?.length" #tableWrapper>
@@ -132,8 +132,8 @@
         </section>
 
         <section class="mt-5">
-          <h3 id="mistral-products">
-            Attributions &amp; Licenses - Mistral Products
+          <h3 id="meteohub-products">
+            Attributions &amp; Licenses - MeteoHub Products
           </h3>
           <!-- maps licenses table -->
           <div class="table-responsive" *ngIf="mistral_products?.length">

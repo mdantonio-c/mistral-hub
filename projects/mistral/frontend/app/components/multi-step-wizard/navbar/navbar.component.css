@@ -39,47 +39,47 @@ span.round-tabs {
 }
 
 span.round-tabs.one {
-  color: rgb(34, 194, 34);
-  border: 2px solid rgb(34, 194, 34);
+  color: #004080;
+  border: 2px solid #004080;
 }
 
 li.active span.round-tabs.one {
   background: #fff !important;
   border: 2px solid #ddd;
-  color: rgb(34, 194, 34);
+  color: #004080;
 }
 
 span.round-tabs.two {
-  color: #febe29;
-  border: 2px solid #febe29;
+  color: #004080;
+  border: 2px solid #004080;
 }
 
 li.active span.round-tabs.two {
   background: #fff !important;
   border: 2px solid #ddd;
-  color: #febe29;
+  color: #004080;
 }
 
 span.round-tabs.three {
-  color: #3e5e9a;
-  border: 2px solid #3e5e9a;
+  color: #004080;
+  border: 2px solid #004080;
 }
 
 li.active span.round-tabs.three {
   background: #fff !important;
   border: 2px solid #ddd;
-  color: #3e5e9a;
+  color: #1B77BC;
 }
 
 span.round-tabs.four {
-  color: #f1685e;
-  border: 2px solid #f1685e;
+  color:#004080;
+  border: 2px solid #004080;
 }
 
 li.active span.round-tabs.four {
   background: #fff !important;
   border: 2px solid #ddd;
-  color: #f1685e;
+  color: #004080;
 }
 
 span.round-tabs.five {
@@ -159,7 +159,7 @@ li.active span.round-tabs.five {
 }
 
 .btn.green {
-  background-color: #5cb85c;
+  background-color: #5DB984;
   /*border: 2px solid #5cb85c;*/
   color: #ffffff;
 }
@@ -200,21 +200,21 @@ li.active span.round-tabs.five {
 
 /* active buttons */
 #status-buttons a.active span.round-tabs.one {
-  background: rgb(34, 194, 34);
+  background:#004080;
   color: #fff;
 }
 
 #status-buttons a.active span.round-tabs.two {
-  background: #febe29;
+  background: #004080;
   color: #fff;
 }
 
 #status-buttons a.active span.round-tabs.three {
-  background: #3e5e9a;
+  background: #004080;
   color: #fff;
 }
 
 #status-buttons a.active span.round-tabs.four {
-  background: #f1685e;
+  background: #004080;
   color: #fff;
 }
