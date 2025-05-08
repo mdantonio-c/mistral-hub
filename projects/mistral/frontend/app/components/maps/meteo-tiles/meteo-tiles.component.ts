@@ -33,10 +33,8 @@ import { BaseMapComponent } from "../base-map.component";
 
 declare module "leaflet" {
   let timeDimension: any;
-  let timeDimensionControl: any;
   let VectorField: any;
   let canvasLayer: any;
-  let ScalarField: any;
 }
 
 const ICON_BOUNDS = {
@@ -100,7 +98,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     maxBounds: this.bounds,
     maxBoundsViscosity: 1.0,
     timeDimension: true,
-    timeDimensionControl: true,
+    timeDimensionControl: false,
     timeDimensionControlOptions: {
       timeZones: ["utc", "local"],
       timeSteps: 1,
@@ -126,6 +124,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
   private messageShown = false;
   private beginTime;
   private wmsPath: string;
+  private timeDimensionControl: any;
 
   constructor(injector: Injector, private tilesService: TilesService) {
     super(injector);
@@ -162,6 +161,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       if (["it", "en"].includes(lang)) {
         this.lang = lang;
       }
+
       //console.log(`lang: ${this.lang}`);
       if (view) {
         // check for valid view mode
@@ -198,9 +198,9 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
 
       // clean the url from the query parameters
       /*this.router.navigate([], {
-                                            queryParams: { view: null, dataset: null },
-                                            queryParamsHandling: "merge",
-                                          });*/
+                                                  queryParams: { view: null, dataset: null },
+                                                  queryParamsHandling: "merge",
+                                                });*/
     });
   }
 
@@ -217,6 +217,51 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     this.map.attributionControl.setPrefix("");
     // view mode
     console.log(`view mode: ${ViewModes[this.viewMode]}`);
+    (window as any).L.Control.TimeDimensionCustom = (
+      window as any
+    ).L.Control.TimeDimension.extend({
+      onAdd: function (map: L.Map) {
+        const container = (
+          window as any
+        ).L.Control.TimeDimension.prototype.onAdd.call(this, map);
+        this.timeZoneSelect = container.querySelector(
+          ".timecontrol-timezone select",
+        );
+        return container;
+      },
+
+      _getDisplayDateFormat: function (date: Date) {
+        const timeZone = this._getCurrentTimeZone().toLowerCase();
+
+        if (timeZone === "utc") {
+          return moment.utc(date).format("DD-MM-YYYY HH:mm [UTC]");
+        }
+
+        if (timeZone === "local") {
+          const offsetHours = moment(date).utcOffset() / 60;
+          const sign = offsetHours >= 0 ? "+" : "-";
+          return moment(date).format(
+            `DD-MM-YYYY HH:mm [UTC${sign}${Math.abs(offsetHours)}]`,
+          );
+        }
+      },
+    });
+
+    this.timeDimensionControl = new (
+      window as any
+    ).L.Control.TimeDimensionCustom({
+      timeZones: ["utc", "local"],
+      limitSliders: true,
+      speedSlider: true,
+      maxSpeed: 2,
+      playerOptions: {
+        buffer: 0,
+        transitionTime: 750,
+        loop: true,
+      },
+    });
+    this.map.addControl(this.timeDimensionControl);
+    console.log(this.timeDimensionControl);
 
     this.loadRunAvailable(this.dataset);
     if (this.dataset === "icon") this.addIconBorderLayer();
@@ -282,37 +327,32 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                 });
             } else if (variable === "tp" || variable === "snow") {
               /* const stringHourToExclude = comp.stringHourToExclude(offset);
-              if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
-                comp.map.removeLayer(overlays[layer]);
-                let comp_name = comp.getFileName(
-                  variable,
-                  comp.tmpStringHourCode,
-                );
+                            if (!stringHourToExclude.includes(comp.tmpStringHourCode)) {
+                              comp.map.removeLayer(overlays[layer]);
+                              let comp_name = comp.getFileName(
+                                variable,
+                                comp.tmpStringHourCode,
+                              );
 
-                overlays[layer] = comp.getWMSTileWithOptions(
-                  comp.wmsPath,
-                  `meteohub:tiff_store_${field}_` + comp_name,
-                );
-                overlays[layer].addTo(comp.map);
-              } else {
-                comp.map.removeLayer(overlays[layer]);
-                const emptyLayer = L.canvas();
-                overlays[layer] = emptyLayer;
-                emptyLayer.addTo(comp.map);
-              }*/
+                              overlays[layer] = comp.getWMSTileWithOptions(
+                                comp.wmsPath,
+                                `meteohub:tiff_store_${field}_` + comp_name,
+                              );
+                              overlays[layer].addTo(comp.map);
+                            } else {
+                              comp.map.removeLayer(overlays[layer]);
+                              const emptyLayer = L.canvas();
+                              overlays[layer] = emptyLayer;
+                              emptyLayer.addTo(comp.map);
+                            }*/
             } else {
               if (variable === "pmsl") {
-                comp.map.removeLayer(overlays[layer]);
                 let geoJcomp_name = comp.getFileName(
                   variable,
                   comp.tmpStringHourCode,
                 );
                 geoJcomp_name = geoJcomp_name + ".geojson";
-
-                if (comp.onlyPrs) {
-                  if (!comp.legends[layer]) comp.legends[layer].addTo(comp.map);
-                }
-                return new Promise((resolve, reject) => {
+                new Promise((resolve, reject) => {
                   const subscription = comp.tilesService
                     .getGeoJsonComponent(
                       comp.dataset,
@@ -321,20 +361,11 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                     )
                     .subscribe({
                       next: (geoJson) => {
-                        let isobars = comp.addIsobars(geoJson, comp.map);
-                        if (comp.onlyPrs) {
-                          overlays[layer] = L.layerGroup([
-                            isobars,
-                            comp.getWMSTileWithOptions(
-                              comp.wmsPath,
-                              layerMap[DP.PMSL],
-                            ),
-                          ]);
-                        } else {
-                          overlays[layer] = isobars;
+                        let isobars = comp.addIsobars(geoJson);
+                        (overlays[layer] as L.LayerGroup).addLayer(isobars);
+                        if (!comp.map.hasLayer(overlays[layer])) {
+                          overlays[layer].addTo(comp.map);
                         }
-                        //if (comp.legends[layer]) comp.map.removeControl(comp.legends[layer]);
-                        overlays[layer].addTo(comp.map);
                       },
                       error: (error) => {
                         console.error(
@@ -463,10 +494,14 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       subtree: true,
     });
   }
+
   fetchSelectedLayers(event) {
+    console.log(event);
     if (event.includes("ws10m")) {
-      this.removePlayButton();
-    } else this.addPlayButton();
+      this.timeDimensionControl._player.setTransitionTime(1250);
+    } else {
+      this.timeDimensionControl._player.setTransitionTime(750);
+    }
   }
 
   setHourTimeStamp(map) {
@@ -582,15 +617,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       });
   }
 
-  createCustomColorScale(colorStops) {
-    const domainValues = colorStops.map((stop) => stop.value);
-    const colors = colorStops.map((stop) => stop.color);
-    // discrete color scale
-    return chroma.scale(colors).classes(domainValues);
-    // continue color scale
-    //return chroma.scale(colors).domain(domainValues);
-  }
-
   getFileName(componentName: string, hour: string | null = null): string {
     let now_ = new Date().getUTCHours().toString();
     if (now_.length === 1) now_ = "0" + now_;
@@ -600,28 +626,18 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     return comp_name;
   }
 
-  addIsobars(geoJson, map) {
-    return L.geoJSON(geoJson, {
+  addIsobars(geoJson) {
+    const isobarLayer = L.geoJSON(geoJson, {
       style: function () {
         return {
-          color: "grey",
-          weight: 1,
-          opacity: 0.8,
+          color: "transparent",
+          weight: 6,
+          opacity: 0,
+          interactive: true,
         };
       },
       onEachFeature: function (feature, layer) {
-        let invisibleLayer = L.geoJSON(feature, {
-          style: function () {
-            return {
-              color: "transparent",
-              weight: 6,
-              opacity: 0,
-              interactive: true,
-            };
-          },
-        }).addTo(map);
-
-        invisibleLayer.on("mouseover", function (e) {
+        layer.on("mouseover", function (e) {
           layer
             .bindTooltip(feature.properties.label + " hPa", {
               permanent: false,
@@ -632,14 +648,18 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             })
             .openTooltip(e.latlng);
         });
-        invisibleLayer.on("mousemove", function (e) {
+
+        layer.on("mousemove", function (e) {
           layer.openTooltip(e.latlng);
         });
-        invisibleLayer.on("mouseout", function () {
+
+        layer.on("mouseout", function () {
           layer.closeTooltip();
         });
       },
     });
+
+    return isobarLayer;
   }
 
   addIconBorderLayer() {
@@ -821,22 +841,52 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       this.map.hasLayer(this.layersControl["overlays"][DP.PMSL])
     ) {
       this.map.removeLayer(this.layersControl["overlays"][DP.PMSL]);
-      let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
-      geoJcomp_name = geoJcomp_name + ".geojson";
       if (newValue) {
         this.legends[DP.PMSL].addTo(this.map);
-      } else {
-        if (this.legends[DP.PMSL])
-          this.map.removeControl(this.legends[DP.PMSL]);
-        return new Promise((resolve, reject) => {
+        this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
+          this.getWMSTileWithOptions(this.wmsPath, layerMap[DP.PMSL]),
+          this.getWMSTileWithOptions(this.wmsPath, "meteohub:pressure-isob"),
+        ]);
+        let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
+        geoJcomp_name = geoJcomp_name + ".geojson";
+        new Promise((resolve, reject) => {
           const subscription = this.tilesService
             .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
             .subscribe({
               next: (geoJson) => {
-                this.layersControl["overlays"][DP.PMSL] = this.addIsobars(
-                  geoJson,
-                  this.map,
+                let isobars = this.addIsobars(geoJson);
+                this.layersControl["overlays"][DP.PMSL].addLayer(isobars);
+                this.layersControl["overlays"][DP.PMSL].addTo(this.map);
+              },
+              error: (error) => {
+                console.error(
+                  `Error while downloading/processing ${geoJcomp_name} file`,
+                  error,
                 );
+                reject(error);
+              },
+            });
+          this.subscriptions.push(subscription);
+        });
+      } else {
+        this.map.removeLayer(this.layersControl["overlays"][DP.PMSL]);
+        if (this.legends[DP.PMSL])
+          this.map.removeControl(this.legends[DP.PMSL]);
+        let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
+        geoJcomp_name = geoJcomp_name + ".geojson";
+        new Promise((resolve, reject) => {
+          const subscription = this.tilesService
+            .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
+            .subscribe({
+              next: (geoJson) => {
+                let isobars = this.addIsobars(geoJson);
+                this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
+                  this.getWMSTileWithOptions(
+                    this.wmsPath,
+                    "meteohub:pressure-isob",
+                  ),
+                  isobars,
+                ]);
                 this.layersControl["overlays"][DP.PMSL].addTo(this.map);
               },
               error: (error) => {
@@ -850,29 +900,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           this.subscriptions.push(subscription);
         });
       }
-      let comp = this;
-      return new Promise((resolve, reject) => {
-        const subscription = this.tilesService
-          .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
-          .subscribe({
-            next: (geoJson) => {
-              let isobars = this.addIsobars(geoJson, comp.map);
-              this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
-                isobars,
-                this.getWMSTileWithOptions(this.wmsPath, layerMap[DP.PMSL]),
-              ]);
-              this.layersControl["overlays"][DP.PMSL].addTo(this.map);
-            },
-            error: (error) => {
-              console.error(
-                `Error while downloading/processing ${geoJcomp_name} file`,
-                error,
-              );
-              reject(error);
-            },
-          });
-        this.subscriptions.push(subscription);
-      });
     }
   }
 
@@ -970,6 +997,20 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
           layerMap[key],
           zIndex,
           1,
+        );
+
+        layer.on("tileerror", () => {
+          console.error(`Errore while downloading ${key}`);
+          overlays[key] = L.canvas();
+        });
+
+        overlays[key] = layer;
+      } else if (layerMap[key].includes("pressure")) {
+        const layer = this.getWMSTileWithOptions(
+          this.wmsPath,
+          "meteohub:pressure-isob",
+          zIndex,
+          3,
         );
 
         layer.on("tileerror", () => {
@@ -1303,10 +1344,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     );
 
     if (baseLayers[layerName]) {
-      let comp_name = this.getFileName(
-        layerMapByDataset.get(layerName as DP)?.variable,
-        this.tmpStringHourCode,
-      );
       overlays[layerName] = this.getWMSTileWithOptions(
         this.wmsPath,
         layerMap[layerName],
@@ -1335,8 +1372,74 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       return;
     }
     if (layerName === DP.PMSL) {
-      this.handlePMSLLayer();
-      return;
+      //this.handlePMSLLayer();
+      //return;
+      this.setHourTimeStamp(this.map);
+      let geoJcomp_name = this.getFileName("pmsl", this.tmpStringHourCode);
+      geoJcomp_name = geoJcomp_name + ".geojson";
+      if (this.onlyPrs) {
+        new Promise((resolve, reject) => {
+          const subscription = this.tilesService
+            .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
+            .subscribe({
+              next: (geoJson) => {
+                const layerGroup = L.layerGroup([
+                  this.getWMSTileWithOptions(this.wmsPath, layerMap[DP.PMSL]),
+                  this.getWMSTileWithOptions(
+                    this.wmsPath,
+                    "meteohub:pressure-isob",
+                    3,
+                  ),
+                ]);
+                this.layersControl["overlays"][DP.PMSL] = layerGroup;
+                this.layersControl["overlays"][DP.PMSL].addLayer(
+                  this.addIsobars(geoJson),
+                );
+                this.layersControl["overlays"][DP.PMSL].addTo(this.map);
+                this.legends[DP.PMSL].addTo(this.map);
+              },
+              error: (error) => {
+                console.error(
+                  `Error while downloading/processing ${geoJcomp_name} file`,
+                  error,
+                );
+                reject(error);
+              },
+            });
+          this.subscriptions.push(subscription);
+        });
+      } else {
+        if (this.map.hasLayer(this.layersControl["overlays"][DP.PMSL]))
+          this.map.removeLayer(this.layersControl["overlays"][DP.PMSL]);
+        new Promise((resolve, reject) => {
+          const subscription = this.tilesService
+            .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
+            .subscribe({
+              next: (geoJson) => {
+                this.layersControl["overlays"][DP.PMSL] = L.layerGroup([
+                  this.getWMSTileWithOptions(
+                    this.wmsPath,
+                    "meteohub:pressure-isob",
+                    3,
+                  ),
+                  this.addIsobars(geoJson),
+                ]);
+
+                this.layersControl["overlays"][DP.PMSL].addTo(this.map);
+                if (this.legends[DP.PMSL])
+                  this.map.removeControl(this.legends[DP.PMSL]);
+              },
+              error: (error) => {
+                console.error(
+                  `Error while downloading/processing ${geoJcomp_name} file`,
+                  error,
+                );
+                reject(error);
+              },
+            });
+          this.subscriptions.push(subscription);
+        });
+      }
     }
     const precipitationLayers = [
       DP.PREC1P,
@@ -1354,42 +1457,6 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
       this.handlePrecipitationLayer(layerName, "snow", "meteohub:snow");
       return;
     }
-  }
-
-  handlePMSLLayer() {
-    let geoJcomp_name =
-      this.getFileName("pmsl", this.tmpStringHourCode) + ".geojson";
-
-    return new Promise((resolve, reject) => {
-      const subscription = this.tilesService
-        .getGeoJsonComponent(this.dataset, "pressure-pmsl", geoJcomp_name)
-        .subscribe({
-          next: (geoJson) => {
-            let isobars = this.addIsobars(geoJson, this.map);
-            let layerGroup = this.onlyPrs
-              ? L.layerGroup([
-                  isobars,
-                  this.getWMSTileWithOptions(this.wmsPath, layerMap[DP.PMSL]),
-                ])
-              : isobars;
-
-            this.layersControl["overlays"][DP.PMSL] = layerGroup;
-            if (this.onlyPrs) this.legends[DP.PMSL]?.addTo(this.map);
-            else
-              this.legends[DP.PMSL] &&
-                this.map.removeControl(this.legends[DP.PMSL]);
-            layerGroup.addTo(this.map);
-          },
-          error: (error) => {
-            console.error(
-              `Error downloading/processing ${geoJcomp_name}`,
-              error,
-            );
-            reject(error);
-          },
-        });
-      this.subscriptions.push(subscription);
-    });
   }
 
   handlePrecipitationLayer(layerName, prefix, basePath) {

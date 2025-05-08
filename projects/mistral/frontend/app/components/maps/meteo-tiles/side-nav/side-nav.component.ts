@@ -472,7 +472,7 @@ export class SideNavComponent implements OnInit {
 
     for (const [key, layer] of Object.entries(this.overlays)) {
       if (this.map.hasLayer(layer)) {
-        (layer as L.TileLayer).bringToFront;
+        (layer as L.TileLayer).bringToFront();
       }
     }
   }
