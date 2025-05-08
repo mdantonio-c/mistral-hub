@@ -106,7 +106,7 @@ export class LicenseComponent implements OnInit {
               name: "Multi layer Map",
               description:
                 "Graphic representation of data collected in MeteoHub platform from different models",
-              attribution_description: "CINECA AIM",
+              attribution_description: "CINECA Agenzia ItaliaMeteo",
               //attribution_url: attr_url,
               license_description: " CC BY-ND 4.0",
               license_url:
