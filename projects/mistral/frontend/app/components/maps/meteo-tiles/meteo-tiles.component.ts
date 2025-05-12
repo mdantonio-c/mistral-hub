@@ -1023,7 +1023,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
                 overlaysPressure.addLayer(
                   this.getWMSTileWithOptions(this.wmsPath, layerMap[DP.PMSL]),
                 );
+                this.legends[DP.PMSL].addTo(this.map);
               } else {
+                if (this.legends[DP.PMSL])
+                  this.map.removeControl(this.legends[DP.PMSL]);
                 overlaysPressure.eachLayer((layer) => {
                   if (layer._currentLayer) {
                     if (
