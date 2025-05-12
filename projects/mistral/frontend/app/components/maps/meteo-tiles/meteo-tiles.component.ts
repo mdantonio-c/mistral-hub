@@ -807,7 +807,10 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
             paths: r,
             fade: 0.92,
             velocityScale: 0.001,
+            particles: 1,
+            particleAge: 30,
           });
+
           resolve(windVectorField);
         },
         //complete: ()=> {console.timeEnd('addwindlayer')},
@@ -1074,14 +1077,7 @@ export class MeteoTilesComponent extends BaseMapComponent implements OnInit {
     /////////// WIND //////////
     ////////////////////////////////////
     if ("ws10m" in this.variablesConfig) {
-      this.addWindLayer(this.minZoom, this.dataset)
-        .then((l) => {
-          this.layersControl["overlays"][DP.WIND10M] = L.layerGroup([l]);
-        })
-        .catch((error) => {
-          console.error("Error while loading layer WIND10M:", error);
-          overlays[DP.WIND10M] = L.canvas();
-        });
+      this.layersControl["overlays"][DP.WIND10M] = L.layerGroup([]);
     }
     ////////////////////////////////////
     /////////// RELATIVE HUMIDITY //////////
