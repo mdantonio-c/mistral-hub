@@ -341,6 +341,11 @@ export class SideNavComponent implements OnInit {
   ) {
     // max 4 fields at time
     if (this.max4Layer(layerId)) return;
+    if (layerId === "cc") {
+      if (target.value === "bassa") target.value = "low";
+      if (target.value === "media") target.value = "medium";
+      if (target.value === "alta") target.value = "high";
+    }
     console.log(`activate layer ${layerId}, value ${target.value}`);
     // force active state to the parent layer element
 
