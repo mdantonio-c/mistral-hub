@@ -26,6 +26,7 @@ import {
   toLayerTitle,
 } from "./data";
 import { GenericArg, ValueLabel } from "../../../../types";
+import { layerMap } from "../services/data";
 
 interface ValueLabelChecked extends ValueLabel {
   checked?: boolean;
@@ -241,7 +242,7 @@ export class SideNavComponent implements OnInit {
     // max 4 fields at time
     if (this.max4Layer(layerId)) return;
     this.onSelectedLayerChange.emit(this.selectedLayers);
-    console.log(this.selectedLayers);
+    //console.log(this.selectedLayers);
     // can we do better with multi layer products? (i.e. prp)
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);
     const fromActiveState: boolean = el.classList.contains("attivo");
@@ -340,6 +341,11 @@ export class SideNavComponent implements OnInit {
   ) {
     // max 4 fields at time
     if (this.max4Layer(layerId)) return;
+    if (layerId === "cc") {
+      if (target.value === "bassa") target.value = "low";
+      if (target.value === "media") target.value = "medium";
+      if (target.value === "alta") target.value = "high";
+    }
     console.log(`activate layer ${layerId}, value ${target.value}`);
     // force active state to the parent layer element
 
@@ -472,7 +478,40 @@ export class SideNavComponent implements OnInit {
 
     for (const [key, layer] of Object.entries(this.overlays)) {
       if (this.map.hasLayer(layer)) {
-        (layer as L.TileLayer).bringToFront();
+        if (layer instanceof L.LayerGroup) {
+          if (key === DP.WIND10M) {
+            layer.eachLayer((l) => {
+              if ((l as any)._currentLayer) {
+                if (
+                  (l as any)._currentLayer.options.layers ===
+                  layerMap[DP.WIND10M]
+                ) {
+                  (l as any).bringToFront();
+                }
+              }
+            });
+          } else if (key === DP.PMSL) {
+            layer.eachLayer((l) => {
+              if ((l as any)._currentLayer) {
+                if (
+                  (l as any)._currentLayer.options.layers ===
+                  "meteohub:pressure-isob"
+                ) {
+                  (l as any).bringToFront();
+                }
+                if (
+                  (l as any)._currentLayer.options.layers === layerMap[DP.PMSL]
+                ) {
+                  (l as any).bringToFront();
+                }
+              } else {
+                (l as any).bringToFront();
+              }
+            });
+          }
+        } else {
+          (layer as L.TileLayer).bringToFront();
+        }
       }
     }
   }
