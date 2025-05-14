@@ -70,6 +70,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   id_date: any;
   mapAvailable: boolean = true;
   noMapExist: boolean = false;
+  ImagesUrls: { [key: string]: { sid: string; url: string; blob: Blob } } = {};
 
   @Output() onCollapse: EventEmitter<null> = new EventEmitter<null>();
   private lastRunAt: moment.Moment;
@@ -145,6 +146,7 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
     // }
     // console.log(`ngOnChanges: offsets=${this.offsets}`);
     this.spinner.show(this.IMAGE_SPINNER);
+
     this.meteoService
       .getAllMapImages(this.filter, this.offsets)
       .subscribe(
@@ -154,6 +156,11 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
             this.images[i] = this.sanitizer.bypassSecurityTrustUrl(
               URL.createObjectURL(blobs[i]),
             );
+            this.ImagesUrls[i.toString()] = {
+              sid: i.toString(),
+              url: this.images[i],
+              blob: blobs[i],
+            };
             //console.log(`ngOnChanges: i=${i}`);
           }
         },
@@ -239,7 +246,29 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
   collapse() {
     this.onCollapse.emit();
   }
-
+  onClickButton() {
+    this.getCurrentImageUrl();
+  }
+  getCurrentImageUrl() {
+    const key =
+      this.carousel.activeId.length === 9
+        ? this.carousel.activeId.slice(-1)
+        : this.carousel.activeId.slice(-2);
+    const current = this.ImagesUrls[key];
+    if (current && current.blob) {
+      console.log(this.timestamp);
+      const blob = current.blob;
+      const bloUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = bloUrl;
+      const codeTime = this.timestamp.slice(0, 13).replace(/[-:T]/g, "_") + "Z";
+      link.download = `image_${codeTime}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(bloUrl);
+    }
+  }
   /**
    * Called every time the slide transition is completed.
    * @param slideEvent
@@ -264,7 +293,6 @@ export class MapSliderComponent implements OnChanges, AfterViewInit, OnInit {
       idxSlider = idxSlider + (idx - 46) * 3;
     }
     // console.log(`onSlide: idxSlider=${idxSlider}`);
-
     this.setSliderTo(idxSlider);
     this.updateTimestamp(idxSlider);
   }

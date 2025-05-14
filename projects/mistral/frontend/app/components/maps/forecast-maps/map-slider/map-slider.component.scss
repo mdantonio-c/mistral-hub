@@ -112,3 +112,10 @@ h5.parameter {
 .active {
   border: 2px solid #e49c1e !important;
 }
+
+.button-bottom-left {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  z-index: 1000;
+}
