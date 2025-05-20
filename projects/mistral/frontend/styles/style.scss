@@ -133,6 +133,7 @@ h6 {
     }
   }
   .navbar-nav {
+    background-color: $light-blue !important;
     .nav-link {
       color: white !important;
       text-transform: uppercase;
@@ -1227,7 +1228,7 @@ customfooter > div {
     padding-right: 14px;
     margin-top: 10px;
     margin-bottom: 10px;
-    background-color:$light-blue;
+    background-color:$light-blue !important;
   }
 
   .rpd-menu-controls {

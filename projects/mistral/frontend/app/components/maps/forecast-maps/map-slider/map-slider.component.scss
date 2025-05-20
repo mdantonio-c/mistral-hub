@@ -110,7 +110,7 @@ h5.parameter {
 }
 
 .active {
-  border: 2px solid #e49c1e !important;
+  border: 2px solid #157ACC !important;
 }
 
 .button-bottom-left {
@@ -118,4 +118,10 @@ h5.parameter {
   bottom: 5px;
   left: 5px;
   z-index: 1000;
+}
+
+.save {
+  border-radius: 30px;
+  height: 42px;
+  width: 42px;
 }

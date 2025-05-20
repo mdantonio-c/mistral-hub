@@ -255,8 +255,12 @@
         </ng-template>
       </ngb-carousel>
       <div class="button-bottom-left">
-        <button class="btn btn-primary" (click)="onClickButton()">
-          Save image
+        <button class="save btn btn-primary" (click)="onClickButton()"
+        ngbTooltip=" Save image"
+        placement="right"
+        tooltipClass="tool-tip">
+        
+        <i class="fa-solid fa-image"></i>
         </button>
       </div>
     </div>
