@@ -1,8 +1,8 @@
 location ~ /nwp/?$ {
-  return 301 /nwp/ICON-2I_SURFACE_PRESSURE_LEVEL;
+  return 301 /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS;
 }
 
-location /nwp/ICON-2I_SURFACE_PRESSURE_LEVEL {
+location /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS {
    alias /grib_extraction/;
    autoindex on;
 }
