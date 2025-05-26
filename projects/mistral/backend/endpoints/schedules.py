@@ -376,7 +376,7 @@ class Schedules(EndpointResource):
             return self.pagination_total(counter)
         # get user requests list
         res = SqlApiDbManager.get_user_schedules(
-            db, user.id, sort_by=sort_by, sort_order=sort_order
+            db, user.id, page, size, sort_by=sort_by, sort_order=sort_order
         )
 
         return self.response(res)

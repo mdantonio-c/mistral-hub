@@ -378,7 +378,7 @@ class SqlApiDbManager:
         return db.Request.query.get(request_id)
 
     @staticmethod
-    def get_user_schedules(db, user_id, sort_by=None, sort_order=None):
+    def get_user_schedules(db, user_id, page, size, sort_by=None, sort_order=None):
 
         # default value if sort_by and sort_order are None
         if sort_by is None:
@@ -390,29 +390,26 @@ class SqlApiDbManager:
         current_user = user.query.filter(user.id == user_id).first()
         # user_name = current_user.name
         schedules_list = current_user.schedules
+        if sort_by == "date":
+            if sort_order == "asc":
+                schedules_list = current_user.schedules.order_by(
+                    db.Schedule.submission_date.asc()
+                )
+            if sort_order == "desc":
+                schedules_list = current_user.schedules.order_by(
+                    db.Schedule.submission_date.desc()
+                )
+
+        schedules = schedules_list.paginate(page, size, False).items
 
         user_list = []
 
         # create the response schema
-        for schedule in schedules_list:
+        for schedule in schedules:
             user_schedules = SqlApiDbManager._get_schedule_response(schedule)
             user_list.append(user_schedules)
 
-        if sort_by == "date":
-            if sort_order == "asc":
-                sorted_list = sorted(
-                    user_list, key=lambda date: date["creation_date"]  # type: ignore
-                )
-                return sorted_list
-            if sort_order == "desc":
-                sorted_list = sorted(
-                    user_list,
-                    key=lambda date: date["creation_date"],  # type: ignore
-                    reverse=True,
-                )
-                return sorted_list
-        else:
-            return user_list
+        return user_list
 
     @staticmethod
     def get_uuid(db, user_id):
