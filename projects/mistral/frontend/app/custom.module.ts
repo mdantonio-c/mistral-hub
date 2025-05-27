@@ -91,6 +91,13 @@ import {
   BubbleLineChartComponent,
   ComboBubbleSeriesComponent,
 } from "./components/custom-charts/combo-chart-wind";
+import { HomepageComponent } from './components/homepage/homepage.component';
+import { ContactsComponent } from './components/contacts/contacts.component';
+import { UserGuideRestyleComponent } from './components/user-guide-restyle/user-guide-restyle.component';
+import { DatasetsRestyleComponent } from './components/datasets-restyle/datasets-restyle.component';
+import { AboutComponent } from './components/about/about.component';
+import { TutorialsComponent } from './components/tutorials/tutorials.component';
+import { NewsComponent } from './components/news/news.component';
 const appRoutes: Routes = [
   {
     path: "app/data",
@@ -258,6 +265,13 @@ const appRoutes: Routes = [
     ComboSeriesVerticalComponent,
     BubbleLineChartComponent,
     ComboBubbleSeriesComponent,
+    HomepageComponent,
+    ContactsComponent,
+    UserGuideRestyleComponent,
+    DatasetsRestyleComponent,
+    AboutComponent,
+    TutorialsComponent,
+    NewsComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
