@@ -16,6 +16,7 @@ import {
   VARIABLES_CONFIG_OBS,
   LEGEND_DATA,
   LegendConfig,
+  layersToUpdate,
 } from "../meteo-tiles/services/data";
 import {
   ObsFilter,
@@ -441,30 +442,33 @@ export class AimObservationMapsComponent
             this.variablesConfig["snow"].code === productList[0]
           ) {
             if (lastObs.val <= 0) color = "#FFFFFF";
-            if (lastObs.val > 0 && lastObs.val < 5) {
+            if (lastObs.val > 0 && lastObs.val < 5 / 100) {
               color = "#FFFFFF";
-            } else if (lastObs.val >= 5 && lastObs.val < 10) {
+            } else if (lastObs.val >= 5 / 100 && lastObs.val < 10 / 100) {
               color = "#F7EDF7";
-            } else if (lastObs.val >= 10 && lastObs.val < 15) {
+            } else if (lastObs.val >= 10 / 100 && lastObs.val < 15 / 100) {
               color = "#E8DAE3";
-            } else if (lastObs.val >= 15 && lastObs.val < 20) {
+            } else if (lastObs.val >= 15 / 100 && lastObs.val < 20 / 100) {
               color = "#DECED7";
-            } else if (lastObs.val >= 20 && lastObs.val < 30) {
+            } else if (lastObs.val >= 20 / 100 && lastObs.val < 30 / 100) {
               color = "#CCBCC7";
-            } else if (lastObs.val >= 30 && lastObs.val < 40) {
+            } else if (lastObs.val >= 30 / 100 && lastObs.val < 40 / 100) {
               color = "#C4ADBF";
-            } else if (lastObs.val >= 40 && lastObs.val < 50) {
+            } else if (lastObs.val >= 40 / 100 && lastObs.val < 50 / 100) {
               color = "#BA9BAF";
-            } else if (lastObs.val >= 50 && lastObs.val < 75) {
+            } else if (lastObs.val >= 50 / 100 && lastObs.val < 75 / 100) {
               color = "#A6859B";
-            } else if (lastObs.val >= 75 && lastObs.val < 100) {
+            } else if (lastObs.val >= 75 / 100 && lastObs.val < 100 / 100) {
               color = "#826577";
-            } else if (lastObs.val >= 100 && lastObs.val < 150) {
+            } else if (lastObs.val >= 100 / 100 && lastObs.val < 150 / 100) {
               color = "#5E414D";
-            } else if (lastObs.val >= 150 && lastObs.val < 200) {
+              textColor = "#FFFFFF";
+            } else if (lastObs.val >= 150 / 100 && lastObs.val < 200 / 100) {
               color = "#5A3542";
-            } else if (lastObs.val >= 200) {
+              textColor = "#FFFFFF";
+            } else if (lastObs.val >= 200 / 100) {
               color = "#4D2E39";
+              textColor = "#FFFFFF";
             }
           }
           if (
@@ -644,7 +648,9 @@ export class AimObservationMapsComponent
           ) {
             color = "#7da4eb;";
           }
-
+          htmlIcon =
+            `<div class="mstObsIcon rounded" style="background-color: ${color};"><span style="color: ${textColor} !important;">${val}` +
+            "</span></div>";
           //  for the wind we expect two variables configured in "code"
           if (
             "ws10m" in this.variablesConfig &&
@@ -698,11 +704,8 @@ export class AimObservationMapsComponent
               // icon with only wind speed
               htmlIcon = `<div class="mstObsIcon rounded" style="background-color:#fff;" ><span>${val}</span>&nbsp<span style="color: ${color};"><i class="fa-solid fa-circle></i></span></div>`;
             }
-          } else {
-            htmlIcon =
-              `<div class="mstObsIcon rounded" style="background-color: ${color};"><span style="color: ${textColor} !important;">${val}` +
-              "</span></div>";
           }
+
           let icon = L.divIcon({
             html: htmlIcon,
             iconSize: [24, 6],
