@@ -24,7 +24,7 @@ class OpendataFileList(EndpointResource):
     @decorators.auth.optional()
     @decorators.use_kwargs({"q": fields.Str(required=False)}, location="query")
     @decorators.endpoint(
-        path="/datasets/<dataset_name>/opendata",
+        path="/datasets/<dataset_id>/opendata",
         summary="Get opendata filename and metadata",
         description="Get the list of opendata files for that dataset",
         responses={
@@ -33,16 +33,14 @@ class OpendataFileList(EndpointResource):
             404: "Requested dataset not found",
         },
     )
-    def get(self, user: Optional[User], dataset_name: str, q: str = "") -> Response:
+    def get(self, user: Optional[User], dataset_id: str, q: str = "") -> Response:
         """Get all the opendata filenames and metadata for that dataset"""
-        log.debug("requested for {}", dataset_name)
+        log.debug("requested for {}", dataset_id)
         # check if the dataset exists
         db = sqlalchemy.get_instance()
-        ds_entry = db.Datasets.query.filter_by(name=dataset_name).first()
+        ds_entry = db.Datasets.query.filter_by(arkimet_id=dataset_id).first()
         if not ds_entry:
-            return self.response(
-                f"Dataset not found for name: {dataset_name}", code=404
-            )
+            return self.response(f"Dataset not found for id: {dataset_id}", code=404)
         # check if the dataset is public
         license = db.License.query.filter_by(id=ds_entry.license_id).first()
         group_license = db.GroupLicense.query.filter_by(
@@ -54,7 +52,7 @@ class OpendataFileList(EndpointResource):
                 db, ds_entry.arkimet_id, user
             )
             if not is_authorized:
-                return self.response(f"Dataset {dataset_name} is not public", code=401)
+                return self.response(f"Dataset {dataset_id} is not public", code=401)
 
         query: Dict[str, Any] = {}
         reftime: Dict[str, date] = {}
@@ -256,7 +254,7 @@ class OpendataDownload(EndpointResource):
     @decorators.auth.optional()
     @decorators.use_kwargs(OpenDataDownloadQuery, location="query")
     @decorators.endpoint(
-        path="/opendata/<dataset_name>/download",
+        path="/opendata/<dataset_id>/download",
         summary="Download opendata related to a dataset",
         responses={
             200: "Found files to download",
@@ -266,16 +264,16 @@ class OpendataDownload(EndpointResource):
     def get(
         self,
         user: Optional[User],
-        dataset_name: str,
+        dataset_id: str,
         reftime: Optional[date] = None,
         run: Optional[str] = None,
     ) -> Response:
-        log.debug(f"request for {dataset_name}, reftime: {reftime}, run: {run}")
+        log.debug(f"request for {dataset_id}, reftime: {reftime}, run: {run}")
         # check if the dataset exists
         db = sqlalchemy.get_instance()
-        ds_entry = db.Datasets.query.filter_by(name=dataset_name).first()
+        ds_entry = db.Datasets.query.filter_by(arkimet_id=dataset_id).first()
         if not ds_entry:
-            raise NotFound(f"Dataset not found for name: {dataset_name}")
+            raise NotFound(f"Dataset not found for id: {dataset_id}")
         # check if the dataset is public
         license = db.License.query.filter_by(id=ds_entry.license_id).first()
         group_license = db.GroupLicense.query.filter_by(
@@ -287,7 +285,7 @@ class OpendataDownload(EndpointResource):
                 db, ds_entry.arkimet_id, user
             )
             if not is_authorized:
-                raise Unauthorized(f"Dataset {dataset_name} is not public")
+                raise Unauthorized(f"Dataset {dataset_id} is not public")
 
         # create the query for the db
         query: Dict[str, Any] = {}
@@ -338,7 +336,7 @@ class OpendataDownload(EndpointResource):
                     zip_file.write(filepath, arcname=filename)
             # restore the pointer to the beginning
             zip_buffer.seek(0)
-            zipfile_name = f"opendata_{dataset_name}{f'_reftime_{reftime}'if reftime else ''}{f'_run_{run}'if run else ''}.zip"
+            zipfile_name = f"opendata_{dataset_id}{f'_reftime_{reftime}'if reftime else ''}{f'_run_{run}'if run else ''}.zip"
             return send_file(
                 zip_buffer,
                 download_name=zipfile_name,

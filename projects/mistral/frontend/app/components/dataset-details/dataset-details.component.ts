@@ -40,7 +40,7 @@ export class DatasetDetailsComponent implements OnInit {
       this.spinner.show();
       this.loading = true;
       this.dataService
-        .getOpenData(this.dataset.name)
+        .getOpenData(this.dataset.id)
         .subscribe(
           (response) => {
             // this.data = this.normalize(response);
