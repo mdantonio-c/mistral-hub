@@ -1,6 +1,6 @@
 $light-blue: #e49c1e;
 $light-blue-shadow: rgba(228, 156, 30, 0.25);
-$light-blue: #157ACC;
+$light-blue: #157acc;
 $dark-blue: #004080;
 
 .map-sidenav {
@@ -211,6 +211,10 @@ $dark-blue: #004080;
 
 .cc {
   background-image: url("/app/custom/assets/images/icons/clouds.svg");
+}
+
+.snow {
+  background-image: url("/app/custom/assets/images/icons/snow.svg");
 }
 
 .input {

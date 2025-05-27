@@ -36,6 +36,7 @@ export class SideNavFilterComponent implements OnInit {
   @Input() maxZoom: number = 12;
 
   private _overlays: L.Control.LayersObject;
+
   modes = ViewModes;
   //lang = "en";
 
@@ -44,7 +45,9 @@ export class SideNavFilterComponent implements OnInit {
     new EventEmitter<boolean>();
   @Output() onLayerChange: EventEmitter<Record<string, string | L.Layer>> =
     new EventEmitter<Record<string, string | L.Layer>>();
-
+  @Output() onWindConvert: EventEmitter<boolean> = new EventEmitter<boolean>();
+  windShow = false;
+  windConvert = false;
   zLevel: number;
 
   @Input() set overlays(value: L.Control.LayersObject) {
@@ -92,6 +95,7 @@ export class SideNavFilterComponent implements OnInit {
         comp.changeDetector.detectChanges();
       },
     );
+    console.log(this.varConfig);
   }
 
   @HostListener("window:resize", ["$event"])
@@ -132,11 +136,24 @@ export class SideNavFilterComponent implements OnInit {
     this.onCollapseChange.emit(this.isCollapsed);
   }
 
+  doSomething() {
+    if (!this.windConvert) {
+      this.windConvert = true;
+      this.onWindConvert.emit(this.windConvert);
+    } else {
+      this.windConvert = false;
+      this.onWindConvert.emit(this.windConvert);
+    }
+  }
   toggleLayer(event: Event, layerId: string) {
     event.preventDefault();
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);
     const fromActiveState: boolean = el.classList.contains("attivo");
     const op = fromActiveState ? "remove" : "add";
+    if (layerId === "ws10m" && op == "add") {
+      this.windShow = true;
+    } else this.windShow = false;
+
     // console.log(`toggle "${op}" on layer-id "${layerId}"`);
     if (!this.overlap) {
       if (fromActiveState) {

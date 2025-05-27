@@ -442,6 +442,7 @@ export const VARIABLES_CONFIG_BASE: GenericArg = {
   prp: [3, 6, 12, 24],
   sf: [3, 6],
   cc: [],
+  snow: [],
 };
 
 export const VARIABLES_CONFIG_OBS: GenericArg = {
@@ -461,7 +462,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     timerange: "1,0,3600",
     level: "1,0,0,0",
     value: [],
-    order: 4,
+    order: 2,
   },
   /*sf: {
     label: "snow fall",
@@ -475,7 +476,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     timerange: "254,0,0",
     level: "103,10000,0,0",
     value: [],
-    order: 5,
+    order: 4,
   },
   rh: {
     label: "relative humidity",
@@ -493,7 +494,16 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     timerange: "254,0,0",
     level: "1,0,0,0",
     value: [],
-    order: 2,
+    order: 5,
+  },
+  snow: {
+    label: "snow depth",
+    desc: "TOTAL SNOW DEPTH",
+    code: "B13013",
+    timerange: "254,0,0",
+    level: "1,0,0,0",
+    value: [],
+    order: 6,
   },
 };
 

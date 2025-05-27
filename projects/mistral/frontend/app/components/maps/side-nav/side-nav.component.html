@@ -30,6 +30,12 @@
             {{ item.value.label | translate : lang }}
           </span>
         </a>
+        <button
+          *ngIf="item.key === 'ws10m' && windShow"
+          (click)="doSomething()"
+        >
+          m/s <--> km/h
+        </button>
       </li>
     </ul>
     <ul class="selector">
