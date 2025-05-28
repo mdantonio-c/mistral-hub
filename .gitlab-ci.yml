@@ -1,0 +1,34 @@
+stages:
+  - test
+
+variables:
+  PROJECT: "mistral"
+
+backend_tests:
+  stage: test
+  tags:
+    - mistral
+    - openstack-driver
+  variables:
+    SUBMODULE_DIR: $CI_PROJECT_DIR/submodules
+  script:
+    - export PATH="$HOME/.local/bin:$PATH"
+    # Init Rapydo
+    - mkdir data submodules
+    - echo "INIT Rapydo rapydo --testing --project $PROJECT init --force"
+    - rapydo --testing --project $PROJECT init --force
+    - rapydo version
+    - rapydo pull --quiet
+    - rapydo build
+    - rapydo -e AUTH_LOGIN_BAN_TIME=10 start
+    - rapydo shell backend 'restapi wait'
+    # Run tests
+    - rapydo shell backend 'restapi tests --wait --destroy --folder custom'
+    - LOGURU_LEVEL=WARNING rapydo list services
+    - |
+      if LOGURU_LEVEL=WARNING rapydo list services | grep -E "Exit|Restarting|Created"; then
+      exit 1
+      fi
+    - tail -100 data/logs/backend-server.log || true
+    - tail -100 data/logs/security-events.log || true
+    - rapydo logs || true
