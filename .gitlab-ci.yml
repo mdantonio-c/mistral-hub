@@ -13,6 +13,23 @@ backend_tests:
     SUBMODULE_DIR: $CI_PROJECT_DIR/submodules
   script:
     - export PATH="$HOME/.local/bin:$PATH"
+    - |
+      echo "Check for compatible RaPyDo version..."
+      rapydo version | tee version_output.txt
+
+      # get versions from the file version_output
+      required_version=$(grep "required rapydo" version_output.txt | sed -E 's/.*required rapydo: ([0-9\.]+).*/\1/')
+      current_version=$(grep "^rapydo:" version_output.txt | sed -E 's/rapydo: ([0-9\.]+).*/\1/')
+
+      echo "Required version: $required_version"
+      echo "Current version: $current_version"
+
+      if [ "$required_version" != "$current_version" ]; then
+        echo "RaPyDo version NOT compatible. Downgrading..."
+        pip3 install --upgrade git+https://github.com/rapydo/do.git@$required_version
+      else
+        echo "Correct version of RaPyDo already installed."
+      fi
     # Init Rapydo
     - echo "INIT Rapydo rapydo --testing --project $PROJECT init --force"
     - rapydo --testing --project $PROJECT init --force
