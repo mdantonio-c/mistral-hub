@@ -14,7 +14,6 @@ backend_tests:
   script:
     - export PATH="$HOME/.local/bin:$PATH"
     # Init Rapydo
-    - mkdir data submodules
     - echo "INIT Rapydo rapydo --testing --project $PROJECT init --force"
     - rapydo --testing --project $PROJECT init --force
     - rapydo version
