@@ -154,6 +154,22 @@ const appRoutes: Routes = [
     component: UserGuideComponent,
   },
   {
+    path: "app/user-guide-restyle",
+    component: UserGuideRestyleComponent,
+  },
+  {
+    path: "app/homepage",
+    component: HomepageComponent,
+  },
+  {
+    path: "app/about",
+    component: AboutComponent,
+  },
+  {
+    path: "app/contacts",
+    component: ContactsComponent,
+  },
+  {
     path: "app/admin/bindings",
     component: BindingsComponent,
     canActivate: [AuthGuard],

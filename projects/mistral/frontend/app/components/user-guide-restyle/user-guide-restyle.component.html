@@ -1,1 +1,138 @@
-<p>user-guide-restyle works!</p>
+<div class="container-fluid">
+    <div class="row flex-nowrap">
+        <div class="col-auto col-md-1 col-l-2 col-xl-3 px-sm-2 px-2 sidenav sticky-top">
+       <!--    
+        <label
+        class="toggle px-3 d-none d-sm-inline"
+        (click)="changeCollapse()"
+        [class.collapsed]="isCollapsed"
+        ></label>--> 
+            <div class="d-flex flex-column align-items-center align-items-sm-start mt-3 px-3 pt-2 text-blue">
+                <a href="/" class="d-flex align-items-center pb-3 mb-md-0 me-md-aut text-decoration-none text-darkblue">
+                    <h3 class="fs-5 mb-0">User Guide</h3>
+                </a>
+                <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start">
+                    <li class="nav-item" id="menu-interfaccia">
+                        <a href="#" class="nav-link align-middle px-0 ">
+                            <i class="fa-solid fa-globe text-blue"></i><span class="ms-1 text-blue">Interfaccia Web</span>
+                        </a>
+                        <ul class="collapse show nav flex-column mt-0 ms-3" id="submenu-interfaccia" data-bs-parent="#menu-interfaccia">
+                            <li class="w-100">
+                                <a href="#" class="nav-link px-0"> <span> Utilizzare la funzione di estrazione dati</span></a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link px-0"> <span>Scaricare pacchetti di dati open</span></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" data-bs-toggle="collapse" class="nav-link px-0 align-middle text-blue">
+                            <i class="fa-brands fa-gitlab text-blue me-1"></i> <span>Client Meteo-Hub</span> </a>
+                    </li>
+                    <li class="nav-item" id="menu-api">
+                        <a href="#" class="nav-link px-0 align-middle text-blue">
+                            <i class="fa-solid fa-gear text-blue me-1"></i> <span>API</span>
+                        </a>
+                        <ul class="collapse show nav flex-column ms-3 mt-0" id="submenu-api" data-bs-parent="#menu">
+                            <li class="w-100">
+                                <a href="#" class="nav-link px-0"> <span > Scaricare gli open data usando le API </span></a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link px-0"> <span>Ottenere un token di accesso</span></a>
+                           </li>
+                           <li>
+                            <a href="#" class="nav-link px-0"> <span>Creare una richiesta di estrazione utilizzando le API</span></a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link px-0"> <span>Creare una richiesta pianificata di estrazione dei dati utilizzando le API</span></a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link px-0"> <span>Scaricare i dati utilizzando le API </span></a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <hr>
+            </div>
+        </div>
+        
+        <div class="col-xl-8 col-md-5 py-3 px-3 d-flex justify-content-evenly">
+            <div class="vr vh-100 p-0"></div>
+            <div class="ms-3">
+            <h3>Differenti metodi di download dei dati</h3>
+            <p class="lead">
+                Esistono diversi modi per scaricare i dati dal portale Meteo-Hub.</p>
+            <div>
+                <h4 id="jump-interface" class="text-blue"> Interfaccia Web</h4>
+               
+                <p>Un utente registrato può ottenere dati da uno o più dataset della piattaforma utilizzando la funzione Data Extraction tramite <a class="text-blue" href="https://meteohub.mistralportal.it/app/data/datasets"><b>l’interfaccia web di Meteo-Hub.</b></a></p>
+
+               <h5>Come utilizzare la funzione di estrazione dati</h5>
+                <p>
+                Nella prima fase, l’utente deve selezionare uno o più set di dati (la selezione multipla è consentita solo con set di dati della stessa categoria: osservazione, previsione, radar).<br>
+
+                Nel secondo passaggio, l’utente può filtrare rispettando i parametri forniti specifici per la categoria del set di dati:</p>
+                <table class="table">
+                    <thead class="text-darkblue">
+                    <tr>
+                        <th scope="col">Categoria</th>
+                        <th scope="col">Filtro</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <th scope="row">Osservazioni </th>
+                        <td>Reftime, Livello, Prodotto, Intervallo di tempo</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Previsione</th>
+                        <td>Reftime, Area, Livello, Origine, Proddef, Prodotto, Esecuzione, Intervallo di tempo</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Radar</th>
+                        <td>Reftime, Area, Livello, Origine, Proddef, Prodotto, Esecuzione, Intervallo di tempo </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <p>Se all’utente è consentito utilizzare strumenti di post-elaborazione, questi possono essere applicati nel terzo passaggio. <br> Il set di strumenti di post-elaborazione è specifico per la categoria del set di dati:</p>
+                <table class="table">
+                    <thead class="text-darkblue">
+                    <tr>
+                        <th scope="col">Categoria</th>
+                        <th scope="col">Post-processing</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <th scope="row">Osservazioni </th>
+                        <td>Variabili derivate, tempo di post-processing, filtro di controllo qualità, conversione del formato</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Previsione</th>
+                        <td>Reftime, Area, Livello, Origine, Proddef, Prodotto, Esecuzione, Intervallo di tempo</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Radar</th>
+                        <td>Variabili derivate, Post-processing temporale, Post-processing spaziale</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p>
+                Nel quarto e ultimo passaggio, l’utente deve immettere un nome per la richiesta corrente e inviare la richiesta al sistema. Prima di inoltrare la richiesta, è anche possibile programmarla utilizzando il pulsante <b>“Pianifica”</b>.
+
+                Dopo aver inviato una richiesta, l’utente viene indirizzato alla pagina <b>“Le mie richieste”</b> dove, una volta completata l’estrazione, è possibile scaricare i dati di output.
+                <br>
+                Un video tutorial che illustra le quattro fasi di costruzione e presentazione della richiesta è disponibile sul canale YouTube del progetto MISTRAL:</p>
+                <div class="video-container d-flex justify-content-center mb-3">
+                    <iframe width="780" height="420" src="https://www.youtube.com/embed/bAQD-IjS8oQ?si=O83Q5KjEAQwyHTgH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <p>Un tutorial con ulteriori informazioni sull’estrazione dei dati è disponibile:</p>
+                <div class="video-container d-flex justify-content-center mt-3">
+                <iframe width="780" height="420" src="https://www.youtube.com/embed/ci3NSWbH9lk?si=SfGlp46gHSbnglx2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>

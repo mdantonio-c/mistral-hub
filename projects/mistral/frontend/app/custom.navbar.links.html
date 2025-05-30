@@ -1,31 +1,4 @@
 <ul class="navbar-nav">
-  <li class="nav-item">
-    <a
-      class="nav-link"
-      routerLink="/app/datasets"
-      routerLinkActive="active"
-      (click)="collapse()"
-      >Home</a
-    >
-  </li>
-  <li class="nav-item">
-    <a
-      class="nav-link"
-      routerLink="/app/datasets"
-      routerLinkActive="active"
-      (click)="collapse()"
-      >Datasets</a
-    >
-  </li>
-  <li class="nav-item" *ngIf="user">
-    <a
-      class="nav-link text-nowrap"
-      routerLink="app/requests"
-      routerLinkActive="active"
-      (click)="collapse()"
-      >My Requests</a
-    >
-  </li>
   <li class="nav-item" ngbDropdown>
     <a
       class="nav-link clickable"
@@ -35,7 +8,7 @@
       routerLinkActive="active"
       [routerLinkActiveOptions]="{exact: true}"
     >
-      Forecasts
+      Previsioni
       <div
         ngbDropdownMenu
         aria-labelledby="navbarDropdownMapsLink"
@@ -46,14 +19,14 @@
           routerLink="/app/maps/forecasts"
           routerLinkActive="active"
           (click)="collapse()"
-          >Static Map</a
+          >Mappe statiche</a
         >
         <a
           ngbDropdownItem
           routerLink="/app/maps/meteotiles"
           routerLinkActive="active"
           (click)="collapse()"
-          >Multi-layer Map</a
+          >Mappe Multi-layer</a
         >
         <!--<a
           ngbDropdownItem
@@ -74,7 +47,7 @@
       routerLinkActive="active"
       [routerLinkActiveOptions]="{exact: true}"
     >
-      Observations
+      Osservazioni
       <div
         ngbDropdownMenu
         aria-labelledby="navbarDropdownMapsLink"
@@ -85,7 +58,7 @@
           routerLink="/app/maps/observations"
           routerLinkActive="active"
           (click)="collapse()"
-          >Ground stations</a
+          >Mappa Osservati</a
         >
         <!--<a
           ngbDropdownItem
@@ -106,7 +79,7 @@
       routerLinkActive="active"
       [routerLinkActiveOptions]="{exact: true}"
     >
-      Documentation
+      Dataset
       <div
         ngbDropdownMenu
         aria-labelledby="navbarDropdownDocuLink"
@@ -114,17 +87,24 @@
       >
         <a
           ngbDropdownItem
-          href="{{projectHome}}/user-guide/"
+          routerLink="/app/datasets"
           (click)="collapse()"
           target="_blank"
-          >User Guide</a
+          >Datasets</a
         >
+          <a
+            ngbDropdownItem
+            routerLink="app/requests"
+            routerLinkActive="active"
+            (click)="collapse()"
+            >My Requests</a
+          >
         <a
           ngbDropdownItem
-          routerLink="/app/license"
+          routerLink="/app/data/datasets"
           routerLinkActive="active"
           (click)="collapse()"
-          >Attributions &amp; Licenses</a
+          >Data Extraction</a
         >
         <!--<a
           ngbDropdownItem
@@ -136,16 +116,63 @@
       </div>
     </a>
   </li>
-  <!--<li class="nav-item">
+  <li class="nav-item" ngbDropdown>
     <a
-      class="nav-link text-nowrap"
-      href= "{{projectHome}}/user-guide/"
-      (click)="collapse()"
-      target="_blank"
-      >User Guide</a
+      class="nav-link clickable"
+      ngbDropdownToggle
+      id="navbarDropdownDocuLink"
+      role="button"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{exact: true}"
     >
+      Info
+      <div
+        ngbDropdownMenu
+        aria-labelledby="navbarDropdownDocuLink"
+        class="dropdown-menu"
+      > 
+      <a
+        ngbDropdownItem
+        routerLink="/app/about"
+        routerLinkActive="active"
+        (click)="collapse()"
+        >About</a
+      >
+      <a
+        ngbDropdownItem
+        routerLink="/app/user-guide-restyle"
+        routerLinkActive="active"
+        (click)="collapse()"
+        >Guida per l'uso</a
+      >
+      
+        <a
+          ngbDropdownItem
+          routerLink="/app/license"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Attributioni &amp; Licenze</a
+        >
+        <!--<a
+          ngbDropdownItem
+          routerLink="/public/participate"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Participate</a
+        >-->
+      </div>
+    </a>
   </li>
   <li class="nav-item">
+    <a
+      class="nav-link text-nowrap"
+      routerLink= "/app/contacts"
+      routerLinkActive="active"
+      (click)="collapse()"
+      >Contatti</a
+    >
+  </li>
+  <!--<li class="nav-item">
     <a
       class="nav-link text-nowrap"
       routerLink="app/license"

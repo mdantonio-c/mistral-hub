@@ -1,0 +1,25 @@
+
+$light-blue: #157ACC;
+$dark-blue: #004080;
+
+h1 {
+    color: $dark-blue !important;
+}
+.product-icon{
+    width: 100px;
+    height:100px;
+}
+.immagine  {
+    max-width: 250px;
+    height: 150px;
+    object-fit: contain;
+}
+
+.text-darkblue {
+ color: $dark-blue !important;
+}
+
+.logo {
+    width: 20%;
+    height:auto;
+}

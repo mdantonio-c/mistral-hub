@@ -1,0 +1,85 @@
+$light-blue: #157ACC;
+$dark-blue: #004080;
+.background-container {
+    position: relative;
+    margin-bottom:44px;
+
+    &::before {
+    background-image: url('/app/custom/assets/images/8.png');
+    position: absolute;
+    z-index: -4;
+    content: '';
+    background-repeat:no-repeat;
+    background-size:cover;
+    background-position:center;
+    width:100%;
+    height:100%;
+}
+}
+.form-area {
+	padding-top: 7%;
+}
+.row.single-form {
+	box-shadow: 0 2px 20px -5px rgba(0,0,0,0.5);
+}
+.left {
+	background: #004080;
+	padding: 200px 98px;
+}
+.left h2 {
+	color: #fff;
+	font-weight: 700;
+	font-size: 30px;
+}
+.left h2 span {
+	font-weight: 100;
+}
+.single-form{
+    background: #fff;
+}
+.right {
+	padding: 70px 100px;
+	position: relative;
+}
+
+.right .button {
+    border-radius: 30px;
+   &:hover {
+        background-color: $dark-blue !important;
+    }
+}
+
+
+/*responsive*/
+
+@media (min-width:768px) and (max-width:991px){
+    .right i {
+	top: -52px;
+	transform: rotate(90deg);
+	left: 50%;
+}
+}
+
+@media (max-width:767px){
+    .left {
+  padding: 90px 15px;
+  text-align: center;
+}
+.left h2 {
+  font-size: 25px;
+}
+.right {
+  padding: 25px;
+}
+.right i {
+  top: -52px;
+  transform: rotate(90deg);
+  left: 46%;
+}
+    .right button {
+	width: 150px;
+	padding: 12px 0;
+}
+    
+}
+

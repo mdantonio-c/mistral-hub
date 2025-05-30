@@ -1,0 +1,22 @@
+$light-blue: #157ACC;
+$dark-blue: #004080;
+
+.image-background {
+    background-image: url("/app/custom/assets/images/8.png")
+}
+
+.product-icon{
+    width: 100px;
+    height:100px;
+}
+
+.button {
+    border-radius: 30px;
+   &:hover {
+        background-color: $dark-blue !important;
+    }
+}
+
+.featurette-image {
+    max-width: 80%;
+}

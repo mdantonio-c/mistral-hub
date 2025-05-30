@@ -1,0 +1,46 @@
+$light-blue: #157ACC;
+$dark-blue: #004080;
+
+.text-blue {
+    color: $light-blue !important;
+}
+
+.text-darkblue {
+    color: $dark-blue !important;
+}
+.sidenav {
+    z-index: 1000;
+    height: 100%;
+    cursor: auto;
+  
+    .dropdown-menu.show {
+      position: relative !important;
+      transform: none !important;
+    }
+  
+    &.collapsed {
+      width: 50px !important;
+    }
+}
+ .vr {
+    margin-top: -30px !important;
+    width: 1px !important;
+    height: 100% !important;
+ }
+.toggle {
+    cursor: pointer;    
+    background-image: url("/app/custom/assets/images/icons/mb_exit_blue.svg");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    transition: 0.6s;
+    margin-top: -5px;
+
+    &.collapsed {
+      background-image: url("/app/custom/assets/images/icons/menu_burger_blue.svg");
+      left: 0;
+    } 
+}
