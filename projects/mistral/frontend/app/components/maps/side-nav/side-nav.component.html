@@ -92,6 +92,33 @@
         </div>
       </li>
       -->
+      <li class="sidenav-item dropdown mt-2">
+        <label *ngIf="!isCollapsed" class="nav-text fw-bold">NETWORKS</label>
+        <select
+          class="form-select form-select-sm mt-1 w-100"
+          [(ngModel)]="selectedOption"
+          [disabled]="!dropdownOptions?.length"
+        >
+          <option [ngValue]="null" disabled selected>-- Scegli --</option>
+          <option *ngFor="let option of dropdownOptions" [value]="option">
+            {{ option }}
+          </option>
+        </select>
+      </li>
+      <li class="sidenav-item dropdown mt-2">
+        <div class="d-flex align-items-center">
+          <button
+            type="button"
+            class="btn btn-border-classic no-rounded ms-1"
+            (click)="download()"
+          >
+            <i class="fa fa-download"></i>
+          </button>
+          <label *ngIf="!isCollapsed" class="nav-text fw-bold ms-2"
+            >DOWNLOAD DATA</label
+          >
+        </div>
+      </li>
     </ul>
   </div>
 </nav>

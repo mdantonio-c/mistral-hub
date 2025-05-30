@@ -718,3 +718,51 @@ export const layersToUpdate = [
   { layer: DP.HCC, field: "cloud_hml-hcc", variable: "hcc" },
   { layer: DP.WIND10M, field: "wind", variable: "10uv" },
 ];
+
+export const NETWORK_NAMES = [
+  "Any",
+  "Sardegna",
+  "Sicilia",
+  "Calabria",
+  "Basilicata",
+  "Campania",
+  "Puglia",
+  "Lazio",
+  "Molise",
+  "Marche",
+  "Umbria",
+  "Emilia-Romagna",
+  "Veneto",
+  "Lombardia",
+  "Piemonte",
+  "Liguria",
+  "Provincia autonoma di Bolzano",
+  "Provincia autonoma di Trento",
+  "Meteonetwork",
+];
+
+export const NETWORKS = [
+  { name: "Any", network: "" },
+  { name: "Sardegna", network: "dpcn-sardegna" },
+  { name: "Sicilia", network: "dpcn-sicilia" },
+  { name: "Calabria", network: "dpcn-calabria" },
+  { name: "Basilicata", network: "dpcn-basilicata" },
+  { name: "Campania", network: "dpcn-campania" },
+  { name: "Puglia", network: "dpcn-puglia" },
+  { name: "Lazio", network: "dpcn-lazio" },
+  { name: "Molise", network: "dpcn-molise" },
+  { name: "Marche", network: "dpcn-marche" },
+  { name: "Umbria", network: "dpcn-umbria" },
+  {
+    name: "Emilia-Romagna",
+    network:
+      "agrmet or claster or locali or simnbo or simnpr or urbane or spdsra or boa",
+  },
+  { name: "Veneto", network: "dpcn-veneto" },
+  { name: "Lombardia", network: "dpcn-lombardia" },
+  { name: "Piemonte", network: "dpcn-piemonte" },
+  { name: "Liguria", network: "dpcn-liguria" },
+  { name: "Provincia autonoma di Bolzano", network: "dpcn-bolzanoboze" },
+  { name: "Provincia autonoma di Trento", network: "open-trentino" },
+  { name: "Meteonetwork", network: "mnw" },
+];

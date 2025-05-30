@@ -1,4 +1,10 @@
-import { Component, OnInit, Input, Injector } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  Input,
+  Injector,
+  ChangeDetectorRef,
+} from "@angular/core";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
 import "@app/../assets/js/leaflet.timedimension.tilelayer.portus.js";
@@ -16,7 +22,7 @@ import {
   VARIABLES_CONFIG_OBS,
   LEGEND_DATA,
   LegendConfig,
-  layersToUpdate,
+  NETWORKS,
 } from "../meteo-tiles/services/data";
 import {
   ObsFilter,
@@ -121,11 +127,15 @@ export class AimObservationMapsComponent
   private fromDate: Date;
   private filter: ObsFilter;
   private windConvert = false;
+  private intervalId: any;
+  private selectedNetwork = "";
+  timelineReferenceDate: string = "";
 
   constructor(
     injector: Injector,
     private obsService: ObsService,
     private modalService: NgbModal,
+    private cdr: ChangeDetectorRef,
   ) {
     super(injector);
   }
@@ -142,8 +152,18 @@ export class AimObservationMapsComponent
         // TODO
       }
     });
+    this.intervalId = setInterval(
+      () => {
+        this.toggleLayer();
+      },
+      10 * 60 * 1000,
+    );
   }
-
+  ngOnDestroy() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+  }
   onMapReady(map: L.Map) {
     this.map = map;
     this.map.attributionControl.setPrefix("");
@@ -220,6 +240,7 @@ export class AimObservationMapsComponent
     this.filter = filter;
     this.loadObservations(filter, true);
     (map as any).timeDimension.setCurrentTime(beforeOneHour);
+    this.timelineReferenceDate = this.printTimeLineReferenceDate();
     this.centerMap();
 
     /* cacht event timeload on the timebar, a timeload event is any injection of time in the timebar */
@@ -248,7 +269,11 @@ export class AimObservationMapsComponent
       };
       this.myRefTime = filter["reftime"];
       this.myTime = filter["time"];
+      if (this.selectedNetwork) filter["network"] = this.selectedNetwork;
       this.loadObservations(filter, true);
+      this.timelineReferenceDate = this.printTimeLineReferenceDate();
+      this.cdr.detectChanges();
+      console.log(filter);
     });
 
     this.legends = {
@@ -362,6 +387,33 @@ export class AimObservationMapsComponent
       this.windConvert = false;
       this.updateWindMarkers();
       // manca aggiornamento della legenda
+    }
+  }
+
+  loadNetwork(event) {
+    if (event === "Any") {
+      this.selectedNetwork = "";
+      this.toggleLayer();
+      return;
+    }
+
+    const selected = NETWORKS.find((n) => n.name === event);
+    if (!selected) {
+      console.error("Network not found for ", event);
+      return;
+    }
+    const network = selected.network;
+    if (Array.isArray(network)) {
+      network.forEach((net) => {
+        console.log(net);
+      });
+    } else {
+      this.filter.network = network;
+      this.filter.reftime = this.filter.reftime ?? this.myRefTime;
+      this.filter.time = this.filter.time ?? this.myTime;
+      console.log(this.filter);
+      this.loadObservations(this.filter, true);
+      this.selectedNetwork = network;
     }
   }
 
@@ -830,6 +882,7 @@ export class AimObservationMapsComponent
   }
 
   toggleLayer(obj?: Record<string, string>) {
+    console.log("entro in toggle layer");
     if (!obj && !this.currentProduct) {
       this.notify.showError("No product selected");
       return;
@@ -858,6 +911,7 @@ export class AimObservationMapsComponent
       } else {
         (this.map as any).timeDimension.setCurrentTime(this.myNow.getTime());
       }
+      if (this.selectedNetwork) this.filter.network = this.selectedNetwork;
       this.loadObservations(this.filter, true);
     }
 
@@ -868,6 +922,7 @@ export class AimObservationMapsComponent
     }
 
     this.currentProduct = obj.name;
+    console.log(this.filter);
   }
 
   protected centerMap() {
@@ -906,6 +961,13 @@ export class AimObservationMapsComponent
     this.now = now;
     return `${moment
       .utc(new Date().getTime())
+      .local()
+      .format("DD-MM-YYYY, HH:mm")}`;
+  }
+
+  printTimeLineReferenceDate(): string {
+    return `${moment
+      .utc((this.map as any).timeDimension.getCurrentTime())
       .local()
       .format("DD-MM-YYYY, HH:mm")}`;
   }
