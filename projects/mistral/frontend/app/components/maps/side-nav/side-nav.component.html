@@ -30,12 +30,20 @@
             {{ item.value.label | translate : lang }}
           </span>
         </a>
-        <button
+
+        <div
           *ngIf="item.key === 'ws10m' && windShow"
-          (click)="doSomething()"
+          class="form-switch wind-switch d-flex mt-1"
         >
-          m/s <--> km/h
-        </button>
+          <input
+            id="windSwitch"
+            type="checkbox"
+            class="form-check-input clickable mt-1"
+            [checked]="doSomething()"
+          />
+          <label class="form-check-label" for="windSwitch"></label>
+          <p i18n>{{ "m/s - km/h" | translate : lang }}</p>
+        </div>
       </li>
     </ul>
     <ul class="selector">
@@ -75,6 +83,34 @@
           >
         </a>
       </li>
+      <li class="sidenav-item">
+        <span
+          class="networks"
+          placement="left"
+          [ngbTooltip]="'Networks'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed">
+          <span class="nav-text" i18n> Networks </span></a
+        >
+        <select
+          class="form-select networks-select"
+          aria-label="Default select example"
+        >
+          <option selected>Open this select menu</option>
+          <option value="1">One</option>
+          <option value="2">Two</option>
+          <option value="3">Three</option>
+        </select>
+      </li>
+      <div class="selettore-quality-control">
+        <label>
+          <input type="radio" name="quality" class="clickable" />
+          <div>Quality Control Filter</div>
+        </label>
+      </div>
+    </ul>
+    <ul class="selector">
       <!--
       <li class="sidenav-item d-flex flex-wrap last switch mt-2" >
         <div class="form-check form-switch">
@@ -97,6 +133,7 @@
         <select
           class="form-select form-select-sm mt-1 w-100"
           [(ngModel)]="selectedOption"
+          (change)="onNetworkChange(selectedOption)"
           [disabled]="!dropdownOptions?.length"
         >
           <option [ngValue]="null" disabled selected>-- Scegli --</option>

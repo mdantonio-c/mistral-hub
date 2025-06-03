@@ -128,7 +128,7 @@ export class AimObservationMapsComponent
   private filter: ObsFilter;
   private windConvert = false;
   private intervalId: any;
-  private selectedNetwork = "";
+  selectedNetwork = "";
   timelineReferenceDate: string = "";
 
   constructor(
@@ -282,6 +282,7 @@ export class AimObservationMapsComponent
       ws10m: this.createLegendControl("ws10m"),
       rh: this.createLegendControl("rh"),
       prp: this.createLegendControl("prp"),
+      snow: this.createLegendControl("snow"),
     };
 
     this.legends[defaultProduct].addTo(map);
@@ -380,17 +381,33 @@ export class AimObservationMapsComponent
       console.log("procedere con il cambio da m/s a km/h");
       this.windConvert = true;
       this.updateWindMarkers();
-      // manca aggiornamento della legenda
+      const legend = new L.Control({ position: this.LEGEND_POSITION });
+      legend.onAdd = () => {
+        let div = L.DomUtil.create("div");
+        div.style.clear = "unset";
+        div.innerHTML += `<img class="legenda" alt="legend" src="/app/custom/assets/images/legends/vkm.svg">`;
+        return div;
+      };
+      this.map.removeControl(this.legends[this.currentProduct]);
+      if (legend) {
+        legend.addTo(this.map);
+      }
+      this.legends[this.currentProduct] = legend;
     }
     if (!event) {
       console.log("riportare i valori a m/s");
       this.windConvert = false;
       this.updateWindMarkers();
-      // manca aggiornamento della legenda
+
+      this.map.removeControl(this.legends[this.currentProduct]);
+      const legend = this.createLegendControl("ws10m");
+      legend.addTo(this.map);
+      this.legends[this.currentProduct] = legend;
     }
   }
 
   loadNetwork(event) {
+    console.log("sono entrato in load network");
     if (event === "Any") {
       this.selectedNetwork = "";
       this.toggleLayer();

@@ -13,7 +13,7 @@ import {
 import { KeyValue } from "@angular/common";
 import { GenericArg, ValueLabel, ObsFilter } from "../../../types";
 import { MOBILE_WIDTH, ViewModes } from "../meteo-tiles/meteo-tiles.config";
-import { NETWORK_NAMES } from "../meteo-tiles/services/data";
+import { NETWORK_NAMES, NETWORKS } from "../meteo-tiles/services/data";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { ObsDownloadComponent } from "../observation-maps/obs-download/obs-download.component";
 
@@ -39,6 +39,7 @@ export class SideNavFilterComponent implements OnInit {
   @Input() maxZoom: number = 12;
 
   private _overlays: L.Control.LayersObject;
+  private network: string = "";
 
   modes = ViewModes;
   //lang = "en";
@@ -143,6 +144,8 @@ export class SideNavFilterComponent implements OnInit {
 
   onNetworkChange(value: string) {
     console.log("Network selezionato:", value);
+    if (value === "Any") this.network = "";
+    else this.network = value;
     this.onNetworkChangeEmitter.emit(value);
   }
 
@@ -155,11 +158,13 @@ export class SideNavFilterComponent implements OnInit {
   }
 
   private toObsFilter(): ObsFilter | ObsFilter[] {
+    console.log(this.network);
     let filter: ObsFilter = {
       product: this._overlays.options["pane"],
       reftime: new Date(),
       time: [0, 23],
       license: "CCBY_COMPLIANT",
+      network: NETWORKS.find((n) => n.name === this.network).network,
     };
 
     if (this._overlays.options["pane"] === "B13011") {
