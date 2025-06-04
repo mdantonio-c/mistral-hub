@@ -158,7 +158,7 @@ export class ObsService {
     }
     // ONLY network and boundingbox as distinct params
     if (filter.network && filter.network !== "") {
-      params["networks"] = filter.network;
+      params["q"] += `;network:${filter.network}`;
     }
     if (filter.bbox) {
       params["bounding_box"] =

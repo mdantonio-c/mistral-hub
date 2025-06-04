@@ -287,6 +287,7 @@ export class ObsFilterComponent implements OnInit {
       // console.log('is form invalid?', this.filterForm.invalid);
       this.loadFilter(val);
       this.filterChange.emit(val);
+      this.filterChange.emit(val);
     });
   }
 

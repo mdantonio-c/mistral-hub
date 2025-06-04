@@ -91,6 +91,7 @@ import {
   BubbleLineChartComponent,
   ComboBubbleSeriesComponent,
 } from "./components/custom-charts/combo-chart-wind";
+import { AimObservationMapsComponent } from "./components/maps/aim-observation-maps/aim-observation-maps.component";
 const appRoutes: Routes = [
   {
     path: "app/data",
@@ -128,6 +129,11 @@ const appRoutes: Routes = [
   {
     path: "app/maps/observations",
     component: ObservationMapsComponent,
+    // canActivate: [AuthGuard],
+  },
+  {
+    path: "app/maps/aimobservations",
+    component: AimObservationMapsComponent,
     // canActivate: [AuthGuard],
   },
   {
@@ -258,6 +264,7 @@ const appRoutes: Routes = [
     ComboSeriesVerticalComponent,
     BubbleLineChartComponent,
     ComboBubbleSeriesComponent,
+    AimObservationMapsComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [

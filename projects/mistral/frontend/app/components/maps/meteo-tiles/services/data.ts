@@ -422,6 +422,13 @@ export const LEGEND_DATA: LegendConfig[] = [
     ],
     labels: ["105", "90", "80", "70", "60", "50", "40", "30", "20", "10", "2"],
   },
+  {
+    id: "snow",
+    legend_type: "legend_snow",
+    title: "SNOW DEPTH [cm])",
+    colors: [],
+    labels: [],
+  },
 ];
 
 export const VARIABLES_CONFIG: GenericArg = {
@@ -442,6 +449,7 @@ export const VARIABLES_CONFIG_BASE: GenericArg = {
   prp: [3, 6, 12, 24],
   sf: [3, 6],
   cc: [],
+  snow: [],
 };
 
 export const VARIABLES_CONFIG_OBS: GenericArg = {
@@ -461,7 +469,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     timerange: "1,0,3600",
     level: "1,0,0,0",
     value: [],
-    order: 4,
+    order: 2,
   },
   /*sf: {
     label: "snow fall",
@@ -475,7 +483,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     timerange: "254,0,0",
     level: "103,10000,0,0",
     value: [],
-    order: 5,
+    order: 4,
   },
   rh: {
     label: "relative humidity",
@@ -493,7 +501,16 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     timerange: "254,0,0",
     level: "1,0,0,0",
     value: [],
-    order: 2,
+    order: 5,
+  },
+  snow: {
+    label: "snow depth",
+    desc: "TOTAL SNOW DEPTH",
+    code: "B13013",
+    timerange: "254,0,0",
+    level: "1,0,0,0",
+    value: [],
+    order: 6,
   },
 };
 
@@ -707,4 +724,52 @@ export const layersToUpdate = [
   { layer: DP.MCC, field: "cloud_hml-mcc", variable: "mcc" },
   { layer: DP.HCC, field: "cloud_hml-hcc", variable: "hcc" },
   { layer: DP.WIND10M, field: "wind", variable: "10uv" },
+];
+
+export const NETWORK_NAMES = [
+  "Any",
+  "Sardegna",
+  "Sicilia",
+  "Calabria",
+  "Basilicata",
+  "Campania",
+  "Puglia",
+  "Lazio",
+  "Molise",
+  "Marche",
+  "Umbria",
+  "Emilia-Romagna",
+  "Veneto",
+  "Lombardia",
+  "Piemonte",
+  "Liguria",
+  "Provincia autonoma di Bolzano",
+  "Provincia autonoma di Trento",
+  "Meteonetwork",
+];
+
+export const NETWORKS = [
+  { name: "Any", network: "" },
+  { name: "Sardegna", network: "dpcn-sardegna" },
+  { name: "Sicilia", network: "dpcn-sicilia" },
+  { name: "Calabria", network: "dpcn-calabria" },
+  { name: "Basilicata", network: "dpcn-basilicata" },
+  { name: "Campania", network: "dpcn-campania" },
+  { name: "Puglia", network: "dpcn-puglia" },
+  { name: "Lazio", network: "dpcn-lazio" },
+  { name: "Molise", network: "dpcn-molise" },
+  { name: "Marche", network: "dpcn-marche" },
+  { name: "Umbria", network: "dpcn-umbria" },
+  {
+    name: "Emilia-Romagna",
+    network:
+      "agrmet or claster or locali or simnbo or simnpr or urbane or spdsra or boa",
+  },
+  { name: "Veneto", network: "dpcn-veneto" },
+  { name: "Lombardia", network: "dpcn-lombardia" },
+  { name: "Piemonte", network: "dpcn-piemonte" },
+  { name: "Liguria", network: "dpcn-liguria" },
+  { name: "Provincia autonoma di Bolzano", network: "dpcn-bolzanoboze" },
+  { name: "Provincia autonoma di Trento", network: "open-trentino" },
+  { name: "Meteonetwork", network: "mnw" },
 ];

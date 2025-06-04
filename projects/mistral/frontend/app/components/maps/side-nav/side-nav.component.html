@@ -30,6 +30,21 @@
             {{ item.value.label | translate : lang }}
           </span>
         </a>
+
+        <div
+          *ngIf="item.key === 'ws10m' && windShow"
+          class="form-switch wind-switch d-flex mt-1"
+        >
+          <input
+            id="windSwitch"
+            type="checkbox"
+            class="form-check-input clickable mt-1"
+            [checked]="windConvert"
+            (change)="toggleWindConvert()"
+          />
+          <label class="form-check-label" for="windSwitch"></label>
+          <p i18n>{{ "m/s - km/h" | translate : lang }}</p>
+        </div>
       </li>
     </ul>
     <ul class="selector">
@@ -69,6 +84,43 @@
           >
         </a>
       </li>
+      <li class="sidenav-item">
+        <span
+          class="networks"
+          placement="left"
+          [ngbTooltip]="'Networks'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed">
+          <span class="nav-text" i18n> Networks </span></a
+        >
+        <select
+          class="form-select networks-select"
+          aria-label="Default select example"
+          [(ngModel)]="selectedOption"
+          (change)="onNetworkChange(selectedOption)"
+        >
+          <option [ngValue]="null" disabled selected>
+            Open this select menu
+          </option>
+          <option *ngFor="let option of dropdownOptions" [value]="option">
+            {{ option }}
+          </option>
+        </select>
+      </li>
+      <div class="selettore-quality-control">
+        <label>
+          <input
+            type="checkbox"
+            class="clickable"
+            [(ngModel)]="selectedQuality"
+            (change)="onQualitySelected($event)"
+          />
+          <div>Quality Control Filter</div>
+        </label>
+      </div>
+    </ul>
+    <ul class="selector">
       <!--
       <li class="sidenav-item d-flex flex-wrap last switch mt-2" >
         <div class="form-check form-switch">
@@ -86,6 +138,34 @@
         </div>
       </li>
       -->
+      <!--      <li class="sidenav-item dropdown mt-2">
+        <label *ngIf="!isCollapsed" class="nav-text fw-bold">NETWORKS</label>
+        <select
+          class="form-select form-select-sm mt-1 w-100"
+          [(ngModel)]="selectedOption"
+          (change)="onNetworkChange(selectedOption)"
+          [disabled]="!dropdownOptions?.length"
+        >
+          <option [ngValue]="null" disabled selected>&#45;&#45; Scegli &#45;&#45;</option>
+          <option *ngFor="let option of dropdownOptions" [value]="option">
+            {{ option }}
+          </option>
+        </select>
+      </li>-->
+      <li class="sidenav-item dropdown mt-2">
+        <div class="d-flex align-items-center">
+          <button
+            type="button"
+            class="btn btn-border-classic no-rounded ms-1"
+            (click)="download()"
+          >
+            <i class="fa fa-download"></i>
+          </button>
+          <label *ngIf="!isCollapsed" class="nav-text fw-bold ms-2"
+            >DOWNLOAD DATA</label
+          >
+        </div>
+      </li>
     </ul>
   </div>
 </nav>

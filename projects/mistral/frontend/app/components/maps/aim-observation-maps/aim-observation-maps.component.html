@@ -1,0 +1,77 @@
+<ngx-spinner
+  type="ball-scale-multiple"
+  bdColor="rgba(255,255,255,0.8)"
+  color="#6c757d"
+  zIndex="1001"
+  [fullScreen]="false"
+  size="medium"
+>
+</ngx-spinner>
+<div
+  class="map"
+  leaflet
+  [leafletOptions]="options"
+  (leafletMapReady)="onMapReady($event)"
+  (leafletMapZoomEnd)="onMapZoomEnd($event)"
+>
+  <side-nav-filter
+    [baseLayers]="layersControl['baseLayers']"
+    [overlays]="layersControl['overlays']"
+    [variables]="variablesConfig"
+    [viewMode]="viewMode"
+    [overlap]="false"
+    [map]="map"
+    [lang]="lang"
+    [minZoom]="minZoom"
+    [maxZoom]="maxZoom"
+    (onLayerChange)="toggleLayer($event)"
+    (onWindConvert)="loadWindMarkersHandle($event)"
+    (onCollapseChange)="onCollapse($event)"
+    (onNetworkChangeEmitter)="loadNetwork($event)"
+    (onQualityControlFilter)="handleQualityChange($event)"
+  ></side-nav-filter>
+
+  <div class="leaflet-top leaflet-left" style="left: 10px">
+    <div class="leaflet-control" style="height: 14px">
+      <div class="selected-dataset-container bg-light">
+        <div class="selected-dataset p-2 pb-0">
+          {{ printDatasetProduct() | translate : lang }}
+        </div>
+
+        <div class="p-2 pt-0" style="max-width: 240px !important">
+          <pre class="d-inline" style="white-space: pre-line">
+            {{ printDatasetDescription() | translate : lang }}
+          </pre>
+          <i
+            class="fa fa-arrows-rotate clickable"
+            aria-hidden="true"
+            (click)="toggleLayer()"
+            placement="bottom"
+            ngbTooltip="Reload"
+          ></i>
+          <pre class="d-inline" style="white-space: pre-line">
+            {{ timelineReferenceDate }}
+          </pre>
+          <pre
+            class="d-inline fw-normal local-hour"
+            style="white-space: pre-line"
+          >
+            {{ printHoursDescription() | translate : lang }} {{ checkHours() }}
+          </pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="leaflet-bottom leaflet-right">
+    <div
+      class="leaflet-control px-2"
+      style="height: auto; width: 180px; margin-right: 2.8rem"
+    >
+      <img
+        class="img-fluid img-thumbnail mt-2 bg-transparent border-0"
+        src="/app/custom/assets/images/Logo_Completo_RGB.png"
+        alt="ItaliaMeteo"
+      />
+    </div>
+  </div>
+</div>
