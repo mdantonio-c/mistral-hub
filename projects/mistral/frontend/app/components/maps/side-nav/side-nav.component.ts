@@ -110,7 +110,6 @@ export class SideNavFilterComponent implements OnInit {
       },
     );
     this.selectedQuality = false;
-    console.log(this.varConfig);
   }
 
   @HostListener("window:resize", ["$event"])
@@ -172,7 +171,9 @@ export class SideNavFilterComponent implements OnInit {
       reftime: new Date(),
       time: [0, 23],
       license: "CCBY_COMPLIANT",
-      network: NETWORKS.find((n) => n.name === this.network).network,
+      network: this.network
+        ? NETWORKS.find((n) => n.name === this.network).network
+        : "",
     };
 
     if (this._overlays.options["pane"] === "B13011") {
@@ -219,7 +220,7 @@ export class SideNavFilterComponent implements OnInit {
     });
     modalRef.componentInstance.filter = filter;
   }
-  doSomething() {
+  /*doSomething() {
     if (!this.windConvert) {
       this.windConvert = true;
       this.onWindConvert.emit(this.windConvert);
@@ -227,7 +228,12 @@ export class SideNavFilterComponent implements OnInit {
       this.windConvert = false;
       this.onWindConvert.emit(this.windConvert);
     }
+  }*/
+  toggleWindConvert() {
+    this.windConvert = !this.windConvert;
+    this.onWindConvert.emit(this.windConvert);
   }
+
   toggleLayer(event: Event, layerId: string) {
     event.preventDefault();
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);

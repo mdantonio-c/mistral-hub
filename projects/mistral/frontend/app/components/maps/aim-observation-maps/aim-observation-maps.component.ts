@@ -414,7 +414,6 @@ export class AimObservationMapsComponent
   }
 
   loadNetwork(event) {
-    console.log("sono entrato in load network");
     if (event === "Any") {
       this.selectedNetwork = "";
       this.toggleLayer();
@@ -436,7 +435,6 @@ export class AimObservationMapsComponent
       this.filter.reftime = this.filter.reftime ?? this.myRefTime;
       this.filter.time = this.filter.time ?? this.myTime;
       if (this.qualityContolFilter) this.filter.reliabilityCheck = true;
-      console.log(this.filter);
       this.loadObservations(this.filter, true);
       this.selectedNetwork = network;
     }
@@ -907,7 +905,6 @@ export class AimObservationMapsComponent
   }
 
   toggleLayer(obj?: Record<string, string>) {
-    console.log("entro in toggle layer");
     if (!obj && !this.currentProduct) {
       this.notify.showError("No product selected");
       return;
@@ -948,7 +945,6 @@ export class AimObservationMapsComponent
     }
 
     this.currentProduct = obj.name;
-    console.log(this.filter);
   }
 
   protected centerMap() {
