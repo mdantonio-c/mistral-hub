@@ -50,6 +50,8 @@ export class SideNavFilterComponent implements OnInit {
   @Output() onLayerChange: EventEmitter<Record<string, string | L.Layer>> =
     new EventEmitter<Record<string, string | L.Layer>>();
   @Output() onWindConvert: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() onQualityControlFilter: EventEmitter<boolean> =
+    new EventEmitter<boolean>();
   @Output() onNetworkChangeEmitter: EventEmitter<string> =
     new EventEmitter<string>();
   @Output() filterDownload: EventEmitter<ObsFilter | ObsFilter[]> =
@@ -59,6 +61,7 @@ export class SideNavFilterComponent implements OnInit {
   zLevel: number;
   dropdownOptions: string[] = NETWORK_NAMES;
   selectedOption: string = "Any";
+  selectedQuality = false;
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -106,6 +109,7 @@ export class SideNavFilterComponent implements OnInit {
         comp.changeDetector.detectChanges();
       },
     );
+    this.selectedQuality = false;
     console.log(this.varConfig);
   }
 
@@ -148,7 +152,11 @@ export class SideNavFilterComponent implements OnInit {
     else this.network = value;
     this.onNetworkChangeEmitter.emit(value);
   }
-
+  onQualitySelected(event) {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    this.onQualityControlFilter.emit(isChecked);
+    this.selectedQuality = isChecked;
+  }
   download() {
     this.filterDownload.emit(this.toObsFilter());
   }

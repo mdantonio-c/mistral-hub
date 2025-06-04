@@ -130,6 +130,7 @@ export class AimObservationMapsComponent
   private intervalId: any;
   selectedNetwork = "";
   timelineReferenceDate: string = "";
+  qualityContolFilter = false;
 
   constructor(
     injector: Injector,
@@ -269,6 +270,7 @@ export class AimObservationMapsComponent
       };
       this.myRefTime = filter["reftime"];
       this.myTime = filter["time"];
+      if (this.qualityContolFilter) filter["reliabilityCheck"] = true;
       if (this.selectedNetwork) filter["network"] = this.selectedNetwork;
       this.loadObservations(filter, true);
       this.timelineReferenceDate = this.printTimeLineReferenceDate();
@@ -406,6 +408,11 @@ export class AimObservationMapsComponent
     }
   }
 
+  handleQualityChange(event) {
+    this.qualityContolFilter = !!event;
+    console.log(this.qualityContolFilter);
+  }
+
   loadNetwork(event) {
     console.log("sono entrato in load network");
     if (event === "Any") {
@@ -428,6 +435,7 @@ export class AimObservationMapsComponent
       this.filter.network = network;
       this.filter.reftime = this.filter.reftime ?? this.myRefTime;
       this.filter.time = this.filter.time ?? this.myTime;
+      if (this.qualityContolFilter) this.filter.reliabilityCheck = true;
       console.log(this.filter);
       this.loadObservations(this.filter, true);
       this.selectedNetwork = network;
@@ -929,6 +937,7 @@ export class AimObservationMapsComponent
         (this.map as any).timeDimension.setCurrentTime(this.myNow.getTime());
       }
       if (this.selectedNetwork) this.filter.network = this.selectedNetwork;
+      if (this.qualityContolFilter) this.filter.reliabilityCheck = true;
       this.loadObservations(this.filter, true);
     }
 
