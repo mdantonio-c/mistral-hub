@@ -53,7 +53,6 @@ import { FlashFloodMapsComponent } from "@app/components/maps/forecast-maps/flas
 import { MapFilterComponent } from "@app/components/maps/forecast-maps/map-filter/map-filter.component";
 import { MapFlashFloodFilterComponent } from "@app/components/maps/forecast-maps/map-filter/map-flash-flood-filter.component";
 import { MapSliderComponent } from "@app/components/maps/forecast-maps/map-slider/map-slider.component";
-import { ObservationMapsComponent } from "@app/components/maps/observation-maps/observation-maps.component";
 import { ObsFilterComponent } from "@app/components/maps/observation-maps/obs-filter/obs-filter.component";
 import { ObsDownloadComponent } from "@app/components/maps/observation-maps/obs-download/obs-download.component";
 import { ObsNavbarComponent } from "@app/components/maps/observation-maps/obs-navbar/obs-navbar.component";
@@ -128,11 +127,6 @@ const appRoutes: Routes = [
   },
   {
     path: "app/maps/observations",
-    component: ObservationMapsComponent,
-    // canActivate: [AuthGuard],
-  },
-  {
-    path: "app/maps/aimobservations",
     component: AimObservationMapsComponent,
     // canActivate: [AuthGuard],
   },
@@ -217,7 +211,6 @@ const appRoutes: Routes = [
     MapFilterComponent,
     MapFlashFloodFilterComponent,
     MapSliderComponent,
-    ObservationMapsComponent,
     ObsFilterComponent,
     ObsDownloadComponent,
     ObsNavbarComponent,
