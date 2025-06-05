@@ -31,7 +31,7 @@ if len(sys.argv) == 5:
 trange_for_accum_dsn = None
 if len(sys.argv) == 6:
     # get the list of the timeranges for pluvio data who needs to be duplicated in the accumulation dballe
-    trange_for_accum_dsn = sys.argv[5].split()
+    trange_for_accum_dsn = sys.argv[5].split(";")
     print(trange_for_accum_dsn)
 
 
