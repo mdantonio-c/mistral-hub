@@ -9,6 +9,9 @@ import dballe
 # sys.stdout = open('out', 'w')
 # sys.stderr = open('err', 'w')
 
+# how to call this script in NiFi
+# obs/amqp2dballe_nifi.py;${network_list};${dt_fore_hours};${dt_back_hours};${accumulation_dsn};${trange_for_accum_dsn}
+
 # get the DEFAULT DSN
 user = os.environ.get("ALCHEMY_USER")
 pw = os.environ.get("ALCHEMY_PASSWORD")
@@ -18,6 +21,18 @@ port = os.environ.get("ALCHEMY_PORT")
 
 DEFAULT_DSN = f"postgresql://{user}:{pw}@{host}:{port}/DBALLE"
 # print("Connecting: " + DEFAULT_DSN, file=sys.stdout)
+ACCUMULATION_DSN = None
+if len(sys.argv) == 5:
+    accumulation_dsn_name = sys.argv[4]
+    ACCUMULATION_DSN = (
+        f"postgresql://{user}:{pw}@{host}:{port}/{accumulation_dsn_name }"
+    )
+
+trange_for_accum_dsn = None
+if len(sys.argv) == 6:
+    # get the list of the timeranges for pluvio data who needs to be duplicated in the accumulation dballe
+    trange_for_accum_dsn = sys.argv[5].split()
+    print(trange_for_accum_dsn)
 
 
 # network enabled report station
@@ -30,6 +45,16 @@ try:
 except BaseException as exc:
     print(str(exc), file=sys.stderr)
     sys.exit(111)
+
+accumulation_db = None
+if ACCUMULATION_DSN:
+    try:
+        accumulation_db = dballe.DB.connect(ACCUMULATION_DSN)
+    except BaseException as exc:
+        # raise a warning at least for now
+        print(
+            f"Exception in connecting to the accumulation db {ACCUMULATION_DSN} : {str(exc)}"
+        )
 
 importer = dballe.Importer("BUFR")
 
@@ -58,6 +83,8 @@ while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
                 for messages in f:
                     for msg in messages:
                         message_ok = True
+                        # to check if the data needs to be duplicated in the accumulation db
+                        need_accumulation_db = False
                         count_messages += 1
                         count_vars = 0
                         new_msg = dballe.Message("generic")
@@ -88,6 +115,17 @@ while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
                                     v.seta(a)
 
                                 new_msg.set(data["level"], data["trange"], v)
+                                if trange_for_accum_dsn:
+                                    # decode the timerange to check the timerange list for accumulation db
+                                    trange = data["trange"]
+                                    decoded_trange = (
+                                        f"{trange.pind},{trange.p1},{trange.p2}"
+                                    )
+                                    if (
+                                        data["variable"].code == "B13011"
+                                        and decoded_trange in trange_for_accum_dsn
+                                    ):
+                                        need_accumulation_db = True
 
                             # copy the station data
                             for data in msg.query_station_data({"query": "attrs"}):
@@ -142,6 +180,15 @@ while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
                                     update_station=True,
                                     import_attributes=True,
                                 )
+                            if need_accumulation_db and accumulation_db:
+                                # ingest the data also in the accumulation db
+                                with accumulation_db.transaction() as tr:
+                                    tr.import_messages(
+                                        msg,
+                                        overwrite=True,
+                                        update_station=True,
+                                        import_attributes=True,
+                                    )
 
     if network_errors:
         print(f"Not valid report Network: {network_errors}", file=sys.stderr)
