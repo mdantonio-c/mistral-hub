@@ -52,7 +52,7 @@ export class ObsDownloadComponent implements OnInit {
   ) {
     this.maxDate = calendar.getToday();
     this.fromDate = calendar.getToday();
-    this.toDate = calendar.getNext(calendar.getToday(), "d", 10);
+    this.toDate = null; // calendar.getNext(calendar.getToday(), "d", 10);
   }
 
   ngOnInit() {

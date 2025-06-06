@@ -165,8 +165,10 @@ export class AimObservationMapsComponent
       clearInterval(this.intervalId);
     }
   }
+
   onMapReady(map: L.Map) {
     this.map = map;
+
     this.map.attributionControl.setPrefix("");
     let tControl = (map as any).timeDimensionControl;
     // to catch forward button click
@@ -226,6 +228,7 @@ export class AimObservationMapsComponent
     //   timerange: VARIABLES_CONFIG_OBS[defaultProduct].timerange,
     //   level: VARIABLES_CONFIG_OBS[defaultProduct].level,
     // };
+
     // add default layer and filter
     const filter: ObsFilter = {
       reftime: beforeOneHour,
@@ -241,8 +244,8 @@ export class AimObservationMapsComponent
     this.filter = filter;
     this.loadObservations(filter, true);
     (map as any).timeDimension.setCurrentTime(beforeOneHour);
-    this.timelineReferenceDate = this.printTimeLineReferenceDate();
     this.centerMap();
+    this.timelineReferenceDate = this.printTimeLineReferenceDate();
 
     /* cacht event timeload on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
@@ -275,7 +278,6 @@ export class AimObservationMapsComponent
       this.loadObservations(filter, true);
       this.timelineReferenceDate = this.printTimeLineReferenceDate();
       this.cdr.detectChanges();
-      console.log(filter);
     });
 
     this.legends = {
