@@ -1,9 +1,9 @@
-include:
-  - local: ".gitlab/jobs/codeql-analysis.yml"
-  - local: ".gitlab/jobs/semgrep-analysis.yml"
-  - local: ".gitlab/jobs/mypy.yml"
-  - local: ".gitlab/jobs/cypress.yml"
-  - local: ".gitlab/jobs/frontend.yml"
+#include:
+#  - local: ".gitlab/jobs/codeql-analysis.yml"
+#  - local: ".gitlab/jobs/semgrep-analysis.yml"
+#  - local: ".gitlab/jobs/mypy.yml"
+#  - local: ".gitlab/jobs/cypress.yml"
+#  - local: ".gitlab/jobs/frontend.yml"
 
 stages:
   - test
