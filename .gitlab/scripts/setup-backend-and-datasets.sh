@@ -31,7 +31,7 @@ wget --quiet "${DATASET_URL}/dballe_summary_CCBY_COMPLIANT.json" -O data/arkimet
 wget --quiet "${DATASET_URL}/sample.bufr" -O data/arkimet_conf/sample.bufr
 wget --quiet "${DATASET_URL}/arkimet.zip" -O arkimet.zip
 
-apt install unzip
+sudo apt install unzip
 unzip -q arkimet.zip -d data/
 
 ls -l data/arkimet || true
