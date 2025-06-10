@@ -418,7 +418,7 @@ export class AimObservationMapsComponent
   }
 
   loadNetwork(event) {
-    if (event === "Any") {
+    if (event === "All") {
       this.selectedNetwork = "";
       this.toggleLayer();
       return;

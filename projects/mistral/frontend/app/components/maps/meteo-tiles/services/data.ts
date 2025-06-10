@@ -727,7 +727,7 @@ export const layersToUpdate = [
 ];
 
 export const NETWORK_NAMES = [
-  "Any",
+  "All",
   "Sardegna",
   "Sicilia",
   "Calabria",
@@ -749,7 +749,7 @@ export const NETWORK_NAMES = [
 ];
 
 export const NETWORKS = [
-  { name: "Any", network: "" },
+  { name: "All", network: "" },
   { name: "Sardegna", network: "dpcn-sardegna" },
   { name: "Sicilia", network: "dpcn-sicilia" },
   { name: "Calabria", network: "dpcn-calabria" },

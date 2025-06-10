@@ -65,7 +65,7 @@ export class SideNavFilterComponent implements OnInit {
   windConvert = false;
   zLevel: number;
   dropdownOptions: string[] = NETWORK_NAMES;
-  selectedOption: string = "Any";
+  selectedOption: string = "All";
   selectedQuality = false;
   showObsFilter = false;
 
