@@ -10,12 +10,10 @@ pw = os.environ.get("ALCHEMY_PASSWORD")
 host = os.environ.get("ALCHEMY_HOST")
 port = os.environ.get("ALCHEMY_PORT")
 
-if len(sys.argv) < 2:
-    dballe_db = "DBALLE"
-elif len(sys.argv) == 2:
+DSN = f"postgresql://{user}:{pw}@{host}:{port}/DBALLE"
+if len(sys.argv) == 2:
     dballe_db = sys.argv[1]
-
-DSN = f"postgresql://{user}:{pw}@{host}:{port}/{dballe_db}"
+    DSN = f"postgresql://{user}:{pw}@{host}:{port}/{dballe_db}"
 
 while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
     data = sys.stdin.buffer
