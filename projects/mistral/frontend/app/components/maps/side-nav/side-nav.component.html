@@ -55,43 +55,20 @@
     </ul>
 
     <ul class="selector">
-      <!-- Zoom Controls -->
-      <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
-        <span
-          class="plus clickable"
-          [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
-          (click)="zoom($event, 'in')"
-          placement="left"
-          [ngbTooltip]="'Zoom in'"
-          [disableTooltip]="!isCollapsed"
-        ></span>
-        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
-          <span
-            class="nav-text"
-            [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
-            i18n
-            >Zoom in</span
+      <!-- Download Data -->
+      <li class="sidenav-item dropdown mt-2" *ngIf="showObsFilter">
+        <div class="d-flex align-items-center">
+          <button
+            type="button"
+            class="btn btn-border-classic no-rounded ms-1"
+            (click)="download()"
           >
-        </a>
-      </li>
-
-      <li class="sidenav-item last" *ngIf="mode == modes.adv">
-        <span
-          class="minus clickable"
-          [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
-          (click)="zoom($event, 'out')"
-          placement="left"
-          [ngbTooltip]="'Zoom out'"
-          [disableTooltip]="!isCollapsed"
-        ></span>
-        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
-          <span
-            class="nav-text"
-            [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
-            i18n
-            >Zoom out</span
+            <i class="fa fa-download"></i>
+          </button>
+          <label *ngIf="!isCollapsed" class="nav-text fw-bold ms-2"
+            >DOWNLOAD DATA</label
           >
-        </a>
+        </div>
       </li>
 
       <!-- Network + Quality Control -->
@@ -133,20 +110,43 @@
     </ul>
 
     <ul class="selector">
-      <!-- Download Data -->
-      <li class="sidenav-item dropdown mt-2" *ngIf="showObsFilter">
-        <div class="d-flex align-items-center">
-          <button
-            type="button"
-            class="btn btn-border-classic no-rounded ms-1"
-            (click)="download()"
+      <!-- Zoom Controls -->
+      <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
+        <span
+          class="plus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+          (click)="zoom($event, 'in')"
+          placement="left"
+          [ngbTooltip]="'Zoom in'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+            i18n
+            >Zoom in</span
           >
-            <i class="fa fa-download"></i>
-          </button>
-          <label *ngIf="!isCollapsed" class="nav-text fw-bold ms-2"
-            >DOWNLOAD DATA</label
+        </a>
+      </li>
+
+      <li class="sidenav-item last" *ngIf="mode == modes.adv">
+        <span
+          class="minus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+          (click)="zoom($event, 'out')"
+          placement="left"
+          [ngbTooltip]="'Zoom out'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+            i18n
+            >Zoom out</span
           >
-        </div>
+        </a>
       </li>
     </ul>
   </div>

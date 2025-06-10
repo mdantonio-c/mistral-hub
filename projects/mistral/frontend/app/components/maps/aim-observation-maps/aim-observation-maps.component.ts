@@ -972,15 +972,22 @@ export class AimObservationMapsComponent
   printDatasetDescription = (): string => {
     let product: string;
     for (let key in VARIABLES_CONFIG_OBS) {
-      if (VARIABLES_CONFIG_OBS[key].code.includes(this.filter.product)) {
+      if (
+        VARIABLES_CONFIG_OBS[key].code.includes(this.filter.product) &&
+        VARIABLES_CONFIG_OBS[key].code != "B11002 or B11001"
+      ) {
         product = VARIABLES_CONFIG_OBS[key].desc;
         break;
+      } else if (VARIABLES_CONFIG_OBS[key].code.includes(this.filter.product)) {
+        product = !this.windConvert
+          ? VARIABLES_CONFIG_OBS[key].desc
+          : "speed and direction near surface (km/h)";
       }
     }
     return product || "";
   };
   printHoursDescription = (): string => {
-    return "dates are expressed in local time";
+    return "local time";
   };
   printReferenceDate(): string {
     const now: number = new Date().getTime();
