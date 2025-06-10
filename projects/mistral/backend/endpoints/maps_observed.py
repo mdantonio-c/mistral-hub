@@ -232,10 +232,12 @@ class MapsObservations(EndpointResource):
         try:
             query_and_dsn_list: Optional[List[Dict[str, Any]]] = []
             if query:
-                query_and_dsn_list = dballe.get_queries_and_dsn_list_with_itertools(query)
+                query_and_dsn_list = dballe.get_queries_and_dsn_list_with_itertools(
+                    query
+                )
             else:
                 # you need to iterate over query list to extract data, so add an empty element to the list
-                query_and_dsn_list.append({"query":None, "aggregations_dsn": None})
+                query_and_dsn_list.append({"query": None, "aggregations_dsn": None})
             raw_res: Optional[Any] = None
             for query_and_dsn in query_and_dsn_list:
                 q = query_and_dsn["query"]
@@ -264,7 +266,7 @@ class MapsObservations(EndpointResource):
                         query_station_data=query_station_data,
                         dsn_subset=dsn_subset,
                         previous_res=raw_res,
-                        aggregations_dsn=query_and_dsn["aggregations_dsn"]
+                        aggregations_dsn=query_and_dsn["aggregations_dsn"],
                     )
         except AccessToDatasetDenied:
             raise ServerError("Access to dataset denied")

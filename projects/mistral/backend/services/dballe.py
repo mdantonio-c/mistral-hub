@@ -2929,13 +2929,15 @@ class BeDballe:
 
     @staticmethod
     def is_query_for_pluvio_aggregations(query_dict):
-        '''
+        """
         Returns the specific dballe dsn for aggregated pluvio data.
-        '''
+        """
         dsn = None
         if "product" and "timerange" in query_dict:
-            if (query_dict["product"][0] == "B13011" and
-                    query_dict["timerange"][0] in BeDballe.AGGREGATIONS_TRANGES):
+            if (
+                query_dict["product"][0] == "B13011"
+                and query_dict["timerange"][0] in BeDballe.AGGREGATIONS_TRANGES
+            ):
                 dsn = BeDballe.AGGREGATIONS_DSN
         return dsn
 
@@ -2967,6 +2969,8 @@ class BeDballe:
                 for k, v in zip(fields, q):
                     single_query[k] = [v]
                 dsn = BeDballe.is_query_for_pluvio_aggregations(single_query)
-                query_and_dsn_list.append({"query": single_query, "aggregations_dsn": dsn})
+                query_and_dsn_list.append(
+                    {"query": single_query, "aggregations_dsn": dsn}
+                )
 
         return query_and_dsn_list
