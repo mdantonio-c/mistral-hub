@@ -1,6 +1,5 @@
 <nav class="map-sidenav" [class.collapsed]="isCollapsed">
   <div class="map-sidenav-menu">
-    <!-- partial collapse -->
     <label
       class="toggle"
       (click)="changeCollapse()"
@@ -53,7 +52,9 @@
           <p i18n>{{ "m/s - km/h" | translate : lang }}</p>
         </div>
       </li>
+    </ul>
 
+    <ul class="selector">
       <!-- Zoom Controls -->
       <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
         <span
@@ -93,7 +94,7 @@
         </a>
       </li>
 
-      <!-- Network Selector -->
+      <!-- Network + Quality Control -->
       <li class="sidenav-item" *ngIf="showObsFilter">
         <span
           class="networks"
@@ -118,8 +119,6 @@
           </option>
         </select>
       </li>
-
-      <!-- Quality Control Filter -->
       <li class="selettore-quality-control" *ngIf="showObsFilter">
         <label>
           <input
@@ -131,7 +130,9 @@
           <div>Quality Control Filter</div>
         </label>
       </li>
+    </ul>
 
+    <ul class="selector">
       <!-- Download Data -->
       <li class="sidenav-item dropdown mt-2" *ngIf="showObsFilter">
         <div class="d-flex align-items-center">
