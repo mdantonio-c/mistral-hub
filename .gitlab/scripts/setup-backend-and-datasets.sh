@@ -54,6 +54,8 @@ cat <<EOF > init.sh
 dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE
 dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr
 EOF
+cat init.sh
+rapydo status
 
 cname=$(docker ps --format '{{.Names}}' | grep "backend")
 docker cp init.sh ${cname}:/tmp/init.sh
