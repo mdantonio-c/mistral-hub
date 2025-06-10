@@ -11,10 +11,9 @@ host = os.environ.get("ALCHEMY_HOST")
 port = os.environ.get("ALCHEMY_PORT")
 
 if len(sys.argv) < 2:
-    print("Error: Usage has to be 'dpc_bufr2dballe.py <dballe_database_name>'.")
-    sys.exit(1)
-
-dballe_db = sys.argv[1]
+    dballe_db = "DBALLE"
+elif len(sys.argv) == 2:
+    dballe_db = sys.argv[1]
 
 DSN = f"postgresql://{user}:{pw}@{host}:{port}/{dballe_db}"
 
