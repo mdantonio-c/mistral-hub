@@ -13,7 +13,11 @@ import {
 import { KeyValue } from "@angular/common";
 import { GenericArg, ValueLabel, ObsFilter } from "../../../types";
 import { MOBILE_WIDTH, ViewModes } from "../meteo-tiles/meteo-tiles.config";
-import { NETWORK_NAMES, NETWORKS } from "../meteo-tiles/services/data";
+import {
+  NETWORK_NAMES,
+  NETWORKS,
+  sharedSideNav,
+} from "../meteo-tiles/services/data";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { ObsDownloadComponent } from "../observation-maps/obs-download/obs-download.component";
 
@@ -37,6 +41,7 @@ export class SideNavFilterComponent implements OnInit {
   @Input() map: L.Map;
   @Input() minZoom: number = 5;
   @Input() maxZoom: number = 12;
+  @Input() mode_1!: sharedSideNav;
 
   private _overlays: L.Control.LayersObject;
   private network: string = "";
@@ -62,6 +67,7 @@ export class SideNavFilterComponent implements OnInit {
   dropdownOptions: string[] = NETWORK_NAMES;
   selectedOption: string = "Any";
   selectedQuality = false;
+  showObsFilter = false;
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -110,6 +116,13 @@ export class SideNavFilterComponent implements OnInit {
       },
     );
     this.selectedQuality = false;
+    if (this.mode_1 === sharedSideNav.livemapComp) {
+      this.showObsFilter = false;
+      console.log(this.showObsFilter);
+    } else {
+      this.showObsFilter = true;
+      console.log(this.showObsFilter);
+    }
   }
 
   @HostListener("window:resize", ["$event"])

@@ -773,3 +773,8 @@ export const NETWORKS = [
   { name: "Provincia autonoma di Trento", network: "open-trentino" },
   { name: "Meteonetwork", network: "mnw" },
 ];
+
+export enum sharedSideNav {
+  livemapComp = "Livemap",
+  observationComp = "Observation",
+}

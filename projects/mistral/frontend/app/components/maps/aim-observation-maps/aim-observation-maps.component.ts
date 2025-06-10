@@ -23,6 +23,7 @@ import {
   LEGEND_DATA,
   LegendConfig,
   NETWORKS,
+  sharedSideNav,
 } from "../meteo-tiles/services/data";
 import {
   ObsFilter,
@@ -131,6 +132,7 @@ export class AimObservationMapsComponent
   selectedNetwork = "";
   timelineReferenceDate: string = "";
   qualityContolFilter = false;
+  sharedSideNav = sharedSideNav;
 
   constructor(
     injector: Injector,

@@ -6,33 +6,40 @@
       (click)="changeCollapse()"
       [class.collapsed]="isCollapsed"
     ></label>
+
     <ul class="selector" *ngIf="varConfig">
+      <!-- Layers -->
       <li
         class="sidenav-item"
         *ngFor="let item of varConfig | keyvalue : valueAscOrder"
       >
         <span
+          *ngIf="item.key !== 'snow' || showObsFilter"
           class="{{ item.key }} clickable"
           (click)="toggleLayer($event, item.key)"
           placement="left"
           [ngbTooltip]="tip"
           [disableTooltip]="!isCollapsed"
         ></span>
-        <ng-template #tip>{{
-          item.value.label | translate : lang | titlecase
-        }}</ng-template>
+        <ng-template #tip>
+          {{ item.value.label | translate : lang | titlecase }}
+        </ng-template>
         <a
           href="#"
           *ngIf="!isCollapsed"
           (click)="toggleLayer($event, item.key)"
         >
-          <span class="nav-text" i18n>
+          <span
+            class="nav-text"
+            *ngIf="item.key !== 'snow' || showObsFilter"
+            i18n
+          >
             {{ item.value.label | translate : lang }}
           </span>
         </a>
 
         <div
-          *ngIf="item.key === 'ws10m' && windShow"
+          *ngIf="item.key === 'ws10m' && windShow && showObsFilter"
           class="form-switch wind-switch d-flex mt-1"
         >
           <input
@@ -46,8 +53,8 @@
           <p i18n>{{ "m/s - km/h" | translate : lang }}</p>
         </div>
       </li>
-    </ul>
-    <ul class="selector">
+
+      <!-- Zoom Controls -->
       <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
         <span
           class="plus clickable"
@@ -66,6 +73,7 @@
           >
         </a>
       </li>
+
       <li class="sidenav-item last" *ngIf="mode == modes.adv">
         <span
           class="minus clickable"
@@ -84,7 +92,9 @@
           >
         </a>
       </li>
-      <li class="sidenav-item">
+
+      <!-- Network Selector -->
+      <li class="sidenav-item" *ngIf="showObsFilter">
         <span
           class="networks"
           placement="left"
@@ -92,8 +102,8 @@
           [disableTooltip]="!isCollapsed"
         ></span>
         <a href="#" *ngIf="!isCollapsed">
-          <span class="nav-text" i18n> Networks </span></a
-        >
+          <span class="nav-text" i18n>Networks</span>
+        </a>
         <select
           class="form-select networks-select"
           aria-label="Default select example"
@@ -108,7 +118,9 @@
           </option>
         </select>
       </li>
-      <div class="selettore-quality-control">
+
+      <!-- Quality Control Filter -->
+      <li class="selettore-quality-control" *ngIf="showObsFilter">
         <label>
           <input
             type="checkbox"
@@ -118,41 +130,10 @@
           />
           <div>Quality Control Filter</div>
         </label>
-      </div>
-    </ul>
-    <ul class="selector">
-      <!--
-      <li class="sidenav-item d-flex flex-wrap last switch mt-2" >
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
-          <label class="form-check-label" for="flexSwitchCheckDefault"></label>
-        </div>
-        <div class="selettore-multimodel w-75" *ngIf="!isCollapsed">
-          <a href="#" click-stop-propagation>
-            <span class="nav-text">Observations</span>
-          </a>
-          <p>
-            Selected: <span></span
-            >
-          </p>
-        </div>
       </li>
-      -->
-      <!--      <li class="sidenav-item dropdown mt-2">
-        <label *ngIf="!isCollapsed" class="nav-text fw-bold">NETWORKS</label>
-        <select
-          class="form-select form-select-sm mt-1 w-100"
-          [(ngModel)]="selectedOption"
-          (change)="onNetworkChange(selectedOption)"
-          [disabled]="!dropdownOptions?.length"
-        >
-          <option [ngValue]="null" disabled selected>&#45;&#45; Scegli &#45;&#45;</option>
-          <option *ngFor="let option of dropdownOptions" [value]="option">
-            {{ option }}
-          </option>
-        </select>
-      </li>-->
-      <li class="sidenav-item dropdown mt-2">
+
+      <!-- Download Data -->
+      <li class="sidenav-item dropdown mt-2" *ngIf="showObsFilter">
         <div class="d-flex align-items-center">
           <button
             type="button"
