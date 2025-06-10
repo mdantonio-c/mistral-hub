@@ -31,7 +31,7 @@ wget --quiet "${DATASET_URL}/dballe_summary_CCBY_COMPLIANT.json" -O data/arkimet
 wget --quiet "${DATASET_URL}/sample.bufr" -O data/arkimet_conf/sample.bufr
 wget --quiet "${DATASET_URL}/arkimet.zip" -O arkimet.zip
 
-apt install unzip
+sudo apt install unzip
 unzip -q arkimet.zip -d data/
 
 ls -l data/arkimet || true
@@ -54,6 +54,8 @@ cat <<EOF > init.sh
 dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE
 dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr
 EOF
+cat init.sh
+rapydo status
 
 cname=$(docker ps --format '{{.Names}}' | grep "backend")
 docker cp init.sh ${cname}:/tmp/init.sh
