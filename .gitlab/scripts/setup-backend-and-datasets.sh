@@ -31,6 +31,7 @@ wget --quiet "${DATASET_URL}/dballe_summary_CCBY_COMPLIANT.json" -O data/arkimet
 wget --quiet "${DATASET_URL}/sample.bufr" -O data/arkimet_conf/sample.bufr
 wget --quiet "${DATASET_URL}/arkimet.zip" -O arkimet.zip
 
+apt install unzip
 unzip -q arkimet.zip -d data/
 
 ls -l data/arkimet || true
@@ -38,14 +39,14 @@ ls -l data/arkimet_conf || true
 
 wget --quiet "${DATASET_URL}/template_for_spare_point.zip" -O data/user_repo/templates_for_pp/template_for_spare_point.zip
 
-echo "Initializing project with Rapydo..."
-rapydo --testing -e FTP_USER=ftpuser init --force
-rapydo pull --quiet
-rapydo install buildx
-rapydo build --force
-rapydo add task test_task
-rapydo start
-rapydo shell backend 'restapi wait'
+#echo "Initializing project with Rapydo..."
+#rapydo --testing -e FTP_USER=ftpuser init --force
+#rapydo pull --quiet
+#rapydo install buildx
+#rapydo build --force
+#rapydo add task test_task
+#rapydo start
+#rapydo shell backend 'restapi wait'
 
 echo "Initializing DBALLE with BUFR sample"
 
