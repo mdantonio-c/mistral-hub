@@ -10,14 +10,19 @@ pw = os.environ.get("ALCHEMY_PASSWORD")
 host = os.environ.get("ALCHEMY_HOST")
 port = os.environ.get("ALCHEMY_PORT")
 
-DEFAULT_DSN = f"postgresql://{user}:{pw}@{host}:{port}/DBALLE"
+if len(sys.argv) < 2:
+    print("Error: Usage has to be 'dpc_bufr2dballe.py <dballe_database_name>'.")
+    sys.exit(1)
 
+dballe_db = sys.argv[1]
+
+DSN = f"postgresql://{user}:{pw}@{host}:{port}/{dballe_db}"
 
 while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
     data = sys.stdin.buffer
     if data:
         try:
-            db = dballe.DB.connect(DEFAULT_DSN)
+            db = dballe.DB.connect(DSN)
             importer = dballe.Importer("BUFR")
             with db.transaction() as tr:
                 tr.import_messages(

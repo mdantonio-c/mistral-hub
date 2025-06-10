@@ -46,18 +46,6 @@ CREATE TABLE public.dpcn_anagrafica
     regione varchar
 );
 
-CREATE TABLE public.dpcn_dati
-(
-    fileid bigint NOT NULL REFERENCES public.dpcn_logfile,
-    db varchar,
-    sensore varchar,
-    giorno varchar,
-    orarioutc varchar,
-    misura double precision
-);
-
-CREATE INDEX dpcn_dati_fileid_idx ON public.dpcn_dati(fileid);
-	
 CREATE TABLE public.dpcn_logfile
 (
     fileid bigserial,
@@ -69,6 +57,28 @@ CREATE TABLE public.dpcn_logfile
     ms_errore varchar,
     CONSTRAINT pk_dpcn_logfile PRIMARY KEY (fileid)
 );
+
+CREATE TABLE public.dpcn_1h_aggr_logfile
+(
+    fileid bigint NOT NULL REFERENCES public.dpcn_logfile,
+    filename varchar UNIQUE NOT NULL,
+    ts_ingestion timestamp with time zone,
+    ts_delete timestamp with time zone,
+    ts_errore timestamp with time zone,
+    ms_errore varchar
+);
+
+CREATE TABLE public.dpcn_dati
+(
+    fileid bigint NOT NULL REFERENCES public.dpcn_logfile,
+    db varchar,
+    sensore varchar,
+    giorno varchar,
+    orarioutc varchar,
+    misura double precision
+);
+
+CREATE INDEX dpcn_dati_fileid_idx ON public.dpcn_dati(fileid);
 
 ------------------------------------------------------------------------------------------------
 
@@ -84,6 +94,20 @@ CREATE TABLE public.metn_anagrafica
     north double precision,
     inizio varchar,
     fine varchar
+);
+
+CREATE TABLE public.metn_logdata
+(
+    batchid bigserial,
+    batchutc varchar NOT NULL,
+    codice varchar NOT NULL,
+    dataora_last varchar,
+    ts_download timestamp with time zone,
+    ts_ingestion timestamp with time zone,
+    ts_delete timestamp with time zone,
+    ts_errore timestamp with time zone,
+    ms_errore varchar,
+    CONSTRAINT pk_metn_logdata PRIMARY KEY (batchid)
 );
 
 CREATE TABLE public.metn_dati
@@ -103,20 +127,6 @@ CREATE TABLE public.metn_loganag
     ts_errore timestamp with time zone,
     ms_errore varchar,
     CONSTRAINT pk_metn_loganag PRIMARY KEY (id)
-);
-
-CREATE TABLE public.metn_logdata
-(
-    batchid bigserial,
-    batchutc varchar NOT NULL,
-    codice varchar NOT NULL,
-    dataora_last varchar,
-    ts_download timestamp with time zone,
-    ts_ingestion timestamp with time zone,
-    ts_delete timestamp with time zone,
-    ts_errore timestamp with time zone,
-    ms_errore varchar,
-    CONSTRAINT pk_metn_logdata PRIMARY KEY (batchid)
 );
 
 ------------------------------------------------------------------------------------------------
