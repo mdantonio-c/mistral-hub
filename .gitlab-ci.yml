@@ -43,8 +43,6 @@ backend_tests:
     - rapydo version
     - rapydo pull --quiet
     - rapydo build
-    - rapydo -e AUTH_LOGIN_BAN_TIME=10 start
-    - rapydo shell backend 'restapi wait'
 
     # Prepare testing environment
     - .gitlab/scripts/setup-backend-and-datasets.sh "${PROJECT}" "${DATASET_URL}"
