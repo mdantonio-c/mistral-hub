@@ -15,6 +15,7 @@
   (leafletMapZoomEnd)="onMapZoomEnd($event)"
 >
   <side-nav-filter
+    [mode_1]="sharedSideNav.livemapComp"
     [baseLayers]="layersControl['baseLayers']"
     [overlays]="layersControl['overlays']"
     [variables]="variablesConfig"

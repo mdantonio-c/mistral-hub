@@ -31,6 +31,8 @@ class BeDballe:
     explorer = None
     # number of days after which data pass in Arkimet
     LASTDAYS = Env.get_int("LASTDAYS", 10)
+    AGGREGATIONS_TRANGES = Env.get("AGGREGATIONS_TRANGES", "").split(";")
+    AGGREGATIONS_DSN = Env.get("AGGREGATIONS_DSN", "")
 
     # base path to json file where metadata of observed data in arkimet are stored
     # the complete path name is  EX. /arkimet/config/dballe_summary_<license group name>.json
@@ -1723,6 +1725,7 @@ class BeDballe:
         download=None,
         previous_res=None,
         dsn_subset=[],
+        aggregations_dsn=None,
     ):
         # get the license group
         alchemy_db = sqlalchemy.get_instance()
@@ -1760,19 +1763,6 @@ class BeDballe:
             parsed_query = BeDballe.parse_query_for_maps(query_data)
 
         query = {**parsed_query}
-        if "rep_memo" in query and query["rep_memo"] == "multim-forecast":
-            if db_type == "arkimet":
-                # multimodel maps for archived data are not supported
-                # as too resource consuming
-                return []
-            # adjust reftime for multimodel extraction
-            if "trange" in query:
-                # use the timerange interval as interval to extend the reftime
-                interval = query["trange"][1] / 3600
-            if "datetimemin" in query:
-                query["datetimemax"] = BeDballe.extend_reftime_for_multimodel(
-                    query, db_type, interval
-                )
 
         # managing db_type
         if db_type == "arkimet":
@@ -1832,13 +1822,15 @@ class BeDballe:
         if db_type == "arkimet":
             db = BeDballe.fill_db_from_arkimet(datasets, query_for_arkimet)
         else:
+            if aggregations_dsn:
+                dballe_dsn = aggregations_dsn
             # connect to the correct dballe dsn
             try:
                 db = dballe.DB.connect(
                     f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}"
                 )
             except OSError:
-                raise Exception("Unable to connect to dballe database")
+                raise Exception(f"Unable to connect to dballe '{dballe_dsn}' database")
             # connect to the eventual dsn for mobile station
             mobile_db = None
             # to decomment when we will have mobile data
@@ -2934,3 +2926,51 @@ class BeDballe:
             return new_msg
         else:
             return None
+
+    @staticmethod
+    def is_query_for_pluvio_aggregations(query_dict):
+        """
+        Returns the specific dballe dsn for aggregated pluvio data.
+        """
+        dsn = None
+        if "product" and "timerange" in query_dict:
+            if (
+                query_dict["product"][0] == "B13011"
+                and query_dict["timerange"][0] in BeDballe.AGGREGATIONS_TRANGES
+            ):
+                dsn = BeDballe.AGGREGATIONS_DSN
+        return dsn
+
+    @staticmethod
+    def get_queries_and_dsn_list_with_itertools(original_query):
+        # check if there are filters with multiple queries
+        single_params = {}
+        list_params = {}
+        query_and_dsn_list: Optional[List[Dict[str, Any]]] = []
+        for k, v in original_query.items():
+            if not isinstance(v, list) or len(v) == 1:
+                single_params[k] = v
+            else:
+                list_params[k] = v
+        if not list_params:
+            # not multiple queries, append the original query to the query list
+            dsn = BeDballe.is_query_for_pluvio_aggregations(single_params)
+            query_and_dsn_list.append({"query": single_params, "aggregations_dsn": dsn})
+        else:
+            # prepare the multiple queries
+            fields = []
+            queries = []
+            for k, v in list_params.items():
+                fields.append(k)
+                queries.append(v)
+            all_queries = list(itertools.product(*queries))
+            for q in all_queries:
+                single_query = {**single_params}
+                for k, v in zip(fields, q):
+                    single_query[k] = [v]
+                dsn = BeDballe.is_query_for_pluvio_aggregations(single_query)
+                query_and_dsn_list.append(
+                    {"query": single_query, "aggregations_dsn": dsn}
+                )
+
+        return query_and_dsn_list

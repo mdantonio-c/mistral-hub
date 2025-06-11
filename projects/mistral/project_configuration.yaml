@@ -80,6 +80,8 @@ variables:
     COOKIE_POLICY_URL: "https://www.cineca.it/privacy/cookies-cineca"
     FRONTEND_DEBUG: 0
     WARNING_MSG:
+    AGGREGATIONS_TRANGES: ""
+    AGGREGATIONS_DSN: ""
 
     CORS_ALLOWED_ORIGIN: "*"
     SET_CSP_IMG_SRC: "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://api.tiles.mapbox.com https://cartodb-basemaps-a.global.ssl.fastly.net https://cartodb-basemaps-b.global.ssl.fastly.net https://cartodb-basemaps-c.global.ssl.fastly.net https://cartodb-basemaps-d.global.ssl.fastly.net https://tiles.stadiamaps.com https://maps.mistralportal.it https://meteohub-maps.hpc.cineca.it"
