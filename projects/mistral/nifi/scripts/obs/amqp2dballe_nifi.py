@@ -22,14 +22,10 @@ port = os.environ.get("ALCHEMY_PORT")
 DEFAULT_DSN = f"postgresql://{user}:{pw}@{host}:{port}/DBALLE"
 # print("Connecting: " + DEFAULT_DSN, file=sys.stdout)
 ACCUMULATION_DSN = None
-if len(sys.argv) == 5:
-    accumulation_dsn_name = sys.argv[4]
-    ACCUMULATION_DSN = (
-        f"postgresql://{user}:{pw}@{host}:{port}/{accumulation_dsn_name }"
-    )
-
 trange_for_accum_dsn = None
 if len(sys.argv) == 6:
+    accumulation_dsn_name = sys.argv[4]
+    ACCUMULATION_DSN = f"postgresql://{user}:{pw}@{host}:{port}/{accumulation_dsn_name}"
     # get the list of the timeranges for pluvio data who needs to be duplicated in the accumulation dballe
     trange_for_accum_dsn = sys.argv[5].split(";")
     print(trange_for_accum_dsn)
