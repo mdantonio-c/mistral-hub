@@ -33,20 +33,16 @@ wget --quiet "${DATASET_URL}/arkimet.zip" -O arkimet.zip
 
 sudo apt install unzip
 unzip -q arkimet.zip -d data/
+rm -f arkimet.zip
 
 ls -l data/arkimet || true
 ls -l data/arkimet_conf || true
 
 wget --quiet "${DATASET_URL}/template_for_spare_point.zip" -O data/user_repo/templates_for_pp/template_for_spare_point.zip
 
-#echo "Initializing project with Rapydo..."
-#rapydo --testing -e FTP_USER=ftpuser init --force
-#rapydo pull --quiet
-#rapydo install buildx
-#rapydo build --force
-#rapydo add task test_task
-#rapydo start
-#rapydo shell backend 'restapi wait'
+echo "Start $PROJECT project with Rapydo..."
+rapydo -e AUTH_LOGIN_BAN_TIME=10 start
+rapydo shell backend 'restapi wait'
 
 echo "Initializing DBALLE with BUFR sample"
 
@@ -54,8 +50,6 @@ cat <<EOF > init.sh
 dbadb wipe --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE
 dbadb import --dsn=postgresql://\$ALCHEMY_USER:\$ALCHEMY_PASSWORD@\$ALCHEMY_HOST:\$ALCHEMY_PORT/DBALLE --type=bufr /arkimet/config/sample.bufr
 EOF
-cat init.sh
-rapydo status
 
 cname=$(docker ps --format '{{.Names}}' | grep "backend")
 docker cp init.sh ${cname}:/tmp/init.sh
