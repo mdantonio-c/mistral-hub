@@ -117,9 +117,94 @@ services:
 
     networks:
       default:
-# volumes:
-#   -
+      
+  strapi:
+    container_name: strapi
+    build: ${PROJECT_DIR}/builds/strapi
+    image: strapi:latest
+    restart: unless-stopped
+    # env_file: ${PROJECT_DIR}/builds/strapi/.env
+    environment:
+      ACTIVATE: ${ACTIVATE_STRAPI}
+      DATABASE_CLIENT: ${DATABASE_CLIENT}
+      DATABASE_HOST: strapiDB
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      APP_KEYS: ${APP_KEYS}
+      NODE_ENV: ${NODE_ENV}
+      HOST: ${HOST}
+      PORT: ${PORT}
+      API_TOKEN_SALT: ${API_TOKEN_SALT}
+      TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      DATABASE_SSL: ${DATABASE_SSL}
+      DATABASE_FILENAME: ${DATABASE_FILENAME}
+    volumes:
+      # - ${DATA_DIR}/config:/opt/app/config
+      # - ${DATA_DIR}/src:/opt/app/src
+      # - ${DATA_DIR}/package.json:/opt/package.json
+      # - ${DATA_DIR}/yarn.lock:/opt/yarn.lock
+      # - ${DATA_DIR}/.env:/opt/app/.env
+      - strapi-data:/opt/app
+      # - strapi-data/public/uploads:/opt/app/public/uploads
+    ports:
+      - "1337:1337"
+    networks:
+      default:
+    depends_on:
+      - strapiDB
 
-# networks:
-#   -
+  strapiDB:
+    container_name: strapiDB
+    platform: linux/amd64 #for platform error on Apple M1 chips
+    restart: unless-stopped
+    # env_file: ${PROJECT_DIR}/builds/strapi/.env
+    image: postgres:16.0-alpine
+    environment:
+      ACTIVATE: ${ACTIVATE_STRAPIDB}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+      HOST: ${HOST}
+      PORT: ${PORT}
+      APP_KEYS: ${APP_KEYS}
+      API_TOKEN_SALT: ${API_TOKEN_SALT}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      DATABASE_CLIENT: ${DATABASE_CLIENT}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_SSL: ${DATABASE_SSL}
+      DATABASE_FILENAME: ${DATABASE_FILENAME}
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - strapiDB-data:/var/lib/postgresql/data/ #using a volume
+      #- ./data:/var/lib/postgresql/data/ # if you want to use a bind folder
 
+    ports:
+      - "5432:5432"
+    networks:
+      default:
+
+volumes:
+  strapiDB-data: 
+    driver: local
+    driver_opts:
+      type: none
+      device: ${DATA_DIR}/strapi/db
+      o: bind
+  strapi-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${DATA_DIR}/strapi/data
+      o: bind
+  

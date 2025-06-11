@@ -8,3 +8,6 @@ services:
       ACTIVATE: ${ACTIVATE_NIFI}
       NIFI_WEB_HTTP_HOST: 0.0.0.0
       NIFI_WEB_HTTP_PORT: 8080
+  strapi:
+    environment:
+      START_MODE: develop
