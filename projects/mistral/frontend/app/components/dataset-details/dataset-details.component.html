@@ -66,10 +66,17 @@
                 type="ball-scale-multiple"
               ></ngx-spinner>
               <!-- no data -->
-              <div *ngIf="!loading && !data?.length">
-                <div class="no-results">
-                  <h5>No Data</h5>
-                </div>
+              <div *ngIf="!loading">
+                <!--                <div class="no-results">-->
+                <!--                  <h5>No Data</h5>-->
+                <a
+                  class="fw-bold p-2"
+                  routerLink=""
+                  (click)="goTo('/app/data/datasets')"
+                  >Go to data extraction to customise data
+                  <i class="fas fa-circle-right"></i
+                ></a>
+                <!--                </div>-->
               </div>
               <!-- load opendata in the table -->
               <div
@@ -145,14 +152,25 @@
             <ng-container *ngSwitchCase="dataset.category === 'OBS'">
               <p class="p-2">
                 Open Data for observations are available through the map. User
-                can select a filter and customize a bunch of data to download.
+                can select a filter and customise a bunch of data to download.
               </p>
-              <a
-                class="fw-bold p-2"
-                routerLink=""
-                (click)="goTo('/app/maps/observations')"
-                >Go to map <i class="fas fa-circle-right"></i
-              ></a>
+              <div class="p-2 fw-bold">
+                <a
+                  class="fw-bold p-2"
+                  routerLink=""
+                  (click)="goTo('/app/data/datasets')"
+                  >Go to data extraction to customise data
+                  <i class="fas fa-circle-right"></i
+                ></a>
+              </div>
+              <div class="p-2 fw-bold">
+                <a
+                  class="fw-bold p-2"
+                  routerLink=""
+                  (click)="goTo('/app/maps/observations')"
+                  >Go to map <i class="fas fa-circle-right"></i
+                ></a>
+              </div>
             </ng-container>
             <ng-container *ngSwitchCase="'RAD'">
               <!-- TODO -->
