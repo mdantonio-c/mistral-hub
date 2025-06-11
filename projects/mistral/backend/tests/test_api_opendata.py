@@ -319,17 +319,13 @@ class TestApp(BaseTests):
         date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
         # get time info for the schedule
-        now_hour = datetime.now()
-        now_minute = now_hour.minute
-        now_hour = now_hour.hour
-        now_minute = now_minute + 1
-
+        now = datetime.now()
         body = {
             "request_name": "test",
             "reftime": {"from": date_from, "to": date_to},
             "dataset_names": [self.DATASET_FOR_TEST_NAME],
             "filters": {"run": [ref_run[0]]},
-            "crontab-settings": {"hour": now_hour, "minute": now_minute},
+            "crontab-settings": {"hour": now.hour, "minute": now.minute},
             "opendata": True,
         }
 
@@ -343,17 +339,13 @@ class TestApp(BaseTests):
         # get schedule id for delete
         schedule_id = [response.get("schedule_id")]
 
-        now_hour = datetime.now()
-        now_minute = now_hour.minute
-        now_hour = now_hour.hour
-        now_minute = now_minute + 1
-
+        now = datetime.now()
         body = {
             "request_name": "test",
             "reftime": {"from": date_to, "to": date_to},
             "dataset_names": [self.DATASET_FOR_TEST_NAME],
             "filters": {"run": [ref_run[1]]},
-            "crontab-settings": {"hour": now_hour, "minute": now_minute},
+            "crontab-settings": {"hour": now.hour, "minute": now.minute},
             "opendata": True,
         }
 
@@ -630,7 +622,7 @@ class TestApp(BaseTests):
         r = client.get(endpoint)
         assert r.status_code == 404
         # check opendata not found requested by run
-        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?run=15:00"
+        endpoint = f"{API_URI}/opendata/{self.DATASET_FOR_TEST_NAME}/download?run=15:00"  # noqa: E231
         r = client.get(endpoint)
         assert r.status_code == 404
         # check opendata not found request by reftime and run
