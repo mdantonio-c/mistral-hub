@@ -55,22 +55,6 @@
     </ul>
 
     <ul class="selector">
-      <!-- Download Data -->
-      <li class="sidenav-item dropdown mt-2" *ngIf="showObsFilter">
-        <div class="d-flex align-items-center">
-          <button
-            type="button"
-            class="btn btn-border-classic no-rounded ms-1"
-            (click)="download()"
-          >
-            <i class="fa fa-download"></i>
-          </button>
-          <label *ngIf="!isCollapsed" class="nav-text fw-bold ms-2"
-            >DOWNLOAD DATA</label
-          >
-        </div>
-      </li>
-
       <!-- Network + Quality Control -->
       <li class="sidenav-item" *ngIf="showObsFilter">
         <span
@@ -106,6 +90,23 @@
           />
           <div>Quality Control Filter</div>
         </label>
+      </li>
+    </ul>
+    <ul class="selector">
+      <!-- Download Data -->
+      <li class="sidenav-item dropdown mt-2" *ngIf="showObsFilter">
+        <div class="d-flex align-items-center">
+          <button
+            type="button"
+            class="btn btn-border-classic no-rounded ms-1"
+            (click)="download()"
+          >
+            <i class="fa fa-download"></i>
+          </button>
+          <label *ngIf="!isCollapsed" class="nav-text fw-bold ms-2"
+            >DOWNLOAD DATA</label
+          >
+        </div>
       </li>
     </ul>
 
