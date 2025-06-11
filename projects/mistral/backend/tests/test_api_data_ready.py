@@ -169,8 +169,7 @@ class TestApp(BaseTests):
 
     def test_schedule_not_on_data_ready(self, client: FlaskClient):
         admin_headers, _ = BaseTests.do_login(client, None, None)
-        endpoint = API_URI + "/fields"
-        endpoint = f"{endpoint}?datasets={self.DATASET_FOR_TEST_NAME}"
+        endpoint = f"{API_URI}/fields?datasets={self.DATASET_FOR_TEST_NAME}"
         r = client.get(endpoint, headers=admin_headers)
         assert r.status_code == 200
         response = self.get_content(r)
