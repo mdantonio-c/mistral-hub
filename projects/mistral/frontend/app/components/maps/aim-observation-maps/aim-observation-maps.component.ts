@@ -95,7 +95,7 @@ export class AimObservationMapsComponent
       timeInterval: this.timeIntervalTimeLine(),
       period: "PT60M", // ISO8601 duration, step of 60 min
     },
-    timeDimensionControl: true,
+    timeDimensionControl: false,
     timeDimensionControlOptions: {
       autoPlay: false,
       timeZones: ["Local"],
@@ -129,11 +129,11 @@ export class AimObservationMapsComponent
   private filter: ObsFilter;
   private windConvert = false;
   private intervalId: any;
+  private timeDimensionControl: any;
   selectedNetwork = "";
   timelineReferenceDate: string = "";
   qualityContolFilter = false;
   sharedSideNav = sharedSideNav;
-
   constructor(
     injector: Injector,
     private obsService: ObsService,
@@ -170,9 +170,52 @@ export class AimObservationMapsComponent
 
   onMapReady(map: L.Map) {
     this.map = map;
-
     this.map.attributionControl.setPrefix("");
-    let tControl = (map as any).timeDimensionControl;
+    (window as any).L.Control.TimeDimensionCustom = (
+      window as any
+    ).L.Control.TimeDimension.extend({
+      onAdd: function (map: L.Map) {
+        const container = (
+          window as any
+        ).L.Control.TimeDimension.prototype.onAdd.call(this, map);
+        this.timeZoneSelect = container.querySelector(
+          ".timecontrol-timezone select",
+        );
+        return container;
+      },
+
+      _getDisplayDateFormat: function (date: Date) {
+        const timeZone = this._getCurrentTimeZone().toLowerCase();
+        if (timeZone === "local") {
+          const offsetHours = moment(date).utcOffset() / 60;
+          const sign = offsetHours >= 0 ? "+" : "-";
+          return moment(date).format(
+            `DD-MM-YYYY HH:mm [UTC${sign}${Math.abs(offsetHours)}]`,
+          );
+        }
+      },
+    });
+
+    this.timeDimensionControl = new (
+      window as any
+    ).L.Control.TimeDimensionCustom({
+      autoPlay: false,
+      timeZones: ["Local"],
+      loopButton: false,
+      timeSteps: 1,
+      playReverseButton: false,
+      limitSliders: true,
+      playerOptions: {
+        buffer: 0,
+        transitionTime: 1500,
+        loop: true,
+        startOver: true,
+      },
+      speedSlider: false,
+    });
+    this.map.addControl(this.timeDimensionControl);
+
+    let tControl = this.timeDimensionControl;
     // to catch forward button click
     const forwardButton = document.querySelector('[title="Forward"]');
     forwardButton.addEventListener("click", () => {
@@ -207,13 +250,12 @@ export class AimObservationMapsComponent
     });
 
     let beforeOneHour: Date = new Date();
-    beforeOneHour.setUTCHours(beforeOneHour.getUTCHours() - 1);
+    beforeOneHour.setUTCHours(beforeOneHour.getUTCHours());
     beforeOneHour.setUTCMinutes(0);
     beforeOneHour.setUTCSeconds(0);
     beforeOneHour.setUTCMilliseconds(0);
     this.myNow = beforeOneHour;
     //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
-
     //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
     // default product: temperature
     const defaultProduct: string = "t2m";
@@ -235,7 +277,7 @@ export class AimObservationMapsComponent
     const filter: ObsFilter = {
       reftime: beforeOneHour,
       license: "CCBY_COMPLIANT",
-      time: [beforeOneHour.getUTCHours() - 1, beforeOneHour.getUTCHours() - 1],
+      time: [beforeOneHour.getUTCHours() - 1, beforeOneHour.getUTCHours()],
       onlyStations: false,
       reliabilityCheck: true,
       last: true,
@@ -249,22 +291,27 @@ export class AimObservationMapsComponent
     this.centerMap();
     this.timelineReferenceDate = this.printTimeLineReferenceDate();
 
-    /* cacht event timeload on the timebar, a timeload event is any injection of time in the timebar */
+    /* cacht event timeloloadObad on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
       let isMidNight: boolean = false;
       let selectedDate = new Date((map as any).timeDimension.getCurrentTime());
+      let selectedDateUTC = new Date(selectedDate);
+      selectedDateUTC.setUTCHours(selectedDate.getUTCHours());
       this.refTimeToTimeLine = selectedDate;
-      let startDate = new Date(selectedDate);
-      startDate.setHours(selectedDate.getHours() - 1);
-
+      let startDate = new Date(selectedDateUTC);
+      startDate.setHours(selectedDateUTC.getHours() - 1);
       /* For data that refer to the previous day */
-      if (startDate.getUTCDate() != selectedDate.getUTCDate()) {
+      if (startDate.getUTCDate() != selectedDateUTC.getUTCDate()) {
         isMidNight = true;
       }
-
       const filter: ObsFilter = {
-        reftime: !isMidNight ? selectedDate : startDate,
-        time: [startDate.getUTCHours(), startDate.getUTCHours()],
+        reftime: !isMidNight ? selectedDateUTC : startDate,
+        time: [
+          startDate.getUTCHours(),
+          isMidNight
+            ? selectedDateUTC.getUTCHours()
+            : startDate.getUTCHours() + 1,
+        ],
         license: this.filter.license,
         onlyStations: false,
         reliabilityCheck: true,
@@ -277,7 +324,7 @@ export class AimObservationMapsComponent
       this.myTime = filter["time"];
       if (this.qualityContolFilter) filter["reliabilityCheck"] = true;
       if (this.selectedNetwork) filter["network"] = this.selectedNetwork;
-      this.loadObservations(filter, true);
+      this.loadObservations(filter, true, isMidNight);
       this.timelineReferenceDate = this.printTimeLineReferenceDate();
       this.cdr.detectChanges();
     });
@@ -309,6 +356,7 @@ export class AimObservationMapsComponent
     behindDate.setUTCHours(0, 0, 0, 0);
     this.fromDate = behindDate;
     const behindIsoDate: string = behindDate.toISOString();
+    console.log(behindIsoDate, nowIsoDate);
     return `${behindIsoDate}/${nowIsoDate}`;
   }
   private createLegendControl(id: string): L.Control {
@@ -347,13 +395,13 @@ export class AimObservationMapsComponent
       this.markersGroup.addTo(this.map);
     }
   }
-  loadObservations(filter: ObsFilter, update = false) {
+  loadObservations(filter: ObsFilter, update = false, midNight = null) {
     //const startTime = new Date().getTime();
     if (!this.playControl) {
       this.spinner.show();
     }
     this.obsService
-      .getData(filter, update)
+      .getData(filter, update, midNight)
       .subscribe(
         (response: ObservationResponse) => {
           /*console.log(

@@ -22,6 +22,7 @@ export class TranslationService {
         "reference date": "data",
         pressure: "Pressione",
         "relative humidity": "Umidità Relativa",
+        "snow depth": "altezza neve",
         "instant at 2m above the ground": "istantanea a 2m dal suolo",
         "instant at ground": "istantanea al suolo",
         "cumulated at ground on previous 1h": "cumulata al suolo su 1h",

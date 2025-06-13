@@ -160,7 +160,7 @@ export class SideNavFilterComponent implements OnInit {
 
   onNetworkChange(value: string) {
     console.log("Network selezionato:", value);
-    if (value === "Any") this.network = "";
+    if (value === "All") this.network = "";
     else this.network = value;
     this.onNetworkChangeEmitter.emit(value);
   }
@@ -233,15 +233,7 @@ export class SideNavFilterComponent implements OnInit {
     });
     modalRef.componentInstance.filter = filter;
   }
-  /*doSomething() {
-    if (!this.windConvert) {
-      this.windConvert = true;
-      this.onWindConvert.emit(this.windConvert);
-    } else {
-      this.windConvert = false;
-      this.onWindConvert.emit(this.windConvert);
-    }
-  }*/
+
   toggleWindConvert() {
     this.windConvert = !this.windConvert;
     this.onWindConvert.emit(this.windConvert);
