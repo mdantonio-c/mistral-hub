@@ -36,7 +36,6 @@ import {
 import { ObsService } from "../observation-maps/services/obs.service";
 import { ObsStationReportComponent } from "../observation-maps/obs-station-report/obs-station-report.component";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-
 @Component({
   selector: "app-aim-observation-maps",
   templateUrl: "./aim-observation-maps.component.html",
@@ -130,6 +129,7 @@ export class AimObservationMapsComponent
   private windConvert = false;
   private intervalId: any;
   private timeDimensionControl: any;
+  private ITAversion = false;
   selectedNetwork = "";
   timelineReferenceDate: string = "";
   qualityContolFilter = false;
@@ -153,6 +153,7 @@ export class AimObservationMapsComponent
       }
       if (this.lang === "it") {
         // TODO
+        this.ITAversion = true;
       }
     });
     this.intervalId = setInterval(
@@ -335,7 +336,7 @@ export class AimObservationMapsComponent
       ws10m: this.createLegendControl("ws10m"),
       rh: this.createLegendControl("rh"),
       prp: this.createLegendControl("prp"),
-      snow: this.createLegendControl("snow"),
+      //snow: this.createLegendControl("snow"),
     };
 
     this.legends[defaultProduct].addTo(map);
@@ -432,7 +433,6 @@ export class AimObservationMapsComponent
   }
   loadWindMarkersHandle(event) {
     if (event) {
-      console.log("procedere con il cambio da m/s a km/h");
       this.windConvert = true;
       this.updateWindMarkers();
       const legend = new L.Control({ position: this.LEGEND_POSITION });
@@ -1025,11 +1025,16 @@ export class AimObservationMapsComponent
         VARIABLES_CONFIG_OBS[key].code != "B11002 or B11001"
       ) {
         product = VARIABLES_CONFIG_OBS[key].desc;
+        if (VARIABLES_CONFIG_OBS[key].code === "B12101" && this.ITAversion)
+          product = "(°C)";
+        if (VARIABLES_CONFIG_OBS[key].code === "B10004" && this.ITAversion)
+          product = "(hPa)";
         break;
       } else if (VARIABLES_CONFIG_OBS[key].code.includes(this.filter.product)) {
         product = !this.windConvert
           ? VARIABLES_CONFIG_OBS[key].desc
           : "speed and direction near surface (km/h)";
+        break;
       }
     }
     return product || "";

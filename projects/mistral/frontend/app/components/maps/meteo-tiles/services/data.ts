@@ -503,6 +503,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     value: [],
     order: 5,
   },
+  /*
   snow: {
     label: "snow depth",
     desc: "cm",
@@ -511,7 +512,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     level: "1,0,0,0",
     value: [],
     order: 6,
-  },
+  },*/
 };
 
 export const COLORSTOPS = {
