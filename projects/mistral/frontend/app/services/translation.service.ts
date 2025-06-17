@@ -64,6 +64,7 @@ export class TranslationService {
         "dates are expressed in local time":
           "le date sono espresse in ora locale",
         "local time": "ora locale",
+        "Real-time data, not validated": " Dati in tempo reale non validati",
         "scalar field": "Campo scalare",
         total: "Totale",
         "map style": "Stile Mappa",
