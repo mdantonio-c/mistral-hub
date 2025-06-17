@@ -177,7 +177,7 @@ export class SideNavFilterComponent implements OnInit {
     this.onCollapseChange.emit(this.isCollapsed);
   }
 
-  private toObsFilter(): ObsFilter | ObsFilter[] {
+  private toObsFilter(): ObsFilter {
     console.log(this.network);
     let filter: ObsFilter = {
       product: this._overlays.options["pane"],
@@ -205,28 +205,17 @@ export class SideNavFilterComponent implements OnInit {
         filter.level = "1,0,0,0";
       else filter.level = "103,2000,0,0";
     } else if (this._overlays.options["pane"] === "B11002 or B11001") {
-      let filter2 = { ...filter };
-      filter.product = "B11001";
+      filter.product = "B11001 or B11001";
       filter.timerange = "254,0,0";
       filter.level = "103,10000,0,0";
-      filter.reliabilityCheck = true;
-      filter2.product = "B11002";
-      filter2.timerange = filter.timerange;
-      filter2.level = filter.level;
-      filter2.reliabilityCheck = true;
-      this.openDownload([filter, filter2]);
-      return [filter, filter2];
+      this.openDownload(filter);
+      return filter;
     }
 
-    filter.reliabilityCheck = true;
-    // da continuare quando applico il contro filter
-    /*if (form.reliabilityCheck) {
-      filter.reliabilityCheck = true;
-    }*/
     this.openDownload(filter);
     return filter;
   }
-  openDownload(filter: ObsFilter | ObsFilter[]) {
+  openDownload(filter: ObsFilter) {
     const modalRef = this.modalService.open(ObsDownloadComponent, {
       backdrop: "static",
       keyboard: false,

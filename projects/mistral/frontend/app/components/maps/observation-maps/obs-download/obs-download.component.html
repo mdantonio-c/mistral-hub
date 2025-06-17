@@ -68,7 +68,10 @@
           <option *ngFor="let f of allFormats" [ngValue]="f">{{ f }}</option>
         </select>
       </div>
-      <p>To download data older than 10 days, please log in</p>
+      <p>
+        To download data older than 10 days, please
+        <a href="/app/login">log in</a>
+      </p>
       <div class="text-center mt-4">
         <button
           type="submit"
