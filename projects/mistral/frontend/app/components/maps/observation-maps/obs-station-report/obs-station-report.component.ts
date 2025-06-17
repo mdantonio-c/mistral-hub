@@ -101,6 +101,7 @@ export class ObsStationReportComponent implements OnInit {
           let data = response.data;
           // data = randomize(data);
           this.descriptions = response.descr;
+          console.log(this.descriptions);
           // change on description
           if (this.descriptions) {
             this.descriptions["B01019"] = { descr: "Station name" };
@@ -430,5 +431,9 @@ export class ObsStationReportComponent implements OnInit {
     if (this.single[0].series.length > 35) {
       return this.single[0].series.length * 11;
     }
+  }
+
+  giveMeMetres() {
+    return "m";
   }
 }
