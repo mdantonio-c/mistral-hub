@@ -405,10 +405,8 @@ export class AimObservationMapsComponent
       this.legends[this.currentProduct] = legend;
     }
     if (!event) {
-      console.log("riportare i valori a m/s");
       this.windConvert = false;
       this.updateWindMarkers();
-
       this.map.removeControl(this.legends[this.currentProduct]);
       const legend = this.createLegendControl("ws10m");
       legend.addTo(this.map);
@@ -506,10 +504,6 @@ export class AimObservationMapsComponent
         // all values with one decimal digit, only for hr no decimal digit
         let numericVal = parseFloat(val);
         val = isNaN(numericVal) ? val : numericVal.toFixed(1);
-        if (this.windConvert) {
-          numericVal = numericVal * 3.6;
-          val = isNaN(numericVal) ? val : numericVal.toFixed(1);
-        }
         if (this.variablesConfig["rh"].code === productList[0]) {
           val = isNaN(numericVal) ? val : Math.round(numericVal).toString();
         }
@@ -798,6 +792,7 @@ export class AimObservationMapsComponent
           const m = new L.Marker([s.stat.lat, s.stat.lon], {
             icon: icon,
           });
+
           m.options["station"] = s.stat;
           m.options["data"] = obsData;
           const localReferenceTime = moment
