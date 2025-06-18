@@ -104,7 +104,7 @@ export class AimObservationMapsComponent
       limitSliders: true,
       playerOptions: {
         buffer: 0,
-        transitionTime: 1500,
+        transitionTime: 0,
         loop: true,
         startOver: true,
       },
@@ -130,6 +130,7 @@ export class AimObservationMapsComponent
   private intervalId: any;
   private timeDimensionControl: any;
   private ITAversion = false;
+
   selectedNetwork = "";
   timelineReferenceDate: string = "";
   qualityContolFilter = false;
@@ -208,48 +209,14 @@ export class AimObservationMapsComponent
       limitSliders: true,
       playerOptions: {
         buffer: 0,
-        transitionTime: 1500,
+        transitionTime: 0,
         loop: true,
         startOver: true,
       },
       speedSlider: false,
     });
     this.map.addControl(this.timeDimensionControl);
-
     let tControl = this.timeDimensionControl;
-    // to catch forward button click
-    const forwardButton = document.querySelector('[title="Forward"]');
-    forwardButton.addEventListener("click", () => {
-      tControl._player.stop();
-      const currentTime: number = (map as any).timeDimension.getCurrentTime();
-      const now = new Date();
-      now.setUTCMinutes(0);
-      now.setUTCSeconds(0);
-      now.setUTCMilliseconds(0);
-      if (currentTime == now.getTime()) {
-        (map as any).timeDimension.setCurrentTime(this.fromDate.getTime());
-      }
-    });
-    const backwardButton: Element =
-      document.querySelector('[title="Backward"]');
-    backwardButton.addEventListener("click", () => {
-      tControl._player.stop();
-      const currentTime: number = (map as any).timeDimension.getCurrentTime();
-      const now = new Date();
-      now.setUTCMinutes(0);
-      now.setUTCSeconds(0);
-      now.setUTCMilliseconds(0);
-      if (currentTime == this.fromDate.getTime()) {
-        (map as any).timeDimension.setCurrentTime(now.getTime());
-      }
-    });
-    tControl._player.on("play", () => {
-      this.playControl = true;
-    });
-    tControl._player.on("stop", () => {
-      this.playControl = false;
-    });
-
     let beforeOneHour: Date = new Date();
     beforeOneHour.setUTCHours(beforeOneHour.getUTCHours());
     beforeOneHour.setUTCMinutes(0);
@@ -260,20 +227,6 @@ export class AimObservationMapsComponent
     //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
     // default product: temperature
     const defaultProduct: string = "t2m";
-    // add default layer
-    // const filter: ObsFilter = {
-    //   // common parameters
-    //   reftime: moment.utc(new Date()).toDate(),
-    //   license: "CCBY_COMPLIANT",
-    //   time: [0, 23],
-    //   onlyStations: false,
-    //   reliabilityCheck: true,
-    //   last: true,
-    //   product: VARIABLES_CONFIG_OBS[defaultProduct].code,
-    //   timerange: VARIABLES_CONFIG_OBS[defaultProduct].timerange,
-    //   level: VARIABLES_CONFIG_OBS[defaultProduct].level,
-    // };
-
     // add default layer and filter
     const filter: ObsFilter = {
       reftime: beforeOneHour,
@@ -287,6 +240,7 @@ export class AimObservationMapsComponent
       level: VARIABLES_CONFIG_OBS[defaultProduct].level,
     };
     this.filter = filter;
+    this.spinner.show();
     this.loadObservations(filter, true);
     (map as any).timeDimension.setCurrentTime(beforeOneHour);
     this.centerMap();
@@ -294,6 +248,9 @@ export class AimObservationMapsComponent
 
     /* cacht event timeloloadObad on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
+      if (!tControl._player.isPlaying()) this.spinner.show();
+      // in order to sync with load observation
+      tControl._player.pause();
       let isMidNight: boolean = false;
       let selectedDate = new Date((map as any).timeDimension.getCurrentTime());
       let selectedDateUTC = new Date(selectedDate);
@@ -342,6 +299,7 @@ export class AimObservationMapsComponent
     this.legends[defaultProduct].addTo(map);
     this.currentProduct = defaultProduct;
   }
+
   /*
    * Define time interval of timeline following ISO standard
    * dayToSubtract defines the start date
@@ -397,10 +355,6 @@ export class AimObservationMapsComponent
     }
   }
   loadObservations(filter: ObsFilter, update = false, midNight = null) {
-    //const startTime = new Date().getTime();
-    if (!this.playControl) {
-      this.spinner.show();
-    }
     this.obsService
       .getData(filter, update, midNight)
       .subscribe(
@@ -418,6 +372,8 @@ export class AimObservationMapsComponent
           }
           let data = response.data;
           this.loadMarkers(data, filter.product);
+          // in order to sync with the end of marker update
+          this.timeDimensionControl._player.release();
           if (data.length === 0) {
             this.notify.showWarning("No observations found.");
           }

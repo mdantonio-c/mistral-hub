@@ -118,10 +118,8 @@ export class SideNavFilterComponent implements OnInit {
     this.selectedQuality = false;
     if (this.mode_1 === sharedSideNav.livemapComp) {
       this.showObsFilter = false;
-      console.log(this.showObsFilter);
     } else {
       this.showObsFilter = true;
-      console.log(this.showObsFilter);
     }
   }
 
