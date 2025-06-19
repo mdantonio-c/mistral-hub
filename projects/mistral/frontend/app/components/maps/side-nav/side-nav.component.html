@@ -63,7 +63,7 @@
           [ngbTooltip]="'Networks'"
           [disableTooltip]="!isCollapsed"
         ></span>
-        <a href="#" *ngIf="!isCollapsed">
+        <a *ngIf="!isCollapsed">
           <span class="nav-text" i18n>Networks</span>
         </a>
         <select
@@ -94,18 +94,24 @@
     </ul>
     <ul class="selector">
       <!-- Download Data -->
-      <li class="sidenav-item dropdown mt-2" *ngIf="showObsFilter">
+      <li class="sidenav-item dropdown" *ngIf="showObsFilter">
         <div class="d-flex align-items-center">
           <button
             type="button"
-            class="btn btn-border-classic no-rounded ms-1"
+            class="btn btn-border-classic no-rounded ms-1 d-flex justify-content-center align-items-center"
+            style="background-color: #157acc"
             (click)="download()"
           >
-            <i class="fa fa-download"></i>
+            <!--            <i class="fa fa-download"></i>-->
+            <img
+              src="/app/custom/assets/images/icons/download_button.png"
+              alt="Download"
+              style="width: 20px; height: 20px"
+            />
           </button>
-          <label *ngIf="!isCollapsed" class="nav-text fw-bold ms-2"
-            >DOWNLOAD DATA</label
-          >
+          <a *ngIf="!isCollapsed" (click)="download()">
+            <span class="nav-text ms-2" i18n>DOWNLOAD DATA</span>
+          </a>
         </div>
       </li>
     </ul>
@@ -150,7 +156,8 @@
         </a>
       </li>
     </ul>
-    <span style="font-family: 'Titillium Web', sans-serif">
+    <span class="info-message">
+      <i class="fas fa-info-circle mw-1"></i>
       {{ "Real-time data, not validated" | translate : lang }}
     </span>
   </div>

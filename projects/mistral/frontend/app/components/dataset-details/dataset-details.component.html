@@ -66,9 +66,9 @@
                 type="ball-scale-multiple"
               ></ngx-spinner>
               <!-- no data -->
-              <div *ngIf="!loading">
-                <!--                <div class="no-results">-->
-                <!--                  <h5>No Data</h5>-->
+              <!--<div *ngIf="!loading">
+                &lt;!&ndash;                <div class="no-results">&ndash;&gt;
+                &lt;!&ndash;                  <h5>No Data</h5>&ndash;&gt;
                 <a
                   class="fw-bold p-2"
                   routerLink=""
@@ -76,8 +76,8 @@
                   >Go to data extraction to customise data
                   <i class="fas fa-circle-right"></i
                 ></a>
-                <!--                </div>-->
-              </div>
+                &lt;!&ndash;                </div>&ndash;&gt;
+              </div>-->
               <!-- load opendata in the table -->
               <div
                 class="table-responsive mb-2"
@@ -148,11 +148,23 @@
                   </ngx-datatable-column>
                 </ngx-datatable>
               </div>
+              <div *ngIf="!loading">
+                <!--                <div class="no-results">-->
+                <!--                  <h5>No Data</h5>-->
+                <a
+                  class="fw-bold p-2"
+                  routerLink=""
+                  (click)="goTo('/app/data/datasets')"
+                  >Go to data extraction to customise data
+                  <i class="fas fa-circle-right"></i
+                ></a>
+                <!--                </div>-->
+              </div>
             </ng-container>
             <ng-container *ngSwitchCase="dataset.category === 'OBS'">
               <p class="p-2">
-                Open Data for observations are available through the map. User
-                can select a filter and customise a bunch of data to download.
+                Observational open data are available through the map. They can
+                also be customised using the data extraction feature
               </p>
               <div class="p-2 fw-bold">
                 <a

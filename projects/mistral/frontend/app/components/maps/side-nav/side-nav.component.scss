@@ -893,3 +893,25 @@ $dark-blue: #004080;
     margin-left: 5px;
   }
 }
+
+.info-message {
+  display: block;
+  text-align: left;
+  width: 100%;
+  margin: 0px 0 0 0;
+  font-family: "Titillium Web";
+}
+
+.info-message i {
+  background-color: #157acc;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: inline-flex; /* INLINE-FLEX */
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  vertical-align: middle; /* Per allineamento verticale */
+  margin-right: 6px; /* Spazio tra icona e testo */
+}
