@@ -166,6 +166,7 @@ $dark-blue: #004080;
 .carte,
 .tpperc,
 .tpprob,
+.donwload_button,
 .networks,
 .snow {
   background-size: contain;
@@ -217,6 +218,9 @@ $dark-blue: #004080;
 
 .snow {
   background-image: url("/app/custom/assets/images/icons/snow.svg");
+}
+.donwload_button {
+  background-image: url("/app/custom/assets/images/icons/download_button.png");
 }
 
 .input,
@@ -908,10 +912,10 @@ $dark-blue: #004080;
   border-radius: 50%;
   width: 18px;
   height: 18px;
-  display: inline-flex; /* INLINE-FLEX */
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   font-size: 12px;
-  vertical-align: middle; /* Per allineamento verticale */
-  margin-right: 6px; /* Spazio tra icona e testo */
+  vertical-align: middle;
+  margin-right: 6px;
 }

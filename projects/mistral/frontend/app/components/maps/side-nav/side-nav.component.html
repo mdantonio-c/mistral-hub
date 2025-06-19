@@ -67,6 +67,7 @@
           <span class="nav-text" i18n>Networks</span>
         </a>
         <select
+          *ngIf="!isCollapsed"
           class="form-select networks-select"
           aria-label="Default select example"
           [(ngModel)]="selectedOption"
@@ -92,17 +93,17 @@
         </label>
       </li>-->
     </ul>
-    <ul class="selector">
-      <!-- Download Data -->
+    <!--    <ul class="selector">
       <li class="sidenav-item dropdown" *ngIf="showObsFilter">
         <div class="d-flex align-items-center">
           <button
             type="button"
             class="btn btn-border-classic no-rounded ms-1 d-flex justify-content-center align-items-center"
-            style="background-color: #157acc"
+            style="background-color: transparent; border: none !important; outline: none !important; box-shadow: none !important;"
+
             (click)="download()"
           >
-            <!--            <i class="fa fa-download"></i>-->
+            &lt;!&ndash;            <i class="fa fa-download"></i>&ndash;&gt;
             <img
               src="/app/custom/assets/images/icons/download_button.png"
               alt="Download"
@@ -113,6 +114,22 @@
             <span class="nav-text ms-2" i18n>DOWNLOAD DATA</span>
           </a>
         </div>
+      </li>
+    </ul>-->
+    <ul class="selector">
+      <!-- Layers -->
+      <li class="sidenav-item">
+        <span
+          (click)="download()"
+          class="donwload_button clickable"
+          placement="left"
+          [ngbTooltip]="tip"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <ng-template #tip> </ng-template>
+        <a *ngIf="!isCollapsed" (click)="download()">
+          <span class="nav-text" i18n> DOWNLOAD DATA </span>
+        </a>
       </li>
     </ul>
 
@@ -156,7 +173,7 @@
         </a>
       </li>
     </ul>
-    <span class="info-message">
+    <span class="info-message" *ngIf="!isCollapsed">
       <i class="fas fa-info-circle mw-1"></i>
       {{ "Real-time data, not validated" | translate : lang }}
     </span>
