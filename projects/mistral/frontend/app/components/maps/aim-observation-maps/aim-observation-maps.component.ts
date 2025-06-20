@@ -245,7 +245,7 @@ export class AimObservationMapsComponent
     this.loadObservations(filter, true);
     (map as any).timeDimension.setCurrentTime(beforeOneHour);
     this.centerMap();
-    this.timelineReferenceDate = this.printTimeLineReferenceDate();
+    //this.timelineReferenceDate = this.printTimeLineReferenceDate();
 
     /* cacht event timeloloadObad on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
@@ -473,6 +473,7 @@ export class AimObservationMapsComponent
     this.allMarkers = [];
     let obsData: ObsData;
     let min: number, max: number;
+    let lastTimeObsValues = [];
     // min and max needed before data marker creation
     data.forEach((s) => {
       // create a product list to manage cases with multiple products (wind use case)
@@ -501,6 +502,7 @@ export class AimObservationMapsComponent
 
       if (obsData.val.length > 0) {
         const lastObs: ObsValue = obsData.val.pop();
+        lastTimeObsValues.push(lastObs);
         let val = ObsService.showData(lastObs.val, productList[0]);
         // all values with one decimal digit, only for hr no decimal digit
         let numericVal = parseFloat(val);
@@ -821,6 +823,18 @@ export class AimObservationMapsComponent
     });
     // console.log(`Total markers: ${this.allMarkers.length}`);
 
+    lastTimeObsValues.sort((a, b) => {
+      return new Date(b.ref).getTime() - new Date(a.ref).getTime();
+    });
+    let lastTimeValue = lastTimeObsValues[0].ref + "Z";
+    const availableTimes = (this.map as any).timeDimension.getAvailableTimes();
+    const currentTime = (this.map as any).timeDimension.getCurrentTime();
+    if (availableTimes[availableTimes.length - 1] === currentTime) {
+      this.timelineReferenceDate =
+        this.printTimeLineLastReferenceDate(lastTimeValue);
+    } else {
+      this.timelineReferenceDate = this.printTimeLineReferenceDate();
+    }
     // reduce overlapping
     this.markers = this.reduceOverlapping(this.allMarkers);
     this.markersGroup = L.layerGroup(this.markers, { pane: product });
@@ -1008,5 +1022,14 @@ export class AimObservationMapsComponent
       .utc((this.map as any).timeDimension.getCurrentTime())
       .local()
       .format("DD-MM-YYYY, HH:mm")}`;
+  }
+  printTimeLineLastReferenceDate(timeStamp) {
+    const lastTime = new Date(timeStamp);
+    const day = lastTime.getDate().toString().padStart(2, "0");
+    const month = (lastTime.getMonth() + 1).toString().padStart(2, "0");
+    const year = lastTime.getFullYear();
+    const hours = lastTime.getHours().toString().padStart(2, "0");
+    const minutes = lastTime.getMinutes().toString().padStart(2, "0");
+    return `${day}-${month}-${year}, ${hours}:${minutes}`;
   }
 }
