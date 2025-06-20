@@ -46,12 +46,14 @@
           <input
             id="windSwitch"
             type="checkbox"
-            class="form-check-input clickable mt-1"
+            class="form-check-input clickable mt-1 ms-0"
             [checked]="windConvert"
             (change)="toggleWindConvert()"
           />
           <label class="form-check-label" for="windSwitch"></label>
-          <p i18n>{{ "m/s - km/h" | translate : lang }}</p>
+          <span i18n style="margin-bottom: -1rem">{{
+            "m/s - km/h" | translate : lang
+          }}</span>
         </div>
       </li>
     </ul>
