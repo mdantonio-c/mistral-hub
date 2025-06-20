@@ -58,16 +58,18 @@
 
     <ul class="selector">
       <!-- Network + Quality Control -->
-      <li class="sidenav-item" *ngIf="showObsFilter">
+      <li class="sidenav-item networks-item" *ngIf="showObsFilter">
         <span
           class="networks"
           placement="left"
           [ngbTooltip]="'Networks'"
           [disableTooltip]="!isCollapsed"
         ></span>
-        <a *ngIf="!isCollapsed">
-          <span class="nav-text" i18n>Networks</span>
-        </a>
+        <!--<a *ngIf="!isCollapsed">-->
+        <span>
+          <span *ngIf="!isCollapsed" class="nav-text">Networks</span>
+        </span>
+        <!--</a>-->
         <select
           *ngIf="!isCollapsed"
           class="form-select networks-select"
@@ -125,7 +127,7 @@
           (click)="download()"
           class="donwload_button clickable"
           placement="left"
-          [ngbTooltip]="tip"
+          [ngbTooltip]="'Download data'"
           [disableTooltip]="!isCollapsed"
         ></span>
         <ng-template #tip> </ng-template>

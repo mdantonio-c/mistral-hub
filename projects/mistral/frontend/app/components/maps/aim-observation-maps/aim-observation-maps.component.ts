@@ -157,12 +157,9 @@ export class AimObservationMapsComponent
         this.ITAversion = true;
       }
     });
-    this.intervalId = setInterval(
-      () => {
-        this.toggleLayer();
-      },
-      10 * 60 * 1000,
-    );
+    this.intervalId = setInterval(() => {
+      this.toggleLayer();
+    }, 30 * 500);
   }
   ngOnDestroy() {
     if (this.intervalId) {
@@ -202,6 +199,7 @@ export class AimObservationMapsComponent
       window as any
     ).L.Control.TimeDimensionCustom({
       autoPlay: false,
+      playButton: false,
       timeZones: ["Local"],
       loopButton: false,
       timeSteps: 1,

@@ -33,6 +33,15 @@ $dark-blue: #004080;
     margin-left: 14px;
     font-family: "TitilliumWeb-Regular";
   }
+  li span .nav-text {
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 14px;
+    width: 100%;
+    position: relative;
+    margin-left: 14px;
+    font-family: "TitilliumWeb-Regular";
+  }
 
   li a:hover .nav-text {
     text-decoration: none;
@@ -920,4 +929,11 @@ $dark-blue: #004080;
   font-family: "TitilliumWeb-SemiBold";
   font-weight: 600;
   text-transform: none !important;
+}
+.sidenav-item.networks-item a span.nav-text {
+  text-decoration: none !important;
+}
+
+.sidenav-item.networks-item a:hover span.nav-text {
+  text-decoration: none !important;
 }
