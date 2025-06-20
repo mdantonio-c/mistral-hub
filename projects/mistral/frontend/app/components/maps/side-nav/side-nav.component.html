@@ -38,7 +38,9 @@
         </a>
 
         <div
-          *ngIf="item.key === 'ws10m' && windShow && showObsFilter"
+          *ngIf="
+            item.key === 'ws10m' && windShow && showObsFilter && !isCollapsed
+          "
           class="form-switch wind-switch d-flex mt-1"
         >
           <input
@@ -154,7 +156,7 @@
         </a>
       </li>
 
-      <li class="sidenav-item last" *ngIf="mode == modes.adv">
+      <li class="sidenav-item" *ngIf="mode == modes.adv">
         <span
           class="minus clickable"
           [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
@@ -173,9 +175,25 @@
         </a>
       </li>
     </ul>
-    <span class="info-message" *ngIf="!isCollapsed">
-      <i class="fas fa-info-circle mw-1"></i>
-      {{ "Real-time data, not validated" | translate : lang }}
-    </span>
+    <ul class="selector realtime-info">
+      <li class="sidenav-item">
+        <span
+          class="info clickable"
+          [ngbTooltip]="
+            isCollapsed
+              ? ('Real-time data, not validated' | translate : lang)
+              : null
+          "
+          container="body"
+        >
+          <i class="fas fa-info-circle"></i>
+        </span>
+        <a *ngIf="!isCollapsed">
+          <span class="nav-text">{{
+            "Real-time data, not validated" | translate : lang
+          }}</span>
+        </a>
+      </li>
+    </ul>
   </div>
 </nav>

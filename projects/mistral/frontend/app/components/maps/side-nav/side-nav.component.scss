@@ -898,24 +898,26 @@ $dark-blue: #004080;
   }
 }
 
-.info-message {
-  display: block;
-  text-align: left;
-  width: 100%;
-  margin: 0px 0 0 0;
-  font-family: "Titillium Web";
-}
-
-.info-message i {
+.info {
+  margin-left: 3px;
+  margin-top: 4px;
   background-color: #157acc;
   color: white;
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
+  width: 25px;
+  height: 20px;
+  display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 12px;
-  vertical-align: middle;
-  margin-right: 6px;
+  font-size: 16px;
+}
+
+.info i {
+  margin: 0px;
+}
+
+.realtime-info .nav-text {
+  font-family: "TitilliumWeb-SemiBold";
+  font-weight: 600;
+  text-transform: none !important;
 }
