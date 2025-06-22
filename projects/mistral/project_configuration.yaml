@@ -82,6 +82,7 @@ variables:
     WARNING_MSG:
     AGGREGATIONS_TRANGES: ""
     AGGREGATIONS_DSN: ""
+    AGGREGATIONS_LASTDAYS: 3
 
     CORS_ALLOWED_ORIGIN: "*"
     SET_CSP_IMG_SRC: "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://api.tiles.mapbox.com https://cartodb-basemaps-a.global.ssl.fastly.net https://cartodb-basemaps-b.global.ssl.fastly.net https://cartodb-basemaps-c.global.ssl.fastly.net https://cartodb-basemaps-d.global.ssl.fastly.net https://tiles.stadiamaps.com https://maps.mistralportal.it https://meteohub-maps.hpc.cineca.it"
