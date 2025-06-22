@@ -110,6 +110,18 @@ CREATE TABLE public.metn_logdata
     CONSTRAINT pk_metn_logdata PRIMARY KEY (batchid)
 );
 
+CREATE TABLE public.metn_1h_aggr_logdata
+(
+    batchid bigint NOT NULL REFERENCES public.metn_logdata,
+    batchutc varchar NOT NULL,
+    codice_stazione varchar NOT NULL,
+    dataora_last varchar NOT NULL,
+    ts_ingestion timestamp with time zone,
+    ts_errore timestamp with time zone,
+    ms_errore varchar,
+    CONSTRAINT pk_metn_1h_aggr_logdata PRIMARY KEY (codice_stazione, dataora_last)
+);
+
 CREATE TABLE public.metn_dati
 (
     batchid bigint NOT NULL REFERENCES public.metn_logdata,
