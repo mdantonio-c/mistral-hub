@@ -117,13 +117,17 @@ export class ObsService {
    * @param filter
    * @param update
    */
-  getData(filter: ObsFilter, update = false): Observable<ObservationResponse> {
+  getData(
+    filter: ObsFilter,
+    update = false,
+    midNight = null,
+  ): Observable<ObservationResponse> {
     return of(this._data).pipe(
       switchMap((data) => {
         if (!update && data) {
           return of(data);
         } else {
-          return this.loadObservations(filter);
+          return this.loadObservations(filter, midNight);
         }
       }),
     );
@@ -134,15 +138,24 @@ export class ObsService {
    * @param filter
    * @param reliabilityCheck request for value reliability. Default to true.
    */
-  private loadObservations(filter: ObsFilter): Observable<ObservationResponse> {
+  private loadObservations(
+    filter: ObsFilter,
+    midNight = null,
+  ): Observable<ObservationResponse> {
     this._data = null;
+    let tomorrow = new Date(filter.reftime);
+    if (midNight) {
+      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+    }
+
     let params = {
       q: `${ObsService.parseReftime(
         filter.reftime,
-        filter.reftime,
+        !midNight ? filter.reftime : tomorrow,
         filter.time,
       )};product:${filter.product};license:${filter.license}`,
     };
+
     if (filter.reliabilityCheck) {
       params["reliabilityCheck"] = filter.reliabilityCheck;
     }

@@ -234,12 +234,12 @@ class TestApp(BaseTests):
         # check folder deletion
         assert not dir_to_delete.exists()
 
-    # check  file downloaded doesn't exist
+    # check file downloaded doesn't exist
     def test_opendata_download(self, faker: Faker):
         fake = Faker()
         assert not OPENDATA_DIR.joinpath(fake.name()).exists()
 
-    # check metadata list
+    # check a metadata list
     def test_check_reftime_and_run(self, client: FlaskClient):
         # get admin token
         admin_headers, _ = BaseTests.do_login(client, None, None)
@@ -266,8 +266,8 @@ class TestApp(BaseTests):
         # create a request on the db
         user_dir = Path(DOWNLOAD_DIR, uuid, "outputs")
 
-        # check if there are other schedules associated to the user, and in that case it deletes them
-        endpoint = API_URI + "/schedules"
+        # check if there are other schedules associated with the user, if so, deletes them
+        endpoint = f"{API_URI}/schedules"
         r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response = self.get_content(r)
@@ -284,7 +284,7 @@ class TestApp(BaseTests):
             assert not response
 
         # check if there are other requests associated to the user, and in that case it deletes them
-        endpoint = API_URI + "/requests"
+        endpoint = f"{API_URI}/requests"
         r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response = self.get_content(r)
@@ -318,19 +318,22 @@ class TestApp(BaseTests):
         date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
-        # get time info for the schedule
-        now = datetime.now()
+        # set time info for the cron schedule (delayed by 1 minute)
+        now_delayed = datetime.now() + timedelta(minutes=1)
         body = {
             "request_name": "test",
             "reftime": {"from": date_from, "to": date_to},
             "dataset_names": [self.DATASET_FOR_TEST_NAME],
             "filters": {"run": [ref_run[0]]},
-            "crontab-settings": {"hour": now.hour, "minute": now.minute},
+            "crontab-settings": {
+                "hour": now_delayed.hour,
+                "minute": now_delayed.minute,
+            },
             "opendata": True,
         }
 
         body = json.dumps(body)
-        endpoint = API_URI + "/schedules"
+        endpoint = f"{API_URI}/schedules"
         r = client.post(
             endpoint, headers=user_header, data=body, content_type="application/json"
         )
@@ -339,13 +342,15 @@ class TestApp(BaseTests):
         # get schedule id for delete
         schedule_id = [response.get("schedule_id")]
 
-        now = datetime.now()
         body = {
             "request_name": "test",
             "reftime": {"from": date_to, "to": date_to},
             "dataset_names": [self.DATASET_FOR_TEST_NAME],
             "filters": {"run": [ref_run[1]]},
-            "crontab-settings": {"hour": now.hour, "minute": now.minute},
+            "crontab-settings": {
+                "hour": now_delayed.hour,
+                "minute": now_delayed.minute,
+            },
             "opendata": True,
         }
 
@@ -361,7 +366,7 @@ class TestApp(BaseTests):
         # wait for the request
         time.sleep(70)
 
-        endpoint = API_URI + "/requests"
+        endpoint = f"{API_URI}/requests"
         r = client.get(endpoint, headers=user_header)
         assert r.status_code == 200
         response = self.get_content(r)
@@ -369,7 +374,7 @@ class TestApp(BaseTests):
         for e in response:
             requests_id.append(e.get("id"))
         if not len(requests_id) == 2:
-            print("wait a little bit more")
+            print("Waiting a little bit more...")
             time.sleep(40)
             r = client.get(endpoint, headers=user_header)
             assert r.status_code == 200

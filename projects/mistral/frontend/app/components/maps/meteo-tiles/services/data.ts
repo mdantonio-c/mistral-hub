@@ -503,6 +503,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     value: [],
     order: 5,
   },
+  /*
   snow: {
     label: "snow depth",
     desc: "cm",
@@ -511,7 +512,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
     level: "1,0,0,0",
     value: [],
     order: 6,
-  },
+  },*/
 };
 
 export const COLORSTOPS = {
@@ -728,23 +729,23 @@ export const layersToUpdate = [
 
 export const NETWORK_NAMES = [
   "All",
-  "Sardegna",
-  "Sicilia",
-  "Calabria",
   "Basilicata",
+  "Calabria",
   "Campania",
-  "Puglia",
-  "Lazio",
-  "Molise",
-  "Marche",
-  "Umbria",
   "Emilia-Romagna",
-  "Veneto",
-  "Lombardia",
-  "Piemonte",
+  "Lazio",
   "Liguria",
+  "Lombardia",
+  "Marche",
+  "Molise",
+  "Piemonte",
   "Provincia autonoma di Bolzano",
   "Provincia autonoma di Trento",
+  "Puglia",
+  "Sardegna",
+  "Sicilia",
+  "Umbria",
+  "Veneto",
   "Meteonetwork",
 ];
 

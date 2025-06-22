@@ -101,6 +101,15 @@ export class ObsStationReportComponent implements OnInit {
           let data = response.data;
           // data = randomize(data);
           this.descriptions = response.descr;
+          // change on description
+          if (this.descriptions) {
+            this.descriptions["B01019"] = { descr: "Station name" };
+            this.descriptions["B01194"] = { descr: "Network" };
+            this.descriptions["B07030"] = {
+              descr: "Station elevation above sea level",
+            };
+          }
+
           this.report = data[0];
           //console.log('response',response)
           //console.log('DESCR-response.descr',this.descriptions);
@@ -421,5 +430,9 @@ export class ObsStationReportComponent implements OnInit {
     if (this.single[0].series.length > 35) {
       return this.single[0].series.length * 11;
     }
+  }
+
+  giveMeMetres() {
+    return "m";
   }
 }

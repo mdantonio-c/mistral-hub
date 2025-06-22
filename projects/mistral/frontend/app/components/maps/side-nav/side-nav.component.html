@@ -38,51 +38,42 @@
         </a>
 
         <div
-          *ngIf="item.key === 'ws10m' && windShow && showObsFilter"
+          *ngIf="
+            item.key === 'ws10m' && windShow && showObsFilter && !isCollapsed
+          "
           class="form-switch wind-switch d-flex mt-1"
         >
           <input
             id="windSwitch"
             type="checkbox"
-            class="form-check-input clickable mt-1"
+            class="form-check-input clickable mt-1 ms-0"
             [checked]="windConvert"
             (change)="toggleWindConvert()"
           />
           <label class="form-check-label" for="windSwitch"></label>
-          <p i18n>{{ "m/s - km/h" | translate : lang }}</p>
+          <span i18n style="margin-bottom: -1rem">{{
+            "m/s - km/h" | translate : lang
+          }}</span>
         </div>
       </li>
     </ul>
 
     <ul class="selector">
-      <!-- Download Data -->
-      <li class="sidenav-item dropdown mt-2" *ngIf="showObsFilter">
-        <div class="d-flex align-items-center">
-          <button
-            type="button"
-            class="btn btn-border-classic no-rounded ms-1"
-            (click)="download()"
-          >
-            <i class="fa fa-download"></i>
-          </button>
-          <label *ngIf="!isCollapsed" class="nav-text fw-bold ms-2"
-            >DOWNLOAD DATA</label
-          >
-        </div>
-      </li>
-
       <!-- Network + Quality Control -->
-      <li class="sidenav-item" *ngIf="showObsFilter">
+      <li class="sidenav-item networks-item" *ngIf="showObsFilter">
         <span
           class="networks"
           placement="left"
           [ngbTooltip]="'Networks'"
           [disableTooltip]="!isCollapsed"
         ></span>
-        <a href="#" *ngIf="!isCollapsed">
-          <span class="nav-text" i18n>Networks</span>
-        </a>
+        <!--<a *ngIf="!isCollapsed">-->
+        <span>
+          <span *ngIf="!isCollapsed" class="nav-text">Networks</span>
+        </span>
+        <!--</a>-->
         <select
+          *ngIf="!isCollapsed"
           class="form-select networks-select"
           aria-label="Default select example"
           [(ngModel)]="selectedOption"
@@ -96,7 +87,7 @@
           </option>
         </select>
       </li>
-      <li class="selettore-quality-control" *ngIf="showObsFilter">
+      <!--<li class="selettore-quality-control" *ngIf="showObsFilter">
         <label>
           <input
             type="checkbox"
@@ -106,6 +97,45 @@
           />
           <div>Quality Control Filter</div>
         </label>
+      </li>-->
+    </ul>
+    <!--    <ul class="selector">
+      <li class="sidenav-item dropdown" *ngIf="showObsFilter">
+        <div class="d-flex align-items-center">
+          <button
+            type="button"
+            class="btn btn-border-classic no-rounded ms-1 d-flex justify-content-center align-items-center"
+            style="background-color: transparent; border: none !important; outline: none !important; box-shadow: none !important;"
+
+            (click)="download()"
+          >
+            &lt;!&ndash;            <i class="fa fa-download"></i>&ndash;&gt;
+            <img
+              src="/app/custom/assets/images/icons/download_button.png"
+              alt="Download"
+              style="width: 20px; height: 20px"
+            />
+          </button>
+          <a *ngIf="!isCollapsed" (click)="download()">
+            <span class="nav-text ms-2" i18n>DOWNLOAD DATA</span>
+          </a>
+        </div>
+      </li>
+    </ul>-->
+    <ul class="selector">
+      <!-- Layers -->
+      <li class="sidenav-item">
+        <span
+          (click)="download()"
+          class="donwload_button clickable"
+          placement="left"
+          [ngbTooltip]="'Download data'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <ng-template #tip> </ng-template>
+        <a *ngIf="!isCollapsed" (click)="download()">
+          <span class="nav-text" i18n> DOWNLOAD DATA </span>
+        </a>
       </li>
     </ul>
 
@@ -130,7 +160,7 @@
         </a>
       </li>
 
-      <li class="sidenav-item last" *ngIf="mode == modes.adv">
+      <li class="sidenav-item" *ngIf="mode == modes.adv">
         <span
           class="minus clickable"
           [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
@@ -146,6 +176,26 @@
             i18n
             >Zoom out</span
           >
+        </a>
+      </li>
+    </ul>
+    <ul class="selector realtime-info">
+      <li class="sidenav-item">
+        <span
+          class="info clickable"
+          [ngbTooltip]="
+            isCollapsed
+              ? ('Real-time data, not validated' | translate : lang)
+              : null
+          "
+          container="body"
+        >
+          <i class="fas fa-info-circle"></i>
+        </span>
+        <a *ngIf="!isCollapsed">
+          <span class="nav-text">{{
+            "Real-time data, not validated" | translate : lang
+          }}</span>
         </a>
       </li>
     </ul>

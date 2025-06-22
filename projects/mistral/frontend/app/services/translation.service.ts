@@ -22,11 +22,13 @@ export class TranslationService {
         "reference date": "data",
         pressure: "Pressione",
         "relative humidity": "Umidità Relativa",
+        "near surface (%)": "(%)",
+        "snow depth": "altezza neve",
         "instant at 2m above the ground": "istantanea a 2m dal suolo",
         "instant at ground": "istantanea al suolo",
-        "cumulated at ground on previous 1h": "cumulata al suolo su 1h",
+        "cumulated at ground on previous 1h": "cumulata 1h (mm)",
         "instant speed and direction at 10m above the ground":
-          "velocità media e direzione istantanea a 10m dal suolo",
+          "velocità media e direzione (m/s)",
         station: "Stazione",
         "station details": "Dettagli della stazione",
         // station parameters
@@ -53,8 +55,16 @@ export class TranslationService {
         "accumulation over 1h at forecast time 0": "Cumulato su 1h",
         "accumulated data": "Dato cumulato",
         "accumulated precipitation over 1h": "Precipitazione cumulata su 1h",
+        "accumulation over 1 hour (mm)": "cumulata 1h (mm)",
+        "speed and direction near surface (m/s)":
+          "velocità media e direzione (m/s)",
+        "speed and direction near surface (km/h)":
+          "velocità media e direzione (km/h)",
+        "near surface (hPa)": "(hPa)",
         "dates are expressed in local time":
           "le date sono espresse in ora locale",
+        "local time": "ora locale",
+        "Real-time data, not validated": " Dati in tempo reale non validati",
         "scalar field": "Campo scalare",
         total: "Totale",
         "map style": "Stile Mappa",

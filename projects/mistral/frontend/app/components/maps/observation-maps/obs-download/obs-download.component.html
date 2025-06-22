@@ -13,11 +13,11 @@
 <div class="modal-header">
   <h4 class="modal-title">Download Data</h4>
   <a
-  class="icon-info"
-    ngbTooltip={{downloadMessage}}
+    class="icon-info"
+    ngbTooltip="{{ downloadMessage }}"
     placement="right"
     tooltipClass="tool-tip"
-  ><i class="fas fa-question"></i
+    ><i class="fas fa-question"></i
   ></a>
   <button
     type="button"
@@ -68,7 +68,10 @@
           <option *ngFor="let f of allFormats" [ngValue]="f">{{ f }}</option>
         </select>
       </div>
-
+      <p>
+        To download data older than 10 days, please
+        <a href="/app/login">log in</a>
+      </p>
       <div class="text-center mt-4">
         <button
           type="submit"

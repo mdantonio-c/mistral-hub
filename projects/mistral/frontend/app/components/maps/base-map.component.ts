@@ -172,11 +172,18 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
     let formattedDate = null;
     if (language && language === "it") {
       formattedDate = reftime
-        ? `${moment.utc(reftime).locale("it").format("D MMMM, HH:mm")}`
+        ? `${moment
+            .utc(new Date(reftime).toISOString())
+            .local()
+            .locale("it")
+            .format("D MMMM, HH:mm")}`
         : "n/a";
     } else {
       formattedDate = reftime
-        ? `${moment.utc(reftime).format("MMM Do, HH:mm")}`
+        ? `${moment
+            .utc(new Date(reftime).toISOString())
+            .local()
+            .format("MMM Do, HH:mm")}`
         : "n/a";
     }
     const template =
@@ -187,6 +194,7 @@ export abstract class BaseMapComponent implements OnInit, OnDestroy {
       `<hr class="my-1"/>` +
       `<span>` +
       formattedDate +
+      " local time" +
       `</span>`;
     return template;
   }

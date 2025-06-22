@@ -45,7 +45,12 @@
                       | translate : lang
                   }}
                 </p>
-                <small>{{ d.val }}</small>
+                <small
+                  >{{ d.val }}
+                  <span *ngIf="d.var === 'B07030'">
+                    {{ giveMeMetres() }}
+                  </span></small
+                >
               </li>
             </ul>
           </div>

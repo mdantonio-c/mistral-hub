@@ -33,6 +33,15 @@ $dark-blue: #004080;
     margin-left: 14px;
     font-family: "TitilliumWeb-Regular";
   }
+  li span .nav-text {
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 14px;
+    width: 100%;
+    position: relative;
+    margin-left: 14px;
+    font-family: "TitilliumWeb-Regular";
+  }
 
   li a:hover .nav-text {
     text-decoration: none;
@@ -166,6 +175,7 @@ $dark-blue: #004080;
 .carte,
 .tpperc,
 .tpprob,
+.donwload_button,
 .networks,
 .snow {
   background-size: contain;
@@ -217,6 +227,9 @@ $dark-blue: #004080;
 
 .snow {
   background-image: url("/app/custom/assets/images/icons/snow.svg");
+}
+.donwload_button {
+  background-image: url("/app/custom/assets/images/icons/download_button.png");
 }
 
 .input,
@@ -892,4 +905,35 @@ $dark-blue: #004080;
     height: 22px;
     margin-left: 5px;
   }
+}
+
+.info {
+  margin-left: 3px;
+  margin-top: 4px;
+  background-color: #157acc;
+  color: white;
+  border-radius: 50%;
+  width: 25px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+}
+
+.info i {
+  margin: 0px;
+}
+
+.realtime-info .nav-text {
+  font-family: "TitilliumWeb-SemiBold";
+  font-weight: 600;
+  text-transform: none !important;
+}
+.sidenav-item.networks-item a span.nav-text {
+  text-decoration: none !important;
+}
+
+.sidenav-item.networks-item a:hover span.nav-text {
+  text-decoration: none !important;
 }
