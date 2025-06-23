@@ -68,10 +68,21 @@
           <option *ngFor="let f of allFormats" [ngValue]="f">{{ f }}</option>
         </select>
       </div>
-      <p>
+      <p *ngIf="!isAuthenticated">
         To download data older than 10 days, please
         <a href="/app/login">log in</a>
       </p>
+      <div class="d-flex align-items-start mt-2" *ngIf="showWarning">
+        <i
+          class="fas fa-exclamation-triangle me-2 mt-1"
+          style="color: #ffc107; font-size: 1.2rem"
+        ></i>
+        <span
+          >The maximum range of {{ maxDays }} days has been exceeded. <br />
+          For extended access to the datasets, click
+          <a href="/app/data/datasets"> here</a>.</span
+        >
+      </div>
       <div class="text-center mt-4">
         <button
           type="submit"

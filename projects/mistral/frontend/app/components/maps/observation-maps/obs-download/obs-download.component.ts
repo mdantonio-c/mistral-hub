@@ -31,6 +31,9 @@ export class ObsDownloadComponent implements OnInit {
   toDate: NgbDate | null;
   maxDate: NgbDate | null;
   minDate: NgbDateStruct | null;
+  showWarning: boolean;
+  maxDays: number;
+  isAuthenticated: boolean | null;
   downloadMessage: string =
     "You can select a single date and then click Download to get the data. Or you can select two different dates to identify a range of days and then click Download.";
   allFormats: string[] = ["JSON", "BUFR"];
@@ -53,6 +56,9 @@ export class ObsDownloadComponent implements OnInit {
     this.maxDate = calendar.getToday();
     this.fromDate = calendar.getToday();
     this.toDate = null; // calendar.getNext(calendar.getToday(), "d", 10);
+    this.showWarning = false;
+    this.maxDays = 15;
+    this.isAuthenticated = false;
   }
 
   ngOnInit() {
@@ -63,11 +69,27 @@ export class ObsDownloadComponent implements OnInit {
     }*/
     this.user = this.authService.getUser();
     if (!this.user) {
+      this.isAuthenticated = false;
       this.applyMinDate();
+    } else {
+      this.isAuthenticated = true;
     }
+  }
+  dateDiffInDays(from: NgbDate, to: NgbDate): number {
+    const fromDate = new Date(from.year, from.month - 1, from.day);
+    const toDate = new Date(to.year, to.month - 1, to.day);
+    const diffTime = toDate.getTime() - fromDate.getTime();
+    return diffTime / (1000 * 3600 * 24);
   }
 
   onDateSelection(date: NgbDate) {
+    console.log(this.fromDate);
+    console.log(date);
+    console.log(
+      `from: ${this.fromDate}, to ${
+        this.toDate
+      } date: ${date} è dopo? ${date.after(this.fromDate)} `,
+    );
     if (!this.fromDate && !this.toDate) {
       this.fromDate = date;
     } else if (
@@ -77,9 +99,17 @@ export class ObsDownloadComponent implements OnInit {
       (date.equals(this.fromDate) || date.after(this.fromDate))
     ) {
       this.toDate = date;
+      // check if the interval is allowed
+      const daysSelected = this.dateDiffInDays(this.fromDate, date);
+      if (daysSelected > this.maxDays) {
+        this.showWarning = true;
+        this.fromDate = date;
+        this.toDate = null;
+      }
     } else {
       this.toDate = null;
       this.fromDate = date;
+      this.showWarning = false;
     }
   }
 
