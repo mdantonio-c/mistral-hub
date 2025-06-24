@@ -87,6 +87,7 @@ export class AimObservationMapsComponent
     zoomControl: false,
     zoom: 6,
     center: L.latLng(41.88, 12.28),
+    zoomSnap: 0.1,
     maxBoundsViscosity: 1.0,
     maxBounds: this.bounds,
     timeDimension: true,
@@ -172,6 +173,7 @@ export class AimObservationMapsComponent
 
   onMapReady(map: L.Map) {
     this.map = map;
+    this.map.setView([41.88, 12.28], 5.8);
     this.map.attributionControl.setPrefix("");
     (window as any).L.Control.TimeDimensionCustom = (
       window as any
