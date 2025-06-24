@@ -166,11 +166,11 @@
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block"
                       ><b>{{
-                        model.name | fmtLabelDate : lang : true
+                        model.name | fmtLabelDate : 'it' : true
                       }}</b></span
                     >
                     <span class="d-block"
-                      >{{ model.series | translate : lang }}:
+                      >{{ model.series | translate : 'it' }}:
                       {{ model.value }}</span
                     >
                   </ng-template>
@@ -178,7 +178,7 @@
                     <div class="area-tooltip-container">
                       <span class="d-block"
                         ><b>{{
-                          model[0].name | fmtLabelDate : lang : true
+                          model[0].name | fmtLabelDate : 'it' : true
                         }}</b></span
                       >
                       <div class="tooltip-item">
@@ -237,7 +237,7 @@
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block">{{
-                      model.name | fmtLabelDate : lang : true
+                      model.name | fmtLabelDate : 'it' : true
                     }}</span>
                     <span class="d-block"
                       >{{ model.series | translate : lang }}:
@@ -248,7 +248,7 @@
                     <div class="area-tooltip-container">
                       <span class="d-block"
                         ><b>{{
-                          model[0].name | fmtLabelDate : lang : true
+                          model[0].name | fmtLabelDate : 'it' : true
                         }}</b></span
                       >
                       <div
@@ -311,7 +311,7 @@
                       <div class="area-tooltip-container">
                         <span class="d-block"
                           ><b>{{
-                            model[0].name | fmtLabelDate : lang : true
+                            model[0].name | fmtLabelDate : 'it' : true
                           }}</b></span
                         >
                         <div
