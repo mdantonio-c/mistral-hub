@@ -1,5 +1,4 @@
-
-<div style="position:relative">
+<div style="position: relative">
   <div class="modal-header">
     <h4 class="modal-title">
       {{ "Station" | translate : lang }} : {{ getName() || "n/a" }}
@@ -13,16 +12,16 @@
   </div>
   <div class="modal-body">
     <ngx-spinner
-    type="ball-scale-multiple"
-    [name]="'timeseries-spinner'"
-    bdColor="rgba(255,255,255,0.8)"
-    color="#6c757d"
-    zIndex="1000"
-    [fullScreen]="false"
-    size="medium"
-  >
-  </ngx-spinner>
-    <div class="row .g-0" style="min-height: 100px;">
+      type="ball-scale-multiple"
+      [name]="'timeseries-spinner'"
+      bdColor="rgba(255,255,255,0.8)"
+      color="#6c757d"
+      zIndex="1000"
+      [fullScreen]="false"
+      size="medium"
+    >
+    </ngx-spinner>
+    <div class="row .g-0" style="min-height: 100px">
       <div class="col-lg-3 mb-2" *ngIf="report">
         <div class="card mb-3" style="max-width: 18rem">
           <div class="card-header">
@@ -33,7 +32,7 @@
             <ul class="list-group list-group-flush">
               <li
                 class="list-group-item px-0 py-1"
-                *ngFor="let d of report.stat?.details"
+                *ngFor="let d of filteredStationDetails"
               >
                 <p class="h6 my-0">
                   {{
@@ -167,11 +166,11 @@
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block"
                       ><b>{{
-                        model.name | fmtLabelDate : 'it' : true
+                        model.name | fmtLabelDate : "it" : true
                       }}</b></span
                     >
                     <span class="d-block"
-                      >{{ model.series | translate : 'it' }}:
+                      >{{ model.series | translate : "it" }}:
                       {{ model.value }}</span
                     >
                   </ng-template>
@@ -179,7 +178,7 @@
                     <div class="area-tooltip-container">
                       <span class="d-block"
                         ><b>{{
-                          model[0].name | fmtLabelDate : 'it' : true
+                          model[0].name | fmtLabelDate : "it" : true
                         }}</b></span
                       >
                       <div class="tooltip-item">
@@ -238,7 +237,7 @@
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block">{{
-                      model.name | fmtLabelDate : 'it' : true
+                      model.name | fmtLabelDate : "it" : true
                     }}</span>
                     <span class="d-block"
                       >{{ model.series | translate : lang }}:
@@ -249,7 +248,7 @@
                     <div class="area-tooltip-container">
                       <span class="d-block"
                         ><b>{{
-                          model[0].name | fmtLabelDate : 'it' : true
+                          model[0].name | fmtLabelDate : "it" : true
                         }}</b></span
                       >
                       <div
@@ -312,7 +311,7 @@
                       <div class="area-tooltip-container">
                         <span class="d-block"
                           ><b>{{
-                            model[0].name | fmtLabelDate : 'it' : true
+                            model[0].name | fmtLabelDate : "it" : true
                           }}</b></span
                         >
                         <div
