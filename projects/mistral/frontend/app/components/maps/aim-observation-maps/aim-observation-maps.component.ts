@@ -173,7 +173,7 @@ export class AimObservationMapsComponent
 
   onMapReady(map: L.Map) {
     this.map = map;
-    this.map.setView([41.88, 12.28], 5.8);
+    setTimeout(()=>this.map.setView([41.88, 12.28], 5.8), 0);
     this.map.attributionControl.setPrefix("");
     (window as any).L.Control.TimeDimensionCustom = (
       window as any
