@@ -23,6 +23,7 @@ import {
   LEGEND_DATA,
   LegendConfig,
   NETWORKS,
+  sharedSideNav,
 } from "../meteo-tiles/services/data";
 import {
   ObsFilter,
@@ -35,7 +36,6 @@ import {
 import { ObsService } from "../observation-maps/services/obs.service";
 import { ObsStationReportComponent } from "../observation-maps/obs-station-report/obs-station-report.component";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-
 @Component({
   selector: "app-aim-observation-maps",
   templateUrl: "./aim-observation-maps.component.html",
@@ -87,6 +87,7 @@ export class AimObservationMapsComponent
     zoomControl: false,
     zoom: 6,
     center: L.latLng(41.88, 12.28),
+    zoomSnap: 0.1,
     maxBoundsViscosity: 1.0,
     maxBounds: this.bounds,
     timeDimension: true,
@@ -94,7 +95,7 @@ export class AimObservationMapsComponent
       timeInterval: this.timeIntervalTimeLine(),
       period: "PT60M", // ISO8601 duration, step of 60 min
     },
-    timeDimensionControl: true,
+    timeDimensionControl: false,
     timeDimensionControlOptions: {
       autoPlay: false,
       timeZones: ["Local"],
@@ -104,7 +105,7 @@ export class AimObservationMapsComponent
       limitSliders: true,
       playerOptions: {
         buffer: 0,
-        transitionTime: 1500,
+        transitionTime: 0,
         loop: true,
         startOver: true,
       },
@@ -128,10 +129,13 @@ export class AimObservationMapsComponent
   private filter: ObsFilter;
   private windConvert = false;
   private intervalId: any;
+  private timeDimensionControl: any;
+  private ITAversion = false;
+
   selectedNetwork = "";
   timelineReferenceDate: string = "";
   qualityContolFilter = false;
-
+  sharedSideNav = sharedSideNav;
   constructor(
     injector: Injector,
     private obsService: ObsService,
@@ -151,6 +155,7 @@ export class AimObservationMapsComponent
       }
       if (this.lang === "it") {
         // TODO
+        this.ITAversion = true;
       }
     });
     this.intervalId = setInterval(
@@ -168,72 +173,68 @@ export class AimObservationMapsComponent
 
   onMapReady(map: L.Map) {
     this.map = map;
-
+    setTimeout(()=>this.map.setView([41.88, 12.28], 5.8), 0);
     this.map.attributionControl.setPrefix("");
-    let tControl = (map as any).timeDimensionControl;
-    // to catch forward button click
-    const forwardButton = document.querySelector('[title="Forward"]');
-    forwardButton.addEventListener("click", () => {
-      tControl._player.stop();
-      const currentTime: number = (map as any).timeDimension.getCurrentTime();
-      const now = new Date();
-      now.setUTCMinutes(0);
-      now.setUTCSeconds(0);
-      now.setUTCMilliseconds(0);
-      if (currentTime == now.getTime()) {
-        (map as any).timeDimension.setCurrentTime(this.fromDate.getTime());
-      }
-    });
-    const backwardButton: Element =
-      document.querySelector('[title="Backward"]');
-    backwardButton.addEventListener("click", () => {
-      tControl._player.stop();
-      const currentTime: number = (map as any).timeDimension.getCurrentTime();
-      const now = new Date();
-      now.setUTCMinutes(0);
-      now.setUTCSeconds(0);
-      now.setUTCMilliseconds(0);
-      if (currentTime == this.fromDate.getTime()) {
-        (map as any).timeDimension.setCurrentTime(now.getTime());
-      }
-    });
-    tControl._player.on("play", () => {
-      this.playControl = true;
-    });
-    tControl._player.on("stop", () => {
-      this.playControl = false;
+    (window as any).L.Control.TimeDimensionCustom = (
+      window as any
+    ).L.Control.TimeDimension.extend({
+      onAdd: function (map: L.Map) {
+        const container = (
+          window as any
+        ).L.Control.TimeDimension.prototype.onAdd.call(this, map);
+        this.timeZoneSelect = container.querySelector(
+          ".timecontrol-timezone select",
+        );
+        return container;
+      },
+
+      _getDisplayDateFormat: function (date: Date) {
+        const timeZone = this._getCurrentTimeZone().toLowerCase();
+        if (timeZone === "local") {
+          const offsetHours = moment(date).utcOffset() / 60;
+          const sign = offsetHours >= 0 ? "+" : "-";
+          return moment(date).format(
+            `DD-MM-YYYY HH:mm [UTC${sign}${Math.abs(offsetHours)}]`,
+          );
+        }
+      },
     });
 
+    this.timeDimensionControl = new (
+      window as any
+    ).L.Control.TimeDimensionCustom({
+      autoPlay: false,
+      playButton: false,
+      timeZones: ["Local"],
+      loopButton: false,
+      timeSteps: 1,
+      playReverseButton: false,
+      limitSliders: true,
+      playerOptions: {
+        buffer: 0,
+        transitionTime: 0,
+        loop: true,
+        startOver: true,
+      },
+      speedSlider: false,
+    });
+    this.map.addControl(this.timeDimensionControl);
+    let tControl = this.timeDimensionControl;
     let beforeOneHour: Date = new Date();
-    beforeOneHour.setUTCHours(beforeOneHour.getUTCHours() - 1);
+    beforeOneHour.setUTCHours(beforeOneHour.getUTCHours());
     beforeOneHour.setUTCMinutes(0);
     beforeOneHour.setUTCSeconds(0);
     beforeOneHour.setUTCMilliseconds(0);
     this.myNow = beforeOneHour;
     //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
-
     //console.log(`Date: ${Date()} UTC date: ${moment.utc(new Date().getTime())}`)
     // default product: temperature
     const defaultProduct: string = "t2m";
-    // add default layer
-    // const filter: ObsFilter = {
-    //   // common parameters
-    //   reftime: moment.utc(new Date()).toDate(),
-    //   license: "CCBY_COMPLIANT",
-    //   time: [0, 23],
-    //   onlyStations: false,
-    //   reliabilityCheck: true,
-    //   last: true,
-    //   product: VARIABLES_CONFIG_OBS[defaultProduct].code,
-    //   timerange: VARIABLES_CONFIG_OBS[defaultProduct].timerange,
-    //   level: VARIABLES_CONFIG_OBS[defaultProduct].level,
-    // };
-
     // add default layer and filter
     const filter: ObsFilter = {
       reftime: beforeOneHour,
       license: "CCBY_COMPLIANT",
-      time: [beforeOneHour.getUTCHours() - 1, beforeOneHour.getUTCHours() - 1],
+      time: [beforeOneHour.getUTCHours() - 1, beforeOneHour.getUTCHours()],
       onlyStations: false,
       reliabilityCheck: true,
       last: true,
@@ -242,27 +243,36 @@ export class AimObservationMapsComponent
       level: VARIABLES_CONFIG_OBS[defaultProduct].level,
     };
     this.filter = filter;
+    this.spinner.show();
     this.loadObservations(filter, true);
     (map as any).timeDimension.setCurrentTime(beforeOneHour);
     this.centerMap();
-    this.timelineReferenceDate = this.printTimeLineReferenceDate();
+    //this.timelineReferenceDate = this.printTimeLineReferenceDate();
 
-    /* cacht event timeload on the timebar, a timeload event is any injection of time in the timebar */
+    /* cacht event timeloloadObad on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
+      if (!tControl._player.isPlaying()) this.spinner.show();
+      // in order to sync with load observation
+      tControl._player.pause();
       let isMidNight: boolean = false;
       let selectedDate = new Date((map as any).timeDimension.getCurrentTime());
+      let selectedDateUTC = new Date(selectedDate);
+      selectedDateUTC.setUTCHours(selectedDate.getUTCHours());
       this.refTimeToTimeLine = selectedDate;
-      let startDate = new Date(selectedDate);
-      startDate.setHours(selectedDate.getHours() - 1);
-
+      let startDate = new Date(selectedDateUTC);
+      startDate.setHours(selectedDateUTC.getHours() - 1);
       /* For data that refer to the previous day */
-      if (startDate.getUTCDate() != selectedDate.getUTCDate()) {
+      if (startDate.getUTCDate() != selectedDateUTC.getUTCDate()) {
         isMidNight = true;
       }
-
       const filter: ObsFilter = {
-        reftime: !isMidNight ? selectedDate : startDate,
-        time: [startDate.getUTCHours(), startDate.getUTCHours()],
+        reftime: !isMidNight ? selectedDateUTC : startDate,
+        time: [
+          startDate.getUTCHours(),
+          isMidNight
+            ? selectedDateUTC.getUTCHours()
+            : startDate.getUTCHours() + 1,
+        ],
         license: this.filter.license,
         onlyStations: false,
         reliabilityCheck: true,
@@ -275,7 +285,7 @@ export class AimObservationMapsComponent
       this.myTime = filter["time"];
       if (this.qualityContolFilter) filter["reliabilityCheck"] = true;
       if (this.selectedNetwork) filter["network"] = this.selectedNetwork;
-      this.loadObservations(filter, true);
+      this.loadObservations(filter, true, isMidNight);
       this.timelineReferenceDate = this.printTimeLineReferenceDate();
       this.cdr.detectChanges();
     });
@@ -286,12 +296,13 @@ export class AimObservationMapsComponent
       ws10m: this.createLegendControl("ws10m"),
       rh: this.createLegendControl("rh"),
       prp: this.createLegendControl("prp"),
-      snow: this.createLegendControl("snow"),
+      //snow: this.createLegendControl("snow"),
     };
 
     this.legends[defaultProduct].addTo(map);
     this.currentProduct = defaultProduct;
   }
+
   /*
    * Define time interval of timeline following ISO standard
    * dayToSubtract defines the start date
@@ -307,6 +318,7 @@ export class AimObservationMapsComponent
     behindDate.setUTCHours(0, 0, 0, 0);
     this.fromDate = behindDate;
     const behindIsoDate: string = behindDate.toISOString();
+    console.log(behindIsoDate, nowIsoDate);
     return `${behindIsoDate}/${nowIsoDate}`;
   }
   private createLegendControl(id: string): L.Control {
@@ -345,13 +357,9 @@ export class AimObservationMapsComponent
       this.markersGroup.addTo(this.map);
     }
   }
-  loadObservations(filter: ObsFilter, update = false) {
-    //const startTime = new Date().getTime();
-    if (!this.playControl) {
-      this.spinner.show();
-    }
+  loadObservations(filter: ObsFilter, update = false, midNight = null) {
     this.obsService
-      .getData(filter, update)
+      .getData(filter, update, midNight)
       .subscribe(
         (response: ObservationResponse) => {
           /*console.log(
@@ -367,6 +375,8 @@ export class AimObservationMapsComponent
           }
           let data = response.data;
           this.loadMarkers(data, filter.product);
+          // in order to sync with the end of marker update
+          this.timeDimensionControl._player.release();
           if (data.length === 0) {
             this.notify.showWarning("No observations found.");
           }
@@ -382,7 +392,6 @@ export class AimObservationMapsComponent
   }
   loadWindMarkersHandle(event) {
     if (event) {
-      console.log("procedere con il cambio da m/s a km/h");
       this.windConvert = true;
       this.updateWindMarkers();
       const legend = new L.Control({ position: this.LEGEND_POSITION });
@@ -399,10 +408,8 @@ export class AimObservationMapsComponent
       this.legends[this.currentProduct] = legend;
     }
     if (!event) {
-      console.log("riportare i valori a m/s");
       this.windConvert = false;
       this.updateWindMarkers();
-
       this.map.removeControl(this.legends[this.currentProduct]);
       const legend = this.createLegendControl("ws10m");
       legend.addTo(this.map);
@@ -416,7 +423,7 @@ export class AimObservationMapsComponent
   }
 
   loadNetwork(event) {
-    if (event === "Any") {
+    if (event === "All") {
       this.selectedNetwork = "";
       this.toggleLayer();
       return;
@@ -468,6 +475,7 @@ export class AimObservationMapsComponent
     this.allMarkers = [];
     let obsData: ObsData;
     let min: number, max: number;
+    let lastTimeObsValues = [];
     // min and max needed before data marker creation
     data.forEach((s) => {
       // create a product list to manage cases with multiple products (wind use case)
@@ -496,14 +504,11 @@ export class AimObservationMapsComponent
 
       if (obsData.val.length > 0) {
         const lastObs: ObsValue = obsData.val.pop();
+        lastTimeObsValues.push(lastObs);
         let val = ObsService.showData(lastObs.val, productList[0]);
         // all values with one decimal digit, only for hr no decimal digit
         let numericVal = parseFloat(val);
         val = isNaN(numericVal) ? val : numericVal.toFixed(1);
-        if (this.windConvert) {
-          numericVal = numericVal * 3.6;
-          val = isNaN(numericVal) ? val : numericVal.toFixed(1);
-        }
         if (this.variablesConfig["rh"].code === productList[0]) {
           val = isNaN(numericVal) ? val : Math.round(numericVal).toString();
         }
@@ -553,107 +558,107 @@ export class AimObservationMapsComponent
             this.variablesConfig["t2m"].code === productList[0]
           ) {
             if (lastObs.val >= 319.15) {
-              color = "#ff9900";
+              color = "#FFDCDC";
             } else if (lastObs.val >= 317.15 && lastObs.val < 319.15) {
-              color = "#ffcc00";
+              color = "#FFB4B4";
             } else if (lastObs.val >= 315.15 && lastObs.val < 317.15) {
-              color = "#7200ff";
+              color = "#F0A0A0";
               textColor = "#fff";
             } else if (lastObs.val >= 313.15 && lastObs.val < 315.15) {
-              color = "#bf00ff";
+              color = "#B46464";
               textColor = "#fff";
             } else if (lastObs.val >= 311.15 && lastObs.val < 313.15) {
-              color = "#ff00ff";
+              color = "#640000";
               textColor = "#fff";
             } else if (lastObs.val >= 309.15 && lastObs.val < 311.15) {
-              color = "#cc00cc";
+              color = "#7C0000";
               textColor = "#fff";
             } else if (lastObs.val >= 307.15 && lastObs.val < 309.15) {
-              color = "#990099";
+              color = "#AF0F14";
               textColor = "#fff";
             } else if (lastObs.val >= 305.15 && lastObs.val < 307.15) {
-              color = "#660066";
+              color = "#C41A0A";
               textColor = "#fff";
             } else if (lastObs.val >= 303.15 && lastObs.val < 305.15) {
-              color = "#660000";
+              color = "#E83709";
               textColor = "#fff";
             } else if (lastObs.val >= 301.15 && lastObs.val < 303.15) {
-              color = "#990000";
+              color = "#F46D0B";
               textColor = "#fff";
             } else if (lastObs.val >= 299.15 && lastObs.val < 301.15) {
-              color = "#cc0000";
+              color = "#F4880B";
               textColor = "#fff";
             } else if (lastObs.val >= 297.15 && lastObs.val < 299.15) {
-              color = "#ff0000";
+              color = "#F4BD0B";
               textColor = "#fff";
             } else if (lastObs.val >= 295.15 && lastObs.val < 297.15) {
-              color = "#ff6600";
+              color = "#F4D90B";
             } else if (lastObs.val >= 293.15 && lastObs.val < 295.15) {
-              color = "#ff9900";
+              color = "#F3FB01";
             } else if (lastObs.val >= 291.15 && lastObs.val < 293.15) {
-              color = "#ffcc00";
+              color = "#CEF003";
             } else if (lastObs.val >= 289.15 && lastObs.val < 291.16) {
-              color = "#ffff00";
+              color = "#9CE106";
             } else if (lastObs.val >= 287.15 && lastObs.val < 289.15) {
-              color = "#cce500";
+              color = "#52CA0B";
             } else if (lastObs.val >= 285.15 && lastObs.val < 287.15) {
-              color = "#7fcc00";
+              color = "#21BB0E";
             } else if (lastObs.val >= 283.15 && lastObs.val < 285.15) {
-              color = "#00b200";
+              color = "#07A127";
             } else if (lastObs.val >= 281.15 && lastObs.val < 283.15) {
-              color = "#00cc7f";
+              color = "#62AF88";
             } else if (lastObs.val >= 279.15 && lastObs.val < 281.15) {
-              color = "#00e5cc";
+              color = "#87D3AB";
             } else if (lastObs.val >= 277.15 && lastObs.val < 279.15) {
-              color = "#00ffff";
+              color = "#9FEEC8";
             } else if (lastObs.val >= 275.15 && lastObs.val < 277.15) {
-              color = "#00bfff";
+              color = "#BBFFE2";
               textColor = "#fff";
             } else if (lastObs.val >= 273.15 && lastObs.val < 275.15) {
-              color = "#008cff";
+              color = "#5BB4FF";
               textColor = "#fff";
             } else if (lastObs.val >= 271.15 && lastObs.val < 273.15) {
-              color = "#0059ff";
+              color = "#259AFF";
               textColor = "#fff";
             } else if (lastObs.val >= 269.15 && lastObs.val < 271.15) {
-              color = "#0000ff";
+              color = "#0082EF";
               textColor = "#fff";
             } else if (lastObs.val >= 267.15 && lastObs.val < 269.15) {
-              color = "#7200ff";
+              color = "#0062AF";
               textColor = "#fff";
             } else if (lastObs.val >= 265.15 && lastObs.val < 267.15) {
-              color = "#bf00ff";
+              color = "#00528F";
               textColor = "#fff";
             } else if (lastObs.val >= 263.15 && lastObs.val < 265.15) {
-              color = "#ff00ff";
+              color = "#00467F";
             } else if (lastObs.val >= 261.15 && lastObs.val < 263.15) {
-              color = "#cc00cc";
+              color = "#003C7F";
               textColor = "#fff";
             } else if (lastObs.val >= 259.15 && lastObs.val < 261.15) {
-              color = "#990099";
+              color = "#00287F";
               textColor = "#fff";
             } else if (lastObs.val >= 257.15 && lastObs.val < 259.15) {
-              color = "#660066";
+              color = "#3E007F";
               textColor = "#fff";
             } else if (lastObs.val >= 255.15 && lastObs.val < 257.15) {
-              color = "#660000";
+              color = "#57007F";
               textColor = "#fff";
             } else if (lastObs.val >= 253.15 && lastObs.val < 255.15) {
-              color = "#990000";
+              color = "#F627EB";
               textColor = "#fff";
             } else if (lastObs.val >= 251.15 && lastObs.val < 253.15) {
-              color = "#cc0000";
+              color = "#D41DD1";
               textColor = "#fff";
             } else if (lastObs.val >= 249.15 && lastObs.val < 251.15) {
-              color = "#ff0000";
+              color = "#B414B9";
               textColor = "#fff";
             } else if (lastObs.val >= 247.15 && lastObs.val < 249.15) {
-              color = "#ff6600";
+              color = "#870898";
               textColor = "#fff";
             } else if (lastObs.val >= 245.15 && lastObs.val < 247.15) {
-              color = "#ff9900";
+              color = "#78048D";
             } else if (lastObs.val >= 243.15 && lastObs.val < 245.15) {
-              color = "#ffcc00";
+              color = "#64007F";
             }
           }
           if (
@@ -662,9 +667,9 @@ export class AimObservationMapsComponent
           ) {
             if (lastObs.val >= min && lastObs.val <= max) {
               if (lastObs.val >= 300) {
-                color = "#4897D9";
+                color = "#703f78";
               } else if (lastObs.val >= 200 && lastObs.val < 300) {
-                color = "#A2A4D6";
+                color = "#9f5fab";
               } else if (lastObs.val >= 100 && lastObs.val < 200) {
                 color = "#B887C0";
               } else if (lastObs.val >= 75 && lastObs.val < 100) {
@@ -733,22 +738,22 @@ export class AimObservationMapsComponent
             "ws10m" in this.variablesConfig &&
             this.variablesConfig["ws10m"].code.includes(productList[0])
           ) {
-            if (lastObs.val >= 70) {
-              color = "#9600FE";
-            } else if (lastObs.val >= 50 && lastObs.val < 70) {
-              color = "#EE82EE";
+            if (lastObs.val >= 50) {
+              color = "#ff00c3";
             } else if (lastObs.val >= 30 && lastObs.val < 50) {
-              color = "#FF0000";
+              color = "#ee82ee";
             } else if (lastObs.val >= 20 && lastObs.val < 30) {
-              color = "#FFFF00";
+              color = "#ff3333";
             } else if (lastObs.val >= 10 && lastObs.val < 20) {
-              color = "#FFA600";
+              color = "#ffff00";
             } else if (lastObs.val >= 5 && lastObs.val < 10) {
-              color = "#0000FE";
+              color = "#4bcf4f";
             } else if (lastObs.val >= 2 && lastObs.val < 5) {
-              color = "#54878C";
-            } else if (lastObs.val >= 0 && lastObs.val < 2) {
-              color = "#457D00";
+              color = "#7070ff";
+            } else if (lastObs.val >= 1 && lastObs.val < 2) {
+              color = "#8bd8f9";
+            } else if (lastObs.val >= 0 && lastObs.val < 1) {
+              color = "#E0F4FE";
             }
             // get the direction data
             // wind use case
@@ -792,6 +797,7 @@ export class AimObservationMapsComponent
           const m = new L.Marker([s.stat.lat, s.stat.lon], {
             icon: icon,
           });
+
           m.options["station"] = s.stat;
           m.options["data"] = obsData;
           const localReferenceTime = moment
@@ -819,6 +825,18 @@ export class AimObservationMapsComponent
     });
     // console.log(`Total markers: ${this.allMarkers.length}`);
 
+    lastTimeObsValues.sort((a, b) => {
+      return new Date(b.ref).getTime() - new Date(a.ref).getTime();
+    });
+    let lastTimeValue = lastTimeObsValues[0].ref + "Z";
+    const availableTimes = (this.map as any).timeDimension.getAvailableTimes();
+    const currentTime = (this.map as any).timeDimension.getCurrentTime();
+    if (availableTimes[availableTimes.length - 1] === currentTime) {
+      this.timelineReferenceDate =
+        this.printTimeLineLastReferenceDate(lastTimeValue);
+    } else {
+      this.timelineReferenceDate = this.printTimeLineReferenceDate();
+    }
     // reduce overlapping
     this.markers = this.reduceOverlapping(this.allMarkers);
     this.markersGroup = L.layerGroup(this.markers, { pane: product });
@@ -970,15 +988,27 @@ export class AimObservationMapsComponent
   printDatasetDescription = (): string => {
     let product: string;
     for (let key in VARIABLES_CONFIG_OBS) {
-      if (VARIABLES_CONFIG_OBS[key].code.includes(this.filter.product)) {
+      if (
+        VARIABLES_CONFIG_OBS[key].code.includes(this.filter.product) &&
+        VARIABLES_CONFIG_OBS[key].code != "B11002 or B11001"
+      ) {
         product = VARIABLES_CONFIG_OBS[key].desc;
+        if (VARIABLES_CONFIG_OBS[key].code === "B12101" && this.ITAversion)
+          product = "(°C)";
+        if (VARIABLES_CONFIG_OBS[key].code === "B10004" && this.ITAversion)
+          product = "(hPa)";
+        break;
+      } else if (VARIABLES_CONFIG_OBS[key].code.includes(this.filter.product)) {
+        product = !this.windConvert
+          ? VARIABLES_CONFIG_OBS[key].desc
+          : "speed and direction near surface (km/h)";
         break;
       }
     }
     return product || "";
   };
   printHoursDescription = (): string => {
-    return "dates are expressed in local time";
+    return "local time";
   };
   printReferenceDate(): string {
     const now: number = new Date().getTime();
@@ -994,5 +1024,14 @@ export class AimObservationMapsComponent
       .utc((this.map as any).timeDimension.getCurrentTime())
       .local()
       .format("DD-MM-YYYY, HH:mm")}`;
+  }
+  printTimeLineLastReferenceDate(timeStamp) {
+    const lastTime = new Date(timeStamp);
+    const day = lastTime.getDate().toString().padStart(2, "0");
+    const month = (lastTime.getMonth() + 1).toString().padStart(2, "0");
+    const year = lastTime.getFullYear();
+    const hours = lastTime.getHours().toString().padStart(2, "0");
+    const minutes = lastTime.getMinutes().toString().padStart(2, "0");
+    return `${day}-${month}-${year}, ${hours}:${minutes}`;
   }
 }

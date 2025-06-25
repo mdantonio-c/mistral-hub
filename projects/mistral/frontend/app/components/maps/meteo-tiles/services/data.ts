@@ -455,7 +455,7 @@ export const VARIABLES_CONFIG_BASE: GenericArg = {
 export const VARIABLES_CONFIG_OBS: GenericArg = {
   t2m: {
     label: "temperature",
-    desc: "instant at 2m above the ground",
+    desc: "near surface (°C)",
     code: "B12101",
     timerange: "254,0,0",
     level: "103,2000,0,0",
@@ -464,7 +464,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
   },
   prp: {
     label: "precipitation",
-    desc: "cumulated at ground on previous 1h",
+    desc: "accumulation over 1 hour (mm)",
     code: "B13011",
     timerange: "1,0,3600",
     level: "1,0,0,0",
@@ -478,7 +478,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
   },*/
   ws10m: {
     label: "wind",
-    desc: "instant speed and direction at 10m above the ground",
+    desc: "speed and direction near surface (m/s)",
     code: "B11002 or B11001",
     timerange: "254,0,0",
     level: "103,10000,0,0",
@@ -487,7 +487,7 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
   },
   rh: {
     label: "relative humidity",
-    desc: "instant at 2m above the ground",
+    desc: "near surface (%)",
     code: "B13003",
     timerange: "254,0,0",
     level: "103,2000,0,0",
@@ -496,22 +496,23 @@ export const VARIABLES_CONFIG_OBS: GenericArg = {
   },
   prs: {
     label: "pressure",
-    desc: "instant at ground",
+    desc: "near surface (hPa)",
     code: "B10004",
     timerange: "254,0,0",
     level: "1,0,0,0",
     value: [],
     order: 5,
   },
+  /*
   snow: {
     label: "snow depth",
-    desc: "TOTAL SNOW DEPTH",
+    desc: "cm",
     code: "B13013",
     timerange: "254,0,0",
     level: "1,0,0,0",
     value: [],
     order: 6,
-  },
+  },*/
 };
 
 export const COLORSTOPS = {
@@ -727,29 +728,29 @@ export const layersToUpdate = [
 ];
 
 export const NETWORK_NAMES = [
-  "Any",
-  "Sardegna",
-  "Sicilia",
-  "Calabria",
+  "All",
   "Basilicata",
+  "Calabria",
   "Campania",
-  "Puglia",
-  "Lazio",
-  "Molise",
-  "Marche",
-  "Umbria",
   "Emilia-Romagna",
-  "Veneto",
-  "Lombardia",
-  "Piemonte",
+  "Lazio",
   "Liguria",
+  "Lombardia",
+  "Marche",
+  "Molise",
+  "Piemonte",
   "Provincia autonoma di Bolzano",
   "Provincia autonoma di Trento",
+  "Puglia",
+  "Sardegna",
+  "Sicilia",
+  "Umbria",
+  "Veneto",
   "Meteonetwork",
 ];
 
 export const NETWORKS = [
-  { name: "Any", network: "" },
+  { name: "All", network: "" },
   { name: "Sardegna", network: "dpcn-sardegna" },
   { name: "Sicilia", network: "dpcn-sicilia" },
   { name: "Calabria", network: "dpcn-calabria" },
@@ -773,3 +774,8 @@ export const NETWORKS = [
   { name: "Provincia autonoma di Trento", network: "open-trentino" },
   { name: "Meteonetwork", network: "mnw" },
 ];
+
+export enum sharedSideNav {
+  livemapComp = "Livemap",
+  observationComp = "Observation",
+}

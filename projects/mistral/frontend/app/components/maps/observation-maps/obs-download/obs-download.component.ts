@@ -24,13 +24,16 @@ const LAST_DAYS = +environment.CUSTOM.LASTDAYS || 10;
   styleUrls: ["./obs-download.component.css"],
 })
 export class ObsDownloadComponent implements OnInit {
-  @Input() filter: ObsFilter | ObsFilter[];
+  @Input() filter: ObsFilter;
   hoveredDate: NgbDate | null = null;
 
   fromDate: NgbDate | null;
   toDate: NgbDate | null;
   maxDate: NgbDate | null;
   minDate: NgbDateStruct | null;
+  showWarning: boolean;
+  maxDays: number;
+  isAuthenticated: boolean | null;
   downloadMessage: string =
     "You can select a single date and then click Download to get the data. Or you can select two different dates to identify a range of days and then click Download.";
   allFormats: string[] = ["JSON", "BUFR"];
@@ -53,6 +56,9 @@ export class ObsDownloadComponent implements OnInit {
     this.maxDate = calendar.getToday();
     this.fromDate = calendar.getToday();
     this.toDate = null; // calendar.getNext(calendar.getToday(), "d", 10);
+    this.showWarning = false;
+    this.maxDays = 15;
+    this.isAuthenticated = false;
   }
 
   ngOnInit() {
@@ -63,11 +69,27 @@ export class ObsDownloadComponent implements OnInit {
     }*/
     this.user = this.authService.getUser();
     if (!this.user) {
+      this.isAuthenticated = false;
       this.applyMinDate();
+    } else {
+      this.isAuthenticated = true;
     }
+  }
+  dateDiffInDays(from: NgbDate, to: NgbDate): number {
+    const fromDate = new Date(from.year, from.month - 1, from.day);
+    const toDate = new Date(to.year, to.month - 1, to.day);
+    const diffTime = toDate.getTime() - fromDate.getTime();
+    return diffTime / (1000 * 3600 * 24);
   }
 
   onDateSelection(date: NgbDate) {
+    console.log(this.fromDate);
+    console.log(date);
+    console.log(
+      `from: ${this.fromDate}, to ${
+        this.toDate
+      } date: ${date} è dopo? ${date.after(this.fromDate)} `,
+    );
     if (!this.fromDate && !this.toDate) {
       this.fromDate = date;
     } else if (
@@ -77,9 +99,17 @@ export class ObsDownloadComponent implements OnInit {
       (date.equals(this.fromDate) || date.after(this.fromDate))
     ) {
       this.toDate = date;
+      // check if the interval is allowed
+      const daysSelected = this.dateDiffInDays(this.fromDate, date);
+      if (daysSelected > this.maxDays) {
+        this.showWarning = true;
+        this.fromDate = date;
+        this.toDate = null;
+      }
     } else {
       this.toDate = null;
       this.fromDate = date;
+      this.showWarning = false;
     }
   }
 
@@ -129,45 +159,48 @@ export class ObsDownloadComponent implements OnInit {
       this.toDate = this.fromDate;
     }
     console.log(this.filter);
-    const fromDate = new Date(
+    this.model.fromDate = new Date(
       Date.UTC(this.fromDate.year, this.fromDate.month - 1, this.fromDate.day),
     );
-    const toDate = new Date(
+    this.model.toDate = new Date(
       Date.UTC(this.toDate.year, this.toDate.month - 1, this.toDate.day),
     );
 
-    const filters = Array.isArray(this.filter) ? this.filter : [this.filter];
-    const format = this.model.format;
-    const extension = format === "BUFR" ? ".bufr" : ".jsonl";
-
     this.spinner.show();
+    const format = this.model.format;
 
-    const downloadNext = (index: number) => {
-      if (index >= filters.length) {
+    let fileExtension = "";
+    switch (this.model.format) {
+      case "BUFR":
+        fileExtension = ".bufr";
+        break;
+      case "JSON":
+        fileExtension = ".jsonl";
+    }
+    let basename =
+      `${this.filter.product}_` +
+      `${this.fromDate.year}${this.fromDate.month}${this.fromDate.day}-` +
+      `${this.toDate.year}${this.toDate.month}${this.toDate.day}`;
+    this.obsService
+      .download(
+        this.filter,
+        this.model.fromDate,
+        this.model.toDate,
+        this.model.format,
+      )
+      .subscribe(
+        (blob) => {
+          importedSaveAs(blob, `${basename}${fileExtension}`);
+        },
+        (error) => {
+          console.error(error);
+          this.notify.showError("Unable to download data");
+        },
+      )
+      .add(() => {
         this.spinner.hide();
         this.activeModal.close();
-        return;
-      }
-
-      const f = filters[index];
-      const basename =
-        `${f.product}_${this.fromDate.year}${this.fromDate.month}${this.fromDate.day}-` +
-        `${this.toDate.year}${this.toDate.month}${this.toDate.day}`;
-
-      this.obsService.download(f, fromDate, toDate, format).subscribe({
-        next: (blob) => {
-          importedSaveAs(blob, `${basename}${extension}`);
-          downloadNext(index + 1);
-        },
-        error: (err) => {
-          console.error(err);
-          this.notify.showError(`Unable to download data for ${f.product}`);
-          downloadNext(index + 1);
-        },
       });
-    };
-
-    downloadNext(0);
   }
 
   private applyMinDate() {

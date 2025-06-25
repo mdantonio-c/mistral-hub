@@ -13,7 +13,11 @@ import {
 import { KeyValue } from "@angular/common";
 import { GenericArg, ValueLabel, ObsFilter } from "../../../types";
 import { MOBILE_WIDTH, ViewModes } from "../meteo-tiles/meteo-tiles.config";
-import { NETWORK_NAMES, NETWORKS } from "../meteo-tiles/services/data";
+import {
+  NETWORK_NAMES,
+  NETWORKS,
+  sharedSideNav,
+} from "../meteo-tiles/services/data";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { ObsDownloadComponent } from "../observation-maps/obs-download/obs-download.component";
 
@@ -37,6 +41,7 @@ export class SideNavFilterComponent implements OnInit {
   @Input() map: L.Map;
   @Input() minZoom: number = 5;
   @Input() maxZoom: number = 12;
+  @Input() mode_1!: sharedSideNav;
 
   private _overlays: L.Control.LayersObject;
   private network: string = "";
@@ -60,8 +65,9 @@ export class SideNavFilterComponent implements OnInit {
   windConvert = false;
   zLevel: number;
   dropdownOptions: string[] = NETWORK_NAMES;
-  selectedOption: string = "Any";
+  selectedOption: string = "All";
   selectedQuality = false;
+  showObsFilter = false;
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -110,6 +116,11 @@ export class SideNavFilterComponent implements OnInit {
       },
     );
     this.selectedQuality = false;
+    if (this.mode_1 === sharedSideNav.livemapComp) {
+      this.showObsFilter = false;
+    } else {
+      this.showObsFilter = true;
+    }
   }
 
   @HostListener("window:resize", ["$event"])
@@ -147,7 +158,7 @@ export class SideNavFilterComponent implements OnInit {
 
   onNetworkChange(value: string) {
     console.log("Network selezionato:", value);
-    if (value === "Any") this.network = "";
+    if (value === "All") this.network = "";
     else this.network = value;
     this.onNetworkChangeEmitter.emit(value);
   }
@@ -164,7 +175,7 @@ export class SideNavFilterComponent implements OnInit {
     this.onCollapseChange.emit(this.isCollapsed);
   }
 
-  private toObsFilter(): ObsFilter | ObsFilter[] {
+  private toObsFilter(): ObsFilter {
     console.log(this.network);
     let filter: ObsFilter = {
       product: this._overlays.options["pane"],
@@ -192,43 +203,24 @@ export class SideNavFilterComponent implements OnInit {
         filter.level = "1,0,0,0";
       else filter.level = "103,2000,0,0";
     } else if (this._overlays.options["pane"] === "B11002 or B11001") {
-      let filter2 = { ...filter };
-      filter.product = "B11001";
+      filter.product = "B11001 or B11001";
       filter.timerange = "254,0,0";
       filter.level = "103,10000,0,0";
-      filter.reliabilityCheck = true;
-      filter2.product = "B11002";
-      filter2.timerange = filter.timerange;
-      filter2.level = filter.level;
-      filter2.reliabilityCheck = true;
-      this.openDownload([filter, filter2]);
-      return [filter, filter2];
+      this.openDownload(filter);
+      return filter;
     }
 
-    filter.reliabilityCheck = true;
-    // da continuare quando applico il contro filter
-    /*if (form.reliabilityCheck) {
-      filter.reliabilityCheck = true;
-    }*/
     this.openDownload(filter);
     return filter;
   }
-  openDownload(filter: ObsFilter | ObsFilter[]) {
+  openDownload(filter: ObsFilter) {
     const modalRef = this.modalService.open(ObsDownloadComponent, {
       backdrop: "static",
       keyboard: false,
     });
     modalRef.componentInstance.filter = filter;
   }
-  /*doSomething() {
-    if (!this.windConvert) {
-      this.windConvert = true;
-      this.onWindConvert.emit(this.windConvert);
-    } else {
-      this.windConvert = false;
-      this.onWindConvert.emit(this.windConvert);
-    }
-  }*/
+
   toggleWindConvert() {
     this.windConvert = !this.windConvert;
     this.onWindConvert.emit(this.windConvert);

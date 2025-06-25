@@ -165,14 +165,7 @@ class MapsObservations(EndpointResource):
 
         # check consistency with license group
         if "license" not in query:
-            if networks == "multim-forecast":
-                # is the only case where the request come without a requested license group
-                multim_group_license = SqlApiDbManager.get_license_group(
-                    alchemy_db, [dataset_name]
-                )
-                query["license"] = multim_group_license.name
-            else:
-                raise BadRequest("License group parameter is mandatory")
+            raise BadRequest("License group parameter is mandatory")
         try:
             group_license, dsn_subset = dballe.check_access_authorization(
                 user, query["license"], dataset_name
@@ -237,38 +230,17 @@ class MapsObservations(EndpointResource):
                         "the requested interval is greater than the requested timerange"
                     )
         try:
-            query_list: Optional[List[Dict[str, Any]]] = []
+            query_and_dsn_list: Optional[List[Dict[str, Any]]] = []
             if query:
-                # check if there are filters with multiple queries
-                single_params = {}
-                list_params = {}
-                for k, v in query.items():
-                    if not isinstance(v, list) or len(v) == 1:
-                        single_params[k] = v
-                    else:
-                        list_params[k] = v
-                if not list_params:
-                    # not multiple queries, append the original query to the query list
-                    query_list.append(single_params)
-                else:
-                    # prepare the multiple queries
-                    fields = []
-                    queries = []
-                    for k, v in list_params.items():
-                        fields.append(k)
-                        queries.append(v)
-                    all_queries = list(itertools.product(*queries))
-                    for q in all_queries:
-                        single_query = {**single_params}
-                        for k, v in zip(fields, q):
-                            single_query[k] = [v]
-                        query_list.append(single_query)
+                query_and_dsn_list = dballe.get_queries_and_dsn_list_with_itertools(
+                    query
+                )
             else:
                 # you need to iterate over query list to extract data, so add an empty element to the list
-                query_list.append(None)
-
+                query_and_dsn_list.append({"query": None, "aggregations_dsn": None})
             raw_res: Optional[Any] = None
-            for q in query_list:
+            for query_and_dsn in query_and_dsn_list:
+                q = query_and_dsn["query"]
                 if q and query_station_data:
                     # add the params that can be multiple to the query for station details
                     if "timerange" in q:
@@ -294,6 +266,7 @@ class MapsObservations(EndpointResource):
                         query_station_data=query_station_data,
                         dsn_subset=dsn_subset,
                         previous_res=raw_res,
+                        aggregations_dsn=query_and_dsn["aggregations_dsn"],
                     )
         except AccessToDatasetDenied:
             raise ServerError("Access to dataset denied")

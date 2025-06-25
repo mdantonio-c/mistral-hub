@@ -1,3 +1,10 @@
+#include:
+#  - local: ".gitlab/jobs/codeql-analysis.yml"
+#  - local: ".gitlab/jobs/semgrep-analysis.yml"
+#  - local: ".gitlab/jobs/mypy.yml"
+#  - local: ".gitlab/jobs/cypress.yml"
+#  - local: ".gitlab/jobs/frontend.yml"
+
 stages:
   - test
 
@@ -36,8 +43,13 @@ backend_tests:
     - rapydo version
     - rapydo pull --quiet
     - rapydo build
-    - rapydo -e AUTH_LOGIN_BAN_TIME=10 start
-    - rapydo shell backend 'restapi wait'
+
+    # Prepare testing environment
+    - .gitlab/scripts/setup-backend-and-datasets.sh "${PROJECT}" "${DATASET_URL}"
+
+    # Test arpaesimc tools
+    - rapydo shell backend "bash /code/tests/custom/test_arpaesimc.sh"
+
     # Run tests
     - rapydo shell backend 'restapi tests --wait --destroy --folder custom'
     - LOGURU_LEVEL=WARNING rapydo list services

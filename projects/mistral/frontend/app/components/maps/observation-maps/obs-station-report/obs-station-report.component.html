@@ -1,14 +1,5 @@
-<ngx-spinner
-  type="ball-scale-multiple"
-  [name]="'timeseries-spinner'"
-  bdColor="rgba(255,255,255,0.8)"
-  color="#6c757d"
-  zIndex="1000"
-  [fullScreen]="false"
-  size="medium"
->
-</ngx-spinner>
-<div *ngIf="report">
+
+<div style="position:relative">
   <div class="modal-header">
     <h4 class="modal-title">
       {{ "Station" | translate : lang }} : {{ getName() || "n/a" }}
@@ -21,8 +12,18 @@
     ></button>
   </div>
   <div class="modal-body">
-    <div class="row .g-0">
-      <div class="col-lg-3 mb-2">
+    <ngx-spinner
+    type="ball-scale-multiple"
+    [name]="'timeseries-spinner'"
+    bdColor="rgba(255,255,255,0.8)"
+    color="#6c757d"
+    zIndex="1000"
+    [fullScreen]="false"
+    size="medium"
+  >
+  </ngx-spinner>
+    <div class="row .g-0" style="min-height: 100px;">
+      <div class="col-lg-3 mb-2" *ngIf="report">
         <div class="card mb-3" style="max-width: 18rem">
           <div class="card-header">
             <i class="fas fa-circle-info me-1"></i
@@ -45,7 +46,12 @@
                       | translate : lang
                   }}
                 </p>
-                <small>{{ d.val }}</small>
+                <small
+                  >{{ d.val }}
+                  <span *ngIf="d.var === 'B07030'">
+                    {{ giveMeMetres() }}
+                  </span></small
+                >
               </li>
             </ul>
           </div>
@@ -64,7 +70,7 @@
         </div>
         -->
       </div>
-      <div class="col-lg-9">
+      <div class="col-lg-9" *ngIf="report">
         <div class="card text-center">
           <div class="card-body">
             <ul
@@ -161,11 +167,11 @@
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block"
                       ><b>{{
-                        model.name | fmtLabelDate : lang : true
+                        model.name | fmtLabelDate : 'it' : true
                       }}</b></span
                     >
                     <span class="d-block"
-                      >{{ model.series | translate : lang }}:
+                      >{{ model.series | translate : 'it' }}:
                       {{ model.value }}</span
                     >
                   </ng-template>
@@ -173,7 +179,7 @@
                     <div class="area-tooltip-container">
                       <span class="d-block"
                         ><b>{{
-                          model[0].name | fmtLabelDate : lang : true
+                          model[0].name | fmtLabelDate : 'it' : true
                         }}</b></span
                       >
                       <div class="tooltip-item">
@@ -232,7 +238,7 @@
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block">{{
-                      model.name | fmtLabelDate : lang : true
+                      model.name | fmtLabelDate : 'it' : true
                     }}</span>
                     <span class="d-block"
                       >{{ model.series | translate : lang }}:
@@ -243,7 +249,7 @@
                     <div class="area-tooltip-container">
                       <span class="d-block"
                         ><b>{{
-                          model[0].name | fmtLabelDate : lang : true
+                          model[0].name | fmtLabelDate : 'it' : true
                         }}</b></span
                       >
                       <div
@@ -306,7 +312,7 @@
                       <div class="area-tooltip-container">
                         <span class="d-block"
                           ><b>{{
-                            model[0].name | fmtLabelDate : lang : true
+                            model[0].name | fmtLabelDate : 'it' : true
                           }}</b></span
                         >
                         <div

@@ -16,6 +16,7 @@ import {
   VARIABLES_CONFIG_OBS,
   LEGEND_DATA,
   LegendConfig,
+  sharedSideNav,
 } from "../meteo-tiles/services/data";
 import {
   ObsFilter,
@@ -38,6 +39,7 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   readonly LEGEND_POSITION = "bottomleft";
   @Input() minZoom: number = 5;
   @Input() maxZoom: number = 12;
+
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -116,6 +118,8 @@ export class LivemapComponent extends BaseMapComponent implements OnInit {
   private playControl: boolean = false; // to deactivate spinner when animation starts
   private fromDate: Date;
   private filter: ObsFilter;
+  sharedSideNav = sharedSideNav;
+
   constructor(
     injector: Injector,
     private obsService: ObsService,

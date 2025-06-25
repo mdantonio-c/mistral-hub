@@ -1,53 +1,146 @@
 <nav class="map-sidenav" [class.collapsed]="isCollapsed">
   <div class="map-sidenav-menu">
-    <!-- partial collapse -->
     <label
       class="toggle"
       (click)="changeCollapse()"
       [class.collapsed]="isCollapsed"
     ></label>
+
     <ul class="selector" *ngIf="varConfig">
+      <!-- Layers -->
       <li
         class="sidenav-item"
         *ngFor="let item of varConfig | keyvalue : valueAscOrder"
       >
         <span
+          *ngIf="item.key !== 'snow' || showObsFilter"
           class="{{ item.key }} clickable"
           (click)="toggleLayer($event, item.key)"
           placement="left"
           [ngbTooltip]="tip"
           [disableTooltip]="!isCollapsed"
         ></span>
-        <ng-template #tip>{{
-          item.value.label | translate : lang | titlecase
-        }}</ng-template>
+        <ng-template #tip>
+          {{ item.value.label | translate : lang | titlecase }}
+        </ng-template>
         <a
           href="#"
           *ngIf="!isCollapsed"
           (click)="toggleLayer($event, item.key)"
         >
-          <span class="nav-text" i18n>
+          <span
+            class="nav-text"
+            *ngIf="item.key !== 'snow' || showObsFilter"
+            i18n
+          >
             {{ item.value.label | translate : lang }}
           </span>
         </a>
 
         <div
-          *ngIf="item.key === 'ws10m' && windShow"
+          *ngIf="
+            item.key === 'ws10m' && windShow && showObsFilter && !isCollapsed
+          "
           class="form-switch wind-switch d-flex mt-1"
         >
           <input
             id="windSwitch"
             type="checkbox"
-            class="form-check-input clickable mt-1"
+            class="form-check-input clickable mt-1 ms-0"
             [checked]="windConvert"
             (change)="toggleWindConvert()"
           />
           <label class="form-check-label" for="windSwitch"></label>
-          <p i18n>{{ "m/s - km/h" | translate : lang }}</p>
+          <span i18n style="margin-bottom: -1rem">{{
+            "m/s - km/h" | translate : lang
+          }}</span>
         </div>
       </li>
     </ul>
+
     <ul class="selector">
+      <!-- Network + Quality Control -->
+      <li class="sidenav-item networks-item" *ngIf="showObsFilter">
+        <span
+          class="networks"
+          placement="left"
+          [ngbTooltip]="'Networks'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <!--<a *ngIf="!isCollapsed">-->
+        <span>
+          <span *ngIf="!isCollapsed" class="nav-text">Networks</span>
+        </span>
+        <!--</a>-->
+        <select
+          *ngIf="!isCollapsed"
+          class="form-select networks-select"
+          aria-label="Default select example"
+          [(ngModel)]="selectedOption"
+          (change)="onNetworkChange(selectedOption)"
+        >
+          <option [ngValue]="null" disabled selected>
+            Open this select menu
+          </option>
+          <option *ngFor="let option of dropdownOptions" [value]="option">
+            {{ option }}
+          </option>
+        </select>
+      </li>
+      <!--<li class="selettore-quality-control" *ngIf="showObsFilter">
+        <label>
+          <input
+            type="checkbox"
+            class="clickable"
+            [(ngModel)]="selectedQuality"
+            (change)="onQualitySelected($event)"
+          />
+          <div>Quality Control Filter</div>
+        </label>
+      </li>-->
+    </ul>
+    <!--    <ul class="selector">
+      <li class="sidenav-item dropdown" *ngIf="showObsFilter">
+        <div class="d-flex align-items-center">
+          <button
+            type="button"
+            class="btn btn-border-classic no-rounded ms-1 d-flex justify-content-center align-items-center"
+            style="background-color: transparent; border: none !important; outline: none !important; box-shadow: none !important;"
+
+            (click)="download()"
+          >
+            &lt;!&ndash;            <i class="fa fa-download"></i>&ndash;&gt;
+            <img
+              src="/app/custom/assets/images/icons/download_button.png"
+              alt="Download"
+              style="width: 20px; height: 20px"
+            />
+          </button>
+          <a *ngIf="!isCollapsed" (click)="download()">
+            <span class="nav-text ms-2" i18n>DOWNLOAD DATA</span>
+          </a>
+        </div>
+      </li>
+    </ul>-->
+    <ul class="selector">
+      <!-- Layers -->
+      <li class="sidenav-item">
+        <span
+          (click)="download()"
+          class="donwload_button clickable"
+          placement="left"
+          [ngbTooltip]="'Download data'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <ng-template #tip> </ng-template>
+        <a *ngIf="!isCollapsed" (click)="download()">
+          <span class="nav-text" i18n> DOWNLOAD DATA </span>
+        </a>
+      </li>
+    </ul>
+
+    <ul class="selector">
+      <!-- Zoom Controls -->
       <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
         <span
           class="plus clickable"
@@ -66,7 +159,8 @@
           >
         </a>
       </li>
-      <li class="sidenav-item last" *ngIf="mode == modes.adv">
+
+      <li class="sidenav-item" *ngIf="mode == modes.adv">
         <span
           class="minus clickable"
           [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
@@ -84,87 +178,25 @@
           >
         </a>
       </li>
+    </ul>
+    <ul class="selector realtime-info">
       <li class="sidenav-item">
         <span
-          class="networks"
-          placement="left"
-          [ngbTooltip]="'Networks'"
-          [disableTooltip]="!isCollapsed"
-        ></span>
-        <a href="#" *ngIf="!isCollapsed">
-          <span class="nav-text" i18n> Networks </span></a
+          class="info clickable"
+          [ngbTooltip]="
+            isCollapsed
+              ? ('Real-time data, not validated' | translate : lang)
+              : null
+          "
+          container="body"
         >
-        <select
-          class="form-select networks-select"
-          aria-label="Default select example"
-          [(ngModel)]="selectedOption"
-          (change)="onNetworkChange(selectedOption)"
-        >
-          <option [ngValue]="null" disabled selected>
-            Open this select menu
-          </option>
-          <option *ngFor="let option of dropdownOptions" [value]="option">
-            {{ option }}
-          </option>
-        </select>
-      </li>
-      <div class="selettore-quality-control">
-        <label>
-          <input
-            type="checkbox"
-            class="clickable"
-            [(ngModel)]="selectedQuality"
-            (change)="onQualitySelected($event)"
-          />
-          <div>Quality Control Filter</div>
-        </label>
-      </div>
-    </ul>
-    <ul class="selector">
-      <!--
-      <li class="sidenav-item d-flex flex-wrap last switch mt-2" >
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
-          <label class="form-check-label" for="flexSwitchCheckDefault"></label>
-        </div>
-        <div class="selettore-multimodel w-75" *ngIf="!isCollapsed">
-          <a href="#" click-stop-propagation>
-            <span class="nav-text">Observations</span>
-          </a>
-          <p>
-            Selected: <span></span
-            >
-          </p>
-        </div>
-      </li>
-      -->
-      <!--      <li class="sidenav-item dropdown mt-2">
-        <label *ngIf="!isCollapsed" class="nav-text fw-bold">NETWORKS</label>
-        <select
-          class="form-select form-select-sm mt-1 w-100"
-          [(ngModel)]="selectedOption"
-          (change)="onNetworkChange(selectedOption)"
-          [disabled]="!dropdownOptions?.length"
-        >
-          <option [ngValue]="null" disabled selected>&#45;&#45; Scegli &#45;&#45;</option>
-          <option *ngFor="let option of dropdownOptions" [value]="option">
-            {{ option }}
-          </option>
-        </select>
-      </li>-->
-      <li class="sidenav-item dropdown mt-2">
-        <div class="d-flex align-items-center">
-          <button
-            type="button"
-            class="btn btn-border-classic no-rounded ms-1"
-            (click)="download()"
-          >
-            <i class="fa fa-download"></i>
-          </button>
-          <label *ngIf="!isCollapsed" class="nav-text fw-bold ms-2"
-            >DOWNLOAD DATA</label
-          >
-        </div>
+          <i class="fas fa-info-circle"></i>
+        </span>
+        <a *ngIf="!isCollapsed">
+          <span class="nav-text">{{
+            "Real-time data, not validated" | translate : lang
+          }}</span>
+        </a>
       </li>
     </ul>
   </div>
