@@ -119,6 +119,12 @@ export class ObsStationReportComponent implements OnInit {
             this.descriptions["B07030"] = {
               descr: "Station elevation above sea level",
             };
+            if ("B13011" in this.descriptions) {
+              this.descriptions["B13011"].descr = "Precipitation";
+            }
+            if ("B12101" in this.descriptions) {
+              this.descriptions["B12101"].descr = "Temperature";
+            }
           }
           // filter the station details to be displayed
           this.filterStationDetails(data[0].stat.details);
