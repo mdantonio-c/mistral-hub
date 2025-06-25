@@ -173,7 +173,7 @@ export class AimObservationMapsComponent
 
   onMapReady(map: L.Map) {
     this.map = map;
-    setTimeout(()=>this.map.setView([41.88, 12.28], 5.8), 0);
+    setTimeout(() => this.map.setView([41.88, 12.28], 5.8), 0);
     this.map.attributionControl.setPrefix("");
     (window as any).L.Control.TimeDimensionCustom = (
       window as any
@@ -456,18 +456,32 @@ export class AimObservationMapsComponent
       const tmpDiv = document.createElement("div");
       (tmpDiv.innerHTML as any) = html;
       const span = tmpDiv.querySelector("span");
+      let updatedValue: string | null = null;
+
       if (span) {
         if (this.windConvert) {
-          span.textContent = (parseFloat(span.textContent) * 3.6).toFixed(1);
+          updatedValue = (parseFloat(span.textContent) * 3.6).toFixed(1);
         } else {
-          span.textContent = (parseFloat(span.textContent) * 0.28).toFixed(1);
+          updatedValue = (parseFloat(span.textContent) * 0.28).toFixed(1);
         }
+        span.textContent = updatedValue;
       }
       const updatedIcon = L.divIcon({
         ...currentIcon.options,
         html: tmpDiv.innerHTML,
       });
       m.setIcon(updatedIcon);
+
+      // update the value in the marker tooltip
+      const tooltipContent = m.getTooltip().getContent() as string;
+      const parser = new DOMParser();
+      const tooltipDOM = parser.parseFromString(tooltipContent, "text/html");
+      const tooltipSpan = tooltipDOM.querySelector("span.badge");
+      if (tooltipSpan) {
+        tooltipSpan.textContent = updatedValue;
+      }
+      const updatedTooltipContent = tooltipDOM.body.innerHTML;
+      m.getTooltip().setContent(updatedTooltipContent);
     });
   }
 
