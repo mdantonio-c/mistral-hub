@@ -164,7 +164,10 @@ export class ObsStationReportComponent implements OnInit {
       if (nameDetail) {
         return nameDetail.val;
       }
+    } else if (this.station && this.station?.details && this.station?.details.length > 0) {
+      return this.station?.details[0]?.val
     }
+    return;
   }
 
   getUserUnit(elementId: string) {
