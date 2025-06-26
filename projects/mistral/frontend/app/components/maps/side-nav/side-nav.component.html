@@ -60,7 +60,10 @@
 
     <ul class="selector">
       <!-- Network + Quality Control -->
-      <li class="sidenav-item networks-item" *ngIf="showObsFilter">
+      <li
+        class="sidenav-item networks-item"
+        *ngIf="showObsFilter && mode == modes.adv"
+      >
         <span
           class="networks"
           placement="left"
@@ -79,9 +82,7 @@
           [(ngModel)]="selectedOption"
           (change)="onNetworkChange(selectedOption)"
         >
-          <option [ngValue]="null" disabled selected>
-            Open this select menu
-          </option>
+          <option [ngValue]="null" disabled selected>Select a network</option>
           <option *ngFor="let option of dropdownOptions" [value]="option">
             {{ option }}
           </option>
@@ -122,7 +123,7 @@
         </div>
       </li>
     </ul>-->
-    <ul class="selector">
+    <ul class="selector" *ngIf="mode == modes.adv">
       <!-- Layers -->
       <li class="sidenav-item">
         <span
@@ -141,7 +142,7 @@
 
     <ul class="selector">
       <!-- Zoom Controls -->
-      <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
+      <li class="sidenav-item zoom">
         <span
           class="plus clickable"
           [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
@@ -160,7 +161,7 @@
         </a>
       </li>
 
-      <li class="sidenav-item" *ngIf="mode == modes.adv">
+      <li class="sidenav-item">
         <span
           class="minus clickable"
           [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"

@@ -150,12 +150,16 @@ export class AimObservationMapsComponent
     this.variablesConfig = VARIABLES_CONFIG_OBS;
     this.route.queryParams.subscribe((params: Params) => {
       const lang: string = params["lang"];
+      const view: string = params["view"];
       if (["it", "en"].includes(lang)) {
         this.lang = lang;
       }
       if (this.lang === "it") {
         // TODO
         this.ITAversion = true;
+      }
+      if (Object.values(ViewModes).includes(view)) {
+        this.viewMode = ViewModes[view];
       }
     });
     this.intervalId = setInterval(
