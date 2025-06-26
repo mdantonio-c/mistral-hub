@@ -259,10 +259,10 @@ export class AimObservationMapsComponent
       // in order to sync with load observation
       tControl._player.pause();
       let isMidNight: boolean = false;
-      let selectedDate = new Date((map as any).timeDimension.getCurrentTime());
-      let selectedDateUTC = new Date(selectedDate);
-      selectedDateUTC.setUTCHours(selectedDate.getUTCHours());
-      this.refTimeToTimeLine = selectedDate;
+      const selectedDateUTC = new Date(
+        (map as any).timeDimension.getCurrentTime(),
+      );
+      this.refTimeToTimeLine = selectedDateUTC;
       let startDate = new Date(selectedDateUTC);
       startDate.setHours(selectedDateUTC.getHours() - 1);
       /* For data that refer to the previous day */

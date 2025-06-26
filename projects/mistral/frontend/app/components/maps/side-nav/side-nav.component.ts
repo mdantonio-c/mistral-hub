@@ -115,7 +115,6 @@ export class SideNavFilterComponent implements OnInit {
         comp.changeDetector.detectChanges();
       },
     );
-    console.log(`lang = ${this.lang}, view = ${this.mode}`);
     this.selectedQuality = false;
     if (this.mode_1 === sharedSideNav.livemapComp) {
       this.showObsFilter = false;
