@@ -134,6 +134,7 @@ export class AimObservationMapsComponent
 
   selectedNetwork = "";
   timelineReferenceDate: string = "";
+  userInteractedWithTimeline: boolean = false;
   qualityContolFilter = false;
   sharedSideNav = sharedSideNav;
   constructor(
@@ -253,6 +254,11 @@ export class AimObservationMapsComponent
     this.centerMap();
     //this.timelineReferenceDate = this.printTimeLineReferenceDate();
 
+    // catch timeline interactions to set refTimeToTimeLine only if interactions with the timeline happen
+    (map as any).timeDimension.on("timechange", () => {
+      this.userInteractedWithTimeline = true;
+    });
+
     /* cacht event timeloloadObad on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
       if (!tControl._player.isPlaying()) this.spinner.show();
@@ -262,7 +268,9 @@ export class AimObservationMapsComponent
       const selectedDateUTC = new Date(
         (map as any).timeDimension.getCurrentTime(),
       );
-      this.refTimeToTimeLine = selectedDateUTC;
+      if (this.userInteractedWithTimeline) {
+        this.refTimeToTimeLine = selectedDateUTC;
+      }
       let startDate = new Date(selectedDateUTC);
       startDate.setHours(selectedDateUTC.getHours() - 1);
       /* For data that refer to the previous day */
@@ -943,11 +951,20 @@ export class AimObservationMapsComponent
     window.dispatchEvent(new Event("resize"));
   }
 
-  toggleLayer(obj?: Record<string, string>) {
+  toggleLayer(obj?: Record<string, string>, isReloadButton = false) {
     if (!obj && !this.currentProduct) {
       this.notify.showError("No product selected");
       return;
     }
+    // get fresh current time
+    const currentUtcNow = new Date();
+    currentUtcNow.setUTCMinutes(0, 0, 0);
+
+    if (isReloadButton) {
+      // refresh also the timeline
+      this.refTimeToTimeLine = undefined;
+    }
+
     // when reload button
     if (!obj) {
       // default to current product
@@ -955,7 +972,9 @@ export class AimObservationMapsComponent
         name: this.currentProduct,
         layer: this.currentProduct,
       };
-      (this.map as any).timeDimension.setCurrentTime(this.myNow.getTime());
+      (this.map as any).timeDimension.setCurrentTime(currentUtcNow.getTime());
+      // update the myNow variable with fresh time
+      this.myNow = currentUtcNow;
     }
     // console.log(`toggle layer: ${obj.name}`);
     // update the filter
@@ -970,7 +989,7 @@ export class AimObservationMapsComponent
           this.refTimeToTimeLine.getTime(),
         );
       } else {
-        (this.map as any).timeDimension.setCurrentTime(this.myNow.getTime());
+        (this.map as any).timeDimension.setCurrentTime(currentUtcNow.getTime());
       }
       if (this.selectedNetwork) this.filter.network = this.selectedNetwork;
       if (this.qualityContolFilter) this.filter.reliabilityCheck = true;
