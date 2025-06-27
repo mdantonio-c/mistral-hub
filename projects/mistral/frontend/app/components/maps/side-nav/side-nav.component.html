@@ -123,26 +123,20 @@
         </div>
       </li>
     </ul>-->
-    <ul
-      class="selector"
-      *ngIf="
-        mode == modes.adv && !(this.currentProduct === 'prp' && isCollapsed)
-      "
-    >
+    <ul class="selector" *ngIf="mode == modes.adv">
       <!-- Layers -->
       <li class="sidenav-item">
         <span
-          *ngIf="this.currentProduct !== 'prp'"
           (click)="download()"
-          class="donwload_button clickable"
           placement="left"
+          [ngClass]="
+            this.currentProduct === 'prp'
+              ? 'download_button-disabled'
+              : 'download_button clickable'
+          "
           [ngbTooltip]="'Download data'"
-          [disableTooltip]="!isCollapsed"
+          [disableTooltip]="!isCollapsed || this.currentProduct === 'prp'"
         ></span>
-        <i
-          *ngIf="this.currentProduct === 'prp' && !isCollapsed"
-          class="fas fa-exclamation-triangle me-2 mt-1 warning-sign"
-        ></i>
         <ng-template #tip> </ng-template>
         <a *ngIf="!isCollapsed" (click)="download()">
           <span

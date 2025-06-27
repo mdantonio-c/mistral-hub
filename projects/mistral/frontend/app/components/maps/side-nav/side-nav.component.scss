@@ -175,7 +175,8 @@ $dark-blue: #004080;
 .carte,
 .tpperc,
 .tpprob,
-.donwload_button,
+.download_button,
+.download_button-disabled,
 .networks,
 .snow {
   background-size: contain;
@@ -228,8 +229,12 @@ $dark-blue: #004080;
 .snow {
   background-image: url("/app/custom/assets/images/icons/snow.svg");
 }
-.donwload_button {
+.download_button {
   background-image: url("/app/custom/assets/images/icons/download_button.png");
+}
+
+.download_button-disabled {
+  background-image: url("/app/custom/assets/images/icons/download_button_disabled.png");
 }
 
 .input,
@@ -945,12 +950,6 @@ $dark-blue: #004080;
 }
 
 //style for warning for download precipitation data
-.warning-sign {
-  color: #ffc107;
-  font-size: 1rem;
-  margin-left: 7px;
-  display: block;
-}
 .warning-text {
   width: 100%;
   position: relative;
