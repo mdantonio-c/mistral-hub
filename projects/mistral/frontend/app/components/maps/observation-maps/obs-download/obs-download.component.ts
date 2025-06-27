@@ -57,7 +57,7 @@ export class ObsDownloadComponent implements OnInit {
     this.fromDate = calendar.getToday();
     this.toDate = null; // calendar.getNext(calendar.getToday(), "d", 10);
     this.showWarning = false;
-    this.maxDays = 15;
+    this.maxDays = null;
     this.isAuthenticated = false;
   }
 
@@ -71,15 +71,17 @@ export class ObsDownloadComponent implements OnInit {
     if (!this.user) {
       this.isAuthenticated = false;
       this.applyMinDate();
+      this.maxDays = 3;
     } else {
       this.isAuthenticated = true;
+      this.maxDays = 10;
     }
   }
   dateDiffInDays(from: NgbDate, to: NgbDate): number {
     const fromDate = new Date(from.year, from.month - 1, from.day);
     const toDate = new Date(to.year, to.month - 1, to.day);
     const diffTime = toDate.getTime() - fromDate.getTime();
-    return diffTime / (1000 * 3600 * 24);
+    return diffTime / (1000 * 3600 * 24) + 1;
   }
 
   onDateSelection(date: NgbDate) {
