@@ -123,20 +123,47 @@
         </div>
       </li>
     </ul>-->
-    <ul class="selector" *ngIf="mode == modes.adv">
+    <ul
+      class="selector"
+      *ngIf="
+        mode == modes.adv && !(this.currentProduct === 'prp' && isCollapsed)
+      "
+    >
       <!-- Layers -->
       <li class="sidenav-item">
         <span
+          *ngIf="this.currentProduct !== 'prp'"
           (click)="download()"
           class="donwload_button clickable"
           placement="left"
           [ngbTooltip]="'Download data'"
           [disableTooltip]="!isCollapsed"
         ></span>
+        <i
+          *ngIf="this.currentProduct === 'prp' && !isCollapsed"
+          class="fas fa-exclamation-triangle me-2 mt-1 warning-sign"
+        ></i>
         <ng-template #tip> </ng-template>
         <a *ngIf="!isCollapsed" (click)="download()">
-          <span class="nav-text" i18n> DOWNLOAD DATA </span>
+          <span
+            class="nav-text"
+            [ngClass]="{ 'disabled-text': this.currentProduct === 'prp' }"
+            i18n
+          >
+            DOWNLOAD DATA
+          </span>
         </a>
+        <div
+          class="d-flex align-items-start mt-2"
+          *ngIf="this.currentProduct === 'prp' && !isCollapsed"
+        >
+          <span class="warning-text"
+            >Download of precipitation data available at native time resolution
+            through
+            <a href="/app/data/datasets" class="link-white"> data extraction</a
+            >.
+          </span>
+        </div>
       </li>
     </ul>
 

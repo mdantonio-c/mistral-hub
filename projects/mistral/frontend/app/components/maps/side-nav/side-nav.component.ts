@@ -68,6 +68,7 @@ export class SideNavFilterComponent implements OnInit {
   selectedOption: string = "All";
   selectedQuality = false;
   showObsFilter = false;
+  currentProduct = "";
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -168,7 +169,9 @@ export class SideNavFilterComponent implements OnInit {
     this.selectedQuality = isChecked;
   }
   download() {
-    this.filterDownload.emit(this.toObsFilter());
+    if (this.currentProduct !== "prp") {
+      this.filterDownload.emit(this.toObsFilter());
+    }
   }
   changeCollapse() {
     this.isCollapsed = !this.isCollapsed;
@@ -253,6 +256,8 @@ export class SideNavFilterComponent implements OnInit {
       layer: layerId,
       name: layerId,
     });
+
+    this.currentProduct = layerId;
 
     // update active class
     fromActiveState
