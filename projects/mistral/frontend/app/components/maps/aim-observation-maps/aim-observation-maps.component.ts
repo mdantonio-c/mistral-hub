@@ -135,7 +135,6 @@ export class AimObservationMapsComponent
 
   selectedNetwork = "";
   timelineReferenceDate: string = "";
-  userInteractedWithTimeline: boolean = false;
   qualityContolFilter = false;
   sharedSideNav = sharedSideNav;
   constructor(
@@ -191,24 +190,6 @@ export class AimObservationMapsComponent
         this.timeZoneSelect = container.querySelector(
           ".timecontrol-timezone select",
         );
-        const slider = container.querySelector(".range");
-        const forwardButton = container.querySelector(".timecontrol-forward");
-        const backwardButton = container.querySelector(".timecontrol-backward");
-        if (slider) {
-          slider.addEventListener("mousedown", () => {
-            (map as any).userInteractedWithTimeline = true;
-          });
-        }
-        if (forwardButton) {
-          forwardButton.addEventListener("mousedown", () => {
-            (map as any).userInteractedWithTimeline = true;
-          });
-        }
-        if (backwardButton) {
-          backwardButton.addEventListener("mousedown", () => {
-            (map as any).userInteractedWithTimeline = true;
-          });
-        }
         return container;
       },
 
@@ -243,6 +224,14 @@ export class AimObservationMapsComponent
       speedSlider: false,
     });
     this.map.addControl(this.timeDimensionControl);
+
+    // extend setCurrentTime function to detect if timeload event is triggered programmatically or by user interaction
+    const originalSetCurrentTime = (map as any).timeDimension.setCurrentTime;
+    (map as any).timeDimension.setCurrentTime = function (time, options = {}) {
+      this._customTimeLoadOptions = options;
+      originalSetCurrentTime.call(this, time);
+    };
+
     let tControl = this.timeDimensionControl;
     let beforeOneHour: Date = new Date();
     beforeOneHour.setUTCHours(beforeOneHour.getUTCHours());
@@ -269,13 +258,16 @@ export class AimObservationMapsComponent
     this.filter = filter;
     this.spinner.show();
     this.loadObservations(filter, true);
-    (map as any).timeDimension.setCurrentTime(beforeOneHour);
+    (map as any).timeDimension.setCurrentTime(beforeOneHour, {
+      source: "auto",
+    });
+    // clean the timeload options
+    (map as any).timeDimension._customTimeLoadOptions = {};
     this.centerMap();
     //this.timelineReferenceDate = this.printTimeLineReferenceDate();
 
     /* catch event timeloloadObad on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
-      console.log("catched timeload event");
       //fire the action if the timeload event is fired by the
       if (!tControl._player.isPlaying()) this.spinner.show();
       // in order to sync with load observation
@@ -284,11 +276,14 @@ export class AimObservationMapsComponent
       const selectedDateUTC = new Date(
         (map as any).timeDimension.getCurrentTime(),
       );
-      if ((map as any).userInteractedWithTimeline) {
-        console.log("setting reftime to timeline");
-        console.log(selectedDateUTC);
+      const { source } =
+        (map as any).timeDimension._customTimeLoadOptions || {};
+      if (!source) {
+        //source auto are the programatic timeload. If is not programatic is a user based interaction with the timeline so reftimetotimeline variable can be set
+        // this is to be sure that refTimeToTimeLine is set only when the user interacts with the timeline
         this.refTimeToTimeLine = selectedDateUTC;
       }
+      (map as any).timeDimension._customTimeLoadOptions = {};
       let startDate = new Date(selectedDateUTC);
       startDate.setHours(selectedDateUTC.getHours() - 1);
       /* For data that refer to the previous day */
@@ -313,9 +308,6 @@ export class AimObservationMapsComponent
       };
       this.myRefTime = filter["reftime"];
       this.myTime = filter["time"];
-      console.log("setting filters");
-      console.log(this.myRefTime);
-      console.log(this.myTime);
       if (this.qualityContolFilter) filter["reliabilityCheck"] = true;
       if (this.selectedNetwork) filter["network"] = this.selectedNetwork;
       this.loadObservations(filter, true, isMidNight);
@@ -408,9 +400,8 @@ export class AimObservationMapsComponent
           }
           let data = response.data;
           this.loadMarkers(data, filter.product);
-          if(this.currentProduct === "ws10m") {
-            if(this.windConvert) 
-              this.updateWindMarkers();
+          if (this.currentProduct === "ws10m") {
+            if (this.windConvert) this.updateWindMarkers();
           } else {
             this.windConvert = false;
           }
@@ -498,7 +489,7 @@ export class AimObservationMapsComponent
       (tmpDiv.innerHTML as any) = html;
       const span = tmpDiv.querySelector("span");
       let updatedValue: string | null = null;
-      if(oldWindConvert !== undefined && oldWindConvert === this.windConvert) {
+      if (oldWindConvert !== undefined && oldWindConvert === this.windConvert) {
         return;
       }
 
@@ -1005,7 +996,6 @@ export class AimObservationMapsComponent
       // refresh also the timeline
       this.refTimeToTimeLine = undefined;
       (this.map as any).userInteractedWithTimeline = false;
-      console.log("reset reftime to timeline");
     }
 
     // when reload button
@@ -1015,11 +1005,11 @@ export class AimObservationMapsComponent
         name: this.currentProduct,
         layer: this.currentProduct,
       };
-      (this.map as any).timeDimension.setCurrentTime(currentUtcNow.getTime());
+      (this.map as any).timeDimension.setCurrentTime(currentUtcNow.getTime(), {
+        source: "auto",
+      });
       // update the myNow variable with fresh time
       this.myNow = currentUtcNow;
-      console.log("updating the timedimension");
-      console.log(currentUtcNow);
     }
     // console.log(`toggle layer: ${obj.name}`);
     // update the filter
@@ -1030,13 +1020,15 @@ export class AimObservationMapsComponent
       this.filter.reftime = this.myRefTime;
       this.filter.time = this.myTime;
       if (this.refTimeToTimeLine) {
-        console.log("reftime to timeline is set");
-        console.log(this.refTimeToTimeLine);
         (this.map as any).timeDimension.setCurrentTime(
           this.refTimeToTimeLine.getTime(),
+          { source: "auto" },
         );
       } else {
-        (this.map as any).timeDimension.setCurrentTime(currentUtcNow.getTime());
+        (this.map as any).timeDimension.setCurrentTime(
+          currentUtcNow.getTime(),
+          { source: "auto" },
+        );
       }
       if (this.selectedNetwork) this.filter.network = this.selectedNetwork;
       if (this.qualityContolFilter) this.filter.reliabilityCheck = true;
