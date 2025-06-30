@@ -845,7 +845,7 @@ export class AimObservationMapsComponent
               className: "leaflet-tooltip mst-obs-tooltip",
             },
           );
-          m.on("click", this.openStationReport.bind(this, s.stat));
+          m.on("click", this.openStationReport.bind(this, s.stat, m));
           this.allMarkers.push(m);
         }
       }
@@ -882,11 +882,21 @@ export class AimObservationMapsComponent
       return "(UTC+1)";
     }
   }
-  private openStationReport(station: Station) {
+  private openStationReport(station: Station, m: L.Marker | null = null) {    
     const modalRef = this.modalService.open(ObsStationReportComponent, {
       size: "xl",
       centered: true,
     });
+    if (m instanceof L.Marker) {
+      const tooltip = m.getTooltip();
+      // forces the tooltip to not reopen after the modal is closed
+      modalRef.result.finally(() => {
+        setTimeout(() => {
+          m.bindTooltip(tooltip);
+          m.closeTooltip();
+        }, 0);
+      });
+    }
     // pass the requested language
     modalRef.componentInstance.lang = this.lang;
     // clear the timerange and level details in the visualization
