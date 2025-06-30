@@ -115,22 +115,27 @@ class BeDballe:
 
     @staticmethod
     def get_db_type(date_min=None, date_max=None):
+        now = datetime.utcnow()
+        days_back = BeDballe.LASTDAYS - 1
+        # the following checks if the request is at least 5 minutes before the start of the cron
+        # of the migration from dballe to arkimet "start_dballe2arkimet.sh" (it is currently set at 2:15 AM)
+        if now.hour < 2 or (now.hour == 2 and now.minute < 10):
+            days_back += 1
+        dballe_data_cutoff = (now - timedelta(days=days_back)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         if date_min:
-            date_min_compar = datetime.utcnow() - date_min
-            min_days = date_min_compar.days
+            date_min_before_cutoff = date_min < dballe_data_cutoff
         else:
             # if there is not a datemin for sure the dbtype will be arkimet or mixed
-            min_days = BeDballe.LASTDAYS + 1
-
+            date_min_before_cutoff = True
         if date_max:
-            date_max_compar = datetime.utcnow() - date_max
-            max_days = date_max_compar.days
+            date_max_before_cutoff = date_max < dballe_data_cutoff
         else:
             # if there is not datemax for sure the dbtype will be dballe or mixed
-            max_days = BeDballe.LASTDAYS - 1
-
-        if min_days >= BeDballe.LASTDAYS:
-            if max_days >= BeDballe.LASTDAYS:
+            date_max_before_cutoff = False
+        if date_min_before_cutoff:
+            if date_max_before_cutoff:
                 db_type = "arkimet"
             else:
                 db_type = "mixed"
@@ -174,8 +179,15 @@ class BeDballe:
             refmax_dballe = date_max
         if date_min:
             refmin_arki = date_min
-
-        refmin_dballe = datetime.utcnow() - timedelta(days=BeDballe.LASTDAYS)
+        now = datetime.utcnow()
+        days_back = BeDballe.LASTDAYS - 1
+        # the following checks if the request is at least 5 minutes before the start of the cron
+        # of the migration from dballe to arkimet "start_dballe2arkimet.sh" (it is currently set at 2:15 AM).
+        if now.hour < 2 or (now.hour == 2 and now.minute < 10):
+            days_back += 1
+        refmin_dballe = (now - timedelta(days=days_back)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         refmax_arki = refmin_dballe - timedelta(minutes=1)
 
         return refmax_dballe, refmin_dballe, refmax_arki, refmin_arki
