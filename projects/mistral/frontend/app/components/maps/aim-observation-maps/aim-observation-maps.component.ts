@@ -603,7 +603,6 @@ export class AimObservationMapsComponent
               color = "#FFB4B4";
             } else if (lastObs.val >= 313.15 && lastObs.val < 315.15) {
               color = "#F0A0A0";
-              textColor = "#fff";
             } else if (lastObs.val >= 311.15 && lastObs.val < 313.15) {
               color = "#B46464";
               textColor = "#fff";
