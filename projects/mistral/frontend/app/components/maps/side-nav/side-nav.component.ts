@@ -206,7 +206,7 @@ export class SideNavFilterComponent implements OnInit {
         filter.level = "1,0,0,0";
       else filter.level = "103,2000,0,0";
     } else if (this._overlays.options["pane"] === "B11002 or B11001") {
-      filter.product = "B11001 or B11001";
+      filter.product = "B11002 or B11001";
       filter.timerange = "254,0,0";
       filter.level = "103,10000,0,0";
       this.openDownload(filter);
