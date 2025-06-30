@@ -190,6 +190,24 @@ export class AimObservationMapsComponent
         this.timeZoneSelect = container.querySelector(
           ".timecontrol-timezone select",
         );
+        const slider = container.querySelector(".range");
+        const forwardButton = container.querySelector(".timecontrol-forward");
+        const backwardButton = container.querySelector(".timecontrol-backward");
+        if (slider) {
+          slider.addEventListener("mousedown", () => {
+            (map as any).userInteractedWithTimeline = true;
+          });
+        }
+        if (forwardButton) {
+          forwardButton.addEventListener("mousedown", () => {
+            (map as any).userInteractedWithTimeline = true;
+          });
+        }
+        if (backwardButton) {
+          backwardButton.addEventListener("mousedown", () => {
+            (map as any).userInteractedWithTimeline = true;
+          });
+        }
         return container;
       },
 
@@ -254,13 +272,9 @@ export class AimObservationMapsComponent
     this.centerMap();
     //this.timelineReferenceDate = this.printTimeLineReferenceDate();
 
-    // catch timeline interactions to set refTimeToTimeLine only if interactions with the timeline happen
-    (map as any).timeDimension.on("timechange", () => {
-      this.userInteractedWithTimeline = true;
-    });
-
-    /* cacht event timeloloadObad on the timebar, a timeload event is any injection of time in the timebar */
+    /* catch event timeloloadObad on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
+      //fire the action if the timeload event is fired by the
       if (!tControl._player.isPlaying()) this.spinner.show();
       // in order to sync with load observation
       tControl._player.pause();
@@ -268,7 +282,7 @@ export class AimObservationMapsComponent
       const selectedDateUTC = new Date(
         (map as any).timeDimension.getCurrentTime(),
       );
-      if (this.userInteractedWithTimeline) {
+      if ((map as any).userInteractedWithTimeline) {
         this.refTimeToTimeLine = selectedDateUTC;
       }
       let startDate = new Date(selectedDateUTC);
@@ -882,7 +896,7 @@ export class AimObservationMapsComponent
       return "(UTC+1)";
     }
   }
-  private openStationReport(station: Station, m: L.Marker | null = null) {    
+  private openStationReport(station: Station, m: L.Marker | null = null) {
     const modalRef = this.modalService.open(ObsStationReportComponent, {
       size: "xl",
       centered: true,
@@ -973,6 +987,7 @@ export class AimObservationMapsComponent
     if (isReloadButton) {
       // refresh also the timeline
       this.refTimeToTimeLine = undefined;
+      (this.map as any).userInteractedWithTimeline = false;
     }
 
     // when reload button
