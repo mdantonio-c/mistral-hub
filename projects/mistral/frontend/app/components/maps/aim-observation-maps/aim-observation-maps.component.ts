@@ -275,6 +275,7 @@ export class AimObservationMapsComponent
 
     /* catch event timeloloadObad on the timebar, a timeload event is any injection of time in the timebar */
     (map as any).timeDimension.on("timeload", () => {
+      console.log("catched timeload event");
       //fire the action if the timeload event is fired by the
       if (!tControl._player.isPlaying()) this.spinner.show();
       // in order to sync with load observation
@@ -284,6 +285,8 @@ export class AimObservationMapsComponent
         (map as any).timeDimension.getCurrentTime(),
       );
       if ((map as any).userInteractedWithTimeline) {
+        console.log("setting reftime to timeline");
+        console.log(selectedDateUTC);
         this.refTimeToTimeLine = selectedDateUTC;
       }
       let startDate = new Date(selectedDateUTC);
@@ -310,6 +313,9 @@ export class AimObservationMapsComponent
       };
       this.myRefTime = filter["reftime"];
       this.myTime = filter["time"];
+      console.log("setting filters");
+      console.log(this.myRefTime);
+      console.log(this.myTime);
       if (this.qualityContolFilter) filter["reliabilityCheck"] = true;
       if (this.selectedNetwork) filter["network"] = this.selectedNetwork;
       this.loadObservations(filter, true, isMidNight);
@@ -999,6 +1005,7 @@ export class AimObservationMapsComponent
       // refresh also the timeline
       this.refTimeToTimeLine = undefined;
       (this.map as any).userInteractedWithTimeline = false;
+      console.log("reset reftime to timeline");
     }
 
     // when reload button
@@ -1011,6 +1018,8 @@ export class AimObservationMapsComponent
       (this.map as any).timeDimension.setCurrentTime(currentUtcNow.getTime());
       // update the myNow variable with fresh time
       this.myNow = currentUtcNow;
+      console.log("updating the timedimension");
+      console.log(currentUtcNow);
     }
     // console.log(`toggle layer: ${obj.name}`);
     // update the filter
@@ -1021,6 +1030,8 @@ export class AimObservationMapsComponent
       this.filter.reftime = this.myRefTime;
       this.filter.time = this.myTime;
       if (this.refTimeToTimeLine) {
+        console.log("reftime to timeline is set");
+        console.log(this.refTimeToTimeLine);
         (this.map as any).timeDimension.setCurrentTime(
           this.refTimeToTimeLine.getTime(),
         );

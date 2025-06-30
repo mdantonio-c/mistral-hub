@@ -1,5 +1,4 @@
 import datetime
-import itertools
 from typing import Any, Dict, List, Optional
 
 from flask import Response as FlaskResponse
@@ -107,23 +106,6 @@ class MapsObservations(EndpointResource):
                 query["latmin"] = latmin
                 query["latmax"] = latmax
 
-        dataset_name = None
-        if networks:
-            # check user authorization for the requested network
-            dataset_name = arki.from_network_to_dataset(networks)
-            if not dataset_name:
-                raise NotFound("The requested network does not exists")
-            check_auth = SqlApiDbManager.check_dataset_authorization(
-                alchemy_db, dataset_name, user
-            )
-            if not check_auth:
-                raise Unauthorized(
-                    "user is not authorized to access the selected network"
-                )
-            query["rep_memo"] = networks
-        if reliabilityCheck:
-            query["query"] = "attrs"
-
         # parse the query
         if q:
             parsed_query = dballe.from_query_to_dic(q)
@@ -131,11 +113,35 @@ class MapsObservations(EndpointResource):
             for key, value in parsed_query.items():
                 query[key] = value
 
+        networks_list = None
+        if networks:
+            networks_list = [x.strip() for x in networks.split(" or ")]
+            for n in networks_list:
+                # check user authorization for the requested network
+                dataset_name = arki.from_network_to_dataset(networks)
+                if not dataset_name:
+                    raise NotFound("The requested network does not exists")
+                check_auth = SqlApiDbManager.check_dataset_authorization(
+                    alchemy_db, dataset_name, user
+                )
+                if not check_auth:
+                    raise Unauthorized(
+                        "user is not authorized to access the selected network"
+                    )
+            query["network"] = networks_list
+
+        if reliabilityCheck:
+            query["query"] = "attrs"
+
         query_station_data: Dict[str, Any] = {}
         if stationDetails:
             # check params for station
             if not networks:
                 raise BadRequest("Parameter networks is missing")
+            if not len(networks_list) == 1:
+                raise BadRequest(
+                    "You can set a maximum of 1 network in parameter 'networks' if stationDetails is chosen"
+                )
             if not ident:
                 if not lat or not lon:
                     raise BadRequest("Parameters to get station details are missing")
@@ -145,11 +151,13 @@ class MapsObservations(EndpointResource):
             else:
                 query_station_data["ident"] = ident
 
-            query_station_data["rep_memo"] = networks
+            query_station_data["network"] = networks
+
             query_station_data["license"] = query["license"]
 
             # get the license group
             station_dataset = arki.from_network_to_dataset(networks)
+
             l_group = SqlApiDbManager.get_license_group(alchemy_db, [station_dataset])
             query["license"] = l_group.name
 
@@ -167,9 +175,18 @@ class MapsObservations(EndpointResource):
         if "license" not in query:
             raise BadRequest("License group parameter is mandatory")
         try:
-            group_license, dsn_subset = dballe.check_access_authorization(
-                user, query["license"], dataset_name
-            )
+            all_dsn = set()
+            if networks_list:
+                for d in networks_list:
+                    group_license, dsn_subset = dballe.check_access_authorization(
+                        user, query["license"], d
+                    )
+                    all_dsn.update(dsn_subset)
+                dsn_subset = list(all_dsn)
+            else:
+                group_license, dsn_subset = dballe.check_access_authorization(
+                    user, query["license"], None
+                )
 
         except UnexistingLicenseGroup:
             raise BadRequest("The selected group of license does not exists")
@@ -322,33 +339,41 @@ class MapsObservations(EndpointResource):
                 query_data["latmin"] = latmin
                 query_data["latmax"] = latmax
 
-        dataset_name = None
-        if networks:
-            # check user authorization for the requested network
-            dataset_name = arki.from_network_to_dataset(networks)
-            if not dataset_name:
-                raise NotFound("The requested network does not exists")
-            check_auth = SqlApiDbManager.check_dataset_authorization(
-                alchemy_db, dataset_name, user
-            )
-            if not check_auth:
-                raise Unauthorized(
-                    "user is not authorized to access the selected network"
-                )
-            query_data["rep_memo"] = networks
-        if reliabilityCheck:
-            query_data["query"] = "attrs"
-
-        # parse the query
         parsed_query = dballe.from_query_to_dic(q)
         for key, value in parsed_query.items():
             query_data[key] = value
+
+        networks_list = None
+        if networks:
+            networks_list = [x.strip() for x in networks.split(" or ")]
+            for n in networks_list:
+                # check user authorization for the requested network
+                dataset_name = arki.from_network_to_dataset(n)
+                if not dataset_name:
+                    raise NotFound("The requested network does not exist")
+                check_auth = SqlApiDbManager.check_dataset_authorization(
+                    alchemy_db, dataset_name, user
+                )
+                if not check_auth:
+                    raise Unauthorized(
+                        "user is not authorized to access the selected network"
+                    )
+
+            query_data["network"] = networks_list
+
+        if reliabilityCheck:
+            query_data["query"] = "attrs"
 
         query_station_data: Dict[str, Any] = {}
         if singleStation:
             # check params for station
             if not networks:
                 raise BadRequest("Parameter networks is missing")
+
+            if not len(networks_list) == 1:
+                raise BadRequest(
+                    "You can set a maximum of 1 network in parameter 'networks' if singleStation is chosen"
+                )
 
             if not ident:
                 if not lat or not lon:
@@ -359,36 +384,34 @@ class MapsObservations(EndpointResource):
             else:
                 query_station_data["ident"] = ident
 
-            query_station_data["rep_memo"] = networks
+            query_station_data["network"] = networks_list[0]
 
             # get the license group
-            station_dataset = arki.from_network_to_dataset(networks)
+            station_dataset = arki.from_network_to_dataset(networks_list[0])
+
             l_group = SqlApiDbManager.get_license_group(alchemy_db, [station_dataset])
             query_data["license"] = l_group.name
 
-            # since timerange and level are mandatory, add to the query for meteograms
-            if query_data:
-                if "timerange" in query_data:
-                    query_station_data["timerange"] = query_data["timerange"]
-                if "level" in query_data:
-                    query_station_data["level"] = query_data["level"]
-
             if reliabilityCheck:
                 query_station_data["query"] = "attrs"
-            if query_data:
-                if "datetimemin" in query_data:
-                    query_station_data["datetimemin"] = query_data["datetimemin"]
-                if "datetimemax" in query_data:
-                    query_station_data["datetimemax"] = query_data["datetimemax"]
 
         # check consistency with license group
         if "license" not in query_data:
             raise BadRequest("License group parameter is mandatory")
 
         try:
-            group_license, dsn_subset = dballe.check_access_authorization(
-                user, query_data["license"], dataset_name
-            )
+            all_dsn = set()
+            if networks_list:
+                for d in networks_list:
+                    group_license, dsn_subset = dballe.check_access_authorization(
+                        user, query_data["license"], d
+                    )
+                    all_dsn.update(dsn_subset)
+                dsn_subset = list(all_dsn)
+            else:
+                group_license, dsn_subset = dballe.check_access_authorization(
+                    user, query_data["license"], None
+                )
 
         except UnexistingLicenseGroup:
             raise BadRequest("The selected group of license does not exists")
@@ -435,19 +458,25 @@ class MapsObservations(EndpointResource):
                 db_type = "mixed"
 
         log.debug("type of database: {}", db_type)
-
         try:
+            queries_and_dsns: Optional[List[Dict[str, Any]]] = []
+            download_queries: Optional[List[Dict[str, Any]]] = []
+
+            if query_data:
+                # if there are filters with multiple queries, we use the itertool to get multiple queries with single
+                # filters. Basically, this is needed to get correct queries for dballe.
+                queries_and_dsns = dballe.get_queries_and_dsn_list_with_itertools(
+                    query_data
+                )
+
             if db_type == "mixed":
-                query_data_for_dballe = {}
-                query_data_for_arki = {}
-                query_station_data_for_dballe = {}
-                query_station_data_for_arki = {}
-                if query_station_data:
-                    query_station_data_for_dballe = {**query_station_data}
-                    query_station_data_for_arki = {**query_station_data}
-                if query_data:
-                    query_data_for_dballe = {**query_data}
-                    query_data_for_arki = {**query_data}
+                query_station_data_for_dballe = (
+                    {**query_station_data} if query_station_data else {}
+                )
+                query_station_data_for_arki = (
+                    {**query_station_data} if query_station_data else {}
+                )
+                query_data_for_arki = {**query_data} if query_data else {}
 
                 # get reftimes for arkimet and dballe
                 dballe_reftime_in_query = {}
@@ -483,33 +512,65 @@ class MapsObservations(EndpointResource):
                         instant_now, datetime.time(instant_now.hour, 0, 0)
                     )
 
-                # get queries and db for dballe extraction (taking advantage of the method already implemented to get data values for maps)
-                log.debug("getting queries and db for dballe")
-                for key, value in dballe_reftime_in_query.items():
-                    query_data_for_dballe[key] = value
+                # We will need the list of the dballe queries to get the list of the stations
+                # in the arkimet extraction
+                dballe_queries = []
+
+                # get queries and db for dballe extraction
+                for query_and_dsn in queries_and_dsns:
+                    query_data_for_dballe = query_and_dsn["query"]
+                    for key, value in dballe_reftime_in_query.items():
+                        query_data_for_dballe[key] = value
+                        if query_station_data_for_dballe:
+                            query_station_data_for_dballe[key] = value
+
                     if query_station_data_for_dballe:
-                        query_station_data_for_dballe[key] = value
-                (
-                    dballe_db,
-                    dballe_query_data,
-                    dballe_query_station_data,
-                    mobile_db,
-                ) = dballe.get_maps_response(
-                    query_data_for_dballe,
-                    False,
-                    db_type="dballe",
-                    query_station_data=query_station_data_for_dballe,
-                    download=True,
-                )
+                        for key in ("level", "product", "timerange"):
+                            if key in query_data_for_dballe:
+                                query_station_data_for_dballe[
+                                    key
+                                ] = query_data_for_dballe[key]
+
+                    (
+                        dballe_db,
+                        dballe_query_data,
+                        dballe_query_station_data,
+                        mobile_db,
+                    ) = dballe.get_maps_response(
+                        query_data_for_dballe,
+                        False,
+                        db_type="dballe",
+                        query_station_data=query_station_data_for_dballe,
+                        download=True,
+                    )
+
+                    dballe_queries.append(
+                        dballe.parse_query_for_maps(dballe_query_data)
+                    )
+
                 # get queries and db for arkimet extraction
                 arki_db = None
                 arki_query_data = {}
                 arki_query_station_data = {}
+
                 if arki_reftime_in_query:
                     for key, value in arki_reftime_in_query.items():
                         query_data_for_arki[key] = value
                         if query_station_data_for_arki:
                             query_station_data_for_arki[key] = value
+
+                    if query_station_data_for_arki and query_data_for_arki:
+                        for key in ("level", "product", "timerange"):
+                            if key in query_data_for_arki:
+                                query_station_data_for_arki[key] = query_data_for_arki[
+                                    key
+                                ]
+
+                    for q in dballe_queries:
+                        # this is needed to get the list of stations and obtain a valid query_for_arkimet in the
+                        # get_maps_response method
+                        q["datetimemin"] = arki_reftime_in_query["datetimemin"]
+
                     log.debug("getting queries and db for arkimet")
                     (
                         arki_db,
@@ -523,38 +584,90 @@ class MapsObservations(EndpointResource):
                         query_station_data=query_station_data_for_arki,
                         download=True,
                         dsn_subset=dsn_subset,
+                        all_dballe_queries=dballe_queries,
                     )
 
-                # merge the queries and the db
-                log.debug("merge queries and db for mixed extraction")
-                (
-                    db_for_extraction,
-                    download_query_data,
-                ) = dballe.merge_db_for_download(
-                    dballe_db,
-                    dballe_query_data,
-                    arki_db,
-                    arki_query_data,
-                    mobile_db=mobile_db,
-                    dsn_subset=dsn_subset,
-                )
-                # if there is a temporary db we no more need the dsn subset list and the mobile db connection as we have already use them for fill the temp db
-                if arki_db:
-                    dsn_subset = []
-                    mobile_db = None
-                # if there is a query station data, merge the two queries
-                download_query_station_data = {}
+                    # merge the queries and the db
+                    for q in dballe_queries:
+                        (
+                            db_for_extraction,
+                            download_query_data,
+                        ) = dballe.merge_db_for_download(
+                            dballe_db,
+                            q,
+                            arki_db,
+                            arki_query_data,
+                            mobile_db=mobile_db,
+                            dsn_subset=dsn_subset,
+                        )
+
+                    # if there is a temporary db we no more need the dsn subset list and the mobile db connection as we
+                    # have already used them for fill the temp db
+                    if arki_db:
+                        dsn_subset = []
+                        mobile_db = None
+
+                    for qnd in queries_and_dsns:
+                        download_query_data = {**qnd["query"]}
+                        query_station_data_local = {**query_station_data}
+                        if query_station_data_local:
+                            for key in ("level", "product", "timerange"):
+                                if key in download_query_data:
+                                    query_station_data_local[key] = download_query_data[
+                                        key
+                                    ]
+                            # if there is an arki query station data, merge the two reftimes
+                            if arki_query_station_data:
+                                if "datetimemin" in arki_query_station_data:
+                                    query_station_data_local[
+                                        "datetimemin"
+                                    ] = arki_query_station_data["datetimemin"]
+                        else:
+                            if (
+                                arki_reftime_in_query
+                                and "datetimemin" in arki_reftime_in_query
+                            ):
+                                download_query_data[
+                                    "datetimemin"
+                                ] = query_data_for_arki["datetimemin"]
+                            if (
+                                dballe_reftime_in_query
+                                and "datetimemax" in dballe_reftime_in_query
+                            ):
+                                download_query_data[
+                                    "datetimemax"
+                                ] = dballe_reftime_in_query["datetimemax"]
+
+                        download_queries.append(
+                            {
+                                "download_query_data": download_query_data
+                                if not query_station_data
+                                else None,
+                                "download_query_station_data": query_station_data_local
+                                if query_station_data
+                                else None,
+                            }
+                        )
+
+            elif db_type == "arkimet":
                 if query_station_data:
-                    download_query_station_data = dballe.parse_query_for_maps(
-                        dballe_query_station_data
-                    )
-                    if arki_query_station_data:
-                        if "datetimemin" in arki_query_station_data:
-                            download_query_station_data[
-                                "datetimemin"
-                            ] = arki_query_station_data["datetimemin"]
-            else:
-                # take advantage of the method already implemented to get data values for maps in order to get the query and the db to extract the data
+                    for key in (
+                        "level",
+                        "product",
+                        "timerange",
+                        "datetimemin",
+                        "datetimemax",
+                    ):
+                        if key in query_data:
+                            query_station_data[key] = query_data[key]
+                    # TODO da controllare quando scarica il vento, se funziona o se ce'è da fare un itertoools?
+                    # queries_and_dsns = dballe.get_queries_and_dsn_list_with_itertools(query_station_data)
+
+                dballe_queries = []
+                for qnd in queries_and_dsns:
+                    db_query = dballe.parse_query_for_maps(qnd["query"])
+                    dballe_queries.append(db_query)
+
                 (
                     db_for_extraction,
                     download_query_data,
@@ -567,7 +680,72 @@ class MapsObservations(EndpointResource):
                     query_station_data=query_station_data,
                     download=True,
                     dsn_subset=dsn_subset,
+                    all_dballe_queries=dballe_queries,
                 )
+
+                for qnd in queries_and_dsns:
+                    download_query_data = {**qnd["query"]}
+                    query_station_data_local = {**query_station_data}
+                    if query_station_data_local:
+                        for key in ("level", "product", "timerange"):
+                            if key in download_query_data:
+                                query_station_data_local[key] = download_query_data[key]
+
+                    download_queries.append(
+                        {
+                            "download_query_data": download_query_data
+                            if not query_station_data
+                            else None,
+                            "download_query_station_data": query_station_data_local
+                            if query_station_data
+                            else None,
+                        }
+                    )
+
+            elif db_type == "dballe":
+                for query_and_dsn in queries_and_dsns:
+                    query_for_maps_response = {**query_and_dsn["query"]}
+                    query_station_data_local = {**query_station_data}
+                    if query_station_data_local:
+                        for key in (
+                            "level",
+                            "product",
+                            "timerange",
+                            "datetimemin",
+                            "datetimemax",
+                        ):
+                            if key in query_for_maps_response:
+                                query_station_data_local[key] = query_for_maps_response[
+                                    key
+                                ]
+
+                    # take advantage of the method already implemented to get data values for maps in order to get the query and the db to extract the data
+                    (
+                        db_for_extraction,
+                        download_query_data,
+                        download_query_station_data,
+                        mobile_db,
+                    ) = dballe.get_maps_response(
+                        query_for_maps_response,
+                        False,
+                        db_type=db_type,
+                        query_station_data=query_station_data_local,
+                        download=True,
+                        dsn_subset=dsn_subset,
+                        aggregations_dsn=None
+                        # aggregations_dsn=query_and_dsn["aggregations_dsn"]
+                    )
+
+                    download_queries.append(
+                        {
+                            "download_query_data": download_query_data
+                            if not query_station_data
+                            else None,
+                            "download_query_station_data": download_query_station_data
+                            if query_station_data
+                            else None,
+                        }
+                    )
 
             mime = None
             if output_format == "JSON":
@@ -582,8 +760,7 @@ class MapsObservations(EndpointResource):
                         dballe.download_data_from_map(
                             db_for_extraction,
                             output_format,
-                            download_query_data,
-                            download_query_station_data,
+                            download_queries,
                             qc_filter=reliabilityCheck,
                             mobile_db=mobile_db,
                             dsn_subset=dsn_subset,
