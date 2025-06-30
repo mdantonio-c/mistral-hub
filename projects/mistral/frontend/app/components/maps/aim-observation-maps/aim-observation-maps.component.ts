@@ -48,6 +48,7 @@ export class AimObservationMapsComponent
   readonly LEGEND_POSITION = "bottomleft";
   @Input() minZoom: number = 5;
   @Input() maxZoom: number = 12;
+  lastResponse = null; // to track last response from the server
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -401,6 +402,12 @@ export class AimObservationMapsComponent
           }
           let data = response.data;
           this.loadMarkers(data, filter.product);
+          if(this.currentProduct === "ws10m") {
+            if(this.windConvert) 
+              this.updateWindMarkers();
+          } else {
+            this.windConvert = false;
+          }
           // in order to sync with the end of marker update
           this.timeDimensionControl._player.release();
           if (data.length === 0) {
@@ -418,8 +425,9 @@ export class AimObservationMapsComponent
   }
   loadWindMarkersHandle(event) {
     if (event) {
+      let oldWindConvert = this.windConvert;
       this.windConvert = true;
-      this.updateWindMarkers();
+      this.updateWindMarkers(oldWindConvert);
       const legend = new L.Control({ position: this.LEGEND_POSITION });
       legend.onAdd = () => {
         let div = L.DomUtil.create("div");
@@ -434,8 +442,9 @@ export class AimObservationMapsComponent
       this.legends[this.currentProduct] = legend;
     }
     if (!event) {
+      let oldWindConvert = this.windConvert;
       this.windConvert = false;
-      this.updateWindMarkers();
+      this.updateWindMarkers(oldWindConvert);
       this.map.removeControl(this.legends[this.currentProduct]);
       const legend = this.createLegendControl("ws10m");
       legend.addTo(this.map);
@@ -475,7 +484,7 @@ export class AimObservationMapsComponent
     }
   }
 
-  updateWindMarkers() {
+  updateWindMarkers(oldWindConvert?: boolean) {
     this.allMarkers.forEach((m) => {
       const currentIcon = m.getIcon() as L.DivIcon;
       const html = currentIcon.options.html;
@@ -483,6 +492,9 @@ export class AimObservationMapsComponent
       (tmpDiv.innerHTML as any) = html;
       const span = tmpDiv.querySelector("span");
       let updatedValue: string | null = null;
+      if(oldWindConvert !== undefined && oldWindConvert === this.windConvert) {
+        return;
+      }
 
       if (span) {
         if (this.windConvert) {
