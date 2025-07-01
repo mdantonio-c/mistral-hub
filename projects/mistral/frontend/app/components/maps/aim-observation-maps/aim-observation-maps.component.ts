@@ -893,16 +893,11 @@ export class AimObservationMapsComponent
     this.layersControl["overlays"] = this.markersGroup;
     this.markersGroup.addTo(this.map);
   }
-  checkHours(): string {
+  checkUTCShift(): string {
     const now = moment();
-    const isDST = now.isDST();
-    if (isDST) {
-      //console.log('legal (UTC+2)');
-      return "(UTC+2)";
-    } else {
-      //console.log('solar (UTC+1)');
-      return "(UTC+1)";
-    }
+    const offsetHours = now.utcOffset() / 60;
+    const sign = offsetHours >= 0 ? "+" : "-";
+    return `(UTC${sign}${Math.abs(offsetHours)})`;
   }
   private openStationReport(station: Station, m: L.Marker | null = null) {
     const modalRef = this.modalService.open(ObsStationReportComponent, {
