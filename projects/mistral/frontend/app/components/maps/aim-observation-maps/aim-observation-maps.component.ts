@@ -831,6 +831,20 @@ export class AimObservationMapsComponent
       this.filter.product = this.variablesConfig[obj.name].code;
       this.filter.timerange = this.variablesConfig[obj.name].timerange;
       this.filter.level = this.variablesConfig[obj.name].level;
+
+      // refresh the time filter with fresh date
+      let isMidNight: boolean = false;
+      let startDate = new Date(currentUtcNow);
+      startDate.setHours(currentUtcNow.getHours() - 1);
+      /* For data that refer to the previous day */
+      if (startDate.getUTCDate() != currentUtcNow.getUTCDate()) {
+        isMidNight = true;
+      }
+      this.myRefTime = !isMidNight ? currentUtcNow : startDate;
+      this.myTime = [
+        startDate.getUTCHours(),
+        isMidNight ? currentUtcNow.getUTCHours() : startDate.getUTCHours() + 1,
+      ];
       this.filter.reftime = this.myRefTime;
       this.filter.time = this.myTime;
       if (this.refTimeToTimeLine) {
