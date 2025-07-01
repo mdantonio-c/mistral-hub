@@ -436,7 +436,7 @@ export class AimObservationMapsComponent
       if (legend) {
         legend.addTo(this.map);
       }
-      this.legends[this.currentProduct] = legend;
+      this.legends["ws10m"] = legend;
     }
     if (!event) {
       let oldWindConvert = this.windConvert;
@@ -445,7 +445,7 @@ export class AimObservationMapsComponent
       this.map.removeControl(this.legends[this.currentProduct]);
       const legend = this.createLegendControl("ws10m");
       legend.addTo(this.map);
-      this.legends[this.currentProduct] = legend;
+      this.legends["ws10m"] = legend;
     }
   }
 
