@@ -840,13 +840,17 @@ export class AimObservationMapsComponent
       if (startDate.getUTCDate() != currentUtcNow.getUTCDate()) {
         isMidNight = true;
       }
-      this.myRefTime = !isMidNight ? currentUtcNow : startDate;
-      this.myTime = [
+      let newReftime = !isMidNight ? currentUtcNow : startDate;
+      let newTime = [
         startDate.getUTCHours(),
         isMidNight ? currentUtcNow.getUTCHours() : startDate.getUTCHours() + 1,
       ];
-      this.filter.reftime = this.myRefTime;
-      this.filter.time = this.myTime;
+      this.filter.reftime = newReftime;
+      this.filter.time = newTime;
+      // update variables with fresh data
+      this.myRefTime = newReftime;
+      this.myTime = newTime;
+
       if (this.refTimeToTimeLine) {
         (this.map as any).timeDimension.setCurrentTime(
           this.refTimeToTimeLine.getTime(),
