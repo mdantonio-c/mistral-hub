@@ -124,9 +124,7 @@ services:
       default:
       
   strapi:
-    container_name: strapi
-    build: ${PROJECT_DIR}/builds/strapi
-    image: strapi:latest
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest
     restart: unless-stopped
     # env_file: ${PROJECT_DIR}/builds/strapi/.env
     environment:
@@ -162,6 +160,12 @@ services:
       default:
     depends_on:
       - strapiDB
+    healthcheck:
+      test: ["CMD-SHELL", "ping -c 1 localhost:1337 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   strapiDB:
     container_name: strapiDB
@@ -198,6 +202,12 @@ services:
       - "5432:5432"
     networks:
       default:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   strapiDB-data: 
