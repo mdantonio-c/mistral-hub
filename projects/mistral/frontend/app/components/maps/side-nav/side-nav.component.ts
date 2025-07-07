@@ -68,6 +68,7 @@ export class SideNavFilterComponent implements OnInit {
   selectedOption: string = "All";
   selectedQuality = false;
   showObsFilter = false;
+  currentProduct = "";
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -168,7 +169,9 @@ export class SideNavFilterComponent implements OnInit {
     this.selectedQuality = isChecked;
   }
   download() {
-    this.filterDownload.emit(this.toObsFilter());
+    if (this.currentProduct !== "prp") {
+      this.filterDownload.emit(this.toObsFilter());
+    }
   }
   changeCollapse() {
     this.isCollapsed = !this.isCollapsed;
@@ -203,7 +206,7 @@ export class SideNavFilterComponent implements OnInit {
         filter.level = "1,0,0,0";
       else filter.level = "103,2000,0,0";
     } else if (this._overlays.options["pane"] === "B11002 or B11001") {
-      filter.product = "B11001 or B11001";
+      filter.product = "B11002 or B11001";
       filter.timerange = "254,0,0";
       filter.level = "103,10000,0,0";
       this.openDownload(filter);
@@ -233,6 +236,8 @@ export class SideNavFilterComponent implements OnInit {
     const op = fromActiveState ? "remove" : "add";
     if (layerId === "ws10m" && op == "add") {
       this.windShow = true;
+      this.onWindConvert.emit(this.windConvert);
+
     } else this.windShow = false;
 
     // console.log(`toggle "${op}" on layer-id "${layerId}"`);
@@ -253,6 +258,8 @@ export class SideNavFilterComponent implements OnInit {
       layer: layerId,
       name: layerId,
     });
+
+    this.currentProduct = layerId;
 
     // update active class
     fromActiveState

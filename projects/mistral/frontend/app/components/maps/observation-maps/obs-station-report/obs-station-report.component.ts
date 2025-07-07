@@ -49,6 +49,10 @@ export class ObsStationReportComponent implements OnInit {
   accumulatedSeries: DataSeries[];
   windDirectionSeries;
 
+  // to display only selected station details
+  stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
+  filteredStationDetails: StationDetail[] = [];
+
   // chart options
   multiColorScheme = {
     domain: ["#5AA454", "#E44D25", "#CFC0BB", "#7aa3e5", "#a8385d", "#aae3f5"],
@@ -92,6 +96,12 @@ export class ObsStationReportComponent implements OnInit {
     return `${element.var}-${element.lev}-${element.trange}`;
   }
 
+  filterStationDetails(stationData) {
+    this.filteredStationDetails = stationData.filter((d) =>
+      this.stationDetailsCodesList.includes(d.var),
+    );
+  }
+
   private loadReport() {
     setTimeout(() => this.spinner.show("timeseries-spinner"), 0);
     this.obsService
@@ -101,6 +111,7 @@ export class ObsStationReportComponent implements OnInit {
           let data = response.data;
           // data = randomize(data);
           this.descriptions = response.descr;
+          console.log(this.descriptions);
           // change on description
           if (this.descriptions) {
             this.descriptions["B01019"] = { descr: "Station name" };
@@ -108,7 +119,15 @@ export class ObsStationReportComponent implements OnInit {
             this.descriptions["B07030"] = {
               descr: "Station elevation above sea level",
             };
+            if ("B13011" in this.descriptions) {
+              this.descriptions["B13011"].descr = "Precipitation";
+            }
+            if ("B12101" in this.descriptions) {
+              this.descriptions["B12101"].descr = "Temperature";
+            }
           }
+          // filter the station details to be displayed
+          this.filterStationDetails(data[0].stat.details);
 
           this.report = data[0];
           //console.log('response',response)
@@ -164,8 +183,12 @@ export class ObsStationReportComponent implements OnInit {
       if (nameDetail) {
         return nameDetail.val;
       }
-    } else if (this.station && this.station?.details && this.station?.details.length > 0) {
-      return this.station?.details[0]?.val
+    } else if (
+      this.station &&
+      this.station?.details &&
+      this.station?.details.length > 0
+    ) {
+      return this.station?.details[0]?.val;
     }
     return;
   }

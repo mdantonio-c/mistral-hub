@@ -45,7 +45,7 @@
           <i
             class="fa fa-arrows-rotate clickable"
             aria-hidden="true"
-            (click)="toggleLayer()"
+            (click)="toggleLayer(undefined, true)"
             placement="bottom"
             ngbTooltip="Reload"
           ></i>
@@ -56,7 +56,9 @@
             class="d-inline fw-normal local-hour"
             style="white-space: pre-line"
           >
-            {{ printHoursDescription() | translate : lang }} {{ checkHours() }}
+            {{ printHoursDescription() | translate : lang }} {{
+              checkUTCShift()
+            }}
           </pre>
         </div>
       </div>

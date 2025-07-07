@@ -69,7 +69,8 @@
         </select>
       </div>
       <p *ngIf="!isAuthenticated">
-        To download data older than 10 days, please
+        To download data older than 10 days or exceeding the {{ maxDays }}-day
+        range, please
         <a href="/app/login">log in</a>
       </p>
       <div class="d-flex align-items-start mt-2" *ngIf="showWarning">
@@ -77,7 +78,8 @@
           class="fas fa-exclamation-triangle me-2 mt-1"
           style="color: #ffc107; font-size: 1.2rem"
         ></i>
-        <span
+        <span *ngIf="!isAuthenticated">Max {{ maxDays }}-day range </span>
+        <span *ngIf="isAuthenticated"
           >The maximum range of {{ maxDays }} days has been exceeded. <br />
           For extended access to the datasets, click
           <a href="/app/data/datasets"> here</a>.

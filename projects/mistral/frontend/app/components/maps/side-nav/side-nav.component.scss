@@ -175,7 +175,8 @@ $dark-blue: #004080;
 .carte,
 .tpperc,
 .tpprob,
-.donwload_button,
+.download_button,
+.download_button-disabled,
 .networks,
 .snow {
   background-size: contain;
@@ -228,8 +229,12 @@ $dark-blue: #004080;
 .snow {
   background-image: url("/app/custom/assets/images/icons/snow.svg");
 }
-.donwload_button {
+.download_button {
   background-image: url("/app/custom/assets/images/icons/download_button.png");
+}
+
+.download_button-disabled {
+  background-image: url("/app/custom/assets/images/icons/download_button_disabled.png");
 }
 
 .input,
@@ -936,4 +941,27 @@ $dark-blue: #004080;
 
 .sidenav-item.networks-item a:hover span.nav-text {
   text-decoration: none !important;
+}
+
+// to style the wind switch button of the observation map
+.wind-switch {
+  margin-bottom: -0.5rem;
+  font-family: "TitilliumWeb-Regular";
+}
+
+//style for warning for download precipitation data
+.warning-text {
+  width: 100%;
+  position: relative;
+  margin-left: 7px;
+  font-family: "TitilliumWeb-Regular";
+  text-align: left;
+  font-size: 14px;
+}
+.disabled-text {
+  color: #9b9b9b !important;
+}
+.link-white {
+  text-decoration: underline !important;
+  color: #ffffff;
 }

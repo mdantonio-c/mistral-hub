@@ -184,6 +184,8 @@ export class ObsService {
     if (filter.last) {
       params["last"] = filter.last;
     }
+    // prevent using cached response to be sure to have always fresh data
+    params["ts"] = Date.now();
     // console.log(`q: ${params.q}`);
     return this.api
       .get<ObservationResponse>("/api/observations", params)

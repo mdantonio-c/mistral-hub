@@ -14,7 +14,7 @@
 
 $light-orange: #e49c1e;
 $light-orange-shadow: rgba(228, 156, 30, 0.25);
-$light-blue: #157ACC;
+$light-blue: #157acc;
 $dark-blue: #004080;
 
 /* customize container width */
@@ -64,9 +64,9 @@ $dark-blue: #004080;
 }
 
 .subtitle {
-      font-size: 14px !important;
-      color: $dark-blue !important;
-      text-transform: uppercase;
+  font-size: 14px !important;
+  color: $dark-blue !important;
+  text-transform: uppercase;
 }
 
 @font-face {
@@ -238,7 +238,7 @@ h3 {
 .btn-primary {
   background-color: $dark-blue !important;
   border-color: $dark-blue !important;
-  border-radius:4px;
+  border-radius: 4px;
 }
 
 .btn-primary:not(:disabled):not(.disabled):active:focus {
@@ -1228,7 +1228,7 @@ customfooter > div {
     padding-right: 14px;
     margin-top: 10px;
     margin-bottom: 10px;
-    background-color:$light-blue !important;
+    background-color: $light-blue !important;
   }
 
   .rpd-menu-controls {
@@ -1237,7 +1237,7 @@ customfooter > div {
     flex-direction: row;
     -webkit-box-pack: end;
     justify-content: end;
-    background-color: #157ACC;
+    background-color: #157acc;
     margin-top: -10px;
     margin-left: -12px !important;
     margin-right: -12px !important;
@@ -1346,38 +1346,39 @@ customfooter > div {
 
 /*custom style forecast and iff*/
 app-forecast-maps {
-  background-color: #F7F7F7 !important;
-.container-fluid {
-  background-color: #F7F7F7 !important;
-  padding-bottom: 1.3rem !important;
+  background-color: #f7f7f7 !important;
+  .container-fluid {
+    background-color: #f7f7f7 !important;
+    padding-bottom: 1.3rem !important;
     .card {
-        border-color: #f7f7f7 !important;
+      border-color: #f7f7f7 !important;
       .card-header {
-      border: solid 1px var(--bs-border-color-translucent);
+        border: solid 1px var(--bs-border-color-translucent);
       }
       .card-footer {
-      border-top: 0;
+        border-top: 0;
       }
     }
   }
 }
 app-flash-flood-maps {
-  background-color: #F7F7F7 !important;
-.container-fluid {
-  background-color: #F7F7F7 !important;
-  padding-bottom: 1.3rem !important;
+  background-color: #f7f7f7 !important;
+  .container-fluid {
+    background-color: #f7f7f7 !important;
+    padding-bottom: 1.3rem !important;
     .card {
-        border-color: #f7f7f7 !important;
+      border-color: #f7f7f7 !important;
       .card-header {
-      border: solid 1px var(--bs-border-color-translucent);
+        border: solid 1px var(--bs-border-color-translucent);
       }
       .card-footer {
-      border-top: 0;
+        border-top: 0;
       }
     }
   }
 }
 
-.ngb-dp-month, ngb-datepicker.dropdown-menu{
+.ngb-dp-month,
+ngb-datepicker.dropdown-menu {
   background-color: #fff !important;
 }
