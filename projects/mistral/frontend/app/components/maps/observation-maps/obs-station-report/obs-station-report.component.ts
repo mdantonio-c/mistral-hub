@@ -461,4 +461,10 @@ export class ObsStationReportComponent implements OnInit {
   giveMeMetres() {
     return "m";
   }
+  checkUTCShift(): string {
+    const now = moment();
+    const offsetHours = now.utcOffset() / 60;
+    const sign = offsetHours >= 0 ? "+" : "-";
+    return `(UTC${sign}${Math.abs(offsetHours)})`;
+  }
 }
