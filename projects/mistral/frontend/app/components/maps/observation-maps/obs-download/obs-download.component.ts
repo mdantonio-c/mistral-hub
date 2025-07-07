@@ -206,7 +206,7 @@ export class ObsDownloadComponent implements OnInit {
   }
 
   private applyMinDate() {
-    let d = moment.utc().subtract(LAST_DAYS, "days");
+    let d = moment.utc().subtract(LAST_DAYS - 1, "days");
     this.minDate = {
       year: d.year(),
       month: d.month() + 1,

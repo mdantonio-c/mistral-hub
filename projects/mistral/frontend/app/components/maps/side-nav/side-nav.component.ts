@@ -236,6 +236,8 @@ export class SideNavFilterComponent implements OnInit {
     const op = fromActiveState ? "remove" : "add";
     if (layerId === "ws10m" && op == "add") {
       this.windShow = true;
+      this.onWindConvert.emit(this.windConvert);
+
     } else this.windShow = false;
 
     // console.log(`toggle "${op}" on layer-id "${layerId}"`);
