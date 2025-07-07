@@ -118,7 +118,7 @@ class MapsObservations(EndpointResource):
             networks_list = [x.strip() for x in networks.split(" or ")]
             for n in networks_list:
                 # check user authorization for the requested network
-                dataset_name = arki.from_network_to_dataset(networks)
+                dataset_name = arki.from_network_to_dataset(n)
                 if not dataset_name:
                     raise NotFound("The requested network does not exists")
                 check_auth = SqlApiDbManager.check_dataset_authorization(
@@ -660,8 +660,6 @@ class MapsObservations(EndpointResource):
                     ):
                         if key in query_data:
                             query_station_data[key] = query_data[key]
-                    # TODO da controllare quando scarica il vento, se funziona o se ce'è da fare un itertoools?
-                    # queries_and_dsns = dballe.get_queries_and_dsn_list_with_itertools(query_station_data)
 
                 dballe_queries = []
                 for qnd in queries_and_dsns:

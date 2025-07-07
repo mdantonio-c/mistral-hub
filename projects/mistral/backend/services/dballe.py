@@ -2984,7 +2984,7 @@ class BeDballe:
         Returns the specific dballe dsn for aggregated pluvio data.
         """
         dsn = None
-        if "product" and "timerange" in query_dict:
+        if "product" in query_dict and "timerange" in query_dict:
             if (
                 query_dict["product"][0] == "B13011"
                 and query_dict["timerange"][0] in BeDballe.AGGREGATIONS_TRANGES
