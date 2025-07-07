@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.3">
-    <description>Aggregazione oraria di dati di precipitazione provenienti da DPCN - aggiunta coda per scrittura row in tabella "dpcn_1h_aggr_logfile" in db "nifi_db"</description>
+    <description>fix del collegamento tra processori per il reinvio dei dati di dpcn via amqp</description>
     <groupId>11985e5f-017b-1000-4ba2-19391f864aad</groupId>
-    <name>INGEST CSV DPC to DBALLE - 2025-06-30</name>
+    <name>INGEST CSV DPC to DBALLE - 2025-07-07</name>
     <snippet>
         <processGroups>
             <id>4a64d3fd-63ce-3f9e-0000-000000000000</id>
@@ -1874,6 +1874,31 @@
                     <zIndex>0</zIndex>
                 </connections>
                 <connections>
+                    <id>917d7190-1fc9-344b-0000-000000000000</id>
+                    <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>4a64d3fd-63ce-3f9e-0000-000000000000</groupId>
+                        <id>d3970192-6852-3ee3-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>output stream</selectedRelationships>
+                    <source>
+                        <groupId>4a64d3fd-63ce-3f9e-0000-000000000000</groupId>
+                        <id>1053a523-e55a-358e-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
                     <id>91f68d0f-14d0-3cca-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
@@ -2493,31 +2518,6 @@
                     <source>
                         <groupId>4a64d3fd-63ce-3f9e-0000-000000000000</groupId>
                         <id>7ee4ed5f-eafd-3784-0000-000000000000</id>
-                        <type>PROCESSOR</type>
-                    </source>
-                    <zIndex>0</zIndex>
-                </connections>
-                <connections>
-                    <id>d0b71b94-2627-3aba-0000-000000000000</id>
-                    <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
-                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
-                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
-                    <destination>
-                        <groupId>4a64d3fd-63ce-3f9e-0000-000000000000</groupId>
-                        <id>d3970192-6852-3ee3-0000-000000000000</id>
-                        <type>PROCESSOR</type>
-                    </destination>
-                    <flowFileExpiration>0 sec</flowFileExpiration>
-                    <labelIndex>1</labelIndex>
-                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
-                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
-                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
-                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
-                    <name></name>
-                    <selectedRelationships>output stream</selectedRelationships>
-                    <source>
-                        <groupId>4a64d3fd-63ce-3f9e-0000-000000000000</groupId>
-                        <id>57f440e7-7395-3653-0000-000000000000</id>
                         <type>PROCESSOR</type>
                     </source>
                     <zIndex>0</zIndex>
@@ -4492,12 +4492,12 @@
                     <id>1e4df56d-3be5-3e65-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>776.0</x>
-                        <y>1392.0</y>
+                        <x>848.0</x>
+                        <y>1296.0</y>
                     </position>
                     <height>88.0</height>
                     <label>ATTENZIONE:
-In DEV è da eliminare il collegamento tra 
+In DEV si deve eliminare il collegamento tra 
 "convert jsonlinetobufr" e "change delivery mode"</label>
                     <style>
                         <entry>
@@ -4596,8 +4596,8 @@ In DEV è da eliminare il collegamento tra
                     <id>858f03a5-1b4a-328d-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-2384.0</x>
-                        <y>1944.0</y>
+                        <x>-2880.0</x>
+                        <y>2056.0</y>
                     </position>
                     <height>216.0</height>
                     <label>Monitor:  log error</label>
@@ -13980,8 +13980,8 @@ where fileid = ${fileid.0};</value>
                     <id>149dfb51-1232-3f2b-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-872.0</x>
-                        <y>2264.0</y>
+                        <x>-1368.0</x>
+                        <y>2376.0</y>
                     </position>
                     <bundle>
                         <artifact>nifi-standard-nar</artifact>
@@ -14704,8 +14704,8 @@ where fileid = ${fileid.0};</value>
                     <id>2d5b2ccf-2294-337e-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-1960.0</x>
-                        <y>2256.0</y>
+                        <x>-2456.0</x>
+                        <y>2368.0</y>
                     </position>
                     <bundle>
                         <artifact>nifi-update-attribute-nar</artifact>
@@ -15200,7 +15200,7 @@ where fileid = ${fileid.0};</value>
                         <autoTerminate>false</autoTerminate>
                         <name>success</name>
                     </relationships>
-                    <state>RUNNING</state>
+                    <state>STOPPED</state>
                     <style/>
                     <type>org.apache.nifi.processors.standard.ListFTP</type>
                 </processors>
@@ -15294,8 +15294,8 @@ where fileid = ${fileid.0};</value>
                     <id>366d4ad0-7060-3345-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-1400.0</x>
-                        <y>2808.0</y>
+                        <x>-1896.0</x>
+                        <y>2920.0</y>
                     </position>
                     <bundle>
                         <artifact>nifi-standard-nar</artifact>
@@ -15739,8 +15739,8 @@ where fileid = ${fileid.0};</value>
                     <id>3ec7c7a0-e525-3275-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-1960.0</x>
-                        <y>2808.0</y>
+                        <x>-2456.0</x>
+                        <y>2920.0</y>
                     </position>
                     <bundle>
                         <artifact>nifi-standard-nar</artifact>
@@ -16516,7 +16516,7 @@ where fileid = ${fileid.0};</value>
                         <autoTerminate>false</autoTerminate>
                         <name>output stream</name>
                     </relationships>
-                    <state>STOPPED</state>
+                    <state>RUNNING</state>
                     <style>
                         <entry>
                             <key>background-color</key>
@@ -17720,8 +17720,8 @@ where fileid = ${fileid.0};</value>
                     <id>7ee4ed5f-eafd-3784-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-2448.0</x>
-                        <y>2256.0</y>
+                        <x>-2944.0</x>
+                        <y>2368.0</y>
                     </position>
                     <bundle>
                         <artifact>nifi-update-attribute-nar</artifact>
@@ -21821,8 +21821,8 @@ limit 1;</value>
                     <id>c8bfb114-9d72-3377-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-2352.0</x>
-                        <y>1976.0</y>
+                        <x>-2848.0</x>
+                        <y>2088.0</y>
                     </position>
                     <bundle>
                         <artifact>nifi-standard-nar</artifact>
@@ -22063,7 +22063,7 @@ limit 1;</value>
                         <autoTerminate>false</autoTerminate>
                         <name>success</name>
                     </relationships>
-                    <state>STOPPED</state>
+                    <state>RUNNING</state>
                     <style/>
                     <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
                 </processors>
@@ -22611,8 +22611,8 @@ limit 1;</value>
                     <id>dae81008-0788-3f48-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-2448.0</x>
-                        <y>2568.0</y>
+                        <x>-2944.0</x>
+                        <y>2680.0</y>
                     </position>
                     <bundle>
                         <artifact>nifi-standard-nar</artifact>
@@ -23796,8 +23796,8 @@ where fileid = ${fileid.0};</value>
                     <id>f61692bb-edd8-3a53-0000-000000000000</id>
                     <parentGroupId>4a64d3fd-63ce-3f9e-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-1400.0</x>
-                        <y>2256.0</y>
+                        <x>-1896.0</x>
+                        <y>2368.0</y>
                     </position>
                     <bundle>
                         <artifact>nifi-update-attribute-nar</artifact>
@@ -24243,5 +24243,5 @@ where fileid = ${fileid.0};</value>
             <variables/>
         </processGroups>
     </snippet>
-    <timestamp>06/30/2025 09:08:32 UTC</timestamp>
+    <timestamp>07/07/2025 08:28:57 UTC</timestamp>
 </template>
