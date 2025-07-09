@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.3">
-    <description>Aggregazione oraria di dati di precipitazione provenienti da DPCN - creazione del gruppo che effettua l'aggregazione oraria dei dati di precipitazione provenienti da DPCN.</description>
+    <description>piccola fix flowfile in uscita success da check dballe ingest, </description>
     <groupId>11985e5f-017b-1000-4ba2-19391f864aad</groupId>
-    <name>1h-Aggregation of precipitation data from DPCN - 2025-06-30</name>
+    <name>1h-Aggregation of precipitation data from DPCN - 2025-07-09</name>
     <snippet>
         <processGroups>
             <id>484580c9-921d-3e6a-0000-000000000000</id>
@@ -2201,7 +2201,7 @@
                     <height>136.0</height>
                     <label>NB:
 il delete dei dai e dei logs relativi 
-all'aggregazione dei dati di precipitazione diDPCN,
+all'aggregazione dei dati di precipitazione di DPCN,
 vengono gestiti nel flusso di delete presente 
 nel template principale di ingestion dati DPCN</label>
                     <style>
@@ -2256,7 +2256,7 @@ nel template principale di ingestion dati DPCN</label>
                     <comments></comments>
                     <contents>
                         <connections>
-                            <id>0aa300b4-3b0e-3bdd-0000-000000000000</id>
+                            <id>540b7de2-6f4e-35a8-0000-000000000000</id>
                             <parentGroupId>65d897f5-b8a3-3e3b-0000-000000000000</parentGroupId>
                             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
                             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
@@ -2272,7 +2272,7 @@ nel template principale di ingestion dati DPCN</label>
                             <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
                             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
                             <name></name>
-                            <selectedRelationships>ERRORE</selectedRelationships>
+                            <selectedRelationships>success</selectedRelationships>
                             <source>
 <groupId>65d897f5-b8a3-3e3b-0000-000000000000</groupId>
 <id>a4c6ceac-637d-3151-0000-000000000000</id>
@@ -3049,7 +3049,7 @@ where fileid = ${fileid.0} and ms_errore like '%DBALLE' or ms_errore like '%AMQP
 <name>ERRORE</name>
                             </relationships>
                             <relationships>
-<autoTerminate>true</autoTerminate>
+<autoTerminate>false</autoTerminate>
 <name>success</name>
                             </relationships>
                             <relationships>
@@ -9398,5 +9398,5 @@ where fileid = ${fileid.0};</value>
             <variables/>
         </processGroups>
     </snippet>
-    <timestamp>06/30/2025 11:03:19 UTC</timestamp>
+    <timestamp>07/09/2025 16:04:36 UTC</timestamp>
 </template>
