@@ -17,8 +17,6 @@ import { NgxSpinnerService } from "ngx-spinner";
 import * as moment from "moment";
 import { curveMonotoneX } from "d3-shape";
 
-import { randomize } from "./data.mock";
-
 const STATION_NAME_CODE = "B01019";
 
 @Component({
@@ -52,6 +50,12 @@ export class ObsStationReportComponent implements OnInit {
   // to display only selected station details
   stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
   filteredStationDetails: StationDetail[] = [];
+
+  // station report
+  yScaleMin: number;
+  yScaleMax: number;
+  yRightScaleMin: number;
+  yRightScaleMax: number;
 
   // chart options
   multiColorScheme = {
@@ -90,6 +94,7 @@ export class ObsStationReportComponent implements OnInit {
   onNavChange(changeEvent: NgbNavChangeEvent) {
     console.log(`nav changed to varcode: ${changeEvent.nextId}`);
     this.updateGraphData(changeEvent.nextId);
+    this.addSecondaryXAxisLabels();
   }
 
   getNavItemName(element: ObsData) {
@@ -111,7 +116,6 @@ export class ObsStationReportComponent implements OnInit {
           let data = response.data;
           // data = randomize(data);
           this.descriptions = response.descr;
-          console.log(this.descriptions);
           // change on description
           if (this.descriptions) {
             this.descriptions["B01019"] = { descr: "Station name" };
@@ -165,6 +169,7 @@ export class ObsStationReportComponent implements OnInit {
             this.buildWindProduct();
           }
           this.active = meteogramToShow;
+          this.updateYScaleRange(meteogramToShow);
         },
         (error) => {
           this.notify.showError(error);
@@ -172,7 +177,48 @@ export class ObsStationReportComponent implements OnInit {
       )
       .add(() => {
         setTimeout(() => this.spinner.hide("timeseries-spinner"), 0);
+        this.addSecondaryXAxisLabels();
       });
+  }
+
+  addSecondaryXAxisLabels() {
+    setTimeout(
+      () =>
+        document
+          .querySelectorAll('g[ng-reflect-orient="bottom"] .tick')
+          .forEach((x) => {
+            const input = "<svg>" + x.innerHTML + "</svg>";
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(input, "image/svg+xml");
+            const textElements = doc.querySelectorAll("text");
+            textElements.forEach((el) => {
+              const content = el.textContent?.trim();
+              if (content && content.includes("\n")) {
+                const text = document.createElementNS(
+                  "http://www.w3.org/2000/svg",
+                  "text",
+                );
+                const tspan = document.createElementNS(
+                  "http://www.w3.org/2000/svg",
+                  "tspan",
+                );
+                const date = content.split("\n")[1].trim();
+                text.setAttribute("stroke-width", "0.01");
+                text.setAttribute("text-anchor", "end");
+                tspan.setAttribute("x", "0");
+                tspan.setAttribute("dy", "1em");
+                tspan.textContent = date;
+                x.innerHTML = "";
+                text.setAttribute("style", "font-size: 12px;");
+                text.setAttribute("text-anchor", "middle");
+                text.textContent = "00";
+                text.appendChild(tspan);
+                x.appendChild(text);
+              }
+            });
+          }),
+      0,
+    );
   }
 
   getName() {
@@ -245,22 +291,33 @@ export class ObsStationReportComponent implements OnInit {
    * @param dateFormat
    * @private
    */
-  private xAxisTickFormatting(val, dateFormat = "HH:mm") {
+  private xAxisTickFormatting(val, dateFormat = "HH") {
     const time = moment.utc(val).local();
     const h = time.hour();
     const m = time.minute();
     //console.log(`ora: ${h} minuto: ${m} vero? ${(m === 0 && h % 2 === 0)} timeformat: ${time.format(dateFormat)}`)
-    return m === 0 && h % 2 === 0 ? time.format(dateFormat) : "";
+    //return m === 0 && h % 6 === 0 ? time.format(dateFormat) : "";
+    if (m === 0 && h % 6 === 0) {
+      const timeLabel = time.format(dateFormat);
+      if (h === 0) {
+        const dateLabel = time.format("DD/MM");
+        return `${timeLabel}\n${dateLabel}`;
+      }
+      return timeLabel;
+    }
+    return "";
   }
 
   xAxisNgStyleFn = this.xAxisNgStyle.bind(this);
   private xAxisNgStyle(tick) {
     const reftime = moment.utc(tick).local().format("HH:mm");
     const minutes = moment.utc(tick).local().format("mm");
+    const hour = moment.utc(tick).local().format("HH");
+    const h = parseInt(hour);
     let lineStyle = null;
     if (reftime === "00:00") {
       lineStyle = { stroke: "#009", "stroke-dasharray": "10" };
-    } else if (minutes === "00") {
+    } else if (minutes === "00" && h % 6 === 0) {
       lineStyle = { stroke: "#e4e4e4" };
     } else {
       lineStyle = { "stroke-opacity": 0 };
@@ -282,6 +339,7 @@ export class ObsStationReportComponent implements OnInit {
 
   private updateGraphData(navItemId: string) {
     // managing of wind products
+    console.log(navItemId);
     if (navItemId === "mixwind-0") {
       this.buildWindProduct();
     } else {
@@ -289,8 +347,61 @@ export class ObsStationReportComponent implements OnInit {
         (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
       );
     }
+    this.updateYScaleRange(navItemId);
   }
+  updateYScaleRange(navItemId: string) {
+    switch (navItemId) {
+      case "B12101-103,2000,0,0-254,0,0": // temperature
+        if (this.single) {
+          const allValues = this.single.flatMap((s) =>
+            s.series.map((d) => parseFloat(d.value)),
+          );
+          const allPositive = allValues.every((v) => v >= 0);
+          const minVal = Math.min(...allValues);
+          const maxVal = Math.max(...allValues);
+          if (allPositive) {
+            this.yScaleMin = 0;
+            this.yScaleMax = Math.round(maxVal + 10);
+          } else {
+            this.yScaleMax = Math.round(maxVal + 10);
+            this.yScaleMin = Math.round(minVal - 10);
+          }
+        }
+        break;
+      case "B13003-103,2000,0,0-254,0,0": // relative humidity
+        if (this.single) {
+          this.yScaleMin = 0;
+          this.yScaleMax = 100;
+        }
+        break;
+      case "B10004-1,0,0,0-254,0,0": // pressure
+        if (this.single) {
+          const allValues = this.single.flatMap((s) =>
+            s.series.map((d) => parseFloat(d.value)),
+          );
+          const minVal = Math.min(...allValues);
+          const maxVal = Math.max(...allValues);
+          this.yScaleMin = Math.round(minVal - 10);
+          this.yScaleMax = Math.round(maxVal + 10);
+        }
+        break;
+      case "B13013-1,0,0,0-254,0,0": // snow
+        if (this.single) {
+          const allValues = this.single.flatMap((s) =>
+            s.series.map((d) => parseFloat(d.value)),
+          );
+          this.yScaleMin = 0;
+          let ymax = 100;
+          const maxVal = Math.max(...allValues);
 
+          while (maxVal > ymax) {
+            ymax += 100;
+          }
+          this.yScaleMax = ymax;
+        }
+        break;
+    }
+  }
   /* Build and filter data to display combined wind graph */
   private buildWindProduct() {
     let flag10m = false;
@@ -342,6 +453,10 @@ export class ObsStationReportComponent implements OnInit {
     );
 
     const windSpeedValues = this.single[0].series.map((v) => v.value);
+    //const maxWindValue = Math.max(windSpeedValues);
+
+    //const yScaleMax = Math.round(maxWindValue + 10 );
+    //const yScaleMin = 0;
 
     // let bubbleWindDirection = Object.assign({}, windDirection);
     let bubbleWindDirection = JSON.parse(JSON.stringify(windDirection));
