@@ -56,6 +56,7 @@ export class BubbleLineChartComponent extends BaseChartComponent {
   @Input() rangeFillOpacity: number;
   @Input() animations: boolean = true;
   @Input() gridLineNgStyleByXAxisTick;
+  @Input() rotateXAxisTicks: boolean = false;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() deactivate: EventEmitter<any> = new EventEmitter();
@@ -271,8 +272,8 @@ export class BubbleLineChartComponent extends BaseChartComponent {
     //min = Math.min(0, min);
     //console.log('yDomain line series',[min-1,max+1]);
     //return [min, max];
-    // add a pad to max and min to manage top/down limit case due to the arrows
-    return [min - 1, max + 1];
+    // it must start from 0 and finish max value +10
+    return [0, max + 10];
   }
 
   getXScaleLine(domain, width): any {
@@ -324,10 +325,11 @@ export class BubbleLineChartComponent extends BaseChartComponent {
   }
 
   getYScale(): any {
-    // add a pad to max and min to manage top/down limit case due to the arrows
     this.yDomain = [
-      (parseFloat(this.getYDomain()[0]) - 1).toString(),
-      (parseFloat(this.getYDomain()[1]) + 1).toString(),
+      // it must start from 0 and finish max value +10
+      //(parseFloat(this.getYDomain()[0]) - 1).toString(),
+      "00",
+      (parseFloat(this.getYDomain()[1]) + 10).toString(),
     ];
     //this.yDomain = this.getYDomain();
     //console.log('yDomain bubble series',this.yDomain);

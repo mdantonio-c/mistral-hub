@@ -68,6 +68,9 @@
           </button>
         </div>
         -->
+        <div class="card-body text-dark px-3 py-1" style="font-size: 0.7rem">
+          <i class="fas fa-clock me-1"></i> Local time {{ checkUTCShift() }}
+        </div>
       </div>
       <div class="col-lg-9" *ngIf="report">
         <div class="card text-center">
@@ -152,15 +155,19 @@
                   [scheme]="multiColorScheme"
                   [xAxis]="true"
                   [yAxis]="true"
+                  [yScaleMin]="yScaleMin"
+                  [yScaleMax]="yScaleMax"
                   [showXAxisLabel]="true"
                   [showYAxisLabel]="true"
                   [xAxisLabel]="xAxisLabelFormatting()"
                   [yAxisLabel]="getUserUnit(active) || 'n/a'"
                   [xAxisTickFormatting]="xAxisTickFormattingFn"
                   [gridLineNgStyleByXAxisTick]="xAxisNgStyleFn"
+                  [rotateXAxisTicks]="false"
                   [timeline]="false"
                   [results]="single"
-                  [autoScale]="true"
+                  [autoScale]="false"
+                  [trimXAxisTicks]="false"
                   [curve]="curve"
                 >
                   <ng-template #tooltipTemplate let-model="model">
@@ -214,7 +221,9 @@
                   [gradient]="false"
                   [xAxis]="true"
                   [yAxis]="true"
+                  [autoScale]="false"
                   [legend]="false"
+                  [rotateXAxisTicks]="false"
                   [showGridLines]="true"
                   [showXAxisLabel]="true"
                   [showYAxisLabel]="true"
@@ -222,16 +231,10 @@
                   [xAxisLabel]="xAxisLabelFormatting()"
                   [xAxisTickFormatting]="xAxisTickFormattingFn"
                   [yAxisLabel]="
-                    ('Accumulated precipitation over 1h' | translate : lang) +
-                    ' (mm)'
+                    ('1h precipitation' | translate : lang) + ' (mm)'
                   "
                   [yAxisLabelRight]="
-                    (accumulatedSeries[0].name
-                      .toLowerCase()
-                      .charAt(0)
-                      .toUpperCase() +
-                      accumulatedSeries[0].name.toLowerCase().slice(1)
-                      | translate : lang) + ' (mm)'
+                    ('Accumulated precipitation' | translate : lang) + ' (mm)'
                   "
                   [gridLineNgStyleByXAxisTick]="onlyDateChangeNgStyleFn"
                 >
@@ -299,6 +302,7 @@
                     [gradient]="false"
                     [xAxis]="true"
                     [yAxis]="true"
+                    [autoscale]="false"
                     [legend]="false"
                     [showXAxisLabel]="true"
                     [showYAxisLabel]="true"
