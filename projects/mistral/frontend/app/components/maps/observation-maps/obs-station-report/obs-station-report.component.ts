@@ -185,7 +185,9 @@ export class ObsStationReportComponent implements OnInit {
     setTimeout(
       () =>
         document
-          .querySelectorAll('g[ng-reflect-orient="bottom"] .tick')
+          .querySelectorAll(
+            "g[custom-ngx-x-axis-ticks] > g.tick.ng-star-inserted",
+          )
           .forEach((x) => {
             const input = "<svg>" + x.innerHTML + "</svg>";
             const parser = new DOMParser();
