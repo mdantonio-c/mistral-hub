@@ -37,6 +37,7 @@ import {
 import { ObsService } from "../observation-maps/services/obs.service";
 import { ObsStationReportComponent } from "../observation-maps/obs-station-report/obs-station-report.component";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+
 @Component({
   selector: "app-aim-observation-maps",
   templateUrl: "./aim-observation-maps.component.html",
@@ -344,7 +345,7 @@ export class AimObservationMapsComponent
     behindDate.setUTCHours(0, 0, 0, 0);
     this.fromDate = behindDate;
     const behindIsoDate: string = behindDate.toISOString();
-    console.log(behindIsoDate, nowIsoDate);
+    //console.log(behindIsoDate, nowIsoDate);
     return `${behindIsoDate}/${nowIsoDate}`;
   }
   private createLegendControl(id: string): L.Control {
@@ -768,6 +769,9 @@ export class AimObservationMapsComponent
     // get the reftime to and reftime from
     const reftimeTo = new Date();
     let reftimeFrom: Date = this.fromDate;
+    const timeZoneOffset = reftimeFrom.getTimezoneOffset();
+    // refTimeFrom must represent local midnight
+    reftimeFrom = new Date(reftimeFrom.getTime() + timeZoneOffset * 60 * 1000);
     // set reftime from one hour before the time selected on the timebar
     // if (this.refTimeToTimeLine) {
     //   this.refTimeToTimeLine.setHours(this.refTimeToTimeLine.getHours() - 1);

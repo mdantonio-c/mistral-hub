@@ -271,14 +271,15 @@ export class ComboChartComponent extends BaseChartComponent {
       }
     }
 
-    let min = Math.min(...domain);
-    const max = Math.max(...domain);
+    const min = 0;
+    let max = Math.round(Math.max(...domain) + 10);
+    const all1Mm = domain.every((v) => v <= 1);
     if (this.yRightAxisScaleFactor) {
+      if (all1Mm) {
+        max = 5;
+      }
       const minMax = this.yRightAxisScaleFactor(min, max);
-      return [Math.min(0, minMax.min), minMax.max];
-    } else {
-      min = Math.min(0, min);
-      return [min, max];
+      return [minMax.min, minMax.max];
     }
   }
 
@@ -344,13 +345,15 @@ export class ComboChartComponent extends BaseChartComponent {
 
   getYDomain() {
     const values = this.results.map((d) => d.value);
-    const min = Math.min(0, ...values);
-    const max = Math.max(...values);
+    const min = 0;
+    let max = Math.round(Math.max(...values) + 10);
     if (this.yLeftAxisScaleFactor) {
+      const all1Mm = values.every((v) => v <= 1);
+      if (all1Mm) {
+        max = 5;
+      }
       const minMax = this.yLeftAxisScaleFactor(min, max);
-      return [Math.min(0, minMax.min), minMax.max];
-    } else {
-      return [min, max];
+      return [minMax.min, minMax.max];
     }
   }
 

@@ -54,7 +54,8 @@ export class TranslationService {
           "Analisi o osservazione istantanea",
         "accumulation over 1h at forecast time 0": "Cumulato su 1h",
         "accumulated data": "Dato cumulato",
-        "accumulated precipitation over 1h": "Precipitazione cumulata su 1h",
+        "1h precipitation": "Precipitazione oraria",
+        "accumulated precipitation": "Precipitazione cumulata",
         "accumulation over 1 hour (mm)": "cumulata 1h (mm)",
         "speed and direction near surface (m/s)":
           "velocità media e direzione (m/s)",
