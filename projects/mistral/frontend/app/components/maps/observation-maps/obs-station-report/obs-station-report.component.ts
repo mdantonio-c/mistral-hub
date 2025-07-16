@@ -217,7 +217,7 @@ export class ObsStationReportComponent implements OnInit {
               }
             });
           }),
-      10,
+      0,
     );
   }
 
