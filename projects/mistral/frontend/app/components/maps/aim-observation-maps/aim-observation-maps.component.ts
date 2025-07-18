@@ -165,12 +165,20 @@ export class AimObservationMapsComponent
         this.viewMode = ViewModes[view];
       }
     });
-    this.intervalId = setInterval(
-      () => {
-        this.toggleLayer();
-      },
-      10 * 60 * 1000,
-    );
+    setTimeout(() => {
+      this.intervalId = setInterval(
+        () => {
+          const availableTimes = (
+            this.map as any
+          ).timeDimension.getAvailableTimes();
+          const currentTime = (this.map as any).timeDimension.getCurrentTime();
+          if (availableTimes[availableTimes.length - 1] === currentTime) {
+            this.toggleLayer();
+          }
+        },
+        10 * 60 * 1000,
+      );
+    }, 0);
   }
   ngOnDestroy() {
     if (this.intervalId) {
@@ -226,14 +234,6 @@ export class AimObservationMapsComponent
       speedSlider: false,
     });
     this.map.addControl(this.timeDimensionControl);
-
-    // extend setCurrentTime function to detect if timeload event is triggered programmatically or by user interaction
-    const originalSetCurrentTime = (map as any).timeDimension.setCurrentTime;
-    (map as any).timeDimension.setCurrentTime = function (time, options = {}) {
-      this._customTimeLoadOptions = options;
-      originalSetCurrentTime.call(this, time);
-    };
-
     let tControl = this.timeDimensionControl;
     let beforeOneHour: Date = new Date();
     beforeOneHour.setUTCHours(beforeOneHour.getUTCHours());
@@ -260,11 +260,8 @@ export class AimObservationMapsComponent
     this.filter = filter;
     this.spinner.show();
     this.loadObservations(filter, true);
-    (map as any).timeDimension.setCurrentTime(beforeOneHour, {
-      source: "auto",
-    });
-    // clean the timeload options
-    (map as any).timeDimension._customTimeLoadOptions = {};
+
+    (map as any).timeDimension.setCurrentTime(beforeOneHour);
     this.centerMap();
     //this.timelineReferenceDate = this.printTimeLineReferenceDate();
 
@@ -278,14 +275,8 @@ export class AimObservationMapsComponent
       const selectedDateUTC = new Date(
         (map as any).timeDimension.getCurrentTime(),
       );
-      const { source } =
-        (map as any).timeDimension._customTimeLoadOptions || {};
-      if (!source) {
-        //source auto are the programatic timeload. If is not programatic is a user based interaction with the timeline so reftimetotimeline variable can be set
-        // this is to be sure that refTimeToTimeLine is set only when the user interacts with the timeline
-        this.refTimeToTimeLine = selectedDateUTC;
-      }
-      (map as any).timeDimension._customTimeLoadOptions = {};
+
+      this.refTimeToTimeLine = selectedDateUTC;
       let startDate = new Date(selectedDateUTC);
       startDate.setHours(selectedDateUTC.getHours() - 1);
       /* For data that refer to the previous day */
@@ -328,6 +319,8 @@ export class AimObservationMapsComponent
 
     this.legends[defaultProduct].addTo(map);
     this.currentProduct = defaultProduct;
+    // hourly update of the timeline
+    this.startHourlyTimelineUpdater();
   }
 
   /*
@@ -348,6 +341,53 @@ export class AimObservationMapsComponent
     //console.log(behindIsoDate, nowIsoDate);
     return `${behindIsoDate}/${nowIsoDate}`;
   }
+
+  private startHourlyTimelineUpdater() {
+    // Calculates the delay until the next hour
+    const now = new Date();
+    const millisUntilNextHour =
+      (60 - now.getUTCMinutes()) * 60 * 1000 -
+      now.getUTCSeconds() * 1000 -
+      now.getUTCMilliseconds();
+
+    // First timeout until the hour
+    setTimeout(() => {
+      this.updateTimelineRange(); // First update at the turn of the hour
+
+      // Then update every hour
+      setInterval(
+        () => {
+          this.updateTimelineRange();
+        },
+        60 * 60 * 1000,
+      );
+    }, millisUntilNextHour);
+  }
+  private updateTimelineRange() {
+    const dayToSubtract = 2;
+    const now = new Date();
+    now.setUTCMinutes(0, 0, 0);
+
+    const nowIso = now.toISOString();
+
+    const behindDate = new Date(now);
+    behindDate.setUTCDate(now.getUTCDate() - dayToSubtract);
+    behindDate.setUTCHours(0, 0, 0, 0);
+    const behindIso = behindDate.toISOString();
+
+    const timeSteps = [];
+    const stepMillis = 60 * 60 * 1000;
+    for (let t = behindDate.getTime(); t <= now.getTime(); t += stepMillis) {
+      timeSteps.push(new Date(t).toISOString());
+    }
+
+    const td = (this.map as any).timeDimension;
+    td.setAvailableTimes(timeSteps.join(","), "replace");
+
+    // always go back to the last available time
+    td.setCurrentTimeIndex(timeSteps.length - 1);
+  }
+
   private createLegendControl(id: string): L.Control {
     let config: LegendConfig = LEGEND_DATA.find((x) => x.id === id);
     if (!config) {
@@ -469,18 +509,13 @@ export class AimObservationMapsComponent
       return;
     }
     const network = selected.network;
-    if (Array.isArray(network)) {
-      network.forEach((net) => {
-        console.log(net);
-      });
-    } else {
-      this.filter.network = network;
-      this.filter.reftime = this.filter.reftime ?? this.myRefTime;
-      this.filter.time = this.filter.time ?? this.myTime;
-      if (this.qualityContolFilter) this.filter.reliabilityCheck = true;
-      this.loadObservations(this.filter, true);
-      this.selectedNetwork = network;
-    }
+
+    this.filter.network = network;
+    this.filter.reftime = this.filter.reftime ?? this.myRefTime;
+    this.filter.time = this.filter.time ?? this.myTime;
+    if (this.qualityContolFilter) this.filter.reliabilityCheck = true;
+    this.loadObservations(this.filter, true);
+    this.selectedNetwork = network;
   }
 
   updateWindMarkers(oldWindConvert?: boolean) {
@@ -694,6 +729,7 @@ export class AimObservationMapsComponent
     });
     // console.log(`Total markers: ${this.allMarkers.length}`);
 
+    // set visualized time coming from last observation
     lastTimeObsValues.sort((a, b) => {
       return new Date(b.ref).getTime() - new Date(a.ref).getTime();
     });
@@ -801,7 +837,7 @@ export class AimObservationMapsComponent
     window.dispatchEvent(new Event("resize"));
   }
 
-  toggleLayer(obj?: Record<string, string>, isReloadButton = false) {
+  toggleLayer(obj?: Record<string, string>) {
     if (!obj && !this.currentProduct) {
       this.notify.showError("No product selected");
       return;
@@ -809,25 +845,17 @@ export class AimObservationMapsComponent
     // get fresh current time
     const currentUtcNow = new Date();
     currentUtcNow.setUTCMinutes(0, 0, 0);
-
-    if (isReloadButton) {
-      // refresh also the timeline
-      this.refTimeToTimeLine = undefined;
-      (this.map as any).userInteractedWithTimeline = false;
-    }
-
+    // flag useful to discern between automatic refresh/reload button/all-network and user choice
+    let loadObs = false;
     // when reload button
     if (!obj) {
-      // default to current product
       obj = {
         name: this.currentProduct,
         layer: this.currentProduct,
       };
-      (this.map as any).timeDimension.setCurrentTime(currentUtcNow.getTime(), {
-        source: "auto",
-      });
       // update the myNow variable with fresh time
       this.myNow = currentUtcNow;
+      loadObs = true;
     }
     // console.log(`toggle layer: ${obj.name}`);
     // update the filter
@@ -840,7 +868,7 @@ export class AimObservationMapsComponent
       let isMidNight: boolean = false;
       let startDate = new Date(currentUtcNow);
       startDate.setHours(currentUtcNow.getHours() - 1);
-      /* For data that refer to the previous day */
+      // For data that refer to the previous day
       if (startDate.getUTCDate() != currentUtcNow.getUTCDate()) {
         isMidNight = true;
       }
@@ -854,21 +882,13 @@ export class AimObservationMapsComponent
       // update variables with fresh data
       this.myRefTime = newReftime;
       this.myTime = newTime;
-
-      if (this.refTimeToTimeLine) {
-        (this.map as any).timeDimension.setCurrentTime(
-          this.refTimeToTimeLine.getTime(),
-          { source: "auto" },
-        );
-      } else {
-        (this.map as any).timeDimension.setCurrentTime(
-          currentUtcNow.getTime(),
-          { source: "auto" },
-        );
-      }
       if (this.selectedNetwork) this.filter.network = this.selectedNetwork;
       if (this.qualityContolFilter) this.filter.reliabilityCheck = true;
-      this.loadObservations(this.filter, true);
+      if (!loadObs) {
+        this.loadObservations(this.filter, true, isMidNight);
+      } else {
+        (this.map as any).timeDimension.setCurrentTime(currentUtcNow);
+      }
     }
 
     this.map.removeControl(this.legends[this.currentProduct]);
