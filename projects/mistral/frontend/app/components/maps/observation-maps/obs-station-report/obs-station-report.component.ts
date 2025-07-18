@@ -56,6 +56,16 @@ export class ObsStationReportComponent implements OnInit {
   yScaleMax: number;
   yRightScaleMin: number;
   yRightScaleMax: number;
+  referenceLines = [
+    {
+      value: 0,
+      name: "Zero",
+      color: "#ff0000",
+      opacity: 1,
+      strokeWidth: 2,
+    },
+  ];
+  flagRed = false;
 
   // chart options
   multiColorScheme = {
@@ -350,6 +360,7 @@ export class ObsStationReportComponent implements OnInit {
     this.updateYScaleRange(navItemId);
   }
   updateYScaleRange(navItemId: string) {
+    this.flagRed = false;
     switch (navItemId) {
       case "B12101-103,2000,0,0-254,0,0": // temperature
         if (this.single) {
@@ -365,6 +376,7 @@ export class ObsStationReportComponent implements OnInit {
           } else {
             this.yScaleMax = Math.round(maxVal + 10);
             this.yScaleMin = Math.round(minVal - 10);
+            this.flagRed = true;
           }
         }
         break;

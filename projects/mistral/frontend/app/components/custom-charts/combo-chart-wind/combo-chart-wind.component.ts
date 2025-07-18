@@ -273,7 +273,7 @@ export class BubbleLineChartComponent extends BaseChartComponent {
     //console.log('yDomain line series',[min-1,max+1]);
     //return [min, max];
     // it must start from 0 and finish max value +10
-    return [0, max + 10];
+    return [0, max + 2];
   }
 
   getXScaleLine(domain, width): any {
@@ -326,10 +326,10 @@ export class BubbleLineChartComponent extends BaseChartComponent {
 
   getYScale(): any {
     this.yDomain = [
-      // it must start from 0 and finish max value +10
+      // it must start from 0 and finish max value +2
       //(parseFloat(this.getYDomain()[0]) - 1).toString(),
       "00",
-      (parseFloat(this.getYDomain()[1]) + 10).toString(),
+      (parseFloat(this.getYDomain()[1]) + 2).toString(),
     ];
     //this.yDomain = this.getYDomain();
     //console.log('yDomain bubble series',this.yDomain);
