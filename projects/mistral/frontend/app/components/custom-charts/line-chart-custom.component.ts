@@ -7,6 +7,16 @@ import {
   ViewEncapsulation,
   ChangeDetectionStrategy,
 } from "@angular/core";
+
+const styles = `
+  .line-highlight {
+    display: none;
+  }
+  .line-highlight.active {
+    display: block;
+  }
+`;
+
 @Component({
   selector: "custom-ngx-charts-line-chart",
   template: `
@@ -196,7 +206,9 @@ import {
       ]),
     ]),
   ],
+  styles: [styles],
 })
 export class CustomLineChart extends LineChartComponent {
   @Input() gridLineNgStyleByXAxisTick;
+  area=false
 }
