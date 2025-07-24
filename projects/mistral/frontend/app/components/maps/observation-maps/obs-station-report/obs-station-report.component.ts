@@ -43,9 +43,12 @@ export class ObsStationReportComponent implements OnInit {
 
   multi: DataSeries[];
   single: DataSeries[];
+  SINGLE;
+  allDates;
   // Combo Chart
   accumulatedSeries: DataSeries[];
   windDirectionSeries;
+  xTicks;
 
   // to display only selected station details
   stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
@@ -180,6 +183,12 @@ export class ObsStationReportComponent implements OnInit {
           }
           this.active = meteogramToShow;
           this.updateYScaleRange(meteogramToShow);
+          this.transformDataFormat(this.single);
+          this.xTicks = this.generateFixedTicks(
+            this.filter.dateInterval[0],
+            this.filter.dateInterval[1],
+          );
+          console.log(this.single[0].series, this.single, this.SINGLE);
         },
         (error) => {
           this.notify.showError(error);
@@ -191,6 +200,17 @@ export class ObsStationReportComponent implements OnInit {
       });
   }
 
+  transformDataFormat(single: DataSeries[]) {
+    this.SINGLE = single.map((seriesObj) => ({
+      ...seriesObj,
+      series: seriesObj.series.map((d) => ({
+        name: moment.utc(d.name).local().toDate(),
+        value: +d.value,
+      })),
+    }));
+    this.allDates = this.SINGLE.flatMap((s) => s.series.map((p) => p.name));
+    this.allDates.sort((a, b) => a.getTime() - b.getTime());
+  }
   addSecondaryXAxisLabels() {
     setTimeout(
       () =>
@@ -245,7 +265,7 @@ export class ObsStationReportComponent implements OnInit {
       this.station?.details.length > 0
     ) {
       return this.station?.details[0]?.val;
-    }
+    } // Converti in Date per ngx-charts
     return;
   }
 
@@ -253,6 +273,20 @@ export class ObsStationReportComponent implements OnInit {
     const varcode = elementId.split("-")[0];
     const unit: string = this.single[0].unit;
     return ObsService.showUserUnit(varcode, unit);
+  }
+
+  generateFixedTicks(start: Date, end: Date, stepHours = 6): Date[] {
+    console.log(start, end);
+    const ticks: Date[] = [];
+    const current = moment(start).local().startOf("hour");
+    while (current.isSameOrBefore(end)) {
+      if (current.hour() % stepHours === 0 && current.minute() === 0) {
+        ticks.push(current.toDate());
+      }
+      current.add(1, "hour");
+    }
+
+    return ticks;
   }
 
   xAxisLabelFormatting() {
@@ -292,15 +326,15 @@ export class ObsStationReportComponent implements OnInit {
     }
   }
 
-  xAxisTickFormattingFn = this.xAxisTickFormatting.bind(this);
+  /*  xAxisTickFormattingFn = this.xAxisTickFormatting.bind(this);
 
-  /**
+  /!**
    * Format date ticks.
    * Only shows times that are multiples of 2.
    * @param val date string (eg. 2020-09-07T04:00:00)
    * @param dateFormat
    * @private
-   */
+   *!/
   private xAxisTickFormatting(val, dateFormat = "HH") {
     const time = moment.utc(val).local();
     const h = time.hour();
@@ -316,8 +350,22 @@ export class ObsStationReportComponent implements OnInit {
       return timeLabel;
     }
     return "";
-  }
-
+  }*/
+  xAxisTickFormattingFn = (val: Date) => {
+    //console.log("Tick formatting val:", val);
+    const time = moment.utc(val).local();
+    const h = time.hour();
+    const m = time.minute();
+    if (m === 0 && h % 6 === 0) {
+      const timeLabel = time.format("HH");
+      if (h === 0) {
+        const dateLabel = time.format("DD/MM");
+        return `${timeLabel}\n${dateLabel}`;
+      }
+      return timeLabel;
+    }
+    return "";
+  };
   xAxisNgStyleFn = this.xAxisNgStyle.bind(this);
   private xAxisNgStyle(tick) {
     const reftime = moment.utc(tick).local().format("HH:mm");
@@ -357,6 +405,7 @@ export class ObsStationReportComponent implements OnInit {
         (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
       );
     }
+    this.transformDataFormat(this.single);
     this.updateYScaleRange(navItemId);
   }
   updateYScaleRange(navItemId: string) {
@@ -372,7 +421,11 @@ export class ObsStationReportComponent implements OnInit {
           const maxVal = Math.max(...allValues);
           if (allPositive) {
             this.yScaleMin = 0;
-            this.yScaleMax = Math.round(maxVal + 10);
+            if (maxVal >= 35.0) {
+              this.yScaleMax = Math.round(maxVal + 5);
+            } else {
+              this.yScaleMax = Math.round(maxVal + 10);
+            }
           } else {
             this.yScaleMax = Math.round(maxVal + 10);
             this.yScaleMin = Math.round(minVal - 10);
