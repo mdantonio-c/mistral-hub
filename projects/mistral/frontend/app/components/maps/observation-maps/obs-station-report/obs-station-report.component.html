@@ -219,7 +219,7 @@
               </ng-template>
               <ng-template #comboChart>
                 <combo-chart-component
-                  [view]="[containerRef.offsetWidth, 400]"
+                  [view]="[containerRef.offsetWidth - 100, 400]"
                   [scheme]="monoBarSchemeRain"
                   [colorSchemeLine]="monoLineSchemeRain"
                   [results]="single[0].series"
