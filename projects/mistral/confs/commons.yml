@@ -124,7 +124,7 @@ services:
       default:
       
   strapi:
-    image: meteo-cms-strapi
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest
     restart: unless-stopped
     # env_file: ${PROJECT_DIR}/builds/strapi/.env
     environment:
