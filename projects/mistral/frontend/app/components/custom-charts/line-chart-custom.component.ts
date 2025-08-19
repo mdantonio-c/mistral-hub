@@ -7,6 +7,16 @@ import {
   ViewEncapsulation,
   ChangeDetectionStrategy,
 } from "@angular/core";
+
+const styles = `
+  .line-highlight {
+    display: none;
+  }
+  .line-highlight.active {
+    display: block;
+  }
+`;
+
 @Component({
   selector: "custom-ngx-charts-line-chart",
   template: `
@@ -63,6 +73,19 @@ import {
           [showRefLabels]="showRefLabels"
           (dimensionsChanged)="updateYAxisWidth($event)"
         ></svg:g>
+        <svg:g *ngIf="showRefLines && referenceLines?.length">
+          <svg:line
+            *ngFor="let ref of referenceLines"
+            [attr.x1]="0"
+            [attr.x2]="dims.width"
+            [attr.y1]="yScale(ref.value)"
+            [attr.y2]="yScale(ref.value)"
+            [attr.stroke]="ref.color || 'red'"
+            [attr.stroke-width]="ref.strokeWidth || 1"
+            [attr.stroke-opacity]="ref.opacity || 1"
+            stroke-dasharray="4,2"
+          />
+        </svg:g>
         <svg:g [attr.clip-path]="clipPath">
           <svg:g *ngIf="!isSSR">
             <svg:g
@@ -183,7 +206,9 @@ import {
       ]),
     ]),
   ],
+  styles: [styles],
 })
 export class CustomLineChart extends LineChartComponent {
   @Input() gridLineNgStyleByXAxisTick;
+  area=false
 }

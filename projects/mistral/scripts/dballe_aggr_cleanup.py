@@ -21,7 +21,7 @@ def main():
     setup_logging()
 
     aggregations_dsn = Env.get("AGGREGATIONS_DSN", "")
-    aggregations_lastdays = Env.get_int("AGGREGATIONS_LASTDAYS", 3)
+    aggregations_lastdays = Env.get_int("AGGREGATIONS_LASTDAYS", 4)
 
     db = sqlalchemy.get_instance()
     engine = db.variables.get("dbtype")
@@ -33,7 +33,13 @@ def main():
     # Set time boundaries
     date = datetime.today() - timedelta(days=aggregations_lastdays)
     date_string = date.strftime("%Y-%m-%d")
-    query = {"yearmax": date.year, "monthmax": date.month, "daymax": date.day}
+    query = {
+        "yearmax": date.year,
+        "monthmax": date.month,
+        "daymax": date.day,
+        "hourmax": 22,
+        "minumax": 0,
+    }
 
     db = dballe.DB.connect(f"{engine}://{user}:{pw}@{host}:{port}/{aggregations_dsn}")
 

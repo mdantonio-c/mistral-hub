@@ -22,7 +22,7 @@
     >
     </ngx-spinner>
     <div class="row .g-0" style="min-height: 100px">
-      <div class="col-lg-3 mb-2" *ngIf="report">
+      <div class="col-lg-3 mb-2 position-relative" *ngIf="report">
         <div class="card mb-3" style="max-width: 18rem">
           <div class="card-header">
             <i class="fas fa-circle-info me-1"></i
@@ -68,7 +68,10 @@
           </button>
         </div>
         -->
-        <div class="card-body text-dark px-3 py-1" style="font-size: 0.7rem">
+        <div
+          class="card-body text-dark px-3 py-1 position-absolute end-0 bottom-0 text-end"
+          style="font-size: 0.7rem"
+        >
           <i class="fas fa-clock me-1"></i> Local time {{ checkUTCShift() }}
         </div>
       </div>
@@ -162,13 +165,20 @@
                   [xAxisLabel]="xAxisLabelFormatting()"
                   [yAxisLabel]="getUserUnit(active) || 'n/a'"
                   [xAxisTickFormatting]="xAxisTickFormattingFn"
+                  [scaleType]="'time'"
+                  [xAxisTicks]="xTicks"
+                  [xScaleMin]="allDates[0]"
+                  [xScaleMax]="allDates[allDates.length - 1]"
                   [gridLineNgStyleByXAxisTick]="xAxisNgStyleFn"
                   [rotateXAxisTicks]="false"
                   [timeline]="false"
-                  [results]="single"
+                  [results]="SINGLE"
                   [autoScale]="false"
                   [trimXAxisTicks]="false"
                   [curve]="curve"
+                  [referenceLines]="referenceLines"
+                  [showRefLines]="flagRed"
+                  [showRefLabels]="false"
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block"
