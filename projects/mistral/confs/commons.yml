@@ -152,7 +152,7 @@ services:
       API_RELATIVE_PATH: ${API_RELATIVE_PATH}
 
     volumes:
-      - strapi-data:/opt/app/public/uploads
+      - ${DATA_PATH}/${UPLOAD_PATH_RELATIVE}:/opt/app/public/uploads
     ports:
       - "1337:1337"
     networks:
@@ -194,7 +194,7 @@ services:
       DATABASE_FILENAME: ${DATABASE_FILENAME}
       JWT_SECRET: ${JWT_SECRET}
     volumes:
-      - strapiDB-data:/var/lib/postgresql/data/ #using a volume
+      - ${DATA_PATH}/${DB_PATH_RELATIVE}:/var/lib/postgresql/data/ #using a volume
       #- ./data:/var/lib/postgresql/data/ # if you want to use a bind folder
 
     expose:
@@ -208,17 +208,17 @@ services:
       retries: 5
       start_period: 30s
 
-volumes:
-  strapiDB-data: 
-    driver: local
-    driver_opts:
-      type: none
-      device: ${DATA_PATH}/${DB_PATH_RELATIVE}
-      o: bind
-  strapi-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${DATA_PATH}/${UPLOAD_PATH_RELATIVE}
-      o: bind
+# volumes:
+#   strapiDB-data: 
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: ${DATA_PATH}/${DB_PATH_RELATIVE}
+#       o: bind
+#   strapi-data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: ${DATA_PATH}/${UPLOAD_PATH_RELATIVE}
+#       o: bind
   
