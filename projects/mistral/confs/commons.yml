@@ -122,7 +122,7 @@ services:
 
     networks:
       default:
-      
+
   strapi:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest
     restart: unless-stopped
@@ -146,13 +146,13 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       DATABASE_SSL: ${DATABASE_SSL}
       DATABASE_FILENAME: ${DATABASE_FILENAME}
-      DATA_PATH: ${DATA_PATH}
+      DATA_PATH: ${DATA_DIR}
       DB_PATH_RELATIVE: ${DB_PATH_RELATIVE}
       UPLOAD_PATH_RELATIVE: ${UPLOAD_PATH_RELATIVE}
-      API_RELATIVE_PATH: ${API_RELATIVE_PATH}
+      # STRAPI_SERVER_RELATIVE_PATH: /
 
     volumes:
-      - ${DATA_PATH}/${UPLOAD_PATH_RELATIVE}:/opt/app/public/uploads
+      - ${DATA_DIR}/strapi/${UPLOAD_PATH_RELATIVE}:/opt/app/public/uploads
     ports:
       - "1337:1337"
     networks:
@@ -194,7 +194,7 @@ services:
       DATABASE_FILENAME: ${DATABASE_FILENAME}
       JWT_SECRET: ${JWT_SECRET}
     volumes:
-      - ${DATA_PATH}/${DB_PATH_RELATIVE}:/var/lib/postgresql/data/ #using a volume
+      - ${DATA_DIR}/strapi/${DB_PATH_RELATIVE}:/var/lib/postgresql/data/ #using a volume
       #- ./data:/var/lib/postgresql/data/ # if you want to use a bind folder
 
     expose:
@@ -213,12 +213,14 @@ services:
 #     driver: local
 #     driver_opts:
 #       type: none
-#       device: ${DATA_PATH}/${DB_PATH_RELATIVE}
+#       # device: ${STRAPI_DATA_PATH}/${DB_PATH_RELATIVE}
+#       device: ${DATA_DIR}/strapi/${DB_PATH_RELATIVE}
 #       o: bind
 #   strapi-data:
 #     driver: local
 #     driver_opts:
 #       type: none
-#       device: ${DATA_PATH}/${UPLOAD_PATH_RELATIVE}
+#       # device: ${STRAPI_DATA_PATH}/${UPLOAD_PATH_RELATIVE}
+#       device: ${DATA_DIR}/strapi/${UPLOAD_PATH_RELATIVE}
 #       o: bind
   
