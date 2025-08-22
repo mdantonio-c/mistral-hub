@@ -1,3 +1,15 @@
+error_page 503 /maintenance.html;
+location = /maintenance.html {
+  alias /usr/share/nginx/html/maintenance.html;
+  include /etc/nginx/sites-enabled/security-headers;
+}
+
+
+# Optional: Add Retry-After header
+# add_header Retry-After 3600;
+
+
+
 location ~ /nwp/?$ {
   return 301 /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS;
 }
@@ -13,7 +25,11 @@ location = /catalog.rdf {
 }
 
 location /cms/content-manager {
-    proxy_pass http://strapi:1337/content-manager;
+    if (-f /etc/nginx/maintenance.flag.ui) {
+      return 503;
+    }
+    set $cms "http://strapi:1337/content-manager";
+    proxy_pass $cms;
     proxy_http_version 1.1;
     proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Forwarded-Server $host;
@@ -27,7 +43,11 @@ location /cms/content-manager {
 }
 
 location ~ ^/cms/(?!content-manager)(.+) {
-  proxy_pass http://strapi:1337/$1;
+  if (-f /etc/nginx/maintenance.flag.ui) {
+    return 503;
+  }
+  set $cms "http://strapi:1337/$1";
+  proxy_pass $cms;
   proxy_http_version 1.1;
   proxy_set_header X-Forwarded-Host $host;
   proxy_set_header X-Forwarded-Server $host;
