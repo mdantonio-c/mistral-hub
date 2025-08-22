@@ -2,12 +2,13 @@
 
 # Usage function
 show_help() {
-    echo "Usage: $0 enable|disable [--app|--ui]"
+    echo "Usage: $0 enable|disable [--app|--ui|--all]"
     echo "  -h       - Show this help message"
-    echo "  enable   - Enable maintenance view"
-    echo "  disable  - Disable maintenance view"
+    echo "  enable   - Enable maintenance view (for APP and UI by default)"
+    echo "  disable  - Disable maintenance view for all routes"
     echo "  --app    - Apply to application only (optional)"
     echo "  --ui     - Apply to UI only (optional)"
+    echo "  --all    - Apply to ALL routes"
 }
 
 # Check arguments
@@ -26,6 +27,9 @@ case "$1" in
                 ;;
             --ui)
                 rapydo shell proxy "./toggle_maintenance.sh enable --ui"
+                ;;
+            --all)
+                rapydo shell proxy "./toggle_maintenance.sh enable --all"
                 ;;
             "" )
                 rapydo shell proxy "./toggle_maintenance.sh enable"
