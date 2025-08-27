@@ -124,7 +124,7 @@ services:
       default:
 
   strapi:
-    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest-pre
     restart: unless-stopped
     # env_file: ${PROJECT_DIR}/builds/strapi/.env
     environment:
@@ -153,8 +153,8 @@ services:
 
     volumes:
       - ${DATA_DIR}/strapi/${UPLOAD_PATH_RELATIVE}:/opt/app/public/uploads
-    ports:
-      - "1337:1337"
+    # ports:
+    #   - "1337:1337"
     networks:
       default:
     depends_on:
@@ -207,6 +207,14 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    
+  ui:
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest-prod
+    restart: unless-stopped
+    # env_file: ${PROJECT_DIR}/builds/strapi/.env
+    environment:
+      ACTIVATE: ${ACTIVATE_UI}
+      PORT: 4200
 
 # volumes:
 #   strapiDB-data: 
