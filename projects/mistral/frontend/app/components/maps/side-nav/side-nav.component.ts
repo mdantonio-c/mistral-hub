@@ -248,18 +248,18 @@ export class SideNavFilterComponent implements OnInit {
         });
       }
     }
-
-    this.onLayerChange.emit({
-      layer: layerId,
-      name: layerId,
-    });
     this.currentProduct = layerId;
-
     if (layerId === "ws10m" && op == "add") {
       this.windShow = true;
       this.onWindConvert.emit(this.windConvert);
 
     } else this.windShow = false;
+    this.onLayerChange.emit({
+      layer: layerId,
+      name: layerId,
+    });
+    
+    
 
 
     // update active class

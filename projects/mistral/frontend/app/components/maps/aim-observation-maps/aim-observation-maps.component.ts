@@ -444,9 +444,7 @@ export class AimObservationMapsComponent
           this.loadMarkers(data, filter.product);
           if (this.currentProduct === "ws10m") {
             if (this.windConvert) this.updateWindMarkers();
-          } else {
-            this.windConvert = false;
-          }
+          } 
           // in order to sync with the end of marker update
           this.timeDimensionControl._player.release();
           if (data.length === 0) {
@@ -465,10 +463,9 @@ export class AimObservationMapsComponent
   loadWindMarkersHandle(event) {
     if (this.currentProduct !== "ws10m")
       return;
+    let oldWindConvert = this.windConvert;
     if (event) {
-      let oldWindConvert = this.windConvert;
       this.windConvert = true;
-      this.updateWindMarkers(oldWindConvert);
       const legend = new L.Control({ position: this.LEGEND_POSITION });
       legend.onAdd = () => {
         let div = L.DomUtil.create("div");
@@ -483,14 +480,13 @@ export class AimObservationMapsComponent
       this.legends["ws10m"] = legend;
     }
     if (!event) {
-      let oldWindConvert = this.windConvert;
       this.windConvert = false;
-      this.updateWindMarkers(oldWindConvert);
       this.map.removeControl(this.legends[this.currentProduct]);
       const legend = this.createLegendControl("ws10m");
       legend.addTo(this.map);
       this.legends["ws10m"] = legend;
     }
+    this.updateWindMarkers(oldWindConvert);
   }
 
   handleQualityChange(event) {
@@ -521,6 +517,12 @@ export class AimObservationMapsComponent
   }
 
   updateWindMarkers(oldWindConvert?: boolean) {
+    if (oldWindConvert !== undefined && oldWindConvert === this.windConvert) {
+      return;
+    }
+    if (this.currentProduct !== "ws10m") {
+      return;
+    }
     this.allMarkers.forEach((m) => {
       const currentIcon = m.getIcon() as L.DivIcon;
       const html = currentIcon.options.html;
@@ -528,9 +530,6 @@ export class AimObservationMapsComponent
       (tmpDiv.innerHTML as any) = html;
       const span = tmpDiv.querySelector("span");
       let updatedValue: string | null = null;
-      if (oldWindConvert !== undefined && oldWindConvert === this.windConvert) {
-        return;
-      }
 
       if (span) {
         if (this.windConvert) {
