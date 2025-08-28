@@ -463,6 +463,8 @@ export class AimObservationMapsComponent
       });
   }
   loadWindMarkersHandle(event) {
+    if (this.currentProduct !== "ws10m")
+      return;
     if (event) {
       let oldWindConvert = this.windConvert;
       this.windConvert = true;
