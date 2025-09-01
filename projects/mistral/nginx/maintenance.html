@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,8 @@
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             overflow-x: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
@@ -254,6 +256,7 @@
             0% {
                 transform: translateX(-100px);
             }
+
             100% {
                 transform: translateX(calc(100vw + 100px));
             }
@@ -278,6 +281,7 @@
             from {
                 transform: scale(1);
             }
+
             to {
                 transform: scale(1.1);
             }
@@ -358,6 +362,7 @@
                 transform: scale(1);
                 box-shadow: 0 8px 20px rgba(116, 185, 255, 0.3);
             }
+
             to {
                 transform: scale(1.05);
                 box-shadow: 0 12px 30px rgba(116, 185, 255, 0.5);
@@ -389,9 +394,17 @@
         }
 
         @keyframes progress {
-            0% { width: 0%; }
-            50% { width: 75%; }
-            100% { width: 0%; }
+            0% {
+                width: 0%;
+            }
+
+            50% {
+                width: 75%;
+            }
+
+            100% {
+                width: 0%;
+            }
         }
 
         .maintenance-status {
@@ -416,6 +429,7 @@
                 transform: translateY(-100vh);
                 opacity: 1;
             }
+
             100% {
                 transform: translateY(100vh);
                 opacity: 0;
@@ -432,22 +446,52 @@
             from {
                 transform: rotate(0deg);
             }
+
             to {
                 transform: rotate(360deg);
             }
         }
 
         /* Simple icon replacements using Unicode symbols */
-        .icon-cog::before { content: '⚙️'; }
-        .icon-tools::before { content: '🔧'; }
-        .icon-cloud::before { content: '☁️'; }
-        .icon-clock::before { content: '🕐'; }
-        .icon-hourglass::before { content: '⏳'; }
-        .icon-info::before { content: 'ℹ️'; }
-        .icon-refresh::before { content: '🔄'; }
-        .icon-envelope::before { content: '✉️'; }
-        .icon-phone::before { content: '📞'; }
-        .icon-warning::before { content: '⚠️'; }
+        .icon-cog::before {
+            content: '⚙️';
+        }
+
+        .icon-tools::before {
+            content: '🔧';
+        }
+
+        .icon-cloud::before {
+            content: '☁️';
+        }
+
+        .icon-clock::before {
+            content: '🕐';
+        }
+
+        .icon-hourglass::before {
+            content: '⏳';
+        }
+
+        .icon-info::before {
+            content: 'ℹ️';
+        }
+
+        .icon-refresh::before {
+            content: '🔄';
+        }
+
+        .icon-envelope::before {
+            content: '✉️';
+        }
+
+        .icon-phone::before {
+            content: '📞';
+        }
+
+        .icon-warning::before {
+            content: '⚠️';
+        }
 
         h2 {
             font-size: 2rem;
@@ -528,7 +572,8 @@
                 margin-left: -10px;
             }
 
-            .col-md-6, .col-12 {
+            .col-md-6,
+            .col-12 {
                 padding-right: 10px;
                 padding-left: 10px;
             }
@@ -547,6 +592,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="cloud cloud1"></div>
     <div class="cloud cloud2"></div>
@@ -565,10 +611,11 @@
                                 <span class="icon-cog"></span>
                             </div>
                             <div class="temperature mb-3">503°</div>
-                            <h2 class="text-dark mb-3 w-100 d-flex justify-content-center align-items-center">Site Under Maintenance</h2>
+                            <h2 class="text-dark mb-3 w-100 d-flex justify-content-center align-items-center">Site Under
+                                Maintenance</h2>
                             <p class="text-muted mb-4">
-                                Our servers are getting a tune-up! 
-                                We're working hard to improve your experience. 
+                                Our servers are getting a tune-up!
+                                We're working hard to improve your experience.
                                 Check back soon for clearer skies.
                             </p>
                         </div>
@@ -663,15 +710,17 @@
                             <div class="mt-4">
                                 <small class="text-muted">
                                     <strong>Emergency Contact:</strong><br>
-                                    <span class="icon-envelope me-2"></span> support@example.com |
-                                    <span class="icon-phone me-2"></span> +1 (555) 123-4567
+                                    <span class="icon-envelope me-2"></span>
+                                    <a href="mailto:meteohub-support@cineca.it">
+                                        meteohub-support@cineca.it
+                                    </a>
                                 </small>
                             </div>
 
                             <div class="mt-4">
                                 <small class="text-muted">
                                     Thank you for your patience while we improve our services!<br>
-                                    <strong>— The Technical Team</strong>
+                                    <strong>— The MeteoHub Technical Team</strong>
                                 </small>
                             </div>
                         </div>
@@ -687,14 +736,14 @@
             // Set maintenance end time (2 hours and 45 minutes from now for demo)
             const now = new Date().getTime();
             const maintenanceEnd = now + (2 * 60 * 60 * 1000) + (45 * 60 * 1000) + (30 * 1000);
-            
+
             const distance = maintenanceEnd - new Date().getTime();
-            
+
             if (distance > 0) {
                 const hours = Math.floor(distance / (1000 * 60 * 60));
                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                
+
                 document.getElementById('hours').textContent = String(hours).padStart(2, '0');
                 document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
                 document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
@@ -704,11 +753,11 @@
                 document.getElementById('seconds').textContent = '00';
             }
         }
-        
+
         // Update countdown every second
         updateCountdown();
         setInterval(updateCountdown, 1000);
-        
+
         // Auto-refresh page every 5 minutes
         setTimeout(() => {
             location.reload();
@@ -717,7 +766,7 @@
         // Create rain effect
         function createRain() {
             const rainContainer = document.getElementById('rainContainer');
-            
+
             for (let i = 0; i < 50; i++) {
                 const raindrop = document.createElement('div');
                 raindrop.className = 'rain';
@@ -741,7 +790,7 @@
                 raindrop.style.animationDelay = '0s';
                 raindrop.style.animationDuration = (Math.random() * 1 + 0.5) + 's';
                 rainContainer.appendChild(raindrop);
-                
+
                 // Remove raindrop after animation
                 setTimeout(() => {
                     if (raindrop.parentNode) {
@@ -752,4 +801,5 @@
         }, 200);
     </script>
 </body>
+
 </html>
