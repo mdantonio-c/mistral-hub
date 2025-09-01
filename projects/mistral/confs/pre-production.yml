@@ -52,6 +52,7 @@ services:
   ui:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest-pre
   
-  # strapi:
-  #   ports:
-  #   - "1337:1337"
+  strapi:
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest-pre
+    # ports:
+    # - "1337:1337"

@@ -124,7 +124,7 @@ services:
       default:
 
   strapi:
-    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest-pre
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest
     restart: unless-stopped
     # env_file: ${PROJECT_DIR}/builds/strapi/.env
     environment:
@@ -209,7 +209,7 @@ services:
       start_period: 30s
     
   ui:
-    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest-prod
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest-prod    
     restart: unless-stopped
     # env_file: ${PROJECT_DIR}/builds/strapi/.env
     environment:

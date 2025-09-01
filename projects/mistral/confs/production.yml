@@ -48,6 +48,3 @@ services:
       - ${PROJECT_DIR}/nginx/custom_maintenance.conf:/etc/nginx/sites-enabled-templates/custom_maintenance.conf
       - ${PROJECT_DIR}/nginx/maintenance.html:/usr/share/nginx/html/maintenance.html
       - ${PROJECT_DIR}/nginx/toggle_maintenance.sh:/etc/nginx/toggle_maintenance.sh
-
-  ui:
-    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest-prod
