@@ -24,6 +24,8 @@ class Customizer(BaseCustomizer):
         properties.setdefault("open_dataset", True)
         # 1 GB, as defined in sqlalchemy model
         properties.setdefault("disk_quota", 1073741824)
+        properties.setdefault("requests_expiration_days", 180)
+        properties.setdefault("requests_expiration_delete", False)
         properties.setdefault("max_output_size", 1073741824)
         properties.setdefault("max_templates", 1)
         properties.setdefault("allowed_postprocessing", False)
@@ -89,11 +91,11 @@ class Customizer(BaseCustomizer):
                 ),
                 "requests_expiration_days": fields.Int(
                     required=False,
-                    load_default=0,
-                    validate=validate.Range(min=0, max=365),
+                    load_default=180,
+                    validate=validate.Range(min=1, max=180),
                     metadata={
-                        "label": "Requests expirations (in days, 0 to disable)",
-                        "description": "Number of days after which requests will be cleaned",
+                        "label": "Requests expiration in days",
+                        "description": "Number of days after which requests will be archived or deleted",
                     },
                 ),
                 "open_dataset": fields.Boolean(
@@ -172,11 +174,11 @@ class Customizer(BaseCustomizer):
             return {
                 "requests_expiration_days": fields.Int(
                     required=False,
-                    load_default=0,
-                    validate=validate.Range(min=0, max=365),
+                    load_default=180,
+                    validate=validate.Range(min=1, max=180),
                     metadata={
-                        "label": "Requests expirations (in days, 0 to disable)",
-                        "description": "Number of days after which requests will be cleaned",
+                        "label": "Requests expiration in days",
+                        "description": "Number of days after which requests will be archived or deleted",
                     },
                 ),
                 "requests_expiration_delete": fields.Boolean(

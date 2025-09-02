@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import requests
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
@@ -9,7 +10,6 @@ from restapi.models import fields, validate
 from restapi.rest.definition import EndpointResource, Response
 from restapi.services.authentication import User
 from restapi.utilities.logs import log
-import requests
 
 SUPPORTED_PLATFORMS = ["g100", "galileo", "meucci", "leonardo"]
 
@@ -109,7 +109,11 @@ class DataReady(EndpointResource):
             if filters and "run" in filters:
                 requested_runs = []
                 for e in filters["run"]:
-                    run_arg = arki.decode_run(e)
+                    try:
+                        run_arg = arki.decode_run(e)
+                    except ValueError:
+                        log.error(f"Skipping: unable to decode run {e}")
+                        continue
                     splitted_run = run_arg.split(",")
                     requested_runs.append(splitted_run[1])
                 log.debug("runs: {}", requested_runs)
@@ -215,7 +219,7 @@ class DataReady(EndpointResource):
             except Exception as error:
                 log.error(error)
                 raise SystemError("Unable to submit the request")
-            
+
             maps_url = Env.get("MAPS_URL", None)
             if maps_url:
                 url = f"{maps_url}/api/data/ready/{rundate.strftime('%Y%m%d')}/{runhour[:2]}"
@@ -227,7 +231,9 @@ class DataReady(EndpointResource):
                         log.info("Successfully notified meteohub-maps at {}", url)
                     else:
                         log.warning(
-                            "POST request to {} returned status code {}", url, response.status_code
+                            "POST request to {} returned status code {}",
+                            url,
+                            response.status_code,
                         )
                 except requests.RequestException as e:
                     log.error("Failed to notify meteohub-maps at {}: {}", url, str(e))

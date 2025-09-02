@@ -234,11 +234,6 @@ export class SideNavFilterComponent implements OnInit {
     let el = this.el.nativeElement.querySelector(`span.${layerId}`);
     const fromActiveState: boolean = el.classList.contains("attivo");
     const op = fromActiveState ? "remove" : "add";
-    if (layerId === "ws10m" && op == "add") {
-      this.windShow = true;
-      this.onWindConvert.emit(this.windConvert);
-
-    } else this.windShow = false;
 
     // console.log(`toggle "${op}" on layer-id "${layerId}"`);
     if (!this.overlap) {
@@ -253,13 +248,19 @@ export class SideNavFilterComponent implements OnInit {
         });
       }
     }
+    this.currentProduct = layerId;
+    if (layerId === "ws10m" && op == "add") {
+      this.windShow = true;
+      this.onWindConvert.emit(this.windConvert);
 
+    } else this.windShow = false;
     this.onLayerChange.emit({
       layer: layerId,
       name: layerId,
     });
+    
+    
 
-    this.currentProduct = layerId;
 
     // update active class
     fromActiveState
