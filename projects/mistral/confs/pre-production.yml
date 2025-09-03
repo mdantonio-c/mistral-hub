@@ -50,7 +50,7 @@ services:
       - ${PROJECT_DIR}/nginx/toggle_maintenance.sh:/etc/nginx/toggle_maintenance.sh
 
   ui:
-    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest-pre
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-cms-ui:latest-pre
   
   strapi:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest-pre

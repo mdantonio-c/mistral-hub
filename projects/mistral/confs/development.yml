@@ -15,6 +15,6 @@ services:
     environment:
       START_MODE: develop
   ui:
-    image: harbor-ada.hpc.cineca.it/meteo-hub-staging/meteo-hub-ui:latest
+    image: harbor-ada.hpc.cineca.it/meteo-hub-staging/meteo-cms-ui:latest
     ports:
       - "4200:4200"
