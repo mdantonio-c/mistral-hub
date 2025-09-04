@@ -19,7 +19,6 @@ backend_tests:
   variables:
     SUBMODULE_DIR: $CI_PROJECT_DIR/submodules
   script:
-    - sleep 3600
     - export PATH="$HOME/.local/bin:$PATH"
     - |
       echo "Check for compatible RaPyDo version..."
@@ -60,4 +59,4 @@ backend_tests:
       fi
     - tail -100 data/logs/backend-server.log || true
     - tail -100 data/logs/security-events.log || true
-    - rapydo logs || true
+    - rapydo logs 
