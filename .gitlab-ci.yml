@@ -59,4 +59,4 @@ backend_tests:
       fi
     - tail -100 data/logs/backend-server.log || true
     - tail -100 data/logs/security-events.log || true
-    - rapydo logs 
+    - rapydo logs || true
