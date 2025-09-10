@@ -228,19 +228,25 @@
           class="info clickable"
           [ngbTooltip]="
             isCollapsed
-              ? ('Why is the map incomplete? Given the voluntary nature of participation in the former Mistral project, the map does not show data from every regional network. However, work is ongoing to complete the national framework'
+              ? ('Given the voluntary nature of participation in the former Mistral project, the map does not show data from every regional network. However, work is ongoing to complete the national framework'
                 | translate : lang)
-              : ('Given the voluntary nature of participation in the former Mistral project, the map does not show data from every regional network. However, work is ongoing to complete the national framework'
-                | translate : lang)
+              : null
           "
           container="body"
         >
           <i class="fas fa-question-circle"></i>
         </span>
         <a *ngIf="!isCollapsed">
-          <span class="nav-text">{{
-            "Why is the map incomplete?" | translate : lang
-          }}</span>
+          <span
+            class="nav-text"
+            [ngbTooltip]="
+              'Given the voluntary nature of participation in the former Mistral project, the map does not show data from every regional network. However, work is ongoing to complete the national framework'
+                | translate : lang
+            "
+            container="body"
+          >
+            {{ "Why is the map incomplete?" | translate : lang }}
+          </span>
         </a>
       </li>
     </ul>
