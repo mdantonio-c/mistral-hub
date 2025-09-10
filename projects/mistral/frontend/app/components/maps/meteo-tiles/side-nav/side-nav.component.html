@@ -175,6 +175,7 @@
             }}</span>
           </a>
           <div
+            *ngIf="!isCollapsed" 
             class="form-switch prs-switch justify-content-center ms-3 d-flex mb-3"
           >
             <input
@@ -237,6 +238,7 @@
             <span class="nav-text" i18n>{{ "Wind" | translate : lang }}</span>
           </a>
           <div
+            *ngIf="!isCollapsed" 
             class="form-switch wind-switch justify-content-center ms-3 d-flex mb-3"
           >
             <input

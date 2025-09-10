@@ -83,6 +83,11 @@ app-meteo-tiles .leaflet-left .leaflet-control {
   margin-bottom: 5px !important;
 }
 
+app-meteo-tiles  .leaflet-bottom.leaflet-left, app-aim-observation-maps .leaflet-bottom.leaflet-left {
+  display: flex !important;
+  align-items:end;
+}
+
 app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol {
   margin-left: 10px !important;
   margin-bottom: 10px !important;
@@ -426,6 +431,8 @@ a.timecontrol-play.loading:before {
 
 
 /*Responsive legende e timebar*/
+
+
 @media screen and (max-width: 768px) {
   .legenda {
     max-width: 57% !important;
@@ -436,20 +443,25 @@ a.timecontrol-play.loading:before {
     max-width: 60% !important;
   }
 }
-@media (max-height: 667px) {
+@media screen and (max-height: 668px) {
   .legenda {
-    max-width: 30% !important;
+    max-width: 40% !important;
   }
 }
 
-@media (max-height: 799px) {
+@media screen and (min-height: 670px) {
   .legenda {
     max-width: 50% !important;
+  }
+  app-aim-observation-maps {
+        .legenda {
+        max-width: 42% !important;
+    }
   }
 }
 
 @media screen and (max-width: 785px) {
-  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
+  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider,   app-aim-observation-maps .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
     width: 150px !important;
   }
 
@@ -458,11 +470,11 @@ a.timecontrol-play.loading:before {
     margin-right: 0 !important;
   }
 
-  app-meteo-tiles .timecontrol-slider .knob.upper {
+  app-meteo-tiles .timecontrol-slider .knob.upper, app-aim-observation-maps .timecontrol-slider .knob.upper {
     transform: translate3d(150px, 0px, 0px) !important;
   }
 
-  app-meteo-tiles .leaflet-bar-timecontrol .leaflet-control-timecontrol {
+  app-meteo-tiles .leaflet-bar-timecontrol .leaflet-control-timecontrol, app-aim-observation-maps .leaflet-bar-timecontrol .leaflet-control-timecontrol {
     margin-right: 3px !important;
   }
 
@@ -479,7 +491,7 @@ a.timecontrol-play.loading:before {
 
 @media (min-height: 800px) {
   .legenda {
-    max-width: 59% !important;
+    max-width: 58% !important;
   }
   app-livemap .legenda {
     max-width: 58% !important;
