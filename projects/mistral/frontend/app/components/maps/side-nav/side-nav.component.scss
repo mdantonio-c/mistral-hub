@@ -935,6 +935,12 @@ $dark-blue: #004080;
   font-weight: 600;
   text-transform: none !important;
 }
+.mapincomplete .nav-text {
+  font-family: "TitilliumWeb-Regular";
+  font-weight: 400;
+  text-transform: none !important;
+}
+
 .sidenav-item.networks-item a span.nav-text {
   text-decoration: none !important;
 }
@@ -964,4 +970,7 @@ $dark-blue: #004080;
 .link-white {
   text-decoration: underline !important;
   color: #ffffff;
+}
+.flex-spacer {
+  flex-grow: 1;
 }

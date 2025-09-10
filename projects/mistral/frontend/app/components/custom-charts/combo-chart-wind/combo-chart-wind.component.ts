@@ -57,6 +57,8 @@ export class BubbleLineChartComponent extends BaseChartComponent {
   @Input() animations: boolean = true;
   @Input() gridLineNgStyleByXAxisTick;
   @Input() rotateXAxisTicks: boolean = false;
+  @Input() xAxisTicks: any[];
+  @Input() dateInterval: any[];
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() deactivate: EventEmitter<any> = new EventEmitter();
@@ -129,7 +131,6 @@ export class BubbleLineChartComponent extends BaseChartComponent {
 
     this.setColors();
     this.legendOptions = this.getLegendOptions();
-
     this.transform = `translate(${this.dims.xOffset} , ${this.margin[0]})`;
   }
 
@@ -215,22 +216,23 @@ export class BubbleLineChartComponent extends BaseChartComponent {
       }
     }
     // add a pad to max and min to manage left/right limit case due to the arrows
-    let firstDate = new Date(values[0]);
+    /*let firstDate = new Date(values[0]);
     firstDate.setHours(firstDate.getHours() - 1);
     values.unshift(firstDate.toISOString());
 
     let lastDate: Date = new Date(values[values.length - 1]);
     lastDate.setHours(lastDate.getHours() + 1);
-    values.push(lastDate.toISOString());
+    values.push(lastDate.toISOString());*/
 
     // get scale type
     this.scaleType = this.getScaleType(values);
     let domain = [];
 
     if (this.scaleType === "time") {
-      const min = Math.min(...values);
-      const max = Math.max(...values);
-      domain = [min, max];
+      //const min = new Date(Math.min(...values.map(v => v.getTime())));
+      //const max = new Date(Math.max(...values.map(v => v.getTime())));
+
+      domain = [this.dateInterval[0], this.dateInterval[1]];
     } else if (this.scaleType === "linear") {
       values = values.map((v) => Number(v));
       const min = Math.min(...values);
@@ -306,22 +308,25 @@ export class BubbleLineChartComponent extends BaseChartComponent {
     this.xDomain = this.getXDomain();
 
     // add a pad to max and min to manage left/right limit case due to the arrows
-    let firstDate = new Date(this.xDomain[0]);
+    /*let firstDate = new Date(this.xDomain[0]);
     firstDate.setHours(firstDate.getHours() - 1);
     this.xDomain.unshift(firstDate.toISOString());
 
     let lastDate: Date = new Date(this.xDomain[this.xDomain.length - 1]);
     lastDate.setHours(lastDate.getHours() + 1);
-    this.xDomain.push(lastDate.toISOString());
+    this.xDomain.push(lastDate.toISOString());*/
 
     // define a spacing otherwise value do not catch x-tick values
     const spacing = 1;
     //console.log('xDomain bubble series',this.xDomain);
     // get scale
-    return scaleBand()
-      .range([0, this.dims.width])
+    /*return scaleBand()
+      .range([0, this.dims.width])scaleTime
       .paddingInner(spacing)
-      .domain(this.xDomain);
+      .domain(this.xDomain);*/
+    return scaleTime()
+      .range([0, this.dims.width])
+      .domain([this.dateInterval[0], this.dateInterval[1]]);
   }
 
   getYScale(): any {
@@ -340,7 +345,11 @@ export class BubbleLineChartComponent extends BaseChartComponent {
   }
 
   getXDomain(): any[] {
-    return this.results[0].series.map((d) => d.x);
+    //return this.results[0].series.map((d) => d.x);
+    return this.generateMinutelyDates(
+      this.dateInterval[0],
+      this.dateInterval[1],
+    );
   }
 
   getYDomain() {
@@ -361,6 +370,20 @@ export class BubbleLineChartComponent extends BaseChartComponent {
 
   onClick(data) {
     this.select.emit(data);
+  }
+
+  generateMinutelyDates(start: Date, end: Date): Date[] {
+    const minutes: Date[] = [];
+    const current = new Date(start);
+
+    current.setSeconds(0, 0);
+
+    while (current <= end) {
+      minutes.push(new Date(current)); // clono la data
+      current.setMinutes(current.getMinutes() + 1);
+    }
+
+    return minutes;
   }
 
   setColors(): void {
