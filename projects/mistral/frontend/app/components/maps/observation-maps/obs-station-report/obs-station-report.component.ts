@@ -72,6 +72,7 @@ export class ObsStationReportComponent implements OnInit {
     },
   ];
   flagRed = false;
+  flagUnit = false;
 
   // chart options
   multiColorScheme = {
@@ -664,5 +665,41 @@ export class ObsStationReportComponent implements OnInit {
     const offsetHours = now.utcOffset() / 60;
     const sign = offsetHours >= 0 ? "+" : "-";
     return `(UTC${sign}${Math.abs(offsetHours)})`;
+  }
+  toggleWindSpeedUnit() {
+    this.flagUnit = !this.flagUnit;
+    if (this.single[0].unit === "M/S") {
+      // Convert M/S to KM/H
+      this.single[0].series = this.single[0].series.map((item) => ({
+        ...item,
+        value: (parseFloat(item.value) * 3.6).toFixed(1),
+      }));
+      this.single[0].unit = "KM/H";
+      // Convert wind direction series y values from M/S to KM/H
+      this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
+        ...seriesObj,
+        series: seriesObj.series.map((item) => ({
+          ...item,
+          y: (parseFloat(item.y) * 3.6).toFixed(1),
+        })),
+      }));
+    } else if (this.single[0].unit === "KM/H") {
+      // Convert KM/H back to M/S
+      this.single[0].series = this.single[0].series.map((item) => ({
+        ...item,
+        value: (parseFloat(item.value) / 3.6).toFixed(1),
+      }));
+      // Convert wind direction series y values from KM/H back to M/S
+      this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
+        ...seriesObj,
+        series: seriesObj.series.map((item) => ({
+          ...item,
+          y: (parseFloat(item.y) / 3.6).toFixed(1),
+        })),
+      }));
+      this.single[0].unit = "M/S";
+    }
+    // Update chart data
+    this.singleDates = this.transformDataFormat(this.single);
   }
 }

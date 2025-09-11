@@ -55,6 +55,32 @@
             </ul>
           </div>
         </div>
+        <div *ngIf="active === 'mixwind-0'">
+          <div class="card mb-3" style="max-width: 18rem">
+            <div class="card-header">
+              <i class="fas fa-wrench me-1"></i>{{ "Tools" | translate : lang }}
+            </div>
+            <div class="card-body text-dark px-3 py-1">
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item px-0 py-1">
+                  <div class="form-switch wind-switch d-flex mt-2">
+                    <input
+                      id="windSwitchModal"
+                      type="checkbox"
+                      class="form-check-input clickable"
+                      (change)="toggleWindSpeedUnit()"
+                    />
+                    <label
+                      class="form-check-label"
+                      for="windSwitchModal"
+                    ></label>
+                    <span class="wind-switch ms-2">m/s <-> km/h</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
         <!--
         <div class="text-center mt-4">
           <button
@@ -320,7 +346,11 @@
                     [showYAxisLabel]="true"
                     [xAxisLabel]="xAxisLabelFormatting()"
                     [xAxisTickFormatting]="xAxisTickFormattingFn"
-                    [yAxisLabel]="('Wind speed' | translate : lang) + ' (m/s)'"
+                    [yAxisLabel]="
+                      flagUnit
+                        ? ('Wind speed' | translate : lang) + ' (km/h)'
+                        : ('Wind speed' | translate : lang) + ' (m/s)'
+                    "
                     [gridLineNgStyleByXAxisTick]="xAxisNgStyleFn"
                   >
                     <ng-template #seriesTooltipTemplate let-model="model">
@@ -354,6 +384,8 @@
                           {{
                             tooltipItem.series.includes("DIRECTION")
                               ? " (°)"
+                              : flagUnit
+                              ? " (km/h)"
                               : " (m/s)"
                           }}
                         </div>
