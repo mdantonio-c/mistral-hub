@@ -36,7 +36,18 @@
             {{ item.value.label | translate : lang }}
           </span>
         </a>
-
+        <div *ngIf="item.key === 'prp'">
+          <div class="selettore-orario">
+            <div class="progressbar">
+              <ng-container *ngFor="let s of subLevels">
+                <label>
+                  <input type="radio" name="precipitation" class="clickable" />
+                  {{ s }}
+                </label>
+              </ng-container>
+            </div>
+          </div>
+        </div>
         <div
           *ngIf="
             item.key === 'ws10m' && windShow && showObsFilter && !isCollapsed

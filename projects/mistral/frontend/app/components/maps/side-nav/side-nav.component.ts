@@ -69,6 +69,7 @@ export class SideNavFilterComponent implements OnInit {
   selectedQuality = false;
   showObsFilter = false;
   currentProduct = "";
+  subLevels = ["1H", "Daily"];
 
   @Input() set overlays(value: L.Control.LayersObject) {
     this._overlays = value;
@@ -124,9 +125,9 @@ export class SideNavFilterComponent implements OnInit {
     }
 
     // setup mobile side-nav
-        if (window.innerWidth < MOBILE_WIDTH) {
-          this.changeCollapse();
-        }
+    if (window.innerWidth < MOBILE_WIDTH) {
+      this.changeCollapse();
+    }
   }
 
   @HostListener("window:resize", ["$event"])
@@ -257,15 +258,11 @@ export class SideNavFilterComponent implements OnInit {
     if (layerId === "ws10m" && op == "add") {
       this.windShow = true;
       this.onWindConvert.emit(this.windConvert);
-
     } else this.windShow = false;
     this.onLayerChange.emit({
       layer: layerId,
       name: layerId,
     });
-    
-    
-
 
     // update active class
     fromActiveState
