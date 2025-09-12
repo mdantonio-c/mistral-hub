@@ -1,5 +1,6 @@
 <nav class="map-sidenav" [class.collapsed]="isCollapsed">
   <div class="map-sidenav-menu">
+  <div id="overlay" class="sidenav-overlay"></div>
     <label
       class="toggle"
       (click)="changeCollapse()"
@@ -56,11 +57,9 @@
           }}</span>
         </div>
       </li>
-    </ul>
-
-    <ul class="selector">
-      <!-- Network + Quality Control -->
-      <li
+      <div class="last"></div>
+       <!-- Network + Quality Control -->
+       <li
         class="sidenav-item networks-item"
         *ngIf="showObsFilter && mode == modes.adv"
       >
@@ -72,6 +71,7 @@
         ></span>
         <!--<a *ngIf="!isCollapsed">-->
         <span>
+          
           <span *ngIf="!isCollapsed" class="nav-text">Networks</span>
         </span>
         <!--</a>-->
@@ -88,44 +88,8 @@
           </option>
         </select>
       </li>
-      <!--<li class="selettore-quality-control" *ngIf="showObsFilter">
-        <label>
-          <input
-            type="checkbox"
-            class="clickable"
-            [(ngModel)]="selectedQuality"
-            (change)="onQualitySelected($event)"
-          />
-          <div>Quality Control Filter</div>
-        </label>
-      </li>-->
-    </ul>
-    <!--    <ul class="selector">
-      <li class="sidenav-item dropdown" *ngIf="showObsFilter">
-        <div class="d-flex align-items-center">
-          <button
-            type="button"
-            class="btn btn-border-classic no-rounded ms-1 d-flex justify-content-center align-items-center"
-            style="background-color: transparent; border: none !important; outline: none !important; box-shadow: none !important;"
-
-            (click)="download()"
-          >
-            &lt;!&ndash;            <i class="fa fa-download"></i>&ndash;&gt;
-            <img
-              src="/app/custom/assets/images/icons/download_button.png"
-              alt="Download"
-              style="width: 20px; height: 20px"
-            />
-          </button>
-          <a *ngIf="!isCollapsed" (click)="download()">
-            <span class="nav-text ms-2" i18n>DOWNLOAD DATA</span>
-          </a>
-        </div>
-      </li>
-    </ul>-->
-    <ul class="selector" *ngIf="mode == modes.adv">
-      <!-- Layers -->
-      <li class="sidenav-item">
+        <div class="last"></div>
+         <li class="sidenav-item" *ngIf="mode == modes.adv">
         <span
           (click)="download()"
           placement="left"
@@ -159,11 +123,8 @@
           </span>
         </div>
       </li>
-    </ul>
-
-    <ul class="selector">
-      <!-- Zoom Controls -->
-      <li class="sidenav-item zoom">
+      <div class="last"></div>
+       <li class="sidenav-item zoom">
         <span
           class="plus clickable"
           [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
@@ -200,9 +161,8 @@
           >
         </a>
       </li>
-    </ul>
-    <ul class="selector realtime-info">
-      <li class="sidenav-item">
+      <div class="last"></div>
+       <li class="sidenav-item realtime-info">
         <span
           class="info clickable"
           [ngbTooltip]="
@@ -220,10 +180,9 @@
           }}</span>
         </a>
       </li>
-    </ul>
-    <div class="flex-spacer"></div>
-    <ul class="selector mapincomplete">
-      <li class="sidenav-item">
+      <div class="last"></div>
+
+<li class="sidenav-item">
         <span
           class="info clickable"
           [ngbTooltip]="
@@ -248,7 +207,38 @@
             {{ "Why is the map incomplete?" | translate : lang }}
           </span>
         </a>
-      </li>
+      </li>    
     </ul>
+
+  
+    <!--    <ul class="selector">
+      <li class="sidenav-item dropdown" *ngIf="showObsFilter">
+        <div class="d-flex align-items-center">
+          <button
+            type="button"
+            class="btn btn-border-classic no-rounded ms-1 d-flex justify-content-center align-items-center"
+            style="background-color: transparent; border: none !important; outline: none !important; box-shadow: none !important;"
+
+            (click)="download()"
+          >
+            &lt;!&ndash;            <i class="fa fa-download"></i>&ndash;&gt;
+            <img
+              src="/app/custom/assets/images/icons/download_button.png"
+              alt="Download"
+              style="width: 20px; height: 20px"
+            />
+          </button>
+          <a *ngIf="!isCollapsed" (click)="download()">
+            <span class="nav-text ms-2" i18n>DOWNLOAD DATA</span>
+          </a>
+        </div>
+      </li>
+    </ul>-->
+ 
+
+    
+    
+    <div class="flex-spacer"></div>
+    
   </div>
 </nav>

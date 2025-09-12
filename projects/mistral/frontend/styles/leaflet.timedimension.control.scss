@@ -78,7 +78,7 @@ app-meteo-tiles .leaflet-bottom:has(.leaflet-control-attribution) {
   box-sizing: border-box;
 }
 
-app-meteo-tiles .leaflet-left .leaflet-control {
+app-meteo-tiles .leaflet-left .leaflet-control, app-aim-observation-maps .leaflet-left .leaflet-control{
   margin-left: 0 !important;
   margin-bottom: 5px !important;
 }
@@ -86,6 +86,7 @@ app-meteo-tiles .leaflet-left .leaflet-control {
 app-meteo-tiles  .leaflet-bottom.leaflet-left, app-aim-observation-maps .leaflet-bottom.leaflet-left {
   display: flex !important;
   align-items:end;
+  z-index: 960;
 }
 
 app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol {
