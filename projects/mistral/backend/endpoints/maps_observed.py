@@ -22,6 +22,8 @@ from restapi.services.authentication import User
 from restapi.utilities.logs import log
 
 FILEFORMATS = ["BUFR", "JSON"]
+MAX_REQ_DAYS = 3
+MAX_REQ_DAYS_AUTHENTICATED = 10
 
 
 class ObservationsQuery(Schema):
@@ -202,25 +204,29 @@ class MapsObservations(EndpointResource):
         datetime_max = None
         if "datetimemin" in query:
             datetime_min = query["datetimemin"]
+            log.debug(f"min datetime: {datetime_min}")
         if "datetimemax" in query:
             datetime_max = query["datetimemax"]
-        if datetime_min or datetime_max:
-            db_type = dballe.get_db_type(date_min=datetime_min, date_max=datetime_max)
-            if db_type != "dballe":
-                if not user:
+            log.debug(f"max datetime: {datetime_max}")
+        if not datetime_min or not datetime_max:
+            log.debug(f"entering {not datetime_min or datetime_max}")
+            raise BadRequest("Reftime is missing")
+
+        # check the timedelta
+        requested_days = (datetime_max - datetime_min).days
+        if requested_days > MAX_REQ_DAYS:
+            # check if the user is authenticated
+            if user:
+                if requested_days > MAX_REQ_DAYS_AUTHENTICATED:
                     raise Unauthorized(
-                        "to access archived data the user has to be logged"
+                        f"maximum {MAX_REQ_DAYS_AUTHENTICATED} days can be requested"
                     )
-                else:
-                    # check for user authorization to access archived observed data
-                    is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
-                        user, param="allowed_obs_archive"
-                    )
-                    if not is_allowed_obs_archive:
-                        raise Unauthorized(
-                            "user is not authorized to access archived data"
-                        )
-        else:
+            else:
+                raise Unauthorized(f"maximum {MAX_REQ_DAYS} days can be requested")
+
+        # get the db type
+        db_type = dballe.get_db_type(date_min=datetime_min, date_max=datetime_max)
+        if db_type != "dballe":
             if not user:
                 raise Unauthorized("to access archived data the user has to be logged")
             else:
@@ -230,7 +236,6 @@ class MapsObservations(EndpointResource):
                 )
                 if not is_allowed_obs_archive:
                     raise Unauthorized("user is not authorized to access archived data")
-                db_type = "mixed"
 
         if last and db_type == "mixed":
             # only the most recent data is needed. In case of mixed dbs for sure this data will be on dballe
@@ -429,23 +434,24 @@ class MapsObservations(EndpointResource):
             datetime_min = query_data["datetimemin"]
         if "datetimemax" in query_data:
             datetime_max = query_data["datetimemax"]
-        if datetime_min or datetime_max:
-            db_type = dballe.get_db_type(date_min=datetime_min, date_max=datetime_max)
-            if db_type != "dballe":
-                if not user:
+        if not datetime_min or not datetime_max:
+            raise BadRequest("Reftime is missing")
+
+        # check the timedelta
+        requested_days = (datetime_max - datetime_min).days
+        if requested_days > MAX_REQ_DAYS:
+            # check if the user is authenticated
+            if user:
+                if requested_days > MAX_REQ_DAYS_AUTHENTICATED:
                     raise Unauthorized(
-                        "to access archived data the user has to be logged"
+                        f"maximum {MAX_REQ_DAYS_AUTHENTICATED} days can be requested"
                     )
-                else:
-                    # check for user authorization to access archived observed data
-                    is_allowed_obs_archive = SqlApiDbManager.get_user_permissions(
-                        user, param="allowed_obs_archive"
-                    )
-                    if not is_allowed_obs_archive:
-                        raise Unauthorized(
-                            "user is not authorized to access archived data"
-                        )
-        else:
+            else:
+                raise Unauthorized(f"maximum {MAX_REQ_DAYS} days can be requested")
+
+        # get the db type
+        db_type = dballe.get_db_type(date_min=datetime_min, date_max=datetime_max)
+        if db_type != "dballe":
             if not user:
                 raise Unauthorized("to access archived data the user has to be logged")
             else:
@@ -455,8 +461,6 @@ class MapsObservations(EndpointResource):
                 )
                 if not is_allowed_obs_archive:
                     raise Unauthorized("user is not authorized to access archived data")
-                db_type = "mixed"
-
         log.debug("type of database: {}", db_type)
         try:
             queries_and_dsns: Optional[List[Dict[str, Any]]] = []

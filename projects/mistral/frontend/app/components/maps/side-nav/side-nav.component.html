@@ -37,16 +37,14 @@
             {{ item.value.label | translate : lang }}
           </span>
         </a>
-        <div *ngIf="item.key === 'prp'">
-          <div class="selettore-orario">
-            <div class="progressbar">
+        <div *ngIf="item.key === 'prp'" class="w-100">
+          <div class="selettore-orario" *ngIf="!isCollapsed">
               <ng-container *ngFor="let s of subLevels">
                 <label>
                   <input type="radio" name="precipitation" class="clickable" />
                   {{ s }}
                 </label>
               </ng-container>
-            </div>
           </div>
         </div>
         <div
@@ -192,8 +190,8 @@
         </a>
       </li>
       <div class="last"></div>
-
-<li class="sidenav-item">
+      <div class="flex-spacer w-100">
+      <li class="sidenav-item border-0">
         <span
           class="info clickable"
           [ngbTooltip]="
@@ -218,7 +216,8 @@
             {{ "Why is the map incomplete?" | translate : lang }}
           </span>
         </a>
-      </li>    
+      </li> 
+      </div>   
     </ul>
 
   
@@ -245,11 +244,5 @@
         </div>
       </li>
     </ul>-->
- 
-
-    
-    
-    <div class="flex-spacer"></div>
-    
   </div>
 </nav>
