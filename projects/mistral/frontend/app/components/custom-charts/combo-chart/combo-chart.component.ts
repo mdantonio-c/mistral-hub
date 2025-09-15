@@ -60,6 +60,10 @@ export class ComboChartComponent extends BaseChartComponent {
   @Input() animations: boolean = true;
   @Input() noBarWhenZero: boolean = true;
   @Input() gridLineNgStyleByXAxisTick;
+  @Input() xAxisTicks: any[];
+  @Input() xScaleMin: any;
+  @Input() xScaleMax: any;
+  @Input() dateInterval: any[];
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() deactivate: EventEmitter<any> = new EventEmitter();
@@ -234,8 +238,8 @@ export class ComboChartComponent extends BaseChartComponent {
     let domain = [];
 
     if (this.scaleType === "time") {
-      const min = Math.min(...values);
-      const max = Math.max(...values);
+      const min = new Date(Math.min(...values.map((v) => v.getTime())));
+      const max = new Date(Math.max(...values.map((v) => v.getTime())));
       domain = [min, max];
     } else if (this.scaleType === "linear") {
       values = values.map((v) => Number(v));
@@ -340,7 +344,8 @@ export class ComboChartComponent extends BaseChartComponent {
   }
 
   getXDomain(): any[] {
-    return this.results.map((d) => d.name);
+    //return this.results.map((d) => d.name);
+    return this.generateHourlyDates(this.dateInterval[0], this.dateInterval[1]);
   }
 
   getYDomain() {
@@ -355,6 +360,20 @@ export class ComboChartComponent extends BaseChartComponent {
       const minMax = this.yLeftAxisScaleFactor(min, max);
       return [minMax.min, minMax.max];
     }
+  }
+
+  generateHourlyDates(start: Date, end: Date): Date[] {
+    const hours: Date[] = [];
+    const current = new Date(start);
+
+    current.setMinutes(0, 0, 0);
+
+    while (current <= end) {
+      hours.push(new Date(current));
+      current.setHours(current.getHours() + 1);
+    }
+
+    return hours;
   }
 
   onClick(data) {

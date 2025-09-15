@@ -8,3 +8,13 @@ services:
       ACTIVATE: ${ACTIVATE_NIFI}
       NIFI_WEB_HTTP_HOST: 0.0.0.0
       NIFI_WEB_HTTP_PORT: 8080
+  strapi:
+    image: harbor-ada.hpc.cineca.it/meteo-hub-staging/meteo-hub-strapi:latest
+    ports:
+      - "1337:1337"
+    environment:
+      START_MODE: develop
+  ui:
+    image: harbor-ada.hpc.cineca.it/meteo-hub-staging/meteo-cms-ui:latest
+    ports:
+      - "4200:4200"

@@ -69,9 +69,7 @@ services:
       args:
         CURRENT_UID: ${CURRENT_UID}
         CURRENT_GID: ${CURRENT_GID}
-    #legacy image until issue #410 is not solved
-    image: meteohub/nifi-legacy:${RAPYDO_VERSION}
-    #image: meteohub/nifi:${RAPYDO_VERSION}
+    image: meteohub/nifi:${RAPYDO_VERSION}
     restart: always
     volumes:
       - ${PROJECT_DIR}/nifi/scripts:/home/nifi/ingest
@@ -119,12 +117,117 @@ services:
       MULTIMODEL_QUEUE: "${MULTIMODEL_QUEUE}"
       AGGREGATIONS_TRANGES: ${AGGREGATIONS_TRANGES}
       AGGREGATIONS_DSN: ${AGGREGATIONS_DSN}
+      SSL_TRUSTORE_FILENAME: "${SSL_TRUSTORE_FILENAME}"
 
     networks:
       default:
+
+  strapi:
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest
+    restart: unless-stopped
+    # env_file: ${PROJECT_DIR}/builds/strapi/.env
+    environment:
+      ACTIVATE: ${ACTIVATE_STRAPI}
+      DATABASE_CLIENT: ${CMS_DATABASE_CLIENT}
+      DATABASE_HOST: strapiDB
+      DATABASE_PORT: ${CMS_DATABASE_PORT}
+      DATABASE_NAME: ${CMS_DATABASE_NAME}
+      DATABASE_USERNAME: ${CMS_DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${CMS_DATABASE_PASSWORD}
+      JWT_SECRET: ${CMS_JWT_SECRET}
+      ADMIN_JWT_SECRET: ${CMS_ADMIN_JWT_SECRET}
+      APP_KEYS: ${CMS_APP_KEYS}
+      NODE_ENV: production
+      HOST: ${CMS_HOST}
+      PORT: ${CMS_PORT}
+      API_TOKEN_SALT: ${CMS_API_TOKEN_SALT}
+      TRANSFER_TOKEN_SALT: ${CMS_TRANSFER_TOKEN_SALT}
+      ENCRYPTION_KEY: ${CMS_ENCRYPTION_KEY}
+      DATABASE_SSL: ${CMS_DATABASE_SSL}
+      DATABASE_FILENAME: ${CMS_DATABASE_FILENAME}
+      DATA_PATH: ${DATA_DIR}
+      DB_PATH_RELATIVE: ${CMS_DB_PATH_RELATIVE}
+      UPLOAD_PATH_RELATIVE: ${CMS_UPLOAD_PATH_RELATIVE}
+      # STRAPI_SERVER_RELATIVE_PATH: /
+
+    volumes:
+      - ${DATA_DIR}/strapi/${CMS_UPLOAD_PATH_RELATIVE}:/opt/app/public/uploads
+    # ports:
+    #   - "1337:1337"
+    networks:
+      default:
+    depends_on:
+      - strapiDB
+    healthcheck:
+      test: ["CMD-SHELL", "ping -c 1 localhost:1337 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  strapiDB:
+    container_name: strapiDB
+    platform: linux/amd64 #for platform error on Apple M1 chips
+    restart: unless-stopped
+    # env_file: ${PROJECT_DIR}/builds/strapi/.env
+    image: postgres:16.0-alpine
+    environment:
+      ACTIVATE: ${ACTIVATE_STRAPIDB}
+      POSTGRES_USER: ${CMS_DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${CMS_DATABASE_PASSWORD}
+      POSTGRES_DB: ${CMS_DATABASE_NAME}
+      HOST: ${CMS_DATABASE_HOST}
+      PORT: ${CMS_DATABASE_PORT}
+      APP_KEYS: ${CMS_APP_KEYS}
+      API_TOKEN_SALT: ${CMS_API_TOKEN_SALT}
+      ADMIN_JWT_SECRET: ${CMS_ADMIN_JWT_SECRET}
+      TRANSFER_TOKEN_SALT: ${CMS_TRANSFER_TOKEN_SALT}
+      ENCRYPTION_KEY: ${CMS_ENCRYPTION_KEY}
+      DATABASE_CLIENT: ${CMS_DATABASE_CLIENT}
+      DATABASE_HOST: ${CMS_DATABASE_HOST}
+      DATABASE_PORT: ${CMS_DATABASE_PORT}
+      DATABASE_NAME: ${CMS_DATABASE_NAME}
+      DATABASE_USERNAME: ${CMS_DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${CMS_DATABASE_PASSWORD}
+      DATABASE_SSL: ${CMS_DATABASE_SSL}
+      DATABASE_FILENAME: ${CMS_DATABASE_FILENAME}
+      JWT_SECRET: ${CMS_JWT_SECRET}
+    volumes:
+      - ${DATA_DIR}/strapi/${CMS_DB_PATH_RELATIVE}:/var/lib/postgresql/data/ #using a volume
+      #- ./data:/var/lib/postgresql/data/ # if you want to use a bind folder
+
+    expose:
+      - 5432
+    networks:
+      default:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    
+  ui:
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-cms-ui:latest
+    restart: unless-stopped
+    # env_file: ${PROJECT_DIR}/builds/strapi/.env
+    environment:
+      ACTIVATE: ${ACTIVATE_UI}
+      PORT: 4200
+
 # volumes:
-#   -
-
-# networks:
-#   -
-
+#   strapiDB-data: 
+#     driver: local
+#     driver_opts:
+#       type: none
+#       # device: ${STRAPI_DATA_PATH}/${DB_PATH_RELATIVE}
+#       device: ${DATA_DIR}/strapi/${DB_PATH_RELATIVE}
+#       o: bind
+#   strapi-data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       # device: ${STRAPI_DATA_PATH}/${UPLOAD_PATH_RELATIVE}
+#       device: ${DATA_DIR}/strapi/${UPLOAD_PATH_RELATIVE}
+#       o: bind
+  

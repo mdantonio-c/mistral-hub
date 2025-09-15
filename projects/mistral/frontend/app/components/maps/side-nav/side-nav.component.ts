@@ -122,6 +122,11 @@ export class SideNavFilterComponent implements OnInit {
     } else {
       this.showObsFilter = true;
     }
+
+    // setup mobile side-nav
+        if (window.innerWidth < MOBILE_WIDTH) {
+          this.changeCollapse();
+        }
   }
 
   @HostListener("window:resize", ["$event"])

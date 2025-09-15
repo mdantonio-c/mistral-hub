@@ -6,6 +6,7 @@ import {
   ViewEncapsulation,
   ChangeDetectionStrategy,
 } from "@angular/core";
+import * as moment from "moment";
 
 @Component({
   selector: "g[custom-ngx-x-axis-ticks]",

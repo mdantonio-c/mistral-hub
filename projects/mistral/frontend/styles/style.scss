@@ -39,6 +39,9 @@ $dark-blue: #004080;
   .container-sm {
     max-width: none;
   }
+  .navbar.navbar-light {
+    height: 74px !important;
+  }
 
   .navbar .navbar-nav:first-of-type {
     margin-left: -12px;
@@ -51,7 +54,7 @@ $dark-blue: #004080;
     }
   }
   .navbar .navbar-brand img {
-    height: 66px !important;
+    height: 50px !important;
     margin-bottom: -8px !important;
   }
   .nav.navbar-nav.rpd-menu-controls .nav-item a {
@@ -1208,7 +1211,7 @@ customfooter > div {
 
 .navbar-light .navbar-toggler {
   color: #fff;
-  font-size: 29px;
+  font-size: 23px;
   letter-spacing: -11px;
   border: none;
 }
@@ -1248,7 +1251,7 @@ customfooter > div {
     .footer-container {
       .container-left {
         flex-direction: column !important;
-        line-height: 1em;
+        line-height: 0.8em;
       }
 
       & > div {
@@ -1256,7 +1259,7 @@ customfooter > div {
       }
 
       .card-horizontal .img-square-wrapper img {
-        width: 130px !important;
+        width: 73px !important;
       }
     }
   }
@@ -1296,12 +1299,12 @@ customfooter > div {
 
   app-meteo-tiles {
     .map-sidenav {
-      width: 222px !important;
+      width: 190px !important;
       cursor: auto;
       .toggle {
         width: 30px !important;
         height: 30px !important;
-        margin-left: 172px !important;
+        margin-left: 133px !important;
 
         &.collapsed {
           margin-left: 10px !important;
@@ -1313,7 +1316,7 @@ customfooter > div {
     }
 
     .leaflet-left .leaflet-control {
-      margin-right: -16px;
+     // margin-right: -16px;
     }
   }
 }

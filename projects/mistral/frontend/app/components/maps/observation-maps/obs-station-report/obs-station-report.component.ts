@@ -43,12 +43,15 @@ export class ObsStationReportComponent implements OnInit {
 
   multi: DataSeries[];
   single: DataSeries[];
-  SINGLE;
+  singleDates;
   allDates;
+  meteogramToShow: string;
   // Combo Chart
   accumulatedSeries: DataSeries[];
+  accumulatedSeriesDates;
   windDirectionSeries;
   xTicks;
+  dateInterval;
 
   // to display only selected station details
   stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
@@ -69,6 +72,7 @@ export class ObsStationReportComponent implements OnInit {
     },
   ];
   flagRed = false;
+  flagUnit = false;
 
   // chart options
   multiColorScheme = {
@@ -156,39 +160,48 @@ export class ObsStationReportComponent implements OnInit {
           this.checkWindMixProductAvailable(this.report);
           Object.assign(this, { multi });
           // console.log(JSON.stringify(this.multi));
-          let meteogramToShow: string;
-          if (this.selectedProduct) {
-            // it means that the filter contains multiple products          console.log(this.existMixWindProduct,this.onlyWindProduct);
 
-            meteogramToShow = `${this.selectedProduct.product}-${this.selectedProduct.level}-${this.selectedProduct.timerange}`;
+          if (this.selectedProduct) {
+            // it means that the filter contains multiple products
+
+            this.meteogramToShow = `${this.selectedProduct.product}-${this.selectedProduct.level}-${this.selectedProduct.timerange}`;
           } else {
-            meteogramToShow = `${this.filter.product}-${this.filter.level}-${this.filter.timerange}`;
+            this.meteogramToShow = `${this.filter.product}-${this.filter.level}-${this.filter.timerange}`;
           }
           this.single = this.multi.filter(
             (x: DataSeries) =>
-              `${x.code}-${x.level}-${x.timerange}` === meteogramToShow,
+              `${x.code}-${x.level}-${x.timerange}` === this.meteogramToShow,
           );
           if (
             this.selectedProduct &&
             (this.selectedProduct.product == "B11002" ||
               this.selectedProduct.product == "B11001")
           ) {
-            meteogramToShow = "mixwind-0";
+            this.meteogramToShow = "mixwind-0";
             this.buildWindProduct();
           }
           // to manage the case when for a station only wind products are available
           if (this.onlyWindProduct) {
-            meteogramToShow = "mixwind-0";
+            this.meteogramToShow = "mixwind-0";
             this.buildWindProduct();
           }
-          this.active = meteogramToShow;
-          this.updateYScaleRange(meteogramToShow);
-          this.transformDataFormat(this.single);
+          this.active = this.meteogramToShow;
+          this.updateYScaleRange(this.meteogramToShow);
+          this.singleDates = this.transformDataFormat(this.single);
+          if (this.meteogramToShow != "mixwind-0") {
+            this.accumulatedSeriesDates = this.transformDataFormat(
+              this.accumulatedSeries,
+            );
+          }
           this.xTicks = this.generateFixedTicks(
             this.filter.dateInterval[0],
             this.filter.dateInterval[1],
           );
-          console.log(this.single[0].series, this.single, this.SINGLE);
+          this.dateInterval = [
+            this.filter.dateInterval[0],
+            this.filter.dateInterval[1],
+          ];
+          //console.log(this.single[0].series, this.single, this.SINGLE);
         },
         (error) => {
           this.notify.showError(error);
@@ -201,15 +214,16 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   transformDataFormat(single: DataSeries[]) {
-    this.SINGLE = single.map((seriesObj) => ({
+    const trasformed = single.map((seriesObj) => ({
       ...seriesObj,
       series: seriesObj.series.map((d) => ({
         name: moment.utc(d.name).local().toDate(),
         value: +d.value,
       })),
     }));
-    this.allDates = this.SINGLE.flatMap((s) => s.series.map((p) => p.name));
+    this.allDates = trasformed.flatMap((s) => s.series.map((p) => p.name));
     this.allDates.sort((a, b) => a.getTime() - b.getTime());
+    return trasformed;
   }
   addSecondaryXAxisLabels() {
     setTimeout(
@@ -405,7 +419,12 @@ export class ObsStationReportComponent implements OnInit {
         (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
       );
     }
-    this.transformDataFormat(this.single);
+    this.singleDates = this.transformDataFormat(this.single);
+    if (navItemId != "mixwind-0") {
+      this.accumulatedSeriesDates = this.transformDataFormat(
+        this.accumulatedSeries,
+      );
+    }
     this.updateYScaleRange(navItemId);
   }
   updateYScaleRange(navItemId: string) {
@@ -530,7 +549,7 @@ export class ObsStationReportComponent implements OnInit {
       let s;
       // data for bubble series, in value is stored wind direction
       s = {
-        name: v.name,
+        name: moment.utc(v.name).local().toDate(),
         x: v.name,
         y: parseFloat(windSpeedValues[index]),
         r: 2.5,
@@ -646,5 +665,41 @@ export class ObsStationReportComponent implements OnInit {
     const offsetHours = now.utcOffset() / 60;
     const sign = offsetHours >= 0 ? "+" : "-";
     return `(UTC${sign}${Math.abs(offsetHours)})`;
+  }
+  toggleWindSpeedUnit() {
+    this.flagUnit = !this.flagUnit;
+    if (this.single[0].unit === "M/S") {
+      // Convert M/S to KM/H
+      this.single[0].series = this.single[0].series.map((item) => ({
+        ...item,
+        value: (parseFloat(item.value) * 3.6).toFixed(1),
+      }));
+      this.single[0].unit = "KM/H";
+      // Convert wind direction series y values from M/S to KM/H
+      this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
+        ...seriesObj,
+        series: seriesObj.series.map((item) => ({
+          ...item,
+          y: (parseFloat(item.y) * 3.6).toFixed(1),
+        })),
+      }));
+    } else if (this.single[0].unit === "KM/H") {
+      // Convert KM/H back to M/S
+      this.single[0].series = this.single[0].series.map((item) => ({
+        ...item,
+        value: (parseFloat(item.value) / 3.6).toFixed(1),
+      }));
+      // Convert wind direction series y values from KM/H back to M/S
+      this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
+        ...seriesObj,
+        series: seriesObj.series.map((item) => ({
+          ...item,
+          y: (parseFloat(item.y) / 3.6).toFixed(1),
+        })),
+      }));
+      this.single[0].unit = "M/S";
+    }
+    // Update chart data
+    this.singleDates = this.transformDataFormat(this.single);
   }
 }

@@ -51,15 +51,11 @@
           ></i>
           <pre class="d-inline" style="white-space: pre-line">
             {{ timelineReferenceDate }}
-          </pre>
-          <pre
-            class="d-inline fw-normal local-hour"
-            style="white-space: pre-line"
-          >
             {{ printHoursDescription() | translate : lang }} {{
               checkUTCShift()
             }}
           </pre>
+          
         </div>
       </div>
     </div>

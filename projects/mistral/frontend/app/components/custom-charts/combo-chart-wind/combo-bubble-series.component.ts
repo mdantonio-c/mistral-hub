@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { trigger, style, animate, transition } from "@angular/animations";
 import { formatLabel } from "@swimlane/ngx-charts";
+import * as moment from "moment";
 
 enum PlacementTypes {
   Top = "top",
@@ -178,9 +179,8 @@ export class ComboBubbleSeriesComponent implements OnChanges {
         ) {
           const angle = d.value;
           this.windNames.push(this.windNomenclature(angle));
-          const cx = this.xScale(d.x);
+          const cx = this.xScale(moment.utc(d.x).local().toDate());
           const cy = this.yScale(Number(d.y));
-
           const isActive = !this.activeEntries.length
             ? true
             : this.isActive({ name: seriesName });
@@ -241,10 +241,9 @@ export class ComboBubbleSeriesComponent implements OnChanges {
           const radius = r;
           const tooltipLabel = formatLabel(d.name);
           //const cx = this.xScaleType === ScaleType.Linear ? this.xScale(Number(x)) : this.xScale(x);
-          const cx = this.xScale(x);
+          const cx = this.xScale(moment.utc(x).local().toDate());
           //const cy = this.yScaleType === ScaleType.Linear ? this.yScale(Number(y)) : this.yScale(y);
           const cy = this.yScale(Number(y));
-
           const color =
             this.colors.scaleType === ScaleType.Linear
               ? this.colors.getColor(r)

@@ -38,6 +38,7 @@ services:
       TRUSTSTORE_PATH: /ssl/keystore.p12
       TRUSTSTORE_TYPE: PKCS12
       TRUSTSTORE_PASSWORD: ${NIFI_KEYSTORE_PASSWORD}
+      SSL_TRUSTORE_FILENAME: "${SSL_TRUSTORE_FILENAME}"
 
   proxy:
     volumes:
@@ -48,8 +49,10 @@ services:
       - ${PROJECT_DIR}/nginx/maintenance.html:/usr/share/nginx/html/maintenance.html
       - ${PROJECT_DIR}/nginx/toggle_maintenance.sh:/etc/nginx/toggle_maintenance.sh
 
-  strapi:
-    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest-prod
-  
   ui:
-    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-cms-ui:latest-prod
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-cms-ui:latest-pre
+  
+  strapi:
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest-pre
+    # ports:
+    # - "1337:1337"
