@@ -42,6 +42,10 @@ $dark-blue: #004080;
     margin-left: 14px;
     font-family: "TitilliumWeb-Regular";
   }
+  .text-disclaimer {
+      text-transform: unset !important;
+      text-decoration: underline;
+  }
 
   li a:hover .nav-text {
     text-decoration: none;
@@ -851,6 +855,10 @@ $dark-blue: #004080;
     padding: 10px;
     width: 22px;
     height: 22px;
+    margin-left: 5px;
+  }
+
+  .realtime-info {
     margin-left: 5px;
   }
 }
