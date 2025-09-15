@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-import requests
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from restapi import decorators
@@ -219,25 +218,5 @@ class DataReady(EndpointResource):
             except Exception as error:
                 log.error(error)
                 raise SystemError("Unable to submit the request")
-
-            maps_url = Env.get("MAPS_URL", None)
-            if maps_url:
-                url = f"{maps_url}/api/data/ready/{rundate.strftime('%Y%m%d')}/{runhour[:2]}"
-                headers = {"Content-Type": "application/json"}
-
-                try:
-                    response = requests.post(url, headers=headers)
-                    if response.status_code == 200:
-                        log.info("Successfully notified meteohub-maps at {}", url)
-                    else:
-                        log.warning(
-                            "POST request to {} returned status code {}",
-                            url,
-                            response.status_code,
-                        )
-                except requests.RequestException as e:
-                    log.error("Failed to notify meteohub-maps at {}: {}", url, str(e))
-            else:
-                log.warning("MAPS_URL not set, skipping notification to meteohub-maps")
 
         return self.response("1", code=202)
