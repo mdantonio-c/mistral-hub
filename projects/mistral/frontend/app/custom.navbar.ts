@@ -18,6 +18,7 @@ export class CustomNavbarComponent {
   @Input() user: User;
   @Output() onClick: EventEmitter<null> = new EventEmitter<null>();
   projectHome: string = environment.CUSTOM.PROJECT_HOME;
+  infoHome: string = environment.CUSTOM.INFO_HOME;
 
   constructor() {}
 
