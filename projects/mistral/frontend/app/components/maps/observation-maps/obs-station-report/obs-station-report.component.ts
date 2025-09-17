@@ -185,10 +185,11 @@ export class ObsStationReportComponent implements OnInit {
             this.meteogramToShow = "mixwind-0";
             this.buildWindProduct();
           }
+          console.log("SINGLE", this.single);
           this.active = this.meteogramToShow;
           this.updateYScaleRange(this.meteogramToShow);
           this.singleDates = this.transformDataFormat(this.single);
-          if (this.meteogramToShow != "mixwind-0") {
+          if (this.meteogramToShow === "B13011-1,0,0,0-1,0,3600") {
             this.accumulatedSeriesDates = this.transformDataFormat(
               this.accumulatedSeries,
             );
@@ -420,7 +421,7 @@ export class ObsStationReportComponent implements OnInit {
       );
     }
     this.singleDates = this.transformDataFormat(this.single);
-    if (navItemId != "mixwind-0") {
+    if (navItemId === "B13011-1,0,0,0-1,0,3600") {
       this.accumulatedSeriesDates = this.transformDataFormat(
         this.accumulatedSeries,
       );
