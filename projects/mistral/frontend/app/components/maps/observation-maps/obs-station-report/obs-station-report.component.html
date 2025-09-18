@@ -108,7 +108,6 @@
               ngbNav
               #nav="ngbNav"
               [(activeId)]="active"
-              (navChange)="onNavChange($event)"
               class="nav-pills"
               orientation="horizontal"
               style="font-size: small"
@@ -125,8 +124,11 @@
                   <li
                     class="border border-primary rounded m-1"
                     [ngbNavItem]="getNavItemName(p)"
+                    [ngClass]="{
+                      'my-active': isTabSelected(getNavItemName(p))
+                    }"
                   >
-                    <a ngbNavLink>{{
+                    <a ngbNavLink (click)="onTabClick(getNavItemName(p))">{{
                       descriptions[p.var].descr | translate : lang | uppercase
                     }}</a>
                     <ng-template ngbNavContent></ng-template>
@@ -136,9 +138,12 @@
               <li
                 ngbNavItem="mixwind-0"
                 class="border border-primary rounded m-1"
+                [ngClass]="{ 'my-active': isTabSelected('mixwind-0') }"
                 *ngIf="existMixWindProduct"
               >
-                <a ngbNavLink>{{ "Wind" | translate : lang | uppercase }}</a>
+                <a ngbNavLink (click)="onTabClick('mixwind-0')">{{
+                  "Wind" | translate : lang | uppercase
+                }}</a>
                 <ng-template ngbNavContent></ng-template>
               </li>
             </ul>
@@ -164,7 +169,11 @@
             </p>
             <!--<pre>{{nav.activeId}}</pre>-->
             <div #containerRef>
-              <ng-container [ngSwitch]="nav.activeId.split('-')[0]">
+              <ng-container
+                [ngSwitch]="
+                  showCombined ? 'COMBINED' : nav.activeId.split('-')[0]
+                "
+              >
                 <div *ngSwitchCase="'B13011'">
                   <ng-container *ngTemplateOutlet="comboChart"></ng-container>
                 </div>
@@ -173,6 +182,7 @@
                     *ngTemplateOutlet="comboChartWind"
                   ></ng-container>
                 </div>
+                <div *ngSwitchCase="'COMBINED'">Ciao, scemo chi legge</div>
                 <div *ngSwitchDefault>
                   <ng-container *ngTemplateOutlet="lineChart"></ng-container>
                 </div>

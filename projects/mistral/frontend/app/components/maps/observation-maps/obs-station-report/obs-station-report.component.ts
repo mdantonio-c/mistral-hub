@@ -46,6 +46,8 @@ export class ObsStationReportComponent implements OnInit {
   singleDates;
   allDates;
   meteogramToShow: string;
+  selectedTabs: string[] = [];
+  showCombined: boolean = false;
   // Combo Chart
   accumulatedSeries: DataSeries[];
   accumulatedSeriesDates;
@@ -108,12 +110,118 @@ export class ObsStationReportComponent implements OnInit {
     this.loadReport();
   }
 
-  onNavChange(changeEvent: NgbNavChangeEvent) {
-    console.log(`nav changed to varcode: ${changeEvent.nextId}`);
-    this.updateGraphData(changeEvent.nextId);
-    this.addSecondaryXAxisLabels();
+  clickNavItem(tabName: string) {
+    // esegui solo se siamo in combinata e clicco uno dei due tab già selezionati
+    if (this.showCombined && this.selectedTabs.includes(tabName)) {
+      this.selectedTabs = [tabName]; // rimane solo quello cliccato
+      this.showCombined = false;
+      this.active = tabName;
+
+      this.updateGraphData(tabName);
+      this.addSecondaryXAxisLabels();
+
+      console.log(
+        "[clickNavItem] uscita dalla combinata, rimane:",
+        this.selectedTabs,
+      );
+    }
+    // se clicco un tab non combinato, lascia fare onNavChange
   }
 
+  onTabClick(tabId: string) {
+    const excludedTabs = ["B13011-1,0,0,0-1,0,3600", "mixwind-0"];
+
+    const isExclusive = excludedTabs.includes(tabId);
+    const currentlyExclusive = this.selectedTabs.some((t) =>
+      excludedTabs.includes(t),
+    );
+
+    if (isExclusive) {
+      // clicco un tab esclusivo → uscita combinata e seleziona solo quello
+      this.selectedTabs = [tabId];
+      this.showCombined = false;
+    } else if (this.showCombined || currentlyExclusive) {
+      // se sono in combinata o ero su un tab esclusivo
+      this.selectedTabs = [tabId];
+      this.showCombined = false;
+    } else {
+      // modalità singola normale
+      const index = this.selectedTabs.indexOf(tabId);
+      if (index > -1) {
+        // clicco il tab già selezionato → resta selezionato
+        this.selectedTabs = [tabId];
+      } else {
+        // aggiungi nuovo tab
+        this.selectedTabs.push(tabId);
+        // attiva combinata solo se ora ho esattamente due tab e nessuno è escluso
+        if (
+          this.selectedTabs.length === 2 &&
+          !this.selectedTabs.some((t) => excludedTabs.includes(t))
+        ) {
+          this.showCombined = true;
+        }
+      }
+    }
+
+    // aggiorna activeId per ng-bootstrap
+    this.active = this.selectedTabs[0];
+
+    // aggiorna grafici
+    this.updateGraphData(this.active);
+    this.addSecondaryXAxisLabels();
+
+    console.log(
+      "selectedTabs:",
+      this.selectedTabs,
+      "showCombined:",
+      this.showCombined,
+    );
+  }
+
+  isTabSelected(tabId: string): boolean {
+    return this.selectedTabs.includes(tabId);
+  }
+
+  /*onNavChange(changeEvent: NgbNavChangeEvent) {
+  const tabId = changeEvent.nextId;
+  const excludedTabs = ['B13011-1,0,0,0-1,0,3600', 'mixwind-0'];
+
+  const index = this.selectedTabs.indexOf(tabId);
+  if (index > -1) {
+    // deselezione in modalità singola
+    this.selectedTabs.splice(index, 1);
+  } else {
+    this.selectedTabs.push(tabId);
+  }
+
+  // se almeno uno dei tab selezionati è escluso → esci combinata
+  const hasExcluded = this.selectedTabs.some(t => excludedTabs.includes(t));
+  if (hasExcluded) {
+    this.showCombined = false;
+    this.selectedTabs = [tabId];
+  } else {
+    // logica combinata normale: attiva solo se 2 tab selezionati
+    this.showCombined = this.selectedTabs.length === 2;
+  }
+
+  this.active = tabId;
+
+  this.updateGraphData(tabId);
+  this.addSecondaryXAxisLabels();
+
+  console.log('showCombined', this.showCombined, 'selectedTabs', this.selectedTabs);
+}*/
+
+  /*isTabSelected(tabId: string): boolean {
+  if (this.showCombined) {
+      //console.log(this.selectedTabs.length);
+    // se showCombined è attivo, evidenzia entrambe le tab selezionate
+    return this.selectedTabs.includes(tabId);
+  } else {
+    // altrimenti solo l'attivo
+    return this.active === tabId;
+  }
+}*/
   getNavItemName(element: ObsData) {
     return `${element.var}-${element.lev}-${element.trange}`;
   }
@@ -186,6 +294,7 @@ export class ObsStationReportComponent implements OnInit {
             this.buildWindProduct();
           }
           this.active = this.meteogramToShow;
+          this.selectedTabs.push(this.meteogramToShow);
           this.updateYScaleRange(this.meteogramToShow);
           this.singleDates = this.transformDataFormat(this.single);
           if (this.meteogramToShow != "mixwind-0") {
@@ -411,7 +520,7 @@ export class ObsStationReportComponent implements OnInit {
 
   private updateGraphData(navItemId: string) {
     // managing of wind products
-    console.log(navItemId);
+    //console.log(navItemId);
     if (navItemId === "mixwind-0") {
       this.buildWindProduct();
     } else {
