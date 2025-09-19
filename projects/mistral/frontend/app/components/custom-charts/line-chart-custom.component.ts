@@ -73,6 +73,17 @@ const styles = `
           [showRefLabels]="showRefLabels"
           (dimensionsChanged)="updateYAxisWidth($event)"
         ></svg:g>
+        <svg:g *ngFor="let tick of yScale.ticks()">
+          <svg:line
+            x1="0"
+            [attr.x2]="dims.width"
+            [attr.y1]="yScale(tick)"
+            [attr.y2]="yScale(tick)"
+            stroke="#e4e4e4"
+            stroke-width="1"
+          />
+        </svg:g>
+
         <svg:g *ngIf="showRefLines && referenceLines?.length">
           <svg:line
             *ngFor="let ref of referenceLines"
@@ -210,5 +221,5 @@ const styles = `
 })
 export class CustomLineChart extends LineChartComponent {
   @Input() gridLineNgStyleByXAxisTick;
-  area=false
+  area = false;
 }

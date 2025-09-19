@@ -185,7 +185,7 @@ export class ObsStationReportComponent implements OnInit {
             this.meteogramToShow = "mixwind-0";
             this.buildWindProduct();
           }
-          console.log("SINGLE", this.single);
+
           this.active = this.meteogramToShow;
           this.updateYScaleRange(this.meteogramToShow);
           this.singleDates = this.transformDataFormat(this.single);
