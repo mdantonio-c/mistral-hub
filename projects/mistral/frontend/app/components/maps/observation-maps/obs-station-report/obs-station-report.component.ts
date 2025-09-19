@@ -420,6 +420,9 @@ export class ObsStationReportComponent implements OnInit {
         (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
       );
     }
+    if (this.flagUnit && this.single[0]?.unit === "M/S") {
+      this.convertToKmH();
+    }
     this.singleDates = this.transformDataFormat(this.single);
     if (navItemId === "B13011-1,0,0,0-1,0,3600") {
       this.accumulatedSeriesDates = this.transformDataFormat(
@@ -667,40 +670,46 @@ export class ObsStationReportComponent implements OnInit {
     const sign = offsetHours >= 0 ? "+" : "-";
     return `(UTC${sign}${Math.abs(offsetHours)})`;
   }
+  private convertToKmH() {
+    // Convert M/S to KM/H
+    this.single[0].series = this.single[0].series.map((item) => ({
+      ...item,
+      value: (parseFloat(item.value) * 3.6).toFixed(1),
+    }));
+    this.single[0].unit = "KM/H";
+    // Convert wind direction series y values from M/S to KM/H
+    this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
+      ...seriesObj,
+      series: seriesObj.series.map((item) => ({
+        ...item,
+        y: (parseFloat(item.y) * 3.6).toFixed(1),
+      })),
+    }));
+  }
+
+  private convertToMs() {
+    // Convert KM/H back to M/S
+    this.single[0].series = this.single[0].series.map((item) => ({
+      ...item,
+      value: (parseFloat(item.value) / 3.6).toFixed(1),
+    }));
+    // Convert wind direction series y values from KM/H back to M/S
+    this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
+      ...seriesObj,
+      series: seriesObj.series.map((item) => ({
+        ...item,
+        y: (parseFloat(item.y) / 3.6).toFixed(1),
+      })),
+    }));
+    this.single[0].unit = "M/S";
+  }
+
   toggleWindSpeedUnit() {
-    this.flagUnit = !this.flagUnit;
-    if (this.single[0].unit === "M/S") {
-      // Convert M/S to KM/H
-      this.single[0].series = this.single[0].series.map((item) => ({
-        ...item,
-        value: (parseFloat(item.value) * 3.6).toFixed(1),
-      }));
-      this.single[0].unit = "KM/H";
-      // Convert wind direction series y values from M/S to KM/H
-      this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
-        ...seriesObj,
-        series: seriesObj.series.map((item) => ({
-          ...item,
-          y: (parseFloat(item.y) * 3.6).toFixed(1),
-        })),
-      }));
-    } else if (this.single[0].unit === "KM/H") {
-      // Convert KM/H back to M/S
-      this.single[0].series = this.single[0].series.map((item) => ({
-        ...item,
-        value: (parseFloat(item.value) / 3.6).toFixed(1),
-      }));
-      // Convert wind direction series y values from KM/H back to M/S
-      this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
-        ...seriesObj,
-        series: seriesObj.series.map((item) => ({
-          ...item,
-          y: (parseFloat(item.y) / 3.6).toFixed(1),
-        })),
-      }));
-      this.single[0].unit = "M/S";
+    if (this.flagUnit) {
+      this.convertToKmH();
+    } else {
+      this.convertToMs();
     }
-    // Update chart data
     this.singleDates = this.transformDataFormat(this.single);
   }
 }
