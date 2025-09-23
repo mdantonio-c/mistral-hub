@@ -35,7 +35,7 @@ export class CustomNavbarComponent {
 export class CustomBrandComponent {
   projectTitle: string;
   projectHome: string = environment.CUSTOM.PROJECT_HOME;
-
+  infoHome: string = environment.CUSTOM.INFO_HOME;
   constructor() {
     let t = environment.projectTitle;
     t = t.replace(/^'/, "");
