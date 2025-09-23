@@ -182,7 +182,11 @@
                     *ngTemplateOutlet="comboChartWind"
                   ></ng-container>
                 </div>
-                <div *ngSwitchCase="'COMBINED'">Ciao, scemo chi legge</div>
+                <div *ngSwitchCase="'COMBINED'">
+                  <ng-container
+                    *ngTemplateOutlet="comboCombinedChart"
+                  ></ng-container>
+                </div>
                 <div *ngSwitchDefault>
                   <ng-container *ngTemplateOutlet="lineChart"></ng-container>
                 </div>
@@ -403,6 +407,77 @@
                     </ng-template>
                   </combo-chart-wind-component>
                 </div>
+              </ng-template>
+              <ng-template #comboCombinedChart>
+                <combo-chart-combined-component
+                  [view]="[containerRef.offsetWidth - 100, 400]"
+                  [scheme]="monoBarSchemeRain"
+                  [colorSchemeLine]="monoLineSchemeRain"
+                  [results]="var1[0].series"
+                  [animations]="true"
+                  [lineChart]="var2"
+                  [tooltipDisabled]="false"
+                  [yLeftAxisScaleFactor]="yLeftAxisScale"
+                  [yRightAxisScaleFactor]="yRightAxisScale"
+                  [gradient]="false"
+                  [xAxis]="true"
+                  [yAxis]="true"
+                  [xAxisTicks]="xTicks"
+                  [dateInterval]="dateInterval"
+                  [autoScale]="false"
+                  [legend]="false"
+                  [rotateXAxisTicks]="false"
+                  [showGridLines]="true"
+                  [showXAxisLabel]="true"
+                  [showYAxisLabel]="true"
+                  [showRightYAxisLabel]="true"
+                  [xAxisLabel]="xAxisLabelFormatting()"
+                  [xAxisTickFormatting]="xAxisTickFormattingFn"
+                  [yAxisLabel]="yLeftLabel"
+                  [yAxisLabelRight]="yRightLabel"
+                  [gridLineNgStyleByXAxisTick]="onlyDateChangeNgStyleFn"
+                >
+                  <ng-template #tooltipTemplate let-model="model">
+                    <span class="d-block">{{
+                      model.name | fmtLabelDate : "it" : true
+                    }}</span>
+                    <span class="d-block"
+                      >{{ model.series | translate : lang }}:
+                      {{ model.value }} (mm)</span
+                    >
+                  </ng-template>
+                  <ng-template #seriesTooltipTemplate let-model="model">
+                    <div class="area-tooltip-container">
+                      <span class="d-block"
+                        ><b>{{
+                          model[0].name | fmtLabelDate : "it" : true
+                        }}</b></span
+                      >
+                      <div
+                        *ngFor="let tooltipItem of model"
+                        class="tooltip-item"
+                      >
+                        <span
+                          class="tooltip-item-color"
+                          [style.background-color]="
+                            !tooltipItem.series.includes('1h')
+                              ? tooltipItem.color
+                              : monoBarSchemeRain.domain[0]
+                          "
+                        ></span>
+                        {{
+                          tooltipItem.series
+                            .toLowerCase()
+                            .charAt(0)
+                            .toUpperCase() +
+                            tooltipItem.series.toLowerCase().slice(1)
+                            | replace : "\\(([^\\)]+)\\)" : ""
+                            | translate : lang
+                        }}: <b>{{ tooltipItem.value }}</b> (mm)
+                      </div>
+                    </div>
+                  </ng-template>
+                </combo-chart-combined-component>
               </ng-template>
             </div>
           </div>

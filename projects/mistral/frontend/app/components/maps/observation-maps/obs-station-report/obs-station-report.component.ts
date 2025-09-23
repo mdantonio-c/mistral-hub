@@ -46,15 +46,21 @@ export class ObsStationReportComponent implements OnInit {
   singleDates;
   allDates;
   meteogramToShow: string;
-  selectedTabs: string[] = [];
-  showCombined: boolean = false;
+
   // Combo Chart
   accumulatedSeries: DataSeries[];
   accumulatedSeriesDates;
   windDirectionSeries;
   xTicks;
   dateInterval;
-
+  // Combined Chart
+  selectedTabs: string[] = [];
+  showCombined: boolean = false;
+  combinedData;
+  var1;
+  var2;
+  yLeftLabel;
+  yRightLabel;
   // to display only selected station details
   stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
   filteredStationDetails: StationDetail[] = [];
@@ -130,7 +136,7 @@ export class ObsStationReportComponent implements OnInit {
 
   onTabClick(tabId: string) {
     const excludedTabs = ["B13011-1,0,0,0-1,0,3600", "mixwind-0"];
-
+    console.log(tabId);
     const isExclusive = excludedTabs.includes(tabId);
     const currentlyExclusive = this.selectedTabs.some((t) =>
       excludedTabs.includes(t),
@@ -297,6 +303,11 @@ export class ObsStationReportComponent implements OnInit {
           this.selectedTabs.push(this.meteogramToShow);
           this.updateYScaleRange(this.meteogramToShow);
           this.singleDates = this.transformDataFormat(this.single);
+          const excludeCodes = ["B11001", "B11002", "B99999"];
+          this.combinedData = this.multi.filter(
+            (item) => !excludeCodes.includes(item.code),
+          );
+          console.log("combineddata", this.combinedData);
           if (this.meteogramToShow != "mixwind-0") {
             this.accumulatedSeriesDates = this.transformDataFormat(
               this.accumulatedSeries,
@@ -524,9 +535,46 @@ export class ObsStationReportComponent implements OnInit {
     if (navItemId === "mixwind-0") {
       this.buildWindProduct();
     } else {
-      this.single = this.multi.filter(
-        (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
-      );
+      if (!this.showCombined) {
+        this.single = this.multi.filter(
+          (x: DataSeries) =>
+            `${x.code}-${x.level}-${x.timerange}` === navItemId,
+        );
+      } else {
+        console.log(this.selectedTabs);
+        if (this.selectedTabs.length === 2) {
+          const codes = this.selectedTabs.map((t) => t.split("-")[0]);
+          this.var1 = this.transformDataFormat(
+            this.combinedData.filter((item) => codes[0].includes(item.code)),
+          );
+          this.var2 = this.transformDataFormat(
+            this.combinedData.filter((item) => codes[1].includes(item.code)),
+          );
+          console.log("var1", this.var1[0].name, "var2", this.var2[0].name);
+          let unit1 = this.var1[0].unit;
+          if (unit1.includes("PA") || unit1.includes("K")) {
+            if (unit1 === "PA") unit1 = "hPa";
+            if (unit1 === "K") unit1 = "°C";
+          }
+          let unit2 = this.var2[0].unit;
+          if (unit2.includes("PA") || unit2.includes("K")) {
+            if (unit2 === "PA") unit2 = "hPa";
+            if (unit2 === "K") unit2 = "°C";
+          }
+
+          this.yLeftLabel =
+            this.var1[0].name.charAt(0).toUpperCase() +
+            this.var1[0].name.slice(1).toLowerCase() +
+            " " +
+            unit1;
+          this.yRightLabel =
+            this.var2[0].name.charAt(0).toUpperCase() +
+            this.var2[0].name.slice(1).toLowerCase() +
+            " " +
+            unit2;
+          console.log(this.yLeftLabel, this.yRightLabel);
+        }
+      }
     }
     this.singleDates = this.transformDataFormat(this.single);
     if (navItemId != "mixwind-0") {
