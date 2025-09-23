@@ -1,5 +1,5 @@
 <ul class="navbar-nav">
-  <li class="nav-item">
+  <!-- <li class="nav-item">
     <a
       class="nav-link"
       routerLink="/app/datasets"
@@ -7,25 +7,7 @@
       (click)="collapse()"
       >Home</a
     >
-  </li>
-  <li class="nav-item">
-    <a
-      class="nav-link"
-      routerLink="/app/datasets"
-      routerLinkActive="active"
-      (click)="collapse()"
-      >Datasets</a
-    >
-  </li>
-  <li class="nav-item" *ngIf="user">
-    <a
-      class="nav-link text-nowrap"
-      routerLink="app/requests"
-      routerLinkActive="active"
-      (click)="collapse()"
-      >My Requests</a
-    >
-  </li>
+  </li> -->
   <li class="nav-item" ngbDropdown>
     <a
       class="nav-link clickable"
@@ -43,17 +25,17 @@
       >
         <a
           ngbDropdownItem
-          routerLink="/app/maps/forecasts"
-          routerLinkActive="active"
-          (click)="collapse()"
-          >Static Map</a
-        >
-        <a
-          ngbDropdownItem
           routerLink="/app/maps/meteotiles"
           routerLinkActive="active"
           (click)="collapse()"
           >Multi-layer Map</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/forecasts"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Static Map</a
         >
         <!--<a
           ngbDropdownItem
@@ -85,7 +67,7 @@
           routerLink="/app/maps/observations"
           routerLinkActive="active"
           (click)="collapse()"
-          >Ground stations</a
+          >Observed data map</a
         >
         <!--<a
           ngbDropdownItem
@@ -101,12 +83,52 @@
     <a
       class="nav-link clickable"
       ngbDropdownToggle
+      id="navbarDropdownObservationsLink"
+      role="button"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{exact: true}"
+    >
+      Datasets
+      <div
+        ngbDropdownMenu
+        aria-labelledby="navbarDropdownMapsLink"
+        class="dropdown-menu"
+      >
+        <a
+          ngbDropdownItem
+          routerLink="/app/datasets"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Open data list</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/data/datasets"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Data Extraction</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/requests"
+          routerLinkActive="active"
+          (click)="collapse()"
+          *ngIf="user"
+          >My Requests</a
+        >
+      </div>
+    </a>
+  </li>
+  <li class="nav-item" ngbDropdown>
+    <a
+      class="nav-link clickable"
+      ngbDropdownToggle
       id="navbarDropdownDocuLink"
       role="button"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{exact: true}"
     >
-      Documentation
+      Info
       <div
         ngbDropdownMenu
         aria-labelledby="navbarDropdownDocuLink"
@@ -114,7 +136,21 @@
       >
         <a
           ngbDropdownItem
-          href="{{projectHome}}/user-guide/"
+          href="{{infoHome}}/news/"
+          (click)="collapse()"
+          target="_blank"
+          >News</a
+        >
+        <a
+          ngbDropdownItem
+          href="{{infoHome}}/about/"
+          (click)="collapse()"
+          target="_blank"
+          >About</a
+        >
+        <a
+          ngbDropdownItem
+          href="{{infoHome}}/user-guide/"
           (click)="collapse()"
           target="_blank"
           >User Guide</a
@@ -135,6 +171,15 @@
         >-->
       </div>
     </a>
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link text-nowrap"
+      href="{{projectHome}}/contacts/"
+      (click)="collapse()"
+      target="_blank"
+      >Contacts</a
+    >
   </li>
   <!--<li class="nav-item">
     <a
