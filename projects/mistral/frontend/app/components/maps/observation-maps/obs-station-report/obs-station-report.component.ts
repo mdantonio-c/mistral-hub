@@ -46,7 +46,6 @@ export class ObsStationReportComponent implements OnInit {
   singleDates;
   allDates;
   meteogramToShow: string;
-
   // Combo Chart
   accumulatedSeries: DataSeries[];
   accumulatedSeriesDates;
@@ -310,7 +309,7 @@ export class ObsStationReportComponent implements OnInit {
             (item) => !excludeCodes.includes(item.code),
           );
           console.log("combineddata", this.combinedData);
-          if (this.meteogramToShow != "mixwind-0") {
+          if (this.meteogramToShow === "B13011-1,0,0,0-1,0,3600") {
             this.accumulatedSeriesDates = this.transformDataFormat(
               this.accumulatedSeries,
             );
@@ -533,7 +532,7 @@ export class ObsStationReportComponent implements OnInit {
 
   private updateGraphData(navItemId: string) {
     // managing of wind products
-    //console.log(navItemId);
+    console.log(navItemId);
     if (navItemId === "mixwind-0") {
       this.buildWindProduct();
     } else {
@@ -578,8 +577,11 @@ export class ObsStationReportComponent implements OnInit {
         }
       }
     }
+    if (this.flagUnit && this.single[0]?.unit === "M/S") {
+      this.convertToKmH();
+    }
     this.singleDates = this.transformDataFormat(this.single);
-    if (navItemId != "mixwind-0") {
+    if (navItemId === "B13011-1,0,0,0-1,0,3600") {
       this.accumulatedSeriesDates = this.transformDataFormat(
         this.accumulatedSeries,
       );
@@ -825,40 +827,46 @@ export class ObsStationReportComponent implements OnInit {
     const sign = offsetHours >= 0 ? "+" : "-";
     return `(UTC${sign}${Math.abs(offsetHours)})`;
   }
+  private convertToKmH() {
+    // Convert M/S to KM/H
+    this.single[0].series = this.single[0].series.map((item) => ({
+      ...item,
+      value: (parseFloat(item.value) * 3.6).toFixed(1),
+    }));
+    this.single[0].unit = "KM/H";
+    // Convert wind direction series y values from M/S to KM/H
+    this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
+      ...seriesObj,
+      series: seriesObj.series.map((item) => ({
+        ...item,
+        y: (parseFloat(item.y) * 3.6).toFixed(1),
+      })),
+    }));
+  }
+
+  private convertToMs() {
+    // Convert KM/H back to M/S
+    this.single[0].series = this.single[0].series.map((item) => ({
+      ...item,
+      value: (parseFloat(item.value) / 3.6).toFixed(1),
+    }));
+    // Convert wind direction series y values from KM/H back to M/S
+    this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
+      ...seriesObj,
+      series: seriesObj.series.map((item) => ({
+        ...item,
+        y: (parseFloat(item.y) / 3.6).toFixed(1),
+      })),
+    }));
+    this.single[0].unit = "M/S";
+  }
+
   toggleWindSpeedUnit() {
-    this.flagUnit = !this.flagUnit;
-    if (this.single[0].unit === "M/S") {
-      // Convert M/S to KM/H
-      this.single[0].series = this.single[0].series.map((item) => ({
-        ...item,
-        value: (parseFloat(item.value) * 3.6).toFixed(1),
-      }));
-      this.single[0].unit = "KM/H";
-      // Convert wind direction series y values from M/S to KM/H
-      this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
-        ...seriesObj,
-        series: seriesObj.series.map((item) => ({
-          ...item,
-          y: (parseFloat(item.y) * 3.6).toFixed(1),
-        })),
-      }));
-    } else if (this.single[0].unit === "KM/H") {
-      // Convert KM/H back to M/S
-      this.single[0].series = this.single[0].series.map((item) => ({
-        ...item,
-        value: (parseFloat(item.value) / 3.6).toFixed(1),
-      }));
-      // Convert wind direction series y values from KM/H back to M/S
-      this.windDirectionSeries = this.windDirectionSeries.map((seriesObj) => ({
-        ...seriesObj,
-        series: seriesObj.series.map((item) => ({
-          ...item,
-          y: (parseFloat(item.y) / 3.6).toFixed(1),
-        })),
-      }));
-      this.single[0].unit = "M/S";
+    if (this.flagUnit) {
+      this.convertToKmH();
+    } else {
+      this.convertToMs();
     }
-    // Update chart data
     this.singleDates = this.transformDataFormat(this.single);
   }
 }

@@ -35,6 +35,17 @@
       [tickFormatting]="yAxisTickFormatting"
       (dimensionsChanged)="updateYAxisWidth($event)"
     ></svg:g>
+    <svg:g *ngFor="let tick of yScale.ticks()">
+      <svg:line
+        x1="0"
+        [attr.x2]="dims.width"
+        [attr.y1]="yScale(tick)"
+        [attr.y2]="yScale(tick)"
+        stroke="#e4e4e4"
+        stroke-width="1"
+      />
+    </svg:g>
+
     <svg:g
       ngx-combo-charts-bubble-series
       [xScale]="xScale"

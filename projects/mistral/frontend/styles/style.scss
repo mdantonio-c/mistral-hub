@@ -179,10 +179,16 @@ h6 {
 }
 
 .nav.navbar-nav.rpd-menu-controls .nav-item a {
-  background-color: $nav-item-icon-bk;
-  border-radius: 25px;
-  margin-right: 5px;
-  padding: 5px;
+    color: #fff;
+    font-family: 'TitilliumWeb-SemiBold';
+    border-color: #fff;
+    border-radius: 30px !important;
+    padding-left: 10px;
+    padding-right: 10px;
+    border: 1px solid #fff !important;
+    &.btn:first-child:hover {
+        background-color: $dark-blue !important;
+    }
 }
 
 h3 {

@@ -68,6 +68,7 @@
                       id="windSwitchModal"
                       type="checkbox"
                       class="form-check-input clickable"
+                      [(ngModel)]="flagUnit"
                       (change)="toggleWindSpeedUnit()"
                     />
                     <label
@@ -217,6 +218,7 @@
                   [referenceLines]="referenceLines"
                   [showRefLines]="flagRed"
                   [showRefLabels]="false"
+                  [showGridLines]="true"
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block"
