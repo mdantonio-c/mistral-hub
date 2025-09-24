@@ -345,13 +345,19 @@ export class DoubleLineChartComponent extends BaseChartComponent {
 
   getXDomain(): any[] {
     //return this.results.map((d) => d.name);
-    return this.generateHourlyDates(this.dateInterval[0], this.dateInterval[1]);
+    return this.generateMinuteIntervals(
+      this.dateInterval[0],
+      this.dateInterval[1],
+    );
   }
 
   getYDomain() {
     const values = this.results.map((d) => d.value);
-    const min = 0;
+
+    //const min = 0;
+    const min = Math.min(...values) - 10;
     let max = Math.round(Math.max(...values) + 10);
+    console.log(min, max);
     if (this.yLeftAxisScaleFactor) {
       const all1Mm = values.every((v) => v <= 1);
       if (all1Mm) {
@@ -362,18 +368,18 @@ export class DoubleLineChartComponent extends BaseChartComponent {
     }
   }
 
-  generateHourlyDates(start: Date, end: Date): Date[] {
-    const hours: Date[] = [];
+  generateMinuteIntervals(start: Date, end: Date): Date[] {
+    const minutes: Date[] = [];
     const current = new Date(start);
 
-    current.setMinutes(0, 0, 0);
+    current.setSeconds(0, 0);
 
     while (current <= end) {
-      hours.push(new Date(current));
-      current.setHours(current.getHours() + 1);
+      minutes.push(new Date(current));
+      current.setMinutes(current.getMinutes() + 1);
     }
 
-    return hours;
+    return minutes;
   }
 
   onClick(data) {

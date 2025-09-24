@@ -9,7 +9,7 @@ import {
 } from "@angular/core";
 import { trigger, style, animate, transition } from "@angular/animations";
 import { ColorHelper, ScaleType } from "@swimlane/ngx-charts";
-import { area, line } from "d3-shape";
+import { area, line, curveLinear } from "d3-shape";
 
 type StringOrNumberOrDate = string | number | Date;
 export interface DataItem {
@@ -71,7 +71,7 @@ export class ComboLineChartComponent implements OnChanges {
   @Input() yScale;
   @Input() colors: ColorHelper;
   @Input() scaleType: ScaleType;
-  @Input() curve: any;
+  @Input() curve = curveLinear;
   @Input() activeEntries: any[];
   @Input() rangeFillOpacity: number;
   @Input() hasRange: boolean;
@@ -113,13 +113,14 @@ export class ComboLineChartComponent implements OnChanges {
       .x((d) => {
         const label = d.name;
         let value;
-        if (this.scaleType === ScaleType.Time) {
+        /*if (this.scaleType === ScaleType.Time) {
           value = this.xScale(label);
         } else if (this.scaleType === ScaleType.Linear) {
           value = this.xScale(Number(label));
         } else {
           value = this.xScale(label);
-        }
+        }*/
+        value = this.xScale(label);
         return value;
       })
       .y((d) => this.yScale(d.value))
