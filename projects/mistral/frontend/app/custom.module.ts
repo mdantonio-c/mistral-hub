@@ -90,6 +90,10 @@ import {
   BubbleLineChartComponent,
   ComboBubbleSeriesComponent,
 } from "./components/custom-charts/combo-chart-wind";
+import {
+  DoubleLineChartComponent,
+  ComboLineChartComponent,
+} from "./components/custom-charts/combo-chart-combined";
 import { AimObservationMapsComponent } from "./components/maps/aim-observation-maps/aim-observation-maps.component";
 const appRoutes: Routes = [
   {
@@ -258,6 +262,8 @@ const appRoutes: Routes = [
     BubbleLineChartComponent,
     ComboBubbleSeriesComponent,
     AimObservationMapsComponent,
+    DoubleLineChartComponent,
+    ComboLineChartComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [

@@ -52,7 +52,16 @@ export class ObsStationReportComponent implements OnInit {
   windDirectionSeries;
   xTicks;
   dateInterval;
-
+  // Combined Chart
+  selectedTabs: string[] = [];
+  showCombined: boolean = false;
+  combinedData;
+  var1;
+  var2;
+  yLeftLabel;
+  yRightLabel;
+  unit1;
+  unit2;
   // to display only selected station details
   stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
   filteredStationDetails: StationDetail[] = [];
@@ -108,12 +117,118 @@ export class ObsStationReportComponent implements OnInit {
     this.loadReport();
   }
 
-  onNavChange(changeEvent: NgbNavChangeEvent) {
-    console.log(`nav changed to varcode: ${changeEvent.nextId}`);
-    this.updateGraphData(changeEvent.nextId);
-    this.addSecondaryXAxisLabels();
+  clickNavItem(tabName: string) {
+    // esegui solo se siamo in combinata e clicco uno dei due tab già selezionati
+    if (this.showCombined && this.selectedTabs.includes(tabName)) {
+      this.selectedTabs = [tabName]; // rimane solo quello cliccato
+      this.showCombined = false;
+      this.active = tabName;
+
+      this.updateGraphData(tabName);
+      this.addSecondaryXAxisLabels();
+
+      console.log(
+        "[clickNavItem] uscita dalla combinata, rimane:",
+        this.selectedTabs,
+      );
+    }
+    // se clicco un tab non combinato, lascia fare onNavChange
   }
 
+  onTabClick(tabId: string) {
+    const excludedTabs = ["B13011-1,0,0,0-1,0,3600", "mixwind-0"];
+    console.log(tabId);
+    const isExclusive = excludedTabs.includes(tabId);
+    const currentlyExclusive = this.selectedTabs.some((t) =>
+      excludedTabs.includes(t),
+    );
+
+    if (isExclusive) {
+      // clicco un tab esclusivo → uscita combinata e seleziona solo quello
+      this.selectedTabs = [tabId];
+      this.showCombined = false;
+    } else if (this.showCombined || currentlyExclusive) {
+      // se sono in combinata o ero su un tab esclusivo
+      this.selectedTabs = [tabId];
+      this.showCombined = false;
+    } else {
+      // modalità singola normale
+      const index = this.selectedTabs.indexOf(tabId);
+      if (index > -1) {
+        // clicco il tab già selezionato → resta selezionato
+        this.selectedTabs = [tabId];
+      } else {
+        // aggiungi nuovo tab
+        this.selectedTabs.push(tabId);
+        // attiva combinata solo se ora ho esattamente due tab e nessuno è escluso
+        if (
+          this.selectedTabs.length === 2 &&
+          !this.selectedTabs.some((t) => excludedTabs.includes(t))
+        ) {
+          this.showCombined = true;
+        }
+      }
+    }
+
+    // aggiorna activeId per ng-bootstrap
+    this.active = this.selectedTabs[0];
+
+    // aggiorna grafici
+    this.updateGraphData(this.active);
+    this.addSecondaryXAxisLabels();
+
+    console.log(
+      "selectedTabs:",
+      this.selectedTabs,
+      "showCombined:",
+      this.showCombined,
+    );
+  }
+
+  isTabSelected(tabId: string): boolean {
+    return this.selectedTabs.includes(tabId);
+  }
+
+  /*onNavChange(changeEvent: NgbNavChangeEvent) {
+  const tabId = changeEvent.nextId;
+  const excludedTabs = ['B13011-1,0,0,0-1,0,3600', 'mixwind-0'];
+
+  const index = this.selectedTabs.indexOf(tabId);
+  if (index > -1) {
+    // deselezione in modalità singola
+    this.selectedTabs.splice(index, 1);
+  } else {
+    this.selectedTabs.push(tabId);
+  }
+
+  // se almeno uno dei tab selezionati è escluso → esci combinata
+  const hasExcluded = this.selectedTabs.some(t => excludedTabs.includes(t));
+  if (hasExcluded) {
+    this.showCombined = false;
+    this.selectedTabs = [tabId];
+  } else {
+    // logica combinata normale: attiva solo se 2 tab selezionati
+    this.showCombined = this.selectedTabs.length === 2;
+  }
+
+  this.active = tabId;
+
+  this.updateGraphData(tabId);
+  this.addSecondaryXAxisLabels();
+
+  console.log('showCombined', this.showCombined, 'selectedTabs', this.selectedTabs);
+}*/
+
+  /*isTabSelected(tabId: string): boolean {
+  if (this.showCombined) {
+      //console.log(this.selectedTabs.length);
+    // se showCombined è attivo, evidenzia entrambe le tab selezionate
+    return this.selectedTabs.includes(tabId);
+  } else {
+    // altrimenti solo l'attivo
+    return this.active === tabId;
+  }
+}*/
   getNavItemName(element: ObsData) {
     return `${element.var}-${element.lev}-${element.trange}`;
   }
@@ -185,10 +300,15 @@ export class ObsStationReportComponent implements OnInit {
             this.meteogramToShow = "mixwind-0";
             this.buildWindProduct();
           }
-
           this.active = this.meteogramToShow;
+          this.selectedTabs.push(this.meteogramToShow);
           this.updateYScaleRange(this.meteogramToShow);
           this.singleDates = this.transformDataFormat(this.single);
+          const excludeCodes = ["B11001", "B11002", "B99999"];
+          this.combinedData = this.multi.filter(
+            (item) => !excludeCodes.includes(item.code),
+          );
+          console.log("combineddata", this.combinedData);
           if (this.meteogramToShow === "B13011-1,0,0,0-1,0,3600") {
             this.accumulatedSeriesDates = this.transformDataFormat(
               this.accumulatedSeries,
@@ -416,9 +536,46 @@ export class ObsStationReportComponent implements OnInit {
     if (navItemId === "mixwind-0") {
       this.buildWindProduct();
     } else {
-      this.single = this.multi.filter(
-        (x: DataSeries) => `${x.code}-${x.level}-${x.timerange}` === navItemId,
-      );
+      if (!this.showCombined) {
+        this.single = this.multi.filter(
+          (x: DataSeries) =>
+            `${x.code}-${x.level}-${x.timerange}` === navItemId,
+        );
+      } else {
+        //console.log(this.selectedTabs);
+        if (this.selectedTabs.length === 2) {
+          const codes = this.selectedTabs.map((t) => t.split("-")[0]);
+          this.var1 = this.transformDataFormat(
+            this.combinedData.filter((item) => codes[0].includes(item.code)),
+          );
+          this.var2 = this.transformDataFormat(
+            this.combinedData.filter((item) => codes[1].includes(item.code)),
+          );
+          console.log("var1", this.var1[0].name, "var2", this.var2[0].name);
+          this.unit1 = this.var1[0].unit;
+          if (this.unit1.includes("PA") || this.unit1.includes("K")) {
+            if (this.unit1 === "PA") this.unit1 = "hPa";
+            if (this.unit1 === "K") this.unit1 = "°C";
+          }
+          this.unit2 = this.var2[0].unit;
+          if (this.unit2.includes("PA") || this.unit2.includes("K")) {
+            if (this.unit2 === "PA") this.unit2 = "hPa";
+            if (this.unit2 === "K") this.unit2 = "°C";
+          }
+
+          this.yLeftLabel =
+            this.var1[0].name.charAt(0).toUpperCase() +
+            this.var1[0].name.slice(1).toLowerCase() +
+            " " +
+            this.unit1;
+          this.yRightLabel =
+            this.var2[0].name.charAt(0).toUpperCase() +
+            this.var2[0].name.slice(1).toLowerCase() +
+            " " +
+            this.unit2;
+          //console.log(this.yLeftLabel, this.yRightLabel);
+        }
+      }
     }
     if (this.flagUnit && this.single[0]?.unit === "M/S") {
       this.convertToKmH();
