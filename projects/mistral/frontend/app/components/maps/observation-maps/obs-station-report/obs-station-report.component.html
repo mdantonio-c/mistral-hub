@@ -185,7 +185,11 @@
                 </div>
                 <div *ngSwitchCase="'COMBINED'">
                   <ng-container
-                    *ngTemplateOutlet="comboCombinedChart"
+                    *ngTemplateOutlet="
+                      !combinedPrec
+                        ? comboCombinedChart
+                        : comboChartPrecCombined
+                    "
                   ></ng-container>
                 </div>
                 <div *ngSwitchDefault>
@@ -490,6 +494,89 @@
                     </div>
                   </ng-template>
                 </combo-chart-combined-component>
+              </ng-template>
+              <ng-template #comboChartPrecCombined>
+                <combo-chart-component
+                  [view]="[containerRef.offsetWidth - 100, 400]"
+                  [scheme]="monoBarSchemeRain"
+                  [colorSchemeLine]="monoLineSchemeRain"
+                  [results]="var1[0].series"
+                  [animations]="true"
+                  [lineChart]="var2"
+                  [tooltipDisabled]="false"
+                  [yLeftAxisScaleFactor]="yLeftAxisScale"
+                  [yRightAxisScaleFactor]="yRightAxisScale"
+                  [gradient]="false"
+                  [xAxis]="true"
+                  [yAxis]="true"
+                  [xAxisTicks]="xTicks"
+                  [dateInterval]="dateInterval"
+                  [autoScale]="false"
+                  [legend]="false"
+                  [rotateXAxisTicks]="false"
+                  [showGridLines]="true"
+                  [showXAxisLabel]="true"
+                  [showYAxisLabel]="true"
+                  [autoScaleRightYAxis]="combinedPrec"
+                  [showRightYAxisLabel]="true"
+                  [xAxisLabel]="xAxisLabelFormatting()"
+                  [xAxisTickFormatting]="xAxisTickFormattingFn"
+                  [yAxisLabel]="yLeftLabel"
+                  [yAxisLabelRight]="yRightLabel"
+                  [gridLineNgStyleByXAxisTick]="onlyDateChangeNgStyleFn"
+                >
+                  <ng-template #tooltipTemplate let-model="model">
+                    <span class="d-block">{{
+                      model.name | fmtLabelDate : "it" : true
+                    }}</span>
+                    <span class="d-block"
+                      >{{ model.series | translate : lang }}:
+                      {{ model.value }}</span
+                    >
+                  </ng-template>
+                  <ng-template #seriesTooltipTemplate let-model="model">
+                    <div class="area-tooltip-container">
+                      <span class="d-block"
+                        ><b>{{
+                          model[0].name | fmtLabelDate : "it" : true
+                        }}</b></span
+                      >
+                      <div
+                        *ngFor="let tooltipItem of model"
+                        class="tooltip-item"
+                      >
+                        <span
+                          class="tooltip-item-color"
+                          [style.background-color]="
+                            tooltipItem.series
+                              .toLowerCase()
+                              .includes(
+                                var1[0].name.split(' ')[0].toLowerCase()
+                              )
+                              ? monoBarSchemeRain.domain[0]
+                              : monoLineSchemeRain.domain[0]
+                          "
+                        ></span>
+                        {{
+                          tooltipItem.series
+                            .toLowerCase()
+                            .charAt(0)
+                            .toUpperCase() +
+                            tooltipItem.series.toLowerCase().slice(1)
+                            | replace : "\\(([^\\)]+)\\)" : ""
+                            | translate : lang
+                        }}: <b>{{ tooltipItem.value }}</b>
+                        {{
+                          tooltipItem.series
+                            .toLowerCase()
+                            .includes(var1[0].name.split(" ")[0].toLowerCase())
+                            ? unit1
+                            : unit2
+                        }}
+                      </div>
+                    </div>
+                  </ng-template>
+                </combo-chart-component>
               </ng-template>
             </div>
           </div>

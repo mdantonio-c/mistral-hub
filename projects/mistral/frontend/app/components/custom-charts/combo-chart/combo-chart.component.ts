@@ -64,6 +64,7 @@ export class ComboChartComponent extends BaseChartComponent {
   @Input() xScaleMin: any;
   @Input() xScaleMax: any;
   @Input() dateInterval: any[];
+  @Input() autoScaleRightYAxis;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() deactivate: EventEmitter<any> = new EventEmitter();
@@ -275,12 +276,16 @@ export class ComboChartComponent extends BaseChartComponent {
       }
     }
 
-    const min = 0;
+    let min = 0;
     let max = Math.round(Math.max(...domain) + 10);
     const all1Mm = domain.every((v) => v <= 1);
     if (this.yRightAxisScaleFactor) {
       if (all1Mm) {
         max = 5;
+      }
+      if (this.autoScaleRightYAxis) {
+        min = Math.round(Math.min(...domain) - 5);
+        max = Math.round(Math.max(...domain) + 5);
       }
       const minMax = this.yRightAxisScaleFactor(min, max);
       return [minMax.min, minMax.max];
@@ -350,7 +355,7 @@ export class ComboChartComponent extends BaseChartComponent {
 
   getYDomain() {
     const values = this.results.map((d) => d.value);
-    const min = 0;
+    let min = 0;
     let max = Math.round(Math.max(...values) + 10);
     if (this.yLeftAxisScaleFactor) {
       const all1Mm = values.every((v) => v <= 1);

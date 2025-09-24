@@ -62,6 +62,7 @@ export class ObsStationReportComponent implements OnInit {
   yRightLabel;
   unit1;
   unit2;
+  combinedPrec = false;
   // to display only selected station details
   stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
   filteredStationDetails: StationDetail[] = [];
@@ -118,7 +119,6 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   clickNavItem(tabName: string) {
-    // esegui solo se siamo in combinata e clicco uno dei due tab già selezionati
     if (this.showCombined && this.selectedTabs.includes(tabName)) {
       this.selectedTabs = [tabName]; // rimane solo quello cliccato
       this.showCombined = false;
@@ -132,11 +132,11 @@ export class ObsStationReportComponent implements OnInit {
         this.selectedTabs,
       );
     }
-    // se clicco un tab non combinato, lascia fare onNavChange
   }
 
   onTabClick(tabId: string) {
-    const excludedTabs = ["B13011-1,0,0,0-1,0,3600", "mixwind-0"];
+    //const excludedTabs = ["B13011-1,0,0,0-1,0,3600", "mixwind-0"];
+    const excludedTabs = ["mixwind-0"];
     console.log(tabId);
     const isExclusive = excludedTabs.includes(tabId);
     const currentlyExclusive = this.selectedTabs.some((t) =>
@@ -144,23 +144,18 @@ export class ObsStationReportComponent implements OnInit {
     );
 
     if (isExclusive) {
-      // clicco un tab esclusivo → uscita combinata e seleziona solo quello
       this.selectedTabs = [tabId];
       this.showCombined = false;
     } else if (this.showCombined || currentlyExclusive) {
-      // se sono in combinata o ero su un tab esclusivo
       this.selectedTabs = [tabId];
       this.showCombined = false;
     } else {
-      // modalità singola normale
       const index = this.selectedTabs.indexOf(tabId);
       if (index > -1) {
-        // clicco il tab già selezionato → resta selezionato
         this.selectedTabs = [tabId];
       } else {
-        // aggiungi nuovo tab
         this.selectedTabs.push(tabId);
-        // attiva combinata solo se ora ho esattamente due tab e nessuno è escluso
+
         if (
           this.selectedTabs.length === 2 &&
           !this.selectedTabs.some((t) => excludedTabs.includes(t))
@@ -170,10 +165,8 @@ export class ObsStationReportComponent implements OnInit {
       }
     }
 
-    // aggiorna activeId per ng-bootstrap
     this.active = this.selectedTabs[0];
 
-    // aggiorna grafici
     this.updateGraphData(this.active);
     this.addSecondaryXAxisLabels();
 
@@ -189,46 +182,6 @@ export class ObsStationReportComponent implements OnInit {
     return this.selectedTabs.includes(tabId);
   }
 
-  /*onNavChange(changeEvent: NgbNavChangeEvent) {
-  const tabId = changeEvent.nextId;
-  const excludedTabs = ['B13011-1,0,0,0-1,0,3600', 'mixwind-0'];
-
-  const index = this.selectedTabs.indexOf(tabId);
-  if (index > -1) {
-    // deselezione in modalità singola
-    this.selectedTabs.splice(index, 1);
-  } else {
-    this.selectedTabs.push(tabId);
-  }
-
-  // se almeno uno dei tab selezionati è escluso → esci combinata
-  const hasExcluded = this.selectedTabs.some(t => excludedTabs.includes(t));
-  if (hasExcluded) {
-    this.showCombined = false;
-    this.selectedTabs = [tabId];
-  } else {
-    // logica combinata normale: attiva solo se 2 tab selezionati
-    this.showCombined = this.selectedTabs.length === 2;
-  }
-
-  this.active = tabId;
-
-  this.updateGraphData(tabId);
-  this.addSecondaryXAxisLabels();
-
-  console.log('showCombined', this.showCombined, 'selectedTabs', this.selectedTabs);
-}*/
-
-  /*isTabSelected(tabId: string): boolean {
-  if (this.showCombined) {
-      //console.log(this.selectedTabs.length);
-    // se showCombined è attivo, evidenzia entrambe le tab selezionate
-    return this.selectedTabs.includes(tabId);
-  } else {
-    // altrimenti solo l'attivo
-    return this.active === tabId;
-  }
-}*/
   getNavItemName(element: ObsData) {
     return `${element.var}-${element.lev}-${element.trange}`;
   }
@@ -542,25 +495,59 @@ export class ObsStationReportComponent implements OnInit {
             `${x.code}-${x.level}-${x.timerange}` === navItemId,
         );
       } else {
-        //console.log(this.selectedTabs);
         if (this.selectedTabs.length === 2) {
+          const specialCode = "B13011-1,0,0,0-1,0,3600";
+
           const codes = this.selectedTabs.map((t) => t.split("-")[0]);
-          this.var1 = this.transformDataFormat(
-            this.combinedData.filter((item) => codes[0].includes(item.code)),
+          if (this.selectedTabs.includes(specialCode)) {
+            this.combinedPrec = true;
+            this.var1 = this.transformDataFormat(
+              this.combinedData.filter(
+                (item) => item.code === specialCode.split("-")[0],
+              ),
+            );
+
+            const otherTab = this.selectedTabs.find((t) => t !== specialCode);
+            const otherCode = otherTab.split("-")[0];
+            this.var2 = this.transformDataFormat(
+              this.combinedData.filter((item) => otherCode.includes(item.code)),
+            );
+          } else {
+            this.var1 = this.transformDataFormat(
+              this.combinedData.filter((item) => codes[0].includes(item.code)),
+            );
+            this.var2 = this.transformDataFormat(
+              this.combinedData.filter((item) => codes[1].includes(item.code)),
+            );
+            this.combinedPrec = false;
+          }
+          console.log(
+            "var1",
+            this.var1[0].name,
+            "var2",
+            this.var2[0].name,
+            this.var1,
+            this.var2,
           );
-          this.var2 = this.transformDataFormat(
-            this.combinedData.filter((item) => codes[1].includes(item.code)),
-          );
-          console.log("var1", this.var1[0].name, "var2", this.var2[0].name);
           this.unit1 = this.var1[0].unit;
-          if (this.unit1.includes("PA") || this.unit1.includes("K")) {
+          if (
+            this.unit1.includes("PA") ||
+            this.unit1.includes("K") ||
+            this.unit1.includes("KG/M**2")
+          ) {
             if (this.unit1 === "PA") this.unit1 = "hPa";
             if (this.unit1 === "K") this.unit1 = "°C";
+            if (this.unit1 === "KG/M**2") this.unit1 = "mm";
           }
           this.unit2 = this.var2[0].unit;
-          if (this.unit2.includes("PA") || this.unit2.includes("K")) {
+          if (
+            this.unit2.includes("PA") ||
+            this.unit2.includes("K") ||
+            this.unit2.includes("KG/M**2")
+          ) {
             if (this.unit2 === "PA") this.unit2 = "hPa";
             if (this.unit2 === "K") this.unit2 = "°C";
+            if (this.unit2 === "KG/M**2") this.unit2 = "mm";
           }
 
           this.yLeftLabel =
@@ -573,6 +560,7 @@ export class ObsStationReportComponent implements OnInit {
             this.var2[0].name.slice(1).toLowerCase() +
             " " +
             this.unit2;
+
           //console.log(this.yLeftLabel, this.yRightLabel);
         }
       }
