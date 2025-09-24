@@ -61,6 +61,8 @@ export class ObsStationReportComponent implements OnInit {
   var2;
   yLeftLabel;
   yRightLabel;
+  unit1;
+  unit2;
   // to display only selected station details
   stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
   filteredStationDetails: StationDetail[] = [];
@@ -541,7 +543,7 @@ export class ObsStationReportComponent implements OnInit {
             `${x.code}-${x.level}-${x.timerange}` === navItemId,
         );
       } else {
-        console.log(this.selectedTabs);
+        //console.log(this.selectedTabs);
         if (this.selectedTabs.length === 2) {
           const codes = this.selectedTabs.map((t) => t.split("-")[0]);
           this.var1 = this.transformDataFormat(
@@ -551,28 +553,28 @@ export class ObsStationReportComponent implements OnInit {
             this.combinedData.filter((item) => codes[1].includes(item.code)),
           );
           console.log("var1", this.var1[0].name, "var2", this.var2[0].name);
-          let unit1 = this.var1[0].unit;
-          if (unit1.includes("PA") || unit1.includes("K")) {
-            if (unit1 === "PA") unit1 = "hPa";
-            if (unit1 === "K") unit1 = "°C";
+          this.unit1 = this.var1[0].unit;
+          if (this.unit1.includes("PA") || this.unit1.includes("K")) {
+            if (this.unit1 === "PA") this.unit1 = "hPa";
+            if (this.unit1 === "K") this.unit1 = "°C";
           }
-          let unit2 = this.var2[0].unit;
-          if (unit2.includes("PA") || unit2.includes("K")) {
-            if (unit2 === "PA") unit2 = "hPa";
-            if (unit2 === "K") unit2 = "°C";
+          this.unit2 = this.var2[0].unit;
+          if (this.unit2.includes("PA") || this.unit2.includes("K")) {
+            if (this.unit2 === "PA") this.unit2 = "hPa";
+            if (this.unit2 === "K") this.unit2 = "°C";
           }
 
           this.yLeftLabel =
             this.var1[0].name.charAt(0).toUpperCase() +
             this.var1[0].name.slice(1).toLowerCase() +
             " " +
-            unit1;
+            this.unit1;
           this.yRightLabel =
             this.var2[0].name.charAt(0).toUpperCase() +
             this.var2[0].name.slice(1).toLowerCase() +
             " " +
-            unit2;
-          console.log(this.yLeftLabel, this.yRightLabel);
+            this.unit2;
+          //console.log(this.yLeftLabel, this.yRightLabel);
         }
       }
     }

@@ -442,9 +442,8 @@
                       model.name | fmtLabelDate : "it" : true
                     }}</span>
                     <span class="d-block"
-                      >{{ model.series | translate : lang }}:
-                      {{ model.value }} (mm)</span
-                    >
+                      >{{ model.series | translate : lang }}: {{ model.value }}
+                    </span>
                   </ng-template>
                   <ng-template #seriesTooltipTemplate let-model="model">
                     <div class="area-tooltip-container">
@@ -460,9 +459,13 @@
                         <span
                           class="tooltip-item-color"
                           [style.background-color]="
-                            !tooltipItem.series.includes('1h')
-                              ? tooltipItem.color
-                              : monoBarSchemeRain.domain[0]
+                            tooltipItem.series
+                              .toLowerCase()
+                              .includes(
+                                var1[0].name.split(' ')[0].toLowerCase()
+                              )
+                              ? monoLineSchemeWind.domain[0]
+                              : monoLineSchemeRain.domain[0]
                           "
                         ></span>
                         {{
@@ -473,7 +476,15 @@
                             tooltipItem.series.toLowerCase().slice(1)
                             | replace : "\\(([^\\)]+)\\)" : ""
                             | translate : lang
-                        }}: <b>{{ tooltipItem.value }}</b> (mm)
+                        }}: <b>{{ tooltipItem.value }}</b>
+                        {{
+                          tooltipItem.series
+                            .toLowerCase()
+                            .includes(var1[0].name.split(" ")[0].toLowerCase())
+                            ? unit1
+                            : unit2
+                        }}
+                        {{ tooltipItem.series }}
                       </div>
                     </div>
                   </ng-template>

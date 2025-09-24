@@ -23,6 +23,17 @@
       [gridLineNgStyleByAxisTick]="gridLineNgStyleByXAxisTick"
       (dimensionsChanged)="updateXAxisHeight($event)"
     ></svg:g>
+    <svg:g *ngFor="let tick of xAxisTicks">
+      <svg:line
+        [attr.x1]="xScale(tick)"
+        [attr.x2]="xScale(tick)"
+        y1="0"
+        [attr.y2]="dims.height"
+        stroke="#e4e4e4"
+        stroke-width="1"
+      />
+    </svg:g>
+
     <svg:g
       ngx-charts-y-axis
       *ngIf="yAxis"
@@ -35,6 +46,16 @@
       [tickFormatting]="yAxisTickFormatting"
       (dimensionsChanged)="updateYAxisWidth($event)"
     ></svg:g>
+    <svg:g *ngFor="let tick of yScale.ticks()">
+      <svg:line
+        x1="0"
+        [attr.x2]="dims.width"
+        [attr.y1]="yScale(tick)"
+        [attr.y2]="yScale(tick)"
+        stroke="#e4e4e4"
+        stroke-width="1"
+      />
+    </svg:g>
     <svg:g
       ngx-charts-y-axis
       *ngIf="yAxis"

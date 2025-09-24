@@ -147,7 +147,6 @@ export class DoubleLineChartComponent extends BaseChartComponent {
 
     this.setColors();
     this.legendOptions = this.getLegendOptions();
-
     this.transform = `translate(${this.dims.xOffset} , ${this.margin[0]})`;
   }
 
@@ -275,8 +274,8 @@ export class DoubleLineChartComponent extends BaseChartComponent {
       }
     }
 
-    const min = 0;
-    let max = Math.round(Math.max(...domain) + 10);
+    const min = Math.round(Math.min(...domain) - 5);
+    let max = Math.round(Math.max(...domain) + 5);
     const all1Mm = domain.every((v) => v <= 1);
     if (this.yRightAxisScaleFactor) {
       if (all1Mm) {
@@ -355,9 +354,8 @@ export class DoubleLineChartComponent extends BaseChartComponent {
     const values = this.results.map((d) => d.value);
 
     //const min = 0;
-    const min = Math.min(...values) - 10;
-    let max = Math.round(Math.max(...values) + 10);
-    console.log(min, max);
+    const min = Math.round(Math.min(...values) - 5);
+    let max = Math.round(Math.max(...values) + 5);
     if (this.yLeftAxisScaleFactor) {
       const all1Mm = values.every((v) => v <= 1);
       if (all1Mm) {
