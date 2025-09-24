@@ -228,8 +228,6 @@ See the information available at the following URL:<br/>
 <h5>DATA RECIPIENTS</h5>
 The recipients of the data collected after completing the form or sending an e-mail or subscription to the site are any Data Processors appointed by the Data Controller, as well as the physical persons within the Cineca authorized to process the data for the purposes indicated above.<br/>
 <br/>
-Your personal data will not be subject to disclosure.<br/>
-<br/>
 
 <h5>DATA STORAGE</h5>
 Browsing data and cookies must be kept for a maximum of seven days, unless expressly requested by the judicial authority for the detection of crimes. The data voluntarily provided by users will be kept as long as necessary with respect to the legitimate purposes for which they were collected.<br/>
