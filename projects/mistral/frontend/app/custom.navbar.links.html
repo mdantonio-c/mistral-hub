@@ -152,6 +152,13 @@
           (click)="collapse()"
           >User Guide</a
         >
+        <a ngbDropdownItem 
+          [href]="projectHome + '/catalog'" 
+          routerLinkActive="active" 
+          (click)="collapse()" 
+          target="_blank">
+          CKAN Catalog
+        </a>
         <a
           ngbDropdownItem
           routerLink="/app/license"
