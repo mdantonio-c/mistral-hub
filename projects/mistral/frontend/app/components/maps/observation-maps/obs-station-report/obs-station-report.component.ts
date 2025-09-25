@@ -118,26 +118,11 @@ export class ObsStationReportComponent implements OnInit {
     this.loadReport();
   }
 
-  clickNavItem(tabName: string) {
-    if (this.showCombined && this.selectedTabs.includes(tabName)) {
-      this.selectedTabs = [tabName]; // rimane solo quello cliccato
-      this.showCombined = false;
-      this.active = tabName;
-
-      this.updateGraphData(tabName);
-      this.addSecondaryXAxisLabels();
-
-      console.log(
-        "[clickNavItem] uscita dalla combinata, rimane:",
-        this.selectedTabs,
-      );
-    }
-  }
-
   onTabClick(tabId: string) {
     //const excludedTabs = ["B13011-1,0,0,0-1,0,3600", "mixwind-0"];
+    // console.log(tabId);
     const excludedTabs = ["mixwind-0"];
-    console.log(tabId);
+
     const isExclusive = excludedTabs.includes(tabId);
     const currentlyExclusive = this.selectedTabs.some((t) =>
       excludedTabs.includes(t),
@@ -170,12 +155,12 @@ export class ObsStationReportComponent implements OnInit {
     this.updateGraphData(this.active);
     this.addSecondaryXAxisLabels();
 
-    console.log(
+    /*console.log(
       "selectedTabs:",
       this.selectedTabs,
       "showCombined:",
       this.showCombined,
-    );
+    );*/
   }
 
   isTabSelected(tabId: string): boolean {
@@ -261,7 +246,6 @@ export class ObsStationReportComponent implements OnInit {
           this.combinedData = this.multi.filter(
             (item) => !excludeCodes.includes(item.code),
           );
-          console.log("combineddata", this.combinedData);
           if (this.meteogramToShow === "B13011-1,0,0,0-1,0,3600") {
             this.accumulatedSeriesDates = this.transformDataFormat(
               this.accumulatedSeries,
@@ -485,7 +469,7 @@ export class ObsStationReportComponent implements OnInit {
 
   private updateGraphData(navItemId: string) {
     // managing of wind products
-    console.log(navItemId);
+    //console.log(navItemId);
     if (navItemId === "mixwind-0") {
       this.buildWindProduct();
     } else {
@@ -497,7 +481,6 @@ export class ObsStationReportComponent implements OnInit {
       } else {
         if (this.selectedTabs.length === 2) {
           const specialCode = "B13011-1,0,0,0-1,0,3600";
-
           const codes = this.selectedTabs.map((t) => t.split("-")[0]);
           if (this.selectedTabs.includes(specialCode)) {
             this.combinedPrec = true;
@@ -521,14 +504,14 @@ export class ObsStationReportComponent implements OnInit {
             );
             this.combinedPrec = false;
           }
-          console.log(
+          /*          console.log(
             "var1",
             this.var1[0].name,
             "var2",
             this.var2[0].name,
             this.var1,
             this.var2,
-          );
+          );*/
           this.unit1 = this.var1[0].unit;
           if (
             this.unit1.includes("PA") ||

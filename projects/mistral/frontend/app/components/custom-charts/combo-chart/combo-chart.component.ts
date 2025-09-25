@@ -184,10 +184,17 @@ export class ComboChartComponent extends BaseChartComponent {
 
   getSeriesDomain(): any[] {
     this.combinedSeries = this.lineChart.slice(0);
-    this.combinedSeries.push({
-      name: this.yAxisLabel,
-      series: this.results,
-    });
+    if (!this.autoScaleRightYAxis) {
+      this.combinedSeries.push({
+        name: this.yAxisLabel,
+        series: this.results,
+      });
+    } else {
+      this.combinedSeries.push({
+        name: "Precipitation",
+        series: this.results,
+      });
+    }
     return this.combinedSeries.map((d) => d.name);
   }
 

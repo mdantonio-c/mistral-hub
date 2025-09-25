@@ -64,6 +64,7 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   @Input() xScaleMin: any;
   @Input() xScaleMax: any;
   @Input() dateInterval: any[];
+  @Input() namevar1: string;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() deactivate: EventEmitter<any> = new EventEmitter();
@@ -182,8 +183,9 @@ export class DoubleLineChartComponent extends BaseChartComponent {
 
   getSeriesDomain(): any[] {
     this.combinedSeries = this.lineChart.slice(0);
+
     this.combinedSeries.push({
-      name: this.yAxisLabel,
+      name: this.namevar1,
       series: this.results,
     });
     return this.combinedSeries.map((d) => d.name);
