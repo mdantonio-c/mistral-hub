@@ -179,6 +179,13 @@ export class AimObservationMapsComponent
         10 * 60 * 1000,
       );
     }, 0);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        // La scheda è diventata attiva, aggiorna subito la timeline e i layer
+        this.toggleLayer(); // Aggiorna i dati della mappa
+        this.updateTimelineRange(); // Aggiorna la timeline
+      }
+    });
   }
   ngOnDestroy() {
     if (this.intervalId) {
@@ -444,7 +451,7 @@ export class AimObservationMapsComponent
           this.loadMarkers(data, filter.product);
           if (this.currentProduct === "ws10m") {
             if (this.windConvert) this.updateWindMarkers();
-          } 
+          }
           // in order to sync with the end of marker update
           this.timeDimensionControl._player.release();
           if (data.length === 0) {
@@ -461,8 +468,7 @@ export class AimObservationMapsComponent
       });
   }
   loadWindMarkersHandle(event) {
-    if (this.currentProduct !== "ws10m")
-      return;
+    if (this.currentProduct !== "ws10m") return;
     let oldWindConvert = this.windConvert;
     if (event) {
       this.windConvert = true;
