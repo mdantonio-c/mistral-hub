@@ -134,6 +134,7 @@ export class AimObservationMapsComponent
   private intervalId: any;
   private timeDimensionControl: any;
   private ITAversion = false;
+  private visibilityHandler: () => void;
 
   selectedNetwork = "";
   timelineReferenceDate: string = "";
@@ -179,17 +180,21 @@ export class AimObservationMapsComponent
         10 * 60 * 1000,
       );
     }, 0);
-    document.addEventListener("visibilitychange", () => {
+
+    this.visibilityHandler = () => {
       if (!document.hidden) {
-        // La scheda è diventata attiva, aggiorna subito la timeline e i layer
-        this.toggleLayer(); // Aggiorna i dati della mappa
-        this.updateTimelineRange(); // Aggiorna la timeline
+        this.toggleLayer();
+        this.updateTimelineRange();
       }
-    });
+    };
+    document.addEventListener("visibilitychange", this.visibilityHandler);
   }
   ngOnDestroy() {
     if (this.intervalId) {
       clearInterval(this.intervalId);
+    }
+    if (this.visibilityHandler) {
+      document.removeEventListener("visibilitychange", this.visibilityHandler);
     }
   }
 
