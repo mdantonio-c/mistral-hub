@@ -326,7 +326,7 @@ export class AimObservationMapsComponent
       ws10m: this.createLegendControl("ws10m"),
       rh: this.createLegendControl("rh"),
       prp: this.createLegendControl("prp"),
-      //snow: this.createLegendControl("snow"),
+      snow: this.createLegendControl("snow"),
     };
 
     this.legends[defaultProduct].addTo(map);

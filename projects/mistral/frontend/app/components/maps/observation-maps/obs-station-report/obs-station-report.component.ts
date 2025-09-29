@@ -504,7 +504,7 @@ export class ObsStationReportComponent implements OnInit {
             );
             this.combinedPrec = false;
           }
-          /*          console.log(
+          /*console.log(
             "var1",
             this.var1[0].name,
             "var2",
@@ -532,7 +532,12 @@ export class ObsStationReportComponent implements OnInit {
             if (this.unit2 === "K") this.unit2 = "°C";
             if (this.unit2 === "KG/M**2") this.unit2 = "mm";
           }
-
+          if (this.var1[0].name === "TOTAL SNOW DEPTH") {
+            this.unit1 = "cm";
+          }
+          if (this.var2[0].name === "TOTAL SNOW DEPTH") {
+            this.unit2 = "cm";
+          }
           this.yLeftLabel =
             this.var1[0].name.charAt(0).toUpperCase() +
             this.var1[0].name.slice(1).toLowerCase() +
