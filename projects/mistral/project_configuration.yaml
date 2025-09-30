@@ -78,7 +78,7 @@ variables:
     PLATFORM: G100
     MAPS_URL:
     TILES_URL:
-    PROJECT_HOME: "https://www.mistralportal.it"
+    PROJECT_HOME: "https://meteohub.agenziaitaliameteo.it/ui/"
     COOKIE_POLICY_URL: "https://www.cineca.it/privacy/cookies-cineca"
     FRONTEND_DEBUG: 0
     WARNING_MSG:
@@ -101,11 +101,11 @@ variables:
     CMS_UPLOAD_PATH_RELATIVE: uploads
     STRAPI_SERVER_RELATIVE_PATH: /cms
 
-    CMS_APP_KEYS: 
-    CMS_API_TOKEN_SALT: 
-    CMS_ADMIN_JWT_SECRET: 
-    CMS_TRANSFER_TOKEN_SALT: 
-    CMS_ENCRYPTION_KEY: 
+    CMS_APP_KEYS:
+    CMS_API_TOKEN_SALT:
+    CMS_ADMIN_JWT_SECRET:
+    CMS_TRANSFER_TOKEN_SALT:
+    CMS_ENCRYPTION_KEY:
 
     CMS_DATABASE_CLIENT: postgres
     CMS_DATABASE_HOST: 127.0.0.1
@@ -115,4 +115,4 @@ variables:
     CMS_DATABASE_PASSWORD: D3vMode!
     CMS_DATABASE_SSL: false
     CMS_DATABASE_FILENAME:
-    CMS_JWT_SECRET: 
+    CMS_JWT_SECRET:
