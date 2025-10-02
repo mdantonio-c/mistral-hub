@@ -425,7 +425,59 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
             to: toDate,
           });
         }
-        this.loadFilters();
+        const prevSelected = this.getSelectedFilters();
+        this.spinner.show("sp1");
+        this.formDataService
+          .getFilters()
+          .subscribe(
+            (response) => {
+              this.filters = response.items as GenericItems;
+              (this.filterForm.controls.filters as FormArray).clear();
+
+              Object.entries(this.filters).forEach(([name, values]) => {
+                if (!["summarystats", "network"].includes(name)) {
+                  values.forEach((obj: any) => (obj["active"] = true));
+                  (this.filterForm.controls.filters as FormArray).push(
+                    this.getFilterGroup(name, values),
+                  );
+                }
+              });
+
+              // re-apply previous selections
+              prevSelected.forEach((prev) => {
+                const currentGroup = (
+                  this.filterForm.controls.filters as FormArray
+                ).controls.find(
+                  (fg) => (fg as FormGroup).controls.name.value === prev.name,
+                ) as FormGroup;
+
+                if (currentGroup) {
+                  const currentValues = this.filters[prev.name];
+                  prev.values.forEach((v) => {
+                    const matchIndex = currentValues.findIndex(
+                      (cv) => cv.code === v.code,
+                    );
+                    if (matchIndex !== -1) {
+                      (
+                        (currentGroup.controls.values as FormArray).at(
+                          matchIndex,
+                        ) as FormControl
+                      ).setValue(true);
+                    }
+                  });
+                }
+              });
+
+              this.updateSummaryStats(response.items.summarystats);
+              this.onFilterChange();
+            },
+            (error) => {
+              this.notify.showError(`Unable to get summary fields`);
+            },
+          )
+          .add(() => this.spinner.hide("sp1"));
+
+        //this.loadFilters();
       },
       (reason) => {
         // do nothing
