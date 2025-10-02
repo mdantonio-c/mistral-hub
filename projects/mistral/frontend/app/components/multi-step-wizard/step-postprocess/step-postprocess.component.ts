@@ -428,6 +428,9 @@ export class StepPostprocessComponent extends StepComponent implements OnInit {
   ngOnInit() {
     this.user = this.authService.getUser();
     window.scroll(0, 0);
+    this.form.controls["onlyReliable"].setValue(
+      this.formDataService.getFormData().only_reliable || false,
+    );
     this.spinner.show("summary-spinner");
     this.current_format = this.formDataService.getFormData().output_format;
     this.formDataService
