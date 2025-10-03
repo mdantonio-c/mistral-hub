@@ -182,8 +182,9 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
       });
   }
 
-  loadFilters() {
+  loadFilters(preserveSelections: boolean = false) {
     this.spinner.show("sp1");
+    const prevSelected = preserveSelections ? this.getSelectedFilters() : [];
     // reset filters
     (this.filterForm.controls.filters as FormArray).clear();
     this.formDataService
@@ -251,7 +252,36 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           });
           //console.log(this.filterForm.get('filters'));
           //console.log(this.filters);
+          if (preserveSelections) {
+            prevSelected.forEach((prev) => {
+              const currentGroup = (
+                this.filterForm.controls.filters as FormArray
+              ).controls.find(
+                (fg) => (fg as FormGroup).controls.name.value === prev.name,
+              ) as FormGroup;
 
+              if (currentGroup) {
+                const currentValues = this.filters[prev.name];
+
+                prev.values.forEach((v) => {
+                  const matchIndex = currentValues.findIndex(
+                    (cv) =>
+                      (cv.code !== undefined &&
+                        v.code !== undefined &&
+                        cv.code === v.code) ||
+                      (cv.desc && v.desc && cv.desc.trim() === v.desc.trim()),
+                  );
+                  if (matchIndex !== -1) {
+                    (
+                      (currentGroup.controls.values as FormArray).at(
+                        matchIndex,
+                      ) as FormControl
+                    ).setValue(true);
+                  }
+                });
+              }
+            });
+          }
           this.updateSummaryStats(response.items.summarystats);
         },
         (error) => {
@@ -425,7 +455,8 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
             to: toDate,
           });
         }
-        this.loadFilters();
+
+        this.loadFilters(true);
       },
       (reason) => {
         // do nothing
