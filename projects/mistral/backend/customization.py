@@ -177,7 +177,7 @@ class Customizer(BaseCustomizer):
                     load_default=180,
                     validate=validate.Range(min=1, max=180),
                     metadata={
-                        "label": "Requests expiration in days(max 180)",
+                        "label": "Requests expiration in days (max 180)",
                         "description": "Number of days after which requests will be archived or deleted",
                     },
                 ),
