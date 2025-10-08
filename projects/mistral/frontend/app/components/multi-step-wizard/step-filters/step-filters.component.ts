@@ -185,6 +185,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   loadFilters(preserveSelections: boolean = false) {
     this.spinner.show("sp1");
     const prevSelected = preserveSelections ? this.getSelectedFilters() : [];
+    const prevFilters = preserveSelections ? this.filters : null;
     // reset filters
     (this.filterForm.controls.filters as FormArray).clear();
     this.formDataService
@@ -196,7 +197,21 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           Object.entries(this.filters).forEach((entry) => {
             if (!toBeExcluded.includes(entry[0])) {
               (<Array<any>>entry[1]).forEach(function (obj) {
-                obj["active"] = true;
+                if (!preserveSelections) obj["active"] = true;
+                else if (prevFilters && prevFilters[entry[0]]) {
+                  const oldMatch = (prevFilters[entry[0]] as Array<any>).find(
+                    (old) =>
+                      (old.code && obj.code && old.code === obj.code) ||
+                      (old.desc &&
+                        obj.desc &&
+                        old.desc.trim() === obj.desc.trim()),
+                  );
+                  if (oldMatch && "active" in oldMatch) {
+                    obj.active = oldMatch.active;
+                  }
+                } else {
+                  obj.active = true;
+                }
               });
               (this.filterForm.controls.filters as FormArray).push(
                 this.getFilterGroup(entry[0], entry[1]),
