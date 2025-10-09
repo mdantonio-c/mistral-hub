@@ -123,6 +123,11 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     this.spinner.show("sp2");
     // console.log('selected filter(s)', selectedFilters);
     let selectedFilterNames = selectedFilters.map((f) => f.name);
+    console.log("⚙️ onFilterChange() avviato", {
+      selectedFilters,
+      selectedFilterNames,
+    });
+
     this.formDataService
       .getFilters(selectedFilters)
       .subscribe(
@@ -138,6 +143,15 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
               // console.log(f[0]);
               // console.log('....OLD....', f[1]);
               let m = Object.entries(results).filter((e) => e[0] === f[0])[0];
+              if (f[0] === "timerange") {
+                console.log("🔍 Confronto TIMERANGE vecchio vs nuovo", {
+                  old: f[1].map((x: any) => ({
+                    desc: x.desc,
+                    active: x.active,
+                  })),
+                  new: m ? m[1].map((x: any) => ({ desc: x.desc })) : null,
+                });
+              }
               if (m) {
                 if (selectedFilterNames.includes(m[0])) {
                   if (selectedFilterNames.length === 1) {
@@ -186,6 +200,11 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
     this.spinner.show("sp1");
     const prevSelected = preserveSelections ? this.getSelectedFilters() : [];
     const prevFilters = preserveSelections ? this.filters : null;
+    console.log("🔧 loadFilters() chiamato", {
+      preserveSelections,
+      prevFilters: this.filters ? Object.keys(this.filters) : null,
+    });
+
     // reset filters
     (this.filterForm.controls.filters as FormArray).clear();
     this.formDataService
@@ -194,8 +213,19 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
         (response) => {
           this.filters = response.items as GenericItems;
           let toBeExcluded = ["summarystats", "network"];
+          if (this.formDataService.getFormData().reftime === null) {
+            console.log("🟢 Full Dataset attivo — abilito tutti i filtri");
+            Object.entries(this.filters).forEach(([name, values]) => {
+              if (Array.isArray(values)) {
+                values.forEach((v) => (v.active = true));
+              }
+            });
+          }
           Object.entries(this.filters).forEach((entry) => {
             if (!toBeExcluded.includes(entry[0])) {
+              if (entry[0] === "timerange") {
+                console.log("📦 Caricamento filtro TIMERANGE", entry[1]);
+              }
               (<Array<any>>entry[1]).forEach(function (obj) {
                 if (!preserveSelections) obj["active"] = true;
                 else if (prevFilters && prevFilters[entry[0]]) {
@@ -211,6 +241,14 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
                   }
                 } else {
                   obj.active = true;
+                }
+                if (entry[0] === "timerange") {
+                  console.log("   🔸 timerange obj:", {
+                    desc: obj.desc,
+                    active: obj.active,
+                    style: obj.style,
+                    trange_type: obj.trange_type,
+                  });
                 }
               });
               (this.filterForm.controls.filters as FormArray).push(
@@ -298,6 +336,13 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
             });
           }
           this.updateSummaryStats(response.items.summarystats);
+          console.log(
+            "✅ Fine loadFilters, stato finale dei timerange:",
+            this.filters["timerange"]?.map((t: any) => ({
+              desc: t.desc,
+              active: t.active,
+            })),
+          );
         },
         (error) => {
           this.notify.showError(`Unable to get summary fields`);
@@ -402,6 +447,11 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   updateTimerangeType() {
     Object.entries(this.filters).forEach((f) => {
       if (f[0] == "timerange") {
+        console.log(
+          "🔹 updateTimerangeType()",
+          f[1].map((o: any) => ({ desc: o.desc, active: o.active })),
+        );
+
         for (const obj of <Array<any>>f[1]) {
           const timerangeType = "#trtype-" + obj.trange_type;
 
@@ -415,6 +465,11 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
   updateFinalTimerange() {
     Object.entries(this.filters).forEach((f) => {
       if (f[0] == "timerange") {
+        console.log(
+          "🔹 updateFinalTimerange()",
+          f[1].map((o: any) => ({ desc: o.desc, p2: o.p2, active: o.active })),
+        );
+
         for (const obj of <Array<any>>f[1]) {
           const finalTimerange = "#ft-" + obj.p2;
 
@@ -441,6 +496,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
           (this.filterForm.controls.reftime as FormGroup).controls.fullDataset
             .value
         ) {
+          console.log("🟢 FULL DATASET selezionato → setReftime(null)");
           this.formDataService.setReftime(null);
         } else {
           let fromDate: Date = (
@@ -470,7 +526,7 @@ export class StepFiltersComponent extends StepComponent implements OnInit {
             to: toDate,
           });
         }
-
+        console.log("🔁 Chiamo loadFilters(true)");
         this.loadFilters(true);
       },
       (reason) => {
