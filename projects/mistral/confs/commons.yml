@@ -202,12 +202,13 @@ services:
     networks:
       default:
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
+      test:
+        ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    
+
   ui:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-cms-ui:latest
     restart: unless-stopped
@@ -216,8 +217,24 @@ services:
       ACTIVATE: ${ACTIVATE_UI}
       PORT: 4200
 
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9080"
+      - "9001:9001"
+    volumes:
+      - ${DATA_DIR}/minio_storage:/data
+    environment:
+      ACTIVATE: ${ACTIVATE_MINIO}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server --console-address ":9001" /data --address ":${S3_PORT}"
+    networks:
+      default:
+        aliases:
+          - s3.dockerized.io
 # volumes:
-#   strapiDB-data: 
+#   strapiDB-data:
 #     driver: local
 #     driver_opts:
 #       type: none
@@ -231,4 +248,4 @@ services:
 #       # device: ${STRAPI_DATA_PATH}/${UPLOAD_PATH_RELATIVE}
 #       device: ${DATA_DIR}/strapi/${UPLOAD_PATH_RELATIVE}
 #       o: bind
-  
+
