@@ -13,4 +13,7 @@ RUN echo "deb [trusted=yes] https://simc.arpae.it/packages/debian jammy main" > 
     && apt-get update -qq \
     && apt-get install -y python3-wreport dballe python3-dballe arkimet libsim python3-eccodes eccodes-simc dba-qcfilter gdal-bin libeccodes-tools
 
+RUN pip3 install --upgrade boto3 \
+    && pip install 'boto3-stubs[s3]'
+
 WORKDIR /code
