@@ -218,9 +218,9 @@ services:
       PORT: 4200
 
   minio:
-    image: minio/minio
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
     ports:
-      - "9000:9080"
+      - "9000:9000"
       - "9001:9001"
     volumes:
       - ${DATA_DIR}/minio_storage:/data
