@@ -153,10 +153,11 @@
           >User guide</a
         >
         <a ngbDropdownItem 
-          [href]="projectHome + '/catalog'" 
+          [href]="ckanCatalogUrl" 
           routerLinkActive="active" 
           (click)="collapse()" 
-          target="_blank">
+          target="_blank"
+          *ngIf="ckanCatalogUrl">
           CKAN catalog
         </a>
         <a
