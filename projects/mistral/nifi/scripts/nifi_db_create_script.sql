@@ -71,6 +71,38 @@ CREATE TABLE public.dpcn_1h_aggr_logfile
     ms_errore varchar
 );
 
+CREATE TABLE public.dpcn_24h_aggr_logfile
+(
+    fileid bigint NOT NULL REFERENCES public.dpcn_logfile,
+    filename varchar UNIQUE NOT NULL,
+    ts_24h_ingest_trigger timestamp with time zone,
+    ts_ingestion timestamp with time zone,
+    ts_delete timestamp with time zone,
+    ts_errore timestamp with time zone,
+    ms_errore varchar
+);
+
+CREATE TABLE public.dpcn_1h_aggr_dati(
+    fileid bigint NOT NULL REFERENCES public.dpcn_logfile,
+    station_name varchar,
+    station_hmsl double precision,
+    ident varchar,
+    network varchar,
+    lon double precision,
+    lat double precision,
+    date varchar,
+    timerange double precision,
+    p1 double precision,
+    p2 double precision,
+    varcode varchar,
+    value double precision,
+    level1 double precision,
+    l1 double precision,
+    level2 double precision,
+    l2 double precision,
+    CONSTRAINT pk_dpcn_1h_aggr_dati PRIMARY KEY (fileid, station_name, date)
+);
+
 CREATE TABLE public.dpcn_dati
 (
     fileid bigint NOT NULL REFERENCES public.dpcn_logfile,
