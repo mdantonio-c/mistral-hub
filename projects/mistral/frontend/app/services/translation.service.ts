@@ -69,7 +69,7 @@ export class TranslationService {
         "scalar field": "Campo scalare",
         total: "Totale",
         "map style": "Stile Mappa",
-        "why is the map incomplete?": "Perché la mappa non è completa?",
+        "why are some networks missing": "Perchè mancano alcune reti?",
         "given the voluntary nature of participation in the former mistral project, the map does not show data from every regional network. however, work is ongoing to complete the national framework":
           "Data la natura volontaria della partecipazione al progetto Mistral, da cui è derivato questo prodotto, la mappa non mostra i dati di tutte le reti regionali. Sono comunque in corso attività per completare il quadro nazionale",
         networks: "Reti",
