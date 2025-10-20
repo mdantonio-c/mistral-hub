@@ -19,6 +19,7 @@ export class CustomNavbarComponent {
   @Output() onClick: EventEmitter<null> = new EventEmitter<null>();
   projectHome: string = environment.CUSTOM.PROJECT_HOME;
   infoHome: string = environment.CUSTOM.INFO_HOME;
+  ckanCatalogUrl: string = environment.CUSTOM.CKAN_CATALOG_URL;
 
   constructor() {}
 

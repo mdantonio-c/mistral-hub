@@ -116,3 +116,4 @@ variables:
     CMS_DATABASE_SSL: false
     CMS_DATABASE_FILENAME:
     CMS_JWT_SECRET:
+    CKAN_CATALOG_URL: "https://www.mistralportal.it/catalog"
