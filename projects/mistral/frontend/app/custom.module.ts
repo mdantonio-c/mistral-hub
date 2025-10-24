@@ -68,6 +68,8 @@ import { SideNavComponent } from "./components/maps/meteo-tiles/side-nav/side-na
 import { BindingsComponent } from "@app/components/bindings/bindings";
 import { LivemapComponent } from "./components/maps/livemap/livemap.component";
 import { SideNavFilterComponent } from "./components/maps/side-nav/side-nav.component";
+import { SeasonalComponent } from "@app/components/maps/seasonal/seasonal.component";
+import { SideNavComponentSeasonal } from "./components/maps/seasonal/side-nav/side-nav.component";
 
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
 import { FormatLabelDatePipe } from "@app/pipes/format-data-label.pipe";
@@ -137,6 +139,10 @@ const appRoutes: Routes = [
   {
     path: "app/maps/meteotiles",
     component: MeteoTilesComponent,
+  },
+  {
+    path: "app/maps/seasonal",
+    component: SeasonalComponent,
   },
   {
     path: "app/maps/livemap",
@@ -227,6 +233,8 @@ const appRoutes: Routes = [
     CustomXAxisTick,
     MeteoTilesComponent,
     SideNavComponent,
+    SeasonalComponent,
+    SideNavComponentSeasonal,
     LivemapComponent,
     SideNavFilterComponent,
     MultiStepWizardComponent,

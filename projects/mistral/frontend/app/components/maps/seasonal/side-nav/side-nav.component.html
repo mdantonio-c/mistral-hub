@@ -1,0 +1,71 @@
+<nav class="map-sidenav" [class.collapsed]="isCollapsed">
+  <div id="overlay" class="sidenav-overlay"></div>
+  <div class="map-sidenav-menu">
+    <label
+      class="toggle"
+      (click)="changeCollapse()"
+      [class.collapsed]="isCollapsed"
+    ></label>
+    <ul class="selector">
+      <ng-container
+        *ngFor="let variable of VariablesConfig | keyvalue; let last = last"
+      >
+        <li class="sidenav-item" [class.last]="last">
+          <span
+            class="{{ variable.value[1] }}"
+            placement="left"
+            [ngbTooltip]="variable.value[0]"
+            (click)="toggleLayer($event, variable.key)"
+            [disableTooltip]="!isCollapsed"
+            [class.attivo]="selectedLayers === variable.key"
+          ></span>
+          <a
+            href="#"
+            *ngIf="!isCollapsed"
+            (click)="toggleLayer($event, variable.key)"
+          >
+            <span class="nav-text" i118n
+              >{{ variable.key | translate : lang | titlecase }}
+            </span></a
+          >
+        </li>
+      </ng-container>
+      <ng-container *ngFor="let month of monthsMapping; let last = last">
+        <li class="sidenav-item" [class.last]="last">
+          <span
+            placement="left"
+            (click)="toggleMonth($event, month[0])"
+            [ngbTooltip]="month[0]"
+            [disableTooltip]="!isCollapsed"
+            [class.attivo]="selectedMonths === month[0]"
+            >{{ month[0] }}</span
+          >
+        </li>
+      </ng-container>
+      <li class="sidenav-item zoom">
+        <span
+          class="plus clickable"
+          (click)="zoom($event, 'in')"
+          placement="left"
+          [ngbTooltip]="'Zoom in'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
+          <span class="nav-text" i18n>Zoom in</span>
+        </a>
+      </li>
+      <li class="sidenav-item last">
+        <span
+          class="minus clickable"
+          (click)="zoom($event, 'out')"
+          placement="left"
+          [ngbTooltip]="'Zoom out'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
+          <span class="nav-text" i18n>Zoom out</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
