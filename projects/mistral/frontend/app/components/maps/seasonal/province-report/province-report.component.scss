@@ -1,0 +1,10 @@
+.chart-wrapper {
+  position: relative;
+}
+
+.overlay-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}

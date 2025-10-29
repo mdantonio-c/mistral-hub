@@ -1,0 +1,90 @@
+<ngx-charts-chart
+  [view]="[width, height]"
+  [showLegend]="legend"
+  [legendOptions]="legendOptions"
+  [animations]="animations"
+  (legendLabelClick)="onClick($event)"
+  (legendLabelActivate)="onActivate($event)"
+  (legendLabelDeactivate)="onDeactivate($event)"
+>
+  <svg:g [attr.transform]="transform" class="box-chart chart">
+    <svg:g *ngIf="showGridLines" class="gridlines">
+      <svg:line
+        *ngFor="let tick of xScale.domain()"
+        [attr.x1]="xScale(tick) + xScale.bandwidth() / 2"
+        [attr.x2]="xScale(tick) + xScale.bandwidth() / 2"
+        [attr.y1]="0"
+        [attr.y2]="dims.height"
+        stroke="#e0e0e0"
+        stroke-width="2"
+      />
+
+      <svg:line
+        *ngFor="let tick of yScale.ticks()"
+        [attr.x1]="0"
+        [attr.x2]="dims.width"
+        [attr.y1]="yScale(tick)"
+        [attr.y2]="yScale(tick)"
+        stroke="#e0e0e0"
+        stroke-width="2"
+      />
+    </svg:g>
+    <svg:g
+      ngx-charts-x-axis
+      [showGridLines]="showGridLines"
+      [dims]="dims"
+      [xScale]="xScale"
+      [showLabel]="showXAxisLabel"
+      [labelText]="xAxisLabel"
+      (dimensionsChanged)="updateXAxisHeight($event)"
+    />
+    <svg:g
+      ngx-charts-y-axis
+      [showGridLines]="showGridLines"
+      [dims]="dims"
+      [yScale]="yScale"
+      [showLabel]="showYAxisLabel"
+      [labelText]="yAxisLabel"
+      (dimensionsChanged)="updateYAxisWidth($event)"
+    />
+
+    <svg:g *ngFor="let result of results; trackBy: trackBy">
+      <svg:g
+        ngx-charts-box-series
+        [xScale]="xScale"
+        [yScale]="yScale"
+        [colors]="colors"
+        [roundEdges]="roundEdges"
+        [strokeColor]="strokeColor"
+        [strokeWidth]="strokeWidth"
+        [tooltipDisabled]="tooltipDisabled"
+        [tooltipTemplate]="tooltipTemplate"
+        [series]="result"
+        [dims]="dims"
+        [animations]="animations"
+        [gradient]="gradient"
+        (activate)="onActivate($event)"
+        (deactivate)="onDeactivate($event)"
+        (select)="onClick($event)"
+      />
+    </svg:g>
+    <svg:g
+      *ngFor="let line of lineChart; let i = index"
+      ngx-combo-charts-line-seasonal
+      [xScale]="xScale"
+      [yScale]="yScale"
+      [colors]="colors"
+      [series]="line.series"
+      [seriesName]="line.name"
+      [dims]="dims"
+      [gradient]="gradient"
+      [tooltipDisabled]="true"
+      [activeEntries]="activeEntries"
+      [animations]="animations"
+      [noBarWhenZero]="noBarWhenZero"
+      (activate)="onActivate($event)"
+      (deactivate)="onDeactivate($event)"
+      (select)="onClick($event)"
+    ></svg:g>
+  </svg:g>
+</ngx-charts-chart>

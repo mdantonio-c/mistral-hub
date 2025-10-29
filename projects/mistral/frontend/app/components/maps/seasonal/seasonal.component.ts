@@ -7,6 +7,8 @@ import {
   OSM_LICENSE_HREF,
 } from "../meteo-tiles/meteo-tiles.config";
 import { TilesService } from "../meteo-tiles/services/tiles.service";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { ProvinceReportComponent } from "./province-report/province-report.component";
 
 const ICON_BOUNDS = {
   southWest: L.latLng(33.69, 2.9875),
@@ -14,9 +16,18 @@ const ICON_BOUNDS = {
 };
 
 const layerMap = {
-  "Maximum temperature": ["meteo-hub:mean_TM", "meteo-hub:ano_max_TM"],
-  "Minimum temperature": ["meteo-hub:mean_Tm", "meteo-hub:ano_min_Tm"],
-  "Total monthly precipitation": ["meteo-hub:sum_P", "meteo-hub:ano_P"],
+  "Maximum temperature": [
+    "meteohub:seasonal-mean-TM",
+    "meteohub:seasonal-ano-max-TM",
+  ],
+  "Minimum temperature": [
+    "meteohub:seasonal-mean-Tm",
+    "meteohub:seasonal-ano-min-Tm",
+  ],
+  "Total monthly precipitation": [
+    "meteohub:seasonal-sum-P",
+    "meteohub:seasonal-ano-P",
+  ],
 };
 
 @Component({
@@ -32,6 +43,10 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   );
   public run;
   private wmsPath: string;
+  private mapsPath: string;
+  private provinceData: any = null;
+  private provinceDataPromise: Promise<any> | null = null;
+  public lang = "en";
   // Leaflet does not allow you to reuse the same TileLayer instance on multiple maps.
   private createLightMatterLayer(): L.TileLayer {
     return L.tileLayer(
@@ -49,6 +64,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   public selectedLayerId: string;
   public varDesc;
   private selectedMonth: string;
+  public prov: string;
 
   layersControl = {
     baseLayers: {
@@ -77,16 +93,21 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     timeDimensionControl: false,
   };
 
-  constructor(injector: Injector, private tilesService: TilesService) {
+  constructor(
+    injector: Injector,
+    private tilesService: TilesService,
+    private modalService: NgbModal,
+  ) {
     super(injector);
     this.optionsLeft["layers"] = [this.createLightMatterLayer()];
     this.optionsRight["layers"] = [this.createLightMatterLayer()];
     this.wmsPath = this.tilesService.getWMSUrl();
+    this.mapsPath = this.tilesService.getMapsUrl();
   }
 
   override ngOnInit(): void {
+    this.loadLatestRun();
     super.ngOnInit();
-    this.run = 10;
   }
 
   protected onMapReady(map: L.Map) {}
@@ -95,6 +116,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     map.setView([41.3, 12.5], this.minZoom + 1);
     this.layersControl["left_overlays"] = {};
     this.tryLoadWms("left");
+    this.addGeojsonLayer(map);
   }
 
   getTileWms(layerId: string, time: string) {
@@ -112,6 +134,8 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     map.setView([41.3, 12.5], this.minZoom + 1);
     this.layersControl["right_overlays"] = {};
     this.tryLoadWms("right");
+
+    this.addGeojsonLayer(map);
   }
   protected toggleLayer(obj: Record<string, string | L.Layer>) {}
   protected centerMap() {
@@ -181,5 +205,70 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       console.log(layerMap[this.selectedLayerId][1], this.selectedMonth);
     }
     this.layersControl[`${mapKey}_overlays`] = layer;
+  }
+
+  private async loadGeojsonData(): Promise<void> {
+    if (this.provinceData) return;
+    if (this.provinceDataPromise) {
+      await this.provinceDataPromise;
+      return;
+    }
+
+    this.provinceDataPromise = fetch(
+      "./app/custom/assets/images/geoJson/province.geojson",
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        this.provinceData = data;
+        this.provinceDataPromise = null;
+      });
+
+    await this.provinceDataPromise;
+  }
+  private async addGeojsonLayer(map: L.Map): Promise<void> {
+    await this.loadGeojsonData();
+
+    const layer = L.geoJSON(this.provinceData, {
+      style: {
+        color: "red",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0,
+      },
+      onEachFeature: (feature, layer) => {
+        layer.on("click", (e) => {
+          /*L.popup()
+          .setLatLng(e.latlng)
+          .setContent(`<b>${feature.properties.DEN_UTS || feature.properties.name}</b>`)
+          .openOn(map);*/
+          this.prov = feature.properties.DEN_UTS;
+
+          this.openProvinceReport(this.prov);
+        });
+      },
+    });
+
+    layer.addTo(map);
+  }
+  private openProvinceReport(prov: string) {
+    const modalRef = this.modalService.open(ProvinceReportComponent, {
+      size: "xl",
+      centered: true,
+    });
+    modalRef.componentInstance.lang = this.lang;
+    modalRef.componentInstance.prov = prov;
+    modalRef.componentInstance.beforeOpen();
+  }
+
+  private async loadLatestRun(): Promise<void> {
+    try {
+      const response = await fetch(this.mapsPath + `/api/seasonal/latest`);
+      const data = await response.json();
+      const date = new Date(data.ingestion.last);
+      const month = date.getMonth() + 1;
+      this.run = month;
+    } catch (error) {
+      console.error("Error fetch /api/seasonal/latest:", error);
+    }
   }
 }

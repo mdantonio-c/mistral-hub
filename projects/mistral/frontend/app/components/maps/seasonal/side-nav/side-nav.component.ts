@@ -5,6 +5,8 @@ import {
   Output,
   Input,
   EventEmitter,
+  OnChanges,
+  SimpleChanges,
 } from "@angular/core";
 import { ViewModes } from "../../meteo-tiles/meteo-tiles.config";
 import * as L from "leaflet";
@@ -21,9 +23,19 @@ export class SideNavComponentSeasonal implements OnInit {
   @Input() baseLayers: L.Control.LayersObject;
   @Input() run: number;
 
+  @Output() onCollapseChange: EventEmitter<boolean> =
+    new EventEmitter<boolean>();
+  @Output() onVariableConfig = new EventEmitter<any>();
+  @Output() onSelectedLayerChange = new EventEmitter<string>();
+  @Output() onSelectedMonthChange = new EventEmitter<string>();
+
   selectedBaseLayer: string;
   selectedLayers: string;
   selectedMonths: string;
+  isCollapsed = false;
+  monthsNumber = 4;
+  monthsMapping = [];
+  zLevel: number;
 
   public VariablesConfig = {
     "Maximum temperature": [
@@ -43,15 +55,6 @@ export class SideNavComponentSeasonal implements OnInit {
     ],
   };
 
-  isCollapsed = false;
-  monthsNumber = 4;
-  monthsMapping = [];
-  @Output() onCollapseChange: EventEmitter<boolean> =
-    new EventEmitter<boolean>();
-  @Output() onVariableConfig = new EventEmitter<any>();
-  @Output() onSelectedLayerChange = new EventEmitter<string>();
-  @Output() onSelectedMonthChange = new EventEmitter<string>();
-  zLevel: number;
   ngOnInit(): void {
     this.onVariableConfig.emit(this.VariablesConfig);
     // set active base layer
@@ -63,15 +66,24 @@ export class SideNavComponentSeasonal implements OnInit {
     // set default layer
     this.selectedLayers = Object.keys(this.VariablesConfig)[0];
     this.onSelectedLayerChange.emit(this.selectedLayers);
-    // set array for months
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.run && this.run) {
+      this.updateMonths();
+    }
+  }
+
+  private updateMonths() {
+    this.monthsMapping = [];
     const months = this.getNextFourMonths(this.run);
     const timeStamps = this.genTimestampMonth();
 
     months.forEach((month, index) => {
       this.monthsMapping.push([month, timeStamps[index]]);
     });
-    // set default month
-    this.selectedMonths = months[0];
+
+    this.selectedMonths = this.monthsMapping[0][0];
     this.onSelectedMonthChange.emit(this.monthsMapping[0][1]);
   }
 

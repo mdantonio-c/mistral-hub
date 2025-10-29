@@ -1,0 +1,84 @@
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h4 class="modal-title mb-0">{{ prov }}</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="activeModal.dismiss()"
+    ></button>
+  </div>
+  <div class="card-body" [ngSwitch]="selectedMetric">
+    <div class="d-flex">
+      <button class="btn btn-outline-primary me-2" (click)="selectMetric('TM')">
+        {{ "Maximum Temperature" }}
+      </button>
+      <button class="btn btn-outline-primary me-2" (click)="selectMetric('Tm')">
+        {{ "Minimum Temperature" }}
+      </button>
+      <button class="btn btn-outline-primary" (click)="selectMetric('P')">
+        {{ "Total Precipitation" }}
+      </button>
+    </div>
+    <div *ngSwitchCase="'TM'" #containerRef>
+      <!--      <ngx-charts-box-chart
+      [view]="[containerRef.offsetWidth, 400]"
+      [scheme]="'fire'"
+      [results]="boxplotData.TM"
+      [animations]="true"
+      [legend]="false"
+       [yAxisLabel]="'Temperature (°C)'"
+       [strokeColor]="'#000000'">
+    </ngx-charts-box-chart>-->
+      <combo-chart-seasonal-component
+        *ngIf="lineChart?.length > 0"
+        [view]="[containerRef.offsetWidth, 400]"
+        [yAxisLabel]="'Temperature (°C)'"
+        [results]="boxplotData.TM"
+        [scheme]="'fire'"
+        [lineChart]="lineChart"
+      >
+      </combo-chart-seasonal-component>
+    </div>
+    <div *ngSwitchCase="'Tm'" #containerRef>
+      <!--<ngx-charts-box-chart
+      [view]="[containerRef.offsetWidth, 400]"
+      [scheme]="'fire'"
+      [results]="boxplotData.Tm"
+      [animations]="true"
+      [legend]="false"
+           [yAxisLabel]="'Temperature (°C)'"
+           [strokeColor]="'#000000'">
+           </ngx-charts-box-chart>-->
+      <combo-chart-seasonal-component
+        *ngIf="lineChart?.length > 0"
+        [view]="[containerRef.offsetWidth, 400]"
+        [yAxisLabel]="'Temperature (°C)'"
+        [results]="boxplotData.Tm"
+        [scheme]="'fire'"
+        [lineChart]="lineChart"
+      >
+      </combo-chart-seasonal-component>
+    </div>
+    <div *ngSwitchCase="'P'" #containerRef>
+      <!--       <ngx-charts-box-chart
+      [view]="[containerRef.offsetWidth, 400]"
+      [scheme]="'ocean'"
+      [results]="boxplotData.P"
+      [animations]="true"
+      [legend]="false"
+       [yAxisLabel]="'Precipitation (mm)'"
+       [strokeColor]="'#000000'">
+    </ngx-charts-box-chart>-->
+      <combo-chart-seasonal-component
+        *ngIf="lineChart?.length > 0"
+        [view]="[containerRef.offsetWidth, 400]"
+        [yAxisLabel]="'Temperature (°C)'"
+        [results]="boxplotData.P"
+        [scheme]="'ocean'"
+        [lineChart]="lineChart"
+      >
+      </combo-chart-seasonal-component>
+    </div>
+  </div>
+</div>

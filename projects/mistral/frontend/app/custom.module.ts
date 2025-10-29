@@ -70,7 +70,7 @@ import { LivemapComponent } from "./components/maps/livemap/livemap.component";
 import { SideNavFilterComponent } from "./components/maps/side-nav/side-nav.component";
 import { SeasonalComponent } from "@app/components/maps/seasonal/seasonal.component";
 import { SideNavComponentSeasonal } from "./components/maps/seasonal/side-nav/side-nav.component";
-
+import { ProvinceReportComponent } from "./components/maps/seasonal/province-report/province-report.component";
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
 import { FormatLabelDatePipe } from "@app/pipes/format-data-label.pipe";
 import { ReplacePipe } from "@app/pipes/replace.pipe";
@@ -96,6 +96,10 @@ import {
   DoubleLineChartComponent,
   ComboLineChartComponent,
 } from "./components/custom-charts/combo-chart-combined";
+import {
+  BoxChartComponent,
+  ComboLineChartSeasonalComponent,
+} from "./components/custom-charts/combo-chart-seasonal";
 import { AimObservationMapsComponent } from "./components/maps/aim-observation-maps/aim-observation-maps.component";
 const appRoutes: Routes = [
   {
@@ -227,6 +231,7 @@ const appRoutes: Routes = [
     ObsMapComponent,
     ObsMeteogramsComponent,
     ObsStationReportComponent,
+    ProvinceReportComponent,
     CustomLineChart,
     CustomBarChart,
     CustomXAxis,
@@ -272,6 +277,8 @@ const appRoutes: Routes = [
     AimObservationMapsComponent,
     DoubleLineChartComponent,
     ComboLineChartComponent,
+    BoxChartComponent,
+    ComboLineChartSeasonalComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [

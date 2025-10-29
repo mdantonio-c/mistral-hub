@@ -26,6 +26,9 @@ export class TilesService {
   getWMSUrl() {
     return this.wms_url;
   }
+  getMapsUrl() {
+    return this.maps_url;
+  }
 
   /**
    * Check and retrieve the last available run for a given resolution.
@@ -53,8 +56,8 @@ export class TilesService {
     //   end_offset: 24,
     //   step: 1,
     //   boundaries: {
-    //     SW: [10], 
-    //     NE: [20] 
+    //     SW: [10],
+    //     NE: [20]
     //   },
     // };
 
