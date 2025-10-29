@@ -232,7 +232,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       style: {
         color: "red",
         weight: 1,
-        opacity: 1,
+        opacity: 0,
         fillOpacity: 0,
       },
       onEachFeature: (feature, layer) => {
