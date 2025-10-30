@@ -155,7 +155,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     return "2025-10-22";
   }
   public printDatasetProduct(): string {
-    return "01/10/2025";
+    return "";
   }
   public printDatasetDescription(): string {
     return "Seasonal";
