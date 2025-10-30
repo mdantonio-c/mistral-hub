@@ -65,6 +65,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   public varDesc;
   private selectedMonth: string;
   public prov: string;
+  public runDate: string;
 
   layersControl = {
     baseLayers: {
@@ -263,12 +264,29 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   private async loadLatestRun(): Promise<void> {
     try {
       const response = await fetch(this.mapsPath + `/api/seasonal/latest`);
+      console.log(this.mapsPath);
       const data = await response.json();
       const date = new Date(data.ingestion.last);
       const month = date.getMonth() + 1;
       this.run = month;
+      this.runDate = new Intl.DateTimeFormat("it-IT", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(date);
     } catch (error) {
       console.error("Error fetch /api/seasonal/latest:", error);
     }
+  }
+
+  public onCollapse(isCollapsed: boolean): void {
+    setTimeout(() => {
+      if (this.maps.left) {
+        this.maps.left.invalidateSize();
+      }
+      if (this.maps.right) {
+        this.maps.right.invalidateSize();
+      }
+    }, 30);
   }
 }
