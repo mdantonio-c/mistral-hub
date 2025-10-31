@@ -72,6 +72,7 @@ export class SideNavComponentSeasonal implements OnInit {
     if (changes.run && this.run) {
       this.updateMonths();
     }
+    console.log(this.lang);
   }
 
   private updateMonths() {

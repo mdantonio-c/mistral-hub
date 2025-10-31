@@ -14,7 +14,7 @@
           <span
             class="{{ variable.value[1] }}"
             placement="left"
-            [ngbTooltip]="variable.value[0]"
+            [ngbTooltip]="variable.value[0] | translate : lang | titlecase"
             (click)="toggleLayer($event, variable.key)"
             [disableTooltip]="!isCollapsed"
             [class.attivo]="selectedLayers === variable.key"

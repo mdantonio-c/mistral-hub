@@ -9,6 +9,7 @@ import {
 import { TilesService } from "../meteo-tiles/services/tiles.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { ProvinceReportComponent } from "./province-report/province-report.component";
+import { NavigationEnd, Params } from "@angular/router";
 
 const ICON_BOUNDS = {
   southWest: L.latLng(33.69, 2.9875),
@@ -104,22 +105,49 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     this.optionsRight["layers"] = [this.createLightMatterLayer()];
     this.wmsPath = this.tilesService.getWMSUrl();
     this.mapsPath = this.tilesService.getMapsUrl();
+    this.router.events.subscribe((s) => {
+      if (s instanceof NavigationEnd) {
+        const tree = this.router.parseUrl(this.router.url);
+        if (tree.fragment) {
+          const element = document.querySelector("#" + tree.fragment);
+          if (element) {
+            element.scrollIntoView(true);
+          }
+        }
+      }
+    });
   }
 
   override ngOnInit(): void {
     this.loadLatestRun();
     super.ngOnInit();
+    this.route.queryParams.subscribe((params: Params) => {
+      const lang = params["lang"];
+      if (["it", "en"].includes(lang)) {
+        this.lang = lang;
+      }
+    });
   }
 
   protected onMapReady(map: L.Map) {}
+
   protected onMapReadyLeft(map: L.Map) {
     this.maps.left = map;
-    map.setView([41.3, 12.5], this.minZoom + 1);
+    //map.setView([41.3, 12.5], this.minZoom + 1);
+    setTimeout(() => this.centerMap(), 200);
     this.layersControl["left_overlays"] = {};
     this.tryLoadWms("left");
     this.addGeojsonLayer(map);
   }
 
+  protected onMapReadyRight(map: L.Map) {
+    //map.setView([41.3, 12.5], this.minZoom + 1);
+    this.maps.right = map;
+    setTimeout(() => this.centerMap(), 200);
+    this.layersControl["right_overlays"] = {};
+    this.tryLoadWms("right");
+    this.addGeojsonLayer(map);
+  }
   getTileWms(layerId: string, time: string) {
     return L.tileLayer.wms(this.wmsPath, {
       layers: layerId,
@@ -129,17 +157,8 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       time: time,
     } as any);
   }
-
-  protected onMapReadyRight(map: L.Map) {
-    this.maps.right = map;
-    map.setView([41.3, 12.5], this.minZoom + 1);
-    this.layersControl["right_overlays"] = {};
-    this.tryLoadWms("right");
-
-    this.addGeojsonLayer(map);
-  }
   protected toggleLayer(obj: Record<string, string | L.Layer>) {}
-  protected centerMap() {
+  /*  protected centerMap() {
     if (this.maps.left) {
       const mapCenter = L.latLng(41.3, 12.5);
       this.maps.left.setMaxZoom(this.maxZoom - 1);
@@ -149,6 +168,23 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       const mapCenter = L.latLng(41.3, 12.5);
       this.maps.right.setMaxZoom(this.maxZoom - 1);
       this.maps.right.fitBounds(this.bounds);
+    }
+  }*/
+  protected centerMap() {
+    const italyCenter = L.latLng(41.3, 12.5);
+
+    if (this.maps.left) {
+      this.maps.left.setView(italyCenter, this.minZoom + 0.5, {
+        animate: false,
+      });
+      this.maps.left.invalidateSize({ pan: false, debounceMoveend: true });
+    }
+
+    if (this.maps.right) {
+      this.maps.right.setView(italyCenter, this.minZoom + 0.5, {
+        animate: false,
+      });
+      this.maps.right.invalidateSize({ pan: false, debounceMoveend: true });
     }
   }
 
@@ -238,12 +274,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       },
       onEachFeature: (feature, layer) => {
         layer.on("click", (e) => {
-          /*L.popup()
-          .setLatLng(e.latlng)
-          .setContent(`<b>${feature.properties.DEN_UTS || feature.properties.name}</b>`)
-          .openOn(map);*/
           this.prov = feature.properties.DEN_UTS;
-
           this.openProvinceReport(this.prov);
         });
       },

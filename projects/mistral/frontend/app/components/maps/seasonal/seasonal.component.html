@@ -12,7 +12,7 @@
         </div>
         <div class="bg-light p-2 pt-0">
           <pre class="d-inline" style="white-space: pre-line">
-          {{ varDesc || "Max temperature (°C) - monthly median values" }}
+          {{ varDesc | translate : lang }}
           {{ "run" | translate : lang | titlecase }}: {{ runDate || "" }}
         </pre
           >
@@ -33,7 +33,7 @@
         </div>
         <div class="bg-light p-2 pt-0">
           <pre class="d-inline" style="white-space: pre-line">
-          {{ varDesc || "Max temperature (°C) - monthly median values" }}
+          {{ varDesc | translate : lang }}
           {{ "run" | translate : lang | titlecase }}: {{ runDate || "" }}
         </pre
           >

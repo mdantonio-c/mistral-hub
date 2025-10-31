@@ -75,6 +75,21 @@ export class TranslationService {
         networks: "Reti",
         "download data": "Download dati",
         all: "Tutte",
+        // seasonal
+        "maximum temperature": "Temperatura massima",
+        "minimum temperature": "Temperatura minima",
+        "total monthly precipitation": "Precipitazione totale mensile",
+        "monthly average of daily maximum temperatures":
+          "Media mensile delle temperature massime giornaliere",
+        "monthly average of daily minimum temperatures":
+          "Media mensile delle temperature minime giornaliere",
+        accumulated: "Cumulata",
+        "max temperature (°C) - monthly median values":
+          "Temperature massime (°C) - valori mediani mensili",
+        "min temperature (°C) - monthly median values":
+          "Temperature minime (°C) - valori mediani mensili",
+        "monthly total precipitation (mm)":
+          "Precipitazione totale mensile (mm)",
       },
     },
   };
