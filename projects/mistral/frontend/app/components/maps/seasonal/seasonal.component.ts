@@ -25,10 +25,7 @@ const layerMap = {
     "meteohub:seasonal-mean-Tm",
     "meteohub:seasonal-ano-min-Tm",
   ],
-  "Total monthly precipitation": [
-    "meteohub:seasonal-sum-P",
-    "meteohub:seasonal-ano-P",
-  ],
+  "Total precipitation": ["meteohub:seasonal-sum-P", "meteohub:seasonal-ano-P"],
 };
 
 @Component({
@@ -138,6 +135,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     this.layersControl["left_overlays"] = {};
     this.tryLoadWms("left");
     this.addGeojsonLayer(map);
+    this.addIconBorderLayer(map);
   }
 
   protected onMapReadyRight(map: L.Map) {
@@ -147,6 +145,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     this.layersControl["right_overlays"] = {};
     this.tryLoadWms("right");
     this.addGeojsonLayer(map);
+    this.addIconBorderLayer(map);
   }
   getTileWms(layerId: string, time: string) {
     return L.tileLayer.wms(this.wmsPath, {
@@ -281,6 +280,19 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     });
 
     layer.addTo(map);
+  }
+  private addIconBorderLayer(map: L.Map) {
+    fetch("./app/custom/assets/images/geoJson/coastlines_border_lines.geojson")
+      .then((response) => response.json())
+      .then((data) => {
+        L.geoJSON(data, {
+          style: {
+            color: "black",
+            weight: 1,
+            opacity: 1,
+          },
+        }).addTo(map);
+      });
   }
   private openProvinceReport(prov: string) {
     const modalRef = this.modalService.open(ProvinceReportComponent, {
