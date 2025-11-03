@@ -40,12 +40,12 @@ export class SideNavComponentSeasonal implements OnInit {
   public VariablesConfig = {
     "Maximum temperature": [
       "Monthly average of daily maximum temperatures",
-      "t2m clickable",
+      "t2mplus clickable",
       "Max temperature (°C) - monthly median values",
     ],
     "Minimum temperature": [
       "Monthly average of daily minimum temperatures",
-      "t2m clickable",
+      "t2mminus clickable",
       "Min temperature (°C) - monthly median values",
     ],
     "Total monthly precipitation": [

@@ -30,18 +30,44 @@
           >
         </li>
       </ng-container>
-      <ng-container *ngFor="let month of monthsMapping; let last = last">
-        <li class="sidenav-item" [class.last]="last">
+      <li class="sidenav-item last">
+         <span
+            class="calendar mb-2"
+            placement="left"
+            [ngbTooltip]="'Select Month'"
+            [disableTooltip]="!isCollapsed"
+          ></span>
+         <a  *ngIf="!isCollapsed" href (click)="toggleLayer($event, 'cc')">
+              <span class="nav-text" i18n>{{
+                "Month Seletcion" | translate : lang
+              }}</span>
+          </a>
+        <div  *ngIf="!isCollapsed" class="d-flex flex-wrap selettore-orario">
+        <ng-container *ngFor="let month of monthsMapping; let last = last">
+          <label class="nav-text d-flex w-50 mb-2">
+            <input
+              type="radio"
+              name="precipitation"
+              class="clickable me-2"
+              (click)="toggleMonth($event, month[0])"
+              [ngbTooltip]="month[0]" 
+              [disableTooltip]="!isCollapsed"
+              [class.attivo]="selectedMonths === month[0]"/>
+                    {{ month[0]}}
+        </label>
+        <!--<li class="sidenav-item" [class.last]="last">
           <span
             placement="left"
             (click)="toggleMonth($event, month[0])"
-            [ngbTooltip]="month[0]"
+            [ngbTooltip]="month[0]" 
             [disableTooltip]="!isCollapsed"
             [class.attivo]="selectedMonths === month[0]"
             >{{ month[0] }}</span
           >
-        </li>
-      </ng-container>
+        </li>-->      
+          </ng-container>
+        </div>
+      </li>
       <li class="sidenav-item zoom">
         <span
           class="plus clickable"
