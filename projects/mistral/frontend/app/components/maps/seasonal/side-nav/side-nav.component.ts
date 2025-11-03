@@ -48,7 +48,7 @@ export class SideNavComponentSeasonal implements OnInit {
       "t2mminus clickable",
       "Min temperature (°C) - monthly median values",
     ],
-    "Total monthly precipitation": [
+    "Total precipitation": [
       "Accumulated",
       "prp clickable",
       "Monthly total precipitation (mm)",
@@ -72,7 +72,6 @@ export class SideNavComponentSeasonal implements OnInit {
     if (changes.run && this.run) {
       this.updateMonths();
     }
-    console.log(this.lang);
   }
 
   private updateMonths() {

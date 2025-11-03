@@ -295,7 +295,6 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   private async loadLatestRun(): Promise<void> {
     try {
       const response = await fetch(this.mapsPath + `/api/seasonal/latest`);
-      console.log(this.mapsPath);
       const data = await response.json();
       const date = new Date(data.ingestion.last);
       const month = date.getMonth() + 1;

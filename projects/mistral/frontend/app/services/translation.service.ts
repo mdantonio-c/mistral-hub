@@ -78,7 +78,7 @@ export class TranslationService {
         // seasonal
         "maximum temperature": "Temperatura massima",
         "minimum temperature": "Temperatura minima",
-        "total monthly precipitation": "Precipitazione totale mensile",
+        "total precipitation": "Precipitazione totale",
         "monthly average of daily maximum temperatures":
           "Media mensile delle temperature massime giornaliere",
         "monthly average of daily minimum temperatures":
