@@ -52,7 +52,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       {
         id: "mapbox.light",
         attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
-        maxZoom: this.maxZoom,
+        maxZoom: this.maxZoom - 4,
         minZoom: this.minZoom,
       },
     );
@@ -64,7 +64,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   private selectedMonth: string;
   public prov: string;
   public runDate: string;
-
+  public maxZoomIn = this.maxZoom - 4;
   layersControl = {
     baseLayers: {
       "Carto Map Light": this.createLightMatterLayer(),
@@ -74,7 +74,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   optionsLeft = {
     zoomControl: false,
     minZoom: this.minZoom,
-    maxZoom: this.maxZoom - 1,
+    maxZoom: this.maxZoom - 4,
     center: L.latLng([41.3, 12.5]),
     maxBounds: this.bounds,
     maxBoundsViscosity: 1.0,
@@ -84,7 +84,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   optionsRight = {
     zoomControl: false,
     minZoom: this.minZoom,
-    maxZoom: this.maxZoom - 1,
+    maxZoom: this.maxZoom - 4,
     center: L.latLng([41.3, 12.5]),
     maxBounds: this.bounds,
     maxBoundsViscosity: 1.0,

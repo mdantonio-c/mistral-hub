@@ -7,6 +7,7 @@ import {
   EventEmitter,
   OnChanges,
   SimpleChanges,
+  ChangeDetectorRef,
 } from "@angular/core";
 import { ViewModes } from "../../meteo-tiles/meteo-tiles.config";
 import * as L from "leaflet";
@@ -22,6 +23,8 @@ export class SideNavComponentSeasonal implements OnInit {
   @Input() maps: Record<"left" | "right", L.Map>;
   @Input() baseLayers: L.Control.LayersObject;
   @Input() run: number;
+  @Input() maxZoomIn: number;
+  @Input() minZoom: number;
 
   @Output() onCollapseChange: EventEmitter<boolean> =
     new EventEmitter<boolean>();
@@ -35,7 +38,8 @@ export class SideNavComponentSeasonal implements OnInit {
   isCollapsed = false;
   monthsNumber = 4;
   monthsMapping = [];
-  zLevel: number;
+  currentZoom: number;
+  constructor(private cdr: ChangeDetectorRef) {}
 
   public VariablesConfig = {
     "Maximum temperature": [
@@ -57,6 +61,14 @@ export class SideNavComponentSeasonal implements OnInit {
 
   ngOnInit(): void {
     this.onVariableConfig.emit(this.VariablesConfig);
+    Object.values(this.maps).forEach((map) => {
+      if (!map) return;
+      map.on("zoomend", () => {
+        this.currentZoom = map.getZoom();
+        this.cdr.detectChanges();
+      });
+    });
+
     // set active base layer
     for (const [key, layer] of Object.entries(this.baseLayers)) {
       if (this.maps.left?.hasLayer(layer)) {
@@ -151,10 +163,10 @@ export class SideNavComponentSeasonal implements OnInit {
       if (!map) return;
       switch (inOut) {
         case "in":
-          if (map.getZoom() < map.getMaxZoom()) map.zoomIn();
+          if (map.getZoom() < this.maxZoomIn) map.zoomIn();
           break;
         case "out":
-          if (map.getZoom() > map.getMinZoom()) map.zoomOut();
+          if (map.getZoom() > this.minZoom) map.zoomOut();
           break;
       }
     });

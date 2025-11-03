@@ -179,12 +179,12 @@ $dark-blue: #004080;
   }
 }
 
-.prp + a{
+.prp + a {
   margin-top: -20px;
 }
 
 .calendar + a {
-    margin-top: -4px !important;
+  margin-top: -4px !important;
 }
 
 .t2mplus,
@@ -192,7 +192,7 @@ $dark-blue: #004080;
 .calendar,
 .prp,
 .plus,
-.minus{
+.minus {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
@@ -243,7 +243,6 @@ $dark-blue: #004080;
 
 /* time, clouds, modality and datasets selectors */
 
-
 .selettore-orario label {
   font-size: 14px;
   position: relative;
@@ -286,14 +285,12 @@ $dark-blue: #004080;
     border-color: $light-blue;
     background-color: $light-blue;
   }
-
 }
 
-.selettore-orario input:checked{
+.selettore-orario input:checked {
   background-color: $light-blue;
   border-color: $light-blue !important;
 }
-
 
 .selettore-orario label {
   align-items: center;
@@ -381,13 +378,12 @@ $dark-blue: #004080;
     margin-bottom: 0;
   }
 
-  
-.t2mplus,
-.t2mminus,
-.calendar,
-.prp,
-.plus,
-.minus{
+  .t2mplus,
+  .t2mminus,
+  .calendar,
+  .prp,
+  .plus,
+  .minus {
     margin-top: 5px;
     padding: 10px;
     width: 22px;
@@ -452,13 +448,12 @@ $dark-blue: #004080;
     display: none;
   }
 
- 
-.t2mplus,
-.t2mminus,
-.calendar,
-.prp,
-.plus,
-.minus {
+  .t2mplus,
+  .t2mminus,
+  .calendar,
+  .prp,
+  .plus,
+  .minus {
     margin-top: 4px;
     padding: 9px;
     width: 18px;
@@ -469,4 +464,10 @@ $dark-blue: #004080;
   .map-sidenav .map-sidenav-menu .selector {
     margin-top: 29px;
   }
+}
+
+.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
 }

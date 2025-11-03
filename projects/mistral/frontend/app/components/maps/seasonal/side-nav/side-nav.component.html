@@ -53,7 +53,7 @@
                 [class.attivo]="selectedMonths === month[0]"
                 [checked]="selectedMonths === month[0]"
               />
-              {{ month[0] }}
+              {{ month[0] | translate : lang }}
             </label>
             <!--<li class="sidenav-item" [class.last]="last">
           <span
@@ -72,6 +72,7 @@
         <span
           class="plus clickable"
           (click)="zoom($event, 'in')"
+          [class.disabled]="currentZoom >= maxZoomIn"
           placement="left"
           [ngbTooltip]="'Zoom in'"
           [disableTooltip]="!isCollapsed"
@@ -84,6 +85,7 @@
         <span
           class="minus clickable"
           (click)="zoom($event, 'out')"
+          [class.disabled]="currentZoom <= minZoom"
           placement="left"
           [ngbTooltip]="'Zoom out'"
           [disableTooltip]="!isCollapsed"

@@ -9,9 +9,9 @@ export const COLOR_RANGES = {
     { min: 30 / 100, color: "#BB77A0", textColor: "#fff" },
     { min: 20 / 100, color: "#CFA0BD", textColor: null },
     { min: 15 / 100, color: "#DDBBCF", textColor: null },
-    { min: 10 / 100, color: "#ADADAD", textColor: null },
-    { min: 5 / 100, color: "#C7C7C7", textColor: null },
-    { min: Infinity, color: "#FFFFFF", textColor: null },
+    { min: 10 / 100, color: "#EAD7E1", textColor: null },
+    { min: 5 / 100, color: "#F8F2F5", textColor: null },
+    { min: -50 / 100, color: "#FFFFFF", textColor: null },
   ],
   t2m: [
     { min: 317.15, color: "#FFDCDC", textColor: null },
