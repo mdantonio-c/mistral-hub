@@ -282,7 +282,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     layer.addTo(map);
   }
   private addIconBorderLayer(map: L.Map) {
-    fetch("./app/custom/assets/images/geoJson/coastlines_border_lines.geojson")
+    fetch("./app/custom/assets/images/geoJson/confini_italia.geojson")
       .then((response) => response.json())
       .then((data) => {
         L.geoJSON(data, {
