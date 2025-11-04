@@ -9,14 +9,14 @@
     ></button>
   </div>
   <div class="card-body" [ngSwitch]="selectedMetric">
-    <div class="d-flex">
-      <button class="btn btn-outline-primary me-2" (click)="selectMetric('TM')">
+    <div class="d-flex button-container">
+      <button class="btn btn-outline-secondary me-2 active" (click)="selectMetric('TM')">
         {{ "Maximum Temperature" }}
       </button>
-      <button class="btn btn-outline-primary me-2" (click)="selectMetric('Tm')">
+      <button class="btn btn-outline-secondary me-2" (click)="selectMetric('Tm')">
         {{ "Minimum Temperature" }}
       </button>
-      <button class="btn btn-outline-primary" (click)="selectMetric('P')">
+      <button class="btn btn-outline-secondary" (click)="selectMetric('P')">
         {{ "Total Precipitation" }}
       </button>
     </div>
