@@ -60,7 +60,8 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
 
   public variablesConfigFromChild: any;
   public selectedLayerId: string;
-  public varDesc;
+  public varDesc1: string;
+  public varDesc2: string;
   private selectedMonth: string;
   public prov: string;
   public runDate: string;
@@ -204,7 +205,18 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   }
   public receiveLayerIdSelected(layerId: string) {
     this.selectedLayerId = layerId;
-    this.varDesc = this.printVarDescSupport(layerId);
+    setTimeout(() => {
+      const varDesc = this.printVarDescSupport(layerId);
+      const match = varDesc.match(/^(.*?)\s*\([^)]*\)\s*-\s*(.*)$/);
+      if (match) {
+        this.varDesc1 = match[1].trim();
+        this.varDesc2 = match[2].trim();
+      } else {
+        this.varDesc1 = varDesc;
+        this.varDesc2 = "";
+      }
+    });
+
     this.tryLoadWms("left");
     this.tryLoadWms("right");
   }

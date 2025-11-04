@@ -84,10 +84,9 @@ export class TranslationService {
         "monthly average of daily minimum temperatures":
           "Media mensile delle temperature minime giornaliere",
         accumulated: "Cumulata",
-        "max temperature (°C) - monthly median values":
-          "Temperature massime (°C) - valori mediani mensili",
-        "min temperature (°C) - monthly median values":
-          "Temperature minime (°C) - valori mediani mensili",
+        "max temperature": "Temperature massime",
+        "min temperature": "Temperature minime",
+        "monthly median values": "valori mensili mediani",
         "monthly total precipitation (mm)":
           "Precipitazione totale mensile (mm)",
         month: "Mese",

@@ -12,10 +12,9 @@
         </div>
         <div class="bg-light p-2 pt-0">
           <pre class="d-inline" style="white-space: pre-line">
-          {{ varDesc | translate : lang }}
+          {{ varDesc1 | translate : lang }}<ng-container *ngIf="varDesc2">(°C) - {{ varDesc2 | translate: lang }}</ng-container>
           {{ "run" | translate : lang | titlecase }}: {{ runDate || "" }}
-        </pre
-          >
+        </pre>
         </div>
       </div>
     </div>
@@ -33,7 +32,9 @@
         </div>
         <div class="bg-light p-2 pt-0">
           <pre class="d-inline" style="white-space: pre-line">
-          {{ varDesc | translate : lang }}
+          {{ varDesc1 | translate : lang }} (°C) - {{
+              varDesc2 | translate : lang
+            }}
           {{ "run" | translate : lang | titlecase }}: {{ runDate || "" }}
         </pre
           >
