@@ -12,18 +12,24 @@
     <div class="d-flex button-container">
       <button
         class="btn btn-outline-secondary me-2 active"
+        [class.active]="selectedMetric === 'TM'"
         (click)="selectMetric('TM')"
       >
-        {{ "Maximum Temperature" }}
+        {{ "Maximum Temperature" | translate : lang }}
       </button>
       <button
         class="btn btn-outline-secondary me-2"
+        [class.active]="selectedMetric === 'Tm'"
         (click)="selectMetric('Tm')"
       >
-        {{ "Minimum Temperature" }}
+        {{ "Minimum Temperature" | translate : lang }}
       </button>
-      <button class="btn btn-outline-secondary" (click)="selectMetric('P')">
-        {{ "Total Precipitation" }}
+      <button
+        class="btn btn-outline-secondary"
+        [class.active]="selectedMetric === 'P'"
+        (click)="selectMetric('P')"
+      >
+        {{ "Total Precipitation" | translate : lang }}
       </button>
     </div>
     <div *ngSwitchCase="'TM'" #containerRef>
