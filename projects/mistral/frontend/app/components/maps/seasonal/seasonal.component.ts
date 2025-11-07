@@ -137,6 +137,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     this.tryLoadWms("left");
     this.addGeojsonLayer(map);
     this.addIconBorderLayer(map);
+    this.addProvinceBullets(map);
   }
 
   protected onMapReadyRight(map: L.Map) {
@@ -147,6 +148,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     this.tryLoadWms("right");
     this.addGeojsonLayer(map);
     this.addIconBorderLayer(map);
+    this.addProvinceBullets(map);
   }
   getTileWms(layerId: string, time: string) {
     return L.tileLayer.wms(this.wmsPath, {
@@ -302,6 +304,27 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
             color: "black",
             weight: 1,
             opacity: 1,
+          },
+        }).addTo(map);
+      });
+  }
+  private addProvinceBullets(map: L.Map) {
+    fetch("./app/custom/assets/images/geoJson/province_bullet.geojson")
+      .then((response) => response.json())
+      .then((data) => {
+        L.geoJSON(data, {
+          pointToLayer: (feature, latlng) => {
+            return L.circleMarker(latlng, {
+              radius: 5,
+              fillColor: "#0066FF",
+              color: "#fff",
+              weight: 2,
+              fillOpacity: 0.8,
+            }).bindTooltip(feature.properties.name, {
+              permanent: false,
+              direction: "top",
+              interactive: false,
+            });
           },
         }).addTo(map);
       });

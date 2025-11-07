@@ -12,25 +12,31 @@ $dark-blue: #004080;
   pointer-events: none;
 }
 
-.button-container .btn-outline-secondary{
-    color: $light-blue;
-    font-family: TitilliumWeb-SemiBold;
+.button-container .btn-outline-secondary {
+  color: $light-blue;
+  font-family: TitilliumWeb-SemiBold;
+  border-color: $light-blue;
+  border-radius: 30px !important;
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 1px solid $light-blue !important;
+
+  &:hover {
+    background-color: $dark-blue !important;
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  &.active {
+    background-color: $light-blue;
     border-color: $light-blue;
-    border-radius: 30px!important;
-    padding-left: 10px;
-    padding-right: 10px;
-    border: 1px solid $light-blue !important;
-
-    &:hover {
-      background-color: $dark-blue !important;
-      color:#fff;
-      text-decoration: underline;
-    }
-
-    &.active {
-      background-color: $light-blue;
-      border-color: $light-blue;
-      color: #fff;
-      text-decoration: underline;
-    }
+    color: #fff;
+    text-decoration: underline;
+  }
+}
+.area-tooltip-container .boxplot-values {
+  text-align: left;
+  width: 100%;
+  display: block;
+  margin-left: 0;
 }

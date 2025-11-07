@@ -1,0 +1,593 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Alessandria",
+        "code": "AL",
+        "region": "Piemonte"
+      },
+      "geometry": { "type": "Point", "coordinates": [8.6331, 44.9127] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Aosta",
+        "code": "AO",
+        "region": "Valle d'Aosta"
+      },
+      "geometry": { "type": "Point", "coordinates": [7.3186, 45.7347] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Asti", "code": "AT", "region": "Piemonte" },
+      "geometry": { "type": "Point", "coordinates": [8.1912, 44.8971] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Biella", "code": "BI", "region": "Piemonte" },
+      "geometry": { "type": "Point", "coordinates": [8.0518, 45.5576] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Cuneo", "code": "CN", "region": "Piemonte" },
+      "geometry": { "type": "Point", "coordinates": [7.5412, 44.3873] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Novara", "code": "NO", "region": "Piemonte" },
+      "geometry": { "type": "Point", "coordinates": [8.6161, 45.4448] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Torino", "code": "TO", "region": "Piemonte" },
+      "geometry": { "type": "Point", "coordinates": [7.6869, 45.0703] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Vercelli", "code": "VC", "region": "Piemonte" },
+      "geometry": { "type": "Point", "coordinates": [8.4236, 45.3191] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Verbano-Cusio-Ossola",
+        "code": "VB",
+        "region": "Piemonte"
+      },
+      "geometry": { "type": "Point", "coordinates": [8.5597, 45.9267] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Bergamo", "code": "BG", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [9.6673, 45.6979] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Brescia", "code": "BS", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [10.2118, 45.5313] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Como", "code": "CO", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [9.0859, 45.8085] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Cremona", "code": "CR", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [10.027, 45.1354] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Lecco", "code": "LC", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [9.3939, 45.8628] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Lodi", "code": "LO", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [9.5037, 45.3113] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Milano", "code": "MI", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [9.1895, 45.4642] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Monza e Brianza",
+        "code": "MB",
+        "region": "Lombardia"
+      },
+      "geometry": { "type": "Point", "coordinates": [9.2745, 45.5816] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Pavia", "code": "PV", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [9.1586, 45.1852] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Sondrio", "code": "SO", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [10.2711, 46.1688] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Varese", "code": "VA", "region": "Lombardia" },
+      "geometry": { "type": "Point", "coordinates": [8.8264, 45.8204] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bolzano",
+        "code": "BZ",
+        "region": "Trentino-Alto Adige"
+      },
+      "geometry": { "type": "Point", "coordinates": [11.3364, 46.4983] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Trento",
+        "code": "TN",
+        "region": "Trentino-Alto Adige"
+      },
+      "geometry": { "type": "Point", "coordinates": [11.1216, 46.0748] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Belluno", "code": "BL", "region": "Veneto" },
+      "geometry": { "type": "Point", "coordinates": [12.217, 46.1414] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Padova", "code": "PD", "region": "Veneto" },
+      "geometry": { "type": "Point", "coordinates": [11.8761, 45.4064] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Rovigo", "code": "RO", "region": "Veneto" },
+      "geometry": { "type": "Point", "coordinates": [11.7833, 45.0703] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Treviso", "code": "TV", "region": "Veneto" },
+      "geometry": { "type": "Point", "coordinates": [12.2731, 45.667] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Venezia", "code": "VE", "region": "Veneto" },
+      "geometry": { "type": "Point", "coordinates": [12.3269, 45.4408] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Verona", "code": "VR", "region": "Veneto" },
+      "geometry": { "type": "Point", "coordinates": [11.0303, 45.4384] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Vicenza", "code": "VI", "region": "Veneto" },
+      "geometry": { "type": "Point", "coordinates": [11.5448, 45.5545] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gorizia",
+        "code": "GO",
+        "region": "Friuli-Venezia Giulia"
+      },
+      "geometry": { "type": "Point", "coordinates": [13.6191, 45.9576] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pordenone",
+        "code": "PN",
+        "region": "Friuli-Venezia Giulia"
+      },
+      "geometry": { "type": "Point", "coordinates": [12.6597, 45.9583] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Trieste",
+        "code": "TS",
+        "region": "Friuli-Venezia Giulia"
+      },
+      "geometry": { "type": "Point", "coordinates": [13.7811, 45.6527] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Udine",
+        "code": "UD",
+        "region": "Friuli-Venezia Giulia"
+      },
+      "geometry": { "type": "Point", "coordinates": [13.2343, 46.0624] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bologna",
+        "code": "BO",
+        "region": "Emilia-Romagna"
+      },
+      "geometry": { "type": "Point", "coordinates": [11.3426, 44.4938] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ferrara",
+        "code": "FE",
+        "region": "Emilia-Romagna"
+      },
+      "geometry": { "type": "Point", "coordinates": [11.6179, 44.8381] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Forlì-Cesena",
+        "code": "FC",
+        "region": "Emilia-Romagna"
+      },
+      "geometry": { "type": "Point", "coordinates": [12.0399, 44.2167] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Modena",
+        "code": "MO",
+        "region": "Emilia-Romagna"
+      },
+      "geometry": { "type": "Point", "coordinates": [10.9261, 44.647] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Parma",
+        "code": "PR",
+        "region": "Emilia-Romagna"
+      },
+      "geometry": { "type": "Point", "coordinates": [10.3275, 44.8015] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Piacenza",
+        "code": "PC",
+        "region": "Emilia-Romagna"
+      },
+      "geometry": { "type": "Point", "coordinates": [9.6955, 45.0527] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ravenna",
+        "code": "RA",
+        "region": "Emilia-Romagna"
+      },
+      "geometry": { "type": "Point", "coordinates": [12.1971, 44.4149] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Reggio nell'Emilia",
+        "code": "RE",
+        "region": "Emilia-Romagna"
+      },
+      "geometry": { "type": "Point", "coordinates": [10.6333, 44.6989] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Rimini",
+        "code": "RN",
+        "region": "Emilia-Romagna"
+      },
+      "geometry": { "type": "Point", "coordinates": [12.5673, 44.0594] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Arezzo", "code": "AR", "region": "Toscana" },
+      "geometry": { "type": "Point", "coordinates": [11.8798, 43.4641] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Firenze", "code": "FI", "region": "Toscana" },
+      "geometry": { "type": "Point", "coordinates": [11.2558, 43.7696] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Grosseto", "code": "GR", "region": "Toscana" },
+      "geometry": { "type": "Point", "coordinates": [11.1119, 42.7615] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Livorno", "code": "LI", "region": "Toscana" },
+      "geometry": { "type": "Point", "coordinates": [10.3182, 43.5523] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Lucca", "code": "LU", "region": "Toscana" },
+      "geometry": { "type": "Point", "coordinates": [10.5035, 43.8439] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Massa-Carrara",
+        "code": "MS",
+        "region": "Toscana"
+      },
+      "geometry": { "type": "Point", "coordinates": [10.23, 44.0295] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Pisa", "code": "PI", "region": "Toscana" },
+      "geometry": { "type": "Point", "coordinates": [10.3966, 43.7152] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Pistoia", "code": "PT", "region": "Toscana" },
+      "geometry": { "type": "Point", "coordinates": [10.9181, 43.9319] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Prato", "code": "PO", "region": "Toscana" },
+      "geometry": { "type": "Point", "coordinates": [11.097, 43.8797] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Siena", "code": "SI", "region": "Toscana" },
+      "geometry": { "type": "Point", "coordinates": [11.3302, 43.3185] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Ancona", "code": "AN", "region": "Marche" },
+      "geometry": { "type": "Point", "coordinates": [13.5009, 43.6158] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ascoli Piceno",
+        "code": "AP",
+        "region": "Marche"
+      },
+      "geometry": { "type": "Point", "coordinates": [13.5773, 42.8564] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Fermo", "code": "FM", "region": "Marche" },
+      "geometry": { "type": "Point", "coordinates": [13.7247, 43.1702] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Macerata", "code": "MC", "region": "Marche" },
+      "geometry": { "type": "Point", "coordinates": [13.4535, 43.3011] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pesaro e Urbino",
+        "code": "PU",
+        "region": "Marche"
+      },
+      "geometry": { "type": "Point", "coordinates": [12.9167, 43.9167] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Perugia", "code": "PG", "region": "Umbria" },
+      "geometry": { "type": "Point", "coordinates": [12.3895, 43.1065] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Terni", "code": "TR", "region": "Umbria" },
+      "geometry": { "type": "Point", "coordinates": [12.6439, 42.5615] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Frosinone", "code": "FR", "region": "Lazio" },
+      "geometry": { "type": "Point", "coordinates": [13.34, 41.6451] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Latina", "code": "LT", "region": "Lazio" },
+      "geometry": { "type": "Point", "coordinates": [12.8728, 41.4653] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Rieti", "code": "RI", "region": "Lazio" },
+      "geometry": { "type": "Point", "coordinates": [12.8658, 42.4048] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Roma", "code": "RM", "region": "Lazio" },
+      "geometry": { "type": "Point", "coordinates": [12.4964, 41.9028] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Viterbo", "code": "VT", "region": "Lazio" },
+      "geometry": { "type": "Point", "coordinates": [12.1097, 42.4208] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Avellino", "code": "AV", "region": "Campania" },
+      "geometry": { "type": "Point", "coordinates": [14.7914, 40.9145] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Benevento", "code": "BN", "region": "Campania" },
+      "geometry": { "type": "Point", "coordinates": [14.7653, 41.1398] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Caserta", "code": "CE", "region": "Campania" },
+      "geometry": { "type": "Point", "coordinates": [14.334, 41.4943] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Napoli", "code": "NA", "region": "Campania" },
+      "geometry": { "type": "Point", "coordinates": [14.2681, 40.8518] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Salerno", "code": "SA", "region": "Campania" },
+      "geometry": { "type": "Point", "coordinates": [14.7597, 40.6819] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Bari", "code": "BA", "region": "Puglia" },
+      "geometry": { "type": "Point", "coordinates": [16.8724, 41.1239] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Brindisi", "code": "BR", "region": "Puglia" },
+      "geometry": { "type": "Point", "coordinates": [17.9485, 40.6267] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Foggia", "code": "FG", "region": "Puglia" },
+      "geometry": { "type": "Point", "coordinates": [15.5491, 41.4629] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Lecce", "code": "LE", "region": "Puglia" },
+      "geometry": { "type": "Point", "coordinates": [18.1703, 40.3569] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Taranto", "code": "TA", "region": "Puglia" },
+      "geometry": { "type": "Point", "coordinates": [17.2401, 40.4724] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Potenza", "code": "PZ", "region": "Basilicata" },
+      "geometry": { "type": "Point", "coordinates": [15.7994, 40.6333] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Matera", "code": "MT", "region": "Basilicata" },
+      "geometry": { "type": "Point", "coordinates": [16.6021, 40.6656] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Catanzaro", "code": "CZ", "region": "Calabria" },
+      "geometry": { "type": "Point", "coordinates": [16.5887, 38.8947] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Cosenza", "code": "CS", "region": "Calabria" },
+      "geometry": { "type": "Point", "coordinates": [16.2538, 39.2919] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Crotone", "code": "KR", "region": "Calabria" },
+      "geometry": { "type": "Point", "coordinates": [17.1267, 38.9992] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Reggio di Calabria",
+        "code": "RC",
+        "region": "Calabria"
+      },
+      "geometry": { "type": "Point", "coordinates": [15.6513, 38.1157] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Vibo Valentia",
+        "code": "VV",
+        "region": "Calabria"
+      },
+      "geometry": { "type": "Point", "coordinates": [16.1088, 38.6768] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Agrigento", "code": "AG", "region": "Sicilia" },
+      "geometry": { "type": "Point", "coordinates": [13.5833, 37.3085] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Caltanissetta",
+        "code": "CL",
+        "region": "Sicilia"
+      },
+      "geometry": { "type": "Point", "coordinates": [14.0559, 37.4879] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Catania", "code": "CT", "region": "Sicilia" },
+      "geometry": { "type": "Point", "coordinates": [15.0887, 37.5029] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Enna", "code": "EN", "region": "Sicilia" },
+      "geometry": { "type": "Point", "coordinates": [14.2766, 37.567] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Messina", "code": "ME", "region": "Sicilia" },
+      "geometry": { "type": "Point", "coordinates": [15.5592, 38.1938] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Palermo", "code": "PA", "region": "Sicilia" },
+      "geometry": { "type": "Point", "coordinates": [13.3613, 38.1157] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Ragusa", "code": "RG", "region": "Sicilia" },
+      "geometry": { "type": "Point", "coordinates": [14.7272, 36.9236] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Siracusa", "code": "SR", "region": "Sicilia" },
+      "geometry": { "type": "Point", "coordinates": [15.2769, 37.0674] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Trapani", "code": "TP", "region": "Sicilia" },
+      "geometry": { "type": "Point", "coordinates": [12.5964, 38.0196] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Cagliari", "code": "CA", "region": "Sardegna" },
+      "geometry": { "type": "Point", "coordinates": [9.1277, 39.2237] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Nuoro", "code": "NU", "region": "Sardegna" },
+      "geometry": { "type": "Point", "coordinates": [9.3299, 40.3184] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Oristano", "code": "OR", "region": "Sardegna" },
+      "geometry": { "type": "Point", "coordinates": [8.593, 39.8969] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Sassari", "code": "SS", "region": "Sardegna" },
+      "geometry": { "type": "Point", "coordinates": [8.5603, 40.7272] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sud Sardegna",
+        "code": "SU",
+        "region": "Sardegna"
+      },
+      "geometry": { "type": "Point", "coordinates": [8.6104, 39.55] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Medio Campidano",
+        "code": "VS",
+        "region": "Sardegna"
+      },
+      "geometry": { "type": "Point", "coordinates": [8.7241, 39.8] }
+    }
+  ]
+}
