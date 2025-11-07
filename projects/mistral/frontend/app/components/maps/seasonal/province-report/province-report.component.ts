@@ -1,4 +1,10 @@
-import { Component, Input, ChangeDetectorRef, NgZone } from "@angular/core";
+import {
+  Component,
+  Input,
+  ChangeDetectorRef,
+  NgZone,
+  AfterViewInit,
+} from "@angular/core";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as d3 from "d3-scale";
@@ -41,7 +47,7 @@ const monthNames = [
   templateUrl: "./province-report.component.html",
   styleUrls: ["./province-report.component.scss"],
 })
-export class ProvinceReportComponent {
+export class ProvinceReportComponent implements AfterViewInit {
   constructor(
     public activeModal: NgbActiveModal,
     private spinner: NgxSpinnerService,
@@ -63,7 +69,14 @@ export class ProvinceReportComponent {
   currentResults = [];
   yLabel = "Temperature (°C)";
   colorScheme = "fire";
+  ngAfterViewInit() {
+    const modalElement = document.querySelector(".modal.show");
+    if (!modalElement) return;
 
+    modalElement.addEventListener("shown.bs.modal", () => {
+      setTimeout(() => this.cdr.detectChanges(), 50);
+    });
+  }
   public beforeOpen() {
     this.cdr.detectChanges();
     this.loadReport();
