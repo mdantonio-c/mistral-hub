@@ -162,15 +162,19 @@ export class ProvinceReportComponent {
     ];
 
     console.log("Line chart data:", this.lineChart);
-    const allValues = this.lineChart.flatMap((s) =>
+    const allValuesLines = this.lineChart.flatMap((s) =>
       s.series.map((v) => v.value).filter((v) => v !== null),
     );
-
-    const min = Math.min(...allValues);
-    const max = Math.max(...allValues);
-
+    const allValuesBoxCharts = selected.flatMap((item) =>
+      item.series.map((s) => s.value),
+    );
+    const minLines = Math.min(...allValuesLines);
+    const maxLines = Math.max(...allValuesLines);
+    const minBoxCharts = Math.min(...allValuesBoxCharts);
+    const maxBoxCharts = Math.max(...allValuesBoxCharts);
+    const min = Math.min(minLines, minBoxCharts);
+    const max = Math.max(maxLines, maxBoxCharts);
     const padding = (max - min) * 0.25;
-
     this.yMin = Math.floor(min - padding);
     this.yMax = Math.ceil(max + padding);
   }
