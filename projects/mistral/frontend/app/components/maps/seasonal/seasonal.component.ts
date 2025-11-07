@@ -314,21 +314,46 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     fetch("./app/custom/assets/images/geoJson/province_bullet.geojson")
       .then((response) => response.json())
       .then((data) => {
-        L.geoJSON(data, {
+        const geoJsonLayer = L.geoJSON(data, {
           pointToLayer: (feature, latlng) => {
-            return L.circleMarker(latlng, {
+            const provinceName = feature.properties.name || "Provincia";
+
+            const marker = L.circleMarker(latlng, {
               radius: 5,
               fillColor: "#0066FF",
               color: "#fff",
               weight: 2,
               fillOpacity: 0.8,
-            }).bindTooltip(feature.properties.name, {
+              bubblingMouseEvents: false, // Previene propagazione eventi
+            });
+
+            // Aggiungi il tooltip direttamente al marker
+            marker.bindTooltip(provinceName, {
               permanent: false,
               direction: "top",
+              offset: L.point(0, -12),
               interactive: false,
+              className: "province-tooltip",
+              sticky: true, // Rimane attivo anche quando non direttamente sopra
             });
+
+            // Gestisci gli eventi di mouse
+            marker.on("mouseover", () => {
+              marker.openTooltip();
+            });
+
+            marker.on("mouseout", () => {
+              marker.closeTooltip();
+            });
+
+            return marker;
           },
-        }).addTo(map);
+        });
+
+        geoJsonLayer.addTo(map);
+      })
+      .catch((error) => {
+        console.error("Errore nel caricamento del GeoJSON province:", error);
       });
   }
   private openProvinceReport(prov: string) {
