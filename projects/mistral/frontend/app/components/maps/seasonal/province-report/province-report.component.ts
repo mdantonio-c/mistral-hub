@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectorRef } from "@angular/core";
+import { Component, Input, ChangeDetectorRef, NgZone } from "@angular/core";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";
 import * as d3 from "d3-scale";
@@ -11,7 +11,7 @@ interface SeriesItem {
 interface MetricData {
   name: string;
   series: SeriesItem[];
-  linee?: any[]; // mantieni linee per eventuale uso futuro
+  linee?: any[];
 }
 interface ProvinceJson {
   provincia: string;
@@ -46,6 +46,7 @@ export class ProvinceReportComponent {
     public activeModal: NgbActiveModal,
     private spinner: NgxSpinnerService,
     private cdr: ChangeDetectorRef,
+    private zone: NgZone,
   ) {}
   @Input() lang!: string;
   @Input() prov!: string;
@@ -53,6 +54,15 @@ export class ProvinceReportComponent {
   provinceData!: ProvinceJson;
   boxplotData: { [metric: string]: MetricData[] } = {};
   lineChart = [];
+  yMin: number = 0;
+  yMax: number = 0;
+  monthlySeriesMapTM = {};
+  monthlySeriesMapTm = {};
+  monthlySeriesMapP = {};
+  currentMonthlyMap: any = {};
+  currentResults = [];
+  yLabel = "Temperature (°C)";
+  colorScheme = "fire";
 
   public beforeOpen() {
     this.cdr.detectChanges();
@@ -68,27 +78,37 @@ export class ProvinceReportComponent {
         `./app/custom/assets/images/json_out/${this.prov}.json`,
       );
       const data: ProvinceJson = await response.json();
-      this.provinceData = data;
+      this.zone.run(() => {
+        this.provinceData = data;
 
-      const convertMonths = (metrics: MetricData[]): MetricData[] => {
-        return metrics.map((m) => ({
-          ...m,
-          name: monthNames[parseInt(m.name) - 1] || m.name,
-        }));
-      };
+        const convertMonths = (metrics: MetricData[]): MetricData[] => {
+          return metrics.map((m) => ({
+            ...m,
+            name: monthNames[parseInt(m.name) - 1] || m.name,
+          }));
+        };
 
-      this.boxplotData = {
-        TM: convertMonths(this.provinceData.variabili.TM),
-        Tm: convertMonths(this.provinceData.variabili.Tm),
-        P: convertMonths(this.provinceData.variabili.P),
-      };
-      this.buildLineChart("TM");
-      console.log(this.lineChart);
-      this.spinner.hide();
-      setTimeout(() => {
+        this.boxplotData = {
+          TM: convertMonths(this.provinceData.variabili.TM),
+          Tm: convertMonths(this.provinceData.variabili.Tm),
+          P: convertMonths(this.provinceData.variabili.P),
+        };
+        this.createSeriesfroTooltips(this.boxplotData.TM, "TM");
+        this.createSeriesfroTooltips(this.boxplotData.Tm, "Tm");
+        this.createSeriesfroTooltips(this.boxplotData.P, "P");
+        this.currentResults = this.boxplotData["TM"];
+        this.currentMonthlyMap = this.monthlySeriesMapTM;
+        this.buildLineChart("TM");
+        console.log(this.monthlySeriesMapTM);
+        console.log(this.lineChart);
+        this.spinner.hide();
+        /* setTimeout(() => {
         this.cdr.detectChanges();
-      }, 0);
-      console.log(this.boxplotData);
+      }, 0);*/
+        this.cdr.markForCheck();
+
+        console.log(this.boxplotData);
+      });
     } catch (error) {
       console.error("Errore caricamento JSON provincia:", error);
       this.spinner.hide();
@@ -96,9 +116,24 @@ export class ProvinceReportComponent {
   }
   public selectMetric(metric: "TM" | "Tm" | "P") {
     this.selectedMetric = metric;
+    this.currentResults = this.boxplotData[metric];
+    this.colorScheme = metric === "P" ? "ocean" : "fire";
+    this.yLabel = metric === "P" ? "Precipitation (mm)" : "Temperature (°C)";
+    switch (metric) {
+      case "TM":
+        this.currentMonthlyMap = this.monthlySeriesMapTM;
+        break;
+      case "Tm":
+        this.currentMonthlyMap = this.monthlySeriesMapTm;
+        break;
+      case "P":
+        this.currentMonthlyMap = this.monthlySeriesMapP;
+        break;
+    }
     this.buildLineChart(metric);
     this.cdr.detectChanges();
   }
+
   private buildLineChart(metric: "TM" | "Tm" | "P") {
     const selected = this.boxplotData[metric];
 
@@ -127,5 +162,35 @@ export class ProvinceReportComponent {
     ];
 
     console.log("Line chart data:", this.lineChart);
+    const allValues = this.lineChart.flatMap((s) =>
+      s.series.map((v) => v.value).filter((v) => v !== null),
+    );
+
+    const min = Math.min(...allValues);
+    const max = Math.max(...allValues);
+
+    const padding = (max - min) * 0.25;
+
+    this.yMin = Math.floor(min - padding);
+    this.yMax = Math.ceil(max + padding);
+  }
+
+  createSeriesfroTooltips(data, varName: string) {
+    if (varName == "TM") {
+      data.forEach((item) => {
+        this.monthlySeriesMapTM[item.name] = item.series;
+      });
+    } else if (varName == "Tm") {
+      data.forEach((item) => {
+        this.monthlySeriesMapTm[item.name] = item.series;
+      });
+    } else {
+      data.forEach((item) => {
+        this.monthlySeriesMapP[item.name] = item.series;
+      });
+    }
+  }
+  get boxUnit(): string {
+    return this.selectedMetric === "P" ? "mm" : "°C";
   }
 }

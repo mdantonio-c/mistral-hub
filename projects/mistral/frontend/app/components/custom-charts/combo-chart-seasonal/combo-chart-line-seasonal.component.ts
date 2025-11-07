@@ -11,16 +11,6 @@ import { trigger, style, animate, transition } from "@angular/animations";
 import { ColorHelper, ScaleType } from "@swimlane/ngx-charts";
 import { area, line, curveLinear } from "d3-shape";
 
-type StringOrNumberOrDate = string | number | Date;
-export interface DataItem {
-  name: StringOrNumberOrDate;
-  value: number;
-  extra?: any;
-  min?: number;
-  max?: number;
-  label?: string;
-}
-
 @Component({
   selector: "g[ngx-combo-charts-line-seasonal]",
   template: `
@@ -77,7 +67,7 @@ export class ComboLineChartSeasonalComponent implements OnChanges {
   stroke: string;
   private lineColors: Record<string, string> = {
     "Clima Media": "#000000",
-    "Clima Min": "#0000FF",
+    "Clima Min": "#87CEEB",
     "Clima Max": "#FF0000",
   };
 
@@ -86,7 +76,7 @@ export class ComboLineChartSeasonalComponent implements OnChanges {
   }
 
   update(): void {
-    console.log("this.series", this.series);
+    //console.log("this.series", this.series);
     let data = this.sortData(this.series);
 
     const lineGen = this.getLineGenerator();
@@ -110,18 +100,18 @@ export class ComboLineChartSeasonalComponent implements OnChanges {
           value = this.xScale(label);
         }*/
         value = this.xScale(label);
-        console.log(
+        /* console.log(
           "Line point:",
           label,
           "x:",
           value,
           "bandwidth:",
           this.xScale.bandwidth(),
-        );
+        );*/
         return value + this.xScale.bandwidth() / 2;
       })
       .y((d) => {
-        console.log("y value:", d.value, "scaled:", this.yScale(d.value));
+        //console.log("y value:", d.value, "scaled:", this.yScale(d.value));
         return this.yScale(d.value);
       })
       .curve(this.curve);

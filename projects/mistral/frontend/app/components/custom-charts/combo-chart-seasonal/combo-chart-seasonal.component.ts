@@ -6,6 +6,8 @@ import {
   Output,
   TemplateRef,
   ViewEncapsulation,
+  NgZone,
+  ChangeDetectorRef,
 } from "@angular/core";
 
 import {
@@ -30,6 +32,9 @@ import { scaleLinear, ScaleLinear, scaleBand, ScaleBand } from "d3-scale";
   encapsulation: ViewEncapsulation.None,
 })
 export class BoxChartComponent extends BaseChartComponent {
+  constructor(protected zone: NgZone, protected cd: ChangeDetectorRef) {
+    super(null as any, zone, cd, null as any);
+  }
   /** Show or hide the legend. */
   @Input() legend: boolean = false;
   @Input() legendPosition: LegendPosition = LegendPosition.Right;
@@ -44,6 +49,8 @@ export class BoxChartComponent extends BaseChartComponent {
   @Input() roundDomains: boolean = false;
   @Input() xAxisLabel: string;
   @Input() yAxisLabel: string;
+  @Input() yScaleMin: number;
+  @Input() yScaleMax: number;
   @Input() roundEdges: boolean = true;
   @Input() strokeColor: string = "#000000";
   @Input() strokeWidth: number = 2;
@@ -57,10 +64,10 @@ export class BoxChartComponent extends BaseChartComponent {
 
   @Output() select: EventEmitter<IBoxModel> = new EventEmitter();
   @Output() activate: EventEmitter<IBoxModel> = new EventEmitter();
-  @Output() deactivate: EventEmitter<IBoxModel> = new EventEmitter();
+  @Output() deactivate: EventEmitter<any> = new EventEmitter();
 
-  @ContentChild("tooltipTemplate", { static: false })
-  tooltipTemplate: TemplateRef<any>;
+  @ContentChild("seriesTooltipTemplate")
+  seriesTooltipTemplate: TemplateRef<any>;
 
   /** Input Data, this came from Base Chart Component. */
   declare results: BoxChartMultiSeries;
@@ -86,13 +93,42 @@ export class BoxChartComponent extends BaseChartComponent {
   xAxisHeight: number = 0;
   /** Chart Y axis dimension. */
   yAxisWidth: number = 0;
-
+  hoveredVertical;
+  scaleType = ScaleType.Ordinal;
+  combinedSeries;
+  xSet;
   ngOnChanges(): void {
     this.update();
   }
 
   trackBy(index: number, item: BoxChartSeries): StringOrNumberOrDate {
     return item.name;
+  }
+  /*updateHoveredVertical(item): void {
+    this.hoveredVertical = item.value;
+    this.deactivateAll();
+  }
+  deactivateAll() {
+    this.activeEntries = [...this.activeEntries];
+    for (const entry of this.activeEntries) {
+      this.deactivate.emit({ value: entry, entries: [] });
+    }
+    this.activeEntries = [];
+  }
+*/
+  updateHoveredVertical(item): void {
+    this.zone.run(() => {
+      this.hoveredVertical = item?.value ?? null;
+      this.cd.markForCheck();
+    });
+  }
+
+  deactivateAll(): void {
+    this.zone.run(() => {
+      this.activeEntries = [];
+      this.hoveredVertical = null;
+      this.cd.markForCheck();
+    });
   }
 
   update(): void {
@@ -188,10 +224,15 @@ export class BoxChartComponent extends BaseChartComponent {
       max = Math.max(...mappedValues);
       domain = [new Date(min), new Date(max)];
     }
+    this.xSet = values;
     return domain;
   }
 
   getYDomain(): number[] {
+    if (this.yScaleMin !== undefined && this.yScaleMax !== undefined) {
+      return [this.yScaleMin, this.yScaleMax];
+    }
+
     const domain: Array<number | Date> = [];
     for (const results of this.results) {
       for (const d of results.series) {
@@ -211,7 +252,8 @@ export class BoxChartComponent extends BaseChartComponent {
   }
 
   getSeriesDomain(): string[] {
-    return this.results.map((d) => `${d.name}`);
+    this.combinedSeries = this.lineChart.slice(0);
+    return this.combinedSeries.map((d) => d.name);
   }
 
   updateYAxisWidth({ width }): void {
@@ -228,12 +270,26 @@ export class BoxChartComponent extends BaseChartComponent {
     this.select.emit(data);
   }
 
-  onActivate(data: IBoxModel): void {
+  /*  onActivate(data: IBoxModel): void {
     this.activate.emit(data);
   }
 
   onDeactivate(data: IBoxModel): void {
     this.deactivate.emit(data);
+  }*/
+  onActivate(data: IBoxModel): void {
+    this.zone.run(() => {
+      console.log(data);
+      this.activeEntries = [...this.activeEntries, data];
+      this.cd.markForCheck();
+    });
+  }
+
+  onDeactivate(data: IBoxModel): void {
+    this.zone.run(() => {
+      this.activeEntries = this.activeEntries.filter((d) => d !== data);
+      this.cd.markForCheck();
+    });
   }
 
   private getLegendOptions(): LegendOptions {

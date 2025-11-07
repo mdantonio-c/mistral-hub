@@ -32,64 +32,57 @@
         {{ "Total Precipitation" | translate : lang }}
       </button>
     </div>
-    <div *ngSwitchCase="'TM'" #containerRef>
-      <!--      <ngx-charts-box-chart
-      [view]="[containerRef.offsetWidth, 400]"
-      [scheme]="'fire'"
-      [results]="boxplotData.TM"
-      [animations]="true"
-      [legend]="false"
-       [yAxisLabel]="'Temperature (°C)'"
-       [strokeColor]="'#000000'">
-    </ngx-charts-box-chart>-->
+
+    <div #containerRef>
       <combo-chart-seasonal-component
         *ngIf="lineChart?.length > 0"
         [view]="[containerRef.offsetWidth, 400]"
-        [yAxisLabel]="'Temperature (°C)'"
-        [results]="boxplotData.TM"
-        [scheme]="'fire'"
+        [yAxisLabel]="yLabel"
+        [results]="currentResults"
+        [scheme]="colorScheme"
         [lineChart]="lineChart"
+        [yScaleMin]="yMin"
+        [yScaleMax]="yMax"
       >
-      </combo-chart-seasonal-component>
-    </div>
-    <div *ngSwitchCase="'Tm'" #containerRef>
-      <!--<ngx-charts-box-chart
-      [view]="[containerRef.offsetWidth, 400]"
-      [scheme]="'fire'"
-      [results]="boxplotData.Tm"
-      [animations]="true"
-      [legend]="false"
-           [yAxisLabel]="'Temperature (°C)'"
-           [strokeColor]="'#000000'">
-           </ngx-charts-box-chart>-->
-      <combo-chart-seasonal-component
-        *ngIf="lineChart?.length > 0"
-        [view]="[containerRef.offsetWidth, 400]"
-        [yAxisLabel]="'Temperature (°C)'"
-        [results]="boxplotData.Tm"
-        [scheme]="'fire'"
-        [lineChart]="lineChart"
-      >
-      </combo-chart-seasonal-component>
-    </div>
-    <div *ngSwitchCase="'P'" #containerRef>
-      <!--       <ngx-charts-box-chart
-      [view]="[containerRef.offsetWidth, 400]"
-      [scheme]="'ocean'"
-      [results]="boxplotData.P"
-      [animations]="true"
-      [legend]="false"
-       [yAxisLabel]="'Precipitation (mm)'"
-       [strokeColor]="'#000000'">
-    </ngx-charts-box-chart>-->
-      <combo-chart-seasonal-component
-        *ngIf="lineChart?.length > 0"
-        [view]="[containerRef.offsetWidth, 400]"
-        [yAxisLabel]="'Temperature (°C)'"
-        [results]="boxplotData.P"
-        [scheme]="'ocean'"
-        [lineChart]="lineChart"
-      >
+        <ng-template #seriesTooltipTemplate let-model="model">
+          <div class="area-tooltip-container">
+            <span class="d-block"
+              ><b>{{ model[0].name }}</b></span
+            >
+            <div class="tooltip-item">
+              <span
+                class="tooltip-item-color"
+                [style.background-color]="'#FF0000'"
+              ></span>
+              {{ "Climate Max" }} : <b>{{ model[2].value }}</b> {{ boxUnit }}
+            </div>
+            <div class="tooltip-item">
+              <span
+                class="tooltip-item-color"
+                [style.background-color]="'#000000'"
+              ></span>
+              {{ "Climate Average" }} : <b>{{ model[0].value }}</b>
+              {{ boxUnit }}
+            </div>
+            <div class="tooltip-item">
+              <span
+                class="tooltip-item-color"
+                [style.background-color]="'#87CEEB'"
+              ></span>
+              {{ "Climate Min" }} : <b>{{ model[1].value }}</b> {{ boxUnit }}
+            </div>
+            <span class="d-block"><b>Boxplot</b> ({{ boxUnit }})</span>
+            <div>
+              10°: <b>{{ currentMonthlyMap[model[0].name][0].value }} </b>,
+              Median: <b>{{ currentMonthlyMap[model[0].name][2].value }} </b>,
+              90°: <b>{{ currentMonthlyMap[model[0].name][4].value }} </b>
+            </div>
+            <div>
+              25°: <b>{{ currentMonthlyMap[model[0].name][1].value }} </b>, 75°:
+              <b>{{ currentMonthlyMap[model[0].name][3].value }} </b>
+            </div>
+          </div>
+        </ng-template>
       </combo-chart-seasonal-component>
     </div>
   </div>
