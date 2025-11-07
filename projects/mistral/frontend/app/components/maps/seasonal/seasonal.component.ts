@@ -81,6 +81,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     maxBoundsViscosity: 1.0,
     timeDimension: false,
     timeDimensionControl: false,
+    attributionControl: false,
   };
   optionsRight = {
     zoomControl: false,
@@ -91,6 +92,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     maxBoundsViscosity: 1.0,
     timeDimension: false,
     timeDimensionControl: false,
+    attributionControl: false,
   };
 
   constructor(
