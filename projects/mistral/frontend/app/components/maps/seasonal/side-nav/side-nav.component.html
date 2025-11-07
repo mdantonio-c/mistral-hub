@@ -37,7 +37,7 @@
           [ngbTooltip]="'Select Month'"
           [disableTooltip]="!isCollapsed"
         ></span>
-        <a *ngIf="!isCollapsed" href (click)="toggleLayer($event, 'cc')">
+        <a *ngIf="!isCollapsed">
           <span class="nav-text" i18n>{{ "Month" | translate : lang }}</span>
         </a>
         <div *ngIf="!isCollapsed" class="d-flex flex-wrap selettore-orario">
