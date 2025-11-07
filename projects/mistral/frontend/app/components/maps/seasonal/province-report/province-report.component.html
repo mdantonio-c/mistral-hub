@@ -71,15 +71,19 @@
               ></span>
               {{ "Climate Min" }} : <b>{{ model[1].value }}</b> {{ boxUnit }}
             </div>
-            <span class="d-block"><b>Boxplot</b> ({{ boxUnit }})</span>
-            <div>
-              10°: <b>{{ currentMonthlyMap[model[0].name][0].value }} </b>,
-              Median: <b>{{ currentMonthlyMap[model[0].name][2].value }} </b>,
-              90°: <b>{{ currentMonthlyMap[model[0].name][4].value }} </b>
+            <span class="d-block"
+              ><b>Boxplot (percentiles)</b> [{{ boxUnit }}]</span
+            >
+            <div class="boxplot-values">
+              10°: <b>{{ currentMonthlyMap[model[0].name][0].value }} </b>; 25°:
+              <b>{{ currentMonthlyMap[model[0].name][1].value }} </b>
             </div>
-            <div>
-              25°: <b>{{ currentMonthlyMap[model[0].name][1].value }} </b>, 75°:
-              <b>{{ currentMonthlyMap[model[0].name][3].value }} </b>
+            <div class="boxplot-values">
+              Median: <b>{{ currentMonthlyMap[model[0].name][2].value }} </b>
+            </div>
+            <div class="boxplot-values">
+              75°:<b>{{ currentMonthlyMap[model[0].name][3].value }} </b>; 90°:
+              <b>{{ currentMonthlyMap[model[0].name][4].value }} </b>
             </div>
           </div>
         </ng-template>
