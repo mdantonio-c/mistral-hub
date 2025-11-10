@@ -67,12 +67,6 @@ services:
     # ports:
     # - "1337:1337"
 
-  minio:
-    entrypoint: ["/bin/sh", "/entrypoint.sh"]
-    volumes:
-      - ssl_certs:/etc/letsencrypt
-      - ${PROJECT_DIR}/confs/minio-entrypoint.sh:/entrypoint.sh:ro
-
   fluentd:
     build: ${PROJECT_DIR}/builds/fluentd
     image: meteohub/fluentd:${RAPYDO_VERSION}
