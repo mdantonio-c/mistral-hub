@@ -44,7 +44,6 @@ services:
     depends_on:
       fluentd:
         condition: service_healthy
-        required: true
     logging:
       driver: "fluentd"
       options:
