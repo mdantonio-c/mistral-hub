@@ -126,3 +126,5 @@ variables:
     S3_KEY_ID: "**PLACEHOLDER**"
     S3_ACCESS_KEY: "**PLACEHOLDER**"
     CKAN_CATALOG_URL: "https://www.mistralportal.it/catalog"
+
+    ACTIVATE_MATOMO: 0

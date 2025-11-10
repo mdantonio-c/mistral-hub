@@ -1,0 +1,6 @@
+# Fluentd log cleanup cron job
+# Clean logs every 5 minutes
+*/5 * * * * /usr/local/bin/log_cleanup.sh >> /var/log/fluentd/cleanup.log 2>&1
+
+# Alternative: run as daemon (comment out the above line if using this)
+# @reboot /usr/local/bin/log_cleanup.sh --daemon >> /var/log/fluentd/cleanup.log 2>&1 &
