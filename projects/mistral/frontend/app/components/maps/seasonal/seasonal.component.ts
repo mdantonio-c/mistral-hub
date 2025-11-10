@@ -311,6 +311,9 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       });
   }
   private addProvinceBullets(map: L.Map) {
+    map.createPane("provinceBullets");
+    map.getPane("provinceBullets").style.zIndex = "400";
+    map.getPane("provinceBullets").style.pointerEvents = "auto";
     fetch("./app/custom/assets/images/geoJson/province_bullet.geojson")
       .then((response) => response.json())
       .then((data) => {
@@ -319,25 +322,25 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
             const provinceName = feature.properties.name || "Provincia";
 
             const marker = L.circleMarker(latlng, {
-              radius: 5,
-              fillColor: "#0066FF",
+              radius: 3,
+              fillColor: "#000",
               color: "#fff",
               weight: 2,
-              fillOpacity: 0.8,
-              bubblingMouseEvents: false, // Previene propagazione eventi
+              fillOpacity: 1,
+              bubblingMouseEvents: false,
+              pane: "provinceBullets",
             });
 
-            // Aggiungi il tooltip direttamente al marker
             marker.bindTooltip(provinceName, {
               permanent: false,
               direction: "top",
               offset: L.point(0, -12),
               interactive: false,
               className: "province-tooltip",
-              sticky: true, // Rimane attivo anche quando non direttamente sopra
+              sticky: true,
+              pane: "tooltipPane",
             });
 
-            // Gestisci gli eventi di mouse
             marker.on("mouseover", () => {
               marker.openTooltip();
             });
@@ -353,7 +356,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
         geoJsonLayer.addTo(map);
       })
       .catch((error) => {
-        console.error("Errore nel caricamento del GeoJSON province:", error);
+        console.error("Errore in downloading Province geojson:", error);
       });
   }
   private openProvinceReport(prov: string) {
