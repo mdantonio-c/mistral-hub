@@ -311,9 +311,14 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       });
   }
   private addProvinceBullets(map: L.Map) {
+    // Creo un pane per i bullets
     map.createPane("provinceBullets");
-    map.getPane("provinceBullets").style.zIndex = "400";
-    map.getPane("provinceBullets").style.pointerEvents = "auto";
+    const pane = map.getPane("provinceBullets");
+
+    // Questo pane NON riceve eventi mouse → click passa al layer sottostante
+    pane.style.zIndex = "450";
+    pane.style.pointerEvents = "none";
+
     fetch("./app/custom/assets/images/geoJson/province_bullet.geojson")
       .then((response) => response.json())
       .then((data) => {
@@ -322,32 +327,31 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
             const provinceName = feature.properties.name || "Provincia";
 
             const marker = L.circleMarker(latlng, {
-              radius: 3,
+              radius: 4,
               fillColor: "#000",
               color: "#fff",
               weight: 2,
               fillOpacity: 1,
-              bubblingMouseEvents: false,
               pane: "provinceBullets",
-              interactive: false,
+              interactive: true,
             });
 
+            // Tooltip
             marker.bindTooltip(provinceName, {
-              permanent: false,
               direction: "top",
               offset: L.point(0, -12),
-              interactive: false,
               className: "province-tooltip",
-              sticky: true,
-              pane: "tooltipPane",
+              permanent: false,
+              sticky: false,
+              interactive: false,
             });
 
-            marker.on("mouseover", () => {
-              marker.openTooltip();
-            });
-
-            marker.on("mouseout", () => {
-              marker.closeTooltip();
+            // Hover tooltip
+            marker.on("mouseover", () => marker.openTooltip());
+            marker.on("mouseout", () => marker.closeTooltip());
+            marker.on("click", () => {
+              marker.unbindTooltip();
+              this.openProvinceReport(feature.properties.name);
             });
 
             return marker;
@@ -356,10 +360,11 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
 
         geoJsonLayer.addTo(map);
       })
-      .catch((error) => {
-        console.error("Errore in downloading Province geojson:", error);
-      });
+      .catch((error) =>
+        console.error("Errore downloading Province bullet geojson:", error),
+      );
   }
+
   private openProvinceReport(prov: string) {
     const modalRef = this.modalService.open(ProvinceReportComponent, {
       size: "xl",
