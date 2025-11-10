@@ -174,7 +174,7 @@ services:
     # env_file: ${PROJECT_DIR}/builds/strapi/.env
     image: postgres:16.0-alpine
     environment:
-      ACTIVATE: ${ACTIVATE_STRAPIDB}
+      ACTIVATE: ${ACTIVATE_STRAPI}
       POSTGRES_USER: ${CMS_DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${CMS_DATABASE_PASSWORD}
       POSTGRES_DB: ${CMS_DATABASE_NAME}
