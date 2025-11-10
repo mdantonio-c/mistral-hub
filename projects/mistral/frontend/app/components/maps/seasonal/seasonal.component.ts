@@ -39,6 +39,27 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     ICON_BOUNDS["southWest"],
     ICON_BOUNDS["northEast"],
   );
+  private legendControl: Record<"left" | "right", L.Control> = {
+    left: null,
+    right: null,
+  };
+  private legendConfig = {
+    "Maximum temperature": {
+      left: "/app/custom/assets/images/legends/seasonal/temperature.svg",
+      right:
+        "/app/custom/assets/images/legends/seasonal/anomaly_temperature.svg",
+    },
+    "Minimum temperature": {
+      left: "/app/custom/assets/images/legends/seasonal/temperature.svg",
+      right:
+        "/app/custom/assets/images/legends/seasonal/anomaly_temperature.svg",
+    },
+    "Total precipitation": {
+      left: "/app/custom/assets/images/legends/seasonal/precipitation.svg",
+      right:
+        "/app/custom/assets/images/legends/seasonal/anomaly_precipitation.svg",
+    },
+  };
   public run;
   private wmsPath: string;
   private mapsPath: string;
@@ -162,18 +183,6 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     } as any);
   }
   protected toggleLayer(obj: Record<string, string | L.Layer>) {}
-  /*  protected centerMap() {
-    if (this.maps.left) {
-      const mapCenter = L.latLng(41.3, 12.5);
-      this.maps.left.setMaxZoom(this.maxZoom - 1);
-      this.maps.left.fitBounds(this.bounds);
-    }
-    if (this.maps.right) {
-      const mapCenter = L.latLng(41.3, 12.5);
-      this.maps.right.setMaxZoom(this.maxZoom - 1);
-      this.maps.right.fitBounds(this.bounds);
-    }
-  }*/
   protected centerMap() {
     const italyCenter = L.latLng(41.3, 12.5);
 
@@ -220,7 +229,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
         this.varDesc2 = "";
       }
     });
-
+    this.updateLegends(layerId);
     this.tryLoadWms("left");
     this.tryLoadWms("right");
   }
@@ -401,5 +410,37 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
         this.maps.right.invalidateSize();
       }
     }, 30);
+  }
+
+  private addLegendSvg(mapKey: "left" | "right", svgPath: string) {
+    const map = this.maps[mapKey];
+    if (!map) return;
+    const legend = new L.Control({ position: "bottomleft" });
+    legend.onAdd = () => {
+      let div = L.DomUtil.create("div");
+      div.style.clear = "unset";
+      div.innerHTML += `<img class="legenda" src="${svgPath}">`;
+      return div;
+    };
+    legend.addTo(map);
+    this.legendControl[mapKey] = legend;
+  }
+  private updateLegends(layerId: string) {
+    const config = this.legendConfig[layerId];
+    if (!config) return;
+    if (this.maps.left) {
+      this.removeLegend("left");
+      this.addLegendSvg("left", config.left);
+    }
+    if (this.maps.right) {
+      this.removeLegend("right");
+      this.addLegendSvg("right", config.right);
+    }
+  }
+  private removeLegend(mapKey: "left" | "right") {
+    if (this.legendControl[mapKey]) {
+      this.legendControl[mapKey].remove();
+      this.legendControl[mapKey] = null;
+    }
   }
 }
