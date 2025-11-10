@@ -333,7 +333,9 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       .then((data) => {
         const geoJsonLayer = L.geoJSON(data, {
           pointToLayer: (feature, latlng) => {
-            const provinceName = feature.properties.name || "Provincia";
+            const provinceName = feature.properties.name2
+              ? feature.properties.name2
+              : feature.properties.name;
 
             const marker = L.circleMarker(latlng, {
               radius: 4,
