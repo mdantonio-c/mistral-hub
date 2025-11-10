@@ -329,6 +329,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
               fillOpacity: 1,
               bubblingMouseEvents: false,
               pane: "provinceBullets",
+              interactive: false,
             });
 
             marker.bindTooltip(provinceName, {
