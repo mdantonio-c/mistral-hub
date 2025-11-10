@@ -102,6 +102,10 @@ export class TranslationService {
         october: "Ottobre",
         november: "Novembre",
         december: "Dicembre",
+        "click on the markers to open box plots for provincial capitals":
+          "Clicca sui punti per visualizzare i box plot dei capoluoghi di provincia",
+        "discover more about this product":
+          "Scopri come viene realizzato questo prodotto",
       },
     },
   };
