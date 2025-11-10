@@ -53,10 +53,11 @@
       "type": "Feature",
       "properties": {
         "name": "Verbano-Cusio-Ossola",
+        "name2": "Verbania",
         "code": "VB",
         "region": "Piemonte"
       },
-      "geometry": { "type": "Point", "coordinates": [8.5597, 45.9267] }
+      "geometry": { "type": "Point", "coordinates": [8.5518, 45.9211] }
     },
     {
       "type": "Feature",
@@ -97,10 +98,11 @@
       "type": "Feature",
       "properties": {
         "name": "Monza e Brianza",
+        "name2": "Monza",
         "code": "MB",
         "region": "Lombardia"
       },
-      "geometry": { "type": "Point", "coordinates": [9.2745, 45.5816] }
+      "geometry": { "type": "Point", "coordinates": [9.2744, 45.5845] }
     },
     {
       "type": "Feature",
@@ -228,10 +230,11 @@
       "type": "Feature",
       "properties": {
         "name": "Forlì-Cesena",
+        "name2": "Forlì",
         "code": "FC",
         "region": "Emilia-Romagna"
       },
-      "geometry": { "type": "Point", "coordinates": [12.0399, 44.2167] }
+      "geometry": { "type": "Point", "coordinates": [12.0408, 44.2225] }
     },
     {
       "type": "Feature",
@@ -369,10 +372,11 @@
       "type": "Feature",
       "properties": {
         "name": "Pesaro e Urbino",
+        "name2": "Pesaro",
         "code": "PU",
         "region": "Marche"
       },
-      "geometry": { "type": "Point", "coordinates": [12.9167, 43.9167] }
+      "geometry": { "type": "Point", "coordinates": [12.7763, 43.8176] }
     },
     {
       "type": "Feature",
@@ -418,11 +422,6 @@
       "type": "Feature",
       "properties": { "name": "Benevento", "code": "BN", "region": "Campania" },
       "geometry": { "type": "Point", "coordinates": [14.7653, 41.1398] }
-    },
-    {
-      "type": "Feature",
-      "properties": { "name": "Caserta", "code": "CE", "region": "Campania" },
-      "geometry": { "type": "Point", "coordinates": [14.334, 41.4943] }
     },
     {
       "type": "Feature",
@@ -575,19 +574,75 @@
       "type": "Feature",
       "properties": {
         "name": "Sud Sardegna",
+        "name2": "Carbonia",
         "code": "SU",
         "region": "Sardegna"
       },
-      "geometry": { "type": "Point", "coordinates": [8.6104, 39.55] }
+      "geometry": { "type": "Point", "coordinates": [8.515, 39.1672] }
     },
     {
       "type": "Feature",
       "properties": {
-        "name": "Medio Campidano",
-        "code": "VS",
-        "region": "Sardegna"
+        "name": "Barletta-Andria-Trani",
+        "code": "BT",
+        "region": "Puglia"
       },
-      "geometry": { "type": "Point", "coordinates": [8.7241, 39.8] }
+      "geometry": { "type": "Point", "coordinates": [16.329, 41.275] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Caserta", "code": "CE", "region": "Campania" },
+      "geometry": { "type": "Point", "coordinates": [14.3323, 41.0747] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Isernia", "code": "IS", "region": "Molise" },
+      "geometry": { "type": "Point", "coordinates": [14.2326, 41.591] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Campobasso", "code": "CB", "region": "Molise" },
+      "geometry": { "type": "Point", "coordinates": [14.66, 41.56] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Imperia", "code": "IM", "region": "Liguria" },
+      "geometry": { "type": "Point", "coordinates": [8.0386, 43.8896] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Savona", "code": "SV", "region": "Liguria" },
+      "geometry": { "type": "Point", "coordinates": [8.4772, 44.309] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Genova", "code": "GE", "region": "Liguria" },
+      "geometry": { "type": "Point", "coordinates": [8.9463, 44.4056] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "La Spezia", "code": "SP", "region": "Liguria" },
+      "geometry": { "type": "Point", "coordinates": [9.8289, 44.1072] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Chieti", "code": "CH", "region": "Abruzzo" },
+      "geometry": { "type": "Point", "coordinates": [14.1675, 42.351] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Pescara", "code": "PE", "region": "Abruzzo" },
+      "geometry": { "type": "Point", "coordinates": [14.2134, 42.4643] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "L'Aquila", "code": "AQ", "region": "Abruzzo" },
+      "geometry": { "type": "Point", "coordinates": [13.3995, 42.3498] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Teramo", "code": "TE", "region": "Abruzzo" },
+      "geometry": { "type": "Point", "coordinates": [13.6988, 42.6612] }
     }
   ]
 }
