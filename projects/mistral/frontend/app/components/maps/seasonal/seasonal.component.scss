@@ -54,13 +54,15 @@
   background-color: rgba(0, 0, 0, 0.9);
   border-radius: 4px;
   padding: 6px 10px;
+  pointer-events: none !important;
 }
+
 .leaflet-tooltip-pane {
   z-index: 10000 !important;
+  pointer-events: none !important;
 }
 
 .province-tooltip {
-  position: relative !important;
   pointer-events: none !important;
   z-index: 10001 !important;
 }
