@@ -50,8 +50,8 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
         "/app/custom/assets/images/legends/seasonal/horizontal/temperature.svg",
       ],
       right: [
-        "/app/custom/assets/images/legends/seasonal/anomaly_temperature.svg",
-        "/app/custom/assets/images/legends/seasonal/horizontal/anomaly_temperature.svg",
+        "/app/custom/assets/images/legends/seasonal/anomaly-temperature.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/anomaly-temperature.svg",
       ],
     },
     "Minimum temperature": {
@@ -60,18 +60,18 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
         "/app/custom/assets/images/legends/seasonal/horizontal/temperature.svg",
       ],
       right: [
-        "/app/custom/assets/images/legends/seasonal/anomaly_temperature.svg",
-        "/app/custom/assets/images/legends/seasonal/horizontal/anomaly_temperature.svg",
+        "/app/custom/assets/images/legends/seasonal/anomaly-temperature.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/anomaly-temperature.svg",
       ],
     },
     "Total precipitation": {
       left: [
-        "/app/custom/assets/images/legends/seasonal/precipitation.svg",
-        "/app/custom/assets/images/legends/seasonal/horizontal/precipitation.svg",
+        "/app/custom/assets/images/legends/seasonal/precipitations.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/precipitations.svg",
       ],
       right: [
-        "/app/custom/assets/images/legends/seasonal/anomaly_precipitation.svg",
-        "/app/custom/assets/images/legends/seasonal/horizontal/anomaly_precipitation.svg",
+        "/app/custom/assets/images/legends/seasonal/anomaly-precipitations.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/anomaly-precipitations.svg",
       ],
     },
   };
