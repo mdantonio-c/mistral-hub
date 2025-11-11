@@ -363,7 +363,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
               : feature.properties.name;
 
             const marker = L.circleMarker(latlng, {
-              radius: 4,
+              radius: 3,
               fillColor: "#000",
               color: "#fff",
               weight: 2,

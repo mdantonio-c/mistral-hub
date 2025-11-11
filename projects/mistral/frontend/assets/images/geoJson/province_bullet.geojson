@@ -229,8 +229,8 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Forlì-Cesena",
-        "name2": "Forlì",
+        "name": "Forli'-Cesena",
+        "name2": "Forli'",
         "code": "FC",
         "region": "Emilia-Romagna"
       },
@@ -487,6 +487,7 @@
       "type": "Feature",
       "properties": {
         "name": "Reggio di Calabria",
+        "name2": "Reggio Calabria",
         "code": "RC",
         "region": "Calabria"
       },
