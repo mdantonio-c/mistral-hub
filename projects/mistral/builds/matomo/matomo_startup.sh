@@ -8,8 +8,8 @@ echo "Starting Matomo..."
 sleep 30
 
 # Run the site initialization script
-echo "Running site initialization..."
-/init_sites.sh
+# echo "Running site initialization..."
+# /init_sites.sh
 
 # Keep the container running
 wait
