@@ -5,11 +5,11 @@ echo "Starting Matomo..."
 /entrypoint.sh apache2-foreground &
 
 # Wait a bit for Matomo to start up
-sleep 30
+# sleep 30
 
 # Run the site initialization script
-echo "Running site initialization..."
-/init_sites.sh
+# echo "Running site initialization..."
+# /init_sites.sh
 
 # Keep the container running
 wait
