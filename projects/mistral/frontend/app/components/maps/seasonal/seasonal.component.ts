@@ -361,8 +361,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
             marker.on("mouseover", () => marker.openTooltip());
             marker.on("mouseout", () => marker.closeTooltip());
             marker.on("click", () => {
-              marker.unbindTooltip();
-              this.openProvinceReport(feature.properties.name);
+              this.openProvinceReport(feature.properties.name, marker);
             });
 
             return marker;
@@ -376,11 +375,20 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       );
   }
 
-  private openProvinceReport(prov: string) {
+  private openProvinceReport(prov: string, m: L.CircleMarker | null = null) {
     const modalRef = this.modalService.open(ProvinceReportComponent, {
       size: "xl",
       centered: true,
     });
+    if (m instanceof L.CircleMarker) {
+      const tooltip = m.getTooltip();
+      modalRef.result.finally(() => {
+        setTimeout(() => {
+          m.bindTooltip(tooltip);
+          m.closeTooltip();
+        }, 0);
+      });
+    }
     modalRef.componentInstance.lang = this.lang;
     modalRef.componentInstance.prov = prov;
     modalRef.componentInstance.beforeOpen();
