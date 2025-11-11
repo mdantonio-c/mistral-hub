@@ -56,6 +56,7 @@ export class ProvinceReportComponent implements AfterViewInit {
   ) {}
   @Input() lang!: string;
   @Input() prov!: string;
+  province;
   selectedMetric: "TM" | "Tm" | "P" = "TM";
   provinceData!: ProvinceJson;
   boxplotData: { [metric: string]: MetricData[] } = {};
@@ -79,6 +80,7 @@ export class ProvinceReportComponent implements AfterViewInit {
   }
   public beforeOpen() {
     this.cdr.detectChanges();
+    this.changeProvinceName(this.prov);
     this.loadReport();
   }
   private loadReport() {
@@ -209,5 +211,13 @@ export class ProvinceReportComponent implements AfterViewInit {
   }
   get boxUnit(): string {
     return this.selectedMetric === "P" ? "mm" : "°C";
+  }
+  changeProvinceName(prov: string) {
+    this.province = this.prov;
+    if (prov == "Forlì-Cesena") this.province = "Forlì";
+    if (prov == "Pesaro e Urbino") this.province = "Pesaro";
+    if (prov == "Monza e Brianza") this.province = "Monza";
+    if (prov == "Sud Sardegna") this.province = "Carbonia";
+    if (prov == "Verbano-Cusio-Ossola") this.province = "Verbania";
   }
 }
