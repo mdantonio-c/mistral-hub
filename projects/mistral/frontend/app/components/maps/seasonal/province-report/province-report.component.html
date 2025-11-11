@@ -47,21 +47,21 @@
         <ng-template #seriesTooltipTemplate let-model="model">
           <div class="area-tooltip-container">
             <span class="d-block"
-              ><b>{{ model[0].name }}</b></span
+              ><b>{{ model[0].name }}-percentiles</b></span
             >
             <div class="tooltip-item">
               <span
                 class="tooltip-item-color"
                 [style.background-color]="'#FF0000'"
               ></span>
-              {{ "Climate Max" }} : <b>{{ model[2].value }}</b> {{ boxUnit }}
+              {{ "Climate 90th" }} : <b>{{ model[2].value }}</b> {{ boxUnit }}
             </div>
             <div class="tooltip-item">
               <span
                 class="tooltip-item-color"
                 [style.background-color]="'#000000'"
               ></span>
-              {{ "Climate Average" }} : <b>{{ model[0].value }}</b>
+              {{ "Climate 50th " }} : <b>{{ model[0].value }}</b>
               {{ boxUnit }}
             </div>
             <div class="tooltip-item">
@@ -69,20 +69,20 @@
                 class="tooltip-item-color"
                 [style.background-color]="'#87CEEB'"
               ></span>
-              {{ "Climate Min" }} : <b>{{ model[1].value }}</b> {{ boxUnit }}
+              {{ "Climate 10th" }} : <b>{{ model[1].value }}</b> {{ boxUnit }}
             </div>
-            <span class="d-block"
-              ><b>Boxplot (percentiles)</b> [{{ boxUnit }}]</span
-            >
+            <span class="d-block"><b>Boxplot</b> [{{ boxUnit }}]</span>
             <div class="boxplot-values">
-              10°: <b>{{ currentMonthlyMap[model[0].name][0].value }} </b>; 25°:
+              10th: <b>{{ currentMonthlyMap[model[0].name][0].value }} </b>;
+              25th:
               <b>{{ currentMonthlyMap[model[0].name][1].value }} </b>
             </div>
             <div class="boxplot-values">
-              Median: <b>{{ currentMonthlyMap[model[0].name][2].value }} </b>
+              50th: <b>{{ currentMonthlyMap[model[0].name][2].value }} </b>
             </div>
             <div class="boxplot-values">
-              75°:<b>{{ currentMonthlyMap[model[0].name][3].value }} </b>; 90°:
+              75th:<b>{{ currentMonthlyMap[model[0].name][3].value }} </b>;
+              90th:
               <b>{{ currentMonthlyMap[model[0].name][4].value }} </b>
             </div>
           </div>
