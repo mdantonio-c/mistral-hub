@@ -41,6 +41,16 @@ services:
       SSL_TRUSTORE_FILENAME: "${SSL_TRUSTORE_FILENAME}"
 
   proxy:
+    depends_on:
+      fluentd:
+        condition: service_healthy
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: nginx
+    networks:
+      - logging
     volumes:
       - ${DATA_DIR}/grib_extraction:/grib_extraction
       - ${DATA_DIR}/catalog:/catalog
@@ -56,3 +66,70 @@ services:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest-pre
     # ports:
     # - "1337:1337"
+
+  fluentd:
+    build: ${PROJECT_DIR}/builds/fluentd
+    image: meteohub/fluentd:${RAPYDO_VERSION}
+    environment:
+      ACTIVATE: ${ACTIVATE_PROXY}
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    volumes:
+      - ${DATA_DIR}/logs/fluentd:/var/log/fluentd  # 👈 mount host dir
+    networks:
+      - logging
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "24224"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+
+  matomo_db:
+    image: mariadb:10.6
+    environment:
+      ACTIVATE: ${ACTIVATE_MATOMO}
+      MYSQL_ROOT_PASSWORD: ${MATOMO_DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: matomo
+      MYSQL_USER: ${MATOMO_DB_USER}
+      MYSQL_PASSWORD: ${MATOMO_DB_PASSWORD}
+    volumes:
+      - ${DATA_DIR}/matomo_db:/var/lib/mysql
+
+  matomo:
+    image: matomo:latest
+    depends_on:
+      - matomo_db
+    environment:
+      - ACTIVATE=${ACTIVATE_MATOMO}
+      - MATOMO_DATABASE_HOST=matomo_db
+      - MATOMO_DATABASE_ADAPTER=mysql
+      - MATOMO_DATABASE_TABLES_PREFIX=matomo_
+      - MATOMO_DATABASE_USERNAME=${MATOMO_DB_USER}
+      - MATOMO_DATABASE_PASSWORD=${MATOMO_DB_PASSWORD}
+      - MATOMO_DATABASE_DBNAME=matomo
+
+    ports:
+      - "8080:80"
+    volumes:
+      - ${DATA_DIR}/matomo:/var/www/html
+      - ${PROJECT_DIR}/builds/matomo/init_sites.sh:/init_sites.sh
+      - ${PROJECT_DIR}/builds/matomo/matomo_startup.sh:/matomo_startup.sh
+    entrypoint: ["/bin/bash", "/matomo_startup.sh"]
+
+  logimporter:
+    image: matomo:latest
+    depends_on:
+      - matomo
+    environment:
+      - ACTIVATE=1
+    volumes:
+      - ${DATA_DIR}/logs/fluentd:/data/logs
+      - ${PROJECT_DIR}/builds/matomo/import_script.sh:/import_script.sh
+      - ${DATA_DIR}/matomo:/var/www/html
+    entrypoint: ["/bin/sh", "/import_script.sh"]
+
+networks:
+  logging:
+    driver: bridge
