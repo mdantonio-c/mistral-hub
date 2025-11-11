@@ -32,8 +32,8 @@ location /cms/ {
   if (-f /etc/nginx/maintenance.flag.ui) {
     return 503;
   }
-  rewrite ^/cms/(.+) /$1 break;
   set $strapi "http://strapi:1337";
+  rewrite ^/cms/(.+) /$1 break;
   proxy_pass $strapi;
   proxy_http_version 1.1;
   proxy_set_header X-Forwarded-Host $host;
