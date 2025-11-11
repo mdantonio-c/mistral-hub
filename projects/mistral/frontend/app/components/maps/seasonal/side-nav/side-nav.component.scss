@@ -129,7 +129,7 @@ $dark-blue: #004080;
       display: flex;
       justify-content: flex-start;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap !important;
 
       & > .attivo {
         background-color: $light-blue;
@@ -176,13 +176,15 @@ $dark-blue: #004080;
 .calendar + a {
   margin-top: -4px !important;
 }
-
+.realtime-info {
+margin-top: 4px !important; 
+}
 .t2mplus,
 .t2mminus,
 .calendar,
 .prp,
 .plus,
-.minus {
+.minus, .info, .book {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
@@ -211,6 +213,14 @@ $dark-blue: #004080;
 
 .prp {
   background-image: url("/app/custom/assets/images/icons/precipitazioni.svg");
+}
+
+.info {
+  background-image: url("/app/custom/assets/images/icons/info.svg");
+}
+
+.book {
+  background-image: url("/app/custom/assets/images/icons/book.svg");
 }
 
 .plus {
@@ -348,12 +358,12 @@ $dark-blue: #004080;
   .calendar,
   .prp,
   .plus,
-  .minus {
+  .minus, .info, .book {
     margin-top: 5px;
     padding: 10px;
     width: 22px;
     height: 22px;
-    margin-left: 5px;
+    margin-left: 3px;
   }
 }
 
@@ -418,7 +428,7 @@ $dark-blue: #004080;
   .calendar,
   .prp,
   .plus,
-  .minus {
+  .minus, .info, .book {
     margin-top: 4px;
     padding: 9px;
     width: 18px;

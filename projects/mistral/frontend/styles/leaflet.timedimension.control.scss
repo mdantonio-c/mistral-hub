@@ -438,6 +438,10 @@ a.timecontrol-play.loading:before {
   .legenda {
     max-width: 57% !important;
   }
+
+  app-seasonal img[src~="horizontal"] {
+    max-width: 90% !important;
+  }
 }
 @media screen and (max-width: 595px) {
   .legenda {
@@ -458,6 +462,9 @@ a.timecontrol-play.loading:before {
         .legenda {
         max-width: 42% !important;
     }
+  }
+   app-seasonal .legenda[src*="horizontal"] {
+    max-width: 90% !important;
   }
 }
 

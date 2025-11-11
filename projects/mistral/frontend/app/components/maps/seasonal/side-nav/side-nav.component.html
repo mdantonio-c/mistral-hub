@@ -105,9 +105,8 @@
           "
           container="body"
         >
-          <i class="fas fa-info-circle"></i>
         </span>
-        <a *ngIf="!isCollapsed">
+        <a  class="d-flex justify-content-start text-start" *ngIf="!isCollapsed">
           <span class="nav-text">{{
             "Click on the markers to open box plots for provincial capitals"
               | translate : lang
@@ -118,7 +117,7 @@
       <div class="flex-spacer w-100">
         <li class="sidenav-item border-0">
           <span
-            class="info clickable"
+            class="book clickable"
             [ngbTooltip]="
               isCollapsed
                 ? ('Discover more about this product' | translate : lang)
@@ -126,7 +125,6 @@
             "
             container="body"
           >
-            <i class="fas fa-book"></i>
           </span>
           <a *ngIf="!isCollapsed">
             <span
