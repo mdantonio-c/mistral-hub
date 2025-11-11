@@ -45,19 +45,34 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   };
   private legendConfig = {
     "Maximum temperature": {
-      left: "/app/custom/assets/images/legends/seasonal/temperature.svg",
-      right:
+      left: [
+        "/app/custom/assets/images/legends/seasonal/temperature.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/temperature.svg",
+      ],
+      right: [
         "/app/custom/assets/images/legends/seasonal/anomaly_temperature.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/anomaly_temperature.svg",
+      ],
     },
     "Minimum temperature": {
-      left: "/app/custom/assets/images/legends/seasonal/temperature.svg",
-      right:
+      left: [
+        "/app/custom/assets/images/legends/seasonal/temperature.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/temperature.svg",
+      ],
+      right: [
         "/app/custom/assets/images/legends/seasonal/anomaly_temperature.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/anomaly_temperature.svg",
+      ],
     },
     "Total precipitation": {
-      left: "/app/custom/assets/images/legends/seasonal/precipitation.svg",
-      right:
+      left: [
+        "/app/custom/assets/images/legends/seasonal/precipitation.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/precipitation.svg",
+      ],
+      right: [
         "/app/custom/assets/images/legends/seasonal/anomaly_precipitation.svg",
+        "/app/custom/assets/images/legends/seasonal/horizontal/anomaly_precipitation.svg",
+      ],
     },
   };
   public run;
@@ -66,6 +81,8 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   private provinceData: any = null;
   private provinceDataPromise: Promise<any> | null = null;
   public lang = "en";
+  private isMobile = false;
+  private mediaQuery: MediaQueryList;
   // Leaflet does not allow you to reuse the same TileLayer instance on multiple maps.
   private createLightMatterLayer(): L.TileLayer {
     return L.tileLayer(
@@ -142,6 +159,14 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   override ngOnInit(): void {
     this.loadLatestRun();
     super.ngOnInit();
+
+    this.mediaQuery = window.matchMedia("(max-width: 768px)");
+    this.isMobile = this.mediaQuery.matches;
+    this.mediaQuery.addEventListener("change", (e) => {
+      this.isMobile = e.matches;
+      this.updateLegends(this.selectedLayerId);
+    });
+
     this.route.queryParams.subscribe((params: Params) => {
       const lang = params["lang"];
       if (["it", "en"].includes(lang)) {
@@ -436,15 +461,26 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     this.legendControl[mapKey] = legend;
   }
   private updateLegends(layerId: string) {
+    if (!this.selectedLayerId) return;
     const config = this.legendConfig[layerId];
     if (!config) return;
     if (this.maps.left) {
       this.removeLegend("left");
-      this.addLegendSvg("left", config.left);
+      if (this.isMobile) {
+        this.addLegendSvg("left", config.left[1]);
+        console.log("entrato left");
+      } else {
+        this.addLegendSvg("left", config.left[0]);
+      }
     }
     if (this.maps.right) {
       this.removeLegend("right");
-      this.addLegendSvg("right", config.right);
+      if (this.isMobile) {
+        this.addLegendSvg("right", config.right[1]);
+        console.log("entrato right");
+      } else {
+        this.addLegendSvg("right", config.right[0]);
+      }
     }
   }
   private removeLegend(mapKey: "left" | "right") {
