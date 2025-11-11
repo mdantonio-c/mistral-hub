@@ -45,7 +45,7 @@ services:
       fluentd:
         condition: service_healthy
     logging:
-      driver: "fluentd"
+      driver: ${ANALYTICS_LOG_DRIVER:-json-file}
       options:
         fluentd-address: localhost:24224
         tag: nginx
@@ -55,6 +55,7 @@ services:
       - ${DATA_DIR}/grib_extraction:/grib_extraction
       - ${DATA_DIR}/catalog:/catalog
       - ${PROJECT_DIR}/nginx/proxy.service:/etc/nginx/sites-enabled/proxy.service
+      - ${PROJECT_DIR}/nginx/analytics.service.${ACTIVATE_ANALYTICS:-0}:/etc/nginx/sites-enabled/analytics.service
       - ${PROJECT_DIR}/nginx/custom_maintenance.conf:/etc/nginx/sites-enabled-templates/custom_maintenance.conf
       - ${PROJECT_DIR}/nginx/maintenance.html:/usr/share/nginx/html/maintenance.html
       - ${PROJECT_DIR}/nginx/toggle_maintenance.sh:/etc/nginx/toggle_maintenance.sh
@@ -71,7 +72,7 @@ services:
     build: ${PROJECT_DIR}/builds/fluentd
     image: meteohub/fluentd:${RAPYDO_VERSION}
     environment:
-      ACTIVATE: ${ACTIVATE_PROXY}
+      ACTIVATE: 1
     ports:
       - "24224:24224"
       - "24224:24224/udp"
@@ -89,7 +90,7 @@ services:
   matomo_db:
     image: mariadb:10.6
     environment:
-      ACTIVATE: ${ACTIVATE_MATOMO}
+      ACTIVATE: ${ACTIVATE_ANALYTICS}
       MYSQL_ROOT_PASSWORD: ${MATOMO_DB_ROOT_PASSWORD}
       MYSQL_DATABASE: matomo
       MYSQL_USER: ${MATOMO_DB_USER}
@@ -102,7 +103,7 @@ services:
     depends_on:
       - matomo_db
     environment:
-      - ACTIVATE=${ACTIVATE_MATOMO}
+      - ACTIVATE=${ACTIVATE_ANALYTICS}
       - MATOMO_DATABASE_HOST=matomo_db
       - MATOMO_DATABASE_ADAPTER=mysql
       - MATOMO_DATABASE_TABLES_PREFIX=matomo_
@@ -123,7 +124,7 @@ services:
     depends_on:
       - matomo
     environment:
-      - ACTIVATE=1
+      - ACTIVATE=${ACTIVATE_ANALYTICS}
     volumes:
       - ${DATA_DIR}/logs/fluentd:/data/logs
       - ${PROJECT_DIR}/builds/matomo/import_script.sh:/import_script.sh
