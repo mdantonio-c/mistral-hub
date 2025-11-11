@@ -47,21 +47,22 @@
         <ng-template #seriesTooltipTemplate let-model="model">
           <div class="area-tooltip-container">
             <span class="d-block"
-              ><b>{{ model[0].name }}-percentiles</b></span
+              ><b>{{ model[0].name }} [percentiles]</b></span
             >
+            <div class="boxplot-values"><b>Climate</b>:</div>
             <div class="tooltip-item">
               <span
                 class="tooltip-item-color"
                 [style.background-color]="'#FF0000'"
               ></span>
-              {{ "Climate 90th" }} : <b>{{ model[2].value }}</b> {{ boxUnit }}
+              {{ "90th" }} : <b>{{ model[2].value }}</b> {{ boxUnit }}
             </div>
             <div class="tooltip-item">
               <span
                 class="tooltip-item-color"
                 [style.background-color]="'#000000'"
               ></span>
-              {{ "Climate 50th " }} : <b>{{ model[0].value }}</b>
+              {{ "50th" }} : <b>{{ model[0].value }}</b>
               {{ boxUnit }}
             </div>
             <div class="tooltip-item">
@@ -69,21 +70,28 @@
                 class="tooltip-item-color"
                 [style.background-color]="'#87CEEB'"
               ></span>
-              {{ "Climate 10th" }} : <b>{{ model[1].value }}</b> {{ boxUnit }}
+              {{ "10th" }} : <b>{{ model[1].value }}</b> {{ boxUnit }}
             </div>
-            <span class="d-block"><b>Boxplot</b> [{{ boxUnit }}]</span>
+            <span class="boxplot-values"><b>Forecast</b> [{{ boxUnit }}]</span>
             <div class="boxplot-values">
-              10th: <b>{{ currentMonthlyMap[model[0].name][0].value }} </b>;
-              25th:
-              <b>{{ currentMonthlyMap[model[0].name][1].value }} </b>
+              90th: <b>{{ currentMonthlyMap[model[0].name][4].value }} </b>
+              {{ boxUnit }}
+            </div>
+            <div class="boxplot-values">
+              75th: <b>{{ currentMonthlyMap[model[0].name][3].value }} </b>
+              {{ boxUnit }}
             </div>
             <div class="boxplot-values">
               50th: <b>{{ currentMonthlyMap[model[0].name][2].value }} </b>
+              {{ boxUnit }}
             </div>
             <div class="boxplot-values">
-              75th:<b>{{ currentMonthlyMap[model[0].name][3].value }} </b>;
-              90th:
-              <b>{{ currentMonthlyMap[model[0].name][4].value }} </b>
+              25th: <b>{{ currentMonthlyMap[model[0].name][1].value }} </b>
+              {{ boxUnit }}
+            </div>
+            <div class="boxplot-values">
+              10th: <b>{{ currentMonthlyMap[model[0].name][0].value }} </b>
+              {{ boxUnit }}
             </div>
           </div>
         </ng-template>

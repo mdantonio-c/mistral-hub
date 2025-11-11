@@ -214,10 +214,16 @@ export class ProvinceReportComponent implements AfterViewInit {
   }
   changeProvinceName(prov: string) {
     this.province = this.prov;
-    if (prov == "Forlì-Cesena") this.province = "Forlì";
+    console.log(prov);
+    if (prov == "Forli'-Cesena") {
+      console.log("sono entrato");
+      this.province = "Forli'";
+    }
     if (prov == "Pesaro e Urbino") this.province = "Pesaro";
-    if (prov == "Monza e Brianza") this.province = "Monza";
+    if (prov == "Monza e Brianza" || prov == "Monza e della Brianza")
+      this.province = "Monza";
     if (prov == "Sud Sardegna") this.province = "Carbonia";
     if (prov == "Verbano-Cusio-Ossola") this.province = "Verbania";
+    if (prov == "Reggio di Calabria") this.province = "Reggio Calabria";
   }
 }
