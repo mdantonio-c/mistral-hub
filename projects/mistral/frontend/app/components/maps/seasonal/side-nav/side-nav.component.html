@@ -1,6 +1,6 @@
 <nav class="map-sidenav" [class.collapsed]="isCollapsed">
   <div id="overlay" class="sidenav-overlay"></div>
-  <div class="map-sidenav-menu">
+  <div class="map-sidenav-menu h-100">
     <label
       class="toggle"
       (click)="changeCollapse()"
@@ -37,10 +37,10 @@
           [ngbTooltip]="'Select Month'"
           [disableTooltip]="!isCollapsed"
         ></span>
-        <a *ngIf="!isCollapsed">
+        <a class="d-block" *ngIf="!isCollapsed">
           <span class="nav-text" i18n>{{ "Month" | translate : lang }}</span>
         </a>
-        <div *ngIf="!isCollapsed" class="d-flex flex-wrap selettore-orario">
+        <div *ngIf="!isCollapsed" class="selettore-orario w-100 d-flex flex-wrap">
           <ng-container *ngFor="let month of monthsMapping; let last = last">
             <label class="nav-text d-flex w-50 mb-2">
               <input
@@ -94,7 +94,7 @@
           <span class="nav-text" i18n>Zoom out</span>
         </a>
       </li>
-      <li class="sidenav-item realtime-info">
+      <li class="sidenav-item realtime-info last">
         <span
           class="info clickable"
           [ngbTooltip]="
@@ -113,8 +113,7 @@
           }}</span>
         </a>
       </li>
-      <div class="last"></div>
-      <div class="flex-spacer w-100">
+      <div class="flex-spacer w-100 h-100">
         <li class="sidenav-item border-0">
           <span
             class="book clickable"

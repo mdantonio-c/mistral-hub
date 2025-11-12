@@ -157,7 +157,8 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   }
 
   override ngOnInit(): void {
-    this.loadLatestRun();
+    //this.loadLatestRun();
+    this.run=11;
     super.ngOnInit();
 
     this.mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -425,7 +426,8 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       const data = await response.json();
       const date = new Date(data.ingestion.last);
       const month = date.getMonth() + 1;
-      this.run = month;
+      //this.run = month;
+      this.run=11;
       this.runDate = new Intl.DateTimeFormat("it-IT", {
         day: "2-digit",
         month: "2-digit",

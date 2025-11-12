@@ -7,7 +7,6 @@ import {
 } from "@angular/core";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";
-import * as d3 from "d3-scale";
 
 interface SeriesItem {
   name: string;
@@ -69,15 +68,78 @@ export class ProvinceReportComponent implements AfterViewInit {
   currentMonthlyMap: any = {};
   currentResults = [];
   yLabel = "Temperature (°C)";
-  colorScheme = "fire";
-  ngAfterViewInit() {
-    const modalElement = document.querySelector(".modal.show");
-    if (!modalElement) return;
+  colors = [];
+  colorScheme: any = "fire";
+  colorSchemes = {
+    temperature: {
+      name: "temperatureScheme",
+      group: "Ordinal",
+      domain: ["#ffffff", "#6bc9ff", "#005485", "#ffa6a6", "#e00404"],
+      ranges: [
+        { min: -0.5, max: 0.5, color: "#ffffff" },
+        { min: -2, max: -0.5, color: "#6bc9ff" },
+        { min: -Infinity, max: -2, color: "#005485" },
+        { min: 0.5, max: 2, color: "#ffa6a6" },
+        { min: 2, max: Infinity, color: "#e00404" },
+      ],
+      getColor: function (differenza) {
+        if (differenza >= -0.5 && differenza <= 0.5) {
+          return "#ffffff";
+        }
 
-    modalElement.addEventListener("shown.bs.modal", () => {
-      setTimeout(() => this.cdr.detectChanges(), 50);
-    });
-  }
+        if (differenza < -0.5) {
+          if (differenza > -2) {
+            return "#6bc9ff";
+          } else {
+            return "#005485";
+          }
+        }
+
+        if (differenza > 0.5) {
+          if (differenza < 2) {
+            return "#ffa6a6";
+          } else {
+            return "#e00404";
+          }
+        }
+      },
+    },
+
+    precipitation: {
+      name: "precipitationScheme",
+      group: "Ordinal",
+      domain: ["#ffffff", "#d6a785", "#ac6235", "#9ce69c", "#35a135"],
+      ranges: [
+        { min: -5, max: 5, color: "#ffffff" },
+        { min: -20, max: -5, color: "#d6a785" },
+        { min: -Infinity, max: -20, color: "#ac6235" },
+        { min: 5, max: 20, color: "#9ce69c" },
+        { min: 20, max: Infinity, color: "#35a135" },
+      ],
+      getColor: function (differenza) {
+        if (differenza >= -5 && differenza <= 5) {
+          return "#ffffff";
+        }
+
+        if (differenza < -5) {
+          if (differenza > -20) {
+            return "#d6a785";
+          } else {
+            return "#ac6235";
+          }
+        }
+
+        if (differenza > 5) {
+          if (differenza < 20) {
+            return "#9ce69c";
+          } else {
+            return "#35a135";
+          }
+        }
+      },
+    },
+  };
+
   public beforeOpen() {
     this.cdr.detectChanges();
     this.changeProvinceName(this.prov);
@@ -112,16 +174,14 @@ export class ProvinceReportComponent implements AfterViewInit {
         this.createSeriesfroTooltips(this.boxplotData.Tm, "Tm");
         this.createSeriesfroTooltips(this.boxplotData.P, "P");
         this.currentResults = this.boxplotData["TM"];
+        this.applyColorsToBoxPlot("TM");
         this.currentMonthlyMap = this.monthlySeriesMapTM;
         this.buildLineChart("TM");
-        console.log(this.monthlySeriesMapTM);
-        console.log(this.lineChart);
         this.spinner.hide();
         /* setTimeout(() => {
         this.cdr.detectChanges();
       }, 0);*/
         this.cdr.markForCheck();
-
         console.log(this.boxplotData);
       });
     } catch (error) {
@@ -132,7 +192,7 @@ export class ProvinceReportComponent implements AfterViewInit {
   public selectMetric(metric: "TM" | "Tm" | "P") {
     this.selectedMetric = metric;
     this.currentResults = this.boxplotData[metric];
-    this.colorScheme = metric === "P" ? "ocean" : "fire";
+    this.applyColorsToBoxPlot(metric);
     this.yLabel = metric === "P" ? "Precipitation (mm)" : "Temperature (°C)";
     switch (metric) {
       case "TM":
@@ -225,5 +285,30 @@ export class ProvinceReportComponent implements AfterViewInit {
     if (prov == "Sud Sardegna") this.province = "Carbonia";
     if (prov == "Verbano-Cusio-Ossola") this.province = "Verbania";
     if (prov == "Reggio di Calabria") this.province = "Reggio Calabria";
+  }
+  applyColorsToBoxPlot(metric) {
+    this.colors = [];
+    this.boxplotData[metric].forEach((item) => {
+      if (metric === "Tm" || metric === "TM") {
+        const clima50th = item.linee[0].value;
+        const median = item.series[2].value;
+        const diff = median - clima50th;
+        const color = this.colorSchemes.temperature.getColor(diff);
+        console.log(item.name, diff, color);
+        this.colors.push(color);
+      } else {
+        const clima50th = item.linee[0].value;
+        const median = item.series[2].value;
+        const diff = median - clima50th;
+        const color = this.colorSchemes.precipitation.getColor(diff);
+        console.log(item.name, diff, color);
+        this.colors.push(color);
+      }
+    });
+    this.colorScheme = {
+      name: "myCustomScheme",
+      group: "ordinal",
+      domain: [this.colors[1], this.colors[2], this.colors[3], this.colors[0]],
+    };
   }
 }
