@@ -88,7 +88,7 @@ export class ProvinceReportComponent {
         }
 
         if (differenza < -0.5) {
-          if (differenza > -2) {
+          if (differenza >= -1.5) {
             return "#6bc9ff";
           } else {
             return "#005485";
@@ -96,7 +96,7 @@ export class ProvinceReportComponent {
         }
 
         if (differenza > 0.5) {
-          if (differenza < 2) {
+          if (differenza <= 1.5) {
             return "#ffa6a6";
           } else {
             return "#e00404";
