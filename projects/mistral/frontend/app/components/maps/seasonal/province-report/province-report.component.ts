@@ -46,7 +46,7 @@ const monthNames = [
   templateUrl: "./province-report.component.html",
   styleUrls: ["./province-report.component.scss"],
 })
-export class ProvinceReportComponent implements AfterViewInit {
+export class ProvinceReportComponent {
   constructor(
     public activeModal: NgbActiveModal,
     private spinner: NgxSpinnerService,
