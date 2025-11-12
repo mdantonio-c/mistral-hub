@@ -61,6 +61,7 @@ export class SideNavComponentSeasonal implements OnInit {
 
   ngOnInit(): void {
     this.onVariableConfig.emit(this.VariablesConfig);
+    this.run=11;
     Object.values(this.maps).forEach((map) => {
       if (!map) return;
       map.on("zoomend", () => {

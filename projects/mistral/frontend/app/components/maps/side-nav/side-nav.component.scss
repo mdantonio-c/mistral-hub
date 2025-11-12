@@ -196,7 +196,7 @@ $dark-blue: #004080;
 .download_button,
 .download_button-disabled,
 .networks,
-.snow {
+.snow, .info, .question {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
@@ -268,6 +268,13 @@ $dark-blue: #004080;
   background-image: url("/app/custom/assets/images/icons/minus.svg");
 }
 
+.info {
+  background-image: url("/app/custom/assets/images/icons/info.svg");
+}
+
+.question {
+  background-image: url("/app/custom/assets/images/icons/questionmark.svg");
+}
 .plus.isDisabled {
   background-image: url("/app/custom/assets/images/icons/plus_disabled.svg");
   cursor: not-allowed;
@@ -850,7 +857,7 @@ $dark-blue: #004080;
   .minus,
   .carte,
   .tpperc,
-  .tpprob, .network, .download_button {
+  .tpprob, .network, .download_button, .info, .question {
     margin-top: 5px;
     padding: 10px;
     width: 22px;
@@ -887,7 +894,7 @@ $dark-blue: #004080;
      .minus,
      .carte,
      .tpperc,
-     .tpprob, .network, .download_button
+     .tpprob, .network, .download_button, .info, .question
     {
     margin-top: 5px;
     padding: 9px;
@@ -959,7 +966,7 @@ $dark-blue: #004080;
   .minus,
   .carte,
   .tpperc,
-  .tpprob, .download_button, .networks {
+  .tpprob, .download_button, .networks, .info, .question {
     margin-top: 4px;
     padding: 9px;
     width: 18px;
@@ -972,7 +979,6 @@ $dark-blue: #004080;
 
 .info {
   margin-top: 4px;
-  background-color: #157acc;
   color: white;
   border-radius: 24px;
   width: 24px;
@@ -983,10 +989,15 @@ $dark-blue: #004080;
   font-size: 14px;
 }
 
-.realtime-info .nav-text {
-  font-family: "TitilliumWeb-SemiBold";
-  font-weight: 600;
+.realtime-info {
+  a:hover .nav-text{
+    text-decoration: none !important;
+    border-bottom: 0 !important;
+  }
+.nav-text {
+  font-family: "TitilliumWeb-Regular";
   text-transform: none !important;
+  }
 }
 .mapincomplete .nav-text {
   font-family: "TitilliumWeb-Regular";
