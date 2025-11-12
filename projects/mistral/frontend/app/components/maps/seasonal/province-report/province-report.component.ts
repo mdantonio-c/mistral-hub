@@ -152,7 +152,10 @@ export class ProvinceReportComponent {
     try {
       this.spinner.show();
       const response = await fetch(
-        `./app/custom/assets/images/json_out/${this.prov}.json`,
+        `./app/custom/assets/images/json_out/${
+          this.prov
+        }.json?t=${new Date().getTime()}`,
+        { cache: "no-store" },
       );
       const data: ProvinceJson = await response.json();
       this.zone.run(() => {
