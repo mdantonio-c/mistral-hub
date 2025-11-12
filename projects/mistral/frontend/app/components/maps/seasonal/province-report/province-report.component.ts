@@ -77,10 +77,10 @@ export class ProvinceReportComponent {
       domain: ["#ffffff", "#6bc9ff", "#005485", "#ffa6a6", "#e00404"],
       ranges: [
         { min: -0.5, max: 0.5, color: "#ffffff" },
-        { min: -2, max: -0.5, color: "#6bc9ff" },
-        { min: -Infinity, max: -2, color: "#005485" },
-        { min: 0.5, max: 2, color: "#ffa6a6" },
-        { min: 2, max: Infinity, color: "#e00404" },
+        { min: -1.5, max: -0.5, color: "#6bc9ff" },
+        { min: -Infinity, max: -1.5, color: "#005485" },
+        { min: 0.5, max: 1.5, color: "#ffa6a6" },
+        { min: 1.5, max: Infinity, color: "#e00404" },
       ],
       getColor: function (differenza) {
         if (differenza >= -0.5 && differenza <= 0.5) {
@@ -140,15 +140,15 @@ export class ProvinceReportComponent {
     },
   };
 
-  public beforeOpen() {
+  public beforeOpen(layerId: string) {
     this.cdr.detectChanges();
     this.changeProvinceName(this.prov);
-    this.loadReport();
+    this.loadReport(layerId);
   }
-  private loadReport() {
-    this.loadProvinceData();
+  private loadReport(layerId: string) {
+    this.loadProvinceData(layerId);
   }
-  private async loadProvinceData() {
+  private async loadProvinceData(layerId: string) {
     try {
       this.spinner.show();
       const response = await fetch(
@@ -170,13 +170,31 @@ export class ProvinceReportComponent {
           Tm: convertMonths(this.provinceData.variabili.Tm),
           P: convertMonths(this.provinceData.variabili.P),
         };
+        let metric;
         this.createSeriesfroTooltips(this.boxplotData.TM, "TM");
         this.createSeriesfroTooltips(this.boxplotData.Tm, "Tm");
         this.createSeriesfroTooltips(this.boxplotData.P, "P");
-        this.currentResults = this.boxplotData["TM"];
-        this.applyColorsToBoxPlot("TM");
-        this.currentMonthlyMap = this.monthlySeriesMapTM;
-        this.buildLineChart("TM");
+        if (layerId === "Maximum temperature") {
+          metric = "TM";
+          this.selectedMetric = "TM";
+        }
+        if (layerId === "Minimum temperature") {
+          metric = "Tm";
+          this.selectedMetric = "Tm";
+        }
+        if (layerId === "Total precipitation") {
+          metric = "P";
+          this.selectedMetric = "P";
+        }
+        this.currentResults = this.boxplotData[metric];
+        this.applyColorsToBoxPlot(metric);
+        if (layerId === "Maximum temperature")
+          this.currentMonthlyMap = this.monthlySeriesMapTM;
+        if (layerId === "Minimum temperature")
+          this.currentMonthlyMap = this.monthlySeriesMapTm;
+        if (layerId === "Total precipitation")
+          this.currentMonthlyMap = this.monthlySeriesMapP;
+        this.buildLineChart(metric);
         this.spinner.hide();
         /* setTimeout(() => {
         this.cdr.detectChanges();

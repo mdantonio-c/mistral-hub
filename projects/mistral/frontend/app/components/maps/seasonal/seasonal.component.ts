@@ -324,7 +324,8 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       onEachFeature: (feature, layer) => {
         layer.on("click", (e) => {
           this.prov = feature.properties.DEN_UTS;
-          this.openProvinceReport(this.prov);
+          console.log(this.selectedLayerId);
+          this.openProvinceReport(this.prov, null, this.selectedLayerId);
         });
       },
     });
@@ -345,11 +346,9 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       });
   }
   private addProvinceBullets(map: L.Map) {
-    // Creo un pane per i bullets
     map.createPane("provinceBullets");
     const pane = map.getPane("provinceBullets");
 
-    // Questo pane NON riceve eventi mouse → click passa al layer sottostante
     pane.style.zIndex = "450";
     pane.style.pointerEvents = "none";
 
@@ -386,7 +385,12 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
             marker.on("mouseover", () => marker.openTooltip());
             marker.on("mouseout", () => marker.closeTooltip());
             marker.on("click", () => {
-              this.openProvinceReport(feature.properties.name, marker);
+              console.log(this.selectedLayerId);
+              this.openProvinceReport(
+                feature.properties.name,
+                marker,
+                this.selectedLayerId,
+              );
             });
 
             return marker;
@@ -400,7 +404,11 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       );
   }
 
-  private openProvinceReport(prov: string, m: L.CircleMarker | null = null) {
+  private openProvinceReport(
+    prov: string,
+    m: L.CircleMarker | null = null,
+    layerId: string,
+  ) {
     const modalRef = this.modalService.open(ProvinceReportComponent, {
       size: "xl",
       centered: true,
@@ -416,7 +424,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     }
     modalRef.componentInstance.lang = this.lang;
     modalRef.componentInstance.prov = prov;
-    modalRef.componentInstance.beforeOpen();
+    modalRef.componentInstance.beforeOpen(layerId);
   }
 
   private async loadLatestRun(): Promise<void> {

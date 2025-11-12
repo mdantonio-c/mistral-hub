@@ -11,7 +11,7 @@
   <div class="card-body" [ngSwitch]="selectedMetric">
     <div class="d-flex button-container">
       <button
-        class="btn btn-outline-secondary me-2 active"
+        class="btn btn-outline-secondary me-2"
         [class.active]="selectedMetric === 'TM'"
         (click)="selectMetric('TM')"
       >
