@@ -251,6 +251,7 @@ export class ProvinceReportComponent {
     const max = Math.max(maxLines, maxBoxCharts);
     const padding = (max - min) * 0.25;
     this.yMin = Math.floor(min - padding);
+    if (metric === "P") this.yMin = 0;
     this.yMax = Math.ceil(max + padding);
   }
 
