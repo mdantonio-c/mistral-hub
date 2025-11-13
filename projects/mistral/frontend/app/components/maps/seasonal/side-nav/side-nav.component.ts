@@ -86,10 +86,6 @@ export class SideNavComponentSeasonal implements OnInit {
     if (changes.run && this.run) {
       this.updateMonths();
     }
-    if (changes.lang && this.lang) {
-      this.aboutPage =
-        environment.CUSTOM.INFO_HOME + "/about?lang=" + this.lang;
-    }
   }
 
   private updateMonths() {
