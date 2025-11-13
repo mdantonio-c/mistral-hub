@@ -175,6 +175,19 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
     });
   }
 
+  private addCustomAttribution(map: L.Map) {
+    const attribution = new L.Control({ position: "bottomright" });
+    attribution.onAdd = () => {
+      let div = L.DomUtil.create("div");
+      div.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+      div.style.padding = "1px 1px";
+      div.style.fontSize = "10px";
+      div.innerHTML = `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`;
+      return div;
+    };
+    attribution.addTo(map);
+  }
+
   protected onMapReady(map: L.Map) {}
 
   protected onMapReadyLeft(map: L.Map) {
