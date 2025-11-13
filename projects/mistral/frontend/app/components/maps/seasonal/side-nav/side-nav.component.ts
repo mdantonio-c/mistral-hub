@@ -11,6 +11,7 @@ import {
 } from "@angular/core";
 import { ViewModes } from "../../meteo-tiles/meteo-tiles.config";
 import * as L from "leaflet";
+import { environment } from "@rapydo/../environments/environment";
 
 @Component({
   selector: "map-side-nav-seasonal",
@@ -32,6 +33,7 @@ export class SideNavComponentSeasonal implements OnInit {
   @Output() onSelectedLayerChange = new EventEmitter<string>();
   @Output() onSelectedMonthChange = new EventEmitter<string>();
 
+  aboutPage: string = environment.CUSTOM.INFO_HOME + "/about/";
   selectedBaseLayer: string;
   selectedLayers: string;
   selectedMonths: string;

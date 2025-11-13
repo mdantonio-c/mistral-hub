@@ -40,7 +40,10 @@
         <a class="d-block" *ngIf="!isCollapsed">
           <span class="nav-text" i18n>{{ "Month" | translate : lang }}</span>
         </a>
-        <div *ngIf="!isCollapsed" class="selettore-orario w-100 d-flex flex-wrap">
+        <div
+          *ngIf="!isCollapsed"
+          class="selettore-orario w-100 d-flex flex-wrap"
+        >
           <ng-container *ngFor="let month of monthsMapping; let last = last">
             <label class="nav-text d-flex w-50 mb-2">
               <input
@@ -106,7 +109,7 @@
           container="body"
         >
         </span>
-        <a  class="d-flex justify-content-start text-start" *ngIf="!isCollapsed">
+        <a class="d-flex justify-content-start text-start" *ngIf="!isCollapsed">
           <span class="nav-text">{{
             "Click on the markers to open box plots for provincial capitals"
               | translate : lang
@@ -125,7 +128,7 @@
             container="body"
           >
           </span>
-          <a *ngIf="!isCollapsed">
+          <a *ngIf="!isCollapsed" [href]="aboutPage" target="_blank">
             <span
               class="nav-text text-disclaimer"
               [ngbTooltip]="
