@@ -457,7 +457,14 @@ $dark-blue: #004080;
 .selettore-carte {
   margin-bottom: -6px;
   width: 100%;
-
+  a {
+    cursor: default;
+    pointer-events: none;
+ 
+    &:hover .nav-text {
+    border-bottom: 0 !important
+      }
+   }
   label {
     display: flex;
     flex-direction: row !important;

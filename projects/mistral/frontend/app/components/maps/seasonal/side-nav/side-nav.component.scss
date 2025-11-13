@@ -48,7 +48,7 @@ $dark-blue: #004080;
     width: 100%;
     position: relative;
     margin-left: 14px;
-    font-family: "TitilliumWeb-Regular";
+    font-family: "TitilliumWeb-Semibold";
   }
 
   .sidenav-item.dropdown {
@@ -175,6 +175,10 @@ $dark-blue: #004080;
 
 .calendar + a {
   margin-top: -4px !important;
+
+  &:hover .nav-text{
+    border-bottom: 0 !important;
+  }
 }
 .realtime-info {
 margin-top: 4px !important; 
