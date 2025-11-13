@@ -43,6 +43,7 @@
         [lineChart]="lineChart"
         [yScaleMin]="yMin"
         [yScaleMax]="yMax"
+        [selectedMetric]="selectedMetric"
       >
         <ng-template #seriesTooltipTemplate let-model="model">
           <div class="area-tooltip-container">
@@ -53,14 +54,22 @@
             <div class="tooltip-item">
               <span
                 class="tooltip-item-color"
-                [style.background-color]="'#FF0000'"
+                [style.background-color]="
+                  selectedMetric === 'TM' || selectedMetric === 'Tm'
+                    ? lineColors[2][0]
+                    : lineColors[2][1]
+                "
               ></span>
               {{ "90th" }} : <b>{{ model[2].value }}</b> {{ boxUnit }}
             </div>
             <div class="tooltip-item">
               <span
                 class="tooltip-item-color"
-                [style.background-color]="'#000000'"
+                [style.background-color]="
+                  selectedMetric === 'TM' || selectedMetric === 'Tm'
+                    ? lineColors[0][0]
+                    : lineColors[0][1]
+                "
               ></span>
               {{ "50th" }} : <b>{{ model[0].value }}</b>
               {{ boxUnit }}
@@ -68,7 +77,11 @@
             <div class="tooltip-item">
               <span
                 class="tooltip-item-color"
-                [style.background-color]="'#87CEEB'"
+                [style.background-color]="
+                  selectedMetric === 'TM' || selectedMetric === 'Tm'
+                    ? lineColors[1][0]
+                    : lineColors[1][1]
+                "
               ></span>
               {{ "10th" }} : <b>{{ model[1].value }}</b> {{ boxUnit }}
             </div>

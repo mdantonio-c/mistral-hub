@@ -61,6 +61,7 @@ export class BoxChartComponent extends BaseChartComponent {
   @Input() animations: boolean = true;
   @Input() activeEntries: any[] = [];
   @Input() noBarWhenZero: boolean = true;
+  @Input() selectedMetric: string;
 
   @Output() select: EventEmitter<IBoxModel> = new EventEmitter();
   @Output() activate: EventEmitter<IBoxModel> = new EventEmitter();

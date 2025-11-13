@@ -6,9 +6,10 @@
       [leafletOptions]="optionsLeft"
       (leafletMapReady)="onMapReadyLeft($event)"
     >
-      <div class="leaflet-top leaflet-left rounded" style="left: 10px">
+      <div class="leaflet-top leaflet-right rounded" style="right: 10px">
         <div class="leaflet-control" style="height: 20px">
           <div class="selected-dataset bg-light p-2 pb-0">
+            <div>(EXPERIMENTAL)</div>
             Downscaled seasonal forecast ECMWF
           </div>
           <div class="bg-light p-2 pt-0">
@@ -26,10 +27,11 @@
       [leafletOptions]="optionsRight"
       (leafletMapReady)="onMapReadyRight($event)"
     >
-      <div class="leaflet-top leaflet-left rounded" style="left: 10px">
+      <div class="leaflet-top leaflet-right rounded" style="right: 10px">
         <div class="leaflet-control" style="height: 20px">
           <div class="selected-dataset bg-light p-2 pb-0">
-            Anomalies relative to ERA5 climatology (1993-2022)
+            <div>(EXPERIMENTAL)</div>
+            ANOMALIES RELATIVE TO ERA5-LAND (1993-2022)
           </div>
           <div class="bg-light p-2 pt-0">
             <pre class="d-inline" style="white-space: pre-line">

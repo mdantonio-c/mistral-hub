@@ -60,15 +60,16 @@ export class ComboLineChartSeasonalComponent implements OnChanges {
   @Input() noBarWhenZero: boolean = false;
   @Input() scaleType: ScaleType = ScaleType.Ordinal;
   @Input() seriesName: string;
+  @Input() selectedMetric: string;
 
   path: string;
   outerPath: string;
   areaPath: string;
   stroke: string;
-  private lineColors: Record<string, string> = {
-    "Clima Media": "#000000",
-    "Clima Min": "#87CEEB",
-    "Clima Max": "#FF0000",
+  private lineColors: any = {
+    "Clima Media": ["#000000", "#000000"],
+    "Clima Min": ["#87CEEB", "#D2691E"],
+    "Clima Max": ["#FF0000", "#39FF14"],
   };
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -84,7 +85,12 @@ export class ComboLineChartSeasonalComponent implements OnChanges {
 
     const areaGen = this.getAreaGenerator();
     this.areaPath = areaGen(data) || "";
-    this.stroke = this.lineColors[this.seriesName] || "#000000";
+    if (this.selectedMetric === "TM" || this.selectedMetric === "Tm") {
+      this.stroke = this.lineColors[this.seriesName][0];
+    } else {
+      this.stroke = "";
+      this.stroke = this.lineColors[this.seriesName][1];
+    }
   }
 
   getLineGenerator(): any {

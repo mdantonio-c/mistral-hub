@@ -140,6 +140,12 @@ export class ProvinceReportComponent {
     },
   };
 
+  public lineColors: any = [
+    ["#000000", "#000000"],
+    ["#87CEEB", "#D2691E"],
+    ["#FF0000", "#39FF14"],
+  ];
+
   public beforeOpen(layerId: string) {
     this.cdr.detectChanges();
     this.changeProvinceName(this.prov);
