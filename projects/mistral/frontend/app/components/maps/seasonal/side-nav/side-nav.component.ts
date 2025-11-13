@@ -33,7 +33,7 @@ export class SideNavComponentSeasonal implements OnInit {
   @Output() onSelectedLayerChange = new EventEmitter<string>();
   @Output() onSelectedMonthChange = new EventEmitter<string>();
 
-  aboutPage: string = environment.CUSTOM.INFO_HOME + "/about/";
+  aboutPage: string = environment.CUSTOM.INFO_HOME + "/about?lang=en";
   selectedBaseLayer: string;
   selectedLayers: string;
   selectedMonths: string;
@@ -85,6 +85,10 @@ export class SideNavComponentSeasonal implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.run && this.run) {
       this.updateMonths();
+    }
+    if (changes.lang && this.lang) {
+      this.aboutPage =
+        environment.CUSTOM.INFO_HOME + "/about?lang=" + this.lang;
     }
   }
 
