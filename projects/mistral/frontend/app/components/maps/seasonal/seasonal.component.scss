@@ -8,7 +8,9 @@
   width: 100%;
   position: relative;
 }
-
+map-side-nav-seasonal {
+  position: relative;
+}
 .map {
   flex: 1;
   height: 100%;
@@ -42,6 +44,9 @@
   border-bottom: solid 1px #fff;
 }
 
+a[href~="https://leafletjs.com"] {
+  display:none !important;
+}
 /*media query*/
 
 @media screen and (max-width: 770px) {

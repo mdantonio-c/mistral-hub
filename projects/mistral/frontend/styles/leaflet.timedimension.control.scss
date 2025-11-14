@@ -414,6 +414,14 @@ a.timecontrol-play.loading:before {
   width: auto !important;
 }
 
+/*app-seasonal .leaflet-control-attribution a:first-of-type {
+  display: none !important;
+
+ & + span {
+  display: none;
+ }
+}*/
+
 @media (max-width: 767px) {
   .leaflet-bar-timecontrol .timecontrol-date,
   .leaflet-bar-timecontrol .timecontrol-slider {
