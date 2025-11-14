@@ -9,6 +9,8 @@ from restapi.utilities.logs import log
 
 
 class AccessKeyResource(EndpointResource):
+    labels = ["access key"]
+
     @decorators.auth.require()
     @decorators.marshal_with(AccessKeySchema, code=200)
     @decorators.endpoint(
