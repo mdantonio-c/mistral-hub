@@ -508,6 +508,7 @@ export class AimObservationMapsComponent
   loadNetwork(event) {
     if (event === "All") {
       this.selectedNetwork = "";
+      this.filter.network = "";
       this.toggleLayer();
       return;
     }
@@ -854,6 +855,7 @@ export class AimObservationMapsComponent
       this.notify.showError("No product selected");
       return;
     }
+
     // get fresh current time
     const currentUtcNow = new Date();
     currentUtcNow.setUTCMinutes(0, 0, 0);
