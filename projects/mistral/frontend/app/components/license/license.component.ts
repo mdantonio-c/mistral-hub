@@ -83,9 +83,9 @@ export class LicenseComponent implements OnInit {
           // mistral products licenses
           this.mistral_products = [
             {
-              name: "Observations map",
+              name: "Observed data map",
               description:
-                "Observation map: graphic representation of the observational data collected in MeteoHub platform",
+                "Graphical visualization of the observational data collected in MeteoHub platform",
               attribution_description: "CINECA",
               //attribution_url: attr_url,
               license_description: "CC BY 4.0",
@@ -93,9 +93,9 @@ export class LicenseComponent implements OnInit {
                 "https://creativecommons.org/licenses/by/4.0/legalcode",
             },
             {
-              name: "Forecast map",
+              name: "Static map",
               description:
-                "Forecast map: graphic representation of the forecast data collected in MeteoHub platform",
+                "Graphical visualization of the forecast data collected in MeteoHub platform",
               attribution_description: "CINECA",
               //attribution_url: attr_url,
               license_description: " CC BY-ND 4.0",
@@ -105,23 +105,23 @@ export class LicenseComponent implements OnInit {
             {
               name: "Multi layer Map",
               description:
-                "Graphic representation of data collected in MeteoHub platform from different models",
-              attribution_description: "CINECA Agenzia ItaliaMeteo",
+                "Interactive graphical visualization of forecast data from the MeteoHub platform, supporting the simultaneous display of multiple variable layers",
+              attribution_description: "CINECA - Agenzia ItaliaMeteo",
               //attribution_url: attr_url,
               license_description: " CC BY-ND 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
             },
-            /*{
-              name: "IFF Map",
+            {
+              name: "Monthly",
               description:
-                "Graphic representation of forecast model Italy Flash Flood",
-              attribution_description: attr_description,
-              attribution_url: attr_url,
+                "Graphical visualization of downscaled ECMWF SEAS5 daily maximum and minimum temperature and total precipitation with ensemble members, data from the MeteoHub platform",
+              attribution_description: "CINECA - Agenzia ItaliaMeteo (based on Copernicus Climate Change Service data <link to https://cds.climate.copernicus.eu/>)",
+              //attribution_url: attr_url,
               license_description: "CC BY 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by/4.0/legalcode",
-            },*/
+            },
           ];
           // append iff dataset in mistral products
           this.mistral_products.push(iff_dataset);
