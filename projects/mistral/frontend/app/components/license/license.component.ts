@@ -86,7 +86,7 @@ export class LicenseComponent implements OnInit {
               name: "Observed data map",
               description:
                 "Graphical visualization of the observational data collected in MeteoHub platform",
-              attribution_description: "CINECA",
+              attribution_description: "CINECA - Agenzia ItaliaMeteo",
               //attribution_url: attr_url,
               license_description: "CC BY 4.0",
               license_url:
@@ -116,8 +116,9 @@ export class LicenseComponent implements OnInit {
               name: "Monthly",
               description:
                 "Graphical visualization of downscaled ECMWF SEAS5 daily maximum and minimum temperature and total precipitation with ensemble members, data from the MeteoHub platform",
-              attribution_description: "CINECA - Agenzia ItaliaMeteo (based on Copernicus Climate Change Service data <link to https://cds.climate.copernicus.eu/>)",
-              //attribution_url: attr_url,
+              attribution_description:
+                "CINECA - Agenzia ItaliaMeteo (based on Copernicus Climate Change Service data)",
+              attribution_url: "https://copernicus.eu",
               license_description: "CC BY 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by/4.0/legalcode",
