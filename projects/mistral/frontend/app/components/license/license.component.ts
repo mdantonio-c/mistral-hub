@@ -118,7 +118,7 @@ export class LicenseComponent implements OnInit {
                 "Graphical visualization of downscaled ECMWF SEAS5 daily maximum and minimum temperature and total precipitation with ensemble members, data from the MeteoHub platform",
               attribution_description:
                 "CINECA - Agenzia ItaliaMeteo (based on Copernicus Climate Change Service data)",
-              attribution_url: "https://copernicus.eu",
+              attribution_url: " https://cds.climate.copernicus.eu/",
               license_description: "CC BY 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by/4.0/legalcode",
