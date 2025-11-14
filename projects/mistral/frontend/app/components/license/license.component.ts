@@ -125,9 +125,9 @@ export class LicenseComponent implements OnInit {
             },
           ];
           // append iff dataset in mistral products
-          this.mistral_products.push(iff_dataset);
+          //this.mistral_products.push(iff_dataset);
           // append multimodel dataset in mistral products
-          this.mistral_products.push(multim_dataset);
+          //this.mistral_products.push(multim_dataset);
         },
         (error) => {
           this.notify.showError(error);
