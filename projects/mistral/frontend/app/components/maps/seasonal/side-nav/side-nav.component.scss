@@ -6,7 +6,26 @@ $dark-blue: #004080;
 #iff {
   display: none;
 }
+.attribution {
+  position: absolute;
+  bottom:0;
+  z-index: 9999999;
+  right: 0;
+  padding: 0 2px;
+ 
+  span {
+    font-size: 12px;
+    background-color: #fff;
+    padding: 1px 2px;
+  }
 
+  a {
+  color:#0078A8;
+  font-size: 10px;
+  font-family: Arial, Helvetica, sans-serif; 
+  line-height: 1.4;
+  }
+}
 .sidenav-overlay {
   height: 100%;
   background-color: rgba(48, 48, 48, 0.658);
@@ -225,7 +244,6 @@ margin-top: 4px !important;
 
 .book {
   background-image: url("/app/custom/assets/images/icons/book.svg");
-  margin-left: 12px;
 }
 
 .plus {
@@ -363,6 +381,7 @@ margin-top: 4px !important;
   display:flex;
   height: 100%;
   align-items:flex-end;
+  margin-bottom: 10px;
 }
 
 @media screen and (max-width: 1295px) {
