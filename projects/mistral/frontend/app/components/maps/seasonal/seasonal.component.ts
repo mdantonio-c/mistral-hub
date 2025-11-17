@@ -100,6 +100,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   public selectedLayerId: string;
   public varDesc1: string;
   public varDesc2: string;
+  public varDesc3: string;
   private selectedMonth: string;
   public prov: string;
   public runDate: string;
@@ -262,8 +263,10 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       if (match) {
         this.varDesc1 = match[1].trim();
         this.varDesc2 = match[2].trim();
+        this.varDesc3 = "";
       } else {
         this.varDesc1 = varDesc;
+        this.varDesc3 = "Monthly total precipitation (%)";
         this.varDesc2 = "";
       }
     });

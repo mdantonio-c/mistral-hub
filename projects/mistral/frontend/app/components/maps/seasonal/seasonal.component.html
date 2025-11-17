@@ -35,7 +35,7 @@
           </div>
           <div class="bg-light p-2 pt-0">
             <pre class="d-inline" style="white-space: pre-line">
-          {{ varDesc1 | translate : lang }}<ng-container *ngIf="varDesc2">(°C) - {{ varDesc2 | translate: lang }}</ng-container>
+          <ng-container *ngIf="varDesc2">{{ varDesc1 | translate : lang }}</ng-container>{{ varDesc3? varDesc3: null | translate: lang}}<ng-container *ngIf="varDesc2">(°C) - {{ varDesc2 | translate: lang }}</ng-container>
             {{ "run" | translate : lang | titlecase }}: {{ runDate || "" }}
           </pre>
           </div>
