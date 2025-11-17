@@ -26,6 +26,7 @@ export class SideNavComponentSeasonal implements OnInit {
   @Input() run: number;
   @Input() maxZoomIn: number;
   @Input() minZoom: number;
+  @Input() isMobile: boolean;
 
   @Output() onCollapseChange: EventEmitter<boolean> =
     new EventEmitter<boolean>();
@@ -85,6 +86,9 @@ export class SideNavComponentSeasonal implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.run && this.run) {
       this.updateMonths();
+    }
+    if (changes.isMobile && this.isMobile) {
+      this.changeCollapse();
     }
   }
 

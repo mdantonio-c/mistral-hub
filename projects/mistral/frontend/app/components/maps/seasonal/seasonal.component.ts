@@ -81,7 +81,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   private provinceData: any = null;
   private provinceDataPromise: Promise<any> | null = null;
   public lang = "en";
-  private isMobile = false;
+  public isMobile = false;
   private mediaQuery: MediaQueryList;
   // Leaflet does not allow you to reuse the same TileLayer instance on multiple maps.
   private createLightMatterLayer(): L.TileLayer {

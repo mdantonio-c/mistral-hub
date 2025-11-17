@@ -42,7 +42,6 @@
         </div>
       </div>
     </div>
-    
   </div>
   <map-side-nav-seasonal
     [lang]="lang"
@@ -57,9 +56,10 @@
     (onVariableConfig)="receiveVariablesConfig($event)"
     (onSelectedLayerChange)="receiveLayerIdSelected($event)"
     (onSelectedMonthChange)="receiveMonth($event)"
+    [isMobile]="isMobile"
   >
   </map-side-nav-seasonal>
-  
+
   <ngx-spinner
     type="ball-scale-multiple"
     bdColor="rgba(255,255,255,0.8)"

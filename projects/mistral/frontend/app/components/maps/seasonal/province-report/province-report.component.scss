@@ -40,3 +40,17 @@ $dark-blue: #004080;
   display: block;
   margin-left: 0;
 }
+.tooltip-item-color {
+  height: 2px !important;
+  width: 18px !important;
+  margin-left: 5px !important;
+}
+.tooltip-item-color-container {
+  background-color: #777777;
+  height: 12px !important;
+  width: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 5px !important;
+}

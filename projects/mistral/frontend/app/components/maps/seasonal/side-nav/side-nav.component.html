@@ -99,7 +99,7 @@
       </li>
       <li class="sidenav-item realtime-info last">
         <span
-          class="info clickable"
+          class="info"
           [ngbTooltip]="
             isCollapsed
               ? ('Click on the markers to open box plots for provincial capitals'
@@ -119,7 +119,7 @@
       <div class="flex-spacer w-100 h-100">
         <li class="sidenav-item border-0">
           <span
-            class="book clickable"
+            class="book"
             [ngbTooltip]="
               isCollapsed
                 ? ('Discover more about this product' | translate : lang)
@@ -143,10 +143,15 @@
       </div>
     </ul>
   </div>
-  <div class="attribution leaflet-control leaflet-control-attribution" *ngIf="!isCollapsed">
-      <span> © <a href="http://cartodb.com/attributions" target="_blank">CARTO</a>
-       |  
-     © <a href="./app/license#meteohub-products" target="_blank">CINECA AIM</a></span> 
+  <div
+    class="attribution leaflet-control leaflet-control-attribution"
+    *ngIf="!isCollapsed"
+  >
+    <span>
+      © <a href="http://cartodb.com/attributions" target="_blank">CARTO</a> | ©
+      <a href="./app/license#meteohub-products" target="_blank"
+        >CINECA AIM</a
+      ></span
+    >
   </div>
-</nav> 
-
+</nav>

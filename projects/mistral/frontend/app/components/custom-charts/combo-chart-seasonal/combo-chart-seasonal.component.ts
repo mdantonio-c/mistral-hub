@@ -173,6 +173,7 @@ export class BoxChartComponent extends BaseChartComponent {
       domain,
       this.customColors,
     );
+    console.log(this.colors);
   }
 
   setScales() {

@@ -86,7 +86,7 @@ export class LicenseComponent implements OnInit {
               name: "Observed data map",
               description:
                 "Graphical visualization of the observational data collected in MeteoHub platform",
-              attribution_description: "CINECA - Agenzia ItaliaMeteo",
+              attribution_description: "Agenzia ItaliaMeteo - CINECA",
               //attribution_url: attr_url,
               license_description: "CC BY 4.0",
               license_url:
@@ -103,22 +103,21 @@ export class LicenseComponent implements OnInit {
                 "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
             },
             {
-              name: "Multi layer Map",
+              name: "Multi-layer map",
               description:
                 "Interactive graphical visualization of forecast data from the MeteoHub platform, supporting the simultaneous display of multiple variable layers",
-              attribution_description: "CINECA - Agenzia ItaliaMeteo",
+              attribution_description: "Agenzia ItaliaMeteo - CINECA",
               //attribution_url: attr_url,
               license_description: " CC BY-ND 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
             },
             {
-              name: "Monthly Map",
+              name: "Monthly map",
               description:
-                "Graphical visualization of downscaled ECMWF SEAS5 daily maximum and minimum temperature and total precipitation with ensemble members, data from the MeteoHub platform",
-              attribution_description:
-                "CINECA - Agenzia ItaliaMeteo (based on Copernicus Climate Change Service data)",
-              attribution_url: "https://cds.climate.copernicus.eu/",
+                "Graphical visualization of Seasonal Forecast (0.1° downscaling)",
+              attribution_description: "Agenzia ItaliaMeteo - CINECA",
+              //attribution_url: "https://cds.climate.copernicus.eu/",
               license_description: "CC BY 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by/4.0/legalcode",

@@ -140,6 +140,7 @@ export class ProvinceReportComponent {
     },
   };
 
+  // [temperature, precipitation]
   public lineColors: any = [
     ["#000000", "#000000"],
     ["#87CEEB", "#D2691E"],
@@ -304,7 +305,6 @@ export class ProvinceReportComponent {
     this.province = this.prov;
     console.log(prov);
     if (prov == "Forli'-Cesena") {
-      console.log("sono entrato");
       this.province = "Forli'";
     }
     if (prov == "Pesaro e Urbino") this.province = "Pesaro";
