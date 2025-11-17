@@ -845,7 +845,6 @@ $dark-blue: #004080;
     font-size: 7px !important;
     margin-right: 18px;
   }
-
   .t2m,
   .prs,
   .rh,
@@ -879,11 +878,11 @@ $dark-blue: #004080;
 
     .map-sidenav-menu .toggle {
       margin-left: 134px;
-       &.collapsed{
+    }
+    .map-sidenav-menu.collapsed .toggle{
       margin-left: 4px !important;
 
         }
-    }
     .t2m, 
     .prs, 
     .rh, .prp,
@@ -900,7 +899,7 @@ $dark-blue: #004080;
     padding: 9px;
     width: 18px;
     height: 18px;
-    margin-left: 2px; 
+    margin-left: 0 !important; 
     }
   }
   .map-sidenav.collapsed {

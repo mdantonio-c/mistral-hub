@@ -113,7 +113,7 @@ export class LicenseComponent implements OnInit {
                 "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
             },
             {
-              name: "Monthly",
+              name: "Monthly Map",
               description:
                 "Graphical visualization of downscaled ECMWF SEAS5 daily maximum and minimum temperature and total precipitation with ensemble members, data from the MeteoHub platform",
               attribution_description:

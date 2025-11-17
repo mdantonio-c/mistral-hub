@@ -929,6 +929,9 @@ $dark-blue: #004080;
   .map-sidenav.collapsed {
     width: 42px !important;
 }
+  .map-sidenav.collapsed .toggle {
+    margin-left: 0  !important;
+  }
 }
 
 @media screen and (max-height: 679px) {
