@@ -89,6 +89,7 @@ export class TranslationService {
         "monthly median values": "valori mensili mediani",
         "monthly total precipitation (mm)":
           "Precipitazione totale mensile (mm)",
+        "monthly total precipitation (%)": "Precipitazione totale mensile (%)",
         month: "Mese",
         january: "Gennaio",
         february: "Febbraio",
