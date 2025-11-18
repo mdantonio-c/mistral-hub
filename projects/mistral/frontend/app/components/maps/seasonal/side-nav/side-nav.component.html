@@ -118,8 +118,8 @@
       </li>
       <div class="flex-spacer w-100 h-100">
         <li class="sidenav-item border-0">
-          <span
-            class="book"
+          <a [href]="aboutPage" target="_blank"
+            class="book clickable"
             [ngbTooltip]="
               isCollapsed
                 ? ('Discover more about this product' | translate : lang)
@@ -127,7 +127,7 @@
             "
             container="body"
           >
-          </span>
+          </a>
           <a *ngIf="!isCollapsed" [href]="aboutPage" target="_blank">
             <span
               class="nav-text text-disclaimer"
