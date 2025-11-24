@@ -1,0 +1,274 @@
+import { BaseMapComponent } from "../base-map.component";
+import { Component, Injector, Input, OnInit } from "@angular/core";
+import * as L from "leaflet";
+import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
+import { layerMap, Products, VARIABLES_CONFIG } from "./side-nav/data";
+import {
+  CARTODB_LICENSE_HREF,
+  MISTRAL_LICENSE_HREF,
+  OSM_LICENSE_HREF,
+  STADIA_LICENSE_HREF,
+  ViewModes,
+} from "../meteo-tiles/meteo-tiles.config";
+import { Params } from "@angular/router";
+import * as moment from "moment";
+import { TilesService } from "../meteo-tiles/services/tiles.service";
+
+@Component({
+  selector: "app-radar-observation-maps",
+  templateUrl: "./radar-observation-maps.component.html",
+  styleUrls: ["./radar-observation-maps.component.scss"],
+})
+export class RadarComponent extends BaseMapComponent implements OnInit {
+  readonly LEGEND_POSITION = "bottomleft";
+  @Input() minZoom: number = 6;
+  @Input() maxZoom: number = 9;
+
+  public unit;
+  public productName;
+  wmsPath;
+  bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
+  LAYER_OSM = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      attribution: `&copy; ${OSM_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
+    },
+  );
+  LAYER_LIGHTMATTER = L.tileLayer(
+    "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
+    {
+      id: "mapbox.light",
+      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
+    },
+  );
+  LAYER_STADIA_SMOOTH = L.tileLayer(
+    "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+    {
+      id: "stadia.alidade.smooth",
+      attribution: `&copy; ${STADIA_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      maxZoom: this.maxZoom,
+      minZoom: this.minZoom,
+    },
+  );
+  layersControl = {
+    baseLayers: {
+      "Openstreet Map": this.LAYER_OSM,
+      "Carto Map Light": this.LAYER_LIGHTMATTER,
+      "Stadia Alidade Smooth": this.LAYER_STADIA_SMOOTH,
+    },
+  };
+  roundedNow = this.roundTo5MinFloor(new Date());
+  past = new Date(this.roundedNow.getTime() - 72 * 3600 * 1000);
+  timeInterval = `${this.past.toISOString()}/${this.roundedNow.toISOString()}`;
+  options = {
+    zoomControl: false,
+    zoom: 6,
+    center: L.latLng(41.88, 12.28),
+    zoomSnap: 0.1,
+    maxBoundsViscosity: 1.0,
+    maxBounds: this.bounds,
+    timeDimension: true,
+    timeDimensionOptions: {
+      timeInterval: this.timeInterval,
+      period: "PT5M", // ISO8601 duration, step of 5 min
+    },
+    timeDimensionControl: false,
+    timeDimensionControlOptions: {
+      autoPlay: false,
+      timeZones: ["Local"],
+      loopButton: false,
+      timeSteps: 1,
+      playReverseButton: false,
+      limitSliders: true,
+      playerOptions: {
+        buffer: 0,
+        transitionTime: 0,
+        loop: true,
+        startOver: true,
+      },
+      speedSlider: false,
+    },
+  };
+  viewMode = ViewModes.adv;
+  private timeDimensionControl: any;
+
+  constructor(injector: Injector, private tileService: TilesService) {
+    super(injector);
+    this.options["layers"] = [this.LAYER_LIGHTMATTER];
+    this.wmsPath = this.tileService.getWMSUrl();
+  }
+  ngOnInit(): void {
+    super.ngOnInit();
+    this.productName = Products.SRI;
+    this.unit = "mm/h";
+    this.variablesConfig = VARIABLES_CONFIG;
+    this.route.queryParams.subscribe((params: Params) => {
+      const lang: string = params["lang"];
+      const view: string = params["view"];
+      if (["it", "en"].includes(lang)) {
+        this.lang = lang;
+      }
+
+      if (Object.values(ViewModes).includes(view)) {
+        this.viewMode = ViewModes[view];
+      }
+    });
+    console.log(this.roundedNow);
+  }
+  protected centerMap() {
+    if (this.map) {
+      const mapCenter = super.getMapCenter();
+      this.map.setView(mapCenter, 6);
+    }
+  }
+  protected onMapReady(map: L.Map) {
+    this.map = map;
+
+    setTimeout(() => this.map.setView([41.88, 12.28], 6), 0);
+    this.setOverlaysToMap();
+
+    this.centerMap();
+    this.addIconBorderLayer();
+    (window as any).L.Control.TimeDimensionCustom = (
+      window as any
+    ).L.Control.TimeDimension.extend({
+      onAdd: function (map: L.Map) {
+        const container = (
+          window as any
+        ).L.Control.TimeDimension.prototype.onAdd.call(this, map);
+        this.timeZoneSelect = container.querySelector(
+          ".timecontrol-timezone select",
+        );
+        return container;
+      },
+
+      _getDisplayDateFormat: function (date: Date) {
+        const timeZone = this._getCurrentTimeZone().toLowerCase();
+        if (timeZone === "local") {
+          const offsetHours = moment().utcOffset() / 60;
+          const sign = offsetHours >= 0 ? "+" : "-";
+          return moment(date).format(
+            `DD-MM-YYYY HH:mm [UTC${sign}${Math.abs(offsetHours)}]`,
+          );
+        }
+      },
+    });
+
+    this.timeDimensionControl = new (
+      window as any
+    ).L.Control.TimeDimensionCustom({
+      autoPlay: false,
+      playButton: true,
+      timeZones: ["Local"],
+      loopButton: true,
+      timeSteps: 1,
+      playReverseButton: false,
+      limitSliders: true,
+      playerOptions: {
+        buffer: 0,
+        transitionTime: 0,
+        loop: true,
+        startOver: true,
+      },
+      speedSlider: true,
+    });
+    this.map.addControl(this.timeDimensionControl);
+    let tControl = this.timeDimensionControl;
+    this.layersControl["overlays"][Products.SRI].addTo(this.map);
+  }
+
+  private setOverlaysToMap() {
+    if (!this.layersControl["overlays"]) {
+      this.layersControl["overlays"] = {};
+    }
+    const overlays = this.layersControl["overlays"];
+    if ("sri" in this.variablesConfig) {
+      this.addLayer(overlays, Products.SRI);
+    }
+    if ("srt_adj" in this.variablesConfig) {
+      this.addLayer(overlays, Products.SRTADJ1);
+    }
+  }
+
+  private addLayer(overlays, key: Products) {
+    const layer = this.getWmsTiles(this.wmsPath, layerMap[key]);
+    layer.on("tileerror", () => {
+      console.log(`Errore while downloading ${key}`);
+    });
+    overlays[key] = layer;
+  }
+  private getWmsTiles(url, layer) {
+    return L.timeDimension.layer.wms(
+      L.tileLayer.wms(url, {
+        layers: layer,
+        transparent: true,
+        format: "image/png",
+        tileSize: 256,
+        opacity: 0.6,
+      }),
+    );
+  }
+  protected toggleLayer(obj: Record<string, string | L.Layer>) {
+    let Layer = obj.layer as L.Layer;
+    let layerName = obj.name as string;
+    this.productName = layerName;
+    this.unit = this.productName === Products.SRI ? "mm/h" : "mm";
+
+    if (this.map.hasLayer(Layer)) {
+      return;
+    } else {
+      for (const [key, layer] of Object.entries(
+        this.layersControl["overlays"],
+      )) {
+        if (this.map.hasLayer(layer as L.Layer)) {
+          this.map.removeLayer(layer as L.Layer);
+        }
+      }
+      this.layersControl["overlays"][layerName].addTo(this.map);
+    }
+  }
+  public printReferenceDate() {
+    return "";
+  }
+  public printReferenceDate2(): string[] {
+    const now = this.roundedNow;
+    const dd = String(now.getDate()).padStart(2, "0");
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const yyyy = now.getUTCFullYear();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const min = String(now.getMinutes()).padStart(2, "0");
+    const offsetMinutes = -now.getTimezoneOffset();
+    return [
+      `${dd}-${mm}-${yyyy},${hh}:${min}`,
+      (offsetMinutes / 60).toString(),
+    ];
+  }
+  public printDatasetProduct(): string {
+    return "";
+  }
+  public printDatasetDescription(): string {
+    return "";
+  }
+  private roundTo5MinFloor(date: Date): Date {
+    const ms = 1000 * 60 * 5;
+    return new Date(Math.floor(date.getTime() / ms) * ms);
+  }
+
+  addIconBorderLayer() {
+    fetch("./app/custom/assets/images/geoJson/coastlines_border_lines.geojson")
+      .then((response) => response.json())
+      .then((data) => {
+        L.geoJSON(data, {
+          style: {
+            color: "black",
+            weight: 1,
+            opacity: 1,
+          },
+        }).addTo(this.map);
+      });
+  }
+}

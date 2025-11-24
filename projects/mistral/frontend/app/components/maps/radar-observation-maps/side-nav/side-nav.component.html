@@ -1,0 +1,130 @@
+<nav class="map-sidenav" [class.collapsed]="isCollapsed">
+  <div id="overlay" class="sidenav-overlay"></div>
+  <div class="map-sidenav-menu">
+    <!-- partial collapse -->
+    <label
+      class="toggle"
+      (click)="changeCollapse()"
+      [class.collapsed]="isCollapsed"
+    ></label>
+    <ul class="selector">
+      <li class="sidenav-item" *ngIf="varConfig.hasOwnProperty('sri')">
+        <span
+          class="sri clickable"
+          (click)="toggleLayer($event, 'sri')"
+          placement="left"
+          [ngbTooltip]="tipSri"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <ng-template #tipSri
+          >{{ "Surface rainfall intensity" | titlecase }}
+        </ng-template>
+        <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'sri')">
+          <span class="nav-text" i18n>
+            {{ "Surface Rainfall Intensity" }}
+          </span>
+        </a>
+      </li>
+      <li class="sidenav-item last" *ngIf="varConfig.hasOwnProperty('srt_adj')">
+        <span
+          class="srt_adj clickable"
+          (click)="toggleLayer($event, 'srt_adj')"
+          placement="left"
+          [ngbTooltip]="tipSrt_adj"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <ng-template #tipSrt_adj
+          >{{ "Surface Rainfall Total " | titlecase }}
+        </ng-template>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#" (click)="toggleLayer($event, 'srt_adj')">
+            <span class="nav-text" i18n>{{
+              "Surface Rainfall Total " | translate : lang
+            }}</span>
+          </a>
+          <div class="selettore-orario">
+            <div class="progressbar">
+              <ng-container
+                *ngFor="let h of subLevels['srt_adj']; let last = last"
+              >
+                <label *ngIf="varConfig['srt_adj'].includes(h.value)">
+                  <input
+                    type="radio"
+                    name="precipitation"
+                    class="clickable"
+                    [value]="h.value"
+                    [checked]="h.checked"
+                    (change)="
+                      changeSubLevel($event, h, 'srt_adj');
+                      setFirstCumulated($event, h.value, 'srt_adj')
+                    "
+                  />
+                  {{ h.value + "h" }}
+                </label>
+              </ng-container>
+            </div>
+          </div>
+        </ng-container>
+      </li>
+      <!-- base layer map selector -->
+      <li class="sidenav-item last selettore-carte" *ngIf="mode == modes.adv">
+        <span class="carte"></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#">
+            <span class="nav-text">{{ "Map Style" | translate : lang }}</span>
+          </a>
+          <div class="selettore-mappa">
+            <label *ngFor="let baseLayer of baseLayers | keyvalue">
+              <input
+                type="radio"
+                name="baseMap"
+                [(ngModel)]="selectedBaseLayer"
+                [value]="baseLayer.key"
+                (change)="changeBaseLayer(baseLayer.key)"
+              />
+              {{ baseLayer.key }}
+            </label>
+          </div>
+        </ng-container>
+      </li>
+      <!-- zoom-in -->
+      <li class="sidenav-item zoom" *ngIf="mode == modes.adv">
+        <span
+          class="plus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+          (click)="zoom($event, 'in')"
+          placement="left"
+          [ngbTooltip]="'Zoom in'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+            i18n
+            >Zoom in</span
+          >
+        </a>
+      </li>
+      <!-- zoom-out -->
+      <li class="sidenav-item last" *ngIf="mode == modes.adv">
+        <span
+          class="minus clickable"
+          [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+          (click)="zoom($event, 'out')"
+          placement="left"
+          [ngbTooltip]="'Zoom out'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+            i18n
+            >Zoom out</span
+          >
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
