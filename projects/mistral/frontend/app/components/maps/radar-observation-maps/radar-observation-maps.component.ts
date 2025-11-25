@@ -26,6 +26,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
 
   public unit;
   public productName;
+  public descr;
   wmsPath;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   LAYER_OSM = L.tileLayer(
@@ -117,7 +118,6 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
         this.viewMode = ViewModes[view];
       }
     });
-    console.log(this.roundedNow);
   }
   protected centerMap() {
     if (this.map) {
@@ -217,7 +217,8 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     let layerName = obj.name as string;
     this.productName = layerName;
     this.unit = this.productName === Products.SRI ? "mm/h" : "mm";
-
+    this.descr =
+      this.productName === Products.SRI ? "" : "(integrated with rain gauges)";
     if (this.map.hasLayer(Layer)) {
       return;
     } else {

@@ -32,16 +32,16 @@
       </div>
       <div class="bg-light p-2 pt-0">
         <pre class="d-inline" style="white-space: pre-line">
-          {{ unit }}
-                      <i
-            class="fa fa-arrows-rotate clickable"
-            aria-hidden="true"
-            (click)="toggleLayer(undefined)"
-            placement="bottom"
-            ngbTooltip="Reload"
-          ></i> {{ printReferenceDate2()[0]}}
-            {{ 'local time'}} (UTC+{{printReferenceDate2()[1]}})
-        </pre>
+      <ng-container *ngIf="descr">{{ descr | translate : lang }}<br></ng-container>{{ unit }}
+      <i
+    class="fa fa-arrows-rotate clickable"
+    aria-hidden="true"
+    (click)="toggleLayer(undefined)"
+    placement="bottom"
+    ngbTooltip="Reload"
+  ></i> {{ printReferenceDate2()[0] }}
+      {{ 'local time' | translate : lang }} (UTC+{{ printReferenceDate2()[1] }})
+  </pre>
       </div>
     </div>
   </div>

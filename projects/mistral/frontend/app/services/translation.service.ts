@@ -107,6 +107,8 @@ export class TranslationService {
           "Clicca sui punti per visualizzare i box plot dei capoluoghi di provincia",
         "discover more about this product":
           "Scopri come viene realizzato questo prodotto",
+        // radar
+        "(integrated with rain gauges)": "(integrato con pluviometri)",
       },
     },
   };
