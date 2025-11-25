@@ -14,45 +14,46 @@ export const COLOR_RANGES = {
     { min: -50 / 100, color: "#FFFFFF", textColor: null },
   ],
   t2m: [
-    { min: 317.15, color: "#FFDCDC", textColor: null },
-    { min: 315.15, color: "#FFB4B4", textColor: null },
-    { min: 313.15, color: "#F0A0A0", textColor: null },
-    { min: 311.15, color: "#B46464", textColor: "#fff" },
-    { min: 309.15, color: "#640000", textColor: "#fff" },
-    { min: 307.15, color: "#7C0000", textColor: "#fff" },
-    { min: 305.15, color: "#AF0F14", textColor: "#fff" },
-    { min: 303.15, color: "#C41A0A", textColor: "#fff" },
-    { min: 301.15, color: "#E83709", textColor: "#fff" },
-    { min: 299.15, color: "#F46D0B", textColor: "#fff" },
-    { min: 297.15, color: "#F4880B", textColor: null },
-    { min: 295.15, color: "#F4BD0B", textColor: null },
-    { min: 293.15, color: "#F4D90B", textColor: null },
-    { min: 291.15, color: "#F3FB01", textColor: null },
-    { min: 289.15, color: "#CEF003", textColor: null },
-    { min: 287.15, color: "#9CE106", textColor: null },
-    { min: 285.15, color: "#52CA0B", textColor: null },
-    { min: 283.15, color: "#21BB0E", textColor: "#fff" },
-    { min: 281.15, color: "#07A127", textColor: "#fff" },
-    { min: 279.15, color: "#62AF88", textColor: "#fff" },
-    { min: 277.15, color: "#87D3AB", textColor: null },
-    { min: 275.15, color: "#9FEEC8", textColor: null },
-    { min: 273.15, color: "#BBFFE2", textColor: null },
-    { min: 271.15, color: "#5BB4FF", textColor: "#fff" },
-    { min: 269.15, color: "#259AFF", textColor: "#fff" },
-    { min: 267.15, color: "#0082EF", textColor: "#fff" },
-    { min: 265.15, color: "#0062AF", textColor: "#fff" },
-    { min: 263.15, color: "#00528F", textColor: "#fff" },
-    { min: 261.15, color: "#00467F", textColor: "#fff" },
-    { min: 259.15, color: "#003C7F", textColor: "#fff" },
-    { min: 257.15, color: "#00287F", textColor: "#fff" },
-    { min: 255.15, color: "#3E007F", textColor: "#fff" },
-    { min: 253.15, color: "#57007F", textColor: "#fff" },
-    { min: 251.15, color: "#F627EB", textColor: "#fff" },
-    { min: 249.15, color: "#D41DD1", textColor: "#fff" },
-    { min: 247.15, color: "#B414B9", textColor: "#fff" },
-    { min: 245.15, color: "#870898", textColor: "#fff" },
-    { min: 243.15, color: "#78048D", textColor: "#fff" },
-    { min: Infinity, color: "#64007F", textColor: "#fff" },
+    { min: 243.15, color: "#3e007f", textColor: "#fff" }, // -30
+    { min: 245.15, color: "#57007f", textColor: "#fff" }, // -28
+    { min: 247.15, color: "#8000a3", textColor: "#fff" }, // -26
+    { min: 249.15, color: "#b000e0", textColor: "#fff" }, // -24
+    { min: 251.15, color: "#d41dd1", textColor: "#fff" }, // -22
+    { min: 253.15, color: "#f627eb", textColor: "#fff" }, // -20
+    { min: 255.15, color: "#f862f1", textColor: "#fff" }, // -18
+    { min: 257.15, color: "#002066", textColor: "#fff" }, // -16
+    { min: 259.15, color: "#00277A", textColor: "#fff" }, // -14
+    { min: 261.15, color: "#003C7F", textColor: "#fff" }, // -12
+    { min: 263.15, color: "#00528f", textColor: "#fff" }, // -10
+    { min: 265.15, color: "#0062af", textColor: "#fff" }, // -8
+    { min: 267.15, color: "#0070cc", textColor: "#fff" }, // -6
+    { min: 269.15, color: "#0082EF", textColor: "#fff" }, // -4
+    { min: 271.15, color: "#5bb4ff", textColor: "#fff" }, // -2
+    { min: 273.15, color: "#85C8FF", textColor: null }, // 0
+    { min: 275.15, color: "#BBFFE2", textColor: null }, // 2
+    { min: 277.15, color: "#9FEEC8", textColor: null }, // 4
+    { min: 279.15, color: "#87D3AB", textColor: null }, // 6
+    { min: 281.15, color: "#62AF88", textColor: "#fff" }, // 8
+    { min: 283.15, color: "#07A127", textColor: "#fff" }, // 10
+    { min: 285.15, color: "#21BB0E", textColor: "#fff" }, // 12
+    { min: 287.15, color: "#52CA0B", textColor: null }, // 14
+    { min: 289.15, color: "#9CE106", textColor: null }, // 16
+    { min: 291.15, color: "#CEF003", textColor: null }, // 18
+    { min: 293.15, color: "#F3FB01", textColor: null }, // 20
+    { min: 295.15, color: "#F4D90B", textColor: null }, // 22
+    { min: 297.15, color: "#F4BD0B", textColor: null }, // 24
+    { min: 299.15, color: "#F4880B", textColor: null }, // 26
+    { min: 301.15, color: "#F46D0B", textColor: "#fff" }, // 28
+    { min: 303.15, color: "#E83709", textColor: "#fff" }, // 30
+    { min: 305.15, color: "#C41A0A", textColor: "#fff" }, // 32
+    { min: 307.15, color: "#AF0F14", textColor: "#fff" }, // 34
+    { min: 309.15, color: "#7C0000", textColor: "#fff" }, // 36
+    { min: 311.15, color: "#640000", textColor: "#fff" }, // 38
+    { min: 313.15, color: "#B46464", textColor: "#fff" }, // 40
+    { min: 315.15, color: "#F0A0A0", textColor: null }, // 42
+    { min: 317.15, color: "#FFB4B4", textColor: null }, // 44
+    { min: 319.15, color: "#FFDCDC", textColor: null }, // 46
+    { min: Infinity, color: "#64007F", textColor: "#fff" }, // fallback
   ],
   prp: [
     { min: 300, color: "#703f78", textColor: null },
