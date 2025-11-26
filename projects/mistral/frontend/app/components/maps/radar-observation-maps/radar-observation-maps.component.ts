@@ -98,6 +98,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   };
   viewMode = ViewModes.adv;
   private timeDimensionControl: any;
+  private timelineInterval: any = null;
 
   constructor(injector: Injector, private tileService: TilesService) {
     super(injector);
@@ -184,6 +185,9 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     let tControl = this.timeDimensionControl;
 
     this.layersControl["overlays"][Products.SRI].addTo(this.map);
+    this.timelineInterval = setInterval(() => {
+      this.updateTimeLineWithLastDataAvailable();
+    }, 120000);
   }
 
   private setOverlaysToMap() {
@@ -309,5 +313,10 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
           }
         }
       });
+  }
+  ngOnDestroy(): void {
+    if (this.timelineInterval) {
+      clearInterval(this.timelineInterval);
+    }
   }
 }
