@@ -27,6 +27,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   public unit;
   public productName;
   public descr;
+  private selectedProduct;
   wmsPath;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   LAYER_OSM = L.tileLayer(
@@ -65,6 +66,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   roundedNow = this.roundTo5MinFloor(new Date());
   past = new Date(this.roundedNow.getTime() - 72 * 3600 * 1000);
   timeInterval = `${this.past.toISOString()}/${this.roundedNow.toISOString()}`;
+  lastDate: Date;
   options = {
     zoomControl: false,
     zoom: 6,
@@ -118,6 +120,8 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
         this.viewMode = ViewModes[view];
       }
     });
+    this.selectedProduct = Products.SRI;
+    this.updateTimeLineWithLastDataAvailable();
   }
   protected centerMap() {
     if (this.map) {
@@ -178,6 +182,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     });
     this.map.addControl(this.timeDimensionControl);
     let tControl = this.timeDimensionControl;
+
     this.layersControl["overlays"][Products.SRI].addTo(this.map);
   }
 
@@ -216,6 +221,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     let Layer = obj.layer as L.Layer;
     let layerName = obj.name as string;
     this.productName = layerName;
+    this.selectedProduct = layerName;
     this.unit = this.productName === Products.SRI ? "mm/h" : "mm";
     this.descr =
       this.productName === Products.SRI ? "" : "(integrated with rain gauges)";
@@ -236,13 +242,12 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     return "";
   }
   public printReferenceDate2(): string[] {
-    const now = this.roundedNow;
-    const dd = String(now.getDate()).padStart(2, "0");
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const yyyy = now.getUTCFullYear();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const min = String(now.getMinutes()).padStart(2, "0");
-    const offsetMinutes = -now.getTimezoneOffset();
+    const dd = String(this.lastDate?.getDate()).padStart(2, "0");
+    const mm = String(this.lastDate?.getMonth() + 1).padStart(2, "0");
+    const yyyy = this.lastDate?.getUTCFullYear();
+    const hh = String(this.lastDate?.getHours()).padStart(2, "0");
+    const min = String(this.lastDate?.getMinutes()).padStart(2, "0");
+    const offsetMinutes = -this.lastDate?.getTimezoneOffset();
     return [
       `${dd}-${mm}-${yyyy},${hh}:${min}`,
       (offsetMinutes / 60).toString(),
@@ -270,6 +275,39 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
             opacity: 1,
           },
         }).addTo(this.map);
+      });
+  }
+
+  private updateTimeLineWithLastDataAvailable() {
+    const readyFileName =
+      this.selectedProduct === Products.SRI
+        ? "READY_SRI.json"
+        : "READY_SRT.json";
+    fetch(`./app/custom/assets/readyRadar/${readyFileName}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const from = new Date(data.from);
+        const to = new Date(data.to);
+        this.lastDate = to;
+        const newAvailableTimes = (
+          L as any
+        ).TimeDimension.Util.explodeTimeRange(
+          from,
+          to,
+          this.options.timeDimensionOptions.period,
+        );
+        const td = (this.map as any)?.timeDimension;
+        if (td) {
+          td.setAvailableTimes(newAvailableTimes, "replace");
+          td.setCurrentTime(to.getTime());
+        }
+        if (td && td.getAvailableTimes().length > 0) {
+          const currentTimes = td.getAvailableTimes();
+          const last = currentTimes[currentTimes.length - 1];
+          if (last === to.getTime()) {
+            return;
+          }
+        }
       });
   }
 }

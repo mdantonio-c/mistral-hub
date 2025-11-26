@@ -6,7 +6,7 @@ export const VARIABLES_CONFIG: GenericArg = {
   sri: [],
   //srt_adj: [1,3,6,12,24]
   //srt_adj: [1]
-  srt_adj: [],
+  srt_adj: [1],
 };
 
 export enum Products {

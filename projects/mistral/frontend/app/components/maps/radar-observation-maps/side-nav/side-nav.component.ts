@@ -180,11 +180,19 @@ export class SideNavComponentRadar implements OnInit {
       if (!el) continue;
 
       this.renderer.removeClass(el, "attivo");
+      if (this.subLevels[key])
+        this.subLevels[key].forEach((level) => {
+          level.checked = false;
+        });
     }
 
     const clickedEl = this.el.nativeElement.querySelector(`span.${layerId}`);
     if (clickedEl) {
       this.renderer.addClass(clickedEl, "attivo");
+    }
+    if (this.subLevels[layerId] && this.subLevels[layerId].length) {
+      this.subLevels[layerId][0].checked = true;
+      this.setFirstCumulated(event, this.subLevels[layerId][0].value, layerId);
     }
 
     for (const [key, layer] of Object.entries(this.overlays)) {
