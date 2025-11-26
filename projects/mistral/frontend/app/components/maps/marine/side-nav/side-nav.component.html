@@ -1,0 +1,94 @@
+<nav class="map-sidenav" [class.collapsed]="isCollapsed">
+  <div id="overlay" class="sidenav-overlay"></div>
+  <div class="map-sidenav-menu h-100">
+    <label
+      class="toggle"
+      (click)="changeCollapse()"
+      [class.collapsed]="isCollapsed"
+    ></label>
+    <ul class="selector">
+      <ng-container
+        *ngFor="let variable of variablesConfig | keyvalue; let last = last"
+      >
+        <li class="sidenav-item" [class.last]="last">
+          <span
+            class="{{ variable }}"
+            placement="left"
+            [ngbTooltip]="variable.value[0] | translate : lang | titlecase"
+            (click)="toggleLayer($event, variable.key)"
+            [disableTooltip]="!isCollapsed"
+            [class.attivo]="selectedLayers === variable.key"
+          ></span>
+          <a
+            href="#"
+            *ngIf="!isCollapsed"
+            (click)="toggleLayer($event, variable.key)"
+          >
+            <span class="nav-text" i118n
+              >{{ variable.value.label | translate : lang | titlecase }} [{{
+                variable.value.unit
+              }}]
+            </span></a
+          >
+        </li>
+      </ng-container>
+      <li class="sidenav-item last selettore-carte" *ngIf="mode == modes.adv">
+        <span class="carte"></span>
+        <ng-container *ngIf="!isCollapsed">
+          <a href="#">
+            <span class="nav-text">{{ "Map Style" | translate : lang }}</span>
+          </a>
+          <div class="selettore-mappa">
+            <label *ngFor="let baseLayer of baseLayers | keyvalue">
+              <input
+                type="radio"
+                name="baseMap"
+                [(ngModel)]="selectedBaseLayer"
+                [value]="baseLayer.key"
+                (change)="changeBaseLayer(baseLayer.key)"
+              />
+              {{ baseLayer.key }}
+            </label>
+          </div>
+        </ng-container>
+      </li>
+      <li class="sidenav-item zoom">
+        <span
+          class="plus clickable"
+          (click)="zoom($event, 'in')"
+          [class.disabled]="currentZoom >= maxZoomIn"
+          placement="left"
+          [ngbTooltip]="'Zoom in'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
+          <span class="nav-text" i18n>Zoom in</span>
+        </a>
+      </li>
+      <li class="sidenav-item last">
+        <span
+          class="minus clickable"
+          (click)="zoom($event, 'out')"
+          [class.disabled]="currentZoom <= minZoom"
+          placement="left"
+          [ngbTooltip]="'Zoom out'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
+          <span class="nav-text" i18n>Zoom out</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div
+    class="attribution leaflet-control leaflet-control-attribution"
+    *ngIf="!isCollapsed"
+  >
+    <span>
+      © <a href="http://cartodb.com/attributions" target="_blank">CARTO</a> | ©
+      <a href="./app/license#meteohub-products" target="_blank"
+        >CINECA AIM</a
+      ></span
+    >
+  </div>
+</nav>
