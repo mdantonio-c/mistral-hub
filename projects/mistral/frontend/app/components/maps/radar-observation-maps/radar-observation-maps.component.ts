@@ -47,20 +47,22 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
       minZoom: this.minZoom,
     },
   );
-  LAYER_STADIA_SMOOTH = L.tileLayer(
-    "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+
+  LAYER_DARK = L.tileLayer(
+    "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png",
     {
-      id: "stadia.alidade.smooth",
-      attribution: `&copy; ${STADIA_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      id: "mapbox.dark",
+      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
       maxZoom: this.maxZoom,
       minZoom: this.minZoom,
     },
   );
+
   layersControl = {
     baseLayers: {
       "Openstreet Map": this.LAYER_OSM,
       "Carto Map Light": this.LAYER_LIGHTMATTER,
-      "Stadia Alidade Smooth": this.LAYER_STADIA_SMOOTH,
+      "Carto Map Dark": this.LAYER_DARK,
     },
   };
   roundedNow = this.roundTo5MinFloor(new Date());
@@ -102,7 +104,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
 
   constructor(injector: Injector, private tileService: TilesService) {
     super(injector);
-    this.options["layers"] = [this.LAYER_LIGHTMATTER];
+    this.options["layers"] = [this.LAYER_DARK];
     this.wmsPath = this.tileService.getWMSUrl();
   }
   ngOnInit(): void {
@@ -183,7 +185,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     });
     this.map.addControl(this.timeDimensionControl);
     let tControl = this.timeDimensionControl;
-
+    this.LAYER_DARK.getContainer().style.filter = "brightness(2.0)";
     this.layersControl["overlays"][Products.SRI].addTo(this.map);
     this.timelineInterval = setInterval(() => {
       this.updateTimeLineWithLastDataAvailable();
