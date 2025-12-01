@@ -5,6 +5,6 @@ export const Variables = {
   t01: { label: "Mean period", unit: "s" },
 };
 export const MEDITA_BOUNDS = {
-  southWest: L.latLng(33.69, 2.9875),
-  northEast: L.latLng(48.91, 22.0125),
+  southWest: L.latLng(30, -7),
+  northEast: L.latLng(46, 36),
 };

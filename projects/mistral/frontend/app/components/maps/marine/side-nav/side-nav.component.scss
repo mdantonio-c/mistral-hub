@@ -207,10 +207,10 @@ $dark-blue: #004080;
 .realtime-info {
   margin-top: 4px !important;
 }
-.t2mplus,
-.t2mminus,
+.dir,
+.hs,
 .calendar,
-.prp,
+.t01,
 .plus,
 .minus,
 .info,
@@ -226,11 +226,11 @@ $dark-blue: #004080;
   margin-left: 3px;
 }
 
-.t2mplus {
+.dir {
   background-image: url("/app/custom/assets/images/icons/temperplus.svg");
 }
 
-.t2mminus {
+.hs {
   background-image: url("/app/custom/assets/images/icons/temperminus.svg");
 }
 
@@ -241,7 +241,7 @@ $dark-blue: #004080;
   margin-left: 5px !important;
 }
 
-.prp {
+.t01 {
   background-image: url("/app/custom/assets/images/icons/precipitazioni.svg");
 }
 
@@ -401,10 +401,10 @@ $dark-blue: #004080;
     margin-bottom: 0;
   }
 
-  .t2mplus,
-  .t2mminus,
+  .dir,
+  .hs,
   .calendar,
-  .prp,
+  .t01,
   .plus,
   .minus,
   .info,
@@ -473,10 +473,10 @@ $dark-blue: #004080;
     display: none;
   }
 
-  .t2mplus,
-  .t2mminus,
+  .dir,
+  .hs,
   .calendar,
-  .prp,
+  .t01,
   .plus,
   .minus,
   .info,

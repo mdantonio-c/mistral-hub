@@ -29,15 +29,10 @@ export class SideNavComponentMarine implements OnInit {
   variablesConfig = Variables;
   isCollapsed = false;
   currentZoom;
-  selectedLayers;
+  // set first variable as default
+  selectedLayers = [Object.keys(this.variablesConfig)[0]];
   selectedBaseLayer;
 
-  changeBaseLayer(newVal: string) {
-    // console.log(`change base layer to "${newVal}"`);
-    this.map.removeLayer(this.baseLayers[this.selectedBaseLayer]);
-    this.map.addLayer(this.baseLayers[newVal]);
-    this.selectedBaseLayer = newVal;
-  }
   changeCollapse() {
     this.isCollapsed = !this.isCollapsed;
     this.onCollapseChange.emit(this.isCollapsed);
@@ -45,6 +40,36 @@ export class SideNavComponentMarine implements OnInit {
   toggleLayer(event: Event, layerId: string) {
     console.log(layerId);
     event.preventDefault();
+    const isSelected = this.selectedLayers.includes(layerId);
+
+    if (isSelected) {
+      if (this.selectedLayers.length === 1) {
+        return;
+      }
+
+      this.selectedLayers = this.selectedLayers.filter((x) => x !== layerId);
+      return;
+    }
+
+    const hasHs = this.selectedLayers.includes("hs");
+    const hasT01 = this.selectedLayers.includes("t01");
+
+    if (layerId === "t01" && hasHs) {
+      this.selectedLayers = ["t01"];
+      return;
+    }
+
+    if (layerId === "hs" && hasT01) {
+      this.selectedLayers = ["hs"];
+      return;
+    }
+
+    if (this.selectedLayers.length >= 2) {
+      this.selectedLayers = [layerId];
+      return;
+    }
+
+    this.selectedLayers.push(layerId);
   }
 
   zoom(event, inOut: string) {}
