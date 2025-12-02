@@ -21,7 +21,7 @@ import { TilesService } from "../meteo-tiles/services/tiles.service";
 })
 export class RadarComponent extends BaseMapComponent implements OnInit {
   readonly LEGEND_POSITION = "bottomleft";
-  @Input() minZoom: number = 6;
+  @Input() minZoom: number = 5;
   @Input() maxZoom: number = 9;
 
   public unit;
@@ -71,11 +71,11 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   lastDate: Date;
   options = {
     zoomControl: false,
-    zoom: 6,
     center: L.latLng(41.88, 12.28),
-    zoomSnap: 0.1,
     maxBoundsViscosity: 1.0,
     maxBounds: this.bounds,
+    minZoom: this.minZoom,
+    maxZoom: this.maxZoom,
     timeDimension: true,
     timeDimensionOptions: {
       timeInterval: this.timeInterval,
@@ -284,7 +284,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
       });
   }
 
-  private updateTimeLineWithLastDataAvailable() {
+  public updateTimeLineWithLastDataAvailable() {
     const readyFileName =
       this.selectedProduct === Products.SRI
         ? "READY_SRI.json"
