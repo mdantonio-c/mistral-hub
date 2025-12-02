@@ -71,6 +71,8 @@ import { SideNavFilterComponent } from "./components/maps/side-nav/side-nav.comp
 import { SeasonalComponent } from "@app/components/maps/seasonal/seasonal.component";
 import { SideNavComponentSeasonal } from "./components/maps/seasonal/side-nav/side-nav.component";
 import { ProvinceReportComponent } from "./components/maps/seasonal/province-report/province-report.component";
+import { SubSeasonalComponent } from "./components/maps/sub-seasonal/sub-seasonal.component";
+import { SideNavComponentSubseasonal } from "./components/maps/sub-seasonal/side-nav/side-nav.component";
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
 import { FormatLabelDatePipe } from "@app/pipes/format-data-label.pipe";
 import { ReplacePipe } from "@app/pipes/replace.pipe";
@@ -147,6 +149,10 @@ const appRoutes: Routes = [
   {
     path: "app/maps/seasonal",
     component: SeasonalComponent,
+  },
+  {
+    path: "app/maps/subseasonal",
+    component: SubSeasonalComponent,
   },
   {
     path: "app/maps/livemap",
@@ -240,6 +246,8 @@ const appRoutes: Routes = [
     SideNavComponent,
     SeasonalComponent,
     SideNavComponentSeasonal,
+    SubSeasonalComponent,
+    SideNavComponentSubseasonal,
     LivemapComponent,
     SideNavFilterComponent,
     MultiStepWizardComponent,
