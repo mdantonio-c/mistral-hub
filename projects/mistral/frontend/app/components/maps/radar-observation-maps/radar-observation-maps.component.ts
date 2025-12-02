@@ -284,7 +284,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
       });
   }
 
-  public updateTimeLineWithLastDataAvailable() {
+  public updateTimeLineWithLastDataAvailable(reload: boolean = false) {
     const readyFileName =
       this.selectedProduct === Products.SRI
         ? "READY_SRI.json"
@@ -305,6 +305,10 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
         const td = (this.map as any)?.timeDimension;
         if (td) {
           td.setAvailableTimes(newAvailableTimes, "replace");
+          const current = td.getCurrentTime();
+          if (newAvailableTimes.includes(current) && !reload) {
+            return;
+          }
           td.setCurrentTime(to.getTime());
         }
         if (td && td.getAvailableTimes().length > 0) {
