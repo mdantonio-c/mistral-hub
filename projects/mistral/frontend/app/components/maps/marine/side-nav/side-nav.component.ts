@@ -5,6 +5,9 @@ import {
   Input,
   Output,
   EventEmitter,
+  ElementRef,
+  Renderer2,
+  ChangeDetectorRef,
 } from "@angular/core";
 import { Variables } from "./data";
 import * as L from "leaflet";
@@ -28,10 +31,16 @@ export class SideNavComponentMarine implements OnInit {
     new EventEmitter<boolean>();
   variablesConfig = Variables;
   isCollapsed = false;
-  currentZoom;
   // set first variable as default
   selectedLayers = [Object.keys(this.variablesConfig)[0]];
   selectedBaseLayer;
+  zLevel: number;
+
+  constructor(
+    private el: ElementRef,
+    private renderer: Renderer2,
+    private changeDetector: ChangeDetectorRef,
+  ) {}
 
   changeCollapse() {
     this.isCollapsed = !this.isCollapsed;
@@ -72,8 +81,36 @@ export class SideNavComponentMarine implements OnInit {
     this.selectedLayers.push(layerId);
   }
 
-  zoom(event, inOut: string) {}
+  zoom(event, inOut: string) {
+    event.preventDefault();
+    switch (inOut) {
+      case "in":
+        if (this.map.getZoom() < this.map.getMaxZoom()) {
+          this.map.zoomIn();
+        }
+        break;
+      case "out":
+        if (this.map.getZoom() > this.map.getMinZoom()) {
+          this.map.zoomOut();
+        }
+        break;
+      default:
+        console.error(`Invalid zoom param: ${inOut}`);
+    }
+  }
   ngOnInit(): void {
+    this.zLevel = this.map.getZoom();
+    const ref = this;
+    this.map.on(
+      "zoomend",
+      function (event, comp: SideNavComponentMarine = ref) {
+        // because we're outside of Angular's zone, this change won't be detected
+        comp.zLevel = comp.map.getZoom();
+        // need tell Angular to detect changes
+        comp.changeDetector.detectChanges();
+      },
+    );
+
     // set active base layer
     for (const [key, layer] of Object.entries(this.baseLayers)) {
       if (this.map.hasLayer(layer)) {

@@ -1,4 +1,4 @@
-import { Component, OnInit, Injector } from "@angular/core";
+import { Component, OnInit, Injector, Input } from "@angular/core";
 import { BaseMapComponent } from "../base-map.component";
 import * as L from "leaflet";
 import { TilesService } from "../meteo-tiles/services/tiles.service";
@@ -18,29 +18,17 @@ import * as moment from "moment";
   styleUrls: ["./marine.component.scss"],
 })
 export class MarineComponent extends BaseMapComponent implements OnInit {
+  @Input() minZoom: number = 5;
+  @Input() maxZoom: number = 9;
   ARROW_CONFIG = {
-    // Dimensioni SVG (aumenta per frecce più grandi)
     svgWidth: 32,
     svgHeight: 48,
-
-    // Lunghezza della coda (in pixel interni SVG)
-    // Aumenta per frecce più lunghe
     tailLength: 13,
-
-    // Spessore della linea della coda
     strokeWidth: 2,
-
-    // Dimensione della punta della freccia
     arrowHeadSize: 6,
-
-    // Colore bordo punta (lascia 'black' o cambia)
     arrowHeadStroke: "black",
     arrowHeadStrokeWidth: 0.5,
-
-    // Colore di sfondo (lascia 'none' per trasparente)
     backgroundColor: "none",
-
-    // Opacità delle frecce (0-1)
     opacity: 0.9,
   };
   private wmsPath: string;
@@ -77,7 +65,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
   options = {
     zoomControl: false,
     minZoom: this.minZoom,
-    maxZoom: this.maxZoom - 1,
+    maxZoom: this.maxZoom,
     //center: L.latLng([46.879966, 11.726909]),
     center: L.latLng([41.3, 12.5]),
     maxBounds: this.bounds,
@@ -173,8 +161,8 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     });
     this.map.addControl(this.timeDimensionControl);
     this.centerMap();
-    //this.addArrowLayer(this.map);
-    //this.getTileWms('meteohub:wave_height_17').addTo(this.map);
+    this.addArrowLayer(this.map);
+    this.getTileWms("meteohub:wave_height_17").addTo(this.map);
     // this.getTileWms('meteohub:t01_17').addTo(this.map);
   }
   protected centerMap() {

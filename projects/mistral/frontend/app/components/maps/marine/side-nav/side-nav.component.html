@@ -37,26 +37,36 @@
         <span
           class="plus clickable"
           (click)="zoom($event, 'in')"
-          [class.disabled]="currentZoom >= maxZoomIn"
+          [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
           placement="left"
           [ngbTooltip]="'Zoom in'"
           [disableTooltip]="!isCollapsed"
         ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
-          <span class="nav-text" i18n>Zoom in</span>
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+            i18n
+            >Zoom in</span
+          >
         </a>
       </li>
       <li class="sidenav-item last">
         <span
           class="minus clickable"
           (click)="zoom($event, 'out')"
-          [class.disabled]="currentZoom <= minZoom"
+          [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
           placement="left"
           [ngbTooltip]="'Zoom out'"
           [disableTooltip]="!isCollapsed"
         ></span>
         <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
-          <span class="nav-text" i18n>Zoom out</span>
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+            i18n
+            >Zoom out</span
+          >
         </a>
       </li>
     </ul>
