@@ -10,6 +10,7 @@ import {
 } from "../meteo-tiles/meteo-tiles.config";
 import { Params } from "@angular/router";
 import * as moment from "moment";
+import { Variables } from "./side-nav/data";
 import { TilesService } from "../meteo-tiles/services/tiles.service";
 @Component({
   selector: "app-sub-seasonal",
@@ -20,12 +21,15 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   @Input() minZoom: number = 5;
   @Input() maxZoom: number = 9;
 
+  selectedLayer;
   wmsPath;
+  run;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   constructor(injector: Injector, private tileService: TilesService) {
     super(injector);
     this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.wmsPath = this.tileService.getWMSUrl();
+    this.selectedLayer = Variables[Object.keys(Variables)[0]].label;
   }
 
   options = {
@@ -55,13 +59,29 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     },
   };
 
-  protected centerMap() {}
-  protected onMapReady(map: L.Map) {}
+  protected centerMap() {
+    if (this.map) {
+      //const mapCenter = super.getMapCenter();
+      // map center for ICON
+      const mapCenter = L.latLng(41.3, 12.5);
+
+      this.map.setMaxZoom(this.maxZoom - 1);
+
+      this.map.fitBounds(this.bounds);
+    }
+  }
+  protected onMapReady(map: L.Map) {
+    this.map = map;
+    this.centerMap();
+  }
   public printDatasetProduct(): string {
     return "";
   }
   protected toggleLayer(obj: Record<string, string | L.Layer>) {}
   public printReferenceDate() {
     return "";
+  }
+  public handleRun(runLabel: string) {
+    this.run = runLabel;
   }
 }
