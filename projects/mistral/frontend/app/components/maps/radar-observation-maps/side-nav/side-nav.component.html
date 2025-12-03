@@ -26,22 +26,22 @@
         </a>
       </li>
       <li class="sidenav-item last" *ngIf="varConfig.hasOwnProperty('srt_adj')">
-        <span
-          class="srt_adj clickable"
-          (click)="toggleLayer($event, 'srt_adj')"
-          placement="left"
-          [ngbTooltip]="tipSrt_adj"
-          [disableTooltip]="!isCollapsed"
-        ></span>
-        <ng-template #tipSrt_adj
-          >{{ "Surface Rainfall Total " | translate : lang | titlecase }}
-        </ng-template>
-        <ng-container *ngIf="!isCollapsed">
-          <a href="#" (click)="toggleLayer($event, 'srt_adj')">
-            <span class="nav-text" i18n>{{ "SRT" }}</span>
-          </a>
-          <div class="selettore-orario">
-            <div class="progressbar">
+         <div class="d-flex flex-row w-100 align-items-center">
+            <span
+              class="srt_adj clickable"
+              (click)="toggleLayer($event, 'srt_adj')"
+              placement="left"
+              [ngbTooltip]="tipSrt_adj"
+              [disableTooltip]="!isCollapsed"
+            ></span>
+            <ng-template #tipSrt_adj
+              >{{ "Surface Rainfall Total " | translate : lang | titlecase }}
+            </ng-template>
+              <a *ngIf="!isCollapsed" href="#" (click)="toggleLayer($event, 'srt_adj')">
+                <span class="nav-text" i18n>{{ "SRT" }}</span>
+              </a>
+          </div> 
+          <div *ngIf="!isCollapsed" class="selettore-orario">
               <ng-container
                 *ngFor="let h of subLevels['srt_adj']; let last = last"
               >
@@ -60,9 +60,7 @@
                   {{ h.value + "h" }}
                 </label>
               </ng-container>
-            </div>
           </div>
-        </ng-container>
       </li>
       <!-- base layer map selector -->
       <li class="sidenav-item last selettore-carte" *ngIf="mode == modes.adv">
@@ -75,6 +73,7 @@
             <label *ngFor="let baseLayer of baseLayers | keyvalue">
               <input
                 type="radio"
+                class="clickable"
                 name="baseMap"
                 [(ngModel)]="selectedBaseLayer"
                 [value]="baseLayer.key"

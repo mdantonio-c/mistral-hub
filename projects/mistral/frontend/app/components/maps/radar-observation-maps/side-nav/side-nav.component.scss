@@ -154,7 +154,7 @@ $dark-blue: #004080;
       align-items: center;
       flex-wrap: wrap !important;
 
-      & > .attivo {
+      & .attivo {
         background-color: $light-blue;
         border-radius: 25px;
       }
@@ -214,7 +214,7 @@ $dark-blue: #004080;
 .plus,
 .minus,
 .info,
-.book {
+.book, .carte {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
@@ -231,7 +231,9 @@ $dark-blue: #004080;
 }
 
 .srt_adj {
-  background-image: url("/app/custom/assets/images/icons/precipitazioni.svg");
+  background-image: url("/app/custom/assets/images/icons/radar.svg");
+  width: 26px;
+  height: 26px;
 }
 
 .calendar {
@@ -248,11 +250,12 @@ $dark-blue: #004080;
 .info {
   background-image: url("/app/custom/assets/images/icons/info.svg");
 }
-
+.carte {
+  background-image: url("/app/custom/assets/images/icons/map_style.svg");
+}
 .book {
   background-image: url("/app/custom/assets/images/icons/book.svg");
 }
-
 .plus {
   background-image: url("/app/custom/assets/images/icons/plus.svg");
 }
@@ -273,12 +276,118 @@ $dark-blue: #004080;
 
 /* time, clouds, modality and datasets selectors */
 
+.selettore-orario {
+    height: 30px;
+    margin-left: 28px;
+
+    label {
+    font-size: 10px;
+    position: relative;
+    text-align: center;
+    color: #fff;
+    z-index: 1;
+    display:flex;
+    flex-direction: column !important;
+    align-items: center;
+
+    input {
+      margin-left: 10px;
+      margin-right: 10px;
+      z-index: -1;
+      position: relative;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border-radius: 7px;
+      width: 13px !important;
+      height: 13px !important;
+      border: 2px solid #999;
+      transition: 0.2s all linear;
+    }
+
+    span {
+      width: 100%;
+      height: 2px;
+      content: "";
+      left: 20px;
+      position: absolute;
+      top: 5px;
+      background-color: #fff;
+      z-index: -1;
+      transition: 0.2s all linear;
+    }
+
+    input:checked {
+      border: 6px solid $light-blue;
+    }
+
+    input:checked + span {
+      border-color: $light-blue;
+      background-color: $light-blue;
+    }
+  }
+}
+
+.selettore-orario input:checked, .selettore-mappa input:checked {
+  background-color: $light-blue;
+  border-color: $light-blue !important;
+}
+
 .selettore-orario label {
-  font-size: 14px;
-  position: relative;
-  text-align: center;
-  color: #fff;
-  z-index: 1;
+  align-items: center;
+  font-family: "TitilliumWeb-Regular";
+}
+.selettore-mappa {
+  margin-top: 10px;
+
+
+  label {
+    display: flex;
+    flex-direction: column !important;
+    color: #fff;
+    font-size: 10px;
+    justify-content: space-evenly;
+    margin-right: 50px;
+    font-family: "TitilliumWeb-Regular";
+    margin-bottom: 0.5rem;
+  }
+
+  input {
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 5px;
+    z-index: -1;
+    position: relative;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 7px;
+    width: 13px !important;
+    height: 13px !important;
+    border: 2px solid #999;
+    transition: 0.2s all linear;
+  }
+}
+.selettore-carte {
+  margin-bottom: -6px;
+  width: 100%;
+  a {
+    cursor: default;
+    pointer-events: none;
+ 
+    &:hover .nav-text {
+    border-bottom: 0 !important
+      }
+   }
+  label {
+    display: flex;
+    flex-direction: row !important;
+    color: #fff;
+    font-size: 10px;
+    justify-content: space-evenly;
+    margin-left: 32px;
+    font-family: "TitilliumWeb-Regular";
+  }
 
   input {
     margin-left: 10px;
@@ -294,39 +403,7 @@ $dark-blue: #004080;
     border: 2px solid #999;
     transition: 0.2s all linear;
   }
-
-  span {
-    width: 100%;
-    height: 2px;
-    content: "";
-    left: 20px;
-    position: absolute;
-    top: 5px;
-    background-color: #fff;
-    z-index: -1;
-    transition: 0.2s all linear;
-  }
-
-  input:checked {
-    border: 6px solid $light-blue;
-  }
-
-  input:checked + span {
-    border-color: $light-blue;
-    background-color: $light-blue;
-  }
 }
-
-.selettore-orario input:checked {
-  background-color: $light-blue;
-  border-color: $light-blue !important;
-}
-
-.selettore-orario label {
-  align-items: center;
-  font-family: "TitilliumWeb-Regular";
-}
-
 .zoom {
   margin-top: 4px;
 }
