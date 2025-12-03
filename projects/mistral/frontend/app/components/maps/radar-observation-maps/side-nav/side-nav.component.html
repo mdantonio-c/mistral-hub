@@ -17,11 +17,11 @@
           [disableTooltip]="!isCollapsed"
         ></span>
         <ng-template #tipSri
-          >{{ "Surface rainfall intensity" | titlecase }}
+          >{{ "Surface rainfall intensity" | translate : lang | titlecase }}
         </ng-template>
         <a href="#" *ngIf="!isCollapsed" (click)="toggleLayer($event, 'sri')">
           <span class="nav-text" i18n>
-            {{ "Surface Rainfall Intensity" }}
+            {{ "SRI" }}
           </span>
         </a>
       </li>
@@ -34,13 +34,11 @@
           [disableTooltip]="!isCollapsed"
         ></span>
         <ng-template #tipSrt_adj
-          >{{ "Surface Rainfall Total " | titlecase }}
+          >{{ "Surface Rainfall Total " | translate : lang | titlecase }}
         </ng-template>
         <ng-container *ngIf="!isCollapsed">
           <a href="#" (click)="toggleLayer($event, 'srt_adj')">
-            <span class="nav-text" i18n>{{
-              "Surface Rainfall Total " | translate : lang
-            }}</span>
+            <span class="nav-text" i18n>{{ "SRT" }}</span>
           </a>
           <div class="selettore-orario">
             <div class="progressbar">
