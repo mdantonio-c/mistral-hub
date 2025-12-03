@@ -17,14 +17,27 @@ import { TilesService } from "../meteo-tiles/services/tiles.service";
   styleUrls: ["./sub-seasonal.component.scss"],
 })
 export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
+  @Input() minZoom: number = 5;
+  @Input() maxZoom: number = 9;
+
   wmsPath;
+  bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   constructor(injector: Injector, private tileService: TilesService) {
     super(injector);
     this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.wmsPath = this.tileService.getWMSUrl();
   }
 
-  options = {};
+  options = {
+    zoomControl: false,
+    center: L.latLng(41.88, 12.28),
+    maxBoundsViscosity: 1.0,
+    maxBounds: this.bounds,
+    minZoom: this.minZoom,
+    maxZoom: this.maxZoom,
+    timeDimension: false,
+    timeDimensionControl: false,
+  };
 
   LAYER_LIGHTMATTER = L.tileLayer(
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
