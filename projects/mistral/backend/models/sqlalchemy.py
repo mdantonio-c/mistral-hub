@@ -181,8 +181,10 @@ class AccessKey(db.Model):  # type: ignore
         return f"{self.__class__.__name__}({self.id}, {self.key})"
 
     def is_valid(self) -> bool:
+        if self.expiration is None:
+            return True
         now = datetime.utcnow()
-        return not self.revoked and self.expiration > now
+        return self.expiration > now
 
     @staticmethod
     def generate(
@@ -190,7 +192,10 @@ class AccessKey(db.Model):  # type: ignore
     ):
         key_value = secrets.token_urlsafe(32)
         now = datetime.utcnow()
-        expires = now + timedelta(seconds=lifetime_seconds)
+
+        expires = None
+        if lifetime_seconds is not None:
+            expires = now + timedelta(seconds=lifetime_seconds)
 
         return AccessKey(
             key=key_value,

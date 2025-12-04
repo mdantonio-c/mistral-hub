@@ -21,7 +21,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("key", sa.String(length=64), nullable=False),
         sa.Column("creation", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("expiration", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("expiration", sa.DateTime(timezone=True), nullable=True),
         sa.Column("scope", sa.String(length=128), nullable=True),
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(

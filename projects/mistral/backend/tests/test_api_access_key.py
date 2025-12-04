@@ -1,6 +1,8 @@
 import base64
+from datetime import timedelta
 
 from mistral.tests.conftest import ACCESS_KEY_ENDPOINT
+from restapi.connectors import sqlalchemy
 from restapi.tests import BaseTests, FlaskClient
 
 
@@ -32,6 +34,38 @@ class TestAccessKeyAPI(BaseTests):
         # get access key after regeneration
         resp = client.get(ACCESS_KEY_ENDPOINT, headers=auth_headers)
         assert resp.json["key"] == new_token
+
+    def test_04_create_access_key_without_expiration(
+        self, client: FlaskClient, auth_headers
+    ):
+        """Create an access key without expiration"""
+
+        resp = client.post(
+            ACCESS_KEY_ENDPOINT,
+            headers=auth_headers,
+            json={"lifetime_seconds": None},
+        )
+        assert resp.status_code == 200
+        assert resp.json["expiration"] is None
+
+    def test_06_validate_expired_access_key(
+        self, client: FlaskClient, fresh_access_key_with_expiration
+    ):
+        """An expired key should return 401"""
+
+        headers, token = fresh_access_key_with_expiration
+
+        db = sqlalchemy.get_instance()
+        user = db.User.query.filter_by(email="admin@nomail.org").first()
+        # force expiration
+        user.access_key.expiration = user.access_key.expiration - timedelta(
+            seconds=3600
+        )
+        db.session.commit()
+
+        headers = make_basic_auth(user.email, token)
+        resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
+        assert resp.status_code == 401
 
 
 def make_basic_auth(email: str, access_key: str) -> dict:
@@ -68,6 +102,26 @@ class TestAccessKeyValidationAPI(BaseTests):
         email = "admin@nomail.org"
 
         headers = make_basic_auth(email, valid_key)
+        resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
+
+        assert resp.status_code == 200
+        assert resp.json["status"] == "OK"
+
+    def test_05_validate_access_key_without_expiration(
+        self, client: FlaskClient, auth_headers
+    ):
+        """A non-expiring access key must always be valid"""
+
+        # create non-expiring key
+        resp = client.post(
+            ACCESS_KEY_ENDPOINT,
+            headers=auth_headers,
+            json={"lifetime_seconds": None},
+        )
+        token = resp.json["key"]
+        email = "admin@nomail.org"
+
+        headers = make_basic_auth(email, token)
         resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
 
         assert resp.status_code == 200

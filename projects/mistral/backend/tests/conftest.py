@@ -18,3 +18,18 @@ def fresh_access_key(client: FlaskClient, auth_headers):
     data = resp.json
     assert "key" in data
     return auth_headers, data["key"]
+
+
+@pytest.fixture
+def fresh_access_key_with_expiration(client: FlaskClient, auth_headers):
+    """Create a fresh access key with explicit expiration (1 hour from now)."""
+    resp = client.post(
+        ACCESS_KEY_ENDPOINT,
+        headers=auth_headers,
+        json={"lifetime_seconds": 3600},
+    )
+    assert resp.status_code == 200
+    data = resp.json
+    assert "key" in data
+    assert "expiration" in data and data["expiration"] is not None
+    return auth_headers, data["key"]
