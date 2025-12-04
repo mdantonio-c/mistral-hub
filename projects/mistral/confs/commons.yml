@@ -86,6 +86,7 @@ services:
       - ${DATA_DIR}/nifi/logs:/opt/nifi/nifi-current/logs
       - ${DATA_DIR}/nifi/error_flowfiles:/opt/nifi/nifi_error_flowfile
       - ${DATA_DIR}/nifi/amqp_flowfiles:/opt/nifi/nifi_ok_flowfile
+      - ${DATA_DIR}/nifi/radar:/opt/nifi/radar
 
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
@@ -109,6 +110,8 @@ services:
       NIFI_EMAIL_HEADER: "${NIFI_EMAIL_HEADER}"
       FTP_USER: "${FTP_USER}"
       FTP_PASSWORD_DPC: "${FTP_PASSWORD_DPC}"
+      RADAR_FTP_USER: "${RADAR_FTP_USER}"
+      RADAR_FTP_PASSWORD: "${RADAR_FTP_PASSWORD}"
       NIFI_DATABASE_URL: "${NIFI_DATABASE_URL}"
       MAX_DAYS_NIFI_DATA: ${MAX_DAYS_NIFI_DATA}
       MAX_DAYS_NIFI_LOGS: $MAX_DAYS_NIFI_LOGS
