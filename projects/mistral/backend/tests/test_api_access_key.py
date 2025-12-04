@@ -1,25 +1,7 @@
-import pytest
-from restapi.tests import API_URI, BaseTests, FlaskClient
+import base64
 
-ACCESS_KEY_ENDPOINT = f"{API_URI}/access-key"
-
-
-@pytest.fixture
-def auth_headers(client: FlaskClient):
-    """Log in with 'default' user only once for the entire test session."""
-    base = BaseTests()
-    headers, _ = base.do_login(client, None, None)
-    return headers
-
-
-@pytest.fixture
-def fresh_access_key(client: FlaskClient, auth_headers):
-    """Create access key for each test."""
-    resp = client.post(ACCESS_KEY_ENDPOINT, headers=auth_headers)
-    assert resp.status_code == 200
-    data = resp.json
-    assert "key" in data
-    return auth_headers, data["key"]
+from mistral.tests.conftest import ACCESS_KEY_ENDPOINT
+from restapi.tests import BaseTests, FlaskClient
 
 
 class TestAccessKeyAPI(BaseTests):
@@ -50,3 +32,43 @@ class TestAccessKeyAPI(BaseTests):
         # get access key after regeneration
         resp = client.get(ACCESS_KEY_ENDPOINT, headers=auth_headers)
         assert resp.json["key"] == new_token
+
+
+def make_basic_auth(email: str, access_key: str) -> dict:
+    token = base64.b64encode(f"{email}:{access_key}".encode()).decode()
+    return {"Authorization": f"Basic {token}"}
+
+
+ACCESS_KEY_VALIDATE_ENDPOINT = f"{ACCESS_KEY_ENDPOINT}/validate"
+
+
+class TestAccessKeyValidationAPI(BaseTests):
+    def test_01_missing_credentials(self, client: FlaskClient):
+        resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT)
+        assert resp.status_code == 401
+
+    def test_02_invalid_email(self, client: FlaskClient):
+        headers = make_basic_auth("nonexistent@example.com", "whatever")
+        resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
+        assert resp.status_code == 401
+
+    def test_03_invalid_access_key(self, client: FlaskClient, fresh_access_key):
+        headers_auth, valid_key = fresh_access_key
+        # using admin user?
+        email = "admin@nomail.org"
+
+        # Wrong key
+        headers = make_basic_auth(email, "WRONG-KEY")
+        resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
+        assert resp.status_code == 401
+
+    def test_04_valid_access_key(self, client: FlaskClient, fresh_access_key):
+        headers_auth, valid_key = fresh_access_key
+        # using admin user?
+        email = "admin@nomail.org"
+
+        headers = make_basic_auth(email, valid_key)
+        resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
+
+        assert resp.status_code == 200
+        assert resp.json["status"] == "OK"

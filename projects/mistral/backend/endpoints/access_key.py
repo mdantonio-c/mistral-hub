@@ -1,5 +1,6 @@
 from mistral.endpoints.schemas import AccessKeySchema
 from mistral.models.sqlalchemy import AccessKey
+from mistral.services.access_key_service import validate_access_key_from_request
 from restapi import decorators
 from restapi.connectors import sqlalchemy
 from restapi.exceptions import NotFound
@@ -19,7 +20,7 @@ class AccessKeyResource(EndpointResource):
         responses={200: "User access key created"},
     )
     def post(self, user: User) -> str:
-        log.debug("Request for creating access-key for user: %s", user.uuid)
+        log.debug(f"Request for creating access-key for user: {user.uuid}")
         existing = user.access_key
 
         db = sqlalchemy.get_instance()
@@ -69,3 +70,22 @@ class AccessKeyResource(EndpointResource):
         self.log_event(self.events.delete, key)
 
         return self.empty_response()
+
+
+class AccessKeyValidationResource(EndpointResource):
+    labels = ["access key"]
+
+    @decorators.endpoint(
+        path="/access-key/validate",
+        summary="Validates access key via HTTP BasicAuth",
+        responses={
+            200: "User access key valid",
+            401: "Missing or invalid email/access-key",
+        },
+    )
+    def get(self):
+        """
+        Validates access key via HTTP BasicAuth.
+        """
+        validate_access_key_from_request()
+        return self.response({"status": "OK"})
