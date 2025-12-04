@@ -39,10 +39,24 @@
         >
         <a
           ngbDropdownItem
+          routerLink="/app/maps/subseasonal"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Weekly</a
+        >
+        <a
+          ngbDropdownItem
           routerLink="/app/maps/seasonal"
           routerLinkActive="active"
           (click)="collapse()"
-          >Monthly map</a
+          >Monthly</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/marine"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Marine</a
         >
         <!--<a
           ngbDropdownItem
