@@ -107,6 +107,13 @@ export class TranslationService {
           "Clicca sui punti per visualizzare i box plot dei capoluoghi di provincia",
         "discover more about this product":
           "Scopri come viene realizzato questo prodotto",
+        //subseasonal
+        "most likely scenario": "Scenario più probabile",
+        "probability of the most likely category":
+          "Probabilità della categoria più probabile",
+        weeks: "Settimane",
+        "probability distributions weekly averaged":
+          "distribuzioni di probabilità medie settimanali",
       },
     },
   };

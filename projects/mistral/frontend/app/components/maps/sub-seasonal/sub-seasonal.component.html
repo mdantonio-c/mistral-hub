@@ -16,6 +16,7 @@
   </ngx-spinner>
 
   <map-side-nav-subseasonal
+    [weekRanges]="weekList"
     [baseLayers]="layersControl['baseLayers']"
     [overlays]="layersControl['overlays']"
     [variables]="variablesConfig"
@@ -24,7 +25,7 @@
     [viewMode]="viewMode"
     (onLayerChange)="toggleLayer($event)"
     (onCollapseChange)="onCollapse($event)"
-    (run)="handleRun($event)"
+    (onSelectedWeekChange)="receiveWeek($event)"
   ></map-side-nav-subseasonal>
   <div class="leaflet-top leaflet-left rounded" style="left: 10px">
     <div class="leaflet-control" style="height: 20px">
@@ -34,7 +35,7 @@
 
       <div class="bg-light p-2 pt-0">
         <pre class="d-inline" style="white-space: pre-line">
-        {{ selectedLayer }}
+        {{ selectedLayer | translate : lang }}
         Run: {{ run }}
   </pre
         >

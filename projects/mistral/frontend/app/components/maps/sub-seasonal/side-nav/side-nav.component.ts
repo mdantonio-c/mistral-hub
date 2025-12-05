@@ -12,6 +12,7 @@ import {
 import * as L from "leaflet";
 import { Variables } from "./data";
 import { ViewModes, MOBILE_WIDTH } from "../../meteo-tiles/meteo-tiles.config";
+import { environment } from "@rapydo/../environments/environment";
 @Component({
   selector: "map-side-nav-subseasonal",
   templateUrl: "./side-nav.component.html",
@@ -24,16 +25,15 @@ export class SideNavComponentSubseasonal implements OnInit {
   @Input() minZoom: number;
   @Input() map: L.Map;
   @Input("viewMode") mode = ViewModes.adv;
-
+  @Input() weekRanges: string[];
   @Output() onCollapseChange: EventEmitter<boolean> =
     new EventEmitter<boolean>();
   @Output() onSelectedWeekChange = new EventEmitter<string>();
-  @Output() run = new EventEmitter<string>();
-
+  @Output() onLayerChange = new EventEmitter<string>();
   variablesConfig = Variables;
-  weeksMapping = ["Week 1", "Week 2", "Week 3", "Week 4"];
-  weeksRanges;
-  selectedWeek = "Week 1";
+
+  aboutPage: string = environment.CUSTOM.INFO_HOME + "/about?lang=en";
+  selectedWeek;
   isCollapsed = false;
   // set first variable as default
   selectedLayers = [Object.keys(this.variablesConfig)[0]];
@@ -67,13 +67,19 @@ export class SideNavComponentSubseasonal implements OnInit {
     }
   }
   toggleLayer(event: Event, layerId: string) {
-    console.log(layerId);
     event.preventDefault();
     this.selectedLayers = [layerId];
+    this.onLayerChange.emit(layerId);
   }
 
+  ngOnChanges() {
+    if (this.weekRanges && this.weekRanges.length > 0) {
+      this.selectedWeek = this.weekRanges[0];
+    }
+  }
   ngOnInit() {
     this.zLevel = this.map.getZoom();
+    this.selectedWeek = this.weekRanges[0];
     const ref = this;
     this.map.on(
       "zoomend",
@@ -96,45 +102,10 @@ export class SideNavComponentSubseasonal implements OnInit {
     if (window.innerWidth < MOBILE_WIDTH) {
       this.changeCollapse();
     }
-    this.updateWithLastDataAvailable();
   }
-  public updateWithLastDataAvailable(reload: boolean = false) {
-    const readyFileName = "READY.json";
-    fetch(`./app/custom/assets/readySubSeasonal/${readyFileName}`)
-      .then((response) => response.json())
-      .then((data) => {
-        const from = new Date(data.from);
-        const to = new Date(data.to);
-        this.run.emit(data.from);
-        const weeks = this.getWeeksBetween(from, to);
-        console.log(weeks);
-        this.weeksRanges = weeks;
-      });
-  }
+
   toggleWeek(event: Event, weekId: string) {
     this.selectedWeek = weekId;
-    const found = this.weeksMapping.find((item) => item[0] === weekId);
-    this.onSelectedWeekChange.emit(found[1]);
-  }
-  private getWeeksBetween(from: Date, to: Date): string[] {
-    const format = (d: Date) =>
-      `${String(d.getDate()).padStart(2, "0")}/${String(
-        d.getMonth() + 1,
-      ).padStart(2, "0")}/${d.getFullYear()}`;
-
-    const weeks: string[] = [];
-
-    let current = new Date(from);
-
-    while (current <= to) {
-      const start = new Date(current);
-      const end = new Date(current);
-      end.setDate(end.getDate() + 6);
-
-      weeks.push(`${format(start)} - ${format(end)}`);
-      current.setDate(current.getDate() + 7);
-    }
-
-    return weeks;
+    this.onSelectedWeekChange.emit(this.selectedWeek);
   }
 }

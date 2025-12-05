@@ -7,7 +7,7 @@
       [class.collapsed]="isCollapsed"
     ></label>
     <ul class="selector">
-      <li class="sidenav-item last">
+      <li *ngIf="!isCollapsed" class="sidenav-item last">
         <div class="mt-2 mb-2">
           <p class="fw-bold fs-6 mb-0 text-start">
             {{ "Most likely scenario" | translate : lang }}
@@ -35,7 +35,9 @@
             (click)="toggleLayer($event, variable.key)"
           >
             <span class="nav-text" i118n
-              >{{ variable.value.label | translate : lang | titlecase }}
+              >{{ variable.value.label | translate : lang | titlecase }} ({{
+                variable.value.descr | translate : lang
+              }})
             </span></a
           >
         </li>
@@ -54,7 +56,7 @@
           *ngIf="!isCollapsed"
           class="selettore-orario w-100 d-flex flex-wrap"
         >
-          <ng-container *ngFor="let week of weeksRanges; let last = last">
+          <ng-container *ngFor="let week of weekRanges; let last = last">
             <label class="nav-text d-flex w-100 mb-2">
               <input
                 type="radio"
@@ -107,6 +109,33 @@
           >
         </a>
       </li>
+      <div class="flex-spacer w-100 h-100">
+        <li class="sidenav-item border-0">
+          <a
+            [href]="aboutPage"
+            target="_blank"
+            class="book clickable"
+            [ngbTooltip]="
+              isCollapsed
+                ? ('Discover more about this product' | translate : lang)
+                : null
+            "
+            container="body"
+          >
+          </a>
+          <a *ngIf="!isCollapsed" [href]="aboutPage" target="_blank">
+            <span
+              class="nav-text text-disclaimer"
+              [ngbTooltip]="
+                'Discover more about this product' | translate : lang
+              "
+              container="body"
+            >
+              {{ "Discover more about this product" | translate : lang }}
+            </span>
+          </a>
+        </li>
+      </div>
     </ul>
   </div>
   <div
