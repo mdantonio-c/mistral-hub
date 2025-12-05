@@ -2,7 +2,12 @@ import { BaseMapComponent } from "../base-map.component";
 import { Component, Injector, Input, OnInit } from "@angular/core";
 import * as L from "leaflet";
 import "leaflet-timedimension/dist/leaflet.timedimension.src.js";
-import { layerMap, Products, VARIABLES_CONFIG } from "./side-nav/data";
+import {
+  layerMap,
+  Products,
+  VARIABLES_CONFIG,
+  legendConfig,
+} from "./side-nav/data";
 import {
   CARTODB_LICENSE_HREF,
   MISTRAL_LICENSE_HREF,
@@ -24,6 +29,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   @Input() minZoom: number = 5;
   @Input() maxZoom: number = 9;
 
+  private legendControl;
   public unit;
   public productName;
   public descr;
@@ -104,7 +110,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
 
   constructor(injector: Injector, private tileService: TilesService) {
     super(injector);
-    this.options["layers"] = [this.LAYER_DARK];
+    this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.wmsPath = this.tileService.getWMSUrl();
   }
   ngOnInit(): void {
@@ -185,8 +191,11 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     });
     this.map.addControl(this.timeDimensionControl);
     let tControl = this.timeDimensionControl;
-    this.LAYER_DARK.getContainer().style.filter = "brightness(2.0)";
+    if (this.map.hasLayer(this.LAYER_DARK)) {
+      this.LAYER_DARK.getContainer().style.filter = "brightness(2.0)";
+    }
     this.layersControl["overlays"][Products.SRI].addTo(this.map);
+    this.updateLegends(this.selectedProduct);
     this.timelineInterval = setInterval(() => {
       this.updateTimeLineWithLastDataAvailable();
     }, 120000);
@@ -243,6 +252,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
       }
       this.layersControl["overlays"][layerName].addTo(this.map);
     }
+    this.updateLegends(this.selectedProduct);
   }
   public printReferenceDate() {
     return "";
@@ -271,7 +281,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   }
 
   addIconBorderLayer() {
-    fetch("./app/custom/assets/images/geoJson/coastlines_border_lines.geojson")
+    fetch("./app/custom/assets/images/geoJson/confini_mediterraneo.geojson")
       .then((response) => response.json())
       .then((data) => {
         L.geoJSON(data, {
@@ -324,5 +334,25 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     if (this.timelineInterval) {
       clearInterval(this.timelineInterval);
     }
+  }
+
+  private addLegendSvg(svgPath: string) {
+    if (!this.map) return;
+    if (this.legendControl) this.legendControl.remove();
+    this.legendControl = new L.Control({ position: "bottomleft" });
+    this.legendControl.onAdd = () => {
+      let div = L.DomUtil.create("div");
+      div.style.clear = "unset";
+      div.innerHTML += `<img class="legenda" src="${svgPath}">`;
+      return div;
+    };
+    this.legendControl.addTo(this.map);
+  }
+
+  private updateLegends(layerId: string) {
+    if (!this.selectedProduct) return;
+    const config = legendConfig[layerId];
+    if (!config) return;
+    this.addLegendSvg(config);
   }
 }

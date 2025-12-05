@@ -214,7 +214,8 @@ $dark-blue: #004080;
 .plus,
 .minus,
 .info,
-.book, .carte {
+.book,
+.carte {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
@@ -227,11 +228,11 @@ $dark-blue: #004080;
 }
 
 .sri {
-  background-image: url("/app/custom/assets/images/icons/precipitazioni.svg");
+  background-image: url("/app/custom/assets/images/icons/radar.svg");
 }
 
 .srt_adj {
-  background-image: url("/app/custom/assets/images/icons/radar.svg");
+  background-image: url("/app/custom/assets/images/icons/precipitazioni.svg");
   width: 26px;
   height: 26px;
 }
@@ -277,16 +278,16 @@ $dark-blue: #004080;
 /* time, clouds, modality and datasets selectors */
 
 .selettore-orario {
-    height: 30px;
-    margin-left: 28px;
+  height: 30px;
+  margin-left: 28px;
 
-    label {
+  label {
     font-size: 10px;
     position: relative;
     text-align: center;
     color: #fff;
     z-index: 1;
-    display:flex;
+    display: flex;
     flex-direction: column !important;
     align-items: center;
 
@@ -328,7 +329,8 @@ $dark-blue: #004080;
   }
 }
 
-.selettore-orario input:checked, .selettore-mappa input:checked {
+.selettore-orario input:checked,
+.selettore-mappa input:checked {
   background-color: $light-blue;
   border-color: $light-blue !important;
 }
@@ -339,7 +341,6 @@ $dark-blue: #004080;
 }
 .selettore-mappa {
   margin-top: 10px;
-
 
   label {
     display: flex;
@@ -374,11 +375,11 @@ $dark-blue: #004080;
   a {
     cursor: default;
     pointer-events: none;
- 
+
     &:hover .nav-text {
-    border-bottom: 0 !important
-      }
-   }
+      border-bottom: 0 !important;
+    }
+  }
   label {
     display: flex;
     flex-direction: row !important;

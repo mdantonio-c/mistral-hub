@@ -114,7 +114,6 @@ export class SideNavComponentRadar implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log(this.varConfig);
     this.zLevel = this.map.getZoom();
     const ref = this;
     this.map.on("zoomend", function (event, comp: SideNavComponentRadar = ref) {
