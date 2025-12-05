@@ -107,6 +107,10 @@ export class TranslationService {
           "Clicca sui punti per visualizzare i box plot dei capoluoghi di provincia",
         "discover more about this product":
           "Scopri come viene realizzato questo prodotto",
+        // marine
+        "wave mean direction": "Direzione onda",
+        "significant wave height": "Altezza significativa onda",
+        "mean period": "Periodo onda",
       },
     },
   };

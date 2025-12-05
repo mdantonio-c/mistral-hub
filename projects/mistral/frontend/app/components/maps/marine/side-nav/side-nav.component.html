@@ -1,0 +1,85 @@
+<nav class="map-sidenav" [class.collapsed]="isCollapsed">
+  <div id="overlay" class="sidenav-overlay"></div>
+  <div class="map-sidenav-menu h-100">
+    <label
+      class="toggle"
+      (click)="changeCollapse()"
+      [class.collapsed]="isCollapsed"
+    ></label>
+    <ul class="selector">
+      <ng-container
+        *ngFor="let variable of variablesConfig | keyvalue; let last = last"
+      >
+        <li class="sidenav-item" [class.last]="last">
+          <span
+            class="{{ variable.key }}"
+            placement="left"
+            [ngbTooltip]="variable.value.label | translate : lang | titlecase"
+            (click)="toggleLayer($event, variable.key)"
+            [disableTooltip]="!isCollapsed"
+            [class.attivo]="selectedLayers.includes(variable.key)"
+          ></span>
+          <a
+            href="#"
+            *ngIf="!isCollapsed"
+            (click)="toggleLayer($event, variable.key)"
+          >
+            <span class="nav-text" i118n
+              >{{ variable.value.label | translate : lang | titlecase }} [{{
+                variable.value.unit
+              }}]
+            </span></a
+          >
+        </li>
+      </ng-container>
+
+      <li class="sidenav-item zoom">
+        <span
+          class="plus clickable"
+          (click)="zoom($event, 'in')"
+          [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+          placement="left"
+          [ngbTooltip]="'Zoom in'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+            i18n
+            >Zoom in</span
+          >
+        </a>
+      </li>
+      <li class="sidenav-item last">
+        <span
+          class="minus clickable"
+          (click)="zoom($event, 'out')"
+          [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+          placement="left"
+          [ngbTooltip]="'Zoom out'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+            i18n
+            >Zoom out</span
+          >
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div
+    class="attribution leaflet-control leaflet-control-attribution"
+    *ngIf="!isCollapsed"
+  >
+    <span>
+      © <a href="http://cartodb.com/attributions" target="_blank">CARTO</a> | ©
+      <a href="./app/license#meteohub-products" target="_blank"
+        >CINECA AIM</a
+      ></span
+    >
+  </div>
+</nav>
