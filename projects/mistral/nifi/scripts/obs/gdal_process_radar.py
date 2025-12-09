@@ -33,6 +33,7 @@ def main():
         # Run gdalwarp
         gdal_command = [
             "gdalwarp",
+            "-q",
             "-s_srs",
             "+proj=tmerc +lat_0=42 +lon_0=12.5 +ellps=WGS84 +k=1 +x_0=0 +y_0=0",
             "-t_srs",
@@ -58,7 +59,7 @@ def main():
         ]
 
         try:
-            proc = subprocess.run(gdal_command, stderr=subprocess.PIPE)
+            proc = subprocess.run(gdal_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if proc.returncode != 0:
                 cleanup(input_tmp.name, output_tmp.name)
                 return GDAL_ERROR
