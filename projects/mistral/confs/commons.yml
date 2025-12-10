@@ -22,6 +22,12 @@ services:
       AGGREGATIONS_TRANGES: ${AGGREGATIONS_TRANGES}
       AGGREGATIONS_DSN: ${AGGREGATIONS_DSN}
       AGGREGATIONS_LASTDAYS: ${AGGREGATIONS_LASTDAYS}
+      S3_ENABLE: ${S3_ENABLE}
+      S3_ENABLE_CONNECTOR: ${S3_ENABLE_CONNECTOR}
+      S3_HOST: ${S3_HOST}
+      S3_PORT: ${S3_PORT}
+      S3_KEY_ID: ${S3_KEY_ID}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
 
   frontend:
     environment:
@@ -232,7 +238,7 @@ services:
       ACTIVATE: ${ACTIVATE_MINIO}
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    command: server --console-address ":9001" /data --address ":${S3_PORT}"
+      DOMAIN: ${PROJECT_DOMAIN}
     networks:
       default:
         aliases:
