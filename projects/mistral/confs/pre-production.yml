@@ -60,9 +60,15 @@ services:
       - ${PROJECT_DIR}/nginx/maintenance.html:/usr/share/nginx/html/maintenance.html
       - ${PROJECT_DIR}/nginx/toggle_maintenance.sh:/etc/nginx/toggle_maintenance.sh
 
+  minio:
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    volumes:
+      - ssl_certs:/etc/letsencrypt
+      - ${PROJECT_DIR}/confs/minio-entrypoint.sh:/entrypoint.sh:ro
+
   ui:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-cms-ui:latest-pre
-  
+
   strapi:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest-pre
     # ports:
@@ -77,7 +83,7 @@ services:
       - "24224:24224"
       - "24224:24224/udp"
     volumes:
-      - ${DATA_DIR}/logs/fluentd:/var/log/fluentd  # 👈 mount host dir
+      - ${DATA_DIR}/logs/fluentd:/var/log/fluentd # 👈 mount host dir
     networks:
       - logging
     healthcheck:
@@ -85,7 +91,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
 
   matomo_db:
     image: mariadb:10.6
