@@ -2,19 +2,13 @@
 S3 connector
 """
 
-from typing import Any, Optional, Type
+from typing import Any, Optional
 
 import boto3
-from botocore.client import BaseClient
-from botocore.exceptions import ClientError
 from mypy_boto3_s3.client import S3Client
-from restapi.connectors import Connector, ExceptionsList, T
-from restapi.env import Env
+from restapi.connectors import Connector, ExceptionsList
 from restapi.exceptions import ServiceUnavailable
 from restapi.utilities.logs import log
-
-BUCKET_NAME = "stage"
-BUCKET_NAME_PREFIX = "exp-"
 
 
 class S3Ext(Connector):

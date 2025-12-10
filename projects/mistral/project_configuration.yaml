@@ -118,9 +118,9 @@ variables:
     CMS_JWT_SECRET:
 
     # S3 configuration
-    ACTIVATE_MINIO: 0
-    S3_ENABLE: 0
-    S3_ENABLE_CONNECTOR: 0
+    ACTIVATE_MINIO: 1
+    S3_ENABLE: 1
+    S3_ENABLE_CONNECTOR: 1
     S3_HOST: s3.dockerized.io
     S3_PORT: 9000
     S3_KEY_ID: "**PLACEHOLDER**"
