@@ -111,6 +111,8 @@ export class TranslationService {
         "wave mean direction": "Direzione onda",
         "significant wave height": "Altezza significativa onda",
         "mean period": "Periodo onda",
+        // radar
+        "(integrated with rain gauges)": "(integrato con pluviometri)",
       },
     },
   };

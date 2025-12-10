@@ -1,0 +1,62 @@
+<div
+  class="map"
+  leaflet
+  [leafletOptions]="options"
+  (leafletMapReady)="onMapReady($event)"
+  (leafletMapZoomEnd)="onMapZoomEnd($event)"
+>
+  <ngx-spinner
+    type="ball-scale-multiple"
+    bdColor="rgba(255,255,255,0.8)"
+    color="#6c757d"
+    zIndex="1000"
+    [fullScreen]="false"
+    size="medium"
+  >
+  </ngx-spinner>
+
+  <app-side-nav
+    [baseLayers]="layersControl['baseLayers']"
+    [overlays]="layersControl['overlays']"
+    [variables]="variablesConfig"
+    [map]="map"
+    [lang]="lang"
+    [viewMode]="viewMode"
+    (onLayerChange)="toggleLayer($event)"
+    (onCollapseChange)="onCollapse($event)"
+  ></app-side-nav>
+  <div class="leaflet-top leaflet-left rounded" style="left: 10px">
+    <div class="leaflet-control" style="height: 20px">
+      <div class="selected-dataset bg-light p-2 pb-0">
+        {{ productName | translate : lang }}
+      </div>
+      <div class="bg-light p-2 pt-0">
+        <pre class="d-inline" style="white-space: pre-line">
+      <ng-container *ngIf="descr">{{ descr | translate : lang }}<br></ng-container>{{ unit }}
+      <i
+    class="fa fa-arrows-rotate clickable"
+    aria-hidden="true"
+    (click)="updateTimeLineWithLastDataAvailable(true)"
+    placement="bottom"
+    ngbTooltip="Reload"
+  ></i> {{ printReferenceDate2()[0] }}
+      {{ 'local time' | translate : lang }} (UTC+{{ printReferenceDate2()[1] }})
+  </pre>
+      </div>
+    </div>
+  </div>
+  <div class="leaflet-bottom leaflet-right">
+    <div
+      class="leaflet-control px-2"
+      style="height: auto; width: 180px; margin-right: 2.8rem"
+    >
+      <img
+        *ngIf="viewMode === modes.base"
+        style="display: block"
+        class="img-fluid img-thumbnail mt-2 bg-transparent border-0"
+        src="/app/custom/assets/images/Logo_Completo_RGB.png"
+        alt="ItaliaMeteo"
+      />
+    </div>
+  </div>
+</div>

@@ -69,6 +69,9 @@ export class TilesService {
     }
   }
 
+  getLastRadarData(radar_type: string): Observable<any> {
+    return this.api.get(`${this.maps_url}/api/radar/${radar_type}/status`);
+  }
   resetCache() {
     this._imgCache.clear();
     this._geoJsonCache.clear();
