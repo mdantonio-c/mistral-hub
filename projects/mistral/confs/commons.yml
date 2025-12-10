@@ -235,7 +235,7 @@ services:
       ACTIVATE: ${ACTIVATE_MINIO}
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    command: server --console-address ":9001" /data --address ":${S3_PORT}"
+      DOMAIN: ${PROJECT_DOMAIN}
     networks:
       default:
         aliases:
