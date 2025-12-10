@@ -34,6 +34,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   public productName;
   public descr;
   private selectedProduct;
+  private timeLoading: boolean = false;
   wmsPath;
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   LAYER_OSM = L.tileLayer(
@@ -295,40 +296,37 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   }
 
   public updateTimeLineWithLastDataAvailable(reload: boolean = false) {
-    const readyFileName =
-      this.selectedProduct === Products.SRI
-        ? "READY_SRI.json"
-        : "READY_SRT.json";
-    fetch(`./app/custom/assets/readyRadar/${readyFileName}`)
-      .then((response) => response.json())
-      .then((data) => {
-        const from = new Date(data.from);
-        const to = new Date(data.to);
-        this.lastDate = to;
-        const newAvailableTimes = (
-          L as any
-        ).TimeDimension.Util.explodeTimeRange(
-          from,
-          to,
-          this.options.timeDimensionOptions.period,
-        );
-        const td = (this.map as any)?.timeDimension;
-        if (td) {
-          td.setAvailableTimes(newAvailableTimes, "replace");
-          const current = td.getCurrentTime();
-          if (newAvailableTimes.includes(current) && !reload) {
-            return;
-          }
-          td.setCurrentTime(to.getTime());
+    this.timeLoading = true;
+    const radar_type = this.selectedProduct === Products.SRI ? "sri" : "srt";
+    const lastRadarData$ = this.tileService.getLastRadarData(radar_type);
+    lastRadarData$.subscribe((data) => {
+      console.log(data);
+      const from = new Date(data.from);
+      const to = new Date(data.to);
+      this.lastDate = to;
+      const newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
+        from,
+        to,
+        this.options.timeDimensionOptions.period,
+      );
+      const td = (this.map as any)?.timeDimension;
+      if (td) {
+        td.setAvailableTimes(newAvailableTimes, "replace");
+        const current = td.getCurrentTime();
+        if (newAvailableTimes.includes(current) && !reload) {
+          return;
         }
-        if (td && td.getAvailableTimes().length > 0) {
-          const currentTimes = td.getAvailableTimes();
-          const last = currentTimes[currentTimes.length - 1];
-          if (last === to.getTime()) {
-            return;
-          }
+        td.setCurrentTime(to.getTime());
+      }
+      if (td && td.getAvailableTimes().length > 0) {
+        const currentTimes = td.getAvailableTimes();
+        const last = currentTimes[currentTimes.length - 1];
+        if (last === to.getTime()) {
+          return;
         }
-      });
+      }
+    });
+    this.timeLoading = false;
   }
   ngOnDestroy(): void {
     if (this.timelineInterval) {

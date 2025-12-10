@@ -27,8 +27,8 @@ export const SRT_ADJ_HOURS: ValueLabel[] = [
 ];
 
 export const layerMap = {
-  [Products.SRI]: "meteohub:SRI",
-  [Products.SRTADJ1]: "meteohub:SRT",
+  [Products.SRI]: "meteohub:radar-sri",
+  [Products.SRTADJ1]: "meteohub:radar-srt",
 };
 
 export function toLayerCode(title: string): string | null {
