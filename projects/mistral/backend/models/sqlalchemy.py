@@ -1,8 +1,7 @@
 """ CUSTOM Models for the relational database """
 
 import enum
-import secrets
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from restapi.connectors.sqlalchemy.models import User, db
 from sqlalchemy.dialects.postgresql import JSONB
@@ -159,48 +158,3 @@ class Datasets(db.Model):  # type: ignore
         backref="datasets",
         lazy="dynamic",
     )
-
-
-class AccessKey(db.Model):  # type: ignore
-    __tablename__ = "access_key"
-
-    id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    creation = db.Column(db.DateTime(timezone=True), nullable=False)
-    expiration = db.Column(db.DateTime(timezone=True), nullable=False)
-    scope = db.Column(db.String(128), default="read:arco")
-
-    user_id = db.Column(
-        db.Integer, db.ForeignKey("user.id"), unique=True, nullable=False
-    )
-    emitted_for = db.relationship(
-        "User", backref=db.backref("access_key", uselist=False)
-    )
-
-    def __repr__(self) -> str:  # pragma: no cover
-        return f"{self.__class__.__name__}({self.id}, {self.key})"
-
-    def is_valid(self) -> bool:
-        if self.expiration is None:
-            return True
-        now = datetime.utcnow()
-        return self.expiration > now
-
-    @staticmethod
-    def generate(
-        user_id, lifetime_seconds=3600, ip=None, location=None, scope="read:arco"
-    ):
-        key_value = secrets.token_urlsafe(32)
-        now = datetime.utcnow()
-
-        expires = None
-        if lifetime_seconds is not None:
-            expires = now + timedelta(seconds=lifetime_seconds)
-
-        return AccessKey(
-            key=key_value,
-            creation=now,
-            expiration=expires,
-            user_id=user_id,
-            scope=scope,
-        )
