@@ -2,7 +2,7 @@ import { Component, OnInit, Injector, Input } from "@angular/core";
 import { BaseMapComponent } from "../base-map.component";
 import * as L from "leaflet";
 import { TilesService } from "../meteo-tiles/services/tiles.service";
-import { MEDITA_BOUNDS, Variables } from "./side-nav/data";
+import { MEDITA_BOUNDS, Variables, Layers } from "./side-nav/data";
 import {
   CARTODB_LICENSE_HREF,
   MISTRAL_LICENSE_HREF,
@@ -11,6 +11,7 @@ import {
 } from "./../meteo-tiles/meteo-tiles.config";
 import { NavigationEnd, Params } from "@angular/router";
 import * as moment from "moment";
+import { RunAvailable } from "../../../types";
 
 @Component({
   selector: "app-marine",
@@ -33,6 +34,14 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
   };
   private wmsPath: string;
   private timeDimensionControl: any;
+  private beginTime;
+  private timeLoading: boolean = false;
+  private arrowLayer: L.LayerGroup | null = null;
+  private removeArrowLayer = false;
+  dataset: string;
+  overlaysReady = false;
+  public runAvailable: RunAvailable;
+
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
@@ -90,6 +99,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     // set the initial set of displayed layers
     this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.wmsPath = this.tilesService.getWMSUrl();
+    this.dataset = "ww3";
     this.router.events.subscribe((s) => {
       if (s instanceof NavigationEnd) {
         const tree = this.router.parseUrl(this.router.url);
@@ -102,7 +112,83 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
       }
     });
   }
+  private getTilesWms(layer) {
+    return L.timeDimension.layer.wms(
+      L.tileLayer.wms(this.wmsPath, {
+        layers: layer,
+        transparent: true,
+        format: "image/png",
+        tileSize: 1024,
+        opacity: 0.6,
+      }),
+    );
+  }
+  private setOverlaysToMap() {
+    this.layersControl["overlays"] = {};
+    Object.keys(Layers).forEach((key) => {
+      this.layersControl["overlays"][key] = this.getTilesWms(Layers[key]);
+    });
+    // const current=moment.utc((this.map as any).timeDimension.getCurrentTime()).format("DD-MM-YYYY-HH-mm");
+    // const geoJsonName = current +".geojson";
+    // const vector$=this.tilesService.getGeoJsonVectors(geoJsonName);
+    // vector$.subscribe((data)=> {
+    //     this.layersControl["overlays"]["dir"]=this.addArrowLayer(data);
+    // })
+    this.overlaysReady = true;
+  }
 
+  private loadRunAvailable(dataset: string) {
+    this.timeLoading = true;
+    const lastRun$ = this.tilesService.getLastRun(dataset);
+    lastRun$
+      .subscribe(
+        (runAvailable: RunAvailable) => {
+          this.runAvailable = runAvailable;
+          console.log(this.runAvailable);
+          let reftime = this.runAvailable.reftime;
+          // set time
+          let startTime = moment
+            .utc(reftime, "YYYYMMDDHH")
+            .add(this.runAvailable.start_offset, "hours")
+            .toDate();
+          this.beginTime = moment.utc(reftime, "YYYYMMDDHH");
+          let endTime = moment
+            .utc(reftime, "YYYYMMDDHH")
+            .add(this.runAvailable.end_offset, "hours")
+            .toDate();
+
+          let newAvailableTimes = (
+            L as any
+          ).TimeDimension.Util.explodeTimeRange(
+            startTime,
+            endTime,
+            `PT${runAvailable.step}H`,
+          );
+          (this.map as any).timeDimension.setAvailableTimes(
+            newAvailableTimes,
+            "replace",
+          );
+          let currentTime = startTime;
+          const now = moment.utc();
+          if (now.isBetween(startTime, endTime, "days", "[]")) {
+            console.log(
+              `reftime includes today: set time to ${now.hours()} UTC`,
+            );
+            currentTime = now.toDate();
+          }
+          this.timeLoading = false;
+          (this.map as any).timeDimension.setCurrentTime(currentTime);
+          this.setOverlaysToMap();
+        },
+        (error) => {
+          this.notify.showError(error);
+          this.spinner.hide();
+        },
+      )
+      .add(() => {
+        this.map.invalidateSize();
+      });
+  }
   ngOnInit() {
     super.ngOnInit();
     this.route.queryParams.subscribe((params: Params) => {
@@ -161,9 +247,25 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     });
     this.map.addControl(this.timeDimensionControl);
     this.centerMap();
-    this.addArrowLayer(this.map);
-    this.getTileWms("meteohub:wave_height_17").addTo(this.map);
-    // this.getTileWms('meteohub:t01_17').addTo(this.map);
+    this.loadRunAvailable(this.dataset);
+
+    (map as any).timeDimension.on("timeload", (e) => {
+      const current = moment
+        .utc((this.map as any).timeDimension.getCurrentTime())
+        .format("DD-MM-YYYY-HH-mm");
+      const geoJsonName = current + ".geojson";
+      const vector$ = this.tilesService.getGeoJsonVectors(geoJsonName);
+      vector$.subscribe((data) => {
+        if (!this.removeArrowLayer) {
+          if (this.arrowLayer) {
+            this.map.removeLayer(this.arrowLayer);
+          }
+          this.arrowLayer = this.addArrowLayer(data);
+          this.arrowLayer.addTo(this.map);
+          this.layersControl["overlays"]["dir"] = this.arrowLayer;
+        }
+      });
+    });
   }
   protected centerMap() {
     if (this.map) {
@@ -183,26 +285,99 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     return "";
   }
   protected toggleLayer(obj: Record<string, string | L.Layer>) {}
-  private addArrowLayer(map: L.Map) {
-    fetch("./app/custom/assets/readyRadar/wave_arrows_17.geojson")
-      .then((response) => response.json())
-      .then((data) => {
-        data.features.forEach((feature) => {
-          const coords = feature.geometry.coordinates;
-          const lat = coords[0][1];
-          const lon = coords[0][0];
-          const direction = feature.properties.direction;
-          const color = "#000000";
-          const arrowIcon = L.icon({
+  protected toggleLayer2(layer: string) {
+    console.log(layer);
+    if (!this.overlaysReady) {
+      console.warn("Overlays not ready yet, blocking toggle");
+      return;
+    }
+    const overlays = this.layersControl["overlays"];
+    if (this.map.hasLayer(overlays["dir"])) {
+      if (
+        this.map.hasLayer(overlays["t01"]) ||
+        this.map.hasLayer(overlays["hs"])
+      ) {
+        if (layer == "dir") {
+          this.map.removeLayer(overlays["dir"]);
+          this.removeArrowLayer = true;
+        }
+      }
+    } else {
+      if (
+        this.map.hasLayer(overlays["t01"]) ||
+        this.map.hasLayer(overlays["hs"])
+      ) {
+        if (layer == "dir") {
+          overlays["dir"].addTo(this.map);
+          this.removeArrowLayer = false;
+        }
+      }
+    }
+    if (layer == "t01") {
+      if (this.map.hasLayer(overlays["t01"])) {
+        this.map.removeLayer(overlays["t01"]);
+      } else {
+        if (this.map.hasLayer(overlays["hs"])) {
+          this.map.removeLayer(overlays["hs"]);
+        }
+        overlays["t01"].addTo(this.map);
+      }
+    }
+    if (layer == "hs") {
+      if (this.map.hasLayer(overlays["hs"])) {
+        this.map.removeLayer(overlays["hs"]);
+      } else {
+        if (this.map.hasLayer(overlays["t01"])) {
+          this.map.removeLayer(overlays["t01"]);
+        }
+        overlays["hs"].addTo(this.map);
+      }
+    }
+  }
+  private addArrowLayer(data): L.LayerGroup {
+    const markers = data.features.map((feature) => {
+      const coords = feature.geometry.coordinates;
+      const lat = coords[0][1];
+      const lon = coords[0][0];
+      const direction = feature.properties.direction;
+      const color = "#000000";
+      /*const arrowIcon = L.icon({
             iconUrl: this.createArrowSVG(color, direction),
             iconSize: [20, 20],
             iconAnchor: [10, 10],
             popupAnchor: [0, -10],
             className: "arrow-icon",
-          });
-          const marker = L.marker([lat, lon], { icon: arrowIcon }).addTo(map);
-        });
+          });*/
+      const arrowIcon = L.divIcon({
+        className: "arrow-icon",
+        html: `
+    <div style="
+      position: relative;
+      width: 1px;          
+      height: 8px;         
+      background: black;
+      transform: rotate(${direction}deg);
+      transform-origin: bottom center;
+    ">
+      <div style="
+        position: absolute;
+        bottom: 8px;
+        left: -4px;         
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-bottom: 6px solid black;
+      "></div>
+    </div>
+  `,
+        iconSize: [12, 12],
+        iconAnchor: [6, 8],
       });
+
+      return L.marker([lat, lon], { icon: arrowIcon });
+    });
+    return L.layerGroup(markers);
   }
   createArrowSVG(color, direction) {
     const cfg = this.ARROW_CONFIG;

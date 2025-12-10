@@ -29,6 +29,7 @@ export class SideNavComponentMarine implements OnInit {
 
   @Output() onCollapseChange: EventEmitter<boolean> =
     new EventEmitter<boolean>();
+  @Output() onLayerChange: EventEmitter<string> = new EventEmitter<string>();
   variablesConfig = Variables;
   isCollapsed = false;
   // set first variable as default
@@ -47,38 +48,53 @@ export class SideNavComponentMarine implements OnInit {
     this.onCollapseChange.emit(this.isCollapsed);
   }
   toggleLayer(event: Event, layerId: string) {
-    console.log(layerId);
     event.preventDefault();
     const isSelected = this.selectedLayers.includes(layerId);
 
     if (isSelected) {
       if (this.selectedLayers.length === 1) {
+        this.onLayerChange.emit(layerId);
         return;
       }
 
       this.selectedLayers = this.selectedLayers.filter((x) => x !== layerId);
+      this.onLayerChange.emit(layerId);
       return;
     }
 
     const hasHs = this.selectedLayers.includes("hs");
     const hasT01 = this.selectedLayers.includes("t01");
+    const hasDir = this.selectedLayers.includes("dir");
 
-    if (layerId === "t01" && hasHs) {
-      this.selectedLayers = ["t01"];
+    if (layerId === "t01" && hasHs && hasDir) {
+      this.selectedLayers = ["t01", "dir"];
+      this.onLayerChange.emit(layerId);
       return;
     }
-
+    if (layerId === "t01" && hasHs) {
+      this.selectedLayers = ["t01"];
+      this.onLayerChange.emit(layerId);
+      return;
+    }
+    if (layerId === "hs" && hasT01 && hasDir) {
+      this.selectedLayers = ["hs", "dir"];
+      this.onLayerChange.emit(layerId);
+      return;
+    }
     if (layerId === "hs" && hasT01) {
       this.selectedLayers = ["hs"];
+      this.onLayerChange.emit(layerId);
       return;
     }
 
     if (this.selectedLayers.length >= 2) {
       this.selectedLayers = [layerId];
+      this.onLayerChange.emit(layerId);
       return;
     }
 
     this.selectedLayers.push(layerId);
+    this.onLayerChange.emit(layerId);
   }
 
   zoom(event, inOut: string) {

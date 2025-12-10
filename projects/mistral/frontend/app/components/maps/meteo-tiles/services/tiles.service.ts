@@ -62,8 +62,11 @@ export class TilesService {
     // };
 
     // return of(mockData);
-
-    return this.api.get(`${this.maps_url}/api/windy`, params, options);
+    if (dataset != "ww3") {
+      return this.api.get(`${this.maps_url}/api/windy`, params, options);
+    } else {
+      return this.api.get(`${this.maps_url}/api/ww3/status`);
+    }
   }
 
   resetCache() {
@@ -145,5 +148,9 @@ export class TilesService {
       this._geoJsonCache.set(key, obs);
     }
     return this._geoJsonCache.get(key)!;
+  }
+
+  getGeoJsonVectors(filename): Observable<any> {
+    return this.api.get(`${this.maps_url}/api/ww3/vectors/${filename}`);
   }
 }
