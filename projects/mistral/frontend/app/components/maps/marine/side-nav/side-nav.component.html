@@ -25,9 +25,11 @@
             (click)="toggleLayer($event, variable.key)"
           >
             <span class="nav-text" i118n
-              >{{ variable.value.label | translate : lang | titlecase }} [{{
-                variable.value.unit
-              }}]
+              >{{ variable.value.label | translate : lang | titlecase }} [<span
+                class="unit"
+              >
+                {{ variable.value.unit }} </span
+              >]
             </span></a
           >
         </li>

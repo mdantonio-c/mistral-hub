@@ -151,7 +151,9 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
             .utc(reftime, "YYYYMMDDHH")
             .add(this.runAvailable.start_offset, "hours")
             .toDate();
-          this.beginTime = moment.utc(reftime, "YYYYMMDDHH");
+          this.beginTime = moment
+            .utc(reftime, "YYYYMMDDHH")
+            .format("DD-MM-YYYY");
           let endTime = moment
             .utc(reftime, "YYYYMMDDHH")
             .add(this.runAvailable.end_offset, "hours")
@@ -282,7 +284,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     return "";
   }
   public printReferenceDate(): string {
-    return "";
+    return this.beginTime;
   }
   protected toggleLayer(obj: Record<string, string | L.Layer>) {}
   protected toggleLayer2(layer: string) {

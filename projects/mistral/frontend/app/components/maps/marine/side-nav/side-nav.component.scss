@@ -39,7 +39,9 @@ $dark-blue: #004080;
   z-index: 2000;
   display: none;
 }
-
+.unit {
+  text-transform: none !important;
+}
 .map-sidenav {
   top: 0;
   right: 0;
