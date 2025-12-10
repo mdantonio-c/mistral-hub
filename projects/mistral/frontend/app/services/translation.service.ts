@@ -108,7 +108,7 @@ export class TranslationService {
         "discover more about this product":
           "Scopri come viene realizzato questo prodotto",
         // marine
-        "wave mean direction": "Direzione onda",
+        "wave direction": "Direzione onda",
         "significant wave height": "Altezza significativa onda",
         "mean period": "Periodo onda",
         // radar

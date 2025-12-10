@@ -1,6 +1,6 @@
 import * as L from "leaflet";
 export const Variables = {
-  dir: { label: "Wave mean direction", unit: "°" },
+  dir: { label: "Wave direction", unit: "°" },
   hs: { label: "Significant wave height", unit: "m" },
   t01: { label: "Mean period", unit: "s" },
 };
