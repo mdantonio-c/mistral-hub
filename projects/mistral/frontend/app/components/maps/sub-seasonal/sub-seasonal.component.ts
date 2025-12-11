@@ -12,6 +12,7 @@ import { Params } from "@angular/router";
 import * as moment from "moment";
 import { Variables, Layers } from "./side-nav/data";
 import { TilesService } from "../meteo-tiles/services/tiles.service";
+import { environment } from "@rapydo/../environments/environment";
 @Component({
   selector: "app-sub-seasonal",
   templateUrl: "./sub-seasonal.component.html",
@@ -27,11 +28,13 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   run;
   weekList = [];
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
+  private maps_url: string = "";
   constructor(injector: Injector, private tileService: TilesService) {
     super(injector);
     this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.wmsPath = this.tileService.getWMSUrl();
     this.selectedLayer = Variables[Object.keys(Variables)[0]].label;
+    this.maps_url = environment.CUSTOM.MAPS_URL;
   }
 
   options = {
@@ -128,12 +131,15 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   }
   public loadWeeks(reload: boolean = false) {
     const readyFileName = "READY.json";
-    fetch(`./app/custom/assets/readySubSeasonal/${readyFileName}`)
+    fetch(`${this.maps_url}/api/sub-seasonal/status`)
       .then((response) => response.json())
       .then((data) => {
         const from = new Date(data.from);
         const to = new Date(data.to);
-        this.run = data.from;
+        this.run = `${data.run.slice(6, 8)}-${data.run.slice(
+          4,
+          6,
+        )}-${data.run.slice(0, 4)}`;
         this.weekList = this.getWeeksBetween(from, to);
         this.afterWeeksLoaded();
       });
