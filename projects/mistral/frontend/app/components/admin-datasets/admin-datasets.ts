@@ -65,7 +65,6 @@ export class AdminDatasetsComponent extends BasePaginationComponent<AdminDataset
             category: ds.category,
             fileformat: ds.format,
             bounding: "",
-            sort_index: 0,
             license: {
               id: "",
               name: ds.license,
