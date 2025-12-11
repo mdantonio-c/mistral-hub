@@ -27,7 +27,7 @@ DEST_DIR = Path("/opt/nifi/nfs/subseasonal")
 # read the content from stdin
 zip_bytes = sys.stdin.buffer.read()
 if not zip_bytes:
-    print("Error in reading input received on stdin")
+    print("Error in reading input received on stdin", file=sys.stderr)
     sys.exit(EXIT_INVALID_INPUT)
 
 # unzip the file in a temporary location
@@ -46,7 +46,7 @@ with tempfile.TemporaryDirectory() as tmpdir_str:
         with zipfile.ZipFile(zip_path, "r") as z:
             z.extractall(extract_dir)
     except zipfile.BadZipFile:
-        print("Invalid ZIP file")
+        print("Invalid ZIP file", file=sys.stderr)
         sys.exit(EXIT_INVALID_INPUT)
 
     # check tree
@@ -56,6 +56,8 @@ with tempfile.TemporaryDirectory() as tmpdir_str:
 
     # for subseasonal this is the expected path of the zip <date>/<product>/<value>/yyyy-MM-dd.tif
     unzipped_data_dir = [p for p in extract_dir.iterdir() if p.is_dir()][0]
+    # get the run date to use for .ready name
+    file_date = unzipped_data_dir.name
 
     for p in unzipped_data_dir.rglob("*"):
         # Normalize directories
@@ -64,7 +66,10 @@ with tempfile.TemporaryDirectory() as tmpdir_str:
             actual_paths.add(rel)
 
     if actual_paths != expected_tree:
-        print(f"ZIP structure does not match expected tree: tree found {actual_paths}")
+        print(
+            f"ZIP structure does not match expected tree: tree found {actual_paths}",
+            file=sys.stderr,
+        )
         sys.exit(EXIT_INVALID_TREE)
 
     # clean the destination output
@@ -87,4 +92,6 @@ with tempfile.TemporaryDirectory() as tmpdir_str:
             shutil.copy2(p, target)
 
 # Success
+# give to stdout the date to be set as flowfile attribute
+print(file_date)
 sys.exit(0)
