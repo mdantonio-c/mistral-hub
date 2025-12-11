@@ -9,8 +9,7 @@ services:
       NIFI_WEB_HTTP_HOST: 0.0.0.0
       NIFI_WEB_HTTP_PORT: 8080
   minio:
-    environment:
-      command: server --console-address ":9001" /data --address ":${S3_PORT}"
+    command: server --console-address ":9001" /data --address ":${S3_PORT}"
   strapi:
     image: harbor-ada.hpc.cineca.it/meteo-hub-staging/meteo-hub-strapi:latest
     ports:
