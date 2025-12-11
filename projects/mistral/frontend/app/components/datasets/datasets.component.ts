@@ -199,8 +199,8 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
     window.open(`${environment.backendURI}/nwp`, "_blank");
   }
 
-  getArcoUrl(ds: Dataset): string {
-    return `${environment.backendURI}/api/arco/${ds.id}`;
+  getArcoUrl(ds: ArcoDataset): string {
+    return `${environment.backendURI}/api/arco/${ds.folder}`;
   }
 
   // @ts-ignore

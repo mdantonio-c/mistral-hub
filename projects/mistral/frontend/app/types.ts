@@ -220,6 +220,7 @@ export interface Dataset {
 export interface ArcoDataset {
   id: string;
   name: string;
+  folder: string;
   description: string;
   category: string;
   format: string;
