@@ -1,4 +1,6 @@
 import { Component, ViewChild, TemplateRef, Injector } from "@angular/core";
+import { forkJoin, Subject } from "rxjs";
+import { ArcoService } from "../../services/arco.service";
 
 import { Attribution } from "../../types";
 
@@ -15,7 +17,10 @@ export class AdminAttributionsComponent extends BasePaginationComponent<Attribut
   @ViewChild("datasetsCell", { static: false })
   public datasetsCell: TemplateRef<any>;
 
-  constructor(protected injector: Injector) {
+  constructor(
+    protected injector: Injector,
+    private arcoService: ArcoService,
+  ) {
     super(injector);
     this.init("attribution", "/api/admin/attributions", "Attributions");
     this.initPaging();
@@ -43,6 +48,51 @@ export class AdminAttributionsComponent extends BasePaginationComponent<Attribut
         minWidth: 60,
       },
     ];
+  }
+
+  public override list(): Subject<boolean> {
+    this.loading = true;
+    forkJoin({
+      attributions: this.api.get<Attribution[]>("/api/admin/attributions"),
+      arco: this.arcoService.getArcoDatasets(),
+    }).subscribe(
+      (response) => {
+        const attributions = response.attributions;
+        const arco = response.arco;
+
+        arco.forEach((ds) => {
+          const attribution = attributions.find(
+            (a) => a.name === ds.attribution,
+          );
+          if (attribution) {
+            if (!attribution.datasets) {
+              attribution.datasets = [];
+            }
+            attribution.datasets.push({
+              id: ds.id,
+              name: ds.name,
+            });
+          }
+        });
+
+        this.data = attributions;
+        this.unfiltered_data = this.data;
+
+        this.paging.dataLength = this.data.length;
+        this.paging.numPages = Math.ceil(
+          this.data.length / this.paging.itemsPerPage,
+        );
+
+        this.loading = false;
+        this.list_subject.next(true);
+      },
+      (error) => {
+        this.notify.showError(error);
+        this.loading = false;
+        this.list_subject.next(false);
+      },
+    );
+    return this.list_subject;
   }
 
   filter(data_filter) {

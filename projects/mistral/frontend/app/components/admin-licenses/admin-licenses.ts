@@ -1,5 +1,7 @@
 import { Component, ViewChild, TemplateRef, Injector } from "@angular/core";
-
+import { forkJoin, Subject } from "rxjs";
+import { ApiService } from "@rapydo/services/api";
+import { ArcoService } from "../../services/arco.service";
 import { License } from "../../types";
 
 import { BasePaginationComponent } from "@rapydo/components/base.pagination.component";
@@ -15,7 +17,10 @@ export class AdminLicensesComponent extends BasePaginationComponent<License> {
   @ViewChild("datasetsCell", { static: false })
   public datasetsCell: TemplateRef<any>;
 
-  constructor(protected injector: Injector) {
+  constructor(
+    protected injector: Injector,
+    private arcoService: ArcoService,
+  ) {
     super(injector);
     this.init("license", "/api/admin/licenses", "Licenses");
     this.initPaging();
@@ -44,6 +49,47 @@ export class AdminLicensesComponent extends BasePaginationComponent<License> {
         minWidth: 60,
       },
     ];
+  }
+
+  public override list(): Subject<boolean> {
+    this.loading = true;
+    forkJoin({
+      licenses: this.api.get<License[]>("/api/admin/licenses"),
+      arco: this.arcoService.getArcoDatasets(),
+    }).subscribe(
+      (response) => {
+        const licenses = response.licenses;
+        const arco = response.arco;
+
+        arco.forEach((ds) => {
+          const license = licenses.find((l) => l.name === ds.license);
+          if (license) {
+            if (!license.datasets) {
+              license.datasets = [];
+            }
+            license.datasets.push({
+              id: ds.id,
+              name: ds.name,
+            });
+          }
+        });
+
+        this.data = licenses;
+        this.unfiltered_data = this.data;
+        
+        this.paging.dataLength = this.data.length;
+        this.paging.numPages = Math.ceil(this.data.length / this.paging.itemsPerPage);
+
+        this.loading = false;
+        this.list_subject.next(true);
+      },
+      (error) => {
+        this.notify.showError(error);
+        this.loading = false;
+        this.list_subject.next(false);
+      },
+    );
+    return this.list_subject;
   }
 
   filter(data_filter) {

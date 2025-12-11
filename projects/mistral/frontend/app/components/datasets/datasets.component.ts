@@ -5,7 +5,8 @@ import {
   ViewChild,
   AfterViewInit,
 } from "@angular/core";
-import { Dataset } from "../../types";
+import { forkJoin } from "rxjs";
+import { Dataset, ArcoDataset } from "../../types";
 import { NotificationService } from "@rapydo/services/notification";
 import { AuthService } from "@rapydo/services/auth";
 import { LocalStorageService } from "@rapydo/services/localstorage";
@@ -14,6 +15,7 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { DatasetDetailsComponent } from "../dataset-details/dataset-details.component";
 import { FormBuilder, FormGroup, FormArray, FormControl } from "@angular/forms";
 import { DataService } from "../../services/data.service";
+import { ArcoService } from "../../services/arco.service";
 import { User } from "@rapydo/types";
 import { ObsMapComponent } from "../maps/observation-maps/obs-map/obs-map.component";
 import { NgbAccordion } from "@ng-bootstrap/ng-bootstrap";
@@ -37,6 +39,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   searchTerm: string = "";
   warningMsg: string | null = null;
   showAlert = false;
+  infoHome: string = environment.CUSTOM.INFO_HOME;
 
   private _datasets: Dataset[] = [];
   user: User;
@@ -47,10 +50,11 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
     private local_storage: LocalStorageService,
     private authService: AuthService,
     private fb: FormBuilder,
-    private notify: NotificationService,
+    public notify: NotificationService,
     private spinner: NgxSpinnerService,
     private modalService: NgbModal,
     private ref: ChangeDetectorRef,
+    private arcoService: ArcoService,
   ) {
     this.filterForm = this.fb.group({
       types: new FormArray([]),
@@ -84,11 +88,20 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   private load() {
     this.loading = true;
     this.spinner.show();
-    this.dataService
-      .getDatasets(true)
+    forkJoin({
+      datasets: this.dataService.getDatasets(true),
+      arcoDatasets: this.arcoService.getArcoDatasets(),
+    })
       .subscribe(
-        (data) => {
-          this._datasets = data;
+        (result) => {
+          const arcoDatasets: Dataset[] = result.arcoDatasets.map((ds) => {
+            return {
+              ...ds,
+              authorized: true,
+              attribution_url: ds.attribution_url || undefined,
+            };
+          });
+          this._datasets = [...result.datasets, ...arcoDatasets];
           // once the data is available the filter can be create
           this.typesData = [
             ...new Set(this._datasets.map((ds) => ds.category)),
@@ -129,6 +142,18 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
       centered: true,
     });
     modalRef.componentInstance.dataset = ds;
+  }
+
+  isArcoDataset(ds: Dataset): boolean {
+    return ds.format === "ARCO";
+  }
+
+  download(ds: Dataset) {
+    if (ds.format === "ARCO") {
+      this.arcoService.download(ds.id, ds.id + ".zarr.zip");
+    } else {
+      this.openDataset(ds);
+    }
   }
 
   onFilterChange() {
@@ -172,6 +197,10 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
 
   openFileBrowsing() {
     window.open(`${environment.backendURI}/nwp`, "_blank");
+  }
+
+  getArcoUrl(ds: Dataset): string {
+    return `${environment.backendURI}/api/arco/${ds.id}`;
   }
 
   // @ts-ignore

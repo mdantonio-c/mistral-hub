@@ -217,6 +217,25 @@ export interface Dataset {
   authorized: boolean;
 }
 
+export interface ArcoDataset {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  format: string;
+  attribution: string;
+  attribution_url: string | null;
+  group_license: string;
+  license: string;
+  is_public: boolean;
+  // bounding: string;
+  // attribution_description: string;
+  // group_license_description: string;
+  // license_description: string;
+  // license_url: string;
+  // sort_index: number;
+}
+
 export interface RefTime {
   from: Date;
   to: Date;
@@ -447,4 +466,12 @@ export interface RunAvailable {
   end_offset: number;
   step: number;
   boundaries: LatLon;
+}
+
+export interface AccessKey {
+  id: number;
+  key: string;
+  emitted: string;
+  expiration: string;
+  scope: string;
 }

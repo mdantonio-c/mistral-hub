@@ -3,8 +3,8 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   ModuleWithProviders,
 } from "@angular/core";
-import { NgbTimeAdapter } from "@ng-bootstrap/ng-bootstrap";
-import { RouterModule, Routes } from "@angular/router";
+import { NgbTimeAdapter, NgbModule } from "@ng-bootstrap/ng-bootstrap";
+import { RouterModule, Routes, Router } from "@angular/router";
 import { DatePipe } from "@angular/common";
 
 import { SharedModule } from "@rapydo/shared.module";
@@ -15,6 +15,7 @@ import { LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { LeafletDrawModule } from "@asymmetrik/ngx-leaflet-draw";
 import { LeafletMarkerClusterModule } from "@asymmetrik/ngx-leaflet-markercluster";
 import { NgxChartsModule } from "@swimlane/ngx-charts";
+import { NgxSpinnerModule } from "ngx-spinner";
 
 import { DataComponent } from "@app/components/data/data.component";
 import { RequestsComponent } from "@app/components/requests/requests.component";
@@ -45,6 +46,8 @@ import { StepPostprocessComponent } from "./components/multi-step-wizard/step-po
 import { StepPostprocessMapComponent } from "./components/multi-step-wizard/step-postprocess/map/step-postprocess-map.component";
 import { StepSubmitComponent } from "./components/multi-step-wizard/step-submit/step-submit.component";
 import { ReftimeModalContent } from "./components/multi-step-wizard/step-filters/reftime-modal.component";
+
+import { ArcoService } from "@app/services/arco.service";
 
 /* Maps */
 import { ForecastMapsBaseComponent } from "@app/components/maps/forecast-maps/forecast-maps-base.component";
@@ -105,6 +108,9 @@ import {
   ComboLineChartSeasonalComponent,
 } from "./components/custom-charts/combo-chart-seasonal";
 import { AimObservationMapsComponent } from "./components/maps/aim-observation-maps/aim-observation-maps.component";
+import { ProfileComponent } from "./components/profile/profile.component";
+import { MistralProfileRowComponent } from "./components/profile/mistral-profile-row.component";
+
 const appRoutes: Routes = [
   {
     path: "app/data",
@@ -224,6 +230,8 @@ const appRoutes: Routes = [
     LeafletDrawModule,
     LeafletMarkerClusterModule,
     NgxChartsModule,
+    NgbModule,
+    NgxSpinnerModule,
   ],
   declarations: [
     AdminDatasetsComponent,
@@ -295,6 +303,8 @@ const appRoutes: Routes = [
     ComboLineChartComponent,
     BoxChartComponent,
     ComboLineChartSeasonalComponent,
+    ProfileComponent,
+    MistralProfileRowComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
@@ -304,4 +314,14 @@ const appRoutes: Routes = [
   exports: [RouterModule, MapFlashFloodFilterComponent],
   entryComponents: [ReftimeModalContent],
 })
-export class CustomModule {}
+export class CustomModule {
+  constructor(private arco: ArcoService, private router: Router) {
+    const routes = this.router.config;
+    routes.unshift({
+      path: "app/profile",
+      component: ProfileComponent,
+      canActivate: [AuthGuard],
+    });
+    this.router.resetConfig(routes);
+  }
+}

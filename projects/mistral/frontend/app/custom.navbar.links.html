@@ -137,6 +137,14 @@
           *ngIf="user"
           >My requests</a
         >
+        <a
+          ngbDropdownItem
+          routerLink="/app/profile"
+          routerLinkActive="active"
+          (click)="collapse()"
+          *ngIf="user"
+          >My profile</a
+        >
       </div>
     </a>
   </li>
@@ -172,6 +180,12 @@
           href="{{infoHome}}/user-guide/"
           (click)="collapse()"
           >User guide</a
+        >
+        <a
+          ngbDropdownItem
+          href="{{infoHome}}/arco-guide/"
+          (click)="collapse()"
+          >ARCO guide</a
         >
         <a ngbDropdownItem 
           [href]="ckanCatalogUrl" 

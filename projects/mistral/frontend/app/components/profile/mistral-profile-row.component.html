@@ -1,0 +1,83 @@
+<ng-container *ngIf="row.key == 'disk_quota'">
+  <th>Disk Quota</th>
+  <td>{{row.value | bytes}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'amqp_queue'">
+  <th>AMQP Queue</th>
+  <td>{{row.value || "-"}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'requests_expiration_days'">
+  <th>Requests expiration (max 180 days)</th>
+  <td>
+    <ng-container *ngIf="row.value >= 1; else noExpiration">
+      {{row.value || "0"}} days
+    </ng-container>
+    <ng-template #noExpiration> Disabled </ng-template>
+  </td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'requests_expiration_delete'">
+  <th>Delete expired requests</th>
+  <td>{{row.value | yes_or_no}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'datasets'">
+  <th>Allowed datasets</th>
+  <td>
+    <ng-container *ngIf="row.value.length > 0; else noValues">
+      <span class="badge bg-info role-badge" *ngFor="let v of row.value">
+        {{ v.name }}
+      </span>
+    </ng-container>
+    <ng-template #noValues> - </ng-template>
+  </td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'group_license'">
+  <th>Allowed licences</th>
+  <td>
+    <ng-container *ngIf="row.value.length > 0; else noValues">
+      <span class="badge bg-info role-badge" *ngFor="let v of row.value">
+        {{ v.name }}
+      </span>
+    </ng-container>
+    <ng-template #noValues> - </ng-template>
+  </td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'open_dataset'">
+  <th>Open datasets allowed</th>
+  <td>{{row.value | yes_or_no}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'allowed_postprocessing'">
+  <th>Postprocessing allowed</th>
+  <td>{{row.value | yes_or_no}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'allowed_schedule'">
+  <th>Schedules allowed</th>
+  <td>{{row.value | yes_or_no}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'allowed_obs_archive'">
+  <th>Observation archive allowed</th>
+  <td>{{row.value | yes_or_no }}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'max_templates'">
+  <th>Max number of templates</th>
+  <td>{{row.value}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'max_output_size'">
+  <th>Max allowed output size</th>
+  <td>{{row.value | bytes}}</td>
+</ng-container>
+
+<ng-container *ngIf="row.key == 'request_par_hour'">
+  <th>Allowed requests per hour</th>
+  <td>{{row.value}}</td>
+</ng-container>

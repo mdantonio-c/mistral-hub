@@ -1,0 +1,195 @@
+<div class="container-fluid">
+  <div class="row justify-content-md-center" *ngIf="user">
+    <div class="col-12 col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h1>
+            <i class="fas fa-circle-user fa-lg"></i> Your profile
+            <span class="float-end">
+              <i
+                class="fas fa-pen-to-square"
+                ngbTooltip="Edit your profile"
+                (click)="edit_profile();"
+              ></i>
+            </span>
+          </h1>
+        </div>
+
+        <div class="card-body">
+          <div class="table-responsive">
+            <ngx-spinner [fullScreen]="true"></ngx-spinner>
+            <table class="table table-hover">
+              <tbody>
+                <tr>
+                  <th>Full Name</th>
+                  <td>{{user.name}} {{user.surname}}</td>
+                </tr>
+
+                <tr>
+                  <th>Email</th>
+                  <td>{{user.email}}</td>
+                </tr>
+
+                <tr>
+                  <th>Group</th>
+                  <td>
+                    <i
+                      class="fas fa-star yellow"
+                      *ngIf="user.isCoordinator"
+                      ngbTooltip="You are a coordinator for this group"
+                    ></i>
+                    {{user.group.fullname}}
+                  </td>
+                </tr>
+
+                <tr>
+                  <th>Roles</th>
+                  <td>
+                    <span
+                      *ngFor="let role of user.roles | keyvalue"
+                      class="badge bg-info role-badge"
+                    >
+                      <span *ngIf='role.value != "disabled"'>
+                        {{role.value}}
+                      </span>
+                      <span *ngIf='role.value == "disabled"'>
+                        {{role.key}}
+                      </span>
+                    </span>
+                  </td>
+                </tr>
+
+                <tr>
+                  <th>Privacy Accepted</th>
+                  <td [innerHTML]="user.privacy_accepted | boolean_flag"></td>
+                </tr>
+
+                <tr *ngIf="user.expiration">
+                  <th>Validity</th>
+                  <td>
+                    Your account will expire on {{ user.expiration |
+                    amDateFormat: 'Do of MMMM YYYY' }} ({{ user.expiration |
+                    amTimeAgo }})
+                  </td>
+                </tr>
+
+                <!-- here | keyvalue does not work -->
+                <ng-container *ngFor="let row of user | iterate">
+                  <tr mistral-profile-row [row]="row"></tr>
+                </ng-container>
+
+                <tr>
+                  <th>Last password change</th>
+                  <td>
+                    <span
+                      ngbTooltip="{{ user.last_password_change || user.first_login | date : 'yyyy MMM dd HH:mm:ss' }}"
+                    >
+                      {{ user.last_password_change || user.first_login |
+                      amTimeAgo:false }}
+                    </span>
+                    <a
+                      routerLink="changepassword"
+                      class="btn btn-secondary btn-sm ms-4 no-rounded"
+                    >
+                      CHANGE
+                    </a>
+                  </td>
+                </tr>
+
+                <tr>
+                  <th>Open Sessions</th>
+                  <td>
+                    <a routerLink="sessions">
+                      <i>View list of your open sessions</i>
+                    </a>
+                  </td>
+                </tr>
+
+                <!-- Access Keys Section -->
+                <tr id="ARCO-access-key">
+                  <th>ARCO Access Key</th>
+                  <td>
+                    <div *ngIf="!accessKey">
+                        <button class="btn btn-primary btn-sm" (click)="openCreateKeyModal(createKeyModal)">
+                            <i class="fas fa-plus"></i> Create Access Key
+                        </button>
+                    </div>
+                    <div *ngIf="accessKey">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" [value]="accessKey.key" readonly>
+                            <button class="btn btn-outline-secondary" type="button" ngxClipboard [cbContent]="accessKey.key" (cbOnSuccess)="notify.showSuccess('Copied to clipboard')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="btn btn-warning" type="button" (click)="openRotateKeyModal(rotateKeyModal)" ngbTooltip="Replace Key">
+                                <i class="fas fa-sync"></i>
+                            </button>
+                            <button class="btn btn-danger" type="button" (click)="revokeAccessKey()" ngbTooltip="Revoke Key">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            Created: {{ accessKey.emitted | date:'yyyy-MM-dd HH:mm' }}
+                            <span *ngIf="accessKey.expiration">
+                                - Expires: {{ accessKey.expiration | date:'yyyy-MM-dd HH:mm' }}
+                            </span>
+                        </small>
+                    </div>
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #createKeyModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Create Access Key</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <p>Are you sure you want to create a new access key?</p>
+    <div class="mb-3">
+        <label for="expiration">Expiration Date (optional)</label>
+        <div class="input-group">
+            <input class="form-control" placeholder="yyyy-mm-dd"
+                name="dp" [(ngModel)]="expirationDate" ngbDatepicker #d="ngbDatepicker">
+            <button class="btn btn-outline-secondary calendar" (click)="d.toggle()" type="button">
+                <i class="fas fa-calendar-alt"></i>
+            </button>
+        </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancel</button>
+    <button type="button" class="btn btn-primary" (click)="modal.close('create')">Create</button>
+  </div>
+</ng-template>
+
+<ng-template #rotateKeyModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Replace Access Key</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <p>Are you sure you want to replace your access key? The old key will be invalidated immediately.</p>
+    <div class="mb-3">
+        <label for="expiration">Expiration Date (optional)</label>
+        <div class="input-group">
+            <input class="form-control" placeholder="yyyy-mm-dd"
+                name="dp" [(ngModel)]="expirationDate" ngbDatepicker #d="ngbDatepicker">
+            <button class="btn btn-outline-secondary calendar" (click)="d.toggle()" type="button">
+                <i class="fas fa-calendar-alt"></i>
+            </button>
+        </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancel</button>
+    <button type="button" class="btn btn-warning" (click)="modal.close('rotate')">Replace</button>
+  </div>
+</ng-template>
