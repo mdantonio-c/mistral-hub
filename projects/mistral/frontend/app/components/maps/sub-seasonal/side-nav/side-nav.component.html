@@ -1,0 +1,150 @@
+<nav class="map-sidenav" [class.collapsed]="isCollapsed">
+  <div id="overlay" class="sidenav-overlay"></div>
+  <div class="map-sidenav-menu h-100">
+    <label
+      class="toggle"
+      (click)="changeCollapse()"
+      [class.collapsed]="isCollapsed"
+    ></label>
+    <ul class="selector">
+      <li *ngIf="!isCollapsed" class="sidenav-item last">
+        <div class="mt-2 mb-2">
+          <p class="fw-bold fs-6 mb-0 text-start">
+            {{ "Most likely scenario" | translate : lang }}
+          </p>
+          <p class="text-start mb-0">
+            {{ "Probability of the most likely category" | translate : lang }}
+          </p>
+        </div>
+      </li>
+      <ng-container
+        *ngFor="let variable of variablesConfig | keyvalue; let last = last"
+      >
+        <li class="sidenav-item" [class.last]="last">
+          <span
+            class="{{ variable.key }}"
+            placement="left"
+            [ngbTooltip]="variable.value.descr | translate : lang | titlecase"
+            (click)="toggleLayer($event, variable.key)"
+            [disableTooltip]="!isCollapsed"
+            [class.attivo]="selectedLayers.includes(variable.key)"
+          ></span>
+          <a
+            href="#"
+            *ngIf="!isCollapsed"
+            (click)="toggleLayer($event, variable.key)"
+          >
+            <span class="nav-text" i118n
+              >{{ variable.value.label | translate : lang | titlecase }}
+            </span></a
+          >
+        </li>
+      </ng-container>
+      <li class="sidenav-item last">
+        <span
+          class="calendar mb-2"
+          placement="left"
+          [ngbTooltip]="'Select Month'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a class="d-block" *ngIf="!isCollapsed">
+          <span class="nav-text" i18n>{{ "Weeks" | translate : lang }}</span>
+        </a>
+        <div
+          *ngIf="!isCollapsed"
+          class="selettore-orario w-100 d-flex flex-wrap"
+        >
+          <ng-container *ngFor="let week of weekRanges; let last = last">
+            <label class="nav-text d-flex w-100 mb-2">
+              <input
+                type="radio"
+                name="precipitation"
+                class="clickable me-2"
+                (click)="toggleWeek($event, week)"
+                [ngbTooltip]="week"
+                [disableTooltip]="!isCollapsed"
+                [class.attivo]="selectedWeek === week"
+                [checked]="selectedWeek === week"
+              />
+              {{ week }}
+            </label>
+          </ng-container>
+        </div>
+      </li>
+      <li class="sidenav-item zoom">
+        <span
+          class="plus clickable"
+          (click)="zoom($event, 'in')"
+          [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+          placement="left"
+          [ngbTooltip]="'Zoom in'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'in')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMaxZoom() }"
+            i18n
+            >Zoom in</span
+          >
+        </a>
+      </li>
+      <li class="sidenav-item last">
+        <span
+          class="minus clickable"
+          (click)="zoom($event, 'out')"
+          [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+          placement="left"
+          [ngbTooltip]="'Zoom out'"
+          [disableTooltip]="!isCollapsed"
+        ></span>
+        <a href="#" *ngIf="!isCollapsed" (click)="zoom($event, 'out')">
+          <span
+            class="nav-text"
+            [ngClass]="{ isDisabled: zLevel === map.getMinZoom() }"
+            i18n
+            >Zoom out</span
+          >
+        </a>
+      </li>
+      <div class="flex-spacer w-100 h-100">
+        <li class="sidenav-item border-0">
+          <a
+            [href]="aboutPage"
+            target="_blank"
+            class="book clickable"
+            [ngbTooltip]="
+              isCollapsed
+                ? ('Discover more about this product' | translate : lang)
+                : null
+            "
+            container="body"
+          >
+          </a>
+          <a *ngIf="!isCollapsed" [href]="aboutPage" target="_blank">
+            <span
+              class="nav-text text-disclaimer"
+              [ngbTooltip]="
+                'Discover more about this product' | translate : lang
+              "
+              container="body"
+            >
+              {{ "Discover more about this product" | translate : lang }}
+            </span>
+          </a>
+        </li>
+      </div>
+    </ul>
+  </div>
+  <div
+    class="attribution leaflet-control leaflet-control-attribution"
+    *ngIf="!isCollapsed"
+  >
+    <span>
+      © <a href="http://cartodb.com/attributions" target="_blank">CARTO</a> | ©
+      <a href="./app/license#meteohub-products" target="_blank"
+        >CINECA AIM</a
+      ></span
+    >
+  </div>
+</nav>

@@ -113,6 +113,13 @@ export class TranslationService {
         "wave period": "Periodo onda",
         // radar
         "(integrated with rain gauges)": "(integrato con pluviometri)",
+        //subseasonal
+        "most likely scenario": "Scenario più probabile",
+        "probability of the most likely category":
+          "Probabilità della categoria più probabile",
+        weeks: "Settimane",
+        "probability distributions weekly averaged":
+          "distribuzioni di probabilità medie settimanali",
       },
     },
   };
