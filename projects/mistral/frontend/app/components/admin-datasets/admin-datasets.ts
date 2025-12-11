@@ -1,4 +1,6 @@
 import { Component, ViewChild, TemplateRef, Injector } from "@angular/core";
+import { forkJoin, Subject } from "rxjs";
+import { ArcoService } from "../../services/arco.service";
 
 import { AdminDataset } from "../../types";
 
@@ -13,7 +15,10 @@ export class AdminDatasetsComponent extends BasePaginationComponent<AdminDataset
   @ViewChild("emptyHeader", { static: false })
   public emptyHeader: TemplateRef<any>;
 
-  constructor(protected injector: Injector) {
+  constructor(
+    protected injector: Injector,
+    private arcoService: ArcoService,
+  ) {
     super(injector);
     this.init("dataset", "/api/admin/datasets", "AdminDatasets");
     this.initPaging();
@@ -39,6 +44,60 @@ export class AdminDatasetsComponent extends BasePaginationComponent<AdminDataset
         minWidth: 60,
       },
     ];
+  }
+
+  public override list(): Subject<boolean> {
+    this.loading = true;
+    forkJoin({
+      datasets: this.api.get<AdminDataset[]>("/api/admin/datasets"),
+      arco: this.arcoService.getArcoDatasets(),
+    }).subscribe(
+      (response) => {
+        const datasets = response.datasets;
+        const arco = response.arco;
+
+        const arcoDatasets: AdminDataset[] = arco.map((ds) => {
+          return {
+            id: ds.id,
+            arkimet_id: ds.id,
+            name: ds.name,
+            description: ds.description,
+            category: ds.category,
+            fileformat: ds.format,
+            bounding: "",
+            sort_index: 0,
+            license: {
+              id: "",
+              name: ds.license,
+              descr: "",
+              url: "",
+            },
+            attribution: {
+              id: "",
+              name: ds.attribution,
+              descr: "",
+            },
+          } as AdminDataset;
+        });
+
+        this.data = [...datasets, ...arcoDatasets];
+        this.unfiltered_data = this.data;
+
+        this.paging.dataLength = this.data.length;
+        this.paging.numPages = Math.ceil(
+          this.data.length / this.paging.itemsPerPage,
+        );
+
+        this.loading = false;
+        this.list_subject.next(true);
+      },
+      (error) => {
+        this.notify.showError(error);
+        this.loading = false;
+        this.list_subject.next(false);
+      },
+    );
+    return this.list_subject;
   }
 
   filter(data_filter) {
