@@ -92,7 +92,7 @@ services:
       - ${DATA_DIR}/nifi/logs:/opt/nifi/nifi-current/logs
       - ${DATA_DIR}/nifi/error_flowfiles:/opt/nifi/nifi_error_flowfile
       - ${DATA_DIR}/nifi/amqp_flowfiles:/opt/nifi/nifi_ok_flowfile
-      - ${DATA_DIR}/nifi/radar:/opt/nifi/radar
+      - ${DATA_DIR}/nifi/nfs:/opt/nifi/nfs
 
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
@@ -129,6 +129,9 @@ services:
       AGGREGATIONS_TRANGES: ${AGGREGATIONS_TRANGES}
       AGGREGATIONS_DSN: ${AGGREGATIONS_DSN}
       SSL_TRUSTORE_FILENAME: "${SSL_TRUSTORE_FILENAME}"
+      AIM_S3_SECRET_KEY: "${AIM_S3_SECRET_KEY}"
+      AIM_S3_ACCESS_KEY: "${AIM_S3_ACCESS_KEY}"
+      AIM_S3_ENDPOINT: "${AIM_S3_ENDPOINT}"
 
     networks:
       default:
