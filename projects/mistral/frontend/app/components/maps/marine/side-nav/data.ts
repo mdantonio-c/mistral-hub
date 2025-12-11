@@ -2,11 +2,11 @@ import * as L from "leaflet";
 export const Variables = {
   dir: { label: "Wave direction", unit: "°" },
   hs: { label: "Significant wave height", unit: "m" },
-  t01: { label: "Mean period", unit: "s" },
+  t01: { label: "Wave period", unit: "s" },
 };
 export const MEDITA_BOUNDS = {
-  southWest: L.latLng(30, -7),
-  northEast: L.latLng(46, 36),
+  southWest: L.latLng(30 - 3, -7 - 3),
+  northEast: L.latLng(46 + 3, 36 + 3),
 };
 
 export const Layers = {

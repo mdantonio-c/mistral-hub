@@ -110,7 +110,7 @@ export class TranslationService {
         // marine
         "wave direction": "Direzione onda",
         "significant wave height": "Altezza significativa onda",
-        "mean period": "Periodo onda",
+        "wave period": "Periodo onda",
         // radar
         "(integrated with rain gauges)": "(integrato con pluviometri)",
       },

@@ -7,8 +7,11 @@ from typing import Any, Optional
 import boto3
 from mypy_boto3_s3.client import S3Client
 from restapi.connectors import Connector, ExceptionsList
+from restapi.env import Env
 from restapi.exceptions import ServiceUnavailable
 from restapi.utilities.logs import log
+
+APP_MODE = Env.get("APP_MODE", "development")
 
 
 class S3Ext(Connector):
@@ -32,6 +35,15 @@ class S3Ext(Connector):
             raise ServiceUnavailable("Missing access_key")
 
         port = variables.get("port", "9000")
+        # Set endpoint based on environment mode
+        if APP_MODE == "development":
+            endpoint = f"http://{host}:{port}"
+            verify_ssl = False  # self-signed certs o HTTP
+        else:
+            endpoint = f"https://{host}:{port}"
+            # Temporarily disabled due to SSL validation failure:
+            # the hostname 's3.dockerized.io' does not match the 'MeteoHub' domain name
+            verify_ssl = False  # production: valid cert
 
         session = boto3.Session(
             aws_access_key_id=key_id,
@@ -41,7 +53,11 @@ class S3Ext(Connector):
             profile_name=None,
         )
 
-        self.client = session.client("s3", endpoint_url=f"http://{host}:{port}")
+        self.client = session.client(
+            "s3",
+            endpoint_url=endpoint,
+            verify=verify_ssl,
+        )
         return self
 
     def is_connected(self) -> bool:

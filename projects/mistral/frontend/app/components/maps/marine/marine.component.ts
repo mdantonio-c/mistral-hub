@@ -78,7 +78,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     //center: L.latLng([46.879966, 11.726909]),
     center: L.latLng([41.3, 12.5]),
     maxBounds: this.bounds,
-    maxBoundsViscosity: 1.0,
+    maxBoundsViscosity: 0.3,
     timeDimension: true,
     timeDimensionControl: false,
     timeDimensionControlOptions: {
@@ -126,7 +126,11 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
   private setOverlaysToMap() {
     this.layersControl["overlays"] = {};
     Object.keys(Layers).forEach((key) => {
-      this.layersControl["overlays"][key] = this.getTilesWms(Layers[key]);
+      if (key == "hs")
+        this.layersControl["overlays"][key] = this.getTilesWms(
+          Layers[key],
+        ).addTo(this.map);
+      else this.layersControl["overlays"][key] = this.getTilesWms(Layers[key]);
     });
     // const current=moment.utc((this.map as any).timeDimension.getCurrentTime()).format("DD-MM-YYYY-HH-mm");
     // const geoJsonName = current +".geojson";
@@ -199,10 +203,12 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
         this.lang = lang;
       }
     });
+    setTimeout(() => this.centerMap(), 200);
   }
 
   protected onMapReady(map: L.Map) {
     this.map = map;
+
     this.map.attributionControl.setPrefix("");
     (window as any).L.Control.TimeDimensionCustom = (
       window as any
@@ -248,7 +254,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
       },
     });
     this.map.addControl(this.timeDimensionControl);
-    this.centerMap();
+
     this.loadRunAvailable(this.dataset);
 
     (map as any).timeDimension.on("timeload", (e) => {
@@ -355,26 +361,26 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
         html: `
     <div style="
       position: relative;
-      width: 1px;          
-      height: 8px;         
+      width: 1px;
+      height: 5px;                  /* ridotto */
       background: black;
       transform: rotate(${direction}deg);
       transform-origin: bottom center;
     ">
       <div style="
         position: absolute;
-        bottom: 8px;
-        left: -4px;         
+        bottom: 5px;               /* allineato alla nuova altezza */
+        left: -3px;                /* ridotto */
         width: 0;
         height: 0;
-        border-left: 4px solid transparent;
-        border-right: 4px solid transparent;
-        border-bottom: 6px solid black;
+        border-left: 3px solid transparent;   /* ridotto */
+        border-right: 3px solid transparent;  /* ridotto */
+        border-bottom: 4px solid black;       /* ridotto */
       "></div>
     </div>
   `,
-        iconSize: [12, 12],
-        iconAnchor: [6, 8],
+        iconSize: [10, 10], // ridotto
+        iconAnchor: [5, 6], // ridotto
       });
 
       return L.marker([lat, lon], { icon: arrowIcon });
