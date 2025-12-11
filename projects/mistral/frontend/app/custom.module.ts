@@ -78,6 +78,8 @@ import { MarineComponent } from "./components/maps/marine/marine.component";
 import { SideNavComponentMarine } from "./components/maps/marine/side-nav/side-nav.component";
 import { RadarComponent } from "./components/maps/radar-observation-maps/radar-observation-maps.component";
 import { SideNavComponentRadar } from "./components/maps/radar-observation-maps/side-nav/side-nav.component";
+import { SubSeasonalComponent } from "./components/maps/sub-seasonal/sub-seasonal.component";
+import { SideNavComponentSubseasonal } from "./components/maps/sub-seasonal/side-nav/side-nav.component";
 import { FormatDatePipe } from "@app/pipes/format-date.pipe";
 import { FormatLabelDatePipe } from "@app/pipes/format-data-label.pipe";
 import { ReplacePipe } from "@app/pipes/replace.pipe";
@@ -165,6 +167,10 @@ const appRoutes: Routes = [
   {
     path: "app/maps/radar",
     component: RadarComponent,
+  },
+  {
+    path: "app/maps/subseasonal",
+    component: SubSeasonalComponent,
   },
   {
     path: "app/maps/livemap",
@@ -264,6 +270,8 @@ const appRoutes: Routes = [
     SideNavComponentMarine,
     RadarComponent,
     SideNavComponentRadar,
+    SubSeasonalComponent,
+    SideNavComponentSubseasonal,
     LivemapComponent,
     SideNavFilterComponent,
     MultiStepWizardComponent,
