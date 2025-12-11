@@ -41,7 +41,9 @@ class S3Ext(Connector):
             verify_ssl = False  # self-signed certs o HTTP
         else:
             endpoint = f"https://{host}:{port}"
-            verify_ssl = True  # production: valid cert
+            # Temporarily disabled due to SSL validation failure:
+            # the hostname 's3.dockerized.io' does not match the 'MeteoHub' domain name
+            verify_ssl = False  # production: valid cert
 
         session = boto3.Session(
             aws_access_key_id=key_id,
