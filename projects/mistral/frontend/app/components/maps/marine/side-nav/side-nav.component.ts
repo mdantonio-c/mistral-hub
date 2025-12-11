@@ -33,7 +33,10 @@ export class SideNavComponentMarine implements OnInit {
   variablesConfig = Variables;
   isCollapsed = false;
   // set first variable as default
-  selectedLayers = [Object.keys(this.variablesConfig)[0]];
+  selectedLayers = [
+    Object.keys(this.variablesConfig)[0],
+    Object.keys(this.variablesConfig)[1],
+  ];
   selectedBaseLayer;
   zLevel: number;
 
