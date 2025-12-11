@@ -9,13 +9,21 @@ location = /maintenance.html {
 # add_header Retry-After 3600;
 
 
+# icon 2i dataset id is different from the url used since version 0.4.16
+# this workaround is in order not to change the url already in production
+# TODO change the icon2i nwp production url to get rid of this workaround?
 
-location ~ /nwp/?$ {
+location /nwp/ICON_2I_SURFACE_PRESSURE_LEVELS {
   return 301 /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS;
 }
 
 location /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS {
    alias /grib_extraction/;
+   autoindex on;
+}
+
+location /nwp/SEASONAL {
+   alias /seasonal/;
    autoindex on;
 }
 
