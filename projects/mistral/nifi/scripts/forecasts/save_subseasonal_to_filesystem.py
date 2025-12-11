@@ -54,9 +54,8 @@ with tempfile.TemporaryDirectory() as tmpdir_str:
     # Collect list of paths inside the unzipped directory (relative paths)
     actual_paths = set()
 
-    # for subseasonal this is the expected path of the zip <product name>/<date>/<product>/<value>/yyyy-MM-dd.tif
-    unzipped_product_dir = [p for p in extract_dir.iterdir() if p.is_dir()][0]
-    unzipped_data_dir = [p for p in unzipped_product_dir.iterdir() if p.is_dir()][0]
+    # for subseasonal this is the expected path of the zip <date>/<product>/<value>/yyyy-MM-dd.tif
+    unzipped_data_dir = [p for p in extract_dir.iterdir() if p.is_dir()][0]
 
     for p in unzipped_data_dir.rglob("*"):
         # Normalize directories
