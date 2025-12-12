@@ -10,7 +10,7 @@ export const VARIABLES_CONFIG: GenericArg = {
 };
 
 export enum Products {
-  SRTADJ1 = "Surface Rainfall Total (1h)",
+  SRTADJ1 = "Surface Rainfall Total 1h",
   SRTADJ3 = "SRT ADJ (3h)",
   SRTADJ6 = "SRT ADJ (6h)",
   SRTADJ12 = "SRT ADJ (12h)",

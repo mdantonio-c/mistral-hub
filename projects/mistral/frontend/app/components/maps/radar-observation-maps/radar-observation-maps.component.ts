@@ -103,6 +103,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
         startOver: true,
       },
       speedSlider: false,
+      maxSpeed: 5,
     },
   };
   viewMode = ViewModes.adv;
@@ -145,7 +146,6 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     setTimeout(() => this.map.setView([41.88, 12.28], 6), 0);
     this.setOverlaysToMap();
 
-    this.centerMap();
     this.addIconBorderLayer();
     (window as any).L.Control.TimeDimensionCustom = (
       window as any
@@ -189,6 +189,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
         startOver: true,
       },
       speedSlider: true,
+      maxSpeed: 5,
     });
     this.map.addControl(this.timeDimensionControl);
     let tControl = this.timeDimensionControl;
@@ -240,7 +241,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     this.selectedProduct = layerName;
     this.unit = this.productName === Products.SRI ? "mm/h" : "mm";
     this.descr =
-      this.productName === Products.SRI ? "" : "(integrated with rain gauges)";
+      this.productName === Products.SRI ? "" : "integrated with rain gauges";
     if (this.map.hasLayer(Layer)) {
       return;
     } else {
