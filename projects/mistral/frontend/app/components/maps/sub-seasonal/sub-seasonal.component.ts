@@ -10,7 +10,7 @@ import {
 } from "../meteo-tiles/meteo-tiles.config";
 import { Params } from "@angular/router";
 import * as moment from "moment";
-import { Variables, Layers } from "./side-nav/data";
+import { Variables, Layers, legendConfig } from "./side-nav/data";
 import { TilesService } from "../meteo-tiles/services/tiles.service";
 import { environment } from "@rapydo/../environments/environment";
 @Component({
@@ -29,6 +29,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   weekList = [];
   bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
   private maps_url: string = "";
+  private legendControl;
   constructor(injector: Injector, private tileService: TilesService) {
     super(injector);
     this.options["layers"] = [this.LAYER_LIGHTMATTER];
@@ -119,6 +120,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     const date = this.extractAndFormatDate(this.selectedWeek);
     this.addLayerGroup(key, date);
     this.layersControl["overlays"].addTo(this.map);
+    this.updateLegends(key);
   }
   public printReferenceDate() {
     return "";
@@ -179,6 +181,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     this.selectedWeek = this.weekList[0];
     this.addLayerGroup(key, firstWeekDate);
     this.layersControl["overlays"].addTo(this.map);
+    this.updateLegends(key);
   }
   private extractAndFormatDate(rangeString) {
     const firstPart = rangeString.split(" - ")[0];
@@ -224,5 +227,24 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
           },
         }).addTo(map);
       });
+  }
+
+  private addLegendSvg(svgPath: string) {
+    if (!this.map) return;
+    if (this.legendControl) this.legendControl.remove();
+    this.legendControl = new L.Control({ position: "bottomleft" });
+    this.legendControl.onAdd = () => {
+      let div = L.DomUtil.create("div");
+      div.style.clear = "unset";
+      div.innerHTML += `<img class="legenda" src="${svgPath}">`;
+      return div;
+    };
+    this.legendControl.addTo(this.map);
+  }
+
+  private updateLegends(layerId: string) {
+    const config = legendConfig[layerId];
+    if (!config) return;
+    this.addLegendSvg(config);
   }
 }

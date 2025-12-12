@@ -31,3 +31,7 @@ export const Layers = {
     quintile_5: "meteohub:sub-seasonal-tp-quintile_5",
   },
 };
+export const legendConfig = {
+  t2m: "/app/custom/assets/images/legends/subseasonal/temperatura.svg",
+  tp: "/app/custom/assets/images/legends/subseasonal/precipitazione.svg",
+};

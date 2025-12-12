@@ -12,6 +12,7 @@ import {
 import { NavigationEnd, Params } from "@angular/router";
 import * as moment from "moment";
 import { RunAvailable } from "../../../types";
+import { legendConfig } from "./side-nav/data";
 
 @Component({
   selector: "app-marine",
@@ -33,6 +34,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     opacity: 0.9,
   };
   private wmsPath: string;
+  private legendControl;
   private timeDimensionControl: any;
   private beginTime;
   private timeLoading: boolean = false;
@@ -126,11 +128,13 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
   private setOverlaysToMap() {
     this.layersControl["overlays"] = {};
     Object.keys(Layers).forEach((key) => {
-      if (key == "hs")
+      if (key == "hs") {
         this.layersControl["overlays"][key] = this.getTilesWms(
           Layers[key],
         ).addTo(this.map);
-      else this.layersControl["overlays"][key] = this.getTilesWms(Layers[key]);
+        this.updateLegends(key);
+      } else
+        this.layersControl["overlays"][key] = this.getTilesWms(Layers[key]);
     });
     // const current=moment.utc((this.map as any).timeDimension.getCurrentTime()).format("DD-MM-YYYY-HH-mm");
     // const geoJsonName = current +".geojson";
@@ -341,6 +345,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
         overlays["hs"].addTo(this.map);
       }
     }
+    this.updateLegends(layer);
   }
   private addArrowLayer(data): L.LayerGroup {
     const markers = data.features.map((feature) => {
@@ -430,5 +435,24 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
       tileSize: 1024,
       opacity: 0.6,
     } as any);
+  }
+
+  private addLegendSvg(svgPath: string) {
+    if (!this.map) return;
+    if (this.legendControl) this.legendControl.remove();
+    this.legendControl = new L.Control({ position: "bottomleft" });
+    this.legendControl.onAdd = () => {
+      let div = L.DomUtil.create("div");
+      div.style.clear = "unset";
+      div.innerHTML += `<img class="legenda" src="${svgPath}">`;
+      return div;
+    };
+    this.legendControl.addTo(this.map);
+  }
+
+  private updateLegends(layerId: string) {
+    const config = legendConfig[layerId];
+    if (!config) return;
+    this.addLegendSvg(config);
   }
 }
