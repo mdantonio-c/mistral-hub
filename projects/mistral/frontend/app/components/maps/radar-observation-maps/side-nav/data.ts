@@ -47,8 +47,6 @@ export function toLayerCode(title: string): string | null {
 }
 
 export const legendConfig = {
-  "Surface Rainfall Intensity":
-    "/app/custom/assets/images/legends/radar/sri.svg",
-  "Surface Rainfall Total (1h)":
-    "/app/custom/assets/images/legends/radar/srt_adj.svg",
+  [Products.SRI]: "/app/custom/assets/images/legends/radar/sri.svg",
+  [Products.SRTADJ1]: "/app/custom/assets/images/legends/radar/srt_adj.svg",
 };
