@@ -178,7 +178,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
       autoPlay: false,
       playButton: true,
       timeZones: ["Local"],
-      loopButton: true,
+      loopButton: false,
       timeSteps: 1,
       playReverseButton: false,
       limitSliders: true,
@@ -310,6 +310,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
         to,
         this.options.timeDimensionOptions.period,
       );
+      this.printReferenceDate2();
       const td = (this.map as any)?.timeDimension;
       if (td) {
         td.setAvailableTimes(newAvailableTimes, "replace");
