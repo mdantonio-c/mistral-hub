@@ -17,13 +17,18 @@ location /nwp/ICON_2I_SURFACE_PRESSURE_LEVELS {
   return 301 /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS;
 }
 
+location /nwp {
+   alias /nwp/;
+   autoindex on;
+}
+
 location /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS {
-   alias /grib_extraction/;
+   alias /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS/;
    autoindex on;
 }
 
 location /nwp/SEASONAL {
-   alias /seasonal/;
+   alias /nwp/SEASONAL/;
    autoindex on;
 }
 

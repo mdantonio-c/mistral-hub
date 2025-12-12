@@ -52,9 +52,9 @@ services:
     networks:
       - logging
     volumes:
-      - ${DATA_DIR}/grib_extraction:/grib_extraction
+      - ${DATA_DIR}/grib_extraction:/nwp/ICON-2I_SURFACE_PRESSURE_LEVELS
       - ${DATA_DIR}/catalog:/catalog
-      - ${DATA_DIR}/seasonal:/seasonal
+      - ${DATA_DIR}/seasonal:/nwp/SEASONAL
       - ${PROJECT_DIR}/nginx/proxy.service:/etc/nginx/sites-enabled/proxy.service
       - ${PROJECT_DIR}/nginx/analytics.service.${ACTIVATE_ANALYTICS:-0}:/etc/nginx/sites-enabled/analytics.service
       - ${PROJECT_DIR}/nginx/custom_maintenance.conf:/etc/nginx/sites-enabled-templates/custom_maintenance.conf
