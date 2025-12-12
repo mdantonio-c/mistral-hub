@@ -744,6 +744,7 @@ export const NETWORK_NAMES = [
   "Puglia",
   "Sardegna",
   "Sicilia",
+  "Toscana",
   "Umbria",
   "Veneto",
   "Meteonetwork",
@@ -772,6 +773,7 @@ export const NETWORKS = [
   { name: "Liguria", network: "dpcn-liguria" },
   { name: "Provincia autonoma di Bolzano", network: "dpcn-bolzanoboze" },
   { name: "Provincia autonoma di Trento", network: "open-trentino" },
+  { name: "Toscana", network: "metsen-arpat" },
   { name: "Meteonetwork", network: "mnw" },
 ];
 
