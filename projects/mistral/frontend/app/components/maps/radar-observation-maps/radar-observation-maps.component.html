@@ -39,8 +39,8 @@
     (click)="updateTimeLineWithLastDataAvailable(true)"
     placement="bottom"
     ngbTooltip="Reload"
-  ></i> {{ printReferenceDate2()[0] }}
-      {{ 'local time' | translate : lang }} (UTC+{{ printReferenceDate2()[1] }})
+  ></i> {{ timelineReferenceDate }}
+      {{ 'local time' | translate : lang }} {{ checkUTCShift() }}
   </pre>
       </div>
     </div>

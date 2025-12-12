@@ -33,6 +33,8 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   public unit;
   public productName;
   public descr;
+  public timelineReferenceDate: string = "";
+
   private selectedProduct;
   private timeLoading: boolean = false;
   wmsPath;
@@ -198,6 +200,9 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     }
     this.layersControl["overlays"][Products.SRI].addTo(this.map);
     this.updateLegends(this.selectedProduct);
+    (map as any).timeDimension.on("timeload", (e) => {
+      this.timelineReferenceDate = this.printTimeLineReferenceDate();
+    });
     this.timelineInterval = setInterval(() => {
       this.updateTimeLineWithLastDataAvailable();
     }, 120000);
@@ -259,18 +264,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   public printReferenceDate() {
     return "";
   }
-  public printReferenceDate2(): string[] {
-    const dd = String(this.lastDate?.getDate()).padStart(2, "0");
-    const mm = String(this.lastDate?.getMonth() + 1).padStart(2, "0");
-    const yyyy = this.lastDate?.getUTCFullYear();
-    const hh = String(this.lastDate?.getHours()).padStart(2, "0");
-    const min = String(this.lastDate?.getMinutes()).padStart(2, "0");
-    const offsetMinutes = -this.lastDate?.getTimezoneOffset();
-    return [
-      `${dd}-${mm}-${yyyy},${hh}:${min}`,
-      (offsetMinutes / 60).toString(),
-    ];
-  }
+
   public printDatasetProduct(): string {
     return "";
   }
@@ -310,7 +304,6 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
         to,
         this.options.timeDimensionOptions.period,
       );
-      this.printReferenceDate2();
       const td = (this.map as any)?.timeDimension;
       if (td) {
         td.setAvailableTimes(newAvailableTimes, "replace");
@@ -354,5 +347,17 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     const config = legendConfig[layerId];
     if (!config) return;
     this.addLegendSvg(config);
+  }
+  printTimeLineReferenceDate(): string {
+    return `${moment
+      .utc((this.map as any).timeDimension.getCurrentTime())
+      .local()
+      .format("DD-MM-YYYY, HH:mm")}`;
+  }
+  checkUTCShift(): string {
+    const now = moment();
+    const offsetHours = now.utcOffset() / 60;
+    const sign = offsetHours >= 0 ? "+" : "-";
+    return `(UTC${sign}${Math.abs(offsetHours)})`;
   }
 }
