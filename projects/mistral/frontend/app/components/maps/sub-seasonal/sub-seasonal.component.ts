@@ -80,7 +80,10 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   }
   protected onMapReady(map: L.Map) {
     this.map = map;
-    setTimeout(() => this.map.setView([41.3, 12.5], 5), 0);
+    setTimeout(() => {
+      this.map.invalidateSize(true);
+      this.map.setView([41.3, 12.5], 5);
+    }, 200);
     //this.centerMap();
     this.addIBorderLayer(map);
   }
