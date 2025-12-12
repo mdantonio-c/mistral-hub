@@ -113,7 +113,7 @@ export class LicenseComponent implements OnInit {
                 "https://creativecommons.org/licenses/by-nd/4.0/legalcode",
             },
             {
-              name: "Monthly map",
+              name: "Monthly forecast map",
               description:
                 "Graphical visualization of Seasonal Forecast (0.1° downscaling)",
               attribution_description: "Agenzia ItaliaMeteo - CINECA",
@@ -121,6 +121,33 @@ export class LicenseComponent implements OnInit {
               license_description: "CC BY 4.0",
               license_url:
                 "https://creativecommons.org/licenses/by/4.0/legalcode",
+            },
+            {
+              name: "Weekly forecast map",
+              description:
+                "Graphical visualization of ECMWF Subseasonal Forecast",
+              attribution_description: "Agenzia ItaliaMeteo - CINECA",
+              license_description: "CC BY 4.0",
+              license_url:
+                "https://creativecommons.org/licenses/by/4.0/legalcode",
+            },
+            {
+              name: "Marine forecast map",
+              description:
+                "Interactive graphical visualization of forecast data from WW3 marine model with overlapping variable layers",
+              attribution_description: "Agenzia ItaliaMeteo - CINECA",
+              license_description: "CC BY 4.0",
+              license_url:
+                "https://creativecommons.org/licenses/by/4.0/legalcode",
+            },
+            {
+              name: "Radar map",
+              description:
+                "Graphical visualization of SRI and SRT1 products from the Civil Protection Department national radar network",
+              attribution_description: "Agenzia ItaliaMeteo - CINECA",
+              license_description: "CCBY SA 4.0",
+              license_url:
+                "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
             },
           ];
           // append iff dataset in mistral products
