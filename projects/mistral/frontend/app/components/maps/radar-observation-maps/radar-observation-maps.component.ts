@@ -12,7 +12,7 @@ import {
   CARTODB_LICENSE_HREF,
   MISTRAL_LICENSE_HREF,
   OSM_LICENSE_HREF,
-  STADIA_LICENSE_HREF,
+  DPC_LICENSE_HREF,
   ViewModes,
 } from "../meteo-tiles/meteo-tiles.config";
 import { Params } from "@angular/router";
@@ -42,7 +42,6 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
   LAYER_OSM = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
-      attribution: `&copy; ${OSM_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
       maxZoom: this.maxZoom,
       minZoom: this.minZoom,
     },
@@ -51,7 +50,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
     {
       id: "mapbox.light",
-      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF} | &copy; ${DPC_LICENSE_HREF}`,
       maxZoom: this.maxZoom,
       minZoom: this.minZoom,
     },
@@ -61,7 +60,7 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png",
     {
       id: "mapbox.dark",
-      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF}`,
+      attribution: `&copy; ${CARTODB_LICENSE_HREF} | &copy; ${MISTRAL_LICENSE_HREF} | &copy; ${DPC_LICENSE_HREF}`,
       maxZoom: this.maxZoom,
       minZoom: this.minZoom,
     },

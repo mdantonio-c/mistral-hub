@@ -78,14 +78,16 @@ app-meteo-tiles .leaflet-bottom:has(.leaflet-control-attribution) {
   box-sizing: border-box;
 }
 
-app-meteo-tiles .leaflet-left .leaflet-control, app-aim-observation-maps .leaflet-left .leaflet-control{
+app-meteo-tiles .leaflet-left .leaflet-control,
+app-aim-observation-maps .leaflet-left .leaflet-control {
   margin-left: 0 !important;
   margin-bottom: 5px !important;
 }
 
-app-meteo-tiles  .leaflet-bottom.leaflet-left, app-aim-observation-maps .leaflet-bottom.leaflet-left {
+app-meteo-tiles .leaflet-bottom.leaflet-left,
+app-aim-observation-maps .leaflet-bottom.leaflet-left {
   display: flex !important;
-  align-items:end;
+  align-items: end;
   z-index: 960;
 }
 
@@ -417,9 +419,17 @@ a.timecontrol-play.loading:before {
 app-radar-observation-maps .leaflet-control-attribution a:first-of-type {
   display: none !important;
 
- & + span {
-  display: none;
- }
+  & + span {
+    display: none;
+  }
+}
+
+app-sub-seasonal .leaflet-control-attribution a:first-of-type {
+  display: none !important;
+
+  & + span {
+    display: none;
+  }
 }
 
 @media (max-width: 767px) {
@@ -438,9 +448,7 @@ app-radar-observation-maps .leaflet-control-attribution a:first-of-type {
   margin-top: 10px;
 }
 
-
 /*Responsive legende e timebar*/
-
 
 @media screen and (max-width: 768px) {
   .legenda {
@@ -467,17 +475,21 @@ app-radar-observation-maps .leaflet-control-attribution a:first-of-type {
     max-width: 50% !important;
   }
   app-aim-observation-maps {
-        .legenda {
-        max-width: 42% !important;
+    .legenda {
+      max-width: 42% !important;
     }
   }
-   app-seasonal .legenda[src*="horizontal"] {
+  app-seasonal .legenda[src*="horizontal"] {
     max-width: 90% !important;
   }
 }
 
 @media screen and (max-width: 785px) {
-  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider,   app-aim-observation-maps .leaflet-bar-timecontrol .timecontrol-dateslider .slider {
+  app-meteo-tiles .leaflet-bar-timecontrol .timecontrol-dateslider .slider,
+  app-aim-observation-maps
+    .leaflet-bar-timecontrol
+    .timecontrol-dateslider
+    .slider {
     width: 150px !important;
   }
 
@@ -486,11 +498,15 @@ app-radar-observation-maps .leaflet-control-attribution a:first-of-type {
     margin-right: 0 !important;
   }
 
-  app-meteo-tiles .timecontrol-slider .knob.upper, app-aim-observation-maps .timecontrol-slider .knob.upper {
+  app-meteo-tiles .timecontrol-slider .knob.upper,
+  app-aim-observation-maps .timecontrol-slider .knob.upper {
     transform: translate3d(150px, 0px, 0px) !important;
   }
 
-  app-meteo-tiles .leaflet-bar-timecontrol .leaflet-control-timecontrol, app-aim-observation-maps .leaflet-bar-timecontrol .leaflet-control-timecontrol {
+  app-meteo-tiles .leaflet-bar-timecontrol .leaflet-control-timecontrol,
+  app-aim-observation-maps
+    .leaflet-bar-timecontrol
+    .leaflet-control-timecontrol {
     margin-right: 3px !important;
   }
 
