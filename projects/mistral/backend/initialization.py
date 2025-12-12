@@ -299,6 +299,7 @@ class Initializer:
                     license_id=ds_license.id,
                     attribution_id=ds_attribution.id,
                     category=ds["category"],
+                    source="arkimet",
                 )
                 if "format" in ds:
                     new_ds.fileformat = ds["format"]

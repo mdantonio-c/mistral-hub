@@ -15,10 +15,7 @@ export class AdminDatasetsComponent extends BasePaginationComponent<AdminDataset
   @ViewChild("emptyHeader", { static: false })
   public emptyHeader: TemplateRef<any>;
 
-  constructor(
-    protected injector: Injector,
-    private arcoService: ArcoService,
-  ) {
+  constructor(protected injector: Injector, private arcoService: ArcoService) {
     super(injector);
     this.init("dataset", "/api/admin/datasets", "AdminDatasets");
     this.initPaging();
@@ -33,6 +30,7 @@ export class AdminDatasetsComponent extends BasePaginationComponent<AdminDataset
       { name: "Description", prop: "description", flexGrow: 1 },
       { name: "License", prop: "license.name", flexGrow: 0.2 },
       { name: "Attribution", prop: "attribution.name", flexGrow: 0.2 },
+      { name: "Source", prop: "source", flexGrow: 0.2 },
       { name: "Sort Index", prop: "sort_index", flexGrow: 0.2 },
       {
         name: "controls",
@@ -64,6 +62,7 @@ export class AdminDatasetsComponent extends BasePaginationComponent<AdminDataset
             description: ds.description,
             category: ds.category,
             fileformat: ds.format,
+            source: ds.source,
             bounding: "",
             license: {
               id: "",

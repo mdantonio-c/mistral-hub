@@ -144,9 +144,10 @@ dataset_user_association_table = db.Table(
 
 class Datasets(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
-    arkimet_id = db.Column(db.String, index=True, unique=True)
+    arkimet_id = db.Column(db.String, index=True, unique=True, nullable=True)
     name = db.Column(db.String, index=True, nullable=False, unique=True)
     description = db.Column(db.String, nullable=False)
+    source = db.Column(db.String, nullable=False, default="arkimet")
     license_id = db.Column(db.Integer, db.ForeignKey("license.id"))
     attribution_id = db.Column(db.Integer, db.ForeignKey("attribution.id"))
     category = db.Column(db.Enum(DatasetCategories))

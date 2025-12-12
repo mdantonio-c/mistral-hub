@@ -40,7 +40,7 @@ export class StepDatasetsComponent extends StepComponent implements OnInit {
       .getDatasets()
       .subscribe(
         (response) => {
-          this.datasets = response;
+          this.datasets = response.filter((item) => item.source === "arkimet");
           // console.log('Dataset(s) loaded', this.datasets);
           if (this.datasets.length === 0) {
             this.notify.showWarning(

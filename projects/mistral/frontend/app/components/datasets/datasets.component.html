@@ -181,7 +181,7 @@
               <div class="d-flex w-100 justify-content-between">
                 <h5
                   class="ds-heading"
-                  [ngClass]="{ clickable: true }"
+                  [ngClass]="{ clickable: ds.source === 'arkimet' }"
                   (click)="openDataset(ds)"
                 >
                   {{ ds.name }}
@@ -228,7 +228,10 @@
                     <br />
                   </ng-template>
                   <small
-                    *ngIf="ds.id === 'ICON_2I_SURFACE_PRESSURE_LEVELS'"
+                    *ngIf="
+                      ds.id === 'ICON_2I_SURFACE_PRESSURE_LEVELS' ||
+                      ds.source === 'nwp'
+                    "
                     style="padding-right: 8px"
                     ><i
                       class="fa-solid fa-folder-tree clickable"
@@ -241,7 +244,7 @@
                     ><i
                       class="fa-solid fa-download clickable"
                       placement="bottom-end"
-                      *ngIf="!isArcoDataset(ds)"
+                      *ngIf="ds.source === 'arkimet'"
                       [ngbTooltip]="'Download data bundle'"
                       (click)="download(ds)"
                     ></i

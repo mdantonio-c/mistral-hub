@@ -181,6 +181,7 @@ export interface AdminDataset {
   name: string;
   description: string;
   category: string;
+  source: string;
   fileformat: string;
   /** @nullable */
   bounding: string;
@@ -197,6 +198,7 @@ export interface Dataset {
   description?: string;
   category: string;
   format: string;
+  source: string;
   bounding?: string;
 
   // attribution
@@ -223,6 +225,7 @@ export interface ArcoDataset {
   folder: string;
   description: string;
   category: string;
+  source: string;
   format: string;
   attribution: string;
   attribution_url: string | null;

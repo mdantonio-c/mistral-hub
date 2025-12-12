@@ -137,11 +137,13 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   }
 
   openDataset(ds: Dataset) {
-    const modalRef = this.modalService.open(DatasetDetailsComponent, {
-      size: "lg",
-      centered: true,
-    });
-    modalRef.componentInstance.dataset = ds;
+    if (ds.source === "arkimet") {
+      const modalRef = this.modalService.open(DatasetDetailsComponent, {
+        size: "lg",
+        centered: true,
+      });
+      modalRef.componentInstance.dataset = ds;
+    }
   }
 
   isArcoDataset(ds: Dataset): boolean {

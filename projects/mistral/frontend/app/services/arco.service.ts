@@ -71,13 +71,15 @@ export class ArcoService {
     const expirationSeconds = expiration
       ? Math.floor((expiration.getTime() - Date.now()) / 1000)
       : undefined;
-    const data = expirationSeconds ? { lifetime_seconds: expirationSeconds } : {};
+    const data = expirationSeconds
+      ? { lifetime_seconds: expirationSeconds }
+      : {};
     return this.api.post("/api/access-key", data);
   }
 
   public rotateAccessKey(expiration?: Date): Observable<AccessKey> {
     return this.revokeAccessKey().pipe(
-      switchMap(() => this.createAccessKey(expiration))
+      switchMap(() => this.createAccessKey(expiration)),
     );
     // return this.api.put("/api/access-key", data);
   }
@@ -101,6 +103,7 @@ export class ArcoService {
             description: item.attrs.model + " - " + item.attrs.history,
             category: "SEA",
             format: "ARCO",
+            source: "arco",
             attribution: "ItaliaMeteo-ARPAE",
             attribution_url: null,
             group_license: "CCBY_COMPLIANT",

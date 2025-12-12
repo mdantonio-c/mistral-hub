@@ -40,6 +40,9 @@ def get_output_schema():
     attributes["category"] = fields.Str(
         validate=validate.OneOf(["FOR", "OBS", "RAD", "SEA"])
     )
+    attributes["source"] = fields.Str(
+        validate=validate.OneOf(["arkimet", "nwp", "arco"])
+    )
     attributes["fileformat"] = fields.Str()
     attributes["bounding"] = fields.Str()
     attributes["sort_index"] = fields.Int(allow_none=True)
@@ -73,6 +76,9 @@ def getInputSchema(request, is_post):
     attributes["category"] = fields.Str(
         required=is_post,
         validate=validate.OneOf(["FOR", "OBS", "RAD", "SEA"]),
+    )
+    attributes["source"] = fields.Str(
+        validate=validate.OneOf(["arkimet", "nwp", "arco"]), load_default="arkimet"
     )
     attributes["fileformat"] = fields.Str(required=is_post)
     attributes["bounding"] = fields.Str(required=False)
@@ -167,6 +173,7 @@ class AdminDatasets(EndpointResource):
                 "fileformat": d.fileformat,
                 "bounding": d.bounding,
                 "sort_index": d.sort_index,
+                "source": d.source,
             }
             license = db.License.query.filter_by(id=d.license_id).first()
             el["license"] = {
