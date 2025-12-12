@@ -190,33 +190,43 @@
                   <button
                     *ngIf="isArcoDataset(ds)"
                     class="btn btn-outline-dark btn-sm p-1"
-                    style="margin-right: 8px;"
+                    style="margin-right: 8px"
                     ngxClipboard
                     [cbContent]="getArcoUrl(ds)"
-                    (cbOnSuccess)="notify.showSuccess('Data URL copied to clipboard')"
+                    (cbOnSuccess)="
+                      notify.showSuccess('Data URL copied to clipboard')
+                    "
                     [ngbTooltip]="arcoTooltip"
                   >
-                  Copy ARCO Data URL
+                    Copy ARCO Data URL
                     <img
                       src="/app/custom/assets/images/zarr-logo.png"
                       alt="ARCO"
-                      style="height: 20px;"
+                      style="height: 20px"
                     />
                   </button>
-                  <a 
-                    href="{{infoHome}}/arco-guide/" 
-                    target="_blank" 
+                  <a
+                    href="{{ infoHome }}/arco-guide/"
+                    target="_blank"
                     *ngIf="isArcoDataset(ds)"
-                    style="color: inherit; text-decoration: none; margin-right: 8px;"
+                    style="
+                      color: inherit;
+                      text-decoration: none;
+                      margin-right: 8px;
+                    "
                   >
-                    <i class="fa-solid fa-info clickable" ngbTooltip="View documentation"></i>
+                    <i
+                      class="fa-solid fa-info clickable"
+                      ngbTooltip="View documentation"
+                    ></i>
                   </a>
                   <ng-template #arcoTooltip>
                     Analysis-Ready, Cloud Optimized (ARCO) data in Zarr format.
-                    <br>
-                    Click on the <i class="fa-solid fa-info"></i> icon to learn more.
-                    <br>
-                    </ng-template>
+                    <br />
+                    Click on the <i class="fa-solid fa-info"></i> icon to learn
+                    more.
+                    <br />
+                  </ng-template>
                   <small
                     *ngIf="ds.id === 'ICON_2I_SURFACE_PRESSURE_LEVELS'"
                     style="padding-right: 8px"
@@ -224,7 +234,7 @@
                       class="fa-solid fa-folder-tree clickable"
                       placement="bottom-end"
                       [ngbTooltip]="'Browse single variable files'"
-                      (click)="openFileBrowsing()"
+                      (click)="openFileBrowsing(ds.id)"
                     ></i
                   ></small>
                   <small

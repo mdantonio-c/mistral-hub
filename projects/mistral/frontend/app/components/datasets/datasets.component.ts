@@ -195,8 +195,8 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
     console.log($event);
   }
 
-  openFileBrowsing() {
-    window.open(`${environment.backendURI}/nwp`, "_blank");
+  openFileBrowsing(id) {
+    window.open(`${environment.backendURI}/nwp/${id}`, "_blank");
   }
 
   getArcoUrl(ds: ArcoDataset): string {

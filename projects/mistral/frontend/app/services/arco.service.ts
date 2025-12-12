@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Observable, of } from "rxjs";
-import { retry, switchMap } from "rxjs/operators";
+import { retry, switchMap, map } from "rxjs/operators";
 import { ApiService } from "@rapydo/services/api";
 import { LocalStorageService } from "@rapydo/services/localstorage";
 import { AccessKey, ArcoDataset } from "@app/types";
@@ -91,28 +91,32 @@ export class ArcoService {
   }
 
   public getArcoDatasets(): Observable<ArcoDataset[]> {
-    // return this.api.get("/api/arco/datasets");
-    return of([
-      {
-        id: "ww3",
-        name: "MOCK data!",
-        format: "ARCO",
-        folder: "ww3.zarr",
-        attribution: "ItaliaMeteo-ARPAE",
-        description: "Description of MOCK dataset for ARCO testing purposes",
-        category: "SEA",
-        group_license: "CCBY_COMPLIANT",
-        license: "CCBY4.0",
-        attribution_url: null,
-        is_public: true,
-        // attribution_description: "Agenzia ItaliaMeteo in cooperation with Arpae Emilia-Romagna Idro-Meteo-Clima Service",
-        // group_license_description: "Group of licenses CC BY compliant",
-        // license_description: "CC BY 4.0",
-        // bounding: "",
-        // license_url: "https://creativecommons.org/licenses/by/4.0/legalcode",
-        // sort_index: 1,
-      },
-    ]);
+    return this.api.get<any[]>("/api/arco/datasets").pipe(
+      map((items) => {
+        return items.map((item) => {
+          return {
+            id: item.id,
+            name: item.attrs.product_name,
+            folder: item.folder,
+            description: item.attrs.model + " - " + item.attrs.history,
+            category: "SEA",
+            format: "ARCO",
+            attribution: "ItaliaMeteo-ARPAE",
+            attribution_url: null,
+            group_license: "CCBY_COMPLIANT",
+            license: "CCBY4.0",
+            is_public: true,
+            bounding: item.bounding,
+            attribution_description:
+              "Agenzia ItaliaMeteo in cooperation with Arpae Emilia-Romagna Idro-Meteo-Clima Service",
+            group_license_description: "Group of licenses CC BY compliant",
+            license_description: "CC BY 4.0",
+            license_url:
+              "https://creativecommons.org/licenses/by/4.0/legalcode",
+          } as ArcoDataset;
+        });
+      }),
+    );
   }
 
   public download(objectPath: string, fileName: string) {
