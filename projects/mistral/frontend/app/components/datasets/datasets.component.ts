@@ -137,17 +137,29 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   }
 
   openDataset(ds: Dataset) {
-    if (ds.source === "arkimet") {
-      const modalRef = this.modalService.open(DatasetDetailsComponent, {
-        size: "lg",
-        centered: true,
-      });
-      modalRef.componentInstance.dataset = ds;
+    switch (ds.source) {
+      case "arkimet":
+        const modalRef = this.modalService.open(DatasetDetailsComponent, {
+          size: "lg",
+          centered: true,
+        });
+        modalRef.componentInstance.dataset = ds;
+        break;
+      case "nwp":
+        this.openFileBrowsing(ds.id);
+        break;
+      case "arco":
+        this.openArcoDocumentation();
+        break;
     }
   }
 
   isArcoDataset(ds: Dataset): boolean {
     return ds.format === "ARCO";
+  }
+
+  openArcoDocumentation() {
+    window.open(`${this.infoHome}/arco-guide/`, "_blank");
   }
 
   download(ds: Dataset) {
