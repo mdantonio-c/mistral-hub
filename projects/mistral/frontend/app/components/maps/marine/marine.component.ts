@@ -327,7 +327,9 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     }
     if (layer == "t01") {
       if (this.map.hasLayer(overlays["t01"])) {
-        this.map.removeLayer(overlays["t01"]);
+        if (this.map.hasLayer(overlays["dir"])) {
+          this.map.removeLayer(overlays["t01"]);
+        }
       } else {
         if (this.map.hasLayer(overlays["hs"])) {
           this.map.removeLayer(overlays["hs"]);
@@ -337,7 +339,9 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     }
     if (layer == "hs") {
       if (this.map.hasLayer(overlays["hs"])) {
-        this.map.removeLayer(overlays["hs"]);
+        if (this.map.hasLayer(overlays["dir"])) {
+          this.map.removeLayer(overlays["hs"]);
+        }
       } else {
         if (this.map.hasLayer(overlays["t01"])) {
           this.map.removeLayer(overlays["t01"]);
