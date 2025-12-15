@@ -121,6 +121,27 @@
           >
         </a>
       </li>
+      <div class="last"></div>
+      <li class="sidenav-item realtime-info">
+        <span
+          class="info clickable"
+          [ngbTooltip]="
+            isCollapsed
+              ? ('To customize the loop, simply move the blue sliders on the timeline'
+                | translate : lang)
+              : null
+          "
+          container="body"
+        >
+        </span>
+        <a *ngIf="!isCollapsed">
+          <span class="nav-text">{{
+            "To customize the loop, simply move the blue sliders on the timeline"
+              | translate : lang
+          }}</span>
+        </a>
+      </li>
+      <div class="last"></div>
     </ul>
   </div>
 </nav>

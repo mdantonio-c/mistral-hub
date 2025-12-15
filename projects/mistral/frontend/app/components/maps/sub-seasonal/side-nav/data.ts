@@ -2,11 +2,11 @@ import * as L from "leaflet";
 export const Variables = {
   t2m: {
     label: "Temperature",
-    descr: "probability distributions weekly averaged",
+    descr: "Temperature",
   },
   tp: {
     label: "Total Precipitation",
-    descr: "probability distributions weekly averaged",
+    descr: "Total Precipitation",
   },
 };
 

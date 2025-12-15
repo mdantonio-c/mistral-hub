@@ -7,7 +7,7 @@
       [class.collapsed]="isCollapsed"
     ></label>
     <ul class="selector">
-      <li *ngIf="!isCollapsed" class="sidenav-item last">
+      <!--  <li *ngIf="!isCollapsed" class="sidenav-item last">
         <div class="mt-2 mb-2">
           <p class="fw-bold fs-6 mb-0 text-start">
             {{ "Most likely scenario" | translate : lang }}
@@ -16,7 +16,7 @@
             {{ "Probability of the most likely category" | translate : lang }}
           </p>
         </div>
-      </li>
+      </li>-->
       <ng-container
         *ngFor="let variable of variablesConfig | keyvalue; let last = last"
       >
@@ -44,7 +44,7 @@
         <span
           class="calendar mb-2"
           placement="left"
-          [ngbTooltip]="'Select Month'"
+          [ngbTooltip]="'Select Week' | translate : lang"
           [disableTooltip]="!isCollapsed"
         ></span>
         <a class="d-block" *ngIf="!isCollapsed">
