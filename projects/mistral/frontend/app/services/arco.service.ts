@@ -98,11 +98,11 @@ export class ArcoService {
         return items.map((item) => {
           return {
             id: item.id,
-            name: item.attrs.product_name,
+            name: item.attrs.model,
             folder: item.folder,
-            description: item.attrs.model + " - " + item.attrs.history,
+            description: this.generateDescription(item),
             category: "SEA",
-            format: "ARCO",
+            format: item.fileformat,
             source: "arco",
             attribution: "ItaliaMeteo-ARPAE",
             attribution_url: null,
@@ -120,6 +120,94 @@ export class ArcoService {
         });
       }),
     );
+  }
+
+  private generateDescription(item: any): string {
+    const attrs = item.attrs || {};
+    const parts: string[] = [];
+
+    // Model
+    let model = attrs.model || attrs.product_name || "";
+    if (model === "WW3 MEDITA") {
+      model = "WW3 sea wave model";
+    }
+    if (model) parts.push(model);
+
+    // Forecast Range
+    if (attrs.emission_date && attrs.stop_date) {
+      try {
+        // emission_date: "2025-12-10 00:00 UTC" -> "2025-12-10T00:00:00Z"
+        const startStr = attrs.start_date
+          .replace(" UTC", "Z")
+          .replace(" ", "T");
+        const startDate = new Date(startStr);
+        const stopDate = new Date(attrs.stop_date);
+        if (item.attrs.forecast_length_hours)
+          parts.push(`forecast range ${item.attrs.forecast_length_hours}h`);
+
+        if (!isNaN(startDate.getTime()) && !isNaN(stopDate.getTime())) {
+          // const diffMs = stopDate.getTime() - startDate.getTime();
+          // // 
+          // const diffHours = Math.round(diffMs / (1000 * 60 * 60)); // minus 24h offset
+          const formatDate = (date: Date) => {
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+          };
+          parts.push(`time range from ${formatDate(startDate)} to ${formatDate(stopDate)}`);
+          
+        }
+      } catch (e) {
+        console.warn("Error parsing dates", e);
+      }
+    }
+
+    // Run Time
+    if (attrs.emission_date) {
+      const match = attrs.emission_date.match(/(\d{2}):(\d{2})/);
+      if (match) {
+        parts.push(`run ${match[1]} UTC`);
+      }
+    }
+
+    // Domain
+    let domain = "";
+    if (attrs.area) {
+      domain += `${attrs.area} domain`;
+    }
+
+    let coords = "";
+    if (
+      attrs.northernmost_latitude &&
+      attrs.southernmost_latitude &&
+      attrs.westernmost_longitude &&
+      attrs.easternmost_longitude
+    ) {
+      const n = parseFloat(attrs.northernmost_latitude);
+      const s = parseFloat(attrs.southernmost_latitude);
+      const w = parseFloat(attrs.westernmost_longitude);
+      const e = parseFloat(attrs.easternmost_longitude);
+
+      const fmt = (val: number, isLat: boolean) => {
+        const dir = isLat ? (val >= 0 ? "N" : "S") : (val >= 0 ? "E" : "W");
+        return `${Math.abs(val)}°${dir}`;
+      };
+      coords = `${fmt(n, true)}, ${fmt(s, true)}, ${fmt(w, false)}, ${fmt(e, false)}`;
+    }
+
+    if (domain && coords) {
+      parts.push(`${domain}: ${coords}`);
+    } else if (domain) {
+      parts.push(domain);
+    } else if (coords) {
+      parts.push(`domain: ${coords}`);
+    }
+
+    let description = parts.join(", ");
+    description += " ; experimental distribution in Zarr format";
+
+    return description;
   }
 
   public download(objectPath: string, fileName: string) {

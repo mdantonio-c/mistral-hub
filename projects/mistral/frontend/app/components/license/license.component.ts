@@ -1,9 +1,11 @@
 import { Component, OnInit } from "@angular/core";
 import { DataService } from "../../services/data.service";
+import { ArcoService } from "../../services/arco.service";
 import { NotificationService } from "@rapydo/services/notification";
 import { ColumnMode } from "@swimlane/ngx-datatable";
 import { NgxSpinnerService } from "ngx-spinner";
 import { Router, Scroll } from "@angular/router";
+import { forkJoin } from "rxjs";
 
 @Component({
   selector: "license",
@@ -17,6 +19,7 @@ export class LicenseComponent implements OnInit {
 
   constructor(
     private dataService: DataService,
+    private arcoService: ArcoService,
     private notify: NotificationService,
     private spinner: NgxSpinnerService,
     private router: Router,
@@ -54,17 +57,23 @@ export class LicenseComponent implements OnInit {
   ngOnInit() {
     this.spinner.show();
     this.loading = true;
-    this.dataService
-      .getDatasets(true)
+    forkJoin({
+      datasets: this.dataService.getDatasets(true),
+      arcoDatasets: this.arcoService.getArcoDatasets(),
+    })
       .subscribe(
         (response) => {
-          this.data = response
+          this.data = response.datasets
             .filter((x) => x.name !== "COSMO-2Ipp_ecPoint")
             .filter((x) => x.name !== "multim-forecast");
+
+          this.data = [...this.data, ...response.arcoDatasets];
+
           let iff_dataset =
-            response.find((x) => x.name === "COSMO-2Ipp_ecPoint") || null;
+            response.datasets.find((x) => x.name === "COSMO-2Ipp_ecPoint") ||
+            null;
           let multim_dataset =
-            response.find((x) => x.name === "multim-forecast") || null;
+            response.datasets.find((x) => x.name === "multim-forecast") || null;
           // console.log('Data loaded', this.data);
           if (this.data.length === 0) {
             this.notify.showWarning(
