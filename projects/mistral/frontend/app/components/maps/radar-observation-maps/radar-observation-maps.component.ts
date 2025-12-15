@@ -294,7 +294,6 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     const radar_type = this.selectedProduct === Products.SRI ? "sri" : "srt";
     const lastRadarData$ = this.tileService.getLastRadarData(radar_type);
     lastRadarData$.subscribe((data) => {
-      console.log(data);
       const from = new Date(data.from);
       const to = new Date(data.to);
       this.lastDate = to;

@@ -420,6 +420,9 @@ $dark-blue: #004080;
 
 .realtime-info a {
   width: 83%;
+  display: flex;
+  justify-content: flex-start;
+  text-align: left;
 
   &:hover .nav-text {
     border-bottom: 0 !important;
