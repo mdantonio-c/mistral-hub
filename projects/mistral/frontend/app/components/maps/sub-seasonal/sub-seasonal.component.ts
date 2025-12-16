@@ -41,7 +41,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   options = {
     zoomControl: false,
     // center: L.latLng([41.3, 12.5]),
-    // maxBoundsViscosity: 1.0,
+    maxBoundsViscosity: 1.0,
     maxBounds: this.bounds,
     minZoom: this.minZoom,
     maxZoom: this.maxZoom,
@@ -82,7 +82,6 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   protected onMapReady(map: L.Map) {
     this.map = map;
     setTimeout(() => {
-      this.map.invalidateSize(true);
       this.map.setView([41.3, 12.5], 5);
     }, 200);
     //this.centerMap();
@@ -127,11 +126,12 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   }
 
   getTileWms(layerId: string, time: string) {
+    const isMobile = L.Browser.mobile;
     return L.tileLayer.wms(this.wmsPath, {
       layers: layerId,
       transparent: true,
       format: "image/png",
-      tileSize: 1024,
+      tileSize: isMobile ? 256 : 1024,
       time: time,
     } as any);
   }
