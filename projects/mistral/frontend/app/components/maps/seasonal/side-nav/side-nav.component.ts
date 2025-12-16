@@ -27,13 +27,14 @@ export class SideNavComponentSeasonal implements OnInit {
   @Input() maxZoomIn: number;
   @Input() minZoom: number;
   @Input() isMobile: boolean;
-
+  
   @Output() onCollapseChange: EventEmitter<boolean> =
-    new EventEmitter<boolean>();
+  new EventEmitter<boolean>();
   @Output() onVariableConfig = new EventEmitter<any>();
   @Output() onSelectedLayerChange = new EventEmitter<string>();
   @Output() onSelectedMonthChange = new EventEmitter<string>();
-
+  
+  infoHome: string = environment.CUSTOM.INFO_HOME;
   aboutPage: string = environment.CUSTOM.INFO_HOME + "/about?lang=en";
   selectedBaseLayer: string;
   selectedLayers: string;

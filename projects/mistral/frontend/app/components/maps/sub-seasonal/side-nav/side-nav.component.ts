@@ -32,6 +32,7 @@ export class SideNavComponentSubseasonal implements OnInit {
   @Output() onLayerChange = new EventEmitter<string>();
   variablesConfig = Variables;
 
+  infoHome: string = environment.CUSTOM.INFO_HOME;
   aboutPage: string = environment.CUSTOM.INFO_HOME + "/about?lang=en";
   selectedWeek;
   isCollapsed = false;
