@@ -155,7 +155,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   }
 
   isArcoDataset(ds: Dataset): boolean {
-    return ds.format === "ARCO";
+    return ds.format === "zarr" || ds.format === "ARCO";
   }
 
   openArcoDocumentation() {
@@ -163,7 +163,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   }
 
   download(ds: Dataset) {
-    if (ds.format === "ARCO") {
+    if (ds.format === "zarr" || ds.format === "ARCO") {
       this.arcoService.download(ds.id, ds.id + ".zarr.zip");
     } else {
       this.openDataset(ds);

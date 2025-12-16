@@ -64,7 +64,8 @@ export class ProfileComponent {
         if (error.status === 404) {
           this.accessKey = null;
         } else {
-          this.notify.showError(error);
+          // this.notify.showError(error);
+          console.warn("Could not load access key:", error);
         }
       }
     );
