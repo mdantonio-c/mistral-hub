@@ -27,7 +27,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   wmsPath;
   run;
   weekList = [];
-  bounds = new L.LatLngBounds(new L.LatLng(30, -20), new L.LatLng(55, 50));
+  bounds = new L.LatLngBounds(new L.LatLng(25, -20), new L.LatLng(55, 50));
   private maps_url: string = "";
   private legendControl;
   constructor(injector: Injector, private tileService: TilesService) {
@@ -40,7 +40,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
 
   options = {
     zoomControl: false,
-    center: L.latLng([41.3, 12.5]),
+    // center: L.latLng([41.3, 12.5]),
     maxBoundsViscosity: 1.0,
     maxBounds: this.bounds,
     minZoom: this.minZoom,
@@ -69,7 +69,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     if (this.map) {
       //const mapCenter = super.getMapCenter();
       // map center for ICON
-      const mapCenter = L.latLng(41.3, 12.5);
+      const mapCenter = L.latLng(45, 12.5);
       this.map.fitBounds(this.bounds);
       this.map.setZoom(this.minZoom + 1);
     }
@@ -82,7 +82,6 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   protected onMapReady(map: L.Map) {
     this.map = map;
     setTimeout(() => {
-      this.map.invalidateSize(true);
       this.map.setView([41.3, 12.5], 5);
     }, 200);
     //this.centerMap();
@@ -127,11 +126,12 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   }
 
   getTileWms(layerId: string, time: string) {
+    const isMobile = L.Browser.mobile;
     return L.tileLayer.wms(this.wmsPath, {
       layers: layerId,
       transparent: true,
       format: "image/png",
-      tileSize: 1024,
+      tileSize: isMobile ? 256 : 1024,
       time: time,
     } as any);
   }

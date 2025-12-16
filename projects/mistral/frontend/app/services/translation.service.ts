@@ -113,7 +113,7 @@ export class TranslationService {
         "wave period": "Periodo onda",
         // radar
         "(integrated with rain gauges)": "(integrato con pluviometri)",
-        "to customize the loop range, simply move the blue sliders on the timeline":
+        "to customize the loop range, move the blue sliders on the timeline":
           "Per personalizzare l'estensione loop, muovi i cursori blu sulla barra del tempo",
         //subseasonal
         "most likely scenario": "Scenario più probabile",

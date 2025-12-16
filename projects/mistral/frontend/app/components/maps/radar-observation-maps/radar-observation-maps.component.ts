@@ -296,6 +296,10 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     lastRadarData$.subscribe((data) => {
       const from = new Date(data.from);
       const to = new Date(data.to);
+
+      const hasNewData =
+        !this.lastDate || to.getTime() !== this.lastDate.getTime();
+
       this.lastDate = to;
       const newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
         from,
@@ -305,17 +309,9 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
       const td = (this.map as any)?.timeDimension;
       if (td) {
         td.setAvailableTimes(newAvailableTimes, "replace");
-        const current = td.getCurrentTime();
-        if (newAvailableTimes.includes(current) && !reload) {
-          return;
-        }
-        td.setCurrentTime(to.getTime());
-      }
-      if (td && td.getAvailableTimes().length > 0) {
-        const currentTimes = td.getAvailableTimes();
-        const last = currentTimes[currentTimes.length - 1];
-        if (last === to.getTime()) {
-          return;
+
+        if (hasNewData || reload) {
+          td.setCurrentTime(to.getTime());
         }
       }
     });
