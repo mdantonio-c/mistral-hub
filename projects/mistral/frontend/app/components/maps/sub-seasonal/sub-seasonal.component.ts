@@ -137,7 +137,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   }
   public loadWeeks(reload: boolean = false) {
     const readyFileName = "READY.json";
-    /* fetch(`${this.maps_url}/api/sub-seasonal/status`)
+    fetch(`${this.maps_url}/api/sub-seasonal/status`)
       .then((response) => response.json())
       .then((data) => {
         const from = new Date(data.from);
@@ -148,14 +148,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
         )}-${data.run.slice(0, 4)}`;
         this.weekList = this.getWeeksBetween(from, to);
         this.afterWeeksLoaded();
-      });*/
-
-    const from = "2025-12-22T00:00:00";
-    const to = "2026-01-12T00:00:00";
-    const run1 = "20251215";
-    this.run = `${run1.slice(6, 8)}-${run1.slice(4, 6)}-${run1.slice(0, 4)}`;
-    this.weekList = this.getWeeksBetween(new Date(from), new Date(to));
-    this.afterWeeksLoaded();
+      });
   }
   private getWeeksBetween(from: Date, to: Date): string[] {
     const format = (d: Date) =>
