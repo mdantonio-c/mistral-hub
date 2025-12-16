@@ -142,8 +142,11 @@ export class ArcoService {
           .replace(" ", "T");
         const startDate = new Date(startStr);
         const stopDate = new Date(attrs.stop_date);
-        if (item.attrs.forecast_length_hours)
-          parts.push(`forecast range ${item.attrs.forecast_length_hours}h`);
+        if (item.attrs.forecast_length_hours) {
+          const hours = item.attrs.forecast_length_hours;
+          const sign = typeof hours === 'number' ? (hours >= 0 ? '+' : '') : '';
+          parts.push(`forecast range ${sign}${hours}h`);
+        }
 
         if (!isNaN(startDate.getTime()) && !isNaN(stopDate.getTime())) {
           // const diffMs = stopDate.getTime() - startDate.getTime();
