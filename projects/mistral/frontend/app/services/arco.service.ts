@@ -143,7 +143,7 @@ export class ArcoService {
         const startDate = new Date(startStr);
         const stopDate = new Date(attrs.stop_date);
         if (item.attrs.forecast_length_hours) {
-          const hours = item.attrs.forecast_length_hours;
+          const hours = Number(item.attrs.forecast_length_hours);
           const sign = typeof hours === 'number' ? (hours >= 0 ? '+' : '') : '';
           parts.push(`forecast range ${sign}${hours}h`);
         }
