@@ -140,27 +140,26 @@ export class ArcoService {
         const startStr = attrs.start_date
           .replace(" UTC", "Z")
           .replace(" ", "T");
-        const startDate = new Date(startStr);
-        const stopDate = new Date(attrs.stop_date);
         if (item.attrs.forecast_length_hours) {
           const hours = Number(item.attrs.forecast_length_hours);
           const sign = typeof hours === 'number' ? (hours >= 0 ? '+' : '') : '';
           parts.push(`forecast range ${sign}${hours}h`);
         }
+        // const startDate = new Date(startStr);
+        // const stopDate = new Date(attrs.stop_date);
 
-        if (!isNaN(startDate.getTime()) && !isNaN(stopDate.getTime())) {
-          // const diffMs = stopDate.getTime() - startDate.getTime();
-          // // 
-          // const diffHours = Math.round(diffMs / (1000 * 60 * 60)); // minus 24h offset
-          const formatDate = (date: Date) => {
-            const dd = String(date.getDate()).padStart(2, '0');
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const yyyy = date.getFullYear();
-            return `${dd}/${mm}/${yyyy}`;
-          };
-          parts.push(`time range from ${formatDate(startDate)} to ${formatDate(stopDate)}`);
-          
-        }
+        // if (!isNaN(startDate.getTime()) && !isNaN(stopDate.getTime())) {
+        //   // const diffMs = stopDate.getTime() - startDate.getTime();
+        //   // // 
+        //   // const diffHours = Math.round(diffMs / (1000 * 60 * 60)); // minus 24h offset
+        //   const formatDate = (date: Date) => {
+        //     const dd = String(date.getDate()).padStart(2, '0');
+        //     const mm = String(date.getMonth() + 1).padStart(2, '0');
+        //     const yyyy = date.getFullYear();
+        //     return `${dd}/${mm}/${yyyy}`;
+        //   };
+        //   parts.push(`time range from ${formatDate(startDate)} to ${formatDate(stopDate)}`);
+        // }
       } catch (e) {
         console.warn("Error parsing dates", e);
       }
