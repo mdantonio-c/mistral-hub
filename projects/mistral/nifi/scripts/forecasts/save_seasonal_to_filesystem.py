@@ -19,9 +19,9 @@ expected_tree = {
     "tiff/sum_P",
 }
 
-TIFF_DEST_DIR = Path("/opt/nifi/nfs/seasonal")
-# TODO JSON_DEST_DIR = Path("")
-# TODO GRIB_DEST_DIR = Path("")
+TIFF_DEST_DIR = Path("/opt/nifi/nfs/seasonal/tiff")
+JSON_DEST_DIR = Path("/opt/nifi/nfs/seasonal/json")
+GRIB_DEST_DIR = Path("/opt/nifi/seasonal_grib")
 
 # read the content from stdin
 zip_bytes = sys.stdin.buffer.read()
@@ -92,6 +92,25 @@ with tempfile.TemporaryDirectory() as tmpdir_str:
                     shutil.copytree(tiff_p, target)
                 else:
                     shutil.copy2(tiff_p, target)
+        if p.is_dir() and p.name == "json":
+            # move the content of the folder inside the json folder
+            # clean the destination output
+            if JSON_DEST_DIR.exists():
+                for item in JSON_DEST_DIR.iterdir():
+                    item.unlink()
+            else:
+                JSON_DEST_DIR.mkdir(parents=True)
+            for json_f in p.iterdir():
+                target = Path(JSON_DEST_DIR, json_f.name)
+                shutil.copy2(json_f, target)
+        if p.is_dir() and p.name == "grib":
+            # create the subfolder representing the run
+            grib_target_dir = Path(GRIB_DEST_DIR, monthly_file_date)
+            grib_target_dir.mkdir(parents=True)
+            # copy the grib files inside the newly created dir
+            for grib_f in p.iterdir():
+                target = Path(grib_target_dir, grib_f.name)
+                shutil.copy2(grib_f, target)
 
 # Success
 # give to stdout the date to be set as flowfile attribute
