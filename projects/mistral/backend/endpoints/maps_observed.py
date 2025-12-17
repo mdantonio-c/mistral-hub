@@ -120,7 +120,7 @@ class MapsObservations(EndpointResource):
             networks_list = [x.strip() for x in networks.split(" or ")]
             for n in networks_list:
                 # check user authorization for the requested network
-                dataset_name = arki.from_network_to_dataset(networks)
+                dataset_name = arki.from_network_to_dataset(n)
                 if not dataset_name:
                     raise NotFound("The requested network does not exists")
                 check_auth = SqlApiDbManager.check_dataset_authorization(
@@ -179,9 +179,13 @@ class MapsObservations(EndpointResource):
         try:
             all_dsn = set()
             if networks_list:
-                for d in networks_list:
+                for n in networks_list:
+                    # get dataset name (note that dataset name corresponds to arkimet id)
+                    dataset_name = arki.from_network_to_dataset(n)
+                    if not dataset_name:
+                        raise NotFound("The requested network does not exists")
                     group_license, dsn_subset = dballe.check_access_authorization(
-                        user, query["license"], d
+                        user, query["license"], dataset_name
                     )
                     all_dsn.update(dsn_subset)
                 dsn_subset = list(all_dsn)
