@@ -19,8 +19,8 @@ expected_tree = {
     "tiff/sum_P",
 }
 
-TIFF_DEST_DIR = Path("/opt/nifi/nfs/seasonal/tiff")
-JSON_DEST_DIR = Path("/opt/nifi/nfs/seasonal/json")
+TIFF_DEST_DIR = Path("/opt/nifi/nfs/seasonal")
+JSON_DEST_DIR = Path("/opt/nifi/nfs/seasonal/boxplot")
 GRIB_DEST_DIR = Path("/opt/nifi/seasonal_grib")
 
 # read the content from stdin
