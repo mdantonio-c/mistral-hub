@@ -44,7 +44,7 @@ $dark-blue: #004080;
   top: 0;
   right: 0;
   position: relative;
-  z-index: 1000;
+  z-index: 1018;
   pointer-events: none;
   float: right;
   height: 100%;
@@ -253,6 +253,7 @@ $dark-blue: #004080;
 }
 .carte {
   background-image: url("/app/custom/assets/images/icons/map_style.svg");
+  margin-left: 0 !important;
 }
 .book {
   background-image: url("/app/custom/assets/images/icons/book.svg");
@@ -489,7 +490,7 @@ $dark-blue: #004080;
   .plus,
   .minus,
   .info,
-  .book {
+  .book, .carte {
     margin-top: 5px;
     padding: 10px;
     width: 22px;
@@ -503,11 +504,11 @@ $dark-blue: #004080;
     width: 240px;
 
     .map-sidenav-menu .toggle {
-      margin-left: 194px;
+      margin-left: 164px;
     }
   }
   .map-sidenav.collapsed {
-    width: 42px !important;
+    width: 40px !important;
 
     & .toggle {
       margin-left: 4px !important;

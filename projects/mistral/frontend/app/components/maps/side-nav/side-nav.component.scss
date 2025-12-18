@@ -92,9 +92,8 @@ $dark-blue: #004080;
       margin-top: -5px;
 
       &.collapsed {
-        margin-left: 8px;
+        margin-left: 1px;
         background-image: url("/app/custom/assets/images/icons/menu_burger.svg");
-        left: 0;
       }
     }
 
@@ -135,6 +134,7 @@ $dark-blue: #004080;
       justify-content: flex-start;
       align-items: center;
       flex-wrap: nowrap;
+      margin-left:4px;
       //border-bottom: 1px solid rgba(255, 255, 255, 0.349);
 
       .last {
@@ -205,7 +205,6 @@ $dark-blue: #004080;
   padding: 10px;
   width: 24px;
   height: 24px;
-  margin-left: 3px;
 }
 
 .t2m {
@@ -861,10 +860,6 @@ $dark-blue: #004080;
     padding: 10px;
     width: 22px;
     height: 22px;
-    margin-left: 5px;
-  }
-
-  .realtime-info {
     margin-left: 5px;
   }
 }

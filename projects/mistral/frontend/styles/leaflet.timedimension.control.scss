@@ -416,8 +416,13 @@ a.timecontrol-play.loading:before {
   width: auto !important;
 }
 
-app-marine img[src*="hs.svg"] {
+app-marine {
+  img[src*="hs.svg"] {
   margin-bottom: -20px !important;
+}
+.leaflet-bar {
+ margin-left: -20px !important;
+}
 }
 app-radar-observation-maps .leaflet-control-attribution a:first-of-type {
   display: none !important;
