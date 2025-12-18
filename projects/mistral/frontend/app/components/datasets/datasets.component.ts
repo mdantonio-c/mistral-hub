@@ -5,7 +5,8 @@ import {
   ViewChild,
   AfterViewInit,
 } from "@angular/core";
-import { forkJoin } from "rxjs";
+import { forkJoin, of } from "rxjs";
+import { catchError } from "rxjs/operators";
 import { Dataset, ArcoDataset } from "../../types";
 import { NotificationService } from "@rapydo/services/notification";
 import { AuthService } from "@rapydo/services/auth";
@@ -90,7 +91,7 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
     this.spinner.show();
     forkJoin({
       datasets: this.dataService.getDatasets(true),
-      arcoDatasets: this.arcoService.getArcoDatasets(),
+      arcoDatasets: this.arcoService.getArcoDatasets().pipe(catchError(() => of([]))),
     })
       .subscribe(
         (result) => {

@@ -1,5 +1,6 @@
 import { Component, ViewChild, TemplateRef, Injector } from "@angular/core";
-import { forkJoin, Subject } from "rxjs";
+import { forkJoin, Subject, of } from "rxjs";
+import { catchError } from "rxjs/operators";
 import { ArcoService } from "../../services/arco.service";
 
 import { Attribution } from "../../types";
@@ -54,7 +55,7 @@ export class AdminAttributionsComponent extends BasePaginationComponent<Attribut
     this.loading = true;
     forkJoin({
       attributions: this.api.get<Attribution[]>("/api/admin/attributions"),
-      arco: this.arcoService.getArcoDatasets(),
+      arco: this.arcoService.getArcoDatasets().pipe(catchError(() => of([]))),
     }).subscribe(
       (response) => {
         const attributions = response.attributions;

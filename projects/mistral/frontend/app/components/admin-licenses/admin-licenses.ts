@@ -1,5 +1,6 @@
 import { Component, ViewChild, TemplateRef, Injector } from "@angular/core";
-import { forkJoin, Subject } from "rxjs";
+import { forkJoin, Subject, of } from "rxjs";
+import { catchError } from "rxjs/operators";
 import { ApiService } from "@rapydo/services/api";
 import { ArcoService } from "../../services/arco.service";
 import { License } from "../../types";
@@ -55,7 +56,7 @@ export class AdminLicensesComponent extends BasePaginationComponent<License> {
     this.loading = true;
     forkJoin({
       licenses: this.api.get<License[]>("/api/admin/licenses"),
-      arco: this.arcoService.getArcoDatasets(),
+      arco: this.arcoService.getArcoDatasets().pipe(catchError(() => of([]))),
     }).subscribe(
       (response) => {
         const licenses = response.licenses;

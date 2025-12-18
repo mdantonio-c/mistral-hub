@@ -5,7 +5,8 @@ import { NotificationService } from "@rapydo/services/notification";
 import { ColumnMode } from "@swimlane/ngx-datatable";
 import { NgxSpinnerService } from "ngx-spinner";
 import { Router, Scroll } from "@angular/router";
-import { forkJoin } from "rxjs";
+import { forkJoin, of } from "rxjs";
+import { catchError } from "rxjs/operators";
 
 @Component({
   selector: "license",
@@ -59,7 +60,7 @@ export class LicenseComponent implements OnInit {
     this.loading = true;
     forkJoin({
       datasets: this.dataService.getDatasets(true),
-      arcoDatasets: this.arcoService.getArcoDatasets(),
+      arcoDatasets: this.arcoService.getArcoDatasets().pipe(catchError(() => of([]))),
     })
       .subscribe(
         (response) => {

@@ -1,5 +1,6 @@
 import { Component, ViewChild, TemplateRef, Injector } from "@angular/core";
-import { forkJoin, Subject } from "rxjs";
+import { forkJoin, Subject, of } from "rxjs";
+import { catchError } from "rxjs/operators";
 import { ArcoService } from "../../services/arco.service";
 
 import { AdminDataset } from "../../types";
@@ -48,7 +49,7 @@ export class AdminDatasetsComponent extends BasePaginationComponent<AdminDataset
     this.loading = true;
     forkJoin({
       datasets: this.api.get<AdminDataset[]>("/api/admin/datasets"),
-      arco: this.arcoService.getArcoDatasets(),
+      arco: this.arcoService.getArcoDatasets().pipe(catchError(() => of([]))),
     }).subscribe(
       (response) => {
         const datasets = response.datasets;
