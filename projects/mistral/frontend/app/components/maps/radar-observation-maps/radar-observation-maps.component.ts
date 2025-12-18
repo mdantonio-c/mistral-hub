@@ -277,7 +277,12 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
 
   addIconBorderLayer() {
     fetch("./app/custom/assets/images/geoJson/confini_mediterraneo.geojson")
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("HTTP error " + response.status);
+        }
+        return response.json();
+      })
       .then((data) => {
         L.geoJSON(data, {
           style: {
@@ -286,6 +291,12 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
             opacity: 1,
           },
         }).addTo(this.map);
+      })
+      .catch((error) => {
+        console.error(
+          "Error in downloading confini_mediterraneo.geojson:",
+          error.message,
+        );
       });
   }
 
@@ -293,29 +304,45 @@ export class RadarComponent extends BaseMapComponent implements OnInit {
     this.timeLoading = true;
     const radar_type = this.selectedProduct === Products.SRI ? "sri" : "srt";
     const lastRadarData$ = this.tileService.getLastRadarData(radar_type);
-    lastRadarData$.subscribe((data) => {
-      const from = new Date(data.from);
-      const to = new Date(data.to);
+    lastRadarData$.subscribe({
+      next: (data) => {
+        try {
+          const from = new Date(data.from);
+          const to = new Date(data.to);
 
-      const hasNewData =
-        !this.lastDate || to.getTime() !== this.lastDate.getTime();
+          const hasNewData =
+            !this.lastDate || to.getTime() !== this.lastDate.getTime();
 
-      this.lastDate = to;
-      const newAvailableTimes = (L as any).TimeDimension.Util.explodeTimeRange(
-        from,
-        to,
-        this.options.timeDimensionOptions.period,
-      );
-      const td = (this.map as any)?.timeDimension;
-      if (td) {
-        td.setAvailableTimes(newAvailableTimes, "replace");
+          this.lastDate = to;
+          const newAvailableTimes = (
+            L as any
+          ).TimeDimension.Util.explodeTimeRange(
+            from,
+            to,
+            this.options.timeDimensionOptions.period,
+          );
+          const td = (this.map as any)?.timeDimension;
+          if (td) {
+            td.setAvailableTimes(newAvailableTimes, "replace");
 
-        if (hasNewData || reload) {
-          td.setCurrentTime(to.getTime());
+            if (hasNewData || reload) {
+              td.setCurrentTime(to.getTime());
+            }
+          }
+          this.timeLoading = false;
+        } catch (error) {
+          console.error("Error in getting last radar data", error);
+          this.timeLoading = false;
         }
-      }
+      },
+      error: (error) => {
+        console.error(
+          "Error in retrieving last radar data",
+          error?.message || error,
+        );
+        this.timeLoading = false;
+      },
     });
-    this.timeLoading = false;
   }
   ngOnDestroy(): void {
     if (this.timelineInterval) {
