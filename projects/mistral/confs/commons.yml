@@ -93,6 +93,7 @@ services:
       - ${DATA_DIR}/nifi/error_flowfiles:/opt/nifi/nifi_error_flowfile
       - ${DATA_DIR}/nifi/amqp_flowfiles:/opt/nifi/nifi_ok_flowfile
       - ${DATA_DIR}/nifi/nfs:/opt/nifi/nfs
+      - ${DATA_DIR}/seasonal:/opt/nifi/seasonal_grib
 
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
