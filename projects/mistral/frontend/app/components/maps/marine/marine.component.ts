@@ -267,15 +267,28 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
         .format("DD-MM-YYYY-HH-mm");
       const geoJsonName = current + ".geojson";
       const vector$ = this.tilesService.getGeoJsonVectors(geoJsonName);
-      vector$.subscribe((data) => {
-        if (!this.removeArrowLayer) {
-          if (this.arrowLayer) {
-            this.map.removeLayer(this.arrowLayer);
+      vector$.subscribe({
+        next: (data) => {
+          try {
+            if (!this.removeArrowLayer) {
+              if (this.arrowLayer) {
+                this.map.removeLayer(this.arrowLayer);
+              }
+              this.arrowLayer = this.addArrowLayer(data);
+              this.arrowLayer.addTo(this.map);
+              this.layersControl["overlays"]["dir"] = this.arrowLayer;
+            }
+          } catch (error) {
+            console.error(" Error adding ", geoJsonName, error);
           }
-          this.arrowLayer = this.addArrowLayer(data);
-          this.arrowLayer.addTo(this.map);
-          this.layersControl["overlays"]["dir"] = this.arrowLayer;
-        }
+        },
+        error: (error) => {
+          console.error(
+            " Error retrieving ",
+            geoJsonName,
+            error?.message || error,
+          );
+        },
       });
     });
   }
@@ -304,6 +317,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
       return;
     }
     const overlays = this.layersControl["overlays"];
+
     if (this.map.hasLayer(overlays["dir"])) {
       if (
         this.map.hasLayer(overlays["t01"]) ||
@@ -352,22 +366,27 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     this.updateLegends(layer);
   }
   private addArrowLayer(data): L.LayerGroup {
-    const markers = data.features.map((feature) => {
-      const coords = feature.geometry.coordinates;
-      const lat = coords[0][1];
-      const lon = coords[0][0];
-      const direction = feature.properties.direction;
-      const color = "#000000";
-      /*const arrowIcon = L.icon({
-            iconUrl: this.createArrowSVG(color, direction),
-            iconSize: [20, 20],
-            iconAnchor: [10, 10],
-            popupAnchor: [0, -10],
+    if (!data || !data.features || !Array.isArray(data.features)) {
+      return L.layerGroup([]);
+    }
+    const markers = data.features
+      .map((feature) => {
+        try {
+          const coords = feature.geometry?.coordinates;
+          const lat = coords[0][1];
+          const lon = coords[0][0];
+          const direction = feature.properties.direction;
+          const color = "#000000";
+          /*const arrowIcon = L.icon({
+              iconUrl: this.createArrowSVG(color, direction),
+              iconSize: [20, 20],
+              iconAnchor: [10, 10],
+              popupAnchor: [0, -10],
+              className: "arrow-icon",
+            });*/
+          const arrowIcon = L.divIcon({
             className: "arrow-icon",
-          });*/
-      const arrowIcon = L.divIcon({
-        className: "arrow-icon",
-        html: `
+            html: `
     <div style="
       position: relative;
       width: 1px;
@@ -388,12 +407,17 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
       "></div>
     </div>
   `,
-        iconSize: [10, 10], // ridotto
-        iconAnchor: [5, 6], // ridotto
-      });
+            iconSize: [10, 10], // ridotto
+            iconAnchor: [5, 6], // ridotto
+          });
 
-      return L.marker([lat, lon], { icon: arrowIcon });
-    });
+          return L.marker([lat, lon], { icon: arrowIcon });
+        } catch (error) {
+          console.error("Error adding arrow marker", error, feature);
+          return null;
+        }
+      })
+      .filter((marker) => marker != null);
     return L.layerGroup(markers);
   }
   createArrowSVG(color, direction) {

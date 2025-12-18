@@ -75,9 +75,13 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     }
   }
   public receiveWeek(week: string) {
-    console.log("week", week);
-    this.selectedWeek = week;
-    this.toggleLayer(this.selectedLayer, true);
+    try {
+      console.log("week", week);
+      this.selectedWeek = week;
+      this.toggleLayer(this.selectedLayer, true);
+    } catch (error) {
+      console.log("Error in defining week", error);
+    }
   }
   protected onMapReady(map: L.Map) {
     this.map = map;
@@ -108,18 +112,22 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     return "";
   }
   protected toggleLayer(obj, receiveWeek: boolean = false) {
-    if (!receiveWeek) this.selectedLayer = Variables[obj].label;
-    else this.selectedLayer = obj;
-    if (this.map.hasLayer(this.layersControl["overlays"])) {
-      this.map.removeLayer(this.layersControl["overlays"]);
+    try {
+      if (!receiveWeek) this.selectedLayer = Variables[obj].label;
+      else this.selectedLayer = obj;
+      if (this.map.hasLayer(this.layersControl["overlays"])) {
+        this.map.removeLayer(this.layersControl["overlays"]);
+      }
+      const key = Object.keys(Variables).find(
+        (k) => Variables[k].label === this.selectedLayer,
+      );
+      const date = this.extractAndFormatDate(this.selectedWeek);
+      this.addLayerGroup(key, date);
+      this.layersControl["overlays"].addTo(this.map);
+      this.updateLegends(key);
+    } catch (error) {
+      console.log("Error in toggling layer", error);
     }
-    const key = Object.keys(Variables).find(
-      (k) => Variables[k].label === this.selectedLayer,
-    );
-    const date = this.extractAndFormatDate(this.selectedWeek);
-    this.addLayerGroup(key, date);
-    this.layersControl["overlays"].addTo(this.map);
-    this.updateLegends(key);
   }
   public printReferenceDate() {
     return "";
@@ -136,7 +144,6 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     } as any);
   }
   public loadWeeks(reload: boolean = false) {
-    const readyFileName = "READY.json";
     fetch(`${this.maps_url}/api/sub-seasonal/status`)
       .then((response) => response.json())
       .then((data) => {
@@ -151,37 +158,46 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
       });
   }
   private getWeeksBetween(from: Date, to: Date): string[] {
-    const format = (d: Date) =>
-      `${String(d.getDate()).padStart(2, "0")}/${String(
-        d.getMonth() + 1,
-      ).padStart(2, "0")}/${d.getFullYear()}`;
+    try {
+      const format = (d: Date) =>
+        `${String(d.getDate()).padStart(2, "0")}/${String(
+          d.getMonth() + 1,
+        ).padStart(2, "0")}/${d.getFullYear()}`;
 
-    const weeks: string[] = [];
+      const weeks: string[] = [];
 
-    let current = new Date(from);
+      let current = new Date(from);
 
-    while (current <= to) {
-      const start = new Date(current);
-      const end = new Date(current);
-      end.setDate(end.getDate() + 6);
+      while (current <= to) {
+        const start = new Date(current);
+        const end = new Date(current);
+        end.setDate(end.getDate() + 6);
 
-      weeks.push(`${format(start)} - ${format(end)}`);
-      current.setDate(current.getDate() + 7);
+        weeks.push(`${format(start)} - ${format(end)}`);
+        current.setDate(current.getDate() + 7);
+      }
+
+      return weeks;
+    } catch (error) {
+      console.log("Error in getting weeks", error);
+      return [];
     }
-
-    return weeks;
   }
 
   private afterWeeksLoaded() {
-    if (!this.map) return;
-    const key = Object.keys(Variables).find(
-      (k) => Variables[k].label === this.selectedLayer,
-    );
-    const firstWeekDate = this.extractAndFormatDate(this.weekList[0]);
-    this.selectedWeek = this.weekList[0];
-    this.addLayerGroup(key, firstWeekDate);
-    this.layersControl["overlays"].addTo(this.map);
-    this.updateLegends(key);
+    try {
+      if (!this.map) return;
+      const key = Object.keys(Variables).find(
+        (k) => Variables[k].label === this.selectedLayer,
+      );
+      const firstWeekDate = this.extractAndFormatDate(this.weekList[0]);
+      this.selectedWeek = this.weekList[0];
+      this.addLayerGroup(key, firstWeekDate);
+      this.layersControl["overlays"].addTo(this.map);
+      this.updateLegends(key);
+    } catch (error) {
+      console.error("Error in loading weeks", error);
+    }
   }
   private extractAndFormatDate(rangeString) {
     const firstPart = rangeString.split(" - ")[0];
@@ -190,29 +206,38 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   }
 
   private addLayerGroup(key, date) {
-    const terzile1 = this.getTileWms(Layers[key].terzile_1, date).setOpacity(
-      0.6,
-    );
-    const terzile2 = this.getTileWms(Layers[key].terzile_2, date).setOpacity(
-      0.6,
-    );
-    const terzile3 = this.getTileWms(Layers[key].terzile_3, date).setOpacity(
-      0.6,
-    );
-    const quintile1 = this.getTileWms(Layers[key].quintile_1, date).setOpacity(
-      0.6,
-    );
-    const quintile5 = this.getTileWms(Layers[key].quintile_5, date).setOpacity(
-      0.6,
-    );
-    const layerGroup = L.layerGroup([
-      terzile1,
-      terzile2,
-      terzile3,
-      quintile1,
-      quintile5,
-    ]);
-    this.layersControl["overlays"] = layerGroup;
+    try {
+      if (!Layers[key]) {
+        throw new Error(`Layer ${key} not found`);
+      }
+      const terzile1 = this.getTileWms(Layers[key].terzile_1, date).setOpacity(
+        0.6,
+      );
+      const terzile2 = this.getTileWms(Layers[key].terzile_2, date).setOpacity(
+        0.6,
+      );
+      const terzile3 = this.getTileWms(Layers[key].terzile_3, date).setOpacity(
+        0.6,
+      );
+      const quintile1 = this.getTileWms(
+        Layers[key].quintile_1,
+        date,
+      ).setOpacity(0.6);
+      const quintile5 = this.getTileWms(
+        Layers[key].quintile_5,
+        date,
+      ).setOpacity(0.6);
+      const layerGroup = L.layerGroup([
+        terzile1,
+        terzile2,
+        terzile3,
+        quintile1,
+        quintile5,
+      ]);
+      this.layersControl["overlays"] = layerGroup;
+    } catch (error) {
+      console.error("Error in adding layer group", error);
+    }
   }
 
   private addIBorderLayer(map: L.Map) {
