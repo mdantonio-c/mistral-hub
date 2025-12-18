@@ -1305,12 +1305,10 @@ customfooter > div {
 
   app-meteo-tiles {
     .map-sidenav {
-      width: 190px !important;
       cursor: auto;
       .toggle {
         width: 30px !important;
         height: 30px !important;
-        margin-left: 133px !important;
 
         &.collapsed {
           margin-left: 10px !important;
