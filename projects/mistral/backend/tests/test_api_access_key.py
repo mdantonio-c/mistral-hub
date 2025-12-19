@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from mistral.tests.conftest import ACCESS_KEY_ENDPOINT
 from restapi.connectors import sqlalchemy
+from restapi.services.authentication import BaseAuthentication
 from restapi.tests import BaseTests, FlaskClient
 
 
@@ -119,7 +120,7 @@ class TestAccessKeyValidationAPI(BaseTests):
             json={"lifetime_seconds": None},
         )
         token = resp.json["key"]
-        email = "admin@nomail.org"
+        email = BaseAuthentication.default_user
 
         headers = make_basic_auth(email, token)
         resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
