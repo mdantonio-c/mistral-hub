@@ -75,71 +75,76 @@ class ArcoDatasetsResource(EndpointResource):
 
             continuation_token = None
             while True:
-                list_kwargs = {"Bucket": BUCKET_NAME}
+                list_kwargs = {
+                    "Bucket": BUCKET_NAME,
+                    "Delimiter": "/",
+                }
                 if continuation_token:
                     list_kwargs["ContinuationToken"] = continuation_token
 
                 response = client.list_objects_v2(**list_kwargs)
 
-                for obj in response.get("Contents", []):
-                    key = obj["Key"]
-                    if ".zarr/" not in key:
+                # loop ONLY on first level prefixes
+                for cp in response.get("CommonPrefixes", []):
+                    prefix = cp["Prefix"]
+                    if not prefix.endswith(".zarr/"):
                         continue
 
-                    root = key.split("/", 1)[0]
-                    if root not in arco_datasets:
-                        arco_datasets[root] = {
-                            "id": root.replace(".zarr", ""),
-                            "folder": root,
-                            "fileformat": "zarr",
-                        }
+                    root = prefix.rstrip("/")
+                    arco_datasets[root] = {
+                        "id": root.replace(".zarr", ""),
+                        "folder": root,
+                        "fileformat": "zarr",
+                    }
 
-                    # Read .zmetadata immediately if found
-                    if key.endswith(".zmetadata"):
-                        try:
-                            raw = (
-                                client.get_object(Bucket=BUCKET_NAME, Key=key)["Body"]
-                                .read()
-                                .decode("utf-8")
+                    # Direct read .zmetadata
+                    try:
+                        zmetadata_key = f"{root}/.zmetadata"
+                        raw = (
+                            client.get_object(Bucket=BUCKET_NAME, Key=zmetadata_key)[
+                                "Body"
+                            ]
+                            .read()
+                            .decode("utf-8")
+                        )
+                        meta = json.loads(raw).get("metadata", {})
+                        zattrs = meta.get(".zattrs")
+
+                        # load bounding box
+                        southern = zattrs.get("southernmost_latitude")
+                        northern = zattrs.get("northernmost_latitude")
+                        western = zattrs.get("westernmost_longitude")
+                        eastern = zattrs.get("easternmost_longitude")
+
+                        if all(
+                            coord is not None
+                            for coord in [southern, northern, western, eastern]
+                        ):
+                            # Creation of POLYGON WKT
+                            polygon_wkt = (
+                                f"POLYGON(("
+                                f"{western} {southern}, "
+                                f"{eastern} {southern}, "
+                                f"{eastern} {northern}, "
+                                f"{western} {northern}, "
+                                f"{western} {southern}"
+                                f"))"
                             )
-                            meta = json.loads(raw).get("metadata", {})
-                            zattrs = meta.get(".zattrs")
+                            arco_datasets[root]["bounding"] = polygon_wkt
+                        else:
+                            log.warning(
+                                f"Missing bounding coordinates in .zattrs for {root}"
+                            )
 
-                            # load bounding box
-                            southern = zattrs.get("southernmost_latitude")
-                            northern = zattrs.get("northernmost_latitude")
-                            western = zattrs.get("westernmost_longitude")
-                            eastern = zattrs.get("easternmost_longitude")
+                        # add full attrs
+                        arco_datasets[root]["attrs"] = meta.get(".zattrs")
 
-                            if all(
-                                coord is not None
-                                for coord in [southern, northern, western, eastern]
-                            ):
-                                # Creation of POLYGON WKT
-                                polygon_wkt = (
-                                    f"POLYGON(("
-                                    f"{western} {southern}, "
-                                    f"{eastern} {southern}, "
-                                    f"{eastern} {northern}, "
-                                    f"{western} {northern}, "
-                                    f"{western} {southern}"
-                                    f"))"
-                                )
-                                arco_datasets[root]["bounding"] = polygon_wkt
-                            else:
-                                log.warning(
-                                    f"Missing bounding coordinates in .zattrs for {root}"
-                                )
+                    except client.exceptions.NoSuchKey:
+                        log.warning(f"No .zmetadata found for {root}")
+                    except Exception as e:
+                        log.error(f"Error reading .zmetadata for {root}: {e}")
 
-                            # add full attrs
-                            arco_datasets[root]["attrs"] = meta.get(".zattrs")
-
-                        except client.exceptions.NoSuchKey:
-                            log.warning(f"No .zmetadata found for {root}")
-                        except Exception as e:
-                            log.error(f"Error reading .zmetadata for {root}: {e}")
-
-                # Check if there are other objects to paginate
+                # Check if there are other prefixes to paginate
                 if response.get("IsTruncated"):
                     continuation_token = response.get("NextContinuationToken")
                 else:
