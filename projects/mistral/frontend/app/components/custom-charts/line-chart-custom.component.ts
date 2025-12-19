@@ -1,5 +1,5 @@
 import { trigger, style, animate, transition } from "@angular/animations";
-import { LineChartComponent } from "@swimlane/ngx-charts";
+import { LineChartComponent, ScaleType } from "@swimlane/ngx-charts";
 import {
   Component,
   Input,
@@ -221,5 +221,32 @@ const styles = `
 })
 export class CustomLineChart extends LineChartComponent {
   @Input() gridLineNgStyleByXAxisTick;
+  @Input() dateInterval;
+  @Input() scaleType: ScaleType = ScaleType.Time;
   area = false;
+  xSet: any[] = [];
+  hoveredVertical: any = null;
+  override getXDomain(): any[] {
+    if (this.dateInterval?.length === 2) {
+      const values = this.getUniqueXDomainValues(this.results);
+      this.xSet = [...values].sort((a, b) => {
+        const aDate = a.getTime();
+        const bDate = b.getTime();
+        if (aDate > bDate) return 1;
+        if (bDate > aDate) return -1;
+        return 0;
+      });
+      return this.dateInterval;
+    }
+    return super.getXDomain();
+  }
+  getUniqueXDomainValues(results: any[]): any[] {
+    const valueSet = new Set();
+    for (const result of results) {
+      for (const d of result.series) {
+        valueSet.add(d.name);
+      }
+    }
+    return Array.from(valueSet);
+  }
 }

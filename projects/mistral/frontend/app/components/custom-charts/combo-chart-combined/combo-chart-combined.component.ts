@@ -65,6 +65,7 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   @Input() xScaleMax: any;
   @Input() dateInterval: any[];
   @Input() namevar1: string;
+  //@Input() scaleType: ScaleType = ScaleType.Time;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() deactivate: EventEmitter<any> = new EventEmitter();
@@ -87,7 +88,7 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   xAxisHeight: number = 0;
   yAxisWidth: number = 0;
   legendOptions: any;
-  scaleType = ScaleType.Linear;
+  scaleType = ScaleType.Time;
   xScaleLine;
   yScaleLine;
   xDomainLine;
@@ -241,7 +242,8 @@ export class DoubleLineChartComponent extends BaseChartComponent {
     if (this.scaleType === "time") {
       const min = new Date(Math.min(...values.map((v) => v.getTime())));
       const max = new Date(Math.max(...values.map((v) => v.getTime())));
-      domain = [min, max];
+      //domain = [min, max];
+      domain = [this.dateInterval[0], this.dateInterval[1]];
     } else if (this.scaleType === "linear") {
       values = values.map((v) => Number(v));
       const min = Math.min(...values);

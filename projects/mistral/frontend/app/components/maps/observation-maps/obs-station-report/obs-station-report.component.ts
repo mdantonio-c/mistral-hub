@@ -348,7 +348,6 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   generateFixedTicks(start: Date, end: Date, stepHours = 6): Date[] {
-    console.log(start, end);
     const ticks: Date[] = [];
     const current = moment(start).local().startOf("hour");
     while (current.isSameOrBefore(end)) {
