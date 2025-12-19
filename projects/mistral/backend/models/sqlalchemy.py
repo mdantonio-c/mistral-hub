@@ -167,7 +167,7 @@ class AccessKey(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(64), unique=True, nullable=False, index=True)
     creation = db.Column(db.DateTime(timezone=True), nullable=False)
-    expiration = db.Column(db.DateTime(timezone=True), nullable=False)
+    expiration = db.Column(db.DateTime(timezone=True), nullable=True)
     scope = db.Column(db.String(128), default="read:arco")
 
     user_id = db.Column(
