@@ -215,7 +215,8 @@ export class DatasetsComponent implements OnInit, AfterViewInit {
   }
 
   getArcoUrl(ds: ArcoDataset): string {
-    return `${environment.backendURI}/api/arco/${ds.folder}`;
+    const backendURINoPort = environment.backendURI.replace(/:\d+$/, "");
+    return `${backendURINoPort}/api/arco/${ds.folder}`;
   }
 
   // @ts-ignore
