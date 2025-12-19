@@ -85,7 +85,9 @@ app-aim-observation-maps .leaflet-left .leaflet-control {
 }
 
 app-meteo-tiles .leaflet-bottom.leaflet-left,
-app-aim-observation-maps .leaflet-bottom.leaflet-left, app-marine .leaflet-bottom.leaflet-left, app-radar-observation-maps  .leaflet-bottom.leaflet-left{
+app-aim-observation-maps .leaflet-bottom.leaflet-left,
+app-marine .leaflet-bottom.leaflet-left,
+app-radar-observation-maps .leaflet-bottom.leaflet-left {
   display: flex !important;
   align-items: end;
   z-index: 960;
@@ -416,11 +418,11 @@ a.timecontrol-play.loading:before {
   width: auto !important;
 }
 
-app-marine {
+/*app-marine {
 .leaflet-bar {
  margin-left: -20px !important;
 }
-}
+}*/
 app-radar-observation-maps .leaflet-control-attribution a:first-of-type {
   display: none !important;
 

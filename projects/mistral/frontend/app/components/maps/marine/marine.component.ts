@@ -467,7 +467,16 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
 
   private addLegendSvg(svgPath: string) {
     if (!this.map) return;
-    if (this.legendControl) this.legendControl.remove();
+    if (this.legendControl) {
+      this.legendControl.remove();
+      if (
+        this.map.hasLayer(this.layersControl["overlays"]["dir"]) &&
+        !this.map.hasLayer(this.layersControl["overlays"]["hs"]) &&
+        !this.map.hasLayer(this.layersControl["overlays"]["t01"])
+      ) {
+        return;
+      }
+    }
     this.legendControl = new L.Control({ position: "bottomleft" });
     this.legendControl.onAdd = () => {
       let div = L.DomUtil.create("div");
