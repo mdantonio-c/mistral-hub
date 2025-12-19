@@ -40,7 +40,6 @@ class TestArcoAPI(BaseTests):
         email = "admin@nomail.org"
 
         # Mock dataset
-        dataset_key = "ww3.zarr/.zmetadata"
         dataset_body = {
             "metadata": {
                 ".zattrs": {
@@ -57,9 +56,7 @@ class TestArcoAPI(BaseTests):
         mock_s3 = MagicMock()
         # list_objects_v2 returns an object in the bucket
         mock_s3.client.list_objects_v2.return_value = {
-            "Contents": [
-                {"Key": dataset_key},
-            ],
+            "CommonPrefixes": [{"Prefix": "ww3.zarr/"}, {"Prefix": "logs/"}],
             "IsTruncated": False,
         }
 
@@ -74,8 +71,10 @@ class TestArcoAPI(BaseTests):
         resp = client.get(f"{API_URI}/arco/datasets", headers=headers)
 
         assert resp.status_code == 200
+
         data = resp.json
         assert len(data) == 1
+
         ds = data[0]
         assert ds["id"] == "ww3"
         assert ds["folder"] == "ww3.zarr"
