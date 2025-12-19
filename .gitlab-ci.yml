@@ -12,6 +12,7 @@ variables:
   PROJECT: "mistral"
   RAPYDO_EXTRA_ENVS: ""
   EXTRA_S3_KEY_ID: "minioadmin"
+  EXTRA_LOG_LEVEL: "DEBUG"
 
 backend_tests:
   stage: test
