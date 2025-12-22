@@ -773,7 +773,7 @@ export const NETWORKS = [
   { name: "Liguria", network: "dpcn-liguria" },
   { name: "Provincia autonoma di Bolzano", network: "dpcn-bolzanoboze" },
   { name: "Provincia autonoma di Trento", network: "open-trentino" },
-  { name: "Toscana", network: "metsen-arpat" },
+  { name: "Toscana", network: "sir-toscana" },
   { name: "Meteonetwork", network: "mnw" },
 ];
 
