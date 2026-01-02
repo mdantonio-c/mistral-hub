@@ -104,6 +104,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   private selectedMonth: string;
   public prov: string;
   public runDate: string;
+  public runYear: number;
   public maxZoomIn = this.maxZoom - 4;
   layersControl = {
     baseLayers: {
@@ -449,7 +450,9 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       const data = await response.json();
       const date = new Date(data.ingestion.last);
       const month = date.getMonth() + 1;
+      const year = date.getFullYear();
       this.run = month;
+      this.runYear = year;
       this.runDate = new Intl.DateTimeFormat("it-IT", {
         day: "2-digit",
         month: "2-digit",

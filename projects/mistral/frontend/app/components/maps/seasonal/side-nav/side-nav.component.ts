@@ -24,6 +24,7 @@ export class SideNavComponentSeasonal implements OnInit {
   @Input() maps: Record<"left" | "right", L.Map>;
   @Input() baseLayers: L.Control.LayersObject;
   @Input() run: number;
+  @Input() runYear: number;
   @Input() maxZoomIn: number;
   @Input() minZoom: number;
   @Input() isMobile: boolean;
@@ -85,7 +86,7 @@ export class SideNavComponentSeasonal implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.run && this.run) {
+    if ((changes.run || changes.runYear) && this.run && this.runYear) {
       this.updateMonths();
     }
     if (changes.isMobile && this.isMobile) {
@@ -108,7 +109,7 @@ export class SideNavComponentSeasonal implements OnInit {
 
   private genTimestampMonth(): string[] {
     const timeStamps: string[] = [];
-    const year = new Date().getFullYear();
+    const year = this.runYear || new Date().getFullYear();
     const monthIndex = this.run - 1;
     const initialDate = new Date(Date.UTC(year, monthIndex, 1, 0));
     for (let i = 0; i < this.monthsNumber; i++) {
