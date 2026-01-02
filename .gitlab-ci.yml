@@ -10,6 +10,9 @@ stages:
 
 variables:
   PROJECT: "mistral"
+  RAPYDO_EXTRA_ENVS: ""
+  EXTRA_S3_KEY_ID: "minioadmin"
+  EXTRA_LOG_LEVEL: "DEBUG"
 
 backend_tests:
   stage: test
@@ -37,9 +40,24 @@ backend_tests:
       else
         echo "Correct version of RaPyDo already installed."
       fi
+    # Generate a random access key and store it in S3_ACCESS_KEY variable
+    - export EXTRA_S3_ACCESS_KEY=$(openssl rand -base64 32 | sed -r 's/=//g')
+    - export EXTRA_MINIO_ROOT_USER=$EXTRA_S3_KEY_ID
+    - export EXTRA_MINIO_ROOT_PASSWORD=$EXTRA_S3_ACCESS_KEY
+    - echo "Generated access-key $EXTRA_S3_ACCESS_KEY"
+    - echo "Listing all environment variables starting with EXTRA_..."
+    - |
+      for line in $(env | grep '^EXTRA_'); do
+        key=$(echo "$line" | cut -d '=' -f 1 | sed -e "s/^EXTRA_//");
+        value=$(echo "$line" | cut -d '=' -f 2-);
+        if [ -n "$value" ]; then
+          RAPYDO_EXTRA_ENVS+="-e $key=$value ";
+        fi;
+      done
+      echo "$RAPYDO_EXTRA_ENVS"
     # Init Rapydo
-    - echo "INIT Rapydo rapydo --testing --project $PROJECT init --force"
-    - rapydo --testing --project $PROJECT init --force
+    - echo "INIT Rapydo rapydo --testing --project $PROJECT $RAPYDO_EXTRA_ENVS init --force"
+    - rapydo --testing --project $PROJECT $RAPYDO_EXTRA_ENVS init --force
     - rapydo version
     - rapydo pull --quiet
     - rapydo build

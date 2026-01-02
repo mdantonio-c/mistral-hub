@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from mistral.tests.conftest import ACCESS_KEY_ENDPOINT
 from restapi.connectors import sqlalchemy
+from restapi.services.authentication import BaseAuthentication
 from restapi.tests import BaseTests, FlaskClient
 
 
@@ -56,7 +57,7 @@ class TestAccessKeyAPI(BaseTests):
         headers, token = fresh_access_key_with_expiration
 
         db = sqlalchemy.get_instance()
-        user = db.User.query.filter_by(email="admin@nomail.org").first()
+        user = db.User.query.filter_by(email=BaseAuthentication.default_user).first()
         # force expiration
         user.access_key.expiration = user.access_key.expiration - timedelta(
             seconds=3600
@@ -88,8 +89,7 @@ class TestAccessKeyValidationAPI(BaseTests):
 
     def test_03_invalid_access_key(self, client: FlaskClient, fresh_access_key):
         headers_auth, valid_key = fresh_access_key
-        # using admin user?
-        email = "admin@nomail.org"
+        email = BaseAuthentication.default_user
 
         # Wrong key
         headers = make_basic_auth(email, "WRONG-KEY")
@@ -98,8 +98,7 @@ class TestAccessKeyValidationAPI(BaseTests):
 
     def test_04_valid_access_key(self, client: FlaskClient, fresh_access_key):
         headers_auth, valid_key = fresh_access_key
-        # using admin user?
-        email = "admin@nomail.org"
+        email = BaseAuthentication.default_user
 
         headers = make_basic_auth(email, valid_key)
         resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)
@@ -119,7 +118,7 @@ class TestAccessKeyValidationAPI(BaseTests):
             json={"lifetime_seconds": None},
         )
         token = resp.json["key"]
-        email = "admin@nomail.org"
+        email = BaseAuthentication.default_user
 
         headers = make_basic_auth(email, token)
         resp = client.get(ACCESS_KEY_VALIDATE_ENDPOINT, headers=headers)

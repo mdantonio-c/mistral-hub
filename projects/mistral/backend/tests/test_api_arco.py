@@ -2,6 +2,7 @@ import json
 from unittest.mock import MagicMock
 
 from mistral.tests.test_api_access_key import make_basic_auth
+from restapi.services.authentication import BaseAuthentication
 from restapi.tests import API_URI, BaseTests, FlaskClient
 
 BUCKET_NAME = "arco"
@@ -16,8 +17,7 @@ class TestArcoAPI(BaseTests):
         self, client: FlaskClient, fresh_access_key, monkeypatch
     ):
         headers_auth, valid_key = fresh_access_key
-        # using admin user?
-        email = "admin@nomail.org"
+        email = BaseAuthentication.default_user
 
         # Mock S3 get_object
         mock_s3 = MagicMock()
@@ -37,10 +37,9 @@ class TestArcoAPI(BaseTests):
         self, client: FlaskClient, fresh_access_key, monkeypatch
     ):
         headers_auth, valid_key = fresh_access_key
-        email = "admin@nomail.org"
+        email = BaseAuthentication.default_user
 
         # Mock dataset
-        dataset_key = "ww3.zarr/.zmetadata"
         dataset_body = {
             "metadata": {
                 ".zattrs": {
@@ -57,9 +56,7 @@ class TestArcoAPI(BaseTests):
         mock_s3 = MagicMock()
         # list_objects_v2 returns an object in the bucket
         mock_s3.client.list_objects_v2.return_value = {
-            "Contents": [
-                {"Key": dataset_key},
-            ],
+            "CommonPrefixes": [{"Prefix": "ww3.zarr/"}, {"Prefix": "logs/"}],
             "IsTruncated": False,
         }
 
@@ -74,8 +71,10 @@ class TestArcoAPI(BaseTests):
         resp = client.get(f"{API_URI}/arco/datasets", headers=headers)
 
         assert resp.status_code == 200
+
         data = resp.json
         assert len(data) == 1
+
         ds = data[0]
         assert ds["id"] == "ww3"
         assert ds["folder"] == "ww3.zarr"
