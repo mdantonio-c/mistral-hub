@@ -55,6 +55,7 @@ export class ObsStationReportComponent implements OnInit {
   // Combined Chart
   selectedTabs: string[] = [];
   showCombined: boolean = false;
+  combinedMode = false;
   combinedData;
   var1;
   var2;
@@ -63,6 +64,7 @@ export class ObsStationReportComponent implements OnInit {
   unit1;
   unit2;
   combinedPrec = false;
+
   // to display only selected station details
   stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
   filteredStationDetails: StationDetail[] = [];
@@ -116,11 +118,42 @@ export class ObsStationReportComponent implements OnInit {
   ngOnInit() {
     // Get station specifics and data for timeseries
     this.loadReport();
+    this.selectedTabs = [this.active];
+    this.showCombined = false;
+  }
+  canShowCombinedTools(): boolean {
+    const excludedTabs = ["mixwind-0"];
+    return (
+      this.selectedTabs.length >= 1 &&
+      !this.selectedTabs.some((t) => excludedTabs.includes(t))
+    );
+  }
+  onCombinedModeToggle() {
+    if (this.combinedMode) {
+      if (this.selectedTabs.length === 1) {
+        this.showCombined = false;
+      }
+    } else {
+      this.selectedTabs = [this.active];
+      this.showCombined = false;
+    }
+
+    this.updateGraphData(this.active);
   }
 
   onTabClick(tabId: string) {
     //const excludedTabs = ["B13011-1,0,0,0-1,0,3600", "mixwind-0"];
     // console.log(tabId);
+    // 🔹 MODALITÀ SINGOLA: 1 click = 1 grafico
+    if (!this.combinedMode) {
+      this.selectedTabs = [tabId];
+      this.active = tabId;
+      this.showCombined = false;
+
+      this.updateGraphData(tabId);
+      return; // ⛔ esci: niente logica a coppie
+    }
+
     const excludedTabs = ["mixwind-0"];
 
     const isExclusive = excludedTabs.includes(tabId);
@@ -141,11 +174,17 @@ export class ObsStationReportComponent implements OnInit {
       } else {
         this.selectedTabs.push(tabId);
 
-        if (
+        /* if (
           this.selectedTabs.length === 2 &&
           !this.selectedTabs.some((t) => excludedTabs.includes(t))
         ) {
           this.showCombined = true;
+        }*/
+        if (
+          this.selectedTabs.length === 2 &&
+          !this.selectedTabs.some((t) => excludedTabs.includes(t))
+        ) {
+          this.showCombined = this.combinedMode;
         }
       }
     }
