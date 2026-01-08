@@ -56,6 +56,7 @@ export class ObsStationReportComponent implements OnInit {
   selectedTabs: string[] = [];
   showCombined: boolean = false;
   combinedMode = false;
+  lastClickedTab: string | null = null;
   combinedData;
   var1;
   var2;
@@ -104,6 +105,13 @@ export class ObsStationReportComponent implements OnInit {
   monoLineSchemeRain = {
     domain: ["#FF0000"],
   };
+  combinedCustomColorsComboPrec = [
+    {
+      name: "Precipitation",
+      value: "#ADD8E6", // celeste (bar)
+    },
+  ];
+  combinedCustomColorsCombo;
   /* flag to track if there are wind products in the selected groundstation */
   existMixWindProduct: boolean = false;
   onlyWindProduct: boolean = false;
@@ -134,7 +142,10 @@ export class ObsStationReportComponent implements OnInit {
         this.showCombined = false;
       }
     } else {
-      this.selectedTabs = [this.active];
+      const tabToShow =
+        this.lastClickedTab ?? this.active ?? this.selectedTabs[0];
+      this.active = tabToShow;
+      this.selectedTabs = [tabToShow];
       this.showCombined = false;
     }
 
@@ -144,14 +155,14 @@ export class ObsStationReportComponent implements OnInit {
   onTabClick(tabId: string) {
     //const excludedTabs = ["B13011-1,0,0,0-1,0,3600", "mixwind-0"];
     // console.log(tabId);
-    // 🔹 MODALITÀ SINGOLA: 1 click = 1 grafico
+    this.lastClickedTab = tabId;
     if (!this.combinedMode) {
       this.selectedTabs = [tabId];
       this.active = tabId;
       this.showCombined = false;
 
       this.updateGraphData(tabId);
-      return; // ⛔ esci: niente logica a coppie
+      return;
     }
 
     const excludedTabs = ["mixwind-0"];
@@ -541,6 +552,16 @@ export class ObsStationReportComponent implements OnInit {
               this.combinedData.filter((item) => codes[1].includes(item.code)),
             );
             this.combinedPrec = false;
+            this.combinedCustomColorsCombo = [
+              {
+                name: this.normalizeLabel(this.var1[0].name),
+                value: "#5AA454",
+              },
+              {
+                name: this.normalizeLabel(this.var2[0].name),
+                value: "#FF0000",
+              },
+            ];
           }
           /*console.log(
             "var1",
@@ -735,12 +756,19 @@ export class ObsStationReportComponent implements OnInit {
     bubbleWindDirection[0].series = t;
     this.windDirectionSeries = [bubbleWindDirection[0]];
   }
+  private normalizeLabel(label: string): string {
+    if (!label) return label;
 
+    return label
+      .toLowerCase()
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
   private normalize(data: Observation): DataSeries[] {
     let res: DataSeries[] = [];
     data.prod.forEach((v) => {
       let s: DataSeries = {
-        name: this.descriptions[v.var].descr || "n/a",
+        name: this.normalizeLabel(this.descriptions[v.var].descr) || "n/a",
         code: v.var,
         level: v.lev,
         timerange: v.trange,

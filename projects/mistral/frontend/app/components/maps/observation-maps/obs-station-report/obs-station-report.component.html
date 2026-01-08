@@ -440,6 +440,7 @@
               <ng-template #comboCombinedChart>
                 <combo-chart-combined-component
                   [view]="[containerRef.offsetWidth - 100, 400]"
+                  [customColors]="combinedCustomColorsCombo"
                   [scheme]="monoBarSchemeRain"
                   [colorSchemeLine]="monoLineSchemeRain"
                   [results]="var1[0].series"
@@ -455,7 +456,7 @@
                   [xAxisTicks]="xTicks"
                   [dateInterval]="dateInterval"
                   [autoScale]="false"
-                  [legend]="false"
+                  [legend]="showCombined"
                   [rotateXAxisTicks]="false"
                   [showGridLines]="true"
                   [showXAxisLabel]="true"
@@ -522,6 +523,7 @@
               <ng-template #comboChartPrecCombined>
                 <combo-chart-component
                   [view]="[containerRef.offsetWidth - 100, 400]"
+                  [customColors]="combinedCustomColorsComboPrec"
                   [scheme]="monoBarSchemeRain"
                   [colorSchemeLine]="monoLineSchemeRain"
                   [results]="var1[0].series"
@@ -536,7 +538,7 @@
                   [xAxisTicks]="xTicks"
                   [dateInterval]="dateInterval"
                   [autoScale]="false"
-                  [legend]="false"
+                  [legend]="showCombined"
                   [rotateXAxisTicks]="false"
                   [showGridLines]="true"
                   [showXAxisLabel]="true"
