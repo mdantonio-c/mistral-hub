@@ -261,16 +261,17 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
 
     this.loadRunAvailable(this.dataset);
 
-    (map as any).timeDimension.on("timeload", (e) => {
+    /*(map as any).timeDimension.on("timeload", (e) => {
       const current = moment
         .utc((this.map as any).timeDimension.getCurrentTime())
         .format("DD-MM-YYYY-HH-mm");
-      const geoJsonName = current + ".geojson";
-      const vector$ = this.tilesService.getGeoJsonVectors(geoJsonName);
-      vector$.subscribe({
-        next: (data) => {
-          try {
-            if (!this.removeArrowLayer) {
+      const zoom = this.map.getZoom();*/
+
+    /*const geoJsonName = '09-10-2025-18-00.geojson';
+          fetch(`./app/custom/assets/images/geoJson/lvl_dir/${zoom}/${geoJsonName}`)
+              .then((response) => response.json())
+              .then((data)=> {
+                 if (!this.removeArrowLayer) {
               if (this.arrowLayer) {
                 this.map.removeLayer(this.arrowLayer);
               }
@@ -278,18 +279,70 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
               this.arrowLayer.addTo(this.map);
               this.layersControl["overlays"]["dir"] = this.arrowLayer;
             }
-          } catch (error) {
-            console.error(" Error adding ", geoJsonName, error);
+              })*/
+    //
+    //   const geoJsonName = current + ".geojson";
+    //   console.log(geoJsonName);
+    //   const vector$ = this.tilesService.getGeoJsonVectors(geoJsonName);
+    //   vector$.subscribe({
+    //     next: (data) => {
+    //       try {
+    //         if (!this.removeArrowLayer) {
+    //           if (this.arrowLayer) {
+    //             this.map.removeLayer(this.arrowLayer);
+    //           }
+    //           this.arrowLayer = this.addArrowLayer(data);
+    //           this.arrowLayer.addTo(this.map);
+    //           this.layersControl["overlays"]["dir"] = this.arrowLayer;
+    //         }
+    //       } catch (error) {
+    //         console.error(" Error adding ", geoJsonName, error);
+    //       }
+    //     },
+    //     error: (error) => {
+    //       console.error(
+    //         " Error retrieving ",
+    //         geoJsonName,
+    //         error?.message || error,
+    //       );
+    //     },
+    //   });
+    // });
+    (map as any).timeDimension.on("timeload", (e) => {
+      this.loadArrowsForCurrentState();
+    });
+    this.map.on("zoomend", () => {
+      this.loadArrowsForCurrentState();
+    });
+  }
+
+  private loadArrowsForCurrentState() {
+    const current = moment
+      .utc((this.map as any).timeDimension.getCurrentTime())
+      .format("DD-MM-YYYY-HH-mm");
+    const zoom = this.map.getZoom() ?? 5;
+    const geoJsonName = current + ".geojson";
+    const geoJsonPath = `${zoom}/${geoJsonName}`;
+    console.log(geoJsonPath);
+    const vector$ = this.tilesService.getGeoJsonVectors(geoJsonPath);
+    vector$.subscribe({
+      next: (data) => {
+        try {
+          if (!this.removeArrowLayer) {
+            if (this.arrowLayer) {
+              this.map.removeLayer(this.arrowLayer);
+            }
+            this.arrowLayer = this.addArrowLayer(data);
+            this.arrowLayer.addTo(this.map);
+            this.layersControl["overlays"]["dir"] = this.arrowLayer;
           }
-        },
-        error: (error) => {
-          console.error(
-            " Error retrieving ",
-            geoJsonName,
-            error?.message || error,
-          );
-        },
-      });
+        } catch (error) {
+          console.error("Error adding", geoJsonName, error);
+        }
+      },
+      error: (error) => {
+        console.error("Error retrieving", geoJsonName, error?.message || error);
+      },
     });
   }
   protected centerMap() {
