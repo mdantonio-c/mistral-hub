@@ -76,6 +76,8 @@ export class TranslationService {
         networks: "Reti",
         "download data": "Download dati",
         all: "Tutte",
+        "overlay variables": "Sovrapponi le variabili",
+        tools: "Strumenti",
         // seasonal
         "maximum temperature": "Temperatura massima",
         "minimum temperature": "Temperatura minima",

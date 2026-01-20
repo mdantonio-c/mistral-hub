@@ -1,7 +1,15 @@
 .nav-pills .nav-item.my-active {
-  background-color: #0d6efd; /* blu come active */
+  background-color: #0d6efd;
   color: white;
 }
 .nav-pills .nav-item.my-active a {
-  color: white; /* assicura che il testo sia visibile */
+  color: white;
+}
+
+:host ::ng-deep ngx-charts-legend {
+  pointer-events: none;
+}
+
+:host ::ng-deep ngx-charts-legend * {
+  pointer-events: none;
 }

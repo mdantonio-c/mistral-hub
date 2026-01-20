@@ -22,23 +22,14 @@ import { legendConfig } from "./side-nav/data";
 export class MarineComponent extends BaseMapComponent implements OnInit {
   @Input() minZoom: number = 5;
   @Input() maxZoom: number = 9;
-  ARROW_CONFIG = {
-    svgWidth: 32,
-    svgHeight: 48,
-    tailLength: 13,
-    strokeWidth: 2,
-    arrowHeadSize: 6,
-    arrowHeadStroke: "black",
-    arrowHeadStrokeWidth: 0.5,
-    backgroundColor: "none",
-    opacity: 0.9,
-  };
+
   private wmsPath: string;
   private legendControl;
   private timeDimensionControl: any;
   private beginTime;
   private timeLoading: boolean = false;
-  private arrowLayer: L.LayerGroup | null = null;
+  private arrowLayer: L.Layer | null = null;
+  private arrowCanvasLayer: any = null;
   private removeArrowLayer = false;
   dataset: string;
   overlaysReady = false;
@@ -201,6 +192,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
   }
   ngOnInit() {
     super.ngOnInit();
+
     this.route.queryParams.subscribe((params: Params) => {
       const lang = params["lang"];
       if (["it", "en"].includes(lang)) {
@@ -250,46 +242,52 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
       timeZones: ["utc", "local"],
       limitSliders: true,
       speedSlider: true,
-      maxSpeed: 2,
+      maxSpeed: 1.3,
       playerOptions: {
         buffer: 0,
-        transitionTime: 750,
+        transitionTime: 1000,
         loop: true,
       },
     });
     this.map.addControl(this.timeDimensionControl);
-
     this.loadRunAvailable(this.dataset);
-
     (map as any).timeDimension.on("timeload", (e) => {
-      const current = moment
-        .utc((this.map as any).timeDimension.getCurrentTime())
-        .format("DD-MM-YYYY-HH-mm");
-      const geoJsonName = current + ".geojson";
-      const vector$ = this.tilesService.getGeoJsonVectors(geoJsonName);
-      vector$.subscribe({
-        next: (data) => {
-          try {
-            if (!this.removeArrowLayer) {
-              if (this.arrowLayer) {
-                this.map.removeLayer(this.arrowLayer);
-              }
-              this.arrowLayer = this.addArrowLayer(data);
+      this.loadArrowsForCurrentState();
+    });
+    this.map.on("zoomend", () => {
+      this.loadArrowsForCurrentState();
+    });
+  }
+
+  private loadArrowsForCurrentState() {
+    const current = moment
+      .utc((this.map as any).timeDimension.getCurrentTime())
+      .format("DD-MM-YYYY-HH-mm");
+    const zoom = this.map.getZoom() ?? 5;
+    const geoJsonName = current + ".geojson";
+    const geoJsonPath = `${zoom}/${geoJsonName}`;
+    const vector$ = this.tilesService.getGeoJsonVectors(geoJsonPath);
+
+    vector$.subscribe({
+      next: (data) => {
+        try {
+          if (!this.removeArrowLayer) {
+            if (!this.arrowCanvasLayer) {
+              this.arrowCanvasLayer = this.createArrowCanvasLayer(data);
+              this.arrowLayer = this.arrowCanvasLayer;
               this.arrowLayer.addTo(this.map);
               this.layersControl["overlays"]["dir"] = this.arrowLayer;
+            } else {
+              this.arrowCanvasLayer.updateData(data);
             }
-          } catch (error) {
-            console.error(" Error adding ", geoJsonName, error);
           }
-        },
-        error: (error) => {
-          console.error(
-            " Error retrieving ",
-            geoJsonName,
-            error?.message || error,
-          );
-        },
-      });
+        } catch (error) {
+          console.error("Error adding", geoJsonName, error);
+        }
+      },
+      error: (error) => {
+        console.error("Error retrieving", geoJsonName, error?.message || error);
+      },
     });
   }
   protected centerMap() {
@@ -326,6 +324,7 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
         if (layer == "dir") {
           this.map.removeLayer(overlays["dir"]);
           this.removeArrowLayer = true;
+          if (this.arrowCanvasLayer) this.arrowCanvasLayer = null;
         }
       }
     } else {
@@ -334,8 +333,10 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
         this.map.hasLayer(overlays["hs"])
       ) {
         if (layer == "dir") {
-          overlays["dir"].addTo(this.map);
+          //overlays["dir"].addTo(this.map);
           this.removeArrowLayer = false;
+          this.loadArrowsForCurrentState();
+          return;
         }
       }
     }
@@ -365,104 +366,128 @@ export class MarineComponent extends BaseMapComponent implements OnInit {
     }
     this.updateLegends(layer);
   }
-  private addArrowLayer(data): L.LayerGroup {
-    if (!data || !data.features || !Array.isArray(data.features)) {
-      return L.layerGroup([]);
-    }
-    const markers = data.features
-      .map((feature) => {
-        try {
-          const coords = feature.geometry?.coordinates;
+
+  private createArrowCanvasLayer(data: any): any {
+    const ArrowCanvasLayer = (L as any).CanvasLayer.extend({
+      initialize: function (geojson) {
+        this._data = geojson;
+      },
+
+      updateData: function (newData) {
+        this._data = newData;
+        // Forza il ridisegno chiamando direttamente onDrawLayer
+        if (this._map && this._canvas) {
+          this.onDrawLayer({
+            canvas: this._canvas,
+            bounds: this._map.getBounds(),
+            size: this._map.getSize(),
+            zoom: this._map.getZoom(),
+            center: this._map.getCenter(),
+          });
+        }
+      },
+
+      onAdd: function (map) {
+        (L as any).CanvasLayer.prototype.onAdd.call(this, map);
+
+        if (!this._canvas) {
+          const container = map.getPanes().overlayPane;
+          const canvases = container.getElementsByTagName("canvas");
+          if (canvases.length > 0) {
+            this._canvas = canvases[canvases.length - 1];
+          }
+        }
+
+        map.on("moveend", this._redraw, this);
+        map.on("zoomend", this._redraw, this);
+        map.on("viewreset", this._redraw, this);
+        map.on("resize", this._redraw, this);
+      },
+
+      onRemove: function (map) {
+        // Rimuovi i listener quando il layer viene rimosso
+        map.off("moveend", this._redraw, this);
+        map.off("zoomend", this._redraw, this);
+        map.off("viewreset", this._redraw, this);
+        map.off("resize", this._redraw, this);
+
+        (L as any).CanvasLayer.prototype.onRemove.call(this, map);
+      },
+
+      _redraw: function () {
+        if (this.needRedraw) {
+          this.needRedraw();
+        } else if (this._canvas && this._map) {
+          this.onDrawLayer({
+            canvas: this._canvas,
+            bounds: this._map.getBounds(),
+            size: this._map.getSize(),
+            zoom: this._map.getZoom(),
+            center: this._map.getCenter(),
+          });
+        }
+      },
+
+      onDrawLayer: function (info) {
+        const map = this._map;
+        if (!map || !map.getSize) return;
+
+        const ctx = info.canvas.getContext("2d");
+        if (!ctx) return;
+
+        if (!this._canvas) {
+          this._canvas = info.canvas;
+        }
+
+        ctx.clearRect(0, 0, info.canvas.width, info.canvas.height);
+
+        ctx.strokeStyle = "black";
+        ctx.fillStyle = "black";
+        ctx.lineWidth = 1;
+
+        if (!this._data || !this._data.features) return;
+
+        for (const f of this._data.features) {
+          const coords = f.geometry?.coordinates;
+          if (!coords) continue;
+
           const lat = coords[0][1];
           const lon = coords[0][0];
-          const direction = feature.properties.direction;
-          const color = "#000000";
-          /*const arrowIcon = L.icon({
-              iconUrl: this.createArrowSVG(color, direction),
-              iconSize: [20, 20],
-              iconAnchor: [10, 10],
-              popupAnchor: [0, -10],
-              className: "arrow-icon",
-            });*/
-          const arrowIcon = L.divIcon({
-            className: "arrow-icon",
-            html: `
-    <div style="
-      position: relative;
-      width: 1px;
-      height: 5px;                  /* ridotto */
-      background: black;
-      transform: rotate(${direction}deg);
-      transform-origin: bottom center;
-    ">
-      <div style="
-        position: absolute;
-        bottom: 5px;               /* allineato alla nuova altezza */
-        left: -3px;                /* ridotto */
-        width: 0;
-        height: 0;
-        border-left: 3px solid transparent;   /* ridotto */
-        border-right: 3px solid transparent;  /* ridotto */
-        border-bottom: 4px solid black;       /* ridotto */
-      "></div>
-    </div>
-  `,
-            iconSize: [10, 10], // ridotto
-            iconAnchor: [5, 6], // ridotto
-          });
+          const dir = f.properties?.direction;
+          if (dir == null || dir < 0) continue;
 
-          return L.marker([lat, lon], { icon: arrowIcon });
-        } catch (error) {
-          console.error("Error adding arrow marker", error, feature);
-          return null;
+          const p = map.latLngToContainerPoint([lat, lon]);
+
+          if (
+            p.x < 0 ||
+            p.y < 0 ||
+            p.x > info.canvas.width ||
+            p.y > info.canvas.height
+          ) {
+            continue;
+          }
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((dir * Math.PI) / 180);
+
+          ctx.beginPath();
+          ctx.moveTo(0, 6);
+          ctx.lineTo(0, -6);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(-3, -3);
+          ctx.lineTo(0, -6);
+          ctx.lineTo(3, -3);
+          ctx.fill();
+
+          ctx.restore();
         }
-      })
-      .filter((marker) => marker != null);
-    return L.layerGroup(markers);
-  }
-  createArrowSVG(color, direction) {
-    const cfg = this.ARROW_CONFIG;
-    const centerX = cfg.svgWidth / 2;
-    const centerY = cfg.svgHeight / 2;
-    const tailStart = centerY - cfg.tailLength;
+      },
+    });
 
-    const svg = `
-                <svg width="${cfg.svgWidth}" height="${
-                  cfg.svgHeight
-                }" viewBox="0 0 ${cfg.svgWidth} ${
-                  cfg.svgHeight
-                }" xmlns="http://www.w3.org/2000/svg">
-                    <g transform="translate(${centerX}, ${centerY}) rotate(${direction})" opacity="${
-                      cfg.opacity
-                    }">
-                        <!-- Coda (linea verticale) -->
-                        <line x1="0" y1="${cfg.tailLength}" x2="0" y2="-${
-                          cfg.tailLength
-                        }" stroke="${color}" stroke-width="${cfg.strokeWidth}"/>
-                        <!-- Punta della freccia -->
-                        <polygon points="0,-${cfg.tailLength} -${
-                          cfg.arrowHeadSize
-                        },-${cfg.tailLength - cfg.arrowHeadSize} 0,-${
-                          cfg.tailLength - cfg.arrowHeadSize
-                        } ${cfg.arrowHeadSize},-${
-                          cfg.tailLength - cfg.arrowHeadSize
-                        }" fill="${color}" stroke="${
-                          cfg.arrowHeadStroke
-                        }" stroke-width="${cfg.arrowHeadStrokeWidth}"/>
-                    </g>
-                </svg>
-            `;
-    return "data:image/svg+xml;base64," + btoa(svg);
-  }
-
-  getTileWms(layerId: string) {
-    return L.tileLayer.wms(this.wmsPath, {
-      layers: layerId,
-      transparent: true,
-      format: "image/png",
-      tileSize: 1024,
-      opacity: 0.6,
-    } as any);
+    return new ArrowCanvasLayer(data);
   }
 
   private addLegendSvg(svgPath: string) {

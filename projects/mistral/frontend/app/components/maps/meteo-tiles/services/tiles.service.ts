@@ -16,6 +16,7 @@ export class TilesService {
   // dicts to allow caching
   private _imgCache: Map<string, Observable<ArrayBuffer>> = new Map();
   private _geoJsonCache: Map<string, Observable<any>> = new Map();
+  private _vectorCache: Map<string, Observable<any>> = new Map();
   constructor(private api: ApiService, private http: HttpClient) {
     // this.tiles_url = environment.CUSTOM.TILES_URL;
     // this.external_url = this.tiles_url != "";
@@ -153,7 +154,19 @@ export class TilesService {
     return this._geoJsonCache.get(key)!;
   }
 
+  /*
   getGeoJsonVectors(filename): Observable<any> {
     return this.api.get(`${this.maps_url}/api/ww3/vectors/${filename}`);
+  }
+
+   */
+  getGeoJsonVectors(filename: string): Observable<any> {
+    if (!this._vectorCache.has(filename)) {
+      const obs = this.api
+        .get(`${this.maps_url}/api/ww3/vectors/${filename}`)
+        .pipe(shareReplay(1));
+      this._vectorCache.set(filename, obs);
+    }
+    return this._vectorCache.get(filename)!;
   }
 }

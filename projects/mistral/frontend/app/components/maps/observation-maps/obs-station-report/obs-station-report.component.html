@@ -55,14 +55,17 @@
             </ul>
           </div>
         </div>
-        <div *ngIf="active === 'mixwind-0'">
+        <div *ngIf="active === 'mixwind-0' || canShowCombinedTools()">
           <div class="card mb-3" style="max-width: 18rem">
             <div class="card-header">
               <i class="fas fa-wrench me-1"></i>{{ "Tools" | translate : lang }}
             </div>
             <div class="card-body text-dark px-3 py-1">
               <ul class="list-group list-group-flush">
-                <li class="list-group-item px-0 py-1">
+                <li
+                  *ngIf="active === 'mixwind-0'"
+                  class="list-group-item px-0 py-1"
+                >
                   <div class="form-switch wind-switch d-flex mt-2">
                     <input
                       id="windSwitchModal"
@@ -76,6 +79,25 @@
                       for="windSwitchModal"
                     ></label>
                     <span class="wind-switch ms-2">m/s <-> km/h</span>
+                  </div>
+                </li>
+                <li
+                  class="list-group-item px-0 py-1"
+                  *ngIf="canShowCombinedTools() && active !== 'mixwind-0'"
+                >
+                  <div class="form-switch d-flex mt-2">
+                    <input
+                      type="checkbox"
+                      class="form-check-input clickable"
+                      [(ngModel)]="combinedMode"
+                      (change)="onCombinedModeToggle()"
+                      id="combinedSwitch"
+                    />
+                    <label class="form-check-label" for="combinedSwitch">
+                    </label
+                    ><span class="wind-switch ms-2">
+                      {{ "Overlay variables" | translate : lang }}</span
+                    >
                   </div>
                 </li>
               </ul>
@@ -418,6 +440,7 @@
               <ng-template #comboCombinedChart>
                 <combo-chart-combined-component
                   [view]="[containerRef.offsetWidth - 100, 400]"
+                  [customColors]="combinedCustomColorsCombo"
                   [scheme]="monoBarSchemeRain"
                   [colorSchemeLine]="monoLineSchemeRain"
                   [results]="var1[0].series"
@@ -433,7 +456,7 @@
                   [xAxisTicks]="xTicks"
                   [dateInterval]="dateInterval"
                   [autoScale]="false"
-                  [legend]="false"
+                  [legend]="showCombined"
                   [rotateXAxisTicks]="false"
                   [showGridLines]="true"
                   [showXAxisLabel]="true"
@@ -500,6 +523,7 @@
               <ng-template #comboChartPrecCombined>
                 <combo-chart-component
                   [view]="[containerRef.offsetWidth - 100, 400]"
+                  [customColors]="combinedCustomColorsComboPrec"
                   [scheme]="monoBarSchemeRain"
                   [colorSchemeLine]="monoLineSchemeRain"
                   [results]="var1[0].series"
@@ -514,7 +538,7 @@
                   [xAxisTicks]="xTicks"
                   [dateInterval]="dateInterval"
                   [autoScale]="false"
-                  [legend]="false"
+                  [legend]="showCombined"
                   [rotateXAxisTicks]="false"
                   [showGridLines]="true"
                   [showXAxisLabel]="true"
