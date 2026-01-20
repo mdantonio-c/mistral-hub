@@ -170,20 +170,17 @@ export class ObsStationReportComponent implements OnInit {
   }
 
   onTabClick(tabId: string) {
-    //const excludedTabs = ["B13011-1,0,0,0-1,0,3600", "mixwind-0"];
-    // console.log(tabId);
     this.lastClickedTab = tabId;
+
     if (!this.combinedMode) {
       this.selectedTabs = [tabId];
       this.active = tabId;
       this.showCombined = false;
-
       this.updateGraphData(tabId);
       return;
     }
 
     const excludedTabs = ["mixwind-0"];
-
     const isExclusive = excludedTabs.includes(tabId);
     const currentlyExclusive = this.selectedTabs.some((t) =>
       excludedTabs.includes(t),
@@ -192,42 +189,29 @@ export class ObsStationReportComponent implements OnInit {
     if (isExclusive) {
       this.selectedTabs = [tabId];
       this.showCombined = false;
-    } else if (this.showCombined || currentlyExclusive) {
+    } else if (currentlyExclusive) {
       this.selectedTabs = [tabId];
       this.showCombined = false;
     } else {
       const index = this.selectedTabs.indexOf(tabId);
       if (index > -1) {
         this.selectedTabs = [tabId];
+        this.showCombined = false;
       } else {
         this.selectedTabs.push(tabId);
 
-        /* if (
-          this.selectedTabs.length === 2 &&
-          !this.selectedTabs.some((t) => excludedTabs.includes(t))
-        ) {
+        if (this.selectedTabs.length === 2) {
           this.showCombined = true;
-        }*/
-        if (
-          this.selectedTabs.length === 2 &&
-          !this.selectedTabs.some((t) => excludedTabs.includes(t))
-        ) {
-          this.showCombined = this.combinedMode;
+        } else if (this.selectedTabs.length > 2) {
+          this.selectedTabs = this.selectedTabs.slice(-2);
+          this.showCombined = true;
         }
       }
     }
 
     this.active = this.selectedTabs[0];
-
     this.updateGraphData(this.active);
     this.addSecondaryXAxisLabels();
-
-    /*console.log(
-      "selectedTabs:",
-      this.selectedTabs,
-      "showCombined:",
-      this.showCombined,
-    );*/
   }
 
   isTabSelected(tabId: string): boolean {
