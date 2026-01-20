@@ -40,7 +40,7 @@ export class ObsStationReportComponent implements OnInit {
   descriptions: DescriptionDict;
   active;
   curve = curveMonotoneX;
-
+  yAxisTicks: number[];
   multi: DataSeries[];
   single: DataSeries[];
   singleDates;
@@ -128,6 +128,22 @@ export class ObsStationReportComponent implements OnInit {
     this.loadReport();
     this.selectedTabs = [this.active];
     this.showCombined = false;
+  }
+  calculateYTicks(variable: string) {
+    const min = this.yScaleMin || 0;
+    const max = this.yScaleMax || 100;
+
+    this.yAxisTicks = [];
+    if (variable === "t" || variable === "s" || variable === "p") {
+      for (let i = min; i <= max; i += 2) {
+        this.yAxisTicks.push(i);
+      }
+    }
+    if (variable === "rh") {
+      for (let i = min; i <= max; i += 20) {
+        this.yAxisTicks.push(i);
+      }
+    }
   }
   canShowCombinedTools(): boolean {
     const excludedTabs = ["mixwind-0"];
@@ -309,6 +325,7 @@ export class ObsStationReportComponent implements OnInit {
             this.filter.dateInterval[0],
             this.filter.dateInterval[1],
           ];
+
           //console.log(this.single[0].series, this.single, this.SINGLE);
         },
         (error) => {
@@ -646,12 +663,14 @@ export class ObsStationReportComponent implements OnInit {
             this.yScaleMin = Math.round(minVal - 10);
             this.flagRed = true;
           }
+          this.calculateYTicks("t");
         }
         break;
       case "B13003-103,2000,0,0-254,0,0": // relative humidity
         if (this.single) {
           this.yScaleMin = 0;
           this.yScaleMax = 100;
+          this.calculateYTicks("rh");
         }
         break;
       case "B10004-1,0,0,0-254,0,0": // pressure
@@ -663,6 +682,7 @@ export class ObsStationReportComponent implements OnInit {
           const maxVal = Math.max(...allValues);
           this.yScaleMin = Math.round(minVal - 10);
           this.yScaleMax = Math.round(maxVal + 10);
+          this.calculateYTicks("p");
         }
         break;
       case "B13013-1,0,0,0-254,0,0": // snow
@@ -678,6 +698,7 @@ export class ObsStationReportComponent implements OnInit {
             ymax += 100;
           }
           this.yScaleMax = ymax;
+          this.calculateYTicks("s");
         }
         break;
     }

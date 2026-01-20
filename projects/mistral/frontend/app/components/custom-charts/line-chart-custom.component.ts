@@ -65,9 +65,9 @@ const styles = `
           [showLabel]="showYAxisLabel"
           [labelText]="yAxisLabel"
           [trimTicks]="trimYAxisTicks"
+          [ticks]="yAxisTicks"
           [maxTickLength]="maxYAxisTickLength"
           [tickFormatting]="yAxisTickFormatting"
-          [ticks]="yAxisTicks"
           [referenceLines]="referenceLines"
           [showRefLines]="showRefLines"
           [showRefLabels]="showRefLabels"
@@ -223,6 +223,7 @@ export class CustomLineChart extends LineChartComponent {
   @Input() gridLineNgStyleByXAxisTick;
   @Input() dateInterval;
   @Input() scaleType: ScaleType = ScaleType.Time;
+  @Input() yAxisTicks;
   area = false;
   xSet: any[] = [];
   hoveredVertical: any = null;
