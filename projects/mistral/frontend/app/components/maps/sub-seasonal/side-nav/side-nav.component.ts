@@ -50,6 +50,13 @@ export class SideNavComponentSubseasonal implements OnInit {
     this.isCollapsed = !this.isCollapsed;
     this.onCollapseChange.emit(this.isCollapsed);
   }
+  @HostListener("dblclick", ["$event"])
+  @HostListener("click", ["$event"])
+  @HostListener("mousedown", ["$event"])
+  @HostListener("wheel", ["$event"])
+  public onClick(event: any): void {
+    event.stopPropagation();
+  }
   zoom(event, inOut: string) {
     event.preventDefault();
     switch (inOut) {

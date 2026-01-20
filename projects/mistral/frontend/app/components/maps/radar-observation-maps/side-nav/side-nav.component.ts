@@ -95,6 +95,13 @@ export class SideNavComponentRadar implements OnInit {
       this.changeCollapse();
     }
   }
+  @HostListener("dblclick", ["$event"])
+  @HostListener("click", ["$event"])
+  @HostListener("mousedown", ["$event"])
+  @HostListener("wheel", ["$event"])
+  public onClick(event: any): void {
+    event.stopPropagation();
+  }
   zoom(event, inOut: string) {
     event.preventDefault();
     switch (inOut) {

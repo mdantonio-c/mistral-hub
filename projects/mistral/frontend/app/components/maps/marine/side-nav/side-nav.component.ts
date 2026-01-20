@@ -8,6 +8,7 @@ import {
   ElementRef,
   Renderer2,
   ChangeDetectorRef,
+  HostListener,
 } from "@angular/core";
 import { Variables } from "./data";
 import * as L from "leaflet";
@@ -100,6 +101,13 @@ export class SideNavComponentMarine implements OnInit {
     this.onLayerChange.emit(layerId);
   }
 
+  @HostListener("dblclick", ["$event"])
+  @HostListener("click", ["$event"])
+  @HostListener("mousedown", ["$event"])
+  @HostListener("wheel", ["$event"])
+  public onClick(event: any): void {
+    event.stopPropagation();
+  }
   zoom(event, inOut: string) {
     event.preventDefault();
     switch (inOut) {
