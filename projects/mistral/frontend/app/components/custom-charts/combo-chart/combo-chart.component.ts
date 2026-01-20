@@ -65,6 +65,8 @@ export class ComboChartComponent extends BaseChartComponent {
   @Input() xScaleMax: any;
   @Input() dateInterval: any[];
   @Input() autoScaleRightYAxis;
+  @Input() showRefLines = false;
+  @Input() flagRed2 = false;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() deactivate: EventEmitter<any> = new EventEmitter();
@@ -103,6 +105,15 @@ export class ComboChartComponent extends BaseChartComponent {
   legendSpacing = 0;
   bandwidth;
   barPadding = 8;
+  referenceLines = [
+    {
+      value: 0,
+      name: "Zero",
+      color: "#ff0000",
+      opacity: 1,
+      strokeWidth: 2,
+    },
+  ];
 
   trackBy(index, item): string {
     return `${item.name}`;

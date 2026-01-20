@@ -65,6 +65,8 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   @Input() xScaleMax: any;
   @Input() dateInterval: any[];
   @Input() namevar1: string;
+  @Input() showRefLines: boolean = false;
+  @Input() flagRed2;
   //@Input() scaleType: ScaleType = ScaleType.Time;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
@@ -104,6 +106,16 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   legendSpacing = 0;
   bandwidth;
   barPadding = 8;
+
+  referenceLines = [
+    {
+      value: 0,
+      name: "Zero",
+      color: "#ff0000",
+      opacity: 1,
+      strokeWidth: 2,
+    },
+  ];
 
   trackBy(index, item): string {
     return `${item.name}`;

@@ -85,6 +85,7 @@ export class ObsStationReportComponent implements OnInit {
     },
   ];
   flagRed = false;
+  flagRed2 = false;
   flagUnit = false;
 
   // chart options
@@ -561,6 +562,9 @@ export class ObsStationReportComponent implements OnInit {
             this.var2 = this.transformDataFormat(
               this.combinedData.filter((item) => otherCode.includes(item.code)),
             );
+            if (this.var2[0].name === "Temperature") {
+              this.flagRed2 = this.var2[0].series.some((el) => el.value < 0);
+            }
           } else {
             this.var1 = this.transformDataFormat(
               this.combinedData.filter((item) => codes[0].includes(item.code)),
@@ -568,6 +572,9 @@ export class ObsStationReportComponent implements OnInit {
             this.var2 = this.transformDataFormat(
               this.combinedData.filter((item) => codes[1].includes(item.code)),
             );
+            if (this.var2[0].name === "Temperature") {
+              this.flagRed2 = this.var2[0].series.some((el) => el.value < 0);
+            }
             this.combinedPrec = false;
             this.combinedCustomColorsCombo = [
               {

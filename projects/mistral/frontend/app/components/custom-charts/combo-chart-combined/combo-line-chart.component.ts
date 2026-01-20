@@ -82,11 +82,11 @@ export class ComboLineChartComponent implements OnChanges {
   @Input() gradient: boolean = false;
   @Input() tooltipDisabled: boolean = false;
   @Input() noBarWhenZero: boolean = false;
+
   path: string;
   outerPath: string;
   areaPath: string;
   stroke: string;
-
   ngOnChanges(changes: SimpleChanges): void {
     this.update();
   }
