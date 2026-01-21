@@ -90,6 +90,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     }, 200);
     //this.centerMap();
     this.addIBorderLayer(map);
+    this.addProvinceBullets(map);
   }
 
   ngOnInit(): void {
@@ -271,5 +272,57 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     const config = legendConfig[layerId];
     if (!config) return;
     this.addLegendSvg(config);
+  }
+
+  private addProvinceBullets(map: L.Map) {
+    map.createPane("provinceBullets");
+    const pane = map.getPane("provinceBullets");
+
+    pane.style.zIndex = "450";
+    pane.style.pointerEvents = "none";
+
+    fetch("./app/custom/assets/images/geoJson/province_bullet_expanded.geojson")
+      .then((response) => response.json())
+      .then((data) => {
+        const geoJsonLayer = L.geoJSON(data, {
+          pointToLayer: (feature, latlng) => {
+            const provinceName = feature.properties.name2
+              ? feature.properties.name2
+              : feature.properties.name;
+
+            const marker = L.circleMarker(latlng, {
+              radius: 3,
+              fillColor: "#000",
+              color: "#fff",
+              weight: 1,
+              fillOpacity: 1,
+              pane: "provinceBullets",
+              interactive: true,
+            });
+
+            // Tooltip
+            marker.bindTooltip(provinceName, {
+              direction: "top",
+              offset: L.point(0, -12),
+              className: "province-tooltip",
+              permanent: false,
+              sticky: false,
+              interactive: false,
+            });
+
+            // Hover tooltip
+            marker.on("mouseover", () => marker.openTooltip());
+            marker.on("mouseout", () => marker.closeTooltip());
+            marker.on("click", () => {});
+
+            return marker;
+          },
+        });
+
+        geoJsonLayer.addTo(map);
+      })
+      .catch((error) =>
+        console.error("Errore downloading Province bullet geojson:", error),
+      );
   }
 }
