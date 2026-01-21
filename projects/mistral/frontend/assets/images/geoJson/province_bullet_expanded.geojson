@@ -812,6 +812,16 @@
     },
     {
       "type": "Feature",
+      "properties": { "name": "Belgrado", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [20.4489, 44.7866] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Bratislava", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [17.1077, 48.1486] }
+    },
+    {
+      "type": "Feature",
       "properties": { "name": "Zagabria", "code": null, "region": null },
       "geometry": { "type": "Point", "coordinates": [15.9785, 45.815] }
     }
