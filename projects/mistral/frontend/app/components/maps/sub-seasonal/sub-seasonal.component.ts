@@ -1,5 +1,11 @@
 import { BaseMapComponent } from "../base-map.component";
-import { Component, Injector, Input, OnInit } from "@angular/core";
+import {
+  Component,
+  Injector,
+  Input,
+  OnInit,
+  ChangeDetectorRef,
+} from "@angular/core";
 import * as L from "leaflet";
 import {
   CARTODB_LICENSE_HREF,
@@ -13,6 +19,9 @@ import * as moment from "moment";
 import { Variables, Layers, legendConfig } from "./side-nav/data";
 import { TilesService } from "../meteo-tiles/services/tiles.service";
 import { environment } from "@rapydo/../environments/environment";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { ProvinceExpandedReportComponent } from "./province-expandend-report/province-expanded-report.component";
+
 @Component({
   selector: "app-sub-seasonal",
   templateUrl: "./sub-seasonal.component.html",
@@ -30,7 +39,12 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
   bounds = new L.LatLngBounds(new L.LatLng(25, -20), new L.LatLng(55, 50));
   private maps_url: string = "";
   private legendControl;
-  constructor(injector: Injector, private tileService: TilesService) {
+  constructor(
+    injector: Injector,
+    private tileService: TilesService,
+    private modalService: NgbModal,
+    private cdr: ChangeDetectorRef,
+  ) {
     super(injector);
     this.options["layers"] = [this.LAYER_LIGHTMATTER];
     this.wmsPath = this.tileService.getWMSUrl();
@@ -313,7 +327,14 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
             // Hover tooltip
             marker.on("mouseover", () => marker.openTooltip());
             marker.on("mouseout", () => marker.closeTooltip());
-            marker.on("click", () => {});
+            marker.on("click", () => {
+              console.log(this.selectedLayer);
+              this.openProvinceReport(
+                feature.properties.name,
+                marker,
+                this.selectedLayer,
+              );
+            });
 
             return marker;
           },
@@ -324,5 +345,27 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
       .catch((error) =>
         console.error("Errore downloading Province bullet geojson:", error),
       );
+  }
+
+  private openProvinceReport(
+    prov: string,
+    m: L.CircleMarker | null = null,
+    layerId: string,
+  ) {
+    const modalRef = this.modalService.open(ProvinceExpandedReportComponent, {
+      size: "xl",
+      centered: true,
+    });
+    if (m instanceof L.CircleMarker) {
+      const tooltip = m.getTooltip();
+      modalRef.result.finally(() => {
+        setTimeout(() => {
+          m.bindTooltip(tooltip);
+          m.closeTooltip();
+        }, 0);
+      });
+    }
+    modalRef.componentInstance.lang = this.lang;
+    modalRef.componentInstance.prov = prov;
   }
 }

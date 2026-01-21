@@ -74,6 +74,7 @@ import { SideNavFilterComponent } from "./components/maps/side-nav/side-nav.comp
 import { SeasonalComponent } from "@app/components/maps/seasonal/seasonal.component";
 import { SideNavComponentSeasonal } from "./components/maps/seasonal/side-nav/side-nav.component";
 import { ProvinceReportComponent } from "./components/maps/seasonal/province-report/province-report.component";
+import { ProvinceExpandedReportComponent } from "./components/maps/sub-seasonal/province-expandend-report/province-expanded-report.component";
 import { MarineComponent } from "./components/maps/marine/marine.component";
 import { SideNavComponentMarine } from "./components/maps/marine/side-nav/side-nav.component";
 import { RadarComponent } from "./components/maps/radar-observation-maps/radar-observation-maps.component";
@@ -258,6 +259,7 @@ const appRoutes: Routes = [
     ObsMeteogramsComponent,
     ObsStationReportComponent,
     ProvinceReportComponent,
+    ProvinceExpandedReportComponent,
     CustomLineChart,
     CustomBarChart,
     CustomXAxis,
