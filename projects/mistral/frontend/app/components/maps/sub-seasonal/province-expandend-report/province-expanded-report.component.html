@@ -25,5 +25,21 @@
         {{ "Total Precipitation" | translate : lang }}
       </button>
     </div>
+    <div #containerRef>
+      <ngx-charts-bar-vertical-normalized
+        *ngIf="multi && colorScheme"
+        [view]="[containerRef.offsetWidth, 400]"
+        [scheme]="colorScheme"
+        [results]="multi"
+        [xAxis]="true"
+        [yAxis]="true"
+        [legend]="true"
+        [showXAxisLabel]="true"
+        [showYAxisLabel]="true"
+        [yAxisLabel]="yLabel"
+        (select)="onSelect($event)"
+      >
+      </ngx-charts-bar-vertical-normalized>
+    </div>
   </div>
 </div>
