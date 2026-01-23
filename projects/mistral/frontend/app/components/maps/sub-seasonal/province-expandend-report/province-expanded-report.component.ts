@@ -5,17 +5,23 @@ import {
   NgZone,
   TemplateRef,
   ViewChild,
+  ElementRef,
+  AfterViewInit,
 } from "@angular/core";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";
+
 @Component({
   selector: "app-province-expanded-report",
   templateUrl: "./province-expanded-report.component.html",
   styleUrls: ["./province-expanded-report.component.scss"],
 })
-export class ProvinceExpandedReportComponent {
+export class ProvinceExpandedReportComponent implements AfterViewInit {
   @ViewChild("tooltipTemplate", { static: true })
   tooltipTemplate: TemplateRef<any>;
+
+  @ViewChild("containerRef", { static: false })
+  containerRef: ElementRef;
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -41,7 +47,71 @@ export class ProvinceExpandedReportComponent {
     domain: ["#E65100", "#FFB300", "#E0E0E0", "#66BB6A", "#1B5E20"],
   };
   colorScheme = this.colorSchemeTemp;
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.calculateLabelPositions();
+    }, 500);
+  }
 
+  calculateLabelPositions() {
+    if (!this.multi) return;
+    const existingTexts = document.querySelectorAll(".bar-label-text");
+    existingTexts.forEach((el) => el.remove());
+
+    const seriesGroups = document.querySelectorAll(
+      "g[ngx-charts-series-vertical]",
+    );
+    //console.log(seriesGroups);
+    this.multi.forEach((week, weekIndex) => {
+      //if(weekIndex===0) console.log(seriesGroups.length,this.multi.length);
+      if (seriesGroups[weekIndex]) {
+        const innerContainer =
+          seriesGroups[weekIndex].querySelector("g.ng-star-inserted");
+        //console.log(innerContainer);
+        if (innerContainer) {
+          const allBars = innerContainer.querySelectorAll("g[ngx-charts-bar]");
+          const barsInWeek = Array.from(allBars).filter((barGroup) => {
+            return !barGroup.classList.contains("ng-animating");
+          });
+          //console.log(barsInWeek);
+          barsInWeek.forEach((barGroup, barIndex) => {
+            const pathElement = barGroup.querySelector(
+              "path.bar",
+            ) as SVGGraphicsElement;
+
+            if (pathElement && !pathElement.classList.contains("hidden")) {
+              //const value=pathElement.ariaLabel.slice(-6).slice(0, 2);
+              const value = week.series[barIndex]?.value;
+
+              const bbox = pathElement.getBBox();
+              //console.log(pathElement,value,bbox);
+              if (bbox.height > 20) {
+                //const value = week.series[barIndex].value;
+                const text = document.createElementNS(
+                  "http://www.w3.org/2000/svg",
+                  "text",
+                );
+                const centerX = bbox.x + bbox.width / 2;
+                const centerY = bbox.y + bbox.height / 2;
+                text.setAttribute("x", centerX.toString());
+                text.setAttribute("y", centerY.toString());
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("dominant-baseline", "middle");
+                text.setAttribute("fill", "white");
+                text.setAttribute("font-size", "11");
+                text.setAttribute("font-weight", "600");
+                text.setAttribute("pointer-events", "none");
+                text.style.textShadow = "0 0 3px rgba(0,0,0,0.8)";
+                text.classList.add("bar-label-text");
+                text.textContent = `${value}%`;
+                pathElement.parentElement?.appendChild(text);
+              }
+            }
+          });
+        }
+      }
+    });
+  }
   public getThresholds(
     weekName: string,
     layerId: string,
@@ -82,6 +152,10 @@ export class ProvinceExpandedReportComponent {
       this.colorScheme = { ...this.colorSchemePrec };
     }
     this.cdr.detectChanges();
+
+    setTimeout(() => {
+      this.calculateLabelPositions();
+    }, 500);
   }
 
   public beforeOpen(layerId: string) {

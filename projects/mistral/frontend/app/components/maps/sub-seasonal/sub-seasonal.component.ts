@@ -353,7 +353,7 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     layerId: string,
   ) {
     const modalRef = this.modalService.open(ProvinceExpandedReportComponent, {
-      size: "xl",
+      size: "lg",
       centered: true,
     });
     if (m instanceof L.CircleMarker) {
