@@ -79,7 +79,7 @@ export class ObsStationReportComponent implements OnInit {
     {
       value: 0,
       name: "Zero",
-      color: "#ff0000",
+      color: "#ff9999",
       opacity: 1,
       strokeWidth: 2,
     },
