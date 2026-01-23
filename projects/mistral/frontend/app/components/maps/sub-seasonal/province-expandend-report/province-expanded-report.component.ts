@@ -1,4 +1,11 @@
-import { Component, Input, ChangeDetectorRef, NgZone } from "@angular/core";
+import {
+  Component,
+  Input,
+  ChangeDetectorRef,
+  NgZone,
+  TemplateRef,
+  ViewChild,
+} from "@angular/core";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";
 @Component({
@@ -7,6 +14,9 @@ import { NgxSpinnerService } from "ngx-spinner";
   styleUrls: ["./province-expanded-report.component.scss"],
 })
 export class ProvinceExpandedReportComponent {
+  @ViewChild("tooltipTemplate", { static: true })
+  tooltipTemplate: TemplateRef<any>;
+
   constructor(
     public activeModal: NgbActiveModal,
     private spinner: NgxSpinnerService,
@@ -16,6 +26,7 @@ export class ProvinceExpandedReportComponent {
 
   @Input() lang!: string;
   @Input() prov!: string;
+  @Input() weekList!: string[];
   selectedMetric: "Temperature" | "Total Precipitation" = "Temperature";
   yLabel = "Probability (%)";
   province;
@@ -23,13 +34,44 @@ export class ProvinceExpandedReportComponent {
   processedData;
 
   colorSchemeTemp = {
-    domain: ["#003366", "#99CCFF", "#FFFFFF", "#FF9999", "#8B0000"],
+    domain: ["#003366", "#99CCFF", "#E0E0E0", "#FF9999", "#8B0000"],
   };
 
   colorSchemePrec = {
-    domain: ["#E65100", "#FFB300", "#FFFFFF", "#66BB6A", "#1B5E20"],
+    domain: ["#E65100", "#FFB300", "#E0E0E0", "#66BB6A", "#1B5E20"],
   };
   colorScheme = this.colorSchemeTemp;
+
+  public getThresholds(
+    weekName: string,
+    layerId: string,
+    quintile: string,
+  ): string {
+    if (!this.multi) return "";
+
+    const weekData = this.multi.find((w) => w.name === weekName);
+    if (!weekData || !weekData.soglie) return "";
+
+    const quintileMap = {
+      Colder: [0, 1],
+      Drier: [0, 1],
+      "Below average": [1, 2],
+      Average: [2, 3],
+      "Above average": [3, 4],
+      Warmer: [4, 5],
+      Wetter: [4, 5],
+    };
+
+    const indices = quintileMap[quintile];
+    if (!indices) return "";
+
+    const unit = layerId === "Temperature" ? "°C" : "mm";
+    const minThreshold = weekData.soglie[indices[0]].value;
+    const maxThreshold = weekData.soglie[indices[1]].value;
+
+    return `${minThreshold}${unit} - ${maxThreshold}${unit}`;
+  }
+
   public selectMetric(metric: "Temperature" | "Total Precipitation") {
     this.selectedMetric = metric;
     if (metric == "Temperature") {
@@ -94,9 +136,9 @@ export class ProvinceExpandedReportComponent {
     const dataTemp = [];
     const dataPrec = [];
 
-    dataTempSet.forEach((el) => {
+    dataTempSet.forEach((el, index) => {
       dataTemp.push({
-        name: el.settimana,
+        name: this.weekList[index].slice(0, -13),
         series: [
           {
             name: "Colder",
@@ -113,9 +155,9 @@ export class ProvinceExpandedReportComponent {
         soglie: el.soglie,
       });
     });
-    dataPrecSet.forEach((el) => {
+    dataPrecSet.forEach((el, index) => {
       dataPrec.push({
-        name: el.settimana,
+        name: this.weekList[index].slice(0, -13),
         series: [
           {
             name: "Drier",

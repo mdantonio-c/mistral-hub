@@ -368,5 +368,6 @@ export class SubSeasonalComponent extends BaseMapComponent implements OnInit {
     modalRef.componentInstance.lang = this.lang;
     modalRef.componentInstance.prov = prov;
     modalRef.componentInstance.beforeOpen(this.selectedLayer);
+    modalRef.componentInstance.weekList = this.weekList;
   }
 }
