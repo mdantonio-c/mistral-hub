@@ -1,0 +1,61 @@
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h4 class="modal-title mb-0">{{ province }}</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="activeModal.dismiss()"
+    ></button>
+  </div>
+  <div class="card-body" [ngSwitch]="selectedMetric">
+    <div class="d-flex button-container">
+      <button
+        class="btn btn-outline-secondary me-2"
+        [class.active]="selectedMetric === 'Temperature'"
+        (click)="selectMetric('Temperature')"
+      >
+        {{ "Temperature" | translate : lang }}
+      </button>
+      <button
+        class="btn btn-outline-secondary me-2"
+        [class.active]="selectedMetric === 'Total Precipitation'"
+        (click)="selectMetric('Total Precipitation')"
+      >
+        {{ "Total Precipitation" | translate : lang }}
+      </button>
+    </div>
+    <div #containerRef>
+      <ngx-charts-bar-vertical-normalized
+        *ngIf="multi && colorScheme"
+        [view]="[containerRef.offsetWidth, 400]"
+        [scheme]="colorScheme"
+        [results]="multi"
+        [xAxis]="true"
+        [yAxis]="true"
+        [legend]="true"
+        [showXAxisLabel]="true"
+        [showYAxisLabel]="true"
+        [yAxisLabel]="yLabel"
+        [xAxisLabel]="'Weeks'"
+        (select)="onSelect($event)"
+      >
+        <ng-template #tooltipTemplate let-model="model">
+          <div class="custom-tooltip">
+            <strong>Average scenario</strong><br />
+            <span>Probability: {{ model.value }}%</span><br />
+            <span
+              *ngIf="getThresholds(model.series, selectedMetric, model.name)"
+            >
+              Upper value:
+              {{ getThresholds(model.series, selectedMetric, model.name)[0]
+              }}<br />
+              Lower value:
+              {{ getThresholds(model.series, selectedMetric, model.name)[1] }}
+            </span>
+          </div>
+        </ng-template>
+      </ngx-charts-bar-vertical-normalized>
+    </div>
+  </div>
+</div>

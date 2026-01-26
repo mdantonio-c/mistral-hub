@@ -48,6 +48,7 @@ import { StepSubmitComponent } from "./components/multi-step-wizard/step-submit/
 import { ReftimeModalContent } from "./components/multi-step-wizard/step-filters/reftime-modal.component";
 
 import { ArcoService } from "@app/services/arco.service";
+import { ArcoDatasetComponent } from "./components/arco-dataset/arco-dataset.component";
 
 /* Maps */
 import { ForecastMapsBaseComponent } from "@app/components/maps/forecast-maps/forecast-maps-base.component";
@@ -74,6 +75,7 @@ import { SideNavFilterComponent } from "./components/maps/side-nav/side-nav.comp
 import { SeasonalComponent } from "@app/components/maps/seasonal/seasonal.component";
 import { SideNavComponentSeasonal } from "./components/maps/seasonal/side-nav/side-nav.component";
 import { ProvinceReportComponent } from "./components/maps/seasonal/province-report/province-report.component";
+import { ProvinceExpandedReportComponent } from "./components/maps/sub-seasonal/province-expandend-report/province-expanded-report.component";
 import { MarineComponent } from "./components/maps/marine/marine.component";
 import { SideNavComponentMarine } from "./components/maps/marine/side-nav/side-nav.component";
 import { RadarComponent } from "./components/maps/radar-observation-maps/radar-observation-maps.component";
@@ -140,6 +142,7 @@ const appRoutes: Routes = [
     ],
   },
   { path: "app/datasets", component: DatasetsComponent },
+  { path: "app/arcodataset", component: ArcoDatasetComponent },
   { path: "app/maps/forecasts", component: ForecastMapsComponent },
   { path: "app/maps/flashflood", component: FlashFloodMapsComponent },
   {
@@ -258,6 +261,7 @@ const appRoutes: Routes = [
     ObsMeteogramsComponent,
     ObsStationReportComponent,
     ProvinceReportComponent,
+    ProvinceExpandedReportComponent,
     CustomLineChart,
     CustomBarChart,
     CustomXAxis,
@@ -313,6 +317,7 @@ const appRoutes: Routes = [
     ComboLineChartSeasonalComponent,
     ProfileComponent,
     MistralProfileRowComponent,
+    ArcoDatasetComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [

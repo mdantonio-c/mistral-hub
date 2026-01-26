@@ -430,6 +430,9 @@ app-radar-observation-maps .leaflet-control-attribution a:first-of-type {
     display: none;
   }
 }
+app-radar-observation-maps  .leaflet-bottom.leaflet-right {
+  z-index: 99999999 !important;
+}
 
 app-sub-seasonal .leaflet-control-attribution a:first-of-type {
   display: none !important;

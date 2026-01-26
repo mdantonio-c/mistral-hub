@@ -1,0 +1,72 @@
+ <div class="container-fluid">
+  <div class="row text-justify justify-content-md-center">
+    <div class="col-10 col-md-8">
+      <ngx-spinner
+      type="ball-scale-multiple"
+      bdColor="rgba(255,255,255,0.8)"
+      color="#6c757d"
+      zIndex="1000"
+      [fullScreen]="false"
+      size="medium"
+      ></ngx-spinner>
+      <div class="row mt-3">
+        <div
+          *ngIf="showAlert"
+          class="alert alert-warning alert-dismissible fade show"
+          role="alert"
+          >
+          <strong>Warning!</strong> {{ warningMsg }}
+        </div>
+        <section>
+          <h3> Datasets ARCO </h3>
+          <div class="row justify-content-evenly mt-4">
+            <div class="col-10">
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-2">
+                    <img  class="img-fluid thumbnail" src="/app/custom/assets/images/icon_sea_sm.png"
+                alt="SEA">
+                  </div>
+                  <div class="col-md-8">
+                    <div class="card-body">
+                      <h5 class="card-title">Dataset title</h5>
+                      <p class="card-text">This is aa datased description.</p>
+                      <div class="card-text dataset-metadata">
+                        <p class="text-muted m-0">Dataset ID:</p>
+                        <p class="text-muted m-0">Product Type:</p>
+                        <p class="text-muted m-0">Licenses:</p>
+                        <p class="text-muted m-0">Attributions:</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!--<div class="col">
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-4">
+                    <img class="img-fluid thumbnail"src="/app/custom/assets/images/icon_rad_sm.png"
+                alt="RAD">
+                  </div>
+                  <div class="col-md-8">
+                    <div class="card-body">
+                      <h5 class="card-title">Dataset title</h5>
+                      <p class="card-text">This is aa datased description.</p>
+                      <div class="card-text dataset-metadata">
+                        <p class="text-muted m-0">Dataset ID:</p>
+                        <p class="text-muted m-0">Product Type:</p>
+                        <p class="text-muted m-0">Licenses:</p>
+                        <p class="text-muted m-0">Attributions:</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>-->
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
