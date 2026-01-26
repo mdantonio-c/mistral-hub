@@ -48,6 +48,7 @@ import { StepSubmitComponent } from "./components/multi-step-wizard/step-submit/
 import { ReftimeModalContent } from "./components/multi-step-wizard/step-filters/reftime-modal.component";
 
 import { ArcoService } from "@app/services/arco.service";
+import { ArcoDatasetComponent } from "./components/arco-dataset/arco-dataset.component";
 
 /* Maps */
 import { ForecastMapsBaseComponent } from "@app/components/maps/forecast-maps/forecast-maps-base.component";
@@ -141,6 +142,7 @@ const appRoutes: Routes = [
     ],
   },
   { path: "app/datasets", component: DatasetsComponent },
+  { path: "app/arcodataset", component: ArcoDatasetComponent },
   { path: "app/maps/forecasts", component: ForecastMapsComponent },
   { path: "app/maps/flashflood", component: FlashFloodMapsComponent },
   {
@@ -315,6 +317,7 @@ const appRoutes: Routes = [
     ComboLineChartSeasonalComponent,
     ProfileComponent,
     MistralProfileRowComponent,
+    ArcoDatasetComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
