@@ -112,7 +112,7 @@
           class="info"
           [ngbTooltip]="
             isCollapsed
-              ? ('Click on the markers to open box plots for provincial capitals'
+              ? ('Click on the markers to open box plots for selected cities'
                 | translate : lang)
               : null
           "
@@ -121,7 +121,7 @@
         </span>
         <a class="d-flex justify-content-start text-start" *ngIf="!isCollapsed">
           <span class="nav-text">{{
-            "Click on the markers to open box plots for provincial capitals"
+            "Click on the markers to open box plots for selected cities"
               | translate : lang
           }}</span>
         </a>

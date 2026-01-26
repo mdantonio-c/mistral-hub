@@ -812,18 +812,47 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Belgrado", "code": null, "region": null },
-      "geometry": { "type": "Point", "coordinates": [20.4489, 44.7866] }
-    },
-    {
-      "type": "Feature",
-      "properties": { "name": "Bratislava", "code": null, "region": null },
-      "geometry": { "type": "Point", "coordinates": [17.1077, 48.1486] }
-    },
-    {
-      "type": "Feature",
       "properties": { "name": "Zagabria", "code": null, "region": null },
       "geometry": { "type": "Point", "coordinates": [15.9785, 45.815] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Tirana", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [19.8187, 41.3275] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Marsiglia", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [5.3698, 43.2965] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Monaco di Baviera",
+        "code": null,
+        "region": null
+      },
+      "geometry": { "type": "Point", "coordinates": [11.582, 48.1351] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Cracovia", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [19.945, 50.0647] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Ajaccio", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [8.7386, 41.9192] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "La Valletta", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [14.5146, 35.8989] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Nicosia", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [33.3823, 35.1856] }
     }
   ]
 }
