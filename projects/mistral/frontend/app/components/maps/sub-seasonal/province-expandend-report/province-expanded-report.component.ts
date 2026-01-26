@@ -40,11 +40,11 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   processedData;
 
   colorSchemeTemp = {
-    domain: ["#003366", "#99CCFF", "#E0E0E0", "#FF9999", "#8B0000"],
+    domain: ["#003366", "#99CCFF", "#BDBDBD", "#FF9999", "#8B0000"],
   };
 
   colorSchemePrec = {
-    domain: ["#E65100", "#FFB300", "#E0E0E0", "#66BB6A", "#1B5E20"],
+    domain: ["#E65100", "#FFB300", "#BDBDBD", "#66BB6A", "#1B5E20"],
   };
   colorScheme = this.colorSchemeTemp;
   ngAfterViewInit() {
@@ -212,7 +212,7 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
 
     dataTempSet.forEach((el, index) => {
       dataTemp.push({
-        name: this.weekList[index].slice(0, -13),
+        name: this.formatDateRange(this.weekList[index]), //.slice(0, -13),
         series: [
           {
             name: "Colder",
@@ -253,5 +253,36 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   }
   onSelect(event) {
     console.log(event);
+  }
+
+  formatDateRange(rangeStr) {
+    const [startStr, endStr] = rangeStr.split(" - ");
+
+    const [d1, m1, y1] = startStr.split("/").map(Number);
+    const [d2, m2, y2] = endStr.split("/").map(Number);
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const month1 = months[m1 - 1];
+    const month2 = months[m2 - 1];
+
+    if (m1 === m2 && y1 === y2) {
+      return `${d1} - ${d2} ${month1}`;
+    }
+
+    return `${d1} ${month1} - ${d2} ${month2}`;
   }
 }

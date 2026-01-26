@@ -126,6 +126,8 @@ export class TranslationService {
         "select week": "Seleziona settimana",
         "probability distributions weekly averaged":
           "distribuzioni di probabilità medie settimanali",
+        "click on the markers to open box plots for selected cities":
+          "Clicca sui punti per visualizzare i box plot delle città selezionate",
       },
     },
   };
