@@ -107,6 +107,25 @@
           >
         </a>
       </li>
+      <li class="sidenav-item realtime-info last">
+        <span
+          class="info"
+          [ngbTooltip]="
+            isCollapsed
+              ? ('Click on the markers to open box plots for provincial capitals'
+                | translate : lang)
+              : null
+          "
+          container="body"
+        >
+        </span>
+        <a class="d-flex justify-content-start text-start" *ngIf="!isCollapsed">
+          <span class="nav-text">{{
+            "Click on the markers to open box plots for provincial capitals"
+              | translate : lang
+          }}</span>
+        </a>
+      </li>
       <div class="flex-spacer w-100 h-100">
         <li class="sidenav-item border-0">
           <a
@@ -121,7 +140,11 @@
             container="body"
           >
           </a>
-          <a *ngIf="!isCollapsed" [href]="infoHome + '/content/weekly-forecast'" target="_blank">
+          <a
+            *ngIf="!isCollapsed"
+            [href]="infoHome + '/content/weekly-forecast'"
+            target="_blank"
+          >
             <span
               class="nav-text text-disclaimer"
               [ngbTooltip]="

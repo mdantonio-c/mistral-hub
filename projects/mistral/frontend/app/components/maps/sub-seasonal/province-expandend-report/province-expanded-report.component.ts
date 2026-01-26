@@ -116,11 +116,11 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
     weekName: string,
     layerId: string,
     quintile: string,
-  ): string {
-    if (!this.multi) return "";
+  ): string[] {
+    if (!this.multi) return [""];
 
     const weekData = this.multi.find((w) => w.name === weekName);
-    if (!weekData || !weekData.soglie) return "";
+    if (!weekData || !weekData.soglie) return [""];
 
     const quintileMap = {
       Colder: [0, 1],
@@ -133,13 +133,13 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
     };
 
     const indices = quintileMap[quintile];
-    if (!indices) return "";
+    if (!indices) return [""];
 
     const unit = layerId === "Temperature" ? "°C" : "mm";
     const minThreshold = weekData.soglie[indices[0]].value;
     const maxThreshold = weekData.soglie[indices[1]].value;
 
-    return `${minThreshold}${unit} - ${maxThreshold}${unit}`;
+    return [`${minThreshold}${unit}`, `${maxThreshold}${unit}`];
   }
 
   public selectMetric(metric: "Temperature" | "Total Precipitation") {
