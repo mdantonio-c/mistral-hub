@@ -142,7 +142,7 @@ const appRoutes: Routes = [
     ],
   },
   { path: "app/datasets", component: DatasetsComponent },
-  { path: "app/arcodataset", component: ArcoDatasetComponent },
+  { path: "app/datasets/arco", component: ArcoDatasetComponent },
   { path: "app/maps/forecasts", component: ForecastMapsComponent },
   { path: "app/maps/flashflood", component: FlashFloodMapsComponent },
   {

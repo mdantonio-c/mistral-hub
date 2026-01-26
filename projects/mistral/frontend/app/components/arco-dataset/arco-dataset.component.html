@@ -1,6 +1,6 @@
  <div class="container-fluid">
   <div class="row text-justify justify-content-md-center">
-    <div class="col-10 col-md-8">
+    <div class="col-12 col-md-8">
       <ngx-spinner
       type="ball-scale-multiple"
       bdColor="rgba(255,255,255,0.8)"
@@ -20,32 +20,73 @@
         <section>
           <h3> Datasets ARCO </h3>
           <div class="row justify-content-evenly mt-4">
-            <div class="col-10">
-              <div class="card mb-3">
+            <ng-container *ngIf="loading">
+              <div class="col-10">
+                <div class="card mb-3">
+                  <div class="row g-0">
+                    <div class="col-md-2">
+                      <div style="height:64px;width:100%;border-radius:4px"></div>
+                    </div>
+                    <div class="col-md-8">
+                      <div class="card-body">
+                        <h5 class="card-title"><span class="placeholder col-6"></span></h5>
+                        <p class="card-text"><span class="placeholder col-12"></span></p>
+                        <div class="card-text dataset-metadata">
+                          <p class="text-muted m-0"><span class="placeholder col-4"></span></p>
+                          <p class="text-muted m-0"><span class="placeholder col-3"></span></p>
+                          <p class="text-muted m-0"><span class="placeholder col-5"></span></p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-2 d-flex justify-content-end align-items-start mt-2">
+                      <div class="d-flex flex-column align-items-end" style="width:100%;">
+                        <div class="placeholder col-2 rounded" style="height:20px; width:40px; display:inline-block; margin-right:8px;"></div>
+                        <div class="placeholder col-6 mt-2" style="height:8px; width:60px; display:inline-block;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="!loading">
+              <div class="col-10" *ngIf="datasets.length; else noData">
+                <div class="card mb-3" *ngFor="let ds of datasets">
                 <div class="row g-0">
                   <div class="col-md-2">
-                    <img  class="img-fluid thumbnail" src="/app/custom/assets/images/icon_sea_sm.png"
-                alt="SEA">
+                    <img class="img-fluid thumbnail" src="/app/custom/assets/images/icon_sea_sm.png" alt="ARCO">
                   </div>
                   <div class="col-md-8">
                     <div class="card-body">
-                      <h5 class="card-title">Dataset title</h5>
-                      <p class="card-text">This is aa datased description.</p>
+                      <h5 class="card-title">{{ ds.name || ds.id }}</h5>
+                      <p class="card-text">{{ ds.description || 'No description available.' }}</p>
                       <div class="card-text dataset-metadata">
-                        <p class="text-muted m-0">Dataset ID:</p>
-                        <p class="text-muted m-0">Product Type:</p>
-                        <p class="text-muted m-0">Licenses:</p>
-                        <p class="text-muted m-0">Attributions:</p>
+                        <p class="text-muted m-0">Dataset ID: {{ ds.id }}</p>
+                        <p class="text-muted m-0">Product Type: {{ ds.category || ds.product_type || '-' }}</p>
+                        <p class="text-muted m-0">Licenses: {{ ds.license || '-' }}</p>
+                        <p class="text-muted m-0">Attributions: {{ ds.attribution || '-' }}</p>
                       </div>
                     </div>
                   </div>
                   <div class="col-md-2 d-flex justify-content-end align-items-start mt-2">
-                   <button class="btn btn-outline-dark btn-sm p-1 ng-star-inserted" style="margin-right: 8px;"> Copy ARCO Data URL 
-                    <img src="/app/custom/assets/images/zarr-logo.png" alt="ARCO" style="height: 20px;"></button>
+                    <button class="btn btn-outline-dark btn-sm p-1" style="margin-right: 8px;" (click)="copyArcoUrl(ds)">
+                      Copy ARCO Data URL
+                      <img src="/app/custom/assets/images/zarr-logo.png" alt="ARCO" style="height: 20px; margin-left:6px;">
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
+            <ng-template #noData>
+              <div class="col-12 d-flex align-items-center justify-content-center" style="min-height:60vh;">
+                <div class="text-center w-100">
+                  <div class="alert alert-light mx-auto text-center px-4 py-3" role="alert" style="max-width:720px; font-size:1.125rem;">
+                    <strong>No ARCO datasets available</strong>
+                    <div class="small text-muted mt-1">Try again later or check your connection.</div>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+            </ng-container>
             <!--<div class="col">
               <div class="card mb-3">
                 <div class="row g-0">
