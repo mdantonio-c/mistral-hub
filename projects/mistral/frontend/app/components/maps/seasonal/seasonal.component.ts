@@ -10,6 +10,7 @@ import { TilesService } from "../meteo-tiles/services/tiles.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { ProvinceReportComponent } from "./province-report/province-report.component";
 import { NavigationEnd, Params } from "@angular/router";
+import * as moment from "moment";
 
 const ICON_BOUNDS = {
   southWest: L.latLng(33.69, 2.9875),
@@ -101,7 +102,7 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
   public varDesc1: string;
   public varDesc2: string;
   public varDesc3: string;
-  private selectedMonth: string;
+  public selectedMonth: string;
   public prov: string;
   public runDate: string;
   public runYear: number;
@@ -188,6 +189,10 @@ export class SeasonalComponent extends BaseMapComponent implements OnInit {
       return div;
     };
     attribution.addTo(map);
+  }
+   getMonthName (date: string) {
+        const newDate = moment.utc(date);
+        return moment.utc(newDate).format("MMMM");
   }
 
   protected onMapReady(map: L.Map) {}
