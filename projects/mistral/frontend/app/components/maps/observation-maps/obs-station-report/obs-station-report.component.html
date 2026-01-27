@@ -220,7 +220,7 @@
               </ng-container>
               <ng-template #lineChart>
                 <custom-ngx-charts-line-chart
-                  [view]="[containerRef.offsetWidth, 400]"
+                  [view]="[containerRef.offsetWidth - 100, 400]"
                   [animations]="true"
                   [scheme]="multiColorScheme"
                   [xAxis]="true"
@@ -236,7 +236,7 @@
                   [xAxisTicks]="xTicks"
                   [yAxisTicks]="yAxisTicks"
                   [dateInterval]="dateInterval"
-                  [gridLineNgStyleByXAxisTick]="xAxisNgStyleFn"
+                  [gridLineNgStyleByXAxisTick]="onlyDateChangeNgStyleFn"
                   [rotateXAxisTicks]="false"
                   [timeline]="false"
                   [results]="singleDates"

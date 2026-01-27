@@ -135,13 +135,36 @@ export class ObsStationReportComponent implements OnInit {
     const max = this.yScaleMax || 100;
 
     this.yAxisTicks = [];
+
     if (variable === "t" || variable === "s" || variable === "p") {
-      for (let i = min; i <= max; i += 2) {
+      // If the range includes 0, start from 0, otherwise normalise to obtain an equal value.
+      let startValue;
+      if (min <= 0 && max >= 0) {
+        startValue = 0;
+      } else if (max < 0) {
+        // Only negative values: start from the normalised maximum at equal
+        startValue = max % 2 === 0 ? max : max - 1;
+      } else {
+        // Only positive values: start from the normalised minimum at equal
+        startValue = min % 2 === 0 ? min : min + 1;
+      }
+
+      // Add downward ticks (negative values)
+      for (let i = startValue - 2; i >= min; i -= 2) {
+        this.yAxisTicks.unshift(i);
+      }
+
+      // Add the startValue
+      this.yAxisTicks.push(startValue);
+
+      // Add upward ticks (positive values)
+      for (let i = startValue + 2; i <= max; i += 2) {
         this.yAxisTicks.push(i);
       }
     }
+
     if (variable === "rh") {
-      for (let i = min; i <= max; i += 20) {
+      for (let i = 0; i <= max; i += 20) {
         this.yAxisTicks.push(i);
       }
     }
@@ -652,7 +675,8 @@ export class ObsStationReportComponent implements OnInit {
           } else {
             this.yScaleMax = Math.round(maxVal + 10);
             this.yScaleMin = Math.round(minVal - 10);
-            this.flagRed = true;
+            if (this.yScaleMax < 0) this.flagRed = false;
+            else this.flagRed = true;
           }
           this.calculateYTicks("t");
         }
