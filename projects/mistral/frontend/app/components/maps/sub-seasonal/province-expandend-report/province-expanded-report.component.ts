@@ -40,11 +40,10 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   processedData;
 
   colorSchemeTemp = {
-    domain: ["#8B0000", "#FF9999", "#BDBDBD", "#99CCFF", "#003366"],
+    domain: ["#003366", "#99CCFF", "#BDBDBD", "#FF9999", "#8B0000"],
   };
-
   colorSchemePrec = {
-    domain: ["#1B5E20", "#66BB6A", "#BDBDBD", "#FFB300", "#E65100"],
+    domain: ["#E65100", "#FFB300", "#BDBDBD", "#66BB6A", "#1B5E20"],
   };
   colorScheme = this.colorSchemeTemp;
   ngAfterViewInit() {
@@ -214,11 +213,11 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
       dataTemp.push({
         name: this.formatDateRange(this.weekList[index]), //.slice(0, -13),
         series: [
-          { name: "Warmest", value: el.quintili[4].value },
-          { name: "Above average", value: el.quintili[3].value },
-          { name: "Average", value: el.quintili[2].value },
-          { name: "Below average", value: el.quintili[1].value },
           { name: "Coldest", value: el.quintili[0].value },
+          { name: "Below average", value: el.quintili[1].value },
+          { name: "Average", value: el.quintili[2].value },
+          { name: "Above average", value: el.quintili[3].value },
+          { name: "Warmest", value: el.quintili[4].value },
         ],
         soglie: el.soglie,
       });
@@ -227,11 +226,11 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
       dataPrec.push({
         name: this.formatDateRange(this.weekList[index]), // .slice(0, -13),
         series: [
-          { name: "Wettest", value: el.quintili[4].value },
-          { name: "Above average", value: el.quintili[3].value },
-          { name: "Average", value: el.quintili[2].value },
-          { name: "Below average", value: el.quintili[1].value },
           { name: "Driest", value: el.quintili[0].value },
+          { name: "Below average", value: el.quintili[1].value },
+          { name: "Average", value: el.quintili[2].value },
+          { name: "Above average", value: el.quintili[3].value },
+          { name: "Wettest", value: el.quintili[4].value },
         ],
         soglie: el.soglie,
       });
