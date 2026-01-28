@@ -593,6 +593,7 @@ export class ObsStationReportComponent implements OnInit {
                 value: "#FF0000",
               },
             ];
+            this.calculateTicksForCombined(this.var1[0].name);
           }
           /*console.log(
             "var1",
@@ -652,7 +653,9 @@ export class ObsStationReportComponent implements OnInit {
         this.accumulatedSeries,
       );
     }
-    this.updateYScaleRange(navItemId);
+    if (!this.showCombined) {
+      this.updateYScaleRange(navItemId);
+    }
   }
   updateYScaleRange(navItemId: string) {
     this.flagRed = false;
@@ -716,6 +719,62 @@ export class ObsStationReportComponent implements OnInit {
           this.calculateYTicks("s");
         }
         break;
+    }
+  }
+  private calculateTicksForCombined(var1Name: string) {
+    let param;
+    if (var1Name === "Temperature") param = "t";
+    else if (var1Name === "Pressure") param = "p";
+    else if (var1Name === "Relative Humidity") param = "rh";
+    else param = "s";
+
+    if (this.var1 && this.var1.length > 0) {
+      const allValues = this.var1[0].series.map((d) => parseFloat(d.value));
+      const minVal = Math.min(...allValues);
+      const maxVal = Math.max(...allValues);
+
+      this.yAxisTicks = [];
+
+      if (param === "rh") {
+        // Per umidità relativa: sempre 0-100
+        const min = 0;
+        const max = 100;
+        for (let i = min; i <= max; i += 20) {
+          this.yAxisTicks.push(i);
+        }
+      } else {
+        // Per altre variabili: calcola con padding
+        const padding = 4;
+        const min = Math.round(minVal - padding);
+        const max = Math.round(maxVal + padding);
+
+        // If the range includes 0, start from 0, otherwise normalise to obtain an equal value.
+        let startValue;
+        if (min <= 0 && max >= 0) {
+          startValue = 0;
+        } else if (max < 0) {
+          // Only negative values: start from the normalised maximum at equal
+          startValue = max % 2 === 0 ? max : max - 1;
+        } else {
+          // Only positive values: start from the normalised minimum at equal
+          startValue = min % 2 === 0 ? min : min + 1;
+        }
+
+        // Add downward ticks (negative values)
+        for (let i = startValue - 2; i >= min; i -= 2) {
+          this.yAxisTicks.unshift(i);
+        }
+
+        // Add the startValue
+        this.yAxisTicks.push(startValue);
+
+        // Add upward ticks (positive values)
+        for (let i = startValue + 2; i <= max; i += 2) {
+          this.yAxisTicks.push(i);
+        }
+      }
+
+      //console.log('yAxisTicks calcolati per combined:', this.yAxisTicks);
     }
   }
   /* Build and filter data to display combined wind graph */

@@ -246,6 +246,7 @@
                   [referenceLines]="referenceLines"
                   [showRefLines]="flagRed"
                   [showRefLabels]="false"
+                  [showGridLines]="true"
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block"
@@ -471,6 +472,7 @@
                   [showRefLines]="flagRed"
                   [showRefLabels]="false"
                   [flagRed2]="flagRed2"
+                  [yAxisTicks]="yAxisTicks"
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block">{{

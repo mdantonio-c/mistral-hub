@@ -67,6 +67,7 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   @Input() namevar1: string;
   @Input() showRefLines: boolean = false;
   @Input() flagRed2;
+  @Input() yAxisTicks: number[];
   //@Input() scaleType: ScaleType = ScaleType.Time;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
@@ -123,6 +124,7 @@ export class DoubleLineChartComponent extends BaseChartComponent {
 
   update(): void {
     super.update();
+    // console.log('yAxisTicks in combo-chart-combined:', this.yAxisTicks);
     this.dims = calculateViewDimensions({
       width: this.width,
       height: this.height,
@@ -367,6 +369,11 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   }
 
   getYDomain() {
+    if (this.yAxisTicks && this.yAxisTicks.length > 0) {
+      const min = this.yAxisTicks[0];
+      const max = this.yAxisTicks[this.yAxisTicks.length - 1];
+      return [min, max];
+    }
     const values = this.results.map((d) => d.value);
 
     //const min = 0;
