@@ -17,6 +17,7 @@ export class TilesService {
   private _imgCache: Map<string, Observable<ArrayBuffer>> = new Map();
   private _geoJsonCache: Map<string, Observable<any>> = new Map();
   private _vectorCache: Map<string, Observable<any>> = new Map();
+  private _subSeasonalCache: Map<string, Observable<any>> = new Map();
   constructor(private api: ApiService, private http: HttpClient) {
     // this.tiles_url = environment.CUSTOM.TILES_URL;
     // this.external_url = this.tiles_url != "";
@@ -168,5 +169,15 @@ export class TilesService {
       this._vectorCache.set(filename, obs);
     }
     return this._vectorCache.get(filename)!;
+  }
+
+  getJsonDataCitiesSubSeasonal(filename: string): Observable<any> {
+    if (!this._subSeasonalCache.has(filename)) {
+      const obs = this.api
+        .get(`${this.maps_url}/api/sub-seasonal/data/cities/${filename}`)
+        .pipe(shareReplay(1));
+      this._subSeasonalCache.set(filename, obs);
+    }
+    return this._subSeasonalCache.get(filename)!;
   }
 }

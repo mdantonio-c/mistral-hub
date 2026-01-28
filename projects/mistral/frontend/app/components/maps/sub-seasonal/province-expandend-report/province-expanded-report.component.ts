@@ -10,6 +10,7 @@ import {
 } from "@angular/core";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";
+import { TilesService } from "../../meteo-tiles/services/tiles.service";
 
 @Component({
   selector: "app-province-expanded-report",
@@ -28,6 +29,7 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
     private spinner: NgxSpinnerService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
+    private tilesService: TilesService,
   ) {}
 
   @Input() lang!: string;
@@ -178,26 +180,25 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   private loadReport(layerId: string) {
     this.loadProvinceData(layerId);
   }
-  private async loadProvinceData(layerId: string) {
+  private loadProvinceData(layerId: string) {
     try {
-      const response = await fetch(
-        `./app/custom/assets/images/json_out_subseasonal/${
-          this.prov
-        }.json?t=${new Date().getTime()}`,
-        { cache: "no-store" },
+      const dataCities$ = this.tilesService.getJsonDataCitiesSubSeasonal(
+        `${this.prov}.json`,
       );
-      const data = await response.json();
-      this.processedData = this.prepareDataForChart(data);
-      this.zone.run(() => {
-        (this.selectedMetric as any) = layerId;
-        if (layerId == "Temperature") {
-          this.multi = this.processedData.temp;
-          this.colorScheme = { ...this.colorSchemeTemp };
-        } else {
-          this.colorScheme = { ...this.colorSchemePrec };
-          this.multi = this.processedData.prec;
-        }
-        this.cdr.markForCheck();
+      dataCities$.subscribe((data) => {
+        //const data = dataBullet.json();
+        this.processedData = this.prepareDataForChart(data);
+        this.zone.run(() => {
+          (this.selectedMetric as any) = layerId;
+          if (layerId == "Temperature") {
+            this.multi = this.processedData.temp;
+            this.colorScheme = { ...this.colorSchemeTemp };
+          } else {
+            this.colorScheme = { ...this.colorSchemePrec };
+            this.multi = this.processedData.prec;
+          }
+          this.cdr.markForCheck();
+        });
       });
     } catch (error) {
       console.error("Errore caricamento JSON provincia:", error);
