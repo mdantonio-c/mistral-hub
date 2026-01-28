@@ -175,7 +175,7 @@
             }}</span>
           </a>
           <div
-            *ngIf="!isCollapsed" 
+            *ngIf="!isCollapsed"
             class="form-switch prs-switch justify-content-center ms-3 d-flex mb-3"
           >
             <input
@@ -187,8 +187,8 @@
               [disabled]="disableRuleScalarPrsButton()"
             />
             <label class="form-check-label" for="prsSwitch"></label>
-            <p i18n style="font-size: 8px; text-transform: none;">
-              {{ "Scalar Field" | translate : lang }}
+            <p i18n style="font-size: 8px; text-transform: none">
+              {{ "Field" | translate : lang }}
             </p>
           </div>
         </li>
@@ -238,7 +238,7 @@
             <span class="nav-text" i18n>{{ "Wind" | translate : lang }}</span>
           </a>
           <div
-            *ngIf="!isCollapsed" 
+            *ngIf="!isCollapsed"
             class="form-switch wind-switch justify-content-center ms-3 d-flex mb-3"
           >
             <input
@@ -250,8 +250,8 @@
               [disabled]="disabledRuleScalarWindButton()"
             />
             <label class="form-check-label" for="windSwitch"></label>
-            <p i18n style="font-size: 8px; text-transform: none;">
-              {{ "Scalar Field" | translate : lang }}
+            <p i18n style="font-size: 8px; text-transform: none">
+              {{ "Speed" | translate : lang }}
             </p>
           </div>
         </li>
