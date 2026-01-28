@@ -52,10 +52,10 @@
               <div class="col-10" *ngIf="datasets.length; else noData">
                 <div class="card mb-3" *ngFor="let ds of datasets">
                 <div class="row g-0">
-                  <div class="col-md-2">
-                    <img class="img-fluid thumbnail" src="/app/custom/assets/images/icon_sea_sm.png" alt="ARCO">
+                  <div class="col-lg-2 col-md-12 px-2">
+                    <img class="card-body img-fluid thumbnail" src="/app/custom/assets/images/icon_sea_sm.png" alt="ARCO">
                   </div>
-                  <div class="col-md-8">
+                  <div class="col-md-12 col-lg-7">
                     <div class="card-body">
                       <h5 class="card-title">{{ ds.name || ds.id }}</h5>
                       <p class="card-text">{{ ds.description || 'No description available.' }}</p>
@@ -65,13 +65,16 @@
                         <p class="text-muted m-0">Licenses: {{ ds.license || '-' }}</p>
                         <p class="text-muted m-0">Attributions: {{ ds.attribution || '-' }}</p>
                       </div>
+        
                     </div>
                   </div>
-                  <div class="col-md-2 d-flex justify-content-end align-items-start mt-2">
-                    <button class="btn btn-outline-dark btn-sm p-1" style="margin-right: 8px;" (click)="copyArcoUrl(ds)">
-                      Copy ARCO Data URL
-                      <img src="/app/custom/assets/images/zarr-logo.png" alt="ARCO" style="height: 20px; margin-left:6px;">
-                    </button>
+                    <div class="col-lg-3 col-md-12 mt-2">
+                      <div class="d-flex card-body w-100 flex-nowrap">
+                      <button class="btn btn-outline-dark btn-sm p-1" (click)="copyArcoUrl(ds)">
+                        Copy ARCO Data URL
+                        <img class="zarr-logo" src="/app/custom/assets/images/zarr-logo.png" alt="ARCO">
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
