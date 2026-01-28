@@ -40,11 +40,11 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   processedData;
 
   colorSchemeTemp = {
-    domain: ["#003366", "#99CCFF", "#BDBDBD", "#FF9999", "#8B0000"],
+    domain: ["#8B0000", "#FF9999", "#BDBDBD", "#99CCFF", "#003366"],
   };
 
   colorSchemePrec = {
-    domain: ["#E65100", "#FFB300", "#BDBDBD", "#66BB6A", "#1B5E20"],
+    domain: ["#1B5E20", "#66BB6A", "#BDBDBD", "#FFB300", "#E65100"],
   };
   colorScheme = this.colorSchemeTemp;
   ngAfterViewInit() {
@@ -123,13 +123,13 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
     if (!weekData || !weekData.soglie) return [""];
 
     const quintileMap = {
-      Colder: [0, 1],
-      Drier: [0, 1],
+      Coldest: [0, 1],
+      Driest: [0, 1],
       "Below average": [1, 2],
       Average: [2, 3],
       "Above average": [3, 4],
-      Warmer: [4, 5],
-      Wetter: [4, 5],
+      Warmest: [4, 5],
+      Wettest: [4, 5],
     };
 
     const indices = quintileMap[quintile];
@@ -214,36 +214,24 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
       dataTemp.push({
         name: this.formatDateRange(this.weekList[index]), //.slice(0, -13),
         series: [
-          {
-            name: "Colder",
-            value: el.quintili[0].value,
-          },
-          {
-            name: "Below average",
-            value: el.quintili[1].value,
-          },
-          { name: "Average", value: el.quintili[2].value },
+          { name: "Warmest", value: el.quintili[4].value },
           { name: "Above average", value: el.quintili[3].value },
-          { name: "Warmer", value: el.quintili[4].value },
+          { name: "Average", value: el.quintili[2].value },
+          { name: "Below average", value: el.quintili[1].value },
+          { name: "Coldest", value: el.quintili[0].value },
         ],
         soglie: el.soglie,
       });
     });
     dataPrecSet.forEach((el, index) => {
       dataPrec.push({
-        name: this.weekList[index].slice(0, -13),
+        name: this.formatDateRange(this.weekList[index]), // .slice(0, -13),
         series: [
-          {
-            name: "Drier",
-            value: el.quintili[0].value,
-          },
-          {
-            name: "Below average",
-            value: el.quintili[1].value,
-          },
-          { name: "Average", value: el.quintili[2].value },
+          { name: "Wettest", value: el.quintili[4].value },
           { name: "Above average", value: el.quintili[3].value },
-          { name: "Wetter", value: el.quintili[4].value },
+          { name: "Average", value: el.quintili[2].value },
+          { name: "Below average", value: el.quintili[1].value },
+          { name: "Driest", value: el.quintili[0].value },
         ],
         soglie: el.soglie,
       });
