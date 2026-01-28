@@ -1,0 +1,17 @@
+.zarr-logo {
+    max-width: 20px !important;
+}
+@media (min-width: 992px) { 
+.card-body.img-fluid {
+    max-width: 100% !important; 
+    }
+}
+
+@media (max-width: 767px){
+    .card-body.img-fluid {
+        max-width: 50%;
+        display: flex;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}

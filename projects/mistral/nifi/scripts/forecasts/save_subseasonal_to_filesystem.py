@@ -8,6 +8,7 @@ EXIT_INVALID_INPUT = 20
 EXIT_INVALID_TREE = 30
 
 expected_tree = {
+    "json_weekly",
     "t2m",
     "t2m/quintile_1",
     "t2m/quintile_5",

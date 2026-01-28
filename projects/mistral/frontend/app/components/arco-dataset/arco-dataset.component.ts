@@ -37,9 +37,9 @@ export class ArcoDatasetComponent implements OnInit {
       .subscribe(
         (result: ArcoDataset[]) => {
           this.datasets = result || [];
-          this.datasets = []
+          //this.datasets = []
           // for testing purposes duplicate datasets
-          // this.datasets = this.datasets.concat(this.datasets);
+          //this.datasets = this.datasets.concat(this.datasets);
           // keep datasets as returned
         },
         (error) => this.notify.showError(error),
