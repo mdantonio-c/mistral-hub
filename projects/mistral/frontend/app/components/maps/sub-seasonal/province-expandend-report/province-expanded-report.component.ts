@@ -137,8 +137,8 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
     if (!indices) return [""];
 
     const unit = layerId === "Temperature" ? "°C" : "mm";
-    const minThreshold = weekData.soglie[indices[0]].value;
-    const maxThreshold = weekData.soglie[indices[1]].value;
+    const minThreshold = weekData.soglie[indices[1]].value;
+    const maxThreshold = weekData.soglie[indices[0]].value;
 
     return [`${minThreshold}${unit}`, `${maxThreshold}${unit}`];
   }
