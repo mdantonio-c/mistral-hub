@@ -180,4 +180,8 @@ export class TilesService {
     }
     return this._subSeasonalCache.get(filename)!;
   }
+
+  getJsonDataCitiesList(): Observable<any> {
+    return this.api.get(`${this.maps_url}/api/sub-seasonal/data/cities`);
+  }
 }

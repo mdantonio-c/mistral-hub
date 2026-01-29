@@ -7,10 +7,12 @@ import {
   ViewChild,
   ElementRef,
   AfterViewInit,
+  Injector,
 } from "@angular/core";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";
 import { TilesService } from "../../meteo-tiles/services/tiles.service";
+import { NotificationService } from "@rapydo/services/notification";
 
 @Component({
   selector: "app-province-expanded-report",
@@ -23,14 +25,17 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
 
   @ViewChild("containerRef", { static: false })
   containerRef: ElementRef;
-
+  protected notify: NotificationService;
   constructor(
     public activeModal: NgbActiveModal,
     private spinner: NgxSpinnerService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
     private tilesService: TilesService,
-  ) {}
+    injector: Injector,
+  ) {
+    this.notify = injector.get(NotificationService);
+  }
 
   @Input() lang!: string;
   @Input() prov!: string;
@@ -181,6 +186,15 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
     this.loadProvinceData(layerId);
   }
   private loadProvinceData(layerId: string) {
+    const listObs$ = this.tilesService.getJsonDataCitiesList();
+    const input = this.prov + ".json";
+    listObs$.subscribe((list) => {
+      if (!list.includes(input)) {
+        this.notify.showWarning(`Data for ${this.prov} is not available`);
+        return;
+      }
+    });
+
     try {
       const dataCities$ = this.tilesService.getJsonDataCitiesSubSeasonal(
         `${this.prov}.json`,
