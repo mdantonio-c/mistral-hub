@@ -17,6 +17,7 @@ export class ArcoDatasetComponent implements OnInit {
   showAlert = false;
   datasets: ArcoDataset[] = [];
   loading: boolean = false;
+  infoHome: string = environment.CUSTOM.INFO_HOME;
 
   constructor(
     private spinner: NgxSpinnerService,
