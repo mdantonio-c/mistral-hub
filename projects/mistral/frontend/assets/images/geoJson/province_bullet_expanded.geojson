@@ -853,6 +853,21 @@
       "type": "Feature",
       "properties": { "name": "Nicosia", "code": null, "region": null },
       "geometry": { "type": "Point", "coordinates": [33.3823, 35.1856] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Francoforte", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [8.6821, 50.1109] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Strasburgo", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [7.7521, 48.5734] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Belgrado", "code": null, "region": null },
+      "geometry": { "type": "Point", "coordinates": [20.4573, 44.7872] }
     }
   ]
 }
