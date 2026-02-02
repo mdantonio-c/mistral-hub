@@ -7,6 +7,9 @@ CREATE TABLE public.rad_downloads
     prod_creation_date timestamp with time zone NOT NULL,
     prod_download_date timestamp with time zone,
     prod_filename varchar,
+    output_filename varchar,
+    ts_error timestamp with time zone,
+    error_message varchar,
     CONSTRAINT rad_downloads_pk PRIMARY KEY (prod_code, prod_creation_date)
 );
 
