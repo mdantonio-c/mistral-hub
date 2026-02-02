@@ -65,6 +65,7 @@ export class ObsStationReportComponent implements OnInit {
   unit1;
   unit2;
   combinedPrec = false;
+  isVar2RelativeHumidity = false;
 
   // to display only selected station details
   stationDetailsCodesList = ["B01019", "B01194", "B05001", "B06001", "B07030"];
@@ -556,6 +557,10 @@ export class ObsStationReportComponent implements OnInit {
         if (this.selectedTabs.length === 2) {
           const specialCode = "B13011-1,0,0,0-1,0,3600";
           const codes = this.selectedTabs.map((t) => t.split("-")[0]);
+          // Reset flags for combined view
+          this.isVar2RelativeHumidity = false;
+          this.flagRed = false;
+          this.flagRed2 = false;
           if (this.selectedTabs.includes(specialCode)) {
             this.combinedPrec = true;
             this.var1 = this.transformDataFormat(
@@ -572,6 +577,9 @@ export class ObsStationReportComponent implements OnInit {
             if (this.var2[0].name === "Temperature") {
               this.flagRed2 = this.var2[0].series.some((el) => el.value < 0);
             }
+            if (this.var2[0].name === "Relative Humidity") {
+              this.isVar2RelativeHumidity = true;
+            }
           } else {
             this.var1 = this.transformDataFormat(
               this.combinedData.filter((item) => codes[0].includes(item.code)),
@@ -579,7 +587,20 @@ export class ObsStationReportComponent implements OnInit {
             this.var2 = this.transformDataFormat(
               this.combinedData.filter((item) => codes[1].includes(item.code)),
             );
-            if (this.var2[0].name === "Temperature") {
+            if (this.var2[0].name === "Relative Humidity") {
+              this.isVar2RelativeHumidity = true;
+            }
+            // Check for temperature on BOTH axes, but prioritize left axis
+            const var1IsTemp = this.var1[0].name === "Temperature";
+            const var2IsTemp = this.var2[0].name === "Temperature";
+
+            if (var1IsTemp) {
+              // If var1 is temperature, show zero line on left axis only
+              this.flagRed = this.var1[0].series.some((el) => el.value < 0);
+              this.flagRed2 = false;
+            } else if (var2IsTemp) {
+              // If only var2 is temperature, show zero line on right axis only
+              this.flagRed = false;
               this.flagRed2 = this.var2[0].series.some((el) => el.value < 0);
             }
             this.combinedPrec = false;

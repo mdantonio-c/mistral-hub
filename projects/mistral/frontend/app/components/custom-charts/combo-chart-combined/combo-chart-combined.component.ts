@@ -68,6 +68,7 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   @Input() showRefLines: boolean = false;
   @Input() flagRed2;
   @Input() yAxisTicks: number[];
+  @Input() isVar2RelativeHumidity: boolean = false;
   //@Input() scaleType: ScaleType = ScaleType.Time;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
@@ -273,7 +274,9 @@ export class DoubleLineChartComponent extends BaseChartComponent {
 
   getYDomainLine(): any[] {
     const domain = [];
-
+    if (this.isVar2RelativeHumidity) {
+      return [0, 100];
+    }
     for (const results of this.lineChart) {
       for (const d of results.series) {
         if (domain.indexOf(d.value) < 0) {

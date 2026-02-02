@@ -67,6 +67,7 @@ export class ComboChartComponent extends BaseChartComponent {
   @Input() autoScaleRightYAxis;
   @Input() showRefLines = false;
   @Input() flagRed2 = false;
+  @Input() isVar2RelativeHumidity;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() deactivate: EventEmitter<any> = new EventEmitter();
@@ -275,7 +276,9 @@ export class ComboChartComponent extends BaseChartComponent {
 
   getYDomainLine(): any[] {
     const domain = [];
-
+    if (this.isVar2RelativeHumidity) {
+      return [0, 100];
+    }
     for (const results of this.lineChart) {
       for (const d of results.series) {
         if (domain.indexOf(d.value) < 0) {
