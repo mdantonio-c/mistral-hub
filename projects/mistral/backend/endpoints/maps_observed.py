@@ -341,7 +341,7 @@ class MapsObservations(EndpointResource):
 
         raw_res = query_dballe()
 
-        if not raw_res:
+        if not raw_res and daily:
             query["timerange"] = [f"1, 0, {p2 - 3600}"]
             raw_res = query_dballe()
 
