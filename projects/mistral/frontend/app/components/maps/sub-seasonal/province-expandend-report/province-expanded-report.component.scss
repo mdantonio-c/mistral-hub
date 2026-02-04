@@ -55,3 +55,7 @@ $dark-blue: #004080;
   justify-content: center !important;
   margin-right: 5px !important;
 }
+::ng-deep ngx-charts-legend .legend-labels {
+  display: flex;
+  flex-direction: column-reverse;
+}

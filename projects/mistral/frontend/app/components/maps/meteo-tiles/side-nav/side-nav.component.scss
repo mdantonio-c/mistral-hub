@@ -731,6 +731,18 @@ $dark-blue: #004080;
    }
 }
 
+.wind-switch {
+  top: 9px;
+  p {
+  left: 4px;
+  }
+}
+.prs-switch {
+  top:9px;
+  p {
+  left: 6px; 
+  }
+}
 /*multimodel switch*/
 .collapsed .multi-model .form-switch {
   padding-left: 35px;

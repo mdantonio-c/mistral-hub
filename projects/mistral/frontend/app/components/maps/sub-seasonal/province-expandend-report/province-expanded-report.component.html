@@ -42,7 +42,7 @@
       >
         <ng-template #tooltipTemplate let-model="model">
           <div class="custom-tooltip">
-            <strong>Average scenario</strong><br />
+            <strong>{{ model.name }} scenario</strong><br />
             <span>Probability: {{ model.value }}%</span><br />
             <span
               *ngIf="getThresholds(model.series, selectedMetric, model.name)"

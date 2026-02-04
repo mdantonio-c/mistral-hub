@@ -79,7 +79,7 @@ WORKDIR /tmp
 
 RUN echo "deb [trusted=yes] https://simc.arpae.it/packages/debian jammy main" > /etc/apt/sources.list.d/arpae-simc.list \
     && apt-get update -qq \
-    && apt-get install -y python3-wreport dballe python3-dballe arkimet libsim python3-eccodes eccodes-simc dba-qcfilter gdal-bin libeccodes-tools
+    && apt-get install -y python3-wreport dballe python3-dballe arkimet libsim python3-eccodes eccodes-simc dba-qcfilter gdal-bin libeccodes-tools python3-pyproj
 
 #########################################################
 # NIFI
@@ -107,6 +107,9 @@ RUN chown -R nifi:nifi /opt/nifi/nifi-current/logs
 WORKDIR ${NIFI_HOME}
 
 ENV JAVA_OPTS="${JAVA_OPTS} -Dlog4j2.formatMsgNoLookups=true"
+#variable used by gdal in hdf2grib conversion script
+ENV PROJ_LIB=/usr/share/proj/
+ENV PROJ_DATA=/usr/share/proj
 
 # Expose the necessary ports
 EXPOSE 8080 8443

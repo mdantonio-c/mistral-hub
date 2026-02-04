@@ -67,6 +67,8 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   @Input() namevar1: string;
   @Input() showRefLines: boolean = false;
   @Input() flagRed2;
+  @Input() yAxisTicks: number[];
+  @Input() isVar2RelativeHumidity: boolean = false;
   //@Input() scaleType: ScaleType = ScaleType.Time;
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
@@ -123,6 +125,7 @@ export class DoubleLineChartComponent extends BaseChartComponent {
 
   update(): void {
     super.update();
+    // console.log('yAxisTicks in combo-chart-combined:', this.yAxisTicks);
     this.dims = calculateViewDimensions({
       width: this.width,
       height: this.height,
@@ -271,7 +274,9 @@ export class DoubleLineChartComponent extends BaseChartComponent {
 
   getYDomainLine(): any[] {
     const domain = [];
-
+    if (this.isVar2RelativeHumidity) {
+      return [0, 100];
+    }
     for (const results of this.lineChart) {
       for (const d of results.series) {
         if (domain.indexOf(d.value) < 0) {
@@ -367,6 +372,11 @@ export class DoubleLineChartComponent extends BaseChartComponent {
   }
 
   getYDomain() {
+    if (this.yAxisTicks && this.yAxisTicks.length > 0) {
+      const min = this.yAxisTicks[0];
+      const max = this.yAxisTicks[this.yAxisTicks.length - 1];
+      return [min, max];
+    }
     const values = this.results.map((d) => d.value);
 
     //const min = 0;

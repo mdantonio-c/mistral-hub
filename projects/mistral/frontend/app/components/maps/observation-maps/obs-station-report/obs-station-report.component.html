@@ -220,7 +220,7 @@
               </ng-container>
               <ng-template #lineChart>
                 <custom-ngx-charts-line-chart
-                  [view]="[containerRef.offsetWidth, 400]"
+                  [view]="[containerRef.offsetWidth - 100, 400]"
                   [animations]="true"
                   [scheme]="multiColorScheme"
                   [xAxis]="true"
@@ -236,7 +236,7 @@
                   [xAxisTicks]="xTicks"
                   [yAxisTicks]="yAxisTicks"
                   [dateInterval]="dateInterval"
-                  [gridLineNgStyleByXAxisTick]="xAxisNgStyleFn"
+                  [gridLineNgStyleByXAxisTick]="onlyDateChangeNgStyleFn"
                   [rotateXAxisTicks]="false"
                   [timeline]="false"
                   [results]="singleDates"
@@ -246,6 +246,7 @@
                   [referenceLines]="referenceLines"
                   [showRefLines]="flagRed"
                   [showRefLabels]="false"
+                  [showGridLines]="true"
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block"
@@ -471,6 +472,8 @@
                   [showRefLines]="flagRed"
                   [showRefLabels]="false"
                   [flagRed2]="flagRed2"
+                  [yAxisTicks]="yAxisTicks"
+                  [isVar2RelativeHumidity]="isVar2RelativeHumidity"
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block">{{
@@ -558,6 +561,7 @@
                   [showRefLines]="flagRed"
                   [showRefLabels]="false"
                   [flagRed2]="flagRed2"
+                  [isVar2RelativeHumidity]="isVar2RelativeHumidity"
                 >
                   <ng-template #tooltipTemplate let-model="model">
                     <span class="d-block">{{

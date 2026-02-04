@@ -93,6 +93,10 @@ app-radar-observation-maps .leaflet-bottom.leaflet-left {
   z-index: 960;
 }
 
+app-sub-seasonal .leaflet-bottom.leaflet-right {
+  z-index: 9999;
+}
+
 app-meteo-tiles .leaflet-bottom .leaflet-bar-timecontrol {
   margin-left: 10px !important;
   margin-bottom: 10px !important;

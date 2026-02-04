@@ -7,9 +7,12 @@ import {
   ViewChild,
   ElementRef,
   AfterViewInit,
+  Injector,
 } from "@angular/core";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { NgxSpinnerService } from "ngx-spinner";
+import { TilesService } from "../../meteo-tiles/services/tiles.service";
+import { NotificationService } from "@rapydo/services/notification";
 
 @Component({
   selector: "app-province-expanded-report",
@@ -22,13 +25,17 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
 
   @ViewChild("containerRef", { static: false })
   containerRef: ElementRef;
-
+  protected notify: NotificationService;
   constructor(
     public activeModal: NgbActiveModal,
     private spinner: NgxSpinnerService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
-  ) {}
+    private tilesService: TilesService,
+    injector: Injector,
+  ) {
+    this.notify = injector.get(NotificationService);
+  }
 
   @Input() lang!: string;
   @Input() prov!: string;
@@ -42,7 +49,6 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   colorSchemeTemp = {
     domain: ["#003366", "#99CCFF", "#BDBDBD", "#FF9999", "#8B0000"],
   };
-
   colorSchemePrec = {
     domain: ["#E65100", "#FFB300", "#BDBDBD", "#66BB6A", "#1B5E20"],
   };
@@ -123,21 +129,21 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
     if (!weekData || !weekData.soglie) return [""];
 
     const quintileMap = {
-      Colder: [0, 1],
-      Drier: [0, 1],
+      Coldest: [0, 1],
+      Driest: [0, 1],
       "Below average": [1, 2],
       Average: [2, 3],
       "Above average": [3, 4],
-      Warmer: [4, 5],
-      Wetter: [4, 5],
+      Warmest: [4, 5],
+      Wettest: [4, 5],
     };
 
     const indices = quintileMap[quintile];
     if (!indices) return [""];
 
     const unit = layerId === "Temperature" ? "°C" : "mm";
-    const minThreshold = weekData.soglie[indices[0]].value;
-    const maxThreshold = weekData.soglie[indices[1]].value;
+    const minThreshold = Number(weekData.soglie[indices[1]].value).toFixed(1);
+    const maxThreshold = Number(weekData.soglie[indices[0]].value).toFixed(1);
 
     return [`${minThreshold}${unit}`, `${maxThreshold}${unit}`];
   }
@@ -179,26 +185,34 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   private loadReport(layerId: string) {
     this.loadProvinceData(layerId);
   }
-  private async loadProvinceData(layerId: string) {
+  private loadProvinceData(layerId: string) {
+    const listObs$ = this.tilesService.getJsonDataCitiesList();
+    const input = this.prov + ".json";
+    listObs$.subscribe((list) => {
+      if (!list.includes(input)) {
+        this.notify.showWarning(`Data for ${this.prov} is not available`);
+        return;
+      }
+    });
+
     try {
-      const response = await fetch(
-        `./app/custom/assets/images/json_out_subseasonal/${
-          this.prov
-        }.json?t=${new Date().getTime()}`,
-        { cache: "no-store" },
+      const dataCities$ = this.tilesService.getJsonDataCitiesSubSeasonal(
+        `${this.prov}.json`,
       );
-      const data = await response.json();
-      this.processedData = this.prepareDataForChart(data);
-      this.zone.run(() => {
-        (this.selectedMetric as any) = layerId;
-        if (layerId == "Temperature") {
-          this.multi = this.processedData.temp;
-          this.colorScheme = { ...this.colorSchemeTemp };
-        } else {
-          this.colorScheme = { ...this.colorSchemePrec };
-          this.multi = this.processedData.prec;
-        }
-        this.cdr.markForCheck();
+      dataCities$.subscribe((data) => {
+        //const data = dataBullet.json();
+        this.processedData = this.prepareDataForChart(data);
+        this.zone.run(() => {
+          (this.selectedMetric as any) = layerId;
+          if (layerId == "Temperature") {
+            this.multi = this.processedData.temp;
+            this.colorScheme = { ...this.colorSchemeTemp };
+          } else {
+            this.colorScheme = { ...this.colorSchemePrec };
+            this.multi = this.processedData.prec;
+          }
+          this.cdr.markForCheck();
+        });
       });
     } catch (error) {
       console.error("Errore caricamento JSON provincia:", error);
@@ -214,36 +228,24 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
       dataTemp.push({
         name: this.formatDateRange(this.weekList[index]), //.slice(0, -13),
         series: [
-          {
-            name: "Colder",
-            value: el.quintili[0].value,
-          },
-          {
-            name: "Below average",
-            value: el.quintili[1].value,
-          },
+          { name: "Coldest", value: el.quintili[0].value },
+          { name: "Below average", value: el.quintili[1].value },
           { name: "Average", value: el.quintili[2].value },
           { name: "Above average", value: el.quintili[3].value },
-          { name: "Warmer", value: el.quintili[4].value },
+          { name: "Warmest", value: el.quintili[4].value },
         ],
         soglie: el.soglie,
       });
     });
     dataPrecSet.forEach((el, index) => {
       dataPrec.push({
-        name: this.weekList[index].slice(0, -13),
+        name: this.formatDateRange(this.weekList[index]), // .slice(0, -13),
         series: [
-          {
-            name: "Drier",
-            value: el.quintili[0].value,
-          },
-          {
-            name: "Below average",
-            value: el.quintili[1].value,
-          },
+          { name: "Driest", value: el.quintili[0].value },
+          { name: "Below average", value: el.quintili[1].value },
           { name: "Average", value: el.quintili[2].value },
           { name: "Above average", value: el.quintili[3].value },
-          { name: "Wetter", value: el.quintili[4].value },
+          { name: "Wettest", value: el.quintili[4].value },
         ],
         soglie: el.soglie,
       });

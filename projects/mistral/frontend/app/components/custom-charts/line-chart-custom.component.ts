@@ -73,7 +73,7 @@ const styles = `
           [showRefLabels]="showRefLabels"
           (dimensionsChanged)="updateYAxisWidth($event)"
         ></svg:g>
-        <svg:g *ngFor="let tick of yScale.ticks()">
+        <svg:g *ngFor="let tick of yAxisTicks || yScale.ticks()">
           <svg:line
             x1="0"
             [attr.x2]="dims.width"
