@@ -40,7 +40,7 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   @Input() lang!: string;
   @Input() prov!: string;
   @Input() weekList!: string[];
-  selectedMetric: "Temperature" | "Total Precipitation" = "Temperature";
+  selectedMetric: string = "Temperature";
   yLabel = "Probability (%)";
   province;
   multi;
@@ -165,6 +165,8 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   }
 
   public beforeOpen(layerId: string) {
+    this.multi = null;
+    this.processedData = null;
     this.cdr.detectChanges();
     this.changeProvinceName(this.prov);
     this.loadReport(layerId);
@@ -188,35 +190,41 @@ export class ProvinceExpandedReportComponent implements AfterViewInit {
   private loadProvinceData(layerId: string) {
     const listObs$ = this.tilesService.getJsonDataCitiesList();
     const input = this.prov + ".json";
+
     listObs$.subscribe((list) => {
       if (!list.includes(input)) {
         this.notify.showWarning(`Data for ${this.prov} is not available`);
         return;
       }
-    });
 
-    try {
-      const dataCities$ = this.tilesService.getJsonDataCitiesSubSeasonal(
-        `${this.prov}.json`,
-      );
-      dataCities$.subscribe((data) => {
-        //const data = dataBullet.json();
-        this.processedData = this.prepareDataForChart(data);
-        this.zone.run(() => {
-          (this.selectedMetric as any) = layerId;
-          if (layerId == "Temperature") {
-            this.multi = this.processedData.temp;
-            this.colorScheme = { ...this.colorSchemeTemp };
-          } else {
-            this.colorScheme = { ...this.colorSchemePrec };
-            this.multi = this.processedData.prec;
-          }
-          this.cdr.markForCheck();
+      // Sposta il caricamento dei dati qui, solo se il file esiste
+      try {
+        const dataCities$ = this.tilesService.getJsonDataCitiesSubSeasonal(
+          `${this.prov}.json`,
+        );
+        dataCities$.subscribe((data) => {
+          this.processedData = this.prepareDataForChart(data);
+          this.zone.run(() => {
+            this.selectedMetric = layerId;
+            if (layerId == "Temperature") {
+              this.multi = this.processedData.temp;
+              this.colorScheme = { ...this.colorSchemeTemp };
+            } else {
+              this.colorScheme = { ...this.colorSchemePrec };
+              this.multi = this.processedData.prec;
+            }
+            this.cdr.detectChanges(); // Cambiato da markForCheck a detectChanges
+
+            // Assicurati che le label vengano ricalcolate
+            setTimeout(() => {
+              this.calculateLabelPositions();
+            }, 500);
+          });
         });
-      });
-    } catch (error) {
-      console.error("Errore caricamento JSON provincia:", error);
-    }
+      } catch (error) {
+        console.error("Errore caricamento JSON provincia:", error);
+      }
+    });
   }
   private prepareDataForChart(data) {
     const dataTempSet = data.variabili.Temperatura;
