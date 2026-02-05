@@ -138,10 +138,9 @@ services:
       - ${DATA_DIR}/matomo:/var/www/html
     entrypoint: ["/bin/sh", "/import_script.sh"]
 
-  frontend:
+  app:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest-pre
-    environment:
-      - ACTIVATE=${ACTIVATE_APP_FRONTEND}
+
 networks:
   logging:
     driver: bridge
