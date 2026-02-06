@@ -29,20 +29,10 @@ services:
       S3_KEY_ID: ${S3_KEY_ID}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
 
-  frontend:
+  app:
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest
     environment:
-      INJECT_FRONTEND_DEBUG: ${FRONTEND_DEBUG}
-      INJECT_INFO_HOME: ${INFO_HOME}
-      INJECT_LASTDAYS: ${LASTDAYS}
-      INJECT_PLATFORM: ${PLATFORM}
-      INJECT_MAPS_URL: ${MAPS_URL}
-      INJECT_TILES_URL: ${TILES_URL}
-      INJECT_PROJECT_HOME: ${PROJECT_HOME}
-      INJECT_COOKIE_POLICY_URL: ${COOKIE_POLICY_URL}
-      INJECT_GRACE_PERIOD: ${GRACE_PERIOD}
-      INJECT_ON_DATA_READY_DATASETS: ${ON_DATA_READY_DATASETS}
-      INJECT_WARNING_MSG: ${WARNING_MSG}
-      INJECT_CKAN_CATALOG_URL: ${CKAN_CATALOG_URL}
+      ACTIVATE: ${ACTIVATE_APP_FRONTEND}
     # volumes:
     #   - ${DATA_DIR}/maps:/meteo
 

@@ -59,6 +59,7 @@ services:
       - ${PROJECT_DIR}/nginx/custom_maintenance.conf:/etc/nginx/sites-enabled-templates/custom_maintenance.conf
       - ${PROJECT_DIR}/nginx/maintenance.html:/usr/share/nginx/html/maintenance.html
       - ${PROJECT_DIR}/nginx/toggle_maintenance.sh:/etc/nginx/toggle_maintenance.sh
+      - ${PROJECT_DIR}/nginx/angular.service:/etc/nginx/sites-enabled-templates/service_confs/angular-production.conf
 
   minio:
     entrypoint: ["/bin/sh", "/entrypoint.sh"]
@@ -133,6 +134,9 @@ services:
       - ${PROJECT_DIR}/builds/matomo/import_script.sh:/import_script.sh
       - ${DATA_DIR}/matomo:/var/www/html
     entrypoint: ["/bin/sh", "/import_script.sh"]
+  
+    app:
+      image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest
 
 networks:
   logging:
