@@ -537,7 +537,10 @@ class BeDballe:
                         cur_original_dt_interval
                     ]["cur_effective_dt_interval"]
 
-                    message_count, size_count, = BeDballe.__get_messages_and_size_count(
+                    (
+                        message_count,
+                        size_count,
+                    ) = BeDballe.__get_messages_and_size_count(
                         cur,
                         effective_messages,
                         physical_variable_bits_dict,
@@ -662,13 +665,13 @@ class BeDballe:
         # datetime interval of the query
         if fields:
             if "datetimemin" in fields:
-                query_important_params["query_original_dt_interval"][
-                    "datetimemin"
-                ] = queries[fields.index("datetimemin")][0]
+                query_important_params["query_original_dt_interval"]["datetimemin"] = (
+                    queries[fields.index("datetimemin")][0]
+                )
             if "datetimemax" in fields:
-                query_important_params["query_original_dt_interval"][
-                    "datetimemax"
-                ] = queries[fields.index("datetimemax")][0]
+                query_important_params["query_original_dt_interval"]["datetimemax"] = (
+                    queries[fields.index("datetimemax")][0]
+                )
 
         if query_important_params["need_different_size_count"]:
             query_important_params["selected_filters_keys"] = [
@@ -781,10 +784,10 @@ class BeDballe:
 
         if cur_original_dt_interval not in cursor_effective_datetime_dict:
 
-            cursor_effective_datetime_dict[
-                cur_original_dt_interval
-            ] = BeDballe.__populate_cursor_effective_datetime_dict(
-                cur_original_dt_interval, query_original_dt_interval
+            cursor_effective_datetime_dict[cur_original_dt_interval] = (
+                BeDballe.__populate_cursor_effective_datetime_dict(
+                    cur_original_dt_interval, query_original_dt_interval
+                )
             )
 
         cur_vs_query_dtime_ratio = cursor_effective_datetime_dict[
@@ -822,9 +825,9 @@ class BeDballe:
         if not query_original_dt:
 
             return {
-                "cur_vs_query_dtime_ratio": 1
-                if original_cur_dt_int_duration != 0
-                else -1,
+                "cur_vs_query_dtime_ratio": (
+                    1 if original_cur_dt_int_duration != 0 else -1
+                ),
                 "cur_effective_dt_interval": list(cur_original_dt),
             }
         else:
@@ -864,9 +867,9 @@ class BeDballe:
         # Check if the cursor time interval is within query time interval
         elif query_dt[0] <= cur_original_dt[0] <= cur_original_dt[1] <= query_dt[1]:
             return {
-                "cur_vs_query_dtime_ratio": -1
-                if original_cur_dt_int_duration == 0
-                else 1,
+                "cur_vs_query_dtime_ratio": (
+                    -1 if original_cur_dt_int_duration == 0 else 1
+                ),
                 "cur_effective_dt_interval": list(cur_original_dt),
             }
 
@@ -1380,10 +1383,10 @@ class BeDballe:
                 tranges, type="timerange"
             )
             if all_products:
-                fields[
-                    "available_products"
-                ] = BeDballe.from_list_of_params_to_list_of_dic(
-                    network_products, type="product"
+                fields["available_products"] = (
+                    BeDballe.from_list_of_params_to_list_of_dic(
+                        network_products, type="product"
+                    )
                 )
 
             # create summary
@@ -2305,9 +2308,9 @@ class BeDballe:
                                 )
                             if r.startswith("="):
                                 date = r.strip("=")
-                                query_dic["datetimemin"] = query_dic[
-                                    "datetimemax"
-                                ] = dateutil.parser.parse(date)
+                                query_dic["datetimemin"] = query_dic["datetimemax"] = (
+                                    dateutil.parser.parse(date)
+                                )
 
                     # parsing all other parameters
                     elif p == "license":
@@ -2984,11 +2987,17 @@ class BeDballe:
         Returns the specific dballe dsn for aggregated pluvio data.
         """
         dsn = None
-        if "product" and "timerange" in query_dict:
-            if (
-                query_dict["product"][0] == "B13011"
-                and query_dict["timerange"][0] in BeDballe.AGGREGATIONS_TRANGES
-            ):
+        if (
+            "product" in query_dict
+            and "timerange" in query_dict
+            and query_dict["product"][0] == "B13011"
+        ):
+            # Create list of multiples of 3600 from 1 to 24 (hourly aggregations)
+            hourly_multiples = [i * 3600 for i in range(1, 25)]
+
+            p2 = int(query_dict["timerange"][0].split(",")[2].strip())
+
+            if p2 in hourly_multiples:
                 dsn = BeDballe.AGGREGATIONS_DSN
         return dsn
 

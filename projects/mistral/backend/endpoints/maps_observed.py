@@ -1,5 +1,6 @@
 import datetime
 from typing import Any, Dict, List, Optional
+import pytz
 
 from flask import Response as FlaskResponse
 from flask import stream_with_context
@@ -42,6 +43,7 @@ class ObservationsQuery(Schema):
     allStationProducts = fields.Bool(required=False)
     reliabilityCheck = fields.Bool(required=False)
     last = fields.Bool(required=False)
+    daily = fields.Bool(required=False)
 
 
 class ObservationsDownloader(Schema):
@@ -95,6 +97,7 @@ class MapsObservations(EndpointResource):
         allStationProducts: bool = True,
         reliabilityCheck: bool = False,
         last: bool = False,
+        daily: bool = False,
     ) -> Response:
         alchemy_db = sqlalchemy.get_instance()
         query: Dict[str, Any] = {}
@@ -246,8 +249,37 @@ class MapsObservations(EndpointResource):
             db_type = "dballe"
         log.debug("type of database: {}", db_type)
 
+        if daily:
+            reftime_max = None
+
+            if "datetimemax" in query:
+                reftime_max = query["datetimemax"]
+
+                reftime_max = reftime_max.replace(minute=0, second=0)
+
+                # Italian time shift (CET/CEST) from UTC
+                utc_tz = pytz.UTC
+                italy_tz = pytz.timezone("Europe/Rome")
+
+                utc_time = (
+                    utc_tz.localize(reftime_max)
+                    if reftime_max.tzinfo is None
+                    else reftime_max
+                )
+                italian_time = utc_time.astimezone(italy_tz)
+
+                if italian_time.hour != 0:
+                    p2 = italian_time.hour * 3600
+                else:
+                    p2 = 24 * 3600
+
+                query["timerange"] = [f"1, 0, {p2}"]
+            else:
+                raise BadRequest("reftime is required for daily accumulations")
+
         if interval:
-            # check if there is a requested timerange and if its interval is lower of the requested one
+            # check if there is a requested timerange and if its interval is lower
+            # than the requested one
             if "timerange" in query:
                 splitted_timerange = query["timerange"][0].split(",")
                 timerange_interval = int(splitted_timerange[1]) / 3600
@@ -255,51 +287,64 @@ class MapsObservations(EndpointResource):
                     raise Conflict(
                         "the requested interval is greater than the requested timerange"
                     )
-        try:
+
+        def query_dballe():
             query_and_dsn_list: Optional[List[Dict[str, Any]]] = []
             if query:
                 query_and_dsn_list = dballe.get_queries_and_dsn_list_with_itertools(
                     query
                 )
             else:
-                # you need to iterate over query list to extract data, so add an empty element to the list
+                # you need to iterate over query list to extract data
+                # so add an empty element to the list
                 query_and_dsn_list.append({"query": None, "aggregations_dsn": None})
+
             raw_res: Optional[Any] = None
-            for query_and_dsn in query_and_dsn_list:
-                q = query_and_dsn["query"]
-                if q and query_station_data:
-                    # add the params that can be multiple to the query for station details
-                    if "timerange" in q:
-                        query_station_data["timerange"] = q["timerange"]
-                    if "level" in q:
-                        query_station_data["level"] = q["level"]
-                    if "product" in q and not allStationProducts:
-                        query_station_data["product"] = q["product"]
-                if db_type == "mixed":
-                    raw_res = dballe.get_maps_response_for_mixed(
-                        q,
-                        onlyStations,
-                        query_station_data=query_station_data,
-                        dsn_subset=dsn_subset,
-                        previous_res=raw_res,
-                    )
-                else:
-                    raw_res = dballe.get_maps_response(
-                        q,
-                        onlyStations,
-                        interval=interval,
-                        db_type=db_type,
-                        query_station_data=query_station_data,
-                        dsn_subset=dsn_subset,
-                        previous_res=raw_res,
-                        aggregations_dsn=query_and_dsn["aggregations_dsn"],
-                    )
-        except AccessToDatasetDenied:
-            raise ServerError("Access to dataset denied")
-        except WrongDbConfiguration:
-            raise ServerError(
-                "no dballe DSN configured for the requested license group"
-            )
+            try:
+                for query_and_dsn in query_and_dsn_list:
+                    q = query_and_dsn["query"]
+                    if q and query_station_data:
+                        # add the params that can be multiple
+                        # to the query for station details
+                        if "timerange" in q:
+                            query_station_data["timerange"] = q["timerange"]
+                        if "level" in q:
+                            query_station_data["level"] = q["level"]
+                        if "product" in q and not allStationProducts:
+                            query_station_data["product"] = q["product"]
+                    if db_type == "mixed":
+                        raw_res = dballe.get_maps_response_for_mixed(
+                            q,
+                            onlyStations,
+                            query_station_data=query_station_data,
+                            dsn_subset=dsn_subset,
+                            previous_res=raw_res,
+                        )
+                    else:
+                        raw_res = dballe.get_maps_response(
+                            q,
+                            onlyStations,
+                            interval=interval,
+                            db_type=db_type,
+                            query_station_data=query_station_data,
+                            dsn_subset=dsn_subset,
+                            previous_res=raw_res,
+                            aggregations_dsn=query_and_dsn["aggregations_dsn"],
+                        )
+            except AccessToDatasetDenied:
+                raise ServerError("Access to dataset denied")
+            except WrongDbConfiguration:
+                raise ServerError(
+                    "no dballe DSN configured for the requested license group"
+                )
+            return raw_res
+
+        raw_res = query_dballe()
+
+        if not raw_res and daily:
+            query["timerange"] = [f"1, 0, {p2 - 3600}"]
+            raw_res = query_dballe()
+
         # parse the response
         res = dballe.parse_obs_maps_response(raw_res, last)
 
@@ -535,9 +580,9 @@ class MapsObservations(EndpointResource):
                     if query_station_data_for_dballe:
                         for key in ("level", "product", "timerange"):
                             if key in query_data_for_dballe:
-                                query_station_data_for_dballe[
-                                    key
-                                ] = query_data_for_dballe[key]
+                                query_station_data_for_dballe[key] = (
+                                    query_data_for_dballe[key]
+                                )
 
                     (
                         dballe_db,
@@ -627,33 +672,37 @@ class MapsObservations(EndpointResource):
                             # if there is an arki query station data, merge the two reftimes
                             if arki_query_station_data:
                                 if "datetimemin" in arki_query_station_data:
-                                    query_station_data_local[
-                                        "datetimemin"
-                                    ] = arki_query_station_data["datetimemin"]
+                                    query_station_data_local["datetimemin"] = (
+                                        arki_query_station_data["datetimemin"]
+                                    )
                         else:
                             if (
                                 arki_reftime_in_query
                                 and "datetimemin" in arki_reftime_in_query
                             ):
-                                download_query_data[
-                                    "datetimemin"
-                                ] = query_data_for_arki["datetimemin"]
+                                download_query_data["datetimemin"] = (
+                                    query_data_for_arki["datetimemin"]
+                                )
                             if (
                                 dballe_reftime_in_query
                                 and "datetimemax" in dballe_reftime_in_query
                             ):
-                                download_query_data[
-                                    "datetimemax"
-                                ] = dballe_reftime_in_query["datetimemax"]
+                                download_query_data["datetimemax"] = (
+                                    dballe_reftime_in_query["datetimemax"]
+                                )
 
                         download_queries.append(
                             {
-                                "download_query_data": download_query_data
-                                if not query_station_data
-                                else None,
-                                "download_query_station_data": query_station_data_local
-                                if query_station_data
-                                else None,
+                                "download_query_data": (
+                                    download_query_data
+                                    if not query_station_data
+                                    else None
+                                ),
+                                "download_query_station_data": (
+                                    query_station_data_local
+                                    if query_station_data
+                                    else None
+                                ),
                             }
                         )
 
@@ -701,12 +750,12 @@ class MapsObservations(EndpointResource):
 
                     download_queries.append(
                         {
-                            "download_query_data": download_query_data
-                            if not query_station_data
-                            else None,
-                            "download_query_station_data": query_station_data_local
-                            if query_station_data
-                            else None,
+                            "download_query_data": (
+                                download_query_data if not query_station_data else None
+                            ),
+                            "download_query_station_data": (
+                                query_station_data_local if query_station_data else None
+                            ),
                         }
                     )
 
@@ -740,18 +789,20 @@ class MapsObservations(EndpointResource):
                         query_station_data=query_station_data_local,
                         download=True,
                         dsn_subset=dsn_subset,
-                        aggregations_dsn=None
+                        aggregations_dsn=None,
                         # aggregations_dsn=query_and_dsn["aggregations_dsn"]
                     )
 
                     download_queries.append(
                         {
-                            "download_query_data": download_query_data
-                            if not query_station_data
-                            else None,
-                            "download_query_station_data": download_query_station_data
-                            if query_station_data
-                            else None,
+                            "download_query_data": (
+                                download_query_data if not query_station_data else None
+                            ),
+                            "download_query_station_data": (
+                                download_query_station_data
+                                if query_station_data
+                                else None
+                            ),
                         }
                     )
 

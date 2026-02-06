@@ -71,6 +71,38 @@ CREATE TABLE public.dpcn_1h_aggr_logfile
     ms_errore varchar
 );
 
+CREATE TABLE public.dpcn_24h_aggr_logfile
+(
+    fileid bigint NOT NULL REFERENCES public.dpcn_logfile,
+    filename varchar UNIQUE NOT NULL,
+    ts_24h_ingest_trigger timestamp with time zone,
+    ts_ingestion timestamp with time zone,
+    ts_delete timestamp with time zone,
+    ts_errore timestamp with time zone,
+    ms_errore varchar
+);
+
+CREATE TABLE public.dpcn_1h_aggr_dati(
+    fileid bigint NOT NULL REFERENCES public.dpcn_logfile,
+    station_name varchar,
+    station_hmsl double precision,
+    ident varchar,
+    network varchar,
+    lon double precision,
+    lat double precision,
+    date varchar,
+    timerange double precision,
+    p1 double precision,
+    p2 double precision,
+    varcode varchar,
+    value double precision,
+    level1 double precision,
+    l1 double precision,
+    level2 double precision,
+    l2 double precision,
+    CONSTRAINT pk_dpcn_1h_aggr_dati PRIMARY KEY (fileid, station_name, date)
+);
+
 CREATE TABLE public.dpcn_dati
 (
     fileid bigint NOT NULL REFERENCES public.dpcn_logfile,
@@ -82,6 +114,37 @@ CREATE TABLE public.dpcn_dati
 );
 
 CREATE INDEX dpcn_dati_fileid_idx ON public.dpcn_dati(fileid);
+
+CREATE TABLE public.arpae_1h_aggr_dati(
+    ts varchar NOT NULL,
+    station_name varchar,
+    station_hmsl double precision,
+    ident varchar,
+    network varchar,
+    lon double precision,
+    lat double precision,
+    date varchar,
+    timerange double precision,
+    p1 double precision,
+    p2 double precision,
+    varcode varchar,
+    value double precision,
+    level1 double precision,
+    l1 double precision,
+    level2 double precision,
+    l2 double precision,
+    CONSTRAINT pk_arpae_1h_aggr_dati PRIMARY KEY (ts, station_name, date)
+);
+
+CREATE TABLE public.arpae_24h_aggr_logfile
+(
+    ts_batch_ingestion timestamp UNIQUE NOT NULL,
+    ts_24h_ingest_trigger timestamp with time zone,
+    ts_ingestion timestamp with time zone,
+    ts_delete timestamp with time zone,
+    ts_errore timestamp with time zone,
+    ms_errore varchar
+);
 
 ------------------------------------------------------------------------------------------------
 
@@ -142,6 +205,37 @@ CREATE TABLE public.metn_loganag
     ts_errore timestamp with time zone,
     ms_errore varchar,
     CONSTRAINT pk_metn_loganag PRIMARY KEY (id)
+);
+
+CREATE TABLE public.metn_1h_aggr_dati(
+    ts varchar NOT NULL,
+    station_name varchar,
+    station_hmsl double precision,
+    ident varchar,
+    network varchar,
+    lon double precision,
+    lat double precision,
+    date varchar,
+    timerange double precision,
+    p1 double precision,
+    p2 double precision,
+    varcode varchar,
+    value double precision,
+    level1 double precision,
+    l1 double precision,
+    level2 double precision,
+    l2 double precision,
+    CONSTRAINT pk_metn_1h_aggr_dati PRIMARY KEY (ts, station_name, date)
+);
+
+CREATE TABLE public.metn_24h_aggr_logfile
+(
+    ts_batch_ingestion timestamp UNIQUE NOT NULL,
+    ts_24h_ingest_trigger timestamp with time zone,
+    ts_ingestion timestamp with time zone,
+    ts_delete timestamp with time zone,
+    ts_errore timestamp with time zone,
+    ms_errore varchar
 );
 
 ------------------------------------------------------------------------------------------------
