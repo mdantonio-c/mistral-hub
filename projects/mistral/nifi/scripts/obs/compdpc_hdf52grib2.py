@@ -82,8 +82,6 @@ def get_objects(name, obj):
 
 
 def radar_hdf52grib(filein, gribtemplate=None, fileout=None):
-    os.environ["PROJ_LIB"] = "/usr/share/proj"
-    from osgeo import gdal, osr
 
     if gribtemplate is not None:
         gaid_template = codes_grib_new_from_file(open(gribtemplate))
