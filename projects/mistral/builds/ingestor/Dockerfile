@@ -82,6 +82,35 @@ RUN echo "deb [trusted=yes] https://simc.arpae.it/packages/debian jammy main" > 
     && apt-get install -y python3-wreport dballe python3-dballe arkimet libsim python3-eccodes eccodes-simc dba-qcfilter gdal-bin libeccodes-tools python3-pyproj
 
 #########################################################
+# CONDA for eccodes for hdf52grib2 radar script
+#########################################################
+ENV CONDA_DIR=/opt/conda
+ENV CONDA_ECCODES_ENV=eccodes_env
+
+RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_DIR \
+ && rm Miniconda3-latest-Linux-x86_64.sh
+
+RUN $CONDA_DIR/bin/conda config --set auto_activate_base false \
+    && $CONDA_DIR/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
+    && $CONDA_DIR/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
+RUN $CONDA_DIR/bin/conda create -n $CONDA_ECCODES_ENV python=3.10 -y \
+ && $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge \
+    eccodes \
+    python-eccodes \
+    -y \
+ && $CONDA_DIR/bin/conda clean -afy
+
+# if not run in separate commands but with a single comprehensive command it ends with a kibgdal incompatibility
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge h5py -y
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge pyproj -y
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge gdal -y
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge libgdal-hdf5 -y
+
+RUN ln -s $CONDA_DIR/etc/profile.d/conda.sh /etc/profile.d/conda.sh
+
+#########################################################
 # NIFI
 #########################################################
 
