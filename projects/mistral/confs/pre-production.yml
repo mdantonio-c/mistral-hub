@@ -52,7 +52,8 @@ services:
     networks:
       - logging
     volumes:
-      - ${DATA_DIR}/grib_extraction:/nwp/ICON-2I_SURFACE_PRESSURE_LEVELS
+      - ${DATA_DIR}/grib_extraction/ICON_2I_ASSIM_SURFACE_PRESSURE_LEVELS:/nwp/ICON-2I_SURFACE_PRESSURE_LEVELS
+      - ${DATA_DIR}/grib_extraction/WRF:/nwp/WRF
       - ${DATA_DIR}/netcdf_extraction:/nwp/ww3
       - ${DATA_DIR}/catalog:/catalog
       - ${DATA_DIR}/seasonal:/nwp/SEASONAL

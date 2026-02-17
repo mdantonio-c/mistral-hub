@@ -27,6 +27,11 @@ location /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS {
    autoindex on;
 }
 
+location /nwp/WRF {
+   alias /nwp/WRF/;
+   autoindex on;
+}
+
 location /nwp/ww3 {
    alias /nwp/ww3/;
    autoindex on;
