@@ -52,6 +52,7 @@ services:
       - logging
     volumes:
       - ${DATA_DIR}/grib_extraction:/nwp/ICON-2I_SURFACE_PRESSURE_LEVELS
+      - ${DATA_DIR}/netcdf_extraction:/nwp/ww3
       - ${DATA_DIR}/catalog:/catalog
       - ${DATA_DIR}/seasonal:/nwp/SEASONAL
       - ${PROJECT_DIR}/nginx/proxy.service:/etc/nginx/sites-enabled/proxy.service
@@ -134,7 +135,7 @@ services:
       - ${PROJECT_DIR}/builds/matomo/import_script.sh:/import_script.sh
       - ${DATA_DIR}/matomo:/var/www/html
     entrypoint: ["/bin/sh", "/import_script.sh"]
-  
+
     app:
       image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest
 
