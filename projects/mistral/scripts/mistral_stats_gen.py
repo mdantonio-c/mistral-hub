@@ -483,7 +483,20 @@ def gen_top_reqs_ranking_stats(db):
     roles_to_analyze = f"""('{roles_str_joined}')"""
 
     final_query = f"""
-    WITH "dir_reqs" AS
+    WITH "tot_reqs" AS
+    (
+        SELECT
+            COUNT(r.id) AS reqs,
+            u.id AS user
+        FROM
+            "user" u
+        LEFT JOIN "request" r
+            ON u.id = r.user_id
+        WHERE
+            u.first_login IS NOT NULL
+        GROUP BY
+            u.id
+    ),"dir_reqs" AS
     (
         SELECT
             COUNT(r.id) AS reqs,
@@ -563,7 +576,7 @@ def gen_top_reqs_ranking_stats(db):
             u.id
     )
     SELECT
-        COALESCE(dr.reqs + sr.reqs, 0) AS reqs,
+        COALESCE(tr.reqs, 0) AS reqs,
         COALESCE(dr.reqs, 0) AS dir_reqs,
         COALESCE(sr.reqs, 0) AS sched_reqs,
         COALESCE(fcr.reqs, 0) AS forec_reqs,
@@ -580,6 +593,8 @@ def gen_top_reqs_ranking_stats(db):
         ON ru.user_id = u.id
     LEFT JOIN "role" rl
         ON ru.role_id = rl.id
+    LEFT JOIN "tot_reqs" tr
+        ON tr.user = u.id
     LEFT JOIN "dir_reqs" dr
         ON dr.user = u.id
     LEFT JOIN "sched_reqs" sr
@@ -595,7 +610,7 @@ def gen_top_reqs_ranking_stats(db):
         AND rl.description IN {roles_to_analyze}
         {EXCLUDE_U_ID}
     ORDER BY
-        COALESCE(dr.reqs + sr.reqs, 0) DESC, u.surname ASC
+        COALESCE(tr.reqs, 0) DESC, u.surname ASC
     """
 
     # Definisci il percorso del file CSV in cui scriverai i dati
