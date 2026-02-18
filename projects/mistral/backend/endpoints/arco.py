@@ -68,7 +68,7 @@ class ArcoDatasetsResource(EndpointResource):
     def get(self) -> Response:
         log.debug("Listing ARCO datasets")
         arco_datasets = {}
-
+        conn = None
         try:
             conn = s3.get_instance()
             client = conn.client
@@ -151,7 +151,7 @@ class ArcoDatasetsResource(EndpointResource):
                     break
 
         except botocore.exceptions.ClientError as e:
-            log.error(f"Error accessing MinIO: {e}")
+            log.error(f"Error accessing S3 Host<{conn.variables['host']}>: {e}")
             raise
 
         return jsonify(list(arco_datasets.values()))
