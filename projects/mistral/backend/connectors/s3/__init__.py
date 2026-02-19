@@ -5,6 +5,7 @@ S3 connector
 from typing import Any, Optional
 
 import boto3
+from botocore.config import Config
 from mypy_boto3_s3.client import S3Client
 from restapi.connectors import Connector, ExceptionsList
 from restapi.env import Env
@@ -15,55 +16,75 @@ APP_MODE = Env.get("APP_MODE", "development")
 
 
 class S3Ext(Connector):
-    client: S3Client
+    client: Optional[S3Client]
 
     def __init__(self) -> None:
         super().__init__()
+        self.client = None
 
     def connect(self, **kwargs: Any) -> "S3Ext":
         log.debug("Connecting S3...")
         variables = self.variables.copy()
         variables.update(kwargs)
 
-        if (host := variables.get("host")) is None:  # pragma: no cover
-            raise ServiceUnavailable("Missing hostname")
+        required = ("host", "key_id", "access_key")
+        missing = [k for k in required if not variables.get(k)]
+        if missing:
+            raise ServiceUnavailable(f"Missing parameters: {', '.join(missing)}")
 
-        if (key_id := variables.get("key_id")) is None:  # pragma: no cover
-            raise ServiceUnavailable("Missing key_id")
+        host = variables["host"]
+        key_id = variables["key_id"]
+        access_key = variables["access_key"]
 
-        if (access_key := variables.get("access_key")) is None:  # pragma: no cover
-            raise ServiceUnavailable("Missing access_key")
+        endpoint = variables.get("endpoint") or None
+        if endpoint is None:
+            port = variables.get("port", 9000)
+            scheme = variables.get("scheme", "https")
+            endpoint = f"{scheme}://{host}:{port}"
+        log.debug(f"S3 endpoint: {endpoint}")
 
-        port = variables.get("port", "9000")
-        # Set endpoint based on environment mode
-        if APP_MODE == "development":
-            endpoint = f"http://{host}:{port}"
-            verify_ssl = False  # self-signed certs o HTTP
-        else:
-            endpoint = f"https://{host}:{port}"
-            # Temporarily disabled due to SSL validation failure:
-            # the hostname 's3.dockerized.io' does not match the 'MeteoHub' domain name
-            verify_ssl = False  # production: valid cert
+        verify_ssl = Env.to_bool(
+            variables.get("verify_ssl"),
+            default=APP_MODE != "development",
+        )
+        log.debug(f"Verify SSL: {verify_ssl}")
 
         session = boto3.Session(
             aws_access_key_id=key_id,
             aws_secret_access_key=access_key,
-            aws_session_token=None,
-            botocore_session=None,
-            profile_name=None,
+        )
+
+        config = Config(
+            retries={"max_attempts": 3, "mode": "standard"},
+            connect_timeout=5,
+            read_timeout=60,
         )
 
         self.client = session.client(
             "s3",
             endpoint_url=endpoint,
             verify=verify_ssl,
+            config=config,
         )
+
+        try:
+            self.client.list_buckets()
+        except Exception as exc:
+            raise ServiceUnavailable("Unable to connect to S3") from exc
+
         return self
 
     def is_connected(self) -> bool:
-        return not self.disconnected
+        if self.disconnected or not hasattr(self, "client"):
+            return False
+        try:
+            self.client.list_buckets()
+            return True
+        except Exception:
+            return False
 
     def disconnect(self) -> None:
+        self.client = None  # type: ignore
         self.disconnected = True
 
     @staticmethod
