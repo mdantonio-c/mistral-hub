@@ -46,6 +46,7 @@ def get_output_schema():
     attributes["fileformat"] = fields.Str()
     attributes["bounding"] = fields.Str()
     attributes["sort_index"] = fields.Int(allow_none=True)
+    attributes["supports_variable_browsing"] = fields.Bool()
 
     attributes["license"] = fields.Nested(License)
     attributes["attribution"] = fields.Nested(Attribution)
@@ -90,6 +91,7 @@ def getInputSchema(request, is_post):
             "description": "Number used to sort the datasets in dataset list. If empty the default sorting is alphabetical",
         },
     )
+    attributes["supports_variable_browsing"] = fields.Bool(load_default=False)
 
     license_keys = []
     license_labels = []
@@ -174,6 +176,7 @@ class AdminDatasets(EndpointResource):
                 "bounding": d.bounding,
                 "sort_index": d.sort_index,
                 "source": d.source,
+                "supports_variable_browsing": d.supports_variable_browsing,
             }
             license = db.License.query.filter_by(id=d.license_id).first()
             el["license"] = {
