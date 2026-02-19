@@ -17,30 +17,15 @@ location /nwp/ICON_2I_SURFACE_PRESSURE_LEVELS {
   return 301 /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS;
 }
 
-location /nwp {
-   alias /nwp/;
-   autoindex on;
+location = /nwp {
+    return 301 /nwp/;
 }
 
-location /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS {
-   alias /nwp/ICON-2I_SURFACE_PRESSURE_LEVELS/;
-   autoindex on;
+location /nwp/ {
+    alias /nwp/;
+    autoindex on;
 }
 
-location /nwp/WRF {
-   alias /nwp/WRF/;
-   autoindex on;
-}
-
-location /nwp/ww3 {
-   alias /nwp/ww3/;
-   autoindex on;
-}
-
-location /nwp/SEASONAL {
-   alias /nwp/SEASONAL/;
-   autoindex on;
-}
 
 location = /catalog.rdf {
     alias /catalog/catalog.rdf;
