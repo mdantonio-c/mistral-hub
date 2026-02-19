@@ -154,6 +154,7 @@ class Datasets(db.Model):  # type: ignore
     fileformat = db.Column(db.String)
     bounding = db.Column(db.String)
     sort_index = db.Column(db.Integer, nullable=True)
+    supports_variable_browsing = db.Column(db.Boolean, nullable=True)
     users = db.relationship(
         "User",
         secondary=dataset_user_association_table,
