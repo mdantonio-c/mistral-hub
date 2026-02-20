@@ -52,6 +52,8 @@ services:
       BACKEND_URL: "${BACKEND_URL}"
       BACKEND_PREFIX: "${BACKEND_PREFIX}"
       SSL_FORCE_SELF_SIGNED: ${SSL_FORCE_SELF_SIGNED}
+      HOME: "/home/developer"
+      DATA_PATH: "/data"
       # db access
       ALCHEMY_DB: ${ALCHEMY_DB}
       ALCHEMY_DBTYPE: ${ALCHEMY_DBTYPE}
