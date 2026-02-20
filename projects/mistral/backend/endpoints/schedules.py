@@ -1,9 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union, cast
 
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
+from mistral.tasks import (
+    create_crontab_task_with_routing,
+    create_periodic_task_with_routing,
+)
+from mistral.tasks.data_extraction_utilities import queue_sorting
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
@@ -587,9 +592,9 @@ class SingleSchedule(EndpointResource):
             if not rabbit.queue_exists(pushing_queue):
                 raise Forbidden("User's queue for push notification does not exists")
 
+        data_type = arki.get_datasets_category(dataset_names)
         if only_reliable:
             # check if the option is possible for the selecte datasets
-            data_type = arki.get_datasets_category(dataset_names)
             if data_type != "OBS" and "multim-forecast" not in dataset_names:
                 raise BadRequest(
                     "The chosen datasets does not support 'only quality controlled data' option "
@@ -599,6 +604,7 @@ class SingleSchedule(EndpointResource):
 
         name = None
         try:
+            celery_queue = queue_sorting(data_type, reftime)
             if period_settings is not None:
                 every = cast(int, period_settings.get("every"))
                 period = cast(AllowedTimedeltaPeriods, period_settings.get("period"))
@@ -633,7 +639,7 @@ class SingleSchedule(EndpointResource):
                     log.debug("Previous task deleted = {}", res)
 
                     request_id = None
-                    c.create_periodic_task(
+                    create_periodic_task_with_routing(
                         name=name,
                         task="data_extract",
                         every=every,
@@ -652,6 +658,8 @@ class SingleSchedule(EndpointResource):
                             data_ready,
                             opendata,
                         ],
+                        queue=celery_queue,
+                        routing_key=celery_queue,
                     )
                     log.info("Scheduling periodic task")
 
@@ -681,7 +689,7 @@ class SingleSchedule(EndpointResource):
                 if data_ready is False:
 
                     request_id = None
-                    c.create_crontab_task(
+                    create_crontab_task_with_routing(
                         name=name,
                         task="data_extract",
                         minute=str(crontab_settings.get("minute")),
@@ -703,6 +711,8 @@ class SingleSchedule(EndpointResource):
                             data_ready,
                             opendata,
                         ],
+                        queue=celery_queue,
+                        routing_key=celery_queue,
                     )
                     log.info("Scheduling crontab task")
             else:
@@ -748,6 +758,8 @@ class SingleSchedule(EndpointResource):
                         opendata,
                     ),
                     countdown=1,
+                    queue=celery_queue,
+                    routing_key=celery_queue,
                 )
 
         except Exception as error:
@@ -845,8 +857,28 @@ class SingleSchedule(EndpointResource):
                 # recreate the schedule in celery retrieving the schedule from postgres
                 try:
                     request_id = None
+                    # get data type and reftime to get the correct queue for the task
+                    data_type = arki.get_datasets_category(
+                        schedule_response["args"]["datasets"]
+                    )
+                    reftime = None
+                    parsed_reftime = schedule_response["args"]["reftime"]
+                    if parsed_reftime:
+                        ref_from_str = parsed_reftime.get("from")
+                        ref_to_str = parsed_reftime.get("to")
+
+                        if ref_from_str and ref_to_str:
+                            reftime = {
+                                "date_from": datetime.strptime(
+                                    ref_from_str, "%Y-%m-%dT%H:%M:%S.%fZ"
+                                ).replace(tzinfo=timezone.utc),
+                                "date_to": datetime.strptime(
+                                    ref_to_str, "%Y-%m-%dT%H:%M:%S.%fZ"
+                                ).replace(tzinfo=timezone.utc),
+                            }
+                    celery_queue = queue_sorting(data_type, reftime)
                     if "periodic" in schedule_response:
-                        c.create_periodic_task(
+                        create_periodic_task_with_routing(
                             name=str(schedule_id),
                             task="data_extract",
                             every=schedule_response["every"],
@@ -865,13 +897,15 @@ class SingleSchedule(EndpointResource):
                                 False,
                                 schedule_response["opendata"],
                             ],
+                            queue=celery_queue,
+                            routing_key=celery_queue,
                         )
 
                     if "crontab" in schedule_response:
 
                         cronsettings = schedule_response["crontab_settings"]
 
-                        c.create_crontab_task(
+                        create_crontab_task_with_routing(
                             name=str(schedule_id),
                             task="data_extract",
                             minute=str(cronsettings.get("minute")),
@@ -893,6 +927,8 @@ class SingleSchedule(EndpointResource):
                                 False,
                                 schedule_response["opendata"],
                             ],
+                            queue=celery_queue,
+                            routing_key=celery_queue,
                         )
 
                 except Exception:

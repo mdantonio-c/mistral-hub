@@ -1,0 +1,99 @@
+## custom celery template to be used by the different celery instances
+services:
+  celery_base:
+    restart: always
+    build:
+      context: ${PROJECT_DIR}/builds/backend
+      args:
+        RAPYDO_VERSION: ${RAPYDO_VERSION}
+        CURRENT_UID: ${CURRENT_UID}
+        CURRENT_GID: ${CURRENT_GID}
+    image: meteohub/backend:${RAPYDO_VERSION}
+    entrypoint: docker-entrypoint-celery
+    healthcheck:
+      test: "/usr/local/bin/celery-healthcheck"
+      interval: ${HEALTHCHECK_INTERVAL}
+      timeout: 10s
+      retries: 3
+      start_period: 5m
+    working_dir: /code
+    networks:
+      default:
+    volumes:
+      # configuration files
+      - ${SUBMODULE_DIR}/do/controller/confs/projects_defaults.yaml:/code/confs/projects_defaults.yaml
+      - ${PROJECT_DIR}/project_configuration.yaml:/code/confs/extended_project_configuration.yaml
+      - ssl_certs:/etc/letsencrypt
+      # Vanilla code
+      - ${PROJECT_DIR}/backend:/code/${COMPOSE_PROJECT_NAME}
+      # From project, if any
+      - ${BASE_PROJECT_DIR}/backend:/code/${EXTENDED_PROJECT}
+      - ${BASE_PROJECT_DIR}/project_configuration.yaml:/code/confs/project_configuration.yaml
+
+      - ${SUBMODULE_DIR}/http-api/restapi:${PYTHON_PATH}/restapi
+
+      - ${DATA_DIR}/logs:/logs
+
+      # custom volumes
+      - ${DATA_DIR}/user_repo:/data
+      - ${DATA_DIR}/opendata:/opendata
+    environment:
+      ACTIVATE: 1
+      MAIN_LOGIN_ENABLE: 1
+      APP_MODE: ${APP_MODE}
+      DEBUG_LEVEL: ${LOG_LEVEL}
+      LOG_RETENTION: ${LOG_RETENTION}
+      DOMAIN: ${PROJECT_DOMAIN}
+      CURRENT_UID: ${CURRENT_UID}
+      CURRENT_GID: ${CURRENT_GID}
+      PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      EXTENDED_PACKAGE: ${EXTENDED_PROJECT}
+      PYTHONUNBUFFERED: 1
+      BACKEND_URL: "${BACKEND_URL}"
+      BACKEND_PREFIX: "${BACKEND_PREFIX}"
+      SSL_FORCE_SELF_SIGNED: ${SSL_FORCE_SELF_SIGNED}
+      # db access
+      ALCHEMY_DB: ${ALCHEMY_DB}
+      ALCHEMY_DBTYPE: ${ALCHEMY_DBTYPE}
+      ALCHEMY_ENABLE: 1
+      ALCHEMY_ENABLE_CONNECTOR: ${ALCHEMY_ENABLE_CONNECTOR}
+      ALCHEMY_EXPIRATION_TIME: ${ALCHEMY_EXPIRATION_TIME}
+      ALCHEMY_HOST: ${ALCHEMY_HOST}
+      ALCHEMY_PASSWORD: ${ALCHEMY_PASSWORD}
+      ALCHEMY_POOLSIZE: ${ALCHEMY_POOLSIZE}
+      ALCHEMY_PORT: ${ALCHEMY_PORT}
+      ALCHEMY_USER: ${ALCHEMY_USER}
+      ALCHEMY_VERIFICATION_TIME: ${ALCHEMY_VERIFICATION_TIME}
+
+      # celery configuration
+      CELERY_ENABLE: 1
+      CELERYBEAT_ENABLED: 1
+      CELERY_BROKER_SERVICE: ${CELERY_BROKER}
+      CELERY_BACKEND_SERVICE: ${CELERY_BACKEND}
+      CELERY_EXPIRATION_TIME: ${CELERY_EXPIRATION_TIME}
+      CELERY_VERIFICATION_TIME: ${CELERY_VERIFICATION_TIME}
+      REDIS_ENABLE: 1
+      REDIS_ENABLE_CONNECTOR: ${REDIS_ENABLE_CONNECTOR}
+      REDIS_EXPIRATION_TIME: ${REDIS_EXPIRATION_TIME}
+      REDIS_VERIFICATION_TIME: ${REDIS_VERIFICATION_TIME}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      # rabbit access
+      RABBITMQ_ENABLE: 1
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_ROUTING_KEY: "${RABBIT_ROUTING_KEY}"
+      RABBITMQ_EXCHANGE: "${RABBIT_EXCHANGE}"
+      RABBITMQ_SSL_ENABLED: ${RABBITMQ_SSL_ENABLED}
+      RABBITMQ_EXPIRATION_TIME: ${RABBITMQ_EXPIRATION_TIME}
+      RABBITMQ_VERIFICATION_TIME: ${RABBITMQ_VERIFICATION_TIME}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+
+      # custom project env variables
+      LASTDAYS: ${LASTDAYS}
+      PLATFORM: ${PLATFORM}
+      GRACE_PERIOD: ${GRACE_PERIOD}

@@ -130,8 +130,20 @@ services:
       - ${DATA_DIR}/matomo:/var/www/html
     entrypoint: ["/bin/sh", "/import_script.sh"]
 
-    app:
-      image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest
+  app:
+    image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest
+
+  archived_forecast_celery:
+    volumes:
+      - ${DATA_DIR}/arkimet_archive:/arkimet/datasets_archive
+      - ${DATA_DIR}/arkimet_conf:/arkimet/config
+      - ${DATA_DIR}/arkimet_archive_conf/arkimet.conf:/arkimet/config/arkimet.conf
+  backend:
+    volumes:
+      - ${DATA_DIR}/arkimet:/arkimet/datasets
+      - ${DATA_DIR}/arkimet_conf:/arkimet/config
+      - ${DATA_DIR}/arkimet_archive:/arkimet/datasets_archive
+      - ${DATA_DIR}/arkimet_archive_conf/arkimet.conf:/arkimet/config/arkimet.conf
 
 networks:
   logging:

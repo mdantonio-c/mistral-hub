@@ -9,15 +9,18 @@ from restapi.utilities.logs import log
 
 def pp_derived_variables(
     params: PostProcessorsType, input_file: Path, output_folder: Path, fileformat: str
-) -> Path:
+) -> tuple[Path, list[Path]]:
     log.debug("Derived variable postprocessor")
 
+    tmp_file_list = []
     output_file_step1 = output_folder.joinpath(
         f"{input_file.stem}-pp1.{fileformat}.step1.tmp"
     )
+    tmp_file_list.append(output_file_step1)
     output_file_step2 = output_folder.joinpath(
         f"{input_file.stem}-pp1.{fileformat}.tmp"
     )
+    tmp_file_list.append(output_file_step2)
     try:
         # command for postprocessor
         if fileformat.startswith("grib"):
@@ -52,8 +55,12 @@ def pp_derived_variables(
             if ext_proc.wait() != 0:
                 raise Exception("Failure in data extraction")
 
-        return output_file_step2
+        return output_file_step2, tmp_file_list
     except Exception as perr:
         log.warning(perr)
         message = "Error in post-processing: no results"
+        # delete tmp files
+        for f in tmp_file_list:
+            if f.exists() and f.suffix == ".tmp":
+                f.unlink()
         raise PostProcessingException(message)

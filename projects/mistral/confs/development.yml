@@ -22,3 +22,11 @@ services:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-ui:latest-pre
     ports:
       - "80:80"
+  archived_forecast_celery:
+    volumes:
+      - ${DATA_DIR}/arkimet:/arkimet/datasets
+      - ${DATA_DIR}/arkimet_conf:/arkimet/config
+  backend:
+    volumes:
+      - ${DATA_DIR}/arkimet:/arkimet/datasets
+      - ${DATA_DIR}/arkimet_conf:/arkimet/config

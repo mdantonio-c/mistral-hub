@@ -58,6 +58,8 @@ class DataReady(EndpointResource):
                     rundate,
                 ),
                 countdown=1,
+                queue="operational_forecast",
+                routing_key="operational_forecast",
             )
 
             log.info(

@@ -10,6 +10,7 @@ from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from mistral.tasks import data_extraction as data_ext
+from mistral.tasks.data_extraction_utilities import queue_sorting
 from mistral.tools import grid_interpolation as pp3_1
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
@@ -496,6 +497,8 @@ class Data(EndpointResource, Uploader):
             )
 
             c = celery.get_instance()
+            # get the correct celery queue to redirect the request
+            celery_queue = queue_sorting(data_type, reftime)
             task = c.celery_app.send_task(
                 "data_extract",
                 args=(
@@ -514,6 +517,8 @@ class Data(EndpointResource, Uploader):
                     force_obs_download,
                 ),
                 countdown=1,
+                queue=celery_queue,
+                routing_key=celery_queue,
             )
 
             request.task_id = task.id
