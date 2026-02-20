@@ -8,13 +8,15 @@ from restapi.utilities.logs import log
 
 def pp_grid_cropping(
     params: PostProcessorsType, input_file: Path, output_folder: Path, fileformat: str
-) -> Path:
+) -> tuple[Path, list[Path]]:
     log.debug("Grid cropping postprocessor")
+    tmp_file_list = []
     try:
 
         output_file = output_folder.joinpath(
             f"{input_file.stem}-pp3_2.{fileformat}.tmp"
         )
+        tmp_file_list.append(output_file)
 
         post_proc_cmd = []
         post_proc_cmd.append("vg6d_transform")
@@ -41,9 +43,13 @@ def pp_grid_cropping(
         if proc.wait() != 0:
             raise Exception("Failure in post-processing")
 
-        return output_file
+        return output_file, tmp_file_list
 
     except Exception as perr:
         log.warning(perr)
         message = "Error in post-processing: no results"
+        # delete tmp files
+        for f in tmp_file_list:
+            if f.exists() and f.suffix == ".tmp":
+                f.unlink()
         raise PostProcessingException(message)

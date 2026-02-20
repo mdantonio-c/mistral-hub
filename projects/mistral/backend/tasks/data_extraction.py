@@ -66,6 +66,7 @@ def data_extract(
         pp_output: Optional[Path] = None
         double_request = False
         output_dir = None
+        tmp_file_list = []
         if schedule_id is not None:
             # load schedule for this request
             schedule = db.Schedule.query.get(schedule_id)
@@ -228,6 +229,7 @@ def data_extract(
             # temporarily save the data extraction output
             # Note: tmp_outfile == outfile + ".tmp"
             tmp_outfile = output_dir.joinpath(output_file_name + ".tmp")
+            tmp_file_list.append(tmp_outfile)
 
             tmp_extraction_filename = tmp_outfile
         else:
@@ -236,6 +238,11 @@ def data_extract(
         if data_type != "OBS" and "multim-forecast" not in datasets:
             arki.arkimet_extraction(datasets, query, tmp_extraction_filename)
         else:
+            if only_reliable:
+                # keep track of the temp file the postprocess will create
+                tmp_file_list.append(
+                    Path(f"{tmp_extraction_filename}_to_be_qcfiltered.tmp")
+                )
             observed_extraction(
                 user_id,
                 output_dir,
@@ -276,39 +283,43 @@ def data_extract(
 
             if p := requested_postprocessors.get("derived_variables"):
 
-                pp_output = pp1.pp_derived_variables(
+                pp_output, pp_temp_filelist = pp1.pp_derived_variables(
                     params=p,
                     input_file=pp_output or tmp_outfile,
                     output_folder=output_dir,
                     fileformat=dataset_format,
                 )
+                tmp_file_list += pp_temp_filelist
 
             if p := requested_postprocessors.get("statistic_elaboration"):
 
-                pp_output = pp2.pp_statistic_elaboration(
+                pp_output, pp_temp_filelist = pp2.pp_statistic_elaboration(
                     params=p,
                     input_file=pp_output or tmp_outfile,
                     output_folder=output_dir,
                     fileformat=dataset_format,
                 )
+                tmp_file_list += pp_temp_filelist
 
             if p := requested_postprocessors.get("grid_cropping"):
 
-                pp_output = pp3_2.pp_grid_cropping(
+                pp_output, pp_temp_filelist = pp3_2.pp_grid_cropping(
                     params=p,
                     input_file=pp_output or tmp_outfile,
                     output_folder=output_dir,
                     fileformat=dataset_format,
                 )
+                tmp_file_list += pp_temp_filelist
 
             if p := requested_postprocessors.get("grid_interpolation"):
 
-                pp_output = pp3_1.pp_grid_interpolation(
+                pp_output, pp_temp_filelist = pp3_1.pp_grid_interpolation(
                     params=p,
                     input_file=pp_output or tmp_outfile,
                     output_folder=output_dir,
                     fileformat=dataset_format,
                 )
+                tmp_file_list += pp_temp_filelist
 
             if p := requested_postprocessors.get("spare_point_interpolation"):
 
@@ -323,6 +334,8 @@ def data_extract(
             if pp_output:
                 if "grib" in pp_output.name or pp_output.suffix == ".tmp":
                     log.debug(f"dest: {str(outfile)}")
+                    # add it in the tmp list
+                    tmp_file_list.append(pp_output)
                     pp_output.rename(outfile)
                 else:
                     outfile = pp_output
@@ -363,8 +376,9 @@ def data_extract(
 
             # delete the tmp files before checking the user quota
             if not opendata:
-                for f in output_dir.glob("*.tmp"):
-                    f.unlink()
+                for f in tmp_file_list:
+                    if f.exists() and f.suffix == ".tmp":
+                        f.unlink()
             check_user_quota(
                 user_id,
                 output_dir,
@@ -436,8 +450,9 @@ def data_extract(
         if not double_request:  # which means if the extraction hasn't been interrupted
             if output_dir:
                 # remove tmp files
-                for f in output_dir.glob("*.tmp"):
-                    f.unlink()
+                for f in tmp_file_list:
+                    if f.exists() and f.suffix == ".tmp":
+                        f.unlink()
 
             request.end_date = datetime.datetime.utcnow()
             if data_ready and data_size == 0:

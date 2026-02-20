@@ -1,7 +1,7 @@
 import json
 import shutil
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict
 
@@ -114,9 +114,21 @@ class TestApp(BaseTests):
         ref_to = response["items"]["summarystats"]["e"]
         ref_run = response["items"]["run"]
         ref_from = datetime(
-            ref_from[0], ref_from[1], ref_from[2], ref_from[3], ref_from[4]
+            ref_from[0],
+            ref_from[1],
+            ref_from[2],
+            ref_from[3],
+            ref_from[4],
+            tzinfo=timezone.utc,
         )
-        ref_to = datetime(ref_to[0], ref_to[1], ref_to[2], ref_to[3], ref_to[4])
+        ref_to = datetime(
+            ref_to[0],
+            ref_to[1],
+            ref_to[2],
+            ref_to[3],
+            ref_to[4],
+            tzinfo=timezone.utc,
+        )
         date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         # get time info for the schedule
@@ -177,9 +189,21 @@ class TestApp(BaseTests):
         ref_to = response["items"]["summarystats"]["e"]
         ref_run = response["items"]["run"]
         ref_from = datetime(
-            ref_from[0], ref_from[1], ref_from[2], ref_from[3], ref_from[4]
+            ref_from[0],
+            ref_from[1],
+            ref_from[2],
+            ref_from[3],
+            ref_from[4],
+            tzinfo=timezone.utc,
         )
-        ref_to = datetime(ref_to[0], ref_to[1], ref_to[2], ref_to[3], ref_to[4])
+        ref_to = datetime(
+            ref_to[0],
+            ref_to[1],
+            ref_to[2],
+            ref_to[3],
+            ref_to[4],
+            tzinfo=timezone.utc,
+        )
         date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         # get time info for the schedule
@@ -234,9 +258,21 @@ class TestApp(BaseTests):
         ref_to = response["items"]["summarystats"]["e"]
         ref_run = response["items"]["run"]
         ref_from = datetime(
-            ref_from[0], ref_from[1], ref_from[2], ref_from[3], ref_from[4]
+            ref_from[0],
+            ref_from[1],
+            ref_from[2],
+            ref_from[3],
+            ref_from[4],
+            tzinfo=timezone.utc,
         )
-        ref_to = datetime(ref_to[0], ref_to[1], ref_to[2], ref_to[3], ref_to[4])
+        ref_to = datetime(
+            ref_to[0],
+            ref_to[1],
+            ref_to[2],
+            ref_to[3],
+            ref_to[4],
+            tzinfo=timezone.utc,
+        )
         date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         # get time info for the schedule
@@ -291,9 +327,21 @@ class TestApp(BaseTests):
         ref_to = response["items"]["summarystats"]["e"]
         ref_run = response["items"]["run"]
         ref_from = datetime(
-            ref_from[0], ref_from[1], ref_from[2], ref_from[3], ref_from[4]
+            ref_from[0],
+            ref_from[1],
+            ref_from[2],
+            ref_from[3],
+            ref_from[4],
+            tzinfo=timezone.utc,
         )
-        ref_to = datetime(ref_to[0], ref_to[1], ref_to[2], ref_to[3], ref_to[4])
+        ref_to = datetime(
+            ref_to[0],
+            ref_to[1],
+            ref_to[2],
+            ref_to[3],
+            ref_to[4],
+            tzinfo=timezone.utc,
+        )
         date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         # get time info for the schedule
@@ -408,9 +456,21 @@ class TestApp(BaseTests):
         ref_to = response["items"]["summarystats"]["e"]
         ref_run = response["items"]["run"]
         ref_from = datetime(
-            ref_from[0], ref_from[1], ref_from[2], ref_from[3], ref_from[4]
+            ref_from[0],
+            ref_from[1],
+            ref_from[2],
+            ref_from[3],
+            ref_from[4],
+            tzinfo=timezone.utc,
         )
-        ref_to = datetime(ref_to[0], ref_to[1], ref_to[2], ref_to[3], ref_to[4])
+        ref_to = datetime(
+            ref_to[0],
+            ref_to[1],
+            ref_to[2],
+            ref_to[3],
+            ref_to[4],
+            tzinfo=timezone.utc,
+        )
         date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
@@ -566,9 +626,21 @@ class TestApp(BaseTests):
         ref_to = response["items"]["summarystats"]["e"]
         ref_run = response["items"]["run"]
         ref_from = datetime(
-            ref_from[0], ref_from[1], ref_from[2], ref_from[3], ref_from[4]
+            ref_from[0],
+            ref_from[1],
+            ref_from[2],
+            ref_from[3],
+            ref_from[4],
+            tzinfo=timezone.utc,
         )
-        ref_to = datetime(ref_to[0], ref_to[1], ref_to[2], ref_to[3], ref_to[4])
+        ref_to = datetime(
+            ref_to[0],
+            ref_to[1],
+            ref_to[2],
+            ref_to[3],
+            ref_to[4],
+            tzinfo=timezone.utc,
+        )
         date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
@@ -753,6 +825,7 @@ class TestApp(BaseTests):
             ref_from[4],
             second=0,
             microsecond=1,
+            tzinfo=timezone.utc,
         )
         ref_to = datetime(
             ref_to[0],
@@ -762,6 +835,7 @@ class TestApp(BaseTests):
             ref_to[4],
             second=0,
             microsecond=1,
+            tzinfo=timezone.utc,
         )
 
         date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.%f")

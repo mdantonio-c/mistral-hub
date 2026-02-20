@@ -17,10 +17,12 @@ def pp_statistic_elaboration(
     input_file: Path,
     output_folder: Path,
     fileformat: str,
-) -> Path:
+) -> tuple[Path, list[Path]]:
     log.debug("Statistic elaboration postprocessor")
 
+    tmp_file_list = []
     output_file = output_folder.joinpath(f"{input_file.stem}-pp2.{fileformat}.tmp")
+    tmp_file_list.append(output_file)
 
     # Create the list of timeranges tuples
     # Note: trs is a list because this post processor was originally intended to be
@@ -34,6 +36,7 @@ def pp_statistic_elaboration(
     file_not_for_pp = output_folder.joinpath(
         f"{output_file.stem}_others.{fileformat}.tmp"
     )
+    tmp_file_list.append(file_not_for_pp)
     if fileformat == "grib":
         with open(input_file) as filein:
             fd: Dict[tuple[int, int], Any] = {}
@@ -50,6 +53,7 @@ def pp_statistic_elaboration(
                             file_for_pp = output_folder.joinpath(
                                 f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
                             )
+                            tmp_file_list.append(file_for_pp)
                             fd[tr] = open(file_for_pp, "wb")
                         match = True
                         # write to file/pipe for tr
@@ -68,6 +72,7 @@ def pp_statistic_elaboration(
                     file_for_pp = output_folder.joinpath(
                         f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
                     )
+                    tmp_file_list.append(file_for_pp)
                     log.debug("file for post process {} ", file_for_pp)
                     with open(file_for_pp, "wb") as match_file:
                         importer = dballe.Importer("BUFR")
@@ -149,9 +154,11 @@ def pp_statistic_elaboration(
         splitted_input = output_folder.joinpath(
             f"{output_file.stem}_%d_%d.{fileformat}.tmp" % tr
         )
+        tmp_file_list.append(splitted_input)
         tmp_output = output_folder.joinpath(
             f"{output_file.stem}_%d_%d_result.{fileformat}.tmp" % tr
         )
+        tmp_file_list.append(tmp_output)
         if splitted_input.exists() and splitted_input.stat().st_size > 0:
             pp_output = run_statistic_elaboration(
                 params=params,
@@ -169,6 +176,10 @@ def pp_statistic_elaboration(
     if not check_input_for_pp:
         message = "Error in post-processing: Timeranges for statistic elaboration not found in the requested data"
         log.warning(message)
+        # delete the tmp files
+        for f in tmp_file_list:
+            if f.exists() and f.suffix == ".tmp":
+                f.unlink()
         raise PostProcessingException(message)
 
     check_fileoutput_exists = False
@@ -179,15 +190,21 @@ def pp_statistic_elaboration(
     if not check_fileoutput_exists:
         message = "Error in post-processing: no results"
         log.warning(message)
+        for f in tmp_file_list:
+            if f.exists() and f.suffix == ".tmp":
+                f.unlink()
         raise PostProcessingException(message)
 
     with open(output_file, mode="w") as outfile:
         ext_proc = subprocess.Popen(cat_cmd, stdout=outfile)
         ext_proc.wait()
         if ext_proc.wait() != 0:
+            for f in tmp_file_list:
+                if f.exists() and f.suffix == ".tmp":
+                    f.unlink()
             raise Exception("Failure in post processing")
 
-    return output_file
+    return output_file, tmp_file_list
 
 
 def run_statistic_elaboration(
