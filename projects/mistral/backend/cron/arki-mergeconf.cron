@@ -1,5 +1,5 @@
 SHELL=/bin/bash
 
 # 0 * * * * /bin/bash /code/mistral/cron/arki-mergeconf.cron>> /logs/arki-mergeconf.log 2>&1
-0 * * * * set -a && source /etc/rapydo-environment && arki-mergeconf --extra /arkimet/datasets/*/config > /arkimet/config/arkimet.conf.tmp && mv /arkimet/config/arkimet.conf.tmp /arkimet/config/arkimet.conf
+ 0 * * * * set -a && source /etc/rapydo-environment && arki-mergeconf --extra /arkimet/datasets_archive/*/config /arkimet/datasets/*/config > /arkimet/config/arkimet.conf.tmp && mv /arkimet/config/arkimet.conf.tmp /arkimet/config/arkimet.conf
 
