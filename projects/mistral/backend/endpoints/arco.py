@@ -6,13 +6,16 @@ from typing import Optional
 import botocore
 from flask import Response, jsonify
 from mistral.connectors import s3
+from mistral.endpoints.schemas import DatasetSchema
 from mistral.services.access_key_service import validate_access_key_from_request
 from restapi import decorators
+from restapi.connectors import sqlalchemy
 from restapi.exceptions import NotFound, Unauthorized
 from restapi.rest.definition import EndpointResource
 from restapi.utilities.logs import log
 
 BUCKET_NAME = "arco"
+UNKNOWN = "UNKNOWN"
 
 
 def guess_mime_type(path: str) -> Optional[str]:
@@ -60,6 +63,7 @@ class ArcoResource(EndpointResource):
 class ArcoDatasetsResource(EndpointResource):
     labels = ["arco"]
 
+    @decorators.marshal_with(DatasetSchema(many=True), code=200)
     @decorators.endpoint(
         path="/arco/datasets",
         summary="List ARCO datasets",
@@ -67,7 +71,14 @@ class ArcoDatasetsResource(EndpointResource):
     )
     def get(self) -> Response:
         log.debug("Listing ARCO datasets")
-        arco_datasets = {}
+        datasets = {}
+
+        db = sqlalchemy.get_instance()
+
+        attribution_by_name = {a.name: a for a in db.Attribution.query.all()}
+
+        license_by_name = {lic.name: lic for lic in db.License.query.all()}
+
         conn = None
         try:
             conn = s3.get_instance()
@@ -91,10 +102,16 @@ class ArcoDatasetsResource(EndpointResource):
                         continue
 
                     root = prefix.rstrip("/")
-                    arco_datasets[root] = {
+
+                    # Default Dataset structure
+                    dataset = {
                         "id": root.replace(".zarr", ""),
-                        "folder": root,
-                        "fileformat": "zarr",
+                        "name": root.replace(".zarr", ""),
+                        "category": "unknown",  # placeholder
+                        "format": "zarr",
+                        "source": "arco",
+                        "is_public": True,
+                        "authorized": True,
                     }
 
                     # Direct read .zmetadata
@@ -130,19 +147,72 @@ class ArcoDatasetsResource(EndpointResource):
                                 f"{western} {southern}"
                                 f"))"
                             )
-                            arco_datasets[root]["bounding"] = polygon_wkt
+                            dataset["bounding"] = polygon_wkt
                         else:
                             log.warning(
                                 f"Missing bounding coordinates in .zattrs for {root}"
                             )
 
-                        # add full attrs
-                        arco_datasets[root]["attrs"] = meta.get(".zattrs")
+                        # Extract specific fields from zattrs
+                        dataset["name"] = zattrs.get("product_name", dataset["name"])
+                        dataset["description"] = zattrs.get("description")
+                        dataset["category"] = zattrs.get(
+                            "category", dataset["category"]
+                        )
+                        # --------------------
+                        # Attribution
+                        # --------------------
+                        attr_name = zattrs.get("attribution")
+                        if attr_name is None or attr_name.strip() == "":
+                            dataset["attribution"] = UNKNOWN
+                        else:
+                            dataset["attribution"] = attr_name
+
+                            attr_row = attribution_by_name.get(attr_name)
+                            if attr_row:  # safe
+                                dataset["attribution_description"] = attr_row.descr
+                                dataset["attribution_url"] = attr_row.url
+                            else:
+                                log.warning(
+                                    f"Unknown attribution {attr_name} for dataset {dataset['id']}"
+                                )
+
+                        # --------------------
+                        # License
+                        # --------------------
+                        license_name = zattrs.get("license")
+
+                        if not license_name:
+                            dataset["license"] = UNKNOWN
+                        else:
+                            dataset["license"] = license_name
+
+                            lic_row = license_by_name.get(license_name)
+                            if lic_row:
+                                dataset["license_description"] = lic_row.descr
+                                dataset["license_url"] = lic_row.url
+
+                                if lic_row.group_license:
+                                    dataset[
+                                        "group_license"
+                                    ] = lic_row.group_license.name
+                                    dataset[
+                                        "group_license_description"
+                                    ] = lic_row.group_license.descr
+                            else:
+                                log.warning(
+                                    f"Unknown license {license_name} for dataset {dataset['id']}"
+                                )
+
+                        dataset["is_public"] = zattrs.get("is_public", True)
+                        dataset["authorized"] = zattrs.get("authorized", True)
 
                     except client.exceptions.NoSuchKey:
                         log.warning(f"No .zmetadata found for {root}")
                     except Exception as e:
                         log.error(f"Error reading .zmetadata for {root}: {e}")
+
+                    datasets[root] = dataset
 
                 # Check if there are other prefixes to paginate
                 if response.get("IsTruncated"):
@@ -154,4 +224,4 @@ class ArcoDatasetsResource(EndpointResource):
             log.error(f"Error accessing S3 Host<{conn.variables['host']}>: {e}")
             raise
 
-        return jsonify(list(arco_datasets.values()))
+        return self.response(datasets.values())
