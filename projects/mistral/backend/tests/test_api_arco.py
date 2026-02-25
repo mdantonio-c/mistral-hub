@@ -146,7 +146,9 @@ class TestArcoAPI(BaseTests):
 
         # Bounding WKT
         assert "bounding" in ds
-        expected_wkt = "POLYGON((10 45, 15 45, 15 50, 10 50, 10 45))"
+        expected_wkt = (
+            "POLYGON((10.0 45.0, 15.0 45.0, 15.0 50.0, 10.0 50.0, 10.0 45.0))"
+        )
         assert ds["bounding"] == expected_wkt
 
         # Attribution from DB
