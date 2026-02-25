@@ -252,24 +252,13 @@ class MapsObservations(EndpointResource):
         if daily:
             reftime_max = None
 
+            # datetimemax is already in UTC+0
             if "datetimemax" in query:
                 reftime_max = query["datetimemax"]
-
                 reftime_max = reftime_max.replace(minute=0, second=0)
 
-                # Italian time shift (CET/CEST) from UTC
-                utc_tz = pytz.UTC
-                italy_tz = pytz.timezone("Europe/Rome")
-
-                utc_time = (
-                    utc_tz.localize(reftime_max)
-                    if reftime_max.tzinfo is None
-                    else reftime_max
-                )
-                italian_time = utc_time.astimezone(italy_tz)
-
-                if italian_time.hour != 0:
-                    p2 = italian_time.hour * 3600
+                if reftime_max.hour != 0:
+                    p2 = reftime_max.hour * 3600
                 else:
                     p2 = 24 * 3600
 
@@ -288,7 +277,7 @@ class MapsObservations(EndpointResource):
                         "the requested interval is greater than the requested timerange"
                     )
 
-        def query_dballe():
+        def query_dballe(raw_res: Optional[Any] = None) -> Optional[Any]:
             query_and_dsn_list: Optional[List[Dict[str, Any]]] = []
             if query:
                 query_and_dsn_list = dballe.get_queries_and_dsn_list_with_itertools(
@@ -299,7 +288,7 @@ class MapsObservations(EndpointResource):
                 # so add an empty element to the list
                 query_and_dsn_list.append({"query": None, "aggregations_dsn": None})
 
-            raw_res: Optional[Any] = None
+            # raw_res: Optional[Any] = None
             try:
                 for query_and_dsn in query_and_dsn_list:
                     q = query_and_dsn["query"]
@@ -341,9 +330,10 @@ class MapsObservations(EndpointResource):
 
         raw_res = query_dballe()
 
-        if not raw_res and daily:
+        if daily:
+            # run also for the previous hour to fill gaps
             query["timerange"] = [f"1, 0, {p2 - 3600}"]
-            raw_res = query_dballe()
+            raw_res = query_dballe(raw_res=raw_res)
 
         # parse the response
         res = dballe.parse_obs_maps_response(raw_res, last)
