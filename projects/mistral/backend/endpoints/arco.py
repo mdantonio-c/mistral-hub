@@ -25,6 +25,26 @@ def guess_mime_type(path: str) -> Optional[str]:
     return mime_type[0]
 
 
+def _round_coord(value, ndigits=2):
+    """
+    Round a geographic coordinate to a fixed number of decimal digits.
+
+    This helper is used when building the WKT bounding box for ARCO datasets
+    in order to avoid exposing excessively precise floating point values
+    coming from Zarr metadata. The rounding improves readability and keeps
+    the bounding box suitable for catalogue and discovery purposes.
+
+    :param value: Coordinate value (latitude or longitude).
+    :param ndigits: Number of decimal digits to keep (default: 2).
+    :return: Rounded coordinate as float, or the original value if it cannot
+             be converted to float.
+    """
+    try:
+        return round(float(value), ndigits)
+    except (TypeError, ValueError):
+        return value
+
+
 class ArcoResource(EndpointResource):
     labels = ["arco"]
 
@@ -128,10 +148,10 @@ class ArcoDatasetsResource(EndpointResource):
                         zattrs = meta.get(".zattrs")
 
                         # load bounding box
-                        southern = zattrs.get("southernmost_latitude")
-                        northern = zattrs.get("northernmost_latitude")
-                        western = zattrs.get("westernmost_longitude")
-                        eastern = zattrs.get("easternmost_longitude")
+                        southern = _round_coord(zattrs.get("southernmost_latitude"))
+                        northern = _round_coord(zattrs.get("northernmost_latitude"))
+                        western = _round_coord(zattrs.get("westernmost_longitude"))
+                        eastern = _round_coord(zattrs.get("easternmost_longitude"))
 
                         if all(
                             coord is not None
