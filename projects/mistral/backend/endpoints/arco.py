@@ -125,7 +125,7 @@ class ArcoDatasetsResource(EndpointResource):
 
                     # Default Dataset structure
                     dataset = {
-                        "id": root.replace(".zarr", ""),
+                        "id": root,
                         "name": root.replace(".zarr", ""),
                         "category": "unknown",  # placeholder
                         "format": "zarr",
