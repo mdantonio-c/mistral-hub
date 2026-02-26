@@ -252,20 +252,33 @@ class MapsObservations(EndpointResource):
         if daily:
             reftime_max = None
 
-            # datetimemax is already in UTC+0
+            # datetimemax is already in UTC+0 BUT we need to shift it to ITA time
+            # this is needed to get the correct data from dballe
+            # due to P2 calculation based on ITA time
             if "datetimemax" in query:
                 reftime_max = query["datetimemax"]
+
                 reftime_max = reftime_max.replace(minute=0, second=0)
 
-                if reftime_max.hour != 0:
-                    p2 = reftime_max.hour * 3600
+                # Italian time shift (CET/CEST) from UTC
+                utc_tz = pytz.UTC
+                italy_tz = pytz.timezone("Europe/Rome")
+
+                utc_time = (
+                    utc_tz.localize(reftime_max)
+                    if reftime_max.tzinfo is None
+                    else reftime_max
+                )
+                italian_time = utc_time.astimezone(italy_tz)
+
+                if italian_time.hour != 0:
+                    p2 = italian_time.hour * 3600
                 else:
                     p2 = 24 * 3600
 
                 query["timerange"] = [f"1, 0, {p2}"]
             else:
                 raise BadRequest("reftime is required for daily accumulations")
-
         if interval:
             # check if there is a requested timerange and if its interval is lower
             # than the requested one
