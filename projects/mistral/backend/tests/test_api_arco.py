@@ -136,7 +136,7 @@ class TestArcoAPI(BaseTests):
         ds = data[0]
 
         # Basic fields
-        assert ds["id"] == "ww3"
+        assert ds["id"] == "ww3.zarr"
         assert ds["name"] == "WW3 Forecast"
         assert ds["format"] == "zarr"
         assert ds["source"] == "arco"
