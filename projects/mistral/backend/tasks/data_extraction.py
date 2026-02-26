@@ -660,21 +660,6 @@ def observed_extraction(
                     date_max=queries[fields.index("datetimemax")][0],
                 )
 
-    # the estimation of data size can be skipped when pushing data output to amqp queue
-    if db_type == "arkimet" or db_type == "mixed":
-        # check using arkimet if the estimated filesize does not exceed the disk quota
-        query = ""
-        if reftime:
-            query = arki.parse_reftime(reftime["from"], reftime["to"])
-        check_user_quota(
-            user_id,
-            user_dir,
-            db,
-            datasets=datasets,
-            query=query,
-            schedule_id=schedule_id,
-        )
-
     # extract the data
     if only_reliable:
         # change the name of the output file

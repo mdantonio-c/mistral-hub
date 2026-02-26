@@ -435,6 +435,8 @@ class Data(EndpointResource, Uploader):
         pushing_queue = None
         if push:
             pushing_queue = user.amqp_queue
+            if not pushing_queue:
+                raise Forbidden("User's queue for push notification does not exists")
             rabbit = rabbitmq.get_instance()
             # check if the queue exists
             if not rabbit.queue_exists(pushing_queue):
