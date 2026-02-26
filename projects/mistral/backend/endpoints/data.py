@@ -536,7 +536,7 @@ class Data(EndpointResource, Uploader):
                 "Unable to submit the request",
             )
 
-        r = {"task_id": task.id}
+        r = {"request_id": request.id, "task_id": task.id}
         return self.response(r, code=202)
 
 
