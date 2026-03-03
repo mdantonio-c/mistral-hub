@@ -11,6 +11,10 @@ location /app/ {
     proxy_buffering off;
 }
 
+location /public/ {
+    rewrite ^/public/(.*)$ /app/$1 permanent;
+}
+
 location / {
     return 301 /ui;
 }
