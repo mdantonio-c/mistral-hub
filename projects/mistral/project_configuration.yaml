@@ -2,7 +2,7 @@
 project:
   title: MeteoHub
   description: "MeteoHub"
-  version: "0.5.1"
+  version: "0.5.2"
   rapydo: "2.4"
 
 variables:
