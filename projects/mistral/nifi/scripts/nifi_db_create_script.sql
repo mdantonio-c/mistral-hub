@@ -238,4 +238,9 @@ CREATE TABLE public.metn_24h_aggr_logfile
     ms_errore varchar
 );
 
+CREATE TABLE "metsen-networks" (
+  "metsen_network_name" character varying NOT NULL,
+  "meteohub_network_name" character varying NOT NULL
+);
+
 ------------------------------------------------------------------------------------------------
