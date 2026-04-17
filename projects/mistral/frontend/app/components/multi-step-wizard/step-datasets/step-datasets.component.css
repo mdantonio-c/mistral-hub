@@ -1,9 +1,0 @@
-h5 > img {
-  width: 48px;
-  height: 48px;
-}
-
-.vertical-list {
-  max-height: 400px;
-  overflow: auto;
-}
