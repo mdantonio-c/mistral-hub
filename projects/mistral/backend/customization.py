@@ -32,6 +32,8 @@ class Customizer(BaseCustomizer):
         properties.setdefault("allowed_schedule", True)
         properties.setdefault("allowed_obs_archive", True)
         properties.setdefault("request_par_hour", 10)
+        properties.setdefault("notify_on_success_request", True)
+
         return properties, extra_properties
 
     @staticmethod
@@ -63,6 +65,7 @@ class Customizer(BaseCustomizer):
         data["allowed_schedule"] = user.allowed_schedule
         data["allowed_obs_archive"] = user.allowed_obs_archive
         data["request_par_hour"] = user.request_par_hour
+        data["notify_on_success_request"] = user.notify_on_success_request
 
         return data
 
@@ -160,6 +163,13 @@ class Customizer(BaseCustomizer):
                         "description": "Maximum number of allowed requests per hour",
                     },
                 ),
+                "notify_on_success_request": fields.Boolean(
+                    required=required,
+                    metadata={
+                        "label": "Notify on success request",
+                        "description": "Notify the user when a request is successfully completed",
+                    },
+                ),
                 "amqp_queue": fields.Str(
                     required=False,
                     metadata={
@@ -188,6 +198,14 @@ class Customizer(BaseCustomizer):
                         "description": "If set false expired request will be archive instead of deleted",
                     },
                 ),
+                "notify_on_success_request": fields.Boolean(
+                    required=required,
+                    load_default=True,
+                    metadata={
+                        "label": "Notify on success request",
+                        "description": "Notify the user when a request is successfully completed",
+                    },
+                ),
             }
 
         # these are additional fields in registration form
@@ -211,4 +229,5 @@ class Customizer(BaseCustomizer):
             "allowed_obs_archive": fields.Boolean(),
             "request_par_hour": fields.Int(),
             "amqp_queue": fields.Str(),
+            "notify_on_success_request": fields.Boolean()
         }
