@@ -481,7 +481,14 @@ def data_extract(
                         notify_by_email(db, user_id, request, extra_msg)
                         raise exc
                 else:
-                    notify_by_email(db, user_id, request, "")
+                    # send email notification to the user only if the notification is enabled for successful extraction
+                    # (in case of failure the notification is always sent)
+                    if request.status != states.SUCCESS:
+                        notify_by_email(db, user_id, request, "")
+                    else:
+                        notify_on_success = db.session.query(db.User.notify_on_success_request).filter_by(id=user_id).scalar()
+                        if notify_on_success:
+                            notify_by_email(db, user_id, request, "")
 
 
 def check_user_quota(
