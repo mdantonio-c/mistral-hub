@@ -1,0 +1,3 @@
+# Required for Rapydo compatibility.
+# This frontend directory is no longer used functionally,
+# but must remain in place due to existing framework dependencies.

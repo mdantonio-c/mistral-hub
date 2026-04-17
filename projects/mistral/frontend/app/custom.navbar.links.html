@@ -1,0 +1,293 @@
+<ul class="navbar-nav">
+  <!-- <li class="nav-item">
+    <a
+      class="nav-link"
+      routerLink="/app/datasets"
+      routerLinkActive="active"
+      (click)="collapse()"
+      >Home</a
+    >
+  </li> -->
+  <li class="nav-item" ngbDropdown>
+    <a
+      class="nav-link clickable"
+      ngbDropdownToggle
+      id="navbarDropdownForecastsLink"
+      role="button"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{exact: true}"
+    >
+      Forecasts
+      <div
+        ngbDropdownMenu
+        aria-labelledby="navbarDropdownMapsLink"
+        class="dropdown-menu"
+      >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/meteotiles"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Multi-layer map</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/forecasts"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Static map</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/subseasonal"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Weekly</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/seasonal"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Monthly</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/marine"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Marine</a
+        >
+        <!--<a
+          ngbDropdownItem
+          routerLink="/app/maps/flashflood"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Italy Flash Flood</a
+        >-->
+      </div>
+    </a>
+  </li>
+  <li class="nav-item" ngbDropdown>
+    <a
+      class="nav-link clickable"
+      ngbDropdownToggle
+      id="navbarDropdownObservationsLink"
+      role="button"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{exact: true}"
+    >
+      Observations
+      <div
+        ngbDropdownMenu
+        aria-labelledby="navbarDropdownMapsLink"
+        class="dropdown-menu"
+      >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/observations"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Observed data map</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/maps/radar"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Radar map</a
+        >
+      </div>
+    </a>
+  </li>
+  <li class="nav-item" ngbDropdown>
+    <a
+      class="nav-link clickable"
+      ngbDropdownToggle
+      id="navbarDropdownObservationsLink"
+      role="button"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{exact: true}"
+    >
+      Datasets
+      <div
+        ngbDropdownMenu
+        aria-labelledby="navbarDropdownMapsLink"
+        class="dropdown-menu"
+      >
+        <a
+          ngbDropdownItem
+          routerLink="/app/datasets"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Open data list</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/datasets-arco"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >ARCO Dataset</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/data/datasets"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Data extraction</a
+        >
+        <a
+          ngbDropdownItem
+          routerLink="/app/requests"
+          routerLinkActive="active"
+          (click)="collapse()"
+          *ngIf="user"
+          >My requests</a
+        >
+      </div>
+    </a>
+  </li>
+  <li class="nav-item" ngbDropdown>
+    <a
+      class="nav-link clickable"
+      ngbDropdownToggle
+      id="navbarDropdownDocuLink"
+      role="button"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{exact: true}"
+    >
+      Info
+      <div
+        ngbDropdownMenu
+        aria-labelledby="navbarDropdownDocuLink"
+        class="dropdown-menu"
+      >
+        <a ngbDropdownItem href="{{infoHome}}/news/" (click)="collapse()"
+          >News</a
+        >
+        <a ngbDropdownItem href="{{infoHome}}/about/" (click)="collapse()"
+          >About</a
+        >
+        <a ngbDropdownItem href="{{infoHome}}/user-guide/" (click)="collapse()"
+          >User guide</a
+        >
+        <a ngbDropdownItem href="{{infoHome}}/arco-guide/" (click)="collapse()"
+          >ARCO guide</a
+        >
+        <a
+          ngbDropdownItem
+          [href]="ckanCatalogUrl"
+          routerLinkActive="active"
+          (click)="collapse()"
+          target="_blank"
+          *ngIf="ckanCatalogUrl"
+        >
+          CKAN catalog
+        </a>
+        <a
+          ngbDropdownItem
+          routerLink="/app/license"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Attributions &amp; licenses</a
+        >
+        <!--<a
+          ngbDropdownItem
+          routerLink="/public/participate"
+          routerLinkActive="active"
+          (click)="collapse()"
+          >Participate</a
+        >-->
+      </div>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link text-nowrap"
+      href="{{infoHome}}/contacts/"
+      (click)="collapse()"
+      >Contacts</a
+    >
+  </li>
+  <!--<li class="nav-item">
+    <a
+      class="nav-link text-nowrap"
+      href= "{{projectHome}}/user-guide/"
+      (click)="collapse()"
+      target="_blank"
+      >User Guide</a
+    >
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link text-nowrap"
+      routerLink="app/license"
+      routerLinkActive="active"
+      (click)="collapse()"
+      >Attributions &amp; Licenses</a
+    >
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link"
+      routerLink="/public/participate"
+      routerLinkActive="active"
+      (click)="collapse()"
+      >Participate</a
+    >
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link"
+      href="{{projectHome}}/contact-us/"
+      target="_blank"
+      (click)="collapse()"
+      >Contact us</a
+    >
+  </li>-->
+  <li
+    class="nav-item"
+    ngbDropdown
+    *ngIf="user && user.isAdmin"
+    routerLinkActive="active"
+  >
+    <a
+      class="nav-link clickable"
+      ngbDropdownToggle
+      id="navbarDropdownMapsLink"
+      role="button"
+    >
+      Licenses
+    </a>
+    <div
+      ngbDropdownMenu
+      aria-labelledby="navbarDropdownMapsLink"
+      class="dropdown-menu"
+    >
+      <a
+        ngbDropdownItem
+        routerLink="app/admin/group-licenses"
+        routerLinkActive="active"
+        (click)="collapse()"
+        >License groups</a
+      >
+      <a
+        ngbDropdownItem
+        routerLink="app/admin/licenses"
+        routerLinkActive="active"
+        (click)="collapse()"
+        >Licenses</a
+      >
+      <a
+        ngbDropdownItem
+        routerLink="app/admin/attributions"
+        routerLinkActive="active"
+        (click)="collapse()"
+        >Attributions</a
+      >
+      <a ngbDropdownItem routerLink="app/admin/datasets" (click)="collapse()"
+        >Datasets</a
+      >
+    </div>
+  </li>
+</ul>

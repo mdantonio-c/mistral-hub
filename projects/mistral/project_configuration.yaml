@@ -22,7 +22,7 @@ variables:
     RUN_SCHEMATHESIS: 0
 
     AUTH_SERVICE: sqlalchemy
-    FRONTEND_FRAMEWORK: nofrontend
+    FRONTEND_FRAMEWORK: angular
     CRONTAB_ENABLE: 1
 
     ACTIVATE_ALCHEMY: 1
