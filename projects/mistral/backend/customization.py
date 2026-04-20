@@ -89,7 +89,7 @@ class Customizer(BaseCustomizer):
                     validate=validate.Range(min=0),
                     metadata={
                         "label": "Disk quota",
-                        "description": "Disk quota in bytes",
+                        "description": "Disk quota in GiB",
                     },
                 ),
                 "requests_expiration_days": fields.Int(
