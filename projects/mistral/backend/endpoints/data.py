@@ -8,6 +8,7 @@ from mistral.endpoints import DOWNLOAD_DIR, PostProcessorsType
 from mistral.exceptions import DiskQuotaException, MaxOutputSizeExceeded
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
+from mistral.services.filter_validation import validate_filters
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from mistral.tasks import data_extraction as data_ext
 from mistral.tasks.data_extraction_utilities import queue_sorting
@@ -364,6 +365,12 @@ class Data(EndpointResource, Uploader):
         # clean up filters from unknown values
         if filters:
             filters = {k: v for k, v in filters.items() if arki.is_filter_allowed(k)}
+
+        # deep validation of filter values before sending to Celery
+        if filters:
+            filter_error = validate_filters(filters, dataset_format)
+            if filter_error:
+                raise BadRequest(filter_error)
 
         parsed_reftime = {}
         if reftime:

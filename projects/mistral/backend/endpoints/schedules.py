@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 from marshmallow import ValidationError, pre_load
 from mistral.services.arkimet import BeArkimet as arki
+from mistral.services.filter_validation import validate_filters
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from mistral.tasks import (
     create_crontab_task_with_routing,
@@ -547,6 +548,12 @@ class SingleSchedule(EndpointResource):
             raise BadRequest(
                 "Invalid set of datasets : datasets have different formats"
             )
+
+        # deep validation of filter values before sending to Celery
+        if filters:
+            filter_error = validate_filters(filters, dataset_format)
+            if filter_error:
+                raise BadRequest(filter_error)
 
         # check if the output format chosen by the user is compatible with the datasets
         if output_format is not None:
