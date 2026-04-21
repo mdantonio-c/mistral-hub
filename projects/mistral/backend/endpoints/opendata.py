@@ -152,6 +152,15 @@ class OpendataFileList(EndpointResource):
                     parsed_values.append(splitted[1])
                 run = ",".join(parsed_values)
             el["run"] = run
+            # get the product variables
+            vars_list = []
+            if r.args.get("filters") and "product" in r.args["filters"]:
+                vars_list = [
+                    p["desc"]
+                    for p in r.args["filters"]["product"]
+                    if "desc" in p
+                ]
+            el["vars"] = vars_list
             # get the output filename
             if r.fileoutput is not None:
                 el["filename"] = r.fileoutput.filename
@@ -166,6 +175,15 @@ class OpendataFileList(EndpointResource):
                 ),
                 reverse=True,
             )
+            # ensure all opendata packages for this dataset expose the same variables;
+            # if they differ, a code change is required to handle per-package variable sets
+            all_vars = [el["vars"] for el in res]
+            if not all(v == all_vars[0] for v in all_vars):
+                raise ServerError(
+                    "The API logic must be updated to support per-package variable sets. "
+                    f"Opendata packages for dataset '{dataset_id}' contain "
+                    "different physical variables across packages."
+                )
         return self.response(res)
 
 
