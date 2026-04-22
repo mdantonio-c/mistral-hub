@@ -486,7 +486,7 @@ def data_extract(
                     if request.status != states.SUCCESS:
                         notify_by_email(db, user_id, request, "")
                     else:
-                        notify_on_success = db.session.query(db.User.notify_on_success_request).filter_by(id=user_id).scalar()
+                        notify_on_success = db.session.query(db.User.notify_on_successful_request).filter_by(id=user_id).scalar()
                         if notify_on_success:
                             notify_by_email(db, user_id, request, "")
 

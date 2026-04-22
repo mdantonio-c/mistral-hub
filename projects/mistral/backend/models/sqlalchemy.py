@@ -30,7 +30,7 @@ setattr(User, "allowed_postprocessing", db.Column(db.Boolean, default=False))
 setattr(User, "allowed_schedule", db.Column(db.Boolean, default=False))
 setattr(User, "allowed_obs_archive", db.Column(db.Boolean, default=False))
 setattr(User, "request_par_hour", db.Column(db.Integer))
-setattr(User, "notify_on_success_request", db.Column(db.Boolean, nullable=False, default=True))
+setattr(User, "notify_on_successful_request", db.Column(db.Boolean, nullable=False, default=True))
 
 
 class Request(db.Model):  # type: ignore

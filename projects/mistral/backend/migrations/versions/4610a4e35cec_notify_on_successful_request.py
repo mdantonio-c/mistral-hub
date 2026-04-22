@@ -1,4 +1,4 @@
-"""notify_on_success_request
+"""notify_on_successful_request
 
 Revision ID: 4610a4e35cec
 Revises: 6f2d3541412e
@@ -20,7 +20,7 @@ def upgrade():
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.add_column(
             sa.Column(
-                'notify_on_success_request',
+                'notify_on_successful_request',
                 sa.Boolean(),
                 nullable=False,
                 server_default=sa.text('true'),
@@ -30,4 +30,4 @@ def upgrade():
 
 def downgrade():
     with op.batch_alter_table('user', schema=None) as batch_op:
-        batch_op.drop_column('notify_on_success_request')
+        batch_op.drop_column('notify_on_successful_request')
