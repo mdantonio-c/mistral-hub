@@ -134,7 +134,7 @@ class Customizer(BaseCustomizer):
                     validate=validate.Range(min=0),
                     metadata={
                         "label": "Max output size",
-                        "description": "Maximum amount of data the user can request at once",
+                        "description": "Maximum amount of data the user can request at once (GiB)",
                     },
                 ),
                 "allowed_postprocessing": fields.Boolean(
