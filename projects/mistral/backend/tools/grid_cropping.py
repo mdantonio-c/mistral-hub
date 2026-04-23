@@ -6,6 +6,14 @@ from mistral.exceptions import PostProcessingException
 from restapi.utilities.logs import log
 
 
+def format_sub_type(sub_type: str) -> str:
+    # mapping between subtype presented in the interface and vg6d specific subtypes
+    if sub_type == "bbox":
+        return "coordbb"
+    else:
+        return sub_type
+
+
 def pp_grid_cropping(
     params: PostProcessorsType, input_file: Path, output_folder: Path, fileformat: str
 ) -> tuple[Path, list[Path]]:
@@ -23,7 +31,8 @@ def pp_grid_cropping(
         # limit memory usage by elaborating a message at once
         post_proc_cmd.append("--trans-mode=s")
         post_proc_cmd.append("--trans-type={}".format(params.get("trans_type")))
-        post_proc_cmd.append("--sub-type={}".format(params.get("sub_type")))
+        sub_type = format_sub_type(params.get("sub_type"))
+        post_proc_cmd.append(f"--sub-type={sub_type}")
 
         if "ilon" in params["boundings"]:
             post_proc_cmd.append("--ilon={}".format(params["boundings"]["ilon"]))
