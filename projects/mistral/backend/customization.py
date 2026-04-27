@@ -89,7 +89,7 @@ class Customizer(BaseCustomizer):
                     validate=validate.Range(min=0),
                     metadata={
                         "label": "Disk quota",
-                        "description": "Disk quota in GiB",
+                        "description": "Disk quota (GB)",
                     },
                 ),
                 "requests_expiration_days": fields.Int(
@@ -134,7 +134,7 @@ class Customizer(BaseCustomizer):
                     validate=validate.Range(min=0),
                     metadata={
                         "label": "Max output size",
-                        "description": "Maximum amount of data the user can request at once (GiB)",
+                        "description": "Maximum amount of data the user can request at once (GB)",
                     },
                 ),
                 "allowed_postprocessing": fields.Boolean(
