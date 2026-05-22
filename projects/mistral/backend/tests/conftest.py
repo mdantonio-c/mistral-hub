@@ -1,35 +1,47 @@
+"""Suite-wide pytest configuration shared by the whole backend test tree."""
+
 import pytest
-from restapi.tests import API_URI, BaseTests, FlaskClient
 
-ACCESS_KEY_ENDPOINT = f"{API_URI}/access-key"
-
-
-@pytest.fixture
-def auth_headers(client: FlaskClient):
-    base = BaseTests()
-    headers, _ = base.do_login(client, None, None)
-    return headers
+from mistral.tests.helpers.cleanup import CleanupRegistry
+from mistral.tests.helpers.runtime import TestContext, TestRuntime
 
 
-@pytest.fixture
-def fresh_access_key(client: FlaskClient, auth_headers):
-    resp = client.post(ACCESS_KEY_ENDPOINT, headers=auth_headers)
-    assert resp.status_code == 200
-    data = resp.json
-    assert "key" in data
-    return auth_headers, data["key"]
-
-
-@pytest.fixture
-def fresh_access_key_with_expiration(client: FlaskClient, auth_headers):
-    """Create a fresh access key with explicit expiration (1 hour from now)."""
-    resp = client.post(
-        ACCESS_KEY_ENDPOINT,
-        headers=auth_headers,
-        json={"lifetime_seconds": 3600},
+def pytest_configure(config):
+    """Register custom markers used across the modularized integration suite."""
+    config.addinivalue_line(
+        "markers", "integration: marks tests as integration-level"
     )
-    assert resp.status_code == 200
-    data = resp.json
-    assert "key" in data
-    assert "expiration" in data and data["expiration"] is not None
-    return auth_headers, data["key"]
+    config.addinivalue_line(
+        "markers",
+        "deterministic: marks tests whose control flow stays deterministic within the test runtime",
+    )
+    config.addinivalue_line(
+        "markers",
+        "async_real: marks tests that wait for real async dispatch via beat, broker, or workers",
+    )
+    config.addinivalue_line(
+        "markers",
+        "runtime_sensitive: marks tests whose outcome depends on runtime data or infrastructure state",
+    )
+
+
+@pytest.fixture(scope="session")
+def test_runtime() -> TestRuntime:
+    """Create the session-scoped runtime cache reused by multiple test domains."""
+    return TestRuntime()
+
+
+@pytest.fixture
+def test_ctx(test_runtime: TestRuntime) -> TestContext:
+    """Provide a per-test mutable context and run its cleanup at teardown."""
+    ctx = test_runtime.new_context()
+    yield ctx
+    ctx.cleanup()
+
+
+@pytest.fixture
+def cleanup_registry() -> CleanupRegistry:
+    """Collect teardown callbacks and paths that each test wants cleaned up."""
+    registry = CleanupRegistry()
+    yield registry
+    registry.run()
