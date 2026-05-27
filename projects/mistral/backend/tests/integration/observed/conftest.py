@@ -19,6 +19,8 @@ def dballe_observed_case(
     test_runtime: TestRuntime,
 ) -> Iterator[ObservedCase]:
     """Provide one observed scenario that reads from recent DBALLE data."""
+    # Prepariamo la fixture osservazioni: crea lo stato riusabile e lascia al test solo
+    # la verifica del comportamento.
     yield from yield_observed_case(client, auth_headers, test_runtime, "dballe")
 
 
@@ -29,6 +31,8 @@ def arkimet_observed_case(
     test_runtime: TestRuntime,
 ) -> Iterator[ObservedCase]:
     """Provide one observed scenario that reads from archived Arkimet data."""
+    # Prepariamo la fixture osservazioni: crea lo stato riusabile e lascia al test solo
+    # la verifica del comportamento.
     yield from yield_observed_case(client, auth_headers, test_runtime, "arkimet")
 
 
@@ -39,4 +43,6 @@ def mixed_observed_case(
     test_runtime: TestRuntime,
 ) -> Iterator[ObservedCase]:
     """Provide one observed scenario that spans both DBALLE and Arkimet data."""
+    # Prepariamo la fixture osservazioni: crea lo stato riusabile e lascia al test solo
+    # la verifica del comportamento.
     yield from yield_observed_case(client, auth_headers, test_runtime, "mixed")

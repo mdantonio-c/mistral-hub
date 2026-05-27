@@ -34,9 +34,13 @@ def test_data_ready_non_filesystem_export_returns_one(
 ) -> None:
     """Verify that a non-filesystem data-ready event is accepted and returns the sentinel payload `1`."""
     # arrange
+    # Prepariamo lo scenario data-ready con dati minimi e controllati, cosi la verifica
+    # successiva resta legata a un comportamento preciso.
     rundate = "2023020217"
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = post_data_ready(
         data_ready_base,
         client,
@@ -47,7 +51,11 @@ def test_data_ready_non_filesystem_export_returns_one(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code in {200, 202}
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert content == "1"
 
 
@@ -58,7 +66,11 @@ def test_data_ready_schedule_rejects_dataset_not_enabled(
 ) -> None:
     """Verify that schedules targeting datasets outside the enabled data-ready set are rejected."""
     # arrange
+    # Prepariamo lo scenario data-ready con dati minimi e controllati, cosi la verifica
+    # successiva resta legata a un comportamento preciso.
     response = client.get(f"{API_URI}/datasets", headers=data_ready_admin_headers)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
     datasets = data_ready_base.get_content(response)
     dataset_name = next(
@@ -68,6 +80,8 @@ def test_data_ready_schedule_rejects_dataset_not_enabled(
         not in {DATA_READY_DATASET_NAME, SECOND_DATA_READY_DATASET_NAME}
     )
 
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_body = build_on_data_ready_schedule(
         request_name="test_no_dataready",
         date_from=(datetime.now() - timedelta(hours=1)).strftime(
@@ -79,6 +93,8 @@ def test_data_ready_schedule_rejects_dataset_not_enabled(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response = client.post(
         f"{API_URI}/schedules",
         headers=data_ready_admin_headers,
@@ -87,7 +103,11 @@ def test_data_ready_schedule_rejects_dataset_not_enabled(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code == 400
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert "Data-ready service is not available" in data_ready_base.get_content(
         response
     )
@@ -102,10 +122,14 @@ def test_data_ready_skips_inactive_schedule(
 ) -> None:
     """Verify that an inactive on-data-ready schedule does not spawn any request."""
     # arrange
+    # Prepariamo lo scenario data-ready con dati minimi e controllati, cosi la verifica
+    # successiva resta legata a un comportamento preciso.
     dataset_window = fetch_dataset_window(
         client, data_ready_user.headers, DATA_READY_DATASET_NAME
     )
     now = datetime.now()
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_body = build_crontab_schedule(
         request_name="test_schedule_not_active",
         date_from=dataset_window.date_from,
@@ -117,6 +141,8 @@ def test_data_ready_skips_inactive_schedule(
         on_data_ready=True,
         opendata=True,
     )
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         data_ready_base,
         client,
@@ -137,6 +163,8 @@ def test_data_ready_skips_inactive_schedule(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = post_data_ready(
         data_ready_base,
         client,
@@ -146,8 +174,14 @@ def test_data_ready_skips_inactive_schedule(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code in {200, 202}
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert content == "1"
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert not list_schedule_requests(
         data_ready_base,
         client,
@@ -165,10 +199,14 @@ def test_data_ready_skips_schedule_without_on_data_ready_flag(
 ) -> None:
     """Verify that ordinary schedules ignore data-ready events when the flag is disabled."""
     # arrange
+    # Prepariamo lo scenario data-ready con dati minimi e controllati, cosi la verifica
+    # successiva resta legata a un comportamento preciso.
     dataset_window = fetch_dataset_window(
         client, data_ready_user.headers, DATA_READY_DATASET_NAME
     )
     now = datetime.now()
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_body = build_crontab_schedule(
         request_name="test_not_on_data_ready",
         date_from=dataset_window.date_from,
@@ -180,6 +218,8 @@ def test_data_ready_skips_schedule_without_on_data_ready_flag(
         on_data_ready=False,
         opendata=True,
     )
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         data_ready_base,
         client,
@@ -194,6 +234,8 @@ def test_data_ready_skips_schedule_without_on_data_ready_flag(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = post_data_ready(
         data_ready_base,
         client,
@@ -203,8 +245,14 @@ def test_data_ready_skips_schedule_without_on_data_ready_flag(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code in {200, 202}
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert content == "1"
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert not list_schedule_requests(
         data_ready_base,
         client,

@@ -32,6 +32,8 @@ def test_reftime_range_returns_matching_products(
 ) -> None:
     """Verify that a valid reftime range returns data containing the discovered products."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     require_secondary_product(observed_case)
     endpoint = build_observations_endpoint(
@@ -39,6 +41,8 @@ def test_reftime_range_returns_matching_products(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = fetch_observations(
         client,
         observed_case.headers,
@@ -46,10 +50,18 @@ def test_reftime_range_returns_matching_products(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert isinstance(content, dict)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
     products = extract_products(content)
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_1 in products
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_2 in products
 
 
@@ -61,15 +73,21 @@ def test_reftime_with_only_date_to_returns_bad_request(
 ) -> None:
     """Verify that archived queries cannot specify only the upper reftime bound."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     endpoint = build_observations_endpoint(
         query=build_reftime_query(observed_case.params, include_from=False),
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, _ = fetch_observations(client, observed_case.headers, endpoint)
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code == 400
 
 
@@ -81,15 +99,21 @@ def test_reftime_with_only_date_from_returns_bad_request(
 ) -> None:
     """Verify that recent queries cannot specify only the lower reftime bound."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     endpoint = build_observations_endpoint(
         query=build_reftime_query(observed_case.params, include_to=False),
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, _ = fetch_observations(client, observed_case.headers, endpoint)
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code == 400
 
 
@@ -101,6 +125,8 @@ def test_network_filter_returns_matching_products(
 ) -> None:
     """Verify that filtering by one discovered network keeps the expected products visible."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     require_secondary_product(observed_case)
     endpoint = build_observations_endpoint(
@@ -109,6 +135,8 @@ def test_network_filter_returns_matching_products(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = fetch_observations(
         client,
         observed_case.headers,
@@ -116,10 +144,18 @@ def test_network_filter_returns_matching_products(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert isinstance(content, dict)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
     products = extract_products(content)
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_1 in products
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_2 in products
 
 
@@ -131,6 +167,8 @@ def test_unknown_network_returns_not_found(
 ) -> None:
     """Verify that an unknown observed network produces a 404 response."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     endpoint = build_observations_endpoint(
         query=build_reftime_query(observed_case.params),
@@ -138,9 +176,13 @@ def test_unknown_network_returns_not_found(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, _ = fetch_observations(client, observed_case.headers, endpoint)
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code == 404
 
 
@@ -152,6 +194,8 @@ def test_bounding_box_filter_returns_matching_products(
 ) -> None:
     """Verify that a valid bounding box still returns data for the expected products."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     require_secondary_product(observed_case)
     endpoint = build_observations_endpoint(
@@ -163,6 +207,8 @@ def test_bounding_box_filter_returns_matching_products(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = fetch_observations(
         client,
         observed_case.headers,
@@ -170,10 +216,18 @@ def test_bounding_box_filter_returns_matching_products(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert isinstance(content, dict)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
     products = extract_products(content)
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_1 in products
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_2 in products
 
 
@@ -185,6 +239,8 @@ def test_outside_bounding_box_returns_empty_data(
 ) -> None:
     """Verify that a bounding box outside the available station area returns no data."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     endpoint = build_observations_endpoint(
         query=build_reftime_query(observed_case.params),
@@ -195,6 +251,8 @@ def test_outside_bounding_box_returns_empty_data(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = fetch_observations(
         client,
         observed_case.headers,
@@ -202,8 +260,14 @@ def test_outside_bounding_box_returns_empty_data(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert isinstance(content, dict)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert content["data"] == []
 
 
@@ -215,6 +279,8 @@ def test_product_filter_returns_only_requested_product(
 ) -> None:
     """Verify that filtering by one product excludes the secondary discovered product."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     require_secondary_product(observed_case)
     endpoint = build_observations_endpoint(
@@ -225,6 +291,8 @@ def test_product_filter_returns_only_requested_product(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = fetch_observations(
         client,
         observed_case.headers,
@@ -232,10 +300,18 @@ def test_product_filter_returns_only_requested_product(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert isinstance(content, dict)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
     products = extract_products(content)
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_1 in products
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_2 not in products
 
 
@@ -247,12 +323,16 @@ def test_unknown_product_returns_empty_data(
 ) -> None:
     """Verify that an unknown product code yields an empty but successful response."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     endpoint = build_observations_endpoint(
         query=build_reftime_query(observed_case.params, product="B11111"),
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = fetch_observations(
         client,
         observed_case.headers,
@@ -260,8 +340,14 @@ def test_unknown_product_returns_empty_data(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert isinstance(content, dict)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert content["data"] == []
 
 
@@ -273,6 +359,8 @@ def test_combined_filters_return_only_requested_product(
 ) -> None:
     """Verify that combined reftime, network, bbox, and product filters stay mutually consistent."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     require_secondary_product(observed_case)
     endpoint = build_observations_endpoint(
@@ -288,6 +376,8 @@ def test_combined_filters_return_only_requested_product(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = fetch_observations(
         client,
         observed_case.headers,
@@ -295,8 +385,16 @@ def test_combined_filters_return_only_requested_product(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert isinstance(content, dict)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
     products = extract_products(content)
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_1 in products
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert observed_case.params.product_2 not in products

@@ -35,14 +35,30 @@ def test_dataset_endpoints_expose_public_catalog_without_login(
     3. an unknown dataset identifier still produces ``404``.
     """
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     list_response = client.get(f"{API_URI}/datasets")
     public_dataset_id = first_public_dataset_id(list_response.json or [])
+    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
+    # autorizzazione e serializzazione vengono verificati insieme.
     dataset_response = client.get(f"{API_URI}/datasets/{public_dataset_id}")
+    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
+    # autorizzazione e serializzazione vengono verificati insieme.
     missing_response = client.get(f"{API_URI}/datasets/{faker.pystr()}")
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert list_response.status_code == 200
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert isinstance(list_response.json, list)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert dataset_response.status_code == 200
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert isinstance(dataset_response.json, dict)
+    # Verifichiamo che la risposta segnali correttamente una risorsa assente o non
+    # visibile prima di usare il payload.
     assert missing_response.status_code == 404

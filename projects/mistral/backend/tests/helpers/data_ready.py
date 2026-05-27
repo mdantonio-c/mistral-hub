@@ -46,6 +46,8 @@ def build_data_ready_payload(
     a specific forecast model, cluster name, and run date, without repeating the
     request-shaping logic inline in every scenario.
     """
+    # Componiamo il payload in un solo punto, cosi i test possono concentrarsi sulla
+    # regola di business invece che sulla forma JSON.
     return json.dumps({"Model": model, "Cluster": cluster, "rundate": rundate})
 
 
@@ -62,6 +64,8 @@ def create_data_ready_user(
     ``dataset_names``. The helper also resolves dataset names to the numeric ids
     required by the user-creation API.
     """
+    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
+    # il backend espone in produzione quando possibile.
     db = sqlalchemy.get_instance()
     dataset_ids = [str(test_runtime.dataset_id(db, name)) for name in dataset_names]
 
@@ -74,14 +78,24 @@ def create_data_ready_user(
         "datasets": json.dumps(dataset_ids),
     }
 
+    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
+    # account preesistenti.
     uuid, created_user = base.create_user(client, data, ["admin_root"])
+    # Effettuiamo il login per ottenere header autentici, identici a quelli usati dalle
+    # chiamate API successive.
     headers, _ = base.do_login(
         client, created_user.get("email"), created_user.get("password")
     )
 
+    # Leggiamo lo stato dal database di test per collegare la risposta API agli effetti
+    # persistiti dal backend.
     user = db.User.query.filter_by(uuid=uuid).first()
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert user is not None
 
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return AuthenticatedTestUser(
         uuid=uuid,
         user_id=user.id,
@@ -102,13 +116,19 @@ def create_schedule(
     parsing. It asserts that the schedule was accepted and extracts the created
     identifier from the JSON payload returned by the endpoint.
     """
+    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
+    # il backend espone in produzione quando possibile.
     response = client.post(
         f"{API_URI}/schedules",
         headers=headers,
         data=body,
         content_type="application/json",
     )
+    # Verifichiamo che la risposta confermi che il backend ha accettato il lavoro
+    # asincrono prima di usare il payload.
     assert response.status_code == 202
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return str(base.get_content(response).get("schedule_id"))
 
 
@@ -125,12 +145,16 @@ def set_schedule_active(
     different activation state. This helper centralizes the ``PATCH`` request and
     asserts that the state change succeeded.
     """
+    # Entriamo nel blocco operativo dell'helper condiviso, mantenendo esplicito
+    # quale stato viene letto o prodotto.
     response = client.patch(
         f"{API_URI}/schedules/{schedule_id}",
         headers=headers,
         data=json.dumps({"is_active": is_active}),
         content_type="application/json",
     )
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
 
 
@@ -140,7 +164,11 @@ def delete_request(client: FlaskClient, headers: Any, request_id: int | str) -> 
     Tests use this during cleanup or when they need to remove an automatically
     created request row before building a more controlled scenario.
     """
+    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
+    # gli scenari successivi.
     response = client.delete(f"{API_URI}/requests/{request_id}", headers=headers)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
 
 
@@ -150,7 +178,11 @@ def delete_schedule(client: FlaskClient, headers: Any, schedule_id: int | str) -
     This is a small convenience wrapper used mainly by cleanup code so that test
     bodies do not need to repeat status-code assertions for schedule teardown.
     """
+    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
+    # gli scenari successivi.
     response = client.delete(f"{API_URI}/schedules/{schedule_id}", headers=headers)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
 
 
@@ -165,8 +197,14 @@ def list_user_requests(
     normalizes that case to ``[]`` so tests can reason about cardinality without
     repeating defensive response handling.
     """
+    # Interroghiamo il backend e normalizziamo la risposta in una struttura semplice da
+    # usare nelle asserzioni.
     response = client.get(f"{API_URI}/requests", headers=headers)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return base.get_content(response) or []
 
 
@@ -181,8 +219,14 @@ def list_user_schedules(
     details and guarantees that callers always receive a list they can iterate or
     count safely.
     """
+    # Interroghiamo il backend e normalizziamo la risposta in una struttura semplice da
+    # usare nelle asserzioni.
     response = client.get(f"{API_URI}/schedules", headers=headers)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return base.get_content(response) or []
 
 
@@ -198,12 +242,18 @@ def list_schedule_requests(
     dictionaries. This helper filters those out so the calling tests can compare
     request counts and inspect request payloads without additional guarding code.
     """
+    # Interroghiamo il backend e normalizziamo la risposta in una struttura semplice da
+    # usare nelle asserzioni.
     response = client.get(
         f"{API_URI}/schedules/{schedule_id}/requests?last=False",
         headers=headers,
     )
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
     content = base.get_content(response) or []
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return [item for item in content if isinstance(item, dict)]
 
 
@@ -223,11 +273,19 @@ def wait_for_schedule_requests(
     action. This helper performs the retry loop and returns the final request list
     only when the desired count is visible.
     """
+    # Avviamo il polling su una condizione osservabile, evitando attese fisse che
+    # renderebbero il test fragile.
     def expected_requests():
         """Expose the request list only when the target count has been reached."""
+        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
+        # esplicito quale stato viene letto o prodotto.
         requests = list_schedule_requests(base, client, headers, schedule_id)
+        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
+        # direttamente nelle asserzioni.
         return requests if len(requests) == expected_count else False
 
+    # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
+    # sleep ciechi.
     return wait_until(
         expected_requests,
         timeout=timeout,
@@ -253,13 +311,19 @@ def post_data_ready(
     mainly about the decoded JSON body. This helper returns both so the caller can
     assert on status code and payload without issuing the request twice.
     """
+    # Entriamo nel blocco operativo dell'helper condiviso, mantenendo esplicito
+    # quale stato viene letto o prodotto.
     body = build_data_ready_payload(model=model, rundate=rundate, cluster=cluster)
+    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
+    # autorizzazione e serializzazione vengono verificati insieme.
     response = client.post(
         f"{API_URI}/data/ready",
         headers=headers,
         data=body,
         content_type="application/json",
     )
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return response, base.get_content(response)
 
 
@@ -280,18 +344,26 @@ def trigger_data_ready_and_wait_accepted(
     the endpoint until the expected acceptance response appears or the timeout is
     reached.
     """
+    # Entriamo nel blocco operativo dell'helper condiviso, mantenendo esplicito
+    # quale stato viene letto o prodotto.
     body = build_data_ready_payload(model=model, rundate=rundate, cluster=cluster)
 
     def data_ready_accepted():
         """Yield the response object only when the endpoint reports acceptance."""
+        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
+        # esplicito quale stato viene letto o prodotto.
         response = client.post(
             f"{API_URI}/data/ready",
             headers=headers,
             data=body,
             content_type="application/json",
         )
+        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
+        # direttamente nelle asserzioni.
         return response if response.status_code == 202 else False
 
+    # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
+    # sleep ciechi.
     return wait_until(
         data_ready_accepted,
         timeout=timeout,
@@ -317,6 +389,8 @@ def create_schedule_request_record(
     verify whether a new data-ready event should generate an additional request.
     This helper seeds that history without invoking the real extraction worker.
     """
+    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
+    # il backend espone in produzione quando possibile.
     request = repo.create_request_record(
         db,
         user_id,
@@ -334,13 +408,23 @@ def create_schedule_request_record(
         True,
     )
 
+    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
+    # quando lo stato non e quello ideale.
     if submission_date is not None:
         request.submission_date = submission_date
+    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
+    # quando lo stato non e quello ideale.
     if status is not None:
         request.status = status
 
+    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
+    # non vedrebbero lo scenario preparato.
     db.session.add(request)
+    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
+    # non vedrebbero lo scenario preparato.
     db.session.commit()
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return request
 
 
@@ -350,6 +434,8 @@ def delete_all_user_requests(
     headers: Any,
 ) -> None:
     """Best-effort cleanup helper that deletes every request visible to the user."""
+    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
+    # gli scenari successivi.
     for request in list_user_requests(base, client, headers):
         delete_request(client, headers, request.get("id"))
 
@@ -360,8 +446,12 @@ def delete_all_user_schedules(
     headers: Any,
 ) -> None:
     """Best-effort cleanup helper that deletes every schedule visible to the user."""
+    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
+    # gli scenari successivi.
     for schedule in list_user_schedules(base, client, headers):
         schedule_id = schedule.get("schedule_id") or schedule.get("id")
+        # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve
+        # succedere quando lo stato non e quello ideale.
         if schedule_id is None:
             continue
         delete_schedule(client, headers, schedule_id)
@@ -379,6 +469,8 @@ def register_data_ready_user_cleanup(
     itself. This helper registers teardown in the correct order so later tests do
     not inherit residual state from earlier scenarios.
     """
+    # Registriamo subito il cleanup: anche se il test fallisce a meta, le risorse
+    # temporanee verranno rimosse.
     register_test_user_cleanup(
         base,
         client,
@@ -386,9 +478,13 @@ def register_data_ready_user_cleanup(
         user_uuid=user.uuid,
         root_path=user.output_dir.parent,
     )
+    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
+    # anche in caso di fallimento.
     cleanup_registry.add(
         lambda: delete_all_user_schedules(base, client, user.headers)
     )
+    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
+    # anche in caso di fallimento.
     cleanup_registry.add(
         lambda: delete_all_user_requests(base, client, user.headers)
     )
@@ -406,4 +502,6 @@ def register_schedule_cleanup(
     fails midway. This helper attaches that teardown step to the shared cleanup
     registry.
     """
+    # Registriamo subito il cleanup: anche se il test fallisce a meta, le risorse
+    # temporanee verranno rimosse.
     cleanup_registry.add(lambda: delete_schedule(client, headers, schedule_id))

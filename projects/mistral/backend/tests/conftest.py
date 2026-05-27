@@ -8,6 +8,8 @@ from mistral.tests.helpers.runtime import TestContext, TestRuntime
 
 def pytest_configure(config):
     """Register custom markers used across the modularized integration suite."""
+    # Entriamo nel blocco operativo della configurazione di test, mantenendo esplicito quale
+    # stato viene letto o prodotto.
     config.addinivalue_line(
         "markers", "integration: marks tests as integration-level"
     )
@@ -28,13 +30,19 @@ def pytest_configure(config):
 @pytest.fixture(scope="session")
 def test_runtime() -> TestRuntime:
     """Create the session-scoped runtime cache reused by multiple test domains."""
+    # Prepariamo la fixture suite di test: crea lo stato riusabile e lascia al test solo
+    # la verifica del comportamento.
     return TestRuntime()
 
 
 @pytest.fixture
 def test_ctx(test_runtime: TestRuntime) -> TestContext:
     """Provide a per-test mutable context and run its cleanup at teardown."""
+    # Prepariamo la fixture suite di test: crea lo stato riusabile e lascia al test solo
+    # la verifica del comportamento.
     ctx = test_runtime.new_context()
+    # Cediamo la fixture al test; quando il test termina, il codice sotto il yield
+    # eseguira il teardown.
     yield ctx
     ctx.cleanup()
 
@@ -42,6 +50,10 @@ def test_ctx(test_runtime: TestRuntime) -> TestContext:
 @pytest.fixture
 def cleanup_registry() -> CleanupRegistry:
     """Collect teardown callbacks and paths that each test wants cleaned up."""
+    # Prepariamo la fixture suite di test: crea lo stato riusabile e lascia al test solo
+    # la verifica del comportamento.
     registry = CleanupRegistry()
+    # Cediamo la fixture al test; quando il test termina, il codice sotto il yield
+    # eseguira il teardown.
     yield registry
     registry.run()

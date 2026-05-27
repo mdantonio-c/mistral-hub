@@ -28,6 +28,8 @@ class TestForecastSpatial:
     ) -> None:
         """Verify that interpolation without a template rewrites the grid geometry as requested."""
         # arrange
+        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
+        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_forecast_env.create_request()
         y_min = -10
         nx = 12
@@ -38,6 +40,8 @@ class TestForecastSpatial:
         )
 
         # act
+        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+        # verifica dal setup.
         pp_forecast_env.execute(
             request_id,
             filters=forecast_pressure_filter(),
@@ -45,6 +49,8 @@ class TestForecastSpatial:
         )
 
         # assert
+        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+        # questo test vuole proteggere.
         output_path = pp_forecast_env.assert_success(request_id)
         assert_grib_geometry(output_path, y_min, nx)
 
@@ -53,6 +59,8 @@ class TestForecastSpatial:
     ) -> None:
         """Verify that template-based interpolation copies geometry from the provided template GRIB."""
         # arrange
+        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
+        # verifica successiva resta legata a un comportamento preciso.
         seed_request_id = pp_forecast_env.create_request()
         y_min = -10
         nx = 12
@@ -72,6 +80,8 @@ class TestForecastSpatial:
         request_id = pp_forecast_env.create_request()
 
         # act
+        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+        # verifica dal setup.
         pp_forecast_env.execute(
             request_id,
             filters=forecast_pressure_filter(),
@@ -79,16 +89,22 @@ class TestForecastSpatial:
         )
 
         # assert
+        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+        # questo test vuole proteggere.
         output_path = pp_forecast_env.assert_success(request_id)
         assert_grib_geometry(output_path, y_min, nx)
 
     def test_grid_cropping_completes_successfully(self, pp_forecast_env) -> None:
         """Verify that grid cropping completes successfully on a forecast request."""
         # arrange
+        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
+        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_forecast_env.create_request()
         postprocessor = grid_cropping_postprocessor(initial_lon=-10, initial_lat=-5)
 
         # act
+        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+        # verifica dal setup.
         pp_forecast_env.execute(
             request_id,
             filters=forecast_pressure_filter(),
@@ -96,18 +112,26 @@ class TestForecastSpatial:
         )
 
         # assert
+        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+        # questo test vuole proteggere.
         output_path = pp_forecast_env.assert_success(request_id)
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert output_path.exists()
 
     def test_spare_point_interpolation_outputs_bufr(self, pp_forecast_env) -> None:
         """Verify that spare-point interpolation exports BUFR output."""
         # arrange
+        # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
+        # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_forecast_env.create_request()
         archive_path = require_spare_point_template_archive()
         upload_dir = pp_forecast_env.unzip_upload(archive_path)
         template_path = upload_dir / "template_for_spare_point.shp"
 
         # act
+        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+        # verifica dal setup.
         pp_forecast_env.execute(
             request_id,
             filters=forecast_pressure_filter(),
@@ -115,5 +139,9 @@ class TestForecastSpatial:
         )
 
         # assert
+        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+        # questo test vuole proteggere.
         output_path = pp_forecast_env.assert_success(request_id)
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert output_path.suffix == ".bufr"

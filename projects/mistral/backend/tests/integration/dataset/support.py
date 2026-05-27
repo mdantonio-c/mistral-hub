@@ -21,8 +21,14 @@ def first_public_dataset_id(datasets: list[dict[str, Any]]) -> str:
     public dataset, the scenario is skipped because there is no valid target for
     that contract.
     """
+    # Entriamo nel blocco operativo dell'helper catalogo dataset, mantenendo esplicito
+    # quale stato viene letto o prodotto.
     for dataset in datasets:
         dataset_id = dataset.get("id")
         if dataset.get("is_public") is True and dataset_id:
+            # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
+            # direttamente nelle asserzioni.
             return str(dataset_id)
+    # Saltiamo lo scenario quando i dati runtime richiesti non esistono, perche il
+    # contratto non sarebbe verificabile in modo significativo.
     pytest.skip("No public dataset is available in this environment")

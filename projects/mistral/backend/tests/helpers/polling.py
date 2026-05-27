@@ -23,10 +23,14 @@ def wait_until(
     can immediately reuse the discovered object. If the deadline is reached first,
     it raises ``AssertionError`` with the provided message.
     """
+    # Avviamo il polling su una condizione osservabile, evitando attese fisse che
+    # renderebbero il test fragile.
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         result = predicate()
         if result:
+            # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
+            # direttamente nelle asserzioni.
             return result
         time.sleep(interval)
     raise AssertionError(message)

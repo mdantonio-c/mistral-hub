@@ -33,6 +33,8 @@ class AcceptTasksWithoutRunningCelery:
     """
 
     def __init__(self, *accepted_task_names: str) -> None:
+        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
+        # useranno durante il test.
         self.sent_tasks: list[dict[str, Any]] = []
         self.celery_app = _AcceptingCeleryApp(
             accepted_task_names=set(accepted_task_names),
@@ -46,6 +48,8 @@ class AcceptTasksWithoutRunningCelery:
         fake always returns ``True`` because there is no real periodic task to
         remove during the test.
         """
+        # Rimuoviamo lo stato creato dal test per non lasciare dati che possano
+        # influenzare gli scenari successivi.
         return True
 
 
@@ -58,6 +62,8 @@ class _AcceptingCeleryApp:
         accepted_task_names: set[str],
         sent_tasks: list[dict[str, Any]],
     ) -> None:
+        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
+        # useranno durante il test.
         self.accepted_task_names = accepted_task_names
         self.sent_tasks = sent_tasks
 
@@ -67,9 +73,15 @@ class _AcceptingCeleryApp:
         When ``accepted_task_names`` is not empty, the fake also checks that the
         code under test is submitting only the task names expected by the test.
         """
+        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
+        # esplicito quale stato viene letto o prodotto.
         if self.accepted_task_names:
+            # Controlliamo il contratto specifico dello scenario, non soltanto che il
+            # codice sia arrivato fin qui senza eccezioni.
             assert name in self.accepted_task_names
         self.sent_tasks.append({"name": name, "args": args, "kwargs": kwargs})
+        # Non c'e un risultato da consegnare al chiamante: il segnale utile e
+        # l'effetto gia prodotto o l'assenza esplicita di dati.
         return None
 
 
@@ -83,6 +95,8 @@ class InlineDataReadyExtractionCelery:
     """
 
     def __init__(self, db: Any) -> None:
+        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
+        # useranno durante il test.
         self.celery_app = _InlineDataReadyExtractionApp(db)
 
     def delete_periodic_task(self, *args: Any, **kwargs: Any) -> bool:
@@ -92,6 +106,8 @@ class InlineDataReadyExtractionCelery:
         this fake there is nothing to clean up, so the method simply reports
         success.
         """
+        # Rimuoviamo lo stato creato dal test per non lasciare dati che possano
+        # influenzare gli scenari successivi.
         return True
 
 
@@ -105,6 +121,8 @@ class InlineDataExtractCelery:
     """
 
     def __init__(self) -> None:
+        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
+        # useranno durante il test.
         self.celery_app = _InlineDataExtractApp()
 
     def delete_periodic_task(self, *args: Any, **kwargs: Any) -> bool:
@@ -115,6 +133,8 @@ class InlineDataExtractCelery:
         ``True`` keeps those code paths satisfied without introducing extra test
         setup.
         """
+        # Rimuoviamo lo stato creato dal test per non lasciare dati che possano
+        # influenzare gli scenari successivi.
         return True
 
 
@@ -122,6 +142,8 @@ class _InlineDataReadyExtractionApp:
     """Minimal ``celery_app`` facade that emulates ``data_extract`` side effects."""
 
     def __init__(self, db: Any) -> None:
+        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
+        # useranno durante il test.
         self.db = db
 
     def send_task(
@@ -137,7 +159,11 @@ class _InlineDataReadyExtractionApp:
         submissions for the same reftime or inserts a new successful request row
         so the caller can assert on the resulting schedule state.
         """
+        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
+        # esplicito quale stato viene letto o prodotto.
         assert name == "data_extract"
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert args is not None
         (
             user_id,
@@ -153,6 +179,8 @@ class _InlineDataReadyExtractionApp:
             data_ready,
             opendata,
         ) = args
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert data_ready is True
 
         last_request = (
@@ -163,7 +191,11 @@ class _InlineDataReadyExtractionApp:
             .order_by(self.db.Request.submission_date.desc())
             .first()
         )
+        # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve
+        # succedere quando lo stato non e quello ideale.
         if last_request and last_request.args.get("reftime") == reftime:
+            # Non c'e un risultato da consegnare al chiamante: il segnale utile e
+            # l'effetto gia prodotto o l'assenza esplicita di dati.
             return None
 
         request_name = SqlApiDbManager.get_schedule_name(self.db, schedule_id)
@@ -182,8 +214,14 @@ class _InlineDataReadyExtractionApp:
             opendata=opendata,
         )
         request.status = states.SUCCESS
+        # Persistiamo la modifica nel database di test, altrimenti le chiamate
+        # successive non vedrebbero lo scenario preparato.
         self.db.session.add(request)
+        # Persistiamo la modifica nel database di test, altrimenti le chiamate
+        # successive non vedrebbero lo scenario preparato.
         self.db.session.commit()
+        # Non c'e un risultato da consegnare al chiamante: il segnale utile e
+        # l'effetto gia prodotto o l'assenza esplicita di dati.
         return None
 
 
@@ -197,7 +235,15 @@ class _InlineDataExtractApp:
         **kwargs: Any,
     ) -> None:
         """Execute the real extraction task instead of enqueuing it."""
+        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
+        # esplicito quale stato viene letto o prodotto.
         assert name == "data_extract"
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert args is not None
+        # Intercettiamo l'invio del task per controllare quale lavoro asincrono sarebbe
+        # stato richiesto dal backend.
         data_extraction_task.data_extract.run(*args)
+        # Non c'e un risultato da consegnare al chiamante: il segnale utile e
+        # l'effetto gia prodotto o l'assenza esplicita di dati.
         return None

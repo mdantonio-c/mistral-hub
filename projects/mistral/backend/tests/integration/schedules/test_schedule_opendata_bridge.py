@@ -88,6 +88,8 @@ def _trigger_data_ready_schedule_inline(
     - the endpoint submission is accepted locally instead of going to the broker,
     - the nested ``data_extract`` task is executed immediately in-process.
     """
+    # Entriamo nel blocco operativo dell'helper schedules, mantenendo esplicito quale
+    # stato viene letto o prodotto.
     monkeypatch.setattr(
         data_ready_endpoint.celery,
         "get_instance",
@@ -101,6 +103,8 @@ def _trigger_data_ready_schedule_inline(
         model=model,
         rundate=rundate,
     )
+    # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
+    # test resta deterministico.
     monkeypatch.setattr(
         on_data_ready_task.celery,
         "get_instance",
@@ -110,6 +114,8 @@ def _trigger_data_ready_schedule_inline(
         model,
         datetime.strptime(rundate, "%Y%m%d%H"),
     )
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return response
 
 
@@ -130,10 +136,16 @@ def _wait_for_successful_schedule_request(
     and workers may occasionally surface the request later than the nominal
     bound even though the flow eventually succeeds.
     """
+    # Avviamo il polling su una condizione osservabile, evitando attese fisse che
+    # renderebbero il test fragile.
     def successful_request():
         """Return the request once it succeeds with a concrete output filename."""
+        # Entriamo nel blocco operativo dell'helper schedules, mantenendo esplicito quale
+        # stato viene letto o prodotto.
         requests = list_schedule_requests(base, client, headers, schedule_id)
         if len(requests) != 1:
+            # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
+            # direttamente nelle asserzioni.
             return False
 
         request = requests[0]
@@ -148,11 +160,17 @@ def _wait_for_successful_schedule_request(
             and request.get("fileoutput")
             and request.get("fileoutput") != "no file available"
         ):
+            # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
+            # direttamente nelle asserzioni.
             return request
 
+        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
+        # direttamente nelle asserzioni.
         return False
 
     try:
+        # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
+        # sleep ciechi.
         return wait_until(
             successful_request,
             timeout=timeout,
@@ -165,6 +183,8 @@ def _wait_for_successful_schedule_request(
         if grace_timeout <= 0:
             raise
 
+    # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
+    # sleep ciechi.
     return wait_until(
         successful_request,
         timeout=grace_timeout,
@@ -187,19 +207,33 @@ def _wait_for_listing_entry(
     interval: float = 3,
 ) -> dict[str, Any]:
     """Poll the dataset opendata listing until a specific published filename appears."""
+    # Avviamo il polling su una condizione osservabile, evitando attese fisse che
+    # renderebbero il test fragile.
     endpoint = f"{API_URI}/datasets/{dataset_name}/opendata?q={query}"
     base = BaseTests()
 
     def listed_package():
         """Return the package row once the expected filename becomes visible in listing."""
+        # Entriamo nel blocco operativo dell'helper schedules, mantenendo esplicito quale
+        # stato viene letto o prodotto.
         response = client.get(endpoint, headers=headers)
+        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine
+        # prima di usare il payload.
         assert response.status_code == 200
         content = base.get_content(response) or []
+        # Scorriamo gli elementi restituiti dal backend per trovare solo quelli
+        # rilevanti per questo scenario.
         for package in content:
             if package.get("filename") == filename:
+                # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
+                # direttamente nelle asserzioni.
                 return package
+        # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo
+        # direttamente nelle asserzioni.
         return False
 
+    # Aspettiamo finche lo stato osservabile diventa quello atteso, invece di usare
+    # sleep ciechi.
     return wait_until(
         listed_package,
         timeout=timeout,
@@ -219,8 +253,12 @@ def _next_crontab_run_time() -> datetime:
     A small extra minute keeps the test deterministic while still much tighter
     than the legacy fixed sleeps.
     """
+    # Entriamo nel blocco operativo dell'helper schedules, mantenendo esplicito quale
+    # stato viene letto o prodotto.
     now = datetime.now()
     minutes_ahead = 2 if now.second >= 45 else 1
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return now.replace(second=0, microsecond=0) + timedelta(minutes=minutes_ahead)
 
 
@@ -235,11 +273,15 @@ def test_on_data_ready_schedule_publishes_opendata_package(
 ) -> None:
     """Verify that a successful on-data-ready schedule publishes a downloadable opendata package."""
     # arrange
+    # Prepariamo lo scenario schedules con dati minimi e controllati, cosi la verifica
+    # successiva resta legata a un comportamento preciso.
     dataset_window = fetch_dataset_window(
         client,
         schedules_user.headers,
         BRIDGE_DATASET_NAME,
     )
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_body = build_on_data_ready_schedule(
         request_name="test_schedule_opendata_bridge",
         date_from=dataset_window.date_from,
@@ -248,11 +290,15 @@ def test_on_data_ready_schedule_publishes_opendata_package(
         run_filter=[dataset_window.ref_run[0]],
         opendata=True,
     )
+    # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
+    # test resta deterministico.
     monkeypatch.setattr(
         schedules_endpoint.celery,
         "get_instance",
         lambda: AcceptTasksWithoutRunningCelery("data_extract"),
     )
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         schedules_base,
         client,
@@ -267,6 +313,8 @@ def test_on_data_ready_schedule_publishes_opendata_package(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response = _trigger_data_ready_schedule_inline(
         monkeypatch,
         client,
@@ -287,6 +335,8 @@ def test_on_data_ready_schedule_publishes_opendata_package(
         schedules_user.headers,
         query=f"reftime:={dataset_window.ref_from.strftime('%Y-%m-%d %H:%M')}",
     )
+    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
+    # autorizzazione e serializzazione vengono verificati insieme.
     download_response = client.get(
         f"{API_URI}/opendata/{published_request['fileoutput']}",
         headers=schedules_user.headers,
@@ -294,12 +344,26 @@ def test_on_data_ready_schedule_publishes_opendata_package(
 
     try:
         # assert
+        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+        # questo test vuole proteggere.
         assert response.status_code == 202
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert published_request["status"] == "SUCCESS"
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert published_request["fileoutput"] == listed_package["filename"]
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert listed_package["date"] == dataset_window.ref_from.strftime("%Y-%m-%d")
+        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine
+        # prima di usare il payload.
         assert download_response.status_code == 200
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert download_response.data
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert (
             published_request["fileoutput"]
             in download_response.headers["Content-Disposition"]
@@ -317,12 +381,16 @@ def test_crontab_schedule_publishes_opendata_package(
 ) -> None:
     """Verify that a pure crontab schedule eventually publishes a downloadable opendata package."""
     # arrange
+    # Prepariamo lo scenario schedules con dati minimi e controllati, cosi la verifica
+    # successiva resta legata a un comportamento preciso.
     dataset_window = fetch_dataset_window(
         client,
         schedules_user.headers,
         BRIDGE_DATASET_NAME,
     )
     trigger_at = _next_crontab_run_time()
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_body = build_crontab_schedule(
         request_name="test_crontab_schedule_opendata_bridge",
         date_from=dataset_window.date_from,
@@ -333,6 +401,8 @@ def test_crontab_schedule_publishes_opendata_package(
         minute=trigger_at.minute,
         opendata=True,
     )
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         schedules_base,
         client,
@@ -347,6 +417,8 @@ def test_crontab_schedule_publishes_opendata_package(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     published_request = _wait_for_successful_schedule_request(
         schedules_base,
         client,
@@ -370,6 +442,8 @@ def test_crontab_schedule_publishes_opendata_package(
         timeout=60,
         interval=3,
     )
+    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
+    # autorizzazione e serializzazione vengono verificati insieme.
     download_response = client.get(
         f"{API_URI}/opendata/{published_request['fileoutput']}",
         headers=schedules_user.headers,
@@ -377,14 +451,26 @@ def test_crontab_schedule_publishes_opendata_package(
 
     try:
         # assert
+        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+        # questo test vuole proteggere.
         assert published_request["status"] == "SUCCESS"
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert published_request["fileoutput"] == listed_package["filename"]
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert listed_package["date"] == "from {date_from} to {date_to}".format(
             date_from=dataset_window.ref_from.strftime("%Y-%m-%d"),
             date_to=dataset_window.ref_to.strftime("%Y-%m-%d"),
         )
+        # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine
+        # prima di usare il payload.
         assert download_response.status_code == 200
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert download_response.data
+        # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
+        # sia arrivato fin qui senza eccezioni.
         assert (
             published_request["fileoutput"]
             in download_response.headers["Content-Disposition"]

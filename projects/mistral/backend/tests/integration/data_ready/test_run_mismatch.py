@@ -25,6 +25,8 @@ pytestmark = [
 
 def _mismatching_rundate(reference_datetime) -> str:
     """Return a rundate string shifted by one hour to force a run mismatch."""
+    # Entriamo nel blocco operativo dell'helper data-ready, mantenendo esplicito quale
+    # stato viene letto o prodotto.
     return (reference_datetime + timedelta(hours=1)).strftime("%Y%m%d%H")
 
 
@@ -37,10 +39,14 @@ def test_data_ready_skips_schedule_for_different_model_dataset(
 ) -> None:
     """Verify that a data-ready event for another model does not trigger the schedule."""
     # arrange
+    # Prepariamo lo scenario data-ready con dati minimi e controllati, cosi la verifica
+    # successiva resta legata a un comportamento preciso.
     dataset_window = fetch_dataset_window(
         client, data_ready_user.headers, DATA_READY_DATASET_NAME
     )
     now = datetime.now()
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_body = build_crontab_schedule(
         request_name="test_different_model_dataset",
         date_from=dataset_window.date_from,
@@ -52,6 +58,8 @@ def test_data_ready_skips_schedule_for_different_model_dataset(
         on_data_ready=True,
         opendata=True,
     )
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         data_ready_base,
         client,
@@ -66,6 +74,8 @@ def test_data_ready_skips_schedule_for_different_model_dataset(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = post_data_ready(
         data_ready_base,
         client,
@@ -75,8 +85,14 @@ def test_data_ready_skips_schedule_for_different_model_dataset(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code in {200, 202}
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert content == "1"
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert not list_schedule_requests(
         data_ready_base,
         client,
@@ -94,10 +110,14 @@ def test_data_ready_skips_schedule_for_different_runhour(
 ) -> None:
     """Verify that a mismatching run hour does not trigger the schedule."""
     # arrange
+    # Prepariamo lo scenario data-ready con dati minimi e controllati, cosi la verifica
+    # successiva resta legata a un comportamento preciso.
     dataset_window = fetch_dataset_window(
         client, data_ready_user.headers, DATA_READY_DATASET_NAME
     )
     now = datetime.now()
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_body = build_crontab_schedule(
         request_name="test_runhour",
         date_from=dataset_window.date_from,
@@ -109,6 +129,8 @@ def test_data_ready_skips_schedule_for_different_runhour(
         on_data_ready=True,
         opendata=True,
     )
+    # Prepariamo la schedule con parametri espliciti, rendendo chiara la condizione che
+    # deve attivare o bloccare il backend.
     schedule_id = create_schedule(
         data_ready_base,
         client,
@@ -123,6 +145,8 @@ def test_data_ready_skips_schedule_for_different_runhour(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = post_data_ready(
         data_ready_base,
         client,
@@ -132,8 +156,14 @@ def test_data_ready_skips_schedule_for_different_runhour(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code in {200, 202}
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert content == "1"
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert not list_schedule_requests(
         data_ready_base,
         client,

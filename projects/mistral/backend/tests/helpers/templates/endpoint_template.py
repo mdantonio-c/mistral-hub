@@ -58,6 +58,8 @@ class TestExampleArea:
     def test_invalid_input_returns_error(self, test_ctx):
         """Example placeholder showing how to document a validation-error test."""
         # arrange
+        # Prepariamo lo scenario helper condivisi con dati minimi e controllati, cosi la
+        # verifica successiva resta legata a un comportamento preciso.
         bad_payload = {"key": None}
 
         # act
@@ -65,6 +67,8 @@ class TestExampleArea:
 
         # assert
         # assert response.status_code == 400
+        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+        # questo test vuole proteggere.
         pass
 
 

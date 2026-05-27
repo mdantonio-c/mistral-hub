@@ -27,6 +27,8 @@ def test_only_stations_returns_entries_without_products(
 ) -> None:
     """Verify that `onlyStations` suppresses product details in station listings."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     endpoint = build_observations_endpoint(
         query=build_reftime_query(observed_case.params),
@@ -34,6 +36,8 @@ def test_only_stations_returns_entries_without_products(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = fetch_observations(
         client,
         observed_case.headers,
@@ -41,8 +45,14 @@ def test_only_stations_returns_entries_without_products(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert isinstance(content, dict)
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert response.status_code == 200
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert content["data"][0]["prod"] == []
 
 
@@ -54,6 +64,8 @@ def test_station_details_returns_success_for_known_station(
 ) -> None:
     """Verify that `stationDetails` succeeds for a station discovered from a valid query."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     station_lat, station_lon = fetch_station_sample(client, observed_case)
     endpoint = build_observations_endpoint(
@@ -65,6 +77,8 @@ def test_station_details_returns_success_for_known_station(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, content = fetch_observations(
         client,
         observed_case.headers,
@@ -72,7 +86,11 @@ def test_station_details_returns_success_for_known_station(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code == 200
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert content is not None
 
 
@@ -84,6 +102,8 @@ def test_station_details_with_unknown_network_returns_not_found(
 ) -> None:
     """Verify that station details still enforce network validity checks."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     station_lat, station_lon = fetch_station_sample(client, observed_case)
     endpoint = build_observations_endpoint(
@@ -95,9 +115,13 @@ def test_station_details_with_unknown_network_returns_not_found(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, _ = fetch_observations(client, observed_case.headers, endpoint)
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code == 404
 
 
@@ -109,6 +133,8 @@ def test_station_details_without_coordinates_returns_bad_request(
 ) -> None:
     """Verify that station details reject requests that omit station coordinates."""
     # arrange
+    # Prepariamo lo scenario osservazioni con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     observed_case = request.getfixturevalue(case_fixture)
     endpoint = build_observations_endpoint(
         query=build_reftime_query(observed_case.params),
@@ -117,7 +143,11 @@ def test_station_details_without_coordinates_returns_bad_request(
     )
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     response, _ = fetch_observations(client, observed_case.headers, endpoint)
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     assert response.status_code == 400

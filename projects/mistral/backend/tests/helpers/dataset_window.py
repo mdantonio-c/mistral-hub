@@ -53,13 +53,23 @@ def fetch_dataset_window(
     This keeps the calling tests focused on behavior instead of on low-level
     response parsing.
     """
+    # Interroghiamo il backend e normalizziamo la risposta in una struttura semplice da
+    # usare nelle asserzioni.
     endpoint = f"{API_URI}/fields?datasets={dataset_name}"
     base = BaseTests()
+    # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
+    # autorizzazione e serializzazione vengono verificati insieme.
     r = client.get(endpoint, headers=headers)
+    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
+    # quando lo stato non e quello ideale.
     if r.status_code == 404:
+        # Saltiamo lo scenario quando i dati runtime richiesti non esistono, perche il
+        # contratto non sarebbe verificabile in modo significativo.
         pytest.skip(
             f"Dataset '{dataset_name}' is not available through /api/fields in this environment"
         )
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert r.status_code == 200
 
     response = base.get_content(r)
@@ -77,6 +87,8 @@ def fetch_dataset_window(
     date_from = ref_from.strftime("%Y-%m-%dT%H:%M:%S.000Z")
     date_to = ref_to.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return DatasetWindow(
         ref_from=ref_from,
         ref_to=ref_to,

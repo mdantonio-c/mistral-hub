@@ -19,13 +19,23 @@ def fresh_access_key_with_expiration(client: FlaskClient, auth_headers):
     finite. This fixture creates exactly that kind of key and returns it together
     with the authenticated headers used to create it.
     """
+    # Prepariamo la fixture access-key: crea lo stato riusabile e lascia al test solo la
+    # verifica del comportamento.
     resp = client.post(
         ACCESS_KEY_ENDPOINT,
         headers=auth_headers,
         json={"lifetime_seconds": 3600},
     )
+    # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
+    # usare il payload.
     assert resp.status_code == 200
     data = resp.json
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert "key" in data
+    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
+    # arrivato fin qui senza eccezioni.
     assert "expiration" in data and data["expiration"] is not None
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return auth_headers, data["key"]

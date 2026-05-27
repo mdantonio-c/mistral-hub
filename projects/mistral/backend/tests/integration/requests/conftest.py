@@ -27,7 +27,11 @@ def pending_request_user(
     cleanup_registry,
 ) -> AuthenticatedTestUser:
     """Create a temporary authenticated user dedicated to pending-request tests."""
+    # Prepariamo la fixture richieste utente: crea lo stato riusabile e lascia al test
+    # solo la verifica del comportamento.
     base = BaseTests()
+    # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
+    # account preesistenti.
     user = create_authenticated_test_user(base, client)
     register_test_user_cleanup(
         base,
@@ -36,6 +40,8 @@ def pending_request_user(
         user_uuid=user.uuid,
         root_path=user.output_dir.parent,
     )
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return user
 
 
@@ -51,12 +57,16 @@ def pending_delete_requests(
     deletable and one still inside the protection window. This fixture creates and
     registers cleanup for both ids.
     """
+    # Prepariamo la fixture richieste utente: crea lo stato riusabile e lascia al test
+    # solo la verifica del comportamento.
     db = sqlalchemy.get_instance()
     deletable_request_id, undeletable_request_id = create_pending_delete_requests(
         faker,
         db,
         pending_request_user.user_id,
     )
+    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
+    # anche in caso di fallimento.
     cleanup_registry.add(
         lambda: delete_request_rows(
             db,
@@ -64,4 +74,6 @@ def pending_delete_requests(
             undeletable_request_id,
         )
     )
+    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
+    # nelle asserzioni.
     return deletable_request_id, undeletable_request_id

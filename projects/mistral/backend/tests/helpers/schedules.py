@@ -26,6 +26,8 @@ def build_on_data_ready_schedule(
     The helper fills the standard reftime and dataset sections and marks the
     schedule as ``on-data-ready`` so tests can focus on the rule under scrutiny.
     """
+    # Componiamo il payload in un solo punto, cosi i test possono concentrarsi sulla
+    # regola di business invece che sulla forma JSON.
     body: dict[str, Any] = {
         "request_name": request_name,
         "reftime": {"from": date_from, "to": date_to},
@@ -34,6 +36,8 @@ def build_on_data_ready_schedule(
         "on-data-ready": True,
         "opendata": opendata,
     }
+    # Costruiamo il payload esattamente nel formato atteso dall'endpoint, cosi la
+    # verifica riguarda la logica e non dettagli casuali di input.
     return json.dumps(body)
 
 
@@ -58,15 +62,27 @@ def build_crontab_schedule(
     payload. This keeps tests concise while still allowing them to build partial
     or fully specified crontab expressions.
     """
+    # Componiamo il payload in un solo punto, cosi i test possono concentrarsi sulla
+    # regola di business invece che sulla forma JSON.
     crontab: dict[str, int] = {}
+    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
+    # quando lo stato non e quello ideale.
     if hour is not None:
         crontab["hour"] = hour
+    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
+    # quando lo stato non e quello ideale.
     if minute is not None:
         crontab["minute"] = minute
+    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
+    # quando lo stato non e quello ideale.
     if day_of_week is not None:
         crontab["day_of_week"] = day_of_week
+    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
+    # quando lo stato non e quello ideale.
     if day_of_month is not None:
         crontab["day_of_month"] = day_of_month
+    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
+    # quando lo stato non e quello ideale.
     if month_of_year is not None:
         crontab["month_of_year"] = month_of_year
 
@@ -79,6 +95,8 @@ def build_crontab_schedule(
         "on-data-ready": on_data_ready,
         "opendata": opendata,
     }
+    # Costruiamo il payload esattamente nel formato atteso dall'endpoint, cosi la
+    # verifica riguarda la logica e non dettagli casuali di input.
     return json.dumps(body)
 
 
@@ -100,6 +118,8 @@ def build_periodic_schedule(
     rules such as "every 2 days" without rewriting the schedule payload shape in
     each scenario.
     """
+    # Componiamo il payload in un solo punto, cosi i test possono concentrarsi sulla
+    # regola di business invece che sulla forma JSON.
     body: dict[str, Any] = {
         "request_name": request_name,
         "reftime": {"from": date_from, "to": date_to},
@@ -109,4 +129,6 @@ def build_periodic_schedule(
         "on-data-ready": on_data_ready,
         "opendata": opendata,
     }
+    # Costruiamo il payload esattamente nel formato atteso dall'endpoint, cosi la
+    # verifica riguarda la logica e non dettagli casuali di input.
     return json.dumps(body)

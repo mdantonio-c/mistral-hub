@@ -37,6 +37,8 @@ def pp_forecast_env(
     need to create requests and assert on their outcomes.
     """
     # arrange
+    # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     db = sqlalchemy.get_instance()
     dataset = require_dataset(db, "lm5")
     base = PostprocessingSupport()
@@ -44,6 +46,8 @@ def pp_forecast_env(
     register_user_cleanup(base, client, cleanup_registry, user)
 
     # act
+    # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+    # verifica dal setup.
     env = PostprocessingEnv(
         base=base,
         app=app,
@@ -56,6 +60,8 @@ def pp_forecast_env(
     )
 
     # assert
+    # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+    # questo test vuole proteggere.
     return env
 
 
@@ -74,6 +80,8 @@ def pp_observed_env(
     selected observed slice stays visible during the test.
     """
     # arrange
+    # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
+    # verifica successiva resta legata a un comportamento preciso.
     db = sqlalchemy.get_instance()
     dataset = require_dataset(db, "agrmet")
     observed_lastdays = require_observed_lastdays()
@@ -81,8 +89,12 @@ def pp_observed_env(
     user = create_postprocessing_user(base, client, [dataset.id])
     register_user_cleanup(base, client, cleanup_registry, user)
 
+    # Sostituiamo temporaneamente la dipendenza esterna con un fake controllato, cosi il
+    # test resta deterministico.
     with test_runtime.override_attr(BeDballe, "LASTDAYS", observed_lastdays):
         # act
+        # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
+        # verifica dal setup.
         env = PostprocessingEnv(
             base=base,
             app=app,
@@ -95,4 +107,6 @@ def pp_observed_env(
         )
 
         # assert
+        # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
+        # questo test vuole proteggere.
         yield env

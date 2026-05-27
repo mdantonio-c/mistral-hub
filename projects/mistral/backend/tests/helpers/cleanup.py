@@ -22,6 +22,8 @@ class CleanupRegistry:
 
     def __init__(self) -> None:
         """Start with an empty cleanup stack for the current test."""
+        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
+        # useranno durante il test.
         self._actions: list[Callable[[], None]] = []
 
     def add(self, fn: Callable[[], None]) -> None:
@@ -31,6 +33,8 @@ class CleanupRegistry:
         simple filesystem path, such as deleting API resources or restoring a
         monkeypatched global setting.
         """
+        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
+        # esplicito quale stato viene letto o prodotto.
         self._actions.append(fn)
 
     def add_path(self, path: str | Path) -> None:
@@ -40,6 +44,8 @@ class CleanupRegistry:
         helper wraps those paths into a cleanup callback so callers do not need to
         repeat the same ``shutil.rmtree`` pattern.
         """
+        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
+        # esplicito quale stato viene letto o prodotto.
         p = Path(path)
         self.add(lambda: shutil.rmtree(p, ignore_errors=True) if p.exists() else None)
 
@@ -50,6 +56,8 @@ class CleanupRegistry:
         broken, the failure should be visible so the suite can be fixed instead of
         silently accumulating dirty state.
         """
+        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
+        # esplicito quale stato viene letto o prodotto.
         for action in reversed(self._actions):
             action()
         self._actions.clear()
