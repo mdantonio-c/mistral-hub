@@ -58,7 +58,8 @@ services:
     volumes:
       - ssl_certs:/etc/letsencrypt
       - ${DATA_DIR}/grib_extraction:/nwp
-      - ${DATA_DIR}/netcdf_extraction:/nwp/ww3
+      - ${DATA_DIR}/netcdf_extraction/ww3:/nwp/ww3
+      - ${DATA_DIR}/netcdf_extraction/MER:/nwp/shyfem
       - ${DATA_DIR}/seasonal:/nwp/SEASONAL
       - ${DATA_DIR}/catalog:/catalog
       - ${PROJECT_DIR}/nginx/proxy.service:/etc/nginx/sites-enabled/proxy.service
