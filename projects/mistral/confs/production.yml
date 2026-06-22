@@ -10,10 +10,6 @@ services:
       - ${RABBITMQ_PORT}:${RABBITMQ_PORT}
       - ${RABBITMQ_MANAGEMENT_PORT}:${RABBITMQ_MANAGEMENT_PORT}
 
-  #  proxy:
-  #    volumes:
-  #      - ${PROJECT_DIR}/confs/i18n.service:/etc/nginx/sites-enabled/i18n.service
-
   nifi:
     ports:
       - 8070:8443
@@ -40,6 +36,9 @@ services:
       TRUSTSTORE_PASSWORD: ${NIFI_KEYSTORE_PASSWORD}
 
   proxy:
+    restart: always
+    image: harbor-ada.hpc.cineca.it/rapydo/proxy:4.0
+    hostname: proxy
     depends_on:
       fluentd:
         condition: service_healthy
@@ -48,9 +47,15 @@ services:
       options:
         fluentd-address: localhost:24224
         tag: nginx
-    networks:
-      - logging
+    working_dir: /etc/nginx
+    healthcheck:
+      test: "wget -t 1 --quiet --no-check-certificate --certificate=/etc/letsencrypt/local_client.crt --private-key=/etc/letsencrypt/local_client.key http://localhost -O - > /dev/null"
+      interval: ${HEALTHCHECK_INTERVAL}
+      timeout: 10s
+      retries: 3
+      start_period: 5m
     volumes:
+      - ssl_certs:/etc/letsencrypt
       - ${DATA_DIR}/grib_extraction:/nwp
       - ${DATA_DIR}/netcdf_extraction:/nwp/ww3
       - ${DATA_DIR}/seasonal:/nwp/SEASONAL
@@ -61,6 +66,52 @@ services:
       - ${PROJECT_DIR}/nginx/maintenance.html:/usr/share/nginx/html/maintenance.html
       - ${PROJECT_DIR}/nginx/toggle_maintenance.sh:/etc/nginx/toggle_maintenance.sh
       - ${PROJECT_DIR}/nginx/angular.service:/etc/nginx/sites-enabled-templates/service_confs/angular-production.conf
+    networks:
+      default:
+        aliases:
+          - ${PROXY_HOST}
+      logging: null
+    ports:
+      - target: 443
+        published: ${PROXY_PROD_PORT}
+        protocol: tcp
+        # Swarm default is ingress to be load balanced
+        # With host the port is directly mapped on the host
+        # and prevents nginx to be behind the swarm proxy
+        # Cons: nginx is no longer scalable
+        # Pro: nginx is able to access the real client IP address,
+        # instead of the load balancer IP
+        mode: host
+      - target: 80
+        published: ${PROXY_DEV_PORT}
+        protocol: tcp
+        mode: host
+    environment:
+      APP_MODE: ${APP_MODE}
+      DOMAIN: "${PROJECT_DOMAIN}"
+      DOMAIN_ALIASES: "${DOMAIN_ALIASES}"
+      ACTIVATE: ${ACTIVATE_PROXY}
+      CURRENT_UID: ${CURRENT_UID}
+      CURRENT_GID: ${CURRENT_GID}
+      SMTP_ADMIN: "${SMTP_ADMIN}"
+      DEFAULT_DHLEN: ${DEFAULT_DHLEN}
+      FRONTEND: "${FRONTEND_FRAMEWORK}"
+      UNSAFE_EVAL: "${SET_UNSAFE_EVAL}"
+      UNSAFE_INLINE: "${SET_UNSAFE_INLINE}"
+      STYLE_UNSAFE_INLINE: "${SET_STYLE_UNSAFE_INLINE}"
+      CORS_ALLOWED_ORIGIN: "${CORS_ALLOWED_ORIGIN}"
+      CSP_SCRIPT_SRC: "${SET_CSP_SCRIPT_SRC}"
+      CSP_IMG_SRC: "${SET_CSP_IMG_SRC}"
+      CSP_FONT_SRC: "${SET_CSP_FONT_SRC}"
+      CSP_CONNECT_SRC: "${SET_CSP_CONNECT_SRC}"
+      CSP_FRAME_SRC: "${SET_CSP_FRAME_SRC}"
+      SSL_VERIFY_CLIENT: "${SSL_VERIFY_CLIENT}"
+      SSL_FORCE_SELF_SIGNED: "${SSL_FORCE_SELF_SIGNED}"
+      MAX_REQUESTS_PER_SECOND_AUTH: ${SET_MAX_REQUESTS_PER_SECOND_AUTH}
+      MAX_REQUESTS_BURST_AUTH: ${SET_MAX_REQUESTS_BURST_AUTH}
+      MAX_REQUESTS_PER_SECOND_API: ${SET_MAX_REQUESTS_PER_SECOND_API}
+      MAX_REQUESTS_BURST_API: ${SET_MAX_REQUESTS_BURST_API}
+      GA_TRACKING_CODE: "${GA_TRACKING_CODE}"
 
   strapi:
     image: harbor-ada.hpc.cineca.it/meteo-hub-production/meteo-hub-strapi:latest-prod
