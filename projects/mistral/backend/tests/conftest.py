@@ -3,7 +3,7 @@
 import pytest
 
 from mistral.tests.helpers.cleanup import CleanupRegistry
-from mistral.tests.helpers.runtime import TestContext, TestRuntime
+from mistral.tests.helpers.runtime import TestRuntime
 
 
 def pytest_configure(config):
@@ -33,18 +33,6 @@ def test_runtime() -> TestRuntime:
     # Prepariamo la fixture suite di test: crea lo stato riusabile e lascia al test solo
     # la verifica del comportamento.
     return TestRuntime()
-
-
-@pytest.fixture
-def test_ctx(test_runtime: TestRuntime) -> TestContext:
-    """Provide a per-test mutable context and run its cleanup at teardown."""
-    # Prepariamo la fixture suite di test: crea lo stato riusabile e lascia al test solo
-    # la verifica del comportamento.
-    ctx = test_runtime.new_context()
-    # Cediamo la fixture al test; quando il test termina, il codice sotto il yield
-    # eseguira il teardown.
-    yield ctx
-    ctx.cleanup()
 
 
 @pytest.fixture

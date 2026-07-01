@@ -1,80 +1,10 @@
-"""Session-wide runtime helpers for resources that outlive a single test function.
-
-The suite distinguishes between two kinds of state:
-
-- heavy or reusable state that should live for the whole pytest session,
-- mutable state that belongs only to one test and must be cleaned afterwards.
-
-``TestRuntime`` handles the first category, while ``TestContext`` provides a
-small cleanup-aware container for the second.
-"""
+"""Session-wide runtime helpers for reusable state shared across tests."""
 
 from __future__ import annotations
 
 from contextlib import contextmanager
-from dataclasses import dataclass, field
 from threading import RLock
-from typing import Any, Callable
-
-
-class TestContextCleanupError(RuntimeError):
-    """Aggregate error raised when one or more context cleanup actions fail."""
-
-    def __init__(self, errors: list[Exception]) -> None:
-        """Store the collected cleanup errors and build a compact summary message."""
-        # Memorizziamo nello stato dell'oggetto i valori che i metodi successivi
-        # useranno durante il test.
-        self.errors = errors
-        details = "; ".join(
-            f"{type(err).__name__}: {err}" for err in errors[:3]
-        )
-        if len(errors) > 3:
-            details += f"; ... ({len(errors) - 3} more)"
-        super().__init__(
-            f"TestContext cleanup failed with {len(errors)} error(s): {details}"
-        )
-
-
-@dataclass
-class TestContext:
-    """Per-test state holder that can accumulate teardown callbacks.
-
-    The object is intentionally lightweight. Tests or fixtures can attach cleanup
-    callbacks as they create mutable resources, and then ask the context to run
-    them all at teardown time.
-    """
-
-    cleanup_actions: list[Callable[[], None]] = field(default_factory=list)
-    created_users: list[str] = field(default_factory=list)
-    created_request_ids: list[int] = field(default_factory=list)
-    created_schedule_ids: list[str] = field(default_factory=list)
-    created_paths: list[str] = field(default_factory=list)
-
-    def add_cleanup(self, fn: Callable[[], None]) -> None:
-        """Append one teardown callback to the current test's cleanup stack."""
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
-        self.cleanup_actions.append(fn)
-
-    def cleanup(self) -> None:
-        """Run registered teardowns and aggregate any cleanup failures.
-
-        Cleanup callbacks are executed in reverse order so resources are dismantled
-        in a dependency-safe sequence. If one or more callbacks fail, the method
-        raises a single aggregated exception with a compact summary.
-        """
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
-        errors: list[Exception] = []
-        while self.cleanup_actions:
-            fn = self.cleanup_actions.pop()
-            try:
-                fn()
-            except Exception as exc:
-                errors.append(exc)
-
-        if errors:
-            raise TestContextCleanupError(errors)
+from typing import Any
 
 
 class TestRuntime:
@@ -90,8 +20,6 @@ class TestRuntime:
 
     def __new__(cls) -> TestRuntime:
         """Instantiate the singleton once and reuse it for the whole session."""
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
         if cls._instance is None:
             with cls._lock:
                 # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve
@@ -110,8 +38,6 @@ class TestRuntime:
         symbolically by name or ``arkimet_id``. This helper turns that symbolic
         name into the numeric id and stores the result in the runtime cache.
         """
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
         if name not in self._dataset_cache:
             # Leggiamo lo stato dal database di test per collegare la risposta API agli
             # effetti persistiti dal backend.
@@ -148,8 +74,3 @@ class TestRuntime:
             with self._lock:
                 setattr(target, attr, old_value)
 
-    def new_context(self) -> TestContext:
-        """Return a fresh per-test context ready to collect cleanup callbacks."""
-        # Entriamo nel blocco operativo dell'helper condiviso, mantenendo
-        # esplicito quale stato viene letto o prodotto.
-        return TestContext()

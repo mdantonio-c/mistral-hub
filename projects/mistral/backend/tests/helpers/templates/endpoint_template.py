@@ -16,7 +16,7 @@ Ordine dei blocchi:
 4. Eventuali helper locali piccoli, solo se non hanno valore riusabile cross-file.
 5. Test raggruppati per contratto o scenario omogeneo.
 6. Ogni test scritto sempre nello stesso ordine logico: arrange, act, assert.
-7. Cleanup delegato a test_ctx o al cleanup registry, non disperso inline.
+7. Cleanup delegato al cleanup registry, non disperso inline.
 
 Template logico di un singolo test
 -----------------------------------
@@ -35,7 +35,7 @@ class TestExampleArea:
     Ogni metodo verifica un solo comportamento atteso.
     """
 
-    def test_happy_path_returns_expected_status(self, test_ctx):
+    def test_happy_path_returns_expected_status(self, cleanup_registry):
         """
         Esempio minimo di test scritto con la forma canonica della suite.
 
@@ -52,10 +52,10 @@ class TestExampleArea:
 
         # assert ─ verifica dell'effetto atteso
         # assert response.status_code == 201
-        # test_ctx.created_request_ids.append(extracted_id)  # registra per cleanup
+        # cleanup_registry.add_path(temp_output_dir)  # registra per cleanup
         pass
 
-    def test_invalid_input_returns_error(self, test_ctx):
+    def test_invalid_input_returns_error(self, cleanup_registry):
         """Example placeholder showing how to document a validation-error test."""
         # arrange
         # Prepariamo lo scenario helper condivisi con dati minimi e controllati, cosi la

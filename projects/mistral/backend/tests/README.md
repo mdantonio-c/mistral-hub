@@ -30,7 +30,7 @@ Lo stato corrente e questo:
 La suite si legge bene se la dividi in quattro strati:
 
 1. `conftest.py` globale
-   - espone solo fixture davvero trasversali come `test_runtime`, `test_ctx` e `cleanup_registry`;
+   - espone solo fixture davvero trasversali come `test_runtime` e `cleanup_registry`;
 2. `helpers/`
    - contiene building block riusabili tra piu aree, non test veri;
 3. `integration/`
@@ -59,12 +59,12 @@ Il flusso reale della suite e questo:
 1. Si lancia pytest attraverso il wrapper di progetto, di solito con `.mhub-venv/bin/rapydo shell backend 'restapi tests --file tests/custom/...''`.
 2. `restapi tests` esegue pytest dentro il container backend, con l'ambiente Meteo-Hub gia pronto e con i servizi richiesti collegati nel modo previsto dal progetto.
 3. Pytest parte dalla radice della suite custom e carica subito `tests/custom/conftest.py`, che nel repository corrisponde a `projects/mistral/backend/tests/conftest.py`.
-4. Quel `conftest.py` registra il marker `integration` e mette a disposizione solo fixture globali di suite: `test_runtime`, `test_ctx`, `cleanup_registry`.
+4. Quel `conftest.py` registra il marker `integration` e mette a disposizione solo fixture globali di suite: `test_runtime`, `cleanup_registry`.
 5. Pytest colleziona i moduli Python trovati sotto la cartella dei test. I test veri della suite corrente vivono sotto `integration/`, mentre il root contiene infrastruttura e documentazione di suite.
 6. Quando un test si trova sotto `integration/`, pytest carica anche `integration/conftest.py`, che espone le fixture condivise tra i test HTTP integrati, come `auth_headers` e le fixture legate alle access key.
 7. Se il test appartiene a un sottoalbero con un suo `conftest.py`, per esempio `integration/observed/conftest.py` o `integration/postprocessing/conftest.py`, pytest aggiunge anche quelle fixture locali solo a quel dominio.
 8. Il test usa le fixture per preparare utenti, dataset, schedule, richieste, file di output o override temporanei. La logica ripetibile viene tenuta nei moduli `helpers/` se serve a piu aree, oppure in moduli locali come `integration/<area>/support.py` se resta confinata a un solo dominio.
-9. A fine test, il cleanup avviene in teardown tramite `cleanup_registry.run()` oppure `test_ctx.cleanup()`, in modo centralizzato e coerente.
+9. A fine test, il cleanup avviene in teardown tramite `cleanup_registry.run()`, in modo centralizzato e coerente.
 
 ## Come funziona pytest in questa suite
 
@@ -82,10 +82,9 @@ Questa e la risposta pratica al dubbio iniziale: il punto di divisione corretto 
 
 ### Fixture globali
 
-`projects/mistral/backend/tests/conftest.py` espone tre mattoni di base:
+`projects/mistral/backend/tests/conftest.py` espone due mattoni di base:
 
 - `test_runtime`: singleton di sessione per cache e override temporanei di attributi.
-- `test_ctx`: contenitore mutabile per singolo test, con cleanup a fine esecuzione.
 - `cleanup_registry`: registro LIFO di callback e path da ripulire in teardown.
 
 ### Fixture di integrazione
@@ -223,7 +222,7 @@ Linee guida operative:
 - `helpers/datasets.py`: aiuta i test che hanno bisogno di trovare un dataset pubblico realmente disponibile nel runtime corrente.
 - `helpers/dataset_window.py`: legge `/fields` e normalizza finestra temporale e filtri run di un dataset.
 - `helpers/polling.py`: utility generica `wait_until` per attese osservabili.
-- `helpers/runtime.py`: contiene `TestRuntime` e `TestContext`, cioe il runtime condiviso di sessione e il contenitore mutabile per singolo test.
+- `helpers/runtime.py`: contiene `TestRuntime`, cioe il runtime condiviso di sessione per cache e override temporanei.
 - `helpers/schedules.py`: costruisce payload JSON per schedule on-data-ready, crontab e periodiche condivisi tra `integration/data_ready/` e `integration/schedules/`.
 
 ### Template di riferimento

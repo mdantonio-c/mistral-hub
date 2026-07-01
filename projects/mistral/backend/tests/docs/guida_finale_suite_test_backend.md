@@ -61,7 +61,7 @@ Nel root stanno solo:
 
 - `README.md`, con il manuale pratico della suite;
 - `docs/`, con la documentazione mantenuta della suite;
-- `conftest.py`, con fixture globali di suite come `test_runtime`, `test_ctx` e `cleanup_registry`;
+- `conftest.py`, con fixture globali di suite come `test_runtime` e `cleanup_registry`;
 - `__init__.py`, che marca la suite come package Python;
 - `helpers/`, con il riuso cross-area;
 - `integration/`, con i test veri organizzati per dominio;
@@ -113,7 +113,7 @@ Il flusso di caricamento e semplice se lo leggi per livelli:
 3. Se il file raccolto e sotto `tests/custom/integration/`, carica anche `tests/custom/integration/conftest.py`.
 4. Se il test appartiene a un dominio con un proprio `conftest.py`, carica anche quello.
 5. I test usano fixture e helper per preparare lo scenario, eseguire una sola azione e verificare il contratto.
-6. Il cleanup avviene in teardown tramite `cleanup_registry` o `test_ctx`.
+6. Il cleanup avviene in teardown tramite `cleanup_registry`.
 
 La conseguenza importante e questa: la posizione del `conftest.py` decide la visibilita delle fixture. Per questo la suite separa nettamente fixture globali, fixture condivise del sottoalbero `integration/` e fixture locali di area.
 

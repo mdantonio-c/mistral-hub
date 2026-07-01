@@ -317,3 +317,67 @@ Fix backend atteso:
 
 - Sostituire il `raise Exception from e` con una eccezione restapi coerente con errore
   server, oppure lasciare propagare un errore gestito dal framework come `500`.
+
+## SCHEDULES-001 - `POST /schedules` con `opendata=true` accetta un utente non admin
+
+Data emersione:
+
+- 2026-06-17.
+
+Superficie coinvolta:
+
+- Endpoint `projects/mistral/backend/endpoints/schedules.py`.
+- Test di copertura: `projects/mistral/backend/tests/integration/schedules/test_schedule_validation_EXT.py`.
+
+Finestra dati usata:
+
+- Forecast `lm5` con reftime `2021-10-19T00:00:00Z` - `2021-10-19T01:00:00Z`.
+
+Sintomo osservato:
+
+- Il contratto coperto dal test `test_opendata_as_non_admin_returns_403` richiede che
+  `POST /api/schedules` con `opendata=true` rifiuti un utente non admin con `403`.
+- Nel runtime osservato dalla suite, la stessa chiamata ha restituito `202 ACCEPTED` e ha
+  creato regolarmente la schedule opendata.
+
+Analisi tecnica:
+
+- In `SingleSchedule.post` esiste gia un controllo esplicito:
+
+```python
+if opendata:
+    user_roles = [r.name for r in user.roles]
+    if "admin_root" not in user_roles:
+        raise Forbidden("Only admins can post an opendata schedule")
+```
+
+- Il comportamento osservato mostra quindi un mismatch tra il gate dichiarato nel
+  controller e i ruoli effettivamente associati all'utente che raggiunge il ramo runtime.
+- L'anomalia puo dipendere da uno di questi due punti:
+  - il backend sta effettivamente trattando come admin un utente che il test intendeva
+    creare come non admin;
+  - il contratto del test e sbagliato rispetto al comportamento oggi supportato dal
+    backend.
+- In ogni caso, il sintomo applicativo emerso dalla suite e che la protezione role-based
+  sul ramo `opendata` non produce il `403` atteso nel percorso HTTP reale.
+
+Impatto sulla suite:
+
+- La suite non usa `xfail`.
+- Il problema emerge come failure reale della suite custom, non come skip:
+  `assert response.status_code == 403` fallisce perche il backend restituisce `202`.
+
+Condizione di riattivazione del test:
+
+- Il test potra tornare verde quando il comportamento runtime sara riallineato al
+  contratto atteso, cioe quando un utente non admin ricevera `403` su
+  `POST /api/schedules` con `opendata=true`.
+
+Fix backend atteso:
+
+- Verificare nel controller `SingleSchedule.post` e nel caricamento dei ruoli utente che
+  il gate `admin_root` venga applicato al profilo corretto nel percorso HTTP reale.
+- Se il contratto corretto e davvero `admin-only`, il backend deve restituire `403`
+  prima di creare la schedule.
+- Se invece il comportamento `202` e intenzionale, allora va aggiornato il contratto dei
+  test e la documentazione funzionale della route `/schedules`.

@@ -1,0 +1,7 @@
+Risultati di review più rilevanti (dettaglio nei singoli file)
+Skip silenziosi: in opendata 15/18 test si saltano senza una Attribution nel DB; molti test observed/fields/postprocessing dipendono dai dati runtime.
+Logica verificata nel fake, non nel backend (rischio falso positivo): data_ready/test_base_cases|crontab|run_mismatch asseriscono "nessuna richiesta generata" ma il worker è solo accodato, mai eseguito; test_periodic valida la dedup reimplementata nel fake Celery.
+Over-mocking: tasks/test_data_extraction_quota_and_notifications fake-a Arkimet, du, SMTP, RabbitMQ e template.
+Marker integration fuorviante su test in realtà unit: services/*, tools/*, connectors/*, alcuni tasks/*.
+Scoperti: endpoints/rabbit_out_bindings.py non ha test; il ramo "maps" di maps_observed.py non è esercitato.
+Bug backend emersi (solo segnalati, non corretti): condizione di esistenza invertita in Template.get, rami NotFound morti negli admin endpoint, codice morto in observed.
