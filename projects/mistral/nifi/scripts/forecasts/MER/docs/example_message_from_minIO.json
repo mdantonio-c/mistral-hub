@@ -1,0 +1,53 @@
+{
+    "EventName": "s3:ObjectCreated:Put",
+    "Key": "b33-mer-ispra/BOLAM_20260630.zip",
+    "Records": [
+        {
+            "eventVersion": "2.0",
+            "eventSource": "minio:s3",
+            "awsRegion": "",
+            "eventTime": "2026-06-30T15:41:31.325Z",
+            "eventName": "s3:ObjectCreated:Put",
+            "userIdentity": {
+                "principalId": "admin"
+            },
+            "requestParameters": {
+                "principalId": "admin",
+                "region": "",
+                "sourceIPAddress": "172.26.0.1"
+            },
+            "responseElements": {
+                "x-amz-id-2": "dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8",
+                "x-amz-request-id": "18BDE62902B3D9EE",
+                "x-minio-deployment-id": "ebb405ca-4569-45ab-beeb-a75b6b2a5a7e",
+                "x-minio-origin-endpoint": "http://172.26.0.2:9000"
+            },
+            "s3": {
+                "s3SchemaVersion": "1.0",
+                "configurationId": "Config",
+                "bucket": {
+                    "name": "b33-mer-ispra",
+                    "ownerIdentity": {
+                        "principalId": "admin"
+                    },
+                    "arn": "arn:aws:s3:::b33-mer-ispra"
+                },
+                "object": {
+                    "key": "BOLAM_20260630.zip",
+                    "size": 289190,
+                    "eTag": "9cb7af2371341c228a8da765398e21a8",
+                    "contentType": "application/zip",
+                    "userMetadata": {
+                        "content-type": "application/zip"
+                    },
+                    "sequencer": "18BDE62902D6F444"
+                }
+            },
+            "source": {
+                "host": "172.26.0.1",
+                "port": "",
+                "userAgent": "MinIO (linux; amd64) minio-go/v7.0.90 MinIO Console/(dev)"
+            }
+        }
+    ]
+}

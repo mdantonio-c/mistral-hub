@@ -107,6 +107,15 @@ RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge h5py -y
 RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge pyproj -y
 RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge gdal -y
 RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge libgdal-hdf5 -y
+# next are useful for the MER netcdf to geotiff script
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge rasterio -y
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge xarray -y
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge scipy -y
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge matplotlib-base -y
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge netcdf4 -y
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge loguru -y \
+ && $CONDA_DIR/bin/conda clean -afy
+
 
 RUN ln -s $CONDA_DIR/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 
