@@ -1,6 +1,11 @@
 # mer_regular_grid
 
-Small utility to extract station time series and create regular-grid GeoTIFF maps from MER NetCDF files.
+Utility to extract station time series and create regular-grid GeoTIFF maps from MER NetCDF files.
+
+In production, this script is invoked by:
+
+- `mer_publish_maps.py` for map generation/publication
+- `mer_publish_timeseries.py` for station time series publication
 
 Station time-series values are corrected per station using a daily offsets file with:
 
@@ -33,25 +38,112 @@ micromamba activate mer_env
 Generate both maps and station time series:
 
 ```bash
-python water_level_processor.py /path/to/input.nc /path/to/station_list_MER.txt --station-offsets-file /path/to/msl_YYYYMMDD.dat --resolutions 500m 1km --output-dir /path/to/output
+python water_level_processor.py /path/to/input.nc /path/to/station_list_MER.txt --station-offsets-file /path/to/msl_YYYYMMDD.dat --resolution 500m --output-dir /path/to/output
 ```
 
 Generate both maps and station time series, forcing zero station offsets:
 
 ```bash
-python water_level_processor.py /path/to/input.nc /path/to/station_list_MER.txt --resolutions 500m 1km --output-dir /path/to/output
+python water_level_processor.py /path/to/input.nc /path/to/station_list_MER.txt --resolution 500m --output-dir /path/to/output
 ```
 
 Generate only maps (omit station list):
 
 ```bash
-python water_level_processor.py /path/to/input.nc --resolutions 500m 1km --only-maps --output-dir /path/to/output
+python water_level_processor.py /path/to/input.nc --resolution 500m --only-maps --output-dir /path/to/output
 ```
 
-Generate only station time series (omit resolutions):
+Generate only station time series (omit map resolution):
 
 ```bash
 python water_level_processor.py /path/to/input.nc /path/to/station_list_MER.txt --station-offsets-file /path/to/msl_YYYYMMDD.dat --only-timeseries --output-dir /path/to/output
+```
+
+## Programmatic Usage (Class API)
+
+Besides CLI usage, you can instantiate `WaterLevelProcessor` directly from Python.
+
+Recommended constructors are:
+
+- `WaterLevelProcessor.for_maps(...)`
+- `WaterLevelProcessor.for_timeseries(...)`
+
+### Why `for_maps` and `for_timeseries` exist
+
+The class supports multiple output modes (`maps`, `timeseries`, `both`) and has mode-specific required parameters.
+The two class methods exist to avoid manual argument combinations that are easy to get wrong.
+
+In practice:
+
+- `for_maps(...)` sets `output_mode="maps"` and automatically disables timeseries-only parameters.
+- `for_timeseries(...)` sets `output_mode="timeseries"` and automatically disables map-only parameters.
+
+This keeps call sites shorter and consistent with internal validation rules.
+
+If you need to generate both maps and time series in a single run, instantiate `WaterLevelProcessor(...)` directly with `output_mode="both"` and provide all required map + timeseries parameters.
+
+### Example: both maps and timeseries (direct constructor)
+
+```python
+from pathlib import Path
+from water_level_processor import WaterLevelProcessor
+
+processor = WaterLevelProcessor(
+	netcdf_path=Path("/path/to/input.nc"),
+	output_dir=Path("/path/to/output"),
+	output_mode="both",
+	resolution="500m",
+	map_offset_hours=0.0,
+	geotiff_field_offset=0.46,
+	stations_path=Path("/path/to/station_list_MER.txt"),
+	station_offsets_path=Path("/path/to/msl_YYYYMMDD.dat"),  # or None
+	timeseries_offset_hours=0.0,
+	max_time_steps=72,
+	verbose=False,
+)
+
+result = processor.run()
+print(result.map_dir, result.map_file_count, result.timeseries_file)
+```
+
+### Example: maps only
+
+```python
+from pathlib import Path
+from water_level_processor import WaterLevelProcessor
+
+processor = WaterLevelProcessor.for_maps(
+    netcdf_path=Path("/path/to/input.nc"),
+    output_dir=Path("/path/to/output"),
+    resolution="500m",
+    map_offset_hours=0.0,
+    geotiff_field_offset=0.46,
+    max_time_steps=72,
+    verbose=False,
+)
+
+result = processor.run()
+print(result.map_dir, result.map_file_count)
+```
+
+### Example: timeseries only
+
+```python
+from pathlib import Path
+from water_level_processor import WaterLevelProcessor
+
+processor = WaterLevelProcessor.for_timeseries(
+    netcdf_path=Path("/path/to/input.nc"),
+    stations_path=Path("/path/to/station_list_MER.txt"),
+    station_offsets_path=Path("/path/to/msl_YYYYMMDD.dat"),  # or None
+    output_dir=Path("/path/to/output"),
+    timeseries_offset_hours=0.0,
+    max_time_steps=72,
+    verbose=False,
+)
+
+result = processor.run()
+print(result.timeseries_file)
 ```
 
 ## Input File Formats
@@ -79,7 +171,7 @@ Columns: `station_id m_obs m_mod`
 - `netcdf_path` (positional): input NetCDF file.
 - `stations_path` (positional, optional): station list text file. If provided, station time series are generated.
 - `--station-offsets-file`: daily station offsets file (`msl_YYYYMMDD.dat`). If missing or not found, zero offsets are used for all stations.
-- `--resolutions` (optional): list of output grid resolutions, for example `500m 1km` or `"[\"500m\",\"1km\"]"`. If provided, GeoTIFF maps are generated.
+- `--resolution` (optional): output grid resolution, for example `500m` or `1km`. If provided, GeoTIFF maps are generated.
 - `--only-maps`: explicit mode for maps only.
 - `--only-timeseries`: explicit mode for station time series only.
 - `--output-dir` (required): output folder.
@@ -95,13 +187,14 @@ Generation logic:
 - Default mode is both maps and time series.
 - `--only-maps` forces maps only.
 - `--only-timeseries` forces time series only.
-- In default mode, provide both `stations_path` and `--resolutions`.
+- In default mode, provide both `stations_path` and `--resolution`.
+- To generate maps at multiple resolutions, run the command multiple times (one `--resolution` value per run).
 - When time series are produced, missing station rows in the offsets file default to `m_obs=0` and `m_mod=0`.
 - If offsets file is missing or not provided, all stations use zero offsets.
 
 ## Outputs
 
-- GeoTIFF maps are saved in folders named `geotiff_<input_stem>_<resolution>`.
-- Each map includes input stem, resolution, and timestep in the file name.
-- Station series JSON includes input stem and covered time range in the file name.
+- When run standalone, GeoTIFF maps are saved in folders named `geotiff_<input_stem>_<resolution>`.
+- In the refactored workflow, published map files are copied to `/opt/nifi/MER/maps/<MODEL>/wl/` as timestamped files (`YYYYMMDDTHHMMSS.tif`) plus `timeregex.properties`.
+- In the refactored workflow, station series JSON files are published as `<MODEL>_<RUN_DATE>_<variant>_station_timeseries.json` under `/opt/nifi/MER/maps/<MODEL>/json/`.
 - GeoTIFF metadata tags include `sdr`, `origine`, `risoluzione`, and `photometric_interpretation`.

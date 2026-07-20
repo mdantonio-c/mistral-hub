@@ -1,0 +1,105 @@
+{
+  "event_type": "summary",
+  "timestamp": "2026-07-20T09:12:34Z",
+  "run_id": "BOLAM_20260630_1785604354",
+  "model": "BOLAM",
+  "run_date": "20260630",
+  "run_class": "new",
+  "latest_run": "20260629",
+  "status": "success",
+  "exit_code": 0,
+  "reason": "ok",
+  "degraded": false,
+  "duration_ms": 8421,
+  "performed_steps": [
+    "input_validation",
+    "stage_archive",
+    "probe_archive",
+    "prepare_publish_dirs",
+    "classify_run",
+    "plan_tasks",
+    "execute_tasks",
+    "publish_raw",
+    "publish_maps",
+    "publish_timeseries_assim",
+    "publish_timeseries_noassim",
+    "finalize_markers"
+  ],
+  "step_results": [
+    {
+      "step": "input_validation",
+      "status": "success",
+      "message": "Input validated"
+    },
+    {
+      "step": "stage_archive",
+      "status": "success",
+      "message": "Archive persisted",
+      "output": {
+        "archive_path": "/tmp/tmpab12cd34/BOLAM_20260630.zip"
+      }
+    },
+    {
+      "step": "probe_archive",
+      "status": "success",
+      "message": "Archive staged and probed",
+      "output": {
+        "has_assim": true,
+        "has_noassim": true,
+        "has_msl": true
+      }
+    },
+    {
+      "step": "classify_run",
+      "status": "success",
+      "message": "Run class computed",
+      "output": {
+        "latest_run": "20260629",
+        "run_class": "new"
+      }
+    },
+    {
+      "step": "publish_raw",
+      "status": "success",
+      "message": "Task publish_raw completed",
+      "rc": 0,
+      "output": {
+        "target_dir": "/opt/nifi/MER/netcdf_extraction/20260630/BOLAM",
+        "elapsed_ms": 54
+      }
+    },
+    {
+      "step": "publish_maps",
+      "status": "success",
+      "message": "Task publish_maps completed",
+      "rc": 0,
+      "output": {
+        "target_dir": "/opt/nifi/MER/maps/BOLAM/wl",
+        "source_dir": "/tmp/tmpxyz/geotiff_BOLAM_20260630_500m",
+        "map_files": "72",
+        "elapsed_ms": 3182
+      }
+    },
+    {
+      "step": "finalize_markers",
+      "status": "success",
+      "message": "Markers finalized",
+      "output": {
+        "actions": ["baseline_ready_written"]
+      }
+    }
+  ],
+  "outputs": {
+    "raw_dir": "/opt/nifi/MER/netcdf_extraction/20260630/BOLAM",
+    "maps": {
+      "target_dir": "/opt/nifi/MER/maps/BOLAM/wl",
+      "source_dir": "/tmp/tmpxyz/geotiff_BOLAM_20260630_500m",
+      "map_files": "72"
+    },
+    "timeseries": {
+      "assim": "/opt/nifi/MER/maps/BOLAM/json/BOLAM_20260630_assim_station_timeseries.json",
+      "noassim": "/opt/nifi/MER/maps/BOLAM/json/BOLAM_20260630_noassim_station_timeseries.json"
+    }
+  },
+  "marker_actions": ["baseline_ready_written"]
+}
