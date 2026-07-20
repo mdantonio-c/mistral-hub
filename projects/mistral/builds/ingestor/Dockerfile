@@ -96,24 +96,25 @@ RUN $CONDA_DIR/bin/conda config --set auto_activate_base false \
     && $CONDA_DIR/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 
 RUN $CONDA_DIR/bin/conda create -n $CONDA_ECCODES_ENV python=3.10 -y \
- && $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge \
+ && $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge mamba -y \
+ && $CONDA_DIR/envs/$CONDA_ECCODES_ENV/bin/mamba install -n $CONDA_ECCODES_ENV -c conda-forge \
     eccodes \
     python-eccodes \
     -y \
  && $CONDA_DIR/bin/conda clean -afy
 
-# if not run in separate commands but with a single comprehensive command it ends with a kibgdal incompatibility
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge h5py -y
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge pyproj -y
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge gdal -y
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge libgdal-hdf5 -y
-# next are useful for the MER netcdf to geotiff script
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge rasterio -y
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge xarray -y
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge scipy -y
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge matplotlib-base -y
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge netcdf4 -y
-RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge loguru -y \
+# if not run in separate commands but with a single comprehensive command it ends with a libgdal incompatibility
+RUN $CONDA_DIR/envs/$CONDA_ECCODES_ENV/bin/mamba install -n $CONDA_ECCODES_ENV -c conda-forge gdal libgdal-hdf5 -y
+
+RUN $CONDA_DIR/envs/$CONDA_ECCODES_ENV/bin/mamba install -n $CONDA_ECCODES_ENV -c conda-forge \
+    h5py \
+    pyproj \
+    rasterio \
+    xarray \
+    scipy \
+    matplotlib-base \
+    netcdf4 \
+    loguru -y \
  && $CONDA_DIR/bin/conda clean -afy
 
 

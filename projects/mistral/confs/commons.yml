@@ -115,8 +115,8 @@ services:
       - ${DATA_DIR}/nifi/nfs:/opt/nifi/nfs
       - ${DATA_DIR}/seasonal:/opt/nifi/seasonal_grib
       - ${DATA_DIR}/netcdf_extraction/MER:/opt/nifi/MER/netcdf_extraction
+      - ${DATA_DIR}/MER:/opt/nifi/MER/maps
       - ${DATA_DIR}/nifi/MER/work_dir:/opt/nifi/MER/work_dir
-      - ${DATA_DIR}/nifi/MER/temp_bkp:/opt/nifi/MER/temp_bkp
 
     environment:
       ACTIVATE: ${ACTIVATE_NIFI}
