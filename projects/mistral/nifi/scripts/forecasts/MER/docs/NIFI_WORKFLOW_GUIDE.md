@@ -122,6 +122,13 @@ Validazione model:
 
 Il manager emette su stdout un JSON summary singolo (`event_type = summary`) con dettagli step/task.
 
+Nel summary e' presente il campo top-level `warnings` (array di messaggi testuali):
+
+- `warnings = []` quando non ci sono warning;
+- `warnings` valorizzato quando ci sono warning non bloccanti (es. uno tra `*_assim.nc` e `*_noassim.nc` mancante, oppure fallback offset stazioni a zero).
+
+Con `EvaluateJsonPath` puoi estrarre `$.warnings` e instradare con `RouteOnAttribute` i casi warning-only separandoli da `degraded` e dai fallimenti.
+
 Nel flusso attuale, la gestione errori e' basata sui return code del processore:
 
 - `0`: successo

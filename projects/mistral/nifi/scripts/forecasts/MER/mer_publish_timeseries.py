@@ -50,7 +50,19 @@ def publish_timeseries(
                 "No valid timesteps from midnight for timeseries generation"
             )
 
+        target_json = (
+            maps_model_dir
+            / "json"
+            / f"{model}_{run_date}_{variant}_station_timeseries.json"
+        )
+
+        warnings: list[str] = []
         offsets = msl_path if msl_path is not None and msl_path.is_file() else None
+        if offsets is None:
+            warnings.append(
+                f"Timeseries output {target_json} generated without station offsets: using zero offsets for all stations"
+            )
+
         processor = WaterLevelProcessor.for_timeseries(
             netcdf_path=netcdf_path,
             stations_path=station_list,
@@ -66,14 +78,9 @@ def publish_timeseries(
             raise RuntimeError(
                 f"No station_timeseries_*.json produced under: {staging_dir}"
             )
-        target_json = (
-            maps_model_dir
-            / "json"
-            / f"{model}_{run_date}_{variant}_station_timeseries.json"
-        )
         publish_with_replace(source_json, target_json)
 
-        return {
+        output: dict[str, str | bool | list[str]] = {
             "published": True,
             "model": model,
             "run_date": run_date,
@@ -81,3 +88,7 @@ def publish_timeseries(
             "target": str(target_json),
             "source": str(source_json),
         }
+        if warnings:
+            output["warnings"] = warnings
+
+        return output

@@ -10,6 +10,7 @@
   "exit_code": 0,
   "reason": "ok",
   "degraded": false,
+  "warnings": [],
   "duration_ms": 8421,
   "performed_steps": [
     "input_validation",
