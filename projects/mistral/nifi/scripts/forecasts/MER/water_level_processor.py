@@ -7,6 +7,7 @@ import argparse
 import json
 import math
 import os
+import sys
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -266,9 +267,9 @@ class WaterLevelProcessor:
 
         logger.remove()
         if self.verbose:
-            logger.add(lambda msg: print(msg, end=""), level="INFO")
+            logger.add(lambda msg: print(msg, end="", file=sys.stderr), level="INFO")
         else:
-            logger.add(lambda msg: print(msg, end=""), level="WARNING")
+            logger.add(lambda msg: print(msg, end="", file=sys.stderr), level="WARNING")
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
 

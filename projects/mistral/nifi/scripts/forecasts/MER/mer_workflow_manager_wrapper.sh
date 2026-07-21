@@ -13,4 +13,4 @@ export MER_MAP_TIFF_COMPRESS=${MER_MAP_TIFF_COMPRESS:-DEFLATE}
 # Optional predictor for compressed float rasters. Typical value: 2. Leave empty to disable.
 export MER_MAP_TIFF_PREDICTOR=${MER_MAP_TIFF_PREDICTOR:-2}
 
-exec $CONDA_DIR/envs/$CONDA_ECCODES_ENV/bin/python  /home/nifi/ingest/forecasts/MER_refactored_inprocess/mer_workflow_manager.py "$@"
+exec $CONDA_DIR/envs/$CONDA_ECCODES_ENV/bin/python  /home/nifi/ingest/forecasts/MER/mer_workflow_manager.py "$@"

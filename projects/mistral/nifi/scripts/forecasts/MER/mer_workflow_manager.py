@@ -130,6 +130,7 @@ class RunTrace:
         exit_code: int,
         reason: str,
         degraded: bool,
+        warnings: list[str],
         duration_ms: int,
         run_class: str | None,
         latest_run: str | None,
@@ -148,6 +149,7 @@ class RunTrace:
             "exit_code": exit_code,
             "reason": reason,
             "degraded": degraded,
+            "warnings": warnings,
             "duration_ms": duration_ms,
             "performed_steps": self.performed_steps,
             "step_results": self.step_results,
@@ -490,6 +492,12 @@ def collect_outputs(results: list[dict[str, Any]]) -> dict[str, Any]:
     return outputs
 
 
+def extend_unique_warnings(target: list[str], values: list[Any]) -> None:
+    for value in values:
+        if isinstance(value, str) and value and value not in target:
+            target.append(value)
+
+
 def build_task_list(
     model: str,
     run_date: str,
@@ -576,6 +584,7 @@ def main(argv: list[str]) -> int:
     run_class: str | None = None
     latest_run: str | None = None
     marker_actions: list[str] = []
+    warnings: list[str] = []
     results: list[dict[str, Any]] = []
 
     try:
@@ -679,15 +688,30 @@ def main(argv: list[str]) -> int:
                 reason = "no_netcdf"
                 return exit_code
 
+            probe_warnings: list[str] = []
+            if not has_assim and has_noassim:
+                probe_warnings.append(
+                    f"Missing assim NetCDF in archive: {assim_path.name}; processing noassim only"
+                )
+            if has_assim and not has_noassim:
+                probe_warnings.append(
+                    f"Missing noassim NetCDF in archive: {noassim_path.name}; processing assim only"
+                )
+            extend_unique_warnings(warnings, probe_warnings)
+
+            probe_output: dict[str, Any] = {
+                "has_assim": has_assim,
+                "has_noassim": has_noassim,
+                "has_msl": has_msl,
+            }
+            if probe_warnings:
+                probe_output["warnings"] = probe_warnings
+
             trace.add_step(
                 "probe_archive",
                 "success",
                 "Archive staged and probed",
-                output={
-                    "has_assim": has_assim,
-                    "has_noassim": has_noassim,
-                    "has_msl": has_msl,
-                },
+                output=probe_output,
             )
 
             try:
@@ -783,6 +807,14 @@ def main(argv: list[str]) -> int:
                 elapsed_ms = result.get("elapsed_ms")
                 if elapsed_ms is not None:
                     task_output["elapsed_ms"] = elapsed_ms
+
+                payload = result.get("payload")
+                if isinstance(payload, dict):
+                    payload_warnings = payload.get("warnings")
+                    if isinstance(payload_warnings, list):
+                        extend_unique_warnings(warnings, payload_warnings)
+                        if payload_warnings:
+                            task_output["warnings"] = payload_warnings
 
                 trace.add_step(
                     result["task"],
@@ -880,6 +912,7 @@ def main(argv: list[str]) -> int:
             exit_code=exit_code,
             reason=reason,
             degraded=degraded,
+            warnings=warnings,
             duration_ms=int((time.monotonic() - started) * 1000),
             run_class=run_class,
             latest_run=latest_run,
