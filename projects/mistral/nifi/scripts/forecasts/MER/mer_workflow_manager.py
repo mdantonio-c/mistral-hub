@@ -18,9 +18,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
 
-from mer_publish_maps import publish_maps
-from mer_publish_timeseries import publish_timeseries
-
 EXIT_OK = 0
 EXIT_INVALID_INPUT = 20
 EXIT_NO_NETCDF = 31
@@ -513,6 +510,9 @@ def build_task_list(
     netcdf_model_dir: Path,
     station_list: Path,
 ) -> list[Task]:
+    from mer_publish_maps import publish_maps
+    from mer_publish_timeseries import publish_timeseries
+
     tasks: list[Task] = [
         Task(
             name="publish_raw",
