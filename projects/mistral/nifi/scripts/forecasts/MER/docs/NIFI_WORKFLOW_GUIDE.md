@@ -180,7 +180,34 @@ Wait su `GEOSERVER.READY` (caso `run_class = current`):
 cat BOLAM_20260630.zip | /home/nifi/ingest/forecasts/MER_refactored_inprocess/mer_workflow_manager_wrapper.sh BOLAM_20260630.zip
 ```
 
-## 8. Checklist operativa
+## 8. Cleanup periodico output pubblicati
+
+Per la pulizia periodica degli output pubblicati e' disponibile lo script:
+
+- `projects/mistral/nifi/scripts/forecasts/MER/mer_daily_cleanup.py`
+
+Uso consigliato da NiFi (`ExecuteStreamCommand`):
+
+- `mer_daily_cleanup.py <retention_days> [--dry-run]`
+
+Comportamento principale:
+
+- Pulizia su base `mtime` (coerente) per `json` e `wl`.
+- I JSON della run corrente (determinata dal marker `<YYYYMMDD>.READY`) sono protetti.
+- Modalita' WL `conservative` quando manca la coppia marker corrente `READY + GEOSERVER.READY`: rimuove solo artefatti temporanei vecchi (`.maps_publish_bak`, `.*.tmp`).
+- Modalita' WL `aggressive` quando la coppia marker corrente e' presente: puo' eliminare file canonici WL vecchi per `mtime` (incluso `timeregex.properties`).
+- Pulizia opzionale del crash log manager (`MER_CRASH_LOG_PATH`, default `/tmp/mer_workflow_manager_crash.log`) con la stessa retention `mtime`.
+
+Output per NiFi:
+
+- Lo script emette sempre un JSON singolo su stdout (`event_type=mer_daily_cleanup_summary`) con dettagli per modello, conteggi (`deleted`, `kept_*`, `errors`) e `status` complessivo.
+
+Nota di consistenza:
+
+- Le costanti condivise (`MAPS_ROOT`, `MAPS_MAX_TIMESTEP`, `CRASH_LOG_ENV`, `DEFAULT_CRASH_LOG`) sono importate da `mer_workflow_manager.py` per evitare drift di configurazione.
+- In particolare, il path root da pulire non e' passato da NiFi: viene letto da `MAPS_ROOT` nel manager.
+
+## 9. Checklist operativa
 
 - [ ] Parse AMQP -> `s3_bucket` e `s3_key` configurato.
 - [ ] `FetchS3Object` eseguito prima di `ExecuteStreamCommand`.

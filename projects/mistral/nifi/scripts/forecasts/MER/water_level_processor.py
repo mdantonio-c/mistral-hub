@@ -580,15 +580,17 @@ class WaterLevelProcessor:
         timeseries_file: Path | None = None
         station_series: dict[str, dict[str, object]] = {}
         for match in self.station_matches:
+            station_key = match.station.station_id
             m_obs, m_mod = get_station_offset_pair(
                 match.station.station_id, self.station_offsets
             )
             station_correction = get_station_correction(
                 match.station.station_id, self.station_offsets
             )
-            station_series[match.station.name] = {
+            station_series[station_key] = {
                 "station": {
                     "id": match.station.station_id,
+                    "name": match.station.name,
                     "latitude": match.station.latitude,
                     "longitude": match.station.longitude,
                 },
@@ -743,7 +745,7 @@ class WaterLevelProcessor:
                 )
 
                 for match in self.station_matches:
-                    station_entry = station_series[match.station.name]
+                    station_entry = station_series[match.station.station_id]
                     station_entry["time"].append(timestamp)
                     val = values[match.node_index]
                     if not np.isfinite(val):
