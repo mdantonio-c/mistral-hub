@@ -30,7 +30,7 @@ EXIT_MARKER_FAILED = 25
 
 ALLOWED_MODELS = {"BOLAM", "ICON", "ECMWF"}
 
-MAPS_ROOT = Path("/opt/nifi/MER/maps")
+MAPS_ROOT = Path("/opt/nifi/nfs/MER")
 NETCDF_ROOT = Path("/opt/nifi/MER/netcdf_extraction")
 
 MAPS_RESOLUTION = "500m"  # TODO: make this configurable if needed

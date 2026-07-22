@@ -2,8 +2,8 @@
 """Cleanup MER published outputs for NiFi.
 
 Scope:
-- /opt/nifi/MER/maps/<MODEL>/json
-- /opt/nifi/MER/maps/<MODEL>/wl
+- /opt/nifi/nfs/MER/<MODEL>/json
+- /opt/nifi/nfs/MER/<MODEL>/wl
 - MER crash log file
 
 Retention policy:
