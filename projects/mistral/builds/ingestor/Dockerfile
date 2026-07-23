@@ -92,28 +92,31 @@ RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.s
  && rm Miniconda3-latest-Linux-x86_64.sh
 
 RUN $CONDA_DIR/bin/conda config --set auto_activate_base false \
+    && $CONDA_DIR/bin/conda config --set channel_priority strict \
     && $CONDA_DIR/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
     && $CONDA_DIR/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 
 RUN $CONDA_DIR/bin/conda create -n $CONDA_ECCODES_ENV python=3.10 -y \
- && $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV -c conda-forge mamba -y \
- && $CONDA_DIR/envs/$CONDA_ECCODES_ENV/bin/mamba install -n $CONDA_ECCODES_ENV -c conda-forge \
-    eccodes \
-    python-eccodes \
+ && $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV --solver=libmamba --override-channels -c conda-forge \
+    eccodes=2.47.0 \
+    python-eccodes=2.47.0 \
     -y \
  && $CONDA_DIR/bin/conda clean -afy
 
 # if not run in separate commands but with a single comprehensive command it ends with a libgdal incompatibility
-RUN $CONDA_DIR/envs/$CONDA_ECCODES_ENV/bin/mamba install -n $CONDA_ECCODES_ENV -c conda-forge gdal libgdal-hdf5 -y
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV --solver=libmamba --override-channels -c conda-forge \
+    gdal=3.10.3 \
+    libgdal-hdf5=3.10.3 \
+    -y
 
-RUN $CONDA_DIR/envs/$CONDA_ECCODES_ENV/bin/mamba install -n $CONDA_ECCODES_ENV -c conda-forge \
-    h5py \
-    pyproj \
-    rasterio \
-    xarray \
-    scipy \
-    matplotlib-base \
-    netcdf4 \
+RUN $CONDA_DIR/bin/conda install -n $CONDA_ECCODES_ENV --solver=libmamba --override-channels -c conda-forge \
+    h5py=3.16.0 \
+    pyproj=3.7.1 \
+    rasterio=1.4.3 \
+    xarray=2025.6.1 \
+    scipy=1.15.2 \
+    matplotlib-base=3.10.9 \
+    netcdf4=1.7.4 \
     loguru -y \
  && $CONDA_DIR/bin/conda clean -afy
 
