@@ -244,3 +244,61 @@ CREATE TABLE "metsen_networks" (
 );
 
 ------------------------------------------------------------------------------------------------
+
+-- CMCC AdriaClimPlus (Interbox tide gauge API)
+
+CREATE TABLE public.cmcc_anag
+(
+    id_station varchar NOT NULL,
+    station_name varchar NOT NULL,
+    latitude double precision NOT NULL,
+    longitude double precision NOT NULL,
+    CONSTRAINT pk_cmcc_anag PRIMARY KEY (id_station, station_name),
+    CONSTRAINT ck_cmcc_anag_latitude CHECK (latitude BETWEEN -90 AND 90),
+    CONSTRAINT ck_cmcc_anag_longitude CHECK (longitude BETWEEN -180 AND 180)
+);
+
+CREATE TABLE public.cmcc_log
+(
+    batchid bigserial,
+    station_name varchar NOT NULL,
+    ts_download timestamp with time zone,
+    ts_ingestion timestamp with time zone,
+    ts_delete timestamp with time zone,
+    ts_error timestamp with time zone,
+    msg_error varchar,
+    CONSTRAINT pk_cmcc_log PRIMARY KEY (batchid),
+    CONSTRAINT uq_cmcc_log_batch_station UNIQUE (batchid, station_name)
+);
+
+CREATE TABLE public.cmcc_data
+(
+    batchid bigint NOT NULL,
+    station_name varchar NOT NULL,
+    station_hmsl double precision,
+    ident varchar,
+    network varchar,
+    lon double precision,
+    lat double precision,
+    date varchar NOT NULL,
+    timerange double precision,
+    p1 double precision,
+    p2 double precision,
+    varcode varchar NOT NULL,
+    value double precision,
+    level1 double precision,
+    l1 double precision,
+    level2 double precision,
+    l2 double precision,
+    CONSTRAINT pk_cmcc_data PRIMARY KEY (batchid, station_name, varcode, date),
+    CONSTRAINT fk_cmcc_data_log_batch_station
+        FOREIGN KEY (batchid, station_name)
+        REFERENCES public.cmcc_log (batchid, station_name)
+);
+
+-- Supports logical-observation lookup across batches during deduplication.
+-- The primary-key index already covers lookups whose first key is batchid.
+CREATE INDEX cmcc_data_logical_idx
+    ON public.cmcc_data (station_name, varcode, date, batchid);
+
+------------------------------------------------------------------------------------------------
