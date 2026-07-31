@@ -302,3 +302,69 @@ CREATE INDEX cmcc_data_logical_idx
     ON public.cmcc_data (station_name, varcode, date, batchid);
 
 ------------------------------------------------------------------------------------------------
+
+-- DHMZ AdriaClimPlus (CIP meteorological observations API)
+
+CREATE TABLE public.dhmz_anag
+(
+    station_id varchar NOT NULL,
+    station_name varchar NOT NULL,
+    latitude double precision NOT NULL,
+    longitude double precision NOT NULL,
+    station_hmsl double precision,
+    enabled boolean NOT NULL DEFAULT false,
+    CONSTRAINT pk_dhmz_anag PRIMARY KEY (station_id),
+    CONSTRAINT ck_dhmz_anag_latitude CHECK (latitude BETWEEN -90 AND 90),
+    CONSTRAINT ck_dhmz_anag_longitude CHECK (longitude BETWEEN -180 AND 180)
+);
+
+
+-- One batch = one GET call to /mjerenja/numericka covering every station and
+-- every hardcoded mmeId, identified by batchid. The requested window is derived
+-- from ts_created. No per-station rows here.
+CREATE TABLE public.dhmz_log
+(
+    batchid bigserial,
+    window_start timestamp with time zone NOT NULL,
+    window_end timestamp with time zone NOT NULL,
+    ts_created timestamp with time zone NOT NULL DEFAULT now(),
+    ts_download timestamp with time zone,
+    ts_ingestion timestamp with time zone,
+    ts_delete timestamp with time zone,
+    ts_error timestamp with time zone,
+    msg_error varchar,
+    CONSTRAINT pk_dhmz_log PRIMARY KEY (batchid),
+    CONSTRAINT ck_dhmz_log_window CHECK (window_start <= window_end)
+);
+
+-- Staging rows for every station returned by the single call. Coordinates and
+-- elevation are NOT stored here: they are joined from dhmz_anag when the batch
+-- is read back, so only stations present in the anagrafica reach DBAllE.
+CREATE TABLE public.dhmz_data
+(
+    batchid bigint NOT NULL,
+    station_id varchar NOT NULL,
+    station_name varchar,
+    ident varchar,
+    network varchar,
+    date varchar NOT NULL,
+    timerange double precision,
+    p1 double precision,
+    p2 double precision,
+    varcode varchar NOT NULL,
+    value double precision,
+    level1 double precision,
+    l1 double precision,
+    level2 double precision,
+    l2 double precision,
+    CONSTRAINT pk_dhmz_data
+        PRIMARY KEY (batchid, station_id, varcode, date),
+    CONSTRAINT fk_dhmz_data_log
+        FOREIGN KEY (batchid)
+        REFERENCES public.dhmz_log (batchid)
+);
+
+CREATE INDEX dhmz_data_logical_idx
+    ON public.dhmz_data (station_id, varcode, date, batchid);
+
+------------------------------------------------------------------------------------------------
