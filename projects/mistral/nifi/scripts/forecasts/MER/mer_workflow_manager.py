@@ -35,7 +35,7 @@ NETCDF_ROOT = Path("/opt/nifi/MER/netcdf_extraction")
 
 MAPS_RESOLUTION = "500m"  # TODO: make this configurable if needed
 MAPS_OFFSET = 0.46  # TODO: make this configurable if needed
-MAPS_MAX_TIMESTEP = 72  # TODO: make this configurable if needed
+MAPS_MAX_TIMESTEP = 73  # TODO: make this configurable if needed
 
 CRASH_LOG_ENV = "MER_CRASH_LOG_PATH"
 DEFAULT_CRASH_LOG = "/tmp/mer_workflow_manager_crash.log"
