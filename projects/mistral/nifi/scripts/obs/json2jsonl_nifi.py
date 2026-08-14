@@ -48,7 +48,7 @@ if sys.stdin.buffer:
         dictout["date"] = dictin[i].get("date")
         dictout["data"] = [data_sta, data_dyn]
 
-        json.dump(dictout, sys.stdout)
-        sys.stdout.write("\n")
+        json_line = json.dumps(dictout, ensure_ascii=False)
+        print(json_line, file=sys.stdout)
 
 sys.exit(0)

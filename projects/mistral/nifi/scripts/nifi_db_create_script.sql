@@ -305,6 +305,32 @@ CREATE INDEX cmcc_data_logical_idx
 
 -- DHMZ AdriaClimPlus (CIP meteorological observations API)
 
+-- Target stations to acquire. The anagrafica sub-flow (A5) joins against this
+-- table instead of hardcoding IDs. Add/remove a station with INSERT/DELETE.
+CREATE TABLE public.dhmz_station_whitelist
+(
+    station_id integer NOT NULL,
+    note varchar,
+    CONSTRAINT pk_dhmz_station_whitelist PRIMARY KEY (station_id)
+);
+
+INSERT INTO public.dhmz_station_whitelist (station_id, note) VALUES
+    (1105, 'DEBELJAK - MM'),
+    (1269, 'ZADAR - MM'),
+    (511,  'VELI IŽ - MM + KMP'),
+    (287,  'NIN - MM + KMP'),
+    (518,  'VELI RAT'),
+    (1086, 'BANJ - MM'),
+    (411,  'SILBA - MM + KMP'),
+    (1088, 'BENKOVAC - MM'),
+    (320,  'STARIGRAD - PAKLENICA - MM + KMP'),
+    (1054, 'ZEMUNIK DONJI - MM'),
+    (1149, 'KARLOBAG - CESARICA - MM'),
+    (1130, 'GOSPIĆ - MM'),
+    (226,  'LIČKO LEŠĆE - MM + KMP'),
+    (1237, 'SENJ - MM'),
+    (44,   'BRINJE - MM + KMP');
+
 CREATE TABLE public.dhmz_anag
 (
     station_id varchar NOT NULL,
@@ -357,6 +383,7 @@ CREATE TABLE public.dhmz_data
     l1 double precision,
     level2 double precision,
     l2 double precision,
+    status varchar,
     CONSTRAINT pk_dhmz_data
         PRIMARY KEY (batchid, station_id, varcode, date),
     CONSTRAINT fk_dhmz_data_log

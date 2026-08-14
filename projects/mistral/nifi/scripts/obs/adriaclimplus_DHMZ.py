@@ -31,7 +31,10 @@ anagrafica are imported into DBAllE and the transformer stays database-free.
 
 NiFi invocation (one call, all stations)::
 
-    python3 obs/adriaclimplus_DHMZ.py [BATCHID]
+    python3 obs/adriaclimplus_DHMZ.py [BATCHID] [STATION_IDS]
+
+STATION_IDS is an optional comma-separated list of postajaId values.
+When provided, only stations in this list are emitted.
 
 The GET response is read from STDIN and a JSON array of rows is written to
 STDOUT. The script performs no dedupe, retry or HTTP/DB access.
@@ -47,7 +50,7 @@ import json
 import re
 import sys
 import unicodedata
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 NETWORK = "dhmz"
 IDENT = None
@@ -59,20 +62,28 @@ P2 = 0
 # mmeId -> canonical product.
 #
 # These numbers MUST match the mmeId values hardcoded in the NiFi InvokeHTTP URL
-# (``?mmeId=...``). Only 30 and 31 are evidenced by DHMZ_API_Spec.md; confirm the
-# pressure / wind ids against DHMZ before enabling the flow, then align both this
-# map and the request URL.
+# (``?mmeId=...``). All five confirmed by DHMZ (August 2026).
 MME_TO_PRODUCT = {
-    30: "air_temperature",       # confirmed by DHMZ_API_Spec.md
-    31: "relative_humidity",     # confirmed by DHMZ_API_Spec.md
-    5: "atmospheric_pressure",   # TODO confirm the real mmeId with DHMZ
-    32: "wind_speed",            # TODO confirm the real mmeId with DHMZ
-    33: "wind_direction",        # TODO confirm the real mmeId with DHMZ
+    5: "atmospheric_pressure",
+    30: "air_temperature",
+    31: "wind_speed",
+    32: "wind_direction",
+    33: "relative_humidity",
 }
 
+# Minimum number of samples in a 10-min frame for data to be usable (85% of 600).
+MIN_SAMPLES = 510
+
+# Status values known to be valid. The filter is applied at SQL level (step 15),
+# not here; the script emits all records but logs a warning for unknown statuses.
+ACCEPTED_STATUSES = {"Neslužbeni", "Službeni"}
+
+# DHMZ uses CET (UTC+1) year-round, no DST.
+CET_OFFSET = timedelta(hours=1)
+
 # Accepted formats for the "termin" field. ``strptime`` "%f" accepts 1..6
-# fractional digits, so the sample ".0" is handled. Timestamps are treated as
-# UTC (see the guide preflight: DHMZ timezone is not documented).
+# fractional digits, so the sample ".0" is handled. Timestamps are in CET (UTC+1)
+# and converted to UTC for DBAllE output.
 TERMIN_FORMATS = (
     "%Y-%m-%d %H:%M:%S.%f",
     "%Y-%m-%d %H:%M:%S",
@@ -194,22 +205,27 @@ PRODUCTS = {
 
 
 def _parse_args(args):
-    """Return an optional positive NiFi batch id."""
-    if len(args) > 1:
-        raise ValueError("expected an optional single argument: [batchid]")
-    if not args:
-        return None
-    try:
-        batchid = int(args[0])
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"batchid is not an integer: {args[0]!r}") from exc
-    if batchid <= 0:
-        raise ValueError("batchid must be a positive integer")
-    return batchid
+    """Return (batchid, whitelist_set)."""
+    if len(args) > 2:
+        raise ValueError("expected: [batchid] [station_ids]")
+    batchid = None
+    whitelist = None
+    if len(args) >= 1:
+        try:
+            batchid = int(args[0])
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"batchid is not an integer: {args[0]!r}") from exc
+        if batchid <= 0:
+            raise ValueError("batchid must be a positive integer")
+    if len(args) >= 2 and args[1].strip():
+        whitelist = {s.strip() for s in args[1].split(",") if s.strip()}
+        if not whitelist:
+            whitelist = None
+    return batchid, whitelist
 
 
 def _parse_termin(value):
-    """Parse the ``termin`` string to ``YYYY-MM-DDTHH:MM:SSZ`` (UTC), or None."""
+    """Parse the ``termin`` string (CET) to ``YYYY-MM-DDTHH:MM:SSZ`` (UTC), or None."""
     if value is None:
         return None
     text = str(value).strip()
@@ -222,8 +238,29 @@ def _parse_termin(value):
             parsed = datetime.strptime(text, fmt)
         except ValueError:
             continue
-        return parsed.replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        # CET (UTC+1 fixed) -> UTC
+        utc_dt = parsed.replace(tzinfo=timezone.utc) - CET_OFFSET
+        return utc_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
     return None
+
+
+def _check_completeness(komentar):
+    """Return True if the measurement passes the completeness check.
+
+    Returns False only when komentar contains broj_uzoraka < MIN_SAMPLES.
+    Returns True if komentar is null, empty, or unparsable.
+    """
+    if komentar is None:
+        return True
+    try:
+        items = json.loads(komentar)
+    except (TypeError, ValueError):
+        return True
+    if isinstance(items, list) and items and isinstance(items[0], dict):
+        samples = items[0].get("broj_uzoraka")
+        if samples is not None and int(samples) < MIN_SAMPLES:
+            return False
+    return True
 
 
 def _stations(payload):
@@ -242,7 +279,7 @@ def _stations(payload):
     raise ValueError("payload is not a DHMZ station array")
 
 
-def build_records(payload, batchid=None):
+def build_records(payload, batchid=None, whitelist=None):
     """Flatten the nested DHMZ response into DBAllE staging rows.
 
     Rules:
@@ -250,10 +287,11 @@ def build_records(payload, batchid=None):
       2. measurements whose ``mmeId`` is not in ``MME_TO_PRODUCT`` are ignored;
       3. a measurement with an unparsable timestamp or unsupported unit is
          skipped (logged), never aborting the whole batch;
-      4. the first reading of a logical key (station_id, varcode, date) wins.
+      4. the first reading of a logical key (station_id, varcode, date) wins;
+      5. measurements with ``broj_uzoraka < 510`` in ``komentar`` are excluded;
+      6. if ``whitelist`` is set, stations not in it are skipped.
 
-    ``status`` and ``komentar`` are intentionally not used as quality filters:
-    their semantics are unknown and must be confirmed with DHMZ (see the guide).
+    ``status`` is not used as a quality filter (\"Neslužbeni\" = usable data).
     """
     stations = _stations(payload)
     if not isinstance(stations, list):
@@ -273,6 +311,9 @@ def build_records(payload, batchid=None):
         station_id = str(raw_id).strip()
         if not station_id:
             log("skipping station with empty postajaId")
+            continue
+
+        if whitelist is not None and station_id not in whitelist:
             continue
 
         station_name = station.get("postajaNaziv")
@@ -304,6 +345,10 @@ def build_records(payload, batchid=None):
                 if value is None:
                     continue  # rule 1: exclude null measurements
 
+                if not _check_completeness(mjerenje.get("komentar")):
+                    log(f"skipping incomplete measurement for station {station_id}")
+                    continue  # rule 5: insufficient samples
+
                 try:
                     mme_id = int(mjerenje.get("mmeId"))
                 except (TypeError, ValueError):
@@ -325,6 +370,10 @@ def build_records(payload, batchid=None):
                     continue  # rule 4: first reading wins
                 seen.add(key)
 
+                mjerenje_status = mjerenje.get("status")
+                if mjerenje_status and mjerenje_status not in ACCEPTED_STATUSES:
+                    log(f"unknown status {mjerenje_status!r} for station {station_id}")
+
                 record = {
                     "station_id": station_id,
                     "station_name": station_name,
@@ -340,6 +389,7 @@ def build_records(payload, batchid=None):
                     "l1": cfg["l1"],
                     "level2": cfg["level2"],
                     "l2": cfg["l2"],
+                    "status": mjerenje_status,
                 }
                 if batchid is not None:
                     record["batchid"] = batchid
@@ -369,10 +419,13 @@ def _emit(records):
 def main(args=None):
     """Read one GET payload from STDIN and emit its valid records."""
     try:
-        batchid = _parse_args(sys.argv[1:] if args is None else args)
+        batchid, whitelist = _parse_args(sys.argv[1:] if args is None else args)
     except ValueError as exc:
         log(f"invalid arguments: {exc}")
         return 2
+
+    if whitelist:
+        log(f"station whitelist: {len(whitelist)} station(s)")
 
     raw = sys.stdin.buffer.read()
     if not raw or not raw.strip():
@@ -385,7 +438,7 @@ def main(args=None):
         return 3
 
     try:
-        records = build_records(payload, batchid)
+        records = build_records(payload, batchid, whitelist)
     except ValueError as exc:
         log(f"invalid API payload: {exc}")
         return 3
