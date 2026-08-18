@@ -146,7 +146,7 @@ services:
       MYSQL_USER: ${MATOMO_DB_USER}
       MYSQL_PASSWORD: ${MATOMO_DB_PASSWORD}
     volumes:
-      - ${DATA_DIR}/matomo_db:/var/lib/mysql
+      - /mnt/matomo_db:/var/lib/mysql
 
   matomo:
     image: matomo:latest
