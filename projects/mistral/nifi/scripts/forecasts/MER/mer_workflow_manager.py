@@ -156,16 +156,51 @@ class RunTrace:
 
 
 def is_valid_zip_name(zip_name: str) -> tuple[str, str]:
-    match = re.match(r"^([A-Za-z]+)_(\d{8})\.zip$", zip_name)
+    match = re.match(r"^([A-Za-z]+)_(\d{8})\.zip$", zip_name, flags=re.IGNORECASE)
     if not match:
         raise ValueError(f"Invalid zip filename format: {zip_name}")
 
     model, run_date = match.groups()
+    model = model.upper()
     if model not in ALLOWED_MODELS:
         raise ValueError(f"Invalid model {model}, allowed: {sorted(ALLOWED_MODELS)}")
 
     datetime.strptime(run_date, "%Y%m%d")
     return model, run_date
+
+
+def canonicalize_extracted_member(
+    extract_dir: Path,
+    expected_name: str,
+) -> Path | None:
+    expected_path = extract_dir / expected_name
+    if expected_path.is_file():
+        return expected_path
+
+    candidate_fold = expected_name.casefold()
+
+    matches: list[Path] = []
+    for entry in extract_dir.rglob("*"):
+        if not entry.is_file():
+            continue
+        if entry.name.casefold() != candidate_fold:
+            continue
+
+        matches.append(entry)
+
+    if not matches:
+        return None
+
+    # Prefer files already at archive root, then deterministic fallback.
+    root_matches = [path for path in matches if path.parent == extract_dir]
+    source_path = sorted(root_matches or matches, key=lambda path: str(path))[0]
+
+    # Keep canonical names inside staging so downstream lookups remain stable.
+    if expected_path.exists():
+        return expected_path if expected_path.is_file() else None
+
+    source_path.replace(expected_path)
+    return expected_path
 
 
 def find_latest_run(exposed_dir: Path) -> str | None:
@@ -669,13 +704,29 @@ def main(argv: list[str]) -> int:
                 reason = "invalid_zip"
                 return exit_code
 
-            assim_path = Path(extract_dir, f"{nc_stem}_assim.nc")
-            noassim_path = Path(extract_dir, f"{nc_stem}_noassim.nc")
-            msl_path = Path(extract_dir, f"{nc_stem}_msl.dat")
+            expected_assim_name = f"{nc_stem}_assim.nc"
+            expected_noassim_name = f"{nc_stem}_noassim.nc"
+            expected_msl_name = f"{nc_stem}_msl.txt"
 
-            has_assim = bool(assim_path.is_file())
-            has_noassim = bool(noassim_path.is_file())
-            has_msl = bool(msl_path.is_file())
+            resolved_assim_path = canonicalize_extracted_member(
+                extract_dir, expected_assim_name
+            )
+            resolved_noassim_path = canonicalize_extracted_member(
+                extract_dir, expected_noassim_name
+            )
+            resolved_msl_path = canonicalize_extracted_member(
+                extract_dir, expected_msl_name
+            )
+
+            has_assim = resolved_assim_path is not None
+            has_noassim = resolved_noassim_path is not None
+            has_msl = resolved_msl_path is not None
+
+            assim_path = resolved_assim_path or Path(extract_dir, expected_assim_name)
+            noassim_path = resolved_noassim_path or Path(
+                extract_dir, expected_noassim_name
+            )
+            msl_path = resolved_msl_path or Path(extract_dir, expected_msl_name)
 
             if not has_assim and not has_noassim:
                 trace.add_step(

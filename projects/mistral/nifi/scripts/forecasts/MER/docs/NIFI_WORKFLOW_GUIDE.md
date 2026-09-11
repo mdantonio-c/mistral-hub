@@ -61,6 +61,8 @@ Il wrapper:
 Parametri accettati dal wrapper (forward al manager):
 
 - `arg1`: `s3_key` (obbligatorio), ad esempio `BOLAM_20260630.zip` oppure `path/in/bucket/BOLAM_20260630.zip`.
+- Il manager accetta il filename ZIP in modo case-insensitive (es. `bolam_20260630.zip`, `BoLaM_20260630.ZIP`) e normalizza internamente `model` in uppercase (`BOLAM`).
+- Anche la ricerca dei file attesi dentro lo ZIP (`*_assim.nc`, `*_noassim.nc`, `*_msl.dat`) e' case-insensitive e ricorsiva (copre anche file in sottocartelle); i file trovati vengono canonicalizzati in staging al naming atteso.
 
 Input aggiuntivo obbligatorio:
 
