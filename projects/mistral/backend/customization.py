@@ -194,8 +194,8 @@ class Customizer(BaseCustomizer):
                 "requests_expiration_delete": fields.Boolean(
                     required=False,
                     metadata={
-                        "label": "Delete expired requests (unless they will be archived)",
-                        "description": "If set false expired request will be archive instead of deleted",
+                        "label": "Delete expired requests (otherwise they will be archived)",
+                        "description": "If set false expired request will be archived instead of deleted",
                     },
                 ),
                 "notify_on_successful_request": fields.Boolean(
