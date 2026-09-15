@@ -18,11 +18,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import mistral.endpoints.data_ready as data_ready_endpoint
+import mistral.tasks.on_data_ready_extractions as on_data_ready_task
 from mistral.endpoints import DOWNLOAD_DIR
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from mistral.tests.helpers.auth import (
     AuthenticatedTestUser,
     register_test_user_cleanup,
+)
+from mistral.tests.helpers.celery_fakes import (
+    AcceptTasksWithoutRunningCelery,
+    InlineDataReadyExtractionCelery,
 )
 from mistral.tests.helpers.polling import wait_until
 from mistral.tests.helpers.runtime import TestRuntime
@@ -370,6 +376,46 @@ def trigger_data_ready_and_wait_accepted(
         interval=interval,
         message="data/ready did not return 202 within timeout",
     )
+
+
+def trigger_data_ready_inline(
+    monkeypatch: Any,
+    client: FlaskClient,
+    headers: Any,
+    db: Any,
+    *,
+    model: str,
+    rundate: str,
+    cluster: str = "g100",
+):
+    """Submit a data-ready event and execute its launcher fully in-process."""
+    endpoint_celery = AcceptTasksWithoutRunningCelery(
+        "launch_all_on_data_ready_extractions"
+    )
+    monkeypatch.setattr(
+        data_ready_endpoint.celery,
+        "get_instance",
+        lambda: endpoint_celery,
+    )
+    response = trigger_data_ready_and_wait_accepted(
+        client,
+        headers,
+        model=model,
+        rundate=rundate,
+        cluster=cluster,
+    )
+    assert len(endpoint_celery.sent_tasks) == 1
+
+    monkeypatch.setattr(
+        on_data_ready_task.celery,
+        "get_instance",
+        lambda: InlineDataReadyExtractionCelery(db),
+    )
+    on_data_ready_task.launch_all_on_data_ready_extractions.run(
+        model,
+        datetime.strptime(rundate, "%Y%m%d%H"),
+    )
+    return response
 
 
 def create_schedule_request_record(

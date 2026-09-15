@@ -8,7 +8,7 @@ from mistral.tests.helpers.data_ready import (
     DATA_READY_DATASET_NAME,
     create_schedule,
     list_schedule_requests,
-    trigger_data_ready_and_wait_accepted,
+    trigger_data_ready_inline,
 )
 from mistral.tests.helpers.dataset_window import fetch_dataset_window
 
@@ -20,9 +20,11 @@ pytestmark = [
 
 
 def test_data_ready_skips_schedule_when_full_crontab_does_not_match(
+    monkeypatch: pytest.MonkeyPatch,
     client: FlaskClient,
     data_ready_base,
     data_ready_admin_headers,
+    data_ready_db,
     data_ready_user,
 ) -> None:
     """Verify that a fully specified crontab mismatch prevents request generation."""
@@ -60,9 +62,11 @@ def test_data_ready_skips_schedule_when_full_crontab_does_not_match(
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response = trigger_data_ready_and_wait_accepted(
+    response = trigger_data_ready_inline(
+        monkeypatch,
         client,
         data_ready_admin_headers,
+        data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate="2021101900",
     )
@@ -82,9 +86,11 @@ def test_data_ready_skips_schedule_when_full_crontab_does_not_match(
 
 
 def test_data_ready_skips_schedule_when_partial_crontab_does_not_match(
+    monkeypatch: pytest.MonkeyPatch,
     client: FlaskClient,
     data_ready_base,
     data_ready_admin_headers,
+    data_ready_db,
     data_ready_user,
 ) -> None:
     """Verify that even a partial crontab mismatch prevents request generation."""
@@ -121,9 +127,11 @@ def test_data_ready_skips_schedule_when_partial_crontab_does_not_match(
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response = trigger_data_ready_and_wait_accepted(
+    response = trigger_data_ready_inline(
+        monkeypatch,
         client,
         data_ready_admin_headers,
+        data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate="2021101900",
     )

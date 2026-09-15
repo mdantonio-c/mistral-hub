@@ -17,6 +17,7 @@ from mistral.tests.helpers.data_ready import (
     post_data_ready,
     register_schedule_cleanup,
     set_schedule_active,
+    trigger_data_ready_inline,
 )
 from mistral.tests.helpers.dataset_window import fetch_dataset_window
 
@@ -114,10 +115,12 @@ def test_data_ready_schedule_rejects_dataset_not_enabled(
 
 
 def test_data_ready_skips_inactive_schedule(
+    monkeypatch: pytest.MonkeyPatch,
     client: FlaskClient,
     cleanup_registry,
     data_ready_base,
     data_ready_admin_headers,
+    data_ready_db,
     data_ready_user,
 ) -> None:
     """Verify that an inactive on-data-ready schedule does not spawn any request."""
@@ -165,10 +168,11 @@ def test_data_ready_skips_inactive_schedule(
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response, content = post_data_ready(
-        data_ready_base,
+    response = trigger_data_ready_inline(
+        monkeypatch,
         client,
         data_ready_admin_headers,
+        data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate=dataset_window.ref_from.strftime("%Y%m%d%H"),
     )
@@ -179,7 +183,7 @@ def test_data_ready_skips_inactive_schedule(
     assert response.status_code in {200, 202}
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
-    assert content == "1"
+    assert data_ready_base.get_content(response) == "1"
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
     assert not list_schedule_requests(
@@ -191,10 +195,12 @@ def test_data_ready_skips_inactive_schedule(
 
 
 def test_data_ready_skips_schedule_without_on_data_ready_flag(
+    monkeypatch: pytest.MonkeyPatch,
     client: FlaskClient,
     cleanup_registry,
     data_ready_base,
     data_ready_admin_headers,
+    data_ready_db,
     data_ready_user,
 ) -> None:
     """Verify that ordinary schedules ignore data-ready events when the flag is disabled."""
@@ -236,10 +242,11 @@ def test_data_ready_skips_schedule_without_on_data_ready_flag(
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response, content = post_data_ready(
-        data_ready_base,
+    response = trigger_data_ready_inline(
+        monkeypatch,
         client,
         data_ready_admin_headers,
+        data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate=dataset_window.ref_from.strftime("%Y%m%d%H"),
     )
@@ -250,7 +257,7 @@ def test_data_ready_skips_schedule_without_on_data_ready_flag(
     assert response.status_code in {200, 202}
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
-    assert content == "1"
+    assert data_ready_base.get_content(response) == "1"
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
     assert not list_schedule_requests(

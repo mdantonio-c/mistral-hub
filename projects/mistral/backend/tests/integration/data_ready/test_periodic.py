@@ -12,24 +12,18 @@ This gives deterministic tests for the scheduling rules without depending on the
 timing of external workers or on full data extraction side effects.
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
 from restapi.tests import FlaskClient
 
-import mistral.endpoints.data_ready as data_ready_endpoint
-import mistral.tasks.on_data_ready_extractions as on_data_ready_task
-from mistral.tests.helpers.celery_fakes import (
-    AcceptTasksWithoutRunningCelery,
-    InlineDataReadyExtractionCelery,
-)
 from mistral.tests.helpers.data_ready import (
     DATA_READY_DATASET_NAME,
     create_schedule,
     create_schedule_request_record,
     delete_request,
     list_schedule_requests,
-    trigger_data_ready_and_wait_accepted,
+    trigger_data_ready_inline,
     wait_for_schedule_requests,
 )
 from mistral.tests.helpers.dataset_window import fetch_dataset_window
@@ -40,56 +34,6 @@ pytestmark = [
     pytest.mark.deterministic,
     pytest.mark.runtime_sensitive,
 ]
-
-
-def _trigger_data_ready_periodic_inline(
-    monkeypatch: pytest.MonkeyPatch,
-    client: FlaskClient,
-    data_ready_admin_headers,
-    data_ready_db,
-    *,
-    rundate: str,
-):
-    """Drive one data-ready event through the real code path, but fully in-process.
-
-    The helper first calls the real ``/data/ready`` endpoint and intercepts only
-    the Celery submission that would normally enqueue
-    ``launch_all_on_data_ready_extractions`` on an external worker.
-
-    It then runs ``launch_all_on_data_ready_extractions`` directly in the test
-    process and again intercepts the nested ``data_extract`` submission, turning
-    it into a synthetic request row in the database.
-
-    In short: the business logic is real, but the asynchronous transport and the
-    heavy extraction worker are replaced with local fakes.
-    """
-    # The HTTP endpoint is real; this fake only absorbs its Celery submission.
-    monkeypatch.setattr(
-        data_ready_endpoint.celery,
-        "get_instance",
-        lambda: AcceptTasksWithoutRunningCelery(
-            "launch_all_on_data_ready_extractions"
-        ),
-    )
-    response = trigger_data_ready_and_wait_accepted(
-        client,
-        data_ready_admin_headers,
-        model=DATA_READY_DATASET_NAME,
-        rundate=rundate,
-    )
-    # The scheduler logic is real; this fake turns data_extract into a DB row.
-    monkeypatch.setattr(
-        on_data_ready_task.celery,
-        "get_instance",
-        lambda: InlineDataReadyExtractionCelery(data_ready_db),
-    )
-    on_data_ready_task.launch_all_on_data_ready_extractions.run(
-        DATA_READY_DATASET_NAME,
-        datetime.strptime(rundate, "%Y%m%d%H"),
-    )
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
-    return response
 
 
 def _create_two_day_periodic_schedule(
@@ -206,11 +150,12 @@ def test_data_ready_creates_request_when_daily_period_has_elapsed(
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response = _trigger_data_ready_periodic_inline(
+    response = trigger_data_ready_inline(
         monkeypatch,
         client,
         data_ready_admin_headers,
         data_ready_db,
+        model=DATA_READY_DATASET_NAME,
         rundate=trigger_rundate,
     )
 
@@ -268,11 +213,12 @@ def test_data_ready_creates_request_when_two_day_period_has_elapsed(
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response = _trigger_data_ready_periodic_inline(
+    response = trigger_data_ready_inline(
         monkeypatch,
         client,
         data_ready_admin_headers,
         data_ready_db,
+        model=DATA_READY_DATASET_NAME,
         rundate=ref_from.strftime("%Y%m%d%H"),
     )
 
@@ -330,11 +276,12 @@ def test_data_ready_skips_request_before_two_day_period_elapses(
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response = _trigger_data_ready_periodic_inline(
+    response = trigger_data_ready_inline(
         monkeypatch,
         client,
         data_ready_admin_headers,
         data_ready_db,
+        model=DATA_READY_DATASET_NAME,
         rundate=ref_from.strftime("%Y%m%d%H"),
     )
 

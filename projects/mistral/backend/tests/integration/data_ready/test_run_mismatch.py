@@ -11,8 +11,8 @@ from mistral.tests.helpers.data_ready import (
     SECOND_DATA_READY_DATASET_NAME,
     create_schedule,
     list_schedule_requests,
-    post_data_ready,
     register_schedule_cleanup,
+    trigger_data_ready_inline,
 )
 from mistral.tests.helpers.dataset_window import fetch_dataset_window
 
@@ -31,10 +31,12 @@ def _mismatching_rundate(reference_datetime) -> str:
 
 
 def test_data_ready_skips_schedule_for_different_model_dataset(
+    monkeypatch: pytest.MonkeyPatch,
     client: FlaskClient,
     cleanup_registry,
     data_ready_base,
     data_ready_admin_headers,
+    data_ready_db,
     data_ready_user,
 ) -> None:
     """Verify that a data-ready event for another model does not trigger the schedule."""
@@ -76,10 +78,11 @@ def test_data_ready_skips_schedule_for_different_model_dataset(
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response, content = post_data_ready(
-        data_ready_base,
+    response = trigger_data_ready_inline(
+        monkeypatch,
         client,
         data_ready_admin_headers,
+        data_ready_db,
         model=SECOND_DATA_READY_DATASET_NAME,
         rundate=dataset_window.ref_from.strftime("%Y%m%d%H"),
     )
@@ -90,7 +93,7 @@ def test_data_ready_skips_schedule_for_different_model_dataset(
     assert response.status_code in {200, 202}
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
-    assert content == "1"
+    assert data_ready_base.get_content(response) == "1"
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
     assert not list_schedule_requests(
@@ -102,10 +105,12 @@ def test_data_ready_skips_schedule_for_different_model_dataset(
 
 
 def test_data_ready_skips_schedule_for_different_runhour(
+    monkeypatch: pytest.MonkeyPatch,
     client: FlaskClient,
     cleanup_registry,
     data_ready_base,
     data_ready_admin_headers,
+    data_ready_db,
     data_ready_user,
 ) -> None:
     """Verify that a mismatching run hour does not trigger the schedule."""
@@ -147,10 +152,11 @@ def test_data_ready_skips_schedule_for_different_runhour(
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response, content = post_data_ready(
-        data_ready_base,
+    response = trigger_data_ready_inline(
+        monkeypatch,
         client,
         data_ready_admin_headers,
+        data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate=_mismatching_rundate(dataset_window.ref_from),
     )
@@ -161,7 +167,7 @@ def test_data_ready_skips_schedule_for_different_runhour(
     assert response.status_code in {200, 202}
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
-    assert content == "1"
+    assert data_ready_base.get_content(response) == "1"
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
     assert not list_schedule_requests(
