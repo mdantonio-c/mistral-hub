@@ -99,6 +99,7 @@ class MapsObservations(EndpointResource):
         last: bool = False,
         daily: bool = False,
     ) -> Response:
+        # Initialize the database connection and the query dictionary
         alchemy_db = sqlalchemy.get_instance()
         query: Dict[str, Any] = {}
         if lonmin or latmin or lonmax or latmax:
