@@ -1,32 +1,67 @@
-# Review — `helpers/datasets.py` (helper condiviso)
+# Review - `helpers/datasets.py`
 
-> File di review per l'helper di selezione dataset. Non contiene test.
+> Modulo di supporto condiviso. Non contiene test e non decide piu di saltare
+> scenari in base al catalogo disponibile nel runtime.
 
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py)
-- **Scopo**: rendere i test sui dataset meno dipendenti dai dati seed scegliendo "un dataset pubblico realmente presente ora".
-- **Tipologia**: helper di selezione/skip condiviso.
+- **Scopo**: creare un dataset sintetico completo, pubblico o privato, per i test di integrazione.
+- **Consumatori attuali**: `integration/dataset/test_dataset_visibility.py` e `integration/dataset/test_dataset_authorization.py`.
+- **Dipendenze runtime**: connettore SQLAlchemy gia inizializzato e fixture `cleanup_registry`.
 
-## 2. Backend realmente esercitato
+## 2. Elementi definiti
 
-- Consuma il payload di `GET /api/datasets` ([endpoints/datasets.py](projects/mistral/backend/endpoints/datasets.py)) — campo `is_public` e `id`.
+### `create_test_dataset(db, cleanup_registry, *, is_public, prefix="dataset_test")`
 
-## 3. Elementi definiti
+Crea sempre un bundle relazionale nuovo con nomi univoci basati su UUID:
 
-### `first_public_dataset_id(datasets) -> str`
-- Scorre la lista e ritorna l'`id` del primo dataset con `is_public is True`.
-- Se nessun dataset pubblico è presente → `pytest.skip`.
+1. `GroupLicense` con il valore `is_public` richiesto;
+2. `Attribution` sintetica;
+3. `License` collegata al gruppo;
+4. `Datasets` OBS/BUFR collegato a licenza e attribution.
 
-## 4. Comportamenti nascosti
+Il dataset usa lo stesso valore univoco per `name` e `arkimet_id`, viene
+committato prima delle richieste HTTP e viene restituito al test chiamante.
+Non legge license, attribution o dataset seedati e non contiene
+`pytest.skip`.
 
-- **`pytest.skip` se nessun dataset pubblico**: i test chiamanti possono essere saltati silenziosamente in ambienti senza dataset pubblici.
-- Lavora sul payload già scaricato (non fa chiamate proprie): l'attendibilità dipende dalla risposta passata dal chiamante.
+### `_delete_test_dataset_bundle(...)`
 
-## 5. Checklist di revisione
+Callback privata registrata in `cleanup_registry`. Esegue prima un rollback
+difensivo della sessione, poi:
 
-- [ ] Verificare quali test dipendono dalla presenza di almeno un dataset pubblico (rischio skip silenzioso).
+1. stacca tutte le associazioni `dataset.users`;
+2. elimina il dataset;
+3. elimina la license;
+4. elimina il group license;
+5. elimina l'attribution;
+6. esegue il commit finale.
 
-## 6. Possibili criticità
+Ogni lookup e difensivo: il cleanup resta valido anche se una risorsa fosse
+gia stata rimossa dal test. Dopo il commit, quattro assert verificano che
+dataset, license, group license e attribution non siano piu presenti; un
+teardown incompleto diventa quindi un errore visibile della suite.
 
-- **Skip mascherante** in ambienti privi di dataset pubblici: la copertura effettiva è runtime-dependent.
+## 3. Contratto e isolamento
+
+- Ogni chiamata crea un bundle distinto, quindi i test non dipendono dall'ordine.
+- Pubblico e privato sono governati esclusivamente da `GroupLicense.is_public`, come nel backend reale.
+- Gli ID necessari al teardown vengono acquisiti subito dopo il commit e passati al callback.
+- Il teardown LIFO permette ai test di eliminare prima eventuali utenti che referenziano il dataset.
+- Non vengono alterati `license_id` o metadati di dataset reali.
+
+## 4. Limiti residui
+
+- Il helper usa direttamente l'ORM: non verifica gli endpoint CRUD amministrativi di catalogo.
+- Un arresto forzato del processo puo impedire l'esecuzione di qualsiasi teardown pytest.
+- Categoria e formato sono fissati a `OBS` e `bufr`, sufficienti per i contratti di visibilita attuali.
+
+## 5. Validazione
+
+```bash
+.mhub-venv/bin/rapydo shell backend 'restapi tests --folder custom/integration/dataset'
+```
+
+Esito: **5 passed, 0 skipped, 0 failed, 0 errors**. La cartella e stata
+raccolta correttamente anche dopo la rimozione del vecchio `dataset/support.py`.

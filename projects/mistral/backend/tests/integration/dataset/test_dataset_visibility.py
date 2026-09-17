@@ -7,24 +7,22 @@ public dataset, while unknown dataset identifiers must still return ``404``.
 
 import pytest
 from faker import Faker
-from mistral.tests.helpers.datasets import first_public_dataset_id
+from mistral.tests.helpers.datasets import create_test_dataset
 
+from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, FlaskClient
 
 
 pytestmark = [
     pytest.mark.integration,
     pytest.mark.deterministic,
-    pytest.mark.runtime_sensitive,
 ]
-
-
-PUBLIC_DATASET_NAME = "lm5"  # "ICON_2I_SURFACE_PRESSURE_LEVELS"
 
 
 def test_dataset_endpoints_expose_public_catalog_without_login(
     client: FlaskClient,
     faker: Faker,
+    cleanup_registry,
 ) -> None:
     """Verify the basic anonymous contract for the dataset catalog endpoints.
 
@@ -34,14 +32,24 @@ def test_dataset_endpoints_expose_public_catalog_without_login(
     2. one public dataset returned by the catalog can be fetched directly,
     3. an unknown dataset identifier still produces ``404``.
     """
+    # arrange
+    db = sqlalchemy.get_instance()
+    public_dataset = create_test_dataset(
+        db,
+        cleanup_registry,
+        is_public=True,
+        prefix="anonymous_public_dataset",
+    )
+
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
     list_response = client.get(f"{API_URI}/datasets")
-    public_dataset_id = first_public_dataset_id(list_response.json or [])
     # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
     # autorizzazione e serializzazione vengono verificati insieme.
-    dataset_response = client.get(f"{API_URI}/datasets/{public_dataset_id}")
+    dataset_response = client.get(
+        f"{API_URI}/datasets/{public_dataset.arkimet_id}"
+    )
     # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
     # autorizzazione e serializzazione vengono verificati insieme.
     missing_response = client.get(f"{API_URI}/datasets/{faker.pystr()}")
@@ -53,6 +61,11 @@ def test_dataset_endpoints_expose_public_catalog_without_login(
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
     assert isinstance(list_response.json, list)
+    assert any(
+        dataset["id"] == public_dataset.arkimet_id
+        and dataset["is_public"] is True
+        for dataset in list_response.json
+    )
     # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
     # usare il payload.
     assert dataset_response.status_code == 200

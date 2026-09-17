@@ -219,7 +219,7 @@ Linee guida operative:
 - `helpers/celery_fakes.py`: espone finti wrapper Celery per tenere alcuni test completamente locali o inline senza dipendere dal broker reale.
 - `helpers/cleanup.py`: implementa il registro di cleanup LIFO per callback e percorsi filesystem.
 - `helpers/data_ready.py`: contiene l'infrastruttura condivisa del cluster `data_ready/schedules`, inclusi helper per utenti dedicati, payload `/data/ready`, creazione schedule, polling delle richieste schedule e cleanup collegati.
-- `helpers/datasets.py`: aiuta i test che hanno bisogno di trovare un dataset pubblico realmente disponibile nel runtime corrente.
+- `helpers/datasets.py`: crea bundle dataset sintetici pubblici o privati con license, group license, attribution e teardown completo.
 - `helpers/dataset_window.py`: legge `/fields` e normalizza finestra temporale e filtri run di un dataset.
 - `helpers/polling.py`: utility generica `wait_until` per attese osservabili.
 - `helpers/runtime.py`: contiene `TestRuntime`, cioe il runtime condiviso di sessione per cache e override temporanei.
@@ -259,9 +259,8 @@ Linee guida operative:
 
 ### Dominio `dataset`
 
-- `integration/dataset/support.py`: tiene helper locali del dominio dataset per scegliere in modo robusto un dataset pubblico realmente disponibile nel runtime corrente.
-- `integration/dataset/test_dataset_authorization.py`: verifica quali dataset sono accessibili in base ai permessi utente.
-- `integration/dataset/test_dataset_visibility.py`: verifica la visibilita dei dataset nelle diverse condizioni di esposizione.
+- `integration/dataset/test_dataset_authorization.py`: verifica con cataloghi sintetici isolati quali dataset sono accessibili in base ai permessi utente.
+- `integration/dataset/test_dataset_visibility.py`: verifica con un dataset pubblico sintetico la visibilita anonima del catalogo.
 
 ### Dominio `observed`
 

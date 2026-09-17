@@ -5,8 +5,8 @@
 > Generato senza modificare alcun file Python e senza usare `untracked_stuff`.
 
 - **File di test**: 54 moduli `test_*.py` sotto `integration/`
-- **Funzioni di test**: ≈284 `def test_…` (le istanze effettive sono di più per via di `@pytest.mark.parametrize`, soprattutto in `observed/`)
-- **File di review prodotti**: 83 (`*.review.md`) — uno accanto a ogni `test_*.py`, `conftest.py`, `support*.py` e helper
+- **Funzioni di test**: ≈287 `def test_…` (le istanze effettive sono di più per via di `@pytest.mark.parametrize`, soprattutto in `observed/`)
+- **File di review prodotti**: 82 (`*.review.md`) — uno accanto a ogni `test_*.py`, `conftest.py`, `support*.py` e helper attivo
 - **File senza review**: solo i marker di package vuoti (`__init__.py`, `.gitkeep`) e il template non eseguibile `helpers/templates/endpoint_template.py` (review presente, ma è documentazione)
 
 ---
@@ -24,7 +24,7 @@ tests/
 │   ├── cleanup.py                    → CleanupRegistry (teardown LIFO)
 │   ├── data_ready.py                 → builder/seed/poll per data-ready e schedule
 │   ├── dataset_window.py             → normalizza /api/fields (skip su 404)
-│   ├── datasets.py                   → first_public_dataset_id (skip se assente)
+│   ├── datasets.py                   → bundle dataset sintetici + teardown
 │   ├── polling.py                    → wait_until (no sleep ciechi)
 │   ├── runtime.py                    → TestRuntime singleton (cache id + override_attr)
 │   ├── schedules.py                  → builder payload schedule (on-data-ready/crontab/periodic)
@@ -38,7 +38,7 @@ tests/
     ├── customizer/   (1 test)
     ├── data/         (4 test + support_EXT)
     ├── data_ready/   (4 test + conftest)
-    ├── dataset/      (2 test + support)
+    ├── dataset/      (2 test)
     ├── fields/       (1 test + support_EXT)
     ├── initializer/  (1 test)
     ├── observed/     (5 test + conftest + support)
@@ -82,7 +82,7 @@ Legenda livello: **U** = unit/pure-function, **I** = integration HTTP/DB/FS, **T
 | data_ready | `test_crontab.py` | crontab branch `on_data_ready_extractions` | integration | 2 | I |
 | data_ready | `test_periodic.py` | `on_data_ready_extractions` (inline) + Celery fake | integration | 3 | I/T |
 | data_ready | `test_run_mismatch.py` | model/runhour branch `on_data_ready_extractions` | integration | 2 | I |
-| dataset | `test_dataset_authorization.py` | `endpoints/datasets.py`, `get_datasets` | integration | 1 | I |
+| dataset | `test_dataset_authorization.py` | `endpoints/datasets.py`, `get_datasets` | integration | 4 | I |
 | dataset | `test_dataset_visibility.py` | `endpoints/datasets.py` (anonimo) | integration | 1 | I |
 | fields | `test_fields_api_EXT.py` | `endpoints/fields.py`, `services/dballe.py`, `services/arkimet.py` | integration | 21 | I |
 | initializer | `test_initializer_smoke_EXT.py` | `initialization.py` (tutto fakeato) | smoke | 3 | U |
@@ -194,12 +194,12 @@ Per il dettaglio completo aprire il `*.review.md` del file. Sintesi della superf
 | `CleanupRegistry` | [helpers/cleanup.py](projects/mistral/backend/tests/helpers/cleanup.py) | tutta la suite (via `cleanup_registry`) | Teardown LIFO, non ingoia eccezioni |
 | builder/seed/poll data-ready | [helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | data_ready/*, schedules/* | Crea utente `admin_root`, schedule, request sintetiche, polling |
 | `fetch_dataset_window`, `DatasetWindow` | [helpers/dataset_window.py](projects/mistral/backend/tests/helpers/dataset_window.py) | observed, postprocessing, schedules, data | Normalizza `/api/fields`; **`pytest.skip` su 404** |
-| `first_public_dataset_id` | [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py) | dataset/* | **`pytest.skip`** se nessun dataset pubblico |
+| `create_test_dataset` | [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py) | dataset/* | Crea dataset, license, group license e attribution sintetici con cleanup completo |
 | `wait_until` | [helpers/polling.py](projects/mistral/backend/tests/helpers/polling.py) | data_ready, schedules | Retry su predicato, no sleep ciechi |
 | `TestRuntime` (`dataset_id`, `override_attr`) | [helpers/runtime.py](projects/mistral/backend/tests/helpers/runtime.py) | observed, fields, data_ready, schedules, postprocessing | Singleton di sessione: cache id + override attributi |
 | `build_on_data_ready/crontab/periodic_schedule` | [helpers/schedules.py](projects/mistral/backend/tests/helpers/schedules.py) | schedules, data_ready | Builder payload schedule |
 
-Moduli `support`/`support_EXT` locali (NON globali, ma sostanziosi): `admin` (441), `data` (450), `fields` (468), `observed` (579), `opendata` (532), `postprocessing` (920), `tasks` (398), `templates` (184), `requests` (70), `dataset` (33), `access_key` (14). Ognuno ha la sua review.
+Moduli `support`/`support_EXT` locali (NON globali, ma sostanziosi): `admin` (441), `data` (450), `fields` (468), `observed` (579), `opendata` (532), `postprocessing` (920), `tasks` (398), `templates` (184), `requests` (70), `access_key` (14). Ognuno ha la sua review.
 
 ---
 
@@ -267,7 +267,7 @@ Questa sezione concentra i punti emersi dalle review che meritano attenzione pri
 ### 10.1 Skip silenziosi (rischio "verde ma non eseguito")
 - **opendata**: in assenza di ≥1 `Attribution` nel DB, **15 dei 18 test** vengono saltati (inclusi tutti quelli di autorizzazione/sicurezza), anche due validazioni `400` che non avrebbero bisogno del dataset.
 - **observed / fields / postprocessing / schedules-bridge**: numerosi test fanno `pytest.skip` quando il dataset/prodotto/finestra non è disponibile (`fetch_dataset_window` 404, `require_*`). La copertura reale dipende dai dati runtime.
-- **dataset**: `first_public_dataset_id` salta se non c'è alcun dataset pubblico.
+- **dataset**: nessuno skip dipendente dal catalogo; i test creano bundle sintetici completi e li eliminano in teardown.
 
 ### 10.2 Logica verificata nel fake invece che nel backend (rischio falso positivo)
 - **data_ready/test_base_cases (t3/t4), test_crontab, test_run_mismatch**: asseriscono "nessuna richiesta generata" ma `launch_all_on_data_ready_extractions` è **solo accodato, mai eseguito inline** → la decisione reale di gating **non è esercitata**: l'esito vuoto è tautologico.

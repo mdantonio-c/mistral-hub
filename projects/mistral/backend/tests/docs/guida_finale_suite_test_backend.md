@@ -77,7 +77,7 @@ Esempi:
 - `helpers/cleanup.py`: registry LIFO per teardown affidabile;
 - `helpers/auth.py`: utenti temporanei e header di autenticazione;
 - `helpers/polling.py`: attesa osservabile senza `sleep` fissi;
-- `helpers/datasets.py`: supporto per scegliere un dataset pubblico realmente presente nel runtime;
+- `helpers/datasets.py`: creazione e teardown di bundle dataset sintetici pubblici o privati;
 - `helpers/celery_fakes.py`: stand-in Celery usati nei test che devono restare locali o inline;
 - `helpers/data_ready.py`, `helpers/schedules.py`, `helpers/dataset_window.py`: cluster condiviso tra `data_ready` e `schedules`.
 
