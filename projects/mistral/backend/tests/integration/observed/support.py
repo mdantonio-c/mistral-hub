@@ -70,6 +70,13 @@ ARCHIVE_CASES = [
 
 PREFERRED_OBSERVED_NETWORK = "agrmet"
 
+ITALY_BOUNDING_BOX = {
+    "lonmin": 6.7499,
+    "lonmax": 18.4802,
+    "latmin": 36.6199,
+    "latmax": 47.1153,
+}
+
 
 def _prioritized_observed_datasets(dataset_names: list[str]) -> list[str]:
     """Return observed datasets with the known rich ``agrmet`` runtime first.

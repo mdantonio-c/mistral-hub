@@ -32,6 +32,7 @@
 | `RECENT_CASES` | costante | `[dballe, mixed]` (scenari con dato recente). |
 | `ARCHIVE_CASES` | costante | `[arkimet, mixed]` (scenari con dato archiviato). |
 | `PREFERRED_OBSERVED_NETWORK` | costante | `"agrmet"` — network/dataset preferito perché ricco di prodotti. |
+| `ITALY_BOUNDING_BOX` | costante | Dizionario `lonmin`/`lonmax`/`latmin`/`latmax` dell'area italiana, riusato dai test dei filtri spaziali. |
 | `_prioritized_observed_datasets` | privato | Ordina i dataset mettendo prima quelli che espongono `agrmet`. |
 | `_prioritized_networks` | privato | Ordina i network di un dataset preferendo `agrmet`. |
 | `_dballe_network_window` | privato | Scorre `transaction.query_data({"rep_memo": network})` e ritorna la finestra **più ampia** (min→max+1h) o `None`. |
@@ -55,6 +56,7 @@
 - **Connessione DBALLE diretta a basso livello**: `discover_observed_params` apre `dballe.DB.connect(...)` usando le credenziali estratte da `db.variables` del connettore SQLAlchemy. Non passa dall'API: legge direttamente il database DBALLE per individuare la finestra reale. È un accoppiamento forte all'infrastruttura (DSN, rete, permessi DB).
 - **Override `LASTDAYS` applicato due volte**: dentro la scoperta avvolge il probe `/fields`, e in `yield_observed_case` avvolge la **vita della fixture** (quindi l'esecuzione del test). Serve perché una finestra storica (es. agrmet 2020) venga classificata come "dballe recente" da `get_db_type`; senza, lo scenario `dballe`/`mixed` non vedrebbe quei dati. È ripristinato in `finally` da `override_attr`.
 - **License group hardcoded**: `build_reftime_query` aggiunge **sempre** `license:CCBY_COMPLIANT`. L'intero dominio observed assume quindi che `agrmet` (o il dataset scoperto) appartenga a quel gruppo pubblico; un mismatch farebbe fallire la scoperta o le query.
+- **Oracolo geografico condiviso**: `ITALY_BOUNDING_BOX` centralizza la bbox tarata sui dati osservati italiani. Il test della bbox esterna ne scambia volutamente assi e intervalli invece di duplicarne i numeri.
 - **`mixed` combina due mondi**: per `mixed` la finestra è `date_from = arkimet_window[0]` e `date_to = dballe_window[1]`, con override `LASTDAYS` calcolato sul lato dballe — costruisce volutamente un intervallo che attraversa il taglio archivio/recente.
 - **Assert nel setup di `fetch_station_sample`**: `assert response.status_code == 200` e `assert isinstance(content, dict)` avvengono **dentro l'helper**; un problema dell'endpoint si manifesta come errore in fase di arrange del test che lo usa.
 - **`extract_station_coordinates` indicizza `data[0]` senza guard**: presuppone almeno una stazione; combinato con `fetch_station_sample`, un payload vuoto darebbe `IndexError` invece di uno skip leggibile.

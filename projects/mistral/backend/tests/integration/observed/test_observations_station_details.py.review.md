@@ -38,16 +38,16 @@
 - **Obiettivo**: con `onlyStations` la lista stazioni non contiene dettagli prodotto.
 - **Backend coinvolto**: `get` con `onlyStations=True` → `get_maps_response` → `parse_obs_maps_response`.
 - **Flusso**: URL con sola query reftime + `onlyStations=true` → 200.
-- **Assert**: `isinstance(content, dict)`, `200`, `content["data"][0]["prod"] == []`.
-- **Casi coperti**: contratto della modalità solo-stazioni. **Attenzione**: l'assert indicizza `data[0]` **senza guard**: se lo scenario, pur scoperto, non restituisse stazioni in questa specifica chiamata, sarebbe `IndexError` (errore, non skip) — vedi §8.
+- **Assert**: payload `dict`, status `200`, `data` lista non vuota di dizionari e `prod == []` per **tutte** le stazioni.
+- **Casi coperti**: contratto della modalità solo-stazioni. Una risposta senza stazioni produce ora un `AssertionError` esplicito con il backend dello scenario, senza indicizzare direttamente `data[0]`.
 
 ### `test_station_details_returns_success_for_known_station` — `ALL_CASES` (×3)
 - **Obiettivo**: `stationDetails` ha successo per una stazione **scoperta** da una query valida.
 - **Backend coinvolto**: blocco `stationDetails` (networks=1, lat/lon presenti) + query meteogramma.
 - **Flusso**: `fetch_station_sample` (prima query reale → `lat`/`lon` della prima stazione) → seconda chiamata con `stationDetails=true`, `networks=<scoperto>`, `lat`/`lon`.
 - **Setup**: `fetch_station_sample` **asserisce 200 e dict nel suo interno** (un fallimento qui appare come errore di setup).
-- **Assert**: `200`, `content is not None`.
-- **Casi coperti**: happy path dettaglio stazione. Assert volutamente **debole** (`is not None`).
+- **Assert**: `200`, payload `dict`, una sola stazione, `stat.net` e coordinate uguali alla richiesta, lista prodotti non vuota; ogni prodotto espone `var`, `lev`, `trange` e una lista `val` non vuota.
+- **Casi coperti**: happy path e contratto strutturale del dettaglio della stazione richiesta, inclusi metadati di livello/timerange e valori osservati.
 
 ### `test_station_details_with_unknown_network_returns_not_found` — `ALL_CASES` (×3)
 - **Obiettivo**: anche in modalità dettaglio, un network inesistente dà **404**.
@@ -83,22 +83,20 @@ test → request.getfixturevalue(<case_fixture>)  → ObservedCase  [può pytest
 - **Doppia chiamata HTTP per i test che usano `fetch_station_sample`**: due dei quattro test eseguono **prima** una query observed reale per ricavare coordinate plausibili, poi la query sotto test. La prima query **asserisce nel setup** (200 + dict): un problema dell'endpoint può presentarsi come errore di arrange invece che come fallimento del test.
 - **`stationDetails` ricalcola il gruppo licenza**: il controller, in modalità dettaglio, **sovrascrive** `query["license"]` con `get_license_group(station_dataset).name`. Comportamento non visibile dal test ma rilevante per capire perché la coerenza network/licenza non esplode in questi casi.
 - **Skip silenziosi**: l'unico canale di skip è la fixture di scenario (`discover_observed_params`). Questo modulo **non** usa `require_secondary_product`, quindi non salta per "prodotto singolo".
-- **Assert deboli/fragili**: `content is not None` (test 2) verifica pochissimo; `data[0]` senza guard (test 1) assume almeno una stazione nella risposta.
+- **Assert sul payload**: `onlyStations` controlla tutte le stazioni dopo una guard esplicita sulla lista; `stationDetails` vincola il risultato alla stazione richiesta e alla struttura dei prodotti osservati.
 - **Accesso archiviato**: per `arkimet`/`mixed` serve `allowed_obs_archive` dell'utente DEFAULT (`True` di default via customizer).
 
 ## 7. Checklist di revisione
 
 - [ ] Confermare la comprensione dell'indirezione `parametrize`+`getfixturevalue` (4 corpi × 3 scenari = 12 istanze).
 - [ ] Verificare in CI il numero di istanze `skipped`: la copertura reale dipende dalla presenza di scenari osservati.
-- [ ] Valutare se l'assert `content is not None` di `test_station_details_returns_success_for_known_station` sia troppo debole per certificare il contratto dettaglio.
-- [ ] Aggiungere/valutare un guard per `content["data"][0]` in `onlyStations` (rischio `IndexError` se la risposta è vuota).
+- [x] Sostituito `content is not None` con assert sul contenuto specifico di `stationDetails`.
+- [x] Aggiunta una guard esplicita sulla lista `data` in `onlyStations`, verificando inoltre tutte le stazioni.
 - [ ] Confermare che il 404 del test "unknown network" derivi dal network e non da altra causa (l'ordine dei controlli lo garantisce).
 - [ ] Confermare `allowed_obs_archive=True` per l'utente DEFAULT (scenari archiviati).
 
-## 8. Possibili criticità
+## 8. Possibili criticità residue
 
-- **`IndexError` invece di skip/assert leggibile**: `content["data"][0]["prod"]` presuppone almeno una stazione; se uno scenario scoperto restituisse `data == []` per la modalità `onlyStations`, il test crasherebbe in modo poco diagnostico anziché fallire/saltare in modo pulito.
-- **Assert poco stringente** nel test happy-path dettaglio (`is not None`): un payload degenere ma non nullo passerebbe.
 - **Copertura condizionata dal runtime**: come per filters, molte istanze possono `skip` se mancano dati `dballe`/`arkimet`/`mixed`.
 - **Assert nel setup di `fetch_station_sample`**: i fallimenti dell'endpoint nella prima query appaiono come errori di fixture, più difficili da triagare.
 - **Il 404 "stazione inesistente" NON è qui**: la modalità dettaglio con stazione assente (ma network valido) è demandata al modulo edge cases EXT, dove emerge un problema di backend (ramo `NotFound` di fatto irraggiungibile).
@@ -107,7 +105,7 @@ test → request.getfixturevalue(<case_fixture>)  → ObservedCase  [può pytest
 
 | Test | Scenari | Backend | Cosa verifica | Skip silenzioso | Complessità |
 |---|---|---|---|---|---|
-| `test_only_stations_returns_entries_without_products` | ALL ×3 | `onlyStations` | 200 + `data[0].prod == []` | fixture | Bassa |
-| `test_station_details_returns_success_for_known_station` | ALL ×3 | blocco `stationDetails` | 200 + `content is not None` | fixture | Media |
+| `test_only_stations_returns_entries_without_products` | ALL ×3 | `onlyStations` | 200 + lista stazioni non vuota + tutti i `prod == []` | fixture | Bassa |
+| `test_station_details_returns_success_for_known_station` | ALL ×3 | blocco `stationDetails` | 200 + stazione richiesta + prodotti strutturati e valorizzati | fixture | Media |
 | `test_station_details_with_unknown_network_returns_not_found` | ALL ×3 | `from_network_to_dataset` None | 404 | fixture | Bassa |
 | `test_station_details_without_coordinates_returns_bad_request` | ALL ×3 | "Parameters to get station details are missing" | 400 | fixture | Bassa |

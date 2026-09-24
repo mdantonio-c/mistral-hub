@@ -31,6 +31,7 @@
 | `request` | fixture | `pytest` | Usata per `getfixturevalue(case_fixture)`: risolve dinamicamente la fixture di scenario. |
 | `dballe_observed_case` / `arkimet_observed_case` / `mixed_observed_case` | fixture locale | [observed/conftest.py](projects/mistral/backend/tests/integration/observed/conftest.py) | Producono un `ObservedCase` (auth + tipo db + finestra/parametri scoperti). **Possono fare `pytest.skip`** se non c'è dato utilizzabile. |
 | `ALL_CASES` / `ARCHIVE_CASES` / `RECENT_CASES` | costante | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | Liste di `pytest.param` con i **nomi** delle fixture (`id="dballe|arkimet|mixed"`). |
+| `ITALY_BOUNDING_BOX` | costante | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | Coordinate nominali dell'area italiana, passate al builder nei test bbox e filtri combinati. |
 | `build_reftime_query`, `build_observations_endpoint`, `fetch_observations`, `extract_products`, `require_secondary_product` | helper | [observed/support.py](projects/mistral/backend/tests/integration/observed/support.py) | Costruzione query/URL, chiamata HTTP, estrazione prodotti, **skip** se manca il secondo prodotto. |
 | `auth_headers` (indiretta) | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente **DEFAULT** loggato; il customizer gli assegna `allowed_obs_archive=True` ([customization.py](projects/mistral/backend/customization.py#L33)) → gli scenari `arkimet`/`mixed` non vengono respinti con 401. Iniettata dentro le fixture di scenario, non direttamente nel test. |
 | `uuid4` | stdlib | `uuid` | Genera un nome network sicuramente inesistente. |
@@ -72,13 +73,13 @@
 ### `test_bounding_box_filter_returns_matching_products` — `ALL_CASES` (×3)
 - **Obiettivo**: una bbox valida sull'Italia (`lon 6.75–18.48`, `lat 36.62–47.12`) mantiene i prodotti.
 - **Backend coinvolto**: ramo bbox (tutti e 4 i lati presenti) + query.
-- **Flusso**: `require_secondary_product` → URL con bbox → 200 → prodotti presenti.
+- **Flusso**: `require_secondary_product` → URL con `**ITALY_BOUNDING_BOX` → 200 → prodotti presenti.
 - **Assert**: `200`, entrambi i prodotti.
 
 ### `test_outside_bounding_box_returns_empty_data` — `ALL_CASES` (×3)
 - **Obiettivo**: una bbox **fuori** dall'area stazioni restituisce `data == []` con **200**.
 - **Backend coinvolto**: query con bbox che non interseca stazioni.
-- **Flusso**: i valori sono volutamente **scambiati** (`lonmin=36.62…`, `latmin=6.75…`): la "scatola" cade su lon 36–47 / lat 6–18, lontano dall'Italia → nessuna stazione.
+- **Flusso**: gli intervalli di `ITALY_BOUNDING_BOX` sono volutamente **scambiati** (`lon*=lat*`, `lat*=lon*`): la "scatola" cade su lon 36–47 / lat 6–18, lontano dall'Italia → nessuna stazione.
 - **Assert**: `200`, `content["data"] == []`. **Non** richiede secondo prodotto.
 
 ### `test_product_filter_returns_only_requested_product` — `ALL_CASES` (×3)
@@ -94,7 +95,7 @@
 
 ### `test_combined_filters_return_only_requested_product` — `ALL_CASES` (×3)
 - **Obiettivo**: reftime + network + bbox + product restano **mutuamente coerenti** (solo `product_1`).
-- **Flusso**: `require_secondary_product` → URL con tutti i filtri (bbox Italia, network scoperto, product_1) → 200.
+- **Flusso**: `require_secondary_product` → URL con tutti i filtri (`ITALY_BOUNDING_BOX`, network scoperto, product_1) → 200.
 - **Assert**: `200`, `product_1 in`, `product_2 not in`.
 
 ## 5. Call chain
@@ -125,7 +126,7 @@ test → [require_secondary_product(case)]  [può pytest.skip se product_2 is No
   - `require_secondary_product` fa `pytest.skip` quando lo scenario espone **un solo** prodotto: tutti i test "matching products" e "product filter" sono saltabili.
 - **Accesso ai dati archiviati senza 401**: per gli scenari `arkimet`/`mixed` il `db_type` è archiviato e l'endpoint richiede `allowed_obs_archive`. Funziona perché l'utente DEFAULT lo ha `True` di default ([customization.py](projects/mistral/backend/customization.py#L33)); se quel default cambiasse, questi scenari darebbero 401 invece di 200.
 - **Override `LASTDAYS` dentro la fixture**: per gli scenari `dballe`/`mixed` la fixture può patchare `BeDballe.LASTDAYS` (via `test_runtime.override_attr`) così che una finestra storica venga classificata come "recente". L'override avvolge solo la fase di scoperta nella fixture, **non** il corpo del test (vedi review di `conftest.py`/`support.py`).
-- **bbox "fuori area" costruita per scambio coordinate**: il test outside-bbox riusa gli stessi numeri della bbox valida ma scambiando lon/lat, ottenendo una scatola geograficamente lontana — trucco non evidente leggendo solo i numeri.
+- **bbox "fuori area" costruita per scambio coordinate**: il test outside-bbox deriva esplicitamente i quattro valori da `ITALY_BOUNDING_BOX`, scambiando lon/lat e ottenendo una scatola geograficamente lontana.
 - **`extract_products` naviga la struttura annidata** `data[].prod[].var`: l'assert sui prodotti dipende dalla forma prodotta da `parse_obs_maps_response`.
 
 ## 7. Checklist di revisione
@@ -141,7 +142,7 @@ test → [require_secondary_product(case)]  [può pytest.skip se product_2 is No
 
 - **Copertura potenzialmente illusoria**: con discovery o secondo prodotto assenti, gran parte delle 28 istanze può fare `skip`; il modulo può apparire "verde" pur eseguendo poco. È il rischio principale.
 - **Dipendenza da seed runtime non controllato**: i test non *creano* dati osservati, li *scoprono*. La stabilità dipende dalla presenza di `agrmet` (preferito) o di un altro dataset osservato ricco di prodotti.
-- **Oracoli geografici hardcoded**: le bbox sono numeri fissi tarati sull'Italia; un cambio di area dati renderebbe ambigui i test inside/outside.
+- **Oracolo geografico runtime-sensitive**: `ITALY_BOUNDING_BOX` centralizza i numeri fissi tarati sull'Italia, ma un cambio di area dati renderebbe comunque ambigui i test inside/outside.
 - **Accoppiamento all'utente DEFAULT condiviso** e al suo permesso `allowed_obs_archive` per gli scenari archiviati.
 - **`content["data"][0]` non usato qui** ma usato nei test stazione: la robustezza all'assenza di dati è demandata agli helper/`require_secondary_product`, non sempre a un guard esplicito.
 

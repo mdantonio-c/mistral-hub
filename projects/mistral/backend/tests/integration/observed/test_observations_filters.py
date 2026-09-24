@@ -8,6 +8,7 @@ from restapi.tests import FlaskClient
 from .support import (
     ALL_CASES,
     ARCHIVE_CASES,
+    ITALY_BOUNDING_BOX,
     RECENT_CASES,
     build_observations_endpoint,
     build_reftime_query,
@@ -200,10 +201,7 @@ def test_bounding_box_filter_returns_matching_products(
     require_secondary_product(observed_case)
     endpoint = build_observations_endpoint(
         query=build_reftime_query(observed_case.params),
-        lonmin=6.7499,
-        lonmax=18.4802,
-        latmin=36.6199,
-        latmax=47.1153,
+        **ITALY_BOUNDING_BOX,
     )
 
     # act
@@ -244,10 +242,10 @@ def test_outside_bounding_box_returns_empty_data(
     observed_case = request.getfixturevalue(case_fixture)
     endpoint = build_observations_endpoint(
         query=build_reftime_query(observed_case.params),
-        lonmin=36.6199,
-        lonmax=47.1153,
-        latmin=6.7499,
-        latmax=18.4802,
+        lonmin=ITALY_BOUNDING_BOX["latmin"],
+        lonmax=ITALY_BOUNDING_BOX["latmax"],
+        latmin=ITALY_BOUNDING_BOX["lonmin"],
+        latmax=ITALY_BOUNDING_BOX["lonmax"],
     )
 
     # act
@@ -369,10 +367,7 @@ def test_combined_filters_return_only_requested_product(
             product=observed_case.params.product_1,
         ),
         networks=observed_case.params.network,
-        lonmin=6.7499,
-        lonmax=18.4802,
-        latmin=36.6199,
-        latmax=47.1153,
+        **ITALY_BOUNDING_BOX,
     )
 
     # act

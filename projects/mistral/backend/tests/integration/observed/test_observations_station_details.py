@@ -51,9 +51,13 @@ def test_only_stations_returns_entries_without_products(
     # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
     # usare il payload.
     assert response.status_code == 200
+    stations = content.get("data")
+    assert isinstance(stations, list)
+    assert stations, f"No stations returned for the {observed_case.db_type} case"
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
-    assert content["data"][0]["prod"] == []
+    assert all(isinstance(station, dict) for station in stations)
+    assert all(station.get("prod") == [] for station in stations)
 
 
 @pytest.mark.parametrize("case_fixture", ALL_CASES)
@@ -89,9 +93,28 @@ def test_station_details_returns_success_for_known_station(
     # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
     # questo test vuole proteggere.
     assert response.status_code == 200
-    # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
-    # arrivato fin qui senza eccezioni.
-    assert content is not None
+    assert isinstance(content, dict)
+    stations = content.get("data")
+    assert isinstance(stations, list)
+    assert stations, f"No station details returned for the {observed_case.db_type} case"
+    assert len(stations) == 1
+
+    station = stations[0]
+    assert isinstance(station, dict)
+    station_metadata = station.get("stat")
+    assert isinstance(station_metadata, dict)
+    assert station_metadata.get("net") == observed_case.params.network
+    assert station_metadata.get("lat") == pytest.approx(station_lat)
+    assert station_metadata.get("lon") == pytest.approx(station_lon)
+
+    products = station.get("prod")
+    assert isinstance(products, list)
+    assert products, f"No products returned for the {observed_case.db_type} station"
+    for product in products:
+        assert isinstance(product, dict)
+        assert {"var", "lev", "trange", "val"} <= product.keys()
+        assert isinstance(product["val"], list)
+        assert product["val"]
 
 
 @pytest.mark.parametrize("case_fixture", ALL_CASES)
