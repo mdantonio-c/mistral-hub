@@ -3,10 +3,13 @@
 from uuid import uuid4
 
 import pytest
+from mistral.endpoints import OPENDATA_DIR
+from mistral.tests.helpers.cleanup import CleanupRegistry
+from mistral.tests.helpers.datasets import create_test_dataset
 from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, BaseTests, FlaskClient
 
-from .support import create_download_env, create_test_dataset, zip_filenames
+from .support import FakeOpendataResult, create_download_env, zip_filenames
 
 
 pytestmark = [
@@ -14,6 +17,21 @@ pytestmark = [
     pytest.mark.deterministic,
     pytest.mark.runtime_sensitive,
 ]
+
+
+def _run_teardown_and_assert_seeded_files_removed(
+    cleanup_registry: CleanupRegistry,
+    seeded_results: list[FakeOpendataResult],
+) -> None:
+    """Run the registered teardown and verify every seeded file disappears."""
+    output_paths = [OPENDATA_DIR / result.filename for result in seeded_results]
+    missing_paths = [path for path in output_paths if not path.is_file()]
+    assert not missing_paths, f"Seeded files missing before teardown: {missing_paths}"
+
+    cleanup_registry.run()
+
+    remaining_paths = [path for path in output_paths if path.exists()]
+    assert not remaining_paths, f"Seeded files left after teardown: {remaining_paths}"
 
 
 def test_dataset_download_unknown_dataset_returns_404(client: FlaskClient) -> None:
@@ -37,18 +55,13 @@ def test_dataset_download_unknown_dataset_returns_404(client: FlaskClient) -> No
 
 def test_dataset_download_rejects_invalid_reftime(
     client: FlaskClient,
-    cleanup_registry,
 ) -> None:
     """Verify that the download endpoint validates reftime query formatting."""
     # arrange
     # Prepariamo lo scenario opendata con dati minimi e controllati, cosi la verifica
     # successiva resta legata a un comportamento preciso.
-    dataset = create_test_dataset(
-        sqlalchemy.get_instance(),
-        cleanup_registry,
-        is_public=True,
-    )
-    endpoint = f"{API_URI}/opendata/{dataset.arkimet_id}/download?reftime=2020/31/01"
+    dataset_name = f"missing_{uuid4().hex}"
+    endpoint = f"{API_URI}/opendata/{dataset_name}/download?reftime=2020/31/01"
 
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
@@ -69,18 +82,13 @@ def test_dataset_download_rejects_invalid_reftime(
 
 def test_dataset_download_rejects_invalid_run(
     client: FlaskClient,
-    cleanup_registry,
 ) -> None:
     """Verify that the download endpoint validates run query formatting."""
     # arrange
     # Prepariamo lo scenario opendata con dati minimi e controllati, cosi la verifica
     # successiva resta legata a un comportamento preciso.
-    dataset = create_test_dataset(
-        sqlalchemy.get_instance(),
-        cleanup_registry,
-        is_public=True,
-    )
-    endpoint = f"{API_URI}/opendata/{dataset.arkimet_id}/download?run=2500"
+    dataset_name = f"missing_{uuid4().hex}"
+    endpoint = f"{API_URI}/opendata/{dataset_name}/download?run=2500"
 
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
@@ -215,6 +223,7 @@ def test_dataset_download_zips_all_results(
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
     response = client.get(endpoint)
+    cleanup_registry.add(response.close)
 
     # assert
     # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
@@ -236,6 +245,7 @@ def test_dataset_download_zips_all_results(
     assert zip_filenames(response) == sorted(
         result.filename for result in seeded_results
     )
+    _run_teardown_and_assert_seeded_files_removed(cleanup_registry, seeded_results)
 
 
 def test_dataset_download_zips_results_filtered_by_reftime(
@@ -255,6 +265,7 @@ def test_dataset_download_zips_results_filtered_by_reftime(
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
     response = client.get(endpoint)
+    cleanup_registry.add(response.close)
 
     # assert
     # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
@@ -276,6 +287,7 @@ def test_dataset_download_zips_results_filtered_by_reftime(
     assert zip_filenames(response) == sorted(
         result.filename for result in seeded_results[:2]
     )
+    _run_teardown_and_assert_seeded_files_removed(cleanup_registry, seeded_results)
 
 
 def test_dataset_download_zips_results_filtered_by_run(
@@ -293,6 +305,7 @@ def test_dataset_download_zips_results_filtered_by_run(
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
     response = client.get(endpoint)
+    cleanup_registry.add(response.close)
 
     # assert
     # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
@@ -314,6 +327,7 @@ def test_dataset_download_zips_results_filtered_by_run(
     assert zip_filenames(response) == sorted(
         result.filename for result in (seeded_results[0], seeded_results[2])
     )
+    _run_teardown_and_assert_seeded_files_removed(cleanup_registry, seeded_results)
 
 
 def test_dataset_download_returns_single_file_when_query_matches_one_result(
@@ -334,6 +348,7 @@ def test_dataset_download_returns_single_file_when_query_matches_one_result(
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
     response = client.get(endpoint)
+    cleanup_registry.add(response.close)
 
     # assert
     # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
@@ -345,7 +360,7 @@ def test_dataset_download_returns_single_file_when_query_matches_one_result(
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
     assert response.get_data(as_text=True) == seeded_results[1].content
-    response.close()
+    _run_teardown_and_assert_seeded_files_removed(cleanup_registry, seeded_results)
 
 
 def test_file_download_unknown_file_returns_404(client: FlaskClient) -> None:

@@ -17,39 +17,15 @@ from typing import Any, Sequence
 from uuid import uuid4
 from zipfile import ZipFile
 
-import pytest
 from mistral.endpoints import OPENDATA_DIR
-from mistral.models.sqlalchemy import DatasetCategories
 from mistral.tests.helpers.auth import (
     AuthenticatedTestUser,
     create_authenticated_test_user,
     register_test_user_cleanup,
 )
+from mistral.tests.helpers.datasets import create_test_dataset
 from restapi.connectors import sqlalchemy
 from restapi.tests import BaseTests, FlaskClient
-
-DEFAULT_BOUNDING = (
-    "POLYGON ((-17.5374014843514558 25.8214118125177627, "
-    "-29.6618577019240988 49.1185603319763260, "
-    "-18.1123487722656762 52.2082915170863942, "
-    "-5.2841914142956252 54.2586288297216370, "
-    "8.3858281354571460 55.0739215029660087, "
-    "22.1519686504923001 54.5643432849449539, "
-    "35.2289961673372574 52.7869189178025664, "
-    "47.0956192803686022 49.9188746081732049, "
-    "47.1122744703592744 49.8885465483880779, "
-    "35.6138690063754808 26.3910672255853775, "
-    "-17.5374014843514558 25.8214118125177627))"
-)
-
-
-@dataclass(frozen=True)
-class TestDataset:
-    """Small record exposing both numeric and arkimet identifiers for one dataset."""
-
-    id: int
-    arkimet_id: str
-
 
 @dataclass(frozen=True)
 class OpendataSeedSpec:
@@ -119,85 +95,6 @@ def register_user_cleanup(
     )
 
 
-def create_test_dataset(
-    db,
-    cleanup_registry,
-    *,
-    is_public: bool,
-    prefix: str = "opendata",
-) -> TestDataset:
-    """Create a temporary dataset together with its license records and cleanup.
-
-    Opendata tests often need a dataset whose visibility they fully control. This
-    helper creates a dedicated dataset plus its attribution and license structure
-    so the test scenario stays isolated from unrelated catalog data.
-    """
-    # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
-    # il backend espone in produzione quando possibile.
-    attribution = db.Attribution.query.first()
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
-    if attribution is None:
-        # Saltiamo lo scenario quando i dati runtime richiesti non esistono, perche il
-        # contratto non sarebbe verificabile in modo significativo.
-        pytest.skip("At least one attribution is required to create test datasets")
-
-    token = uuid4().hex[:12]
-    dataset_name = f"{prefix}_{token}"
-
-    group_license = db.GroupLicense(
-        name=f"{dataset_name}_group",
-        descr=f"Temporary license group for {dataset_name}",
-        is_public=is_public,
-    )
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
-    db.session.add(group_license)
-    db.session.flush()
-
-    license_entry = db.License(
-        name=f"{dataset_name}_license",
-        descr=f"Temporary license for {dataset_name}",
-        group_license_id=group_license.id,
-    )
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
-    db.session.add(license_entry)
-    db.session.flush()
-
-    dataset = db.Datasets(
-        arkimet_id=dataset_name,
-        name=dataset_name,
-        description=f"Temporary dataset for {dataset_name}",
-        category=DatasetCategories.OBS,
-        fileformat="bufr",
-        license_id=license_entry.id,
-        attribution_id=attribution.id,
-        bounding=DEFAULT_BOUNDING,
-    )
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
-    db.session.add(dataset)
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
-    db.session.commit()
-
-    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
-    # anche in caso di fallimento.
-    cleanup_registry.add(
-        lambda: _delete_dataset_bundle(
-            db,
-            dataset_id=dataset.id,
-            license_id=license_entry.id,
-            group_license_id=group_license.id,
-        )
-    )
-
-    # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
-    # nelle asserzioni.
-    return TestDataset(id=dataset.id, arkimet_id=dataset.arkimet_id)
-
-
 def authorize_user_for_dataset(db, user_uuid: str, dataset_id: int) -> None:
     """Grant one existing user access to one existing dataset if not already linked."""
     # Entriamo nel blocco operativo dell'helper opendata, mantenendo esplicito quale
@@ -253,11 +150,14 @@ def create_fake_opendata_result(
     # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
     # non vedrebbero lo scenario preparato.
     db.session.commit()
+    request_id = request.id
+    cleanup_registry.add(lambda: _delete_request_row(db, request_id))
 
     filename = f"{uuid4().hex}.grib"
     output_path = Path(OPENDATA_DIR, filename)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(file_content, encoding="utf-8")
+    cleanup_registry.add(lambda: _delete_file(output_path))
 
     file_output = db.FileOutput(
         user_id=request_owner_id,
@@ -271,13 +171,6 @@ def create_fake_opendata_result(
     # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
     # non vedrebbero lo scenario preparato.
     db.session.commit()
-
-    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
-    # anche in caso di fallimento.
-    cleanup_registry.add(lambda: _delete_request_row(db, request.id))
-    # Agganciamo il cleanup appena creiamo la risorsa, cosi il teardown resta affidabile
-    # anche in caso di fallimento.
-    cleanup_registry.add(lambda: _delete_file(output_path))
 
     # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
     # nelle asserzioni.
@@ -460,53 +353,6 @@ def _build_run_filter(run: str) -> list[dict[str, Any]]:
     ]
 
 
-def _delete_dataset_bundle(
-    db,
-    *,
-    dataset_id: int,
-    license_id: int,
-    group_license_id: int,
-) -> None:
-    """Remove a temporary dataset together with its license and group-license records."""
-    # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
-    # gli scenari successivi.
-    dataset = db.Datasets.query.get(dataset_id)
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
-    if dataset is not None:
-        # Scorriamo gli elementi restituiti dal backend per trovare solo quelli
-        # rilevanti per questo scenario.
-        for user in dataset.users.all():
-            dataset.users.remove(user)
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
-        db.session.delete(dataset)
-
-    # Leggiamo lo stato dal database di test per collegare la risposta API agli effetti
-    # persistiti dal backend.
-    license_entry = db.License.query.get(license_id)
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
-    if license_entry is not None:
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
-        db.session.delete(license_entry)
-
-    # Leggiamo lo stato dal database di test per collegare la risposta API agli effetti
-    # persistiti dal backend.
-    group_license = db.GroupLicense.query.get(group_license_id)
-    # Gestiamo esplicitamente il caso limite, cosi il test spiega cosa deve succedere
-    # quando lo stato non e quello ideale.
-    if group_license is not None:
-        # Persistiamo la modifica nel database di test, altrimenti le chiamate
-        # successive non vedrebbero lo scenario preparato.
-        db.session.delete(group_license)
-
-    # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
-    # non vedrebbero lo scenario preparato.
-    db.session.commit()
-
-
 def _delete_request_row(db, request_id: int) -> None:
     """Delete a synthetic request row if it still exists in the test database."""
     # Rimuoviamo lo stato creato dal test per non lasciare dati che possano influenzare
@@ -523,6 +369,7 @@ def _delete_request_row(db, request_id: int) -> None:
     # Persistiamo la modifica nel database di test, altrimenti le chiamate successive
     # non vedrebbero lo scenario preparato.
     db.session.commit()
+    assert db.Request.query.get(request_id) is None
 
 
 def _delete_file(path: Path) -> None:
@@ -531,3 +378,4 @@ def _delete_file(path: Path) -> None:
     # gli scenari successivi.
     if path.exists():
         path.unlink()
+    assert not path.exists()

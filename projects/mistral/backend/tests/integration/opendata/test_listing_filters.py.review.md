@@ -1,7 +1,7 @@
 # Review — `test_listing_filters.py`
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
-> Dominio **opendata** marcato `runtime_sensitive`: 3 dei 4 test sono **silenziosamente skippabili** (vedi §6).
+> Dominio **opendata** marcato `runtime_sensitive`: tutti i 4 test vengono eseguiti senza skip dipendenti dal catalogo runtime.
 
 ## 1. Informazioni generali
 
@@ -27,7 +27,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test; chiamate **anonime** (dataset pubblico). |
 | `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown **LIFO**. |
-| `create_listing_env` | helper locale | [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) | Crea dataset **pubblico** + 2 risultati (01/01@00:00, 02/01@12:00); **può `pytest.skip`** se manca `Attribution`. |
+| `create_listing_env` | helper locale | [opendata/support.py](projects/mistral/backend/tests/integration/opendata/support.py) | Crea dataset **pubblico** isolato + 2 risultati (01/01@00:00, 02/01@12:00); attribution e licenze sono sintetiche, senza precondizioni di skip. |
 | `BaseTests().get_content` | helper | `restapi.tests` | Decodifica il body JSON della lista. |
 | `timedelta`, `uuid4` | stdlib | — | Costruzione finestre reftime e id dataset inesistente. |
 
@@ -88,7 +88,7 @@ GET /datasets/<id>/opendata?q=...  → auth.optional → OpendataFileList.get
 
 ## 6. Comportamenti nascosti
 
-- **3 test su 4 silenziosamente skippabili**: tutti quelli che passano da `create_listing_env` → `create_test_dataset` (`pytest.skip` se nessun `Attribution`). Solo `test_listing_unknown_dataset_returns_404` è immune.
+- **Nessuno skip silenzioso**: `create_listing_env` usa il dataset helper condiviso, che crea anche l'attribution sintetica; tutti i quattro scenari sono sempre raccolti ed eseguiti.
 - **Due filtri con motori diversi**: il **run** filtra via **containment JSONB** in DB; il **reftime** filtra **in Python** dopo la query (e con semantica "finestra inclusiva", `reftime_from < from or reftime_to > to → continue`). Questa doppia natura è la chiave del test "lista vuota".
 - **`reftime` non entra nella query JSONB**: la query DB contiene solo `datasets` (+ eventuale `filters.run`); il reftime non restringe la query SQL ma solo il post-filtro.
 - **Parsing `q` fragile**: usa `e.split("run:")[1]`, `ref.strip(">=")`/`strip("<=")` (rimuove **caratteri**, non prefissi) e `datetime.strptime(..., "%Y-%m-%d %H:%M")`. Funziona per gli input dei test ma è sensibile a spazi/format.
@@ -99,7 +99,7 @@ GET /datasets/<id>/opendata?q=...  → auth.optional → OpendataFileList.get
 
 ## 7. Checklist di revisione
 
-- [ ] **Segnalare lo skip silenzioso** dei 3 test con seeding (precondizione `Attribution`).
+- [x] Eliminato lo skip silenzioso tramite dataset e attribution sintetici.
 - [ ] Confermare la semantica "finestra inclusiva" del filtro reftime (esclude i pacchetti il cui `[from,to]` esce dalla finestra) come comportamento voluto.
 - [ ] Verificare la robustezza del parser `q` rispetto a spazi/format alternativi (oggi coperto solo il formato esatto dei test).
 - [ ] Valutare un test che faccia scattare la guardia `ServerError` su `vars` eterogenei (oggi codice non coperto).
@@ -108,7 +108,6 @@ GET /datasets/<id>/opendata?q=...  → auth.optional → OpendataFileList.get
 
 ## 8. Possibili criticità
 
-- **Copertura azzerabile senza preavviso** se l'ambiente non ha `Attribution`.
 - **Doppio motore di filtro** (DB containment per run, Python per reftime): un refactor che unificasse o spostasse i filtri potrebbe rompere silenziosamente questi test (match vuoti "plausibili" rendono difficile distinguere un regresso da un comportamento atteso).
 - **Parser `q` fragile** (`strip` su set di caratteri, split per prefisso): rischio di falsi positivi/negativi con input leggermente diversi; i test non lo stressano.
 - **Dipendenza non mockata da arkimet** (`decode_run`) introdotta nel listing run-filtrato.
@@ -119,6 +118,6 @@ GET /datasets/<id>/opendata?q=...  → auth.optional → OpendataFileList.get
 | Test | Backend | Cosa verifica | Mock | Fixture (incl. locali) | Skip silenzioso |
 |---|---|---|---|---|---|
 | `test_listing_unknown_dataset_returns_404` | `OpendataFileList.get` (404) | `404` su dataset inesistente | — | `client` | No |
-| `test_listing_filters_by_run_returns_matching_package` | parsing run + containment + `decode_run` | 1 solo pacchetto per il run | — (DB+FS) | `client`, `cleanup_registry`, `create_listing_env` | **Sì** |
-| `test_listing_filters_by_reftime_returns_matching_package` | finestra reftime (filtro Python) | 1 solo pacchetto nella finestra | — (DB+FS) | `client`, `cleanup_registry`, `create_listing_env` | **Sì** |
-| `test_listing_filters_by_reftime_and_run_can_exclude_results` | run (DB) + reftime (Python) | lista **vuota** con `200` | — (DB+FS) | `client`, `cleanup_registry`, `create_listing_env` | **Sì** |
+| `test_listing_filters_by_run_returns_matching_package` | parsing run + containment + `decode_run` | 1 solo pacchetto per il run | — (DB+FS) | `client`, `cleanup_registry`, `create_listing_env` | No |
+| `test_listing_filters_by_reftime_returns_matching_package` | finestra reftime (filtro Python) | 1 solo pacchetto nella finestra | — (DB+FS) | `client`, `cleanup_registry`, `create_listing_env` | No |
+| `test_listing_filters_by_reftime_and_run_can_exclude_results` | run (DB) + reftime (Python) | lista **vuota** con `200` | — (DB+FS) | `client`, `cleanup_registry`, `create_listing_env` | No |

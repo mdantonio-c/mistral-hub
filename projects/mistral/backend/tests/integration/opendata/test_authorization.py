@@ -94,9 +94,11 @@ def test_private_dataset_endpoints_allow_authorized_user(
     # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
     # autorizzazione e serializzazione vengono verificati insieme.
     download_response = client.get(download_endpoint, headers=user.headers)
+    cleanup_registry.add(download_response.close)
     # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
     # autorizzazione e serializzazione vengono verificati insieme.
     file_response = client.get(file_endpoint, headers=user.headers)
+    cleanup_registry.add(file_response.close)
 
     # assert
     # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che
@@ -117,11 +119,9 @@ def test_private_dataset_endpoints_allow_authorized_user(
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
     assert download_response.get_data(as_text=True) == result.content
-    download_response.close()
     # Verifichiamo che la risposta confermi che l'operazione richiesta e andata a buon fine prima di
     # usare il payload.
     assert file_response.status_code == 200
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
     assert file_response.get_data(as_text=True) == result.content
-    file_response.close()
