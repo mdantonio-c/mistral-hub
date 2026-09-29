@@ -23,8 +23,8 @@ prodtab = {
             204: "Height of snow fall limit",
             205: "Massflux at convective cloud base",
         },
-        15: {17: "Precipitation rate"},
-        # Mappings found in DWD local tables (edzw). Not present for centre 80 (cnmc).
+        15: {17: "Precipitation rate from radar"},
+        # Mappings found at https://codes.ecmwf.int/grib/param-db/260689. Not present for centre 80 (cnmc).
         17: {
             192: "Maximum CAPE in last 6h",  # DWD
         },
