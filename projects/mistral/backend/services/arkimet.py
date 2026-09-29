@@ -1,9 +1,11 @@
+import importlib.util
 import io
 import json
 import math
 import re
 import shlex
 import subprocess
+from pathlib import Path
 from typing import List
 
 import arkimet as arki
@@ -15,6 +17,28 @@ from restapi.env import Env
 from restapi.utilities.logs import log
 
 DATASET_ROOT = Env.get("DATASET_ROOT", "/")
+FORMATTER_DIR = Path("/etc/arkimet/format")
+
+
+def load_custom_formatters(formatter_dir=FORMATTER_DIR):
+    if not formatter_dir.is_dir():
+        return
+
+    for formatter_path in sorted(formatter_dir.glob("*.py")):
+        module_name = f"arkimet_custom_formatter_{formatter_path.stem}"
+        spec = importlib.util.spec_from_file_location(module_name, formatter_path)
+        if spec is None or spec.loader is None:
+            log.warning("Unable to load formatter spec for {}", formatter_path)
+            continue
+
+        module = importlib.util.module_from_spec(spec)
+        try:
+            spec.loader.exec_module(module)
+        except Exception:
+            log.exception("Failed to load arkimet formatter {}", formatter_path)
+
+
+load_custom_formatters()
 
 
 class BeArkimet:
@@ -391,7 +415,9 @@ class BeArkimet:
                     "scale2": lev["scale2"],
                     "value2": lev["value2"],
                 }
-            descr = arki.formatter.level.format_level(lt_to_describe)
+            descr = Formatter().format({"type": "level", **lt_to_describe})
+            if not descr:
+                descr = arki.formatter.level.format_level(lt_to_describe)
             if descr:
                 formatted_descr = descr.split("-")[0].rstrip()
                 if "GRIB2" in lev["style"]:
@@ -399,7 +425,7 @@ class BeArkimet:
                     splitted_description = descr.split(" ")
                     # check if the last two values are integer (so if they are hardcoded levels)
                     pattern = r"^[+-]?\d+$"
-                    last_description_element_to_include = len(splitted_description) - 1
+                    last_description_element_to_include = len(splitted_description)
                     if bool(re.match(pattern, splitted_description[-1])):
                         # this element should not be included in the description
                         last_description_element_to_include -= 1

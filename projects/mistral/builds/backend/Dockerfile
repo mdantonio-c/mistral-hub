@@ -13,6 +13,12 @@ RUN echo "deb [trusted=yes] https://simc.arpae.it/packages/debian jammy main" > 
     && apt-get update -qq \
     && apt-get install -y python3-wreport dballe python3-dballe arkimet libsim python3-eccodes eccodes-simc dba-qcfilter gdal-bin libeccodes-tools
 
+# add the custom formatter for GRIB2 files
+RUN mkdir -p /etc/arkimet/format
+COPY formatter_grib2.py /etc/arkimet/format/formatter_grib2.py
+# check if the custom formatter compiles correctly
+RUN python3 -m py_compile /etc/arkimet/format/formatter_grib2.py
+
 RUN pip3 install --upgrade boto3 \
     && pip install 'boto3-stubs[s3]'
 
