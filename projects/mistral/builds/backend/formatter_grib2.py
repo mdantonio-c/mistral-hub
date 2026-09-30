@@ -8,13 +8,13 @@ prodtab = {
     0: {
         # Mappings found in DWD local tables (edzw). Not present for centre 80 (cnmc).
         2: {
-            208: "Total Cloud Cover",  # DWD
-            209: "Medium Cloud Cover",  # DWD
+            208: "U-component of vertical wind shear vector",
+            209: "V-component of vertical wind shear vector",
         },
         4: {
             8: "Upward short-wave radiation flux",
-            198: "Latent heat flux",  # DWD
-            199: "Sensible heat flux",  # DWD
+            198: "Surface down solar direct radiation",
+            199: "Surface down solar diffuse radiation",
         },
         7: {193: "supercell detection index 2 (only rot. up drafts)"},
         1: {
@@ -26,7 +26,7 @@ prodtab = {
         15: {17: "Precipitation rate from radar"},
         # Mappings found at https://codes.ecmwf.int/grib/param-db/260689. Not present for centre 80 (cnmc).
         17: {
-            192: "Maximum CAPE in last 6h",  # DWD
+            192: "Lightning Potential Index (J/kg)",
         },
     }
 }
