@@ -226,6 +226,13 @@ class Reftime(Schema):
         return data
 
 
+class BoundingBox(Schema):
+    lonmin = fields.Float(required=True, validate=validate.Range(min=-180, max=180))
+    latmin = fields.Float(required=True, validate=validate.Range(min=-90, max=90))
+    lonmax = fields.Float(required=True, validate=validate.Range(min=-180, max=180))
+    latmax = fields.Float(required=True, validate=validate.Range(min=-90, max=90))
+
+
 class Filters(Schema):
     area = fields.List(fields.Dict())
     level = fields.List(fields.Dict())
@@ -237,6 +244,7 @@ class Filters(Schema):
     task = fields.List(fields.Dict())
     timerange = fields.List(fields.Dict())
     network = fields.List(fields.Dict())
+    bounding_box = fields.Nested(BoundingBox)
 
 
 class DataExtraction(Schema):

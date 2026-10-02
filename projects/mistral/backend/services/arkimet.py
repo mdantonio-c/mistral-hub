@@ -54,6 +54,7 @@ class BeArkimet:
         "task",
         "timerange",
         "network",
+        "bounding_box",
     )
 
     allowed_processors = ("additional_variables",)

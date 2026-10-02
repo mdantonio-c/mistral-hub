@@ -2633,6 +2633,10 @@ class BeDballe:
                     raise InvalidFiltersException(
                         "Failure in data extraction: Invalid set of filters"
                     )
+            # dballe reads int lat/lon as 1/100000 of degree: force float degrees
+            for key, value in filters.get("bounding_box", {}).items():
+                fields.append(key)
+                queries.append([float(value)])
 
         # parsing reftime and add it to the query
         if reftime:
