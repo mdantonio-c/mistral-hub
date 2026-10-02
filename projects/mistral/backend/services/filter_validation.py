@@ -31,7 +31,7 @@ GRIB_ALLOWED_KEYS = {
 }
 
 # Keys that are valid for BUFR / observed datasets
-BUFR_ALLOWED_KEYS = {"product", "level", "timerange", "network"}
+BUFR_ALLOWED_KEYS = {"product", "level", "timerange", "network", "bounding_box"}
 
 # --- GRIB / forecast (arkimet-style) validation rules ---
 
@@ -83,6 +83,15 @@ def validate_filters(
                 f"Filter '{key}' is not valid for {dataset_format.upper()} datasets. "
                 f"Allowed: {sorted(allowed_keys)}."
             )
+            continue
+
+        # bounding_box is a single dict already type-checked by the endpoint schema
+        if key == "bounding_box":
+            if items["lonmin"] > items["lonmax"] or items["latmin"] > items["latmax"]:
+                errors.append(
+                    "Filter 'bounding_box': 'lonmin'/'latmin' must not be greater "
+                    "than 'lonmax'/'latmax'."
+                )
             continue
 
         # --- structural checks common to both formats ---
