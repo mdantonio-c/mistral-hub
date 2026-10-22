@@ -100,7 +100,9 @@ class TestForecastSpatial:
         # Prepariamo lo scenario post-processing con dati minimi e controllati, cosi la
         # verifica successiva resta legata a un comportamento preciso.
         request_id = pp_forecast_env.create_request()
-        postprocessor = grid_cropping_postprocessor(initial_lon=-10, initial_lat=-5)
+        postprocessor = grid_cropping_postprocessor(
+            initial_lon=10, initial_lat=40, final_lon=15, final_lat=45
+        )
 
         # act
         # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di

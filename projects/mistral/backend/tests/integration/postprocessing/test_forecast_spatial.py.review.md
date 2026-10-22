@@ -30,7 +30,7 @@
 | `forecast_pressure_filter` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Filtro singolo prodotto P (pressione). |
 | `grid_interpolation_without_template(x_min,y_min,nx)` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Boundings inline (`x_max=20,y_max=10`), `nx=ny`. |
 | `grid_interpolation_with_template(path)` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Riusa geometria dal GRIB `template`. |
-| `grid_cropping_postprocessor(initial_lon,initial_lat)` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | `flon=10,flat=5`, `zoom/coord`. |
+| `grid_cropping_postprocessor(initial_lon,initial_lat,final_lon,final_lat)` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | `zoom/coord`; l'area deve intersecare la griglia. |
 | `spare_point_postprocessor(path)` | builder | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Shapefile `shp`, `inter/bilin`. |
 | `require_spare_point_template_archive` | guardia | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | **skip** se manca lo zip template. |
 | `env.unzip_upload/copy_upload/delete_request` | helper | [postprocessing/support.py](projects/mistral/backend/tests/integration/postprocessing/support.py) | Preparano `uploads/`, copiano il GRIB di seed, ripuliscono lo scenario. |
@@ -58,7 +58,7 @@
 ### `test_grid_cropping_completes_successfully`
 - **Obiettivo**: il cropping completa con successo (verifica di esito, non di geometria).
 - **Backend coinvolto**: `pp3_2.pp_grid_cropping` (`vg6d_transform --trans-type=zoom`).
-- **Flusso**: `create_request()` → `execute(filters=forecast_pressure_filter(), postprocessors=[grid_cropping_postprocessor(initial_lon=-10,initial_lat=-5)])` → `assert_success` + `output_path.exists()`.
+- **Flusso**: `create_request()` → `execute(filters=forecast_pressure_filter(), postprocessors=[grid_cropping_postprocessor(initial_lon=10,initial_lat=40,final_lon=15,final_lat=45)])` → `assert_success` + `output_path.exists()`.
 - **Assert**: solo successo + file presente (**nessun** assert sui bounding del crop).
 - **Casi coperti**: happy path crop; **nota**: la correttezza geometrica del crop **non** è verificata (vedi §8).
 

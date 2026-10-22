@@ -38,7 +38,7 @@
 ### `test_combined_postprocessors_keep_derived_statistic_and_geometry`
 - **Obiettivo**: una catena di 4 postprocessori preserva il derivato (`relhum_2m`), la statistica (`tp` `3-6`) e impone la geometria finale (`y_min=-10`, `nx=12`) su **tutti** i messaggi.
 - **Backend coinvolto**: `data_extract` → derived → statistic → crop → interp (ordine fisso del task).
-- **Flusso**: `create_request()` → lista postprocessori `[derived, statistic, grid_interpolation(x_min=-15,y_min=-10,nx=12), grid_cropping(initial_lon=-10,initial_lat=-5)]` → `execute(filters=forecast_chaining_filters(), postprocessors=…)` → `assert_success`.
+- **Flusso**: `create_request()` → lista postprocessori `[derived, statistic, grid_interpolation(x_min=-15,y_min=-10,nx=12), grid_cropping(initial_lon=10,initial_lat=40,final_lon=15,final_lat=45)]` → `execute(filters=forecast_chaining_filters(), postprocessors=…)` → `assert_success`.
 - **Assert**: `assert_grib_contains_short_name(out,"relhum_2m")`; `assert_grib_contains_step_range(out,"tp","3-6")`; `assert_grib_messages_have_geometry(out,-10,12)` (geometria uguale su **ogni** messaggio).
 - **Casi coperti**: composizione multi-stadio non distruttiva + geometria finale.
 - **Hidden behavior cruciale**: la lista passa **interp prima di crop**, ma il backend applica **crop prima di interp** (dispatch a ordine fisso da dict). La geometria finale asserita (`-10`,`12`) è quella dell'**interpolazione** proprio perché è l'ultimo stadio spaziale eseguito. Il test passa *grazie* all'ordine del backend, non a quello della lista (vedi §6/§8).

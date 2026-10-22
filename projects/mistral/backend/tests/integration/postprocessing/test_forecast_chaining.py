@@ -40,7 +40,9 @@ class TestForecastChaining:
             forecast_derived_variable_postprocessor(),
             forecast_statistic_elaboration_postprocessor(),
             grid_interpolation_without_template(x_min=-15, y_min=y_min, nx=nx),
-            grid_cropping_postprocessor(initial_lon=-10, initial_lat=-5),
+            grid_cropping_postprocessor(
+                initial_lon=10, initial_lat=40, final_lon=15, final_lat=45
+            ),
         ]
 
         # act

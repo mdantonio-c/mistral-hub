@@ -47,7 +47,7 @@
 
 ### Builder di payload (filtri & postprocessori)
 - Forecast: `forecast_pressure_filter`, `forecast_derived_variable_filters` (+ `…_missing_filters`), `forecast_derived_variable_postprocessor` (variabili `["B13003"]`), `forecast_statistic_elaboration_filters` (+ `…_missing_filters`), `forecast_statistic_elaboration_postprocessor` (`input/output_timerange=1`, `interval=hours`, `step=3`), `forecast_chaining_filters` (P+T+dewpoint+Q+TP).
-- Spaziali: `grid_interpolation_without_template(x_min,y_min,nx)` (`x_max=20,y_max=10,ny=nx`, `inter/bilin`), `grid_interpolation_with_template(template_path)`, `grid_cropping_postprocessor(initial_lon,initial_lat)` (`flon=10,flat=5`, `zoom/coord`), `spare_point_postprocessor(template_path)` (`shp`, `inter/bilin`).
+- Spaziali: `grid_interpolation_without_template(x_min,y_min,nx)` (`x_max=20,y_max=10,ny=nx`, `inter/bilin`), `grid_interpolation_with_template(template_path)`, `grid_cropping_postprocessor(initial_lon,initial_lat,final_lon,final_lat)` (`zoom/coord`; l'area deve intersecare la griglia), `spare_point_postprocessor(template_path)` (`shp`, `inter/bilin`).
 - Observed: `observed_derived_variable_*` (postprocessor `["B12103"]`), `observed_statistic_elaboration_*` (`step=1`), `observed_chaining_filters` (B12101+B13003+B13011).
 
 ### Guardie di skip (RUNTIME-SENSITIVE) e helper GRIB

@@ -678,8 +678,10 @@ def grid_interpolation_with_template(template_path: Path) -> dict[str, Any]:
     }
 
 
-def grid_cropping_postprocessor(*, initial_lon: int, initial_lat: int) -> dict[str, Any]:
-    """Return a grid-cropping payload anchored to the provided initial coordinates."""
+def grid_cropping_postprocessor(
+    *, initial_lon: int, initial_lat: int, final_lon: int, final_lat: int
+) -> dict[str, Any]:
+    """Return a grid-cropping payload; boxes outside the grid crash libsim 8.0.0 zoom."""
     # Entriamo nel blocco operativo dell'helper post-processing, mantenendo esplicito
     # quale stato viene letto o prodotto.
     return {
@@ -687,8 +689,8 @@ def grid_cropping_postprocessor(*, initial_lon: int, initial_lat: int) -> dict[s
         "boundings": {
             "ilon": initial_lon,
             "ilat": initial_lat,
-            "flon": 10,
-            "flat": 5,
+            "flon": final_lon,
+            "flat": final_lat,
         },
         "trans_type": "zoom",
         "sub_type": "coord",
