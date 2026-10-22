@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from mistral.endpoints.data import Postprocessors
 from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from restapi import decorators
 from restapi.connectors import sqlalchemy
@@ -14,6 +15,12 @@ from sqlalchemy.orm import joinedload
 
 grace_period_days = Env.get_int("GRACE_PERIOD", 2)
 GRACE_PERIOD = timedelta(days=grace_period_days)
+
+
+def public_postprocessor(postprocessor):
+    # convert a stored postprocessor to the format accepted by the data endpoint
+    schema = Postprocessors.postprocessors[postprocessor["processor_type"]]
+    return schema().dump(postprocessor)
 
 
 class UserRequests(EndpointResource):
@@ -71,11 +78,17 @@ class UserRequests(EndpointResource):
         # log.debug(requests)
         for r in requests:
             args = r.args
-            # filter the dictionary None elements
+            # keep only the extraction parameters, filter the None elements
             # and rename the dataset key to make it compatible with the
             # input data extraction request
-            filtered_args = {k: v for k, v in args.items() if v is not None}
+            filtered_args = {
+                k: v for k, v in args.items() if k != "pushing_queue" and v is not None
+            }
             filtered_args["dataset_names"] = filtered_args.pop("datasets")
+            if filtered_args.get("postprocessors"):
+                filtered_args["postprocessors"] = [
+                    public_postprocessor(p) for p in filtered_args["postprocessors"]
+                ]
             item = {
                 "id": r.id,
                 "name": r.name,
@@ -197,7 +210,7 @@ class CloneUserRequests(EndpointResource):
             raise Unauthorized("This request doesn't come from the request's owner")
 
         user_request = repo.get_user_request_by_id(db, request_id)
-        args = user_request.args
+        args = user_request.args.copy()
         # setup request query model
         args_datasets = args.get("datasets")
         args["datasets"] = [
@@ -205,4 +218,9 @@ class CloneUserRequests(EndpointResource):
             for ds in repo.get_datasets(db, user, licenceSpecs=True)
             if ds["id"] in args_datasets
         ]
+        if args.get("postprocessors"):
+            args["postprocessors"] = [
+                public_postprocessor(postprocessor)
+                for postprocessor in args["postprocessors"]
+            ]
         return self.response(args)
