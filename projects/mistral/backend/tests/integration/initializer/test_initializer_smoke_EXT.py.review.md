@@ -2,6 +2,7 @@
 
 > File di review generato per facilitare la revisione manuale della suite. Non modifica codice.
 > Modulo `*_EXT.py`: smoke deterministico **di estensione** su `mistral.initialization.Initializer`, superficie finora coperta solo indirettamente dallo startup.
+> **Aggiornamento**: i limiti segnalati in §6 e §8 (fake permissivi, assenza di prima creazione/idempotenza reale/aggiornamento per campo, solo ramo cron "esistente") sono coperti su DB reale da [test_initializer_seed_EXT.py](./test_initializer_seed_EXT.py) — vedi [test_initializer_seed_EXT.py.review.md](./test_initializer_seed_EXT.py.review.md).
 
 ## 1. Informazioni generali
 
