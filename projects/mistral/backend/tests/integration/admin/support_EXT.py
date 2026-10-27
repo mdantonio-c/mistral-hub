@@ -21,6 +21,8 @@ from pathlib import Path
 from typing import Any, Iterable
 from uuid import uuid4
 
+import orjson
+
 from mistral.endpoints import DOWNLOAD_DIR
 from mistral.tests.helpers.auth import (
     AuthenticatedTestUser,
@@ -28,6 +30,7 @@ from mistral.tests.helpers.auth import (
     register_test_user_cleanup,
 )
 from restapi.connectors import sqlalchemy
+from restapi.services.authentication import Role
 from restapi.tests import API_URI, BaseTests, FlaskClient
 
 
@@ -209,7 +212,12 @@ def create_regular_user_EXT(
     registrata subito nel cleanup_registry.
     """
     base = BaseTests()
-    user = create_authenticated_test_user(base, client, {"open_dataset": True})
+    # Sovrascriviamo i ruoli casuali di BaseTests.buildData, mantenendo i permessi.
+    user = create_authenticated_test_user(
+        base,
+        client,
+        {"open_dataset": True, "roles": orjson.dumps([Role.USER.value]).decode("UTF8")},
+    )
     register_test_user_cleanup(
         base,
         client,

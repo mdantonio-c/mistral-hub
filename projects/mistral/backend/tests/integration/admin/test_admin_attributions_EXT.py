@@ -6,16 +6,19 @@
 # delete, 404 su record mancanti e normalizzazione di url vuota a None.
 # Finestra dati: nessun dato meteorologico reale viene usato; i dataset collegati sono
 # record catalografici sintetici creati via API admin e ripuliti a fine test.
-# Runtime fake: non sono necessari fake; i test attraversano Flask e SQLAlchemy reali.
+# Runtime fake: la regressione ruolo forza solo il payload generato; Flask e
+# SQLAlchemy restano reali in tutti i test.
 # Cleanup: ogni attribution, license group, license e dataset creato viene registrato
 # nel cleanup_registry tramite support_EXT, con ordine relazionale sicuro.
 # Baseline non toccata: il file e un nuovo modulo *_EXT.py nel dominio integration/admin.
 
 from __future__ import annotations
 
+import orjson
 import pytest
 from restapi.connectors import sqlalchemy
-from restapi.tests import FlaskClient
+from restapi.services.authentication import Role
+from restapi.tests import BaseTests, FlaskClient
 
 from mistral.tests.integration.admin.support_EXT import (
     ADMIN_ATTRIBUTIONS_ENDPOINT_EXT,
@@ -59,6 +62,38 @@ def test_admin_attributions_require_admin_role_EXT(
     # credenziali valide ma prive del ruolo admin richiesto dal decorator.
     assert anonymous_response.status_code == 401
     assert forbidden_response.status_code == 401
+
+
+def test_regular_user_overrides_generated_admin_role_EXT(
+    client: FlaskClient,
+    cleanup_registry,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Il helper deve creare un utente normale anche se buildData genera admin."""
+    build_data = BaseTests.buildData
+
+    def build_admin_user_data(schema):
+        data = build_data(schema)
+        data["roles"] = orjson.dumps([Role.ADMIN.value]).decode("UTF8")
+        return data
+
+    # Forziamo il caso intermittente, senza sostituire creazione, login o DB.
+    with monkeypatch.context() as generated_payload:
+        generated_payload.setattr(
+            BaseTests, "buildData", staticmethod(build_admin_user_data)
+        )
+        regular_user = create_regular_user_EXT(client, cleanup_registry)
+
+    db = sqlalchemy.get_instance()
+    user = db.User.query.filter_by(uuid=regular_user.uuid).first()
+    assert user is not None
+    assert {role.name for role in user.roles} == {Role.USER.value}
+    assert user.open_dataset is True
+    response = client.get(
+        ADMIN_ATTRIBUTIONS_ENDPOINT_EXT,
+        headers=regular_user.headers,
+    )
+    assert response.status_code == 401
 
 
 def test_admin_attribution_create_list_update_delete_EXT(

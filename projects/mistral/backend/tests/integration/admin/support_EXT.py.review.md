@@ -36,7 +36,7 @@
 | `response_content_EXT(response)` | helper | Decodifica il body via `BaseTests().get_content` (gestisce scalari/list/dict in modo uniforme). |
 | `created_id_from_response_EXT(response)` | helper | Estrae l'id scalare dalla POST; `assert isinstance(content, (int, str))` poi `int(...)`. |
 | `find_list_item_EXT(items, item_id)` | helper | Trova l'item confrontando id **normalizzati a stringa** (Int modello vs Str schema); `AssertionError` se assente. |
-| `create_regular_user_EXT(client, cleanup_registry)` | helper | Crea un utente reale **non-admin** (`{"open_dataset": True}`) e registra cleanup utente + directory `Path(DOWNLOAD_DIR, uuid)`. |
+| `create_regular_user_EXT(client, cleanup_registry)` | helper | Crea un utente reale **non-admin** con `open_dataset=True` e `roles` esplicito, lista JSON serializzata `[Role.USER.value]` (`normal_user`); registra cleanup utente + directory `Path(DOWNLOAD_DIR, uuid)`. |
 | `create_attribution_via_api_EXT(...)` | helper | POST attribution (asserisce 200) + registra cleanup DB; ritorna l'id. |
 | `create_license_group_via_api_EXT(...)` | helper | POST group license (asserisce 200) + cleanup DB. |
 | `create_license_via_api_EXT(..., group_license_id, ...)` | helper | POST license collegata a un gruppo (asserisce 200) + cleanup DB. |
@@ -49,15 +49,17 @@
 - **Fixture nel `conftest.py` locale**: `admin_headers_EXT` e' scoperta automaticamente da pytest nel dominio admin, con scope per singolo test e senza `autouse`. I moduli di test non la importano; la [review della fixture](conftest.py.review.md) descrive il login invariato.
 - **Stato condiviso del default user**: `admin_headers_EXT` logga l'admin di **default** della suite (stessa logica di `auth_headers`). Tutti i test admin condividono quella sessione; l'isolamento poggia sui nomi uuid e su `find_list_item_EXT`.
 - **Helper “che fanno più del nome”**: i `create_*_via_api_EXT` **contengono `assert status_code == 200`** e **registrano cleanup**. Quindi (a) un fallimento in fase di arrange si manifesta come assert dell'helper, non del test; (b) attraversano il **vero controller** (non sono mock) e dipendono dalla schema dinamica (la `OneOf` richiede che le dipendenze esistano già).
+- **Ruolo ordinario deterministico**: `BaseTests.create_user` genera prima il payload con `buildData(schema)`, inclusi ruoli casuali, poi applica gli override. Passare solo `open_dataset=True` poteva quindi creare un `admin_root` e far rispondere `200` al controllo che attende `401`. Il helper locale passa anche `roles=orjson.dumps([Role.USER.value]).decode("UTF8")`, nel formato gia' usato dal framework; `open_dataset` e l'helper auth generico restano invariati. La regressione `test_regular_user_overrides_generated_admin_role_EXT` in `test_admin_attributions_EXT.py` forza un payload generato admin, usa creazione/login/DB reali e verifica ruolo esatto, permesso ordinario e rifiuto `401`.
 - **`delete_admin_records_EXT` con side effect m2m**: prima di cancellare un dataset svuota `dataset.users` (tabella `auth_association`), comportamento non evidente dal nome “delete records”.
 - **Cleanup LIFO dipendente dall'ordine di creazione**: la correttezza relazionale del teardown dipende dal fatto che il bundle crei il dataset per ultimo; il `CleanupRegistry` esegue in ordine inverso ([helpers/cleanup.py](projects/mistral/backend/tests/helpers/cleanup.py)).
 - **`find_list_item_EXT` maschera un mismatch di tipo**: confronta id come stringa perché gli schema admin dichiarano `id` come `Str` mentre i modelli sono `Integer`; un assert “ingenuo” su id numerico sarebbe fragile.
 - **`created_id_from_response_EXT` codifica un'assunzione di contratto**: gli endpoint POST ritornano un **id scalare** (non un JSON annidato); se cambiasse il contratto, l'assert `isinstance` fallirebbe qui e non nel test.
-- **Nessun fake/monkeypatch/worker**: il banner del file lo dichiara; tutto passa per Flask + SQLAlchemy reali (deterministico).
+- **Nessun fake/monkeypatch/worker nel supporto**: tutto passa per Flask + SQLAlchemy reali. Solo la regressione dedicata sostituisce temporaneamente `BaseTests.buildData` per forzare il ruolo admin nel payload generato; non sostituisce gli helper o le API.
 
 ## 5. Checklist di revisione
 
 - [x] Verificare che `admin_headers_EXT` sia risolta dal `conftest.py` locale senza import della fixture nei quattro moduli admin: esecuzione mirata nel container, 14 passed (coverage disabilitata per permessi sul report condiviso).
+- [x] Verificare che `create_regular_user_EXT` sovrascriva ruoli admin generati e preservi `open_dataset=True`: regressione dedicata con helper/API/DB reali; suite admin aggiornata, **15 passed, 3 warnings** in 10.97s, coverage attiva (2026-10-27).
 - [ ] Verificare che l'ordine di cleanup in `delete_admin_records_EXT` (dataset→license→group→attribution) copra tutte le FK reali e che lo svuotamento di `dataset.users` non lasci righe orfane in `auth_association`.
 - [ ] Controllare che `ADMIN_MISSING_ID_EXT` resti realisticamente “mai esistente” negli ambienti di test (id molto alto).
 - [ ] Verificare che i builder mantengano `arkimet_id == name` per i dataset solo dove serve (il 409 si basa su entrambi i vincoli unique).
@@ -72,3 +74,20 @@
 - **Cleanup idempotente ma “rumoroso”**: `delete_admin_records_EXT` fa `flush()` ad ogni passo e `commit()` finale; in caso di FK non previste il `flush` solleva qui, mescolando errori di teardown con errori di test (il `CleanupRegistry` **non** ingoia eccezioni).
 - **Stato condiviso del default admin**: come per `auth_headers`, l'esecuzione parallela o un catalogo pre-popolato si reggono solo sull'unicità uuid e su `find_list_item_EXT`.
 - **Dipendenza inversa di visibilità**: l'integrazione globale importa già costanti da `support.py` di dominio (pattern visto in access-key); qui il rischio è speculare se in futuro un `conftest` globale importasse da questo support specifico del dominio admin.
+
+## 7. Validazione mirata del fix ruoli (2026-10-27)
+
+Dal root del repository:
+
+```bash
+source .mhub-venv/bin/activate
+LOGURU_LEVEL=WARNING rapydo list services
+rapydo shell backend 'restapi wait'
+rapydo shell backend 'restapi tests --folder custom/integration/admin'
+```
+
+Il backend e le dipendenze richieste erano gia' disponibili; `restapi wait` completato.
+La suite di dominio ha raccolto e superato tutti i **15 test**, inclusa la regressione
+con payload generato `admin_root`; report coverage scritto correttamente. Nessun
+bootstrap, restart, `--destroy` o esecuzione della suite globale. Il servizio Strapi
+risultava in restart, senza bloccare questa validazione Flask/SQLAlchemy.
