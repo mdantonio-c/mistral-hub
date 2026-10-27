@@ -28,7 +28,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**; non ingoia eccezioni. |
-| `admin_headers_EXT` | fixture | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Importata per nome; login admin di **default**. |
+| `admin_headers_EXT` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest; login admin di **default**. |
 | `dataset_payload_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Payload dataset sintetico; default `arkimet_id == name == token`, `sort_index=10`, `supports_variable_browsing=True`; `license`/`attribution` come stringhe. |
 | `create_attribution_via_api_EXT` / `create_license_group_via_api_EXT` / `create_license_via_api_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Creano le dipendenze relazionali (ognuno asserisce 200 + cleanup) necessarie per le `OneOf` dinamiche. |
 | `create_dataset_via_api_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | POST dataset (asserisce 200) + cleanup DB. |
@@ -92,7 +92,7 @@ DELETE /api/admin/datasets/<id>   → require_all(ADMIN) → filter_by(id).first
 - **`category` via Enum reale**: il payload invia la stringa `"FOR"`; il modello la mappa su `DatasetCategories` e il GET rilegge `d.category.name`. Il round-trip passa per l'enum SQLAlchemy, non per una semplice stringa.
 - **`source`/`supports_variable_browsing` hanno default di schema** (`arkimet`/`False`): compaiono nei kwargs anche se non inviati; nel test sono comunque espliciti nel payload.
 - **Cleanup con side effect m2m**: `delete_admin_records_EXT` rimuove le associazioni `dataset.users` prima del delete del dataset; ordine LIFO dataset→license→group→attribution.
-- **`admin_headers_EXT` importata per nome**; login admin di default condiviso; listing globale + `find_list_item_EXT` per l'isolamento.
+- **`admin_headers_EXT` scoperta dal `conftest.py` locale**, senza import nel test; login admin di default condiviso; listing globale + `find_list_item_EXT` per l'isolamento.
 
 ## 7. Checklist di revisione
 

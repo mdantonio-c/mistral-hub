@@ -28,7 +28,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**; non ingoia eccezioni. |
-| `admin_headers_EXT` | fixture | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Importata per nome; login admin di **default**. |
+| `admin_headers_EXT` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest; login admin di **default**. |
 | `license_payload_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Payload license; `group_license` inviato come **stringa** (per la `OneOf`); `url` opzionale (`""`/`None`). |
 | `create_license_group_via_api_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | POST gruppo (asserisce 200) + cleanup; necessario perché la `OneOf` di `group_license` esista. |
 | `create_license_via_api_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | POST license (asserisce 200) + cleanup. |
@@ -100,7 +100,7 @@ DELETE /api/admin/licenses/<id>   → require_all(ADMIN) → filter_by(id).first
 - **Nessuno skip per ADMIN-001**: il quarto test esegue sempre gli assert sul `400`; non pretende di coprire il `NotFound` del controller, irraggiungibile via HTTP.
 - **Bug `.first` senza `()`**: in `post` e `put`, `db.GroupLicense.query.filter_by(...).first` è un metodo non invocato → sempre truthy → i rami `NotFound("This license group")` sono **irraggiungibili** (dead code).
 - **Mismatch doc/impl sugli status**: l'endpoint dichiara `responses={200: "License successfully modified"}` e `{200: "License successfully deleted"}`, ma `put`/`delete` ritornano `empty_response()` → **204**. I test asseriscono correttamente 204.
-- **`admin_headers_EXT` importata per nome** (niente `conftest.py` locale); login admin di default condiviso.
+- **`admin_headers_EXT` scoperta dal `conftest.py` locale**, senza import nel test; login admin di default condiviso.
 - **Helper con assert e cleanup interni**: la create delle dipendenze attraversa il vero controller e registra cleanup; un fallimento in arrange è un assert dell'helper.
 - **`datasets` annidati con `id = arkimet_id`** (non id numerico) — stesso contratto degli altri endpoint metadata.
 

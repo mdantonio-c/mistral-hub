@@ -20,7 +20,6 @@ from restapi.tests import FlaskClient
 from mistral.tests.integration.admin.support_EXT import (
     ADMIN_ATTRIBUTIONS_ENDPOINT_EXT,
     ADMIN_MISSING_ID_EXT,
-    admin_headers_EXT,
     attribution_payload_EXT,
     create_dataset_bundle_via_api_EXT,
     create_regular_user_EXT,

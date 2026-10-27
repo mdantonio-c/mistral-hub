@@ -28,7 +28,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` (framework) | `FlaskClient` di test; richieste reali contro l'app Flask. |
 | `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Stack di teardown **LIFO**; esegue i callback dopo lo `yield`. **Non** ingoia eccezioni (un teardown rotto fa fallire il test). |
-| `admin_headers_EXT` | fixture | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | **Importata per nome** nel modulo (non da `conftest.py`). Fa `BaseTests().do_login(client, None, None)` → header dell'utente **admin di default** (stato condiviso). |
+| `admin_headers_EXT` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest. Fa `BaseTests().do_login(client, None, None)` → header dell'utente **admin di default** (stato condiviso). |
 | `attribution_payload_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Costruisce payload `AttributionInput` con nome uuid; `url` opzionale (passabile `""` o `None`). |
 | `create_dataset_bundle_via_api_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Crea via API attribution+group+license+dataset e registra cleanup per ognuno (contiene `assert 200` interni). |
 | `create_regular_user_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Crea un utente reale **non-admin** (`open_dataset`) + registra cleanup utente e directory `/data`. |
@@ -96,12 +96,12 @@ DELETE /api/admin/attributions/<id>   → require_all(ADMIN) → AdminAttributio
 
 ## 6. Comportamenti nascosti
 
-- **`admin_headers_EXT` non è in un `conftest.py`**: è una `@pytest.fixture` definita in [support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) e **importata per nome** in cima al modulo. pytest la risolve come fixture solo perché il simbolo è importato; non è auto-discovery di cartella. Una rimozione dell'import “non usato” la romperebbe.
+- **`admin_headers_EXT` e' nel `conftest.py` locale**: pytest la risolve automaticamente dal [conftest admin](conftest.py), senza import nel modulo di test. Scope per singolo test e login restano invariati.
 - **Stato condiviso del default user**: `admin_headers_EXT` logga l'**admin di default** (come `auth_headers`). Tutti i test admin condividono quella sessione; l'isolamento si regge sui nomi uuid e su `find_list_item_EXT`, non su utenti usa-e-getta.
 - **Listing globale**: `get` ritorna **tutte** le attribution del DB; i test trovano il proprio record tramite `find_list_item_EXT` (robusto rispetto a record preesistenti o paralleli).
 - **`create_dataset_bundle_via_api_EXT` contiene assert interni**: ogni `create_*_via_api_EXT` asserisce `status_code == 200`. Un fallimento in arrange si manifesta come assert dell'helper, non del test, e attraversa il vero controller (non è un mock).
 - **Cleanup LIFO con side effect m2m**: `delete_admin_records_EXT` rimuove anche le associazioni `dataset.users` prima del delete; l'ordine di teardown (dataset→license→group→attribution) dipende dall'ordine di creazione nel bundle.
-- **Nessun `conftest.py` locale** nella cartella `admin/` (lo dichiara esplicitamente il banner di `support_EXT.py`): non esistono fixture autouse né monkeypatch in questo dominio.
+- **Conftest locale limitato al login admin**: non introduce fixture autouse ne' monkeypatch in questo dominio.
 
 ## 7. Checklist di revisione
 
@@ -109,7 +109,7 @@ DELETE /api/admin/attributions/<id>   → require_all(ADMIN) → AdminAttributio
 - [ ] Verificare che `url is None` nel listing dipenda davvero dal `pre_load null_url` e non da un default del modello.
 - [ ] Controllare che l'`id` annidato dei dataset sia volutamente l'`arkimet_id` e non l'id numerico (contratto da preservare).
 - [ ] Verificare che l'assenza di `cleanup_registry` in `..._missing_..._404_EXT` non lasci stato (non crea record: OK).
-- [ ] Confermare che l'import “non usato” di `admin_headers_EXT` resti (è la fixture: non rimuovere).
+- [x] Verificare la discovery di `admin_headers_EXT` dal `conftest.py` locale, senza import della fixture nel test: i quattro test attributions passano nella run mirata admin (14 passed complessivi).
 - [ ] Verificare che il default user admin condiviso non crei accoppiamento d'ordine con altri moduli admin in esecuzione parallela.
 
 ## 8. Possibili criticità

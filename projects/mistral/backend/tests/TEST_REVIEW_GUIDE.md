@@ -32,7 +32,7 @@ tests/
 └── integration/                     → test reali per dominio
     ├── conftest.py                  → fixture HTTP condivise (auth_headers, fresh_access_key)
     ├── access_key/   (2 test + conftest + support)
-    ├── admin/        (4 test + support_EXT)
+    ├── admin/        (4 test + conftest + support_EXT)
     ├── arco/         (3 test)
     ├── connectors/   (1 test)
     ├── customizer/   (1 test)
@@ -213,7 +213,7 @@ Moduli `support`/`support_EXT` locali (NON globali, ma sostanziosi): `admin` (44
 | `fresh_access_key` | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | access_key, arco | Crea una access key per il default user |
 | `client`, `app`, `faker` | `restapi.tests` (framework) | tutti | Client HTTP / app Flask / dati finti |
 
-Fixture locali rilevanti (con comportamento nascosto da revisionare): `fresh_access_key_with_expiration` (access_key), `data_ready_base/admin_headers/user` (data_ready — override `ON_DATA_READY_DATASETS`, ruolo `admin_root`), `schedules_base/admin_headers/user` (schedules — **shadowed** dai `_EXT` locali), `pp_forecast_env`/`pp_observed_env` (postprocessing), scenario `dballe_/arkimet_/mixed_observed_case` (observed — pattern `parametrize`+`getfixturevalue`), `pending_request_user`/`pending_delete_requests` (requests).
+Fixture locali rilevanti (con comportamento nascosto da revisionare): `fresh_access_key_with_expiration` (access_key), [`admin_headers_EXT`](integration/admin/conftest.py) (admin — login dell'admin di default, discovery automatica senza import nei test), `data_ready_base/admin_headers/user` (data_ready — override `ON_DATA_READY_DATASETS`, ruolo `admin_root`), `schedules_base/admin_headers/user` (schedules — **shadowed** dai `_EXT` locali), `pp_forecast_env`/`pp_observed_env` (postprocessing), scenario `dballe_/arkimet_/mixed_observed_case` (observed — pattern `parametrize`+`getfixturevalue`), `pending_request_user`/`pending_delete_requests` (requests).
 
 ---
 

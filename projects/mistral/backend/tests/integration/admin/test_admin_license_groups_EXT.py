@@ -18,7 +18,6 @@ from restapi.tests import FlaskClient
 from mistral.tests.integration.admin.support_EXT import (
     ADMIN_LICENSE_GROUPS_ENDPOINT_EXT,
     ADMIN_MISSING_ID_EXT,
-    admin_headers_EXT,
     create_license_group_via_api_EXT,
     create_license_via_api_EXT,
     find_list_item_EXT,

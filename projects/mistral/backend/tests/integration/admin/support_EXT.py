@@ -3,8 +3,8 @@
 # *_EXT degli endpoint metadata admin. La baseline legacy non viene rinominata ne
 # modificata: i test nuovi importano questo supporto in modo esplicito.
 # Ambito: prepara payload HTTP per attributions, license groups, licenses e datasets,
-# effettua login admin locale tramite BaseTests().do_login(client, None, None), e
-# registra cleanup DB per ogni record sintetico creato dal singolo test.
+# e registra cleanup DB per ogni record sintetico creato dal singolo test.
+# Il login admin locale e fornito dalla fixture nel conftest.py di questo dominio.
 # Finestra dati: nessun dataset meteorologico reale viene usato. I dataset creati qui
 # sono righe sintetiche di catalogo, con nomi uuid e senza file Arkimet/DBALLE reali.
 # Runtime fake: non servono worker, broker, filesystem meteo o monkeypatch; i test
@@ -12,7 +12,7 @@
 # Cleanup: i record vengono rimossi in ordine dataset -> license -> license group ->
 # attribution, rimuovendo anche eventuali associazioni many-to-many user/dataset.
 # Baseline non toccata: il modulo e un nuovo artefatto *_EXT.py confinato alla cartella
-# integration/admin e non introduce fixture globali o conftest.py locali.
+# integration/admin e non introduce fixture globali.
 
 from __future__ import annotations
 
@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import Any, Iterable
 from uuid import uuid4
 
-import pytest
 from mistral.endpoints import DOWNLOAD_DIR
 from mistral.tests.helpers.auth import (
     AuthenticatedTestUser,
@@ -56,21 +55,6 @@ class AdminDatasetBundle_EXT:
     dataset_id: int
     dataset_arkimet_id: str
     dataset_name: str
-
-
-@pytest.fixture
-def admin_headers_EXT(client: FlaskClient) -> dict[str, str]:
-    """Restituisce header admin usando il login standard richiesto dal prompt.
-
-    La fixture resta locale al support importato dai file admin *_EXT: non viene messa
-    in un conftest.py perche il riuso e limitato al dominio admin e non giustifica una
-    nuova visibilita pytest di cartella.
-    """
-    # Prepariamo un login admin reale, usando esattamente il percorso BaseTests indicato
-    # dal prompt per non introdurre account o ruoli alternativi nella suite.
-    headers, _ = BaseTests().do_login(client, None, None)
-    assert headers is not None
-    return headers
 
 
 def unique_admin_token_EXT(prefix: str) -> str:

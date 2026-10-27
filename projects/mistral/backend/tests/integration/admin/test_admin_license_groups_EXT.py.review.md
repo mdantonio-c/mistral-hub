@@ -29,7 +29,7 @@
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
 | `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO**, eseguito dopo lo `yield`; non ingoia eccezioni. |
-| `admin_headers_EXT` | fixture | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Importata per nome; login admin di **default** → header condivisi. |
+| `admin_headers_EXT` | fixture | [admin/conftest.py](conftest.py) | Scoperta automaticamente da pytest; login admin di **default** → header condivisi. |
 | `license_group_payload_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Payload `LicGroupInput` con `is_public` e `dballe_dsn` espliciti (default `"DBALLE_EXT"`). |
 | `create_license_group_via_api_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | POST gruppo via API (asserisce 200) + registra cleanup DB del gruppo. |
 | `create_license_via_api_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | POST license figlia via API (asserisce 200) + cleanup DB. |
@@ -88,7 +88,7 @@ DELETE /api/admin/licensegroups/<id>  → require_all(ADMIN) → filter_by(id).f
 
 ## 6. Comportamenti nascosti
 
-- **Fixture `admin_headers_EXT` importata per nome** da `support_EXT.py` (niente `conftest.py` locale): login dell'admin di **default**, stato condiviso fra tutti i test del dominio.
+- **Fixture `admin_headers_EXT` scoperta dal [conftest locale](conftest.py)**, senza import nel test: login dell'admin di **default**, stato condiviso fra tutti i test del dominio.
 - **Listing globale**: `get` ritorna **tutti** i gruppi; l'isolamento si basa su nomi uuid e `find_list_item_EXT`.
 - **Conflict 409 deliberatamente non testato**: dichiarato nel docstring del terzo test (modello senza vincolo unique su `name`).
 - **Helper con assert interni**: `create_license_group_via_api_EXT`/`create_license_via_api_EXT` asseriscono `200` e registrano cleanup; un fallimento in arrange è un assert dell'helper.
@@ -108,7 +108,7 @@ DELETE /api/admin/licensegroups/<id>  → require_all(ADMIN) → filter_by(id).f
 - **Ramo `Conflict` (409) totalmente scoperto**: corretto rispetto al modello attuale, ma resta codice non esercitato; un futuro vincolo unique passerebbe inosservato finché non si aggiunge il test.
 - **Accoppiamento sull'admin condiviso**: come negli altri moduli admin, l'esecuzione parallela si regge sull'unicità uuid.
 - **Assert di lista su catalogo non vuoto**: se l'ambiente avesse molti gruppi, i test restano corretti ma il body può crescere; nessun limite/paginazione verificato (l'endpoint non pagina).
-- **Fixture importata per nome**: fragile rispetto a strumenti che rimuovono import “inutilizzati”.
+- **Auto-fix degli import risolto**: la fixture e' scoperta dal `conftest.py` locale e non richiede import nel test.
 - **`descr`/`dballe_dsn` non validati**: il test non può (e non deve) coprire validazioni che il backend non impone; eventuale aspettativa di validazione va verificata altrove.
 
 ## 9. Riassunto finale
