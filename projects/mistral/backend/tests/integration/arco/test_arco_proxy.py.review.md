@@ -66,7 +66,7 @@ GET /api/arco/<path:object_path>
     → s3.get_instance()                          [MOCK nel test autorizzato]
     → client.get_object(Bucket="arco", Key=object_path)
         → botocore ClientError "NoSuchKey" → NotFound(404)        (coperto in EXT)
-        → altro ClientError → raise Exception                     (coperto/skip in EXT, ARCO-001)
+        → altro ClientError → raise Exception → 400                (atteso 500: xfail strict in EXT, ARCO-001)
     → data = body.read(); mime = guess_mime_type(Path(object_path).name)
     → Response(data, mimetype=mime) → 200
 ```

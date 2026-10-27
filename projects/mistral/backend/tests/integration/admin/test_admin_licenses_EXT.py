@@ -175,16 +175,14 @@ def test_admin_license_missing_license_returns_404_EXT(
     assert delete_response.status_code == 404
 
 
-def test_admin_license_missing_group_returns_404_when_backend_allows_branch_EXT(
+def test_admin_license_missing_group_returns_400_EXT(
     client: FlaskClient,
     admin_headers_EXT: dict[str, str],
 ) -> None:
-    """Documenta il contratto atteso per group license inesistente.
+    """Verifica il 400 di validazione per group license inesistente.
 
-    L'endpoint dichiara un NotFound per group license mancante, ma la schema dinamica
-    costruisce una OneOf sugli id esistenti e nel backend corrente blocca l'input prima
-    del ramo applicativo. La suite non usa xfail: se il runtime restituisce 400 per
-    validation, il test fa skip esplicito e il problema e censito come ADMIN-001.
+    La OneOf dinamica rifiuta l'id prima del controller e nessuna license viene creata.
+    Il ramo NotFound del controller non e raggiungibile via HTTP (ADMIN-001).
     """
     # arrange - payload con id gruppo inesistente e campi license validi.
     db = sqlalchemy.get_instance()
@@ -198,11 +196,7 @@ def test_admin_license_missing_group_returns_404_when_backend_allows_branch_EXT(
         json=payload,
     )
 
-    # assert - riattivare l'assert pieno quando il backend espone il NotFound documentato.
-    if response.status_code == 400:
-        pytest.skip(
-            "ADMIN-001: lo schema dinamico di AdminLicenses intercetta group_license "
-            "inesistente come 400 prima del ramo NotFound documentato; riattivare "
-            "l'assert 404 quando il controller avra un contratto coerente."
-        )
-    assert response.status_code == 404
+    # assert - errore sul campo group_license e nessuna license persistita.
+    assert response.status_code == 400
+    assert "group_license" in response_content_EXT(response)
+    assert db.License.query.filter_by(name=payload["name"]).count() == 0

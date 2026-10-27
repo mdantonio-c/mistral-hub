@@ -6,7 +6,7 @@
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/integration/admin/test_admin_licenses_EXT.py](projects/mistral/backend/tests/integration/admin/test_admin_licenses_EXT.py)
-- **Scopo**: verificare il CRUD admin delle *license* (create con group, cambio di group in update, normalizzazione `url=""`→`None`), il listing con `group_license` e `datasets` annidati, i rami `404` e — con uno **skip documentato (ADMIN-001)** — il comportamento su `group_license` inesistente.
+- **Scopo**: verificare il CRUD admin delle *license* (create con group, cambio di group in update, normalizzazione `url=""`→`None`), il listing con `group_license` e `datasets` annidati, i rami `404` per license mancante e il `400` di validazione su `group_license` inesistente senza creare license (ADMIN-001).
 - **Tipologia**: test di **integrazione HTTP** (controller reale + schema dinamica + DB SQLAlchemy). Marker: `integration`, `deterministic`.
 
 ## 2. Backend realmente testato
@@ -35,8 +35,7 @@
 | `create_dataset_bundle_via_api_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Crea attribution+group+license+dataset per il test di listing annidato. |
 | `find_list_item_EXT`, `response_content_EXT` | helper | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | Ricerca item per id stringa; decodifica body. |
 | `ADMIN_LICENSES_ENDPOINT_EXT`, `ADMIN_MISSING_ID_EXT` | costanti | [admin/support_EXT.py](projects/mistral/backend/tests/integration/admin/support_EXT.py) | URL `/api/admin/licenses` e id sentinella. |
-| `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Precondizioni DB e verifica post-delete. |
-| `pytest.skip` | meccanismo | `pytest` | **Skip esplicito** nel quarto test (ADMIN-001) quando il backend risponde 400. |
+| `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Precondizioni DB, verifica post-delete e assenza di license dopo il 400. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -67,13 +66,13 @@
 - **Assert**: `update_response.status_code == 404` e `delete_response.status_code == 404`.
 - **Casi coperti**: error path. Il gruppo valido isola il test dal ramo di validazione: il 404 misura la ricerca della **license** path, non il body.
 
-### `test_admin_license_missing_group_returns_404_when_backend_allows_branch_EXT` — **ADMIN-001 (skippabile)**
-- **Obiettivo**: documentare il contratto atteso quando si crea una license con `group_license` **inesistente**.
+### `test_admin_license_missing_group_returns_400_EXT` — **ADMIN-001 (contratto di validazione)**
+- **Obiettivo**: verificare il `400` di validazione quando si tenta di creare una license con `group_license` **inesistente**, senza persistenza.
 - **Backend coinvolto**: `getPOSTInputSchema` (`OneOf` dinamica) **prima** del ramo applicativo `post`.
 - **Flusso**: precondizione DB (`GroupLicense.query.get(ADMIN_MISSING_ID_EXT) is None`) → POST con `group_license = ADMIN_MISSING_ID_EXT`.
 - **Setup**: `admin_headers_EXT`; **nessun cleanup** (la create non deve riuscire).
-- **Assert / Skip**: se `status_code == 400` → `pytest.skip("ADMIN-001: ...")`; altrimenti `assert status_code == 404`.
-- **Casi coperti**: edge/contract negativo. **Questo test può essere silenziosamente saltato**: nel backend attuale la `OneOf` rifiuta l'id mancante con **400**, quindi il ramo `NotFound` documentato non viene mai raggiunto e il test fa `skip`.
+- **Assert**: `status_code == 400`; `"group_license" in response_content_EXT(response)`; `License.query.filter_by(name=payload["name"]).count() == 0`.
+- **Casi coperti**: edge/contract negativo. La `OneOf` rifiuta l'id mancante con **400** prima del controller; il ramo `NotFound` non viene raggiunto via HTTP. Il test non usa skip.
 - **Doppio problema di backend dietro ADMIN-001** (vedi §8): anche se l'input superasse lo schema, il controllo `if not lic_group:` userebbe `db.GroupLicense.query.filter_by(...).first` **senza parentesi** → un *bound method* sempre truthy → il `raise NotFound("This license group")` è **codice morto**.
 
 ## 5. Call chain
@@ -84,7 +83,7 @@ GET    /api/admin/licenses        → require_all(ADMIN) → AdminLicenses.get
                                       → _get_license_response(lic) + group_license{id,name,descr} + [ {name, id=arkimet_id} for d in lic.datasets ]
                                       → get_output_schema(many) → 200
 POST   /api/admin/licenses        → require_all(ADMIN) → use_kwargs(getPOSTInputSchema[OneOf group_license])
-                                      → (OneOf reietta id inesistente → 400)  ← ADMIN-001
+                                      → (OneOf reietta id inesistente → 400, errore group_license, nessuna license creata)  ← ADMIN-001
                                       → pop group_license → License(**kwargs) → add → commit
                                       → lic_group = filter_by(id).first   (BUG: senza () → sempre truthy → NotFound morto)
                                       → set group_license_id → commit → response(id) 200
@@ -97,8 +96,8 @@ DELETE /api/admin/licenses/<id>   → require_all(ADMIN) → filter_by(id).first
 
 ## 6. Comportamenti nascosti
 
-- **Schema dinamica a runtime**: `group_license` è una `OneOf` ricostruita ad ogni richiesta dagli id dei gruppi presenti. Conseguenza diretta: un id mancante è **400 (validation)**, non `404`. È il cuore di ADMIN-001 e spiega lo `skip`.
-- **`pytest.skip` (ADMIN-001)**: il quarto test si **autoesclude** quando il backend risponde 400. In CI può apparire come `skipped` senza fallire: chi rivede deve sapere che la copertura del 404 “group inesistente” è **sospesa**, non verificata.
+- **Schema dinamica a runtime**: `group_license` è una `OneOf` ricostruita ad ogni richiesta dagli id dei gruppi presenti; genera anche le opzioni del form. Un id mancante è **400 (validation)**, non `404`: questo è il contratto HTTP verificato per ADMIN-001, insieme all'errore sul campo e all'assenza di persistenza.
+- **Nessuno skip per ADMIN-001**: il quarto test esegue sempre gli assert sul `400`; non pretende di coprire il `NotFound` del controller, irraggiungibile via HTTP.
 - **Bug `.first` senza `()`**: in `post` e `put`, `db.GroupLicense.query.filter_by(...).first` è un metodo non invocato → sempre truthy → i rami `NotFound("This license group")` sono **irraggiungibili** (dead code).
 - **Mismatch doc/impl sugli status**: l'endpoint dichiara `responses={200: "License successfully modified"}` e `{200: "License successfully deleted"}`, ma `put`/`delete` ritornano `empty_response()` → **204**. I test asseriscono correttamente 204.
 - **`admin_headers_EXT` importata per nome** (niente `conftest.py` locale); login admin di default condiviso.
@@ -107,7 +106,7 @@ DELETE /api/admin/licenses/<id>   → require_all(ADMIN) → filter_by(id).first
 
 ## 7. Checklist di revisione
 
-- [ ] **ADMIN-001**: decidere se accettare lo `skip` permanente o correggere il backend (vedi §8) per riattivare l'assert 404; monitorare che il test non resti “verde per skip” all'infinito.
+- [x] **ADMIN-001**: adottato il contratto HTTP `400` della `OneOf`, con errore su `group_license` e nessuna license creata. Nessuno skip; il bug `.first` senza `()` resta separato e non viene corretto qui.
 - [ ] Verificare nel backend i due `db...filter_by(...).first` **senza parentesi** in `post`/`put` di licenses: sono bug che rendono morto il ramo NotFound.
 - [ ] Confermare che 204 (non 200) sia il contratto reale di `put`/`delete` e aggiornare la doc OpenAPI dell'endpoint.
 - [ ] Verificare che `url is None` derivi dal `pre_load null_url`.
@@ -116,8 +115,8 @@ DELETE /api/admin/licenses/<id>   → require_all(ADMIN) → filter_by(id).first
 
 ## 8. Possibili criticità
 
-- **Test che può sparire dalla copertura (ADMIN-001)**: il quarto test fa `pytest.skip` nel backend attuale → **falso senso di copertura** sul ramo “group inesistente”. È onesto e ben documentato, ma di fatto quel contratto **non è verificato**.
-- **Bug di backend mascherato**: il `.first` senza `()` rende il `NotFound` di group morto sia in `post` sia in `put`; il test lo aggira con lo skip invece di fallire. Un reviewer potrebbe non accorgersi che il problema è doppio (validazione 400 + dead branch).
+- **Perimetro ADMIN-001**: il test verifica il rifiuto HTTP `400` e l'assenza di persistenza, non il ramo `NotFound` del controller, non raggiungibile attraverso la `OneOf`.
+- **Bug di backend ancora aperto**: il `.first` senza `()` rende il `NotFound` di group morto sia in `post` sia in `put`; resta da correggere separatamente. La validazione `400` è invece il contratto HTTP adottato.
 - **Doc/implementazione divergenti**: `responses` dichiara 200 dove il codice ritorna 204; test corretti ma contratto OpenAPI fuorviante.
 - **`Conflict` (409) non testato**: `License.name` non è unique → ramo dup non esercitabile/non coperto.
 - **Dipendenza dalla schema dinamica**: i test devono creare i gruppi *prima*, altrimenti la `OneOf` sarebbe vuota; accoppiamento forte fra setup e validazione runtime.
@@ -130,4 +129,4 @@ DELETE /api/admin/licenses/<id>   → require_all(ADMIN) → filter_by(id).first
 | `test_admin_license_create_list_update_delete_EXT` | `post`/`get`/`put`/`delete` + `null_url` | CRUD + cambio group + `url=""`→None + DB | — (DB diretto) | `admin_headers_EXT`, `cleanup_registry` | Alta |
 | `test_admin_license_list_includes_group_and_datasets_EXT` | `get` (group + datasets nested) | gruppo e dataset annidati | — | `admin_headers_EXT`, `cleanup_registry` | Media |
 | `test_admin_license_missing_license_returns_404_EXT` | `put`/`delete` (NotFound) | 404 su license inesistente | — | `admin_headers_EXT`, `cleanup_registry` | Bassa |
-| `test_admin_license_missing_group_returns_404_when_backend_allows_branch_EXT` | `getPOSTInputSchema` (OneOf) vs `post` | **skip** se 400 (ADMIN-001), altrimenti 404 | — (usa `pytest.skip`) | `admin_headers_EXT` | Media (skippabile) |
+| `test_admin_license_missing_group_returns_400_EXT` | `getPOSTInputSchema` (OneOf) | 400, errore group_license, nessuna license creata (ADMIN-001) | — (DB diretto) | `admin_headers_EXT` | Bassa |

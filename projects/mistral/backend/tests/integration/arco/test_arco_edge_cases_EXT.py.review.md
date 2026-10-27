@@ -8,7 +8,7 @@
 - **Percorso**: [projects/mistral/backend/tests/integration/arco/test_arco_edge_cases_EXT.py](projects/mistral/backend/tests/integration/arco/test_arco_edge_cases_EXT.py)
 - **Scopo**: coprire i contratti ARCO non esercitati dalla baseline: (a) **helper puri** (`guess_mime_type`, `_round_coord`); (b) **rami di errore del proxy** (no auth, auth errata, `NoSuchKey`→404, `ClientError` generico, mimetype dal filename); (c) **varianti del catalogo** (filtro prefissi `.zarr/`, `.zmetadata` mancante con fallback, license/attribution sconosciute, paginazione con `NextContinuationToken`).
 - **Tipologia**: misto **unit puro** (i due helper) + **integrazione HTTP** (proxy e catalogo via `FlaskClient`), con S3 e SQLAlchemy **sempre rimpiazzati** da fake locali in memoria. Marker: `pytestmark = [pytest.mark.integration, pytest.mark.deterministic]`.
-- **Numero di test**: 11 funzioni (1 di cui parametrizzata su 4 casi) in 3 classi. Una è **silenziosamente skippabile** (`ARCO-001`, vedi §6/§8).
+- **Numero di test**: 11 funzioni (1 di cui parametrizzata su 4 casi), per 14 casi in 3 classi. Uno è marcato **xfail strict** (`ARCO-001`, vedi §6/§8): il bug attuale produce un fallimento atteso, non uno skip.
 
 ## 2. Backend realmente testato
 
@@ -82,12 +82,12 @@
 - **Flusso/Assert**: `GET /arco/missing.zarr/.zgroup` → `404`.
 - **Casi coperti**: error path / mapping eccezione→HTTP (usa `ClientError`, non `client.exceptions.NoSuchKey`).
 
-#### `test_proxy_s3_non_no_such_key_returns_server_error_EXT` — **ARCO-001 (skippabile)**
+#### `test_proxy_s3_non_no_such_key_returns_server_error_EXT` — **ARCO-001 (xfail strict)**
 - **Obiettivo**: un `ClientError` S3 diverso da `NoSuchKey` deve restare errore server (atteso `500`).
 - **Backend coinvolto**: ramo `else: raise Exception from e`.
 - **Setup**: `get_object.side_effect = _client_error_EXT("InternalError")`; fake S3 installato; header valido.
-- **Flusso/Assert**: `GET /arco/ww3.zarr/.zgroup` → **se `status_code != 500` → `pytest.skip("ARCO-001: ...")`**, altrimenti `assert == 500`.
-- **Casi coperti**: error path documentato ma **non garantito**: oggi il wrapper restapi espone l'eccezione generica con un codice diverso da 500 → il test si autoesclude. Vedi §8.
+- **Flusso/Assert**: `GET /arco/ww3.zarr/.zgroup` → `assert status_code == 500`, sempre eseguito. Il marker `pytest.mark.xfail(reason="ARCO-001: ...", strict=True, raises=AssertionError)` registra il fallimento atteso.
+- **Casi coperti**: error path con contratto atteso ancora non soddisfatto: oggi il wrapper restapi espone `400`, quindi il test risulta `XFAIL`. Quando restituisce `500`, `XPASS(strict)` fa fallire la suite e richiede di rimuovere il marker. Errori diversi da `AssertionError` non sono mascherati dal marker. Vedi §8.
 
 #### `test_proxy_sets_mimetype_from_object_filename_EXT`
 - **Obiettivo**: il proxy imposta il mimetype da `guess_mime_type(filename)`.
@@ -137,7 +137,7 @@ GET /api/arco/<path:object_path>
     → validate_access_key_from_request()   (no/errata auth → Unauthorized → 401)
     → arco.s3.get_instance() [FAKE].client.get_object(Bucket="arco", Key=path)
         → ClientError Code=="NoSuchKey" → NotFound → 404
-        → altro ClientError → raise Exception → (500? ARCO-001: oggi diverso → skip)
+        → altro ClientError → raise Exception → 400 (atteso 500: ARCO-001 → XFAIL strict)
     → Response(body, mimetype=guess_mime_type(filename)) → 200
 
 # Catalogo (PUBBLICO, senza header)
@@ -156,7 +156,7 @@ GET /api/arco/datasets
 ## 6. Comportamenti nascosti
 
 - **`pytest.fail` come "sentinella" di mock**: nei due test "rejected before S3", `arco.s3.get_instance` è sostituito con `lambda: pytest.fail(...)`. Non è un mock di dati ma una **trappola**: prova che il ramo S3 non viene eseguito quando l'auth fallisce.
-- **`pytest.skip` (ARCO-001)**: `test_proxy_s3_non_no_such_key_returns_server_error_EXT` si **autoesclude** se il backend non risponde `500`. In CI può apparire `skipped` senza fallire: la copertura del ramo "errore S3 generico → 500" è **sospesa**, non verificata (il backend fa `raise Exception` e il wrapper restapi oggi non mappa a 500).
+- **`pytest.mark.xfail` strict (ARCO-001)**: `test_proxy_s3_non_no_such_key_returns_server_error_EXT` esegue la richiesta e l'assert `500`. Il `400` corrente produce `XFAIL`, non `skipped`; un futuro `500` produce `XPASS(strict)` e fa fallire la suite finché il marker non viene rimosso. `raises=AssertionError` lascia fallire gli altri tipi di errore.
 - **Due meccanismi distinti di "chiave mancante"**: il **proxy** usa `botocore.exceptions.ClientError` con `Error.Code == "NoSuchKey"`; il **catalogo** usa `except client.exceptions.NoSuchKey`. I fake li modellano separatamente (`_client_error_EXT` vs `_NoSuchKey_EXT` esposto da `_FakeS3Client_EXT.exceptions`). È un dettaglio non ovvio e correttamente replicato.
 - **Catalogo pubblico**: i test catalogo non inviano header e ottengono `200`, documentando esplicitamente l'assenza di auth (cosa che la baseline catalogo **non** fa, anzi invia header inutili).
 - **Tracciamento delle chiamate S3**: `_FakeS3Client_EXT` registra `list_calls`/`get_calls`; la paginazione è verificabile **osservando i parametri** (presenza/assenza di `ContinuationToken`) senza S3 reale.
@@ -166,8 +166,8 @@ GET /api/arco/datasets
 
 ## 7. Checklist di revisione
 
-- [ ] **ARCO-001**: decidere se correggere il backend perché un `ClientError` S3 non-`NoSuchKey` diventi davvero `500` (oggi `raise Exception` generico) e riattivare l'assert; finché c'è lo `skip`, quel ramo **non è verificato**.
-- [ ] Verificare in [endpoints/arco.py](projects/mistral/backend/endpoints/arco.py) il ramo `else: raise Exception from e` del proxy: è il punto esatto coperto/skippato da ARCO-001.
+- [x] **ARCO-001**: sostituito lo skip con `xfail(strict=True, raises=AssertionError)`, mantenendo il riferimento al bug e l'assert `500` sempre eseguito. Backend invariato.
+- [ ] Correggere in [endpoints/arco.py](projects/mistral/backend/endpoints/arco.py) il ramo `else: raise Exception from e` del proxy; al successivo `XPASS(strict)`, rimuovere il marker ARCO-001.
 - [ ] Confermare che il catalogo debba essere pubblico (i test EXT lo assumono chiamando senza header) e allineare la baseline.
 - [ ] Verificare che il filtro `.zarr/` e il fallback su `.zmetadata` mancante siano i contratti desiderati.
 - [ ] Confermare che la paginazione passi `ContinuationToken` solo dalla 2ª chiamata (invariante asserita).
@@ -175,7 +175,7 @@ GET /api/arco/datasets
 
 ## 8. Possibili criticità
 
-- **Ramo 500 non garantito (ARCO-001)**: il test del `ClientError` generico fa `pytest.skip` nel backend attuale → **falso senso di copertura** sull'errore server del proxy. È onesto e documentato, ma quel contratto resta non verificato (e il backend solleva un `Exception` nudo, anti-pattern).
+- **Ramo 500 ancora non soddisfatto (ARCO-001)**: il test del `ClientError` generico risulta `XFAIL` nel backend attuale. L'assert viene eseguito ma il bug resta aperto: il backend solleva un'eccezione generica e restituisce `400` invece di `500`.
 - **Fake elaborati = costo di manutenzione**: l'infrastruttura `_Fake*_EXT` riproduce in dettaglio il contratto S3/DB. Se l'endpoint cambiasse il modo di leggere `.zmetadata`/paginare, i fake andrebbero aggiornati a mano; rischio di drift fake-vs-reale (es. forme di `ClientError`/`exceptions`).
 - **Over-mocking strutturale**: nessun test EXT tocca S3/DB reali; la copertura è di logica del controller, non di integrazione end-to-end (coerente con lo scopo "edge", ma da non confondere con copertura del connettore).
 - **Marker fuorviante sui puri**: `guess_mime_type`/`_round_coord` sono unit test marcati `integration`; impatto minimo ma rende meno chiara la tassonomia della suite.
@@ -191,7 +191,7 @@ GET /api/arco/datasets
 | `test_proxy_missing_basic_auth_is_rejected_before_s3_EXT` | `ArcoResource.get` + auth | 401 senza header, S3 non toccato | `pytest.fail` su `s3.get_instance` | `client`, `monkeypatch` | Bassa |
 | `test_proxy_wrong_basic_auth_is_rejected_before_s3_EXT` | `ArcoResource.get` + auth | 401 con key errata, S3 non toccato | `pytest.fail` su `s3.get_instance` | `client`, `monkeypatch` | Bassa |
 | `test_proxy_s3_no_such_key_returns_404_EXT` | `ArcoResource.get` (ClientError NoSuchKey) | 404 su oggetto assente | `MagicMock` S3 + `ClientError` | `client`, `fresh_access_key`, `monkeypatch` | Media |
-| `test_proxy_s3_non_no_such_key_returns_server_error_EXT` | `ArcoResource.get` (else `raise Exception`) | **skip** se ≠500 (ARCO-001), altrimenti 500 | `MagicMock` S3 + `ClientError` | `client`, `fresh_access_key`, `monkeypatch` | Media (skippabile) |
+| `test_proxy_s3_non_no_such_key_returns_server_error_EXT` | `ArcoResource.get` (else `raise Exception`) | assert 500, **XFAIL strict** sul bug attuale (ARCO-001) | `MagicMock` S3 + `ClientError` | `client`, `fresh_access_key`, `monkeypatch` | Media |
 | `test_proxy_sets_mimetype_from_object_filename_EXT` | `ArcoResource.get` + `guess_mime_type` | 200 + mimetype JSON + body invariato | fake S3 (`_FakeBody_EXT`) | `client`, `fresh_access_key`, `monkeypatch` | Media |
 | `test_catalog_keeps_only_zarr_prefixes_and_enriches_metadata_EXT` | `ArcoDatasetsResource.get` | filtro `.zarr/` + enrichment + rounding | fake S3 + fake DB | `client`, `monkeypatch` | Alta |
 | `test_catalog_missing_zmetadata_keeps_default_dataset_fallback_EXT` | `ArcoDatasetsResource.get` (NoSuchKey) | fallback dataset base, `bounding` None | fake S3 + fake DB | `client`, `monkeypatch` | Media |

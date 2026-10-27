@@ -283,8 +283,8 @@ Questa sezione concentra i punti emersi dalle review che meritano attenzione pri
 - File marcati `integration` che sono in realtà **unit** puri: `services/*`, `tasks/test_data_extraction_helpers`, `tasks/test_queue_sorting`, `tools/test_tool_helpers`, `connectors/test_s3_connector`.
 
 ### 10.5 Bug di backend emersi durante la stesura dei test (documentati nelle review e in [docs/problems_and_bugs_discovered_in_extension.md](projects/mistral/backend/tests/docs/problems_and_bugs_discovered_in_extension.md))
-- **ADMIN-001**: in `admin_licenses.py`/`admin_datasets.py` i controlli FK usano `...first` senza `()` → rami `NotFound` morti; lo `skip` aggira il `400` anticipato della `OneOf`.
-- **ARCO-001**: il ramo errore-S3-generico→500 del proxy fa un `raise Exception` nudo; il relativo test è skippato.
+- **ADMIN-001**: il test verifica il contratto HTTP `400` della `OneOf` per `group_license` inesistente, l'errore sul campo e l'assenza di license create, senza skip. Il `NotFound` del controller non è raggiungibile via HTTP; resta separato il bug dei controlli FK con `...first` senza `()` in `admin_licenses.py`/`admin_datasets.py`.
+- **ARCO-001**: il ramo errore-S3-generico del proxy fa un `raise Exception` nudo e restituisce `400` invece di `500`; il test esegue l'assert `500` con `xfail(strict=True, raises=AssertionError)`. Un futuro `500` causa `XPASS(strict)` e richiede la rimozione del marker.
 - **SCHEDULES-001**: `test_opendata_as_non_admin_returns_403` può realmente fallire (202 vs 403).
 - **EDGE-001 (observed)**: `NotFound("Station data not found")` è codice morto (`parse_obs_maps_response` ritorna sempre dict non vuoto).
 - **TEMPLATES-001/002**: `Template.get` ha la condizione di esistenza **invertita**; estensione di un upload non valido mascherata da `FileNotFoundError`. Mismatch doc/impl (202 dichiarato, 200 reale; refuso `"succesfully deleted"`).

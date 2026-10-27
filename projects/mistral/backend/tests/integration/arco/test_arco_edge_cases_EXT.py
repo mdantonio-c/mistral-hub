@@ -337,6 +337,14 @@ class TestArcoProxyEdges_EXT:
         # assert
         assert response.status_code == 404
 
+    @pytest.mark.xfail(
+        reason=(
+            "ARCO-001: il wrapper restapi espone come 400 invece di 500 "
+            "il ClientError S3 non NoSuchKey rilanciato dal proxy."
+        ),
+        strict=True,
+        raises=AssertionError,
+    )
     def test_proxy_s3_non_no_such_key_returns_server_error_EXT(
         self,
         client: FlaskClient,
@@ -356,13 +364,6 @@ class TestArcoProxyEdges_EXT:
         response = client.get(f"{API_URI}/arco/ww3.zarr/.zgroup", headers=headers)
 
         # assert
-        if response.status_code != 500:
-            pytest.skip(
-                "ARCO-001: il backend rilancia un'eccezione generica per ClientError "
-                "S3 non NoSuchKey, ma il wrapper restapi la espone oggi come "
-                f"{response.status_code} invece di 500. Riattivare l'assert quando "
-                "il proxy ARCO restituira un errore server per questo ramo."
-            )
         assert response.status_code == 500
 
     def test_proxy_sets_mimetype_from_object_filename_EXT(
