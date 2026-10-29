@@ -7,7 +7,7 @@
 
 - **Percorso**: [projects/mistral/backend/tests/integration/tasks/test_data_extraction_quota_and_notifications_EXT.py](projects/mistral/backend/tests/integration/tasks/test_data_extraction_quota_and_notifications_EXT.py)
 - **Scopo**: proteggere i rami di quota utente (`MaxOutputSizeExceeded`/`DiskQuotaException`), la disabilitazione schedule su quota, il **duplicate data-ready**, le notifiche **email** (con retry) e **AMQP**, e il package license, **senza** rieseguire estrazioni meteo reali.
-- **Tipologia**: mista — **integrazione task** per quota/data-ready (DB reale: User/Schedule/Request/FileOutput) e **unità con fake** per le notifiche e il package (request come `SimpleNamespace`, sistemi esterni monkeypatchati). Marker: `integration`, `deterministic`.
+- **Tipologia**: mista — **integrazione task** per quota/data-ready (DB reale: User/Schedule/Request/FileOutput) ed email (utente DB e rendering reali, SMTP simulato); AMQP con fake e package su filesystem temporaneo reale. Le request delle notifiche restano `SimpleNamespace`. Marker: `integration`, `deterministic`.
 - **Conteggio**: 8 test in 4 classi (`TestCheckUserQuotaEXT`×4, `TestDataExtractDataReadyEXT`×1, `TestDataExtractionNotificationsEXT`×2, `TestPackageDataLicenseEXT`×1). Nessun `pytest.skip`.
 
 ## 2. Backend realmente testato
@@ -21,7 +21,7 @@
 | `package_data_license(...)` | [tasks/data_extraction.py](projects/mistral/backend/tasks/data_extraction.py#L860) | tar.gz output+LICENSE + unlink sorgente. |
 | `SqlApiDbManager.get_user_permissions` / `update_schedule_status` | [services/sqlapi_db_manager.py](projects/mistral/backend/services/sqlapi_db_manager.py#L665) / [#L427](projects/mistral/backend/services/sqlapi_db_manager.py#L427) | `max_output_size`; disabilitazione schedule. |
 | `CeleryExt.delete_periodic_task` | `restapi.connectors.celery` | Rimozione periodic task (qui **fake**). |
-| Template `data_extraction_result.html` | [models/emails/data_extraction_result.html](projects/mistral/backend/models/emails/data_extraction_result.html) | Riferito dal `get_html_template` (qui **fake**). |
+| Template `data_extraction_result.html` | [models/emails/data_extraction_result.html](projects/mistral/backend/models/emails/data_extraction_result.html) | Renderizzato dal `get_html_template` **reale**, con header/footer versionati e conversione HTML → plain text. |
 
 ## 3. Mappa delle dipendenze
 
@@ -33,7 +33,7 @@
 | `RetryThenSuccessSmtpFactoryEXT` | fake | [tasks/support_EXT.py](projects/mistral/backend/tests/integration/tasks/support_EXT.py) | Fake SMTP: fallisce 1 volta poi invia; registra invii/kwargs. |
 | `RecordingRabbitFactoryEXT` | fake | [tasks/support_EXT.py](projects/mistral/backend/tests/integration/tasks/support_EXT.py) | Fake RabbitMQ: registra payload+routing_key e `disconnect`. |
 | `RecordingPeriodicTaskDeletionEXT` | fake | [tasks/support_EXT.py](projects/mistral/backend/tests/integration/tasks/support_EXT.py) | Fake `delete_periodic_task`: registra `calls`, ritorna True. |
-| `monkeypatch` | fixture | `pytest` | Patcha `arki.estimate_data_size`, `subprocess.check_output`, `CeleryExt.delete_periodic_task`, `get_html_template`, `smtp.get_instance`, `time.sleep`, `rabbitmq.get_instance`, `get_backend_url`. |
+| `monkeypatch` | fixture | `pytest` | Patcha `arki.estimate_data_size`, `subprocess.check_output`, `CeleryExt.delete_periodic_task`, `smtp.get_instance`, `time.sleep`, `rabbitmq.get_instance`, `get_backend_url`. Il rendering non è patchato. |
 | `client`, `cleanup_registry`, `tmp_path` | fixture | `restapi.tests` / [tests/conftest.py](projects/mistral/backend/tests/conftest.py) / `pytest` | Client, teardown LIFO, dir temporanea. |
 | `DiskQuotaException`, `MaxOutputSizeExceeded` | eccezioni | [mistral/exceptions.py](projects/mistral/backend/exceptions.py) | Effetto osservabile dei rami quota. |
 | `states` (celery) | costanti | `celery` | `SUCCESS`/`FAILURE` per request sintetiche. |
@@ -83,10 +83,10 @@
 ### `test_notify_by_email_retries_with_sleep_noop_and_sends_payload_EXT`
 - **Obiettivo**: primo errore SMTP → retry senza sleep reale → invio riuscito.
 - **Backend coinvolto**: `notify_by_email` (query email DB reale, `get_html_template`, loop retry `MAX_RETRIES`/`SLEEP_TIME`).
-- **Flusso**: utente reale (per l'email), `get_html_template` fake (registra `title/status/message`), `smtp.get_instance` → fake che fallisce 1 volta, `time.sleep` → no-op che registra → `notify_by_email(db, user_id, request, " after retry")` con `request` `SimpleNamespace(status=FAILURE, error_message="synthetic failure")`.
-- **Setup**: utente reale; resto del percorso notification **fake**.
-- **Assert**: `send_attempts==2`; 1 messaggio inviato; subject fisso `"MeteoHub: data extraction completed"`; `recipient==db_user.email`; `body=="html:FAILURE:synthetic failure after retry"`; `plain_body=="plain-body-ext"`; `captured_template` esatto; `sleep_calls==[SLEEP_TIME]`; `get_instance_calls==[{"retries":5,"retry_wait":10}]×2`.
-- **Casi coperti**: assemblaggio body + retry SMTP (1 fallimento). **Vedi §8**: il ramo “tutti i retry falliscono” (eccezione silenziata) **non** è coperto.
+- **Flusso**: utente reale (per l'email), `notify_by_email` → `get_html_template` reale sul template versionato `data_extraction_result.html`, con `email_header.html`, `email_footer.html` e conversione plain text; `smtp.get_instance` → fake che fallisce 1 volta, `time.sleep` → recorder senza attese reali. La request resta `SimpleNamespace(status=FAILURE, error_message="synthetic failure")` e `extra_msg` è `" after retry"`.
+- **Setup**: utente DB e rendering reali; solo trasporto SMTP e attesa sono simulati.
+- **Assert**: `send_attempts==2`; 1 messaggio accettato dal fake; subject fisso `"MeteoHub: data extraction completed"`; `recipient==db_user.email`; HTML e plain text non nulli né vuoti, contenenti titolo request, `FAILURE`, errore completo `"synthetic failure after retry"` e contenuti distintivi del template/footer; marker del logo header nell'HTML; nessun delimitatore Jinja irrisolto; tag `<br` presente nell'HTML e assente nel plain text; `sleep_calls==[SLEEP_TIME]`; `get_instance_calls==[{"retries":5,"retry_wait":10}]×2`. Nessuno snapshot integrale né body atteso ricalcolato con il renderer; template mancanti o body nulli/vuoti fanno fallire gli assert senza skip o fallback sintetici.
+- **Casi coperti**: rendering reale HTML/plain text + retry SMTP (1 fallimento simulato). **Non è una prova di consegna email end-to-end**. **Vedi §8**: il ramo “tutti i retry falliscono” (eccezione silenziata) **non** è coperto.
 
 ### `test_notify_by_amqp_queue_sends_success_payload_with_download_url_EXT`
 - **Obiettivo**: notifica AMQP success include status/reftime/filename/download_url.
@@ -122,7 +122,8 @@ data_extract.run(... data_ready=True, schedule_id ...)
   → last_request.args["reftime"] == reftime? → return        # nessun create_request_record / Arkimet / output_dir
 
 notify_by_email(db, user_id, request, extra)
-  → email = User.email (DB reale) ; body,plain = get_html_template(...) (FAKE)
+  → email = User.email (DB reale)
+  → body,plain = get_html_template(...) (REALE: template progetto + header/footer + conversione plain text)
   → for i in range(MAX_RETRIES): smtp.get_instance(retries=5, retry_wait=10) (FAKE) → send(...) ; break
        → except → log + time.sleep(SLEEP_TIME) (no-op) → continue
 
@@ -138,7 +139,7 @@ notify_by_amqp_queue(queue, request)
 - **Duplicate data-ready prima di tutto il resto**: l'early-return avviene **prima** di `create_request_record`, auth dataset, output_dir e Arkimet; per questo il test non deve mockare nulla di esterno.
 - **`adapt_reftime` saltata con `data_ready=True`**: nel task, `adapt_reftime` è chiamata solo `if reftime and not data_ready`; il confronto duplicate usa la reftime **non** adattata.
 - **Retry SMTP: condizione sempre vera e nessun re-raise**: nel loop `for i in range(MAX_RETRIES)` la guardia `if i < MAX_RETRIES` è **sempre** vera (i∈{0,1,2}, MAX_RETRIES=3) → l'ultimo tentativo dorme comunque; e se **tutti** i tentativi falliscono l'eccezione viene **silenziata** (nessun `raise`). Il test copre solo 1 fallimento, quindi questi due comportamenti restano scoperti.
-- **`notify_by_email` legge l'email reale dal DB**: l'unico pezzo non-fake del percorso email è la query `User.email`.
+- **`notify_by_email` e rendering reali**: la query `User.email`, il template versionato, header/footer e conversione plain text sono esercitati senza patch del renderer. SMTP e `time.sleep` restano simulati: nessuna prova di consegna email end-to-end.
 - **AMQP payload condizionale**: `error_message` è aggiunto solo se valorizzato; `filename`/`download_url` solo se `status==SUCCESS`. Il test copre il ramo SUCCESS senza error_message.
 - **`get_backend_url` importato nel modulo**: pur essendo `from restapi.config import get_backend_url`, è patchabile come `data_extraction.get_backend_url`.
 
@@ -154,7 +155,7 @@ notify_by_amqp_queue(queue, request)
 
 - **Over-mocking elevato (rischio segnalato dal prompt)**:
   - quota: Arkimet (`estimate_data_size`) e `du` (`subprocess.check_output`) sono stub → si testa solo la **logica di confronto**, non l'integrazione reale;
-  - notifiche: SMTP, RabbitMQ, `get_html_template`, `get_backend_url`, `time.sleep` sono tutti fake **e** la `request` è un `SimpleNamespace` → per `notify_by_amqp_queue` si verifica di fatto solo l'assemblaggio di un dict;
+  - notifiche: SMTP, RabbitMQ, `get_backend_url` e `time.sleep` restano fake e la `request` è un `SimpleNamespace`; il rendering email è reale ma non prova la consegna end-to-end. Per `notify_by_amqp_queue` si verifica di fatto solo l'assemblaggio di un dict;
   - schedule disabling: `CeleryExt.delete_periodic_task` è un fake → non si verifica la rimozione reale in RedBeat.
 - **Rami di errore scoperti**: `DeleteScheduleException` (quando `delete_periodic_task` ritorna False), email “tutti i retry falliti” (eccezione silenziata), AMQP con `error_message`.
 - **Bug latente non testato nel retry email**: la guardia `if i < MAX_RETRIES` è sempre vera e non c'è `raise` finale; il test con 1 fallimento non lo evidenzia. Un reviewer potrebbe concludere erroneamente che il retry sia robusto.
@@ -170,6 +171,6 @@ notify_by_amqp_queue(queue, request)
 | `..._disables_periodic_schedule_on_quota_failure_EXT` | quota + `delete_periodic_task` + `update_schedule_status` | schedule disabilitata, periodic rimosso | `delete_periodic_task` fake | + `seed_schedule_EXT` | Alta |
 | `..._skips_user_limits_for_opendata_EXT` | `check_user_quota` (bypass opendata) | nessuna eccezione, `du` non usato | `estimate_data_size` stub + `du` trap | come sopra | Media |
 | `..._duplicate_data_ready_returns_without_new_output_EXT` | `data_extract` (duplicate) | nessun nuovo output | — (DB reale) | + `seed_schedule_EXT`/`seed_request_EXT` | Alta |
-| `..._notify_by_email_retries_with_sleep_noop..._EXT` | `notify_by_email` | retry+body+recipient | SMTP/template/sleep fake | `client`, `cleanup_registry`, `monkeypatch` | Alta |
+| `..._notify_by_email_retries_with_sleep_noop..._EXT` | `notify_by_email` + rendering reale | retry+HTML/plain text+recipient, header/footer, nessun placeholder Jinja | SMTP/sleep fake; nessuna consegna end-to-end | `client`, `cleanup_registry`, `monkeypatch` | Alta |
 | `..._notify_by_amqp_queue_sends_success_payload..._EXT` | `notify_by_amqp_queue` | payload+routing+disconnect | Rabbit/`get_backend_url` fake | `monkeypatch` | Media |
 | `..._package_data_license_archives_license_and_removes_original_EXT` | `package_data_license` | tar+unlink sorgente | — (FS reale) | `tmp_path`, `cleanup_registry` | Bassa |

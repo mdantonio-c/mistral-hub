@@ -9,7 +9,8 @@
 # meteo reali.
 # EXTENSION RUNTIME: Arkimet size estimation, SMTP, RabbitMQ, Celery periodic deletion
 # e sleep retry sono fake locali via monkeypatch. Il DB di test viene usato solo dove
-# il task legge o scrive User/Schedule/Request/FileOutput.
+# il task legge o scrive User/Schedule/Request/FileOutput. Il rendering email usa i
+# template reali con header/footer e conversione plain text, non prova consegna end-to-end.
 # EXTENSION CLEANUP: utenti temporanei, request, schedule e directory output sono
 # registrati nel cleanup_registry; i file package vivono in tmp_path e sono rimossi dal
 # registry oltre che dal cleanup pytest.
@@ -331,7 +332,7 @@ class TestDataExtractDataReadyEXT:
 
 
 class TestDataExtractionNotificationsEXT:
-    """Verifica notification email e AMQP con fake locali."""
+    """Verifica email con template reali e trasporti SMTP/AMQP simulati."""
 
     def test_notify_by_email_retries_with_sleep_noop_and_sends_payload_EXT(
         self,
@@ -341,28 +342,18 @@ class TestDataExtractionNotificationsEXT:
     ) -> None:
         """Il primo errore SMTP viene ritentato senza sleep reale e poi invia email.
 
-        Il fake template rende ispezionabile title/status/message, mentre il fake SMTP
-        fallisce una sola volta. Monkeypatchiamo `time.sleep` a no-op registrato, come
-        richiesto dal prompt, per non rallentare la suite.
+        Il renderer usa il template versionato con header/footer e conversione plain
+        text. SMTP fallisce una sola volta e `time.sleep` registra senza attese reali:
+        il test non verifica la consegna email end-to-end.
         """
         # arrange
-        # Usiamo un utente DB reale solo per recuperare l'email destinataria con la
-        # stessa query del task. Tutto il resto del percorso notification e fake.
+        # Utente DB e rendering sono reali; solo SMTP e sleep sono simulati.
         db = sqlalchemy.get_instance()
         user = create_task_test_user_EXT(client, cleanup_registry)
         db_user = db.User.query.get(user.user_id)
         assert db_user is not None
-        captured_template: dict[str, object] = {}
-
-        def fake_html_template_EXT(template_name, replaces):
-            """Registra i dati template e restituisce body sintetici."""
-            captured_template["template_name"] = template_name
-            captured_template["replaces"] = dict(replaces)
-            return f"html:{replaces['status']}:{replaces['message']}", "plain-body-ext"
-
         smtp_factory = RetryThenSuccessSmtpFactoryEXT(failures_before_success=1)
         sleep_calls: list[int] = []
-        monkeypatch.setattr(data_extraction, "get_html_template", fake_html_template_EXT)
         monkeypatch.setattr(
             data_extraction.smtp,
             "get_instance",
@@ -385,23 +376,30 @@ class TestDataExtractionNotificationsEXT:
         data_extraction.notify_by_email(db, user.user_id, request, " after retry")
 
         # assert
-        # Verifichiamo subject fisso, destinatario DB, corpo costruito dal template e
-        # presenza del retry con sleep no-op.
+        # Contenuti distintivi del template reale, senza snapshot di HTML o plain text.
         assert smtp_factory.send_attempts == 2
         assert len(smtp_factory.sent_messages) == 1
         sent = smtp_factory.sent_messages[0]
         assert sent.subject == "MeteoHub: data extraction completed"
         assert sent.recipient == db_user.email
-        assert sent.body == "html:FAILURE:synthetic failure after retry"
-        assert sent.plain_body == "plain-body-ext"
-        assert captured_template == {
-            "template_name": "data_extraction_result.html",
-            "replaces": {
-                "title": "email-notification-ext",
-                "status": states.FAILURE,
-                "message": "synthetic failure after retry",
-            },
-        }
+        assert sent.body is not None, "Il rendering ha restituito HTML nullo"
+        assert sent.plain_body is not None, "Il rendering ha restituito plain text nullo"
+        for body in (sent.body, sent.plain_body):
+            assert body.strip(), "Il rendering ha restituito un body vuoto"
+            for content in (
+                request.name,
+                states.FAILURE,
+                "synthetic failure after retry",
+                "This email is an automatic notification",
+                "MeteoHub - Agenzia ItaliaMeteo",
+            ):
+                assert content in body
+            assert "{{" not in body
+            assert "{%" not in body
+            assert "{#" not in body
+        assert "Agenzia Italia Meteo Logo" in sent.body
+        assert "<br" in sent.body
+        assert "<br" not in sent.plain_body
         assert sleep_calls == [data_extraction.SLEEP_TIME]
         assert smtp_factory.get_instance_calls == [
             {"retries": 5, "retry_wait": 10},
