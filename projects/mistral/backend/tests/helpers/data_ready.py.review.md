@@ -30,7 +30,7 @@
 | `list_user_requests`, `list_user_schedules`, `list_schedule_requests` | wrapper API | Listing normalizzati a lista. |
 | `wait_for_schedule_requests(...)` | polling | Attende che la schedule esponga `expected_count` richieste (via `wait_until`). |
 | `post_data_ready`, `trigger_data_ready_and_wait_accepted` | wrapper/polling | Submit data-ready (con retry fino a `202` nella variante polling). |
-| `trigger_data_ready_inline(...)` | orchestrazione locale | Assorbe e conta la submit del launcher, esegue `.run(...)` e intercetta l'eventuale `data_extract` con i fake Celery. |
+| `trigger_data_ready_inline(..., schedule_ids)` | orchestrazione locale | Assorbe e conta la submit del launcher, confina il launcher alle `schedule_ids` del test ([helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py)), esegue `.run(...)` e intercetta l'eventuale `data_extract` con i fake Celery. |
 | `create_schedule_request_record(...)` | seeding DB | Inserisce una `Request` storica con reftime/status/submission_date controllati. |
 | `delete_all_user_requests/schedules`, `register_data_ready_user_cleanup`, `register_schedule_cleanup` | cleanup | Teardown best-effort di richieste/schedule/utente. |
 

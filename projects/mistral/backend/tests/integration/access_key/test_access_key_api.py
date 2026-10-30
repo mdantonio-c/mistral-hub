@@ -2,21 +2,20 @@
 
 This module covers the user-visible contract around access keys: creation,
 retrieval, regeneration, expiration handling, and behavior for keys with no
-expiration timestamp.
+expiration timestamp. Every key belongs to the temporary ``access_key_owner``.
 """
 
 from datetime import timedelta
 
 import pytest
 from restapi.connectors import sqlalchemy
-from restapi.services.authentication import BaseAuthentication
 from restapi.tests import FlaskClient
 
 from .support import (
     ACCESS_KEY_ENDPOINT,
     ACCESS_KEY_VALIDATE_ENDPOINT,
 )
-from mistral.tests.helpers.auth import make_basic_auth
+from mistral.tests.helpers.auth import AuthenticatedTestUser, make_basic_auth
 
 
 pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
@@ -59,24 +58,24 @@ class TestAccessKeyAPI:
         # sia arrivato fin qui senza eccezioni.
         assert resp.json["key"] == token
 
-    def test_03_regenerate_access_key(self, client: FlaskClient, auth_headers):
+    def test_03_regenerate_access_key(self, client: FlaskClient, fresh_access_key):
         """Verify that regenerating a key invalidates the previous token value.
 
         The contract here is not just that ``POST`` succeeds, but that the user
         ends up with a different access key and that subsequent reads expose the
-        newly generated value.
+        newly generated value. The first key is created by the fixture, so the
+        scenario does not depend on keys left by previous tests.
         """
 
         # arrange
         # Prepariamo lo scenario access-key con dati minimi e controllati, cosi la
         # verifica successiva resta legata a un comportamento preciso.
-        resp = client.get(ACCESS_KEY_ENDPOINT, headers=auth_headers)
-        old_token = resp.json["key"]
+        headers, old_token = fresh_access_key
 
         # act
         # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
         # verifica dal setup.
-        resp = client.post(ACCESS_KEY_ENDPOINT, headers=auth_headers)
+        resp = client.post(ACCESS_KEY_ENDPOINT, headers=headers)
         new_token = resp.json["key"]
 
         # assert
@@ -85,13 +84,13 @@ class TestAccessKeyAPI:
         assert new_token != old_token
         # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
         # autorizzazione e serializzazione vengono verificati insieme.
-        resp = client.get(ACCESS_KEY_ENDPOINT, headers=auth_headers)
+        resp = client.get(ACCESS_KEY_ENDPOINT, headers=headers)
         # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
         # sia arrivato fin qui senza eccezioni.
         assert resp.json["key"] == new_token
 
     def test_04_create_access_key_without_expiration(
-        self, client: FlaskClient, auth_headers
+        self, client: FlaskClient, access_key_owner: AuthenticatedTestUser
     ):
         """Verify that the API accepts a non-expiring key when asked explicitly.
 
@@ -105,7 +104,7 @@ class TestAccessKeyAPI:
         # verifica dal setup.
         resp = client.post(
             ACCESS_KEY_ENDPOINT,
-            headers=auth_headers,
+            headers=access_key_owner.headers,
             json={"lifetime_seconds": None},
         )
 
@@ -118,13 +117,16 @@ class TestAccessKeyAPI:
         assert resp.json["expiration"] is None
 
     def test_06_validate_expired_access_key(
-        self, client: FlaskClient, fresh_access_key_with_expiration
+        self,
+        client: FlaskClient,
+        access_key_owner: AuthenticatedTestUser,
+        fresh_access_key_with_expiration,
     ):
         """Verify that a previously valid key becomes unusable after expiration.
 
         The test forces the issued key into the past at database level and then
         proves that the validation endpoint rejects it with the same ``401`` seen
-        for any other invalid credential.
+        for any other invalid credential. Only the temporary owner's key changes.
         """
 
         # arrange
@@ -136,7 +138,7 @@ class TestAccessKeyAPI:
         db = sqlalchemy.get_instance()
         # Leggiamo lo stato dal database di test per collegare la risposta API agli
         # effetti persistiti dal backend.
-        user = db.User.query.filter_by(email=BaseAuthentication.default_user).first()
+        user = db.User.query.get(access_key_owner.user_id)
         # Controlliamo il contratto specifico dello scenario, non soltanto che il codice
         # sia arrivato fin qui senza eccezioni.
         assert user is not None

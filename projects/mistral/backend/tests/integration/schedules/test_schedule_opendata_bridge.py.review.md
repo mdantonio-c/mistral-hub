@@ -83,7 +83,7 @@ POST /api/schedules (opendata,on-data-ready)
     └─ celery=AcceptTasksWithoutRunningCelery("data_extract")   → submission registrata, NON inviata
 POST /api/data/ready (admin)            → 202
     └─ celery=AcceptTasksWithoutRunningCelery("launch_all_on_data_ready_extractions")
-launch_all_on_data_ready_extractions.run(model, rundate)   ← eseguito A MANO dal test
+launch_all_on_data_ready_extractions.run(model, rundate)   ← eseguito A MANO dal test, confinato a schedule_ids=[schedule_id]
     └─ celery=InlineDataExtractCelery() → data_extract.run(...) ESEGUITO INLINE (file+opendata reali)
 poll GET /schedules/<id>/requests       → status SUCCESS & fileoutput
 GET /api/datasets/lm5/opendata?q=reftime:=<d>  → package
@@ -101,7 +101,7 @@ GET /api/opendata/<file>                → 200 + Content-Disposition
 ## 6. Comportamenti nascosti
 
 - **Differenza cruciale "async reale" vs "fake inline"** (cuore della review):
-  - **Test deterministico**: l'endpoint reale e la **logica di scheduling reale** (`launch_all_on_data_ready_extractions`) vengono eseguiti, ma il **solo strato di trasporto** Celery è sostituito **due volte**: `AcceptTasksWithoutRunningCelery` (la submission viene *registrata* e non inviata al broker) e `InlineDataExtractCelery` (il task `data_extract` viene **eseguito realmente in-process**). Il test inoltre **invoca a mano** `launch_all_on_data_ready_extractions.run(...)`: non c'è alcun beat/worker; il flusso è sincrono. I side effect (file, pubblicazione opendata) sono **reali**. Non è un fake che *reimplementa* la decisione: la decisione gira davvero, solo il trasporto è simulato.
+  - **Test deterministico**: l'endpoint reale e la **logica di scheduling reale** (`launch_all_on_data_ready_extractions`) vengono eseguiti, ma il **solo strato di trasporto** Celery è sostituito **due volte**: `AcceptTasksWithoutRunningCelery` (la submission viene *registrata* e non inviata al broker) e `InlineDataExtractCelery` (il task `data_extract` viene **eseguito realmente in-process**). Il test inoltre **invoca a mano** `launch_all_on_data_ready_extractions.run(...)`: non c'è alcun beat/worker; il flusso è sincrono. I side effect (file, pubblicazione opendata) sono **reali**. Non è un fake che *reimplementa* la decisione: la decisione gira davvero, solo il trasporto è simulato. Poiché `data_extract` inline è reale, il launcher è confinato alla schedule del test con `confine_data_ready_schedules`: schedule di altri utenti non producono estrazioni, file o notifiche.
   - **Test async_real**: **nessun** fake/monkeypatch. La schedule crontab è scritta in RedBeat e l'estrazione avviene solo quando **celerybeat reale** la preleva, la mette in **RabbitMQ reale** e un **worker reale** la consuma. Il test attende con polling (180s + 180s di grazia). È l'unico dei due a validare persistenza schedule + catena asincrona vera.
 - **Skip silenzioso doppio**: `fetch_dataset_window` fa `pytest.skip` su 404, e la fixture `schedules_user` del conftest fa `pytest.skip` se `lm5` non è disponibile (`LookupError`). In un ambiente senza `lm5`, **entrambi** i test risultano *skipped* senza eseguire alcun assert — rischio "verde ma non eseguito".
 - **`schedules_user` qui è il super-utente del conftest**: a differenza degli altri file del dominio (che ridefiniscono `schedules_user` come utente semplice), questo file **non** lo shadowa, quindi usa il `create_data_ready_user` con ruolo `admin_root`. È **necessario** perché `opendata=True` in `post` richiede `admin_root` (vedi anche SCHEDULES-001 nella review della validation).

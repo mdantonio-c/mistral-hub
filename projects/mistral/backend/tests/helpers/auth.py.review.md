@@ -21,7 +21,7 @@
 
 | Simbolo | Tipo | Cosa fa |
 |---|---|---|
-| `AuthenticatedTestUser` | dataclass frozen | Record `(uuid, user_id, headers, output_dir)`. |
+| `AuthenticatedTestUser` | dataclass frozen | Record `(uuid, user_id, headers, output_dir, email)`; `email` è valorizzata da `create_authenticated_test_user` e serve agli header BasicAuth. |
 | `create_authenticated_test_user(base, client, permissions)` | funzione | Crea utente, login, legge `id` dal DB, ritorna il record. |
 | `delete_test_user(base, client, uuid)` | funzione | Login admin + `DELETE /admin/users/<uuid>` (assert `204`). |
 | `register_test_user_cleanup(...)` | funzione | Registra nel `cleanup_registry` la rimozione della dir e la cancellazione utente. |

@@ -16,15 +16,15 @@
 ## 3. Elementi definiti
 
 ### Fixture `fresh_access_key_with_expiration`
-- **Dipende da**: `client`, `auth_headers` (da [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py)).
-- **Cosa fa**: `POST /access-key` con `{"lifetime_seconds": 3600}`; asserisce `200`, presenza di `key` e di `expiration` non nullo; ritorna `(auth_headers, key)`.
+- **Dipende da**: `client`, `access_key_owner` (da [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py)).
+- **Cosa fa**: `POST /access-key` con `{"lifetime_seconds": 3600}`; asserisce `200`, presenza di `key` e di `expiration` non nullo; ritorna `(access_key_owner.headers, key)`.
 - **Usata da**: `test_access_key_api.py::test_06_validate_expired_access_key`.
-- **Effetti collaterali**: crea/rigenera la chiave del **default user** (stato condiviso).
+- **Effetti collaterali**: crea la chiave dell'utente temporaneo; revoca e cancellazione avvengono nel teardown di `access_key_owner`.
 
 ## 4. Comportamenti nascosti
 
 - La fixture **asserisce dentro il setup** (`assert resp.status_code == 200`, `assert "expiration" ... is not None`): se l'ambiente non emette scadenza, il fallimento appare in fase di setup, non nel corpo del test.
-- Riusa `auth_headers`, quindi eredita implicitamente l'accoppiamento al default user.
+- Riusa `access_key_owner`: la chiave dell'account predefinito non viene toccata.
 
 ## 5. Checklist di revisione
 

@@ -85,6 +85,7 @@ def test_data_ready_skips_schedule_for_different_model_dataset(
         data_ready_db,
         model=SECOND_DATA_READY_DATASET_NAME,
         rundate=dataset_window.ref_from.strftime("%Y%m%d%H"),
+        schedule_ids=[schedule_id],
     )
 
     # assert
@@ -159,6 +160,7 @@ def test_data_ready_skips_schedule_for_different_runhour(
         data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate=_mismatching_rundate(dataset_window.ref_from),
+        schedule_ids=[schedule_id],
     )
 
     # assert

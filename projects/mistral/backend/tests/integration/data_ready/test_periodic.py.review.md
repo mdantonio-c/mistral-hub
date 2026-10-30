@@ -88,7 +88,7 @@ trigger_data_ready_inline:
      → "1", 202
   monkeypatch task.celery.get_instance → InlineDataReadyExtractionCelery(db)
   launch_all_on_data_ready_extractions.run(model, rundate_dt)                # ── LOGICA REALE inline ──
-     for schedule in db.Schedule.query.all():
+     for schedule in db.Schedule.query.all():   # perimetro: solo schedule_ids del test
         gating reale: enabled? on_data_ready? datasets[0]==model? runhour?   # REALE
         if r["period"]=="days":
            last_req = get_last_scheduled_request(db, id)                     # legge la riga seminata
@@ -111,7 +111,7 @@ wait_for_schedule_requests(expected_count) → GET /api/schedules/<id>/requests?
 - **Decisione REALE, materializzazione FAKE**: la regola "periodo trascorso?" è eseguita dal backend reale; ma la **creazione** della `Request` e l'eventuale **dedup-by-reftime** sono implementate nel fake [celery_fakes.py](projects/mistral/backend/tests/helpers/celery_fakes.py). Per i due test "creates", il conteggio `2` dipende dal fake che crea la riga.
 - **Il dedup del fake non scatta (per mismatch di formato)**: il fake confronta `last_request.args.get("reftime") == reftime`. La riga **seminata** ha `reftime` **stringa** (da `create_schedule_request_record`), mentre il task reale passa `reftime` come **dict** `{"from":..,"to":..}`. I due valori non sono mai uguali → il fake **non** deduplica e crea sempre la nuova riga. Il conteggio `2` poggia quindi su questa differenza di formato, non su una vera assenza di duplicato.
 - **`microsecond=1` deliberato**: i seed forzano `microsecond=1` perché il task reale parsa `last_req["submission_date"]` con `"%Y-%m-%dT%H:%M:%S.%f"`; con microsecondi a zero `isoformat()` ometterebbe la parte frazionaria e lo `strptime` fallirebbe. Accoppiamento fragile al formato datetime.
-- **Il launcher itera TUTTE le schedule** (`db.Schedule.query.all()`): eventuali schedule residue di altri test potrebbero entrare nel ciclo; la pulizia LIFO mitiga, ma è un accoppiamento allo stato globale del DB.
+- **Il launcher itera TUTTE le schedule** (`db.Schedule.query.all()`): `trigger_data_ready_inline(..., schedule_ids=[schedule_id])` lo confina alla schedule del test tramite [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py), quindi schedule residue o di altri utenti non generano request.
 - **`wait_for_schedule_requests` è quasi sincrono**: dato che `.run()` è eseguito inline prima del poll, il conteggio è già definitivo e il poll ritorna subito (timeout 5s è solo margine).
 - **Skip silenziosi**: `data_ready_user`/`fetch_dataset_window` possono saltare tutti e tre i test se `lm5` manca.
 
@@ -121,7 +121,7 @@ wait_for_schedule_requests(expected_count) → GET /api/schedules/<id>/requests?
 - [ ] Verificare che la logica di dedup del fake resti allineata al comportamento reale del path data-ready (vedi [helpers/celery_fakes.py.review.md](projects/mistral/backend/tests/helpers/celery_fakes.py.review.md)); oggi il dedup non scatta per mismatch dict/stringa.
 - [ ] Confermare che `create_schedule_request_record` rispecchi gli argomenti reali di una richiesta prodotta dal worker (reftime come stringa vs dict).
 - [ ] Verificare l'invariante `microsecond=1` e valutare se il backend dovrebbe gestire `submission_date` senza frazione di secondo.
-- [ ] Confermare che l'iterazione su tutte le schedule non introduca interferenze tra test.
+- [ ] Verificare che ogni chiamata a `trigger_data_ready_inline` passi le sole schedule create dal test.
 - [ ] Monitorare gli skip su `lm5`.
 
 ## 8. Possibili criticità

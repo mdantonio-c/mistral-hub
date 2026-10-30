@@ -35,7 +35,8 @@
 | `faker` | fixture | plugin `faker` | Nomi randomici delle richieste (via la fixture locale). |
 | `AuthenticatedTestUser` | dataclass | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Record `uuid`/`user_id`/`headers`/`output_dir`. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | Accesso diretto al DB per gli assert di stato. |
-| `BaseTests.send_task` | helper | `restapi.tests` | Dispatcher del task Celery registrato per nome (`"automatic_cleanup"`). |
+| `BaseTests.send_task` | helper | `restapi.tests` | Recupera il task Celery registrato per nome (`"automatic_cleanup"`) e lo esegue in-process. |
+| `requests_cleanup_perimeter` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Confina `automatic_cleanup` a utente e request del test e a una root download temporanea ([helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py)). |
 | `READY_STATES` | costante | `celery.states` | Insieme degli stati terminali (`SUCCESS`/`FAILURE`/`REVOKED`); usata nell'assert finale. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -60,7 +61,7 @@
 - **Obiettivo**: il cleanup automatico marca come `FAILURE` la richiesta stagnante e lascia pendente quella recente.
 - **Backend coinvolto**: task `automatic_cleanup` (ramo "richiesta senza `end_date` oltre grace period").
 - **Flusso**: `self.send_task(app, "automatic_cleanup")` → poi rilettura delle due righe dal DB.
-- **Setup**: stesse due righe della fixture (`STARTED` vecchia, `PENDING` recente). **Non** usa `client` né `pending_request_user` direttamente (l'utente è creato in modo transitivo).
+- **Setup**: stesse due righe della fixture (`STARTED` vecchia, `PENDING` recente); `requests_cleanup_perimeter.allow(...)` registra `pending_request_user` e le due request, le sole righe visibili al task.
 - **Assert**:
   - `deletable_request is not None` e `status == "FAILURE"` (marcata, **non** cancellata: il ramo "stagnante" setta solo lo stato e fa `continue`).
   - `undeletable_request is not None` e `status not in READY_STATES` (resta `PENDING`).
@@ -76,8 +77,8 @@ DELETE /api/requests/<id>            → auth.require()
                                        → repo.delete_request_record(db,user,id)   (rimuove fileoutput se presente)
                                        → db.session.delete(request) → commit → response 200
 
-send_task(app, "automatic_cleanup")  → CeleryExt task automatic_cleanup
-                                       → for r in tutte le Request:
+send_task(app, "automatic_cleanup")  → CeleryExt task automatic_cleanup (perimetro attivo)
+                                       → for r in Request registrate dal test:
                                            if not r.end_date and r.status not in READY_STATES and now-GRACE_PERIOD > r.submission_date:
                                                r.end_date=now; r.error_message=...; r.status=FAILURE; commit
                                        → (+ rami: archive/delete richieste completate per-utente, pulizia file orfani/.tmp)
@@ -88,8 +89,8 @@ send_task(app, "automatic_cleanup")  → CeleryExt task automatic_cleanup
 - **Discriminante = `submission_date`, non lo `status`**: la riga cancellabile è `STARTED` e quella protetta è `PENDING`, ma a decidere è l'età rispetto al grace period (entrambi gli stati sono fuori da `READY_STATES`). Il significato dei nomi di test ("before/within grace period") si riferisce all'**età** della richiesta.
 - **Ordine della tupla**: `pending_delete_requests` ritorna `(deletable_id, undeletable_id)`; i test fanno unpacking posizionale (`deletable, _` / `_, undeletable`). Tupla e nomi delle variabili nella fixture/`support.py` devono restare allineati.
 - **`delete_request_record` non cancella la `Request`**: rimuove solo l'eventuale `fileoutput`; la `db.session.delete(request)` è nell'endpoint. Sulle righe seed (senza `fileoutput`) il ramo file è no-op.
-- **Il task di cleanup ha effetti GLOBALI**: itera **tutte** le `Request` del DB e **tutte** le cartelle sotto `DOWNLOAD_DIR` (file `.tmp` e orfani). L'esecuzione nel test tocca quindi anche dati non legati allo scenario.
-- **`send_task` esegue il task nel runtime di test**: gli assert leggono subito gli effetti, quindi il task gira in modo sincrono; il meccanismo esatto (Celery eager) vive in `restapi` e **non è verificabile da questo workspace**.
+- **Il task di cleanup è globale, ma qui è confinato**: in produzione itera tutte le `Request` e tutte le cartelle sotto `DOWNLOAD_DIR`; nel test `requests_cleanup_perimeter` gli espone solo le righe registrate e una root download temporanea, quindi dati non legati allo scenario restano fuori portata.
+- **`send_task` esegue il task nel runtime di test**: recupera il task registrato e lo invoca in-process, quindi gli assert leggono subito gli effetti.
 - **Commento fuorviante** sul wrapper `delete_pending_request`: il commento "Rimuoviamo lo stato creato dal test…" descrive un cleanup, ma la funzione **chiama l'endpoint** sotto test (non pulisce nulla).
 - **Login dell'owner**: i test usano `pending_request_user.headers` (utente temporaneo dedicato), non il default user condiviso.
 
@@ -98,12 +99,12 @@ send_task(app, "automatic_cleanup")  → CeleryExt task automatic_cleanup
 - [ ] Confermare che `STARTED` e `PENDING` non appartengano a `READY_STATES` (presupposto dei tre test).
 - [ ] Verificare l'allineamento ordine-tupla ↔ unpacking nei due test di delete (un'inversione li renderebbe entrambi verdi "per caso" o entrambi rotti).
 - [ ] Confermare che il task `automatic_cleanup` sia eseguito sincronamente nel runtime di test (altrimenti gli assert leggerebbero stato non aggiornato).
-- [ ] Considerare l'impatto degli **effetti globali** del task sugli altri test della stessa sessione (ordine/isolamento).
+- [ ] Verificare che il test registri nel perimetro tutte le righe che crea (utente e due request) e nessun'altra.
 - [ ] Verificare che il teardown della fixture cancelli entrambe le righe anche dopo che il task ha mutato lo stato della riga cancellabile.
 
 ## 8. Possibili criticità
 
-- **Effetti globali del cleanup**: `automatic_cleanup` non è scopato sull'utente del test; marcando `FAILURE` qualunque richiesta stagnante e cancellando file `.tmp`/orfani, può interagire con dati di altri test o residui → potenziale fonte di non-determinismo in suite condivisa.
+- **Perimetro accoppiato al task**: `automatic_cleanup` gira dentro la facciata fail-closed di [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py); se il task cambia il modo di leggere il DB, il test fallisce finché la facciata non viene aggiornata.
 - **Dipendenza dal tempo wall-clock**: gli scenari si basano su `now()`; il margine ±1 giorno assorbe gli skew ordinari, ma resta una dipendenza dall'orologio (e dal valore di `GRACE_PERIOD`).
 - **`now()` naive vs `submission_date` default `utcnow`**: i seed impostano `submission_date` esplicitamente con `datetime.now()` locale, coerente con i controlli (anch'essi `now()` locale); il default del modello (`utcnow`) non viene usato qui, ma la discrepanza naive/UTC merita attenzione.
 - **Test cleanup accoppiato alla fixture di delete**: riusa `pending_delete_requests` (pensata per i test di delete); un cambio della fixture impatta sia delete sia cleanup.
@@ -115,4 +116,4 @@ send_task(app, "automatic_cleanup")  → CeleryExt task automatic_cleanup
 |---|---|---|---|---|---|
 | `test_delete_request_before_grace_period_returns_200` | `delete` + repo grace/owner | delete consentita fuori grace + riga rimossa | — (DB diretto) | `client`, `pending_request_user`, `pending_delete_requests` | Bassa |
 | `test_delete_request_within_grace_period_returns_403` | `delete` + `check_request_is_pending_within_grace_period` | delete negata dentro grace + riga intatta | — | `client`, `pending_request_user`, `pending_delete_requests` | Bassa |
-| `test_requests_cleanup_marks_stale_request_as_failure` | task `automatic_cleanup` | stagnante→`FAILURE`, recente→resta pending | — (task reale) | `app`, `pending_delete_requests` | Media |
+| `test_requests_cleanup_marks_stale_request_as_failure` | task `automatic_cleanup` | stagnante→`FAILURE`, recente→resta pending | — (task reale nel perimetro) | `app`, `pending_request_user`, `pending_delete_requests`, `requests_cleanup_perimeter` | Media |

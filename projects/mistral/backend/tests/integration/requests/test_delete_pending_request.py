@@ -7,6 +7,7 @@ from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, BaseTests, FlaskClient
 
 from mistral.tests.helpers.auth import AuthenticatedTestUser
+from mistral.tests.helpers.task_perimeter import RequestsCleanupPerimeter
 
 
 pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
@@ -85,7 +86,9 @@ class TestDeletePendingRequests(BaseTests):
     def test_requests_cleanup_marks_stale_request_as_failure(
         self,
         app: Flask,
+        pending_request_user: AuthenticatedTestUser,
         pending_delete_requests: tuple[int, int],
+        requests_cleanup_perimeter: RequestsCleanupPerimeter,
     ) -> None:
         """Verify that automatic cleanup marks stale requests as failed but leaves fresh ones pending."""
         # arrange
@@ -93,6 +96,11 @@ class TestDeletePendingRequests(BaseTests):
         # verifica successiva resta legata a un comportamento preciso.
         db = sqlalchemy.get_instance()
         deletable_request_id, undeletable_request_id = pending_delete_requests
+        # Il task reale e globale: gli rendiamo visibili solo utente e request del test.
+        requests_cleanup_perimeter.allow(
+            user_ids=[pending_request_user.user_id],
+            request_ids=pending_delete_requests,
+        )
 
         # act
         # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di

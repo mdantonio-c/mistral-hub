@@ -24,13 +24,15 @@ class AuthenticatedTestUser:
 
     The object groups together the values that tests commonly need after user
     creation: the UUID used by filesystem paths, the numeric database id, the
-    authenticated HTTP headers, and the expected output directory on disk.
+    authenticated HTTP headers, the expected output directory on disk and, when
+    known, the login email used for BasicAuth scenarios.
     """
 
     uuid: str
     user_id: int
     headers: Any
     output_dir: Path
+    email: str | None = None
 
 
 def create_authenticated_test_user(
@@ -69,6 +71,7 @@ def create_authenticated_test_user(
         user_id=user.id,
         headers=headers,
         output_dir=Path(DOWNLOAD_DIR, uuid, "outputs"),
+        email=data.get("email"),
     )
 
 

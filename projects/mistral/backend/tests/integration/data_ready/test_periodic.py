@@ -157,6 +157,7 @@ def test_data_ready_creates_request_when_daily_period_has_elapsed(
         data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate=trigger_rundate,
+        schedule_ids=[schedule_id],
     )
 
     # assert
@@ -220,6 +221,7 @@ def test_data_ready_creates_request_when_two_day_period_has_elapsed(
         data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate=ref_from.strftime("%Y%m%d%H"),
+        schedule_ids=[schedule_id],
     )
 
     # assert
@@ -283,6 +285,7 @@ def test_data_ready_skips_request_before_two_day_period_elapses(
         data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate=ref_from.strftime("%Y%m%d%H"),
+        schedule_ids=[schedule_id],
     )
 
     # assert

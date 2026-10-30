@@ -26,11 +26,10 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `fresh_access_key` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L29) | `POST /access-key` (login default user), asserisce `200` + `key`; ritorna `(headers, key)`. **Side effect**: crea/rigenera la access key reale del default user. |
-| `auth_headers` (transitiva) | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L14) | Login del default user; dipendenza di `fresh_access_key`. |
+| `access_key_owner` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente temporaneo proprietario della chiave; fornisce l'email per la BasicAuth e revoca chiave + utente in teardown. |
+| `fresh_access_key` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | `POST /access-key` per `access_key_owner`, asserisce `200` + `key`; ritorna `(headers, key)`. |
 | `monkeypatch` | fixture | `pytest` | Sostituisce `mistral.connectors.s3.get_instance` con un `MagicMock`; teardown automatico. |
 | `make_basic_auth` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py#L114) | Codifica `email:access_key` in header `Authorization: Basic ...` (formato richiesto dal proxy). |
-| `BaseAuthentication.default_user` | costante | `restapi.services.authentication` | Email del default user usata nella BasicAuth. |
 | `mock_s3` (`MagicMock`) | mock locale | nel file di test | `client.get_object` → body con `read()` = `b'{"zarr_format": 2}'`. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -47,11 +46,11 @@
 - **Obiettivo**: un utente autenticato con access key valida legge i metadati Zarr proxati.
 - **Backend coinvolto**: `ArcoResource.get` → `validate_access_key_from_request()` (successo) → `s3.get_instance().client.get_object(...)` → `Response(body, mimetype=...)`.
 - **Flusso**:
-  1. `fresh_access_key` fornisce `valid_key`; `email = default_user`.
+  1. `fresh_access_key` fornisce `valid_key`; `email = access_key_owner.email`.
   2. `monkeypatch` su `mistral.connectors.s3.get_instance` → `mock_s3` il cui `get_object` ritorna un body `b'{"zarr_format": 2}'`.
   3. `headers = make_basic_auth(email, valid_key)`.
   4. `GET /api/arco/ww3.zarr/.zgroup` con header.
-- **Setup**: `fresh_access_key`, `monkeypatch`; nessun cleanup esplicito (mock rimosso da pytest, chiave gestita dalla fixture).
+- **Setup**: `access_key_owner`, `fresh_access_key`, `monkeypatch`; mock rimosso da pytest, chiave e utente temporaneo rimossi dal teardown della fixture.
 - **Assert**: `status_code == 200`; `b"zarr_format" in response.data` → la validazione passa e il body S3 è propagato **invariato** al client.
 - **Casi coperti**: happy path autenticato del proxy.
 
@@ -76,7 +75,7 @@ GET /api/arco/<path:object_path>
 - **Auth manuale, non da decoratore**: il proxy **non** usa `@decorators.auth.require()`; chiama `validate_access_key_from_request()` dentro il metodo. Il `401` nasce da `Unauthorized` sollevata dal service, non dal middleware standard di restapi.
 - **Doppio controllo ridondante**: dopo `validate_access_key_from_request()` (che già solleva su errore), il codice fa anche `if not authorized: raise Unauthorized()`. In pratica il secondo ramo è di fatto irraggiungibile (la funzione ritorna sempre un record truthy oppure solleva).
 - **Nel test 401 S3 non è mockato**: poiché la validazione fallisce prima di `s3.get_instance()`, S3 reale non viene mai contattato. Se l'ordine cambiasse, in ambiente di test il connettore reale solleverebbe (nessun S3 disponibile), non un 401 pulito.
-- **`fresh_access_key` muta lo stato del default user condiviso** (crea/rigenera la chiave globale).
+- **Chiave su utente temporaneo**: `fresh_access_key` non tocca la chiave dell'account predefinito.
 - **Mimetype non verificato qui**: il caso autorizzato usa `.zgroup` e asserisce solo il contenuto; la verifica di `guess_mime_type` sul filename è demandata al modulo EXT.
 - **Distinzione errori S3**: il proxy cattura `botocore.exceptions.ClientError` (non `client.exceptions.NoSuchKey` come fa il catalogo). Questo ramo è coperto solo nel modulo EXT.
 
@@ -92,7 +91,6 @@ GET /api/arco/<path:object_path>
 
 - **Assert deboli nel caso autorizzato**: si verifica solo `status_code == 200` e `b"zarr_format" in response.data`; non si controlla il `Content-Type`/mimetype né l'uguaglianza esatta del body. Una regressione sul mimetype o una trasformazione indebita del payload potrebbe non emergere (mitigato dal modulo EXT).
 - **Over-mock di S3**: il caso happy path non prova l'integrazione reale con il bucket; verifica solo la propagazione del body fornito dal mock.
-- **Dipendenza dallo stato del default user**: `fresh_access_key` rigenera la chiave globale; possibile accoppiamento d'ordine con i moduli access-key in esecuzioni parallele (rischio di falso positivo/negativo).
 - **Copertura parziale dei rami**: in questo file sono coperti solo 401 (no auth) e 200; i rami 404/500 e il caso "BasicAuth con chiave errata" sono altrove (`*_EXT.py`). Letto da solo, il file dà un quadro incompleto del contratto del proxy.
 
 ## 9. Riassunto finale
@@ -100,4 +98,4 @@ GET /api/arco/<path:object_path>
 | Test | Backend | Cosa verifica | Mock | Fixture | Complessità |
 |---|---|---|---|---|---|
 | `test_arco_proxy_requires_authentication` | `ArcoResource.get` → `validate_access_key_from_request` | 401 senza credenziali, prima di S3 | — (S3 non raggiunto) | `client` | Bassa |
-| `test_arco_proxy_returns_zgroup_for_authorized_user` | `ArcoResource.get` + validazione access key + S3 | 200 e body Zarr propagato per utente con key valida | `MagicMock` S3 via `monkeypatch` | `client`, `fresh_access_key`, `monkeypatch` | Media |
+| `test_arco_proxy_returns_zgroup_for_authorized_user` | `ArcoResource.get` + validazione access key + S3 | 200 e body Zarr propagato per utente con key valida | `MagicMock` S3 via `monkeypatch` | `client`, `access_key_owner`, `fresh_access_key`, `monkeypatch` | Media |

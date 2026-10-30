@@ -8,8 +8,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from mistral.tests.helpers.auth import make_basic_auth
-from restapi.services.authentication import BaseAuthentication
+from mistral.tests.helpers.auth import AuthenticatedTestUser, make_basic_auth
 from restapi.tests import API_URI, FlaskClient
 
 
@@ -36,6 +35,7 @@ def test_arco_proxy_requires_authentication(client: FlaskClient) -> None:
 
 def test_arco_proxy_returns_zgroup_for_authorized_user(
     client: FlaskClient,
+    access_key_owner: AuthenticatedTestUser,
     fresh_access_key,
     monkeypatch,
 ) -> None:
@@ -44,7 +44,7 @@ def test_arco_proxy_returns_zgroup_for_authorized_user(
     # Prepariamo lo scenario catalogo ARCO con dati minimi e controllati, cosi la
     # verifica successiva resta legata a un comportamento preciso.
     _, valid_key = fresh_access_key
-    email = BaseAuthentication.default_user
+    email = access_key_owner.email
     mock_s3 = MagicMock()
     mock_s3.client.get_object.return_value = {
         "Body": MagicMock(read=lambda: b'{"zarr_format": 2}')

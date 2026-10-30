@@ -24,11 +24,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test; esegue richieste reali contro l'app Flask. |
-| `fresh_access_key` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L29) | `POST /access-key` con `auth_headers` (login **default_user**), asserisce `200` + `key`; ritorna `(headers, key)`. **Effetto nascosto**: crea una access key reale sul default user **anche se il catalogo è pubblico e non la usa** (vedi §6). |
-| `auth_headers` (transitiva) | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L14) | Login del default user, dipendenza di `fresh_access_key`. |
 | `monkeypatch` | fixture | `pytest` | Sostituisce `s3.get_instance` e `sqlalchemy.get_instance`; teardown automatico. |
-| `make_basic_auth` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py#L114) | Codifica `email:key` in header `Authorization: Basic ...`. Header costruito ma **ignorato dall'endpoint catalogo** (no auth). |
-| `BaseAuthentication.default_user` | costante | `restapi.services.authentication` | Email dell'utente di default. |
 | `MockAttribution` / `MockLicense` / `MockGroupLicense` | classi locali | nel file di test | Stub minimi con i soli attributi letti dal controller (`name`, `descr`, `url`, `group_license`). |
 | `mock_s3` (`MagicMock`) | mock locale | nel file di test | `client.list_objects_v2` → 1 pagina con `CommonPrefixes` `ww3.zarr/` + `logs/`; `client.get_object` → body `.zmetadata` fisso. |
 | `DatasetSchema().load(...)` | schema | [endpoints/schemas.py](projects/mistral/backend/endpoints/schemas.py) | Round-trip di validazione del payload di risposta. |
@@ -39,11 +35,11 @@
 - **Obiettivo**: garantire che il catalogo unisca metadati S3 (`.zattrs`) e metadati SQL (attribution/license/group) in **un** item dataset con il contratto completo.
 - **Backend coinvolto**: `ArcoDatasetsResource.get` (loop prefissi, lettura `.zmetadata`, costruzione WKT, enrichment), `_round_coord`, marshalling `DatasetSchema(many=True)`.
 - **Flusso**:
-  1. `fresh_access_key` crea chiave + headers (poi superflui per il catalogo).
+  1. Nessuna credenziale: il catalogo è pubblico e il test non crea né ruota access key.
   2. `monkeypatch` su `mistral.connectors.s3.get_instance` → `mock_s3`: `list_objects_v2` ritorna due prefissi (`ww3.zarr/`, `logs/`), `get_object` ritorna sempre il body `.zmetadata` con `.zattrs` controllato.
   3. `monkeypatch` su `mistral.endpoints.arco.sqlalchemy.get_instance` → DB fake con una `Attribution` "FBK" e una `License` "CCBY" legata a un `MockGroupLicense` "Open Licenses".
-  4. `GET /api/arco/datasets` con header BasicAuth.
-- **Setup**: `fresh_access_key`, `monkeypatch`; stub in-memory; nessun cleanup (i mock sono rimossi da pytest, la sola scrittura reale è la access key gestita dalla fixture).
+  4. `GET /api/arco/datasets` senza header.
+- **Setup**: `monkeypatch`; stub in-memory; nessuna scrittura reale e nessun cleanup (i mock sono rimossi da pytest).
 - **Assert** (cosa garantiscono):
   - `status_code == 200` e `len(data) == 1` → **solo** il prefisso `.zarr/` è considerato dataset; `logs/` è scartato (filtro `endswith(".zarr/")`).
   - `id == "ww3.zarr"`, `name == "WW3 Forecast"` (da `product_name`), `format == "zarr"`, `source == "arco"`, `category == "forecast"` → mapping base + override da `.zattrs`.
@@ -73,17 +69,17 @@ GET /api/arco/datasets
 
 ## 6. Comportamenti nascosti
 
-- **Endpoint catalogo pubblico**: `ArcoDatasetsResource.get` **non ha** `@decorators.auth.require()` né valida l'access key. Gli header BasicAuth costruiti con `make_basic_auth` (e l'intera fixture `fresh_access_key`) **non sono usati dall'endpoint**: sono setup superfluo. I test EXT del catalogo infatti chiamano `GET /arco/datasets` **senza** header. Vedi §8.
+- **Endpoint catalogo pubblico**: `ArcoDatasetsResource.get` **non ha** `@decorators.auth.require()` né valida l'access key; il test chiama `GET /arco/datasets` **senza** header, come i test EXT del catalogo. La chiave dell'account predefinito, prima creata inutilmente, non viene più toccata.
 - **Mock totale di S3 e DB**: il test esercita la sola logica di trasformazione del controller; non tocca né S3 reale né il DB di test. Il marker `integration` è quindi "ottimistico".
 - **`MagicMock` per S3 e `client.exceptions.NoSuchKey`**: `mock_s3.client.exceptions.NoSuchKey` è un attributo auto-generato (non una classe eccezione reale). Qui non è un problema perché `get_object` non solleva mai (il body `.zmetadata` è sempre presente), ma sarebbe inadatto a simulare il ramo "metadata mancante" (coperto invece nel modulo EXT con un fake dedicato).
 - **`get_object` con `return_value` fisso**: il mock ritorna lo **stesso** body per qualunque `Key`. Funziona perché c'è un solo prefisso `.zarr/`.
-- **`fresh_access_key` muta lo stato del default user condiviso** (crea/rigenera la chiave globale), pur essendo inutile al contratto del catalogo.
+- **`monkeypatch` globale del connettore**: `mistral.endpoints.arco.sqlalchemy.get_instance` è la funzione del modulo `restapi.connectors.sqlalchemy`, quindi il DB finto vale per tutto il processo durante il test. pytest-flask ripristina il patch dopo `cleanup_registry`: un cleanup via API (es. `access_key_owner`) riceverebbe `401`.
 - **`DatasetSchema` importata da `mistral.endpoints.arco`**: è un re-export dello schema definito in [endpoints/schemas.py](projects/mistral/backend/endpoints/schemas.py).
 - **`_round_coord` è esercitato indirettamente** tramite il valore atteso di `bounding` (es. `45`→`45.0`).
 
 ## 7. Checklist di revisione
 
-- [ ] Decidere se il catalogo **debba** essere pubblico: se sì, rimuovere `fresh_access_key`/`make_basic_auth` dal test (setup fuorviante); se no, è un buco di sicurezza non coperto da questo test.
+- [ ] Confermare che il catalogo **debba** essere pubblico (il test ora lo chiama senza credenziali): se no, è un buco di sicurezza da correggere nel backend.
 - [ ] Valutare se aggiungere un assert esplicito sul fatto che il catalogo risponde **anche senza** header (oggi lo dimostrano solo i test EXT).
 - [ ] Verificare che il test sia consapevolmente un *controller test* (S3+DB mockati) e non venga scambiato per copertura dell'integrazione S3/DB reale.
 - [ ] Rafforzare l'assert finale di `DatasetSchema().load(...)`: oggi confronta solo `id`, pur essendo una valida verifica di conformità schema.
@@ -95,10 +91,9 @@ GET /api/arco/datasets
 - **Over-mocking**: S3 e DB sono completamente sostituiti; il test non prova alcuna integrazione reale (paginazione, errori S3, query DB). La copertura "vera" degli edge è demandata al modulo `*_EXT.py`.
 - **Assert di schema debole**: `DatasetSchema().load(dataset)` validerebbe i `required`, ma l'unico assert è su `id`; un drift su altri campi serializzati potrebbe non emergere dal `load`.
 - **Fragilità del WKT stringa**: `bounding` è confrontato come stringa esatta (formattazione/decimali). Un cambio di formato (es. numero di decimali, spazi) romperebbe il test pur restando un poligono valido.
-- **Dipendenza dallo stato del default user**: `fresh_access_key` rigenera la chiave globale; in suite parallele o con ordinamento diverso può interferire con i moduli access-key (qui per giunta senza che serva al catalogo).
 
 ## 9. Riassunto finale
 
 | Test | Backend | Cosa verifica | Mock | Fixture | Complessità |
 |---|---|---|---|---|---|
-| `test_arco_catalog_returns_dataset_metadata` | `ArcoDatasetsResource.get` + `_round_coord` + `DatasetSchema` | merge S3 `.zattrs` + DB (attribution/license/group) in 1 dataset, filtro `.zarr/`, WKT, flag pubblici | `MagicMock` S3 + DB SQLAlchemy via `monkeypatch` | `client`, `fresh_access_key`, `monkeypatch` | Media |
+| `test_arco_catalog_returns_dataset_metadata` | `ArcoDatasetsResource.get` + `_round_coord` + `DatasetSchema` | merge S3 `.zattrs` + DB (attribution/license/group) in 1 dataset, filtro `.zarr/`, WKT, flag pubblici | `MagicMock` S3 + DB SQLAlchemy via `monkeypatch` | `client`, `monkeypatch` | Media |

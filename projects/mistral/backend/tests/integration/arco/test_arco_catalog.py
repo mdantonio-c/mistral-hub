@@ -10,8 +10,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from mistral.endpoints.arco import DatasetSchema
-from mistral.tests.helpers.auth import make_basic_auth
-from restapi.services.authentication import BaseAuthentication
 from restapi.tests import API_URI, FlaskClient
 
 
@@ -56,15 +54,16 @@ class MockGroupLicense:
 
 def test_arco_catalog_returns_dataset_metadata(
     client: FlaskClient,
-    fresh_access_key,
     monkeypatch,
 ) -> None:
-    """Verify that the ARCO catalog merges S3 metadata and SQL metadata into one dataset item."""
+    """Verify that the ARCO catalog merges S3 metadata and SQL metadata into one dataset item.
+
+    The catalog endpoint is public, so the request carries no credentials and the
+    test does not create or rotate any access key.
+    """
     # arrange
     # Prepariamo lo scenario catalogo ARCO con dati minimi e controllati, cosi la
     # verifica successiva resta legata a un comportamento preciso.
-    _, valid_key = fresh_access_key
-    email = BaseAuthentication.default_user
     dataset_body = {
         "metadata": {
             ".zattrs": {
@@ -127,12 +126,11 @@ def test_arco_catalog_returns_dataset_metadata(
             ),
         ),
     )
-    headers = make_basic_auth(email, valid_key)
 
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
     # verifica dal setup.
-    response = client.get(f"{API_URI}/arco/datasets", headers=headers)
+    response = client.get(f"{API_URI}/arco/datasets")
 
     # assert
     # Verifichiamo l'effetto osservabile prodotto dal backend, cioe il contratto che

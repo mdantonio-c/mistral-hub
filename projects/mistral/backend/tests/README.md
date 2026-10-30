@@ -91,10 +91,21 @@ Questa e la risposta pratica al dubbio iniziale: il punto di divisione corretto 
 
 `projects/mistral/backend/tests/integration/conftest.py` espone fixture usate da molti test API:
 
-- `auth_headers`: login del test user di default.
-- `fresh_access_key`: genera una access key appena creata.
+- `auth_headers`: login del test user di default, da usare per letture o operazioni che non modificano l'account.
+- `access_key_owner`: utente temporaneo proprietario delle access key dei test; teardown revoca la chiave e poi elimina utente e directory.
+- `fresh_access_key`: genera una access key appena creata per `access_key_owner`; nei test BasicAuth va abbinata a `access_key_owner.email`.
+- `requests_cleanup_perimeter`: confina `automatic_cleanup` agli utenti e alle request registrati dal test con `allow(...)` e a una root download temporanea.
 
 Le fixture access-key usate solo da quel dominio, come `fresh_access_key_with_expiration`, stanno invece in `projects/mistral/backend/tests/integration/access_key/conftest.py`.
+
+### Task globali eseguiti dai test
+
+Alcuni task sono globali per progetto: `automatic_cleanup` visita tutte le request, gli utenti e la root dei download; `launch_all_on_data_ready_extractions` visita tutte le schedule. Nei test in-process non vanno mai eseguiti senza perimetro:
+
+- per il cleanup usa la fixture `requests_cleanup_perimeter` e registra solo le righe create dal test;
+- per il data-ready usa `trigger_data_ready_inline(..., schedule_ids=[...])` oppure `confine_data_ready_schedules(monkeypatch, [...])` da `helpers/task_perimeter.py`.
+
+Il perimetro lascia reali codice del task e scritture ORM, ma rifiuta con errore gli accessi al database che non sa restringere. I test `async_real`, eseguiti da worker separati, non possono essere confinati così: richiedono uno stack di test dedicato.
 
 ### Marker e parametrizzazione
 
@@ -224,6 +235,7 @@ Linee guida operative:
 - `helpers/polling.py`: utility generica `wait_until` per attese osservabili.
 - `helpers/runtime.py`: contiene `TestRuntime`, cioe il runtime condiviso di sessione per cache e override temporanei.
 - `helpers/schedules.py`: costruisce payload JSON per schedule on-data-ready, crontab e periodiche condivisi tra `integration/data_ready/` e `integration/schedules/`.
+- `helpers/task_perimeter.py`: confina i task globali `automatic_cleanup` e `launch_all_on_data_ready_extractions` alle sole righe e ai soli file del test che li esegue.
 
 ### Template di riferimento
 
@@ -231,7 +243,7 @@ Linee guida operative:
 
 ### Integrazione condivisa
 
-- `integration/conftest.py`: fixture condivise dai test HTTP integrati, oggi limitate a autenticazione base e creazione della access key standard.
+- `integration/conftest.py`: fixture condivise dai test HTTP integrati: autenticazione base, proprietario temporaneo delle access key, chiave appena creata e perimetro del task di cleanup.
 
 ### Dominio `access_key`
 

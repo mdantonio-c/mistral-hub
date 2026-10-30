@@ -33,6 +33,7 @@ from mistral.tests.helpers.data_ready import (
 )
 from mistral.tests.helpers.dataset_window import fetch_dataset_window
 from mistral.tests.helpers.polling import wait_until
+from mistral.tests.helpers.task_perimeter import confine_data_ready_schedules
 
 
 pytestmark = [pytest.mark.integration, pytest.mark.runtime_sensitive]
@@ -79,6 +80,7 @@ def _trigger_data_ready_schedule_inline(
     *,
     model: str,
     rundate: str,
+    schedule_ids: list[str],
 ):
     """Drive one data-ready schedule to a real inline extraction.
 
@@ -87,6 +89,9 @@ def _trigger_data_ready_schedule_inline(
 
     - the endpoint submission is accepted locally instead of going to the broker,
     - the nested ``data_extract`` task is executed immediately in-process.
+
+    The inline extraction is real, so the launcher is confined to
+    ``schedule_ids``: schedules of other users never reach ``data_extract``.
     """
     # Entriamo nel blocco operativo dell'helper schedules, mantenendo esplicito quale
     # stato viene letto o prodotto.
@@ -110,6 +115,7 @@ def _trigger_data_ready_schedule_inline(
         "get_instance",
         lambda: InlineDataExtractCelery(),
     )
+    confine_data_ready_schedules(monkeypatch, schedule_ids)
     on_data_ready_task.launch_all_on_data_ready_extractions.run(
         model,
         datetime.strptime(rundate, "%Y%m%d%H"),
@@ -321,6 +327,7 @@ def test_on_data_ready_schedule_publishes_opendata_package(
         schedules_admin_headers,
         model=BRIDGE_DATASET_NAME,
         rundate=dataset_window.ref_from.strftime("%Y%m%d%H"),
+        schedule_ids=[schedule_id],
     )
     published_request = _wait_for_successful_schedule_request(
         schedules_base,

@@ -22,10 +22,9 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | Client HTTP di test. |
-| `auth_headers` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Header autenticati del default user (usato solo da `test_05`). |
-| `fresh_access_key` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Crea una chiave per il default user. |
+| `access_key_owner` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente temporaneo proprietario delle chiavi; fornisce header ed `email` per la BasicAuth. |
+| `fresh_access_key` | fixture | [integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Crea una chiave per `access_key_owner`. |
 | `make_basic_auth` | helper | [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | Costruisce header Basic `email:key`. |
-| `BaseAuthentication.default_user` | costante | `restapi.services.authentication` | Email del default user. |
 | `ACCESS_KEY_ENDPOINT` / `ACCESS_KEY_VALIDATE_ENDPOINT` | costanti | [access_key/support.py](projects/mistral/backend/tests/integration/access_key/support.py) | URL endpoint. |
 
 ## 4. Analisi dettagliata di ogni test
@@ -82,20 +81,19 @@ GET /api/access-key/validate
 
 - **Endpoint pubblico**: `AccessKeyValidationResource.get` **non** ha `@decorators.auth.require()`; l'autorizzazione è interamente delegata al service via HTTP Basic. La sicurezza è quindi tutta dentro `validate_access_key_from_request`.
 - **`401` ambiguo per scelta**: "email inesistente", "chiave errata" e "credenziali mancanti" producono lo stesso `401`, evitando user-enumeration. È un comportamento di sicurezza voluto, non un bug.
-- **`test_05` rigenera la chiave del default user** (POST con `lifetime_seconds=None`): muta lo stato condiviso, come nei test del file gemello.
+- **Nessuno stato condiviso**: `test_03`/`test_04`/`test_05` creano chiavi per l'utente temporaneo `access_key_owner`; la chiave dell'account predefinito non viene toccata.
 - **`make_basic_auth` nasconde la codifica base64**: il test non mostra la costruzione dell'header.
 
 ## 7. Checklist di revisione
 
 - [ ] Verificare che il 401 indistinto (email vs key) sia una scelta di sicurezza documentata e non una svista.
 - [ ] Confermare che `test_04`/`test_05` verifichino davvero il body (`status == "OK"`) e non solo lo status.
-- [ ] Verificare l'isolamento rispetto a `test_access_key_api.py` (entrambi mutano la chiave del default user).
+- [ ] Verificare che le email BasicAuth provengano da `access_key_owner.email`.
 - [ ] Controllare che non manchi un caso "chiave valida ma utente diverso" (cross-user).
 
 ## 8. Possibili criticità
 
 - **Copertura cross-user assente**: non esiste un test che presenti email corretta + chiave appartenente a un altro utente; il confronto è solo "chiave giusta/sbagliata sullo stesso utente".
-- **Accoppiamento sullo stato del default user** condiviso con `test_access_key_api.py`: potenziale fragilità in esecuzione parallela.
 - **Asserzioni solo su status/`status` field**: non viene verificato lo `scope` della chiave (`read:arco`), che è parte del modello.
 
 ## 9. Riassunto finale
@@ -104,6 +102,6 @@ GET /api/access-key/validate
 |---|---|---|---|---|---|
 | `test_01_missing_credentials` | `validate_access_key_from_request` | 401 senza credenziali | — | `client` | Bassa |
 | `test_02_invalid_email` | `access_key_get_by_user` | 401 email inesistente | — | `client` | Bassa |
-| `test_03_invalid_access_key` | `is_access_key_valid` | 401 chiave errata | — | `fresh_access_key` | Bassa |
-| `test_04_valid_access_key` | catena validazione | 200 + `status OK` | — | `fresh_access_key` | Bassa |
-| `test_05_validate_access_key_without_expiration` | `is_access_key_valid` (no exp) | 200 chiave senza scadenza | — | `auth_headers` | Bassa |
+| `test_03_invalid_access_key` | `is_access_key_valid` | 401 chiave errata | — | `access_key_owner`, `fresh_access_key` | Bassa |
+| `test_04_valid_access_key` | catena validazione | 200 + `status OK` | — | `access_key_owner`, `fresh_access_key` | Bassa |
+| `test_05_validate_access_key_without_expiration` | `is_access_key_valid` (no exp) | 200 chiave senza scadenza | — | `access_key_owner` | Bassa |

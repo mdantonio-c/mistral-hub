@@ -175,6 +175,7 @@ def test_data_ready_skips_inactive_schedule(
         data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate=dataset_window.ref_from.strftime("%Y%m%d%H"),
+        schedule_ids=[schedule_id],
     )
 
     # assert
@@ -249,6 +250,7 @@ def test_data_ready_skips_schedule_without_on_data_ready_flag(
         data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate=dataset_window.ref_from.strftime("%Y%m%d%H"),
+        schedule_ids=[schedule_id],
     )
 
     # assert

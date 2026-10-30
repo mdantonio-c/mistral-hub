@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import mistral.endpoints.data_ready as data_ready_endpoint
 import mistral.tasks.on_data_ready_extractions as on_data_ready_task
@@ -32,6 +32,7 @@ from mistral.tests.helpers.celery_fakes import (
 )
 from mistral.tests.helpers.polling import wait_until
 from mistral.tests.helpers.runtime import TestRuntime
+from mistral.tests.helpers.task_perimeter import confine_data_ready_schedules
 from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, BaseTests, FlaskClient
 
@@ -386,9 +387,14 @@ def trigger_data_ready_inline(
     *,
     model: str,
     rundate: str,
+    schedule_ids: Iterable[int | str],
     cluster: str = "g100",
 ):
-    """Submit a data-ready event and execute its launcher fully in-process."""
+    """Submit a data-ready event and execute its launcher fully in-process.
+
+    The real launcher scans every schedule in the database: ``schedule_ids``
+    limits it to the schedules created by the calling test.
+    """
     endpoint_celery = AcceptTasksWithoutRunningCelery(
         "launch_all_on_data_ready_extractions"
     )
@@ -411,6 +417,7 @@ def trigger_data_ready_inline(
         "get_instance",
         lambda: InlineDataReadyExtractionCelery(db),
     )
+    confine_data_ready_schedules(monkeypatch, schedule_ids)
     on_data_ready_task.launch_all_on_data_ready_extractions.run(
         model,
         datetime.strptime(rundate, "%Y%m%d%H"),

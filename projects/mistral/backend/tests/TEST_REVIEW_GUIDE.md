@@ -28,9 +28,10 @@ tests/
 │   ├── polling.py                    → wait_until (no sleep ciechi)
 │   ├── runtime.py                    → TestRuntime singleton (cache id + override_attr)
 │   ├── schedules.py                  → builder payload schedule (on-data-ready/crontab/periodic)
+│   ├── task_perimeter.py             → perimetro dei task globali (cleanup, data-ready) nei test
 │   └── templates/endpoint_template.py→ template guida (NON raccolto da pytest)
 └── integration/                     → test reali per dominio
-    ├── conftest.py                  → fixture HTTP condivise (auth_headers, fresh_access_key)
+    ├── conftest.py                  → fixture HTTP condivise (auth_headers, access_key_owner, fresh_access_key, requests_cleanup_perimeter)
     ├── access_key/   (2 test + conftest + support)
     ├── admin/        (4 test + conftest + support_EXT)
     ├── arco/         (3 test)
@@ -175,7 +176,7 @@ Per il dettaglio completo aprire il `*.review.md` del file. Sintesi della superf
 - **observed/** → `/observations` GET/POST su DBALLE/Arkimet reali; unica patch = soglia `LASTDAYS`.
 - **opendata/** → listing/filtri/download/autorizzazione; dati auto-seminati su DB+FS reali.
 - **postprocessing/** → pipeline di estrazione **reale** con binari `vg6d_*`/`v7d_*`/`dballe`/`eccodes`.
-- **requests/** → listing/archive/clone + delete con grace period + `automatic_cleanup` (effetto globale).
+- **requests/** → listing/archive/clone + delete con grace period + `automatic_cleanup` confinato alle request del test (`requests_cleanup_perimeter`).
 - **schedules/** → CRUD/validazione schedule + bridge on-data-ready→opendata (1 test **async_real**).
 - **services/** → parser puri arkimet/dballe + validità access key (nessun DB/HTTP).
 - **tasks/** → helper puri + task con quota/notifiche/cleanup, molti sistemi esterni fakeati.
@@ -198,6 +199,7 @@ Per il dettaglio completo aprire il `*.review.md` del file. Sintesi della superf
 | `wait_until` | [helpers/polling.py](projects/mistral/backend/tests/helpers/polling.py) | data_ready, schedules | Retry su predicato, no sleep ciechi |
 | `TestRuntime` (`dataset_id`, `override_attr`) | [helpers/runtime.py](projects/mistral/backend/tests/helpers/runtime.py) | observed, fields, data_ready, schedules, postprocessing | Singleton di sessione: cache id + override attributi |
 | `build_on_data_ready/crontab/periodic_schedule` | [helpers/schedules.py](projects/mistral/backend/tests/helpers/schedules.py) | schedules, data_ready | Builder payload schedule |
+| `confine_requests_cleanup`, `confine_data_ready_schedules`, `RequestsCleanupPerimeter` | [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py) | requests, tasks, data_ready, schedules | Facciata DB fail-closed: i task globali vedono solo righe/file registrati dal test |
 
 Moduli `support`/`support_EXT` locali (NON globali, ma sostanziosi): `admin` (441), `data` (450), `fields` (468), `observed` (579), `opendata` (532), `postprocessing` (920), `tasks` (398), `templates` (184), `requests` (70), `access_key` (14). Ognuno ha la sua review.
 
@@ -209,8 +211,10 @@ Moduli `support`/`support_EXT` locali (NON globali, ma sostanziosi): `admin` (44
 |---|---|---|---|
 | `test_runtime` | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | observed, fields, data_ready, schedules, postprocessing, user_limits | Singleton di sessione (cache id dataset, override attributi) |
 | `cleanup_registry` | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | quasi tutti i domini | Teardown LIFO automatico dopo lo `yield` |
-| `auth_headers` | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | access_key, fields, … | Login del **default user** (stato condiviso) |
-| `fresh_access_key` | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | access_key, arco | Crea una access key per il default user |
+| `auth_headers` | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | observed, fields, … | Login del **default user** (stato condiviso); solo per letture |
+| `access_key_owner` | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | access_key, arco | Utente temporaneo proprietario delle chiavi; revoca + cancellazione in teardown |
+| `fresh_access_key` | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | access_key, arco | Crea una access key per `access_key_owner`, mai per il default user |
+| `requests_cleanup_perimeter` | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | requests, tasks | Confina `automatic_cleanup` alle righe registrate e a una root download temporanea |
 | `client`, `app`, `faker` | `restapi.tests` (framework) | tutti | Client HTTP / app Flask / dati finti |
 
 Fixture locali rilevanti (con comportamento nascosto da revisionare): `fresh_access_key_with_expiration` (access_key), [`admin_headers_EXT`](integration/admin/conftest.py) (admin — login dell'admin di default, discovery automatica senza import nei test), `data_ready_base/admin_headers/user` (data_ready — override `ON_DATA_READY_DATASETS`, ruolo `admin_root`), `schedules_base/admin_headers/user` (schedules — **shadowed** dai `_EXT` locali), `pp_forecast_env`/`pp_observed_env` (postprocessing), scenario `dballe_/arkimet_/mixed_observed_case` (observed — pattern `parametrize`+`getfixturevalue`), `pending_request_user`/`pending_delete_requests` (requests).
@@ -290,7 +294,8 @@ Questa sezione concentra i punti emersi dalle review che meritano attenzione pri
 - **TEMPLATES-001/002**: `Template.get` ha la condizione di esistenza **invertita**; estensione di un upload non valido mascherata da `FileNotFoundError`. Mismatch doc/impl (202 dichiarato, 200 reale; refuso `"succesfully deleted"`).
 
 ### 10.6 Stato condiviso / accoppiamento d'ordine
-- Le fixture `auth_headers`/`fresh_access_key` operano sul **default user** condiviso: più domini ne mutano la chiave/permessi (`customization.py` imposta `allowed_obs_archive=True` sul default user, abilitando scenari observed e il 409 di edge_cases). Possibile fragilità in esecuzione parallela.
+- `auth_headers` opera sul **default user** condiviso, oggi solo per letture: le access key dei test appartengono a `access_key_owner`, quindi la chiave del default user non viene più ruotata. `customization.py` imposta `allowed_obs_archive=True` sul default user, abilitando scenari observed e il 409 di edge_cases. Possibile fragilità in esecuzione parallela.
+- `automatic_cleanup` e `launch_all_on_data_ready_extractions` sono globali: nei test in-process girano dentro il perimetro di [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py). I percorsi `async_real` (worker/beat reali) restano dipendenti da uno stack di test dedicato.
 - `data_ready`/`schedules` girano spesso come `admin_root`, riducendo il valore dei controlli su permessi/quote.
 - Alcuni test mutano licenze/dataset **reali** (`agrmet`) con ripristino in `finally`/`cleanup_registry`: se il teardown salta, il catalogo resta sporco.
 
@@ -347,7 +352,7 @@ tests/integration/opendata/
 tests/integration/requests/
   test_delete_pending_request.py / test_requests_listing_archive_clone_EXT.py
     ↓ endpoints/requests.py (UserRequests.get/put/delete, CloneUserRequests.get)
-    ↓ tasks/requests_cleanup.py (automatic_cleanup — effetto globale)
+    ↓ tasks/requests_cleanup.py (automatic_cleanup — confinato da requests_cleanup_perimeter)
 
 tests/integration/{services,tools,connectors}/   (UNIT puri)
   test_{access_key_service,arkimet_query_parsing,dballe_query_parsing}_EXT.py

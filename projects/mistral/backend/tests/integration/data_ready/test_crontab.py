@@ -69,6 +69,7 @@ def test_data_ready_skips_schedule_when_full_crontab_does_not_match(
         data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate="2021101900",
+        schedule_ids=[schedule_id],
     )
 
     # assert
@@ -134,6 +135,7 @@ def test_data_ready_skips_schedule_when_partial_crontab_does_not_match(
         data_ready_db,
         model=DATA_READY_DATASET_NAME,
         rundate="2021101900",
+        schedule_ids=[schedule_id],
     )
 
     # assert
