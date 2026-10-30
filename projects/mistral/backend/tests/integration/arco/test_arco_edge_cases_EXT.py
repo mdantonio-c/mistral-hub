@@ -13,8 +13,9 @@
 # determini il risultato del test.
 # EXTENSION CLEANUP: i fake sono oggetti in memoria agganciati a `monkeypatch` e
 # vengono rimossi automaticamente da pytest. L'unico stato persistente usato e la
-# access key creata dalla fixture gia esistente `fresh_access_key`, gestita dalla
-# suite baseline.
+# access key creata da `fresh_access_key` per l'utente temporaneo
+# `access_key_owner`: chiave e utente sono rimossi nel teardown, senza toccare
+# l'account predefinito.
 # EXTENSION BASELINE: i test legacy restano invariati. Questo modulo aggiunge solo
 # contratti mancanti, con marker `integration` e `deterministic`, senza introdurre
 # fixture globali o `conftest.py` locali.
@@ -30,8 +31,7 @@ import botocore.exceptions
 import pytest
 
 from mistral.endpoints import arco
-from mistral.tests.helpers.auth import make_basic_auth
-from restapi.services.authentication import BaseAuthentication
+from mistral.tests.helpers.auth import AuthenticatedTestUser, make_basic_auth
 from restapi.tests import API_URI, FlaskClient
 
 
@@ -220,12 +220,15 @@ def _install_fake_catalog_db_EXT(
     monkeypatch.setattr(arco.sqlalchemy, "get_instance", lambda: fake_db)
 
 
-def _basic_headers_EXT(fresh_access_key: tuple[dict[str, str], str]) -> dict[str, str]:
-    """Converte la fixture access-key standard in header BasicAuth ARCO."""
-    # ARCO non usa il login Flask ma `email:access_key` in BasicAuth. Riutilizziamo la
-    # fixture esistente per emettere una chiave valida nel runtime di test.
+def _basic_headers_EXT(
+    access_key_owner: AuthenticatedTestUser,
+    fresh_access_key: tuple[dict[str, str], str],
+) -> dict[str, str]:
+    """Converte la chiave dell'utente temporaneo in header BasicAuth ARCO."""
+    # ARCO non usa il login Flask ma `email:access_key` in BasicAuth. La chiave e
+    # emessa per `access_key_owner`, non per l'account predefinito.
     _, valid_key = fresh_access_key
-    return make_basic_auth(BaseAuthentication.default_user, valid_key)
+    return make_basic_auth(access_key_owner.email, valid_key)
 
 
 class TestArcoHelpers_EXT:
@@ -297,18 +300,22 @@ class TestArcoProxyEdges_EXT:
     def test_proxy_wrong_basic_auth_is_rejected_before_s3_EXT(
         self,
         client: FlaskClient,
+        access_key_owner: AuthenticatedTestUser,
+        fresh_access_key: tuple[dict[str, str], str],
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Una BasicAuth con access key errata deve restare un 401 deterministico."""
         # arrange
         # Anche qui il fake S3 non deve essere raggiunto: l'errore riguarda solo la
-        # credenziale BasicAuth e non la disponibilita del bucket ARCO.
+        # credenziale BasicAuth e non la disponibilita del bucket ARCO. L'utente ha
+        # una chiave valida, quindi il 401 viene dal confronto della chiave.
+        del fresh_access_key
         monkeypatch.setattr(
             arco.s3,
             "get_instance",
             lambda: pytest.fail("Il proxy non deve leggere S3 con BasicAuth errata"),
         )
-        headers = make_basic_auth(BaseAuthentication.default_user, "wrong-access-key")
+        headers = make_basic_auth(access_key_owner.email, "wrong-access-key")
 
         # act
         response = client.get(f"{API_URI}/arco/ww3.zarr/.zgroup", headers=headers)
@@ -319,6 +326,7 @@ class TestArcoProxyEdges_EXT:
     def test_proxy_s3_no_such_key_returns_404_EXT(
         self,
         client: FlaskClient,
+        access_key_owner: AuthenticatedTestUser,
         fresh_access_key: tuple[dict[str, str], str],
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -329,7 +337,7 @@ class TestArcoProxyEdges_EXT:
         fake_client = MagicMock()
         fake_client.get_object.side_effect = _client_error_EXT("NoSuchKey")
         _install_fake_arco_s3_EXT(monkeypatch, fake_client)
-        headers = _basic_headers_EXT(fresh_access_key)
+        headers = _basic_headers_EXT(access_key_owner, fresh_access_key)
 
         # act
         response = client.get(f"{API_URI}/arco/missing.zarr/.zgroup", headers=headers)
@@ -348,6 +356,7 @@ class TestArcoProxyEdges_EXT:
     def test_proxy_s3_non_no_such_key_returns_server_error_EXT(
         self,
         client: FlaskClient,
+        access_key_owner: AuthenticatedTestUser,
         fresh_access_key: tuple[dict[str, str], str],
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -358,7 +367,7 @@ class TestArcoProxyEdges_EXT:
         fake_client = MagicMock()
         fake_client.get_object.side_effect = _client_error_EXT("InternalError")
         _install_fake_arco_s3_EXT(monkeypatch, fake_client)
-        headers = _basic_headers_EXT(fresh_access_key)
+        headers = _basic_headers_EXT(access_key_owner, fresh_access_key)
 
         # act
         response = client.get(f"{API_URI}/arco/ww3.zarr/.zgroup", headers=headers)
@@ -369,6 +378,7 @@ class TestArcoProxyEdges_EXT:
     def test_proxy_sets_mimetype_from_object_filename_EXT(
         self,
         client: FlaskClient,
+        access_key_owner: AuthenticatedTestUser,
         fresh_access_key: tuple[dict[str, str], str],
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -381,7 +391,7 @@ class TestArcoProxyEdges_EXT:
             "Body": _FakeBody_EXT(b'{"zarr_format": 2}')
         }
         _install_fake_arco_s3_EXT(monkeypatch, fake_client)
-        headers = _basic_headers_EXT(fresh_access_key)
+        headers = _basic_headers_EXT(access_key_owner, fresh_access_key)
 
         # act
         response = client.get(f"{API_URI}/arco/ww3.zarr/metadata.json", headers=headers)

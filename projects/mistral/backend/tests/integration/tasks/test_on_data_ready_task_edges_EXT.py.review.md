@@ -33,6 +33,7 @@
 | `faker` | fixture | `pytest-faker` | Nome schedule pseudo-casuale (`faker.pystr()`). |
 | `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py) | Teardown **LIFO**. |
 | `monkeypatch` | fixture | `pytest` | Sostituisce `celery.get_instance` e `mark_task_as_failed`. |
+| `confine_data_ready_schedules` | helper | [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py) | Rende visibile al task solo la schedule seedata dal test (facciata DB fail-closed). |
 | `MagicMock` (`fake_celery`) | doppio | `unittest.mock` | Falso connettore Celery; `celery_app.send_task` ispezionato (`call_count`) o con `side_effect`. |
 | `celery_connector.mark_task_as_failed` | hook | `restapi.connectors.celery` | Patchato per **ri-sollevare** l'eccezione originale invece di emettere l'evento Celery. |
 | `sqlalchemy.get_instance()` | connettore | `restapi.connectors` | DB di test per seed/lettura schedule. |
@@ -73,7 +74,7 @@
 
 ```
 launch_all_on_data_ready_extractions.run(model="lm5", rundate=2021-10-19T00:00:00)
-  → db.Schedule.query.all()                       # ITERA TUTTE le schedule del DB di test
+  → db.Schedule.query.all()                       # nel test: solo la schedule seedata (perimetro)
   → per ogni schedule: _get_schedule_response(row)
        → not enabled?            continue
        → not on_data_ready?      continue
@@ -91,7 +92,7 @@ launch_all_on_data_ready_extractions.run(model="lm5", rundate=2021-10-19T00:00:0
 
 ## 6. Comportamenti nascosti
 
-- **Il task itera su TUTTE le schedule del DB** (`db.Schedule.query.all()`), non solo su quella seedata: l'isolamento dipende dallo stato globale del DB di test (vedi §8).
+- **Il task itera su TUTTE le schedule del DB** (`db.Schedule.query.all()`): ogni test lo confina con `confine_data_ready_schedules(monkeypatch, [schedule_id])`, quindi schedule estranee compatibili con `lm5` non influenzano `call_count` né il caso `SystemError`.
 - **Failure hook di restapi**: chiamare `.run()` su una task decorata `@CeleryExt.task` fa passare l'eccezione attraverso `mark_task_as_failed`, che in produzione **emette un evento Celery sul broker**. Senza patch, il test misurerebbe la raggiungibilità del broker; `raise_original_task_error_EXT` ri-solleva l'eccezione originale così l'assert resta sul contratto `SystemError`.
 - **`decode_run` reale**: il terzo test esercita davvero l'helper Arkimet (non è mockato), quindi dipende dalla validazione reale del run.
 - **`period`/`crontab_set` assenti nei seed**: `seed_schedule_for_data_ready` non imposta `period`/`is_crontab`, quindi il blocco di scheduling periodico viene saltato e il flusso arriva diretto a `send_task`.
@@ -99,7 +100,7 @@ launch_all_on_data_ready_extractions.run(model="lm5", rundate=2021-10-19T00:00:0
 
 ## 7. Checklist di revisione
 
-- [ ] **Isolamento**: confermare che il DB di test non contenga altre schedule `on_data_ready` che matchino `model="lm5"` con config valida — altrimenti `call_count==0` o l'attesa di `SystemError` potrebbero diventare instabili.
+- [ ] Verificare che ogni test confini il task alla propria schedule prima di `.run(...)`.
 - [ ] Rafforzare l'assert del terzo test: oggi `call_count==0` non prova che lo skip sia dovuto al `ValueError` del run (potrebbe saltare per altri motivi).
 - [ ] Verificare che il patch di `mark_task_as_failed` non mascheri altri failure hook attesi della suite (qui è confinato al singolo test e ripristinato da pytest).
 - [ ] Confermare che `rundate` ore 00:00 sia coerente con il run filter del terzo test (runhour `"00:00"`).
@@ -108,7 +109,7 @@ launch_all_on_data_ready_extractions.run(model="lm5", rundate=2021-10-19T00:00:0
 ## 8. Possibili criticità
 
 - **Assert debole sul terzo test**: `send_task.call_count == 0` non discrimina il **motivo** dello skip; lo stesso esito si avrebbe per qualunque schedule scartata. Il ramo `ValueError` del `decode_run` non è verificato direttamente (es. nessun assert sul log o sul percorso).
-- **Dipendenza dallo stato globale del DB**: poiché il task itera su tutte le schedule, i test sono sensibili a dati lasciati da altri test; i tre skip-test si affidano al fatto che **nessuna** schedule preesistente matchi `lm5`.
+- **Perimetro accoppiato al task**: la facciata conosce le query attuali del launcher; un refactor del task produce un errore esplicito finché la facciata non viene aggiornata.
 - **Over-mock del dispatch Celery**: `send_task` è un `MagicMock`; non si verifica la correttezza di `args`/`queue`/`routing_key` realmente passati (es. l'ordine dei 12 argomenti di `data_extract`). Una regressione nella tupla di `args` passerebbe inosservata.
 - **Failure hook patchato**: necessario, ma sostituisce un comportamento di produzione (evento Celery) con un re-raise; il test verifica `SystemError`, non l'effettiva segnalazione del fallimento al sistema Celery.
 

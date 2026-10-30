@@ -9,8 +9,9 @@
 # requests_expiration_days.
 # EXTENSION RUNTIME: il task viene invocato in-process con `.run()`; non c'e Celery
 # worker reale. Il DB e quello di test perche il contratto da proteggere e sui record
-# Request/FileOutput, mentre i file fisici sono confinati a utenti temporanei o a una
-# cartella orphan sintetica sotto DOWNLOAD_DIR.
+# Request/FileOutput. La fixture `requests_cleanup_perimeter` espone al task solo
+# utenti e request registrati dal test e sostituisce DOWNLOAD_DIR del task con una
+# cartella temporanea: righe e file estranei restano fuori dal suo raggio d'azione.
 # EXTENSION CLEANUP: utenti temporanei, request, fileoutput e directory output sono
 # registrati nel cleanup_registry. I file che il task cancella vengono verificati con
 # assert idempotenti, mentre quelli recenti rimasti sono rimossi dal teardown.
@@ -26,6 +27,7 @@ from restapi.connectors import sqlalchemy
 from restapi.tests import FlaskClient
 
 from mistral.tasks import requests_cleanup
+from mistral.tests.helpers.task_perimeter import RequestsCleanupPerimeter
 from mistral.tests.integration.tasks.support_EXT import (
     create_task_test_user_EXT,
     delete_requests_for_user_EXT,
@@ -45,6 +47,7 @@ class TestAutomaticCleanupExpirationEXT:
         self,
         client: FlaskClient,
         cleanup_registry,
+        requests_cleanup_perimeter: RequestsCleanupPerimeter,
     ) -> None:
         """Request completate scadute vengono archiviate o cancellate in base al profilo.
 
@@ -119,6 +122,15 @@ class TestAutomaticCleanupExpirationEXT:
             end_date=expired_end_date,
             archived=True,
         )
+        requests_cleanup_perimeter.allow(
+            user_ids=[archive_user.user_id, delete_user.user_id],
+            request_ids=[
+                archived_request_id,
+                deleted_request_id,
+                recent_request_id,
+                already_archived_request_id,
+            ],
+        )
 
         # act
         # Eseguiamo il task direttamente in-process: vogliamo verificare il codice del
@@ -153,6 +165,7 @@ class TestAutomaticCleanupExpirationEXT:
         self,
         client: FlaskClient,
         cleanup_registry,
+        requests_cleanup_perimeter: RequestsCleanupPerimeter,
     ) -> None:
         """Un utente con requests_expiration_days=0 non deve perdere request vecchie.
 
@@ -179,6 +192,10 @@ class TestAutomaticCleanupExpirationEXT:
             status=states.SUCCESS,
             end_date=dt.datetime.now() - dt.timedelta(days=30),
         )
+        requests_cleanup_perimeter.allow(
+            user_ids=[disabled_user.user_id],
+            request_ids=[disabled_request_id],
+        )
 
         # act
         requests_cleanup.automatic_cleanup.run()
@@ -193,13 +210,15 @@ class TestAutomaticCleanupExpirationEXT:
     def test_automatic_cleanup_removes_only_old_orphan_files_EXT(
         self,
         cleanup_registry,
+        requests_cleanup_perimeter: RequestsCleanupPerimeter,
     ) -> None:
         """I file orfani oltre grace period vengono rimossi, quelli recenti restano.
 
-        Questo scenario usa una directory utente sintetica sotto DOWNLOAD_DIR per
-        attraversare il ramo filesystem del task senza appoggiarsi a output reali. I
-        file non hanno FileOutput DB associato per scelta: il contratto e proprio la
-        rimozione degli orfani, distinta dalla cancellazione di request scadute.
+        Questo scenario usa una directory utente sintetica sotto la root download
+        temporanea del perimetro, cosi il ramo filesystem del task non vede output
+        reali. I file non hanno FileOutput DB associato per scelta: il contratto e
+        proprio la rimozione degli orfani, distinta dalla cancellazione di request.
+        Nessuna riga DB e registrata nel perimetro: il task non processa request.
         """
         # arrange
         # Creiamo una directory output sintetica riconoscibile e registriamo il cleanup
@@ -208,7 +227,9 @@ class TestAutomaticCleanupExpirationEXT:
         now = dt.datetime.now()
         old_mtime = now - requests_cleanup.GRACE_PERIOD - dt.timedelta(minutes=5)
         recent_mtime = now
-        orphan_root = requests_cleanup.DOWNLOAD_DIR / f"orphan-ext-{uuid4().hex}"
+        orphan_root = (
+            requests_cleanup_perimeter.download_root / f"orphan-ext-{uuid4().hex}"
+        )
         orphan_output_dir = orphan_root / "outputs"
         orphan_output_dir.mkdir(parents=True, exist_ok=True)
         cleanup_registry.add_path(orphan_root)

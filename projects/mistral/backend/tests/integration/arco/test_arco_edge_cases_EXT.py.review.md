@@ -28,7 +28,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `fresh_access_key` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py#L29) | Access key reale del default user; usata solo dai test proxy che necessitano auth valida. |
+| `access_key_owner` / `fresh_access_key` | fixture | [tests/integration/conftest.py](projects/mistral/backend/tests/integration/conftest.py) | Utente temporaneo con access key reale; usati solo dai test proxy che necessitano una chiave esistente. |
 | `monkeypatch` | fixture | `pytest` | Sostituisce `arco.s3.get_instance` / `arco.sqlalchemy.get_instance`; teardown automatico. |
 | `make_basic_auth` | helper | [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py#L114) | Header `Authorization: Basic email:key`. |
 | `_FakeBody_EXT` | classe locale | nel file di test | Body S3 minimale con solo `read()` (deterministico, non consuma il buffer). |
@@ -40,7 +40,7 @@
 | `_client_error_EXT(code)` | helper locale | nel file di test | Costruisce un `botocore.exceptions.ClientError` con `Error.Code` controllato (ramo **proxy**). |
 | `_metadata_payload_EXT(zattrs)` | helper locale | nel file di test | Serializza un `.zmetadata` Zarr minimale con `.zattrs` dato. |
 | `_install_fake_arco_s3_EXT` / `_install_fake_catalog_db_EXT` | helper locali | nel file di test | Patchano `arco.s3.get_instance` / `arco.sqlalchemy.get_instance` con i fake. |
-| `_basic_headers_EXT` | helper locale | nel file di test | Converte `fresh_access_key` in header BasicAuth ARCO. |
+| `_basic_headers_EXT` | helper locale | nel file di test | Converte email di `access_key_owner` e chiave di `fresh_access_key` in header BasicAuth ARCO. |
 
 ## 4. Analisi dettagliata di ogni test
 
@@ -70,15 +70,15 @@
 
 #### `test_proxy_wrong_basic_auth_is_rejected_before_s3_EXT`
 - **Obiettivo**: BasicAuth con access key errata resta un `401` deterministico, senza toccare S3.
-- **Backend coinvolto**: `ArcoResource.get` → validazione (chiave inesistente → `Unauthorized`).
-- **Setup**: stesso trucco `pytest.fail` su `arco.s3.get_instance`; header `make_basic_auth(default_user, "wrong-access-key")`.
+- **Backend coinvolto**: `ArcoResource.get` → validazione (l'utente ha una chiave valida, quella presentata non coincide → `Invalid access key`).
+- **Setup**: stesso trucco `pytest.fail` su `arco.s3.get_instance`; `fresh_access_key` per `access_key_owner`; header `make_basic_auth(access_key_owner.email, "wrong-access-key")`.
 - **Assert**: `status_code == 401`.
 - **Casi coperti**: error path (credenziale errata).
 
 #### `test_proxy_s3_no_such_key_returns_404_EXT`
 - **Obiettivo**: il `NoSuchKey` S3 è tradotto nel `404` pubblico del proxy.
 - **Backend coinvolto**: ramo `except botocore...ClientError` con `Error.Code == "NoSuchKey"` → `NotFound`.
-- **Setup**: `fake_client = MagicMock()`, `get_object.side_effect = _client_error_EXT("NoSuchKey")`; `_install_fake_arco_s3_EXT`; header da `fresh_access_key`.
+- **Setup**: `fake_client = MagicMock()`, `get_object.side_effect = _client_error_EXT("NoSuchKey")`; `_install_fake_arco_s3_EXT`; header da `access_key_owner` + `fresh_access_key`.
 - **Flusso/Assert**: `GET /arco/missing.zarr/.zgroup` → `404`.
 - **Casi coperti**: error path / mapping eccezione→HTTP (usa `ClientError`, non `client.exceptions.NoSuchKey`).
 
@@ -161,7 +161,7 @@ GET /api/arco/datasets
 - **Catalogo pubblico**: i test catalogo non inviano header e ottengono `200`, documentando esplicitamente l'assenza di auth (cosa che la baseline catalogo **non** fa, anzi invia header inutili).
 - **Tracciamento delle chiamate S3**: `_FakeS3Client_EXT` registra `list_calls`/`get_calls`; la paginazione è verificabile **osservando i parametri** (presenza/assenza di `ContinuationToken`) senza S3 reale.
 - **Helper "puri" sotto marker `integration`**: `guess_mime_type`/`_round_coord` non fanno HTTP; pur essendo unit test, ereditano il marker `integration`/`deterministic` del modulo.
-- **`fresh_access_key`** è l'unico stato persistente reale (chiave del default user); i fake sono in memoria e rimossi da pytest.
+- **`fresh_access_key`** è l'unico stato persistente reale (chiave dell'utente temporaneo `access_key_owner`, rimossa con l'utente in teardown); i fake sono in memoria e rimossi da pytest.
 - **`_FakeBody_EXT.read()` non consuma il buffer**: ritorna sempre gli stessi byte (i test non verificano lo streaming).
 
 ## 7. Checklist di revisione
@@ -180,7 +180,6 @@ GET /api/arco/datasets
 - **Over-mocking strutturale**: nessun test EXT tocca S3/DB reali; la copertura è di logica del controller, non di integrazione end-to-end (coerente con lo scopo "edge", ma da non confondere con copertura del connettore).
 - **Marker fuorviante sui puri**: `guess_mime_type`/`_round_coord` sono unit test marcati `integration`; impatto minimo ma rende meno chiara la tassonomia della suite.
 - **Assert di paginazione legati ai parametri interni**: il test ispeziona `list_calls[1]["ContinuationToken"]`; è white-box sul protocollo S3 — robusto ma sensibile a refactor del modo in cui i kwargs vengono costruiti.
-- **Dipendenza dal default user** in `fresh_access_key` (test proxy): possibile accoppiamento d'ordine con i moduli access-key in esecuzioni parallele.
 
 ## 9. Riassunto finale
 
@@ -189,10 +188,10 @@ GET /api/arco/datasets
 | `test_guess_mime_type_returns_known_json_type_EXT` | `arco.guess_mime_type` | mimetype JSON | — (puro) | — | Bassa |
 | `test_round_coord_handles_numbers_strings_and_none_EXT` | `arco._round_coord` | rounding + fallback (×4 param) | — (puro) | — | Bassa |
 | `test_proxy_missing_basic_auth_is_rejected_before_s3_EXT` | `ArcoResource.get` + auth | 401 senza header, S3 non toccato | `pytest.fail` su `s3.get_instance` | `client`, `monkeypatch` | Bassa |
-| `test_proxy_wrong_basic_auth_is_rejected_before_s3_EXT` | `ArcoResource.get` + auth | 401 con key errata, S3 non toccato | `pytest.fail` su `s3.get_instance` | `client`, `monkeypatch` | Bassa |
-| `test_proxy_s3_no_such_key_returns_404_EXT` | `ArcoResource.get` (ClientError NoSuchKey) | 404 su oggetto assente | `MagicMock` S3 + `ClientError` | `client`, `fresh_access_key`, `monkeypatch` | Media |
-| `test_proxy_s3_non_no_such_key_returns_server_error_EXT` | `ArcoResource.get` (else `raise Exception`) | assert 500, **XFAIL strict** sul bug attuale (ARCO-001) | `MagicMock` S3 + `ClientError` | `client`, `fresh_access_key`, `monkeypatch` | Media |
-| `test_proxy_sets_mimetype_from_object_filename_EXT` | `ArcoResource.get` + `guess_mime_type` | 200 + mimetype JSON + body invariato | fake S3 (`_FakeBody_EXT`) | `client`, `fresh_access_key`, `monkeypatch` | Media |
+| `test_proxy_wrong_basic_auth_is_rejected_before_s3_EXT` | `ArcoResource.get` + auth | 401 con key errata, S3 non toccato | `pytest.fail` su `s3.get_instance` | `client`, `access_key_owner`, `fresh_access_key`, `monkeypatch` | Bassa |
+| `test_proxy_s3_no_such_key_returns_404_EXT` | `ArcoResource.get` (ClientError NoSuchKey) | 404 su oggetto assente | `MagicMock` S3 + `ClientError` | `client`, `access_key_owner`, `fresh_access_key`, `monkeypatch` | Media |
+| `test_proxy_s3_non_no_such_key_returns_server_error_EXT` | `ArcoResource.get` (else `raise Exception`) | assert 500, **XFAIL strict** sul bug attuale (ARCO-001) | `MagicMock` S3 + `ClientError` | `client`, `access_key_owner`, `fresh_access_key`, `monkeypatch` | Media |
+| `test_proxy_sets_mimetype_from_object_filename_EXT` | `ArcoResource.get` + `guess_mime_type` | 200 + mimetype JSON + body invariato | fake S3 (`_FakeBody_EXT`) | `client`, `access_key_owner`, `fresh_access_key`, `monkeypatch` | Media |
 | `test_catalog_keeps_only_zarr_prefixes_and_enriches_metadata_EXT` | `ArcoDatasetsResource.get` | filtro `.zarr/` + enrichment + rounding | fake S3 + fake DB | `client`, `monkeypatch` | Alta |
 | `test_catalog_missing_zmetadata_keeps_default_dataset_fallback_EXT` | `ArcoDatasetsResource.get` (NoSuchKey) | fallback dataset base, `bounding` None | fake S3 + fake DB | `client`, `monkeypatch` | Media |
 | `test_catalog_unknown_license_and_attribution_do_not_break_response_EXT` | `ArcoDatasetsResource.get` | nomi sconosciuti conservati, non arricchiti | fake S3 + fake DB | `client`, `monkeypatch` | Media |

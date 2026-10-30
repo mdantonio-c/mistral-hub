@@ -1,7 +1,8 @@
 # EXTENSION TRACEABILITY: added by coverage extension prompt 04
 # EXTENSION SCOPE: integrates the refactored suite without modifying legacy baseline
 # EXTENSION DATA WINDOW: no real runtime data required; uses DB-seeded rows and fake Celery
-# EXTENSION RUNTIME: deterministic fake schedule rows and fake Celery send; no async dependencies
+# EXTENSION RUNTIME: deterministic fake schedule rows and fake Celery send; the task
+# only sees the schedule seeded by each test (confine_data_ready_schedules)
 # EXTENSION CLEANUP: schedule rows cleaned via cleanup_registry
 #
 # This module extends the tasks integration area with tests for:
@@ -34,6 +35,7 @@ from mistral.tests.helpers.auth import (
     create_authenticated_test_user,
     register_test_user_cleanup,
 )
+from mistral.tests.helpers.task_perimeter import confine_data_ready_schedules
 
 pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
 
@@ -150,6 +152,8 @@ class TestOnDataReadyTaskEdges:
         fake_celery = MagicMock()
         from restapi.connectors import celery
         monkeypatch.setattr(celery, "get_instance", lambda: fake_celery)
+        # Il task legge tutte le schedule: il perimetro lascia visibile solo questa.
+        confine_data_ready_schedules(monkeypatch, [schedule_id])
 
         # act - run task with model matching the empty dataset schedule
         # Eseguiamo l'helper direttamente per verificare che gestisca correttamente il
@@ -191,6 +195,8 @@ class TestOnDataReadyTaskEdges:
         fake_celery = MagicMock()
         from restapi.connectors import celery
         monkeypatch.setattr(celery, "get_instance", lambda: fake_celery)
+        # Il task legge tutte le schedule: il perimetro lascia visibile solo questa.
+        confine_data_ready_schedules(monkeypatch, [schedule_id])
 
         # act - run task with model matching the multi-dataset schedule
         # Eseguiamo l'helper direttamente per verificare che gestisca correttamente il
@@ -233,6 +239,8 @@ class TestOnDataReadyTaskEdges:
         fake_celery = MagicMock()
         from restapi.connectors import celery
         monkeypatch.setattr(celery, "get_instance", lambda: fake_celery)
+        # Il task legge tutte le schedule: il perimetro lascia visibile solo questa.
+        confine_data_ready_schedules(monkeypatch, [schedule_id])
 
         # act - run task with model matching the schedule with broken run filter
         # Eseguiamo l'helper direttamente per verificare che gestisca correttamente il
@@ -275,6 +283,8 @@ class TestOnDataReadyTaskEdges:
         fake_celery.celery_app.send_task.side_effect = Exception("Celery broker unreachable")
         from restapi.connectors import celery
         monkeypatch.setattr(celery, "get_instance", lambda: fake_celery)
+        # Il task legge tutte le schedule: il perimetro lascia visibile solo questa.
+        confine_data_ready_schedules(monkeypatch, [schedule_id])
 
         def raise_original_task_error_EXT(*args: Any, exception: Exception, **kwargs: Any):
             """Expose the task error without sending Celery failure events.
