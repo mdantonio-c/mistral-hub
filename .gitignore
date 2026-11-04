@@ -5,6 +5,9 @@
 # data
 /uploads
 /data
+# issue 852 benchmark raw results (D-14) and local credential files (D-21)
+/perf-results
+bench_*.env
 /node_modules
 projects/mistral/scripts/dballe2arkimet_old
 projects/mistral/frontend/assets/images/tiles

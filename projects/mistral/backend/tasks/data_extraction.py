@@ -26,7 +26,7 @@ from mistral.services.sqlapi_db_manager import SqlApiDbManager
 from mistral.tools import derived_variables as pp1
 from mistral.tools import grid_cropping as pp3_2
 from mistral.tools import grid_interpolation as pp3_1
-from mistral.tools import output_formatting
+from mistral.tools import output_formatting, perf
 from mistral.tools import quality_check_filter as qc
 from mistral.tools import spare_point_interpol as pp3_3
 from mistral.tools import statistic_elaboration as pp2
@@ -56,8 +56,15 @@ def data_extract(
     data_ready=False,
     opendata=False,
     force_obs_download=False,
+    perf_fake_now=None,
 ):
 
+    perf.start(
+        "task", user_id, request_id=request_id, task_id=self.request.id, reset_peak=True
+    )
+    setup_phase = perf.begin("task.setup")
+    finalize_phase = None
+    fake_now = perf.fake_now(user_id, perf_fake_now)
     log.info("Start task [{}:{}]", self.request.id, self.name)
     try:
         db = sqlalchemy.get_instance()
@@ -126,6 +133,14 @@ def data_extract(
                 raise ReferenceError(
                     f"Cannot find request reference for task {self.request.id}"
                 )
+            if perf.active():
+                delivery_info = self.request.delivery_info or {}
+                perf.label(
+                    submission_date=request.submission_date.isoformat(),
+                    queue=delivery_info.get("routing_key"),
+                    fake_now=fake_now.isoformat() if fake_now else None,
+                    lastdays=dballe.LASTDAYS,
+                )
 
         # get the format of the datasets
         dataset_format = arki.get_datasets_format(datasets)
@@ -190,6 +205,7 @@ def data_extract(
         # When postprocessing is involved, we skip the prior size estimation step.
         # This is necessary because postprocessing can reduce the actual data size,
         # whereas a prior size estimation could block the download due to an overestimated size.
+        setup_phase.end()
         esti_data_size = None
         if not postprocessors:
             # the estimation of data size can be skipped
@@ -210,16 +226,23 @@ def data_extract(
                 esti_obs_data_size = None
 
                 try:
-                    esti_obs_data_size = data.get_observed_data_size_count(
-                        reftime, datasets, filters, license_group, output_format
-                    )
+                    with perf.phase("task.size_estimation"):
+                        esti_obs_data_size = data.get_observed_data_size_count(
+                            reftime,
+                            datasets,
+                            filters,
+                            license_group,
+                            output_format,
+                            now=fake_now,
+                        )
                 except Exception as e:
                     log.warning(f"Unable to get summary stats: {e}")
 
                 if esti_obs_data_size:
-                    data.check_user_quota_for_observed_data(
-                        user_id, db, esti_obs_data_size
-                    )
+                    with perf.phase("task.quota_check"):
+                        data.check_user_quota_for_observed_data(
+                            user_id, db, esti_obs_data_size
+                        )
 
         # ########################################## #
         # ##### EXTRACTION FROM ARKIMET/DBALLE ##### #
@@ -254,6 +277,7 @@ def data_extract(
                 amqp_queue=amqp_queue,
                 schedule_id=schedule_id,
                 only_reliable=only_reliable,
+                now=fake_now,
             )
 
         # ########################################## #
@@ -344,12 +368,16 @@ def data_extract(
         if output_format:
             input_file = output_dir.joinpath(output_file_name)
             output_file = input_file.with_suffix(f".{output_format}")
-            out_filepath = output_formatting.pp_output_formatting(
-                output_format, input_file, output_file
-            )
+            with perf.phase("output.format") as counters:
+                out_filepath = output_formatting.pp_output_formatting(
+                    output_format, input_file, output_file
+                )
+                counters["output_format"] = output_format
             output_file_name = out_filepath.name
             # rename outfile correctly
             outfile = output_dir.joinpath(output_file_name)
+
+        finalize_phase = perf.begin("output.finalize")
 
         # estimation of data size can be skipped when pushing data output to amqp queue
         # get the actual data size
@@ -486,9 +514,18 @@ def data_extract(
                     if request.status != states.SUCCESS:
                         notify_by_email(db, user_id, request, "")
                     else:
-                        notify_on_success = db.session.query(db.User.notify_on_successful_request).filter_by(id=user_id).scalar()
+                        notify_on_success = (
+                            db.session.query(db.User.notify_on_successful_request)
+                            .filter_by(id=user_id)
+                            .scalar()
+                        )
                         if notify_on_success:
                             notify_by_email(db, user_id, request, "")
+            if finalize_phase is not None:
+                finalize_phase.end()
+            if perf.active():
+                perf.label(status=request.status)
+            perf.finish()
 
 
 def check_user_quota(
@@ -594,18 +631,27 @@ def observed_extraction(
     amqp_queue=None,
     schedule_id=None,
     only_reliable=False,
+    now=None,
 ):
     # parsing the query
-    fields, queries = dballe.parse_query_for_data_extraction(datasets, filters, reftime)
+    with perf.phase("obs.parse_query") as counters:
+        fields, queries = dballe.parse_query_for_data_extraction(
+            datasets, filters, reftime
+        )
+        counters["n_fields"] = len(fields)
+        counters["n_networks"] = len(queries[fields.index("rep_memo")])
 
     # get db type
-    if reftime:
-        db_type = dballe.get_db_type(
-            date_min=queries[fields.index("datetimemin")][0],
-            date_max=queries[fields.index("datetimemax")][0],
-        )
-    else:
-        db_type = "mixed"
+    with perf.phase("obs.db_type"):
+        if reftime:
+            db_type = dballe.get_db_type(
+                date_min=queries[fields.index("datetimemin")][0],
+                date_max=queries[fields.index("datetimemax")][0],
+                now=now,
+            )
+        else:
+            db_type = "mixed"
+    perf.label(db_type=db_type)
 
     queried_reftime = None
     if "multim-forecast" in datasets:
@@ -676,7 +722,7 @@ def observed_extraction(
 
     if db_type == "mixed":
         dballe.extract_data_for_mixed(
-            datasets, fields, queries, outfile, queried_reftime
+            datasets, fields, queries, outfile, queried_reftime, now=now
         )
     else:
         dballe.extract_data(
@@ -685,7 +731,8 @@ def observed_extraction(
 
     if only_reliable:
         # processed the resulting file
-        qc.pp_quality_check_filter(input_file=outfile, output_file=qc_outfile)
+        with perf.phase("qc.filter"):
+            qc.pp_quality_check_filter(input_file=outfile, output_file=qc_outfile)
         # delete the tmp file
         qc_input = Path(outfile)
         qc_input.unlink()

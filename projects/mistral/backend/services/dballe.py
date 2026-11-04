@@ -21,6 +21,7 @@ from mistral.exceptions import (
 )
 from mistral.services.arkimet import BeArkimet as arki_service
 from mistral.services.sqlapi_db_manager import SqlApiDbManager
+from mistral.tools import perf
 from restapi.connectors import sqlalchemy
 from restapi.env import Env
 from restapi.utilities.logs import log
@@ -114,8 +115,9 @@ class BeDballe:
     STANDARD_ATTR_ENCODING_BITS = 573
 
     @staticmethod
-    def get_db_type(date_min=None, date_max=None):
-        now = datetime.utcnow()
+    def get_db_type(date_min=None, date_max=None, now=None):
+        # now: per-request fake current time (benchmarks only, issue 852 D-10)
+        now = now or datetime.utcnow()
         days_back = BeDballe.LASTDAYS - 1
         # the following checks if the request is at least 5 minutes before the start of the cron
         # of the migration from dballe to arkimet "start_dballe2arkimet.sh" (it is currently set at 2:15 AM)
@@ -170,7 +172,7 @@ class BeDballe:
         return db_type
 
     @staticmethod
-    def split_reftimes(date_min, date_max):
+    def split_reftimes(date_min, date_max, now=None):
         refmax_dballe = None
         refmin_dballe = None
         refmax_arki = None
@@ -179,7 +181,7 @@ class BeDballe:
             refmax_dballe = date_max
         if date_min:
             refmin_arki = date_min
-        now = datetime.utcnow()
+        now = now or datetime.utcnow()
         days_back = BeDballe.LASTDAYS - 1
         # the following checks if the request is at least 5 minutes before the start of the cron
         # of the migration from dballe to arkimet "start_dballe2arkimet.sh" (it is currently set at 2:15 AM).
@@ -665,13 +667,13 @@ class BeDballe:
         # datetime interval of the query
         if fields:
             if "datetimemin" in fields:
-                query_important_params["query_original_dt_interval"]["datetimemin"] = (
-                    queries[fields.index("datetimemin")][0]
-                )
+                query_important_params["query_original_dt_interval"][
+                    "datetimemin"
+                ] = queries[fields.index("datetimemin")][0]
             if "datetimemax" in fields:
-                query_important_params["query_original_dt_interval"]["datetimemax"] = (
-                    queries[fields.index("datetimemax")][0]
-                )
+                query_important_params["query_original_dt_interval"][
+                    "datetimemax"
+                ] = queries[fields.index("datetimemax")][0]
 
         if query_important_params["need_different_size_count"]:
             query_important_params["selected_filters_keys"] = [
@@ -784,10 +786,10 @@ class BeDballe:
 
         if cur_original_dt_interval not in cursor_effective_datetime_dict:
 
-            cursor_effective_datetime_dict[cur_original_dt_interval] = (
-                BeDballe.__populate_cursor_effective_datetime_dict(
-                    cur_original_dt_interval, query_original_dt_interval
-                )
+            cursor_effective_datetime_dict[
+                cur_original_dt_interval
+            ] = BeDballe.__populate_cursor_effective_datetime_dict(
+                cur_original_dt_interval, query_original_dt_interval
             )
 
         cur_vs_query_dtime_ratio = cursor_effective_datetime_dict[
@@ -1383,10 +1385,10 @@ class BeDballe:
                 tranges, type="timerange"
             )
             if all_products:
-                fields["available_products"] = (
-                    BeDballe.from_list_of_params_to_list_of_dic(
-                        network_products, type="product"
-                    )
+                fields[
+                    "available_products"
+                ] = BeDballe.from_list_of_params_to_list_of_dic(
+                    network_products, type="product"
                 )
 
             # create summary
@@ -2308,9 +2310,9 @@ class BeDballe:
                                 )
                             if r.startswith("="):
                                 date = r.strip("=")
-                                query_dic["datetimemin"] = query_dic["datetimemax"] = (
-                                    dateutil.parser.parse(date)
-                                )
+                                query_dic["datetimemin"] = query_dic[
+                                    "datetimemax"
+                                ] = dateutil.parser.parse(date)
 
                     # parsing all other parameters
                     elif p == "license":
@@ -2598,17 +2600,23 @@ class BeDballe:
         cfg = arki.cfg.Sections.parse(arki_service.arkimet_conf)
         importer = dballe.Importer("BUFR")
         with tempfile.SpooledTemporaryFile(mode="a+b", max_size=10000000) as tmpf:
-            for d in datasets:
-                dt_part = cfg.section(d)
-                source = arki.dataset.Session().dataset_reader(cfg=dt_part)
-                bin_data = source.query_bytes(query, with_data=True)
-                tmpf.write(bin_data)
+            with perf.phase("arki.fetch") as counters:
+                for d in datasets:
+                    dt_part = cfg.section(d)
+                    source = arki.dataset.Session().dataset_reader(cfg=dt_part)
+                    bin_data = source.query_bytes(query, with_data=True)
+                    tmpf.write(bin_data)
+                    counters[f"bytes_fetched.{d}"] = len(bin_data)
             tmpf.seek(0)
-            with dballe.File(tmpf, "BUFR") as f:
-                for binmsg in f:
-                    msgs = importer.from_binary(binmsg)
-                    with db.transaction() as tr:
-                        tr.import_messages(msgs)
+            with perf.phase("arki.import_memdb") as counters:
+                n_imported = 0
+                with dballe.File(tmpf, "BUFR") as f:
+                    for binmsg in f:
+                        msgs = importer.from_binary(binmsg)
+                        with db.transaction() as tr:
+                            tr.import_messages(msgs)
+                        n_imported += 1
+                counters["n_messages_imported"] = n_imported
         return db
 
     @staticmethod
@@ -2657,7 +2665,7 @@ class BeDballe:
 
     @staticmethod
     def extract_data_for_mixed(
-        datasets, fields, queries, outfile, queried_reftime=None
+        datasets, fields, queries, outfile, queried_reftime=None, now=None
     ):
         # extract data from the dballe database
         log.debug("mixed dbs: extract data from dballe")
@@ -2674,6 +2682,7 @@ class BeDballe:
             ) = BeDballe.split_reftimes(
                 queries[fields.index("datetimemin")][0],
                 queries[fields.index("datetimemax")][0],
+                now=now,
             )
             if queried_reftime:
                 # multimodel case, the datemin has to coincide with a run
@@ -2742,6 +2751,7 @@ class BeDballe:
             )
 
         # join the dballe extraction with the arki one
+        join_phase = perf.begin("mixed.join")
         with open(outfile, mode="w") as output:
             ext_proc = subprocess.Popen(cat_cmd, stdout=output)
             ext_proc.wait()
@@ -2749,6 +2759,7 @@ class BeDballe:
                 raise JoinObservedExtraction(
                     "Failure in data extraction: error in creating the output file for mixed archives"
                 )
+        join_phase.end(n_parts=len(cat_cmd) - 1)
 
         # delete the partial extractions
         for f in cat_cmd:
@@ -2794,14 +2805,18 @@ class BeDballe:
 
             # get all the possible combinations of queries
             all_queries = list(itertools.product(*queries))
-            arkimet_query = BeDballe.build_arkimet_query(
-                datemin=datemin,
-                datemax=datemax,
-                network=network,
-                all_dballe_queries=all_queries,
-                fields=fields,
-                license_group=license_group,
-            )
+            with perf.phase("arki.build_query") as counters:
+                arkimet_query = BeDballe.build_arkimet_query(
+                    datemin=datemin,
+                    datemax=datemax,
+                    network=network,
+                    all_dballe_queries=all_queries,
+                    fields=fields,
+                    license_group=license_group,
+                )
+                if perf.active() and arkimet_query:
+                    counters["n_stations"] = arkimet_query.count("GRIB:lat=")
+                    counters["arki_query_len"] = len(arkimet_query)
             if not arkimet_query:
                 if mixed_extraction:
                     # break the extraction in order not to create the output file
@@ -2818,9 +2833,10 @@ class BeDballe:
             # get the dsn
             dballe_dsn = license_group.dballe_dsn
             try:
-                DB = dballe.DB.connect(
-                    f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}"
-                )
+                with perf.phase("dballe.connect"):
+                    DB = dballe.DB.connect(
+                        f"{engine}://{user}:{pw}@{host}:{port}/{dballe_dsn}"
+                    )
             except OSError:
                 raise OSError("Unable to connect to dballe database")
         requested_runs = []
@@ -2858,6 +2874,10 @@ class BeDballe:
         all_queries = list(itertools.product(*queries))
         counter = 1
         cat_cmd = ["cat"]
+        prefix = "arki" if db_type == "arkimet" else "dballe"
+        loop_phase = perf.begin(f"{prefix}.query_loop")
+        n_messages = 0
+        bytes_written = 0
         for q in all_queries:
             dballe_query = {}
             for k, v in zip(fields, q):
@@ -2887,14 +2907,24 @@ class BeDballe:
                             msg = row.message
                         if msg:
                             out.write(exporter.to_binary(msg))
+                            n_messages += 1
+                    bytes_written += out.tell()
 
             cat_cmd.append(part_outfile)
             # update counter
             counter += 1
 
+        loop_phase.end(
+            n_combinations=len(all_queries),
+            n_nonempty=counter - 1,
+            n_messages=n_messages,
+            bytes_written=bytes_written,
+        )
+
         if db_type == "arkimet":
             # clear the temporary db
-            DB.remove_all()
+            with perf.phase("arki.cleanup"):
+                DB.remove_all()
 
         if counter == 1:
             # any query has given a result
@@ -2906,6 +2936,7 @@ class BeDballe:
                 )
 
         # join all the partial extractions
+        join_phase = perf.begin("extract.join_parts")
         with open(outfile, mode="w") as output:
             ext_proc = subprocess.Popen(cat_cmd, stdout=output)
             ext_proc.wait()
@@ -2913,6 +2944,7 @@ class BeDballe:
                 raise JoinObservedExtraction(
                     "Failure in data extraction: error in creating the output file"
                 )
+        join_phase.end(n_parts=len(cat_cmd) - 1, db_type=db_type)
         # delete the partial extractions
         for f in cat_cmd:
             if Path(f).is_file():

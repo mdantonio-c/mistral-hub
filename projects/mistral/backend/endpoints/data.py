@@ -8,11 +8,12 @@ from mistral.endpoints import DOWNLOAD_DIR, PostProcessorsType
 from mistral.exceptions import DiskQuotaException, MaxOutputSizeExceeded
 from mistral.services.arkimet import BeArkimet as arki
 from mistral.services.dballe import BeDballe as dballe
-from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from mistral.services.filter_validation import validate_filters
+from mistral.services.sqlapi_db_manager import SqlApiDbManager as repo
 from mistral.tasks import data_extraction as data_ext
 from mistral.tasks.data_extraction_utilities import queue_sorting
 from mistral.tools import grid_interpolation as pp3_1
+from mistral.tools import perf
 from mistral.tools import spare_point_interpol as pp3_3
 from restapi import decorators
 from restapi.connectors import celery, rabbitmq, sqlalchemy
@@ -277,6 +278,14 @@ class DataExtraction(Schema):
             " estimated data size exceeds the allowed user quota."
         },
     )
+    perf_fake_now = fields.DateTime(
+        required=False,
+        allow_none=True,
+        metadata={
+            "description": "Benchmark only (issue 852): fake current time for the dballe/arkimet"
+            " cutoff. Ignored unless enabled on the server for the requesting user."
+        },
+    )
 
     @pre_load
     def check_output_format(self, data, **kwargs):
@@ -337,7 +346,13 @@ class Data(EndpointResource, Uploader):
         postprocessors: Optional[List[PostProcessorsType]] = None,
         push: bool = False,
         force_obs_download: bool = False,
+        perf_fake_now: Optional[datetime] = None,
     ) -> Response:
+
+        perf.start("api", user.id)
+        validate_phase = perf.begin("api.validate")
+        fake_now = perf.fake_now(user.id, perf_fake_now)
+        perf.label(fake_now=fake_now.isoformat() if fake_now else None)
 
         db = sqlalchemy.get_instance()
         log.info(f"request for data extraction coming from user UUID: {user.uuid}")
@@ -469,15 +484,21 @@ class Data(EndpointResource, Uploader):
                     "The chosen datasets do not support 'only quality controlled data' option "
                 )
 
+        validate_phase.end()
         # In a future size estimation may be implemented for multim-forecast dataset data as well
         if data_type == "OBS" and not postprocessors and not force_obs_download:
             esti_obs_data_size = None
 
             try:
-
-                esti_obs_data_size = get_observed_data_size_count(
-                    parsed_reftime, dataset_names, filters, license_group, output_format
-                )
+                with perf.phase("api.size_estimation"):
+                    esti_obs_data_size = get_observed_data_size_count(
+                        parsed_reftime,
+                        dataset_names,
+                        filters,
+                        license_group,
+                        output_format,
+                        now=fake_now,
+                    )
 
             except Exception as e:
                 log.warning(f"Unable to get summary stats: {e}")
@@ -485,8 +506,10 @@ class Data(EndpointResource, Uploader):
 
             if esti_obs_data_size:
                 try:
-
-                    check_user_quota_for_observed_data(user.id, db, esti_obs_data_size)
+                    with perf.phase("api.quota_check"):
+                        check_user_quota_for_observed_data(
+                            user.id, db, esti_obs_data_size
+                        )
 
                 except DiskQuotaException:
                     raise Forbidden(
@@ -500,6 +523,7 @@ class Data(EndpointResource, Uploader):
 
         # run the following steps in a transaction
         task = None
+        enqueue_phase = perf.begin("api.enqueue")
         try:
             request = repo.create_request_record(
                 db,
@@ -519,6 +543,12 @@ class Data(EndpointResource, Uploader):
             c = celery.get_instance()
             # get the correct celery queue to redirect the request
             celery_queue = queue_sorting(data_type, reftime)
+            if data_type == "OBS":
+                # benchmark users only, flag-gated (issue 852, D-04)
+                celery_queue = perf.bench_queue(user.id) or celery_queue
+            task_kwargs = {}
+            if fake_now:
+                task_kwargs["perf_fake_now"] = fake_now.isoformat()
             task = c.celery_app.send_task(
                 "data_extract",
                 args=(
@@ -536,6 +566,7 @@ class Data(EndpointResource, Uploader):
                     False,
                     force_obs_download,
                 ),
+                kwargs=task_kwargs or None,
                 countdown=1,
                 queue=celery_queue,
                 routing_key=celery_queue,
@@ -545,6 +576,9 @@ class Data(EndpointResource, Uploader):
             request.status = task.status  # 'PENDING'
             db.session.commit()
             log.info("Request successfully saved: <ID:{}>", request.id)
+            enqueue_phase.end()
+            perf.label(queue=celery_queue)
+            perf.finish(request_id=request.id, task_id=task.id)
         except Exception:
             db.session.rollback()
             raise SystemError("Unable to submit the request")
@@ -559,7 +593,7 @@ class Data(EndpointResource, Uploader):
 
 
 def get_observed_data_size_count(
-    parsed_reftime, dataset_names, filters, license_group, output_format
+    parsed_reftime, dataset_names, filters, license_group, output_format, now=None
 ):
 
     dballe_fields, dballe_queries = dballe.parse_query_for_data_extraction(
@@ -569,7 +603,9 @@ def get_observed_data_size_count(
     db_type = dballe.get_db_type(
         dballe_queries[dballe_fields.index("datetimemin")][0],
         dballe_queries[dballe_fields.index("datetimemax")][0],
+        now=now,
     )
+    perf.label(size_estimation_db_type=db_type)
 
     explorer = dballe.build_explorer(
         db_type, license_group=license_group, network_list=dataset_names

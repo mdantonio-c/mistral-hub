@@ -85,6 +85,13 @@ variables:
     AGGREGATIONS_DSN: ""
     AGGREGATIONS_LASTDAYS: 3
 
+    # Issue 852 performance instrumentation (benchmarks only, all off by default)
+    PERF_INSTRUMENTATION: 0
+    PERF_BENCH_USERS: ""
+    PERF_FAKE_NOW: 0
+    PERF_BENCH_QUEUE: ""
+    ACTIVATE_BENCH_OBSERVED_CELERY: 0
+
     CORS_ALLOWED_ORIGIN: "*"
     SET_CSP_IMG_SRC: "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://api.tiles.mapbox.com https://cartodb-basemaps-a.global.ssl.fastly.net https://cartodb-basemaps-b.global.ssl.fastly.net https://cartodb-basemaps-c.global.ssl.fastly.net https://cartodb-basemaps-d.global.ssl.fastly.net https://tiles.stadiamaps.com https://maps.mistralportal.it https://meteohub-maps.hpc.cineca.it"
     SET_CSP_FONT_SRC: https://netdna.bootstrapcdn.com
