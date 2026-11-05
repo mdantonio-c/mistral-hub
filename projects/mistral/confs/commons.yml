@@ -83,8 +83,8 @@ services:
     volumes:
       - ${DATA_DIR}/arkimet:/arkimet/datasets
       - ${DATA_DIR}/arkimet_conf:/arkimet/config
-    environment:
-      ACTIVATE: ${ACTIVATE_BENCH_OBSERVED_CELERY}
+    #environment:
+    #ACTIVATE: ${ACTIVATE_BENCH_OBSERVED_CELERY}
 
   operational_forecast_celery:
     extends:
