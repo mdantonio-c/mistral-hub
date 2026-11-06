@@ -17,6 +17,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
+from uuid import uuid4
 
 import mistral.endpoints.data_ready as data_ready_endpoint
 import mistral.tasks.on_data_ready_extractions as on_data_ready_task
@@ -39,6 +40,8 @@ from restapi.tests import API_URI, BaseTests, FlaskClient
 DATA_READY_DATASET_NAME = "lm5"
 SECOND_DATA_READY_DATASET_NAME = "lm2.2"
 DATA_READY_DATASETS = [DATA_READY_DATASET_NAME, SECOND_DATA_READY_DATASET_NAME]
+# Dominio riservato dalla RFC 2606: un indirizzo .invalid non viene mai consegnato.
+UNDELIVERABLE_EMAIL_DOMAIN = "example.invalid"
 
 
 def build_data_ready_payload(
@@ -63,13 +66,21 @@ def create_data_ready_user(
     client: FlaskClient,
     test_runtime: TestRuntime,
     dataset_names: list[str],
+    *,
+    max_output_size: int = 1073741824,
 ) -> AuthenticatedTestUser:
     """Create and log in a temporary user tailored to data-ready scenarios.
 
     The returned user is configured with enough quota and permissions to create
     schedules, trigger data-ready events, and access the datasets listed in
     ``dataset_names``. The helper also resolves dataset names to the numeric ids
-    required by the user-creation API.
+    required by the user-creation API. A small ``max_output_size`` makes the
+    worker reject the extraction for quota.
+
+    The user never receives real emails: success notifications are disabled and
+    the address belongs to a reserved domain, used by the failure notifications
+    that ``data_extract`` always sends. Real Celery workers use the SMTP mock only
+    on stacks initialized with ``rapydo --testing``.
     """
     # Costruiamo lo stato controllato richiesto dal test, usando gli stessi canali che
     # il backend espone in produzione quando possibile.
@@ -78,11 +89,15 @@ def create_data_ready_user(
 
     data: dict[str, Any] = {
         "disk_quota": 1073741824,
-        "max_output_size": 1073741824,
+        "max_output_size": max_output_size,
         "allowed_postprocessing": True,
         "allowed_schedule": True,
         "open_dataset": True,
         "datasets": json.dumps(dataset_ids),
+        # Senza questi due valori BaseTests sceglie a caso il flag e genera un
+        # indirizzo Faker, spesso su domini reali come gmail.com.
+        "notify_on_successful_request": False,
+        "email": f"data-ready-{uuid4().hex[:12]}@{UNDELIVERABLE_EMAIL_DOMAIN}",
     }
 
     # Creiamo un utente temporaneo con permessi mirati, cosi il test non dipende da
@@ -100,6 +115,10 @@ def create_data_ready_user(
     # Controlliamo il contratto specifico dello scenario, non soltanto che il codice sia
     # arrivato fin qui senza eccezioni.
     assert user is not None
+    # Se il campo sparisse dallo schema admin varrebbe il default True del customizer:
+    # meglio fermarsi qui che lasciar partire email dai worker reali.
+    assert user.notify_on_successful_request is False
+    assert user.email.endswith(f"@{UNDELIVERABLE_EMAIL_DOMAIN}")
 
     # Restituiamo un valore gia normalizzato, cosi il chiamante puo usarlo direttamente
     # nelle asserzioni.
@@ -108,6 +127,7 @@ def create_data_ready_user(
         user_id=user.id,
         headers=headers,
         output_dir=Path(DOWNLOAD_DIR, uuid, "outputs"),
+        email=user.email,
     )
 
 

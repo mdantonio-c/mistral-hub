@@ -5,13 +5,18 @@ These fixtures prepare the minimal environment required by data-ready tests:
 - the list of datasets accepted by the on-data-ready logic,
 - authenticated admin headers for triggering events,
 - direct access to the SQLAlchemy connector,
-- a temporary user allowed to create schedules on the selected dataset.
+- a temporary user allowed to create schedules on the selected dataset,
+- a local Celery transport for the schedules endpoint (no broker, no RedBeat).
 """
 
+from types import SimpleNamespace
+
+import mistral.endpoints.schedules as schedules_endpoint
 from mistral.endpoints.schedules import SingleSchedule
 from restapi.connectors import sqlalchemy
 from restapi.tests import BaseTests, FlaskClient
 
+from mistral.tests.helpers.celery_fakes import AcceptTasksWithoutRunningCelery
 from mistral.tests.helpers.data_ready import (
     DATA_READY_DATASETS,
     DATA_READY_DATASET_NAME,
@@ -21,6 +26,34 @@ from mistral.tests.helpers.data_ready import (
 
 
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def schedules_endpoint_without_real_celery(monkeypatch):
+    """Keep /schedules calls of data-ready tests away from the real broker and RedBeat.
+
+    Creating an on-data-ready schedule submits a first ``data_extract`` to the broker,
+    and a crontab or periodic schedule writes a RedBeat entry that fires every day.
+    The data-ready tests verify the launcher decision, not that transport: the fake is
+    installed on the names used by the schedules endpoint module only, so the endpoint
+    logic and the DB rows stay real while nothing reaches Celery workers or RedBeat.
+    """
+    schedules_celery = AcceptTasksWithoutRunningCelery("data_extract")
+    monkeypatch.setattr(
+        schedules_endpoint,
+        "celery",
+        SimpleNamespace(get_instance=lambda: schedules_celery),
+    )
+    for task_factory in (
+        "create_periodic_task_with_routing",
+        "create_crontab_task_with_routing",
+    ):
+        monkeypatch.setattr(
+            schedules_endpoint,
+            task_factory,
+            lambda *args, **kwargs: None,
+        )
+    return schedules_celery
 
 
 @pytest.fixture

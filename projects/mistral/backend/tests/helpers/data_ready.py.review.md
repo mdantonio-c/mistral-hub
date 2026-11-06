@@ -25,7 +25,7 @@
 |---|---|---|
 | `DATA_READY_DATASET_NAME` (`lm5`), `SECOND_..._NAME` (`lm2.2`), `DATA_READY_DATASETS` | costanti | Dataset usati negli scenari data-ready. |
 | `build_data_ready_payload(model, cluster, rundate)` | builder | JSON body per `/data/ready`. |
-| `create_data_ready_user(...)` | factory | Crea utente con quota/permessi (schedule, postprocessing, open_dataset) e ruolo `admin_root`. |
+| `create_data_ready_user(...)` | factory | Crea utente con quota/permessi (schedule, postprocessing, open_dataset) e ruolo `admin_root`, senza email di successo e con indirizzo `@example.invalid`. Il parametro `max_output_size` (default 1 GiB) permette di far rifiutare l'estrazione dal worker per quota. |
 | `create_schedule`, `set_schedule_active`, `delete_request`, `delete_schedule` | wrapper API | CRUD su schedule/request con assert di status. |
 | `list_user_requests`, `list_user_schedules`, `list_schedule_requests` | wrapper API | Listing normalizzati a lista. |
 | `wait_for_schedule_requests(...)` | polling | Attende che la schedule esponga `expected_count` richieste (via `wait_until`). |
@@ -37,6 +37,7 @@
 ## 4. Comportamenti nascosti
 
 - **`create_data_ready_user` assegna il ruolo `admin_root`** e quota da 1 GiB: l'utente "data-ready" è di fatto un super-utente; i test che lo usano non esercitano restrizioni di permesso.
+- **`create_data_ready_user` non fa partire email reali.** È l'utente dei test `async_real`, le cui estrazioni girano sui worker Celery reali. I worker usano il mock SMTP solo negli stack inizializzati con `rapydo --testing` (`APP_MODE=test`), e per questo `tests/conftest.py` salta i test `async_real` sugli altri stack; altrove `data_extract` invierebbe davvero. Senza valori espliciti `BaseTests` sceglie a caso `notify_on_successful_request` e genera un indirizzo Faker, spesso su domini reali. L'helper disattiva quindi le email di successo e usa un indirizzo sul dominio riservato `example.invalid` (RFC 2606) per quelle di errore, che `data_extract` invia sempre. Dopo la creazione due assert verificano entrambi i valori: se il campo sparisse dallo schema admin varrebbe il default `True` del customizer.
 - **`create_schedule_request_record` scrive direttamente nel DB** (bypassa worker): imposta `only_reliable=True`, `data_ready=True`, e permette di forzare `submission_date`/`status`. È il modo in cui i test "periodic" preparano una storia pregressa.
 - **`trigger_data_ready_and_wait_accepted` ripete la `POST`** a ogni retry: side effect multipli possibili (vedi review di `polling.py`).
 - **`trigger_data_ready_inline` separa decisione e trasporto**: endpoint e launcher sono reali; `AcceptTasksWithoutRunningCelery` assorbe la submit iniziale e `InlineDataReadyExtractionCelery` materializza una riga se il launcher tenta `data_extract`. L'assert su una sola submit rende una regressione del gating osservabile senza worker esterni.
@@ -47,6 +48,7 @@
 ## 5. Checklist di revisione
 
 - [ ] Verificare che l'uso di `admin_root` in `create_data_ready_user` non nasconda mancati controlli di autorizzazione negli scenari data-ready.
+- [ ] Verificare che ogni nuovo test `async_real` crei i suoi utenti con `create_data_ready_user`, o con gli stessi due valori di notifica.
 - [ ] Verificare che `create_schedule_request_record` rispecchi gli args reali di una richiesta prodotta dal worker.
 - [ ] Confermare che il filtro `isinstance(item, dict)` in `list_schedule_requests` non scarti dati significativi.
 - [ ] Verificare timeout/interval del polling per evitare flakiness in `async_real`.

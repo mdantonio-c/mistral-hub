@@ -5,7 +5,7 @@
 ## 1. Informazioni generali
 
 - **Percorso**: [projects/mistral/backend/tests/integration/data_ready/conftest.py](projects/mistral/backend/tests/integration/data_ready/conftest.py)
-- **Scopo**: fornire alle prove del sottoalbero `data_ready` lo stato minimo riusabile: la lista dei dataset abilitati al data-ready (forzata), gli header admin per il trigger, il connettore SQLAlchemy e un utente temporaneo abilitato a creare schedule sul dataset di test.
+- **Scopo**: fornire alle prove del sottoalbero `data_ready` lo stato minimo riusabile: la lista dei dataset abilitati al data-ready (forzata), gli header admin per il trigger, il connettore SQLAlchemy e un utente temporaneo abilitato a creare schedule sul dataset di test. Impedisce inoltre che `POST`/`DELETE /schedules` raggiungano Celery e RedBeat reali.
 - **Tipologia**: `conftest.py` di dominio (solo fixture locali, visibili a `integration/data_ready/**`).
 
 ## 2. Backend realmente esercitato
@@ -17,6 +17,7 @@
 | `create_data_ready_user` | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Crea via API un utente con quota 1 GiB, `allowed_schedule`/`allowed_postprocessing`/`open_dataset` e ruolo **`admin_root`**. |
 | `sqlalchemy.get_instance()` | `restapi.connectors` | Connettore DB esposto a setup helper e asserzioni. |
 | `register_data_ready_user_cleanup` | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Registra teardown LIFO (utente, schedule, request). |
+| `schedules_endpoint.celery`, `create_periodic_task_with_routing`, `create_crontab_task_with_routing` | [endpoints/schedules.py](projects/mistral/backend/endpoints/schedules.py) | **Sostituiti** nel solo modulo endpoint dalla fixture autouse `schedules_endpoint_without_real_celery`. |
 
 ## 3. Elementi definiti (fixture)
 
@@ -26,11 +27,12 @@
 | `data_ready_admin_headers` | `client`, `data_ready_base` | Login dell'admin di default; ritorna gli header. | Riusa l'account admin condiviso. |
 | `data_ready_db` | — | Ritorna `sqlalchemy.get_instance()`. | Nessuno. |
 | `data_ready_user` | `client`, `cleanup_registry`, `data_ready_base`, `test_runtime` | Crea l'utente data-ready su `DATA_READY_DATASET_NAME` (`lm5`); su `LookupError` fa `pytest.skip`; registra il cleanup. | Crea utente `admin_root` + file/permessi; teardown LIFO. |
+| `schedules_endpoint_without_real_celery` (autouse) | `monkeypatch` | Nel modulo endpoint `/schedules` sostituisce `celery` con un'istanza `AcceptTasksWithoutRunningCelery("data_extract")` e le funzioni di creazione dei task RedBeat con funzioni vuote. | Nessuno: il primo `data_extract` delle schedule on-data-ready resta in memoria e non nasce alcun task RedBeat. |
 
 ## 4. Comportamenti nascosti
 
 - **Override dell'attributo di classe `ON_DATA_READY_DATASETS` (il punto centrale)**: `data_ready_base` non è un semplice helper, ma **riscrive la configurazione autorevole** che il backend usa per decidere se un dataset è abilitato al data-ready. Senza questo override i test non potrebbero creare schedule on-data-ready su `lm5`/`lm2.2`. La lista d'ambiente reale (`Env.get("ON_DATA_READY_DATASETS")`) viene quindi **bypassata**: la regola di gating "dataset abilitato" è verificata contro un valore sintetico, non contro la config di produzione.
-- **Nessun fake Celery è cablato qui.** Diversamente da quanto ci si potrebbe aspettare, questo `conftest.py` **non** esegue alcun monkeypatch di `celery.get_instance` e non istanzia `InlineDataReadyExtractionCelery`/`AcceptTasksWithoutRunningCelery`. Il cablaggio dei fake Celery vive **dentro** [test_periodic.py](projects/mistral/backend/tests/integration/data_ready/test_periodic.py) (helper `_trigger_data_ready_periodic_inline`, via `monkeypatch.setattr`). Gli altri tre file di test (`test_base_cases`, `test_crontab`, `test_run_mismatch`) **non** cablano alcun fake e non eseguono il task inline.
+- **Celery dell'endpoint `/schedules` sostituito per tutto il dominio.** La fixture autouse `schedules_endpoint_without_real_celery` patcha i nomi nel modulo endpoint, non il connettore condiviso. Senza di essa ogni schedule on-data-ready creata dai test inviava al broker reale un `data_extract`: i worker lo processavano dopo la cancellazione della schedule, con errori e tentativi di notifica email. Inoltre la schedule crontab di `test_data_ready_skips_schedule_without_on_data_ready_flag` lasciava un task RedBeat giornaliero a ogni esecuzione. Il motivo è che `trigger_data_ready_inline` patcha `restapi.connectors.celery.get_instance`, e `cleanup_registry` esegue la `DELETE /schedules` prima che `monkeypatch` venga annullato: la cancellazione del task finiva quindi sul fake. La decisione "reale vs fake" del trigger data-ready resta nei singoli test (`trigger_data_ready_inline`, `_trigger_data_ready_periodic_inline`).
 - **`create_data_ready_user` assegna `admin_root`**: l'utente "data-ready" è di fatto un super-utente (vedi [helpers/data_ready.py.review.md](projects/mistral/backend/tests/helpers/data_ready.py.review.md)). Serve anche perché le schedule `opendata=True` richiedono `admin_root` lato endpoint.
 - **`data_ready_admin_headers` ≠ `data_ready_user.headers`**: il trigger `POST /data/ready` (che richiede il ruolo `operational`) viaggia con l'admin di default; le schedule sono create con l'utente `admin_root` temporaneo. Sono due identità distinte nello stesso test.
 - **Skip silenzioso**: se `lm5` non è presente nel runtime, `create_data_ready_user` solleva `LookupError` e la fixture fa `pytest.skip` → tutti i test che dipendono da `data_ready_user` vengono **saltati** senza fallire.
@@ -40,7 +42,8 @@
 
 - [ ] Confermare che l'override di `ON_DATA_READY_DATASETS` sia volutamente accettato: i test verificano il gating "dataset abilitato" contro una lista forzata, non contro l'ambiente reale.
 - [ ] Verificare che il ripristino del context manager `override_attr` avvenga sempre (anche su fallimento del test) per non inquinare le prove successive.
-- [ ] Prendere atto che il fake Celery **non** è qui: la decisione "reale vs fake" va valutata file per file (vedi le review dei singoli test).
+- [ ] Prendere atto che qui c'è solo il fake per l'endpoint `/schedules`: il fake del trigger data-ready va valutato file per file (vedi le review dei singoli test).
+- [ ] Verificare che i test del dominio non lascino chiavi `redbeat:<id>` nel Redis di RedBeat (db 3) né nuovi `data_extract` nel log dei worker.
 - [ ] Verificare che lo `skip` su `lm5` mancante non nasconda una regressione di disponibilità dataset in CI.
 - [ ] Confermare che l'uso di `admin_root` non mascheri controlli di permesso/quota negli scenari data-ready.
 
@@ -50,3 +53,4 @@
 - **Super-utente di default**: tutti gli scenari girano come `admin_root`, riducendo il valore dei test su autorizzazioni e quote.
 - **Skip silenzioso su dataset mancante**: la copertura può "sparire" in ambienti senza `lm5`, restando verde per skip.
 - **Doppia identità (admin di default vs admin_root temporaneo)**: chi rivede deve tenere presente quale header viene usato in quale fase, altrimenti i 400/202 possono sembrare incoerenti.
+- **Creazione dei task RedBeat non esercitata**: nel dominio `data_ready` le funzioni di routing RedBeat dell'endpoint sono vuote. La creazione reale dei task periodici non è verificata qui.
