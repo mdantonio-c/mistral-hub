@@ -1,7 +1,8 @@
 # EXTENSION TRACEABILITY: added by coverage extension prompt 04
 # EXTENSION SCOPE: integrates the refactored suite without modifying legacy baseline
 # EXTENSION DATA WINDOW: no real runtime data required; validation is input-only
-# EXTENSION RUNTIME: deterministic input validation; no async dependencies
+# EXTENSION RUNTIME: deterministic input validation; the schedules endpoint never
+# reaches real Celery/RedBeat (forbid_real_schedule_dispatch_EXT fails the test first)
 # EXTENSION CLEANUP: temporary users cleaned via cleanup_registry
 #
 # This module extends the schedules integration area with tests for:
@@ -22,9 +23,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock
 
+import mistral.endpoints.schedules as schedules_endpoint
 import pytest
 from restapi.connectors import sqlalchemy
 from restapi.tests import API_URI, BaseTests, FlaskClient
@@ -37,6 +40,31 @@ from mistral.tests.helpers.auth import (
 )
 
 pytestmark = [pytest.mark.integration, pytest.mark.deterministic]
+
+
+@pytest.fixture(autouse=True)
+def forbid_real_schedule_dispatch_EXT(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Fa fallire il test se POST /schedules supera la validazione.
+
+    L'endpoint crea la riga Schedule, il task periodico RedBeat e l'eventuale primo
+    data_extract solo dopo celery.get_instance(). Questi test si aspettano un rifiuto
+    precedente: se la validazione non scatta, nulla deve arrivare al Celery reale.
+    pytest.fail solleva un'eccezione non intercettata dal catch-all di restapi, quindi
+    il bypass diventa un fallimento esplicito e non una risposta HTTP qualsiasi.
+    """
+
+    def fail_on_real_dispatch_EXT() -> None:
+        pytest.fail(
+            "POST /schedules ha superato la validazione e avrebbe creato una "
+            "schedule reale con task Celery/RedBeat"
+        )
+
+    # Sostituiamo solo il nome usato dal modulo endpoint, non il connettore condiviso.
+    monkeypatch.setattr(
+        schedules_endpoint,
+        "celery",
+        SimpleNamespace(get_instance=fail_on_real_dispatch_EXT),
+    )
 
 
 def dataset_ids_for_user(db: Any, dataset_names: list[str]) -> str:

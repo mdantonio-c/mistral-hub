@@ -36,7 +36,7 @@
 | `FixedHourlyDateTime_EXT` | fake | Sottoclasse di `datetime` con `utcnow()` fisso a **2026-05-29 10:30:00** (lontano dai bordi dell'ora). |
 | `client` | fixture | `FlaskClient` (`restapi.tests`). |
 | `cleanup_registry` | fixture | Teardown **LIFO** ([tests/conftest.py#L39](projects/mistral/backend/tests/conftest.py#L39)). |
-| `monkeypatch` | fixture | Patcha `datetime.datetime` visto dall'endpoint hourly (vedi §6). |
+| `monkeypatch` | fixture | Sostituisce il solo nome `datetime` del modulo endpoint hourly (vedi §6). |
 
 > Helper di auth riusati: `create_authenticated_test_user`, `register_test_user_cleanup`, `AuthenticatedTestUser` da [tests/helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py).
 
@@ -87,7 +87,7 @@
 ### `test_hourly_reports_submitted_total_and_remaining_in_current_hour_EXT`
 - **Obiettivo**: conteggio corretto con richieste dentro/fuori l'ora corrente.
 - **Backend coinvolto**: `HourlyReport.get` (count su `last_hour < submission_date < now`).
-- **Flusso**: `monkeypatch` di `datetime.datetime` → `FixedHourlyDateTime_EXT` (utcnow = 10:30); utente `request_par_hour=3`; seed di tre `Request`: 10:20 (now−10m), 10:10 (now−20m), 09:59 → GET.
+- **Flusso**: `monkeypatch` del nome `datetime` del modulo endpoint → namespace con `datetime=FixedHourlyDateTime_EXT` (utcnow = 10:30); utente `request_par_hour=3`; seed di tre `Request`: 10:20 (now−10m), 10:10 (now−20m), 09:59 → GET.
 - **Setup**: `create_user_limits_user_EXT` + tre `seed_hourly_request_EXT` (righe DB reali).
 - **Assert**: `200`; `get_content == {"submitted": 2, "total": 3, "remaining": 1}`.
 - **DB**: tre righe `Request` inserite e rimosse nel teardown (LIFO, prima delle request poi l'utente).
@@ -115,7 +115,7 @@ GET /api/hourly   → auth.require()  → (anonimo → 401)
 
 - **Mutazione DB diretta nel builder**: `create_user_limits_user_EXT` crea l'utente via API admin **e poi sovrascrive** `disk_quota`/`request_par_hour` sul record con `db.session.commit()`. È un **seeding reale del DB**, necessario per rappresentare `request_par_hour=None` (il customizer assegnerebbe altrimenti un default). Gli assert su `quota`/`{}` dipendono da questo bypass.
 - **Truthy check su `request_par_hour`**: `None` e `0` producono **entrambi** `{}`. Il test del ramo vuoto usa `None`, ma il contratto non distingue “senza limite” da “limite 0”.
-- **Bersaglio del `monkeypatch`**: `monkeypatch.setattr(hourly_endpoint_module.datetime, "datetime", FixedHourlyDateTime_EXT)`. `hourly_endpoint_module.datetime` **è** l'oggetto modulo standard `datetime` (singleton condiviso), quindi si sta patchando `datetime.datetime` **globalmente** per la durata del test, non solo nell'endpoint. Il commento nel test (“non il modulo datetime globale”) è **fuorviante**: l'isolamento è garantito solo dal **ripristino automatico** di `monkeypatch` a fine test, non da un patch locale. Effetto collaterale: qualunque altro codice eseguito nel test che usi `datetime.datetime.utcnow()` vedrebbe l'istante fisso.
+- **Bersaglio del `monkeypatch`**: `monkeypatch.setattr(hourly_endpoint_module, "datetime", SimpleNamespace(datetime=FixedHourlyDateTime_EXT))`. Viene sostituito solo il nome `datetime` del modulo endpoint, che usa unicamente `datetime.datetime.utcnow()`. In precedenza il test patchava `datetime.datetime` del modulo standard, cioè per l'intero processo e anche durante il cleanup, che pytest esegue prima di annullare il `monkeypatch`.
 - **Finestra hourly con bordi stretti**: filtri `> last_hour` e `< now`. Una richiesta esattamente alle 10:00 o esattamente all'istante `now` **non** verrebbe contata.
 - **Ordine di cleanup LIFO**: la `Request` viene registrata **dopo** il cleanup utente ⇒ rimossa **prima** dell'utente (evita FK pendenti). `delete_hourly_request_EXT` è idempotente.
 - **`Usage.get` usa `du -sb` sull'intera `/data/<uuid>`**: l'uso include qualsiasi file sotto la radice utente, non solo `outputs/`; per questo l'assert è `>=` e non un valore esatto.
@@ -124,14 +124,14 @@ GET /api/hourly   → auth.require()  → (anonimo → 401)
 
 - [ ] Confermare che la **mutazione diretta del DB** in `create_user_limits_user_EXT` sia accettabile come tecnica di seeding (bypassa l'admin customizer per `request_par_hour=None`).
 - [ ] Valutare se il truthy check su `request_par_hour` debba distinguere `None` da `0` (oggi indistinguibili).
-- [ ] Verificare la portata reale del `monkeypatch` sul `datetime` condiviso e correggere/chiarire il commento fuorviante nel test.
+- [x] Portata del `monkeypatch` limitata al modulo endpoint; il commento nel test ora descrive il comportamento reale.
 - [ ] Confermare i bordi stretti `>`/`<` della finestra hourly (richieste esattamente a `last_hour`/`now` escluse) come comportamento voluto.
 - [ ] Verificare che l'assert `used >= file_size` resti adeguato rispetto all'overhead di `du` su directory.
 
 ## 8. Possibili criticità
 
 - **Accoppiamento al DB reale**: i test scrivono direttamente su `User` e `Request`; un fallimento a metà si affida al cleanup LIFO per non lasciare righe orfane. La `Request` ha FK verso `user_id`: l'ordine di teardown è critico.
-- **Commento fuorviante sul monkeypatch**: la nota “non il modulo datetime globale” non riflette il comportamento reale (patch globale ripristinato). Possibile fonte di confusione in revisione/manutenzione.
+- **Accoppiamento con l'import dell'endpoint**: il patch presuppone che l'endpoint usi `import datetime` e solo `datetime.datetime`; se l'endpoint usasse altri attributi del modulo, il namespace finto andrebbe esteso.
 - **Contratto ambiguo `None`/`0`**: l'endpoint non distingue assenza di limite da limite nullo; nessun test copre `request_par_hour=0` esplicitamente.
 - **Dipendenza dal filesystem del container**: `du -sb` e la creazione/cancellazione sotto `/data/<uuid>` dipendono da mount e permessi; mitigato dal confinamento all'uuid temporaneo.
 - **Assert su `du` tollerante**: corretto evitare il valore esatto, ma significa che il test non verifica la dimensione precisa, solo la monotonia (`used>0` e `>= file_size`).

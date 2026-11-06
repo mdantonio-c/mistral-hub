@@ -6,8 +6,8 @@
 # finestra dell'ora corrente.
 # Finestra dati: nessun dataset meteorologico reale viene usato; i file e le request sono
 # sintetici e confinati all'utente temporaneo del singolo test.
-# Runtime fake: il test hourly monkeypatcha solo datetime.utcnow del modulo endpoint per
-# rendere deterministica la finestra temporale; non usa worker, broker o sleep.
+# Runtime fake: il test hourly sostituisce solo il nome `datetime` del modulo endpoint
+# per rendere deterministica la finestra temporale; non usa worker, broker o sleep.
 # Cleanup: utenti, directory /data/<uuid> e request DB vengono registrati nel
 # cleanup_registry prima degli assert che dipendono da essi.
 # Baseline non toccata: il file e un nuovo modulo *_EXT.py nel dominio integration/user_limits.
@@ -17,6 +17,7 @@ from __future__ import annotations
 import datetime as datetime_module
 import shutil
 from pathlib import Path
+from types import SimpleNamespace
 from uuid import uuid4
 
 import mistral.endpoints.request_hourly_report as hourly_endpoint_module
@@ -294,12 +295,13 @@ def test_hourly_reports_submitted_total_and_remaining_in_current_hour_EXT(
     10:00 e una alle 09:59, e controlla che il report conti solo le due request correnti.
     """
     # arrange
-    # Monkeypatchiamo solo il modulo endpoint, non il modulo datetime globale: il fake e
-    # confinato al singolo test e viene ripristinato automaticamente da pytest.
+    # Monkeypatchiamo solo il nome `datetime` del modulo endpoint, non il modulo
+    # datetime globale: il fake resta confinato all'endpoint e al singolo test, anche
+    # durante il cleanup, e viene ripristinato automaticamente da pytest.
     monkeypatch.setattr(
-        hourly_endpoint_module.datetime,
+        hourly_endpoint_module,
         "datetime",
-        FixedHourlyDateTime_EXT,
+        SimpleNamespace(datetime=FixedHourlyDateTime_EXT),
     )
     user = create_user_limits_user_EXT(
         client,
