@@ -3,6 +3,10 @@
 import pytest
 
 from mistral.tests.helpers.cleanup import CleanupRegistry
+from mistral.tests.helpers.real_workers import (
+    NO_SMTP_MOCK_REASON,
+    workers_use_smtp_mock,
+)
 from mistral.tests.helpers.runtime import TestRuntime
 
 
@@ -25,6 +29,18 @@ def pytest_configure(config):
         "markers",
         "runtime_sensitive: marks tests whose outcome depends on runtime data or infrastructure state",
     )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip the ``async_real`` tests when the real workers would send real emails."""
+    # I task di questi test girano sui worker reali, dove monkeypatch non arriva:
+    # solo negli stack `rapydo --testing` i worker usano il mock SMTP.
+    if workers_use_smtp_mock():
+        return
+    skip_real_workers = pytest.mark.skip(reason=NO_SMTP_MOCK_REASON)
+    for item in items:
+        if item.get_closest_marker("async_real"):
+            item.add_marker(skip_real_workers)
 
 
 @pytest.fixture(scope="session")

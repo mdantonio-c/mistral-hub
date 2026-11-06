@@ -31,7 +31,7 @@
 | Dipendenza | Tipo | Dove definita | Cosa fa / effetti collaterali |
 |---|---|---|---|
 | `client` | fixture | `restapi.tests` | `FlaskClient` di test. |
-| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO** (schedule + utente). |
+| `cleanup_registry` | fixture | [tests/conftest.py](projects/mistral/backend/tests/conftest.py#L39) | Teardown **LIFO** (schedule + utente; nel crontab prima attende i worker). |
 | `schedules_base` | fixture **conftest locale** | [schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py) | `BaseTests()` + **override** `SingleSchedule.ON_DATA_READY_DATASETS` su `lm5` (indispensabile per il ramo on-data-ready). |
 | `schedules_admin_headers` | fixture **conftest locale** | [schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py) | Login admin di default; usata per `POST /data/ready`. |
 | `schedules_user` | fixture **conftest locale** | [schedules/conftest.py](projects/mistral/backend/tests/integration/schedules/conftest.py) | **Super-utente `admin_root`** via `create_data_ready_user`; `pytest.skip` se `lm5` assente. |
@@ -41,6 +41,8 @@
 | `create_schedule` / `register_schedule_cleanup` / `list_schedule_requests` / `trigger_data_ready_and_wait_accepted` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | CRUD schedule, polling data-ready (retry con side effect). |
 | `AcceptTasksWithoutRunningCelery` / `InlineDataExtractCelery` | fake | [tests/helpers/celery_fakes.py](projects/mistral/backend/tests/helpers/celery_fakes.py) | (solo deterministico) accetta la submission senza inviarla / esegue `data_extract` reale inline. |
 | `wait_until` | helper | [tests/helpers/polling.py](projects/mistral/backend/tests/helpers/polling.py) | Polling su predicato osservabile. |
+| `read_periodic_task`, `register_wait_for_user_requests` | helper | [tests/helpers/real_workers.py](projects/mistral/backend/tests/helpers/real_workers.py) | (solo crontab) lettura della voce RedBeat della schedule; prima delle cancellazioni attende che i worker chiudano le request e non abbiano task dell'utente, e se scade li ferma prima di cancellare. |
+| `delete_schedule` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | (solo crontab) `DELETE /schedules/<id>` con Celery reale. |
 | `wait_for_schedule_requests` | helper | [tests/helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | Importato; nel corpo si usa il poller locale `_wait_for_successful_schedule_request`. |
 | `ScheduleRequestFailed` | classe locale | questo file | Sottoclasse di `AssertionError`: il poller la solleva se la richiesta va in `FAILURE`. |
 
@@ -67,11 +69,12 @@
 - **Flusso**:
   1. `fetch_dataset_window(lm5)` (→ skip se 404);
   2. `trigger_at = _next_crontab_run_time()` (prossimo minuto "sicuro", +2 se mancano <15s al cambio minuto, per non correre con la pickup RedBeat);
-  3. `build_crontab_schedule(hour, minute, opendata=True)` → `create_schedule` (reale) + cleanup;
+  3. `build_crontab_schedule(hour, minute, opendata=True)` → `create_schedule` (reale) → lettura della voce RedBeat → attesa dei worker registrata nel cleanup;
   4. poll `_wait_for_successful_schedule_request(timeout=180, grace_timeout=180)` — attende che beat+worker producano la richiesta;
-  5. listing `_wait_for_listing_entry(reftime:>=…,<=…)` → download.
-- **Setup**: `schedules_base`, `schedules_user` (admin_root), `cleanup_registry`. **No** `schedules_admin_headers` (nessun `/data/ready`), **no** `monkeypatch`.
-- **Assert**: `published_request["status"] == "SUCCESS"`; `fileoutput == listed_package["filename"]`; `listed_package["date"] == "from <from> to <to>"` (range, perché la finestra reale ha from≠to); `download == 200` con `Content-Disposition`; `finally: close()`.
+  5. listing `_wait_for_listing_entry(reftime:>=…,<=…)`;
+  6. `DELETE /schedules/<id>` reale → nuova lettura della voce RedBeat → download.
+- **Setup**: `schedules_base`, `schedules_user` (admin_root, nessuna email reale), `cleanup_registry`. **No** `schedules_admin_headers` (nessun `/data/ready`), **no** `monkeypatch`.
+- **Assert**: `published_request["status"] == "SUCCESS"`; `fileoutput == listed_package["filename"]`; `listed_package["date"] == "from <from> to <to>"` (range, perché la finestra reale ha from≠to); `download == 200` con `Content-Disposition`; la voce RedBeat esisteva, eseguiva `data_extract` per l'utente e la schedule del test e non esiste più dopo la `DELETE`; `finally: close()`.
 - **Casi coperti**: happy path crontab **reale** → opendata. È il test di integrazione più completo (persistenza schedule + esecuzione asincrona vera).
 
 ## 5. Call chain
@@ -91,10 +94,11 @@ GET /api/opendata/<file>                → 200 + Content-Disposition
 
 [ASYNC_REAL — crontab, infrastruttura reale]
 fetch_dataset_window(lm5)               → /api/fields (404 → pytest.skip)
-POST /api/schedules (opendata,crontab @minute)  → entry RedBeat reale
+POST /api/schedules (opendata,crontab @minute)  → entry RedBeat reale (letta: redbeat:<id>)
    celerybeat reale → RabbitMQ reale → worker reale → data_extract
 poll GET /schedules/<id>/requests (timeout 180 + grace 180) → SUCCESS & fileoutput
 GET /api/datasets/lm5/opendata?q=reftime:>=…,<=…  → package
+DELETE /api/schedules/<id> (Celery reale) → redbeat:<id> rimossa
 GET /api/opendata/<file>                → 200 + Content-Disposition
 ```
 
@@ -103,6 +107,8 @@ GET /api/opendata/<file>                → 200 + Content-Disposition
 - **Differenza cruciale "async reale" vs "fake inline"** (cuore della review):
   - **Test deterministico**: l'endpoint reale e la **logica di scheduling reale** (`launch_all_on_data_ready_extractions`) vengono eseguiti, ma il **solo strato di trasporto** Celery è sostituito **due volte**: `AcceptTasksWithoutRunningCelery` (la submission viene *registrata* e non inviata al broker) e `InlineDataExtractCelery` (il task `data_extract` viene **eseguito realmente in-process**). Il test inoltre **invoca a mano** `launch_all_on_data_ready_extractions.run(...)`: non c'è alcun beat/worker; il flusso è sincrono. I side effect (file, pubblicazione opendata) sono **reali**. Non è un fake che *reimplementa* la decisione: la decisione gira davvero, solo il trasporto è simulato. Poiché `data_extract` inline è reale, il launcher è confinato alla schedule del test con `confine_data_ready_schedules`: schedule di altri utenti non producono estrazioni, file o notifiche.
   - **Test async_real**: **nessun** fake/monkeypatch. La schedule crontab è scritta in RedBeat e l'estrazione avviene solo quando **celerybeat reale** la preleva, la mette in **RabbitMQ reale** e un **worker reale** la consuma. Il test attende con polling (180s + 180s di grazia). È l'unico dei due a validare persistenza schedule + catena asincrona vera.
+- **Voce RedBeat verificata e rimossa (crontab)**: il test legge `redbeat:<id>` dopo la creazione e dopo la `DELETE` reale. Le due verifiche avrebbero rilevato i task periodici rimasti attivi dopo i test, descritti nella issue 20. La schedule non è più registrata con `register_schedule_cleanup`: la cancella il test e, se il test si ferma prima, `delete_all_user_schedules` del cleanup utente, sempre con Celery reale.
+- **Nessuna email reale dal worker**: il test crontab gira solo sugli stack `rapydo --testing`, dove i worker usano il mock SMTP; altrove `tests/conftest.py` lo salta. `schedules_user` viene inoltre da `create_data_ready_user`, quindi niente email di successo e indirizzo `@example.invalid` per quelle di errore.
 - **Skip silenzioso doppio**: `fetch_dataset_window` fa `pytest.skip` su 404, e la fixture `schedules_user` del conftest fa `pytest.skip` se `lm5` non è disponibile (`LookupError`). In un ambiente senza `lm5`, **entrambi** i test risultano *skipped* senza eseguire alcun assert — rischio "verde ma non eseguito".
 - **`schedules_user` qui è il super-utente del conftest**: a differenza degli altri file del dominio (che ridefiniscono `schedules_user` come utente semplice), questo file **non** lo shadowa, quindi usa il `create_data_ready_user` con ruolo `admin_root`. È **necessario** perché `opendata=True` in `post` richiede `admin_root` (vedi anche SCHEDULES-001 nella review della validation).
 - **Override `ON_DATA_READY_DATASETS`**: senza l'override fatto da `schedules_base`, `post` rifiuterebbe la schedule on-data-ready su `lm5` con 400 ("Data-ready service is not available").
@@ -134,4 +140,4 @@ GET /api/opendata/<file>                → 200 + Content-Disposition
 | Test | Backend | Cosa verifica | Mock/Fake | Fixture | Tipo |
 |---|---|---|---|---|---|
 | `test_on_data_ready_schedule_publishes_opendata_package` | `post` + `data/ready` + `launch_all_on_data_ready_extractions` + `data_extract` + opendata | bridge on-data-ready → opendata scaricabile | `AcceptTasksWithoutRunningCelery` ×2 + `InlineDataExtractCelery` (trasporto fake, task **inline reale**) | `schedules_base`, `schedules_admin_headers`, `schedules_user` (admin_root), `monkeypatch` | `deterministic` + `runtime_sensitive` (skippabile) |
-| `test_crontab_schedule_publishes_opendata_package` | `post` (RedBeat) + **beat→broker→worker reali** + `data_extract` + opendata | bridge crontab **reale** → opendata scaricabile | **nessuno** (infra reale) | `schedules_base`, `schedules_user` (admin_root) | `async_real` + `runtime_sensitive` (skippabile) |
+| `test_crontab_schedule_publishes_opendata_package` | `post` (RedBeat) + **beat→broker→worker reali** + `data_extract` + opendata + `delete` | bridge crontab **reale** → opendata scaricabile; voce RedBeat creata e rimossa | **nessuno** (infra reale) | `schedules_base`, `schedules_user` (admin_root) | `async_real` + `runtime_sensitive` (skippabile) |

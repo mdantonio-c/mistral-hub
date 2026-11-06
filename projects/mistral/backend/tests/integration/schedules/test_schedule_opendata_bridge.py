@@ -26,6 +26,7 @@ from mistral.tests.helpers.schedules import (
 from mistral.tests.helpers.data_ready import (
     DATA_READY_DATASET_NAME,
     create_schedule,
+    delete_schedule,
     list_schedule_requests,
     register_schedule_cleanup,
     trigger_data_ready_and_wait_accepted,
@@ -33,6 +34,10 @@ from mistral.tests.helpers.data_ready import (
 )
 from mistral.tests.helpers.dataset_window import fetch_dataset_window
 from mistral.tests.helpers.polling import wait_until
+from mistral.tests.helpers.real_workers import (
+    read_periodic_task,
+    register_wait_for_user_requests,
+)
 from mistral.tests.helpers.task_perimeter import confine_data_ready_schedules
 
 
@@ -416,12 +421,16 @@ def test_crontab_schedule_publishes_opendata_package(
         schedules_user.headers,
         schedule_body,
     )
-    register_schedule_cleanup(
+    # La schedule viene cancellata con la DELETE reale nell'act; se il test si ferma
+    # prima, la cancella il cleanup dell'utente, che aspetta i worker sulle request.
+    register_wait_for_user_requests(
+        schedules_base,
         client,
         cleanup_registry,
-        schedules_user.headers,
-        schedule_id,
+        schedules_user,
     )
+    # Celerybeat esegue la schedule crontab solo tramite la sua chiave RedBeat.
+    periodic_task = read_periodic_task(schedule_id)
 
     # act
     # Eseguiamo l'azione sotto test una sola volta, mantenendo separata la fase di
@@ -449,6 +458,10 @@ def test_crontab_schedule_publishes_opendata_package(
         timeout=60,
         interval=3,
     )
+    # La DELETE reale deve togliere anche la chiave RedBeat: se restasse, celerybeat
+    # lancerebbe data_extract ogni giorno per una schedule che non esiste piu.
+    delete_schedule(client, schedules_user.headers, schedule_id)
+    periodic_task_after_delete = read_periodic_task(schedule_id)
     # Eseguiamo una chiamata HTTP reale attraverso il client Flask, cosi routing,
     # autorizzazione e serializzazione vengono verificati insieme.
     download_response = client.get(
@@ -482,5 +495,13 @@ def test_crontab_schedule_publishes_opendata_package(
             published_request["fileoutput"]
             in download_response.headers["Content-Disposition"]
         )
+        # La chiave RedBeat esisteva ed eseguiva data_extract per l'utente e la
+        # schedule del test (primo e decimo argomento del task).
+        assert periodic_task is not None
+        assert periodic_task.task == "data_extract"
+        assert periodic_task.args[0] == schedules_user.user_id
+        assert str(periodic_task.args[9]) == schedule_id
+        # Dopo la DELETE reale celerybeat non ha piu nulla da eseguire.
+        assert periodic_task_after_delete is None
     finally:
         download_response.close()
