@@ -4,9 +4,9 @@
 > NON ripete il contenuto delle singole review: per il dettaglio di un file aprire il relativo `*.review.md` accanto al test.
 > Generato senza modificare alcun file Python e senza usare `untracked_stuff`.
 
-- **File di test**: 54 moduli `test_*.py` sotto `integration/`
-- **Funzioni di test**: ≈287 `def test_…` (le istanze effettive sono di più per via di `@pytest.mark.parametrize`, soprattutto in `observed/`)
-- **File di review prodotti**: 82 (`*.review.md`) — uno accanto a ogni `test_*.py`, `conftest.py`, `support*.py` e helper attivo
+- **File di test**: 58 moduli `test_*.py` sotto `integration/`
+- **Funzioni di test**: ≈299 `def test_…` (le istanze effettive sono di più per via di `@pytest.mark.parametrize`, soprattutto in `observed/`)
+- **File di review prodotti**: 89 (`*.review.md`) — uno accanto a ogni `test_*.py`, `conftest.py`, `support*.py` e helper attivo
 - **File senza review**: solo i marker di package vuoti (`__init__.py`, `.gitkeep`) e il template non eseguibile `helpers/templates/endpoint_template.py` (review presente, ma è documentazione)
 
 ---
@@ -15,7 +15,7 @@
 
 ```
 tests/
-├── conftest.py                      → fixture globali (test_runtime, cleanup_registry) + marker
+├── conftest.py                      → fixture globali (test_runtime, cleanup_registry) + marker + skip async_real fuori da `rapydo --testing`
 ├── README.md / docs/                → documentazione di suite (non test)
 ├── test_arpaesimc.sh                → smoke script tool meteo (shell)
 ├── helpers/                         → building block riusabili cross-area (NON test)
@@ -79,6 +79,8 @@ Legenda livello: **U** = unit/pure-function, **I** = integration HTTP/DB/FS, **T
 | data | `test_data_endpoint_submission_EXT.py` | `endpoints/data.py` (Celery/Rabbit fake locali) | integration | 5 | I |
 | data | `test_data_endpoint_validation_EXT.py` | `endpoints/data.py` (Arkimet fake) | integration | 7 | I |
 | data | `test_file_download_EXT.py` | `endpoints/file.py` | integration | 3 | I |
+| data | `test_data_extraction_real_worker.py` | `Data.post` → worker reale → `data_extract` (successo, errore con email nel mock SMTP, revoca nel cleanup) → `endpoints/file.py` | integration + **async_real** | 3 | I/**E2E** |
+| data | `test_real_worker_cleanup.py` | cleanup dei test `async_real` ([helpers/real_workers.py](projects/mistral/backend/tests/helpers/real_workers.py)) con worker simulati | integration + deterministic | 4 | I |
 | data_ready | `test_base_cases.py` | `endpoints/data_ready.py`, `tasks/on_data_ready_extractions.py` | integration | 4 | I |
 | data_ready | `test_crontab.py` | crontab branch `on_data_ready_extractions` | integration | 2 | I |
 | data_ready | `test_periodic.py` | `on_data_ready_extractions` (inline) + Celery fake | integration | 3 | I/T |
@@ -106,6 +108,7 @@ Legenda livello: **U** = unit/pure-function, **I** = integration HTTP/DB/FS, **T
 | schedules | `test_schedule_validation_EXT.py` | `SingleSchedule.post` (rami validazione) | integration | 8 | I |
 | schedules | `test_scheduled_requests_EXT.py` | `ScheduledRequests.get`, patch/delete | integration | 8 | I |
 | schedules | `test_schedule_opendata_bridge.py` | schedule→data_ready→data_extract→opendata | integration + **async_real** | 2 | I/**E2E** |
+| schedules | `test_schedule_on_data_ready_real_worker.py` | `SingleSchedule.post/delete` → worker reale → `data_extract` | integration + **async_real** | 1 | I/**E2E** |
 | services | `test_access_key_service_EXT.py` | `services/access_key_service.py`, `models AccessKey` | unit | 4 | U |
 | services | `test_arkimet_query_parsing_EXT.py` | `services/arkimet.py` (parser puri) | unit | 6 | U |
 | services | `test_dballe_query_parsing_EXT.py` | `services/dballe.py` (parser puri) | unit | 8 | U |
@@ -168,7 +171,7 @@ Per il dettaglio completo aprire il `*.review.md` del file. Sintesi della superf
 - **arco/** → proxy S3 + catalogo, auth manuale via access key; S3/DB quasi sempre fakeati.
 - **connectors/** → solo `S3Ext.connect/is_connected/disconnect` con boto3 fakeato (nessuna rete).
 - **customizer/** → hook `custom_user_properties_*`, `manipulate_profile`, `get_custom_*_fields` chiamati con utente dummy.
-- **data/** → `POST /data` (validazione, quota, routing) + `GET /data/<file>`; task mai eseguito (solo `send_task`).
+- **data/** → `POST /data` (validazione, quota, routing) + `GET /data/<file>`; il task è solo accodato, tranne nei test **async_real** che lo fanno eseguire a un worker reale (successo, errore con email nel mock SMTP, revoca nel cleanup). `test_real_worker_cleanup.py` verifica il cleanup di quei test con worker simulati.
 - **data_ready/** → `POST /data/ready` + decisione di scheduling; il worker è spesso **solo accodato** (vedi §10).
 - **dataset/** → visibilità pubblica/privata e autorizzazione m2m.
 - **fields/** → `/api/fields` su dati reali + validazioni sintetiche; arkimet category monkeypatchata in 2 test.
@@ -177,7 +180,7 @@ Per il dettaglio completo aprire il `*.review.md` del file. Sintesi della superf
 - **opendata/** → listing/filtri/download/autorizzazione; dati auto-seminati su DB+FS reali.
 - **postprocessing/** → pipeline di estrazione **reale** con binari `vg6d_*`/`v7d_*`/`dballe`/`eccodes`.
 - **requests/** → listing/archive/clone + delete con grace period + `automatic_cleanup` confinato alle request del test (`requests_cleanup_perimeter`).
-- **schedules/** → CRUD/validazione schedule + bridge on-data-ready→opendata (1 test **async_real**).
+- **schedules/** → CRUD/validazione schedule + bridge on-data-ready→opendata + prima estrazione on-data-ready su worker reale (2 test **async_real**).
 - **services/** → parser puri arkimet/dballe + validità access key (nessun DB/HTTP).
 - **tasks/** → helper puri + task con quota/notifiche/cleanup, molti sistemi esterni fakeati.
 - **templates/** → upload/list/delete file su filesystem reale dell'utente.
@@ -190,12 +193,13 @@ Per il dettaglio completo aprire il `*.review.md` del file. Sintesi della superf
 
 | Helper | Dove è definito | Utilizzato da | Descrizione |
 |---|---|---|---|
-| `create_authenticated_test_user`, `delete_test_user`, `register_test_user_cleanup`, `make_basic_auth`, `AuthenticatedTestUser` | [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | access_key, data, fields, templates, tasks, requests, schedules… | Utenti temporanei autenticati + teardown + Basic auth |
+| `create_authenticated_test_user`, `delete_test_user`, `register_test_user_cleanup`, `create_dataset_test_user`, `make_basic_auth`, `AuthenticatedTestUser` | [helpers/auth.py](projects/mistral/backend/tests/helpers/auth.py) | access_key, data, fields, templates, tasks, requests, schedules… | Utenti temporanei autenticati + teardown + Basic auth |
 | `AcceptTasksWithoutRunningCelery`, `InlineDataReadyExtractionCelery`, `InlineDataExtractCelery` | [helpers/celery_fakes.py](projects/mistral/backend/tests/helpers/celery_fakes.py) | data_ready/test_periodic, schedules/bridge | Fake del trasporto Celery (registra/ inline/ riproduce dedup) |
 | `CleanupRegistry` | [helpers/cleanup.py](projects/mistral/backend/tests/helpers/cleanup.py) | tutta la suite (via `cleanup_registry`) | Teardown LIFO, non ingoia eccezioni |
 | builder/seed/poll data-ready | [helpers/data_ready.py](projects/mistral/backend/tests/helpers/data_ready.py) | data_ready/*, schedules/* | Crea utente `admin_root`, schedule, request sintetiche, polling |
 | `fetch_dataset_window`, `DatasetWindow` | [helpers/dataset_window.py](projects/mistral/backend/tests/helpers/dataset_window.py) | observed, postprocessing, schedules, data | Normalizza `/api/fields`; **`pytest.skip` su 404** |
-| `create_test_dataset` | [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py) | dataset/* | Crea dataset, license, group license e attribution sintetici con cleanup completo |
+| `create_test_dataset`, `create_private_test_network`, `require_dataset`, `delete_test_dataset_bundle` | [helpers/datasets.py](projects/mistral/backend/tests/helpers/datasets.py) | dataset/*, fields, observed, postprocessing | Bundle dataset sintetici con cleanup completo; rete privata per i 401; **`pytest.skip`** se un dataset reale manca |
+| `api_url`, `parse_response`, `dballe_window_override`, `require_observed_dataset_user`, `require_dballe_product`, costanti `OBS_*`/`OBSERVED_*` | [helpers/observed_windows.py](projects/mistral/backend/tests/helpers/observed_windows.py) | fields, observed | Finestre dati observed, override `BeDballe.LASTDAYS`, utente agrmet e probe `/fields`; **`pytest.skip`** se agrmet o prodotti dballe mancano |
 | `wait_until` | [helpers/polling.py](projects/mistral/backend/tests/helpers/polling.py) | data_ready, schedules | Retry su predicato, no sleep ciechi |
 | `TestRuntime` (`dataset_id`, `override_attr`) | [helpers/runtime.py](projects/mistral/backend/tests/helpers/runtime.py) | observed, fields, data_ready, schedules, postprocessing | Singleton di sessione: cache id + override attributi |
 | `build_on_data_ready/crontab/periodic_schedule` | [helpers/schedules.py](projects/mistral/backend/tests/helpers/schedules.py) | schedules, data_ready | Builder payload schedule |
@@ -289,15 +293,17 @@ Questa sezione concentra i punti emersi dalle review che meritano attenzione pri
 ### 10.5 Bug di backend emersi durante la stesura dei test (documentati nelle review e in [docs/problems_and_bugs_discovered_in_extension.md](projects/mistral/backend/tests/docs/problems_and_bugs_discovered_in_extension.md))
 - **ADMIN-001**: il test verifica il contratto HTTP `400` della `OneOf` per `group_license` inesistente, l'errore sul campo e l'assenza di license create, senza skip. Il `NotFound` del controller non è raggiungibile via HTTP; resta separato il bug dei controlli FK con `...first` senza `()` in `admin_licenses.py`/`admin_datasets.py`.
 - **ARCO-001**: il ramo errore-S3-generico del proxy fa un `raise Exception` nudo e restituisce `400` invece di `500`; il test esegue l'assert `500` con `xfail(strict=True, raises=AssertionError)`. Un futuro `500` causa `XPASS(strict)` e richiede la rimozione del marker.
-- **SCHEDULES-001**: `test_opendata_as_non_admin_returns_403` può realmente fallire (202 vs 403).
+- **SCHEDULES-001**: `test_opendata_as_non_admin_returns_403` può realmente fallire (202 vs 403). Causa nel test, non nel backend: `schedules_user` non passa ruoli e `BaseTests.create_user` ne estrae uno a caso, quindi a volte l'utente "non admin" è `admin_root`. La guardia `forbid_real_schedule_dispatch_EXT` trasforma il caso in un fallimento esplicito senza creare schedule né task RedBeat reali. Prima della guardia, un'esecuzione aveva lasciato attiva in RedBeat la schedule `test_opendata_non_admin`. Correzione proposta: ruoli espliciti (`Role.USER`), come in `admin/support_EXT.py`.
 - **EDGE-001 (observed)**: `NotFound("Station data not found")` è codice morto (`parse_obs_maps_response` ritorna sempre dict non vuoto).
 - **TEMPLATES-001/002**: `Template.get` ha la condizione di esistenza **invertita**; estensione di un upload non valido mascherata da `FileNotFoundError`. Mismatch doc/impl (202 dichiarato, 200 reale; refuso `"succesfully deleted"`).
 
 ### 10.6 Stato condiviso / accoppiamento d'ordine
 - `auth_headers` opera sul **default user** condiviso, oggi solo per letture: le access key dei test appartengono a `access_key_owner`, quindi la chiave del default user non viene più ruotata. `customization.py` imposta `allowed_obs_archive=True` sul default user, abilitando scenari observed e il 409 di edge_cases. Possibile fragilità in esecuzione parallela.
 - `automatic_cleanup` e `launch_all_on_data_ready_extractions` sono globali: nei test in-process girano dentro il perimetro di [helpers/task_perimeter.py](projects/mistral/backend/tests/helpers/task_perimeter.py). I percorsi `async_real` (worker/beat reali) restano dipendenti da uno stack di test dedicato.
+- I cinque test `async_real` (crontab del bridge, prima estrazione on-data-ready e i tre di `POST /data`) girano solo sugli stack `rapydo --testing`, dove i worker usano il mock SMTP; altrove [tests/conftest.py](projects/mistral/backend/tests/conftest.py) li salta. Usano utenti di `create_data_ready_user`, che non ricevono email reali. Prima di cancellare, il cleanup attende che i worker chiudano le request e scarichino i task dell'utente; se scade, revoca i soli task dell'utente e cancella le sue request aperte dopo la conferma dei worker, altrimenti fallisce senza cancellare ([helpers/real_workers.py](projects/mistral/backend/tests/helpers/real_workers.py)). Le schedule vengono cancellate con la `DELETE` reale, verificando la voce RedBeat.
+- `POST /schedules` raggiunge Celery e RedBeat reali. Nei test `data_ready` il conftest del dominio sostituisce questi servizi nel solo modulo endpoint; nei test di validazione delle schedule una guardia fa fallire il test se la validazione viene superata. I patch vanno applicati al nome nel modulo endpoint, non al connettore condiviso, perché `cleanup_registry` gira prima che `monkeypatch` venga annullato.
 - `data_ready`/`schedules` girano spesso come `admin_root`, riducendo il valore dei controlli su permessi/quote.
-- Alcuni test mutano licenze/dataset **reali** (`agrmet`) con ripristino in `finally`/`cleanup_registry`: se il teardown salta, il catalogo resta sporco.
+- Nessun test modifica più licenze o dataset reali: i 401 di rete privata di `fields` e `observed` usano un dataset privato sintetico e una rete sintetica.
 
 ---
 
@@ -324,7 +330,7 @@ tests/integration/data/  +  tests/integration/tasks/
   test_data_endpoint_*.py / test_queue_sorting / test_data_extraction_*
     ↓ endpoints/data.py (Data.post, validazione, quota)
     ↓ tasks/data_extraction_utilities.py (queue_sorting)
-    ↓ tasks/data_extraction.py (data_extract — FAKE transport in data/, reale in postprocessing/)
+    ↓ tasks/data_extraction.py (data_extract — FAKE transport in data/, reale in postprocessing/ e su worker reale nei test async_real, solo con `rapydo --testing`)
 
 tests/integration/data_ready/  +  tests/integration/schedules/
   test_{base_cases,crontab,periodic,run_mismatch}.py / test_schedule_*.py

@@ -87,6 +87,8 @@ Questa e la risposta pratica al dubbio iniziale: il punto di divisione corretto 
 - `test_runtime`: singleton di sessione per cache e override temporanei di attributi.
 - `cleanup_registry`: registro LIFO di callback e path da ripulire in teardown.
 
+Contiene anche l'hook `pytest_collection_modifyitems`, che salta i test `async_real` quando lo stack non è avviato con `rapydo --testing` (vedi sotto).
+
 ### Fixture di integrazione
 
 `projects/mistral/backend/tests/integration/conftest.py` espone fixture usate da molti test API:
@@ -107,13 +109,31 @@ Alcuni task sono globali per progetto: `automatic_cleanup` visita tutte le reque
 
 Il perimetro lascia reali codice del task e scritture ORM, ma rifiuta con errore gli accessi al database che non sa restringere. I test `async_real`, eseguiti da worker separati, non possono essere confinati così: richiedono uno stack di test dedicato.
 
+Lo stesso vale per i servizi reali raggiunti dagli endpoint. `POST /schedules` crea un task RedBeat e, con `on-data-ready`, invia subito un `data_extract` al broker. Il task RedBeat viene rimosso solo da `DELETE /schedules` eseguito con il Celery reale: cancellare l'utente o la riga `schedules` non basta, e il task continua a lanciare estrazioni.
+
+- Per neutralizzare un servizio, sostituisci il nome importato dal modulo endpoint o task, per esempio `monkeypatch.setattr(schedules_endpoint, "celery", ...)`. Non patchare il connettore condiviso: `cleanup_registry` gira prima che `monkeypatch` venga annullato, quindi anche le cancellazioni del cleanup finirebbero sul fake. Esempi: `integration/data_ready/conftest.py` e `integration/schedules/test_schedule_validation_EXT.py`.
+- I test di validazione non devono raggiungere un servizio reale se la validazione viene superata per errore: devono fallire con `pytest.fail`. Un `AssertionError` sollevato dentro l'endpoint verrebbe convertito in HTTP 400.
+- Non modificare dataset, licenze o gruppi reali: per ottenere un 401 o un caso privato crea dataset sintetici con `helpers/datasets.py`.
+
+### Test con worker reali (`async_real`)
+
+Nei test `async_real` i task girano sui worker Celery reali, dove `monkeypatch` non arriva: tutto quello che il task fa avviene davvero. Per restare nel proprio perimetro:
+
+- girano solo sugli stack avviati con `rapydo --testing`, come in CI: solo lì i worker hanno `APP_MODE=test` e usano il mock SMTP. Altrove `tests/conftest.py` li salta, perché un'estrazione fallita invierebbe email vere, compresi i report di errore all'amministratore. Il processo dei test non vede l'ambiente dei worker: il controllo (`workers_use_smtp_mock`) usa le variabili `PYTHONMALLOC=debug`, `PYTHONASYNCIODEBUG=1` e `PYTHONFAULTHANDLER=1`, che `rapydo --testing` imposta nel container backend;
+- crea gli utenti con `create_data_ready_user`: disattiva le email di successo e usa un indirizzo `@example.invalid`, mai consegnato. Altrimenti `BaseTests` sceglierebbe a caso il flag e un indirizzo Faker, spesso su domini reali. Per verificare un'email inviata da un worker usa `wait_for_mock_email`, che la legge dai file del mock in `/logs`;
+- registra `register_wait_for_user_requests` (`helpers/real_workers.py`) dopo il cleanup dell'utente. Il cleanup aspetta che le request dell'utente siano chiuse e che nessun worker abbia in coda o in esecuzione un suo `data_extract`. Se i worker sono troppo lenti, revoca i task dell'utente (SIGKILL per quelli in esecuzione) e cancella le request aperte solo dopo la conferma dei worker. Senza conferma fallisce e non cancella nulla;
+- per le schedule controlla la voce RedBeat con `read_periodic_task` e cancellale con la `DELETE` reale;
+- scrivi l'output nella cartella dell'utente (`opendata=False`) quando il test non riguarda opendata.
+
+Eseguili solo su uno stack di test dedicato: i worker eseguono anche i task di altri utenti.
+
 ### Marker e parametrizzazione
 
 La suite rifattorizzata espone ora questi marker:
 
 - `integration`: tutti i test veri della suite nuova sotto `integration/`.
 - `deterministic`: il controllo del flusso resta nel runtime del test e non aspetta latenze reali di beat, broker o worker.
-- `async_real`: il test aspetta davvero la catena asincrona `celerybeat -> broker -> worker`.
+- `async_real`: il test aspetta davvero la catena asincrona `celerybeat -> broker -> worker`. Gira solo sugli stack `rapydo --testing`; altrove viene saltato.
 - `runtime_sensitive`: il contratto e stabile, ma dipende anche dallo stato del runtime, dai dataset presenti o da servizi infrastrutturali vivi.
 
 Mappa pratica attuale:
@@ -122,6 +142,8 @@ Mappa pratica attuale:
 - `dataset`, `data_ready`, `observed`, `opendata`, `postprocessing`: `integration`, `deterministic`, `runtime_sensitive`.
 - `integration/schedules/test_schedule_opendata_bridge.py::test_on_data_ready_schedule_publishes_opendata_package`: `integration`, `deterministic`, `runtime_sensitive`.
 - `integration/schedules/test_schedule_opendata_bridge.py::test_crontab_schedule_publishes_opendata_package`: `integration`, `async_real`, `runtime_sensitive`.
+- `integration/data/test_data_extraction_real_worker.py` e `integration/schedules/test_schedule_on_data_ready_real_worker.py`: `integration`, `async_real`, `runtime_sensitive`.
+- `integration/data/test_real_worker_cleanup.py`: `integration`, `deterministic`; simula i worker e non richiede uno stack `--testing`.
 
 L'aggiunta dei marker non cambia da sola il comportamento della CI attuale: il workflow backend continua a eseguire l'intera suite finche non usa esplicitamente selezioni `-m`.
 
@@ -138,7 +160,7 @@ Qui stanno solo i pezzi che devono essere visibili ovunque e la documentazione l
 - `README.md`: manuale pratico della cartella `tests`.
 - `docs/`: guida finale, matrice `legacy -> nuova suite` e piano storico del refactor.
 - `__init__.py`: marca la cartella come package Python della suite custom.
-- `conftest.py`: definisce le fixture globali e registra il marker `integration`.
+- `conftest.py`: definisce le fixture globali, registra i marker e salta i test `async_real` fuori dagli stack `rapydo --testing`.
 - `helpers/`: helper riusabili e infrastruttura condivisa.
 - `integration/`: test reali organizzati per dominio.
 - `test_arpaesimc.sh`: smoke script shell per verificare la presenza dei tool meteo di base (`arki-query`, `dballe`, `vg6d_transform`, `v7d_transform`, `dbadb`).
@@ -185,12 +207,16 @@ Esempi pratici consigliati:
 ```
 
 ```bash
-.mhub-venv/bin/rapydo shell backend 'pytest tests/custom -m "integration and not async_real" -q -rs'
+.mhub-venv/bin/rapydo shell backend "env PYTEST_ADDOPTS='-m \"integration and not async_real\" -rs' restapi tests --folder custom"
 ```
 
 ```bash
-.mhub-venv/bin/rapydo shell backend 'pytest tests/custom -m "async_real" -q -rs'
+.mhub-venv/bin/rapydo shell backend "env PYTEST_ADDOPTS='-m async_real -rs' restapi tests --wait --folder custom"
 ```
+
+L'ultimo comando esegue davvero i test `async_real` solo su uno stack avviato con `rapydo --testing`, per esempio con `rapydo --testing init` seguito da `rapydo start`, come nella CI. Su uno stack `development` i test risultano `SKIPPED`, con il motivo indicato da `-rs`.
+
+Per selezionare i marker passa `-m` tramite `PYTEST_ADDOPTS` e lancia sempre `restapi tests`, non `pytest` direttamente. Solo `restapi tests` imposta `APP_MODE=test`, che nel processo dei test sostituisce l'SMTP reale con il mock. Con `pytest` diretto, su uno stack `development` partirebbero email reali: per esempio `data_extract` eseguito in-process scrive agli utenti di test, e `/data/ready` avvisa un indirizzo di supporto reale se non riesce ad accodare il launcher.
 
 Regola pratica:
 
@@ -218,7 +244,7 @@ Linee guida operative:
 - `README.md`: manuale pratico della suite custom backend.
 - `docs/`: documentazione mantenuta della suite.
 - `__init__.py`: marca la cartella come package Python della suite custom.
-- `conftest.py`: definisce le fixture globali e registra il marker `integration`.
+- `conftest.py`: definisce le fixture globali, registra i marker e salta i test `async_real` fuori dagli stack `rapydo --testing`.
 - `helpers/`: infrastruttura e helper condivisi tra domini.
 - `integration/`: test reali organizzati per dominio funzionale.
 - `test_arpaesimc.sh`: smoke script shell per i tool meteo di base.
@@ -226,16 +252,18 @@ Linee guida operative:
 ### Helpers condivisi
 
 - `helpers/__init__.py`: marca la cartella dei helper riusabili.
-- `helpers/auth.py`: crea utenti temporanei autenticati, compone header auth e centralizza il cleanup condiviso degli utenti di test.
+- `helpers/auth.py`: crea utenti temporanei autenticati (anche con grant dataset espliciti tramite `create_dataset_test_user`), compone header auth e centralizza il cleanup condiviso degli utenti di test.
 - `helpers/celery_fakes.py`: espone finti wrapper Celery per tenere alcuni test completamente locali o inline senza dipendere dal broker reale.
 - `helpers/cleanup.py`: implementa il registro di cleanup LIFO per callback e percorsi filesystem.
 - `helpers/data_ready.py`: contiene l'infrastruttura condivisa del cluster `data_ready/schedules`, inclusi helper per utenti dedicati, payload `/data/ready`, creazione schedule, polling delle richieste schedule e cleanup collegati.
-- `helpers/datasets.py`: crea bundle dataset sintetici pubblici o privati con license, group license, attribution e teardown completo.
+- `helpers/datasets.py`: crea bundle dataset sintetici pubblici o privati con license, group license, attribution e teardown completo; `create_private_test_network` aggiunge una rete sintetica che punta a un dataset privato per i 401 network authorization; `require_dataset` salta il test se un dataset reale (per nome o `arkimet_id`) non e presente.
 - `helpers/dataset_window.py`: legge `/fields` e normalizza finestra temporale e filtri run di un dataset.
+- `helpers/observed_windows.py`: costanti e helper condivisi tra `integration/fields` e `integration/observed` (finestre dati observed dballe/arkimet, `api_url`, `parse_response`, override `BeDballe.LASTDAYS` tramite `dballe_window_override`, utente agrmet `require_observed_dataset_user`, probe `require_dballe_product`).
 - `helpers/polling.py`: utility generica `wait_until` per attese osservabili.
 - `helpers/runtime.py`: contiene `TestRuntime`, cioe il runtime condiviso di sessione per cache e override temporanei.
 - `helpers/schedules.py`: costruisce payload JSON per schedule on-data-ready, crontab e periodiche condivisi tra `integration/data_ready/` e `integration/schedules/`.
 - `helpers/task_perimeter.py`: confina i task globali `automatic_cleanup` e `launch_all_on_data_ready_extractions` alle sole righe e ai soli file del test che li esegue.
+- `helpers/real_workers.py`: supporto dei test `async_real`: controllo dello stack `rapydo --testing`, attesa della fine delle request eseguite dai worker reali, cleanup che ferma i task dell'utente prima di cancellare, lettura delle email del mock SMTP e della voce RedBeat di una schedule.
 
 ### Template di riferimento
 
@@ -260,10 +288,12 @@ Linee guida operative:
 ### Dominio `data`
 
 - `integration/data/test_data_endpoint_auth.py`: verifica regole di autenticazione e autorizzazione sull'endpoint dati.
+- `integration/data/test_data_extraction_real_worker.py` (`async_real`): verifica con un worker reale tre casi di `POST /data`: estrazione riuscita e scaricabile; estrazione fallita, con email di esito registrata dal mock SMTP; cleanup scaduto che revoca il task ancora in coda prima di cancellare la request.
+- `integration/data/test_real_worker_cleanup.py`: verifica in modo deterministico, con worker simulati, che il cleanup dei test `async_real` aspetti i task in coda, fermi solo quelli dell'utente di test e non cancelli nulla senza la conferma dei worker.
 
 ### Dominio `data_ready`
 
-- `integration/data_ready/conftest.py`: prepara fixture locali per data-ready, inclusi override dei dataset abilitati, base test, header admin, accesso al DB e utente dedicato.
+- `integration/data_ready/conftest.py`: prepara fixture locali per data-ready, inclusi override dei dataset abilitati, base test, header admin, accesso al DB e utente dedicato. Nel solo modulo endpoint `/schedules` sostituisce Celery e la creazione dei task RedBeat, così le schedule di test non inviano `data_extract` reali e non lasciano task periodici.
 - `integration/data_ready/test_base_cases.py`: copre accettazione base di `/data/ready`, dataset non abilitati e schedule da ignorare per flag o inattivita.
 - `integration/data_ready/test_crontab.py`: verifica che una schedule on-data-ready non parta quando il crontab non combacia.
 - `integration/data_ready/test_periodic.py`: verifica la logica periodica, cioe quando una nuova richiesta deve o non deve essere rigenerata in base al tempo trascorso.
@@ -308,7 +338,8 @@ Linee guida operative:
 ### Dominio `schedules`
 
 - `integration/schedules/conftest.py`: prepara fixture locali per i test schedule che fanno ponte con il data-ready e l'opendata.
-- `integration/schedules/test_schedule_opendata_bridge.py`: verifica il flusso completo in cui una schedule on-data-ready genera una richiesta, pubblica un package opendata e rende quel file scaricabile.
+- `integration/schedules/test_schedule_opendata_bridge.py`: verifica il flusso completo in cui una schedule on-data-ready genera una richiesta, pubblica un package opendata e rende quel file scaricabile. Il test crontab (`async_real`) verifica anche che la voce RedBeat venga creata e rimossa dalla `DELETE` reale.
+- `integration/schedules/test_schedule_on_data_ready_real_worker.py` (`async_real`): verifica che il primo `data_extract` di una schedule on-data-ready venga eseguito da un worker reale e che la schedule non lasci voci RedBeat.
 
 ## In sintesi
 
